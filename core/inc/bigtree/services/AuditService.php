@@ -5,6 +5,7 @@
 	use BigTree\Api\Request;
 	use BigTree\Api\Response;
 	use BigTree;
+	use BigTreeCMS;
 	use SQL;
 
 	/**
@@ -62,16 +63,30 @@
 			$total = (int)SQL::fetchSingle(...array_merge(["SELECT COUNT(*) FROM bigtree_audit_trail a" . $sql_where], $args));
 
 			$select = $include_context
-				? "SELECT a.*, c.ip, c.user_agent, c.request_id, c.method, c.path FROM bigtree_audit_trail a LEFT JOIN bigtree_audit_trail_context c ON c.audit_id = a.id"
-				: "SELECT a.* FROM bigtree_audit_trail a";
+				? "SELECT a.*, u.name AS user_name, u.email AS user_email, c.ip, c.user_agent, c.request_id, c.method, c.path FROM bigtree_audit_trail a LEFT JOIN bigtree_users u ON u.id = a.user LEFT JOIN bigtree_audit_trail_context c ON c.audit_id = a.id"
+				: "SELECT a.*, u.name AS user_name, u.email AS user_email FROM bigtree_audit_trail a LEFT JOIN bigtree_users u ON u.id = a.user";
 
 			$query = $select . $sql_where . " ORDER BY a.date DESC, a.id DESC LIMIT " . (int)$p["limit"] . " OFFSET " . (int)$p["offset"];
 			$rows = SQL::fetchAll(...array_merge([$query], $args));
 
-			$items = array_map(function ($r) use ($include_context) {
+			// Actors whose account was deleted no longer join to bigtree_users;
+			// fall back to the cached name/email captured at deletion time.
+			$deleted_users = BigTreeCMS::getSetting("bigtree-internal-deleted-users") ?: [];
+
+			$items = array_map(function ($r) use ($include_context, $deleted_users) {
+				$user_name = $r["user_name"];
+				$user_email = $r["user_email"];
+
+				if ($user_name === null && isset($deleted_users[$r["user"]])) {
+					$user_name = ($deleted_users[$r["user"]]["name"] ?? "") . " (deleted)";
+					$user_email = $deleted_users[$r["user"]]["email"] ?? null;
+				}
+
 				$out = [
 					"id" => (int)$r["id"],
 					"user" => (int)$r["user"],
+					"user_name" => $user_name,
+					"user_email" => $user_email,
 					"table" => $r["table"],
 					"entry" => $r["entry"],
 					"type" => $r["type"],

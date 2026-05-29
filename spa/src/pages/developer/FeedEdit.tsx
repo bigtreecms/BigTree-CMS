@@ -1,0 +1,272 @@
+import { useEffect, useState } from "react";
+import { Link, Navigate, useNavigate, useParams } from "react-router-dom";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { ChevronLeft, Save } from "lucide-react";
+
+import { Breadcrumb } from "@/components/shell/Breadcrumb";
+import { PageHead } from "@/components/shell/PageHead";
+import { ErrorPanel } from "@/components/ui/ErrorPanel";
+
+import { DeveloperSectionNav } from "@/components/developer/DeveloperSectionNav";
+import { ResourceDesigner, type ResourceEntry } from "@/components/developer/ResourceDesigner";
+
+import { feedsApi, type FeedEditBody } from "@/api/endpoints/feeds";
+import type { ModuleFormField } from "@/api/endpoints/modules";
+
+import { ApiError } from "@/types/api";
+import { toast } from "@/lib/toast";
+
+import { TextField } from "./TemplateEdit";
+
+export const FeedEdit = () => {
+	const { id: idParam } = useParams<{ id: string }>();
+	const isAdd = !idParam;
+	const navigate = useNavigate();
+	const queryClient = useQueryClient();
+
+	const detailQ = useQuery({
+		queryKey: ["feeds", "detail", idParam],
+		queryFn: () => feedsApi.get(idParam as string),
+		enabled: !isAdd,
+	});
+
+	const [body, setBody] = useState<FeedEditBody>(() =>
+		isAdd
+			? {
+					id: "",
+					name: "",
+					description: "",
+					table: "",
+					type: "rss",
+					settings: {},
+					fields: [],
+				}
+			: {}
+	);
+	const [settingsDraft, setSettingsDraft] = useState(() => safeStringify(body.settings));
+	const [settingsError, setSettingsError] = useState<string | null>(null);
+	const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+	const [generalError, setGeneralError] = useState<string | null>(null);
+
+	useEffect(() => {
+		if (!isAdd && detailQ.data) {
+			const next: FeedEditBody = {
+				id: detailQ.data.id,
+				name: detailQ.data.name,
+				description: detailQ.data.description,
+				table: detailQ.data.table,
+				type: detailQ.data.type,
+				settings: detailQ.data.settings,
+				fields: detailQ.data.fields,
+			};
+			setBody(next);
+			setSettingsDraft(safeStringify(next.settings));
+			setSettingsError(null);
+		}
+	}, [isAdd, detailQ.data]);
+
+	const saveMutation = useMutation({
+		mutationFn: (next: FeedEditBody) =>
+			isAdd ? feedsApi.create(next) : feedsApi.update(idParam as string, next),
+		onSuccess: (fresh) => {
+			queryClient.invalidateQueries({ queryKey: ["feeds"] });
+			toast.success(isAdd ? "Feed created" : "Feed saved");
+
+			if (isAdd) {
+				navigate(`/developer/feeds/${encodeURIComponent(fresh.id)}/edit`, {
+					replace: true,
+				});
+			}
+		},
+		onError: (err) => {
+			if (err instanceof ApiError) {
+				const fe = err.fieldErrors();
+
+				if (Object.keys(fe).length > 0) {
+					setFieldErrors(fe);
+				}
+
+				setGeneralError(err.message);
+			} else {
+				setGeneralError(err instanceof Error ? err.message : "Save failed");
+			}
+		},
+	});
+
+	if (!isAdd && !idParam) {
+		return <Navigate to="/developer/feeds" replace />;
+	}
+
+	if (!isAdd && detailQ.isLoading) {
+		return (
+			<div className="mx-auto max-w-screen-lg px-6 py-4">
+				<div className="rounded-xl border border-border bg-surface p-9 text-center text-[13px] text-text-3">
+					Loading…
+				</div>
+			</div>
+		);
+	}
+
+	if (!isAdd && detailQ.error) {
+		return (
+			<div className="mx-auto max-w-screen-lg px-6 py-4">
+				<ErrorPanel error={detailQ.error} />
+			</div>
+		);
+	}
+
+	const set = (patch: Partial<FeedEditBody>) => setBody((prev) => ({ ...prev, ...patch }));
+
+	const commitSettings = () => {
+		try {
+			const parsed = settingsDraft.trim() === "" ? {} : JSON.parse(settingsDraft);
+
+			if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+				setSettingsError(null);
+				set({ settings: parsed });
+			} else {
+				setSettingsError("Settings must be a JSON object.");
+			}
+		} catch (err) {
+			setSettingsError(err instanceof Error ? err.message : "Invalid JSON");
+		}
+	};
+
+	const title = isAdd ? "Add feed" : body.name || idParam || "Edit feed";
+
+	return (
+		<div className="mx-auto max-w-screen-lg px-6 py-4">
+			<Breadcrumb
+				items={[
+					{ label: "Developer", to: "/developer" },
+					{ label: "Feeds", to: "/developer/feeds" },
+					{ label: isAdd ? "Add" : "Edit" },
+				]}
+			/>
+
+			<PageHead
+				title={title}
+				actions={
+					<Link
+						to="/developer/feeds"
+						className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] hover:bg-hover"
+					>
+						<ChevronLeft size={13} />
+						Back
+					</Link>
+				}
+			/>
+
+			<DeveloperSectionNav />
+
+			{generalError && (
+				<div className="mb-3 rounded-md border border-danger/40 bg-danger/5 px-3 py-2 text-[12.5px] text-danger">
+					{generalError}
+				</div>
+			)}
+
+			<form
+				onSubmit={(e) => {
+					e.preventDefault();
+					saveMutation.mutate(body);
+				}}
+				className="space-y-4 rounded-xl border border-border bg-surface p-4"
+			>
+				<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+					<TextField
+						label="ID / route"
+						value={body.id ?? ""}
+						onChange={(v) => set({ id: v })}
+						hint="Becomes the public path under /feeds/{id}/."
+						error={fieldErrors.id}
+						disabled={!isAdd}
+						required
+					/>
+					<TextField
+						label="Name"
+						value={body.name ?? ""}
+						onChange={(v) => set({ name: v })}
+						error={fieldErrors.name}
+						required
+					/>
+					<TextField
+						label="Source table"
+						value={body.table ?? ""}
+						onChange={(v) => set({ table: v })}
+						hint="Database table the feed pulls rows from."
+					/>
+					<TextField
+						label="Type"
+						value={body.type ?? ""}
+						onChange={(v) => set({ type: v })}
+						hint="e.g. rss, json, sitemap"
+					/>
+				</div>
+
+				<TextField
+					label="Description"
+					value={body.description ?? ""}
+					onChange={(v) => set({ description: v })}
+				/>
+
+				<label className="block">
+					<span className="mb-1 block text-[12px] font-medium text-text-2">
+						Feed settings <span className="text-text-3">(JSON)</span>
+					</span>
+					<textarea
+						rows={6}
+						className="w-full rounded-md border border-border bg-surface px-3 py-2 font-mono text-[11.5px] leading-relaxed focus:outline-none focus:ring-1 focus:ring-accent-ring"
+						value={settingsDraft}
+						onChange={(e) => setSettingsDraft(e.target.value)}
+						onBlur={commitSettings}
+						spellCheck={false}
+					/>
+					{settingsError && (
+						<div className="mt-1 text-[11.5px] text-danger">{settingsError}</div>
+					)}
+				</label>
+
+				<div>
+					<div className="mb-2 text-[12px] font-semibold uppercase tracking-[0.06em] text-text-3">
+						Output fields
+					</div>
+					<ResourceDesigner
+						resources={(body.fields ?? []) as unknown as ResourceEntry[]}
+						onChange={(next) => set({ fields: next as unknown as ModuleFormField[] })}
+						keyField="column"
+						useCase="feeds"
+					/>
+				</div>
+
+				<div className="flex justify-end gap-2 border-t border-border pt-3">
+					<Link
+						to="/developer/feeds"
+						className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] text-text-2 hover:bg-hover"
+					>
+						Cancel
+					</Link>
+					<button
+						type="submit"
+						className="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-[12.5px] font-medium text-accent-fg disabled:opacity-50 hover:bg-accent-hover"
+						disabled={saveMutation.isPending}
+					>
+						<Save size={13} />
+						{saveMutation.isPending ? "Saving…" : isAdd ? "Create feed" : "Save feed"}
+					</button>
+				</div>
+			</form>
+		</div>
+	);
+};
+
+const safeStringify = (value: unknown): string => {
+	if (value === undefined || value === null) {
+		return "{}";
+	}
+
+	try {
+		return JSON.stringify(value, null, 2);
+	} catch {
+		return "{}";
+	}
+};

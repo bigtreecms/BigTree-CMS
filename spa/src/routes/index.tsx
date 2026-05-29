@@ -1,18 +1,60 @@
 import { Navigate, Outlet, createBrowserRouter } from "react-router-dom";
 
+import { CalloutEdit } from "@/pages/developer/CalloutEdit";
+import { CalloutGroupEdit } from "@/pages/developer/CalloutGroupEdit";
+import { CalloutGroups } from "@/pages/developer/CalloutGroups";
+import { Callouts } from "@/pages/developer/Callouts";
+import { ConfigureAnalytics } from "@/pages/developer/configure/ConfigureAnalytics";
+import { ConfigureCloudStorage } from "@/pages/developer/configure/ConfigureCloudStorage";
+import { ConfigureEmail } from "@/pages/developer/configure/ConfigureEmail";
+import { ConfigureFileMetadata } from "@/pages/developer/configure/ConfigureFileMetadata";
+import { ConfigureGeocoding } from "@/pages/developer/configure/ConfigureGeocoding";
+import { ConfigureIndex } from "@/pages/developer/configure/ConfigureIndex";
+import { ConfigureMediaPresets } from "@/pages/developer/configure/ConfigureMediaPresets";
+import { ConfigurePaymentGateway } from "@/pages/developer/configure/ConfigurePaymentGateway";
+import { ConfigureServices } from "@/pages/developer/configure/ConfigureServices";
 import { Dashboard } from "@/pages/Dashboard";
+import { EmbedForm } from "@/pages/EmbedForm";
+import { Backups } from "@/pages/developer/Backups";
+import { DebugAudit } from "@/pages/developer/debug/DebugAudit";
+import { DebugEmulator } from "@/pages/developer/debug/DebugEmulator";
+import { DebugIndex } from "@/pages/developer/debug/DebugIndex";
+import { DebugSecurity } from "@/pages/developer/debug/DebugSecurity";
+import { DebugStatus } from "@/pages/developer/debug/DebugStatus";
+import { DebugUpgrade } from "@/pages/developer/debug/DebugUpgrade";
+import { Developer } from "@/pages/developer/Developer";
+import { DeveloperSettings } from "@/pages/developer/DeveloperSettings";
+import { Extensions } from "@/pages/developer/Extensions";
+import { FeedEdit } from "@/pages/developer/FeedEdit";
+import { Feeds } from "@/pages/developer/Feeds";
+import { FieldTypeEdit } from "@/pages/developer/FieldTypeEdit";
+import { FieldTypes } from "@/pages/developer/FieldTypes";
 import { Files } from "@/pages/Files";
+import { FourOhFours } from "@/pages/FourOhFours";
 import { Login } from "@/pages/Login";
+import { MessageThread } from "@/pages/MessageThread";
+import { Messages } from "@/pages/Messages";
+import { ModuleDesigner } from "@/pages/developer/ModuleDesigner";
+import { ModuleDesignerEdit } from "@/pages/developer/ModuleDesignerEdit";
+import { ModuleGroupEdit } from "@/pages/developer/ModuleGroupEdit";
+import { ModuleGroups } from "@/pages/developer/ModuleGroups";
+import { SettingAdd } from "@/pages/developer/SettingAdd";
+import { TemplateEdit } from "@/pages/developer/TemplateEdit";
+import { Templates } from "@/pages/developer/Templates";
 import { ModuleEntry } from "@/pages/ModuleEntry";
 import { ModuleEntryAdd } from "@/pages/ModuleEntryAdd";
 import { ModuleEntryEdit } from "@/pages/ModuleEntryEdit";
+import { ModuleReport } from "@/pages/ModuleReport";
 import { Modules } from "@/pages/Modules";
 import { ModuleView } from "@/pages/ModuleView";
 import { PageAdd } from "@/pages/PageAdd";
 import { PageEdit } from "@/pages/PageEdit";
 import { PageRevisions } from "@/pages/PageRevisions";
 import { Pages } from "@/pages/Pages";
-import { Placeholder } from "@/pages/Placeholder";
+import { PendingChangeDetail } from "@/pages/PendingChangeDetail";
+import { SettingEdit } from "@/pages/SettingEdit";
+import { Settings } from "@/pages/Settings";
+import { SiteIntegrity } from "@/pages/SiteIntegrity";
 import { Profile } from "@/pages/Profile";
 import { TagMerge } from "@/pages/TagMerge";
 import { Tags } from "@/pages/Tags";
@@ -31,9 +73,7 @@ import { LEVEL } from "@/lib/permissions";
  *   and then <Shell /> (TopBar + TabNav + active page).
  *
  *   Each top-level section is its own subtree with nested children for
- *   drill-downs (e.g. /pages, /pages/:parentId, /pages/:id/edit). Phase 0
- *   only sets up the skeleton — most leaf routes are still <Placeholder />
- *   and are replaced as later phases land.
+ *   drill-downs (e.g. /pages, /pages/:parentId, /pages/:id/edit).
  *
  *   The basename is /admin/spa in production so we live under the existing
  *   PHP admin URL space. In dev (Vite at :5173) the basename is "/".
@@ -41,6 +81,7 @@ import { LEVEL } from "@/lib/permissions";
 export const router = createBrowserRouter(
 	[
 		{ path: "/login", element: <Login /> },
+		{ path: "/embed/:hash", element: <EmbedForm /> },
 		{
 			element: <ProtectedRoute />,
 			children: [
@@ -90,7 +131,7 @@ export const router = createBrowserRouter(
 								},
 								{
 									path: ":id/report/:sid",
-									element: <Placeholder title="Module report" />,
+									element: <ModuleReport />,
 								},
 							],
 						},
@@ -116,11 +157,8 @@ export const router = createBrowserRouter(
 						{
 							path: "settings",
 							children: [
-								{ index: true, element: <Placeholder title="Settings" /> },
-								{
-									path: ":id/edit",
-									element: <Placeholder title="Edit setting" />,
-								},
+								{ index: true, element: <Settings /> },
+								{ path: ":id/edit", element: <SettingEdit /> },
 							],
 						},
 
@@ -135,25 +173,22 @@ export const router = createBrowserRouter(
 						{
 							path: "messages",
 							children: [
-								{ index: true, element: <Placeholder title="Messages" /> },
-								{ path: "sent", element: <Placeholder title="Sent messages" /> },
-								{ path: ":id", element: <Placeholder title="Message" /> },
+								{ index: true, element: <Messages /> },
+								{ path: "sent", element: <Messages /> },
+								{ path: ":id", element: <MessageThread /> },
 							],
 						},
 
 						{
 							path: "pending-changes/:id",
-							element: <Placeholder title="Pending change" />,
+							element: <PendingChangeDetail />,
 						},
 
 						{
 							path: "system",
 							children: [
-								{ path: "404s", element: <Placeholder title="404 manager" /> },
-								{
-									path: "integrity",
-									element: <Placeholder title="Site integrity" />,
-								},
+								{ path: "404s", element: <FourOhFours /> },
+								{ path: "integrity", element: <SiteIntegrity /> },
 							],
 						},
 
@@ -165,126 +200,114 @@ export const router = createBrowserRouter(
 								</RequireLevel>
 							),
 							children: [
-								{ index: true, element: <Placeholder title="Developer" /> },
+								{ index: true, element: <Developer /> },
 								{
 									path: "templates",
 									children: [
-										{
-											index: true,
-											element: <Placeholder title="Templates" />,
-										},
-										{
-											path: "add",
-											element: <Placeholder title="Add template" />,
-										},
-										{
-											path: ":id/edit",
-											element: <Placeholder title="Edit template" />,
-										},
+										{ index: true, element: <Templates /> },
+										{ path: "add", element: <TemplateEdit /> },
+										{ path: ":id/edit", element: <TemplateEdit /> },
 									],
 								},
 								{
 									path: "callouts",
 									children: [
-										{ index: true, element: <Placeholder title="Callouts" /> },
-										{
-											path: "add",
-											element: <Placeholder title="Add callout" />,
-										},
-										{
-											path: ":id/edit",
-											element: <Placeholder title="Edit callout" />,
-										},
+										{ index: true, element: <Callouts /> },
+										{ path: "add", element: <CalloutEdit /> },
+										{ path: ":id/edit", element: <CalloutEdit /> },
 									],
 								},
 								{
 									path: "callout-groups",
-									element: <Placeholder title="Callout groups" />,
+									children: [
+										{ index: true, element: <CalloutGroups /> },
+										{ path: "add", element: <CalloutGroupEdit /> },
+										{ path: ":id/edit", element: <CalloutGroupEdit /> },
+									],
 								},
 								{
 									path: "field-types",
 									children: [
-										{
-											index: true,
-											element: <Placeholder title="Field types" />,
-										},
-										{
-											path: "add",
-											element: <Placeholder title="Add field type" />,
-										},
-										{
-											path: ":id/edit",
-											element: <Placeholder title="Edit field type" />,
-										},
+										{ index: true, element: <FieldTypes /> },
+										{ path: "add", element: <FieldTypeEdit /> },
+										{ path: ":id/edit", element: <FieldTypeEdit /> },
 									],
 								},
 								{
 									path: "feeds",
 									children: [
-										{ index: true, element: <Placeholder title="Feeds" /> },
-										{
-											path: "add",
-											element: <Placeholder title="Add feed" />,
-										},
-										{
-											path: ":id/edit",
-											element: <Placeholder title="Edit feed" />,
-										},
+										{ index: true, element: <Feeds /> },
+										{ path: "add", element: <FeedEdit /> },
+										{ path: ":id/edit", element: <FeedEdit /> },
 									],
 								},
 								{
 									path: "settings",
 									children: [
-										{
-											index: true,
-											element: <Placeholder title="Settings (admin)" />,
-										},
-										{
-											path: "add",
-											element: <Placeholder title="Add setting" />,
-										},
-										{
-											path: ":id/edit",
-											element: <Placeholder title="Edit setting" />,
-										},
+										{ index: true, element: <DeveloperSettings /> },
+										{ path: "add", element: <SettingAdd /> },
 									],
 								},
 								{
 									path: "modules",
 									children: [
-										{
-											index: true,
-											element: <Placeholder title="Module designer" />,
-										},
-										{
-											path: "add",
-											element: <Placeholder title="New module" />,
-										},
-										{
-											path: ":id",
-											element: <Placeholder title="Edit module" />,
-										},
+										{ index: true, element: <ModuleDesigner /> },
+										{ path: "add", element: <ModuleDesignerEdit /> },
+										{ path: ":id", element: <ModuleDesignerEdit /> },
 									],
 								},
 								{
 									path: "module-groups",
-									element: <Placeholder title="Module groups" />,
+									children: [
+										{ index: true, element: <ModuleGroups /> },
+										{ path: "add", element: <ModuleGroupEdit /> },
+										{ path: ":id/edit", element: <ModuleGroupEdit /> },
+									],
 								},
 								{
-									path: "configure/:area",
-									element: <Placeholder title="Configure" />,
+									path: "configure",
+									children: [
+										{ index: true, element: <ConfigureIndex /> },
+										{ path: "email", element: <ConfigureEmail /> },
+										{ path: "geocoding", element: <ConfigureGeocoding /> },
+										{
+											path: "cloud-storage",
+											element: <ConfigureCloudStorage />,
+										},
+										{
+											path: "payment-gateway",
+											element: <ConfigurePaymentGateway />,
+										},
+										{ path: "analytics", element: <ConfigureAnalytics /> },
+										{ path: "services", element: <ConfigureServices /> },
+										{
+											path: "media-presets",
+											element: <ConfigureMediaPresets />,
+										},
+										{
+											path: "file-metadata",
+											element: <ConfigureFileMetadata />,
+										},
+									],
 								},
 								{
-									path: "debug/:area",
-									element: <Placeholder title="Debug" />,
+									path: "debug",
+									children: [
+										{ index: true, element: <DebugIndex /> },
+										{ path: "status", element: <DebugStatus /> },
+										{ path: "security", element: <DebugSecurity /> },
+										{ path: "audit", element: <DebugAudit /> },
+										{ path: "emulator", element: <DebugEmulator /> },
+										{ path: "upgrade", element: <DebugUpgrade /> },
+									],
 								},
 								{
 									path: "extensions",
-									element: <Placeholder title="Extensions" />,
+									element: <Extensions />,
 								},
 								{
 									path: "backups",
-									element: <Placeholder title="Backups" />,
+									element: <Backups />,
 								},
 							],
 						},

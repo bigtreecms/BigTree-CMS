@@ -1,9 +1,11 @@
-import { Outlet } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { TopBar } from "./TopBar";
 import { TabNav } from "./TabNav";
+import { EmulationBanner } from "./EmulationBanner";
 import { QuickSearch } from "./QuickSearch";
 import { Toaster } from "@/components/ui/Toaster";
+import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
 import { applyTheme, resolveInitialTheme } from "@/lib/theme";
 
 /**
@@ -14,6 +16,7 @@ import { applyTheme, resolveInitialTheme } from "@/lib/theme";
 export const Shell = () => {
 	const [dark, setDark] = useState(() => resolveInitialTheme() === "dark");
 	const [searchOpen, setSearchOpen] = useState(false);
+	const { pathname } = useLocation();
 
 	useEffect(() => {
 		applyTheme(dark ? "dark" : "light");
@@ -39,8 +42,11 @@ export const Shell = () => {
 				onOpenSearch={() => setSearchOpen(true)}
 			/>
 			<TabNav />
+			<EmulationBanner />
 			<main className="flex-1">
-				<Outlet />
+				<ErrorBoundary resetKey={pathname}>
+					<Outlet />
+				</ErrorBoundary>
 			</main>
 
 			<QuickSearch open={searchOpen} onClose={() => setSearchOpen(false)} />

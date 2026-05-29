@@ -30,12 +30,45 @@ export interface CalloutGroup {
 	callouts?: string[];
 }
 
+export interface CalloutEditBody {
+	id?: string;
+	name?: string;
+	description?: string;
+	level?: number;
+	display_field?: string;
+	display_default?: string;
+	resources?: ModuleFormField[];
+}
+
+export interface CalloutGroupEditBody {
+	id?: string;
+	name?: string;
+	callouts?: string[];
+}
+
 export const calloutsApi = {
 	list: () => api.get<CalloutSummary[]>("/callouts"),
 
 	get: (id: string) => api.get<CalloutSummary>(`/callouts/${encodeURIComponent(id)}`),
 
+	create: (body: CalloutEditBody) => api.post<CalloutSummary>("/callouts", body),
+
+	update: (id: string, body: CalloutEditBody) =>
+		api.patch<CalloutSummary>(`/callouts/${encodeURIComponent(id)}`, body),
+
+	delete: (id: string) => api.delete<void>(`/callouts/${encodeURIComponent(id)}`),
+
+	reorder: (ids: string[]) => api.post<void>("/callouts/reorder", { ids }),
+
 	listGroups: () => api.get<CalloutGroup[]>("/callout-groups"),
 
 	getGroup: (id: string) => api.get<CalloutGroup>(`/callout-groups/${encodeURIComponent(id)}`),
+
+	createGroup: (body: CalloutGroupEditBody) =>
+		api.post<CalloutGroup>("/callout-groups", body),
+
+	updateGroup: (id: string, body: CalloutGroupEditBody) =>
+		api.patch<CalloutGroup>(`/callout-groups/${encodeURIComponent(id)}`, body),
+
+	deleteGroup: (id: string) => api.delete<void>(`/callout-groups/${encodeURIComponent(id)}`),
 };

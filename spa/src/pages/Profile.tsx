@@ -1,26 +1,32 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Key, Save } from "lucide-react";
+import { Key, Save, ShieldCheck, User } from "lucide-react";
 
 import { usersApi, type UpdateUserPayload, type UserDetail } from "@/api/endpoints/users";
 import { useAuthStore } from "@/auth/store";
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
+import { TabbedEditor } from "@/components/ui/TabbedEditor";
 import { GravatarAvatar } from "@/components/users/GravatarAvatar";
+import { PasskeysPanel } from "@/components/users/PasskeysPanel";
 import { PasswordChangeDialog } from "@/components/users/PasswordChangeDialog";
 import { TimezoneSelect } from "@/components/users/TimezoneSelect";
+import { TwoFactorPanel } from "@/components/users/TwoFactorPanel";
 import { toast } from "@/lib/toast";
 import { ApiError } from "@/types/api";
 
 /**
- * Self-service profile editor. Hits the same `PATCH /users/{id}` route the
- * UserEdit screen uses, but limits the visible fields to those a user is
- * allowed to change about themselves (name/email/company/timezone/daily_digest
- * — never level or permissions; the server strips those for self-updates).
+ * Self-service profile editor — Account + Security tabs.
  *
- * 2FA enrollment and passkey management are deferred to a later phase.
+ *   Account:  the editable identity fields the user can change about
+ *             themselves. PATCH /users/{id} (server strips level/perms).
+ *   Security: TOTP enroll / disable, passkey list / add / delete, and the
+ *             Change Password trigger.
  */
+
+type TabValue = "account" | "security";
+
 export const Profile = () => {
 	const queryClient = useQueryClient();
 	const currentUser = useAuthStore((s) => s.user);
@@ -33,6 +39,7 @@ export const Profile = () => {
 
 	const [form, setForm] = useState<UpdateUserPayload>({});
 	const [passwordOpen, setPasswordOpen] = useState(false);
+	const [tab, setTab] = useState<TabValue>("account");
 
 	useEffect(() => {
 		if (!meQ.data) {
@@ -121,24 +128,38 @@ export const Profile = () => {
 		updateMutation.mutate(form);
 	};
 
+	const tabs = [
+		{
+			value: "account" as const,
+			label: "Account",
+			icon: <User size={13} />,
+			content: (
+				<AccountTab
+					me={me}
+					form={form}
+					onChange={setForm}
+					onSubmit={submit}
+					saving={updateMutation.isPending}
+				/>
+			),
+		},
+		{
+			value: "security" as const,
+			label: "Security",
+			icon: <ShieldCheck size={13} />,
+			content: <SecurityTab me={me} onChangePassword={() => setPasswordOpen(true)} />,
+		},
+	];
+
 	return (
 		<div className="mx-auto max-w-screen-md px-6 py-4">
 			<Breadcrumb items={[{ label: "Profile" }]} />
 
 			<PageHead
 				title="Profile"
-				sub="Manage your account details."
+				sub="Manage your account details, passkeys, and password."
 				actions={
-					<>
-						<button
-							type="button"
-							onClick={() => setPasswordOpen(true)}
-							className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] hover:bg-hover"
-						>
-							<Key size={14} />
-							Change password
-						</button>
-
+					tab === "account" ? (
 						<button
 							type="submit"
 							form="profile-form"
@@ -148,84 +169,20 @@ export const Profile = () => {
 							<Save size={14} />
 							{updateMutation.isPending ? "Saving…" : "Save"}
 						</button>
-					</>
+					) : (
+						<button
+							type="button"
+							onClick={() => setPasswordOpen(true)}
+							className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] hover:bg-hover"
+						>
+							<Key size={14} />
+							Change password
+						</button>
+					)
 				}
 			/>
 
-			<form
-				id="profile-form"
-				onSubmit={submit}
-				className="rounded-xl border border-border bg-surface"
-			>
-				<div className="flex items-center gap-4 border-b border-border bg-surface-2 px-4 py-3">
-					<GravatarAvatar email={form.email ?? me.email} size={48} />
-					<div className="min-w-0">
-						<div className="text-[13.5px] font-semibold tracking-[-0.01em]">
-							{me.name || me.email}
-						</div>
-						<div className="truncate text-[11.5px] text-text-3">{me.email}</div>
-					</div>
-				</div>
-
-				<div className="grid gap-4 p-4 md:grid-cols-2">
-					<label className="block">
-						<span className="mb-1 block text-[12px] font-medium text-text-2">Name</span>
-						<input
-							type="text"
-							value={form.name ?? ""}
-							onChange={(e) => setForm({ ...form, name: e.target.value })}
-							className="w-full rounded-md border border-border bg-surface px-3 py-2 text-[13.5px] focus:outline-none focus:ring-1 focus:ring-accent-ring"
-						/>
-					</label>
-
-					<label className="block">
-						<span className="mb-1 block text-[12px] font-medium text-text-2">
-							Email
-						</span>
-						<input
-							type="email"
-							required
-							value={form.email ?? ""}
-							onChange={(e) => setForm({ ...form, email: e.target.value })}
-							className="w-full rounded-md border border-border bg-surface px-3 py-2 text-[13.5px] focus:outline-none focus:ring-1 focus:ring-accent-ring"
-						/>
-					</label>
-
-					<label className="block">
-						<span className="mb-1 block text-[12px] font-medium text-text-2">
-							Company
-						</span>
-						<input
-							type="text"
-							value={form.company ?? ""}
-							onChange={(e) => setForm({ ...form, company: e.target.value })}
-							className="w-full rounded-md border border-border bg-surface px-3 py-2 text-[13.5px] focus:outline-none focus:ring-1 focus:ring-accent-ring"
-						/>
-					</label>
-
-					<label className="block">
-						<span className="mb-1 block text-[12px] font-medium text-text-2">
-							Timezone
-						</span>
-						<TimezoneSelect
-							value={form.timezone ?? ""}
-							onChange={(tz) => setForm({ ...form, timezone: tz })}
-						/>
-					</label>
-
-					<label className="md:col-span-2 flex items-center gap-2">
-						<input
-							type="checkbox"
-							checked={form.daily_digest ?? false}
-							onChange={(e) => setForm({ ...form, daily_digest: e.target.checked })}
-							className="h-4 w-4 cursor-pointer accent-accent"
-						/>
-						<span className="text-[12.5px] text-text-2">
-							Send me a daily digest email
-						</span>
-					</label>
-				</div>
-			</form>
+			<TabbedEditor tabs={tabs} value={tab} onChange={(v) => setTab(v as TabValue)} />
 
 			<PasswordChangeDialog
 				open={passwordOpen}
@@ -236,3 +193,115 @@ export const Profile = () => {
 		</div>
 	);
 };
+
+interface AccountTabProps {
+	me: UserDetail;
+	form: UpdateUserPayload;
+	onChange: (next: UpdateUserPayload) => void;
+	onSubmit: (event: React.FormEvent) => void;
+	saving: boolean;
+}
+
+const AccountTab = ({ me, form, onChange, onSubmit }: AccountTabProps) => (
+	<form
+		id="profile-form"
+		onSubmit={onSubmit}
+		className="rounded-xl border border-border bg-surface"
+	>
+		<div className="flex items-center gap-4 border-b border-border bg-surface-2 px-4 py-3">
+			<GravatarAvatar email={form.email ?? me.email} size={48} />
+			<div className="min-w-0">
+				<div className="text-[13.5px] font-semibold tracking-[-0.01em]">
+					{me.name || me.email}
+				</div>
+				<div className="truncate text-[11.5px] text-text-3">{me.email}</div>
+			</div>
+		</div>
+
+		<div className="grid gap-4 p-4 md:grid-cols-2">
+			<label className="block">
+				<span className="mb-1 block text-[12px] font-medium text-text-2">Name</span>
+				<input
+					type="text"
+					value={form.name ?? ""}
+					onChange={(e) => onChange({ ...form, name: e.target.value })}
+					className="w-full rounded-md border border-border bg-surface px-3 py-2 text-[13.5px] focus:outline-none focus:ring-1 focus:ring-accent-ring"
+				/>
+			</label>
+
+			<label className="block">
+				<span className="mb-1 block text-[12px] font-medium text-text-2">Email</span>
+				<input
+					type="email"
+					required
+					value={form.email ?? ""}
+					onChange={(e) => onChange({ ...form, email: e.target.value })}
+					className="w-full rounded-md border border-border bg-surface px-3 py-2 text-[13.5px] focus:outline-none focus:ring-1 focus:ring-accent-ring"
+				/>
+			</label>
+
+			<label className="block">
+				<span className="mb-1 block text-[12px] font-medium text-text-2">Company</span>
+				<input
+					type="text"
+					value={form.company ?? ""}
+					onChange={(e) => onChange({ ...form, company: e.target.value })}
+					className="w-full rounded-md border border-border bg-surface px-3 py-2 text-[13.5px] focus:outline-none focus:ring-1 focus:ring-accent-ring"
+				/>
+			</label>
+
+			<label className="block">
+				<span className="mb-1 block text-[12px] font-medium text-text-2">Timezone</span>
+				<TimezoneSelect
+					value={form.timezone ?? ""}
+					onChange={(tz) => onChange({ ...form, timezone: tz })}
+				/>
+			</label>
+
+			<label className="md:col-span-2 flex items-center gap-2">
+				<input
+					type="checkbox"
+					checked={form.daily_digest ?? false}
+					onChange={(e) => onChange({ ...form, daily_digest: e.target.checked })}
+					className="h-4 w-4 cursor-pointer accent-accent"
+				/>
+				<span className="text-[12.5px] text-text-2">Send me a daily digest email</span>
+			</label>
+		</div>
+	</form>
+);
+
+interface SecurityTabProps {
+	me: UserDetail;
+	onChangePassword: () => void;
+}
+
+const SecurityTab = ({ me, onChangePassword }: SecurityTabProps) => (
+	<div className="space-y-4">
+		<section className="rounded-xl border border-border bg-surface">
+			<header className="flex items-center gap-2 border-b border-border bg-surface-2 px-4 py-3">
+				<Key size={14} className="text-text-3" />
+				<h3 className="text-[12.5px] font-semibold uppercase tracking-[0.06em] text-text-3">
+					Password
+				</h3>
+			</header>
+			<div className="flex items-center justify-between gap-3 p-4 text-[12.5px]">
+				<span className="text-text-3">
+					Change the password you use to sign in with email + password.
+				</span>
+				<button
+					type="button"
+					onClick={onChangePassword}
+					className="inline-flex shrink-0 items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 hover:bg-hover"
+				>
+					<Key size={13} />
+					Change password
+				</button>
+			</div>
+		</section>
+
+		<TwoFactorPanel enabled={me.two_factor_enabled} />
+
+		<PasskeysPanel />
+	</div>
+);

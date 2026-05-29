@@ -32,9 +32,53 @@
 			}
 
 			$split = !empty($request->query["split"]);
-			$registry = BigTreeAdmin::getCachedFieldTypes($split);
 
-			$r = Response::ok($registry);
+			// getCachedFieldTypes() returns data nested by use_case for the legacy
+			// admin. Flatten into the SPA-friendly shape: Record<typeId, FieldType>
+			// (or {default, custom} of the same) with use_cases as an array.
+			$nested = BigTreeAdmin::getCachedFieldTypes(true);
+			$entries = [];
+
+			foreach ($nested as $use_case => $buckets) {
+				foreach (["default", "custom"] as $bucket) {
+					if (empty($buckets[$bucket]) || !is_array($buckets[$bucket])) {
+						continue;
+					}
+
+					foreach ($buckets[$bucket] as $id => $info) {
+						if (!isset($entries[$id])) {
+							$entries[$id] = [
+								"id" => (string)$id,
+								"name" => isset($info["name"]) ? (string)$info["name"] : (string)$id,
+								"self_draw" => !empty($info["self_draw"]),
+								"use_cases" => [],
+								"_bucket" => $bucket,
+							];
+						}
+
+						$entries[$id]["use_cases"][] = $use_case;
+					}
+				}
+			}
+
+			if ($split) {
+				$payload = ["default" => [], "custom" => []];
+
+				foreach ($entries as $id => $entry) {
+					$bucket = $entry["_bucket"];
+					unset($entry["_bucket"]);
+					$payload[$bucket][$id] = $entry;
+				}
+			} else {
+				$payload = [];
+
+				foreach ($entries as $id => $entry) {
+					unset($entry["_bucket"]);
+					$payload[$id] = $entry;
+				}
+			}
+
+			$r = Response::ok($payload);
 			$r->header("ETag", $etag);
 			$r->header("Cache-Control", "private, max-age=300");
 

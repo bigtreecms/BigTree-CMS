@@ -7,7 +7,9 @@ import { useForm } from "react-hook-form";
 import { useState } from "react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Fingerprint } from "lucide-react";
 import { Field } from "@/components/ui/Field";
+import { isWebAuthnSupported } from "@/lib/webauthn";
 
 const schema = z.object({
 	email: z.string().email("Enter a valid email"),
@@ -35,6 +37,8 @@ export const Login = () => {
 
 	const [mfa, setMfa] = useState<{ token: string } | null>(null);
 	const [serverError, setServerError] = useState<string | null>(null);
+	const [passkeyBusy, setPasskeyBusy] = useState(false);
+	const passkeySupported = isWebAuthnSupported();
 
 	const form = useForm<FormValues>({
 		resolver: zodResolver(schema),
@@ -71,6 +75,35 @@ export const Login = () => {
 			navigate(returnTo, { replace: true });
 		} catch (err) {
 			handleSubmitError(err);
+		}
+	};
+
+	const onPasskeySignIn = async () => {
+		if (passkeyBusy) {
+			return;
+		}
+
+		setServerError(null);
+		setPasskeyBusy(true);
+
+		try {
+			await authApi.loginWithPasskey();
+			navigate(returnTo, { replace: true });
+		} catch (err) {
+			if (err instanceof DOMException) {
+				// User cancelled / timed out / no matching credential — quiet failure.
+				if (err.name === "NotAllowedError" || err.name === "AbortError") {
+					return;
+				}
+
+				setServerError(err.message || "Passkey sign-in failed.");
+			} else if (err instanceof ApiError) {
+				setServerError(err.message || "Passkey sign-in failed.");
+			} else {
+				setServerError("Could not reach the server.");
+			}
+		} finally {
+			setPasskeyBusy(false);
 		}
 	};
 
@@ -148,6 +181,27 @@ export const Login = () => {
 						>
 							{form.formState.isSubmitting ? "Signing in…" : "Sign in"}
 						</button>
+
+						{passkeySupported && (
+							<>
+								<div className="flex items-center gap-2 py-1 text-[11px] uppercase tracking-[0.06em] text-text-3">
+									<span className="h-px flex-1 bg-border" />
+									or
+									<span className="h-px flex-1 bg-border" />
+								</div>
+								<button
+									type="button"
+									onClick={onPasskeySignIn}
+									disabled={passkeyBusy || form.formState.isSubmitting}
+									className="inline-flex w-full items-center justify-center gap-2 rounded-md border border-border bg-surface px-3 py-2 text-[13px] hover:bg-hover disabled:opacity-60"
+								>
+									<Fingerprint size={14} />
+									{passkeyBusy
+										? "Waiting for authenticator…"
+										: "Sign in with a passkey"}
+								</button>
+							</>
+						)}
 					</form>
 				) : (
 					<form onSubmit={mfaForm.handleSubmit(onSubmitMfa)} className="space-y-3">

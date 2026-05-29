@@ -1,0 +1,315 @@
+import { useEffect, useState } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { ChevronLeft, Eye, EyeOff, Lock, Save, ShieldAlert } from "lucide-react";
+
+import { Breadcrumb } from "@/components/shell/Breadcrumb";
+import { PageHead } from "@/components/shell/PageHead";
+import { ErrorPanel } from "@/components/ui/ErrorPanel";
+
+import { settingsApi, type SettingDetail } from "@/api/endpoints/settings";
+
+import { FieldRenderer } from "@/renderer/forms/FieldRenderer";
+import { FieldRow } from "@/renderer/forms/FieldRow";
+import type { ModuleFormField } from "@/api/endpoints/modules";
+
+import { useAuthStore } from "@/auth/store";
+import { useLock } from "@/hooks/useLock";
+import { ApiError } from "@/types/api";
+import { toast } from "@/lib/toast";
+
+/**
+ * /settings/:id/edit — value editor for a single setting.
+ *
+ * The setting's `type` + `settings` blob drives the FieldRenderer dispatch, so
+ * any field type we've built (text / textarea / html / image / matrix / etc.)
+ * just works. The page acquires `useLock("config:settings", id)` so two
+ * admins can't clobber each other.
+ *
+ * Encrypted settings: the API only returns the value when the caller is
+ * level≥2 AND passes `?include_encrypted=true`. We attempt the decrypt fetch
+ * on mount for publishers; for editors we render a Reveal action the user can
+ * trigger (still server-gated).
+ */
+export const SettingEdit = () => {
+	const { id } = useParams<{ id: string }>();
+	const settingId = id ?? "";
+	const navigate = useNavigate();
+	const queryClient = useQueryClient();
+	const userLevel = useAuthStore((s) => s.user?.level ?? 0);
+	const isPublisher = userLevel >= 2;
+
+	const [revealEncrypted, setRevealEncrypted] = useState(false);
+	const [value, setValue] = useState<unknown>(undefined);
+	const [generalError, setGeneralError] = useState<string | null>(null);
+
+	const settingQuery = useQuery({
+		queryKey: ["settings", "detail", settingId, { includeEncrypted: revealEncrypted }],
+		queryFn: () => settingsApi.get(settingId, { includeEncrypted: revealEncrypted }),
+		enabled: settingId !== "",
+	});
+
+	const lock = useLock({
+		table: "config:settings",
+		itemId: settingId,
+		title: settingQuery.data?.name,
+		enabled: settingId !== "" && Boolean(settingQuery.data),
+	});
+
+	// Seed local editable value from the server payload. We use the inequality
+	// check against `undefined` so a legitimately-null setting value still
+	// initialises (vs leaving the renderer stuck on "no value yet").
+	useEffect(() => {
+		if (!settingQuery.data) {
+			return;
+		}
+
+		// Don't re-seed if we already loaded the value once — preserves user
+		// edits across refetches.
+		setValue((prev: unknown) => (prev === undefined ? (settingQuery.data?.value ?? "") : prev));
+		setGeneralError(null);
+	}, [settingQuery.data]);
+
+	const saveMutation = useMutation({
+		mutationFn: () => settingsApi.updateValue(settingId, value),
+		onSuccess: (fresh) => {
+			queryClient.invalidateQueries({ queryKey: ["settings", "list"] });
+			queryClient.setQueryData(
+				["settings", "detail", settingId, { includeEncrypted: revealEncrypted }],
+				fresh
+			);
+			toast.success("Setting saved");
+		},
+		onError: (err) => {
+			if (err instanceof ApiError) {
+				setGeneralError(err.message);
+			} else {
+				setGeneralError(err instanceof Error ? err.message : "Save failed");
+			}
+		},
+	});
+
+	if (!settingId) {
+		return <ErrorPanel error={new Error("Missing setting id")} />;
+	}
+
+	if (settingQuery.isLoading || !settingQuery.data) {
+		return (
+			<div className="mx-auto max-w-screen-md px-6 py-4">
+				<div className="rounded-xl border border-border bg-surface p-9 text-center text-[13px] text-text-3">
+					Loading…
+				</div>
+			</div>
+		);
+	}
+
+	if (settingQuery.error) {
+		return (
+			<div className="mx-auto max-w-screen-md px-6 py-4">
+				<ErrorPanel error={settingQuery.error} />
+			</div>
+		);
+	}
+
+	const setting = settingQuery.data;
+	const readOnly = lock.ownedByOther;
+	// Encrypted values need explicit reveal — until reveal, lock down the
+	// editor so the user doesn't accidentally overwrite an unloaded secret.
+	const valueWithheld = Boolean(setting.value_omitted);
+
+	const breadcrumbs = [
+		{ label: "Settings", to: "/settings" },
+		{ label: setting.name || setting.id },
+	];
+
+	const formField: ModuleFormField = {
+		column: setting.id,
+		title: setting.name || setting.id,
+		subtitle: setting.description,
+		type: setting.type || "text",
+		settings: setting.settings,
+	};
+
+	const handleSave = () => {
+		if (readOnly || saveMutation.isPending || valueWithheld) {
+			return;
+		}
+
+		setGeneralError(null);
+		saveMutation.mutate();
+	};
+
+	return (
+		<div className="mx-auto max-w-screen-md px-6 py-4">
+			<Breadcrumb items={breadcrumbs} />
+
+			<PageHead
+				title={setting.name || setting.id}
+				sub={setting.description || undefined}
+				actions={
+					<div className="flex flex-wrap items-center gap-2">
+						<Link
+							to="/settings"
+							className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] hover:bg-hover"
+						>
+							<ChevronLeft size={13} />
+							Back
+						</Link>
+						<button
+							type="button"
+							onClick={handleSave}
+							className="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-[12.5px] font-medium text-accent-fg disabled:opacity-50 hover:bg-accent-hover"
+							disabled={readOnly || saveMutation.isPending || valueWithheld}
+						>
+							<Save size={13} />
+							{saveMutation.isPending ? "Saving…" : "Save"}
+						</button>
+					</div>
+				}
+			/>
+
+			<FlagBar
+				setting={setting}
+				revealEncrypted={revealEncrypted}
+				onReveal={() => setRevealEncrypted(true)}
+				canReveal={isPublisher}
+			/>
+
+			{readOnly && (
+				<div className="mb-3 rounded-md border border-border bg-surface-2 px-3 py-2 text-[12.5px] text-text-2">
+					Locked by {lock.lockOwner?.name ?? "another user"} — editing is disabled.
+				</div>
+			)}
+
+			{generalError && (
+				<div className="mb-3 rounded-md border border-danger/40 bg-danger/5 px-3 py-2 text-[12.5px] text-danger">
+					{generalError}
+				</div>
+			)}
+
+			<form
+				onSubmit={(e) => {
+					e.preventDefault();
+					handleSave();
+				}}
+				className="rounded-xl border border-border bg-surface p-4"
+			>
+				{valueWithheld ? (
+					<div className="rounded-md border border-dashed border-border bg-surface-2 p-4 text-[12.5px] text-text-3">
+						This setting is encrypted.{" "}
+						{isPublisher
+							? "Click the Reveal button above to decrypt and edit it."
+							: "Only publishers can decrypt and edit it."}
+					</div>
+				) : (
+					<FieldRow field={formField}>
+						<FieldRenderer
+							field={formField}
+							value={value}
+							onChange={setValue}
+							disabled={readOnly}
+						/>
+					</FieldRow>
+				)}
+
+				<div className="mt-4 flex justify-end gap-2">
+					<button
+						type="button"
+						onClick={() => navigate("/settings")}
+						className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] text-text-2 hover:bg-hover"
+					>
+						Cancel
+					</button>
+					<button
+						type="submit"
+						className="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-[12.5px] font-medium text-accent-fg disabled:opacity-50 hover:bg-accent-hover"
+						disabled={readOnly || saveMutation.isPending || valueWithheld}
+					>
+						<Save size={13} />
+						{saveMutation.isPending ? "Saving…" : "Save"}
+					</button>
+				</div>
+			</form>
+		</div>
+	);
+};
+
+interface FlagBarProps {
+	setting: SettingDetail;
+	revealEncrypted: boolean;
+	canReveal: boolean;
+	onReveal: () => void;
+}
+
+const FlagBar = ({ setting, revealEncrypted, canReveal, onReveal }: FlagBarProps) => {
+	const flags: React.ReactNode[] = [];
+
+	if (setting.encrypted) {
+		flags.push(
+			<span
+				key="enc"
+				className="inline-flex items-center gap-1 rounded bg-info-bg px-1.5 py-0.5 text-[11px] font-medium text-info"
+			>
+				<ShieldAlert size={11} />
+				Encrypted
+			</span>
+		);
+	}
+
+	if (setting.locked) {
+		flags.push(
+			<span
+				key="locked"
+				className="inline-flex items-center gap-1 rounded bg-warn-bg px-1.5 py-0.5 text-[11px] font-medium text-warn"
+			>
+				<Lock size={11} />
+				Locked
+			</span>
+		);
+	}
+
+	if (setting.system) {
+		flags.push(
+			<span
+				key="sys"
+				className="rounded bg-surface-2 px-1.5 py-0.5 text-[11px] font-medium text-text-3"
+			>
+				System
+			</span>
+		);
+	}
+
+	flags.push(
+		<span
+			key="id"
+			className="rounded bg-surface-2 px-1.5 py-0.5 font-mono text-[10.5px] text-text-3"
+		>
+			{setting.id}
+		</span>
+	);
+
+	const showReveal = setting.encrypted && setting.value_omitted && canReveal;
+	const showHidden = setting.encrypted && !setting.value_omitted;
+
+	return (
+		<div className="mb-3 flex flex-wrap items-center gap-2">
+			{flags}
+			{showReveal && (
+				<button
+					type="button"
+					onClick={onReveal}
+					className="inline-flex items-center gap-1 rounded-md border border-border bg-surface px-2 py-0.5 text-[11.5px] hover:bg-hover"
+				>
+					<Eye size={11} />
+					Reveal value
+				</button>
+			)}
+			{showHidden && revealEncrypted && (
+				<span className="inline-flex items-center gap-1 text-[11.5px] text-text-3">
+					<EyeOff size={11} />
+					Value decrypted in this session
+				</span>
+			)}
+		</div>
+	);
+};

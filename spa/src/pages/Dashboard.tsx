@@ -1,6 +1,7 @@
 import { useQueries } from "@tanstack/react-query";
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
+import { ContentAlertsCard } from "@/components/dashboard/ContentAlertsCard";
 import { TrafficCard } from "@/components/dashboard/TrafficCard";
 import { PendingChangesCard } from "@/components/dashboard/PendingChangesCard";
 import { UnreadMessagesCard } from "@/components/dashboard/UnreadMessagesCard";
@@ -24,7 +25,7 @@ export const Dashboard = () => {
 	const currentUserId = useAuthStore((s) => s.user?.id ?? 0);
 	const firstName = userName?.split(" ")[0] ?? "there";
 
-	const [summaryQ, analyticsQ, pendingQ, messagesQ] = useQueries({
+	const [summaryQ, analyticsQ, pendingQ, messagesQ, alertsQ] = useQueries({
 		queries: [
 			{
 				queryKey: ["dashboard", "summary"],
@@ -35,12 +36,16 @@ export const Dashboard = () => {
 				queryFn: dashboardApi.analytics,
 			},
 			{
-				queryKey: ["pending-changes", { mine: false }],
+				queryKey: ["pending-changes", "list", { mine: false }],
 				queryFn: () => pendingChangesApi.list(),
 			},
 			{
-				queryKey: ["messages", { folder: "in" }],
+				queryKey: ["messages", "list", { folder: "in" }],
 				queryFn: () => messagesApi.list({ folder: "in", per_page: 10 }),
+			},
+			{
+				queryKey: ["dashboard", "content-alerts"],
+				queryFn: () => dashboardApi.contentAlerts(),
 			},
 		],
 	});
@@ -62,8 +67,13 @@ export const Dashboard = () => {
 					loading={summaryQ.isLoading || pendingQ.isLoading}
 					error={summaryQ.error ?? pendingQ.error}
 				/>
+				<ContentAlertsCard
+					alerts={alertsQ.data ?? []}
+					loading={alertsQ.isLoading}
+					error={alertsQ.error}
+				/>
 				<UnreadMessagesCard
-					messages={messagesQ.data ?? []}
+					messages={messagesQ.data?.data ?? []}
 					currentUserId={currentUserId}
 					loading={messagesQ.isLoading}
 					error={messagesQ.error}

@@ -217,6 +217,25 @@
 			return Response::noContent();
 		}
 
+		/**
+		 * POST /users/{id}/2fa/remove
+		 * Developer action to strip a user's TOTP secret when they've lost their
+		 * authenticator. Mirrors the legacy developer/security/remove-2fa.php.
+		 * Refuses to act on a higher-level user.
+		 */
+		public function removeTwoFactor(Request $request) {
+			$id = (int)$request->route_params["id"];
+			$target = $this->loadOrFail($id);
+
+			if ((int)$target["level"] > (int)$request->user->level) {
+				throw new AuthorizationException("Cannot modify a higher-level user", "permission_denied", 403);
+			}
+
+			SQL::update("bigtree_users", $id, ["2fa_secret" => ""]);
+
+			return Response::ok(["id" => $id, "two_factor_enabled" => false]);
+		}
+
 		// — internals —
 
 		private function loadOrFail($id) {

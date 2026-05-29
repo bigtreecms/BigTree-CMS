@@ -12,6 +12,7 @@
 	use BigTree\Api\Exceptions\NotFoundException;
 	use BigTreeAdmin;
 	use BigTreeCMS;
+	use BigTreeUpdater;
 	use BigTree;
 	use SQL;
 
@@ -30,6 +31,10 @@
 		// Download tokens are tighter than backup retention so a leaked URL has a
 		// narrower window of usefulness.
 		const DOWNLOAD_TOKEN_TTL_SECONDS = 900;
+
+		// Upstream release feed the legacy admin polls. Downloads are only ever
+		// fetched from this host (see the SSRF guard in downloadUpgrade).
+		const VERSION_CHECK_URL = "https://www.bigtreecms.org/ajax/version-check/";
 
 		public function version(Request $request) {
 			$revision = (int)BigTreeCMS::getSetting("bigtree-internal-revision");
@@ -306,6 +311,373 @@
 			// readfile streams to output; no buffering required.
 			@readfile($path);
 			exit;
+		}
+
+		// — Core upgrade —
+		//
+		// The legacy developer/upgrade module was a chain of page loads; this is
+		// the same chain expressed as discrete API calls the SPA drives in order:
+		//
+		//   1. GET  /system/upgrade/check       — what's available + how we can write
+		//   2. POST /system/upgrade/download     — fetch + integrity-check the archive
+		//   3. POST /system/upgrade/install      — back up + swap in the new core
+		//   4. GET  /system/upgrade/migrations   — compute the pending DB script queue
+		//   5. POST /system/upgrade/migrate      — run one script (page) at a time
+		//
+		// Steps 3–5 are intentionally separate requests: install renames /core/ on
+		// disk, but the running process already has the old BIGTREE_REVISION
+		// constant loaded. Only the *next* request boots from the new version.php,
+		// so the migration queue (which compares the stored revision setting to the
+		// BIGTREE_REVISION constant) must be computed in a fresh request after the
+		// file swap — exactly why the legacy wizard navigated between pages.
+
+		/**
+		 * GET /system/upgrade/check
+		 *
+		 * Polls the upstream release feed and reports the install method we can use
+		 * (Local / FTP / SFTP, or null if none) so the SPA knows whether it'll need
+		 * to prompt for credentials. Major releases are flagged non-installable —
+		 * they're never backwards compatible and must be done by hand.
+		 */
+		public function checkUpgrade(Request $request) {
+			global $bigtree;
+
+			$updater = new BigTreeUpdater();
+			$config_ignored = !empty($bigtree["config"]["ignore_admin_updates"]);
+			$updates = $this->fetchVersionCheck();
+			$out = [];
+
+			foreach ($updates as $type => $update) {
+				if (!is_array($update) || empty($update["version"])) {
+					continue;
+				}
+
+				$out[] = [
+					"type" => (string)$type,
+					"version" => (string)$update["version"],
+					"release_date" => isset($update["release_date"]) ? (string)$update["release_date"] : null,
+					"note" => $this->upgradeNote((string)$type),
+					"installable" => $type !== "major" && $updater->Method !== false,
+				];
+			}
+
+			return Response::ok([
+				"current_version" => defined("BIGTREE_VERSION") ? BIGTREE_VERSION : "",
+				"current_revision" => (int)BigTreeCMS::getSetting("bigtree-internal-revision"),
+				"method" => $updater->Method ?: null,
+				"config_ignored" => $config_ignored,
+				"updates" => $out,
+			]);
+		}
+
+		/**
+		 * POST /system/upgrade/download
+		 *
+		 * Resolves the download URL server-side from the release feed (never trusts
+		 * a client-supplied URL — see the host guard), streams it to cache/update.zip,
+		 * and verifies the archive opens cleanly before reporting success.
+		 */
+		public function downloadUpgrade(Request $request) {
+			$type = (string)$request->body["type"];
+
+			$updater = new BigTreeUpdater();
+
+			if ($updater->Method === false) {
+				throw new ConflictException(
+					"This server can't write to /core/ via local, FTP, or SFTP — upgrade manually.",
+					"upgrade_method_unavailable",
+					409
+				);
+			}
+
+			$updates = $this->fetchVersionCheck();
+
+			if (empty($updates[$type]) || empty($updates[$type]["file"])) {
+				throw new NotFoundException("No $type update is currently available", "upgrade_not_available", 404);
+			}
+
+			$url = (string)$updates[$type]["file"];
+			$scheme = parse_url($url, PHP_URL_SCHEME);
+			$host = (string)parse_url($url, PHP_URL_HOST);
+
+			// SSRF guard: the feed is trusted but we still pin the download to HTTPS
+			// on the bigtreecms.org domain so a poisoned feed can't redirect us into
+			// fetching an attacker-controlled (or internal) URL.
+			if ($scheme !== "https" || !preg_match('/(^|\.)bigtreecms\.org$/i', $host)) {
+				throw new BadRequestException("Refusing to download from an unexpected source", "upgrade_bad_source", 400);
+			}
+
+			$zip_path = SERVER_ROOT . "cache/update.zip";
+			@unlink($zip_path);
+
+			BigTree::cURL($url, false, [CURLOPT_TIMEOUT => 300], true, $zip_path);
+
+			if (!file_exists($zip_path) || @filesize($zip_path) === 0) {
+				@unlink($zip_path);
+				throw new BadRequestException("Download failed or produced an empty file", "upgrade_download_failed", 500);
+			}
+
+			if (!$updater->checkZip()) {
+				@unlink($zip_path);
+				throw new BadRequestException("The downloaded archive is corrupt", "upgrade_zip_corrupt", 500);
+			}
+
+			return Response::ok([
+				"ok" => true,
+				"method" => $updater->Method,
+				"version" => (string)$updates[$type]["version"],
+				"size_bytes" => (int)@filesize($zip_path),
+				"needs_credentials" => $updater->Method !== "Local",
+			]);
+		}
+
+		/**
+		 * POST /system/upgrade/install
+		 *
+		 * Extracts the archive then swaps the new core into place, backing up the
+		 * existing /core/ and a fresh DB dump first. Local installs run in one call.
+		 * FTP/SFTP installs need credentials and possibly the install path; when
+		 * those are missing we return a "needs" flag instead of failing so the SPA
+		 * can collect them and re-submit.
+		 */
+		public function installUpgrade(Request $request) {
+			$zip_path = SERVER_ROOT . "cache/update.zip";
+
+			if (!file_exists($zip_path)) {
+				throw new ConflictException("No downloaded update found — run download first", "upgrade_no_archive", 409);
+			}
+
+			$updater = new BigTreeUpdater();
+
+			if ($updater->Method === false) {
+				throw new ConflictException(
+					"This server can't write to /core/ via local, FTP, or SFTP — upgrade manually.",
+					"upgrade_method_unavailable",
+					409
+				);
+			}
+
+			if (!$updater->extract()) {
+				$updater->cleanup();
+				throw new BadRequestException("Failed to extract the update archive", "upgrade_extract_failed", 500);
+			}
+
+			if ($updater->Method === "Local") {
+				$updater->installLocal();
+
+				return Response::ok(["ok" => true, "method" => "Local", "next" => "migrate"]);
+			}
+
+			// FTP / SFTP path — credentials arrive in the body.
+			$username = (string)($request->body["ftp_username"] ?? "");
+			$password = (string)($request->body["ftp_password"] ?? "");
+
+			if ($username === "") {
+				return Response::ok(["ok" => false, "needs_credentials" => true, "method" => $updater->Method]);
+			}
+
+			if (!$updater->ftpLogin($username, $password)) {
+				throw new AuthenticationException("{$updater->Method} login failed", "upgrade_ftp_login_failed", 401);
+			}
+
+			$ftp_root = trim((string)($request->body["ftp_root"] ?? ""));
+
+			if ($ftp_root === "") {
+				$detected = $updater->getFTPRoot();
+
+				if ($detected === false) {
+					return Response::ok(["ok" => false, "needs_ftp_root" => true, "method" => $updater->Method]);
+				}
+
+				$ftp_root = $detected;
+			} else {
+				// Remember an operator-supplied path so a later retry can suggest it,
+				// mirroring the legacy set-ftp-directory step.
+				BigTreeAdmin::updateInternalSettingValue("bigtree-internal-ftp-upgrade-root", $ftp_root);
+
+				if (!$updater->Connection->changeDirectory(rtrim($ftp_root, "/") . "/core/inc/bigtree/")) {
+					return Response::ok(["ok" => false, "needs_ftp_root" => true, "method" => $updater->Method, "bad_root" => $ftp_root]);
+				}
+			}
+
+			$updater->installFTP($ftp_root);
+
+			return Response::ok(["ok" => true, "method" => $updater->Method, "next" => "migrate"]);
+		}
+
+		/**
+		 * GET /system/upgrade/migrations
+		 *
+		 * Returns the ordered list of pending DB migration script keys. Identical
+		 * logic to the legacy scripts.php so the same revision files are reused.
+		 */
+		public function upgradeMigrations(Request $request) {
+			return Response::ok([
+				"current_revision" => (int)BigTreeCMS::getSetting("bigtree-internal-revision"),
+				"target_revision" => defined("BIGTREE_REVISION") ? BIGTREE_REVISION : null,
+				"queue" => $this->buildMigrationQueue(),
+			]);
+		}
+
+		/**
+		 * POST /system/upgrade/migrate
+		 *
+		 * Runs a single migration script (one page of it). The script key must be a
+		 * member of the freshly-computed queue, which both keeps callers in order
+		 * and prevents arbitrary file inclusion. The legacy revision scripts echo a
+		 * JSON blob and expect the admin ajax environment, so we reproduce $_GET and
+		 * the $admin/$cms globals, then capture their output — see runLegacyScript
+		 * for why a shutdown handler is involved.
+		 *
+		 * Returns the legacy contract verbatim: { complete, response, pages?, error? }.
+		 */
+		public function runUpgradeMigration(Request $request) {
+			$script = (string)$request->body["script"];
+
+			if (!in_array($script, $this->buildMigrationQueue(), true)) {
+				throw new BadRequestException("Unknown or out-of-order migration script", "upgrade_bad_script", 400);
+			}
+
+			$file = SERVER_ROOT . "core/admin/ajax/developer/upgrade/" . $script . ".php";
+
+			if (!file_exists($file)) {
+				throw new NotFoundException("Migration script is missing", "upgrade_script_missing", 404);
+			}
+
+			$page = isset($request->body["page"]) ? (int)$request->body["page"] : 0;
+			$total_pages = isset($request->body["total_pages"]) ? (int)$request->body["total_pages"] : 0;
+
+			if ($page > 0) {
+				$_GET["page"] = $page;
+			} else {
+				unset($_GET["page"]);
+			}
+
+			if ($total_pages > 0) {
+				$_GET["total_pages"] = $total_pages;
+			}
+
+			global $admin, $cms, $bigtree;
+
+			if (!($admin instanceof BigTreeAdmin)) {
+				$admin = new BigTreeAdmin();
+			}
+
+			if (!($cms instanceof BigTreeCMS)) {
+				$cms = new BigTreeCMS();
+			}
+
+			return Response::ok($this->runLegacyScript($file, $request));
+		}
+
+		// — upgrade helpers —
+
+		private function fetchVersionCheck() {
+			$version = defined("BIGTREE_VERSION") ? BIGTREE_VERSION : "";
+			$raw = BigTree::cURL(self::VERSION_CHECK_URL . "?current_version=" . urlencode($version));
+			$data = json_decode((string)$raw, true);
+
+			return is_array($data) ? $data : [];
+		}
+
+		private function upgradeNote($type) {
+			switch ($type) {
+				case "revision":
+					return "Bugfix release — recommended for all installs.";
+
+				case "minor":
+					return "Feature release — should be backwards compatible, but test on staging first.";
+
+				case "major":
+					return "Major release — not backwards compatible. Must be installed manually.";
+			}
+
+			return "";
+		}
+
+		private function buildMigrationQueue() {
+			$current_revision = (int)BigTreeCMS::getSetting("bigtree-internal-revision");
+			$queue = [];
+
+			if ($current_revision < 22) {
+				$queue[] = "roll-up-scripts/beta-to-4.0";
+			}
+
+			if ($current_revision < 100) {
+				$queue[] = "roll-up-scripts/4.0-to-4.1";
+			}
+
+			if ($current_revision < 200) {
+				$queue[] = "roll-up-scripts/4.1-to-4.2";
+				$current_revision = 200;
+			}
+
+			$target = defined("BIGTREE_REVISION") ? (int)BIGTREE_REVISION : $current_revision;
+
+			while ($current_revision < $target) {
+				$current_revision++;
+
+				if (file_exists(SERVER_ROOT . "core/admin/ajax/developer/upgrade/revisions/$current_revision.php")) {
+					$queue[] = "revisions/$current_revision";
+				}
+			}
+
+			return $queue;
+		}
+
+		/**
+		 * Runs a legacy upgrade ajax script and returns its decoded JSON payload.
+		 *
+		 * These scripts were written for one-script-per-request admin ajax calls:
+		 * they `echo BigTree::json(...)` and frequently `die()` immediately after.
+		 * A bare include would let that die() abort the request before the Kernel
+		 * emits the API envelope. So we buffer the script's output and register a
+		 * shutdown handler that, if the script exited, re-wraps the captured JSON
+		 * in a normal API response. Scripts that fall through instead return here
+		 * and we wrap inline; the shared $sent flag stops the handler double-sending.
+		 */
+		private function runLegacyScript($file, Request $request) {
+			$sent = false;
+			$base_level = ob_get_level();
+			ob_start();
+
+			register_shutdown_function(function () use (&$sent, $base_level, $request) {
+				if ($sent) {
+					return;
+				}
+
+				$raw = "";
+
+				while (ob_get_level() > $base_level) {
+					$raw .= (string)ob_get_clean();
+				}
+
+				$sent = true;
+				(Response::ok($this->decodeScriptOutput($raw)))->send($request->request_id ?? null);
+			});
+
+			include $file;
+
+			$raw = (string)ob_get_clean();
+			$sent = true;
+
+			return $this->decodeScriptOutput($raw);
+		}
+
+		private function decodeScriptOutput($raw) {
+			$data = json_decode(trim((string)$raw), true);
+
+			if (!is_array($data)) {
+				// No parseable JSON means the script printed an error/notice instead
+				// of its envelope. Surface it rather than reporting a phantom success.
+				return [
+					"complete" => true,
+					"error" => "Migration script produced unexpected output",
+					"response" => trim((string)$raw),
+				];
+			}
+
+			return $data;
 		}
 
 		// — backup helpers —

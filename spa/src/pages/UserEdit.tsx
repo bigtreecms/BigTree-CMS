@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { ChevronLeft, History, Key, Save, ShieldCheck } from "lucide-react";
 
 import {
@@ -61,6 +61,7 @@ export const UserEdit = () => {
 	const [permsTab, setPermsTab] = useState<PermsTab>("pages");
 	const [passwordOpen, setPasswordOpen] = useState(false);
 	const [confirmDelete, setConfirmDelete] = useState(false);
+	const [confirmRemove2fa, setConfirmRemove2fa] = useState(false);
 
 	// Seed local state when the fetched user changes.
 	useEffect(() => {
@@ -114,6 +115,26 @@ export const UserEdit = () => {
 			}
 
 			toast.error("Failed to delete user");
+		},
+	});
+
+	const remove2faMutation = useMutation({
+		mutationFn: () => usersApi.removeTwoFactor(id),
+		onSuccess: (fresh) => {
+			queryClient.setQueryData<UserDetail | undefined>(["users", "detail", id], (prev) =>
+				prev ? { ...prev, two_factor_enabled: fresh.two_factor_enabled } : prev
+			);
+			setConfirmRemove2fa(false);
+			toast.success("Two-factor authentication removed");
+		},
+		onError: (err: unknown) => {
+			if (err instanceof ApiError) {
+				toast.error(err.message);
+
+				return;
+			}
+
+			toast.error("Failed to remove two-factor authentication");
 		},
 	});
 
@@ -230,22 +251,24 @@ export const UserEdit = () => {
 
 			{isDeveloper(currentUser) && !isSelf && (
 				<div className="mb-3 flex items-center gap-3 rounded-md border border-border bg-surface-2 px-3 py-2 text-[12.5px] text-text-2">
-					<a
-						href={`/admin/developer/audit/search/?user=${id}`}
+					<Link
+						to={`/developer/debug/audit?user=${id}`}
 						className="inline-flex items-center gap-1.5 text-accent hover:underline"
 					>
 						<History size={13} />
 						View audit trail
-					</a>
+					</Link>
 
 					{targetUser.two_factor_enabled && (
-						<a
-							href={`/admin/developer/security/remove-2fa/?user=${id}`}
-							className="inline-flex items-center gap-1.5 text-danger hover:underline"
+						<button
+							type="button"
+							onClick={() => setConfirmRemove2fa(true)}
+							disabled={remove2faMutation.isPending}
+							className="inline-flex items-center gap-1.5 text-danger hover:underline disabled:opacity-60"
 						>
 							<ShieldCheck size={13} />
 							Remove two-factor authentication
-						</a>
+						</button>
 					)}
 				</div>
 			)}
@@ -413,6 +436,10 @@ export const UserEdit = () => {
 									onChange={(next) =>
 										setPermissions({ ...permissions, module: next })
 									}
+									gbpValue={permissions.module_gbp}
+									onGbpChange={(next) =>
+										setPermissions({ ...permissions, module_gbp: next })
+									}
 								/>
 							)}
 
@@ -468,6 +495,16 @@ export const UserEdit = () => {
 				confirmLabel="Delete"
 				variant="danger"
 				onConfirm={() => deleteMutation.mutate()}
+			/>
+
+			<ConfirmDialog
+				open={confirmRemove2fa}
+				onOpenChange={setConfirmRemove2fa}
+				title="Remove two-factor authentication?"
+				description={`${displayName} will be able to sign in with just their password until they re-enrol. Use this when they've lost their authenticator.`}
+				confirmLabel="Remove 2FA"
+				variant="danger"
+				onConfirm={() => remove2faMutation.mutate()}
 			/>
 		</div>
 	);

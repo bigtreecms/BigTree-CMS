@@ -1,7 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { api } from "@/api/client";
 import { authApi } from "@/auth/endpoints";
+import { messagesApi } from "@/api/endpoints/dashboard";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { Bell, ChevronDown, ExternalLink, LogOut, Moon, Search, Sun, User } from "lucide-react";
 import { useAuthStore } from "@/auth/store";
@@ -21,7 +22,19 @@ interface TopBarProps {
 }
 
 export const TopBar = ({ dark, onToggleDark, onOpenSearch }: TopBarProps) => {
+	const navigate = useNavigate();
 	const user = useAuthStore((s) => s.user);
+
+	// Poll unread count every 60s (server stale threshold is generous). Skip
+	// initial fetch dance on focus loss to avoid stacking refetches when the
+	// user tabs back into a long-running session.
+	const unreadQ = useQuery({
+		queryKey: ["messages", "unread-count"],
+		queryFn: () => messagesApi.unreadCount(),
+		refetchInterval: 60_000,
+		refetchOnWindowFocus: false,
+	});
+	const unread = unreadQ.data?.unread ?? 0;
 	const initials = user?.name
 		? user.name
 				.split(/\s+/)
@@ -95,11 +108,18 @@ export const TopBar = ({ dark, onToggleDark, onOpenSearch }: TopBarProps) => {
 
 			<button
 				type="button"
-				title="Notifications"
+				title={
+					unread > 0 ? `${unread} unread message${unread === 1 ? "" : "s"}` : "Messages"
+				}
+				onClick={() => navigate("/messages")}
 				className="relative grid h-[30px] w-[30px] cursor-pointer place-items-center rounded-md bg-transparent text-text-2 transition-colors hover:bg-hover hover:text-text"
 			>
 				<Bell size={15} />
-				<span className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-danger" />
+				{unread > 0 && (
+					<span className="absolute -right-0.5 -top-0.5 grid h-[14px] min-w-[14px] place-items-center rounded-full bg-danger px-1 text-[9px] font-bold text-white">
+						{unread > 99 ? "99+" : unread}
+					</span>
+				)}
 			</button>
 
 			<DropdownMenu.Root>

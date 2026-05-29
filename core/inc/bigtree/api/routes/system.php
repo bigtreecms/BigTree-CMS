@@ -1,4 +1,5 @@
 <?php
+	use BigTree\Services\SystemConfigureService;
 	use BigTree\Services\SystemService;
 
 	return [
@@ -70,5 +71,138 @@
 			"permission" => "public",
 			"query" => ["token" => "required|string|max:1024"],
 			"rate_limit" => ["per_minute" => 10],
+		],
+
+		// — Configure section —
+		// Every area is backed by a `bigtree-internal-*` setting (or a JSONDB
+		// "config" row), all gated to developer level. Defined in
+		// SystemConfigureService — see the docblock there for the full mapping.
+
+		"GET /system/upgrade/check" => [
+			"service" => [SystemService::class, "checkUpgrade"],
+			"permission" => ["level" => 2],
+		],
+		"POST /system/upgrade/download" => [
+			"service" => [SystemService::class, "downloadUpgrade"],
+			"permission" => ["level" => 2],
+			"body" => ["type" => "required|string|in:revision,minor"],
+			"rate_limit" => ["per_minute" => 4],
+			"audit" => ["table" => "system", "type" => "upgrade_downloaded", "entry" => "%type%"],
+		],
+		"POST /system/upgrade/install" => [
+			"service" => [SystemService::class, "installUpgrade"],
+			"permission" => ["level" => 2],
+			"body" => [
+				"ftp_username" => "string|max:255",
+				"ftp_password" => "string|max:255",
+				"ftp_root" => "string|max:1024",
+			],
+			"allow_unknown" => false,
+			"audit" => ["table" => "system", "type" => "upgrade_installed", "entry" => "0"],
+		],
+		"GET /system/upgrade/migrations" => [
+			"service" => [SystemService::class, "upgradeMigrations"],
+			"permission" => ["level" => 2],
+		],
+		"POST /system/upgrade/migrate" => [
+			"service" => [SystemService::class, "runUpgradeMigration"],
+			"permission" => ["level" => 2],
+			"body" => [
+				"script" => "required|string|max:255",
+				"page" => "int|min:1",
+				"total_pages" => "int|min:1",
+			],
+		],
+
+		"GET /system/configure/email" => [
+			"service" => [SystemConfigureService::class, "getEmail"],
+			"permission" => ["level" => 2],
+		],
+		"PUT /system/configure/email" => [
+			"service" => [SystemConfigureService::class, "updateEmail"],
+			"permission" => ["level" => 2],
+			"allow_unknown" => true,
+			"audit" => ["table" => "bigtree_settings", "type" => "email_configured", "entry" => "bigtree-internal-email-service"],
+		],
+
+		"GET /system/configure/geocoding" => [
+			"service" => [SystemConfigureService::class, "getGeocoding"],
+			"permission" => ["level" => 2],
+		],
+		"PUT /system/configure/geocoding" => [
+			"service" => [SystemConfigureService::class, "updateGeocoding"],
+			"permission" => ["level" => 2],
+			"allow_unknown" => true,
+			"audit" => ["table" => "bigtree_settings", "type" => "geocoding_configured", "entry" => "bigtree-internal-geocoding-service"],
+		],
+
+		"GET /system/configure/cloud-storage" => [
+			"service" => [SystemConfigureService::class, "getCloudStorage"],
+			"permission" => ["level" => 2],
+		],
+		"PUT /system/configure/cloud-storage/default" => [
+			"service" => [SystemConfigureService::class, "updateCloudStorageDefault"],
+			"permission" => ["level" => 2],
+			"allow_unknown" => true,
+			"audit" => ["table" => "bigtree_settings", "type" => "cloud_storage_default", "entry" => "bigtree-internal-storage"],
+		],
+		"PUT /system/configure/cloud-storage/{provider}" => [
+			"service" => [SystemConfigureService::class, "updateCloudStorageProvider"],
+			"permission" => ["level" => 2],
+			"allow_unknown" => true,
+			"audit" => ["table" => "bigtree_settings", "type" => "cloud_storage_configured", "entry" => "%provider%"],
+		],
+
+		"GET /system/configure/payment-gateway" => [
+			"service" => [SystemConfigureService::class, "getPaymentGateway"],
+			"permission" => ["level" => 2],
+		],
+		"PUT /system/configure/payment-gateway" => [
+			"service" => [SystemConfigureService::class, "updatePaymentGateway"],
+			"permission" => ["level" => 2],
+			"allow_unknown" => true,
+			"audit" => ["table" => "bigtree_settings", "type" => "payment_gateway_configured", "entry" => "bigtree-internal-payment-gateway"],
+		],
+
+		"GET /system/configure/analytics" => [
+			"service" => [SystemConfigureService::class, "getAnalytics"],
+			"permission" => ["level" => 2],
+		],
+		"DELETE /system/configure/analytics" => [
+			"service" => [SystemConfigureService::class, "disconnectAnalytics"],
+			"permission" => ["level" => 2],
+			"audit" => ["table" => "bigtree_settings", "type" => "analytics_disconnected", "entry" => "bigtree-internal-google-analytics-4"],
+		],
+
+		"GET /system/configure/services" => [
+			"service" => [SystemConfigureService::class, "listServices"],
+			"permission" => ["level" => 2],
+		],
+		"DELETE /system/configure/services/{service}" => [
+			"service" => [SystemConfigureService::class, "disconnectService"],
+			"permission" => ["level" => 2],
+			"audit" => ["table" => "bigtree_settings", "type" => "service_disconnected", "entry" => "%service%"],
+		],
+
+		"GET /system/configure/media-presets" => [
+			"service" => [SystemConfigureService::class, "getMediaPresets"],
+			"permission" => ["level" => 2],
+		],
+		"PUT /system/configure/media-presets" => [
+			"service" => [SystemConfigureService::class, "updateMediaPresets"],
+			"permission" => ["level" => 2],
+			"allow_unknown" => true,
+			"audit" => ["table" => "bigtree_settings", "type" => "media_presets_updated", "entry" => "media-settings"],
+		],
+
+		"GET /system/configure/file-metadata" => [
+			"service" => [SystemConfigureService::class, "getFileMetadata"],
+			"permission" => ["level" => 2],
+		],
+		"PUT /system/configure/file-metadata" => [
+			"service" => [SystemConfigureService::class, "updateFileMetadata"],
+			"permission" => ["level" => 2],
+			"allow_unknown" => true,
+			"audit" => ["table" => "bigtree_settings", "type" => "file_metadata_updated", "entry" => "file-metadata"],
 		],
 	];

@@ -44,6 +44,16 @@ export interface ModuleGroup {
 }
 
 /**
+ * One category row for a GBP module, from `/modules/{id}/gbp-categories`.
+ * `id` is the primary key of a row in the module's `gbp.other_table`; `title`
+ * is the resolved (and optionally item_parser-processed) label.
+ */
+export interface GbpCategory {
+	id: string;
+	title: string;
+}
+
+/**
  * One row from `/modules/{id}/actions`. The legacy admin storage uses `class`
  * to hold the icon glyph and `in_nav` is the PHP "on" / "" toggle. We expose
  * `in_nav` as a boolean to the SPA but keep the rest of the shape pass-through.
@@ -137,6 +147,81 @@ export interface ModuleForm {
 	hooks?: unknown[] | Record<string, unknown>;
 }
 
+/**
+ * Per-filter config in a report's `filters` dict. The key on the parent dict is
+ * the table column name; `type` controls the input the ReportRenderer draws.
+ *
+ * `dropdown` filters carry a parser/poplist config used only by the legacy
+ * admin's PHP — server-side resolution is done by getReportResults, so the SPA
+ * just needs to send the selected value back unchanged.
+ */
+export type ModuleReportFilterType = "search" | "dropdown" | "boolean" | "date-range";
+
+export interface ModuleReportFilter {
+	title: string;
+	type: ModuleReportFilterType;
+	options?: Record<string, string> | string[];
+	parser?: string;
+	pop_table?: string;
+	pop_description?: string;
+}
+
+export interface ModuleReport {
+	id: string;
+	title: string;
+	table: string;
+	type: "view" | "csv";
+	filters: Record<string, ModuleReportFilter> | ModuleReportFilter[];
+	fields: Record<string, string> | string[] | string;
+	parser?: string;
+	view?: string | null;
+	streaming?: boolean | string;
+	module?: string;
+}
+
+export interface ModuleReportRunSort {
+	field: string;
+	order: "ASC" | "DESC";
+}
+
+export interface ModuleReportRunRequest {
+	filters?: Record<string, unknown>;
+	sort?: ModuleReportRunSort;
+}
+
+export interface ModuleReportRunResponse {
+	report: ModuleReport;
+	view: ModuleView | null;
+	form: ModuleForm | null;
+	items: Array<Record<string, unknown>>;
+	meta: { count: number };
+}
+
+export interface ModuleReportFilterOption {
+	value: string | number | null;
+	label: string;
+}
+
+export interface ModuleReportPrepareResponse {
+	report: ModuleReport;
+	view: ModuleView | null;
+	form: ModuleForm | null;
+	filter_options: Record<string, ModuleReportFilterOption[]>;
+}
+
+export interface ModuleEmbedForm {
+	id: string;
+	title: string;
+	table: string;
+	fields: ModuleFormField[];
+	hooks?: unknown[] | Record<string, unknown>;
+	default_position?: string;
+	default_pending?: boolean | string;
+	css?: string;
+	redirect_url?: string;
+	thank_you_message?: string;
+}
+
 export interface RelationOption {
 	id: number;
 	title: string;
@@ -167,18 +252,181 @@ export interface RelationOptionsParams {
 	entry?: number;
 }
 
+/**
+ * Write bodies for the module designer. The server fills defaults and coerces
+ * the legacy "on"/"" toggles, so these stay loose where the storage is loose.
+ */
+export interface ModuleCreateBody {
+	name: string;
+	group?: string | null;
+	class?: string;
+	table?: string;
+	gbp?: ModuleGbpConfig;
+	icon?: string;
+	route?: string;
+	graphql?: boolean;
+	graphql_type?: string;
+}
+
+export type ModuleUpdateBody = Partial<ModuleCreateBody>;
+
+export interface ModuleActionBody {
+	name: string;
+	route?: string;
+	in_nav?: boolean;
+	icon?: string;
+	class?: string;
+	form?: string | null;
+	view?: string | null;
+	report?: string | null;
+	level?: number;
+	position?: number;
+}
+
+export interface ModuleFormBody {
+	title: string;
+	table: string;
+	fields?: ModuleFormField[];
+	default_position?: string;
+	return_view?: string | null;
+	return_url?: string;
+	tagging?: boolean;
+	open_graph?: boolean;
+	hooks?: Record<string, unknown> | unknown[];
+}
+
+export interface ModuleViewBody {
+	title: string;
+	description?: string;
+	table: string;
+	type?: ModuleViewType;
+	settings?: ModuleViewSettings;
+	fields?: Record<string, ModuleViewFieldConfig>;
+	actions?: Record<string, string>;
+	related_form?: string | null;
+	preview_url?: string;
+	exclude_from_search?: boolean;
+}
+
+export interface ModuleReportBody {
+	title: string;
+	table: string;
+	type?: "view" | "csv";
+	filters?: Record<string, ModuleReportFilter>;
+	fields?: Record<string, string> | string[];
+	parser?: string;
+	view?: string | null;
+	streaming?: boolean;
+}
+
+export interface ModuleEmbedFormBody {
+	title: string;
+	table: string;
+	fields?: ModuleFormField[];
+	hooks?: Record<string, unknown> | unknown[];
+	default_position?: string;
+	default_pending?: boolean;
+	css?: string;
+	redirect_url?: string;
+	thank_you_message?: string;
+}
+
+const enc = encodeURIComponent;
+
 export const modulesApi = {
 	list: () => api.get<ModuleSummary[]>("/modules"),
 
-	get: (id: string) => api.get<ModuleSummary>(`/modules/${encodeURIComponent(id)}`),
+	get: (id: string) => api.get<ModuleSummary>(`/modules/${enc(id)}`),
+
+	create: (body: ModuleCreateBody) => api.post<ModuleSummary>("/modules", body),
+
+	update: (id: string, body: ModuleUpdateBody) =>
+		api.patch<ModuleSummary>(`/modules/${enc(id)}`, body),
+
+	delete: (id: string) => api.delete<void>(`/modules/${enc(id)}`),
+
+	reorder: (ids: string[]) => api.post<void>("/modules/reorder", { ids }),
 
 	listGroups: () => api.get<ModuleGroup[]>("/module-groups"),
 
-	actions: (id: string) => api.get<ModuleAction[]>(`/modules/${encodeURIComponent(id)}/actions`),
+	actions: (id: string) => api.get<ModuleAction[]>(`/modules/${enc(id)}/actions`),
 
-	views: (id: string) => api.get<ModuleView[]>(`/modules/${encodeURIComponent(id)}/views`),
+	createAction: (id: string, body: ModuleActionBody) =>
+		api.post<ModuleAction>(`/modules/${enc(id)}/actions`, body),
 
-	forms: (id: string) => api.get<ModuleForm[]>(`/modules/${encodeURIComponent(id)}/forms`),
+	updateAction: (id: string, sid: string, body: Partial<ModuleActionBody>) =>
+		api.patch<ModuleAction>(`/modules/${enc(id)}/actions/${enc(sid)}`, body),
+
+	deleteAction: (id: string, sid: string) =>
+		api.delete<void>(`/modules/${enc(id)}/actions/${enc(sid)}`),
+
+	reorderActions: (id: string, ids: string[]) =>
+		api.post<void>(`/modules/${enc(id)}/actions/reorder`, { ids }),
+
+	views: (id: string) => api.get<ModuleView[]>(`/modules/${enc(id)}/views`),
+
+	createView: (id: string, body: ModuleViewBody) =>
+		api.post<ModuleView>(`/modules/${enc(id)}/views`, body),
+
+	updateView: (id: string, sid: string, body: Partial<ModuleViewBody>) =>
+		api.patch<ModuleView>(`/modules/${enc(id)}/views/${enc(sid)}`, body),
+
+	deleteView: (id: string, sid: string) =>
+		api.delete<void>(`/modules/${enc(id)}/views/${enc(sid)}`),
+
+	forms: (id: string) => api.get<ModuleForm[]>(`/modules/${enc(id)}/forms`),
+
+	createForm: (id: string, body: ModuleFormBody) =>
+		api.post<ModuleForm>(`/modules/${enc(id)}/forms`, body),
+
+	updateForm: (id: string, sid: string, body: Partial<ModuleFormBody>) =>
+		api.patch<ModuleForm>(`/modules/${enc(id)}/forms/${enc(sid)}`, body),
+
+	deleteForm: (id: string, sid: string) =>
+		api.delete<void>(`/modules/${enc(id)}/forms/${enc(sid)}`),
+
+	reports: (id: string) => api.get<ModuleReport[]>(`/modules/${enc(id)}/reports`),
+
+	createReport: (id: string, body: ModuleReportBody) =>
+		api.post<ModuleReport>(`/modules/${enc(id)}/reports`, body),
+
+	updateReport: (id: string, sid: string, body: Partial<ModuleReportBody>) =>
+		api.patch<ModuleReport>(`/modules/${enc(id)}/reports/${enc(sid)}`, body),
+
+	deleteReport: (id: string, sid: string) =>
+		api.delete<void>(`/modules/${enc(id)}/reports/${enc(sid)}`),
+
+	gbpCategories: (id: string) => api.get<GbpCategory[]>(`/modules/${enc(id)}/gbp-categories`),
+
+	embedForms: (id: string) => api.get<ModuleEmbedForm[]>(`/modules/${enc(id)}/embed-forms`),
+
+	createEmbedForm: (id: string, body: ModuleEmbedFormBody) =>
+		api.post<ModuleEmbedForm>(`/modules/${enc(id)}/embed-forms`, body),
+
+	updateEmbedForm: (id: string, sid: string, body: Partial<ModuleEmbedFormBody>) =>
+		api.patch<ModuleEmbedForm>(`/modules/${enc(id)}/embed-forms/${enc(sid)}`, body),
+
+	deleteEmbedForm: (id: string, sid: string) =>
+		api.delete<void>(`/modules/${enc(id)}/embed-forms/${enc(sid)}`),
+
+	prepareReport: (id: string, reportId: string) =>
+		api.get<ModuleReportPrepareResponse>(
+			`/modules/${encodeURIComponent(id)}/reports/${encodeURIComponent(reportId)}/prepare`
+		),
+
+	runReport: (id: string, reportId: string, body: ModuleReportRunRequest = {}) =>
+		api.post<ModuleReportRunResponse>(
+			`/modules/${encodeURIComponent(id)}/reports/${encodeURIComponent(reportId)}/run`,
+			body
+		),
+
+	createGroup: (body: { name: string; route?: string }) =>
+		api.post<ModuleGroup>("/module-groups", body),
+
+	updateGroup: (id: string, body: { name?: string; route?: string; position?: number }) =>
+		api.patch<ModuleGroup>(`/module-groups/${encodeURIComponent(id)}`, body),
+
+	deleteGroup: (id: string) => api.delete<void>(`/module-groups/${encodeURIComponent(id)}`),
 
 	relationOptions: (moduleId: string, formId: string, params: RelationOptionsParams) =>
 		api.get<RelationOptionsResponse>(

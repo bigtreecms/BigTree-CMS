@@ -71,4 +71,10 @@
 			],
 			"audit" => ["table" => "bigtree_users", "type" => "password_changed", "entry" => "%id%"],
 		],
+
+		"POST /users/{id:int}/2fa/remove" => [
+			"service" => [UserService::class, "removeTwoFactor"],
+			"permission" => ["level" => 2],
+			"audit" => ["table" => "bigtree_users", "type" => "2fa_removed", "entry" => "%id%"],
+		],
 	];

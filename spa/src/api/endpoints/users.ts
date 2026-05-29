@@ -115,6 +115,10 @@ export const usersApi = {
 
 	password: (id: number, payload: ChangePasswordPayload) =>
 		api.post<void>(`/users/${id}/password`, payload),
+
+	/** Developer-only: strip a user's TOTP secret when they've lost their device. */
+	removeTwoFactor: (id: number) =>
+		api.post<{ id: number; two_factor_enabled: boolean }>(`/users/${id}/2fa/remove`),
 };
 
 export type UserLevelLabel = "Normal User" | "Administrator" | "Developer";

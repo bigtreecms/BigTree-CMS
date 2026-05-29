@@ -1,0 +1,145 @@
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Plus, Trash } from "lucide-react";
+
+import { Breadcrumb } from "@/components/shell/Breadcrumb";
+import { PageHead } from "@/components/shell/PageHead";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
+
+import { DeveloperSectionNav } from "@/components/developer/DeveloperSectionNav";
+
+import { feedsApi, type FeedSummary } from "@/api/endpoints/feeds";
+
+import { ApiError } from "@/types/api";
+import { toast } from "@/lib/toast";
+
+export const Feeds = () => {
+	const navigate = useNavigate();
+	const queryClient = useQueryClient();
+	const [confirmDelete, setConfirmDelete] = useState<FeedSummary | null>(null);
+
+	const query = useQuery({
+		queryKey: ["feeds", "list"],
+		queryFn: () => feedsApi.list(),
+	});
+
+	const deleteMutation = useMutation({
+		mutationFn: (id: string) => feedsApi.delete(id),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ["feeds"] });
+			setConfirmDelete(null);
+			toast.success("Feed deleted");
+		},
+		onError: (err) => {
+			toast.error(err instanceof ApiError && err.message ? err.message : "Delete failed");
+		},
+	});
+
+	const rows = query.data ?? [];
+
+	const columns: DataTableColumn<FeedSummary>[] = [
+		{
+			key: "name",
+			header: "Name",
+			width: "minmax(0,1.5fr)",
+			cell: (row) => (
+				<div className="min-w-0">
+					<div className="truncate font-medium text-text">{row.name}</div>
+					<div className="truncate font-mono text-[11px] text-text-3">{row.id}</div>
+				</div>
+			),
+		},
+		{
+			key: "type",
+			header: "Type",
+			width: "120px",
+			hideOnMobile: true,
+			cell: (row) => (
+				<span className="rounded bg-surface-2 px-1.5 py-0.5 text-[11px] font-medium text-text-3">
+					{row.type || "?"}
+				</span>
+			),
+		},
+		{
+			key: "table",
+			header: "Table",
+			width: "minmax(0,1fr)",
+			hideOnMobile: true,
+			cell: (row) => (
+				<span className="font-mono text-[11.5px] text-text-3">{row.table || "—"}</span>
+			),
+		},
+		{
+			key: "actions",
+			header: "",
+			width: "56px",
+			align: "right",
+			cell: (row) => (
+				<button
+					type="button"
+					className="rounded p-1 text-text-3 hover:bg-hover hover:text-danger"
+					onClick={(e) => {
+						e.stopPropagation();
+						setConfirmDelete(row);
+					}}
+					title="Delete feed"
+					aria-label="Delete feed"
+				>
+					<Trash size={13} />
+				</button>
+			),
+		},
+	];
+
+	return (
+		<div className="mx-auto max-w-screen-2xl px-6 py-4">
+			<Breadcrumb items={[{ label: "Developer", to: "/developer" }, { label: "Feeds" }]} />
+
+			<PageHead
+				title="Feeds"
+				sub={rows.length === 1 ? "1 feed" : `${rows.length} feeds`}
+				actions={
+					<Link
+						to="/developer/feeds/add"
+						className="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-[12.5px] font-medium text-accent-fg hover:bg-accent-hover"
+					>
+						<Plus size={13} />
+						Add feed
+					</Link>
+				}
+			/>
+
+			<DeveloperSectionNav />
+
+			<DataTable<FeedSummary>
+				columns={columns}
+				rows={rows}
+				getRowKey={(row) => row.id}
+				isLoading={query.isLoading}
+				loadingLabel="Loading feeds…"
+				emptyLabel="No feeds yet."
+				onRowClick={(row) =>
+					navigate(`/developer/feeds/${encodeURIComponent(row.id)}/edit`)
+				}
+			/>
+
+			{confirmDelete && (
+				<ConfirmDialog
+					open
+					onOpenChange={(open) => {
+						if (!open) {
+							setConfirmDelete(null);
+						}
+					}}
+					title={`Delete "${confirmDelete.name}"?`}
+					description="The public URL backed by this feed will stop responding immediately."
+					confirmLabel="Delete feed"
+					variant="danger"
+					onConfirm={() => deleteMutation.mutate(confirmDelete.id)}
+				/>
+			)}
+		</div>
+	);
+};

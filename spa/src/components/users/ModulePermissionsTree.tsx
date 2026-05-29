@@ -1,16 +1,84 @@
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Info } from "lucide-react";
 
 import { modulesApi, type ModuleGroup, type ModuleSummary } from "@/api/endpoints/modules";
 import type { PermissionCode, UserPermissions } from "@/api/endpoints/users";
 
 import { MODULE_PERMISSION_OPTIONS, PermissionRadios } from "./PermissionRadios";
 
+const GRID_COLUMNS = "minmax(0,1fr) repeat(3, 80px)";
+
 interface ModulePermissionsTreeProps {
 	value: UserPermissions["module"];
-	onChange: (next: UserPermissions["module"]) => void;
+	onChange: (next: NonNullable<UserPermissions["module"]>) => void;
+	gbpValue: UserPermissions["module_gbp"];
+	onGbpChange: (next: NonNullable<UserPermissions["module_gbp"]>) => void;
 }
+
+interface GbpCategoryRowsProps {
+	module: ModuleSummary;
+	value: Record<string, PermissionCode> | undefined;
+	onChange: (categoryId: string, perm: PermissionCode) => void;
+}
+
+/**
+ * Nested per-category permission rows for a GBP-enabled module. Categories are
+ * the rows of the module's configured "other table", fetched from
+ * `/modules/{id}/gbp-categories`. Each gets the same Publisher / Editor / No
+ * Access radio columns as a module row, mirroring the PHP admin.
+ */
+const GbpCategoryRows = ({ module, value, onChange }: GbpCategoryRowsProps) => {
+	const categoriesQ = useQuery({
+		queryKey: ["modules", module.id, "gbp-categories"],
+		queryFn: () => modulesApi.gbpCategories(module.id),
+	});
+
+	const label = module.gbp?.name || "Categories";
+
+	if (categoriesQ.isLoading) {
+		return (
+			<div className="border-t border-border bg-surface-2/40 px-3 py-2 pl-8 text-[11.5px] text-text-3">
+				Loading {label.toLowerCase()}…
+			</div>
+		);
+	}
+
+	const categories = categoriesQ.data ?? [];
+
+	if (categories.length === 0) {
+		return (
+			<div className="border-t border-border bg-surface-2/40 px-3 py-2 pl-8 text-[11.5px] text-text-3">
+				No {label.toLowerCase()} found.
+			</div>
+		);
+	}
+
+	return (
+		<>
+			{categories.map((category) => {
+				const current = value?.[category.id] ?? "";
+
+				return (
+					<div
+						key={category.id}
+						className="grid items-center gap-2 border-t border-border bg-surface-2/40 py-1.5 pl-8 pr-3 text-[12px]"
+						style={{ gridTemplateColumns: GRID_COLUMNS }}
+					>
+						<span className="truncate text-text-2">
+							<span className="text-text-3">{label}:</span> {category.title}
+						</span>
+						<PermissionRadios
+							name={`gbp-${module.id}-${category.id}`}
+							value={current}
+							onChange={(next) => onChange(category.id, next)}
+							options={MODULE_PERMISSION_OPTIONS}
+						/>
+					</div>
+				);
+			})}
+		</>
+	);
+};
 
 /**
  * Module permissions list. Modules are grouped by module group (with an
@@ -18,14 +86,17 @@ interface ModulePermissionsTreeProps {
  * Publisher / Editor / No Access radios — modules don't have an "Inherit"
  * option, mirroring the PHP admin.
  *
- * Group-based permissions (GBP): when a module has `gbp.enabled`, the PHP
- * admin shows a nested list of categories (rows from another table) with the
- * same radio columns. The API doesn't expose that "other table" today, so we
- * render an info row directing the admin to the legacy admin to manage per-
- * category permissions — and we *preserve* any existing module_gbp values in
- * the form state (they're round-tripped untouched).
+ * Group-based permissions (GBP): when a module has `gbp.enabled`, a nested
+ * list of categories (rows from the module's configured other table) renders
+ * below it with the same radio columns, each bound to the user's
+ * `module_gbp[moduleId][categoryId]` grant.
  */
-export const ModulePermissionsTree = ({ value, onChange }: ModulePermissionsTreeProps) => {
+export const ModulePermissionsTree = ({
+	value,
+	onChange,
+	gbpValue,
+	onGbpChange,
+}: ModulePermissionsTreeProps) => {
 	const modulesQ = useQuery({ queryKey: ["modules", "list"], queryFn: modulesApi.list });
 	const groupsQ = useQuery({
 		queryKey: ["module-groups", "list"],
@@ -83,6 +154,16 @@ export const ModulePermissionsTree = ({ value, onChange }: ModulePermissionsTree
 		onChange(next);
 	};
 
+	const setGbpPerm = (moduleId: string, categoryId: string, perm: PermissionCode) => {
+		const next = { ...(gbpValue ?? {}) };
+		const moduleMap = { ...(next[moduleId] ?? {}) };
+
+		moduleMap[categoryId] = perm;
+		next[moduleId] = moduleMap;
+
+		onGbpChange(next);
+	};
+
 	if (modulesQ.isLoading || groupsQ.isLoading) {
 		return (
 			<div className="rounded-md border border-border bg-surface px-3 py-6 text-center text-[12.5px] text-text-3">
@@ -103,7 +184,7 @@ export const ModulePermissionsTree = ({ value, onChange }: ModulePermissionsTree
 		<div>
 			<div
 				className="grid items-center gap-2 rounded-t-md border border-border bg-surface-2 px-3 py-2 text-[10.5px] font-semibold uppercase tracking-[0.06em] text-text-3"
-				style={{ gridTemplateColumns: "minmax(0,1fr) repeat(3, 80px)" }}
+				style={{ gridTemplateColumns: GRID_COLUMNS }}
 			>
 				<div>Module</div>
 				{MODULE_PERMISSION_OPTIONS.map((opt) => (
@@ -128,9 +209,7 @@ export const ModulePermissionsTree = ({ value, onChange }: ModulePermissionsTree
 								<div key={m.id}>
 									<div
 										className="grid items-center gap-2 border-t border-border bg-surface px-3 py-1.5 text-[12.5px]"
-										style={{
-											gridTemplateColumns: "minmax(0,1fr) repeat(3, 80px)",
-										}}
+										style={{ gridTemplateColumns: GRID_COLUMNS }}
 									>
 										<span className="truncate text-text">{m.name}</span>
 										<PermissionRadios
@@ -142,18 +221,13 @@ export const ModulePermissionsTree = ({ value, onChange }: ModulePermissionsTree
 									</div>
 
 									{gbpEnabled && (
-										<div className="border-t border-border bg-info-bg/40 px-3 py-2 text-[11.5px] text-text-2">
-											<div className="flex items-start gap-2">
-												<Info
-													size={13}
-													className="mt-0.5 shrink-0 text-info"
-												/>
-												<div>
-													<strong>Group-based permissions:</strong>{" "}
-													{`This module has group-based access (${m.gbp?.name || "categories"}). Existing grants are preserved on save, but editing them is still done from the legacy admin until the categories endpoint ships.`}
-												</div>
-											</div>
-										</div>
+										<GbpCategoryRows
+											module={m}
+											value={gbpValue?.[m.id]}
+											onChange={(categoryId, perm) =>
+												setGbpPerm(m.id, categoryId, perm)
+											}
+										/>
 									)}
 								</div>
 							);

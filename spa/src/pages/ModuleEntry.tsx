@@ -16,10 +16,6 @@ import { modulesApi, type ModuleAction } from "@/api/endpoints/modules";
  * form id (no view), we send the user to /modules/:id/view/0/add and let the
  * renderer use the form id from history state — but in practice the PHP admin
  * always pairs forms with views, so this fallback is rarely hit.
- *
- * While Phase 7 is still pending the target route renders <Placeholder />;
- * the resolver still does its job so when the renderer ships nothing about
- * this page changes.
  */
 
 interface ResolveResult {

@@ -31,8 +31,6 @@
 		// — Public endpoint methods —
 
 		public function login(Request $request) {
-			global $bigtree;
-
 			$email = strtolower(trim((string)($request->body["email"] ?? "")));
 			$password = (string)($request->body["password"] ?? "");
 			$remember = !empty($request->body["remember"]);
@@ -64,9 +62,10 @@
 				throw new AuthenticationException("Invalid credentials", "invalid_credentials", 401);
 			}
 
-			// 2FA gate: if enabled in security policy and the user has a secret set.
-			$two_factor_required = ($bigtree["security-policy"]["two_factor"] ?? "") === "google"
-				&& !empty($user["2fa_secret"]);
+			// 2FA gate: any user who has enrolled a TOTP secret (self-service or
+			// otherwise) must complete the second factor. The secret itself is the
+			// per-user opt-in — there is no separate global toggle.
+			$two_factor_required = !empty($user["2fa_secret"]);
 
 			if ($two_factor_required) {
 				$mfa_token = $this->issueMfaPartial((int)$user["id"], $remember);
@@ -101,6 +100,83 @@
 			SQL::update("bigtree_users", $user["id"], ["2fa_login_token" => ""]);
 
 			return $this->issueTokens($user, $request);
+		}
+
+		/**
+		 * GET /auth/2fa/setup
+		 * Begins TOTP enrollment for the current user: mints a fresh secret and
+		 * returns it alongside a QR image (data URI) and the raw otpauth:// URI
+		 * for manual key entry. The secret is NOT persisted here — the client
+		 * holds it through the ceremony and posts it back to /auth/2fa/enable
+		 * once the user has proven they can generate a valid code. Mirrors the
+		 * legacy login/2fa/setup hidden-field handoff.
+		 */
+		public function twoFactorSetup(Request $request) {
+			include_once BigTree::path("inc/lib/GoogleAuthenticator.php");
+
+			$site_title = SQL::fetchSingle("SELECT nav_title FROM bigtree_pages WHERE id = 0") ?: "BigTree";
+			$label = $site_title . " (" . $request->user->email . ")";
+			$secret = GoogleAuthenticator::generateSecret();
+			$qr = GoogleAuthenticator::getQRCode($label, $secret);
+			$otpauth = "otpauth://totp/" . rawurlencode($label) . "?secret=" . $secret . "&issuer=BigTree";
+
+			return Response::ok([
+				"secret" => $secret,
+				"qr_image" => $qr,
+				"otpauth_uri" => $otpauth,
+			]);
+		}
+
+		/**
+		 * POST /auth/2fa/enable { secret, code }
+		 * Completes enrollment: verifies the user-entered code against the
+		 * pending secret from /auth/2fa/setup, then stores it on the account.
+		 */
+		public function twoFactorEnable(Request $request) {
+			include_once BigTree::path("inc/lib/GoogleAuthenticator.php");
+
+			$secret = trim((string)($request->body["secret"] ?? ""));
+			$code = trim((string)($request->body["code"] ?? ""));
+
+			if ($secret === "" || $code === "") {
+				throw new BadRequestException("secret and code required", "missing_fields", 400);
+			}
+
+			if (!GoogleAuthenticator::verifyCode($secret, $code)) {
+				throw new BadRequestException("That code is incorrect or expired", "invalid_2fa_code", 400);
+			}
+
+			$user_id = (int)$request->user->id;
+			SQL::update("bigtree_users", $user_id, ["2fa_secret" => $secret]);
+
+			return Response::ok(["id" => $user_id, "two_factor_enabled" => true]);
+		}
+
+		/**
+		 * POST /auth/2fa/disable { code }
+		 * Turns off TOTP for the current user. Requires a valid current code so
+		 * a hijacked session can't silently strip the second factor; users who
+		 * have lost their authenticator go through an admin remove-2FA instead.
+		 */
+		public function twoFactorDisable(Request $request) {
+			include_once BigTree::path("inc/lib/GoogleAuthenticator.php");
+
+			$user_id = (int)$request->user->id;
+			$user = SQL::fetch("SELECT 2fa_secret FROM bigtree_users WHERE id = ?", $user_id);
+
+			if (empty($user["2fa_secret"])) {
+				return Response::ok(["id" => $user_id, "two_factor_enabled" => false]);
+			}
+
+			$code = trim((string)($request->body["code"] ?? ""));
+
+			if ($code === "" || !GoogleAuthenticator::verifyCode($user["2fa_secret"], $code)) {
+				throw new BadRequestException("That code is incorrect or expired", "invalid_2fa_code", 400);
+			}
+
+			SQL::update("bigtree_users", $user_id, ["2fa_secret" => ""]);
+
+			return Response::ok(["id" => $user_id, "two_factor_enabled" => false]);
 		}
 
 		public function refresh(Request $request) {
@@ -163,6 +239,51 @@
 				"timezone" => $request->user->timezone,
 				"permissions" => $request->user->permissions,
 			]));
+		}
+
+		/**
+		 * POST /auth/emulate { user_id }
+		 * Developer-only. Mints a fresh token set for the target user and returns
+		 * it alongside the acting developer's identity. The SPA stashes the
+		 * developer's own tokens client-side so it can restore them on "stop
+		 * emulating" — we deliberately do NOT touch the developer's refresh family
+		 * here. The emulated access token carries only the target's level, so this
+		 * is not a privilege-escalation path: a developer emulating a normal user
+		 * temporarily drops to that user's permissions.
+		 */
+		public function emulate(Request $request) {
+			$target_id = (int)($request->body["user_id"] ?? 0);
+			$actor = $request->user;
+
+			if (!$target_id) {
+				throw new BadRequestException("user_id required", "missing_user_id", 400);
+			}
+
+			if ($target_id === (int)$actor->id) {
+				throw new BadRequestException("You cannot emulate yourself", "self_emulation", 400);
+			}
+
+			$target = SQL::fetch("SELECT * FROM bigtree_users WHERE id = ?", $target_id);
+
+			if (!$target) {
+				throw new NotFoundException("User not found", "user_not_found", 404);
+			}
+
+			$access = $this->issueAccessToken($target);
+			$refresh = TokenStore::issueFamily((int)$target["id"], $request->ip, $request->user_agent);
+
+			return Response::ok([
+				"access_token" => $access,
+				"refresh_token" => $refresh["raw"],
+				"token_type" => "Bearer",
+				"expires_in" => self::ACCESS_TTL,
+				"user" => $this->publicUser($target),
+				"emulated_by" => [
+					"id" => (int)$actor->id,
+					"name" => $actor->name,
+					"email" => $actor->email,
+				],
+			]);
 		}
 
 		// — Passkey endpoints —

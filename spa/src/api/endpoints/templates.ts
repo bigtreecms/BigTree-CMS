@@ -44,7 +44,27 @@ export const resourceToFormField = (r: TemplateResource): ModuleFormField => ({
 	settings: r.settings,
 });
 
+export interface TemplateEditBody {
+	id?: string;
+	name?: string;
+	module?: string;
+	level?: number;
+	routed?: boolean;
+	resources?: TemplateResource[];
+	hooks?: unknown;
+}
+
 export const templatesApi = {
 	list: () => api.get<TemplateSummary[]>("/templates"),
+
 	get: (id: string) => api.get<TemplateSummary>(`/templates/${encodeURIComponent(id)}`),
+
+	create: (body: TemplateEditBody) => api.post<TemplateSummary>("/templates", body),
+
+	update: (id: string, body: TemplateEditBody) =>
+		api.patch<TemplateSummary>(`/templates/${encodeURIComponent(id)}`, body),
+
+	delete: (id: string) => api.delete<void>(`/templates/${encodeURIComponent(id)}`),
+
+	reorder: (ids: string[]) => api.post<void>("/templates/reorder", { ids }),
 };

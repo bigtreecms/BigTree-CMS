@@ -173,6 +173,22 @@
 			"permission" => ["level" => 2],
 			"audit" => ["table" => "module-reports", "type" => "deleted", "entry" => "%sid%"],
 		],
+		"GET /modules/{id}/reports/{sid}/prepare" => [
+			"service" => [ModuleService::class, "prepareReport"],
+			"permission" => ["module" => "%id%", "min" => "v"],
+		],
+		"POST /modules/{id}/reports/{sid}/run" => [
+			"service" => [ModuleService::class, "runReport"],
+			"permission" => ["module" => "%id%", "min" => "v"],
+			"body" => ["filters" => "array", "sort" => "array"],
+		],
+
+		// Category list for a GBP module — consumed by the user editor's module
+		// permission tree, so gated at admin (level 1) rather than module view.
+		"GET /modules/{id}/gbp-categories" => [
+			"service" => [ModuleService::class, "gbpCategories"],
+			"permission" => ["level" => 1],
+		],
 
 		"GET /modules/{id}/embed-forms" => ["service" => [ModuleService::class, "embedForms"], "permission" => ["module" => "%id%", "min" => "v"]],
 		"POST /modules/{id}/embed-forms" => [
@@ -201,6 +217,19 @@
 			"service" => [ModuleService::class, "deleteEmbedForm"],
 			"permission" => ["level" => 2],
 			"audit" => ["table" => "module-embed-forms", "type" => "deleted", "entry" => "%sid%"],
+		],
+
+		// — Public embed form routes — no auth required so the form can be
+		// loaded and submitted from a third-party page via the SPA's
+		// /embed/:hash route.
+		"GET /embed-forms/{hash}" => [
+			"service" => [ModuleService::class, "publicGetEmbedForm"],
+			"permission" => "public",
+		],
+		"POST /embed-forms/{hash}/submit" => [
+			"service" => [ModuleService::class, "publicSubmitEmbedForm"],
+			"permission" => "public",
+			"body" => ["values" => "array"],
 		],
 
 		"GET /module-groups" => ["service" => [ModuleService::class, "listGroups"], "permission" => ["level" => 0]],

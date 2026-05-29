@@ -37,13 +37,24 @@ export interface AuthUser {
 	timezone?: string;
 }
 
+/** Identity of the developer currently emulating another user. */
+export interface EmulatedBy {
+	id: number;
+	name: string;
+	email: string;
+}
+
 const STORAGE_KEY = "bigtree:auth";
+// The developer's own session, parked here while they emulate another user so a
+// page reload mid-emulation can still restore it on "stop emulating".
+const ORIGIN_STORAGE_KEY = "bigtree:auth:origin";
 
 interface PersistedAuth {
 	accessToken: string;
 	refreshToken: string;
 	expiresAt: number; // epoch ms
 	user: AuthUser;
+	emulatedBy?: EmulatedBy | null;
 }
 
 function loadPersisted(): PersistedAuth | null {
@@ -68,11 +79,34 @@ function savePersisted(p: PersistedAuth | null): void {
 	}
 }
 
+function loadOrigin(): PersistedAuth | null {
+	try {
+		const raw = window.localStorage.getItem(ORIGIN_STORAGE_KEY);
+		if (!raw) return null;
+		const parsed = JSON.parse(raw) as PersistedAuth;
+		if (!parsed.accessToken || !parsed.refreshToken || !parsed.user) return null;
+		return parsed;
+	} catch {
+		return null;
+	}
+}
+
+function saveOrigin(p: PersistedAuth | null): void {
+	try {
+		if (p) window.localStorage.setItem(ORIGIN_STORAGE_KEY, JSON.stringify(p));
+		else window.localStorage.removeItem(ORIGIN_STORAGE_KEY);
+	} catch {
+		// see savePersisted
+	}
+}
+
 interface AuthState {
 	accessToken: string | null;
 	refreshToken: string | null;
 	expiresAt: number | null;
 	user: AuthUser | null;
+	/** Set while a developer is emulating another user; null otherwise. */
+	emulatedBy: EmulatedBy | null;
 	/**
 	 * True until the initial localStorage read + optional refresh probe completes.
 	 * Route guards key off this to avoid flashing the login screen.
@@ -80,6 +114,19 @@ interface AuthState {
 	hydrating: boolean;
 
 	setSession: (access: string, refresh: string, expiresInSeconds: number, user: AuthUser) => void;
+	/**
+	 * Begin emulating `user`: parks the developer's current session in origin
+	 * storage, then installs the emulated session as the active one.
+	 */
+	startEmulation: (
+		access: string,
+		refresh: string,
+		expiresInSeconds: number,
+		user: AuthUser,
+		emulatedBy: EmulatedBy
+	) => void;
+	/** Restore the developer's parked session. No-op if not emulating. */
+	stopEmulation: () => void;
 	clear: () => void;
 	setHydrated: () => void;
 }
@@ -91,6 +138,7 @@ export const useAuthStore = create<AuthState>((set) => ({
 	refreshToken: initial?.refreshToken ?? null,
 	expiresAt: initial?.expiresAt ?? null,
 	user: initial?.user ?? null,
+	emulatedBy: initial?.emulatedBy ?? null,
 	// If we already have a persisted access token, we're "hydrated enough" to
 	// render protected routes immediately. We still kick off a background
 	// refresh in the fetch layer if requests start returning 401.
@@ -105,16 +153,58 @@ export const useAuthStore = create<AuthState>((set) => ({
 			user,
 		};
 		savePersisted(next);
+		set({ ...next, emulatedBy: null, hydrating: false });
+	},
+
+	startEmulation: (access, refresh, expiresInSeconds, user, emulatedBy) => {
+		const current = loadPersisted();
+
+		// Park the developer's own session so we can come back to it. Never
+		// overwrite an already-parked origin (no nested emulation).
+		if (current && !current.emulatedBy && !loadOrigin()) {
+			saveOrigin(current);
+		}
+
+		const expiresAt = Date.now() + expiresInSeconds * 1000;
+		const next: PersistedAuth = {
+			accessToken: access,
+			refreshToken: refresh,
+			expiresAt,
+			user,
+			emulatedBy,
+		};
+		savePersisted(next);
 		set({ ...next, hydrating: false });
+	},
+
+	stopEmulation: () => {
+		const origin = loadOrigin();
+		saveOrigin(null);
+
+		if (!origin) {
+			return;
+		}
+
+		savePersisted(origin);
+		set({
+			accessToken: origin.accessToken,
+			refreshToken: origin.refreshToken,
+			expiresAt: origin.expiresAt,
+			user: origin.user,
+			emulatedBy: null,
+			hydrating: false,
+		});
 	},
 
 	clear: () => {
 		savePersisted(null);
+		saveOrigin(null);
 		set({
 			accessToken: null,
 			refreshToken: null,
 			expiresAt: null,
 			user: null,
+			emulatedBy: null,
 			hydrating: false,
 		});
 	},

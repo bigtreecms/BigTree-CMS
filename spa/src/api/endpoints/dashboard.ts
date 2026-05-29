@@ -55,9 +55,34 @@ export interface AnalyticsResponse {
 	cache: AnalyticsCache | null;
 }
 
+export interface ContentAlert {
+	page_id: number;
+	nav_title: string;
+	path: string;
+	updated_at: string;
+	age_days: number;
+	threshold_days: number;
+}
+
+export interface IntegrityStats {
+	pages_with_missing_template: number;
+	pages_total: number;
+	resources_total: number;
+	orphan_resource_allocations: number;
+	/**
+	 * Verbose mode (the /dashboard/integrity endpoint) also returns row lists
+	 * (e.g. arrays of pages that hit each condition). We keep them loose so
+	 * the consuming page can render generically without us re-typing every
+	 * potential extra field.
+	 */
+	[key: string]: unknown;
+}
+
 export const dashboardApi = {
 	summary: () => api.get<DashboardSummary>("/dashboard/summary"),
 	analytics: () => api.get<AnalyticsResponse>("/dashboard/analytics"),
+	contentAlerts: () => api.get<ContentAlert[]>("/dashboard/content-alerts"),
+	integrity: () => api.get<IntegrityStats>("/dashboard/integrity"),
 };
 
 export interface PendingChange {
@@ -72,9 +97,29 @@ export interface PendingChange {
 	pending_page_parent: number;
 }
 
+/**
+ * Full pending-change row returned by GET /pending-changes/{id}. The four
+ * `*_changes` fields are JSON-decoded server-side; everything else is a
+ * straight DB column passthrough.
+ */
+export interface PendingChangeDetail extends PendingChange {
+	item_id: number | null;
+	changes: Record<string, unknown>;
+	mtm_changes: unknown[] | Record<string, unknown>;
+	tags_changes: number[] | Record<string, unknown>;
+	open_graph_changes: Record<string, unknown>;
+	publish_hook?: string | null;
+}
+
 export const pendingChangesApi = {
 	list: (params: { mine?: boolean; page?: number; per_page?: number } = {}) =>
 		api.get<PendingChange[]>("/pending-changes", { query: params }),
+
+	get: (id: number) => api.get<PendingChangeDetail>(`/pending-changes/${id}`),
+
+	approve: (id: number) => api.post<void>(`/pending-changes/${id}/approve`),
+
+	reject: (id: number) => api.post<void>(`/pending-changes/${id}/reject`),
 };
 
 export interface Message {
@@ -88,6 +133,13 @@ export interface Message {
 	read_by: number[];
 }
 
+export interface CreateMessagePayload {
+	subject: string;
+	message: string;
+	recipients: number[];
+	in_response_to?: number;
+}
+
 export const messagesApi = {
 	list: (
 		params: {
@@ -95,6 +147,13 @@ export const messagesApi = {
 			page?: number;
 			per_page?: number;
 		} = {}
-	) => api.get<Message[]>("/messages", { query: params }),
+	) => api.getWithMeta<Message[]>("/messages", { query: params }),
+
+	get: (id: number) => api.get<Message>(`/messages/${id}`),
+
+	create: (body: CreateMessagePayload) => api.post<Message>("/messages", body),
+
+	markRead: (id: number) => api.post<void>(`/messages/${id}/read`),
+
 	unreadCount: () => api.get<{ unread: number }>("/messages/unread-count"),
 };

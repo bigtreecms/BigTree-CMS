@@ -18,9 +18,36 @@
 			"permission" => "public",
 			"body" => [
 				"mfa_token" => "required|string|max:64",
-				"code" => "required|string|max:16",
+				"code" => "required|regex:/^[0-9]{6,8}$/",
 			],
 			"rate_limit" => ["per_minute" => 10],
+		],
+
+		// — Self-service TOTP enrollment (current user) —
+
+		"GET /auth/2fa/setup" => [
+			"service" => [AuthService::class, "twoFactorSetup"],
+			"permission" => ["level" => 0],
+			"rate_limit" => ["per_minute" => 20],
+		],
+
+		"POST /auth/2fa/enable" => [
+			"service" => [AuthService::class, "twoFactorEnable"],
+			"permission" => ["level" => 0],
+			"body" => [
+				"secret" => "required|string|max:128",
+				"code" => "required|regex:/^[0-9]{6,8}$/",
+			],
+			"rate_limit" => ["per_minute" => 10],
+			"audit" => ["table" => "bigtree_users", "type" => "2fa_enabled", "entry" => "%id%"],
+		],
+
+		"POST /auth/2fa/disable" => [
+			"service" => [AuthService::class, "twoFactorDisable"],
+			"permission" => ["level" => 0],
+			"body" => ["code" => "required|regex:/^[0-9]{6,8}$/"],
+			"rate_limit" => ["per_minute" => 10],
+			"audit" => ["table" => "bigtree_users", "type" => "2fa_disabled", "entry" => "%id%"],
 		],
 
 		"POST /auth/refresh" => [
@@ -44,6 +71,13 @@
 		"GET /auth/me" => [
 			"service" => [AuthService::class, "me"],
 			"permission" => ["level" => 0],
+		],
+
+		"POST /auth/emulate" => [
+			"service" => [AuthService::class, "emulate"],
+			"permission" => ["level" => 2],
+			"body" => ["user_id" => "required|int"],
+			"audit" => ["table" => "bigtree_users", "type" => "emulated", "entry" => "%user_id%"],
 		],
 
 		"GET /auth/passkey/options" => [
