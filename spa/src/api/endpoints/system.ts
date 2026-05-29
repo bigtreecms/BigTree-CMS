@@ -15,6 +15,34 @@ export interface SystemVersion {
 }
 
 /**
+ * GET /system/status — the developer "Site Status" audit. Status strings
+ * follow the legacy convention: "bad" (critical), "ok" (warning), "good" (ok).
+ */
+export type StatusLevel = "bad" | "ok" | "good";
+
+export interface SiteStatusWarning {
+	parameter: string;
+	rec: string;
+	status: StatusLevel;
+	/** Present only on "Bad Admin Links" rows so the SPA can link to the page editor. */
+	page_id?: number;
+	nav_title?: string;
+}
+
+export interface SiteStatusParameter {
+	parameter: string;
+	rec: string;
+	status: StatusLevel;
+	/** Present on rows that report a measured value (upload size, memory limit). */
+	value?: string;
+}
+
+export interface SiteStatus {
+	warnings: SiteStatusWarning[];
+	parameters: SiteStatusParameter[];
+}
+
+/**
  * The login security policy is a free-form bag persisted under the
  * `bigtree-internal-security-policy` internal setting. PATCH does a recursive
  * merge server-side, so a partial body only touches the keys it carries.
@@ -120,6 +148,8 @@ export interface UpgradeInstallBody {
 
 export const systemApi = {
 	version: () => api.get<SystemVersion>("/system/version"),
+
+	status: () => api.get<SiteStatus>("/system/status"),
 
 	upgrade: {
 		check: () => api.get<UpgradeCheck>("/system/upgrade/check"),

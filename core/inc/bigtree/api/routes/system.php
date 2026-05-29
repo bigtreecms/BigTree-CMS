@@ -14,6 +14,11 @@
 			"permission" => ["level" => 0],
 		],
 
+		"GET /system/status" => [
+			"service" => [SystemService::class, "siteStatus"],
+			"permission" => ["level" => 2],
+		],
+
 		"POST /system/cache/clear" => [
 			"service" => [SystemService::class, "clearCache"],
 			"permission" => ["level" => 2],

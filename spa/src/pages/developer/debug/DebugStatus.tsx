@@ -1,32 +1,51 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import {
-	AlertTriangle,
-	CheckCircle2,
-	FileText,
-	Image as ImageIcon,
-	Layers,
-	Trash2,
-} from "lucide-react";
+import { Trash2 } from "lucide-react";
 
 import { DebugLayout } from "@/components/developer/DebugLayout";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 
 import { systemApi } from "@/api/endpoints/system";
-import { dashboardApi } from "@/api/endpoints/dashboard";
+import type { StatusLevel } from "@/api/endpoints/system";
 import { ApiError } from "@/types/api";
 import { toast } from "@/lib/toast";
 
-export const DebugStatus = () => {
-	const versionQ = useQuery({
-		queryKey: ["system", "version"],
-		queryFn: () => systemApi.version(),
-	});
+/**
+ * Developer → Debug → Site Status.
+ *
+ * Faithful port of the legacy developer status page: a warnings list
+ * (directory writability, bad admin links, missing favicon) followed by the
+ * PHP server-parameter checks. Mirrors the legacy red/yellow/green legend.
+ */
 
-	const integrityQ = useQuery({
-		queryKey: ["dashboard", "integrity"],
-		queryFn: () => dashboardApi.integrity(),
+const STATUS_META: Record<StatusLevel, { label: string; dot: string; text: string }> = {
+	bad: { label: "Critical", dot: "bg-danger", text: "text-danger" },
+	ok: { label: "Warning", dot: "bg-warn", text: "text-warn" },
+	good: { label: "OK", dot: "bg-success", text: "text-success" },
+};
+
+const StatusBadge = ({ status, value }: { status: StatusLevel; value?: string }) => {
+	const meta = STATUS_META[status];
+
+	return (
+		<span className="inline-flex items-center gap-1.5 whitespace-nowrap">
+			{value && (
+				<span className="font-mono text-[12.5px] tabular-nums text-text-2">{value}</span>
+			)}
+			<span className={`h-2 w-2 rounded-full ${meta.dot}`} />
+			<span className={`text-[11px] font-semibold uppercase tracking-[0.04em] ${meta.text}`}>
+				{meta.label}
+			</span>
+		</span>
+	);
+};
+
+export const DebugStatus = () => {
+	const statusQ = useQuery({
+		queryKey: ["system", "status"],
+		queryFn: () => systemApi.status(),
 	});
 
 	const [confirmClear, setConfirmClear] = useState(false);
@@ -41,50 +60,12 @@ export const DebugStatus = () => {
 		},
 	});
 
-	const version = versionQ.data;
-	const stats = integrityQ.data;
-
-	const versionRows: Array<{ label: string; value: string }> = version
-		? [
-				{ label: "BigTree version", value: version.version || "—" },
-				{ label: "Build revision", value: String(version.revision) },
-				{ label: "PHP version", value: version.php },
-			]
-		: [];
-
-	const tiles = stats
-		? [
-				{
-					label: "Pages",
-					value: stats.pages_total,
-					icon: <FileText size={16} className="text-text-3" />,
-					warn: false,
-				},
-				{
-					label: "Pages with missing template",
-					value: stats.pages_with_missing_template,
-					icon: <AlertTriangle size={16} className="text-warn" />,
-					warn: stats.pages_with_missing_template > 0,
-				},
-				{
-					label: "Resources",
-					value: stats.resources_total,
-					icon: <ImageIcon size={16} className="text-text-3" />,
-					warn: false,
-				},
-				{
-					label: "Orphan resource allocations",
-					value: stats.orphan_resource_allocations,
-					icon: <Layers size={16} className="text-warn" />,
-					warn: stats.orphan_resource_allocations > 0,
-				},
-			]
-		: [];
+	const data = statusQ.data;
 
 	return (
 		<DebugLayout
-			title="System status"
-			sub="Version info and the structural-health snapshot the dashboard computes."
+			title="Site Status"
+			sub="Directory permissions, content warnings, and PHP server parameters for this install."
 			actions={
 				<button
 					type="button"
@@ -97,77 +78,82 @@ export const DebugStatus = () => {
 				</button>
 			}
 		>
-			<section className="mb-5 overflow-hidden rounded-xl border border-border bg-surface">
-				<header className="border-b border-border bg-surface-2 px-4 py-2.5 text-[11.5px] font-semibold uppercase tracking-[0.06em] text-text-3">
-					Build
-				</header>
+			<p className="mb-5 text-[12.5px] text-text-3">
+				Critical errors appear in <span className="font-semibold text-danger">red</span>,
+				warnings appear in <span className="font-semibold text-warn">yellow</span>, and
+				successes appear in <span className="font-semibold text-success">green</span>.
+			</p>
 
-				{versionQ.isLoading && <p className="p-4 text-[12.5px] text-text-3">Loading…</p>}
+			{statusQ.isLoading && <p className="text-[12.5px] text-text-3">Loading…</p>}
 
-				{versionQ.error && (
-					<div className="p-4">
-						<ErrorPanel error={versionQ.error} />
-					</div>
-				)}
+			{statusQ.error && <ErrorPanel error={statusQ.error} />}
 
-				{version && (
-					<dl className="divide-y divide-border">
-						{versionRows.map((row) => (
-							<div
-								key={row.label}
-								className="flex items-center justify-between px-4 py-2.5"
-							>
-								<dt className="text-[12.5px] text-text-2">{row.label}</dt>
-								<dd className="font-mono text-[12.5px] tabular-nums text-text">
-									{row.value}
-								</dd>
-							</div>
-						))}
-					</dl>
-				)}
-			</section>
-
-			<h2 className="mb-2 text-[11px] font-semibold uppercase tracking-[0.06em] text-text-3">
-				Site integrity
-			</h2>
-
-			{integrityQ.isLoading && (
-				<p className="text-[12.5px] text-text-3">Loading integrity…</p>
-			)}
-
-			{integrityQ.error && <ErrorPanel error={integrityQ.error} />}
-
-			{stats && (
+			{data && (
 				<>
-					<div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-4">
-						{tiles.map((tile) => (
-							<div
-								key={tile.label}
-								className={`rounded-lg border border-border bg-surface p-3 ${
-									tile.warn ? "border-warn/40 bg-warn-bg/30" : ""
-								}`}
-							>
-								<div className="mb-1 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.06em] text-text-3">
-									{tile.icon}
-									{tile.label}
-								</div>
-								<div
-									className={`text-[22px] font-semibold tabular-nums ${
-										tile.warn ? "text-warn" : "text-text"
-									}`}
-								>
-									{Number(tile.value).toLocaleString()}
-								</div>
-							</div>
-						))}
-					</div>
+					{data.warnings.length > 0 && (
+						<section className="mb-5 overflow-hidden rounded-xl border border-border bg-surface">
+							<header className="border-b border-border bg-surface-2 px-4 py-2.5 text-[11.5px] font-semibold uppercase tracking-[0.06em] text-text-3">
+								Warnings
+							</header>
 
-					{tiles.every((t) => !t.warn) && (
-						<div className="mt-3 flex items-center gap-2 rounded-lg border border-border bg-surface p-4 text-[12.5px] text-text-3">
-							<CheckCircle2 size={14} className="text-success" />
-							No structural issues detected.
-						</div>
+							<ul className="divide-y divide-border">
+								{data.warnings.map((w, i) => (
+									<li
+										key={i}
+										className="flex items-center justify-between gap-4 px-4 py-2.5"
+									>
+										<div className="min-w-0">
+											<div className="text-[12.5px] font-medium text-text">
+												{w.parameter}
+											</div>
+											<div className="mt-0.5 text-[12px] text-text-3">
+												{w.page_id ? (
+													<>
+														Remove links to the admin on{" "}
+														<Link
+															to={`/pages/${w.page_id}/edit`}
+															className="text-accent hover:underline"
+														>
+															{w.nav_title}
+														</Link>
+														.
+													</>
+												) : (
+													w.rec
+												)}
+											</div>
+										</div>
+										<StatusBadge status={w.status} />
+									</li>
+								))}
+							</ul>
+						</section>
 					)}
+
+					<section className="overflow-hidden rounded-xl border border-border bg-surface">
+						<header className="border-b border-border bg-surface-2 px-4 py-2.5 text-[11.5px] font-semibold uppercase tracking-[0.06em] text-text-3">
+							Server Parameters
+						</header>
+
+						<ul className="divide-y divide-border">
+							{data.parameters.map((p) => (
+								<li
+									key={p.parameter}
+									className="flex items-center justify-between gap-4 px-4 py-2.5"
+								>
+									<div className="min-w-0">
+										<div className="text-[12.5px] font-medium text-text">
+											{p.parameter}
+										</div>
+										<div className="mt-0.5 text-[12px] text-text-3">
+											{p.rec}
+										</div>
+									</div>
+									<StatusBadge status={p.status} value={p.value} />
+								</li>
+							))}
+						</ul>
+					</section>
 				</>
 			)}
 

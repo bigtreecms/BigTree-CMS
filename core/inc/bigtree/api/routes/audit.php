@@ -16,4 +16,9 @@
 				"per_page" => "int",
 			],
 		],
+
+		"GET /audit/tables" => [
+			"service" => [AuditService::class, "tables"],
+			"permission" => ["level" => 2],
+		],
 	];

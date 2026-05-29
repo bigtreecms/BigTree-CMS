@@ -58,4 +58,7 @@ export const auditApi = {
 			meta: res.meta ?? {},
 		}));
 	},
+
+	/** Every database table name, sorted — feeds the table filter's searchable select. */
+	tables: () => api.get<string[]>("/audit/tables"),
 };

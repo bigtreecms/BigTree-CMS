@@ -41,6 +41,20 @@
 			return $audit_id;
 		}
 
+		/**
+		 * Returns the full list of database table names, sorted alphabetically.
+		 * Powers the audit-trail table filter (a searchable select); the `table`
+		 * column is free-form, so we expose every real table rather than only the
+		 * distinct values already present in the audit log.
+		 */
+		public function tables(Request $request) {
+			$tables = SQL::fetchAllSingle("SHOW TABLES");
+
+			sort($tables, SORT_STRING | SORT_FLAG_CASE);
+
+			return Response::ok(array_values($tables));
+		}
+
 		public function list(Request $request) {
 			$p = Pagination::offset($request, 100);
 			$include_context = !empty($request->query["include"]) && strpos((string)$request->query["include"], "context") !== false;

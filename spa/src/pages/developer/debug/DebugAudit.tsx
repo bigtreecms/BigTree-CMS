@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { Search, X } from "lucide-react";
 
 import { DebugLayout } from "@/components/developer/DebugLayout";
+import { TableSelect } from "@/components/developer/TableSelect";
+import { UserSelect } from "@/components/users/UserSelect";
 import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
 import { Pager } from "@/components/ui/Pager";
 import { SlideOver } from "@/components/ui/SlideOver";
@@ -41,8 +42,11 @@ const formatDate = (input: string): string => {
 export const DebugAudit = () => {
 	const [searchParams] = useSearchParams();
 
-	const [userFilter, setUserFilter] = useState(searchParams.get("user") ?? "");
-	const [tableFilter, setTableFilter] = useState(searchParams.get("table") ?? "");
+	const initialUser = searchParams.get("user");
+	const [userFilter, setUserFilter] = useState<number | null>(
+		initialUser ? Number(initialUser) : null
+	);
+	const [tableFilter, setTableFilter] = useState<string | null>(searchParams.get("table"));
 	const [start, setStart] = useState("");
 	const [end, setEnd] = useState("");
 	const [page, setPage] = useState(1);
@@ -56,7 +60,7 @@ export const DebugAudit = () => {
 		queryKey: ["audit", { userFilter, tableFilter, start, end, page }],
 		queryFn: () =>
 			auditApi.list({
-				user: userFilter ? Number(userFilter) : undefined,
+				user: userFilter ?? undefined,
 				table: tableFilter || undefined,
 				start: start || undefined,
 				end: end || undefined,
@@ -127,41 +131,22 @@ export const DebugAudit = () => {
 		>
 			<div className="mb-3 flex flex-wrap items-end gap-3">
 				<div>
-					<label className="mb-1 block text-[11px] font-medium text-text-3">
-						User ID
-					</label>
-					<div className="relative">
-						<Search
-							size={13}
-							className="absolute left-2.5 top-1/2 -translate-y-1/2 text-text-3"
-						/>
-						<input
-							className="w-32 rounded-md border border-border bg-surface py-1.5 pl-8 pr-7 text-[13px] focus:outline-none focus:ring-1 focus:ring-accent-ring"
-							placeholder="Any"
-							inputMode="numeric"
-							value={userFilter}
-							onChange={(e) => setUserFilter(e.target.value.replace(/[^0-9]/g, ""))}
-						/>
-						{userFilter && (
-							<button
-								type="button"
-								className="absolute right-1.5 top-1/2 -translate-y-1/2 rounded p-0.5 text-text-3 hover:bg-hover hover:text-text"
-								onClick={() => setUserFilter("")}
-								aria-label="Clear user filter"
-							>
-								<X size={13} />
-							</button>
-						)}
-					</div>
+					<label className="mb-1 block text-[11px] font-medium text-text-3">User</label>
+					<UserSelect
+						value={userFilter}
+						onChange={setUserFilter}
+						ariaLabel="Filter by user"
+						className="w-56"
+					/>
 				</div>
 
 				<div>
 					<label className="mb-1 block text-[11px] font-medium text-text-3">Table</label>
-					<input
-						className="w-48 rounded-md border border-border bg-surface px-3 py-1.5 text-[13px] focus:outline-none focus:ring-1 focus:ring-accent-ring"
-						placeholder="e.g. bigtree_pages"
+					<TableSelect
 						value={tableFilter}
-						onChange={(e) => setTableFilter(e.target.value)}
+						onChange={setTableFilter}
+						ariaLabel="Filter by table"
+						className="w-56"
 					/>
 				</div>
 

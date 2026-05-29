@@ -131,6 +131,171 @@
 			]);
 		}
 
+		/**
+		 * GET /system/status
+		 *
+		 * Faithful port of the legacy developer "Site Status" page
+		 * (core/admin/modules/developer/status.php). Two groups:
+		 *
+		 *   warnings   — directory writability (fixed list + every upload field's
+		 *                configured directory across forms/embed forms/templates/
+		 *                callouts), pages that link to the admin, and a missing
+		 *                favicon.
+		 *   parameters — PHP environment checks. The obsolete legacy checks
+		 *                (magic_quotes_gpc/runtime, short_open_tag, the bare `mysql`
+		 *                extension) are dropped; `mysql` is modernized to `mysqli`.
+		 *
+		 * status values match the legacy CSS classes: "bad" (critical / red),
+		 * "ok" (warning / yellow), "good" (success / green).
+		 */
+		public function siteStatus(Request $request) {
+			$warnings = [];
+
+			// — Fixed list of directories that must be writable —
+			$writable_directories = [
+				"cache/",
+				"custom/inc/modules/",
+				"custom/admin/field-types/",
+				"templates/routed/",
+				"templates/basic/",
+				"templates/callouts/",
+				"site/files/",
+				"custom/json-db/",
+			];
+
+			foreach ($writable_directories as $directory) {
+				if (!BigTree::isDirectoryWritable(SERVER_ROOT . $directory)) {
+					$warnings[] = [
+						"parameter" => "Directory Permissions Error",
+						"rec" => "Make " . SERVER_ROOT . $directory . " writable.",
+						"status" => "bad",
+					];
+				}
+			}
+
+			// — Every upload field's configured directory must be writable —
+			// Recurses matrix sub-columns and dedupes so a directory used by many
+			// fields only warns once.
+			$directory_warnings = [];
+
+			$recurse_fields = function ($fields) use (&$recurse_fields, &$warnings, &$directory_warnings) {
+				foreach (array_filter((array)$fields) as $data) {
+					if (empty($data["settings"]) && !empty($data["options"])) {
+						$data["settings"] = $data["options"];
+					}
+
+					if (empty($data["settings"])) {
+						$data["settings"] = [];
+					}
+
+					$settings = is_string($data["settings"]) ? array_filter((array)json_decode($data["settings"], true)) : $data["settings"];
+
+					if (($data["type"] ?? "") == "matrix") {
+						$recurse_fields($settings["columns"] ?? []);
+					} elseif (!empty($settings["directory"])) {
+						if (!BigTree::isDirectoryWritable(SITE_ROOT . $settings["directory"]) && !in_array($settings["directory"], $directory_warnings)) {
+							$directory_warnings[] = $settings["directory"];
+							$warnings[] = [
+								"parameter" => "Directory Permissions Error",
+								"rec" => "Make " . SITE_ROOT . $settings["directory"] . " writable.",
+								"status" => "bad",
+							];
+						}
+					}
+				}
+			};
+
+			$forms = array_merge(BigTreeAdmin::getModuleForms(), BigTreeAdmin::getModuleEmbedForms());
+
+			foreach ($forms as $form) {
+				$recurse_fields($form["fields"]);
+			}
+
+			$templates = array_merge(BigTreeAdmin::getTemplates(), BigTreeAdmin::getCallouts());
+
+			foreach ($templates as $template) {
+				$recurse_fields($template["resources"]);
+			}
+
+			// — Pages whose content links directly to the admin —
+			// The SPA builds its own link from page_id/nav_title (legacy emitted
+			// raw <a> markup pointing at the old admin route).
+			foreach (BigTreeAdmin::getPageAdminLinks() as $page) {
+				$warnings[] = [
+					"parameter" => "Bad Admin Links",
+					"rec" => "Remove links to the admin in this page's content.",
+					"status" => "ok",
+					"page_id" => (int)$page["id"],
+					"nav_title" => html_entity_decode((string)$page["nav_title"], ENT_QUOTES | ENT_HTML5, 'UTF-8'),
+				];
+			}
+
+			if (!file_exists(SITE_ROOT . "favicon.ico")) {
+				$warnings[] = [
+					"parameter" => "Missing Favicon",
+					"rec" => "Create a favicon and place it in the /site/ root.",
+					"status" => "ok",
+				];
+			}
+
+			// — Server parameters —
+			$upload_max_filesize = ini_get("upload_max_filesize");
+			$post_max_size = ini_get("post_max_size");
+			$max_file = (intval($upload_max_filesize) > intval($post_max_size)) ? intval($post_max_size) : intval($upload_max_filesize);
+
+			$max_check = "bad";
+
+			if ($max_file >= 4) {
+				$max_check = "ok";
+			}
+
+			if ($max_file >= 8) {
+				$max_check = "good";
+			}
+
+			$mem_limit = ini_get("memory_limit");
+
+			$parameters = [
+				[
+					"parameter" => "Allow File Uploads",
+					"rec" => "\u{201C}file_uploads = On\u{201D} in php.ini",
+					"status" => ini_get("file_uploads") ? "good" : "bad",
+				],
+				[
+					"parameter" => "Allow 4MB Uploads",
+					"rec" => "\u{201C}upload_max_filesize\u{201D} and \u{201C}post_max_size\u{201D} > 4M \u{2014} ideally 8M or higher in php.ini",
+					"status" => $max_check,
+					"value" => $max_file . "M",
+				],
+				[
+					"parameter" => "Memory Limit",
+					"rec" => "\u{201C}memory_limit\u{201D} > 32M in php.ini",
+					"status" => (intval($mem_limit) > 32) ? "good" : "bad",
+					"value" => $mem_limit,
+				],
+				[
+					"parameter" => "MySQL Support",
+					"rec" => "MySQLi extension is required",
+					"status" => extension_loaded("mysqli") ? "good" : "bad",
+				],
+				[
+					"parameter" => "Image Processing",
+					"rec" => "GD extension is required",
+					"status" => extension_loaded("gd") ? "good" : "bad",
+				],
+				[
+					"parameter" => "cURL Support",
+					"rec" => "cURL extension is required",
+					"status" => extension_loaded("curl") ? "good" : "bad",
+				],
+			];
+
+			return Response::ok([
+				"warnings" => $warnings,
+				"parameters" => $parameters,
+			]);
+		}
+
 		// — Database backups —
 
 		/**

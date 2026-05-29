@@ -25,8 +25,8 @@ const CARDS: DebugCard[] = [
 	{
 		to: "/developer/debug/status",
 		icon: <Activity size={16} />,
-		title: "System status",
-		description: "BigTree / PHP versions, build revision, and a site-integrity read-out.",
+		title: "Site Status",
+		description: "Directory permissions, content warnings, and PHP server parameter checks.",
 	},
 	{
 		to: "/developer/debug/security",
