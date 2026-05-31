@@ -1,9 +1,12 @@
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowDown, ArrowUp, ChevronDown, ChevronRight, Plus, Trash } from "lucide-react";
+import { ChevronDown, ChevronRight, GripVertical, Plus, Trash } from "lucide-react";
 
 import type { ModuleFormField } from "@/api/endpoints/modules";
 import { fieldTypesApi, type FieldUseCase } from "@/api/endpoints/field-types";
+import { useDragReorder } from "@/hooks/useDragReorder";
+
+import { FieldSettingsEditor } from "./FieldSettingsEditor";
 
 /**
  * Shared editor for an array of `{column|id, type, title, subtitle, settings}`
@@ -17,10 +20,11 @@ import { fieldTypesApi, type FieldUseCase } from "@/api/endpoints/field-types";
  * `column`. The designer accepts a `keyField` prop so each caller can write
  * the legacy field name without an in-component normalization layer.
  *
- * Per-field settings are edited as raw JSON for V1 — running a full type-
- * specific settings editor here would duplicate the legacy field-type
- * settings.php files. JSON is honest about what's stored and works for every
- * field type without a per-type implementation.
+ * Per-field settings are edited by `FieldSettingsEditor`, a schema-driven UI
+ * that reads each field type's settings schema (GET /field-types/{id}/schema)
+ * and renders typed controls — the SPA equivalent of the legacy field-type
+ * settings.php forms. It falls back to a raw-JSON editor for custom/extension
+ * types that ship no schema.
  */
 
 export type ResourceShape = "id" | "column";
@@ -106,21 +110,34 @@ export const ResourceDesigner = ({
 		});
 	};
 
-	const move = (index: number, direction: "up" | "down") => {
-		const swap = direction === "up" ? index - 1 : index + 1;
+	/**
+	 * Reorder fields by drag. The list has no stable per-row id (a new field's
+	 * key starts empty), so we drag on array index: each row is identified by
+	 * its position and `reorder` receives the new order of original indices.
+	 * We remap the `expanded` set through the same permutation so open panels
+	 * follow their field to its new slot.
+	 */
+	const reorder = (orderedIndices: number[]) => {
+		onChange(orderedIndices.map((i) => resources[i]!));
 
-		if (swap < 0 || swap >= resources.length) {
-			return;
-		}
+		setExpanded((prev) => {
+			const next = new Set<number>();
 
-		const next = [...resources];
-		const removed = next.splice(index, 1)[0];
+			orderedIndices.forEach((oldIndex, newIndex) => {
+				if (prev.has(oldIndex)) {
+					next.add(newIndex);
+				}
+			});
 
-		if (removed) {
-			next.splice(swap, 0, removed);
-			onChange(next);
-		}
+			return next;
+		});
 	};
+
+	const drag = useDragReorder<{ id: number }, number>(
+		resources.map((_, i) => ({ id: i })),
+		() => {},
+		reorder
+	);
 
 	const toggle = (index: number) => {
 		setExpanded((prev) => {
@@ -149,32 +166,31 @@ export const ResourceDesigner = ({
 						const isOpen = expanded.has(index);
 						const isDisplay = displayFieldId && id && displayFieldId === id;
 
+						const isDragging = drag.dragId === index;
+						const isDropTarget = drag.overId === index && drag.dragId !== index;
+
 						return (
 							<li
 								key={`${index}-${id}`}
-								className="rounded-md border border-border bg-surface"
+								className={`rounded-md border border-border bg-surface transition-colors ${
+									isDragging ? "bg-accent-soft shadow-md" : ""
+								} ${isDropTarget ? "shadow-[inset_0_2px_0_0_var(--color-accent)]" : ""}`}
+								onDragOver={(e) => drag.onDragOver(e, index)}
+								onDrop={drag.onDrop}
 							>
-								<div className="flex items-center gap-2 px-2 py-1.5">
-									<div className="flex flex-col">
-										<button
-											type="button"
-											className="rounded p-0.5 text-text-3 hover:bg-hover hover:text-text disabled:opacity-30"
-											onClick={() => move(index, "up")}
-											disabled={index === 0}
-											aria-label="Move up"
-										>
-											<ArrowUp size={11} />
-										</button>
-										<button
-											type="button"
-											className="rounded p-0.5 text-text-3 hover:bg-hover hover:text-text disabled:opacity-30"
-											onClick={() => move(index, "down")}
-											disabled={index === resources.length - 1}
-											aria-label="Move down"
-										>
-											<ArrowDown size={11} />
-										</button>
-									</div>
+								<div
+									className="flex items-center gap-2 px-2 py-1.5"
+									draggable
+									onDragStart={(e) => drag.onDragStart(e, index)}
+									onDragEnd={drag.onDragEnd}
+								>
+									<span
+										className="grid h-6 w-6 flex-shrink-0 cursor-grab place-items-center rounded text-text-4 hover:bg-hover hover:text-text-2 active:cursor-grabbing"
+										title="Drag to reorder"
+										aria-hidden="true"
+									>
+										<GripVertical size={14} />
+									</span>
 
 									<button
 										type="button"
@@ -251,7 +267,9 @@ export const ResourceDesigner = ({
 											/>
 										</div>
 
-										<SettingsJsonEditor
+										<FieldSettingsEditor
+											type={entry.type || "text"}
+											useCase={useCase}
 											value={
 												entry.settings as
 													| Record<string, unknown>
@@ -341,69 +359,6 @@ const LabelledSelect = ({ label, value, onChange, options, loading }: LabelledSe
 		</select>
 	</label>
 );
-
-interface SettingsJsonEditorProps {
-	value: Record<string, unknown> | unknown[] | undefined;
-	onChange: (next: Record<string, unknown>) => void;
-}
-
-const SettingsJsonEditor = ({ value, onChange }: SettingsJsonEditorProps) => {
-	const initial = useMemo(() => safeStringify(value), [value]);
-	const [draft, setDraft] = useState(initial);
-	const [error, setError] = useState<string | null>(null);
-
-	// Reset draft when the parent value identity changes (e.g. row reorder).
-	useMemo(() => {
-		setDraft(initial);
-		setError(null);
-	}, [initial]);
-
-	const commit = () => {
-		try {
-			const parsed = draft.trim() === "" ? {} : JSON.parse(draft);
-
-			if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
-				setError(null);
-				onChange(parsed as Record<string, unknown>);
-			} else {
-				setError("Field settings must be a JSON object.");
-			}
-		} catch (err) {
-			setError(err instanceof Error ? err.message : "Invalid JSON");
-		}
-	};
-
-	return (
-		<div className="mt-3">
-			<label className="block">
-				<span className="mb-1 block text-[11.5px] font-medium text-text-2">
-					Field settings <span className="text-text-3">(JSON)</span>
-				</span>
-				<textarea
-					rows={5}
-					className="w-full rounded-md border border-border bg-surface px-3 py-2 font-mono text-[11.5px] leading-relaxed focus:outline-none focus:ring-1 focus:ring-accent-ring"
-					value={draft}
-					onChange={(e) => setDraft(e.target.value)}
-					onBlur={commit}
-					spellCheck={false}
-				/>
-			</label>
-			{error && <div className="mt-1 text-[11.5px] text-danger">{error}</div>}
-		</div>
-	);
-};
-
-const safeStringify = (value: unknown): string => {
-	if (value === undefined || value === null) {
-		return "{}";
-	}
-
-	try {
-		return JSON.stringify(value, null, 2);
-	} catch {
-		return "{}";
-	}
-};
 
 /**
  * Convenience adapter: surface a ResourceEntry[] from a ModuleFormField[]

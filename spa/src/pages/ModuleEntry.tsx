@@ -1,121 +1,49 @@
 import { useEffect } from "react";
-import { Navigate, useNavigate, useParams } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
 
-import { Breadcrumb } from "@/components/shell/Breadcrumb";
-import { PageHead } from "@/components/shell/PageHead";
-
-import { modulesApi, type ModuleAction } from "@/api/endpoints/modules";
+import { useModuleContext } from "@/pages/ModuleLayout";
+import { moduleActionTarget } from "@/lib/moduleActions";
 
 /**
- * Entry point for /modules/:id. Resolves the module's default action and
- * redirects to the right Phase 7 renderer route. The actions endpoint already
- * returns rows sorted by position DESC, so the first item is canonical.
+ * Index page for /modules/:id. Resolves the module's default action and
+ * redirects to the matching renderer route. The actions endpoint returns rows
+ * sorted by position DESC, so the first runnable action is canonical.
  *
- * Resolution order: view → report → form. If the first action only has a
- * form id (no view), we send the user to /modules/:id/view/0/add and let the
- * renderer use the form id from history state — but in practice the PHP admin
- * always pairs forms with views, so this fallback is rarely hit.
+ * Resolution order follows the action's own target: view → report → form
+ * (see `moduleActionTarget`). The breadcrumb + sub-nav are drawn by
+ * <ModuleLayout />, so this page only renders a brief transitional state.
  */
-
-interface ResolveResult {
-	to: string;
-	from?: ModuleAction;
-}
-
-const resolveTarget = (moduleId: string, actions: ModuleAction[]): ResolveResult | null => {
-	if (actions.length === 0) {
-		return null;
-	}
-
-	for (const action of actions) {
-		if (action.view) {
-			return {
-				to: `/modules/${encodeURIComponent(moduleId)}/view/${encodeURIComponent(action.view)}`,
-				from: action,
-			};
-		}
-
-		if (action.report) {
-			return {
-				to: `/modules/${encodeURIComponent(moduleId)}/report/${encodeURIComponent(action.report)}`,
-				from: action,
-			};
-		}
-
-		if (action.form) {
-			return {
-				to: `/modules/${encodeURIComponent(moduleId)}/view/_/add`,
-				from: action,
-			};
-		}
-	}
-
-	return null;
-};
-
 export const ModuleEntry = () => {
-	const { id } = useParams<{ id: string }>();
-	const moduleId = id ?? "";
+	const { moduleId, actions, isLoading } = useModuleContext();
 	const navigate = useNavigate();
 
-	const moduleQuery = useQuery({
-		queryKey: ["modules", "detail", moduleId],
-		queryFn: () => modulesApi.get(moduleId),
-		enabled: moduleId !== "",
-	});
+	const target = (() => {
+		for (const action of actions) {
+			const to = moduleActionTarget(moduleId, action);
 
-	const actionsQuery = useQuery({
-		queryKey: ["modules", "actions", moduleId],
-		queryFn: () => modulesApi.actions(moduleId),
-		enabled: moduleId !== "",
-	});
+			if (to) {
+				return to;
+			}
+		}
 
-	const target =
-		actionsQuery.data && moduleId !== ""
-			? resolveTarget(moduleId, actionsQuery.data)
-			: null;
+		return null;
+	})();
 
 	useEffect(() => {
 		if (target) {
-			navigate(target.to, { replace: true });
+			navigate(target, { replace: true });
 		}
 	}, [target, navigate]);
 
-	if (moduleId === "") {
-		return <Navigate to="/modules" replace />;
-	}
-
-	const isLoading = moduleQuery.isLoading || actionsQuery.isLoading;
+	const message = isLoading
+		? "Loading module…"
+		: target
+			? "Opening default action…"
+			: "This module has no resolvable default action.";
 
 	return (
-		<div className="mx-auto max-w-screen-2xl px-6 py-4">
-			<Breadcrumb
-				items={[
-					{ label: "Modules", to: "/modules" },
-					{ label: moduleQuery.data?.name ?? "…" },
-				]}
-			/>
-
-			<PageHead title={moduleQuery.data?.name ?? "Module"} />
-
-			{isLoading ? (
-				<div className="rounded-xl border border-border bg-surface p-9 text-center text-[13px] text-text-3">
-					Loading module…
-				</div>
-			) : actionsQuery.data && actionsQuery.data.length === 0 ? (
-				<div className="rounded-xl border border-border bg-surface p-9 text-center text-[13px] text-text-3">
-					This module has no actions configured.
-				</div>
-			) : target ? (
-				<div className="rounded-xl border border-border bg-surface p-9 text-center text-[13px] text-text-3">
-					Opening {target.from?.name ?? "default action"}…
-				</div>
-			) : (
-				<div className="rounded-xl border border-border bg-surface p-9 text-center text-[13px] text-text-3">
-					This module has no resolvable default action.
-				</div>
-			)}
+		<div className="rounded-xl border border-border bg-surface p-9 text-center text-[13px] text-text-3">
+			{message}
 		</div>
 	);
 };

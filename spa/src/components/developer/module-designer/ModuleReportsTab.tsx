@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 
 import {
@@ -8,9 +8,21 @@ import {
 	type ModuleReportFilter,
 } from "@/api/endpoints/modules";
 
+import { dbApi } from "@/api/endpoints/db";
+
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 
-import { CheckboxInput, JsonInput, SelectInput, TextInput } from "./inputs";
+import { DataTableSelect } from "@/components/developer/DataTableSelect";
+
+import { CheckboxInput, SelectInput, TextInput } from "./inputs";
+import {
+	defaultFilterType,
+	humanizeColumn,
+	ReportFieldsEditor,
+	ReportFiltersEditor,
+	type FieldRow,
+	type FilterRow,
+} from "./ReportColumnEditors";
 import { AddSubButton, EditorCard, SubList, SubRow } from "./scaffold";
 import { NEW_ROW, useSubCrud } from "./useSubCrud";
 
@@ -26,24 +38,36 @@ type Draft = {
 	view: string;
 	parser: string;
 	streaming: boolean;
-	filters: Record<string, ModuleReportFilter>;
-	fields: Record<string, unknown>;
+	filters: FilterRow[];
+	fields: FieldRow[];
 };
 
-const asFilterRecord = (filters: ModuleReport["filters"]): Record<string, ModuleReportFilter> => {
+const filterRowsFromReport = (filters: ModuleReport["filters"]): FilterRow[] => {
 	if (!filters || Array.isArray(filters)) {
-		return {};
+		return [];
 	}
 
-	return filters;
+	return Object.entries(filters).map(([column, filter]) => {
+		const { title, type, ...rest } = filter;
+
+		return {
+			column,
+			title: title ?? humanizeColumn(column),
+			type: type ?? "search",
+			rest,
+		};
+	});
 };
 
-const asFieldRecord = (fields: ModuleReport["fields"]): Record<string, unknown> => {
-	if (fields && typeof fields === "object" && !Array.isArray(fields)) {
-		return fields as Record<string, unknown>;
+const fieldRowsFromReport = (fields: ModuleReport["fields"]): FieldRow[] => {
+	if (!fields || typeof fields !== "object" || Array.isArray(fields)) {
+		return [];
 	}
 
-	return {};
+	return Object.entries(fields).map(([column, title]) => ({
+		column,
+		title: typeof title === "string" ? title : humanizeColumn(column),
+	}));
 };
 
 const draftFromReport = (r: ModuleReport): Draft => ({
@@ -53,8 +77,8 @@ const draftFromReport = (r: ModuleReport): Draft => ({
 	view: r.view ?? "",
 	parser: r.parser ?? "",
 	streaming: r.streaming === true || r.streaming === "on",
-	filters: asFilterRecord(r.filters),
-	fields: asFieldRecord(r.fields),
+	filters: filterRowsFromReport(r.filters),
+	fields: fieldRowsFromReport(r.fields),
 });
 
 const emptyDraft = (table: string): Draft => ({
@@ -64,9 +88,33 @@ const emptyDraft = (table: string): Draft => ({
 	view: "",
 	parser: "",
 	streaming: false,
-	filters: {},
-	fields: {},
+	filters: [],
+	fields: [],
 });
+
+const filtersToRecord = (rows: FilterRow[]): Record<string, ModuleReportFilter> => {
+	const record: Record<string, ModuleReportFilter> = {};
+
+	for (const row of rows) {
+		if (row.column) {
+			record[row.column] = { ...row.rest, title: row.title, type: row.type };
+		}
+	}
+
+	return record;
+};
+
+const fieldsToRecord = (rows: FieldRow[]): Record<string, string> => {
+	const record: Record<string, string> = {};
+
+	for (const row of rows) {
+		if (row.column) {
+			record[row.column] = row.title;
+		}
+	}
+
+	return record;
+};
 
 export const ModuleReportsTab = ({ moduleId, moduleTable }: ModuleReportsTabProps) => {
 	const crud = useSubCrud<ModuleReport, ModuleReportBody>({
@@ -82,22 +130,68 @@ export const ModuleReportsTab = ({ moduleId, moduleTable }: ModuleReportsTabProp
 	const [draft, setDraft] = useState<Draft>(() => emptyDraft(moduleTable));
 	const [pendingDelete, setPendingDelete] = useState<ModuleReport | null>(null);
 
+	// Tracks the table whose columns were last auto-populated into the draft so
+	// we regenerate defaults when (and only when) the table actually changes —
+	// without clobbering a saved report's own filters/fields on edit.
+	const builtForTable = useRef<string | null>(null);
+
 	const viewsQ = useQuery({
 		queryKey: ["modules", moduleId, "views"],
 		queryFn: () => modulesApi.views(moduleId),
 	});
 
+	const columnsQ = useQuery({
+		queryKey: ["db", "columns", draft.table],
+		queryFn: () => dbApi.columns(draft.table),
+		enabled: crud.editingId !== null && draft.table !== "",
+		staleTime: 5 * 60 * 1000,
+	});
+
 	useEffect(() => {
 		if (crud.editingId === NEW_ROW) {
 			setDraft(emptyDraft(moduleTable));
+			// A fresh report auto-populates from its starting table's columns.
+			builtForTable.current = null;
 		} else if (crud.editingId) {
 			const found = crud.items.find((r) => r.id === crud.editingId);
 
 			if (found) {
 				setDraft(draftFromReport(found));
+				// Saved filters/fields are authoritative; don't regenerate over them.
+				builtForTable.current = found.table ?? "";
 			}
 		}
 	}, [crud.editingId, crud.items, moduleTable]);
+
+	// When a (new or changed) table's columns arrive, seed every column as a
+	// default filter and CSV field — the legacy load-report.php behavior.
+	useEffect(() => {
+		const columns = columnsQ.data;
+
+		if (!draft.table || !columns) {
+			return;
+		}
+
+		if (builtForTable.current === draft.table) {
+			return;
+		}
+
+		builtForTable.current = draft.table;
+
+		setDraft((p) => ({
+			...p,
+			filters: columns.map((c) => ({
+				column: c.value,
+				title: humanizeColumn(c.value),
+				type: defaultFilterType(c),
+				rest: {},
+			})),
+			fields: columns.map((c) => ({
+				column: c.value,
+				title: humanizeColumn(c.value),
+			})),
+		}));
+	}, [columnsQ.data, draft.table]);
 
 	const viewOptions = [
 		{ value: "", label: "— No view —" },
@@ -111,8 +205,8 @@ export const ModuleReportsTab = ({ moduleId, moduleTable }: ModuleReportsTabProp
 		view: d.type === "view" ? d.view || null : null,
 		parser: d.parser || undefined,
 		streaming: d.streaming,
-		filters: d.filters,
-		fields: d.fields as Record<string, string>,
+		filters: filtersToRecord(d.filters),
+		fields: fieldsToRecord(d.fields),
 	});
 
 	const editorTitle = crud.editingId === NEW_ROW ? "New report" : "Edit report";
@@ -154,11 +248,10 @@ export const ModuleReportsTab = ({ moduleId, moduleTable }: ModuleReportsTabProp
 							onChange={(v) => setDraft((p) => ({ ...p, title: v }))}
 							required
 						/>
-						<TextInput
+						<DataTableSelect
 							label="Data table"
 							value={draft.table}
 							onChange={(v) => setDraft((p) => ({ ...p, table: v }))}
-							mono
 							required
 						/>
 						<SelectInput
@@ -195,24 +288,29 @@ export const ModuleReportsTab = ({ moduleId, moduleTable }: ModuleReportsTabProp
 						onChange={(v) => setDraft((p) => ({ ...p, streaming: v }))}
 					/>
 
-					<JsonInput
-						label="Filters"
-						value={draft.filters}
-						onChange={(v) =>
-							setDraft((p) => ({
-								...p,
-								filters: v as Record<string, ModuleReportFilter>,
-							}))
-						}
-						hint='Keyed by column: { "status": { "title": "Status", "type": "dropdown", "options": {…} } }'
-					/>
+					{draft.table === "" ? (
+						<div className="rounded-md border border-dashed border-border bg-surface-2 px-3 py-4 text-center text-[12.5px] text-text-3">
+							Choose a data table to configure filters and fields.
+						</div>
+					) : (
+						<>
+							<ReportFiltersEditor
+								rows={draft.filters}
+								onChange={(rows) => setDraft((p) => ({ ...p, filters: rows }))}
+								columns={columnsQ.data ?? []}
+								loading={columnsQ.isLoading}
+							/>
 
-					<JsonInput
-						label="Fields"
-						value={draft.fields}
-						onChange={(v) => setDraft((p) => ({ ...p, fields: v }))}
-						hint="Keyed by column → heading. Controls which columns appear in CSV output."
-					/>
+							{draft.type === "csv" && (
+								<ReportFieldsEditor
+									rows={draft.fields}
+									onChange={(rows) => setDraft((p) => ({ ...p, fields: rows }))}
+									columns={columnsQ.data ?? []}
+									loading={columnsQ.isLoading}
+								/>
+							)}
+						</>
+					)}
 				</EditorCard>
 			)}
 

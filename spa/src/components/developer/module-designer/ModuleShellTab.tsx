@@ -13,6 +13,8 @@ import {
 import { ApiError } from "@/types/api";
 import { toast } from "@/lib/toast";
 
+import { DataTableSelect } from "@/components/developer/DataTableSelect";
+
 import { CheckboxInput, SelectInput, TextInput } from "./inputs";
 
 interface ModuleShellTabProps {
@@ -182,12 +184,11 @@ export const ModuleShellTab = ({ moduleId, module }: ModuleShellTabProps) => {
 					onChange={(v) => set({ icon: v })}
 					hint="BigTree icon glyph name (e.g. list, news, calendar)."
 				/>
-				<TextInput
+				<DataTableSelect
 					label="Data table"
 					value={state.table}
 					onChange={(v) => set({ table: v })}
 					hint="MySQL table backing this module's entries."
-					mono
 				/>
 				<TextInput
 					label="Handler class"
@@ -222,12 +223,11 @@ export const ModuleShellTab = ({ moduleId, module }: ModuleShellTabProps) => {
 				/>
 				{state.gbp.enabled && (
 					<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-						<TextInput
+						<DataTableSelect
 							label="Category table"
 							value={state.gbp.other_table ?? ""}
 							onChange={(v) => setGbp({ other_table: v })}
 							hint="Table whose rows act as permission categories."
-							mono
 						/>
 						<TextInput
 							label="Title field"

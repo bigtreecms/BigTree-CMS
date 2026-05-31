@@ -1,7 +1,6 @@
 import { Navigate, useNavigate, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
 
 import { autoModulesApi } from "@/api/endpoints/auto-modules";
@@ -29,12 +28,6 @@ export const ModuleEntryEdit = () => {
 	const entryId = eid ? Number.parseInt(eid, 10) : NaN;
 	const navigate = useNavigate();
 	const queryClient = useQueryClient();
-
-	const moduleQuery = useQuery({
-		queryKey: ["modules", "detail", moduleId],
-		queryFn: () => modulesApi.get(moduleId),
-		enabled: moduleId !== "",
-	});
 
 	const viewsQuery = useQuery({
 		queryKey: ["modules", "views", moduleId],
@@ -78,32 +71,12 @@ export const ModuleEntryEdit = () => {
 	const form = resolveForm(view, formsQuery.data ?? []);
 	const initialValues = pickItemValues(entryQuery.data);
 
-	const isLoading =
-		viewsQuery.isLoading ||
-		formsQuery.isLoading ||
-		moduleQuery.isLoading ||
-		entryQuery.isLoading;
-
-	const breadcrumbs = [
-		{ label: "Modules", to: "/modules" },
-		{ label: moduleQuery.data?.name ?? "…", to: `/modules/${encodeURIComponent(moduleId)}` },
-		...(view
-			? [
-					{
-						label: view.title,
-						to: `/modules/${encodeURIComponent(moduleId)}/view/${encodeURIComponent(viewId)}`,
-					},
-				]
-			: []),
-		{ label: "Edit" },
-	];
+	const isLoading = viewsQuery.isLoading || formsQuery.isLoading || entryQuery.isLoading;
 
 	const readOnly = lock.ownedByOther;
 
 	return (
-		<div className="mx-auto max-w-screen-2xl px-6 py-4">
-			<Breadcrumb items={breadcrumbs} />
-
+		<>
 			<PageHead title={form ? `Edit ${form.title}` : "Edit entry"} />
 
 			{readOnly && (
@@ -138,14 +111,11 @@ export const ModuleEntryEdit = () => {
 					}}
 				/>
 			)}
-		</div>
+		</>
 	);
 };
 
-const resolveForm = (
-	view: ModuleView | undefined,
-	forms: ModuleForm[]
-): ModuleForm | undefined => {
+const resolveForm = (view: ModuleView | undefined, forms: ModuleForm[]): ModuleForm | undefined => {
 	if (forms.length === 0) {
 		return undefined;
 	}

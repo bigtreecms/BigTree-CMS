@@ -8,6 +8,13 @@ import { api } from "@/api/client";
  *   cache flush, and the on-demand database backup lifecycle.
  */
 
+/** Image preset from Configure → Media Settings; consumed by the image_options control. */
+export interface MediaPreset {
+	id: string;
+	name: string;
+	[key: string]: unknown;
+}
+
 export interface SystemVersion {
 	version: string;
 	revision: number;
@@ -167,6 +174,8 @@ export const systemApi = {
 	},
 
 	clearCache: () => api.post<void>("/system/cache/clear"),
+
+	mediaPresets: () => api.get<{ presets: MediaPreset[] }>("/system/configure/media-presets"),
 
 	securityPolicy: {
 		get: () => api.get<Partial<SecurityPolicy>>("/system/security-policy"),

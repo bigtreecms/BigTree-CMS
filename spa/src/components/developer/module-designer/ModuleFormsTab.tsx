@@ -15,6 +15,8 @@ import {
 	type ResourceEntry,
 } from "@/components/developer/ResourceDesigner";
 
+import { DataTableSelect } from "@/components/developer/DataTableSelect";
+
 import { CheckboxInput, JsonInput, SelectInput, TextInput } from "./inputs";
 import { AddSubButton, EditorCard, SubList, SubRow } from "./scaffold";
 import { NEW_ROW, useSubCrud } from "./useSubCrud";
@@ -147,11 +149,10 @@ export const ModuleFormsTab = ({ moduleId, moduleTable }: ModuleFormsTabProps) =
 							onChange={(v) => setDraft((p) => ({ ...p, title: v }))}
 							required
 						/>
-						<TextInput
+						<DataTableSelect
 							label="Data table"
 							value={draft.table}
 							onChange={(v) => setDraft((p) => ({ ...p, table: v }))}
-							mono
 							required
 						/>
 						<SelectInput

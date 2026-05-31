@@ -7,6 +7,7 @@ import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 
+import { DataTableSelect } from "@/components/developer/DataTableSelect";
 import { DeveloperSectionNav } from "@/components/developer/DeveloperSectionNav";
 import { ResourceDesigner, type ResourceEntry } from "@/components/developer/ResourceDesigner";
 
@@ -189,7 +190,7 @@ export const FeedEdit = () => {
 						error={fieldErrors.name}
 						required
 					/>
-					<TextField
+					<DataTableSelect
 						label="Source table"
 						value={body.table ?? ""}
 						onChange={(v) => set({ table: v })}

@@ -1,5 +1,5 @@
-import type { ReactNode } from "react";
-import { ArrowDown, ArrowUp, Pencil, Plus, Trash, X } from "lucide-react";
+import type { DragEvent, ReactNode } from "react";
+import { GripVertical, Pencil, Plus, Trash, X } from "lucide-react";
 
 /**
  * Presentational chrome shared by every sub-resource tab (actions, forms,
@@ -47,10 +47,14 @@ interface SubRowProps {
 	badge?: string;
 	onEdit: () => void;
 	onDelete: () => void;
-	onMoveUp?: () => void;
-	onMoveDown?: () => void;
-	canMoveUp?: boolean;
-	canMoveDown?: boolean;
+	/** When set, the row shows a drag handle and becomes a drag-to-reorder source. */
+	reorderable?: boolean;
+	isDragging?: boolean;
+	isDropTarget?: boolean;
+	onDragStart?: (e: DragEvent) => void;
+	onDragOver?: (e: DragEvent) => void;
+	onDrop?: (e: DragEvent) => void;
+	onDragEnd?: () => void;
 }
 
 export const SubRow = ({
@@ -59,33 +63,32 @@ export const SubRow = ({
 	badge,
 	onEdit,
 	onDelete,
-	onMoveUp,
-	onMoveDown,
-	canMoveUp,
-	canMoveDown,
+	reorderable,
+	isDragging,
+	isDropTarget,
+	onDragStart,
+	onDragOver,
+	onDrop,
+	onDragEnd,
 }: SubRowProps) => (
-	<li className="flex items-center gap-2 rounded-md border border-border bg-surface px-3 py-2">
-		{(onMoveUp || onMoveDown) && (
-			<div className="flex flex-col">
-				<button
-					type="button"
-					className="rounded p-0.5 text-text-3 hover:bg-hover hover:text-text disabled:opacity-30"
-					onClick={onMoveUp}
-					disabled={!canMoveUp}
-					aria-label="Move up"
-				>
-					<ArrowUp size={11} />
-				</button>
-				<button
-					type="button"
-					className="rounded p-0.5 text-text-3 hover:bg-hover hover:text-text disabled:opacity-30"
-					onClick={onMoveDown}
-					disabled={!canMoveDown}
-					aria-label="Move down"
-				>
-					<ArrowDown size={11} />
-				</button>
-			</div>
+	<li
+		className={`flex items-center gap-2 rounded-md border border-border bg-surface px-3 py-2 transition-colors ${
+			isDragging ? "bg-accent-soft shadow-md" : ""
+		} ${isDropTarget ? "shadow-[inset_0_2px_0_0_var(--color-accent)]" : ""}`}
+		draggable={reorderable}
+		onDragStart={onDragStart}
+		onDragOver={onDragOver}
+		onDrop={onDrop}
+		onDragEnd={onDragEnd}
+	>
+		{reorderable && (
+			<span
+				className="grid h-6 w-6 flex-shrink-0 cursor-grab place-items-center rounded text-text-4 hover:bg-hover hover:text-text-2 active:cursor-grabbing"
+				title="Drag to reorder"
+				aria-hidden="true"
+			>
+				<GripVertical size={14} />
+			</span>
 		)}
 		<button
 			type="button"

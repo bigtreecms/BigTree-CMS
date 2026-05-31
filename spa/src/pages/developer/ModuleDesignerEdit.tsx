@@ -1,5 +1,4 @@
-import { useState } from "react";
-import { Link, Navigate, useParams } from "react-router-dom";
+import { Link, Navigate, useParams, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import {
 	ChevronLeft,
@@ -36,7 +35,25 @@ import { modulesApi } from "@/api/endpoints/modules";
 export const ModuleDesignerEdit = () => {
 	const { id: idParam } = useParams<{ id: string }>();
 	const isAdd = !idParam;
-	const [tab, setTab] = useState("shell");
+	const [searchParams, setSearchParams] = useSearchParams();
+	const tab = searchParams.get("tab") ?? "shell";
+
+	const setTab = (value: string) => {
+		setSearchParams(
+			(prev) => {
+				const next = new URLSearchParams(prev);
+
+				if (value === "shell") {
+					next.delete("tab");
+				} else {
+					next.set("tab", value);
+				}
+
+				return next;
+			},
+			{ replace: true }
+		);
+	};
 
 	const detailQ = useQuery({
 		queryKey: ["modules", "detail", idParam],
@@ -114,6 +131,8 @@ export const ModuleDesignerEdit = () => {
 		);
 	}
 
+	const activeTab = tabs.some((t) => t.value === tab) ? tab : "shell";
+
 	return (
 		<div className="mx-auto max-w-screen-lg px-6 py-4">
 			<Breadcrumb
@@ -149,7 +168,7 @@ export const ModuleDesignerEdit = () => {
 					<ModuleShellTab moduleId={null} module={null} />
 				</div>
 			) : (
-				<TabbedEditor tabs={tabs} value={tab} onChange={setTab} />
+				<TabbedEditor tabs={tabs} value={activeTab} onChange={setTab} />
 			)}
 		</div>
 	);

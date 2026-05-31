@@ -47,6 +47,7 @@ import { Templates } from "@/pages/developer/Templates";
 import { ModuleEntry } from "@/pages/ModuleEntry";
 import { ModuleEntryAdd } from "@/pages/ModuleEntryAdd";
 import { ModuleEntryEdit } from "@/pages/ModuleEntryEdit";
+import { ModuleLayout } from "@/pages/ModuleLayout";
 import { ModuleReport } from "@/pages/ModuleReport";
 import { Modules } from "@/pages/Modules";
 import { ModuleView } from "@/pages/ModuleView";
@@ -160,22 +161,19 @@ export const router = createBrowserRouter(
 							path: "modules",
 							children: [
 								{ index: true, element: <Modules /> },
-								{ path: ":id", element: <ModuleEntry /> },
 								{
-									path: ":id/view/:sid",
-									element: <ModuleView />,
-								},
-								{
-									path: ":id/view/:sid/add",
-									element: <ModuleEntryAdd />,
-								},
-								{
-									path: ":id/view/:sid/edit/:eid",
-									element: <ModuleEntryEdit />,
-								},
-								{
-									path: ":id/report/:sid",
-									element: <ModuleReport />,
+									path: ":id",
+									element: <ModuleLayout />,
+									children: [
+										{ index: true, element: <ModuleEntry /> },
+										{ path: "view/:sid", element: <ModuleView /> },
+										{ path: "view/:sid/add", element: <ModuleEntryAdd /> },
+										{
+											path: "view/:sid/edit/:eid",
+											element: <ModuleEntryEdit />,
+										},
+										{ path: "report/:sid", element: <ModuleReport /> },
+									],
 								},
 							],
 						},

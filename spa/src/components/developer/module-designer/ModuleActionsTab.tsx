@@ -7,6 +7,8 @@ import { ApiError } from "@/types/api";
 import { toast } from "@/lib/toast";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 
+import { useDragReorder } from "@/hooks/useDragReorder";
+
 import { CheckboxInput, SelectInput, TextInput } from "./inputs";
 import { AddSubButton, EditorCard, SubList, SubRow } from "./scaffold";
 import { NEW_ROW, useSubCrud } from "./useSubCrud";
@@ -106,24 +108,11 @@ export const ModuleActionsTab = ({ moduleId }: ModuleActionsTabProps) => {
 		},
 	});
 
-	const move = (index: number, direction: "up" | "down") => {
-		const swap = direction === "up" ? index - 1 : index + 1;
-
-		if (swap < 0 || swap >= crud.items.length) {
-			return;
-		}
-
-		const next = [...crud.items];
-		const removed = next.splice(index, 1)[0];
-
-		if (!removed) {
-			return;
-		}
-
-		next.splice(swap, 0, removed);
-		queryClient.setQueryData(["modules", moduleId, "actions"], next);
-		reorderMutation.mutate(next.map((a) => a.id));
-	};
+	const drag = useDragReorder<ModuleAction, string>(
+		crud.items,
+		(next) => queryClient.setQueryData(["modules", moduleId, "actions"], next),
+		(ids) => reorderMutation.mutate(ids)
+	);
 
 	const targetOptions = [
 		{ value: TARGET_NONE, label: "— No target —" },
@@ -162,7 +151,7 @@ export const ModuleActionsTab = ({ moduleId }: ModuleActionsTabProps) => {
 				emptyLabel="No actions yet. Actions are the entry points shown in the module's nav."
 				isEmpty={crud.items.length === 0}
 			>
-				{crud.items.map((a, index) => (
+				{crud.items.map((a) => (
 					<SubRow
 						key={a.id}
 						title={a.name}
@@ -170,10 +159,13 @@ export const ModuleActionsTab = ({ moduleId }: ModuleActionsTabProps) => {
 						badge={a.in_nav === true || a.in_nav === "on" ? "in nav" : undefined}
 						onEdit={() => crud.startEdit(a.id)}
 						onDelete={() => setPendingDelete(a)}
-						onMoveUp={() => move(index, "up")}
-						onMoveDown={() => move(index, "down")}
-						canMoveUp={index > 0}
-						canMoveDown={index < crud.items.length - 1}
+						reorderable
+						isDragging={drag.dragId === a.id}
+						isDropTarget={drag.overId === a.id && drag.dragId !== a.id}
+						onDragStart={(e) => drag.onDragStart(e, a.id)}
+						onDragOver={(e) => drag.onDragOver(e, a.id)}
+						onDrop={drag.onDrop}
+						onDragEnd={drag.onDragEnd}
 					/>
 				))}
 			</SubList>

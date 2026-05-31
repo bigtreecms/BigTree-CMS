@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowDown, ArrowUp, Plus, Trash } from "lucide-react";
+import { GripVertical, Plus, Trash } from "lucide-react";
+
+import { useDragReorder } from "@/hooks/useDragReorder";
 
 import {
 	modulesApi,
@@ -11,6 +13,8 @@ import {
 } from "@/api/endpoints/modules";
 
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+
+import { DataTableSelect } from "@/components/developer/DataTableSelect";
 
 import { CheckboxInput, JsonInput, SelectInput, TextInput } from "./inputs";
 import { AddSubButton, EditorCard, SubList, SubRow } from "./scaffold";
@@ -168,24 +172,16 @@ export const ModuleViewsTab = ({ moduleId, moduleTable }: ModuleViewsTabProps) =
 	const removeColumn = (index: number) =>
 		setDraft((p) => ({ ...p, columns: p.columns.filter((_, i) => i !== index) }));
 
-	const moveColumn = (index: number, direction: "up" | "down") => {
-		const swap = direction === "up" ? index - 1 : index + 1;
+	// Columns have no stable id, so drag-reorder runs on array index: `reorder`
+	// receives the new order of original indices and rebuilds the list.
+	const reorderColumns = (orderedIndices: number[]) =>
+		setDraft((p) => ({ ...p, columns: orderedIndices.map((i) => p.columns[i]!) }));
 
-		setDraft((p) => {
-			if (swap < 0 || swap >= p.columns.length) {
-				return p;
-			}
-
-			const next = [...p.columns];
-			const removed = next.splice(index, 1)[0];
-
-			if (removed) {
-				next.splice(swap, 0, removed);
-			}
-
-			return { ...p, columns: next };
-		});
-	};
+	const columnDrag = useDragReorder<{ id: number }, number>(
+		draft.columns.map((_, i) => ({ id: i })),
+		() => {},
+		reorderColumns
+	);
 
 	const toBody = (d: Draft): ModuleViewBody => ({
 		title: d.title,
@@ -244,11 +240,10 @@ export const ModuleViewsTab = ({ moduleId, moduleTable }: ModuleViewsTabProps) =
 							onChange={(v) => setDraft((p) => ({ ...p, title: v }))}
 							required
 						/>
-						<TextInput
+						<DataTableSelect
 							label="Data table"
 							value={draft.table}
 							onChange={(v) => setDraft((p) => ({ ...p, table: v }))}
-							mono
 							required
 						/>
 						<SelectInput
@@ -313,68 +308,73 @@ export const ModuleViewsTab = ({ moduleId, moduleTable }: ModuleViewsTabProps) =
 							</div>
 						) : (
 							<ul className="space-y-1.5">
-								{draft.columns.map((col, index) => (
-									<li
-										key={index}
-										className="flex items-center gap-2 rounded-md border border-border bg-surface px-2 py-1.5"
-									>
-										<div className="flex flex-col">
-											<button
-												type="button"
-												className="rounded p-0.5 text-text-3 hover:bg-hover hover:text-text disabled:opacity-30"
-												onClick={() => moveColumn(index, "up")}
-												disabled={index === 0}
-												aria-label="Move up"
-											>
-												<ArrowUp size={11} />
-											</button>
-											<button
-												type="button"
-												className="rounded p-0.5 text-text-3 hover:bg-hover hover:text-text disabled:opacity-30"
-												onClick={() => moveColumn(index, "down")}
-												disabled={index === draft.columns.length - 1}
-												aria-label="Move down"
-											>
-												<ArrowDown size={11} />
-											</button>
-										</div>
-										<input
-											type="text"
-											value={col.key}
-											onChange={(e) =>
-												setColumn(index, { key: e.target.value })
-											}
-											placeholder="column"
-											className="w-40 rounded-md border border-border bg-surface px-2 py-1 font-mono text-[12px] focus:outline-none focus:ring-1 focus:ring-accent-ring"
-										/>
-										<input
-											type="text"
-											value={col.title}
-											onChange={(e) =>
-												setColumn(index, { title: e.target.value })
-											}
-											placeholder="Heading"
-											className="flex-1 rounded-md border border-border bg-surface px-2 py-1 text-[12.5px] focus:outline-none focus:ring-1 focus:ring-accent-ring"
-										/>
-										<input
-											type="text"
-											value={col.width}
-											onChange={(e) =>
-												setColumn(index, { width: e.target.value })
-											}
-											placeholder="width"
-											className="w-20 rounded-md border border-border bg-surface px-2 py-1 text-[12.5px] focus:outline-none focus:ring-1 focus:ring-accent-ring"
-										/>
-										<button
-											type="button"
-											className="rounded p-1 text-text-3 hover:bg-hover hover:text-danger"
-											onClick={() => removeColumn(index)}
-											aria-label="Remove column"
+								{draft.columns.map((col, index) => {
+									const isDragging = columnDrag.dragId === index;
+									const isDropTarget =
+										columnDrag.overId === index && columnDrag.dragId !== index;
+
+									return (
+										<li
+											key={index}
+											className={`flex items-center gap-2 rounded-md border border-border bg-surface px-2 py-1.5 transition-colors ${
+												isDragging ? "bg-accent-soft shadow-md" : ""
+											} ${
+												isDropTarget
+													? "shadow-[inset_0_2px_0_0_var(--color-accent)]"
+													: ""
+											}`}
+											onDragOver={(e) => columnDrag.onDragOver(e, index)}
+											onDrop={columnDrag.onDrop}
 										>
-											<Trash size={13} />
-										</button>
-									</li>
-								))}
+											<span
+												className="grid h-6 w-6 flex-shrink-0 cursor-grab place-items-center rounded text-text-4 hover:bg-hover hover:text-text-2 active:cursor-grabbing"
+												title="Drag to reorder"
+												draggable
+												onDragStart={(e) =>
+													columnDrag.onDragStart(e, index)
+												}
+												onDragEnd={columnDrag.onDragEnd}
+											>
+												<GripVertical size={14} />
+											</span>
+											<input
+												type="text"
+												value={col.key}
+												onChange={(e) =>
+													setColumn(index, { key: e.target.value })
+												}
+												placeholder="column"
+												className="w-40 rounded-md border border-border bg-surface px-2 py-1 font-mono text-[12px] focus:outline-none focus:ring-1 focus:ring-accent-ring"
+											/>
+											<input
+												type="text"
+												value={col.title}
+												onChange={(e) =>
+													setColumn(index, { title: e.target.value })
+												}
+												placeholder="Heading"
+												className="flex-1 rounded-md border border-border bg-surface px-2 py-1 text-[12.5px] focus:outline-none focus:ring-1 focus:ring-accent-ring"
+											/>
+											<input
+												type="text"
+												value={col.width}
+												onChange={(e) =>
+													setColumn(index, { width: e.target.value })
+												}
+												placeholder="width"
+												className="w-20 rounded-md border border-border bg-surface px-2 py-1 text-[12.5px] focus:outline-none focus:ring-1 focus:ring-accent-ring"
+											/>
+											<button
+												type="button"
+												className="rounded p-1 text-text-3 hover:bg-hover hover:text-danger"
+												onClick={() => removeColumn(index)}
+												aria-label="Remove column"
+											>
+												<Trash size={13} />
+											</button>
+										</li>
+									);
+								})}
 							</ul>
 						)}
 						<button

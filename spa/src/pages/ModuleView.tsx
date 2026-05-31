@@ -1,10 +1,10 @@
 import { Navigate, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 
-import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
 
 import { modulesApi } from "@/api/endpoints/modules";
+import { useModuleContext } from "@/pages/ModuleLayout";
 import { ViewRenderer } from "@/renderer/views/ViewRenderer";
 
 /**
@@ -20,12 +20,7 @@ export const ModuleView = () => {
 	const { id, sid } = useParams<{ id: string; sid: string }>();
 	const moduleId = id ?? "";
 	const viewId = sid ?? "";
-
-	const moduleQuery = useQuery({
-		queryKey: ["modules", "detail", moduleId],
-		queryFn: () => modulesApi.get(moduleId),
-		enabled: moduleId !== "",
-	});
+	const { module } = useModuleContext();
 
 	const viewsQuery = useQuery({
 		queryKey: ["modules", "views", moduleId],
@@ -39,18 +34,10 @@ export const ModuleView = () => {
 
 	const view = viewsQuery.data?.find((v) => v.id === viewId);
 
-	const breadcrumbs = [
-		{ label: "Modules", to: "/modules" },
-		{ label: moduleQuery.data?.name ?? "…", to: `/modules/${encodeURIComponent(moduleId)}` },
-		{ label: view?.title ?? "View" },
-	];
-
 	return (
-		<div className="mx-auto max-w-screen-2xl px-6 py-4">
-			<Breadcrumb items={breadcrumbs} />
-
+		<>
 			<PageHead
-				title={view?.title ?? moduleQuery.data?.name ?? "View"}
+				title={view?.title ?? module?.name ?? "View"}
 				sub={view?.description ? view.description : undefined}
 			/>
 
@@ -65,6 +52,6 @@ export const ModuleView = () => {
 			) : (
 				<ViewRenderer moduleId={moduleId} view={view} />
 			)}
-		</div>
+		</>
 	);
 };

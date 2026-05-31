@@ -1,41 +1,15 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import {
-	Activity,
-	Box,
-	Briefcase,
-	Calendar,
-	Database,
-	FileText,
-	Folder,
-	Globe,
-	Image as ImageIcon,
-	Layers,
-	List,
-	type LucideIcon,
-	Mail,
-	Newspaper,
-	Plus,
-	Search,
-	Server,
-	Settings as SettingsIcon,
-	Tag as TagIcon,
-	Truck,
-	Users as UsersIcon,
-	X,
-} from "lucide-react";
+import { Plus, Search, X } from "lucide-react";
 
 import { useAuthStore } from "@/auth/store";
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
+import { iconFor } from "@/lib/legacyIcons";
 import { isDeveloper } from "@/lib/permissions";
 
-import {
-	modulesApi,
-	type ModuleGroup,
-	type ModuleSummary,
-} from "@/api/endpoints/modules";
+import { modulesApi, type ModuleGroup, type ModuleSummary } from "@/api/endpoints/modules";
 
 /**
  * Modules landing — modelled on bigtree-redesign/project/modules-screen.jsx.
@@ -60,52 +34,6 @@ interface GroupedModules {
 	group: ModuleGroup | null;
 	modules: ModuleSummary[];
 }
-
-/**
- * Maps the BigTree legacy `icon` slug (stored on each module) onto a Lucide
- * component. The slugs come from the original sprite-sheet keys in
- * `core/admin/css/main.less` (icon_small_*); only the ones modules typically
- * use need a mapping — everything else falls back to <Box />.
- */
-const LEGACY_ICON_MAP: Record<string, LucideIcon> = {
-	news: Newspaper,
-	newspaper: Newspaper,
-	tags: TagIcon,
-	tag: TagIcon,
-	folder: Folder,
-	file: FileText,
-	page: FileText,
-	calendar: Calendar,
-	calendar2: Calendar,
-	users: UsersIcon,
-	user: UsersIcon,
-	image: ImageIcon,
-	picture: ImageIcon,
-	mail: Mail,
-	email: Mail,
-	world: Globe,
-	globe: Globe,
-	server: Server,
-	gear: SettingsIcon,
-	setup: SettingsIcon,
-	settings: SettingsIcon,
-	truck: Truck,
-	car: Truck,
-	list: List,
-	modules: Layers,
-	database: Database,
-	briefcase: Briefcase,
-	business: Briefcase,
-	activity: Activity,
-};
-
-const iconFor = (slug: string | undefined): LucideIcon => {
-	if (!slug) {
-		return Box;
-	}
-
-	return LEGACY_ICON_MAP[slug.toLowerCase()] ?? Box;
-};
 
 const sortByPositionDesc = <T extends { position?: number }>(rows: T[]) =>
 	[...rows].sort((a, b) => (b.position ?? 0) - (a.position ?? 0));
@@ -245,9 +173,7 @@ export const Modules = () => {
 				</div>
 			) : filtered.length === 0 ? (
 				<div className="rounded-xl border border-dashed border-border bg-transparent p-9 text-center text-[13px] text-text-3">
-					{trimmedQuery
-						? `No modules match “${query}”.`
-						: "No modules available."}
+					{trimmedQuery ? `No modules match “${query}”.` : "No modules available."}
 				</div>
 			) : (
 				<div className="flex flex-col gap-[22px]">
