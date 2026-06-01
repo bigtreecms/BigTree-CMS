@@ -14,8 +14,12 @@ import { ApiError } from "@/types/api";
 import { toast } from "@/lib/toast";
 
 import { DataTableSelect } from "@/components/developer/DataTableSelect";
+import { IconPicker } from "@/components/developer/IconPicker";
 
 import { CheckboxInput, SelectInput, TextInput } from "./inputs";
+
+/** Sentinel option value that switches the Group select into "create new" mode. */
+const NEW_GROUP_OPTION = "__create_new_group__";
 
 interface ModuleShellTabProps {
 	/** null in add mode. */
@@ -69,6 +73,8 @@ export const ModuleShellTab = ({ moduleId, module }: ModuleShellTabProps) => {
 	);
 	const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 	const [generalError, setGeneralError] = useState<string | null>(null);
+	const [creatingGroup, setCreatingGroup] = useState(false);
+	const [newGroupName, setNewGroupName] = useState("");
 
 	useEffect(() => {
 		if (module) {
@@ -80,6 +86,32 @@ export const ModuleShellTab = ({ moduleId, module }: ModuleShellTabProps) => {
 		queryKey: ["module-groups", "list"],
 		queryFn: () => modulesApi.listGroups(),
 	});
+
+	const createGroupMutation = useMutation({
+		mutationFn: (name: string) => modulesApi.createGroup({ name }),
+		onSuccess: (group) => {
+			queryClient.invalidateQueries({ queryKey: ["module-groups"] });
+			setState((prev) => ({ ...prev, group: group.id }));
+			setCreatingGroup(false);
+			setNewGroupName("");
+		},
+		onError: (err) => {
+			toast.error(
+				err instanceof ApiError && err.message ? err.message : "Could not create group"
+			);
+		},
+	});
+
+	const onGroupChange = (value: string) => {
+		if (value === NEW_GROUP_OPTION) {
+			setCreatingGroup(true);
+
+			return;
+		}
+
+		setCreatingGroup(false);
+		setState((prev) => ({ ...prev, group: value }));
+	};
 
 	const toBody = (s: ShellState): ModuleCreateBody => ({
 		name: s.name,
@@ -146,6 +178,7 @@ export const ModuleShellTab = ({ moduleId, module }: ModuleShellTabProps) => {
 	const groupOptions = [
 		{ value: "", label: "— No group —" },
 		...(groupsQ.data ?? []).map((g) => ({ value: g.id, label: g.name })),
+		{ value: NEW_GROUP_OPTION, label: "+ Create new group…" },
 	];
 
 	return (
@@ -156,46 +189,77 @@ export const ModuleShellTab = ({ moduleId, module }: ModuleShellTabProps) => {
 				</div>
 			)}
 
-			<div className="grid grid-cols-1 gap-4 rounded-xl border border-border bg-surface p-4 md:grid-cols-2">
-				<TextInput
-					label="Name"
-					value={state.name}
-					onChange={(v) => set({ name: v })}
-					error={fieldErrors.name}
-					required
-				/>
-				<SelectInput
-					label="Group"
-					value={state.group}
-					onChange={(v) => set({ group: v })}
-					options={groupOptions}
-				/>
-				<TextInput
-					label="Route"
-					value={state.route}
-					onChange={(v) => set({ route: v })}
-					hint="URL slug. Auto-generated from the name when left blank."
-					error={fieldErrors.route}
-					mono
-				/>
-				<TextInput
-					label="Icon"
+			<div className="space-y-4 rounded-xl border border-border bg-surface p-4">
+				<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+					<TextInput
+						label="Name"
+						value={state.name}
+						onChange={(v) => set({ name: v })}
+						error={fieldErrors.name}
+						required
+					/>
+					<SelectInput
+						label="Group"
+						value={creatingGroup ? NEW_GROUP_OPTION : state.group}
+						onChange={onGroupChange}
+						options={groupOptions}
+					/>
+					<TextInput
+						label="Route"
+						value={state.route}
+						onChange={(v) => set({ route: v })}
+						hint="URL slug. Auto-generated from the name when left blank."
+						error={fieldErrors.route}
+						mono
+					/>
+					<DataTableSelect
+						label="Data table"
+						value={state.table}
+						onChange={(v) => set({ table: v })}
+						hint="MySQL table backing this module's entries."
+					/>
+					<TextInput
+						label="Handler class"
+						value={state.class}
+						onChange={(v) => set({ class: v })}
+						hint="Optional custom module class."
+						mono
+					/>
+				</div>
+				{creatingGroup && (
+					<div className="flex flex-wrap items-end gap-2 rounded-md border border-border bg-surface-2 p-3">
+						<div className="min-w-[200px] flex-1">
+							<TextInput
+								label="New group name"
+								value={newGroupName}
+								onChange={setNewGroupName}
+							/>
+						</div>
+						<button
+							type="button"
+							disabled={!newGroupName.trim() || createGroupMutation.isPending}
+							onClick={() => createGroupMutation.mutate(newGroupName.trim())}
+							className="inline-flex items-center rounded-md bg-accent px-3 py-2 text-[12.5px] font-medium text-accent-fg hover:bg-accent-hover disabled:opacity-50"
+						>
+							{createGroupMutation.isPending ? "Creating…" : "Create group"}
+						</button>
+						<button
+							type="button"
+							onClick={() => {
+								setCreatingGroup(false);
+								setNewGroupName("");
+							}}
+							className="inline-flex items-center rounded-md border border-border bg-surface px-3 py-2 text-[12.5px] text-text-2 hover:bg-hover"
+						>
+							Cancel
+						</button>
+					</div>
+				)}
+
+				<IconPicker
 					value={state.icon}
 					onChange={(v) => set({ icon: v })}
-					hint="BigTree icon glyph name (e.g. list, news, calendar)."
-				/>
-				<DataTableSelect
-					label="Data table"
-					value={state.table}
-					onChange={(v) => set({ table: v })}
-					hint="MySQL table backing this module's entries."
-				/>
-				<TextInput
-					label="Handler class"
-					value={state.class}
-					onChange={(v) => set({ class: v })}
-					hint="Optional custom module class."
-					mono
+					hint="Shown beside the module in the admin navigation."
 				/>
 			</div>
 

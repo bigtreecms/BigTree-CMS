@@ -9,6 +9,7 @@ import { ErrorPanel } from "@/components/ui/ErrorPanel";
 
 import { DataTableSelect } from "@/components/developer/DataTableSelect";
 import { DeveloperSectionNav } from "@/components/developer/DeveloperSectionNav";
+import { FeedSettingsControl } from "@/components/developer/FeedSettingsControl";
 import { ResourceDesigner, type ResourceEntry } from "@/components/developer/ResourceDesigner";
 
 import { feedsApi, type FeedEditBody } from "@/api/endpoints/feeds";
@@ -17,7 +18,18 @@ import type { ModuleFormField } from "@/api/endpoints/modules";
 import { ApiError } from "@/types/api";
 import { toast } from "@/lib/toast";
 
-import { TextField } from "./TemplateEdit";
+import { SelectField, TextField } from "./TemplateEdit";
+
+const FEED_TYPES = [
+	{ value: "custom", label: "Custom" },
+	{ value: "rss", label: "RSS 0.91" },
+	{ value: "rss2", label: "RSS 2.0" },
+];
+
+const asObject = (value: unknown): Record<string, unknown> =>
+	value && typeof value === "object" && !Array.isArray(value)
+		? (value as Record<string, unknown>)
+		: {};
 
 export const FeedEdit = () => {
 	const { id: idParam } = useParams<{ id: string }>();
@@ -44,8 +56,6 @@ export const FeedEdit = () => {
 				}
 			: {}
 	);
-	const [settingsDraft, setSettingsDraft] = useState(() => safeStringify(body.settings));
-	const [settingsError, setSettingsError] = useState<string | null>(null);
 	const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 	const [generalError, setGeneralError] = useState<string | null>(null);
 
@@ -61,8 +71,6 @@ export const FeedEdit = () => {
 				fields: detailQ.data.fields,
 			};
 			setBody(next);
-			setSettingsDraft(safeStringify(next.settings));
-			setSettingsError(null);
 		}
 	}, [isAdd, detailQ.data]);
 
@@ -118,21 +126,7 @@ export const FeedEdit = () => {
 
 	const set = (patch: Partial<FeedEditBody>) => setBody((prev) => ({ ...prev, ...patch }));
 
-	const commitSettings = () => {
-		try {
-			const parsed = settingsDraft.trim() === "" ? {} : JSON.parse(settingsDraft);
-
-			if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
-				setSettingsError(null);
-				set({ settings: parsed });
-			} else {
-				setSettingsError("Settings must be a JSON object.");
-			}
-		} catch (err) {
-			setSettingsError(err instanceof Error ? err.message : "Invalid JSON");
-		}
-	};
-
+	const feedType = body.type ?? "custom";
 	const title = isAdd ? "Add feed" : body.name || idParam || "Edit feed";
 
 	return (
@@ -196,11 +190,11 @@ export const FeedEdit = () => {
 						onChange={(v) => set({ table: v })}
 						hint="Database table the feed pulls rows from."
 					/>
-					<TextField
+					<SelectField
 						label="Type"
-						value={body.type ?? ""}
+						value={feedType}
 						onChange={(v) => set({ type: v })}
-						hint="e.g. rss, json, sitemap"
+						options={FEED_TYPES}
 					/>
 				</div>
 
@@ -210,34 +204,33 @@ export const FeedEdit = () => {
 					onChange={(v) => set({ description: v })}
 				/>
 
-				<label className="block">
-					<span className="mb-1 block text-[12px] font-medium text-text-2">
-						Feed settings <span className="text-text-3">(JSON)</span>
-					</span>
-					<textarea
-						rows={6}
-						className="w-full rounded-md border border-border bg-surface px-3 py-2 font-mono text-[11.5px] leading-relaxed focus:outline-none focus:ring-1 focus:ring-accent-ring"
-						value={settingsDraft}
-						onChange={(e) => setSettingsDraft(e.target.value)}
-						onBlur={commitSettings}
-						spellCheck={false}
-					/>
-					{settingsError && (
-						<div className="mt-1 text-[11.5px] text-danger">{settingsError}</div>
-					)}
-				</label>
-
 				<div>
 					<div className="mb-2 text-[12px] font-semibold uppercase tracking-[0.06em] text-text-3">
-						Output fields
+						Feed settings
 					</div>
-					<ResourceDesigner
-						resources={(body.fields ?? []) as unknown as ResourceEntry[]}
-						onChange={(next) => set({ fields: next as unknown as ModuleFormField[] })}
-						keyField="column"
-						useCase="feeds"
+					<FeedSettingsControl
+						type={feedType}
+						table={body.table ?? ""}
+						settings={asObject(body.settings)}
+						onChange={(next) => set({ settings: next })}
 					/>
 				</div>
+
+				{feedType === "custom" && (
+					<div>
+						<div className="mb-2 text-[12px] font-semibold uppercase tracking-[0.06em] text-text-3">
+							Output fields
+						</div>
+						<ResourceDesigner
+							resources={(body.fields ?? []) as unknown as ResourceEntry[]}
+							onChange={(next) =>
+								set({ fields: next as unknown as ModuleFormField[] })
+							}
+							keyField="column"
+							useCase="feeds"
+						/>
+					</div>
+				)}
 
 				<div className="flex justify-end gap-2 border-t border-border pt-3">
 					<Link
@@ -258,16 +251,4 @@ export const FeedEdit = () => {
 			</form>
 		</div>
 	);
-};
-
-const safeStringify = (value: unknown): string => {
-	if (value === undefined || value === null) {
-		return "{}";
-	}
-
-	try {
-		return JSON.stringify(value, null, 2);
-	} catch {
-		return "{}";
-	}
 };

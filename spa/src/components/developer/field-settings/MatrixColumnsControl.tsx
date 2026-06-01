@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronDown, ChevronRight, Plus, Trash } from "lucide-react";
 
-import { fieldTypesApi } from "@/api/endpoints/field-types";
+import { fieldTypesApi, fieldTypesForUseCase } from "@/api/endpoints/field-types";
 
 import { FieldSettingsEditor } from "../FieldSettingsEditor";
 import { ControlShell } from "./ControlShell";
@@ -35,15 +35,7 @@ export const MatrixColumnsControl = ({ descriptor, settings, onPatch }: ControlP
 		queryFn: () => fieldTypesApi.list(),
 	});
 
-	const types = useMemo(() => {
-		const all = Object.values(typesQ.data ?? {});
-
-		return all
-			.filter((t) =>
-				Array.isArray(t.use_cases) ? (t.use_cases as string[]).includes("callouts") : true
-			)
-			.sort((a, b) => (a.name ?? a.id ?? "").localeCompare(b.name ?? b.id ?? ""));
-	}, [typesQ.data]);
+	const types = useMemo(() => fieldTypesForUseCase(typesQ.data, "callouts"), [typesQ.data]);
 
 	const columns: Column[] = Array.isArray(settings[descriptor.id])
 		? (settings[descriptor.id] as Column[])

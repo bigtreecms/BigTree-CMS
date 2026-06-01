@@ -101,6 +101,13 @@ export interface ModuleViewSettings {
 	sort_direction?: "ASC" | "DESC" | string;
 	per_page?: string | number;
 	filter?: string;
+	/**
+	 * Per-view-type settings are a loose blob — grouped views carry
+	 * `group_field` / `other_table` / `group_parser`, nested views
+	 * `nesting_column`, image views `image` / `prefix`, etc. Each renderer reads
+	 * the keys it needs; the designer edits them via ViewTypeSettingsControl.
+	 */
+	[key: string]: unknown;
 }
 
 export interface ModuleView {

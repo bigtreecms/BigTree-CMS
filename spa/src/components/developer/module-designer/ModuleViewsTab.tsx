@@ -12,12 +12,17 @@ import {
 	type ModuleViewType,
 } from "@/api/endpoints/modules";
 
+import { dbApi } from "@/api/endpoints/db";
+
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 
 import { DataTableSelect } from "@/components/developer/DataTableSelect";
+import { DataColumnSelect } from "@/components/developer/DataColumnSelect";
 
-import { CheckboxInput, JsonInput, SelectInput, TextInput } from "./inputs";
+import { CheckboxInput, SelectInput, TextInput } from "./inputs";
 import { AddSubButton, EditorCard, SubList, SubRow } from "./scaffold";
+import { ViewActionsControl } from "./ViewActionsControl";
+import { ViewTypeSettingsControl } from "./ViewTypeSettingsControl";
 import { NEW_ROW, useSubCrud } from "./useSubCrud";
 
 interface ModuleViewsTabProps {
@@ -29,7 +34,6 @@ interface ModuleViewsTabProps {
 interface ColumnRow {
 	key: string;
 	title: string;
-	width: string;
 	parser?: string;
 	numeric?: string | boolean;
 }
@@ -48,6 +52,8 @@ type Draft = {
 	filter: string;
 	columns: ColumnRow[];
 	actions: Record<string, unknown>;
+	/** Full settings blob, preserving per-view-type keys the generic fields don't cover. */
+	settings: Record<string, unknown>;
 };
 
 const VIEW_TYPES: ModuleViewType[] = [
@@ -67,7 +73,6 @@ const columnsToRows = (fields: ModuleView["fields"]): ColumnRow[] => {
 	return Object.entries(fields).map(([key, cfg]) => ({
 		key,
 		title: cfg.title ?? "",
-		width: cfg.width != null ? String(cfg.width) : "",
 		parser: cfg.parser,
 		numeric: cfg.numeric,
 	}));
@@ -83,7 +88,6 @@ const rowsToColumns = (rows: ColumnRow[]): Record<string, ModuleViewFieldConfig>
 
 		out[row.key] = {
 			title: row.title,
-			width: row.width,
 			parser: row.parser,
 			numeric: row.numeric,
 		};
@@ -106,6 +110,7 @@ const draftFromView = (v: ModuleView): Draft => ({
 	filter: v.settings?.filter ?? "",
 	columns: columnsToRows(v.fields),
 	actions: (v.actions as Record<string, unknown>) ?? {},
+	settings: (v.settings as Record<string, unknown>) ?? {},
 });
 
 const emptyDraft = (table: string): Draft => ({
@@ -121,7 +126,10 @@ const emptyDraft = (table: string): Draft => ({
 	per_page: "",
 	filter: "",
 	columns: [],
-	actions: {},
+	// Edit/Delete are checked by default for a new view, matching the legacy
+	// module designer; the toggles add/remove the rest once a table is chosen.
+	actions: { edit: "on", delete: "on" },
+	settings: {},
 });
 
 export const ModuleViewsTab = ({ moduleId, moduleTable }: ModuleViewsTabProps) => {
@@ -141,6 +149,15 @@ export const ModuleViewsTab = ({ moduleId, moduleTable }: ModuleViewsTabProps) =
 	const formsQ = useQuery({
 		queryKey: ["modules", moduleId, "forms"],
 		queryFn: () => modulesApi.forms(moduleId),
+	});
+
+	// Columns of the chosen table drive the column picker and which row-action
+	// toggles are offered. Only fetched once a table is selected.
+	const columnsQ = useQuery({
+		queryKey: ["db", "columns", draft.table],
+		queryFn: () => dbApi.columns(draft.table),
+		enabled: draft.table !== "",
+		staleTime: 5 * 60 * 1000,
 	});
 
 	useEffect(() => {
@@ -167,7 +184,7 @@ export const ModuleViewsTab = ({ moduleId, moduleTable }: ModuleViewsTabProps) =
 		}));
 
 	const addColumn = () =>
-		setDraft((p) => ({ ...p, columns: [...p.columns, { key: "", title: "", width: "" }] }));
+		setDraft((p) => ({ ...p, columns: [...p.columns, { key: "", title: "" }] }));
 
 	const removeColumn = (index: number) =>
 		setDraft((p) => ({ ...p, columns: p.columns.filter((_, i) => i !== index) }));
@@ -192,6 +209,9 @@ export const ModuleViewsTab = ({ moduleId, moduleTable }: ModuleViewsTabProps) =
 		preview_url: d.preview_url || undefined,
 		exclude_from_search: d.exclude_from_search,
 		settings: {
+			// Preserve per-view-type keys (group_field, nesting_column, image, …)
+			// the generic fields below don't cover, then overlay the generics.
+			...d.settings,
 			sort_column: d.sort_column || undefined,
 			sort_direction: d.sort_direction || undefined,
 			per_page: d.per_page || undefined,
@@ -302,7 +322,11 @@ export const ModuleViewsTab = ({ moduleId, moduleTable }: ModuleViewsTabProps) =
 						<div className="mb-2 text-[12px] font-semibold uppercase tracking-[0.06em] text-text-3">
 							Columns
 						</div>
-						{draft.columns.length === 0 ? (
+						{!draft.table ? (
+							<div className="rounded-md border border-dashed border-border bg-surface-2 px-3 py-4 text-center text-[12.5px] text-text-3">
+								Select a data table to add columns.
+							</div>
+						) : draft.columns.length === 0 ? (
 							<div className="rounded-md border border-dashed border-border bg-surface-2 px-3 py-4 text-center text-[12.5px] text-text-3">
 								No columns configured.
 							</div>
@@ -337,14 +361,12 @@ export const ModuleViewsTab = ({ moduleId, moduleTable }: ModuleViewsTabProps) =
 											>
 												<GripVertical size={14} />
 											</span>
-											<input
-												type="text"
+											<DataColumnSelect
+												table={draft.table}
 												value={col.key}
-												onChange={(e) =>
-													setColumn(index, { key: e.target.value })
-												}
-												placeholder="column"
-												className="w-40 rounded-md border border-border bg-surface px-2 py-1 font-mono text-[12px] focus:outline-none focus:ring-1 focus:ring-accent-ring"
+												onChange={(v) => setColumn(index, { key: v })}
+												ariaLabel="Column"
+												className="w-48 flex-shrink-0"
 											/>
 											<input
 												type="text"
@@ -354,15 +376,6 @@ export const ModuleViewsTab = ({ moduleId, moduleTable }: ModuleViewsTabProps) =
 												}
 												placeholder="Heading"
 												className="flex-1 rounded-md border border-border bg-surface px-2 py-1 text-[12.5px] focus:outline-none focus:ring-1 focus:ring-accent-ring"
-											/>
-											<input
-												type="text"
-												value={col.width}
-												onChange={(e) =>
-													setColumn(index, { width: e.target.value })
-												}
-												placeholder="width"
-												className="w-20 rounded-md border border-border bg-surface px-2 py-1 text-[12.5px] focus:outline-none focus:ring-1 focus:ring-accent-ring"
 											/>
 											<button
 												type="button"
@@ -379,19 +392,36 @@ export const ModuleViewsTab = ({ moduleId, moduleTable }: ModuleViewsTabProps) =
 						)}
 						<button
 							type="button"
-							className="mt-2 inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] hover:bg-hover"
+							disabled={!draft.table}
+							className="mt-2 inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] hover:bg-hover disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-surface"
 							onClick={addColumn}
+							title={draft.table ? undefined : "Select a data table first"}
 						>
 							<Plus size={13} />
 							Add column
 						</button>
 					</div>
 
-					<JsonInput
-						label="Row actions"
+					{draft.type !== "searchable" && draft.type !== "draggable" && (
+						<div>
+							<div className="mb-2 text-[12px] font-semibold uppercase tracking-[0.06em] text-text-3">
+								{draft.type} settings
+							</div>
+							<ViewTypeSettingsControl
+								type={draft.type}
+								table={draft.table}
+								settings={draft.settings}
+								onChange={(s) => setDraft((p) => ({ ...p, settings: s }))}
+							/>
+						</div>
+					)}
+
+					<ViewActionsControl
 						value={draft.actions}
 						onChange={(v) => setDraft((p) => ({ ...p, actions: v }))}
-						hint='Keyed by action: "edit"/"delete" set to "on" for built-ins, or a config object for custom row actions.'
+						columns={columnsQ.data ?? []}
+						loading={columnsQ.isLoading}
+						tableSelected={draft.table !== ""}
 					/>
 
 					<CheckboxInput

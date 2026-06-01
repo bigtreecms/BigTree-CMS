@@ -1,10 +1,16 @@
 import { api } from "@/api/client";
+import { decodeHtmlEntities } from "@/lib/html";
 
 /**
  * Field types — both built-ins (read-only, served from the core JSON DB) and
- * custom user-defined types (full CRUD via JSONDB). The list endpoint serves
- * the cached registry as a single object keyed by type id; passing ?split=1
- * splits it into `{ default, custom }` for the UI's "built-in vs custom" view.
+ * custom user-defined types (full CRUD via JSONDB).
+ *
+ * GET /field-types can come back in either of two shapes (see
+ * FieldTypeRegistry) — nested by use case, or flat by type id — so consumers
+ * that want "the types valid for use case X" must go through
+ * `fieldTypesForUseCase()` / `fieldTypeName()` rather than walking the raw
+ * object; a naive `Object.values()` breaks on one shape or the other. Passing
+ * ?split=1 returns `{ default, custom }` for the "built-in vs custom" view.
  */
 
 export type FieldUseCase = "templates" | "modules" | "settings" | "callouts" | "feeds";
@@ -19,11 +25,173 @@ export interface FieldType {
 	[key: string]: unknown;
 }
 
-export type FieldTypeRegistry = Record<string, FieldType>;
+/** One type as it appears inside a use-case bucket: just its display info. */
+export interface FieldTypeInfo {
+	name?: string;
+	self_draw?: boolean | string | null;
+	[key: string]: unknown;
+}
 
+/**
+ * GET /field-types comes back in one of two shapes depending on the deployment:
+ *
+ *  - **Nested by use case** — `{ modules: { text: {name}, … }, templates: {…} }`
+ *    (the cached legacy structure surfaced as-is).
+ *  - **Flat by type id** — `{ text: { id, name, use_cases:["modules",…] }, … }`
+ *    (the flattening `FieldTypeService::list` performs).
+ *
+ * `fieldTypesForUseCase` / `fieldTypeName` accept either; don't assume one.
+ */
+export type FieldTypeRegistryNested = Partial<Record<FieldUseCase, Record<string, FieldTypeInfo>>>;
+export type FieldTypeRegistryFlat = Record<string, FieldType>;
+export type FieldTypeRegistry = FieldTypeRegistryNested | FieldTypeRegistryFlat;
+
+/** A flattened option, ready for a select/combobox. */
+export interface FieldTypeOption {
+	id: string;
+	name: string;
+	/** "default" for the core built-ins, "custom" for user/extension types. */
+	group: "default" | "custom";
+}
+
+/**
+ * The core's built-in field type ids — the exact set hardcoded in
+ * BigTreeAdmin::getCachedFieldTypes()'s "default" bucket. The merged
+ * GET /field-types response carries no per-type default/custom marker, so the
+ * UI reconstructs the legacy "Default" vs "Custom" optgroups from this set.
+ * (`route` is built-in but only offered for the "modules" use case.)
+ */
+export const BUILTIN_FIELD_TYPE_IDS = new Set<string>([
+	"text",
+	"textarea",
+	"html",
+	"link",
+	"upload",
+	"image",
+	"video",
+	"file-reference",
+	"image-reference",
+	"video-reference",
+	"list",
+	"checkbox",
+	"date",
+	"time",
+	"datetime",
+	"media-gallery",
+	"callouts",
+	"matrix",
+	"one-to-many",
+	"route",
+]);
+
+const isUseCaseKey = (key: string): key is FieldUseCase =>
+	key === "templates" ||
+	key === "modules" ||
+	key === "settings" ||
+	key === "callouts" ||
+	key === "feeds";
+
+/**
+ * Whether a value looks like a single field-type record (flat shape) rather
+ * than a use-case bucket. Flat records carry a string `name` and/or `id`; a
+ * use-case bucket is a map of *those* records, so it won't.
+ */
+const looksLikeTypeRecord = (value: unknown): value is FieldTypeInfo =>
+	!!value &&
+	typeof value === "object" &&
+	(typeof (value as Record<string, unknown>).name === "string" ||
+		typeof (value as Record<string, unknown>).id === "string");
+
+/**
+ * Reduce either registry shape (see FieldTypeRegistry) to the `{ typeId: info }`
+ * map of types valid for one use case.
+ *
+ * - Nested: return that use case's bucket directly.
+ * - Flat: keep entries whose `use_cases` array includes the slug. Older flat
+ *   payloads without `use_cases` are treated as valid everywhere so nothing is
+ *   hidden.
+ */
+const typesForUseCase = (
+	registry: FieldTypeRegistry | undefined,
+	useCase: FieldUseCase
+): Record<string, FieldTypeInfo> => {
+	if (!registry || typeof registry !== "object") {
+		return {};
+	}
+
+	const entries = Object.entries(registry as Record<string, unknown>);
+	const isNested = entries.some(
+		([key, value]) =>
+			isUseCaseKey(key) && !!value && typeof value === "object" && !looksLikeTypeRecord(value)
+	);
+
+	if (isNested) {
+		const bucket = (registry as FieldTypeRegistryNested)[useCase];
+
+		return bucket && typeof bucket === "object" ? bucket : {};
+	}
+
+	const out: Record<string, FieldTypeInfo> = {};
+
+	for (const [id, value] of entries) {
+		if (!value || typeof value !== "object") {
+			continue;
+		}
+
+		const record = value as FieldType;
+		const cases = record.use_cases;
+		const valid = !Array.isArray(cases) || (cases as string[]).includes(useCase);
+
+		if (valid) {
+			out[id] = record;
+		}
+	}
+
+	return out;
+};
+
+/**
+ * Flatten the registry into the de-duplicated list of types valid for one use
+ * case, sorted by display name and tagged default/custom. Falls back to the
+ * type id when an entry is missing its `name`, so an option is never blank.
+ * Handles both the nested and flat response shapes.
+ */
+export const fieldTypesForUseCase = (
+	registry: FieldTypeRegistry | undefined,
+	useCase: FieldUseCase
+): FieldTypeOption[] =>
+	Object.entries(typesForUseCase(registry, useCase))
+		.map(([id, info]) => ({
+			id,
+			name: typeof info?.name === "string" && info.name ? decodeHtmlEntities(info.name) : id,
+			group: BUILTIN_FIELD_TYPE_IDS.has(id) ? ("default" as const) : ("custom" as const),
+		}))
+		.sort((a, b) => a.name.localeCompare(b.name));
+
+/**
+ * Resolve a field type's display name within a use case, falling back to the id
+ * when unknown (e.g. an entry referencing a type the catalog hasn't loaded or no
+ * longer offers). Used for the collapsed-row badge so it reads "Text" not "text".
+ */
+export const fieldTypeName = (
+	registry: FieldTypeRegistry | undefined,
+	useCase: FieldUseCase,
+	id: string
+): string => {
+	const info = typesForUseCase(registry, useCase)[id];
+
+	return typeof info?.name === "string" && info.name ? decodeHtmlEntities(info.name) : id;
+};
+
+/**
+ * ?split=1 response. Unlike the default (use-case-nested) listing, each bucket
+ * here is a flat `{ typeId: FieldType }` map carrying the full type record
+ * (`id`, `name`, `use_cases[]`), so the field-types admin can render one row
+ * per type and mark built-ins as un-deletable.
+ */
 export interface FieldTypeRegistrySplit {
-	default: FieldTypeRegistry;
-	custom: FieldTypeRegistry;
+	default: Record<string, FieldType>;
+	custom: Record<string, FieldType>;
 }
 
 export interface FieldTypeCreateBody {

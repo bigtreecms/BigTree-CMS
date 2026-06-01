@@ -39,6 +39,31 @@ export const Templates = () => {
 		},
 	});
 
+	const reorderMutation = useMutation({
+		mutationFn: (ids: string[]) => templatesApi.reorder(ids),
+		onError: () => {
+			toast.error("Could not save the new order");
+			queryClient.invalidateQueries({ queryKey: ["templates"] });
+		},
+	});
+
+	const handleReorder = (orderedKeys: Array<string | number>) => {
+		const ids = orderedKeys.map(String);
+
+		// Optimistic: reorder the cached list immediately, then persist.
+		queryClient.setQueryData<TemplateSummary[]>(["templates", "list"], (prev) => {
+			if (!prev) {
+				return prev;
+			}
+
+			const byId = new Map(prev.map((t) => [t.id, t]));
+
+			return ids.map((id) => byId.get(id)).filter((t): t is TemplateSummary => !!t);
+		});
+
+		reorderMutation.mutate(ids);
+	};
+
 	const rows = query.data ?? [];
 
 	const columns: DataTableColumn<TemplateSummary>[] = [
@@ -144,6 +169,7 @@ export const Templates = () => {
 				onRowClick={(row) =>
 					navigate(`/developer/templates/${encodeURIComponent(row.id)}/edit`)
 				}
+				onReorder={handleReorder}
 			/>
 
 			{confirmDelete && (

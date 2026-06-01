@@ -16,7 +16,8 @@ import {
 
 import { DataTableSelect } from "@/components/developer/DataTableSelect";
 
-import { CheckboxInput, JsonInput, TextareaInput, TextInput } from "./inputs";
+import { CheckboxInput, TextareaInput, TextInput } from "./inputs";
+import { FormHooksEditor } from "./FormHooksEditor";
 import { AddSubButton, EditorCard, SubList, SubRow } from "./scaffold";
 import { NEW_ROW, useSubCrud } from "./useSubCrud";
 
@@ -193,11 +194,11 @@ export const ModuleEmbedFormsTab = ({ moduleId, moduleTable }: ModuleEmbedFormsT
 							}
 							keyField="column"
 							useCase="modules"
+							columnsTable={draft.table}
 						/>
 					</div>
 
-					<JsonInput
-						label="Hooks"
+					<FormHooksEditor
 						value={draft.hooks}
 						onChange={(v) => setDraft((p) => ({ ...p, hooks: v }))}
 					/>

@@ -3,8 +3,15 @@ import { useQuery } from "@tanstack/react-query";
 import { ChevronDown, ChevronRight, GripVertical, Plus, Trash } from "lucide-react";
 
 import type { ModuleFormField } from "@/api/endpoints/modules";
-import { fieldTypesApi, type FieldUseCase } from "@/api/endpoints/field-types";
+import {
+	fieldTypesApi,
+	fieldTypesForUseCase,
+	fieldTypeName,
+	type FieldUseCase,
+} from "@/api/endpoints/field-types";
+import { dbApi } from "@/api/endpoints/db";
 import { useDragReorder } from "@/hooks/useDragReorder";
+import { Combobox } from "@/components/ui/Combobox";
 
 import { FieldSettingsEditor } from "./FieldSettingsEditor";
 
@@ -45,6 +52,12 @@ interface ResourceDesignerProps {
 	keyField: ResourceShape;
 	/** Filter the field-type catalog to types whose `use_cases` include this slug. */
 	useCase: FieldUseCase;
+	/**
+	 * When set (and `keyField` is "column"), each field's ID becomes a searchable
+	 * select of this data table's columns instead of a free-text input. Used by
+	 * the module / embeddable form designers, whose fields map to real columns.
+	 */
+	columnsTable?: string;
 	/** Optional `display_field` callback so the host can render an inline "Use as title" pill. */
 	displayFieldId?: string;
 	onSetDisplayField?: (id: string) => void;
@@ -55,6 +68,7 @@ export const ResourceDesigner = ({
 	onChange,
 	keyField,
 	useCase,
+	columnsTable,
 	displayFieldId,
 	onSetDisplayField,
 }: ResourceDesignerProps) => {
@@ -65,14 +79,43 @@ export const ResourceDesigner = ({
 		queryFn: () => fieldTypesApi.list(),
 	});
 
-	const types = useMemo(() => {
-		const all = Object.values(fieldTypesQ.data ?? {});
+	// When bound to a real table, fields must map to columns: pick the ID from a
+	// searchable list and block adding fields until a table is chosen.
+	const columnBound = keyField === "column";
+	const useColumnSelect = columnBound && !!columnsTable;
+	const addDisabled = columnBound && !columnsTable;
 
-		return all
-			.filter((t) =>
-				Array.isArray(t.use_cases) ? (t.use_cases as string[]).includes(useCase) : true
-			)
-			.sort((a, b) => (a.name ?? a.id ?? "").localeCompare(b.name ?? b.id ?? ""));
+	const columnsQ = useQuery({
+		queryKey: ["db", "columns", columnsTable],
+		queryFn: () => dbApi.columns(columnsTable as string),
+		enabled: useColumnSelect,
+		staleTime: 5 * 60 * 1000,
+	});
+
+	const columnOptions = useMemo(
+		() => (columnsQ.data ?? []).map((c) => ({ value: c.value, label: c.value })),
+		[columnsQ.data]
+	);
+
+	// Field types split into the legacy "Default" / "Custom" optgroups. Names
+	// only — the legacy admin doesn't surface type ids in this picker.
+	const typeGroups = useMemo(() => {
+		const all = fieldTypesForUseCase(fieldTypesQ.data, useCase);
+
+		return [
+			{
+				label: "Default",
+				options: all
+					.filter((t) => t.group === "default")
+					.map((t) => ({ value: t.id, label: t.name })),
+			},
+			{
+				label: "Custom",
+				options: all
+					.filter((t) => t.group === "custom")
+					.map((t) => ({ value: t.id, label: t.name })),
+			},
+		].filter((g) => g.options.length > 0);
 	}, [fieldTypesQ.data, useCase]);
 
 	const updateEntry = (index: number, patch: Partial<ResourceEntry>) => {
@@ -207,7 +250,11 @@ export const ResourceDesigner = ({
 											{entry.title || id || `Field ${index + 1}`}
 										</span>
 										<span className="rounded bg-surface-2 px-1.5 py-0.5 text-[10.5px] text-text-3">
-											{entry.type || "text"}
+											{fieldTypeName(
+												fieldTypesQ.data,
+												useCase,
+												entry.type || "text"
+											)}
 										</span>
 										{isDisplay && (
 											<span className="rounded bg-accent-soft px-1.5 py-0.5 text-[10.5px] font-medium text-accent">
@@ -230,26 +277,39 @@ export const ResourceDesigner = ({
 								{isOpen && (
 									<div className="border-t border-border p-3">
 										<div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-											<LabelledInput
-												label="ID"
-												value={id}
-												onChange={(v) =>
-													updateEntry(index, { [keyField]: v })
-												}
-												hint={
-													keyField === "column"
-														? "Database column name (no spaces, lowercase)"
-														: "Field key (used in storage). Stable across edits."
-												}
-											/>
+											{useColumnSelect ? (
+												<LabelledCombobox
+													label="Column"
+													value={id}
+													onChange={(v) =>
+														updateEntry(index, { [keyField]: v })
+													}
+													options={columnOptions}
+													loading={columnsQ.isLoading}
+													placeholder="Select a column…"
+													searchPlaceholder="Search columns…"
+													emptyLabel="No columns found."
+													hint="The data table column this field reads and writes."
+												/>
+											) : (
+												<LabelledInput
+													label="ID"
+													value={id}
+													onChange={(v) =>
+														updateEntry(index, { [keyField]: v })
+													}
+													hint={
+														keyField === "column"
+															? "Database column name (no spaces, lowercase)"
+															: "Field key (used in storage). Stable across edits."
+													}
+												/>
+											)}
 											<LabelledSelect
 												label="Type"
 												value={entry.type || "text"}
 												onChange={(v) => updateEntry(index, { type: v })}
-												options={types.map((t) => ({
-													value: t.id,
-													label: `${t.name} (${t.id})`,
-												}))}
+												groups={typeGroups}
 												loading={fieldTypesQ.isLoading}
 											/>
 											<LabelledInput
@@ -298,14 +358,22 @@ export const ResourceDesigner = ({
 				</ul>
 			)}
 
-			<button
-				type="button"
-				className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] hover:bg-hover"
-				onClick={addEntry}
-			>
-				<Plus size={13} />
-				Add field
-			</button>
+			<div className="flex items-center gap-2">
+				<button
+					type="button"
+					className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] hover:bg-hover disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-surface"
+					onClick={addEntry}
+					disabled={addDisabled}
+				>
+					<Plus size={13} />
+					Add field
+				</button>
+				{addDisabled && (
+					<span className="text-[11.5px] text-text-3">
+						Choose a data table before adding fields.
+					</span>
+				)}
+			</div>
 		</div>
 	);
 };
@@ -330,35 +398,95 @@ const LabelledInput = ({ label, value, onChange, hint }: LabelledInputProps) => 
 	</label>
 );
 
+interface SelectOption {
+	value: string;
+	label: string;
+}
+
+interface SelectGroup {
+	label: string;
+	options: SelectOption[];
+}
+
 interface LabelledSelectProps {
+	label: string;
+	value: string;
+	onChange: (next: string) => void;
+	/** Grouped options rendered as <optgroup>s (e.g. Default / Custom). */
+	groups: SelectGroup[];
+	loading?: boolean;
+}
+
+const LabelledSelect = ({ label, value, onChange, groups, loading }: LabelledSelectProps) => {
+	const known = groups.some((g) => g.options.some((o) => o.value === value));
+
+	return (
+		<label className="block">
+			<span className="mb-1 block text-[11.5px] font-medium text-text-2">{label}</span>
+			<select
+				className="w-full rounded-md border border-border bg-surface px-2.5 py-1.5 text-[13px] focus:outline-none focus:ring-1 focus:ring-accent-ring disabled:opacity-50"
+				value={value}
+				onChange={(e) => onChange(e.target.value)}
+				disabled={loading}
+			>
+				{loading && <option value={value}>Loading field types…</option>}
+				{!loading && !known && <option value={value}>{value}</option>}
+				{groups.map((group) => (
+					<optgroup key={group.label} label={group.label}>
+						{group.options.map((o) => (
+							<option key={o.value} value={o.value}>
+								{o.label}
+							</option>
+						))}
+					</optgroup>
+				))}
+			</select>
+		</label>
+	);
+};
+
+interface LabelledComboboxProps {
 	label: string;
 	value: string;
 	onChange: (next: string) => void;
 	options: Array<{ value: string; label: string }>;
 	loading?: boolean;
+	hint?: string;
+	placeholder?: string;
+	searchPlaceholder?: string;
+	emptyLabel?: string;
 }
 
-const LabelledSelect = ({ label, value, onChange, options, loading }: LabelledSelectProps) => (
-	<label className="block">
-		<span className="mb-1 block text-[11.5px] font-medium text-text-2">{label}</span>
-		<select
-			className="w-full rounded-md border border-border bg-surface px-2.5 py-1.5 text-[13px] focus:outline-none focus:ring-1 focus:ring-accent-ring disabled:opacity-50"
-			value={value}
-			onChange={(e) => onChange(e.target.value)}
-			disabled={loading}
-		>
-			{loading && <option value={value}>Loading field types…</option>}
-			{!loading && options.find((o) => o.value === value) === undefined && (
-				<option value={value}>{value}</option>
-			)}
-			{options.map((o) => (
-				<option key={o.value} value={o.value}>
-					{o.label}
-				</option>
-			))}
-		</select>
-	</label>
-);
+const LabelledCombobox = ({
+	label,
+	value,
+	onChange,
+	options,
+	loading,
+	hint,
+	placeholder,
+	searchPlaceholder,
+	emptyLabel,
+}: LabelledComboboxProps) => {
+	const selected = value ? { value, label: value } : null;
+
+	return (
+		<label className="block">
+			<span className="mb-1 block text-[11.5px] font-medium text-text-2">{label}</span>
+			<Combobox<string>
+				value={selected}
+				onChange={(option) => onChange(option ? option.value : "")}
+				options={options}
+				isLoading={loading}
+				placeholder={placeholder}
+				searchPlaceholder={searchPlaceholder}
+				emptyLabel={emptyLabel}
+				ariaLabel={label}
+			/>
+			{hint && <span className="mt-1 block text-[11px] text-text-3">{hint}</span>}
+		</label>
+	);
+};
 
 /**
  * Convenience adapter: surface a ResourceEntry[] from a ModuleFormField[]

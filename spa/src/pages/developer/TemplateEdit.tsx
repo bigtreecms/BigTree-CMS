@@ -8,6 +8,7 @@ import { PageHead } from "@/components/shell/PageHead";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 
 import { DeveloperSectionNav } from "@/components/developer/DeveloperSectionNav";
+import { FormHooksEditor } from "@/components/developer/module-designer/FormHooksEditor";
 import { ResourceDesigner, type ResourceEntry } from "@/components/developer/ResourceDesigner";
 
 import {
@@ -38,7 +39,9 @@ export const TemplateEdit = () => {
 	});
 
 	const [body, setBody] = useState<TemplateEditBody>(() =>
-		isAdd ? { id: "", name: "", module: "", level: 0, routed: false, resources: [] } : {}
+		isAdd
+			? { id: "", name: "", module: "", level: 0, routed: false, resources: [], hooks: {} }
+			: {}
 	);
 	const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 	const [generalError, setGeneralError] = useState<string | null>(null);
@@ -52,6 +55,7 @@ export const TemplateEdit = () => {
 				level: detailQ.data.level,
 				routed: detailQ.data.routed,
 				resources: detailQ.data.resources,
+				hooks: detailQ.data.hooks ?? {},
 			});
 		}
 	}, [isAdd, detailQ.data]);
@@ -175,12 +179,14 @@ export const TemplateEdit = () => {
 						error={fieldErrors.name}
 						required
 					/>
-					<TextField
-						label="Module (optional)"
-						value={body.module ?? ""}
-						onChange={(v) => set({ module: v })}
-						hint="If set, this template binds to that module's content."
-					/>
+					{body.routed && (
+						<TextField
+							label="Module (optional)"
+							value={body.module ?? ""}
+							onChange={(v) => set({ module: v })}
+							hint="Routed templates can bind to a module's content."
+						/>
+					)}
 					<SelectField
 						label="Minimum user level"
 						value={String(body.level ?? 0)}
@@ -216,6 +222,11 @@ export const TemplateEdit = () => {
 						useCase="templates"
 					/>
 				</div>
+
+				<FormHooksEditor
+					value={(body.hooks as Record<string, unknown>) ?? {}}
+					onChange={(next) => set({ hooks: next })}
+				/>
 
 				<div className="flex justify-end gap-2 border-t border-border pt-3">
 					<Link

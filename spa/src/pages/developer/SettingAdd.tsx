@@ -1,19 +1,21 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ChevronLeft, Save } from "lucide-react";
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
 
 import { DeveloperSectionNav } from "@/components/developer/DeveloperSectionNav";
+import { FieldSettingsEditor } from "@/components/developer/FieldSettingsEditor";
 
 import { settingsApi, type SettingCreateBody } from "@/api/endpoints/settings";
+import { fieldTypesApi, fieldTypesForUseCase } from "@/api/endpoints/field-types";
 
 import { ApiError } from "@/types/api";
 import { toast } from "@/lib/toast";
 
-import { SelectField, TextField } from "./TemplateEdit";
+import { TextField } from "./TemplateEdit";
 
 /**
  * /developer/settings/add — definition-only form. Once created, the
@@ -60,6 +62,27 @@ export const SettingAdd = () => {
 	});
 
 	const set = (patch: Partial<SettingCreateBody>) => setBody((prev) => ({ ...prev, ...patch }));
+
+	// Field type changes invalidate the type-specific settings, so clear them.
+	const changeType = (type: string) => set({ type, settings: {} });
+
+	const fieldTypesQ = useQuery({
+		queryKey: ["field-types", "list"],
+		queryFn: () => fieldTypesApi.list(),
+	});
+
+	// Same Default / Custom optgroups the legacy settings form draws, sourced
+	// from the field-type registry so custom + extension types are selectable.
+	const typeGroups = useMemo(() => {
+		const all = fieldTypesForUseCase(fieldTypesQ.data, "settings");
+
+		return [
+			{ label: "Default", options: all.filter((t) => t.group === "default") },
+			{ label: "Custom", options: all.filter((t) => t.group === "custom") },
+		].filter((g) => g.options.length > 0);
+	}, [fieldTypesQ.data]);
+
+	const typeKnown = typeGroups.some((g) => g.options.some((o) => o.id === body.type));
 
 	return (
 		<div className="mx-auto max-w-screen-md px-6 py-4">
@@ -123,24 +146,47 @@ export const SettingAdd = () => {
 					onChange={(v) => set({ description: v })}
 				/>
 
-				<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-					<SelectField
-						label="Field type"
-						value={body.type ?? "text"}
-						onChange={(v) => set({ type: v })}
-						options={[
-							{ value: "text", label: "Text" },
-							{ value: "textarea", label: "Textarea" },
-							{ value: "html", label: "Rich text (HTML)" },
-							{ value: "checkbox", label: "Checkbox" },
-							{ value: "list", label: "List (select)" },
-							{ value: "image", label: "Image" },
-							{ value: "upload", label: "File upload" },
-							{ value: "video", label: "Video" },
-							{ value: "matrix", label: "Matrix (repeating)" },
-						]}
-					/>
-					<div />
+				<div>
+					<label className="block max-w-sm">
+						<span className="mb-1 block text-[12px] font-medium text-text-2">
+							Field type
+						</span>
+						<select
+							value={body.type ?? "text"}
+							onChange={(e) => changeType(e.target.value)}
+							disabled={fieldTypesQ.isLoading}
+							className="w-full rounded-md border border-border bg-surface px-2.5 py-2 text-[13px] focus:outline-none focus:ring-1 focus:ring-accent-ring disabled:opacity-50"
+						>
+							{fieldTypesQ.isLoading && (
+								<option value={body.type ?? "text"}>Loading field types…</option>
+							)}
+							{!fieldTypesQ.isLoading && !typeKnown && (
+								<option value={body.type ?? ""}>{body.type}</option>
+							)}
+							{typeGroups.map((group) => (
+								<optgroup key={group.label} label={group.label}>
+									{group.options.map((o) => (
+										<option key={o.id} value={o.id}>
+											{o.name}
+										</option>
+									))}
+								</optgroup>
+							))}
+						</select>
+						<span className="mt-1 block text-[11px] text-text-3">
+							Determines the editor shown when setting this value, and the options
+							below.
+						</span>
+					</label>
+
+					<div className="mt-3 rounded-md border border-border bg-surface-2 p-3">
+						<FieldSettingsEditor
+							type={body.type ?? "text"}
+							useCase="settings"
+							value={body.settings}
+							onChange={(v) => set({ settings: v })}
+						/>
+					</div>
 				</div>
 
 				<div className="grid grid-cols-1 gap-3 rounded-md border border-border bg-surface-2 p-3 md:grid-cols-3">

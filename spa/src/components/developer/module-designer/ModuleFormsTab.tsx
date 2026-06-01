@@ -17,7 +17,8 @@ import {
 
 import { DataTableSelect } from "@/components/developer/DataTableSelect";
 
-import { CheckboxInput, JsonInput, SelectInput, TextInput } from "./inputs";
+import { CheckboxInput, SelectInput, TextInput } from "./inputs";
+import { FormHooksEditor } from "./FormHooksEditor";
 import { AddSubButton, EditorCard, SubList, SubRow } from "./scaffold";
 import { NEW_ROW, useSubCrud } from "./useSubCrud";
 
@@ -201,14 +202,13 @@ export const ModuleFormsTab = ({ moduleId, moduleTable }: ModuleFormsTabProps) =
 							}
 							keyField="column"
 							useCase="modules"
+							columnsTable={draft.table}
 						/>
 					</div>
 
-					<JsonInput
-						label="Hooks"
+					<FormHooksEditor
 						value={draft.hooks}
 						onChange={(v) => setDraft((p) => ({ ...p, hooks: v }))}
-						hint="Optional pre/post PHP hook config."
 					/>
 				</EditorCard>
 			)}
