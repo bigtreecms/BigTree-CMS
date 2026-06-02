@@ -41,7 +41,7 @@ import { ModuleDesigner } from "@/pages/developer/ModuleDesigner";
 import { ModuleDesignerEdit } from "@/pages/developer/ModuleDesignerEdit";
 import { ModuleGroupEdit } from "@/pages/developer/ModuleGroupEdit";
 import { ModuleGroups } from "@/pages/developer/ModuleGroups";
-import { SettingAdd } from "@/pages/developer/SettingAdd";
+import { SettingConfigure } from "@/pages/developer/SettingConfigure";
 import { TemplateEdit } from "@/pages/developer/TemplateEdit";
 import { Templates } from "@/pages/developer/Templates";
 import { ModuleEntry } from "@/pages/ModuleEntry";
@@ -297,7 +297,8 @@ export const router = createBrowserRouter(
 									path: "settings",
 									children: [
 										{ index: true, element: <DeveloperSettings /> },
-										{ path: "add", element: <SettingAdd /> },
+										{ path: "add", element: <SettingConfigure /> },
+										{ path: ":id/edit", element: <SettingConfigure /> },
 									],
 								},
 								{

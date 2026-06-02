@@ -14,6 +14,12 @@ interface FieldSettingsEditorProps {
 	useCase: FieldUseCase;
 	value: Record<string, unknown> | unknown[] | undefined;
 	onChange: (next: Record<string, unknown>) => void;
+	/**
+	 * Suppress the internal "Field settings" heading (and its top margin) for
+	 * callers that supply their own grouping heading outside this control — e.g.
+	 * a bordered box whose title should sit above the box, not inside it.
+	 */
+	hideLabel?: boolean;
 }
 
 const toObject = (value: unknown): Record<string, unknown> =>
@@ -32,6 +38,7 @@ export const FieldSettingsEditor = ({
 	useCase,
 	value,
 	onChange,
+	hideLabel,
 }: FieldSettingsEditorProps) => {
 	const settings = useMemo(() => toObject(value), [value]);
 	const [showJson, setShowJson] = useState(false);
@@ -44,13 +51,16 @@ export const FieldSettingsEditor = ({
 
 	const onPatch = (patch: Record<string, unknown>) => onChange({ ...settings, ...patch });
 
-	const label = (
+	// When the caller renders its own heading, drop both the label and the top
+	// margin that spaces it away from the field-type select above.
+	const rootMargin = hideLabel ? "" : "mt-3";
+	const label = hideLabel ? null : (
 		<span className="mb-1 block text-[11.5px] font-medium text-text-2">Field settings</span>
 	);
 
 	if (schemaQ.isLoading) {
 		return (
-			<div className="mt-3">
+			<div className={rootMargin}>
 				{label}
 				<p className="text-[12px] text-text-3">Loading settings…</p>
 			</div>
@@ -63,7 +73,7 @@ export const FieldSettingsEditor = ({
 
 	if (useFallback || showJson) {
 		return (
-			<div className="mt-3">
+			<div className={rootMargin}>
 				<div className="mb-1 flex items-center justify-between">
 					{label}
 					{!useFallback && (
@@ -83,7 +93,7 @@ export const FieldSettingsEditor = ({
 
 	if (descriptors.length === 0) {
 		return (
-			<div className="mt-3">
+			<div className={rootMargin}>
 				{label}
 				<p className="text-[12px] text-text-3">
 					This field type has no configurable settings.
@@ -93,7 +103,7 @@ export const FieldSettingsEditor = ({
 	}
 
 	return (
-		<div className="mt-3 space-y-3">
+		<div className={`${rootMargin} space-y-3`.trim()}>
 			{label}
 			{descriptors
 				.filter((descriptor) => isVisible(descriptor, settings, useCase))

@@ -20,9 +20,9 @@ import { toast } from "@/lib/toast";
  * /developer/settings — admin CRUD for settings definitions.
  *
  *   - List + paginated + ?q= search, same shape as the user-facing /settings.
- *   - Delete + Add (row click drops into the user-facing /settings/:id/edit
- *     value editor; schema editing happens via /developer/settings/add and
- *     PATCH /settings/{id} when needed — exposed in a follow-up).
+ *   - Delete + Add. Row click opens the definition (schema) editor at
+ *     /developer/settings/:id/edit; the user-facing value editor lives
+ *     separately at /settings/:id/edit.
  */
 const PER_PAGE = 25;
 
@@ -190,7 +190,9 @@ export const DeveloperSettings = () => {
 				isLoading={query.isLoading || (query.isFetching && !query.data)}
 				loadingLabel="Loading…"
 				emptyLabel={debounced ? `No settings match “${debounced}”.` : "No settings yet."}
-				onRowClick={(row) => navigate(`/settings/${encodeURIComponent(row.id)}/edit`)}
+				onRowClick={(row) =>
+					navigate(`/developer/settings/${encodeURIComponent(row.id)}/edit`)
+				}
 			/>
 
 			{totalPages > 1 && (

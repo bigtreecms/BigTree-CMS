@@ -39,3 +39,22 @@ export const decodeHtmlEntities = (value: string): string => {
 
 	return out.split("&amp;").join("&");
 };
+
+/**
+ * Reduce a WYSIWYG HTML value to a single line of plain text — for places that
+ * can only show text (table cells, `title` tooltips, search summaries) and
+ * would otherwise leak raw markup like "<p>…</p>". Tags become spaces, runs of
+ * whitespace collapse, and any surviving entities are decoded.
+ */
+export const stripHtml = (value: string): string => {
+	if (!value) {
+		return "";
+	}
+
+	const text = value
+		.replace(/<[^>]*>/g, " ")
+		.replace(/\s+/g, " ")
+		.trim();
+
+	return decodeHtmlEntities(text);
+};

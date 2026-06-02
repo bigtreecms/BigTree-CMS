@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Plus, ShieldAlert, Trash } from "lucide-react";
+import { Plus, Trash } from "lucide-react";
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
@@ -16,14 +16,14 @@ import { ApiError } from "@/types/api";
 import { toast } from "@/lib/toast";
 
 /**
- * /developer/field-types — list every field type (built-in + custom).
+ * /developer/field-types — list the custom (user-defined) field types.
  *
- * The server's `listSplit` mode separates the two; we use it so the table
- * can mark built-ins as un-deletable. Deletion + Add only apply to custom
- * types — the built-ins ship with the core install and don't live in the
- * mutable JSONDB.
+ * Built-ins ship with the core install, don't live in the mutable JSONDB, and
+ * aren't editable, so they're omitted here. We still use the server's
+ * `listSplit` mode because its `custom` bucket is a flat `{ id: FieldType }`
+ * map carrying the full type record (the default listing is use-case-nested).
  */
-type Row = FieldType & { _isBuiltin: boolean };
+type Row = FieldType;
 
 export const FieldTypes = () => {
 	const navigate = useNavigate();
@@ -47,19 +47,10 @@ export const FieldTypes = () => {
 		},
 	});
 
-	const rows: Row[] = useMemo(() => {
-		const out: Row[] = [];
-
-		for (const ft of Object.values(query.data?.default ?? {})) {
-			out.push({ ...ft, _isBuiltin: true });
-		}
-
-		for (const ft of Object.values(query.data?.custom ?? {})) {
-			out.push({ ...ft, _isBuiltin: false });
-		}
-
-		return out.sort((a, b) => a.id.localeCompare(b.id));
-	}, [query.data]);
+	const rows: Row[] = useMemo(
+		() => Object.values(query.data?.custom ?? {}).sort((a, b) => a.id.localeCompare(b.id)),
+		[query.data]
+	);
 
 	const columns: DataTableColumn<Row>[] = [
 		{
@@ -68,14 +59,7 @@ export const FieldTypes = () => {
 			width: "minmax(0,1.5fr)",
 			cell: (row) => (
 				<div className="min-w-0">
-					<div className="flex items-center gap-2">
-						<span className="truncate font-medium text-text">{row.name || row.id}</span>
-						{row._isBuiltin && (
-							<span className="rounded bg-surface-2 px-1.5 py-0.5 text-[10.5px] font-medium text-text-3">
-								Built-in
-							</span>
-						)}
-					</div>
+					<div className="truncate font-medium text-text">{row.name || row.id}</div>
 					<div className="truncate font-mono text-[11px] text-text-3">{row.id}</div>
 				</div>
 			),
@@ -121,28 +105,20 @@ export const FieldTypes = () => {
 			header: "",
 			width: "56px",
 			align: "right",
-			cell: (row) =>
-				row._isBuiltin ? (
-					<span
-						className="grid h-7 w-7 place-items-center text-text-3 opacity-40"
-						title="Built-in — cannot be deleted"
-					>
-						<ShieldAlert size={13} />
-					</span>
-				) : (
-					<button
-						type="button"
-						className="rounded p-1 text-text-3 hover:bg-hover hover:text-danger"
-						onClick={(e) => {
-							e.stopPropagation();
-							setConfirmDelete(row);
-						}}
-						title="Delete field type"
-						aria-label="Delete field type"
-					>
-						<Trash size={13} />
-					</button>
-				),
+			cell: (row) => (
+				<button
+					type="button"
+					className="rounded p-1 text-text-3 hover:bg-hover hover:text-danger"
+					onClick={(e) => {
+						e.stopPropagation();
+						setConfirmDelete(row);
+					}}
+					title="Delete field type"
+					aria-label="Delete field type"
+				>
+					<Trash size={13} />
+				</button>
+			),
 		},
 	];
 
@@ -154,7 +130,7 @@ export const FieldTypes = () => {
 
 			<PageHead
 				title="Field types"
-				sub={`${rows.length} field types (${Object.keys(query.data?.custom ?? {}).length} custom)`}
+				sub={`${rows.length} custom field type${rows.length === 1 ? "" : "s"}`}
 				actions={
 					<Link
 						to="/developer/field-types/add"
@@ -174,11 +150,9 @@ export const FieldTypes = () => {
 				getRowKey={(row) => row.id}
 				isLoading={query.isLoading}
 				loadingLabel="Loading field types…"
-				emptyLabel="No field types loaded."
+				emptyLabel="No custom field types yet."
 				onRowClick={(row) => {
-					if (!row._isBuiltin) {
-						navigate(`/developer/field-types/${encodeURIComponent(row.id)}/edit`);
-					}
+					navigate(`/developer/field-types/${encodeURIComponent(row.id)}/edit`);
 				}}
 			/>
 

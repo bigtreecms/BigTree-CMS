@@ -18,15 +18,20 @@
 	 */
 	class FieldTypeService {
 		public function list(Request $request) {
+			// Hash against the live JSONDB file BigTreeJSONDB actually reads/writes
+			// (custom/json-db/field-types.json) — not the install-time setup seed,
+			// which doesn't exist here and would yield a constant ETag that never
+			// invalidates after a create/update/delete. The built-in list is
+			// hardcoded in getCachedFieldTypes(), so only this file's mtime matters.
 			$paths = array_filter([
-				SERVER_ROOT . "core/setup/json-db/field-types.json",
-				file_exists(SERVER_ROOT . "custom/setup/json-db/field-types.json") ? SERVER_ROOT . "custom/setup/json-db/field-types.json" : null,
+				file_exists(SERVER_ROOT . "custom/json-db/field-types.json") ? SERVER_ROOT . "custom/json-db/field-types.json" : null,
 			]);
 			$etag = ETag::fromMtimes($paths);
 
 			if (ETag::check($request, $etag)) {
 				$r = Response::raw(304, []); $r->is_envelope = false; $r->body = null;
 				$r->header("ETag", $etag);
+				$r->header("Cache-Control", "private, no-cache");
 
 				return $r;
 			}
@@ -80,7 +85,11 @@
 
 			$r = Response::ok($payload);
 			$r->header("ETag", $etag);
-			$r->header("Cache-Control", "private, max-age=300");
+			// no-cache (not max-age) so the browser revalidates with the ETag on
+			// every request instead of serving a stale body for N seconds. The
+			// revalidation short-circuits to a cheap 304 above when unchanged, so
+			// this stays efficient while reflecting create/update/delete immediately.
+			$r->header("Cache-Control", "private, no-cache");
 
 			return $r;
 		}
@@ -136,13 +145,18 @@
 		}
 
 		public function delete(Request $request) {
+			global $admin;
+
 			$id = (string)$request->route_params["id"];
 
 			if (!BigTreeJSONDB::exists("field-types", $id)) {
 				throw new NotFoundException("Field type $id not found", "resource_not_found", 404);
 			}
 
-			BigTreeJSONDB::delete("field-types", $id);
+			// Delegate to the admin method so the SPA and legacy developer UI share
+			// one complete cascade (cache, source files, extension dir + manifest).
+			$bigtree_admin = $admin instanceof BigTreeAdmin ? $admin : new BigTreeAdmin();
+			$bigtree_admin->deleteFieldType($id);
 
 			return Response::noContent();
 		}

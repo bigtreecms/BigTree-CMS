@@ -10,6 +10,8 @@ import { Pager } from "@/components/ui/Pager";
 
 import { settingsApi, type SettingDetail } from "@/api/endpoints/settings";
 
+import { stripHtml } from "@/lib/html";
+
 /**
  * /settings — global settings list.
  *
@@ -64,8 +66,11 @@ export const Settings = () => {
 						{row.name}
 					</div>
 					{row.description && (
-						<div className="truncate text-[11px] text-text-3" title={row.description}>
-							{row.description}
+						<div
+							className="truncate text-[11px] text-text-3"
+							title={stripHtml(row.description)}
+						>
+							{stripHtml(row.description)}
 						</div>
 					)}
 				</div>

@@ -1,5 +1,5 @@
-import { useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ChevronLeft, Save } from "lucide-react";
 
@@ -11,6 +11,9 @@ import { FieldSettingsEditor } from "@/components/developer/FieldSettingsEditor"
 
 import { settingsApi, type SettingCreateBody } from "@/api/endpoints/settings";
 import { fieldTypesApi, fieldTypesForUseCase } from "@/api/endpoints/field-types";
+import type { ModuleFormField } from "@/api/endpoints/modules";
+
+import { HTMLField } from "@/renderer/fields/HTMLField";
 
 import { ApiError } from "@/types/api";
 import { toast } from "@/lib/toast";
@@ -18,13 +21,32 @@ import { toast } from "@/lib/toast";
 import { TextField } from "./TemplateEdit";
 
 /**
- * /developer/settings/add — definition-only form. Once created, the
- * value-side editing happens at /settings/:id/edit (which uses FieldRenderer
- * based on the `type` set here).
+ * Descriptions are WYSIWYG HTML. We reuse the renderer's HTMLField in its
+ * "simple" variant (bold / italic / underline / link) — the same editor the
+ * value-side uses for html-type settings.
  */
-export const SettingAdd = () => {
+const DESCRIPTION_FIELD: ModuleFormField = {
+	column: "description",
+	title: "Description",
+	type: "html",
+	settings: { simple: true, height: 160 },
+};
+
+/**
+ * /developer/settings/add — create a setting definition.
+ * /developer/settings/:id/edit — edit an existing setting definition.
+ *
+ * This is the *definition* (schema) editor — name, type, type-specific
+ * settings, and the encrypted/locked/system flags. The value-side editing
+ * happens separately at /settings/:id/edit (which uses FieldRenderer based on
+ * the `type` set here).
+ */
+export const SettingConfigure = () => {
 	const navigate = useNavigate();
 	const queryClient = useQueryClient();
+	const { id: routeId } = useParams<{ id: string }>();
+	const isEdit = Boolean(routeId);
+	const settingId = routeId ?? "";
 
 	const [body, setBody] = useState<SettingCreateBody>({
 		id: "",
@@ -36,8 +58,51 @@ export const SettingAdd = () => {
 		system: false,
 		encrypted: false,
 	});
+	const [seeded, setSeeded] = useState(false);
 	const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 	const [generalError, setGeneralError] = useState<string | null>(null);
+
+	// In edit mode, load the existing definition and seed the form once.
+	const existingQ = useQuery({
+		queryKey: ["settings", "detail", settingId],
+		queryFn: () => settingsApi.get(settingId),
+		enabled: isEdit,
+	});
+
+	useEffect(() => {
+		if (!isEdit || seeded || !existingQ.data) {
+			return;
+		}
+
+		const d = existingQ.data;
+
+		setBody({
+			id: d.id,
+			name: d.name ?? "",
+			description: d.description ?? "",
+			type: d.type ?? "text",
+			settings: (d.settings as SettingCreateBody["settings"]) ?? {},
+			locked: !!d.locked,
+			system: !!d.system,
+			encrypted: !!d.encrypted,
+			extension: d.extension ?? undefined,
+		});
+		setSeeded(true);
+	}, [isEdit, seeded, existingQ.data]);
+
+	function handleMutationError(err: unknown) {
+		if (err instanceof ApiError) {
+			const fe = err.fieldErrors();
+
+			if (Object.keys(fe).length > 0) {
+				setFieldErrors(fe);
+			}
+
+			setGeneralError(err.message);
+		} else {
+			setGeneralError(err instanceof Error ? err.message : "Save failed");
+		}
+	}
 
 	const createMutation = useMutation({
 		mutationFn: () => settingsApi.create(body),
@@ -46,19 +111,17 @@ export const SettingAdd = () => {
 			toast.success("Setting created");
 			navigate(`/settings/${encodeURIComponent(fresh.id)}/edit`);
 		},
-		onError: (err) => {
-			if (err instanceof ApiError) {
-				const fe = err.fieldErrors();
+		onError: handleMutationError,
+	});
 
-				if (Object.keys(fe).length > 0) {
-					setFieldErrors(fe);
-				}
-
-				setGeneralError(err.message);
-			} else {
-				setGeneralError(err instanceof Error ? err.message : "Create failed");
-			}
+	const updateMutation = useMutation({
+		mutationFn: () => settingsApi.updateDefinition(settingId, body),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ["settings"] });
+			toast.success("Setting saved");
+			navigate("/developer/settings");
 		},
+		onError: handleMutationError,
 	});
 
 	const set = (patch: Partial<SettingCreateBody>) => setBody((prev) => ({ ...prev, ...patch }));
@@ -84,19 +147,46 @@ export const SettingAdd = () => {
 
 	const typeKnown = typeGroups.some((g) => g.options.some((o) => o.id === body.type));
 
+	const isPending = createMutation.isPending || updateMutation.isPending;
+
+	const submit = () => {
+		setFieldErrors({});
+		setGeneralError(null);
+
+		if (isEdit) {
+			updateMutation.mutate();
+		} else {
+			createMutation.mutate();
+		}
+	};
+
+	if (isEdit && (existingQ.isLoading || !existingQ.data)) {
+		return (
+			<div className="mx-auto max-w-screen-md px-6 py-4">
+				<div className="rounded-xl border border-border bg-surface p-9 text-center text-[13px] text-text-3">
+					Loading…
+				</div>
+			</div>
+		);
+	}
+
 	return (
 		<div className="mx-auto max-w-screen-md px-6 py-4">
 			<Breadcrumb
 				items={[
 					{ label: "Developer", to: "/developer" },
 					{ label: "Settings", to: "/developer/settings" },
-					{ label: "Add" },
+					{ label: isEdit ? body.name || settingId : "Add" },
 				]}
 			/>
 
 			<PageHead
-				title="Add setting"
-				sub="Define a new setting. The value-editor opens after creation."
+				title={isEdit ? "Edit setting" : "Add setting"}
+				sub={
+					isEdit
+						? "Edit the definition. Values are edited from the user-facing Settings list."
+						: "Define a new setting. The value-editor opens after creation."
+				}
 				actions={
 					<Link
 						to="/developer/settings"
@@ -119,7 +209,7 @@ export const SettingAdd = () => {
 			<form
 				onSubmit={(e) => {
 					e.preventDefault();
-					createMutation.mutate();
+					submit();
 				}}
 				className="space-y-4 rounded-xl border border-border bg-surface p-4"
 			>
@@ -128,8 +218,13 @@ export const SettingAdd = () => {
 						label="ID"
 						value={body.id}
 						onChange={(v) => set({ id: v })}
-						hint="Stable storage key, cannot change later."
+						hint={
+							isEdit
+								? "Stable storage key, cannot be changed."
+								: "Stable storage key, cannot change later."
+						}
 						error={fieldErrors.id}
+						disabled={isEdit}
 						required
 					/>
 					<TextField
@@ -140,11 +235,16 @@ export const SettingAdd = () => {
 					/>
 				</div>
 
-				<TextField
-					label="Description"
-					value={body.description ?? ""}
-					onChange={(v) => set({ description: v })}
-				/>
+				<div>
+					<span className="mb-1 block text-[12px] font-medium text-text-2">
+						Description
+					</span>
+					<HTMLField
+						field={DESCRIPTION_FIELD}
+						value={body.description ?? ""}
+						onChange={(v) => set({ description: typeof v === "string" ? v : "" })}
+					/>
+				</div>
 
 				<div>
 					<label className="block max-w-sm">
@@ -179,13 +279,19 @@ export const SettingAdd = () => {
 						</span>
 					</label>
 
-					<div className="mt-3 rounded-md border border-border bg-surface-2 p-3">
-						<FieldSettingsEditor
-							type={body.type ?? "text"}
-							useCase="settings"
-							value={body.settings}
-							onChange={(v) => set({ settings: v })}
-						/>
+					<div className="mt-3">
+						<span className="mb-1 block text-[12px] font-medium text-text-2">
+							Field settings
+						</span>
+						<div className="rounded-md border border-border bg-surface-2 p-3">
+							<FieldSettingsEditor
+								type={body.type ?? "text"}
+								useCase="settings"
+								value={body.settings}
+								onChange={(v) => set({ settings: v })}
+								hideLabel
+							/>
+						</div>
 					</div>
 				</div>
 
@@ -229,10 +335,16 @@ export const SettingAdd = () => {
 					<button
 						type="submit"
 						className="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-[12.5px] font-medium text-accent-fg disabled:opacity-50 hover:bg-accent-hover"
-						disabled={createMutation.isPending}
+						disabled={isPending}
 					>
 						<Save size={13} />
-						{createMutation.isPending ? "Creating…" : "Create setting"}
+						{isEdit
+							? isPending
+								? "Saving…"
+								: "Save setting"
+							: isPending
+								? "Creating…"
+								: "Create setting"}
 					</button>
 				</div>
 			</form>

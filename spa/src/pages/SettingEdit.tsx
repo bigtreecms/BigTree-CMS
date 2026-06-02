@@ -122,10 +122,12 @@ export const SettingEdit = () => {
 		{ label: setting.name || setting.id },
 	];
 
+	// The description is already shown in the PageHead `sub`, so we deliberately
+	// omit it as the field subtitle — otherwise it renders again in FieldRow and
+	// a third time inside label-driven fields like CheckboxField.
 	const formField: ModuleFormField = {
 		column: setting.id,
 		title: setting.name || setting.id,
-		subtitle: setting.description,
 		type: setting.type || "text",
 		settings: setting.settings,
 	};
@@ -145,7 +147,17 @@ export const SettingEdit = () => {
 
 			<PageHead
 				title={setting.name || setting.id}
-				sub={setting.description || undefined}
+				sub={
+					setting.description ? (
+						// Descriptions are WYSIWYG HTML authored in the developer
+						// section; render them as markup (margins flattened to keep
+						// the subtitle on a tight baseline).
+						<div
+							className="[&_p]:m-0 [&_p+p]:mt-1"
+							dangerouslySetInnerHTML={{ __html: setting.description }}
+						/>
+					) : undefined
+				}
 				actions={
 					<div className="flex flex-wrap items-center gap-2">
 						<Link

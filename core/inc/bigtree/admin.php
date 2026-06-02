@@ -2358,18 +2358,80 @@
 		*/
 
 		public function deleteFieldType($id) {
-			@unlink(SERVER_ROOT."custom/admin/form-field-types/draw/$id.php");
-			@unlink(SERVER_ROOT."custom/admin/form-field-types/process/$id.php");
-			@unlink(SERVER_ROOT."custom/admin/ajax/developer/field-options/$id.php");
-			@unlink(SERVER_ROOT."cache/bigtree-form-field-types.json");
-			@unlink(SERVER_ROOT."custom/admin/field-types/$id/draw/.php");
-			@unlink(SERVER_ROOT."custom/admin/field-types/$id/process.php");
-			@unlink(SERVER_ROOT."custom/admin/field-types/$id/settings.php");
-			@unlink(SERVER_ROOT."custom/admin/field-types/$id/");
+			$field_type = BigTreeJSONDB::get("field-types", $id);
+			$extension = $field_type["extension"] ?? "";
+
+			// Extension-owned field types use the "extension*local" id convention and
+			// live under extensions/$extension/field-types/$local/ rather than custom/.
+			if ($extension || strpos($id, "*") !== false) {
+				[$extension, $field_type_id] = explode("*", $id);
+
+				BigTree::deleteDirectory(SERVER_ROOT."extensions/$extension/field-types/$field_type_id/");
+				$this->removeFieldTypeFromExtensionManifest($extension, $id);
+			} else {
+				@unlink(SERVER_ROOT."custom/admin/form-field-types/draw/$id.php");
+				@unlink(SERVER_ROOT."custom/admin/form-field-types/process/$id.php");
+				@unlink(SERVER_ROOT."custom/admin/ajax/developer/field-options/$id.php");
+				@unlink(SERVER_ROOT."custom/admin/field-types/$id/draw/.php");
+				@unlink(SERVER_ROOT."custom/admin/field-types/$id/process.php");
+				@unlink(SERVER_ROOT."custom/admin/field-types/$id/settings.php");
+				@unlink(SERVER_ROOT."custom/admin/field-types/$id/");
+			}
+
 			@unlink(SERVER_ROOT."cache/bigtree-form-field-types.json");
 
 			BigTreeJSONDB::delete("field-types", $id);
 			$this->track("jsondb -> field-types", $id, "deleted");
+		}
+
+		/*
+			Function: removeFieldTypeFromExtensionManifest
+				Strips a field type entry from an extension's manifest, both in the
+				on-disk manifest.json and the mirrored copy in the extensions JSONDB.
+
+			Parameters:
+				extension - The extension id that owns the field type.
+				id - The full (namespaced) field type id to remove.
+		*/
+
+		private function removeFieldTypeFromExtensionManifest($extension, $id) {
+			$manifest_path = SERVER_ROOT."extensions/$extension/manifest.json";
+
+			if (file_exists($manifest_path)) {
+				$manifest = json_decode(file_get_contents($manifest_path), true);
+
+				if (is_array($manifest)) {
+					$manifest = $this->stripFieldTypeFromManifest($manifest, $id);
+					BigTree::putFile($manifest_path, BigTree::json($manifest));
+				}
+			}
+
+			$record = BigTreeJSONDB::get("extensions", $extension);
+
+			if ($record && !empty($record["manifest"]) && is_array($record["manifest"])) {
+				BigTreeJSONDB::update("extensions", $extension, [
+					"manifest" => $this->stripFieldTypeFromManifest($record["manifest"], $id)
+				]);
+			}
+		}
+
+		/*
+			Function: stripFieldTypeFromManifest
+				Returns a manifest with the given field type id removed from its
+				components.field_types list.
+		*/
+
+		private function stripFieldTypeFromManifest($manifest, $id) {
+			if (!empty($manifest["components"]["field_types"]) && is_array($manifest["components"]["field_types"])) {
+				$manifest["components"]["field_types"] = array_values(array_filter(
+					$manifest["components"]["field_types"],
+					function ($type) use ($id) {
+						return ($type["id"] ?? null) !== $id;
+					}
+				));
+			}
+
+			return $manifest;
 		}
 
 		/*
