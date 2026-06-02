@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import { Link, Navigate, useNavigate, useParams } from "react-router-dom";
 import { useMutation, useQueries, useQueryClient } from "@tanstack/react-query";
-import { ChevronLeft, Save } from "lucide-react";
+import { ChevronLeft, Save, Trash } from "lucide-react";
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
+import { Combobox, type ComboboxOption } from "@/components/ui/Combobox";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 
 import { DeveloperSectionNav } from "@/components/developer/DeveloperSectionNav";
@@ -106,22 +107,29 @@ export const CalloutGroupEdit = () => {
 
 	const set = (patch: Partial<CalloutGroupEditBody>) =>
 		setBody((prev) => ({ ...prev, ...patch }));
-	const selected = new Set(body.callouts ?? []);
 
-	const toggleCallout = (id: string) => {
-		const next = new Set(selected);
+	const callouts = calloutsQ.data ?? [];
+	const selectedIds = body.callouts ?? [];
+	const selectedSet = new Set(selectedIds);
+	const calloutById = new Map(callouts.map((c) => [c.id, c]));
 
-		if (next.has(id)) {
-			next.delete(id);
-		} else {
-			next.add(id);
+	const addCallout = (id: string) => {
+		if (selectedSet.has(id)) {
+			return;
 		}
 
-		set({ callouts: Array.from(next) });
+		set({ callouts: [...selectedIds, id] });
 	};
 
+	const removeCallout = (id: string) => {
+		set({ callouts: selectedIds.filter((c) => c !== id) });
+	};
+
+	const addOptions: ComboboxOption<string>[] = callouts
+		.filter((c) => !selectedSet.has(c.id))
+		.map((c) => ({ value: c.id, label: c.name, sublabel: c.id }));
+
 	const title = isAdd ? "Add callout group" : body.name || idParam || "Edit callout group";
-	const callouts = calloutsQ.data ?? [];
 
 	return (
 		<div className="mx-auto max-w-screen-md px-6 py-4">
@@ -181,9 +189,17 @@ export const CalloutGroupEdit = () => {
 				</div>
 
 				<div>
-					<div className="mb-2 text-[12px] font-semibold uppercase tracking-[0.06em] text-text-3">
-						Callouts in this group
+					<div className="mb-2 flex items-center justify-between gap-2">
+						<div className="text-[12px] font-semibold uppercase tracking-[0.06em] text-text-3">
+							Callouts in this group
+						</div>
+						<span className="text-[11.5px] tabular-nums text-text-3">
+							{selectedIds.length === 1
+								? "1 callout"
+								: `${selectedIds.length} callouts`}
+						</span>
 					</div>
+
 					{calloutsQ.isLoading ? (
 						<div className="text-[12.5px] text-text-3">Loading callouts…</div>
 					) : callouts.length === 0 ? (
@@ -191,26 +207,63 @@ export const CalloutGroupEdit = () => {
 							No callouts to pick from yet. Create one first.
 						</div>
 					) : (
-						<ul className="divide-y divide-border overflow-hidden rounded-md border border-border">
-							{callouts.map((c) => (
-								<li key={c.id}>
-									<label className="flex cursor-pointer items-center gap-3 px-3 py-2 text-[12.5px] hover:bg-hover">
-										<input
-											type="checkbox"
-											className="h-4 w-4 accent-accent"
-											checked={selected.has(c.id)}
-											onChange={() => toggleCallout(c.id)}
-										/>
-										<span className="min-w-0 flex-1">
-											<div className="truncate text-text-2">{c.name}</div>
-											<div className="truncate font-mono text-[11px] text-text-3">
-												{c.id}
-											</div>
-										</span>
-									</label>
-								</li>
-							))}
-						</ul>
+						<div className="space-y-2">
+							{selectedIds.length > 0 ? (
+								<ul className="divide-y divide-border overflow-hidden rounded-md border border-border">
+									{selectedIds.map((id) => {
+										const callout = calloutById.get(id);
+
+										return (
+											<li
+												key={id}
+												className="flex items-center gap-3 px-3 py-2 text-[12.5px]"
+											>
+												<span className="min-w-0 flex-1">
+													<div className="truncate text-text-2">
+														{callout?.name ?? id}
+													</div>
+													<div className="truncate font-mono text-[11px] text-text-3">
+														{id}
+													</div>
+												</span>
+												<button
+													type="button"
+													className="rounded p-1 text-text-3 hover:bg-hover hover:text-danger"
+													onClick={() => removeCallout(id)}
+													title="Remove from group"
+													aria-label={`Remove ${callout?.name ?? id} from group`}
+												>
+													<Trash size={13} />
+												</button>
+											</li>
+										);
+									})}
+								</ul>
+							) : (
+								<div className="rounded-md border border-dashed border-border bg-surface-2 px-3 py-3 text-[12.5px] text-text-3">
+									No callouts in this group yet — add one below.
+								</div>
+							)}
+
+							<Combobox<string>
+								value={null}
+								onChange={(option) => {
+									if (option) {
+										addCallout(option.value);
+									}
+								}}
+								options={addOptions}
+								placeholder="Add a callout…"
+								searchPlaceholder="Search callouts…"
+								emptyLabel={
+									addOptions.length === 0
+										? "All callouts are in this group."
+										: "No callouts match."
+								}
+								clearable={false}
+								ariaLabel="Add a callout to this group"
+							/>
+						</div>
 					)}
 				</div>
 

@@ -47,7 +47,6 @@ export const CalloutGroups = () => {
 			cell: (row) => (
 				<div className="min-w-0">
 					<div className="truncate font-medium text-text">{row.name}</div>
-					<div className="truncate font-mono text-[11px] text-text-3">{row.id}</div>
 				</div>
 			),
 		},
@@ -56,7 +55,7 @@ export const CalloutGroups = () => {
 			header: "Callouts",
 			width: "120px",
 			hideOnMobile: true,
-			align: "right",
+			align: "left",
 			cell: (row) => (
 				<span className="tabular-nums text-[12px] text-text-3">
 					{(row.callouts ?? []).length}
