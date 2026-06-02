@@ -327,16 +327,26 @@ export const ResourceDesigner = ({
 											/>
 										</div>
 
-										<FieldSettingsEditor
-											type={entry.type || "text"}
-											useCase={useCase}
-											value={
-												entry.settings as
-													| Record<string, unknown>
-													| undefined
-											}
-											onChange={(v) => updateEntry(index, { settings: v })}
-										/>
+										<div className="mt-3">
+											<span className="mb-1 block text-[12px] font-medium text-text-2">
+												Field settings
+											</span>
+											<div className="rounded-md border border-border bg-surface-2 p-3">
+												<FieldSettingsEditor
+													hideLabel
+													type={entry.type || "text"}
+													useCase={useCase}
+													value={
+														entry.settings as
+															| Record<string, unknown>
+															| undefined
+													}
+													onChange={(v) =>
+														updateEntry(index, { settings: v })
+													}
+												/>
+											</div>
+										</div>
 
 										{onSetDisplayField && (
 											<label className="mt-2 flex items-center gap-2 text-[12px] text-text-2">
