@@ -38,6 +38,8 @@ export interface SettingListParams {
 	page?: number;
 	per_page?: number;
 	q?: string;
+	/** Include settings flagged as `system` (hidden from the main list by default). */
+	include_system?: boolean;
 }
 
 export const settingsApi = {
@@ -47,6 +49,7 @@ export const settingsApi = {
 				page: params.page,
 				per_page: params.per_page,
 				q: params.q,
+				include_system: params.include_system ? true : undefined,
 			},
 		}),
 

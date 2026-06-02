@@ -142,7 +142,7 @@
 		}
 
 		public function reorder(Request $request) {
-			$ids = array_map("intval", (array)$request->body["ids"]);
+			$ids = array_map("strval", (array)$request->body["ids"]);
 			$pos = count($ids);
 
 			foreach ($ids as $id) {
@@ -778,7 +778,7 @@
 		public function reorderActions(Request $request) {
 			$module_id = $request->route_params["id"];
 			$this->loadModule($module_id);
-			$ids = array_map("intval", (array)$request->body["ids"]);
+			$ids = array_map("strval", (array)$request->body["ids"]);
 			$context = BigTreeJSONDB::getSubset("modules", $module_id);
 			$pos = count($ids);
 

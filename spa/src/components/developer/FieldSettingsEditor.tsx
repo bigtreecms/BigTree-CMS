@@ -20,6 +20,12 @@ interface FieldSettingsEditorProps {
 	 * a bordered box whose title should sit above the box, not inside it.
 	 */
 	hideLabel?: boolean;
+	/**
+	 * Required-setting errors keyed by descriptor id (from
+	 * `validateFieldSettings`). Rendered inline beneath the matching control so
+	 * the validation message lands next to the offending setting.
+	 */
+	errors?: Record<string, string>;
 }
 
 const toObject = (value: unknown): Record<string, unknown> =>
@@ -39,6 +45,7 @@ export const FieldSettingsEditor = ({
 	value,
 	onChange,
 	hideLabel,
+	errors,
 }: FieldSettingsEditorProps) => {
 	const settings = useMemo(() => toObject(value), [value]);
 	const [showJson, setShowJson] = useState(false);
@@ -114,14 +121,18 @@ export const FieldSettingsEditor = ({
 						return null;
 					}
 
+					const error = errors?.[descriptor.id];
+
 					return (
-						<Control
-							key={descriptor.id}
-							descriptor={descriptor}
-							settings={settings}
-							onPatch={onPatch}
-							useCase={useCase}
-						/>
+						<div key={descriptor.id}>
+							<Control
+								descriptor={descriptor}
+								settings={settings}
+								onPatch={onPatch}
+								useCase={useCase}
+							/>
+							{error && <p className="mt-1 text-[11.5px] text-danger">{error}</p>}
+						</div>
 					);
 				})}
 			<button

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ChevronLeft, Eye, EyeOff, Lock, Save, ShieldAlert } from "lucide-react";
+import { Eye, EyeOff, Lock, Save, ShieldAlert } from "lucide-react";
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
@@ -11,6 +11,7 @@ import { settingsApi, type SettingDetail } from "@/api/endpoints/settings";
 
 import { FieldRenderer } from "@/renderer/forms/FieldRenderer";
 import { FieldRow } from "@/renderer/forms/FieldRow";
+import { isFieldRequired, isFieldValueEmpty } from "@/renderer/forms/validation";
 import type { ModuleFormField } from "@/api/endpoints/modules";
 
 import { useAuthStore } from "@/auth/store";
@@ -42,6 +43,7 @@ export const SettingEdit = () => {
 	const [revealEncrypted, setRevealEncrypted] = useState(false);
 	const [value, setValue] = useState<unknown>(undefined);
 	const [generalError, setGeneralError] = useState<string | null>(null);
+	const [fieldError, setFieldError] = useState<string | null>(null);
 
 	const settingQuery = useQuery({
 		queryKey: ["settings", "detail", settingId, { includeEncrypted: revealEncrypted }],
@@ -137,6 +139,14 @@ export const SettingEdit = () => {
 			return;
 		}
 
+		if (isFieldRequired(formField) && isFieldValueEmpty(formField, value)) {
+			setFieldError(`${formField.title} is required.`);
+			setGeneralError("Please fill in the required fields.");
+
+			return;
+		}
+
+		setFieldError(null);
 		setGeneralError(null);
 		saveMutation.mutate();
 	};
@@ -157,26 +167,6 @@ export const SettingEdit = () => {
 							dangerouslySetInnerHTML={{ __html: setting.description }}
 						/>
 					) : undefined
-				}
-				actions={
-					<div className="flex flex-wrap items-center gap-2">
-						<Link
-							to="/settings"
-							className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] hover:bg-hover"
-						>
-							<ChevronLeft size={13} />
-							Back
-						</Link>
-						<button
-							type="button"
-							onClick={handleSave}
-							className="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-[12.5px] font-medium text-accent-fg disabled:opacity-50 hover:bg-accent-hover"
-							disabled={readOnly || saveMutation.isPending || valueWithheld}
-						>
-							<Save size={13} />
-							{saveMutation.isPending ? "Saving…" : "Save"}
-						</button>
-					</div>
 				}
 			/>
 
@@ -214,7 +204,7 @@ export const SettingEdit = () => {
 							: "Only publishers can decrypt and edit it."}
 					</div>
 				) : (
-					<FieldRow field={formField}>
+					<FieldRow field={formField} error={fieldError ?? undefined}>
 						<FieldRenderer
 							field={formField}
 							value={value}

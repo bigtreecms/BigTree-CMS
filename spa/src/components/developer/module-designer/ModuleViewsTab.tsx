@@ -249,7 +249,12 @@ export const ModuleViewsTab = ({ moduleId, moduleTable }: ModuleViewsTabProps) =
 				<EditorCard
 					title={editorTitle}
 					onClose={crud.cancel}
-					onSave={() => crud.save(crud.editingId, toBody(draft))}
+					onSave={() =>
+						crud.save(crud.editingId, toBody(draft), [
+							{ field: "title", label: "Title", value: draft.title },
+							{ field: "table", label: "Data table", value: draft.table },
+						])
+					}
 					saving={crud.saving}
 					saveLabel={crud.editingId === NEW_ROW ? "Create view" : "Save view"}
 				>
@@ -258,12 +263,14 @@ export const ModuleViewsTab = ({ moduleId, moduleTable }: ModuleViewsTabProps) =
 							label="Title"
 							value={draft.title}
 							onChange={(v) => setDraft((p) => ({ ...p, title: v }))}
+							error={crud.fieldErrors.title}
 							required
 						/>
 						<DataTableSelect
 							label="Data table"
 							value={draft.table}
 							onChange={(v) => setDraft((p) => ({ ...p, table: v }))}
+							error={crud.fieldErrors.table}
 							required
 						/>
 						<SelectInput

@@ -18,6 +18,7 @@ import { resourceToFormField, templatesApi, type TemplateSummary } from "@/api/e
 
 import { FieldRenderer } from "@/renderer/forms/FieldRenderer";
 import { FieldRow } from "@/renderer/forms/FieldRow";
+import { isFieldRequired, isFieldValueEmpty } from "@/renderer/forms/validation";
 
 import { useLock } from "@/hooks/useLock";
 import { ApiError } from "@/types/api";
@@ -149,6 +150,25 @@ export const PageEdit = () => {
 
 	const handleSave = () => {
 		if (!body || saveMutation.isPending || lock.ownedByOther) {
+			return;
+		}
+
+		const resourceValues = (body.resources ?? {}) as Record<string, unknown>;
+		const resourceErrors: Record<string, string> = {};
+
+		for (const resource of templateQuery.data?.resources ?? []) {
+			const field = resourceToFormField(resource);
+
+			if (isFieldRequired(field) && isFieldValueEmpty(field, resourceValues[field.column])) {
+				resourceErrors[field.column] = `${field.title || field.column} is required.`;
+			}
+		}
+
+		if (Object.keys(resourceErrors).length > 0) {
+			setFieldErrors(resourceErrors);
+			setGeneralError("Please fill in the required fields.");
+			setActiveTab("content");
+
 			return;
 		}
 

@@ -139,7 +139,10 @@ export const ModuleActionsTab = ({ moduleId }: ModuleActionsTabProps) => {
 		};
 	};
 
-	const handleSave = () => crud.save(crud.editingId, toBody(draft));
+	const handleSave = () =>
+		crud.save(crud.editingId, toBody(draft), [
+			{ field: "name", label: "Name", value: draft.name },
+		]);
 
 	const editorTitle = crud.editingId === NEW_ROW ? "New action" : "Edit action";
 
@@ -185,6 +188,7 @@ export const ModuleActionsTab = ({ moduleId }: ModuleActionsTabProps) => {
 							label="Name"
 							value={draft.name}
 							onChange={(v) => setDraft((p) => ({ ...p, name: v }))}
+							error={crud.fieldErrors.name}
 							required
 						/>
 						<TextInput

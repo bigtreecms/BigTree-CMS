@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronDown, ChevronRight, GripVertical, Plus, Trash } from "lucide-react";
 
@@ -61,6 +61,13 @@ interface ResourceDesignerProps {
 	/** Optional `display_field` callback so the host can render an inline "Use as title" pill. */
 	displayFieldId?: string;
 	onSetDisplayField?: (id: string) => void;
+	/**
+	 * Required field-setting errors keyed by entry index, then descriptor id
+	 * (from `useResourceSettingsValidation`). Entries with errors auto-expand so
+	 * the inline messages are visible; passed through to each field's
+	 * `FieldSettingsEditor`.
+	 */
+	settingsErrors?: Record<number, Record<string, string>>;
 }
 
 export const ResourceDesigner = ({
@@ -71,8 +78,30 @@ export const ResourceDesigner = ({
 	columnsTable,
 	displayFieldId,
 	onSetDisplayField,
+	settingsErrors,
 }: ResourceDesignerProps) => {
 	const [expanded, setExpanded] = useState<Set<number>>(new Set());
+
+	// Surface validation failures: open any field whose settings just failed a
+	// required check so its inline error isn't hidden in a collapsed panel.
+	useEffect(() => {
+		if (!settingsErrors) {
+			return;
+		}
+
+		const failing = Object.keys(settingsErrors).map(Number);
+
+		if (failing.length === 0) {
+			return;
+		}
+
+		setExpanded((prev) => {
+			const next = new Set(prev);
+			failing.forEach((index) => next.add(index));
+
+			return next;
+		});
+	}, [settingsErrors]);
 
 	const fieldTypesQ = useQuery({
 		queryKey: ["field-types", "list"],
@@ -327,6 +356,23 @@ export const ResourceDesigner = ({
 											/>
 										</div>
 
+										<label className="mt-3 flex items-center gap-2 text-[12px] text-text-2">
+											<input
+												type="checkbox"
+												className="h-4 w-4 accent-accent"
+												checked={readRequired(entry.settings)}
+												onChange={(e) =>
+													updateEntry(index, {
+														settings: writeRequired(
+															entry.settings,
+															e.target.checked
+														),
+													})
+												}
+											/>
+											Required field
+										</label>
+
 										<div className="mt-3">
 											<span className="mb-1 block text-[12px] font-medium text-text-2">
 												Field settings
@@ -344,6 +390,7 @@ export const ResourceDesigner = ({
 													onChange={(v) =>
 														updateEntry(index, { settings: v })
 													}
+													errors={settingsErrors?.[index]}
 												/>
 											</div>
 										</div>
@@ -496,6 +543,49 @@ const LabelledCombobox = ({
 			{hint && <span className="mt-1 block text-[11px] text-text-3">{hint}</span>}
 		</label>
 	);
+};
+
+/**
+ * The "required" flag lives as a token inside the field's space-separated
+ * `settings.validation` string (e.g. "required email"), mirroring legacy
+ * BigTree. These helpers read and toggle just the `required` token while
+ * preserving any other rules (email / numeric / link) the developer set.
+ */
+const validationTokens = (settings: ResourceEntry["settings"]): string[] => {
+	if (!settings || Array.isArray(settings)) {
+		return [];
+	}
+
+	const raw = (settings as Record<string, unknown>).validation;
+
+	return typeof raw === "string" ? raw.split(/\s+/).filter(Boolean) : [];
+};
+
+const readRequired = (settings: ResourceEntry["settings"]): boolean =>
+	validationTokens(settings).includes("required");
+
+const writeRequired = (
+	settings: ResourceEntry["settings"],
+	required: boolean
+): Record<string, unknown> => {
+	const base: Record<string, unknown> =
+		settings && !Array.isArray(settings) ? { ...(settings as Record<string, unknown>) } : {};
+
+	const tokens = validationTokens(settings).filter((token) => token !== "required");
+
+	if (required) {
+		tokens.unshift("required");
+	}
+
+	const validation = tokens.join(" ");
+
+	if (validation) {
+		base.validation = validation;
+	} else {
+		delete base.validation;
+	}
+
+	return base;
 };
 
 /**

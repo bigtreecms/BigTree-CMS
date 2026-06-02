@@ -44,12 +44,13 @@ export const DeveloperSettings = () => {
 	}, [search]);
 
 	const query = useQuery({
-		queryKey: ["settings", "list", { page, per_page: PER_PAGE, q: debounced }],
+		queryKey: ["settings", "list", { page, per_page: PER_PAGE, q: debounced, include_system: true }],
 		queryFn: () =>
 			settingsApi.list({
 				page,
 				per_page: PER_PAGE,
 				q: debounced || undefined,
+				include_system: true,
 			}),
 		placeholderData: keepPreviousData,
 	});

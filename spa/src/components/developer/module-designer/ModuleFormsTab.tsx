@@ -16,6 +16,7 @@ import {
 } from "@/components/developer/ResourceDesigner";
 
 import { DataTableSelect } from "@/components/developer/DataTableSelect";
+import { useResourceSettingsValidation } from "@/components/developer/field-settings/useResourceSettingsValidation";
 
 import { CheckboxInput, SelectInput, TextInput } from "./inputs";
 import { FormHooksEditor } from "./FormHooksEditor";
@@ -76,6 +77,19 @@ export const ModuleFormsTab = ({ moduleId, moduleTable }: ModuleFormsTabProps) =
 
 	const [draft, setDraft] = useState<Draft>(() => emptyDraft(moduleTable));
 	const [pendingDelete, setPendingDelete] = useState<ModuleForm | null>(null);
+	const [settingsErrors, setSettingsErrors] = useState<Record<number, Record<string, string>>>(
+		{}
+	);
+
+	const settingsValidation = useResourceSettingsValidation(
+		draft.fields as unknown as ResourceEntry[],
+		"modules"
+	);
+
+	// Drop stale per-field settings errors whenever a different row opens/closes.
+	useEffect(() => {
+		setSettingsErrors({});
+	}, [crud.editingId]);
 
 	const viewsQ = useQuery({
 		queryKey: ["modules", moduleId, "views"],
@@ -139,7 +153,19 @@ export const ModuleFormsTab = ({ moduleId, moduleTable }: ModuleFormsTabProps) =
 				<EditorCard
 					title={editorTitle}
 					onClose={crud.cancel}
-					onSave={() => crud.save(crud.editingId, toBody(draft))}
+					onSave={() => {
+						const sErrors = settingsValidation.validate();
+						setSettingsErrors(sErrors);
+						crud.save(
+							crud.editingId,
+							toBody(draft),
+							[
+								{ field: "title", label: "Title", value: draft.title },
+								{ field: "table", label: "Data table", value: draft.table },
+							],
+							Object.keys(sErrors).length > 0
+						);
+					}}
 					saving={crud.saving}
 					saveLabel={crud.editingId === NEW_ROW ? "Create form" : "Save form"}
 				>
@@ -148,12 +174,14 @@ export const ModuleFormsTab = ({ moduleId, moduleTable }: ModuleFormsTabProps) =
 							label="Title"
 							value={draft.title}
 							onChange={(v) => setDraft((p) => ({ ...p, title: v }))}
+							error={crud.fieldErrors.title}
 							required
 						/>
 						<DataTableSelect
 							label="Data table"
 							value={draft.table}
 							onChange={(v) => setDraft((p) => ({ ...p, table: v }))}
+							error={crud.fieldErrors.table}
 							required
 						/>
 						<SelectInput
@@ -203,6 +231,7 @@ export const ModuleFormsTab = ({ moduleId, moduleTable }: ModuleFormsTabProps) =
 							keyField="column"
 							useCase="modules"
 							columnsTable={draft.table}
+							settingsErrors={settingsErrors}
 						/>
 					</div>
 

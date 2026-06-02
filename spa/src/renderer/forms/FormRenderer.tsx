@@ -6,6 +6,7 @@ import { ApiError } from "@/types/api";
 import { FieldRenderer } from "./FieldRenderer";
 import { FieldRow } from "./FieldRow";
 import { FormRenderContextProvider, type FormRenderContextValue } from "./FormContext";
+import { validateRequiredFields } from "./validation";
 
 /**
  * Generic runtime for any BigTree module form. The caller owns the network
@@ -103,6 +104,15 @@ export const FormRenderer = ({
 		event.preventDefault();
 
 		if (submitting || disabled) {
+			return;
+		}
+
+		const requiredErrors = validateRequiredFields(form.fields, values);
+
+		if (Object.keys(requiredErrors).length > 0) {
+			setFieldErrors(requiredErrors);
+			setGeneralError("Please fill in the required fields.");
+
 			return;
 		}
 

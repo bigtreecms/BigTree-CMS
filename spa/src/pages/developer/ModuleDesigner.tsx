@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowDown, ArrowUp, Plus, Trash } from "lucide-react";
+import { Plus, Trash } from "lucide-react";
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
@@ -17,9 +17,11 @@ import { toast } from "@/lib/toast";
 
 /**
  * /developer/modules — the module designer landing. Lists every installed
- * module with reorder + delete and a link into the per-module tabbed editor.
- * Distinct from the consumer /modules tab (Modules.tsx) which groups modules
- * for navigation; this is the developer-facing CRUD list.
+ * module with delete and a link into the per-module tabbed editor. Module
+ * ordering lives on the module group editor (modules are ordered within their
+ * group), so this list has no reorder affordance. Distinct from the consumer
+ * /modules tab (Modules.tsx) which groups modules for navigation; this is the
+ * developer-facing CRUD list.
  */
 export const ModuleDesigner = () => {
 	const navigate = useNavigate();
@@ -31,16 +33,9 @@ export const ModuleDesigner = () => {
 		queryFn: () => modulesApi.list(),
 	});
 
-	const rows = query.data ?? [];
-
-	const reorderMutation = useMutation({
-		mutationFn: (ids: string[]) => modulesApi.reorder(ids),
-		onSuccess: () => queryClient.invalidateQueries({ queryKey: ["modules"] }),
-		onError: (err) => {
-			toast.error(err instanceof ApiError && err.message ? err.message : "Reorder failed");
-			queryClient.invalidateQueries({ queryKey: ["modules"] });
-		},
-	});
+	const rows = [...(query.data ?? [])].sort((a, b) =>
+		a.name.localeCompare(b.name, undefined, { sensitivity: "base" })
+	);
 
 	const deleteMutation = useMutation({
 		mutationFn: (id: string) => modulesApi.delete(id),
@@ -54,58 +49,7 @@ export const ModuleDesigner = () => {
 		},
 	});
 
-	const move = (index: number, direction: "up" | "down") => {
-		const swap = direction === "up" ? index - 1 : index + 1;
-
-		if (swap < 0 || swap >= rows.length) {
-			return;
-		}
-
-		const next = [...rows];
-		const removed = next.splice(index, 1)[0];
-
-		if (!removed) {
-			return;
-		}
-
-		next.splice(swap, 0, removed);
-
-		queryClient.setQueryData(["modules", "list"], next);
-		reorderMutation.mutate(next.map((m) => m.id));
-	};
-
 	const columns: DataTableColumn<ModuleSummary>[] = [
-		{
-			key: "order",
-			header: "",
-			width: "44px",
-			cell: (row) => {
-				const index = rows.findIndex((m) => m.id === row.id);
-
-				return (
-					<div className="flex flex-col" onClick={(e) => e.stopPropagation()}>
-						<button
-							type="button"
-							className="rounded p-0.5 text-text-3 hover:bg-hover hover:text-text disabled:opacity-30"
-							onClick={() => move(index, "up")}
-							disabled={index === 0}
-							aria-label="Move up"
-						>
-							<ArrowUp size={11} />
-						</button>
-						<button
-							type="button"
-							className="rounded p-0.5 text-text-3 hover:bg-hover hover:text-text disabled:opacity-30"
-							onClick={() => move(index, "down")}
-							disabled={index === rows.length - 1}
-							aria-label="Move down"
-						>
-							<ArrowDown size={11} />
-						</button>
-					</div>
-				);
-			},
-		},
 		{
 			key: "name",
 			header: "Name",

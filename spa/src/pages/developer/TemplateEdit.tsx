@@ -10,6 +10,7 @@ import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { DeveloperSectionNav } from "@/components/developer/DeveloperSectionNav";
 import { FormHooksEditor } from "@/components/developer/module-designer/FormHooksEditor";
 import { ResourceDesigner, type ResourceEntry } from "@/components/developer/ResourceDesigner";
+import { useResourceSettingsValidation } from "@/components/developer/field-settings/useResourceSettingsValidation";
 
 import {
 	templatesApi,
@@ -19,6 +20,7 @@ import {
 
 import { ApiError } from "@/types/api";
 import { toast } from "@/lib/toast";
+import { validateRequired } from "@/lib/formValidation";
 
 /**
  * Combined add / edit screen. Add mode: no `:id` route param.
@@ -44,7 +46,15 @@ export const TemplateEdit = () => {
 			: {}
 	);
 	const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+	const [settingsErrors, setSettingsErrors] = useState<Record<number, Record<string, string>>>(
+		{}
+	);
 	const [generalError, setGeneralError] = useState<string | null>(null);
+
+	const settingsValidation = useResourceSettingsValidation(
+		(body.resources ?? []) as unknown as ResourceEntry[],
+		"templates"
+	);
 
 	useEffect(() => {
 		if (!isAdd && detailQ.data) {
@@ -119,8 +129,23 @@ export const TemplateEdit = () => {
 			return;
 		}
 
+		const errors = validateRequired([
+			{ field: "id", label: "ID", value: body.id },
+			{ field: "name", label: "Name", value: body.name },
+		]);
+		const sErrors = settingsValidation.validate();
+
+		if (Object.keys(errors).length > 0 || Object.keys(sErrors).length > 0) {
+			setFieldErrors(errors);
+			setSettingsErrors(sErrors);
+			setGeneralError("Please fill in the required fields.");
+
+			return;
+		}
+
 		setGeneralError(null);
 		setFieldErrors({});
+		setSettingsErrors({});
 		saveMutation.mutate(body);
 	};
 
@@ -220,6 +245,7 @@ export const TemplateEdit = () => {
 						}
 						keyField="id"
 						useCase="templates"
+						settingsErrors={settingsErrors}
 					/>
 				</div>
 

@@ -12,6 +12,7 @@ import {
 
 import { ApiError } from "@/types/api";
 import { toast } from "@/lib/toast";
+import { validateRequired } from "@/lib/formValidation";
 
 import { DataTableSelect } from "@/components/developer/DataTableSelect";
 import { IconPicker } from "@/components/developer/IconPicker";
@@ -167,6 +168,15 @@ export const ModuleShellTab = ({ moduleId, module }: ModuleShellTabProps) => {
 		event.preventDefault();
 
 		if (saveMutation.isPending) {
+			return;
+		}
+
+		const errors = validateRequired([{ field: "name", label: "Name", value: state.name }]);
+
+		if (Object.keys(errors).length > 0) {
+			setFieldErrors(errors);
+			setGeneralError("Please fill in the required fields.");
+
 			return;
 		}
 

@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { ApiError } from "@/types/api";
 import { toast } from "@/lib/toast";
+import { validateRequired, type RequiredRule } from "@/lib/formValidation";
 
 /**
  * Shared list + create/update/delete plumbing for the module designer's
@@ -38,6 +39,7 @@ export const useSubCrud = <T, Body>({
 	const queryClient = useQueryClient();
 	const queryKey = ["modules", moduleId, resource];
 	const [editingId, setEditingId] = useState<string | null>(null);
+	const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
 	const listQ = useQuery({
 		queryKey,
@@ -72,14 +74,53 @@ export const useSubCrud = <T, Body>({
 		},
 	});
 
+	const open = (id: string) => {
+		setFieldErrors({});
+		setEditingId(id);
+	};
+
 	return {
 		items: listQ.data ?? [],
 		isLoading: listQ.isLoading,
 		editingId,
-		startAdd: () => setEditingId(NEW_ROW),
-		startEdit: (sid: string) => setEditingId(sid),
-		cancel: () => setEditingId(null),
-		save: (sid: string | null, body: Body) => saveMutation.mutate({ sid, body }),
+		fieldErrors,
+		startAdd: () => open(NEW_ROW),
+		startEdit: (sid: string) => open(sid),
+		cancel: () => {
+			setFieldErrors({});
+			setEditingId(null);
+		},
+		/**
+		 * Persist the draft. When `rules` are supplied, required fields are
+		 * validated client-side first: any empty field populates `fieldErrors`
+		 * (rendered inline by the editor's inputs) and the mutation is blocked,
+		 * matching the static edit forms rather than relying on a server 422.
+		 *
+		 * `extraInvalid` lets the caller veto the save for a validation the hook
+		 * doesn't own (e.g. nested field-settings errors surfaced separately):
+		 * the `fieldErrors` for `rules` are still computed/cleared so both error
+		 * sources show together, but the mutation is held back.
+		 */
+		save: (sid: string | null, body: Body, rules?: RequiredRule[], extraInvalid?: boolean) => {
+			let blocked = Boolean(extraInvalid);
+
+			if (rules && rules.length > 0) {
+				const errors = validateRequired(rules);
+				setFieldErrors(errors);
+
+				if (Object.keys(errors).length > 0) {
+					blocked = true;
+				}
+			} else {
+				setFieldErrors({});
+			}
+
+			if (blocked) {
+				return;
+			}
+
+			saveMutation.mutate({ sid, body });
+		},
 		saving: saveMutation.isPending,
 		remove: (sid: string) => deleteMutation.mutate(sid),
 	};

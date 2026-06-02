@@ -8,11 +8,13 @@ import { PageHead } from "@/components/shell/PageHead";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 
 import { DeveloperSectionNav } from "@/components/developer/DeveloperSectionNav";
+import { ModuleGroupModulesList } from "@/components/developer/ModuleGroupModulesList";
 
 import { modulesApi, type ModuleGroup } from "@/api/endpoints/modules";
 
 import { ApiError } from "@/types/api";
 import { toast } from "@/lib/toast";
+import { validateRequired } from "@/lib/formValidation";
 
 import { TextField } from "./TemplateEdit";
 
@@ -140,6 +142,20 @@ export const ModuleGroupEdit = () => {
 			<form
 				onSubmit={(e) => {
 					e.preventDefault();
+
+					const errors = validateRequired([
+						{ field: "name", label: "Name", value: body.name },
+					]);
+
+					if (Object.keys(errors).length > 0) {
+						setFieldErrors(errors);
+						setGeneralError("Please fill in the required fields.");
+
+						return;
+					}
+
+					setFieldErrors({});
+					setGeneralError(null);
 					saveMutation.mutate();
 				}}
 				className="space-y-4 rounded-xl border border-border bg-surface p-4"
@@ -184,6 +200,12 @@ export const ModuleGroupEdit = () => {
 					</button>
 				</div>
 			</form>
+
+			{!isAdd && idParam && (
+				<div className="mt-4">
+					<ModuleGroupModulesList groupId={idParam} />
+				</div>
+			)}
 		</div>
 	);
 };

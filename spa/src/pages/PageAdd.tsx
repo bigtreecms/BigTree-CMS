@@ -10,7 +10,9 @@ import { PageSummaryPanel } from "@/components/pages/PageSummaryPanel";
 import { PageSectionToolbar } from "@/components/pages/PageSectionToolbar";
 
 import { pagesApi, type PageEditBody } from "@/api/endpoints/pages";
-import { templatesApi } from "@/api/endpoints/templates";
+import { resourceToFormField, templatesApi } from "@/api/endpoints/templates";
+
+import { isFieldRequired, isFieldValueEmpty } from "@/renderer/forms/validation";
 
 import { ApiError } from "@/types/api";
 import { toast } from "@/lib/toast";
@@ -120,6 +122,30 @@ export const PageAdd = () => {
 
 	const handleSubmit = () => {
 		if (createMutation.isPending) {
+			return;
+		}
+
+		const resourceValues = (body.resources ?? {}) as Record<string, unknown>;
+		const resourceErrors: Record<string, string> = {};
+
+		if (!templateDisabled) {
+			for (const resource of templateQuery.data?.resources ?? []) {
+				const field = resourceToFormField(resource);
+
+				if (
+					isFieldRequired(field) &&
+					isFieldValueEmpty(field, resourceValues[field.column])
+				) {
+					resourceErrors[field.column] = `${field.title || field.column} is required.`;
+				}
+			}
+		}
+
+		if (Object.keys(resourceErrors).length > 0) {
+			setFieldErrors(resourceErrors);
+			setGeneralError("Please fill in the required fields.");
+			setActiveTab("content");
+
 			return;
 		}
 

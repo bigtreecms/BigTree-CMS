@@ -2,6 +2,8 @@ import type { ReactNode } from "react";
 
 import type { ModuleFormField } from "@/api/endpoints/modules";
 
+import { isFieldRequired } from "./validation";
+
 interface FieldRowProps {
 	field: ModuleFormField;
 	error?: string;
@@ -20,7 +22,10 @@ export const FieldRow = ({ field, error, children }: FieldRowProps) => {
 	return (
 		<div className="mb-4">
 			<div className="mb-1.5 flex items-baseline gap-1.5">
-				<span className="text-[12.5px] font-medium text-text-2">{field.title}</span>
+				<span className="text-[12.5px] font-medium text-text-2">
+					{field.title}
+					{isFieldRequired(field) && <span className="text-danger"> *</span>}
+				</span>
 				{field.subtitle && (
 					<span className="text-[11.5px] text-text-3">({field.subtitle})</span>
 				)}

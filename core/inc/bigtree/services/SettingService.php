@@ -30,12 +30,17 @@
 			$p = Pagination::offset($request, 100);
 			$q = trim((string)($request->query["q"] ?? ""));
 			$include_encrypted = !empty($request->query["include_encrypted"]) && (int)$request->user->level >= 2;
+			$include_system = !empty($request->query["include_system"]);
 
 			$defs = BigTreeJSONDB::getAll("settings");
 			$filtered = [];
 
 			foreach ($defs as $def) {
 				if (strpos($def["id"] ?? "", "bigtree-internal-") === 0) {
+					continue;
+				}
+
+				if (!$include_system && !empty($def["system"])) {
 					continue;
 				}
 

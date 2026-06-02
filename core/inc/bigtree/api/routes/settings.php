@@ -10,6 +10,7 @@
 				"per_page" => "int|min:1|max:100",
 				"q" => "string|max:200",
 				"include_encrypted" => "bool",
+				"include_system" => "bool",
 			],
 		],
 

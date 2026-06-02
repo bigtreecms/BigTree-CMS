@@ -8,6 +8,8 @@ import { PageHead } from "@/components/shell/PageHead";
 
 import { DeveloperSectionNav } from "@/components/developer/DeveloperSectionNav";
 import { FieldSettingsEditor } from "@/components/developer/FieldSettingsEditor";
+import type { ResourceEntry } from "@/components/developer/ResourceDesigner";
+import { useResourceSettingsValidation } from "@/components/developer/field-settings/useResourceSettingsValidation";
 
 import { settingsApi, type SettingCreateBody } from "@/api/endpoints/settings";
 import { fieldTypesApi, fieldTypesForUseCase } from "@/api/endpoints/field-types";
@@ -17,6 +19,7 @@ import { HTMLField } from "@/renderer/fields/HTMLField";
 
 import { ApiError } from "@/types/api";
 import { toast } from "@/lib/toast";
+import { validateRequired } from "@/lib/formValidation";
 
 import { TextField } from "./TemplateEdit";
 
@@ -60,7 +63,19 @@ export const SettingConfigure = () => {
 	});
 	const [seeded, setSeeded] = useState(false);
 	const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+	const [settingsErrors, setSettingsErrors] = useState<Record<string, string>>({});
 	const [generalError, setGeneralError] = useState<string | null>(null);
+
+	// Validate the setting's own field-type settings by treating it as a
+	// single-entry resource list, reusing the resource-designer validator.
+	const settingResources = useMemo(
+		() =>
+			[
+				{ type: body.type ?? "text", title: "", settings: body.settings ?? {} },
+			] as ResourceEntry[],
+		[body.type, body.settings]
+	);
+	const settingsValidation = useResourceSettingsValidation(settingResources, "settings");
 
 	// In edit mode, load the existing definition and seed the form once.
 	const existingQ = useQuery({
@@ -150,7 +165,19 @@ export const SettingConfigure = () => {
 	const isPending = createMutation.isPending || updateMutation.isPending;
 
 	const submit = () => {
+		const errors = validateRequired([{ field: "id", label: "ID", value: body.id }]);
+		const sErrors = settingsValidation.validate()[0] ?? {};
+
+		if (Object.keys(errors).length > 0 || Object.keys(sErrors).length > 0) {
+			setFieldErrors(errors);
+			setSettingsErrors(sErrors);
+			setGeneralError("Please fill in the required fields.");
+
+			return;
+		}
+
 		setFieldErrors({});
+		setSettingsErrors({});
 		setGeneralError(null);
 
 		if (isEdit) {
@@ -290,6 +317,7 @@ export const SettingConfigure = () => {
 								value={body.settings}
 								onChange={(v) => set({ settings: v })}
 								hideLabel
+								errors={settingsErrors}
 							/>
 						</div>
 					</div>

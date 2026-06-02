@@ -11,12 +11,14 @@ import { DataTableSelect } from "@/components/developer/DataTableSelect";
 import { DeveloperSectionNav } from "@/components/developer/DeveloperSectionNav";
 import { FeedSettingsControl } from "@/components/developer/FeedSettingsControl";
 import { ResourceDesigner, type ResourceEntry } from "@/components/developer/ResourceDesigner";
+import { useResourceSettingsValidation } from "@/components/developer/field-settings/useResourceSettingsValidation";
 
 import { feedsApi, type FeedEditBody } from "@/api/endpoints/feeds";
 import type { ModuleFormField } from "@/api/endpoints/modules";
 
 import { ApiError } from "@/types/api";
 import { toast } from "@/lib/toast";
+import { validateRequired } from "@/lib/formValidation";
 
 import { SelectField, TextField } from "./TemplateEdit";
 
@@ -57,7 +59,15 @@ export const FeedEdit = () => {
 			: {}
 	);
 	const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+	const [settingsErrors, setSettingsErrors] = useState<Record<number, Record<string, string>>>(
+		{}
+	);
 	const [generalError, setGeneralError] = useState<string | null>(null);
+
+	const settingsValidation = useResourceSettingsValidation(
+		(body.fields ?? []) as unknown as ResourceEntry[],
+		"feeds"
+	);
 
 	useEffect(() => {
 		if (!isAdd && detailQ.data) {
@@ -163,6 +173,24 @@ export const FeedEdit = () => {
 			<form
 				onSubmit={(e) => {
 					e.preventDefault();
+
+					const errors = validateRequired([
+						{ field: "id", label: "ID", value: body.id },
+						{ field: "name", label: "Name", value: body.name },
+					]);
+					const sErrors = settingsValidation.validate();
+
+					if (Object.keys(errors).length > 0 || Object.keys(sErrors).length > 0) {
+						setFieldErrors(errors);
+						setSettingsErrors(sErrors);
+						setGeneralError("Please fill in the required fields.");
+
+						return;
+					}
+
+					setFieldErrors({});
+					setSettingsErrors({});
+					setGeneralError(null);
 					saveMutation.mutate(body);
 				}}
 				className="space-y-4 rounded-xl border border-border bg-surface p-4"
@@ -228,6 +256,7 @@ export const FeedEdit = () => {
 							}
 							keyField="column"
 							useCase="feeds"
+							settingsErrors={settingsErrors}
 						/>
 					</div>
 				)}

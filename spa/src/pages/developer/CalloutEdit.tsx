@@ -9,12 +9,14 @@ import { ErrorPanel } from "@/components/ui/ErrorPanel";
 
 import { DeveloperSectionNav } from "@/components/developer/DeveloperSectionNav";
 import { ResourceDesigner, type ResourceEntry } from "@/components/developer/ResourceDesigner";
+import { useResourceSettingsValidation } from "@/components/developer/field-settings/useResourceSettingsValidation";
 
 import { calloutsApi, type CalloutEditBody } from "@/api/endpoints/callouts";
 import type { ModuleFormField } from "@/api/endpoints/modules";
 
 import { ApiError } from "@/types/api";
 import { toast } from "@/lib/toast";
+import { validateRequired } from "@/lib/formValidation";
 
 import { SelectField, TextField } from "./TemplateEdit";
 
@@ -44,7 +46,15 @@ export const CalloutEdit = () => {
 			: {}
 	);
 	const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+	const [settingsErrors, setSettingsErrors] = useState<Record<number, Record<string, string>>>(
+		{}
+	);
 	const [generalError, setGeneralError] = useState<string | null>(null);
+
+	const settingsValidation = useResourceSettingsValidation(
+		(body.resources ?? []) as unknown as ResourceEntry[],
+		"callouts"
+	);
 
 	useEffect(() => {
 		if (!isAdd && detailQ.data) {
@@ -149,6 +159,24 @@ export const CalloutEdit = () => {
 			<form
 				onSubmit={(e) => {
 					e.preventDefault();
+
+					const errors = validateRequired([
+						{ field: "id", label: "ID", value: body.id },
+						{ field: "name", label: "Name", value: body.name },
+					]);
+					const sErrors = settingsValidation.validate();
+
+					if (Object.keys(errors).length > 0 || Object.keys(sErrors).length > 0) {
+						setFieldErrors(errors);
+						setSettingsErrors(sErrors);
+						setGeneralError("Please fill in the required fields.");
+
+						return;
+					}
+
+					setFieldErrors({});
+					setSettingsErrors({});
+					setGeneralError(null);
 					saveMutation.mutate(body);
 				}}
 				className="space-y-4 rounded-xl border border-border bg-surface p-4"
@@ -208,6 +236,7 @@ export const CalloutEdit = () => {
 						}
 						keyField="id"
 						useCase="callouts"
+						settingsErrors={settingsErrors}
 						displayFieldId={body.display_field}
 						onSetDisplayField={(id) =>
 							set({ display_field: id === body.display_field ? "" : id })

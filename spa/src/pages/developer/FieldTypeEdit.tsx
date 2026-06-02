@@ -17,6 +17,7 @@ import {
 
 import { ApiError } from "@/types/api";
 import { toast } from "@/lib/toast";
+import { validateRequired } from "@/lib/formValidation";
 
 import { TextField } from "./TemplateEdit";
 
@@ -161,6 +162,21 @@ export const FieldTypeEdit = () => {
 			<form
 				onSubmit={(e) => {
 					e.preventDefault();
+
+					const errors = validateRequired([
+						{ field: "id", label: "ID", value: body.id },
+						{ field: "name", label: "Name", value: body.name },
+					]);
+
+					if (Object.keys(errors).length > 0) {
+						setFieldErrors(errors);
+						setGeneralError("Please fill in the required fields.");
+
+						return;
+					}
+
+					setFieldErrors({});
+					setGeneralError(null);
 					saveMutation.mutate(body);
 				}}
 				className="space-y-4 rounded-xl border border-border bg-surface p-4"

@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Save } from "lucide-react";
 
 import { ConfigureLayout } from "@/components/developer/ConfigureLayout";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { ResourceDesigner, type ResourceEntry } from "@/components/developer/ResourceDesigner";
+import { useResourceSettingsValidation } from "@/components/developer/field-settings/useResourceSettingsValidation";
 
 import {
 	configureApi,
@@ -51,6 +52,30 @@ export const ConfigureFileMetadata = () => {
 
 	const [draft, setDraft] = useState<FileMetadataConfig>({ file: [], image: [], video: [] });
 	const [generalError, setGeneralError] = useState<string | null>(null);
+	const [settingsErrors, setSettingsErrors] = useState<
+		Record<keyof FileMetadataConfig, Record<number, Record<string, string>>>
+	>({ file: {}, image: {}, video: {} });
+
+	// One memoized resource array + validator per bucket (hooks must be called
+	// unconditionally, so they can't live inside the BUCKETS map below).
+	const fileResources = useMemo(() => draft.file.map(toResource), [draft.file]);
+	const imageResources = useMemo(() => draft.image.map(toResource), [draft.image]);
+	const videoResources = useMemo(() => draft.video.map(toResource), [draft.video]);
+
+	const resourcesByBucket: Record<keyof FileMetadataConfig, ResourceEntry[]> = {
+		file: fileResources,
+		image: imageResources,
+		video: videoResources,
+	};
+
+	const validators: Record<
+		keyof FileMetadataConfig,
+		{ validate: () => Record<number, Record<string, string>> }
+	> = {
+		file: useResourceSettingsValidation(fileResources, "settings"),
+		image: useResourceSettingsValidation(imageResources, "settings"),
+		video: useResourceSettingsValidation(videoResources, "settings"),
+	};
 
 	useEffect(() => {
 		if (detailQ.data) {
@@ -83,6 +108,25 @@ export const ConfigureFileMetadata = () => {
 		setDraft((prev) => ({ ...prev, [bucket]: entries.map(toField) }));
 	};
 
+	const handleSave = () => {
+		const next = {
+			file: validators.file.validate(),
+			image: validators.image.validate(),
+			video: validators.video.validate(),
+		};
+
+		if (BUCKETS.some((b) => Object.keys(next[b.id]).length > 0)) {
+			setSettingsErrors(next);
+			setGeneralError("Please fill in the required fields.");
+
+			return;
+		}
+
+		setSettingsErrors({ file: {}, image: {}, video: {} });
+		setGeneralError(null);
+		saveMutation.mutate(draft);
+	};
+
 	return (
 		<ConfigureLayout
 			title="File metadata"
@@ -90,7 +134,7 @@ export const ConfigureFileMetadata = () => {
 			actions={
 				<button
 					type="button"
-					onClick={() => saveMutation.mutate(draft)}
+					onClick={handleSave}
 					disabled={saveMutation.isPending}
 					className="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-[12.5px] font-medium text-accent-fg hover:bg-accent-hover disabled:opacity-60"
 				>
@@ -114,10 +158,11 @@ export const ConfigureFileMetadata = () => {
 						</div>
 
 						<ResourceDesigner
-							resources={draft[b.id].map(toResource)}
+							resources={resourcesByBucket[b.id]}
 							onChange={(entries) => setBucket(b.id, entries)}
 							keyField="id"
 							useCase="settings"
+							settingsErrors={settingsErrors[b.id]}
 						/>
 					</div>
 				))}

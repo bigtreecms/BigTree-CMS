@@ -10,6 +10,7 @@ import { fourOhFoursApi } from "@/api/endpoints/four-oh-fours";
 
 import { ApiError } from "@/types/api";
 import { toast } from "@/lib/toast";
+import { validateRequired } from "@/lib/formValidation";
 
 import { SelectField, TextField } from "./developer/TemplateEdit";
 
@@ -26,6 +27,7 @@ export const Create301 = () => {
 	const [to, setTo] = useState("");
 	const [siteKey, setSiteKey] = useState("");
 	const [error, setError] = useState<string | null>(null);
+	const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
 	const sitesQ = useQuery({
 		queryKey: ["404s", "sites"],
@@ -89,6 +91,20 @@ export const Create301 = () => {
 			<form
 				onSubmit={(e) => {
 					e.preventDefault();
+
+					const errors = validateRequired([
+						{ field: "from", label: "From", value: from },
+						{ field: "to", label: "To", value: to },
+					]);
+
+					if (Object.keys(errors).length > 0) {
+						setFieldErrors(errors);
+						setError("Please fill in the required fields.");
+
+						return;
+					}
+
+					setFieldErrors({});
 					setError(null);
 					createMutation.mutate();
 				}}
@@ -111,6 +127,7 @@ export const Create301 = () => {
 					value={from}
 					onChange={setFrom}
 					hint="A full URL or just the path after your domain (e.g. /old-page/)."
+					error={fieldErrors.from}
 					required
 				/>
 
@@ -119,6 +136,7 @@ export const Create301 = () => {
 					value={to}
 					onChange={setTo}
 					hint="The destination — a full URL including http:// or an internal page."
+					error={fieldErrors.to}
 					required
 				/>
 
@@ -132,7 +150,7 @@ export const Create301 = () => {
 					<button
 						type="submit"
 						className="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-[12.5px] font-medium text-accent-fg disabled:opacity-50 hover:bg-accent-hover"
-						disabled={createMutation.isPending || !from.trim() || !to.trim()}
+						disabled={createMutation.isPending}
 					>
 						<Save size={13} />
 						{createMutation.isPending ? "Creating…" : "Create redirect"}
