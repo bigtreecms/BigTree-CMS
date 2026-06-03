@@ -10,6 +10,7 @@ import { fourOhFoursApi } from "@/api/endpoints/four-oh-fours";
 
 import { ApiError } from "@/types/api";
 import { toast } from "@/lib/toast";
+import { useScrollToFirstError } from "@/hooks/useScrollToFirstError";
 import { validateRequired } from "@/lib/formValidation";
 
 import { SelectField, TextField } from "./developer/TemplateEdit";
@@ -28,6 +29,8 @@ export const Create301 = () => {
 	const [siteKey, setSiteKey] = useState("");
 	const [error, setError] = useState<string | null>(null);
 	const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+
+	useScrollToFirstError(fieldErrors);
 
 	const sitesQ = useQuery({
 		queryKey: ["404s", "sites"],

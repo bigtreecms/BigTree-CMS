@@ -46,6 +46,8 @@ export interface PageListRow {
 export interface PageDetail {
 	id: number;
 	parent: number;
+	/** Caller's permission level for this page; "p" unlocks "Save & Publish". */
+	access: PageAccess;
 	trunk: boolean;
 	in_nav: boolean;
 	nav_title: string;
@@ -113,6 +115,11 @@ export interface PageEditBody {
 		image_height?: number;
 	};
 	trunk?: boolean;
+	/**
+	 * When true, write live (requires publisher access). When false/omitted, the
+	 * save is queued as a pending change (draft) for a publisher to approve.
+	 */
+	publish?: boolean;
 }
 
 export interface PageRevision {
@@ -133,6 +140,15 @@ export interface PageSearchHit {
 	archived: boolean;
 }
 
+/** Returned by create/patch when the save was queued as a draft instead of published live. */
+export interface PagePendingResult {
+	pending: true;
+	pending_change_id: number;
+}
+
+export const isPendingResult = (r: unknown): r is PagePendingResult =>
+	typeof r === "object" && r !== null && (r as { pending?: unknown }).pending === true;
+
 export const pagesApi = {
 	list: (parent: number, includeArchived = false) =>
 		api.get<PageListRow[]>("/pages", {
@@ -146,9 +162,10 @@ export const pagesApi = {
 
 	search: (q: string) => api.get<PageSearchHit[]>("/pages/search", { query: { q } }),
 
-	create: (body: PageEditBody) => api.post<PageDetail>("/pages", body),
+	create: (body: PageEditBody) => api.post<PageDetail | PagePendingResult>("/pages", body),
 
-	patch: (id: number, body: PageEditBody) => api.patch<PageDetail>(`/pages/${id}`, body),
+	patch: (id: number, body: PageEditBody) =>
+		api.patch<PageDetail | PagePendingResult>(`/pages/${id}`, body),
 
 	archive: (id: number) => api.post<void>(`/pages/${id}/archive`),
 	unarchive: (id: number) => api.post<void>(`/pages/${id}/unarchive`),

@@ -81,9 +81,11 @@
 			}
 			$this->enforcePublisher($request->user, $row);
 
-			// Pages: out of scope for v1 SPA approval flow (PageService handles when migrated).
+			// Pages: apply the queued change live and drop the queue row.
 			if ($row["table"] === "bigtree_pages") {
-				throw new BadRequestException("Page pending-change approval is handled by PageService (deferred)", "page_approval_deferred", 400);
+				(new PageService())->publishPendingChange($row, $request->user);
+
+				return Response::noContent();
 			}
 
 			// Module entries
@@ -141,6 +143,19 @@
 			if ((int)$user->level >= 1) {
 				return;
 			}
+
+			// Page changes: publisher rights are resolved against the affected page
+			// (or the parent, for a not-yet-created NEW draft).
+			if ($row["table"] === "bigtree_pages") {
+				$page_id = (int)($row["item_id"] ?? 0) ?: (int)($row["pending_page_parent"] ?? 0);
+
+				if (PermissionService::userHasPageAccess($user, $page_id, "p")) {
+					return;
+				}
+
+				throw new AuthorizationException("Publisher access required", "permission_denied", 403);
+			}
+
 			$module = $row["module"];
 
 			if ($module && PermissionService::userHasModuleAccess($user, $module, "p")) {

@@ -17,6 +17,7 @@ import {
 
 import { ApiError } from "@/types/api";
 import { toast } from "@/lib/toast";
+import { useScrollToFirstError } from "@/hooks/useScrollToFirstError";
 import { validateRequired } from "@/lib/formValidation";
 
 import { TextField } from "./TemplateEdit";
@@ -45,6 +46,8 @@ export const FieldTypeEdit = () => {
 		isAdd ? { id: "", name: "", use_cases: [], self_draw: false } : { id: "" }
 	);
 	const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+
+	useScrollToFirstError(fieldErrors);
 	const [generalError, setGeneralError] = useState<string | null>(null);
 
 	useEffect(() => {

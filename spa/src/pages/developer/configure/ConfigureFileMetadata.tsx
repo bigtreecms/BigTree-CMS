@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Save } from "lucide-react";
 
+import { useScrollToFirstError } from "@/hooks/useScrollToFirstError";
 import { ConfigureLayout } from "@/components/developer/ConfigureLayout";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { ResourceDesigner, type ResourceEntry } from "@/components/developer/ResourceDesigner";
@@ -55,6 +56,19 @@ export const ConfigureFileMetadata = () => {
 	const [settingsErrors, setSettingsErrors] = useState<
 		Record<keyof FileMetadataConfig, Record<number, Record<string, string>>>
 	>({ file: {}, image: {}, video: {} });
+
+	// Settings errors nest bucket → resource index → field; flatten so the
+	// scroll-to-first-error hook can detect any error this submit.
+	const flatSettingsErrors = useMemo(
+		() =>
+			Object.values(settingsErrors).reduce<Record<string, string>>(
+				(acc, byIndex) => Object.assign(acc, ...Object.values(byIndex)),
+				{}
+			),
+		[settingsErrors]
+	);
+
+	useScrollToFirstError(flatSettingsErrors);
 
 	// One memoized resource array + validator per bucket (hooks must be called
 	// unconditionally, so they can't live inside the BUCKETS map below).

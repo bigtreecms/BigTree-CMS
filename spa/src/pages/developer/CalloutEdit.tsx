@@ -16,6 +16,7 @@ import type { ModuleFormField } from "@/api/endpoints/modules";
 
 import { ApiError } from "@/types/api";
 import { toast } from "@/lib/toast";
+import { useScrollToFirstError } from "@/hooks/useScrollToFirstError";
 import { validateRequired } from "@/lib/formValidation";
 
 import { SelectField, TextField } from "./TemplateEdit";
@@ -46,6 +47,8 @@ export const CalloutEdit = () => {
 			: {}
 	);
 	const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+
+	useScrollToFirstError(fieldErrors);
 	const [settingsErrors, setSettingsErrors] = useState<Record<number, Record<string, string>>>(
 		{}
 	);

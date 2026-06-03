@@ -66,7 +66,13 @@
 				}
 			}
 
-			return Response::ok($this->present($m, $group_name));
+			$out = $this->present($m, $group_name);
+
+			// Caller's access level lets the SPA decide whether to offer
+			// "Save & Publish" (publishers only) on this module's forms.
+			$out["access"] = PermissionService::userModuleLevel($request->user, $id);
+
+			return Response::ok($out);
 		}
 
 		public function create(Request $request) {

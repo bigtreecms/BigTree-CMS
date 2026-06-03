@@ -131,7 +131,11 @@ export const FieldSettingsEditor = ({
 								onPatch={onPatch}
 								useCase={useCase}
 							/>
-							{error && <p className="mt-1 text-[11.5px] text-danger">{error}</p>}
+							{error && (
+								<p data-field-error className="mt-1 text-[11.5px] text-danger">
+									{error}
+								</p>
+							)}
 						</div>
 					);
 				})}

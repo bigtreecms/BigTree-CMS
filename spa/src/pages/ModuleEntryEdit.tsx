@@ -53,12 +53,26 @@ export const ModuleEntryEdit = () => {
 		enabled: moduleId !== "" && Number.isFinite(entryId),
 	});
 
+	const moduleQuery = useQuery({
+		queryKey: ["modules", "detail", moduleId],
+		queryFn: () => modulesApi.get(moduleId),
+		enabled: moduleId !== "",
+	});
+
 	const updateMutation = useMutation({
-		mutationFn: (values: Record<string, unknown>) =>
-			autoModulesApi.update(moduleId, entryId, values, viewId),
-		onSuccess: () => {
+		mutationFn: ({ values, publish }: { values: Record<string, unknown>; publish: boolean }) =>
+			autoModulesApi.update(moduleId, entryId, values, viewId, publish),
+		onSuccess: (result) => {
 			queryClient.invalidateQueries({ queryKey: ["module-entries", moduleId] });
-			toast.success("Entry saved");
+
+			if (result && typeof result === "object" && "pending" in result) {
+				toast.success("Draft saved", {
+					description: "Your change is pending publisher approval.",
+				});
+			} else {
+				toast.success("Entry published");
+			}
+
 			navigate(`/modules/${encodeURIComponent(moduleId)}/view/${encodeURIComponent(viewId)}`);
 		},
 	});
@@ -106,8 +120,12 @@ export const ModuleEntryEdit = () => {
 						)
 					}
 					submitLabel="Save"
-					onSubmit={async (values) => {
-						await updateMutation.mutateAsync(values);
+					canPublish={moduleQuery.data?.access === "p"}
+					onSubmit={async (values, opts) => {
+						await updateMutation.mutateAsync({
+							values,
+							publish: Boolean(opts?.publish),
+						});
 					}}
 				/>
 			)}

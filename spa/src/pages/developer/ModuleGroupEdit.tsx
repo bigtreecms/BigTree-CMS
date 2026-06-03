@@ -14,6 +14,7 @@ import { modulesApi, type ModuleGroup } from "@/api/endpoints/modules";
 
 import { ApiError } from "@/types/api";
 import { toast } from "@/lib/toast";
+import { useScrollToFirstError } from "@/hooks/useScrollToFirstError";
 import { validateRequired } from "@/lib/formValidation";
 
 import { TextField } from "./TemplateEdit";
@@ -38,6 +39,8 @@ export const ModuleGroupEdit = () => {
 
 	const [body, setBody] = useState<Body>({ name: "", route: "", position: 0 });
 	const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+
+	useScrollToFirstError(fieldErrors);
 	const [generalError, setGeneralError] = useState<string | null>(null);
 
 	useEffect(() => {

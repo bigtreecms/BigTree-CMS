@@ -1,4 +1,4 @@
-import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import {
 	ChevronDown,
@@ -13,15 +13,23 @@ import {
 } from "lucide-react";
 
 import type { ModuleFormField } from "@/api/endpoints/modules";
-import { UPLOAD_PATH, resourcesApi, type ResourceDetail } from "@/api/endpoints/resources";
+import { resourcesApi, type ResourceDetail } from "@/api/endpoints/resources";
+import {
+	IMAGE_PROCESS_PATH,
+	imagesApi,
+	type PendingCrop,
+	type ProcessImageResult,
+} from "@/api/endpoints/images";
 import { ResourcePicker } from "@/components/files/ResourcePicker";
 import { useUploads, type UploadItem } from "@/hooks/useUploads";
 import { ApiError } from "@/types/api";
+import { expandImageUrl } from "@/lib/imageUrl";
 import { toast } from "@/lib/toast";
 
 import { FieldRenderer } from "@/renderer/forms/FieldRenderer";
 import { FieldRow } from "@/renderer/forms/FieldRow";
 
+import { FieldCropModal } from "./FieldCropModal";
 import { settingsOf, type FieldComponentProps } from "./types";
 
 /**
@@ -161,23 +169,18 @@ const normalizeColumnSettings = (raw: unknown): Record<string, unknown> => {
 
 const buildPreviewUrl = (
 	path: string | undefined,
-	settings: MediaGallerySettings
+	settings: MediaGallerySettings,
+	isVideo: boolean
 ): string | null => {
 	if (!path) {
 		return null;
 	}
 
-	if (!settings.preview_prefix) {
-		return path + (settings.preview_cache_suffix ?? "");
-	}
+	// Expand {wwwroot}/{staticroot} to a loadable URL. The crop `preview_prefix`
+	// only applies to photos — a video's `image` is the poster thumbnail.
+	const prefix = isVideo ? "" : (settings.preview_prefix ?? "");
 
-	const idx = path.lastIndexOf("/");
-	const prefixed =
-		idx < 0
-			? settings.preview_prefix + path
-			: path.slice(0, idx + 1) + settings.preview_prefix + path.slice(idx + 1);
-
-	return prefixed + (settings.preview_cache_suffix ?? "");
+	return expandImageUrl(path, prefix) + (settings.preview_cache_suffix ?? "");
 };
 
 export const MediaGalleryField = ({ field, value, onChange, disabled }: FieldComponentProps) => {
@@ -293,14 +296,6 @@ export const MediaGalleryField = ({ field, value, onChange, disabled }: FieldCom
 		addItem({ type: "photo", image: url });
 	};
 
-	const handlePhotoPicked = (resource: { file?: string }) => {
-		if (!resource.file) {
-			return;
-		}
-
-		addItem({ type: "photo", image: resource.file });
-	};
-
 	const handleVideoCreated = (resource: ResourceDetail) => {
 		const vd = resource.video_data as VideoData | undefined;
 
@@ -357,7 +352,6 @@ export const MediaGalleryField = ({ field, value, onChange, disabled }: FieldCom
 				allowLocal={allowLocal}
 				settings={settings}
 				onPhotoUploaded={handlePhotoUploaded}
-				onPhotoPicked={handlePhotoPicked}
 				onAskVideo={() => setVideoPromptOpen(true)}
 			/>
 
@@ -408,7 +402,8 @@ const MediaItemRow = ({
 }: MediaItemRowProps) => {
 	const data = item.data;
 	const isVideo = data.type === "video";
-	const previewUrl = buildPreviewUrl(data.image, previewSettings);
+	const previewUrl = buildPreviewUrl(data.image, previewSettings, isVideo);
+	const fullUrl = expandImageUrl(data.image);
 	const summary = useMemo(() => deriveSummary(data, columns), [data, columns]);
 	const titleText = summary.title || (isVideo ? `Video #${index + 1}` : `Photo #${index + 1}`);
 
@@ -433,6 +428,13 @@ const MediaItemRow = ({
 							alt=""
 							className="block h-16 w-20 object-cover"
 							loading="lazy"
+							onError={(e) => {
+								// The prefixed crop may not exist yet — fall back to the
+								// full image once before giving up.
+								if (fullUrl && e.currentTarget.src !== fullUrl) {
+									e.currentTarget.src = fullUrl;
+								}
+							}}
 						/>
 					) : (
 						<div className="grid h-16 w-20 place-items-center text-text-3">
@@ -542,7 +544,6 @@ interface AddBarProps {
 	allowLocal: boolean;
 	settings: MediaGallerySettings;
 	onPhotoUploaded: (url: string) => void;
-	onPhotoPicked: (resource: { file?: string }) => void;
 	onAskVideo: () => void;
 }
 
@@ -557,19 +558,44 @@ const AddBar = ({
 	allowLocal,
 	settings,
 	onPhotoUploaded,
-	onPhotoPicked,
 	onAskVideo,
 }: AddBarProps) => {
 	const inputRef = useRef<HTMLInputElement>(null);
 	const [pickerOpen, setPickerOpen] = useState(false);
+	const [reprocessing, setReprocessing] = useState(false);
+	const [cropState, setCropState] = useState<{ file: string; crops: PendingCrop[] } | null>(null);
 	const { items, enqueue } = useUploads();
 	const lastHandled = useRef(0);
 
+	// Apply the gallery field's own crop settings (stored under its directory,
+	// not the media library) so photos get the same treatment as the image field.
+	const processSettings = useMemo(() => JSON.stringify(settings), [settings]);
+
+	const applyResult = useCallback(
+		(result: ProcessImageResult | undefined) => {
+			if (!result?.file) {
+				toast.error("The server did not return a processed image.");
+
+				return;
+			}
+
+			onPhotoUploaded(result.file);
+
+			if (result.pending_crops.length > 0) {
+				setCropState({ file: result.file, crops: result.pending_crops });
+			}
+		},
+		[onPhotoUploaded]
+	);
+
+	// Drain finished uploads (done → add item + maybe crop; error → toast).
 	useEffect(() => {
-		const done = items.filter(
-			(it: UploadItem) => it.status === "done" && it.id > lastHandled.current
-		);
-		const newest = done[done.length - 1];
+		const newest = items
+			.filter(
+				(it: UploadItem) =>
+					it.id > lastHandled.current && (it.status === "done" || it.status === "error")
+			)
+			.pop();
 
 		if (!newest) {
 			return;
@@ -577,12 +603,20 @@ const AddBar = ({
 
 		lastHandled.current = newest.id;
 
-		const result = newest.result as ResourceDetail | undefined;
+		if (newest.status === "error") {
+			toast.error(newest.error ?? "Upload failed.");
 
-		if (result?.file) {
-			onPhotoUploaded(result.file);
+			return;
 		}
-	}, [items, onPhotoUploaded]);
+
+		applyResult(newest.result as ProcessImageResult | undefined);
+	}, [items, applyResult]);
+
+	const inFlight = items.find(
+		(it) =>
+			(it.status === "pending" || it.status === "uploading") && it.id > lastHandled.current
+	);
+	const busy = Boolean(disabled) || Boolean(inFlight) || reprocessing;
 
 	const handlePick = (files: FileList | null) => {
 		const first = files?.[0];
@@ -591,7 +625,23 @@ const AddBar = ({
 			return;
 		}
 
-		enqueue([first], { path: UPLOAD_PATH });
+		enqueue([first], { path: IMAGE_PROCESS_PATH, extra: { settings: processSettings } });
+	};
+
+	const handleBrowse = async (resource: { id: number }) => {
+		setReprocessing(true);
+
+		try {
+			const result = await imagesApi.reprocess(
+				{ resource_id: resource.id },
+				settings as Record<string, unknown>
+			);
+			applyResult(result);
+		} catch (err) {
+			toast.error(err instanceof Error ? err.message : "Could not process the image.");
+		} finally {
+			setReprocessing(false);
+		}
 	};
 
 	const showAnyVideo = allowYoutube || allowVimeo;
@@ -610,7 +660,7 @@ const AddBar = ({
 								type="button"
 								className={buttonClass}
 								onClick={() => inputRef.current?.click()}
-								disabled={disabled || atLimit}
+								disabled={busy || atLimit}
 							>
 								<UploadIcon size={13} />
 								Upload photo
@@ -619,7 +669,7 @@ const AddBar = ({
 								type="button"
 								className={buttonClass}
 								onClick={() => setPickerOpen(true)}
-								disabled={disabled || atLimit}
+								disabled={busy || atLimit}
 							>
 								<Search size={13} />
 								Browse photos
@@ -631,7 +681,7 @@ const AddBar = ({
 							type="button"
 							className={buttonClass}
 							onClick={onAskVideo}
-							disabled={disabled || atLimit}
+							disabled={busy || atLimit}
 						>
 							<Plus size={13} />
 							Add video URL
@@ -649,11 +699,18 @@ const AddBar = ({
 						</button>
 					)}
 				</div>
-				{max > 0 && (
-					<span className="text-[11.5px] text-text-3 tabular-nums">
-						{currentCount} / {max}
-					</span>
-				)}
+				<div className="flex items-center gap-3">
+					{(inFlight || reprocessing) && (
+						<span className="text-[11.5px] text-text-3">
+							{inFlight ? `Uploading… ${inFlight.progress}%` : "Processing…"}
+						</span>
+					)}
+					{max > 0 && (
+						<span className="text-[11.5px] text-text-3 tabular-nums">
+							{currentCount} / {max}
+						</span>
+					)}
+				</div>
 			</div>
 
 			<input
@@ -673,7 +730,15 @@ const AddBar = ({
 				type="image"
 				minWidth={minWidth}
 				minHeight={minHeight}
-				onSelect={onPhotoPicked}
+				onSelect={(resource) => handleBrowse(resource)}
+			/>
+
+			<FieldCropModal
+				open={Boolean(cropState)}
+				file={cropState?.file ?? ""}
+				crops={cropState?.crops ?? []}
+				onComplete={() => setCropState(null)}
+				onCancel={() => setCropState(null)}
 			/>
 		</>
 	);

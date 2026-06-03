@@ -105,13 +105,17 @@
 			$mtm = (array)($data["__mtm__"] ?? []);
 			$tags = (array)($data["__tags__"] ?? []);
 			$og = (array)($data["__open_graph__"] ?? []);
-			unset($data["__mtm__"], $data["__tags__"], $data["__open_graph__"]);
+			$publish = !empty($data["__publish__"]);
+			unset($data["__mtm__"], $data["__tags__"], $data["__open_graph__"], $data["__publish__"]);
 
 			$this->applyGeocoding($module, $table, $data);
 
 			$user_level = PermissionService::userModuleLevel($request->user, $module_id);
+			$can_publish = $user_level === "p" || ((int)$request->user->level) > 0;
 
-			if ($user_level === "p" || ((int)$request->user->level) > 0) {
+			// Publishers/admins write live only when they explicitly publish; without
+			// the flag they (like editors) save a pending draft.
+			if ($can_publish && $publish) {
 				$id = BigTreeAutoModule::createItem($table, $data, $mtm, $tags, null, $og);
 				$item = BigTreeAutoModule::getItem($table, $id);
 				Hooks::fire("module_entry.created", [
@@ -121,9 +125,13 @@
 				return Response::created($item["item"] ?? $item, null);
 			}
 
-			if ($user_level !== "e") {
+			if ($user_level !== "e" && !$can_publish) {
 				throw new AuthorizationException("Editor or publisher access required", "permission_denied", 403);
 			}
+
+			// createPendingItem reads $admin->ID and tracks the audit entry against
+			// the legacy admin global, which doesn't exist in the API request.
+			$this->bindLegacyAdmin($request->user);
 
 			$pending_id = BigTreeAutoModule::createPendingItem(
 				$module_id, $table, $data, $mtm, $tags, null, false, $og
@@ -155,13 +163,17 @@
 			$mtm = (array)($data["__mtm__"] ?? []);
 			$tags = (array)($data["__tags__"] ?? []);
 			$og = (array)($data["__open_graph__"] ?? []);
-			unset($data["__mtm__"], $data["__tags__"], $data["__open_graph__"]);
+			$publish = !empty($data["__publish__"]);
+			unset($data["__mtm__"], $data["__tags__"], $data["__open_graph__"], $data["__publish__"]);
 
 			$this->applyGeocoding($module, $table, $data);
 
 			$user_level = PermissionService::userModuleLevel($request->user, $module_id);
+			$can_publish = $user_level === "p" || ((int)$request->user->level) > 0;
 
-			if ($user_level === "p" || ((int)$request->user->level) > 0) {
+			// Publishers/admins write live only when they explicitly publish; without
+			// the flag they (like editors) submit a pending change.
+			if ($can_publish && $publish) {
 				BigTreeAutoModule::updateItem($table, $entry_id, $data, $mtm, $tags, $og);
 				$fresh = BigTreeAutoModule::getItem($table, $entry_id);
 				Hooks::fire("module_entry.updated", [
@@ -170,6 +182,10 @@
 
 				return Response::ok($fresh);
 			}
+
+			// submitChange requires a logged-in legacy admin ($admin->ID / ->track()),
+			// which the API request has no session for — bridge the JWT user in.
+			$this->bindLegacyAdmin($request->user);
 
 			BigTreeAutoModule::submitChange($module_id, $table, $entry_id, $data, $mtm, $tags, null, $og);
 			Hooks::fire("module_entry.pending_updated", [
@@ -280,6 +296,33 @@
 			}
 
 			return $m;
+		}
+
+		/**
+		 * The legacy pending-change helpers (createPendingItem / submitChange) read
+		 * the global `$admin` (BigTreeAdmin) for the acting user's id and audit
+		 * tracking. The API request has no admin session, so construct a bare
+		 * BigTreeAdmin (its constructor is inert without a session) and populate it
+		 * from the authenticated JWT user. Mirrors the pattern in SystemService.
+		 */
+		private function bindLegacyAdmin($user): void {
+			global $admin;
+
+			if (!($admin instanceof BigTreeAdmin)) {
+				$admin = new BigTreeAdmin();
+			}
+
+			if (!$admin->ID) {
+				$admin->ID = $user->id;
+				$admin->Level = (int)$user->level;
+
+				$row = SQL::fetch("SELECT permissions, timezone FROM bigtree_users WHERE id = ?", (int)$user->id);
+
+				if ($row) {
+					$admin->Permissions = json_decode($row["permissions"], true) ?: [];
+					$admin->Timezone = $row["timezone"];
+				}
+			}
 		}
 
 		/**

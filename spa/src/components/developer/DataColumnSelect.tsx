@@ -75,7 +75,11 @@ export const DataColumnSelect = ({
 				ariaLabel={ariaLabel ?? label}
 			/>
 			{hint && <span className="mt-1 block text-[11px] text-text-3">{hint}</span>}
-			{error && <span className="mt-1 block text-[11.5px] text-danger">{error}</span>}
+			{error && (
+				<span data-field-error className="mt-1 block text-[11.5px] text-danger">
+					{error}
+				</span>
+			)}
 		</div>
 	);
 };

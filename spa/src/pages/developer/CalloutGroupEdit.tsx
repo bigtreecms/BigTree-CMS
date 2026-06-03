@@ -14,6 +14,7 @@ import { calloutsApi, type CalloutGroupEditBody } from "@/api/endpoints/callouts
 
 import { ApiError } from "@/types/api";
 import { toast } from "@/lib/toast";
+import { useScrollToFirstError } from "@/hooks/useScrollToFirstError";
 import { validateRequired } from "@/lib/formValidation";
 
 import { TextField } from "./TemplateEdit";
@@ -42,6 +43,8 @@ export const CalloutGroupEdit = () => {
 		isAdd ? { id: "", name: "", callouts: [] } : {}
 	);
 	const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+
+	useScrollToFirstError(fieldErrors);
 	const [generalError, setGeneralError] = useState<string | null>(null);
 
 	useEffect(() => {

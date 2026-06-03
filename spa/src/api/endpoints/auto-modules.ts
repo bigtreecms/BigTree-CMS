@@ -65,28 +65,24 @@ const viewQuery = (viewId?: string) => (viewId ? { view: viewId } : undefined);
 
 export const autoModulesApi = {
 	list: (moduleId: string, params: ModuleEntriesListParams = {}) =>
-		api.get<ModuleEntriesListResponse>(
-			`/modules/${encodeURIComponent(moduleId)}/entries`,
-			{
-				query: {
-					page: params.page,
-					q: params.q,
-					sort: params.sort,
-					view: params.view,
-				},
-			}
-		),
+		api.get<ModuleEntriesListResponse>(`/modules/${encodeURIComponent(moduleId)}/entries`, {
+			query: {
+				page: params.page,
+				q: params.q,
+				sort: params.sort,
+				view: params.view,
+			},
+		}),
 
 	get: (moduleId: string, entryId: number, viewId?: string) =>
-		api.get<ModuleEntryDetail>(
-			`/modules/${encodeURIComponent(moduleId)}/entries/${entryId}`,
-			{ query: viewQuery(viewId) }
-		),
+		api.get<ModuleEntryDetail>(`/modules/${encodeURIComponent(moduleId)}/entries/${entryId}`, {
+			query: viewQuery(viewId),
+		}),
 
-	create: (moduleId: string, body: Record<string, unknown>, viewId?: string) =>
-		api.post<ModuleEntryRow>(
+	create: (moduleId: string, body: Record<string, unknown>, viewId?: string, publish = false) =>
+		api.post<ModuleEntryRow | { pending_id: number; pending: true }>(
 			`/modules/${encodeURIComponent(moduleId)}/entries`,
-			body,
+			publish ? { ...body, __publish__: true } : body,
 			{ query: viewQuery(viewId) }
 		),
 
@@ -94,20 +90,19 @@ export const autoModulesApi = {
 		moduleId: string,
 		entryId: number,
 		body: Record<string, unknown>,
-		viewId?: string
+		viewId?: string,
+		publish = false
 	) =>
 		api.patch<ModuleEntryDetail | { pending: true }>(
 			`/modules/${encodeURIComponent(moduleId)}/entries/${entryId}`,
-			body,
+			publish ? { ...body, __publish__: true } : body,
 			{ query: viewQuery(viewId) }
 		),
 
 	delete: (moduleId: string, entryId: number, viewId?: string) =>
-		api.delete<void>(
-			`/modules/${encodeURIComponent(moduleId)}/entries/${entryId}`,
-			undefined,
-			{ query: viewQuery(viewId) }
-		),
+		api.delete<void>(`/modules/${encodeURIComponent(moduleId)}/entries/${entryId}`, undefined, {
+			query: viewQuery(viewId),
+		}),
 
 	reorder: (moduleId: string, ids: Array<number | string>, viewId?: string) =>
 		api.post<void>(`/modules/${encodeURIComponent(moduleId)}/entries/reorder`, {

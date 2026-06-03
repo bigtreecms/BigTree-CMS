@@ -11,6 +11,7 @@ import {
 } from "@/api/endpoints/modules";
 
 import { ApiError } from "@/types/api";
+import { useScrollToFirstError } from "@/hooks/useScrollToFirstError";
 import { toast } from "@/lib/toast";
 import { validateRequired } from "@/lib/formValidation";
 
@@ -73,6 +74,8 @@ export const ModuleShellTab = ({ moduleId, module }: ModuleShellTabProps) => {
 		module ? fromModule(module) : emptyState()
 	);
 	const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+
+	useScrollToFirstError(fieldErrors);
 	const [generalError, setGeneralError] = useState<string | null>(null);
 	const [creatingGroup, setCreatingGroup] = useState(false);
 	const [newGroupName, setNewGroupName] = useState("");

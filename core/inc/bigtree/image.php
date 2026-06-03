@@ -245,7 +245,8 @@
 			}
 
 			$crop["grayscale"] = !empty($crop["grayscale"]) ? true : false;
-			
+			$crop["prefix"] = isset($crop["prefix"]) ? $crop["prefix"] : "";
+
 			if (!$recursion) {
 				if (empty($crop["thumbs"]) || !is_array($crop["thumbs"])) {
 					$crop["thumbs"] = [];

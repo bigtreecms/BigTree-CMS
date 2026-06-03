@@ -1,5 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+
+import { useScrollToFirstError } from "@/hooks/useScrollToFirstError";
 
 import {
 	modulesApi,
@@ -80,6 +82,15 @@ export const ModuleFormsTab = ({ moduleId, moduleTable }: ModuleFormsTabProps) =
 	const [settingsErrors, setSettingsErrors] = useState<Record<number, Record<string, string>>>(
 		{}
 	);
+
+	// Nested settings errors are keyed by resource index; flatten so the
+	// scroll-to-first-error hook can see whether any exist this submit.
+	const flatSettingsErrors = useMemo(
+		() => Object.assign({}, ...Object.values(settingsErrors)) as Record<string, string>,
+		[settingsErrors]
+	);
+
+	useScrollToFirstError(flatSettingsErrors);
 
 	const settingsValidation = useResourceSettingsValidation(
 		draft.fields as unknown as ResourceEntry[],

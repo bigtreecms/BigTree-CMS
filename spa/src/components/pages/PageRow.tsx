@@ -1,5 +1,5 @@
 import { Archive, Edit, FileText, GripVertical, Move, RotateCcw, Trash2 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import type { PageListRow } from "@/api/endpoints/pages";
 import { EditableTitle } from "./EditableTitle";
 import { StatusBadge, type PageStatus } from "./StatusBadge";
@@ -47,6 +47,7 @@ export const PageRow = ({
 	onDelete,
 	onMove,
 }: PageRowProps) => {
+	const location = useLocation();
 	const locked = row.access === "v" || row.access === "n"; // can't edit
 	const canReorder = allowReorder && !locked;
 	const isDragging = drag.dragId === row.id;
@@ -161,6 +162,7 @@ export const PageRow = ({
 			) : (
 				<Link
 					to={`/pages/${row.id}/edit`}
+					state={{ from: location.pathname + location.search }}
 					className="grid h-7 w-7 place-items-center rounded-md border-0 bg-transparent text-text-3 transition-colors hover:bg-hover hover:text-text"
 					title="Edit page"
 					aria-disabled={locked}

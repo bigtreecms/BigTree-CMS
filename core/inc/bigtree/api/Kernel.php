@@ -14,6 +14,11 @@
 		 * @param array $path_segments The $bigtree["path"] array from router.php
 		 */
 		public static function handle(array $path_segments) {
+			// Never let PHP warnings/notices print into the response body — they
+			// would corrupt the JSON envelope (and break client-side JSON.parse).
+			// Errors are still logged; we just stop them from being displayed.
+			ini_set("display_errors", "0");
+
 			$request_id = self::ensureRequestId();
 			$request = Request::fromGlobals($path_segments);
 			$request->request_id = $request_id;

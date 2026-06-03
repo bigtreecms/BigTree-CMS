@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { ApiError } from "@/types/api";
+import { useScrollToFirstError } from "@/hooks/useScrollToFirstError";
 import { toast } from "@/lib/toast";
 import { validateRequired, type RequiredRule } from "@/lib/formValidation";
 
@@ -40,6 +41,8 @@ export const useSubCrud = <T, Body>({
 	const queryKey = ["modules", moduleId, resource];
 	const [editingId, setEditingId] = useState<string | null>(null);
 	const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+
+	useScrollToFirstError(fieldErrors);
 
 	const listQ = useQuery({
 		queryKey,

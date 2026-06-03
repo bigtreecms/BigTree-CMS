@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Navigate, useNavigate, useParams } from "react-router-dom";
+import { Navigate, useLocation, useNavigate, useParams } from "react-router-dom";
 import { Calendar, ChevronLeft, Save } from "lucide-react";
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
@@ -13,7 +13,12 @@ import { MovePageDialog } from "@/components/pages/MovePageDialog";
 import { PageSectionToolbar } from "@/components/pages/PageSectionToolbar";
 import { PageSummaryPanel } from "@/components/pages/PageSummaryPanel";
 
-import { pagesApi, type PageDetail, type PageEditBody } from "@/api/endpoints/pages";
+import {
+	isPendingResult,
+	pagesApi,
+	type PageDetail,
+	type PageEditBody,
+} from "@/api/endpoints/pages";
 import { resourceToFormField, templatesApi, type TemplateSummary } from "@/api/endpoints/templates";
 
 import { FieldRenderer } from "@/renderer/forms/FieldRenderer";
@@ -21,7 +26,9 @@ import { FieldRow } from "@/renderer/forms/FieldRow";
 import { isFieldRequired, isFieldValueEmpty } from "@/renderer/forms/validation";
 
 import { useLock } from "@/hooks/useLock";
+import { useScrollToFirstError } from "@/hooks/useScrollToFirstError";
 import { ApiError } from "@/types/api";
+import { canPublishPage } from "@/lib/permissions";
 import { toast } from "@/lib/toast";
 
 /**
@@ -61,9 +68,24 @@ export const PageEdit = () => {
 	const { id: idParam } = useParams<{ id: string }>();
 	const id = Number(idParam);
 	const navigate = useNavigate();
+	const location = useLocation();
 	const queryClient = useQueryClient();
 
 	const valid = Number.isFinite(id) && id > 0;
+
+	// Where to send the editor after a save/delete. Mirrors the legacy admin,
+	// which never leaves you on the edit screen with just a growl: it returns to
+	// the tree view you came from (the page's parent), or to whatever screen
+	// linked here (captured in router state as `from`).
+	const returnTo = (parent: number | undefined): string => {
+		const from = (location.state as { from?: string } | null)?.from;
+
+		if (from) {
+			return from;
+		}
+
+		return parent && parent > 0 ? `/pages/${parent}` : "/pages";
+	};
 
 	const pageQuery = useQuery({
 		queryKey: ["pages", "detail", id, { lineage: true }],
@@ -91,11 +113,13 @@ export const PageEdit = () => {
 	});
 
 	const [body, setBody] = useState<PageEditBody | null>(null);
-	const [activeTab, setActiveTab] = useState<TabValue>("properties");
+	const [activeTab, setActiveTab] = useState<TabValue>("content");
 	const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 	const [generalError, setGeneralError] = useState<string | null>(null);
 	const [confirmDelete, setConfirmDelete] = useState(false);
 	const [movingOpen, setMovingOpen] = useState(false);
+
+	useScrollToFirstError(fieldErrors);
 
 	useEffect(() => {
 		if (pageQuery.data) {
@@ -109,8 +133,19 @@ export const PageEdit = () => {
 		mutationFn: (next: PageEditBody) => pagesApi.patch(id, next),
 		onSuccess: (updated) => {
 			queryClient.invalidateQueries({ queryKey: ["pages", "list"] });
-			queryClient.setQueryData(["pages", "detail", id, { lineage: true }], updated);
-			toast.success("Page saved");
+			// The live-publish response omits `access`/lineage, so invalidate rather
+			// than seeding the cache with a partial detail.
+			queryClient.invalidateQueries({ queryKey: ["pages", "detail", id] });
+
+			if (isPendingResult(updated)) {
+				toast.success("Draft saved", {
+					description: "Your change is pending publisher approval.",
+				});
+			} else {
+				toast.success("Page published");
+			}
+
+			navigate(returnTo(pageQuery.data?.parent));
 		},
 		onError: (err) => {
 			if (err instanceof ApiError) {
@@ -132,12 +167,7 @@ export const PageEdit = () => {
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ["pages", "list"] });
 			toast.success("Page deleted");
-
-			if (pageQuery.data?.parent) {
-				navigate(`/pages/${pageQuery.data.parent}`);
-			} else {
-				navigate("/pages");
-			}
+			navigate(returnTo(pageQuery.data?.parent));
 		},
 		onError: () => {
 			toast.error("Could not delete page");
@@ -148,7 +178,7 @@ export const PageEdit = () => {
 		setBody((prev) => (prev ? { ...prev, ...patch } : prev));
 	};
 
-	const handleSave = () => {
+	const handleSave = (publish: boolean) => {
 		if (!body || saveMutation.isPending || lock.ownedByOther) {
 			return;
 		}
@@ -174,7 +204,7 @@ export const PageEdit = () => {
 
 		setGeneralError(null);
 		setFieldErrors({});
-		saveMutation.mutate(body);
+		saveMutation.mutate({ ...body, publish });
 	};
 
 	if (!valid) {
@@ -201,6 +231,7 @@ export const PageEdit = () => {
 
 	const page = pageQuery.data;
 	const readOnly = lock.ownedByOther;
+	const canPublish = canPublishPage(page.access);
 	const lineage = page.lineage ?? [];
 
 	const breadcrumbs = [
@@ -254,7 +285,7 @@ export const PageEdit = () => {
 			<form
 				onSubmit={(e) => {
 					e.preventDefault();
-					handleSave();
+					handleSave(false);
 				}}
 				className="mb-6 overflow-hidden rounded-lg border border-border bg-surface"
 			>
@@ -302,13 +333,16 @@ export const PageEdit = () => {
 				<WizardFooter
 					activeTab={activeTab}
 					onSelect={setActiveTab}
-					primaryLabel={saveMutation.isPending ? "Saving…" : "Save changes"}
-					onPrimary={handleSave}
+					primaryLabel={saveMutation.isPending ? "Saving…" : "Save"}
+					onPrimary={() => handleSave(false)}
 					primaryDisabled={readOnly || saveMutation.isPending}
+					publishLabel={canPublish ? "Save & Publish" : undefined}
+					onPublish={canPublish ? () => handleSave(true) : undefined}
+					publishDisabled={readOnly || saveMutation.isPending}
 					secondary={
 						<button
 							type="button"
-							onClick={() => navigate(`/pages/${page.parent}`)}
+							onClick={() => navigate(returnTo(page.parent))}
 							className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] text-text-2 hover:bg-hover"
 						>
 							<ChevronLeft size={13} /> Back
@@ -793,7 +827,11 @@ export const Field = ({ label, hint, children, error, wide }: FieldProps) => (
 			{hint && <span className="ml-1 text-[11px] text-text-3">{hint}</span>}
 		</span>
 		{children}
-		{error && <span className="text-[11.5px] text-danger">{error}</span>}
+		{error && (
+			<span data-field-error className="text-[11.5px] text-danger">
+				{error}
+			</span>
+		)}
 	</div>
 );
 
@@ -874,6 +912,10 @@ interface WizardFooterProps {
 	primaryLabel: string;
 	onPrimary: () => void;
 	primaryDisabled?: boolean;
+	/** When set (publishers only), renders a second accent "Save & Publish" button. */
+	publishLabel?: string;
+	onPublish?: () => void;
+	publishDisabled?: boolean;
 	secondary?: React.ReactNode;
 	wizardMode?: boolean;
 	onWizardCreate?: () => void;
@@ -886,11 +928,15 @@ export const WizardFooter = ({
 	primaryLabel,
 	onPrimary,
 	primaryDisabled,
+	publishLabel,
+	onPublish,
+	publishDisabled,
 	secondary,
 	wizardMode = false,
 	onWizardCreate,
 	createLabel,
 }: WizardFooterProps) => {
+	const showPublish = Boolean(publishLabel && onPublish);
 	const index = PAGE_TABS.indexOf(activeTab);
 	const isFirst = index === 0;
 	const isLast = index === PAGE_TABS.length - 1;
@@ -939,12 +985,28 @@ export const WizardFooter = ({
 			<button
 				type="button"
 				onClick={onPrimary}
-				className="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-[12.5px] font-medium text-accent-fg disabled:opacity-50 hover:bg-accent-hover"
+				className={
+					showPublish
+						? "inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] font-medium text-text-2 disabled:opacity-50 hover:bg-hover"
+						: "inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-[12.5px] font-medium text-accent-fg disabled:opacity-50 hover:bg-accent-hover"
+				}
 				disabled={primaryDisabled}
 			>
 				<Save size={13} />
 				{primaryLabel}
 			</button>
+
+			{showPublish && (
+				<button
+					type="button"
+					onClick={onPublish}
+					className="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-[12.5px] font-medium text-accent-fg disabled:opacity-50 hover:bg-accent-hover"
+					disabled={publishDisabled}
+				>
+					<Save size={13} />
+					{publishLabel}
+				</button>
+			)}
 		</div>
 	);
 };

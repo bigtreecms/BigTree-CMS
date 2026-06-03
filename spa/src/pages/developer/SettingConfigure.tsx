@@ -19,6 +19,7 @@ import { HTMLField } from "@/renderer/fields/HTMLField";
 
 import { ApiError } from "@/types/api";
 import { toast } from "@/lib/toast";
+import { useScrollToFirstError } from "@/hooks/useScrollToFirstError";
 import { validateRequired } from "@/lib/formValidation";
 
 import { TextField } from "./TemplateEdit";
@@ -65,6 +66,9 @@ export const SettingConfigure = () => {
 	const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 	const [settingsErrors, setSettingsErrors] = useState<Record<string, string>>({});
 	const [generalError, setGeneralError] = useState<string | null>(null);
+
+	useScrollToFirstError(fieldErrors);
+	useScrollToFirstError(settingsErrors);
 
 	// Validate the setting's own field-type settings by treating it as a
 	// single-entry resource list, reusing the resource-designer validator.

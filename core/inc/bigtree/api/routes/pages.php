@@ -39,6 +39,7 @@
 				"tags" => "array",
 				"open_graph" => "array",
 				"trunk" => "bool",
+				"publish" => "bool",
 			],
 			"audit" => ["table" => "bigtree_pages", "type" => "created", "entry" => "%id%"],
 		],

@@ -34,6 +34,12 @@ export interface ModuleSummary {
 	position: number;
 	graphql: boolean;
 	graphql_type: string;
+	/**
+	 * Caller's permission level for this module, returned by GET /modules/{id}.
+	 * "p" unlocks "Save & Publish" on the module's forms. Optional because list
+	 * responses don't include it.
+	 */
+	access?: "n" | "v" | "e" | "p";
 }
 
 export interface ModuleGroup {

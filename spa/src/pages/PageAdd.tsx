@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
@@ -9,13 +9,16 @@ import { PageHead } from "@/components/shell/PageHead";
 import { PageSummaryPanel } from "@/components/pages/PageSummaryPanel";
 import { PageSectionToolbar } from "@/components/pages/PageSectionToolbar";
 
-import { pagesApi, type PageEditBody } from "@/api/endpoints/pages";
+import { isPendingResult, pagesApi, type PageEditBody } from "@/api/endpoints/pages";
 import { resourceToFormField, templatesApi } from "@/api/endpoints/templates";
 
 import { isFieldRequired, isFieldValueEmpty } from "@/renderer/forms/validation";
 
 import { ApiError } from "@/types/api";
+import { useAuthStore } from "@/auth/store";
+import { canPublishPage, isAdmin } from "@/lib/permissions";
 import { toast } from "@/lib/toast";
+import { useScrollToFirstError } from "@/hooks/useScrollToFirstError";
 
 import { ContentTab, PropertiesTab, SeoTab, SharingTab, TabBar } from "./PageEdit";
 
@@ -24,10 +27,8 @@ import { ContentTab, PropertiesTab, SeoTab, SharingTab, TabBar } from "./PageEdi
  * fresh PageEditBody and a wizard-style footer (Back / Next Step / Create /
  * Create & Publish). Mirrors the `add-subpage-screen.jsx` reference design.
  *
- * "Create & Publish" is currently identical to "Create" — the new API path
- * has no separate publish flag; pages either save through (publisher) or
- * become pending changes (editor). Once the API surfaces a publish_now=true
- * option we'll wire the second button to it.
+ * "Create" queues a NEW pending change (draft); "Create & Publish" (publishers
+ * only) writes the page live. The button choice maps to `publish` on the body.
  */
 
 type TabValue = "properties" | "content" | "seo" | "sharing";
@@ -56,7 +57,9 @@ const seedBody = (parent: number): PageEditBody => ({
 export const PageAdd = () => {
 	const { parentId } = useParams<{ parentId: string }>();
 	const navigate = useNavigate();
+	const location = useLocation();
 	const queryClient = useQueryClient();
+	const user = useAuthStore((s) => s.user);
 
 	const parent = (() => {
 		if (!parentId) {
@@ -71,6 +74,8 @@ export const PageAdd = () => {
 	const [body, setBody] = useState<PageEditBody>(() => seedBody(parent));
 	const [activeTab, setActiveTab] = useState<TabValue>("properties");
 	const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+
+	useScrollToFirstError(fieldErrors);
 	const [generalError, setGeneralError] = useState<string | null>(null);
 
 	useEffect(() => {
@@ -112,11 +117,26 @@ export const PageAdd = () => {
 	});
 
 	const createMutation = useMutation({
-		mutationFn: () => pagesApi.create(body),
+		mutationFn: (publish: boolean) => pagesApi.create({ ...body, publish }),
 		onSuccess: (page) => {
 			queryClient.invalidateQueries({ queryKey: ["pages", "list"] });
-			toast.success("Page created", { description: `“${page.nav_title}” saved.` });
-			navigate(`/pages/${page.id}/edit`);
+
+			const name = body.nav_title?.trim() || "Page";
+
+			if (isPendingResult(page)) {
+				toast.success("Draft created", {
+					description: `“${name}” is pending publisher approval.`,
+				});
+			} else {
+				toast.success("Page published", { description: `“${name}” saved.` });
+			}
+
+			// Return to the tree view we came from rather than dropping the user on
+			// the new page's edit screen — matching the legacy admin, which redirects
+			// a create back to the parent's view-tree.
+			const from = (location.state as { from?: string } | null)?.from;
+
+			navigate(from ?? (parent > 0 ? `/pages/${parent}` : "/pages"));
 		},
 		onError: (err) => {
 			if (err instanceof ApiError) {
@@ -137,7 +157,7 @@ export const PageAdd = () => {
 		setBody((prev) => ({ ...prev, ...patch }));
 	};
 
-	const handleSubmit = () => {
+	const handleSubmit = (publish: boolean) => {
 		if (createMutation.isPending) {
 			return;
 		}
@@ -168,7 +188,7 @@ export const PageAdd = () => {
 
 		setGeneralError(null);
 		setFieldErrors({});
-		createMutation.mutate();
+		createMutation.mutate(publish);
 	};
 
 	const lineage = parentQuery.data?.lineage ?? [];
@@ -184,6 +204,10 @@ export const PageAdd = () => {
 	const isFirst = tabIndex === 0;
 	const isLast = tabIndex === PAGE_TABS.length - 1;
 	const canCreate = Boolean(body.nav_title && body.nav_title.trim().length > 0);
+
+	// A new page's publish right derives from the parent. Top-level pages (no
+	// parent row to read access from) are only creatable/publishable by admins.
+	const canPublish = parent > 0 ? canPublishPage(parentQuery.data?.access) : isAdmin(user);
 
 	return (
 		<div className="mx-auto max-w-screen-2xl px-6 py-4">
@@ -216,7 +240,7 @@ export const PageAdd = () => {
 			<form
 				onSubmit={(e) => {
 					e.preventDefault();
-					handleSubmit();
+					handleSubmit(false);
 				}}
 				className="mb-6 overflow-hidden rounded-lg border border-border bg-surface"
 			>
@@ -282,21 +306,27 @@ export const PageAdd = () => {
 
 					<button
 						type="button"
-						onClick={handleSubmit}
-						className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] hover:bg-hover disabled:opacity-50"
+						onClick={() => handleSubmit(false)}
+						className={
+							canPublish
+								? "inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] font-medium text-text-2 hover:bg-hover disabled:opacity-50"
+								: "inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-[12.5px] font-medium text-accent-fg hover:bg-accent-hover disabled:opacity-50"
+						}
 						disabled={!canCreate || createMutation.isPending}
 					>
-						{createMutation.isPending ? "Creating…" : "Create"}
+						{createMutation.isPending ? "Saving…" : "Create"}
 					</button>
 
-					<button
-						type="submit"
-						className="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-[12.5px] font-medium text-accent-fg disabled:opacity-50 hover:bg-accent-hover"
-						disabled={!canCreate || createMutation.isPending}
-						title="Same as Create — the API doesn't yet expose a separate publish-now flag."
-					>
-						{createMutation.isPending ? "Saving…" : "Create & Publish"}
-					</button>
+					{canPublish && (
+						<button
+							type="button"
+							onClick={() => handleSubmit(true)}
+							className="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-[12.5px] font-medium text-accent-fg disabled:opacity-50 hover:bg-accent-hover"
+							disabled={!canCreate || createMutation.isPending}
+						>
+							{createMutation.isPending ? "Saving…" : "Create & Publish"}
+						</button>
+					)}
 				</div>
 			</form>
 		</div>

@@ -147,6 +147,10 @@
 
 			$out = $this->present($page, true);
 
+			// Surface the caller's access level so the SPA can decide whether to
+			// offer "Save & Publish" (publishers only) alongside "Save".
+			$out["access"] = PermissionService::userPageLevel($request->user, $id);
+
 			if (!empty($request->query["fields"]) && strpos((string)$request->query["fields"], "lineage") !== false) {
 				$out["lineage"] = $this->lineage($id);
 			}
@@ -159,6 +163,28 @@
 			$parent = (int)($d["parent"] ?? 0);
 			$this->enforce($request->user, $parent, "e", "create child page");
 
+			// Publishers (and global admins/devs) may write live by passing publish=true;
+			// everyone else — and publishers who leave it off — creates a NEW pending draft.
+			$access = PermissionService::userPageLevel($request->user, $parent);
+			$can_publish = ($access === "p") || ((int)$request->user->level > 0);
+
+			if (empty($d["publish"]) || !$can_publish) {
+				$pending_id = $this->writePendingPageChange($request->user, "NEW", $parent, $d);
+
+				Hooks::fire("page.pending_created", [
+					"parent" => $parent, "pending_change_id" => (int)$pending_id,
+				], ["user_id" => $request->user->id]);
+
+				return Response::created(["pending_change_id" => (int)$pending_id, "pending" => true], null);
+			}
+
+			return Response::created($this->performCreate($d, $request->user), null);
+		}
+
+		// Live page insert, shared by create() (publish path) and the pending-change
+		// publish flow in publishPendingChange(). Returns the presented page payload.
+		private function performCreate(array $d, $user): array {
+			$parent = (int)($d["parent"] ?? 0);
 			$nav_title = trim((string)$d["nav_title"]);
 			$title = trim((string)($d["title"] ?? $nav_title));
 			$route = $d["route"] ?? BigTreeCMS::urlify($nav_title);
@@ -169,7 +195,7 @@
 			// Only developers can flag a page as a site trunk. Silently strip the flag
 			// for non-dev callers so the request still succeeds (matches legacy createPage).
 			$trunk_requested = !empty($d["trunk"]);
-			$trunk_value = ($trunk_requested && (int)$request->user->level >= 2) ? "on" : "";
+			$trunk_value = ($trunk_requested && (int)$user->level >= 2) ? "on" : "";
 
 			$insert = [
 				"trunk" => $trunk_value,
@@ -191,7 +217,7 @@
 				"publish_at" => $d["publish_at"] ?? null,
 				"expire_at" => $d["expire_at"] ?? null,
 				"max_age" => (int)($d["max_age"] ?? 0),
-				"last_edited_by" => $request->user->id,
+				"last_edited_by" => $user->id,
 				"position" => 0,
 				"created_at" => "NOW()",
 				"updated_at" => "NOW()",
@@ -218,9 +244,9 @@
 				$page["template"], (int)$id, $insert, $d["tags"] ?? [], $d["open_graph"] ?? []
 			);
 
-			Hooks::fire("page.created", $page, ["user_id" => $request->user->id]);
+			Hooks::fire("page.created", $page, ["user_id" => $user->id]);
 
-			return Response::created($this->present($page, true), null);
+			return $this->present($page, true);
 		}
 
 		public function update(Request $request) {
@@ -234,6 +260,28 @@
 			}
 
 			$d = $request->body;
+
+			// Publishers (and global admins/devs) may write live by passing publish=true;
+			// everyone else — and publishers who leave it off — queues an EDIT draft.
+			$access = PermissionService::userPageLevel($request->user, $id);
+			$can_publish = ($access === "p") || ((int)$request->user->level > 0);
+
+			if (empty($d["publish"]) || !$can_publish) {
+				$pending_id = $this->writePendingPageChange($request->user, "EDIT", $id, $d);
+
+				Hooks::fire("page.pending_updated", [
+					"id" => $id, "pending_change_id" => (int)$pending_id,
+				], ["user_id" => $request->user->id]);
+
+				return Response::ok(["pending" => true, "pending_change_id" => (int)$pending_id]);
+			}
+
+			return Response::ok($this->performUpdate($id, $page, $d, $request->user));
+		}
+
+		// Live page update, shared by update() (publish path) and the pending-change
+		// publish flow in publishPendingChange(). Returns the presented page payload.
+		private function performUpdate(int $id, array $page, array $d, $user): array {
 			$update = [];
 
 			if (isset($d["nav_title"])) {
@@ -290,7 +338,7 @@
 
 			// Trunk flag is developer-only; non-devs silently can't change it.
 			$trunk_changed = false;
-			if (array_key_exists("trunk", $d) && (int)$request->user->level >= 2) {
+			if (array_key_exists("trunk", $d) && (int)$user->level >= 2) {
 				$new_trunk = !empty($d["trunk"]) ? "on" : "";
 				if ($new_trunk !== $page["trunk"]) {
 					$update["trunk"] = $new_trunk;
@@ -313,7 +361,7 @@
 			}
 
 			if ($update) {
-				$update["last_edited_by"] = $request->user->id;
+				$update["last_edited_by"] = $user->id;
 				$update["updated_at"] = "NOW()";
 				SQL::update("bigtree_pages", $id, $update);
 			}
@@ -342,9 +390,122 @@
 				$fresh["template"], $id, $update ?: [], $d["tags"] ?? [], $d["open_graph"] ?? []
 			);
 
-			Hooks::fire("page.updated", $fresh, ["user_id" => $request->user->id, "previous" => $page]);
+			Hooks::fire("page.updated", $fresh, ["user_id" => $user->id, "previous" => $page]);
 
-			return Response::ok($this->present($fresh, true));
+			return $this->present($fresh, true);
+		}
+
+		/**
+		 * Write (or replace) a page pending change row. Editors save here always;
+		 * publishers save here when they don't explicitly publish. The stored
+		 * `changes` blob is the normalized edit payload (minus the publish flag,
+		 * tags, and open graph, which live in their own columns) so the approval
+		 * flow can replay it through performCreate()/performUpdate().
+		 *
+		 * For EDIT, an existing queued change for the same page is overwritten so a
+		 * user's repeated saves collapse into one draft (mirrors submitPageChange).
+		 */
+		private function writePendingPageChange($user, string $type, int $item_or_parent, array $d): int {
+			$changes = $d;
+			unset($changes["publish"], $changes["tags"], $changes["open_graph"], $changes["parent"]);
+
+			// Record tags/OG only when the caller actually submitted them, so the
+			// publish step mirrors the live path (which keys off array_key_exists)
+			// and a save that omits them doesn't wipe existing associations. A NULL
+			// column means "not submitted"; "[]" means "explicitly cleared".
+			$tags = array_key_exists("tags", $d) ? array_values($d["tags"] ?? []) : null;
+			$open_graph = array_key_exists("open_graph", $d) ? ($d["open_graph"] ?? []) : null;
+
+			// Developer-only trunk flag: strip for non-devs so it can't be smuggled in.
+			if ((int)$user->level < 2) {
+				unset($changes["trunk"]);
+			}
+
+			if ($type === "NEW") {
+				$changes["parent"] = $item_or_parent;
+
+				$row = [
+					"user" => (int)$user->id,
+					"date" => "NOW()",
+					"title" => "New Page Created",
+					"table" => "bigtree_pages",
+					"changes" => $changes,
+					"tags_changes" => $tags,
+					"open_graph_changes" => $open_graph,
+					"type" => "NEW",
+					"module" => "",
+					"pending_page_parent" => $item_or_parent,
+				];
+
+				return (int)SQL::insert("bigtree_pending_changes", $row);
+			}
+
+			// EDIT — collapse onto any existing queued change for this page.
+			$existing = SQL::fetchSingle(
+				"SELECT id FROM bigtree_pending_changes WHERE `table` = 'bigtree_pages' AND item_id = ? AND type = 'EDIT'",
+				$item_or_parent
+			);
+
+			$row = [
+				"user" => (int)$user->id,
+				"date" => "NOW()",
+				"title" => "Page Change Pending",
+				"table" => "bigtree_pages",
+				"changes" => $changes,
+				"tags_changes" => $tags,
+				"open_graph_changes" => $open_graph,
+				"type" => "EDIT",
+				"module" => "",
+				"item_id" => $item_or_parent,
+			];
+
+			if ($existing) {
+				SQL::update("bigtree_pending_changes", (int)$existing, $row);
+
+				return (int)$existing;
+			}
+
+			return (int)SQL::insert("bigtree_pending_changes", $row);
+		}
+
+		/**
+		 * Apply a queued page pending change to the live tree, then delete the
+		 * queue row. NEW promotes the draft to a real page; EDIT replays the saved
+		 * field changes onto the existing page. Called by PendingChangeService on
+		 * approve. Returns the presented live page payload.
+		 */
+		public function publishPendingChange(array $row, $user): array {
+			$changes = is_array($row["changes"]) ? $row["changes"] : (json_decode($row["changes"] ?: "[]", true) ?: []);
+
+			$d = $changes;
+
+			// Only replay tags/OG when they were part of the original submission
+			// (NULL column = not submitted) — otherwise leave existing data alone.
+			if (isset($row["tags_changes"]) && $row["tags_changes"] !== null && $row["tags_changes"] !== "") {
+				$d["tags"] = is_array($row["tags_changes"]) ? $row["tags_changes"] : (json_decode($row["tags_changes"], true) ?: []);
+			}
+
+			if (isset($row["open_graph_changes"]) && $row["open_graph_changes"] !== null && $row["open_graph_changes"] !== "") {
+				$d["open_graph"] = is_array($row["open_graph_changes"]) ? $row["open_graph_changes"] : (json_decode($row["open_graph_changes"], true) ?: []);
+			}
+
+			if ($row["type"] === "NEW") {
+				$d["parent"] = (int)($changes["parent"] ?? $row["pending_page_parent"] ?? 0);
+				$result = $this->performCreate($d, $user);
+			} else {
+				$id = (int)$row["item_id"];
+				$page = SQL::fetch("SELECT * FROM bigtree_pages WHERE id = ?", $id);
+
+				if (!$page) {
+					throw new NotFoundException("Page $id not found", "resource_not_found", 404);
+				}
+
+				$result = $this->performUpdate($id, $page, $d, $user);
+			}
+
+			SQL::delete("bigtree_pending_changes", (int)$row["id"]);
+
+			return $result;
 		}
 
 		public function delete(Request $request) {

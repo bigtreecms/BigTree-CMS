@@ -33,7 +33,11 @@ export const FieldRow = ({ field, error, children }: FieldRowProps) => {
 
 			{children}
 
-			{error && <div className="mt-1 text-[11.5px] text-danger">{error}</div>}
+			{error && (
+				<div data-field-error className="mt-1 text-[11.5px] text-danger">
+					{error}
+				</div>
+			)}
 		</div>
 	);
 };

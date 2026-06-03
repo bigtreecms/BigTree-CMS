@@ -40,12 +40,26 @@ export const ModuleEntryAdd = () => {
 		enabled: moduleId !== "",
 	});
 
+	const moduleQuery = useQuery({
+		queryKey: ["modules", "detail", moduleId],
+		queryFn: () => modulesApi.get(moduleId),
+		enabled: moduleId !== "",
+	});
+
 	const createMutation = useMutation({
-		mutationFn: (values: Record<string, unknown>) =>
-			autoModulesApi.create(moduleId, values, viewId),
-		onSuccess: () => {
+		mutationFn: ({ values, publish }: { values: Record<string, unknown>; publish: boolean }) =>
+			autoModulesApi.create(moduleId, values, viewId, publish),
+		onSuccess: (result) => {
 			queryClient.invalidateQueries({ queryKey: ["module-entries", moduleId] });
-			toast.success("Entry created");
+
+			if (result && typeof result === "object" && "pending" in result) {
+				toast.success("Draft created", {
+					description: "Your entry is pending publisher approval.",
+				});
+			} else {
+				toast.success("Entry published");
+			}
+
 			navigate(`/modules/${encodeURIComponent(moduleId)}/view/${encodeURIComponent(viewId)}`);
 		},
 	});
@@ -81,8 +95,13 @@ export const ModuleEntryAdd = () => {
 						)
 					}
 					submitLabel="Create"
-					onSubmit={async (values) => {
-						await createMutation.mutateAsync(values);
+					canPublish={moduleQuery.data?.access === "p"}
+					publishLabel="Create & Publish"
+					onSubmit={async (values, opts) => {
+						await createMutation.mutateAsync({
+							values,
+							publish: Boolean(opts?.publish),
+						});
 					}}
 				/>
 			)}

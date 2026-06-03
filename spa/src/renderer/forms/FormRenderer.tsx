@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 
 import type { ModuleForm, ModuleFormField } from "@/api/endpoints/modules";
+import { useScrollToFirstError } from "@/hooks/useScrollToFirstError";
 import { ApiError } from "@/types/api";
 
 import { FieldRenderer } from "./FieldRenderer";
@@ -29,9 +30,18 @@ import { validateRequiredFields } from "./validation";
 export interface FormRendererProps {
 	form: ModuleForm;
 	initialValues?: Record<string, unknown>;
-	onSubmit: (values: Record<string, unknown>) => Promise<unknown> | unknown;
+	onSubmit: (
+		values: Record<string, unknown>,
+		opts?: { publish?: boolean }
+	) => Promise<unknown> | unknown;
 	onCancel?: () => void;
 	submitLabel?: string;
+	/**
+	 * When true, render a second primary button ("Save & Publish") that submits
+	 * with `{ publish: true }`. Gate this on the caller's publisher access.
+	 */
+	canPublish?: boolean;
+	publishLabel?: string;
 	secondaryAction?: ReactNode;
 	disabled?: boolean;
 	header?: ReactNode;
@@ -56,6 +66,8 @@ export const FormRenderer = ({
 	onSubmit,
 	onCancel,
 	submitLabel = "Save",
+	canPublish = false,
+	publishLabel = "Save & Publish",
 	secondaryAction,
 	disabled,
 	header,
@@ -68,6 +80,8 @@ export const FormRenderer = ({
 	const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 	const [generalError, setGeneralError] = useState<string | null>(null);
 	const [submitting, setSubmitting] = useState(false);
+
+	useScrollToFirstError(fieldErrors);
 
 	const renderContext = useMemo<FormRenderContextValue | null>(() => {
 		if (!moduleId) {
@@ -100,7 +114,7 @@ export const FormRenderer = ({
 		}
 	};
 
-	const handleSubmit = async (event: React.FormEvent) => {
+	const handleSubmit = async (event: React.FormEvent, publish = false) => {
 		event.preventDefault();
 
 		if (submitting || disabled) {
@@ -121,7 +135,7 @@ export const FormRenderer = ({
 		setFieldErrors({});
 
 		try {
-			await onSubmit(packForSubmit(form, values));
+			await onSubmit(packForSubmit(form, values), { publish });
 		} catch (err) {
 			if (err instanceof ApiError) {
 				const fe = err.fieldErrors();
@@ -193,11 +207,25 @@ export const FormRenderer = ({
 				{secondaryAction}
 				<button
 					type="submit"
-					className="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-[12.5px] font-medium text-accent-fg disabled:opacity-60 hover:bg-accent-hover"
+					className={
+						canPublish
+							? "inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] font-medium text-text-2 disabled:opacity-60 hover:bg-hover"
+							: "inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-[12.5px] font-medium text-accent-fg disabled:opacity-60 hover:bg-accent-hover"
+					}
 					disabled={submitting || disabled}
 				>
 					{submitting ? "Saving…" : submitLabel}
 				</button>
+				{canPublish && (
+					<button
+						type="button"
+						className="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-[12.5px] font-medium text-accent-fg disabled:opacity-60 hover:bg-accent-hover"
+						onClick={(e) => handleSubmit(e, true)}
+						disabled={submitting || disabled}
+					>
+						{publishLabel}
+					</button>
+				)}
 			</div>
 		</form>
 	);

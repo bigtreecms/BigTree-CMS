@@ -13,7 +13,11 @@ export const Field = ({ label, error, children, className }: FieldProps) => {
 			<span className="mb-1 block text-[12px] font-medium text-text-2">{label}</span>
 			{children}
 
-			{error && <span className="mt-1 block text-[11.5px] text-danger">{error}</span>}
+			{error && (
+				<span data-field-error className="mt-1 block text-[11.5px] text-danger">
+					{error}
+				</span>
+			)}
 		</label>
 	);
 };

@@ -6,6 +6,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { autoModulesApi, type ModuleEntryRow } from "@/api/endpoints/auto-modules";
 import type { ModuleView } from "@/api/endpoints/modules";
 
+import { expandImageUrl } from "@/lib/imageUrl";
+
 import { type CustomViewAction, parseViewActions } from "./viewHelpers";
 
 /**
@@ -28,34 +30,6 @@ interface ImagesViewProps {
 	view: ModuleView;
 }
 
-const PLACEHOLDER_TOKEN_RE = /\{(www|static)root\}/g;
-
-/**
- * The legacy admin stores image URLs with `{wwwroot}` / `{staticroot}`
- * placeholders so they can be deployed across hosts. We swap them out for
- * the page-relative root since the SPA is served from the same origin as
- * the assets.
- */
-const expandImageUrl = (raw: unknown, prefix: string): string => {
-	if (typeof raw !== "string" || !raw) {
-		return "";
-	}
-
-	const expanded = raw.replace(PLACEHOLDER_TOKEN_RE, "/");
-
-	if (!prefix) {
-		return expanded;
-	}
-
-	const slash = expanded.lastIndexOf("/");
-
-	if (slash < 0) {
-		return `${prefix}${expanded}`;
-	}
-
-	return `${expanded.slice(0, slash + 1)}${prefix}${expanded.slice(slash + 1)}`;
-};
-
 export const ImagesView = ({ moduleId, view }: ImagesViewProps) => {
 	const navigate = useNavigate();
 	const [query, setQuery] = useState("");
@@ -68,8 +42,14 @@ export const ImagesView = ({ moduleId, view }: ImagesViewProps) => {
 	}, [query]);
 
 	const listQuery = useQuery({
-		queryKey: ["module-entries", moduleId, view.id, { q: debouncedQuery || undefined, view: view.id }] as const,
-		queryFn: () => autoModulesApi.list(moduleId, { view: view.id, q: debouncedQuery || undefined }),
+		queryKey: [
+			"module-entries",
+			moduleId,
+			view.id,
+			{ q: debouncedQuery || undefined, view: view.id },
+		] as const,
+		queryFn: () =>
+			autoModulesApi.list(moduleId, { view: view.id, q: debouncedQuery || undefined }),
 	});
 
 	const settings = view.settings as Record<string, unknown> | undefined;
@@ -95,7 +75,10 @@ export const ImagesView = ({ moduleId, view }: ImagesViewProps) => {
 		<>
 			<div className="mb-3 flex flex-wrap items-center gap-3">
 				<div className="relative max-w-md flex-1">
-					<Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-3" />
+					<Search
+						size={14}
+						className="absolute left-3 top-1/2 -translate-y-1/2 text-text-3"
+					/>
 					<input
 						className="w-full rounded-md border border-border bg-surface py-1.5 pl-9 pr-9 text-[13.5px] placeholder:text-text-3 focus:outline-none focus:ring-1 focus:ring-accent-ring"
 						placeholder={`Search ${view.title.toLowerCase()}…`}

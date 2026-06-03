@@ -20,6 +20,7 @@ import {
 
 import { ApiError } from "@/types/api";
 import { toast } from "@/lib/toast";
+import { useScrollToFirstError } from "@/hooks/useScrollToFirstError";
 import { validateRequired } from "@/lib/formValidation";
 
 /**
@@ -46,6 +47,8 @@ export const TemplateEdit = () => {
 			: {}
 	);
 	const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+
+	useScrollToFirstError(fieldErrors);
 	const [settingsErrors, setSettingsErrors] = useState<Record<number, Record<string, string>>>(
 		{}
 	);
@@ -316,7 +319,11 @@ export const TextField = ({
 			className="w-full rounded-md border border-border bg-surface px-3 py-2 text-[13px] focus:outline-none focus:ring-1 focus:ring-accent-ring disabled:cursor-not-allowed disabled:opacity-60"
 		/>
 		{hint && <span className="mt-1 block text-[11px] text-text-3">{hint}</span>}
-		{error && <span className="mt-1 block text-[11.5px] text-danger">{error}</span>}
+		{error && (
+			<span data-field-error className="mt-1 block text-[11.5px] text-danger">
+				{error}
+			</span>
+		)}
 	</label>
 );
 
