@@ -395,133 +395,152 @@ export const PropertiesTab = ({
 	fieldErrors,
 	disabled,
 	onPatch,
-}: PropertiesTabProps) => (
-	<>
-		<div className="grid grid-cols-1 gap-[18px] md:grid-cols-2 md:gap-x-[22px]">
-			<Field label="Navigation Title" error={fieldErrors.nav_title}>
-				<input
-					className={INPUT}
-					value={body.nav_title ?? ""}
-					onChange={(e) => onPatch({ nav_title: e.target.value })}
-					placeholder="Shown in site nav and breadcrumbs"
-					disabled={disabled}
-				/>
-			</Field>
+}: PropertiesTabProps) => {
+	const flexibleTemplates = templates.filter((t) => !t.routed);
+	const specialTemplates = templates.filter((t) => t.routed);
 
-			<Field
-				label="Page Title"
-				hint="(web browsers use this for their title bar)"
-				error={fieldErrors.title}
-			>
-				<input
-					className={INPUT}
-					value={body.title ?? ""}
-					onChange={(e) => onPatch({ title: e.target.value })}
-					placeholder={body.nav_title || "e.g. About us — Your Site"}
-					disabled={disabled}
-				/>
-			</Field>
-		</div>
-
-		<div className="grid grid-cols-1 gap-[18px] md:grid-cols-3 md:gap-x-[22px]">
-			<Field label="Publish At" hint="(blank = immediately)">
-				<DateInput
-					value={body.publish_at ?? ""}
-					onChange={(v) => onPatch({ publish_at: v || null })}
-					disabled={disabled}
-				/>
-			</Field>
-			<Field label="Expire At" hint="(blank = never)">
-				<DateInput
-					value={body.expire_at ?? ""}
-					onChange={(v) => onPatch({ expire_at: v || null })}
-					disabled={disabled}
-				/>
-			</Field>
-			<Field label="Content Max Age" hint="(before alerts)">
-				<select
-					className={INPUT}
-					value={body.max_age ?? 0}
-					onChange={(e) => onPatch({ max_age: Number(e.target.value) })}
-					disabled={disabled}
-				>
-					<option value={0}>No Limit</option>
-					<option value={30}>30 days</option>
-					<option value={90}>90 days</option>
-					<option value={180}>6 months</option>
-					<option value={365}>1 year</option>
-				</select>
-			</Field>
-		</div>
-
-		<div className="flex flex-wrap items-center gap-4 rounded-md border border-border bg-surface-2 px-3 py-2">
-			<Check
-				label="Visible in Navigation"
-				checked={Boolean(body.in_nav)}
-				onChange={(v) => onPatch({ in_nav: v })}
-				disabled={disabled}
-			/>
-			<Check
-				label="Trunk"
-				checked={Boolean(body.trunk)}
-				onChange={(v) => onPatch({ trunk: v })}
-				disabled={disabled}
-			/>
-		</div>
-
-		<div className="my-1 h-px bg-border" />
-
-		<div className="grid grid-cols-1 gap-[18px] md:grid-cols-2 md:gap-x-[22px]">
-			<Field label="Template" error={fieldErrors.template}>
-				<select
-					className={INPUT}
-					value={templateDisabled ? "" : (body.template ?? "")}
-					onChange={(e) => onPatch({ template: e.target.value })}
-					disabled={disabled || templateDisabled}
-				>
-					{templateDisabled && (
-						<option value="">— (overridden by External Link) —</option>
-					)}
-					{!templateDisabled && <option value="">— None —</option>}
-					{templates.map((t) => (
-						<option key={t.id} value={t.id}>
-							{t.name}
-						</option>
-					))}
-				</select>
-				{templateDisabled && (
-					<span className="mt-1 block text-[11px] text-warn">
-						Disabled while External Link is set.
-					</span>
-				)}
-			</Field>
-
-			<Field
-				label="External Link"
-				hint="(include http://, overrides template)"
-				error={fieldErrors.external}
-			>
-				<input
-					className={INPUT}
-					value={body.external ?? ""}
-					onChange={(e) => onPatch({ external: e.target.value })}
-					placeholder="https://"
-					disabled={disabled}
-				/>
-				<label className="mt-2 flex items-center gap-2 text-[12.5px] text-text-2">
+	return (
+		<>
+			<div className="grid grid-cols-1 gap-[18px] md:grid-cols-2 md:gap-x-[22px]">
+				<Field label="Navigation Title" error={fieldErrors.nav_title}>
 					<input
-						type="checkbox"
-						className="h-4 w-4 rounded border-border accent-accent"
-						checked={Boolean(body.new_window)}
-						onChange={(e) => onPatch({ new_window: e.target.checked })}
-						disabled={disabled || !body.external}
+						className={INPUT}
+						value={body.nav_title ?? ""}
+						onChange={(e) => onPatch({ nav_title: e.target.value })}
+						placeholder="Shown in site nav and breadcrumbs"
+						disabled={disabled}
 					/>
-					Open in New Window
-				</label>
-			</Field>
-		</div>
-	</>
-);
+				</Field>
+
+				<Field
+					label="Page Title"
+					hint="(web browsers use this for their title bar)"
+					error={fieldErrors.title}
+				>
+					<input
+						className={INPUT}
+						value={body.title ?? ""}
+						onChange={(e) => onPatch({ title: e.target.value })}
+						placeholder={body.nav_title || "e.g. About us — Your Site"}
+						disabled={disabled}
+					/>
+				</Field>
+			</div>
+
+			<div className="grid grid-cols-1 gap-[18px] md:grid-cols-3 md:gap-x-[22px]">
+				<Field label="Publish At" hint="(blank = immediately)">
+					<DateInput
+						value={body.publish_at ?? ""}
+						onChange={(v) => onPatch({ publish_at: v || null })}
+						disabled={disabled}
+					/>
+				</Field>
+				<Field label="Expire At" hint="(blank = never)">
+					<DateInput
+						value={body.expire_at ?? ""}
+						onChange={(v) => onPatch({ expire_at: v || null })}
+						disabled={disabled}
+					/>
+				</Field>
+				<Field label="Content Max Age" hint="(before alerts)">
+					<select
+						className={INPUT}
+						value={body.max_age ?? 0}
+						onChange={(e) => onPatch({ max_age: Number(e.target.value) })}
+						disabled={disabled}
+					>
+						<option value={0}>No Limit</option>
+						<option value={30}>30 days</option>
+						<option value={90}>90 days</option>
+						<option value={180}>6 months</option>
+						<option value={365}>1 year</option>
+					</select>
+				</Field>
+			</div>
+
+			<div className="flex flex-wrap items-center gap-4 rounded-md border border-border bg-surface-2 px-3 py-2">
+				<Check
+					label="Visible in Navigation"
+					checked={Boolean(body.in_nav)}
+					onChange={(v) => onPatch({ in_nav: v })}
+					disabled={disabled}
+				/>
+				<Check
+					label="Trunk"
+					checked={Boolean(body.trunk)}
+					onChange={(v) => onPatch({ trunk: v })}
+					disabled={disabled}
+				/>
+			</div>
+
+			<div className="my-1 h-px bg-border" />
+
+			<div className="grid grid-cols-1 gap-[18px] md:grid-cols-2 md:gap-x-[22px]">
+				<Field label="Template" error={fieldErrors.template}>
+					<select
+						className={INPUT}
+						value={templateDisabled ? "" : (body.template ?? "")}
+						onChange={(e) => onPatch({ template: e.target.value })}
+						disabled={disabled || templateDisabled}
+					>
+						{templateDisabled && (
+							<option value="">— (overridden by External Link) —</option>
+						)}
+
+						{!templateDisabled && (
+							<>
+								<optgroup label="Flexible Templates">
+									{flexibleTemplates.map((t) => (
+										<option key={t.id} value={t.id}>
+											{t.name}
+										</option>
+									))}
+								</optgroup>
+
+								<optgroup label="Special Templates">
+									{specialTemplates.map((t) => (
+										<option key={t.id} value={t.id}>
+											{t.name}
+										</option>
+									))}
+								</optgroup>
+							</>
+						)}
+					</select>
+					{templateDisabled && (
+						<span className="mt-1 block text-[11px] text-warn">
+							Disabled while External Link is set.
+						</span>
+					)}
+				</Field>
+
+				<Field
+					label="External Link"
+					hint="(include http://, overrides template)"
+					error={fieldErrors.external}
+				>
+					<input
+						className={INPUT}
+						value={body.external ?? ""}
+						onChange={(e) => onPatch({ external: e.target.value })}
+						placeholder="https://"
+						disabled={disabled}
+					/>
+					<label className="mt-2 flex items-center gap-2 text-[12.5px] text-text-2">
+						<input
+							type="checkbox"
+							className="h-4 w-4 rounded border-border accent-accent"
+							checked={Boolean(body.new_window)}
+							onChange={(e) => onPatch({ new_window: e.target.checked })}
+							disabled={disabled || !body.external}
+						/>
+						Open in New Window
+					</label>
+				</Field>
+			</div>
+		</>
+	);
+};
 
 interface ContentTabProps {
 	body: PageEditBody;

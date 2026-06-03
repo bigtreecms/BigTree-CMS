@@ -12,8 +12,10 @@ import type { DragReorderApi } from "@/hooks/useDragReorder";
  *
  * - Grip: drag-to-reorder. Locked rows (no edit access) get a faded grip.
  * - Title: single-click navigates into the page; double-click renames inline.
- * - Archive icon: toggles archived state. Becomes "restore" icon when archived.
- * - Edit icon: navigates to the page editor (future — placeholder for now).
+ * - Left action: toggles archived state (becomes "restore" when archived). For
+ *   draft rows (pending NEW changes) it instead becomes a Delete action — these
+ *   are pending changes that should be deleted, not archived, matching legacy.
+ * - Right action: Delete (archived rows) or Edit link (everything else).
  */
 
 interface PageRowProps {
@@ -25,7 +27,11 @@ interface PageRowProps {
 	allowReorder?: boolean;
 	/** Optional override label for the left action column (used for title attribute on archived rows). */
 	leftActionLabel?: string;
-	/** Optional delete handler. When present, the right column renders a delete button instead of edit link. */
+	/**
+	 * Optional delete handler. Renders a delete button in the right column for
+	 * archived rows, and in the left (archive) column for draft rows (pending
+	 * NEW changes) — those are deleted rather than archived.
+	 */
 	onDelete?: () => void;
 	/** Optional move-to-different-parent handler. When present, a Move button appears between Archive and Edit. */
 	onMove?: () => void;
@@ -45,6 +51,11 @@ export const PageRow = ({
 	const canReorder = allowReorder && !locked;
 	const isDragging = drag.dragId === row.id;
 	const isDropTarget = drag.overId === row.id && drag.dragId !== row.id;
+
+	// Draft pages (pending NEW changes) only exist in bigtree_pending_changes —
+	// they are deleted rather than archived.
+	const isDraft = Boolean(row.pending) && !row.archived;
+	const leftActionIsDelete = isDraft && Boolean(onDelete);
 
 	return (
 		<div
@@ -97,16 +108,28 @@ export const PageRow = ({
 				</span>
 			</div>
 
-			{/* Archive */}
-			<button
-				type="button"
-				onClick={onToggleArchive}
-				className="grid h-7 w-7 place-items-center rounded-md border-0 bg-transparent text-text-3 transition-colors hover:bg-hover hover:text-text disabled:cursor-not-allowed disabled:opacity-40"
-				title={leftActionLabel ?? (row.archived ? "Restore" : "Archive")}
-				disabled={locked}
-			>
-				{row.archived ? <RotateCcw size={14} /> : <Archive size={14} />}
-			</button>
+			{/* Left action: Delete (draft pages) or Archive/Restore */}
+			{leftActionIsDelete ? (
+				<button
+					type="button"
+					onClick={onDelete}
+					className="grid h-7 w-7 place-items-center rounded-md border-0 bg-transparent text-text-3 transition-colors hover:bg-hover hover:text-danger disabled:cursor-not-allowed disabled:opacity-40"
+					title="Delete"
+					disabled={locked}
+				>
+					<Trash2 size={14} />
+				</button>
+			) : (
+				<button
+					type="button"
+					onClick={onToggleArchive}
+					className="grid h-7 w-7 place-items-center rounded-md border-0 bg-transparent text-text-3 transition-colors hover:bg-hover hover:text-text disabled:cursor-not-allowed disabled:opacity-40"
+					title={leftActionLabel ?? (row.archived ? "Restore" : "Archive")}
+					disabled={locked}
+				>
+					{row.archived ? <RotateCcw size={14} /> : <Archive size={14} />}
+				</button>
+			)}
 
 			{/* Move */}
 			{onMove ? (
@@ -124,8 +147,8 @@ export const PageRow = ({
 				<span />
 			)}
 
-			{/* Right action: Delete (if onDelete provided) or Edit link */}
-			{onDelete ? (
+			{/* Right action: Delete (archived rows) or Edit link */}
+			{row.archived && onDelete ? (
 				<button
 					type="button"
 					onClick={onDelete}

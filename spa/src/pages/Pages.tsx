@@ -12,6 +12,7 @@ import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { toast } from "@/lib/toast";
 import { pagesApi, type PageListRow } from "@/api/endpoints/pages";
+import { pendingChangesApi } from "@/api/endpoints/dashboard";
 import { relativeTime } from "@/lib/time";
 
 /**
@@ -59,6 +60,12 @@ export const Pages = () => {
 		type: "archive" | "restore" | "delete";
 		id: number;
 		title: string;
+		/**
+		 * Set when deleting a draft (pending NEW page). These live only in
+		 * bigtree_pending_changes, so they're removed by rejecting the change
+		 * rather than deleting a real page row.
+		 */
+		pendingChangeId?: number;
 	}
 
 	const [pendingConfirm, setPendingConfirm] = useState<PendingConfirm | null>(null);
@@ -134,8 +141,9 @@ export const Pages = () => {
 	});
 
 	const deleteMutation = useMutation({
-		mutationFn: (id: number) => pagesApi.delete(id),
-		onMutate: async (id) => {
+		mutationFn: ({ id, pendingChangeId }: { id: number; pendingChangeId?: number }) =>
+			pendingChangeId ? pendingChangesApi.reject(pendingChangeId) : pagesApi.delete(id),
+		onMutate: async ({ id }) => {
 			await queryClient.cancelQueries({
 				queryKey: ["pages", "list", parent],
 			});
@@ -275,6 +283,18 @@ export const Pages = () => {
 										}
 									}}
 									emptyLabel="No visible pages."
+									onDelete={(id) => {
+										const r = visible.find((x) => x.id === id);
+
+										if (r) {
+											setPendingConfirm({
+												type: "delete",
+												id,
+												title: r.nav_title,
+												pendingChangeId: r.pending_change_id,
+											});
+										}
+									}}
 									onMove={(id) => {
 										const r = visible.find((x) => x.id === id);
 
@@ -306,6 +326,18 @@ export const Pages = () => {
 									}}
 									emptyLabel="No hidden pages."
 									allowReorder={false}
+									onDelete={(id) => {
+										const r = hidden.find((x) => x.id === id);
+
+										if (r) {
+											setPendingConfirm({
+												type: "delete",
+												id,
+												title: r.nav_title,
+												pendingChangeId: r.pending_change_id,
+											});
+										}
+									}}
 									onMove={(id) => {
 										const r = hidden.find((x) => x.id === id);
 
@@ -397,7 +429,10 @@ export const Pages = () => {
 				onConfirm={() => {
 					if (pendingConfirm) {
 						if (pendingConfirm.type === "delete") {
-							deleteMutation.mutate(pendingConfirm.id);
+							deleteMutation.mutate({
+								id: pendingConfirm.id,
+								pendingChangeId: pendingConfirm.pendingChangeId,
+							});
 						} else {
 							const isRestoring = pendingConfirm.type === "restore";
 

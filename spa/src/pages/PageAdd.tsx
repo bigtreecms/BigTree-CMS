@@ -82,6 +82,23 @@ export const PageAdd = () => {
 		queryFn: () => templatesApi.list(),
 	});
 
+	// Default the template to the first flexible (non-routed) template once the
+	// list loads, falling back to the first routed template — mirroring the
+	// legacy admin, which has no "None" option for a page's template.
+	useEffect(() => {
+		const templates = templatesQuery.data;
+
+		if (!templates || templates.length === 0 || body.template) {
+			return;
+		}
+
+		const fallback = templates.find((t) => !t.routed) ?? templates[0];
+
+		if (fallback) {
+			setBody((prev) => ({ ...prev, template: fallback.id }));
+		}
+	}, [templatesQuery.data, body.template]);
+
 	const templateQuery = useQuery({
 		queryKey: ["templates", "detail", body.template],
 		queryFn: () => templatesApi.get(body.template as string),
