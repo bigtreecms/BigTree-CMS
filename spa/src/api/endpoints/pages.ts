@@ -85,6 +85,13 @@ export interface PageDetail {
 		image_height: number;
 	} | null;
 	lineage?: Array<{ id: number; nav_title: string; route: string }>;
+
+	/** True when the payload reflects an unpublished draft overlaid on (or in place of) the live page. */
+	changes_applied?: boolean;
+	/** The bigtree_pending_changes id backing this draft, when `changes_applied`. */
+	pending_change_id?: number;
+	/** True for a NEW draft that only exists in bigtree_pending_changes (no live row; `id` is 0). */
+	pending?: boolean;
 }
 
 /** Body shape for POST /pages and PATCH /pages/{id} edits. */
@@ -155,10 +162,23 @@ export const pagesApi = {
 			query: { parent, include_archived: includeArchived },
 		}),
 
-	get: (id: number, opts: { lineage?: boolean } = {}) =>
+	get: (id: number, opts: { lineage?: boolean; pending?: boolean } = {}) =>
 		api.get<PageDetail>(`/pages/${id}`, {
+			query: {
+				...(opts.lineage ? { fields: "lineage" } : {}),
+				...(opts.pending ? { pending: true } : {}),
+			},
+		}),
+
+	/** Load a NEW page draft (lives only in bigtree_pending_changes) by its change id. */
+	getPending: (pcid: number, opts: { lineage?: boolean } = {}) =>
+		api.get<PageDetail>(`/pages/pending/${pcid}`, {
 			query: opts.lineage ? { fields: "lineage" } : undefined,
 		}),
+
+	/** Re-save a NEW page draft, or promote it to live (body.publish = true). */
+	patchPending: (pcid: number, body: PageEditBody) =>
+		api.patch<PageDetail | PagePendingResult>(`/pages/pending/${pcid}`, body),
 
 	search: (q: string) => api.get<PageSearchHit[]>("/pages/search", { query: { q } }),
 

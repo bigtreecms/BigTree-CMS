@@ -44,10 +44,22 @@
 			"audit" => ["table" => "bigtree_pages", "type" => "created", "entry" => "%id%"],
 		],
 
+		"GET /pages/pending/{pcid:int}" => [
+			"service" => [PageService::class, "getPending"],
+			"permission" => ["level" => 0],
+			"query" => ["fields" => "string|max:255"],
+		],
+		"PATCH /pages/pending/{pcid:int}" => [
+			"service" => [PageService::class, "updatePending"],
+			"permission" => ["level" => 0],
+			"allow_unknown" => true,
+			"audit" => ["table" => "bigtree_pending_changes", "type" => "updated", "entry" => "%pcid%"],
+		],
+
 		"GET /pages/{id:int}" => [
 			"service" => [PageService::class, "get"],
 			"permission" => ["level" => 0],
-			"query" => ["fields" => "string|max:255"],
+			"query" => ["fields" => "string|max:255", "pending" => "bool"],
 		],
 		"PATCH /pages/{id:int}" => [
 			"service" => [PageService::class, "update"],

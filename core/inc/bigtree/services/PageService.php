@@ -151,6 +151,12 @@
 			// offer "Save & Publish" (publishers only) alongside "Save".
 			$out["access"] = PermissionService::userPageLevel($request->user, $id);
 
+			// The edit screen requests pending=true so it can keep editing the queued
+			// draft (mirrors legacy getPendingPage) rather than the live content.
+			if (!empty($request->query["pending"])) {
+				$this->applyPendingOverlay($out, $id);
+			}
+
 			if (!empty($request->query["fields"]) && strpos((string)$request->query["fields"], "lineage") !== false) {
 				$out["lineage"] = $this->lineage($id);
 			}
@@ -372,6 +378,11 @@
 				$this->invalidateMultiSiteCache();
 			}
 
+			// Publishing live supersedes any queued draft for this page (mirrors
+			// updatePage:9819) — otherwise a stale EDIT change would keep showing
+			// "Changed" and could be re-approved over the freshly published content.
+			SQL::delete("bigtree_pending_changes", ["table" => "bigtree_pages", "item_id" => $id]);
+
 			// Tags + open-graph: only touch if the caller included the keys, so a partial
 			// PATCH doesn't wipe existing tags/OG just because they weren't sent.
 			if (array_key_exists("tags", $d)) {
@@ -406,58 +417,39 @@
 		 * user's repeated saves collapse into one draft (mirrors submitPageChange).
 		 */
 		private function writePendingPageChange($user, string $type, int $item_or_parent, array $d): int {
-			$changes = $d;
-			unset($changes["publish"], $changes["tags"], $changes["open_graph"], $changes["parent"]);
+			[$changes, $tags_changes, $open_graph_changes] = $this->pendingChangeFields($user, $d);
 
-			// Record tags/OG only when the caller actually submitted them, so the
-			// publish step mirrors the live path (which keys off array_key_exists)
-			// and a save that omits them doesn't wipe existing associations. A NULL
-			// column means "not submitted"; "[]" means "explicitly cleared".
-			$tags = array_key_exists("tags", $d) ? array_values($d["tags"] ?? []) : null;
-			$open_graph = array_key_exists("open_graph", $d) ? ($d["open_graph"] ?? []) : null;
-
-			// Developer-only trunk flag: strip for non-devs so it can't be smuggled in.
-			if ((int)$user->level < 2) {
-				unset($changes["trunk"]);
-			}
+			$row = [
+				"user" => (int)$user->id,
+				"date" => "NOW()",
+				"table" => "bigtree_pages",
+				"mtm_changes" => [],
+				"tags_changes" => $tags_changes,
+				"open_graph_changes" => $open_graph_changes,
+				"module" => "",
+			];
 
 			if ($type === "NEW") {
 				$changes["parent"] = $item_or_parent;
-
-				$row = [
-					"user" => (int)$user->id,
-					"date" => "NOW()",
-					"title" => "New Page Created",
-					"table" => "bigtree_pages",
-					"changes" => $changes,
-					"tags_changes" => $tags,
-					"open_graph_changes" => $open_graph,
-					"type" => "NEW",
-					"module" => "",
-					"pending_page_parent" => $item_or_parent,
-				];
+				$row["changes"] = $changes;
+				$row["title"] = "New Page Created";
+				$row["type"] = "NEW";
+				$row["pending_page_parent"] = $item_or_parent;
 
 				return (int)SQL::insert("bigtree_pending_changes", $row);
 			}
 
 			// EDIT — collapse onto any existing queued change for this page.
+			$row["changes"] = $changes;
+			$row["title"] = "Page Change Pending";
+			$row["type"] = "EDIT";
+			$row["item_id"] = $item_or_parent;
+			$row["pending_page_parent"] = 0;
+
 			$existing = SQL::fetchSingle(
 				"SELECT id FROM bigtree_pending_changes WHERE `table` = 'bigtree_pages' AND item_id = ? AND type = 'EDIT'",
 				$item_or_parent
 			);
-
-			$row = [
-				"user" => (int)$user->id,
-				"date" => "NOW()",
-				"title" => "Page Change Pending",
-				"table" => "bigtree_pages",
-				"changes" => $changes,
-				"tags_changes" => $tags,
-				"open_graph_changes" => $open_graph,
-				"type" => "EDIT",
-				"module" => "",
-				"item_id" => $item_or_parent,
-			];
 
 			if ($existing) {
 				SQL::update("bigtree_pending_changes", (int)$existing, $row);
@@ -469,28 +461,41 @@
 		}
 
 		/**
+		 * Normalize a submitted page body into the three stored pieces of a pending
+		 * change: the `changes` blob (tags/open_graph kept inside it, only when
+		 * actually submitted, so publish can mirror the live array_key_exists path)
+		 * and the separate NOT NULL tags/OG columns (kept for the SPA's diff view).
+		 *
+		 * @return array{0: array, 1: array, 2: array} [changes, tags_changes, open_graph_changes]
+		 */
+		private function pendingChangeFields($user, array $d): array {
+			$changes = $d;
+			unset($changes["publish"]);
+
+			// Developer-only trunk flag: strip for non-devs so it can't be smuggled in.
+			if ((int)$user->level < 2) {
+				unset($changes["trunk"]);
+			}
+
+			$tags_changes = array_key_exists("tags", $d) ? array_values($d["tags"] ?? []) : [];
+			$open_graph_changes = array_key_exists("open_graph", $d) ? ($d["open_graph"] ?? []) : [];
+
+			return [$changes, $tags_changes, $open_graph_changes];
+		}
+
+		/**
 		 * Apply a queued page pending change to the live tree, then delete the
 		 * queue row. NEW promotes the draft to a real page; EDIT replays the saved
 		 * field changes onto the existing page. Called by PendingChangeService on
 		 * approve. Returns the presented live page payload.
 		 */
 		public function publishPendingChange(array $row, $user): array {
-			$changes = is_array($row["changes"]) ? $row["changes"] : (json_decode($row["changes"] ?: "[]", true) ?: []);
-
-			$d = $changes;
-
-			// Only replay tags/OG when they were part of the original submission
-			// (NULL column = not submitted) — otherwise leave existing data alone.
-			if (isset($row["tags_changes"]) && $row["tags_changes"] !== null && $row["tags_changes"] !== "") {
-				$d["tags"] = is_array($row["tags_changes"]) ? $row["tags_changes"] : (json_decode($row["tags_changes"], true) ?: []);
-			}
-
-			if (isset($row["open_graph_changes"]) && $row["open_graph_changes"] !== null && $row["open_graph_changes"] !== "") {
-				$d["open_graph"] = is_array($row["open_graph_changes"]) ? $row["open_graph_changes"] : (json_decode($row["open_graph_changes"], true) ?: []);
-			}
+			// tags/open_graph (when submitted) live inside the changes blob, so the
+			// performCreate/performUpdate paths see them exactly as a live save would.
+			$d = is_array($row["changes"]) ? $row["changes"] : (json_decode($row["changes"] ?: "[]", true) ?: []);
 
 			if ($row["type"] === "NEW") {
-				$d["parent"] = (int)($changes["parent"] ?? $row["pending_page_parent"] ?? 0);
+				$d["parent"] = (int)($d["parent"] ?? $row["pending_page_parent"] ?? 0);
 				$result = $this->performCreate($d, $user);
 			} else {
 				$id = (int)$row["item_id"];
@@ -506,6 +511,167 @@
 			SQL::delete("bigtree_pending_changes", (int)$row["id"]);
 
 			return $result;
+		}
+
+		/**
+		 * Overlay a live page's queued EDIT draft onto its presented payload so the
+		 * edit screen keeps editing the draft instead of the published content
+		 * (mirrors legacy getPendingPage). Sets `changes_applied` + `pending_change_id`
+		 * so the SPA can show a "you're editing an unpublished draft" indicator.
+		 */
+		private function applyPendingOverlay(array &$out, int $id): void {
+			$change = SQL::fetch(
+				"SELECT * FROM bigtree_pending_changes WHERE `table` = 'bigtree_pages' AND item_id = ? AND type = 'EDIT'",
+				$id
+			);
+
+			if (!$change) {
+				return;
+			}
+
+			$changes = json_decode($change["changes"] ?: "{}", true) ?: [];
+
+			// The change blob stores values in the same shape the SPA submits (and
+			// present() emits), so a direct overlay is safe for each known field.
+			$overlay_fields = [
+				"nav_title", "title", "route", "in_nav", "template", "external",
+				"new_window", "meta_keywords", "meta_description", "seo_invisible",
+				"publish_at", "expire_at", "max_age", "trunk", "resources", "open_graph",
+			];
+
+			foreach ($overlay_fields as $field) {
+				if (array_key_exists($field, $changes)) {
+					$out[$field] = $changes[$field];
+				}
+			}
+
+			$out["changes_applied"] = true;
+			$out["pending_change_id"] = (int)$change["id"];
+			$out["updated_at"] = $change["date"];
+		}
+
+		/**
+		 * GET /pages/pending/{pcid} — load a NEW page draft (one that only lives in
+		 * bigtree_pending_changes) as an edit-ready page payload. Access derives from
+		 * the draft's intended parent.
+		 */
+		public function getPending(Request $request) {
+			$pcid = (int)$request->route_params["pcid"];
+			$change = $this->loadPendingNew($pcid);
+			$parent = (int)$change["pending_page_parent"];
+			$this->enforce($request->user, $parent, "e", "edit draft");
+
+			$out = $this->presentPending($change, $request->user);
+
+			if (!empty($request->query["fields"]) && strpos((string)$request->query["fields"], "lineage") !== false) {
+				$out["lineage"] = $this->lineage($parent);
+			}
+
+			return Response::ok($out);
+		}
+
+		/**
+		 * PATCH /pages/pending/{pcid} — re-save a NEW page draft, or (with publish=true
+		 * and publisher rights) promote it to a live page. Returns the live page
+		 * payload on publish, or a pending marker on draft save.
+		 */
+		public function updatePending(Request $request) {
+			$pcid = (int)$request->route_params["pcid"];
+			$change = $this->loadPendingNew($pcid);
+			$parent = (int)$change["pending_page_parent"];
+			$this->enforce($request->user, $parent, "e", "edit draft");
+
+			$d = $request->body;
+			$access = PermissionService::userPageLevel($request->user, $parent);
+			$can_publish = ($access === "p") || ((int)$request->user->level > 0);
+
+			if (!empty($d["publish"]) && $can_publish) {
+				// Replay the latest form data into the change before promoting it, so
+				// publish reflects what's on screen, then publishPendingChange creates
+				// the live page and drops the queue row.
+				$change["changes"] = $this->stampPendingNew($pcid, $request->user, $parent, $d);
+				// publishPendingChange → performCreate fires page.created itself.
+				$result = $this->publishPendingChange($change, $request->user);
+
+				return Response::ok($result);
+			}
+
+			$this->stampPendingNew($pcid, $request->user, $parent, $d);
+
+			Hooks::fire("page.pending_updated", [
+				"pending_change_id" => $pcid, "parent" => $parent,
+			], ["user_id" => $request->user->id]);
+
+			return Response::ok(["pending" => true, "pending_change_id" => $pcid]);
+		}
+
+		/** Load a NEW page draft row or 404. */
+		private function loadPendingNew(int $pcid): array {
+			$change = SQL::fetch(
+				"SELECT * FROM bigtree_pending_changes WHERE id = ? AND `table` = 'bigtree_pages' AND type = 'NEW'",
+				$pcid
+			);
+
+			if (!$change) {
+				throw new NotFoundException("Page draft $pcid not found", "resource_not_found", 404);
+			}
+
+			return $change;
+		}
+
+		/** Rewrite a NEW draft's stored data from a fresh submission; returns the new changes array. */
+		private function stampPendingNew(int $pcid, $user, int $parent, array $d): array {
+			[$changes, $tags_changes, $open_graph_changes] = $this->pendingChangeFields($user, $d);
+			$changes["parent"] = $parent;
+
+			SQL::update("bigtree_pending_changes", $pcid, [
+				"user" => (int)$user->id,
+				"date" => "NOW()",
+				"changes" => $changes,
+				"tags_changes" => $tags_changes,
+				"open_graph_changes" => $open_graph_changes,
+			]);
+
+			return $changes;
+		}
+
+		/** Shape a NEW draft change row into the same payload as a live PageDetail. */
+		private function presentPending(array $change, $user): array {
+			$changes = is_array($change["changes"]) ? $change["changes"] : (json_decode($change["changes"] ?: "{}", true) ?: []);
+			$parent = (int)$change["pending_page_parent"];
+
+			return [
+				"id" => 0,
+				"parent" => $parent,
+				"access" => PermissionService::userPageLevel($user, $parent),
+				"trunk" => !empty($changes["trunk"]),
+				"in_nav" => !empty($changes["in_nav"]),
+				"nav_title" => (string)($changes["nav_title"] ?? ""),
+				"route" => (string)($changes["route"] ?? ""),
+				"path" => "",
+				"title" => (string)($changes["title"] ?? ""),
+				"meta_keywords" => (string)($changes["meta_keywords"] ?? ""),
+				"meta_description" => (string)($changes["meta_description"] ?? ""),
+				"seo_invisible" => !empty($changes["seo_invisible"]),
+				"template" => (string)($changes["template"] ?? ""),
+				"external" => (string)($changes["external"] ?? ""),
+				"new_window" => !empty($changes["new_window"]),
+				"resources" => $changes["resources"] ?? new \stdClass(),
+				"archived" => !empty($changes["archived"]),
+				"archived_inherited" => false,
+				"publish_at" => $changes["publish_at"] ?? null,
+				"expire_at" => $changes["expire_at"] ?? null,
+				"max_age" => (int)($changes["max_age"] ?? 0),
+				"last_edited_by" => (int)$change["user"],
+				"position" => 0,
+				"created_at" => $change["date"],
+				"updated_at" => $change["date"],
+				"tags" => [],
+				"open_graph" => $changes["open_graph"] ?? null,
+				"changes_applied" => true,
+				"pending" => true,
+				"pending_change_id" => (int)$change["id"],
+			];
 		}
 
 		public function delete(Request $request) {

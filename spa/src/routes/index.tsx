@@ -147,6 +147,10 @@ export const router = createBrowserRouter(
 									element: <PageEdit />,
 								},
 								{
+									path: "draft/:pcid/edit",
+									element: <PageEdit />,
+								},
+								{
 									path: ":id/edit/revisions",
 									element: <PageRevisions />,
 								},

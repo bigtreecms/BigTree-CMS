@@ -161,7 +161,11 @@ export const PageRow = ({
 				</button>
 			) : (
 				<Link
-					to={`/pages/${row.id}/edit`}
+					to={
+						isDraft
+							? `/pages/draft/${row.pending_change_id}/edit`
+							: `/pages/${row.id}/edit`
+					}
 					state={{ from: location.pathname + location.search }}
 					className="grid h-7 w-7 place-items-center rounded-md border-0 bg-transparent text-text-3 transition-colors hover:bg-hover hover:text-text"
 					title="Edit page"

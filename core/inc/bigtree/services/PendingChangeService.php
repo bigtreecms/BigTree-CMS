@@ -95,13 +95,26 @@
 				throw new BadRequestException("Cannot resolve module for this change", "module_unresolved", 400);
 			}
 
-			if ($row["type"] === "NEW") {
-				BigTreeAutoModule::publishPendingItem($row["table"], $id, []);
-			} elseif ($row["type"] === "EDIT") {
-				BigTreeAutoModule::publishPendingItem($row["table"], $row["item_id"], json_decode($row["changes"], true) ?: []);
-				SQL::delete("bigtree_pending_changes", $id);
+			$changes = BigTreeAutoModule::sanitizeData($row["table"], json_decode($row["changes"], true) ?: []);
+			$mtm_changes = json_decode($row["mtm_changes"], true) ?: [];
+			$tags_changes = json_decode($row["tags_changes"], true) ?: [];
+			$open_graph_changes = json_decode($row["open_graph_changes"], true) ?: [];
+
+			// Branch on item_id, not type: a re-edited NEW draft keeps item_id = null
+			// while submitChange flips its type to "EDIT", so type is unreliable here.
+			if ($row["item_id"] !== null) {
+				// Existing entry — apply the change in place. updateItem deletes the
+				// pending change row itself once the live row is updated.
+				$item_id = (int)$row["item_id"];
+				BigTreeAutoModule::updateItem($row["table"], $item_id, $changes, $mtm_changes, $tags_changes, $open_graph_changes);
 			} else {
-				throw new BadRequestException("Unsupported pending change type: " . $row["type"], "bad_type", 400);
+				// New entry — promote the pending change to a real row. publishPendingItem
+				// deletes the pending change row itself (the id is the publishing change).
+				$item_id = BigTreeAutoModule::publishPendingItem($row["table"], $id, $changes, $mtm_changes, $tags_changes, $open_graph_changes);
+			}
+
+			if (!empty($row["publish_hook"]) && is_callable($row["publish_hook"])) {
+				call_user_func($row["publish_hook"], $row["table"], $item_id, $changes, $mtm_changes, $tags_changes, $open_graph_changes);
 			}
 
 			return Response::noContent();

@@ -19,6 +19,7 @@ import {
 	type PageDetail,
 	type PageEditBody,
 } from "@/api/endpoints/pages";
+import { pendingChangesApi } from "@/api/endpoints/dashboard";
 import { resourceToFormField, templatesApi, type TemplateSummary } from "@/api/endpoints/templates";
 
 import { FieldRenderer } from "@/renderer/forms/FieldRenderer";
@@ -65,13 +66,18 @@ const seedBody = (page: PageDetail): PageEditBody => ({
 });
 
 export const PageEdit = () => {
-	const { id: idParam } = useParams<{ id: string }>();
+	const { id: idParam, pcid: pcidParam } = useParams<{ id?: string; pcid?: string }>();
+	// Two mount points share this component: /pages/:id/edit (a live page, whose
+	// queued EDIT draft is overlaid on load) and /pages/draft/:pcid/edit (a NEW
+	// page that only exists in bigtree_pending_changes).
+	const draft = pcidParam !== undefined;
 	const id = Number(idParam);
+	const pcid = Number(pcidParam);
 	const navigate = useNavigate();
 	const location = useLocation();
 	const queryClient = useQueryClient();
 
-	const valid = Number.isFinite(id) && id > 0;
+	const valid = draft ? Number.isFinite(pcid) && pcid > 0 : Number.isFinite(id) && id > 0;
 
 	// Where to send the editor after a save/delete. Mirrors the legacy admin,
 	// which never leaves you on the edit screen with just a growl: it returns to
@@ -88,8 +94,13 @@ export const PageEdit = () => {
 	};
 
 	const pageQuery = useQuery({
-		queryKey: ["pages", "detail", id, { lineage: true }],
-		queryFn: () => pagesApi.get(id, { lineage: true }),
+		queryKey: draft
+			? ["pages", "draft", pcid]
+			: ["pages", "detail", id, { lineage: true, pending: true }],
+		queryFn: () =>
+			draft
+				? pagesApi.getPending(pcid, { lineage: true })
+				: pagesApi.get(id, { lineage: true, pending: true }),
 		enabled: valid,
 	});
 
@@ -105,11 +116,12 @@ export const PageEdit = () => {
 		enabled: Boolean(templateId),
 	});
 
+	// NEW drafts have no live row to lock; only live pages take an edit lock.
 	const lock = useLock({
 		table: "bigtree_pages",
-		itemId: id,
+		itemId: draft ? 0 : id,
 		title: pageQuery.data?.nav_title,
-		enabled: valid && Boolean(pageQuery.data),
+		enabled: !draft && valid && Boolean(pageQuery.data),
 	});
 
 	const [body, setBody] = useState<PageEditBody | null>(null);
@@ -130,12 +142,17 @@ export const PageEdit = () => {
 	}, [pageQuery.data]);
 
 	const saveMutation = useMutation({
-		mutationFn: (next: PageEditBody) => pagesApi.patch(id, next),
+		mutationFn: (next: PageEditBody) =>
+			draft ? pagesApi.patchPending(pcid, next) : pagesApi.patch(id, next),
 		onSuccess: (updated) => {
 			queryClient.invalidateQueries({ queryKey: ["pages", "list"] });
 			// The live-publish response omits `access`/lineage, so invalidate rather
 			// than seeding the cache with a partial detail.
 			queryClient.invalidateQueries({ queryKey: ["pages", "detail", id] });
+
+			if (draft) {
+				queryClient.invalidateQueries({ queryKey: ["pages", "draft", pcid] });
+			}
 
 			if (isPendingResult(updated)) {
 				toast.success("Draft saved", {
@@ -163,14 +180,16 @@ export const PageEdit = () => {
 	});
 
 	const deleteMutation = useMutation({
-		mutationFn: () => pagesApi.delete(id),
+		// A NEW draft only exists in bigtree_pending_changes, so "deleting" it means
+		// rejecting the pending change (mirrors the tree's draft-delete action).
+		mutationFn: () => (draft ? pendingChangesApi.reject(pcid) : pagesApi.delete(id)),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ["pages", "list"] });
-			toast.success("Page deleted");
+			toast.success(draft ? "Draft deleted" : "Page deleted");
 			navigate(returnTo(pageQuery.data?.parent));
 		},
 		onError: () => {
-			toast.error("Could not delete page");
+			toast.error(draft ? "Could not delete draft" : "Could not delete page");
 		},
 	});
 
@@ -237,7 +256,7 @@ export const PageEdit = () => {
 	const breadcrumbs = [
 		{ label: "Pages", to: "/pages" },
 		...lineage.map((p) => ({ label: p.nav_title, to: `/pages/${p.id}` })),
-		{ label: "Edit" },
+		{ label: draft ? "Edit draft" : "Edit" },
 	];
 
 	const templateDisabled = Boolean(body.external && body.external.trim().length > 0);
@@ -267,8 +286,19 @@ export const PageEdit = () => {
 				active="edit"
 				pageId={page.id}
 				parentId={page.parent}
-				onMove={() => setMovingOpen(true)}
+				onMove={draft ? undefined : () => setMovingOpen(true)}
 			/>
+
+			{page.changes_applied && (
+				<div className="mb-3 rounded-md border border-warn/40 bg-warn/5 px-3 py-2 text-[12.5px] text-text-2">
+					{draft
+						? "This page is an unpublished draft and isn’t live yet. "
+						: "You’re editing unpublished draft changes — the live page still shows the previously published content. "}
+					{canPublish
+						? "“Save” keeps it as a draft; “Save & Publish” makes it live."
+						: "“Save” updates the draft for a publisher to review and publish."}
+				</div>
+			)}
 
 			{readOnly && (
 				<div className="mb-3 rounded-md border border-border bg-surface-2 px-3 py-2 text-[12.5px] text-text-2">
@@ -339,15 +369,6 @@ export const PageEdit = () => {
 					publishLabel={canPublish ? "Save & Publish" : undefined}
 					onPublish={canPublish ? () => handleSave(true) : undefined}
 					publishDisabled={readOnly || saveMutation.isPending}
-					secondary={
-						<button
-							type="button"
-							onClick={() => navigate(returnTo(page.parent))}
-							className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] text-text-2 hover:bg-hover"
-						>
-							<ChevronLeft size={13} /> Back
-						</button>
-					}
 				/>
 			</form>
 
@@ -355,20 +376,30 @@ export const PageEdit = () => {
 				<ConfirmDialog
 					open={true}
 					onOpenChange={setConfirmDelete}
-					title={`Delete “${page.nav_title}”?`}
-					description="This removes the page and all of its descendants. The action cannot be undone."
-					confirmLabel="Delete page"
+					title={
+						draft
+							? `Discard draft “${page.nav_title || "Untitled"}”?`
+							: `Delete “${page.nav_title}”?`
+					}
+					description={
+						draft
+							? "This permanently discards the unpublished draft. The page was never published, so nothing else is affected."
+							: "This removes the page and all of its descendants. The action cannot be undone."
+					}
+					confirmLabel={draft ? "Discard draft" : "Delete page"}
 					variant="danger"
 					onConfirm={() => deleteMutation.mutate()}
 				/>
 			)}
 
-			<MovePageDialog
-				open={movingOpen}
-				onOpenChange={setMovingOpen}
-				page={{ id: page.id, nav_title: page.nav_title, parent: page.parent }}
-				invalidateKey={["pages", "list", page.parent]}
-			/>
+			{!draft && (
+				<MovePageDialog
+					open={movingOpen}
+					onOpenChange={setMovingOpen}
+					page={{ id: page.id, nav_title: page.nav_title, parent: page.parent }}
+					invalidateKey={["pages", "list", page.parent]}
+				/>
+			)}
 		</div>
 	);
 };
