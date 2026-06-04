@@ -28,6 +28,20 @@ interface BuiltinToggleButtonsProps {
 
 const isOn = (raw: unknown): boolean => raw === "on" || raw === true || raw === 1 || raw === "1";
 
+/**
+ * Success messages mirror the legacy admin growls fired by
+ * ajax/auto-modules/views/{archive,approve,feature}.php — keyed by the source
+ * column and whether the flag is now set ("on") or cleared ("").
+ */
+const FLAG_TOAST_MESSAGES: Record<
+	ModuleEntryFlagToggleResponse["column"],
+	{ on: string; off: string }
+> = {
+	archived: { on: "Item is now archived.", off: "Item is now unarchived." },
+	approved: { on: "Item is now approved.", off: "Item is now unapproved." },
+	featured: { on: "Item is now featured.", off: "Item is now unfeatured." },
+};
+
 export const BuiltinToggleButtons = ({
 	moduleId,
 	viewId,
@@ -38,8 +52,14 @@ export const BuiltinToggleButtons = ({
 	const entryId = Number(row.id);
 	const canMutate = Number.isFinite(entryId) && entryId > 0;
 
-	const onSuccess = (_data: ModuleEntryFlagToggleResponse) => {
+	const onSuccess = (data: ModuleEntryFlagToggleResponse) => {
 		queryClient.invalidateQueries({ queryKey: ["module-entries", moduleId, viewId] });
+
+		const messages = FLAG_TOAST_MESSAGES[data.column];
+
+		if (messages) {
+			toast.success(data.value === "on" ? messages.on : messages.off);
+		}
 	};
 
 	const archiveMutation = useMutation({
