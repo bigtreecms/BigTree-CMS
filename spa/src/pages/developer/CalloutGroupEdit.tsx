@@ -15,6 +15,7 @@ import { calloutsApi, type CalloutGroupEditBody } from "@/api/endpoints/callouts
 import { ApiError } from "@/types/api";
 import { toast } from "@/lib/toast";
 import { useScrollToFirstError } from "@/hooks/useScrollToFirstError";
+import { useReturnTo } from "@/hooks/useReturnTo";
 import { validateRequired } from "@/lib/formValidation";
 
 import { TextField } from "./TemplateEdit";
@@ -23,6 +24,7 @@ export const CalloutGroupEdit = () => {
 	const { id: idParam } = useParams<{ id: string }>();
 	const isAdd = !idParam;
 	const navigate = useNavigate();
+	const returnTo = useReturnTo("/developer/callout-groups");
 	const queryClient = useQueryClient();
 
 	const [groupQ, calloutsQ] = useQueries({
@@ -70,6 +72,8 @@ export const CalloutGroupEdit = () => {
 				navigate(`/developer/callout-groups/${encodeURIComponent(fresh.id)}/edit`, {
 					replace: true,
 				});
+			} else {
+				navigate(returnTo);
 			}
 		},
 		onError: (err) => {

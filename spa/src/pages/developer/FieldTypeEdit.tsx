@@ -18,6 +18,7 @@ import {
 import { ApiError } from "@/types/api";
 import { toast } from "@/lib/toast";
 import { useScrollToFirstError } from "@/hooks/useScrollToFirstError";
+import { useReturnTo } from "@/hooks/useReturnTo";
 import { validateRequired } from "@/lib/formValidation";
 
 import { TextField } from "./TemplateEdit";
@@ -34,6 +35,7 @@ export const FieldTypeEdit = () => {
 	const { id: idParam } = useParams<{ id: string }>();
 	const isAdd = !idParam;
 	const navigate = useNavigate();
+	const returnTo = useReturnTo("/developer/field-types");
 	const queryClient = useQueryClient();
 
 	const detailQ = useQuery({
@@ -74,6 +76,8 @@ export const FieldTypeEdit = () => {
 				navigate(`/developer/field-types/${encodeURIComponent(fresh.id)}/edit`, {
 					replace: true,
 				});
+			} else {
+				navigate(returnTo);
 			}
 		},
 		onError: (err) => {

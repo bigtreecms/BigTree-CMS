@@ -21,6 +21,7 @@ import {
 import { ApiError } from "@/types/api";
 import { toast } from "@/lib/toast";
 import { useScrollToFirstError } from "@/hooks/useScrollToFirstError";
+import { useReturnTo } from "@/hooks/useReturnTo";
 import { validateRequired } from "@/lib/formValidation";
 
 /**
@@ -33,6 +34,7 @@ export const TemplateEdit = () => {
 	const { id: idParam } = useParams<{ id: string }>();
 	const isAdd = !idParam;
 	const navigate = useNavigate();
+	const returnTo = useReturnTo("/developer/templates");
 	const queryClient = useQueryClient();
 
 	const detailQ = useQuery({
@@ -84,6 +86,8 @@ export const TemplateEdit = () => {
 				navigate(`/developer/templates/${encodeURIComponent(fresh.id)}/edit`, {
 					replace: true,
 				});
+			} else {
+				navigate(returnTo);
 			}
 		},
 		onError: (err) => {

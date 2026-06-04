@@ -16,6 +16,7 @@ import type { ModuleFormField } from "@/api/endpoints/modules";
 
 import { useAuthStore } from "@/auth/store";
 import { useLock } from "@/hooks/useLock";
+import { useReturnTo } from "@/hooks/useReturnTo";
 import { ApiError } from "@/types/api";
 import { toast } from "@/lib/toast";
 
@@ -36,6 +37,7 @@ export const SettingEdit = () => {
 	const { id } = useParams<{ id: string }>();
 	const settingId = id ?? "";
 	const navigate = useNavigate();
+	const returnTo = useReturnTo("/settings");
 	const queryClient = useQueryClient();
 	const userLevel = useAuthStore((s) => s.user?.level ?? 0);
 	const isPublisher = userLevel >= 2;
@@ -81,6 +83,7 @@ export const SettingEdit = () => {
 				fresh
 			);
 			toast.success("Setting saved");
+			navigate(returnTo);
 		},
 		onError: (err) => {
 			if (err instanceof ApiError) {

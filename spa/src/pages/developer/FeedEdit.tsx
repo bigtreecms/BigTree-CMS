@@ -19,6 +19,7 @@ import type { ModuleFormField } from "@/api/endpoints/modules";
 import { ApiError } from "@/types/api";
 import { toast } from "@/lib/toast";
 import { useScrollToFirstError } from "@/hooks/useScrollToFirstError";
+import { useReturnTo } from "@/hooks/useReturnTo";
 import { validateRequired } from "@/lib/formValidation";
 
 import { SelectField, TextField } from "./TemplateEdit";
@@ -38,6 +39,7 @@ export const FeedEdit = () => {
 	const { id: idParam } = useParams<{ id: string }>();
 	const isAdd = !idParam;
 	const navigate = useNavigate();
+	const returnTo = useReturnTo("/developer/feeds");
 	const queryClient = useQueryClient();
 
 	const detailQ = useQuery({
@@ -98,6 +100,8 @@ export const FeedEdit = () => {
 				navigate(`/developer/feeds/${encodeURIComponent(fresh.id)}/edit`, {
 					replace: true,
 				});
+			} else {
+				navigate(returnTo);
 			}
 		},
 		onError: (err) => {

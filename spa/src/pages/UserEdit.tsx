@@ -28,6 +28,7 @@ import { TimezoneSelect } from "@/components/users/TimezoneSelect";
 import { isAdmin, isDeveloper } from "@/lib/permissions";
 import { toast } from "@/lib/toast";
 import { ApiError } from "@/types/api";
+import { useReturnTo } from "@/hooks/useReturnTo";
 
 type PermsTab = "pages" | "modules" | "files";
 
@@ -43,6 +44,7 @@ export const UserEdit = () => {
 	const { id: idParam } = useParams<{ id: string }>();
 	const id = Number(idParam);
 	const navigate = useNavigate();
+	const returnTo = useReturnTo("/users");
 	const queryClient = useQueryClient();
 	const currentUser = useAuthStore((s) => s.user);
 
@@ -88,6 +90,7 @@ export const UserEdit = () => {
 			queryClient.setQueryData(["users", "detail", id], fresh);
 			queryClient.invalidateQueries({ queryKey: ["users", "list"] });
 			toast.success("User updated");
+			navigate(returnTo);
 		},
 		onError: (err: unknown) => {
 			if (err instanceof ApiError) {
