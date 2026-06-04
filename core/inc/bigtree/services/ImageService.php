@@ -385,14 +385,36 @@
 			$dir = trim((string)$raw);
 
 			if ($dir === "") {
-				$dir = "files/";
+				return "files/";
 			}
 
-			// Strip leading slashes and any traversal; storage paths are relative to SITE_ROOT.
-			$dir = str_replace("..", "", $dir);
-			$dir = ltrim($dir, "/");
+			// Storage paths are relative to SITE_ROOT. We REJECT (rather than silently
+			// strip) anything that looks like traversal, an absolute/encoded path, or
+			// carries unexpected characters — silent rewriting of ".." is exactly what
+			// makes such filters bypassable.
+			if (strpbrk($dir, "\\\0") !== false) {
+				throw new BadRequestException("Invalid storage directory", "bad_directory", 400);
+			}
 
-			return rtrim($dir, "/") . "/";
+			$segments = [];
+
+			foreach (explode("/", $dir) as $segment) {
+				if ($segment === "" || $segment === ".") {
+					continue;
+				}
+
+				if ($segment === ".." || !preg_match('/^[A-Za-z0-9_.\- ]+$/', $segment)) {
+					throw new BadRequestException("Invalid storage directory", "bad_directory", 400);
+				}
+
+				$segments[] = $segment;
+			}
+
+			if (empty($segments)) {
+				return "files/";
+			}
+
+			return implode("/", $segments) . "/";
 		}
 
 		private function decodeSettings($raw): array {

@@ -9,7 +9,15 @@
 			$origin = $request->header("origin");
 			$allowed = $this->allowedOrigins();
 
-			$is_allowed = $origin && (in_array("*", $allowed, true) || in_array($origin, $allowed, true));
+			// An exact origin match may carry credentials. A wildcard ("*") match may
+			// NOT: per the Fetch spec, "Access-Control-Allow-Origin: *" is incompatible
+			// with credentials, and reflecting an arbitrary origin *with* credentials
+			// would let any site make authenticated cross-origin calls. So wildcard
+			// configs serve the literal "*" and omit credentials.
+			$exact_match = $origin && in_array($origin, $allowed, true);
+			$wildcard = in_array("*", $allowed, true);
+			$is_allowed = $exact_match || ($origin && $wildcard);
+			$allow_origin = $exact_match ? $origin : "*";
 
 			if ($request->method === "OPTIONS") {
 				$response = Response::raw(204, []);
@@ -17,11 +25,15 @@
 				$response->body = null;
 
 				if ($is_allowed) {
-					$response->header("Access-Control-Allow-Origin", $origin)
-						->header("Access-Control-Allow-Credentials", "true")
+					$response->header("Access-Control-Allow-Origin", $allow_origin)
 						->header("Access-Control-Allow-Methods", "GET, POST, PATCH, PUT, DELETE, OPTIONS")
 						->header("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Request-Id, If-None-Match")
 						->header("Access-Control-Max-Age", "600");
+
+					if ($exact_match) {
+						$response->header("Access-Control-Allow-Credentials", "true")
+							->header("Vary", "Origin");
+					}
 				}
 
 				return $response;
@@ -30,9 +42,12 @@
 			$response = $next($request);
 
 			if ($is_allowed) {
-				$response->header("Access-Control-Allow-Origin", $origin)
-					->header("Access-Control-Allow-Credentials", "true")
-					->header("Vary", "Origin");
+				$response->header("Access-Control-Allow-Origin", $allow_origin);
+
+				if ($exact_match) {
+					$response->header("Access-Control-Allow-Credentials", "true")
+						->header("Vary", "Origin");
+				}
 			}
 
 			return $response;

@@ -9,9 +9,17 @@
 		public $AutoJPEG = false;
 		public $DisabledFileError = false;
 		public $DisabledFileExtensions = [
+			// Executables / scripts
 			"exe", "com", "bat", "rb", "py", "cgi", "pl",
 			"sh", "asp", "aspx", "htaccess", "phar",
-			"php", "php3", "php4", "php5", "phtml"
+			// PHP, including handler-variant extensions some servers still execute
+			"php", "php3", "php4", "php5", "php7", "php8",
+			"pht", "phps", "phtml", "phtm",
+			// HTML / SSI / scriptable markup served from our own origin would be a
+			// stored-XSS vector (an SVG can carry an inline <script>), so we refuse
+			// them. Remove an entry here if a site genuinely needs to host it.
+			"htm", "html", "xhtml", "shtml", "shtm", "stm",
+			"js", "mjs", "svg", "svgz", "xml", "xsl", "swf"
 		];
 		public $Service = "";
 		public $Cloud = false;

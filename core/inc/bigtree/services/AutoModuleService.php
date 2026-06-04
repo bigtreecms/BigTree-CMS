@@ -121,6 +121,11 @@
 			$publish = !empty($data["__publish__"]);
 			unset($data["__mtm__"], $data["__tags__"], $data["__open_graph__"], $data["__publish__"]);
 
+			// The primary key is authoritative from the route / auto-increment — never
+			// from the request body. Allowing it through would let a caller force a
+			// chosen id on create or re-key an existing row on update.
+			unset($data["id"]);
+
 			$this->applyGeocoding($module, $table, $data);
 
 			$user_level = PermissionService::userModuleLevel($request->user, $module_id);
@@ -178,6 +183,11 @@
 			$og = (array)($data["__open_graph__"] ?? []);
 			$publish = !empty($data["__publish__"]);
 			unset($data["__mtm__"], $data["__tags__"], $data["__open_graph__"], $data["__publish__"]);
+
+			// The primary key is authoritative from the route / auto-increment — never
+			// from the request body. Allowing it through would let a caller force a
+			// chosen id on create or re-key an existing row on update.
+			unset($data["id"]);
 
 			$this->applyGeocoding($module, $table, $data);
 

@@ -232,11 +232,16 @@
 		"GET /embed-forms/{hash}" => [
 			"service" => [ModuleService::class, "publicGetEmbedForm"],
 			"permission" => "public",
+			"rate_limit" => ["per_minute" => 30],
 		],
 		"POST /embed-forms/{hash}/submit" => [
 			"service" => [ModuleService::class, "publicSubmitEmbedForm"],
 			"permission" => "public",
 			"body" => ["values" => "array"],
+			// Unauthenticated write — throttle per-IP so it can't be used to spam
+			// the module's table. (RateLimit middleware only engages for /auth/* or
+			// routes that opt in with an explicit rate_limit.)
+			"rate_limit" => ["per_minute" => 10],
 		],
 
 		"GET /module-groups" => ["service" => [ModuleService::class, "listGroups"], "permission" => ["level" => 0]],
