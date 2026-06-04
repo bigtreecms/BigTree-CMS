@@ -14,6 +14,7 @@ import { toast } from "@/lib/toast";
 import { pagesApi, type PageListRow } from "@/api/endpoints/pages";
 import { pendingChangesApi } from "@/api/endpoints/dashboard";
 import { relativeTime } from "@/lib/time";
+import { expandImageUrl } from "@/lib/imageUrl";
 
 /**
  * Pages screen — table view for a page's direct children (supports drilling
@@ -189,6 +190,14 @@ export const Pages = () => {
 	const folderTitle = currentPage?.nav_title ?? "Home";
 	const lineage = currentPage?.lineage ?? [];
 
+	// Preview opens the current folder's live front-end page in a new tab. The
+	// page's stored route lives in `path`; the `{wwwroot}` token expands to the
+	// site root (same-origin in prod, the backend install root in dev). At the
+	// tree root there's no page, so we preview the homepage.
+	const previewUrl = expandImageUrl(
+		`{wwwroot}${currentPage?.path ? `${currentPage.path}/` : ""}`
+	);
+
 	const breadcrumbItems = isRoot
 		? [{ label: "Pages" }, { label: "Home" }]
 		: [
@@ -218,7 +227,9 @@ export const Pages = () => {
 				}
 				actions={
 					<>
-						<HeaderBtn icon={<Eye size={13} />}>Preview</HeaderBtn>
+						<HeaderBtn icon={<Eye size={13} />} href={previewUrl} target="_blank">
+							Preview
+						</HeaderBtn>
 						{!isRoot && (
 							<Link
 								to={`/pages/${parent}/edit/revisions`}

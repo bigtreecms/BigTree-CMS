@@ -95,6 +95,11 @@
 			"audit" => ["table" => "bigtree_pages", "type" => "reordered", "entry" => "%parent%"],
 		],
 
+		"GET /pages/{id:int}/seo-rating" => [
+			"service" => [PageService::class, "seoRating"],
+			"permission" => ["level" => 0],
+		],
+
 		"GET /pages/{id:int}/revisions" => [
 			"service" => [PageService::class, "listRevisions"],
 			"permission" => ["level" => 0],

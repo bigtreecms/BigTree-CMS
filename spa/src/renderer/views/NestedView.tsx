@@ -15,6 +15,7 @@ import {
 	type CustomViewAction,
 } from "./viewHelpers";
 import { BuiltinToggleButtons } from "./BuiltinToggleButtons";
+import { useEntryDelete } from "./useEntryDelete";
 
 /**
  * Runtime for the `nested` view type.
@@ -123,6 +124,7 @@ export const NestedView = ({ moduleId, view }: NestedViewProps) => {
 	const [localRows, setLocalRows] = useState<ModuleEntryRow[] | null>(null);
 	const [dragId, setDragId] = useState<string | null>(null);
 	const [overId, setOverId] = useState<string | null>(null);
+	const { requestDelete, dialog: deleteDialog } = useEntryDelete(moduleId, view.id);
 
 	useEffect(() => {
 		const handle = window.setTimeout(() => setDebouncedQuery(query), 200);
@@ -321,6 +323,7 @@ export const NestedView = ({ moduleId, view }: NestedViewProps) => {
 								expanded={expanded}
 								onToggle={toggle}
 								onEdit={openEdit}
+								onDelete={requestDelete}
 								fieldColumns={fieldColumns}
 								builtins={builtins}
 								custom={custom}
@@ -340,6 +343,7 @@ export const NestedView = ({ moduleId, view }: NestedViewProps) => {
 								expanded={expanded}
 								onToggle={toggle}
 								onEdit={openEdit}
+								onDelete={requestDelete}
 								fieldColumns={fieldColumns}
 								builtins={builtins}
 								custom={custom}
@@ -351,6 +355,8 @@ export const NestedView = ({ moduleId, view }: NestedViewProps) => {
 					</ul>
 				)}
 			</div>
+
+			{deleteDialog}
 		</>
 	);
 };
@@ -361,6 +367,7 @@ interface NestedRowProps {
 	expanded: Set<string>;
 	onToggle: (id: string) => void;
 	onEdit: (row: ModuleEntryRow) => void;
+	onDelete: (row: ModuleEntryRow) => void;
 	fieldColumns: [string, { title: string }][];
 	builtins: BuiltinViewActionFlags;
 	custom: CustomViewAction[];
@@ -375,6 +382,7 @@ const NestedRow = ({
 	expanded,
 	onToggle,
 	onEdit,
+	onDelete,
 	fieldColumns,
 	builtins,
 	custom,
@@ -499,7 +507,11 @@ const NestedRow = ({
 							type="button"
 							className="rounded p-1 text-text-3 hover:bg-hover hover:text-danger"
 							title="Delete"
-							onClick={(e) => e.stopPropagation()}
+							aria-label="Delete"
+							onClick={(e) => {
+								e.stopPropagation();
+								onDelete(node.row);
+							}}
 						>
 							<Trash size={15} />
 						</button>
@@ -517,6 +529,7 @@ const NestedRow = ({
 							expanded={expanded}
 							onToggle={onToggle}
 							onEdit={onEdit}
+							onDelete={onDelete}
 							fieldColumns={fieldColumns}
 							builtins={builtins}
 							custom={custom}

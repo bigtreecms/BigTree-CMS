@@ -13,6 +13,7 @@ import {
 	parseViewActions,
 } from "./viewHelpers";
 import { BuiltinToggleButtons } from "./BuiltinToggleButtons";
+import { useEntryDelete } from "./useEntryDelete";
 
 /**
  * Runtime for the `grouped` view type. Rows are bucketed by their cached
@@ -45,6 +46,7 @@ export const GroupedView = ({ moduleId, view }: GroupedViewProps) => {
 	const [query, setQuery] = useState("");
 	const [debouncedQuery, setDebouncedQuery] = useState("");
 	const [collapsed, setCollapsed] = useState<Set<string>>(() => new Set());
+	const { requestDelete, dialog: deleteDialog } = useEntryDelete(moduleId, view.id);
 
 	useEffect(() => {
 		const handle = window.setTimeout(() => setDebouncedQuery(query), 200);
@@ -259,7 +261,11 @@ export const GroupedView = ({ moduleId, view }: GroupedViewProps) => {
 															type="button"
 															className="rounded p-1 text-text-3 hover:bg-hover hover:text-danger"
 															title="Delete"
-															onClick={(e) => e.stopPropagation()}
+															aria-label="Delete"
+															onClick={(e) => {
+																e.stopPropagation();
+																requestDelete(row);
+															}}
 														>
 															<Trash size={15} />
 														</button>
@@ -274,6 +280,8 @@ export const GroupedView = ({ moduleId, view }: GroupedViewProps) => {
 					})}
 				</div>
 			)}
+
+			{deleteDialog}
 		</>
 	);
 };

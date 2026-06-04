@@ -16,6 +16,7 @@ import { toast } from "@/lib/toast";
 
 import { formatCellValue, iconForCustomAction, parseViewActions } from "./viewHelpers";
 import { BuiltinToggleButtons } from "./BuiltinToggleButtons";
+import { useEntryDelete } from "./useEntryDelete";
 
 /**
  * Runtime for the `draggable` view type. Flat list ordered by position; the
@@ -46,6 +47,7 @@ export const DraggableView = ({ moduleId, view }: DraggableViewProps) => {
 	const [query, setQuery] = useState("");
 	const [debouncedQuery, setDebouncedQuery] = useState("");
 	const [localRows, setLocalRows] = useState<DraggableRow[] | null>(null);
+	const { requestDelete, dialog: deleteDialog } = useEntryDelete(moduleId, view.id);
 
 	useEffect(() => {
 		const handle = window.setTimeout(() => setDebouncedQuery(query), 200);
@@ -230,7 +232,11 @@ export const DraggableView = ({ moduleId, view }: DraggableViewProps) => {
 												type="button"
 												className="rounded p-1 text-text-3 hover:bg-hover hover:text-danger"
 												title="Delete"
-												onClick={(e) => e.stopPropagation()}
+												aria-label="Delete"
+												onClick={(e) => {
+													e.stopPropagation();
+													requestDelete(r.row);
+												}}
 											>
 												<Trash size={15} />
 											</button>
@@ -242,6 +248,8 @@ export const DraggableView = ({ moduleId, view }: DraggableViewProps) => {
 					</ul>
 				)}
 			</div>
+
+			{deleteDialog}
 		</>
 	);
 };

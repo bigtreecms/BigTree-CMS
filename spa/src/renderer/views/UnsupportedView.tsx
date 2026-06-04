@@ -5,10 +5,11 @@ interface UnsupportedViewProps {
 }
 
 /**
- * Placeholder for view types whose runtime hasn't shipped yet (nested,
- * draggable, grouped, images, images-grouped). Renders an explicit notice so
- * users hit something legible instead of an empty page, and shows the view's
- * configured columns so the data is at least inspectable.
+ * Fallback for genuinely-unknown view types. All six built-in view types
+ * (searchable, nested, draggable, grouped, images, images-grouped) now have
+ * runtimes, so this is only reached by a custom/extension view type this build
+ * doesn't recognize. Renders an explicit notice instead of an empty page, and
+ * shows the view's configured columns so the data is at least inspectable.
  */
 export const UnsupportedView = ({ view }: UnsupportedViewProps) => {
 	const columns = Object.entries(view.fields ?? {});

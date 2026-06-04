@@ -1,11 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
-import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { Edit, Search, Trash, X } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 
 import { DataTable, type DataTableColumn, type DataTableSort } from "@/components/ui/DataTable";
 import { Pager } from "@/components/ui/Pager";
-import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 
 import {
 	autoModulesApi,
@@ -13,7 +12,6 @@ import {
 	type ModuleEntryRow,
 } from "@/api/endpoints/auto-modules";
 import type { ModuleView } from "@/api/endpoints/modules";
-import { toast } from "@/lib/toast";
 
 import {
 	columnWidth,
@@ -24,6 +22,7 @@ import {
 	parseViewActions,
 } from "./viewHelpers";
 import { BuiltinToggleButtons } from "./BuiltinToggleButtons";
+import { useEntryDelete } from "./useEntryDelete";
 
 /**
  * Runtime for the `searchable` view type — the most common module view. Reads
@@ -50,13 +49,12 @@ interface SearchableViewProps {
 }
 
 export const SearchableView = ({ moduleId, view }: SearchableViewProps) => {
-	const queryClient = useQueryClient();
 	const navigate = useNavigate();
 	const [page, setPage] = useState(1);
 	const [query, setQuery] = useState("");
 	const [debouncedQuery, setDebouncedQuery] = useState("");
 	const [sort, setSort] = useState<DataTableSort | undefined>(() => parseSortSetting(view));
-	const [confirmDelete, setConfirmDelete] = useState<ModuleEntryRow | null>(null);
+	const { requestDelete, dialog: deleteDialog } = useEntryDelete(moduleId, view.id);
 
 	useEffect(() => {
 		const handle = window.setTimeout(() => setDebouncedQuery(query), 200);
@@ -90,20 +88,6 @@ export const SearchableView = ({ moduleId, view }: SearchableViewProps) => {
 		(builtins.approve ? 1 : 0) +
 		(builtins.feature ? 1 : 0);
 	const hasRowActions = builtinCount > 0 || custom.length > 0;
-
-	const deleteMutation = useMutation({
-		mutationFn: (entryId: number) => autoModulesApi.delete(moduleId, entryId, view.id),
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ["module-entries", moduleId, view.id] });
-			toast.success("Entry deleted");
-		},
-		onError: () => {
-			toast.error("Could not delete entry");
-		},
-		onSettled: () => {
-			setConfirmDelete(null);
-		},
-	});
 
 	const columns: DataTableColumn<ModuleEntryRow>[] = useMemo(() => {
 		// The view-cache rows returned by /modules/{id}/entries use positional
@@ -189,7 +173,7 @@ export const SearchableView = ({ moduleId, view }: SearchableViewProps) => {
 									disabled={!canMutate}
 									onClick={(e) => {
 										e.stopPropagation();
-										setConfirmDelete(row);
+										requestDelete(row);
 									}}
 								>
 									<Trash size={15} />
@@ -202,7 +186,7 @@ export const SearchableView = ({ moduleId, view }: SearchableViewProps) => {
 		}
 
 		return cols;
-	}, [fieldColumns, hasRowActions, builtins, custom, moduleId, view.id]);
+	}, [fieldColumns, hasRowActions, builtins, custom, moduleId, view.id, requestDelete]);
 
 	const rows = listQuery.data?.items ?? [];
 	const meta = listQuery.data?.meta;
@@ -271,27 +255,7 @@ export const SearchableView = ({ moduleId, view }: SearchableViewProps) => {
 				onRowClick={builtins.edit ? onRowClick : undefined}
 			/>
 
-			{confirmDelete && (
-				<ConfirmDialog
-					open={true}
-					onOpenChange={(open) => {
-						if (!open) {
-							setConfirmDelete(null);
-						}
-					}}
-					title="Delete entry?"
-					description="This action cannot be undone."
-					confirmLabel="Delete"
-					variant="danger"
-					onConfirm={() => {
-						const entryId = Number(confirmDelete.id);
-
-						if (Number.isFinite(entryId) && entryId > 0) {
-							deleteMutation.mutate(entryId);
-						}
-					}}
-				/>
-			)}
+			{deleteDialog}
 		</>
 	);
 };

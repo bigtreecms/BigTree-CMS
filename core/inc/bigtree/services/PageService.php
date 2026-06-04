@@ -164,6 +164,43 @@
 			return Response::ok($out);
 		}
 
+		// GET /pages/{id}/seo-rating — score the page's live content with the same
+		// algorithm as the legacy admin (BigTreeAdmin::getPageSEORating: title, meta
+		// description, H1, content length/links/readability, freshness). Returns the
+		// 0-100 score, the human recommendations, and the legacy gradient color so
+		// the SPA can render the rating verbatim.
+		public function seoRating(Request $request) {
+			$id = (int)$request->route_params["id"];
+			$this->enforce($request->user, $id, "v");
+
+			$page = SQL::fetch("SELECT * FROM bigtree_pages WHERE id = ?", $id);
+
+			if (!$page) {
+				throw new NotFoundException("Page $id not found", "resource_not_found", 404);
+			}
+
+			$content = json_decode($page["resources"] ?: "{}", true) ?: [];
+			$seo = BigTreeAdmin::getPageSEORating($page, $content);
+
+			// getPageSEORating returns null when the template can't be resolved (e.g.
+			// an external link or a removed template) — there's nothing to rate.
+			if (is_null($seo)) {
+				return Response::ok([
+					"available" => false,
+					"score" => null,
+					"recommendations" => [],
+					"color" => null,
+				]);
+			}
+
+			return Response::ok([
+				"available" => true,
+				"score" => (int)$seo["score"],
+				"recommendations" => array_values($seo["recommendations"]),
+				"color" => $seo["color"],
+			]);
+		}
+
 		public function create(Request $request) {
 			$d = $request->body;
 			$parent = (int)($d["parent"] ?? 0);
@@ -666,6 +703,8 @@
 				"position" => 0,
 				"created_at" => $change["date"],
 				"updated_at" => $change["date"],
+				// A NEW draft has no live row yet, so no cached analytics.
+				"ga_page_views" => null,
 				"tags" => [],
 				"open_graph" => $changes["open_graph"] ?? null,
 				"changes_applied" => true,
@@ -1226,6 +1265,12 @@
 				"position" => (int)$p["position"],
 				"created_at" => $p["created_at"],
 				"updated_at" => $p["updated_at"],
+				// Cached last-30-days page views, populated per-path by the GA4 sync
+				// (BigTreeGoogleAnalytics4::cacheInformation). NULL until first sync /
+				// when analytics isn't connected.
+				"ga_page_views" => isset($p["ga_page_views"]) && $p["ga_page_views"] !== null
+					? (int)$p["ga_page_views"]
+					: null,
 			];
 
 			if ($include_associations) {

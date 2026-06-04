@@ -1,17 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { Edit, Image as ImageIcon, Search, Trash, X } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
-
-import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 
 import { autoModulesApi, type ModuleEntryRow } from "@/api/endpoints/auto-modules";
 import type { ModuleView } from "@/api/endpoints/modules";
 
 import { expandImageUrl } from "@/lib/imageUrl";
-import { toast } from "@/lib/toast";
 
 import { type CustomViewAction, parseViewActions } from "./viewHelpers";
+import { useEntryDelete } from "./useEntryDelete";
 
 /**
  * Runtime for the `images` view type — a grid of thumbnail cards.
@@ -146,24 +144,9 @@ export const ImagesGrid = ({
 	canDelete,
 	customActions,
 }: ImagesGridProps) => {
-	const queryClient = useQueryClient();
-	const [confirmDelete, setConfirmDelete] = useState<ModuleEntryRow | null>(null);
+	const { requestDelete, dialog: deleteDialog } = useEntryDelete(moduleId, viewId);
 
 	const hasActions = canEdit || canDelete || customActions.length > 0;
-
-	const deleteMutation = useMutation({
-		mutationFn: (entryId: number) => autoModulesApi.delete(moduleId, entryId, viewId),
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ["module-entries", moduleId, viewId] });
-			toast.success("Entry deleted");
-		},
-		onError: () => {
-			toast.error("Could not delete entry");
-		},
-		onSettled: () => {
-			setConfirmDelete(null);
-		},
-	});
 
 	return (
 		<div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
@@ -234,7 +217,7 @@ export const ImagesGrid = ({
 										title="Delete"
 										aria-label="Delete"
 										disabled={!canMutate}
-										onClick={() => setConfirmDelete(row)}
+										onClick={() => requestDelete(row)}
 									>
 										<Trash size={14} />
 									</button>
@@ -245,27 +228,7 @@ export const ImagesGrid = ({
 				);
 			})}
 
-			{confirmDelete && (
-				<ConfirmDialog
-					open={true}
-					onOpenChange={(open) => {
-						if (!open) {
-							setConfirmDelete(null);
-						}
-					}}
-					title="Delete entry?"
-					description="This action cannot be undone."
-					confirmLabel="Delete"
-					variant="danger"
-					onConfirm={() => {
-						const entryId = Number(confirmDelete.id);
-
-						if (Number.isFinite(entryId) && entryId > 0) {
-							deleteMutation.mutate(entryId);
-						}
-					}}
-				/>
-			)}
+			{deleteDialog}
 		</div>
 	);
 };

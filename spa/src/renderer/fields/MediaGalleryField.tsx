@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 
 import type { ModuleFormField } from "@/api/endpoints/modules";
-import { resourcesApi, type ResourceDetail } from "@/api/endpoints/resources";
+import { UPLOAD_PATH, resourcesApi, type ResourceDetail } from "@/api/endpoints/resources";
 import {
 	IMAGE_PROCESS_PATH,
 	imagesApi,
@@ -54,9 +54,11 @@ import { settingsOf, type FieldComponentProps } from "./types";
  * resource on the server and returns `video_data` + a thumbnail URL we can
  * use directly).
  *
- * Local video upload (settings.enable_manual) is recognised but currently
- * stubbed — full implementation needs a sequence-of-uploads UX (video then
- * cover) we don't yet have. Other Add-* flows are fully wired.
+ * Local video upload (settings.enable_manual) is a two-step sequence (upload the
+ * H.264 file, then a cover photo). The file goes to POST /resources/upload and the
+ * cover through the same /images/process pipeline as photos (so crop settings
+ * apply); the stored item mirrors the legacy shape produced by `process.php`:
+ *   { type: "video", image: <cover>, video: { service: "local", url: <file> } }
  */
 
 interface MediaColumn {
@@ -201,6 +203,7 @@ export const MediaGalleryField = ({ field, value, onChange, disabled }: FieldCom
 	const [items, setItems] = useState<MediaItem[]>(() => seedItems(value));
 	const [expanded, setExpanded] = useState<Set<string>>(new Set());
 	const [videoPromptOpen, setVideoPromptOpen] = useState(false);
+	const [localVideoOpen, setLocalVideoOpen] = useState(false);
 
 	const ownChange = useMemo(() => ({ current: false }), []);
 
@@ -312,6 +315,14 @@ export const MediaGalleryField = ({ field, value, onChange, disabled }: FieldCom
 		});
 	};
 
+	const handleLocalVideoCreated = (coverUrl: string, videoUrl: string) => {
+		addItem({
+			type: "video",
+			image: coverUrl,
+			video: { service: "local", url: videoUrl },
+		});
+	};
+
 	return (
 		<div className="space-y-2">
 			{items.length === 0 ? (
@@ -353,6 +364,7 @@ export const MediaGalleryField = ({ field, value, onChange, disabled }: FieldCom
 				settings={settings}
 				onPhotoUploaded={handlePhotoUploaded}
 				onAskVideo={() => setVideoPromptOpen(true)}
+				onAskLocalVideo={() => setLocalVideoOpen(true)}
 			/>
 
 			{videoPromptOpen && (
@@ -364,6 +376,14 @@ export const MediaGalleryField = ({ field, value, onChange, disabled }: FieldCom
 						handleVideoCreated(resource);
 						setVideoPromptOpen(false);
 					}}
+				/>
+			)}
+
+			{localVideoOpen && (
+				<LocalVideoPrompt
+					settings={settings}
+					onClose={() => setLocalVideoOpen(false)}
+					onCreated={handleLocalVideoCreated}
 				/>
 			)}
 		</div>
@@ -545,6 +565,7 @@ interface AddBarProps {
 	settings: MediaGallerySettings;
 	onPhotoUploaded: (url: string) => void;
 	onAskVideo: () => void;
+	onAskLocalVideo: () => void;
 }
 
 const AddBar = ({
@@ -559,6 +580,7 @@ const AddBar = ({
 	settings,
 	onPhotoUploaded,
 	onAskVideo,
+	onAskLocalVideo,
 }: AddBarProps) => {
 	const inputRef = useRef<HTMLInputElement>(null);
 	const [pickerOpen, setPickerOpen] = useState(false);
@@ -691,8 +713,8 @@ const AddBar = ({
 						<button
 							type="button"
 							className={buttonClass}
-							disabled
-							title="Local video upload — coming in a follow-up."
+							onClick={onAskLocalVideo}
+							disabled={busy || atLimit}
 						>
 							<VideoIcon size={13} />
 							Add local video
@@ -823,6 +845,209 @@ const VideoUrlPrompt = ({ allowYoutube, allowVimeo, onClose, onCreated }: VideoU
 					{createMutation.isPending ? "Adding…" : "Add"}
 				</button>
 			</div>
+		</div>
+	);
+};
+
+interface LocalVideoPromptProps {
+	settings: MediaGallerySettings;
+	onClose: () => void;
+	onCreated: (coverUrl: string, videoUrl: string) => void;
+}
+
+/**
+ * Two-step local-video flow: upload the H.264 file, then a cover photo. The
+ * video goes to `/resources/upload` (raw file → URL); the cover runs through the
+ * same `/images/process` pipeline as gallery photos so the field's crop settings
+ * apply. Once both are in hand we hand back `(cover, video)` for the parent to
+ * store, then finalize any pending cover crops in place (mirrors the photo flow
+ * in `AddBar`).
+ */
+const LocalVideoPrompt = ({ settings, onClose, onCreated }: LocalVideoPromptProps) => {
+	const videoInputRef = useRef<HTMLInputElement>(null);
+	const coverInputRef = useRef<HTMLInputElement>(null);
+	const { items, enqueue } = useUploads();
+	const lastHandled = useRef(0);
+
+	const [step, setStep] = useState<"video" | "cover">("video");
+	const [videoUrl, setVideoUrl] = useState<string | null>(null);
+	const [cropState, setCropState] = useState<{ file: string; crops: PendingCrop[] } | null>(null);
+
+	const processSettings = useMemo(() => JSON.stringify(settings), [settings]);
+
+	useEffect(() => {
+		const newest = items
+			.filter(
+				(it: UploadItem) =>
+					it.id > lastHandled.current && (it.status === "done" || it.status === "error")
+			)
+			.pop();
+
+		if (!newest) {
+			return;
+		}
+
+		lastHandled.current = newest.id;
+
+		if (newest.status === "error") {
+			toast.error(newest.error ?? "Upload failed.");
+
+			return;
+		}
+
+		if (step === "video") {
+			const result = newest.result as ResourceDetail | undefined;
+
+			if (!result?.file) {
+				toast.error("The server did not return the uploaded video.");
+
+				return;
+			}
+
+			setVideoUrl(result.file);
+			setStep("cover");
+
+			return;
+		}
+
+		const result = newest.result as ProcessImageResult | undefined;
+
+		if (!result?.file) {
+			toast.error("The server did not return a processed cover image.");
+
+			return;
+		}
+
+		onCreated(result.file, videoUrl as string);
+
+		if (result.pending_crops.length > 0) {
+			setCropState({ file: result.file, crops: result.pending_crops });
+		} else {
+			onClose();
+		}
+	}, [items, step, videoUrl, processSettings, onCreated, onClose]);
+
+	const inFlight = items.find(
+		(it) =>
+			(it.status === "pending" || it.status === "uploading") && it.id > lastHandled.current
+	);
+
+	const pickVideo = (files: FileList | null) => {
+		const first = files?.[0];
+
+		if (!first) {
+			return;
+		}
+
+		enqueue([first], { path: UPLOAD_PATH });
+	};
+
+	const pickCover = (files: FileList | null) => {
+		const first = files?.[0];
+
+		if (!first) {
+			return;
+		}
+
+		enqueue([first], { path: IMAGE_PROCESS_PATH, extra: { settings: processSettings } });
+	};
+
+	const minWidth = toInt(settings.min_width);
+	const minHeight = toInt(settings.min_height);
+	const coverHint = minWidth > 0 && minHeight > 0 ? ` (min ${minWidth}×${minHeight})` : "";
+
+	return (
+		<div className="rounded-md border border-border bg-surface-2 p-3">
+			<div className="mb-2 flex items-center gap-2 text-[12px] font-medium text-text-2">
+				<span className={step === "video" ? "text-text" : "text-text-3"}>
+					1. Video file
+				</span>
+				<ChevronRight size={12} className="text-text-3" />
+				<span className={step === "cover" ? "text-text" : "text-text-3"}>
+					2. Cover photo
+				</span>
+			</div>
+
+			{step === "video" ? (
+				<>
+					<p className="mb-2 text-[11.5px] text-text-3">Upload an H.264 video file.</p>
+					<button
+						type="button"
+						className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] hover:bg-hover disabled:opacity-50"
+						onClick={() => videoInputRef.current?.click()}
+						disabled={Boolean(inFlight)}
+					>
+						<UploadIcon size={13} />
+						Choose video
+					</button>
+				</>
+			) : (
+				<>
+					<p className="mb-2 text-[11.5px] text-text-3">
+						Now choose a cover photo{coverHint}.
+					</p>
+					<button
+						type="button"
+						className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] hover:bg-hover disabled:opacity-50"
+						onClick={() => coverInputRef.current?.click()}
+						disabled={Boolean(inFlight)}
+					>
+						<UploadIcon size={13} />
+						Choose cover photo
+					</button>
+				</>
+			)}
+
+			<div className="mt-2 flex items-center gap-3">
+				{inFlight && (
+					<span className="text-[11.5px] text-text-3">
+						Uploading… {inFlight.progress}%
+					</span>
+				)}
+				<button
+					type="button"
+					className="ml-auto rounded-md border border-border px-3 py-1 text-[12px] hover:bg-hover disabled:opacity-50"
+					onClick={onClose}
+					disabled={Boolean(inFlight)}
+				>
+					Cancel
+				</button>
+			</div>
+
+			<input
+				ref={videoInputRef}
+				type="file"
+				accept="video/*"
+				className="hidden"
+				onChange={(e) => {
+					pickVideo(e.target.files);
+					e.target.value = "";
+				}}
+			/>
+			<input
+				ref={coverInputRef}
+				type="file"
+				accept="image/*"
+				className="hidden"
+				onChange={(e) => {
+					pickCover(e.target.files);
+					e.target.value = "";
+				}}
+			/>
+
+			<FieldCropModal
+				open={Boolean(cropState)}
+				file={cropState?.file ?? ""}
+				crops={cropState?.crops ?? []}
+				onComplete={() => {
+					setCropState(null);
+					onClose();
+				}}
+				onCancel={() => {
+					setCropState(null);
+					onClose();
+				}}
+			/>
 		</div>
 	);
 };

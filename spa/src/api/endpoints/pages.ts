@@ -70,6 +70,11 @@ export interface PageDetail {
 	position: number;
 	created_at: string;
 	updated_at: string;
+	/**
+	 * Cached last-30-days page views from the Google Analytics 4 sync. `null` until
+	 * the first sync runs, or when analytics isn't connected.
+	 */
+	ga_page_views: number | null;
 	tags?: Array<{
 		id: number;
 		tag: string;
@@ -153,6 +158,19 @@ export interface PagePendingResult {
 	pending_change_id: number;
 }
 
+/**
+ * SEO rating for a page, computed server-side by the legacy algorithm
+ * (`BigTreeAdmin::getPageSEORating`). `available` is false when the page can't be
+ * rated (e.g. external link / removed template), in which case `score`/`color`
+ * are null.
+ */
+export interface PageSeoRating {
+	available: boolean;
+	score: number | null;
+	recommendations: string[];
+	color: string | null;
+}
+
 export const isPendingResult = (r: unknown): r is PagePendingResult =>
 	typeof r === "object" && r !== null && (r as { pending?: unknown }).pending === true;
 
@@ -181,6 +199,8 @@ export const pagesApi = {
 		api.patch<PageDetail | PagePendingResult>(`/pages/pending/${pcid}`, body),
 
 	search: (q: string) => api.get<PageSearchHit[]>("/pages/search", { query: { q } }),
+
+	seoRating: (id: number) => api.get<PageSeoRating>(`/pages/${id}/seo-rating`),
 
 	create: (body: PageEditBody) => api.post<PageDetail | PagePendingResult>("/pages", body),
 

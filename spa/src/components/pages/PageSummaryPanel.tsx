@@ -1,7 +1,8 @@
 import { useMemo, useState } from "react";
+import { useQuery, type UseQueryResult } from "@tanstack/react-query";
 import { ChevronRight, ExternalLink, HelpCircle } from "lucide-react";
 
-import type { PageDetail } from "@/api/endpoints/pages";
+import { pagesApi, type PageDetail, type PageSeoRating } from "@/api/endpoints/pages";
 
 /**
  * Collapsible "Properties" summary panel that sits above every page-section
@@ -14,10 +15,11 @@ import type { PageDetail } from "@/api/endpoints/pages";
  *   │ https://…                                   #123                        │
  *   └────────────────────────────────────────────────────────────────────────┘
  *
- * The API surfaces Status, Content Age, Live URL, and Page ID. SEO Rating and
- * 30 Day Views aren't backed by an endpoint yet — we render them with an
- * em-dash and a tooltip so the layout matches the design verbatim and the
- * gap is honest.
+ * All six properties are API-backed: Status / Content Age / Live URL / Page ID
+ * come from the page payload, 30 Day Views from the cached `ga_page_views`
+ * column (GA4 sync), and SEO Rating from GET /pages/{id}/seo-rating (the legacy
+ * scoring algorithm). When a value genuinely isn't available yet (analytics not
+ * connected, or a page that can't be rated) we fall back to an em-dash + tooltip.
  */
 
 interface PageSummaryPanelProps {
@@ -89,6 +91,15 @@ export const PageSummaryPanel = ({ page, liveUrl, defaultOpen = false }: PageSum
 
 	const url = liveUrl ?? (page ? page.path : "");
 
+	// Score is computed server-side; only fetch once the panel is open and we have
+	// a saved page (id > 0) to rate.
+	const seoQuery = useQuery({
+		queryKey: ["pages", "seo-rating", page?.id],
+		queryFn: () => pagesApi.seoRating(page!.id),
+		enabled: open && Boolean(page?.id),
+		staleTime: 60_000,
+	});
+
 	return (
 		<section
 			className="mb-4 overflow-hidden rounded-lg border border-border bg-surface shadow-sm"
@@ -153,7 +164,7 @@ export const PageSummaryPanel = ({ page, liveUrl, defaultOpen = false }: PageSum
 					</Prop>
 
 					<Prop label="SEO Rating">
-						<UnknownValue title="Not yet exposed by the API." />
+						<SeoRatingValue query={seoQuery} />
 					</Prop>
 
 					<Prop label="Content Age">
@@ -176,7 +187,13 @@ export const PageSummaryPanel = ({ page, liveUrl, defaultOpen = false }: PageSum
 					</Prop>
 
 					<Prop label="30 Day Views">
-						<UnknownValue title="Analytics not yet wired into the SPA." />
+						{typeof page.ga_page_views === "number" ? (
+							<span className="text-[14px] font-medium text-text-2 tabular-nums">
+								{page.ga_page_views.toLocaleString()}
+							</span>
+						) : (
+							<UnknownValue title="Connect Google Analytics to track page views — updates on the next sync." />
+						)}
 					</Prop>
 
 					<Prop label="Live URL" span={2}>
@@ -219,6 +236,42 @@ const Prop = ({ label, children, span = 1 }: PropProps) => (
 		{children}
 	</div>
 );
+
+const SeoRatingValue = ({ query }: { query: UseQueryResult<PageSeoRating> }) => {
+	if (query.isLoading) {
+		return <span className="text-[14px] font-medium text-text-3">…</span>;
+	}
+
+	const data = query.data;
+
+	if (query.isError || !data || !data.available || data.score === null) {
+		return (
+			<UnknownValue title="This page can't be rated yet (external link or no template)." />
+		);
+	}
+
+	const tip =
+		data.recommendations.length > 0
+			? `SEO goals:\n• ${data.recommendations.join("\n• ")}`
+			: "You meet all recommended SEO goals.";
+
+	return (
+		<span
+			className="inline-flex items-center gap-1.5 text-[14px] font-medium"
+			style={{ color: data.color ?? undefined }}
+		>
+			{data.score}%
+			<button
+				type="button"
+				className="rounded p-0.5 text-text-3 hover:bg-hover hover:text-text"
+				title={tip}
+				aria-label={tip}
+			>
+				<HelpCircle size={11} />
+			</button>
+		</span>
+	);
+};
 
 const UnknownValue = ({ title }: { title: string }) => (
 	<span className="inline-flex items-center gap-1.5 text-[14px] font-medium text-text-3">
