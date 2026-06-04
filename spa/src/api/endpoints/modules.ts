@@ -288,6 +288,37 @@ export interface ModuleCreateBody {
 
 export type ModuleUpdateBody = Partial<ModuleCreateBody>;
 
+/** One field row in the "build the table for me" scaffold wizard. */
+export interface ModuleScaffoldField {
+	title: string;
+	type: string;
+	subtitle?: string;
+}
+
+/**
+ * Body for POST /modules/scaffold — the auto-build path. The server creates the
+ * table + columns, the module, an add/edit form, and a landing view from this.
+ */
+export interface ModuleScaffoldBody {
+	name: string;
+	/** NEW table name (letters/numbers/underscore); must not already exist. */
+	table: string;
+	fields: ModuleScaffoldField[];
+	group?: string | null;
+	route?: string;
+	icon?: string;
+	class?: string;
+	graphql?: boolean;
+	graphql_type?: string;
+	/** Singular item title for the form ("Add Article"); derived from name if blank. */
+	item_title?: string;
+	/** Plural view title ("Viewing Articles"); derived from name if blank. */
+	view_title?: string;
+	view_type?: "searchable" | "draggable";
+	/** Builtin actions → extra status columns (approved/featured/archived). */
+	actions?: { approve?: boolean; feature?: boolean; archive?: boolean };
+}
+
 export interface ModuleActionBody {
 	name: string;
 	route?: string;
@@ -357,6 +388,8 @@ export const modulesApi = {
 	get: (id: string) => api.get<ModuleSummary>(`/modules/${enc(id)}`),
 
 	create: (body: ModuleCreateBody) => api.post<ModuleSummary>("/modules", body),
+
+	scaffold: (body: ModuleScaffoldBody) => api.post<ModuleSummary>("/modules/scaffold", body),
 
 	update: (id: string, body: ModuleUpdateBody) =>
 		api.patch<ModuleSummary>(`/modules/${enc(id)}`, body),

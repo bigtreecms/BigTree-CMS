@@ -11,6 +11,7 @@
 	use BigTreeCMS;
 	use BigTreeJSONDB;
 	use BigTree;
+	use SQL;
 
 	/**
 	 * Modules + module groups. Sub-resources (forms, views, reports, actions) are
@@ -98,6 +99,275 @@
 			]);
 
 			return Response::created($this->present(BigTreeJSONDB::get("modules", $id)), null);
+		}
+
+		// POST /modules/scaffold — the "Module Designer builds it for you" path: from a
+		// list of fields, auto-create the table + columns, the module, an add/edit form,
+		// and a landing view (with list action). Ports the legacy designer flow
+		// (modules/designer/{create,form-create,view-create}.php) into one transaction.
+		//
+		// All validation runs BEFORE any DDL because CREATE/ALTER TABLE implicitly commit
+		// and can't be rolled back — we don't want to half-build on a bad request.
+		public function scaffold(Request $request) {
+			$d = $request->body;
+
+			$name = trim((string)($d["name"] ?? ""));
+			$table = trim((string)($d["table"] ?? ""));
+			$class = trim((string)($d["class"] ?? ""));
+			$fields_in = is_array($d["fields"] ?? null) ? $d["fields"] : [];
+
+			if ($name === "") {
+				throw new BadRequestException("Module name is required", "invalid_name", 400);
+			}
+
+			// The table name flows into raw DDL, so it must be a bare identifier.
+			if (!preg_match('/^[A-Za-z0-9_]+$/', $table)) {
+				throw new BadRequestException("Table name must contain only letters, numbers, and underscores", "invalid_table", 400);
+			}
+
+			if (strlen($table) > 64) {
+				throw new BadRequestException("Table name must be 64 characters or fewer", "invalid_table", 400);
+			}
+
+			if (BigTree::tableExists($table)) {
+				throw new ConflictException("A table named \"$table\" already exists", "table_exists", 409);
+			}
+
+			if ($class !== "" && class_exists($class)) {
+				throw new ConflictException("A class named \"$class\" already exists", "class_exists", 409);
+			}
+
+			// Resolve fields → form-field defs + column DDL, skipping untitled rows and
+			// de-duplicating generated column names (mirrors form-create.php).
+			$reserved = ["id", "position"];
+			$form_fields = [];
+			$column_adds = [];
+			$used_columns = [];
+
+			foreach ($fields_in as $f) {
+				if (!is_array($f)) {
+					continue;
+				}
+
+				$title = trim((string)($f["title"] ?? ""));
+
+				if ($title === "") {
+					continue;
+				}
+
+				$base = $this->safeColumnName($title);
+
+				if ($base === "") {
+					continue;
+				}
+
+				$column = $base;
+				$x = 2;
+
+				while (in_array($column, $used_columns, true) || in_array($column, $reserved, true)) {
+					$column = $base . $x++;
+				}
+
+				$used_columns[] = $column;
+				$type = (string)($f["type"] ?? "text");
+
+				$form_fields[] = [
+					"column" => $column,
+					"type" => $type,
+					"title" => $title,
+					"subtitle" => (string)($f["subtitle"] ?? ""),
+					"settings" => is_array($f["settings"] ?? null) ? $f["settings"] : [],
+				];
+
+				$column_adds[] = "ADD COLUMN `$column` " . $this->columnSqlType($type);
+			}
+
+			if (count($form_fields) === 0) {
+				throw new BadRequestException("Add at least one field with a title", "no_fields", 400);
+			}
+
+			$route = $d["route"] ?? BigTreeCMS::urlify($name);
+
+			if (!ctype_alnum(str_replace("-", "", (string)$route)) || strlen((string)$route) > 127) {
+				throw new BadRequestException("Module route must be alphanumeric (with -) and ≤ 127 chars", "invalid_route", 400);
+			}
+
+			$route = $this->uniqueModuleRoute($route);
+			$actions_in = is_array($d["actions"] ?? null) ? $d["actions"] : [];
+			$view_type = ($d["view_type"] ?? "searchable") === "draggable" ? "draggable" : "searchable";
+
+			// — Everything validated; create the module record —
+			$module_id = BigTreeJSONDB::insert("modules", [
+				"name" => BigTree::safeEncode($name),
+				"group" => $d["group"] ?? null,
+				"class" => $class,
+				"table" => $table,
+				"gbp" => $d["gbp"] ?? ["enabled" => false],
+				"icon" => $d["icon"] ?? "",
+				"route" => $route,
+				"graphql" => !empty($d["graphql"]) ? "on" : "",
+				"graphql_type" => $d["graphql_type"] ?? "",
+				"position" => 0,
+			]);
+
+			// — Build the table —
+			SQL::query("CREATE TABLE `$table` (`id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT, PRIMARY KEY (`id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci");
+			SQL::query("ALTER TABLE `$table` " . implode(", ", $column_adds));
+
+			// Builtin status columns for the chosen actions / view type.
+			if (!empty($actions_in["approve"])) {
+				SQL::query("ALTER TABLE `$table` ADD COLUMN `approved` CHAR(2) NOT NULL, ADD INDEX `approved` (`approved`)");
+			}
+
+			if (!empty($actions_in["feature"])) {
+				SQL::query("ALTER TABLE `$table` ADD COLUMN `featured` CHAR(2) NOT NULL, ADD INDEX `featured` (`featured`)");
+			}
+
+			if (!empty($actions_in["archive"])) {
+				SQL::query("ALTER TABLE `$table` ADD COLUMN `archived` CHAR(2) NOT NULL, ADD INDEX `archived` (`archived`)");
+			}
+
+			if ($view_type === "draggable") {
+				SQL::query("ALTER TABLE `$table` ADD COLUMN `position` INT(11) NOT NULL, ADD INDEX `position` (`position`)");
+			}
+
+			// Singular drives the form ("Add Article"), plural the view ("Viewing Articles").
+			$item_title = trim((string)($d["item_title"] ?? "")) ?: $this->singularize($name);
+			$view_title = trim((string)($d["view_title"] ?? "")) ?: $this->pluralize($name);
+
+			$context = BigTreeJSONDB::getSubset("modules", $module_id);
+
+			// — Form + add/edit actions —
+			$form_id = $context->insert("forms", [
+				"title" => BigTree::safeEncode($item_title),
+				"table" => $table,
+				"fields" => $this->cleanFormFields($form_fields),
+				"default_position" => "",
+				"return_view" => null,
+				"return_url" => "",
+				"tagging" => "",
+				"open_graph" => "",
+				"hooks" => [],
+			]);
+
+			$this->insertScaffoldAction($context, $module_id, "Add $item_title", "add", true, "add", $form_id, null, 0);
+			$this->insertScaffoldAction($context, $module_id, "Edit $item_title", "edit", false, "edit", $form_id, null, 0);
+
+			// — Landing view (columns mirror the form fields) + list action —
+			$view_fields = [];
+
+			foreach ($form_fields as $f) {
+				$view_fields[$f["column"]] = ["title" => $f["title"], "parser" => "", "numeric" => ""];
+			}
+
+			$view_actions = ["edit" => "on", "delete" => "on"];
+
+			if (!empty($actions_in["approve"])) {
+				$view_actions["approve"] = "on";
+			}
+
+			if (!empty($actions_in["feature"])) {
+				$view_actions["feature"] = "on";
+			}
+
+			if (!empty($actions_in["archive"])) {
+				$view_actions["archive"] = "on";
+			}
+
+			$view_id = $context->insert("views", [
+				"title" => BigTree::safeEncode($view_title),
+				"description" => "",
+				"table" => $table,
+				"type" => $view_type,
+				"settings" => [],
+				"fields" => $view_fields,
+				"actions" => $view_actions,
+				"related_form" => $form_id,
+				"preview_url" => "",
+				"exclude_from_search" => false,
+			]);
+
+			$this->insertScaffoldAction($context, $module_id, "View $view_title", "", true, "list", null, $view_id, 1);
+
+			BigTreeAdmin::updateModuleViewColumnNumericStatusForTable($table);
+
+			return Response::created($this->present(BigTreeJSONDB::get("modules", $module_id)), null);
+		}
+
+		// Insert a module action via the JSONDB subset, mirroring createAction's
+		// position handling. Used only by scaffold().
+		private function insertScaffoldAction($context, $module_id, $name, $route, $in_nav, $icon, $form, $view, $position) {
+			$route = BigTreeAdmin::uniqueModuleActionRoute($module_id, (string)$route);
+
+			if ((int)$position === 0) {
+				$context->incrementPosition("actions");
+			}
+
+			return $context->insert("actions", [
+				"route" => $route,
+				"in_nav" => $in_nav ? "on" : "",
+				"class" => (string)$icon,
+				"name" => BigTree::safeEncode((string)$name),
+				"form" => $form ?: null,
+				"view" => $view ?: null,
+				"report" => null,
+				"level" => 0,
+				"position" => (int)$position,
+			]);
+		}
+
+		// Field title → safe MySQL column name (urlify, hyphens→underscores, strip the
+		// rest). Mirrors form-create.php's `$cms->urlify` + str_replace.
+		private function safeColumnName($title) {
+			$name = BigTreeCMS::urlify((string)$title);
+			$name = str_replace(["`", "-"], ["", "_"], $name);
+
+			return preg_replace('/[^A-Za-z0-9_]/', "", $name);
+		}
+
+		// Field type → column SQL type (the exact legacy form-create.php mapping).
+		private function columnSqlType($type) {
+			if (in_array($type, ["textarea", "html", "video"], true)) {
+				return "TEXT";
+			}
+
+			if (in_array($type, ["media-gallery", "matrix", "callouts"], true)) {
+				return "LONGTEXT";
+			}
+
+			if ($type === "date") {
+				return "DATE";
+			}
+
+			if ($type === "time") {
+				return "TIME";
+			}
+
+			if ($type === "datetime") {
+				return "DATETIME";
+			}
+
+			return "VARCHAR(1024)";
+		}
+
+		// "Articles" → "Article" for the form item title (legacy designer/form.php).
+		private function singularize($name) {
+			if (substr($name, -3) === "ies") {
+				return substr($name, 0, -3) . "y";
+			}
+
+			return rtrim($name, "s");
+		}
+
+		// "Buddy" → "Buddies", "Article" → "Articles" for the view title (designer/view.php).
+		private function pluralize($name) {
+			$plural = substr($name, -1) !== "s" ? $name . "s" : $name;
+
+			if (substr($plural, -2) === "ys") {
+				$plural = substr($plural, 0, -2) . "ies";
+			}
+
+			return $plural;
 		}
 
 		public function update(Request $request) {

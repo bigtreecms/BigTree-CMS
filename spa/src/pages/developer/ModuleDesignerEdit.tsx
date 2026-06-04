@@ -1,13 +1,16 @@
+import { useState } from "react";
 import { Link, Navigate, useParams, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import {
 	ChevronLeft,
+	Database,
 	FileText,
 	LayoutList,
 	ListChecks,
 	Send,
 	Settings as SettingsIcon,
 	Table,
+	Wand2,
 } from "lucide-react";
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
@@ -22,6 +25,7 @@ import { ModuleFormsTab } from "@/components/developer/module-designer/ModuleFor
 import { ModuleReportsTab } from "@/components/developer/module-designer/ModuleReportsTab";
 import { ModuleShellTab } from "@/components/developer/module-designer/ModuleShellTab";
 import { ModuleViewsTab } from "@/components/developer/module-designer/ModuleViewsTab";
+import { ModuleBuilderWizard } from "@/components/developer/module-designer/ModuleBuilderWizard";
 
 import { modulesApi } from "@/api/endpoints/modules";
 
@@ -37,6 +41,10 @@ export const ModuleDesignerEdit = () => {
 	const isAdd = !idParam;
 	const [searchParams, setSearchParams] = useSearchParams();
 	const tab = searchParams.get("tab") ?? "shell";
+
+	// Add mode forks (legacy modules/start.php): pick an existing table, or have
+	// the designer build the table + form + view for you.
+	const [addMode, setAddMode] = useState<"choose" | "existing" | "build">("choose");
 
 	const setTab = (value: string) => {
 		setSearchParams(
@@ -147,7 +155,7 @@ export const ModuleDesignerEdit = () => {
 				title={title}
 				sub={
 					isAdd
-						? "Define a new module shell. Forms, views and reports become available after it's created."
+						? "Create a module from an existing table, or have the designer build the table for you."
 						: "Editing module definition."
 				}
 				actions={
@@ -164,9 +172,61 @@ export const ModuleDesignerEdit = () => {
 			<DeveloperSectionNav />
 
 			{isAdd ? (
-				<div className="rounded-xl border border-border bg-surface-2 p-4">
-					<ModuleShellTab moduleId={null} module={null} />
-				</div>
+				addMode === "choose" ? (
+					<div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+						<button
+							type="button"
+							onClick={() => setAddMode("existing")}
+							className="flex flex-col items-start gap-2 rounded-xl border border-border bg-surface p-5 text-left transition-colors hover:border-border-strong hover:bg-hover"
+						>
+							<span className="grid h-9 w-9 place-items-center rounded-lg bg-accent-soft text-accent">
+								<Database size={18} />
+							</span>
+							<span className="text-[13.5px] font-semibold text-text">
+								Use an existing table
+							</span>
+							<span className="text-[12px] text-text-3">
+								Point the module at a MySQL table you've already created, then set
+								up its forms and views.
+							</span>
+						</button>
+						<button
+							type="button"
+							onClick={() => setAddMode("build")}
+							className="flex flex-col items-start gap-2 rounded-xl border border-border bg-surface p-5 text-left transition-colors hover:border-border-strong hover:bg-hover"
+						>
+							<span className="grid h-9 w-9 place-items-center rounded-lg bg-accent-soft text-accent">
+								<Wand2 size={18} />
+							</span>
+							<span className="text-[13.5px] font-semibold text-text">
+								Build the table for me
+							</span>
+							<span className="text-[12px] text-text-3">
+								Define a few fields and the designer creates the table, an add/edit
+								form, and a landing view automatically.
+							</span>
+						</button>
+					</div>
+				) : (
+					<div className="space-y-3">
+						<button
+							type="button"
+							onClick={() => setAddMode("choose")}
+							className="inline-flex items-center gap-1.5 text-[12px] text-text-3 hover:text-text"
+						>
+							<ChevronLeft size={13} />
+							Back to options
+						</button>
+
+						{addMode === "existing" ? (
+							<div className="rounded-xl border border-border bg-surface-2 p-4">
+								<ModuleShellTab moduleId={null} module={null} />
+							</div>
+						) : (
+							<ModuleBuilderWizard />
+						)}
+					</div>
+				)
 			) : (
 				<TabbedEditor tabs={tabs} value={activeTab} onChange={setTab} />
 			)}
