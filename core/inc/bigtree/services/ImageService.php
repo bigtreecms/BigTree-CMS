@@ -298,6 +298,8 @@
 		 */
 		private function resolveReadableImage(string $file): string {
 			if (preg_match('#^https?://#i', $file)) {
+				$this->assertSafeRemoteImageUrl($file);
+
 				return $file;
 			}
 
@@ -310,6 +312,73 @@
 			}
 
 			return $real;
+		}
+
+		/**
+		 * Guard against SSRF when a caller hands us a remote image URL. The
+		 * reprocess / crop flows legitimately receive cloud-storage / CDN URLs that
+		 * BigTree itself previously returned, so we can't refuse remote fetches
+		 * outright — but the URL is client-controlled, so we must ensure it can't be
+		 * pointed at internal infrastructure (link-local cloud metadata at
+		 * 169.254.169.254, loopback, RFC 1918 ranges, etc.).
+		 *
+		 * The host is resolved and every resulting address must be a public unicast
+		 * address. An optional config allow-list (api.image_fetch_allowed_hosts)
+		 * short-circuits the check for known storage hosts.
+		 */
+		private function assertSafeRemoteImageUrl(string $url): void {
+			global $bigtree;
+
+			$host = parse_url($url, PHP_URL_HOST);
+
+			if (!is_string($host) || $host === "") {
+				throw new BadRequestException("Image URL host is invalid", "bad_remote_host", 400);
+			}
+
+			$host = strtolower($host);
+
+			// Explicit allow-list (e.g. the configured cloud / CDN domains) wins.
+			$allowed = $bigtree["config"]["api"]["image_fetch_allowed_hosts"] ?? [];
+
+			foreach ((array)$allowed as $allowed_host) {
+				$allowed_host = strtolower(trim((string)$allowed_host));
+
+				if ($allowed_host === "") {
+					continue;
+				}
+
+				if ($host === $allowed_host || substr($host, -(strlen($allowed_host) + 1)) === "." . $allowed_host) {
+					return;
+				}
+			}
+
+			// Resolve to every A / AAAA record and require each to be a public address.
+			$ips = [];
+
+			if (filter_var($host, FILTER_VALIDATE_IP)) {
+				$ips[] = $host;
+			} else {
+				$a = @dns_get_record($host, DNS_A) ?: [];
+				$aaaa = @dns_get_record($host, DNS_AAAA) ?: [];
+
+				foreach (array_merge($a, $aaaa) as $record) {
+					$ip = $record["ip"] ?? ($record["ipv6"] ?? null);
+
+					if ($ip) {
+						$ips[] = $ip;
+					}
+				}
+			}
+
+			if (empty($ips)) {
+				throw new BadRequestException("Image URL host could not be resolved", "bad_remote_host", 400);
+			}
+
+			foreach ($ips as $ip) {
+				if (!filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
+					throw new BadRequestException("Image URL resolves to a disallowed address", "blocked_remote_host", 400);
+				}
+			}
 		}
 
 		private function cleanDirectory($raw): string {

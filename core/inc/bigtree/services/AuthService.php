@@ -27,6 +27,7 @@
 		const ACCESS_TTL = 900;             // 15 min
 		const MFA_PARTIAL_TTL = 300;        // 5 min for the 2fa hand-off token
 		const PASSKEY_CHALLENGE_TTL = 300;  // 5 min
+		const RESET_TOKEN_TTL = 3600;       // 1 hour for password-reset links
 
 		// — Public endpoint methods —
 
@@ -87,6 +88,16 @@
 			$user = SQL::fetch("SELECT * FROM bigtree_users WHERE 2fa_login_token = ?", $mfa_token);
 
 			if (!$user) {
+				throw new AuthenticationException("Invalid or expired MFA token", "invalid_mfa_token", 401);
+			}
+
+			// The partial token carries its own expiry (see issueMfaPartial). Enforce
+			// the MFA_PARTIAL_TTL window so a captured hand-off token can't be replayed
+			// indefinitely; clear it on expiry so it can't be retried.
+			$expiry = $this->tokenExpiry($user["2fa_login_token"]);
+
+			if ($expiry === null || $expiry < time()) {
+				SQL::update("bigtree_users", $user["id"], ["2fa_login_token" => ""]);
 				throw new AuthenticationException("Invalid or expired MFA token", "invalid_mfa_token", 401);
 			}
 
@@ -407,8 +418,12 @@
 			if ($user) {
 				// Reset hash is unguessable without knowing the existing password hash + a microsecond timestamp.
 				$hash = md5(md5($user["password"]) . md5(uniqid("bigtree-hash" . microtime(true))));
-				SQL::update("bigtree_users", $user["id"], ["change_password_hash" => $hash]);
-				$this->sendResetEmail($user["email"], $hash);
+				// Append an absolute expiry so the link can't be redeemed forever. The
+				// hash is hex, so the "." separator is unambiguous; the whole string is
+				// both stored and emailed so the lookup still matches exactly.
+				$token = $hash . "." . (time() + self::RESET_TOKEN_TTL);
+				SQL::update("bigtree_users", $user["id"], ["change_password_hash" => $token]);
+				$this->sendResetEmail($user["email"], $token);
 			}
 
 			// Constant-ish time: don't reveal whether the email was on file.
@@ -436,6 +451,16 @@
 			$user = SQL::fetch("SELECT * FROM bigtree_users WHERE change_password_hash = ?", $token);
 
 			if (!$user) {
+				throw new AuthenticationException("Invalid or expired reset token", "invalid_token", 401);
+			}
+
+			// Enforce the embedded expiry (see forgotPassword). Tokens without a valid
+			// expiry suffix are rejected too, so a leaked link can't be redeemed past
+			// its window; clear the consumed/expired hash either way.
+			$expiry = $this->tokenExpiry($user["change_password_hash"]);
+
+			if ($expiry === null || $expiry < time()) {
+				SQL::update("bigtree_users", $user["id"], ["change_password_hash" => ""]);
 				throw new AuthenticationException("Invalid or expired reset token", "invalid_token", 401);
 			}
 
@@ -712,10 +737,28 @@
 		}
 
 		private function issueMfaPartial($user_id, $remember) {
-			$token = bin2hex(random_bytes(16));
+			// Embed an absolute expiry in the token so twoFactor() can enforce the
+			// MFA_PARTIAL_TTL window without a schema change. The random prefix is hex,
+			// so the "." separator is unambiguous.
+			$token = bin2hex(random_bytes(16)) . "." . (time() + self::MFA_PARTIAL_TTL);
 			SQL::update("bigtree_users", $user_id, ["2fa_login_token" => $token]);
 
 			return $token;
+		}
+
+		/**
+		 * Parse the absolute-expiry suffix from an expiring opaque token ("<secret>.<unix_ts>").
+		 * Returns the unix timestamp, or null when no valid suffix is present (e.g. a
+		 * legacy token minted before expiries were embedded — treated as invalid).
+		 */
+		private function tokenExpiry($value): ?int {
+			$parts = explode(".", (string)$value, 2);
+
+			if (count($parts) !== 2 || $parts[1] === "" || !ctype_digit($parts[1])) {
+				return null;
+			}
+
+			return (int)$parts[1];
 		}
 
 		private function issueTokens(array $user, Request $request) {

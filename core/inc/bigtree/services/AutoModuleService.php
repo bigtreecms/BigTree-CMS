@@ -28,6 +28,19 @@
 
 			if ($view_id) {
 				$view = BigTreeAutoModule::getView($view_id);
+
+				// The Permission middleware only authorized access to the module in
+				// the URL ({id}). A client-supplied `view` could reference a view that
+				// belongs to a DIFFERENT module, which would let an authorized user
+				// read or mutate a table they have no rights to. getView() stamps the
+				// owning module id onto the result — require it to match this module.
+				if ($view && (string)($view["module"] ?? "") !== (string)($module["id"] ?? "")) {
+					throw new AuthorizationException(
+						"View does not belong to this module",
+						"permission_denied",
+						403
+					);
+				}
 			} elseif (!empty($module["table"])) {
 				$view = BigTreeAutoModule::getViewForTable($module["table"]);
 			} else {
@@ -402,6 +415,19 @@
 
 			if ($view_id) {
 				$view = BigTreeAutoModule::getView($view_id);
+
+				// The Permission middleware only authorized access to the module in
+				// the URL ({id}). A client-supplied `view` could reference a view that
+				// belongs to a DIFFERENT module, which would let an authorized user
+				// read or mutate a table they have no rights to. getView() stamps the
+				// owning module id onto the result — require it to match this module.
+				if ($view && (string)($view["module"] ?? "") !== (string)($module["id"] ?? "")) {
+					throw new AuthorizationException(
+						"View does not belong to this module",
+						"permission_denied",
+						403
+					);
+				}
 			} elseif (!empty($module["table"])) {
 				$view = BigTreeAutoModule::getViewForTable($module["table"]);
 			} else {
