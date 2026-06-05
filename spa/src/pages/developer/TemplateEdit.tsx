@@ -6,6 +6,8 @@ import { ChevronLeft, Save } from "lucide-react";
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
+import { UnsavedChangesGuard } from "@/components/ui/UnsavedChangesGuard";
+import { useDirtyTracker } from "@/hooks/useDirtyTracker";
 
 import { DeveloperSectionNav } from "@/components/developer/DeveloperSectionNav";
 import { FormHooksEditor } from "@/components/developer/module-designer/FormHooksEditor";
@@ -55,6 +57,7 @@ export const TemplateEdit = () => {
 		{}
 	);
 	const [generalError, setGeneralError] = useState<string | null>(null);
+	const [seeded, setSeeded] = useState(isAdd);
 
 	const settingsValidation = useResourceSettingsValidation(
 		(body.resources ?? []) as unknown as ResourceEntry[],
@@ -72,6 +75,7 @@ export const TemplateEdit = () => {
 				resources: detailQ.data.resources,
 				hooks: detailQ.data.hooks ?? {},
 			});
+			setSeeded(true);
 		}
 	}, [isAdd, detailQ.data]);
 
@@ -104,6 +108,8 @@ export const TemplateEdit = () => {
 			}
 		},
 	});
+
+	const isDirty = useDirtyTracker(body, seeded) && !saveMutation.isPending;
 
 	if (!isAdd && !idParam) {
 		return <Navigate to="/developer/templates" replace />;
@@ -282,6 +288,8 @@ export const TemplateEdit = () => {
 					</button>
 				</div>
 			</form>
+
+			<UnsavedChangesGuard isDirty={isDirty} />
 		</div>
 	);
 };

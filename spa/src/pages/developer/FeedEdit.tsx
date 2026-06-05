@@ -6,6 +6,8 @@ import { ChevronLeft, Save } from "lucide-react";
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
+import { UnsavedChangesGuard } from "@/components/ui/UnsavedChangesGuard";
+import { useDirtyTracker } from "@/hooks/useDirtyTracker";
 
 import { DataTableSelect } from "@/components/developer/DataTableSelect";
 import { DeveloperSectionNav } from "@/components/developer/DeveloperSectionNav";
@@ -68,6 +70,7 @@ export const FeedEdit = () => {
 		{}
 	);
 	const [generalError, setGeneralError] = useState<string | null>(null);
+	const [seeded, setSeeded] = useState(isAdd);
 
 	const settingsValidation = useResourceSettingsValidation(
 		(body.fields ?? []) as unknown as ResourceEntry[],
@@ -86,6 +89,7 @@ export const FeedEdit = () => {
 				fields: detailQ.data.fields,
 			};
 			setBody(next);
+			setSeeded(true);
 		}
 	}, [isAdd, detailQ.data]);
 
@@ -118,6 +122,8 @@ export const FeedEdit = () => {
 			}
 		},
 	});
+
+	const isDirty = useDirtyTracker(body, seeded) && !saveMutation.isPending;
 
 	if (!isAdd && !idParam) {
 		return <Navigate to="/developer/feeds" replace />;
@@ -285,6 +291,8 @@ export const FeedEdit = () => {
 					</button>
 				</div>
 			</form>
+
+			<UnsavedChangesGuard isDirty={isDirty} />
 		</div>
 	);
 };

@@ -7,6 +7,8 @@ import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
 import { Combobox, type ComboboxOption } from "@/components/ui/Combobox";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
+import { UnsavedChangesGuard } from "@/components/ui/UnsavedChangesGuard";
+import { useDirtyTracker } from "@/hooks/useDirtyTracker";
 
 import { DeveloperSectionNav } from "@/components/developer/DeveloperSectionNav";
 
@@ -48,6 +50,7 @@ export const CalloutGroupEdit = () => {
 
 	useScrollToFirstError(fieldErrors);
 	const [generalError, setGeneralError] = useState<string | null>(null);
+	const [seeded, setSeeded] = useState(isAdd);
 
 	useEffect(() => {
 		if (!isAdd && groupQ.data) {
@@ -56,6 +59,7 @@ export const CalloutGroupEdit = () => {
 				name: groupQ.data.name,
 				callouts: groupQ.data.callouts ?? [],
 			});
+			setSeeded(true);
 		}
 	}, [isAdd, groupQ.data]);
 
@@ -90,6 +94,8 @@ export const CalloutGroupEdit = () => {
 			}
 		},
 	});
+
+	const isDirty = useDirtyTracker(body, seeded) && !saveMutation.isPending;
 
 	if (!isAdd && !idParam) {
 		return <Navigate to="/developer/callout-groups" replace />;
@@ -307,6 +313,8 @@ export const CalloutGroupEdit = () => {
 					</button>
 				</div>
 			</form>
+
+			<UnsavedChangesGuard isDirty={isDirty} />
 		</div>
 	);
 };

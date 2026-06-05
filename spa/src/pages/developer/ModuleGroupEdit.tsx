@@ -6,6 +6,8 @@ import { ChevronLeft, Save } from "lucide-react";
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
+import { UnsavedChangesGuard } from "@/components/ui/UnsavedChangesGuard";
+import { useDirtyTracker } from "@/hooks/useDirtyTracker";
 
 import { DeveloperSectionNav } from "@/components/developer/DeveloperSectionNav";
 import { ModuleGroupModulesList } from "@/components/developer/ModuleGroupModulesList";
@@ -44,6 +46,7 @@ export const ModuleGroupEdit = () => {
 
 	useScrollToFirstError(fieldErrors);
 	const [generalError, setGeneralError] = useState<string | null>(null);
+	const [seeded, setSeeded] = useState(isAdd);
 
 	useEffect(() => {
 		if (!isAdd && detailQ.data) {
@@ -55,6 +58,7 @@ export const ModuleGroupEdit = () => {
 					route: found.route ?? "",
 					position: found.position ?? 0,
 				});
+				setSeeded(true);
 			}
 		}
 	}, [isAdd, detailQ.data, idParam]);
@@ -90,6 +94,8 @@ export const ModuleGroupEdit = () => {
 			}
 		},
 	});
+
+	const isDirty = useDirtyTracker(body, seeded) && !saveMutation.isPending;
 
 	if (!isAdd && !idParam) {
 		return <Navigate to="/developer/module-groups" replace />;
@@ -213,6 +219,8 @@ export const ModuleGroupEdit = () => {
 					<ModuleGroupModulesList groupId={idParam} />
 				</div>
 			)}
+
+			<UnsavedChangesGuard isDirty={isDirty} />
 		</div>
 	);
 };

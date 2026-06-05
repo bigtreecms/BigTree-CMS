@@ -11,6 +11,8 @@ import { fourOhFoursApi } from "@/api/endpoints/four-oh-fours";
 import { ApiError } from "@/types/api";
 import { toast } from "@/lib/toast";
 import { useScrollToFirstError } from "@/hooks/useScrollToFirstError";
+import { useDirtyTracker } from "@/hooks/useDirtyTracker";
+import { UnsavedChangesGuard } from "@/components/ui/UnsavedChangesGuard";
 import { validateRequired } from "@/lib/formValidation";
 
 import { SelectField, TextField } from "./developer/TemplateEdit";
@@ -59,6 +61,8 @@ export const Create301 = () => {
 			);
 		},
 	});
+
+	const isDirty = useDirtyTracker({ from, to, siteKey }) && !createMutation.isPending;
 
 	return (
 		<div className="mx-auto max-w-screen-md px-6 py-4">
@@ -160,6 +164,8 @@ export const Create301 = () => {
 					</button>
 				</div>
 			</form>
+
+			<UnsavedChangesGuard isDirty={isDirty} />
 		</div>
 	);
 };

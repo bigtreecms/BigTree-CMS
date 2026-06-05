@@ -19,6 +19,8 @@ import { useAuthStore } from "@/auth/store";
 import { canPublishPage, isAdmin } from "@/lib/permissions";
 import { toast } from "@/lib/toast";
 import { useScrollToFirstError } from "@/hooks/useScrollToFirstError";
+import { useDirtyTracker } from "@/hooks/useDirtyTracker";
+import { UnsavedChangesGuard } from "@/components/ui/UnsavedChangesGuard";
 
 import { ContentTab, PropertiesTab, SeoTab, SharingTab, TabBar } from "./PageEdit";
 
@@ -191,6 +193,15 @@ export const PageAdd = () => {
 		createMutation.mutate(publish);
 	};
 
+	// Baseline once the template has been auto-defaulted (or the template list
+	// came back empty), so the automatic default selection isn't counted as a
+	// user edit. `ready` derives from `body` itself, so it flips on the same
+	// render the default lands — no baseline race.
+	const ready =
+		Boolean(body.template) ||
+		(templatesQuery.isSuccess && (templatesQuery.data?.length ?? 0) === 0);
+	const isDirty = useDirtyTracker(body, ready) && !createMutation.isPending;
+
 	const lineage = parentQuery.data?.lineage ?? [];
 	const templateDisabled = Boolean(body.external && body.external.trim().length > 0);
 
@@ -329,6 +340,8 @@ export const PageAdd = () => {
 					)}
 				</div>
 			</form>
+
+			<UnsavedChangesGuard isDirty={isDirty} />
 		</div>
 	);
 };

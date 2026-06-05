@@ -27,6 +27,8 @@ import { ApiError } from "@/types/api";
 import { toast } from "@/lib/toast";
 import { useScrollToFirstError } from "@/hooks/useScrollToFirstError";
 import { useReturnTo } from "@/hooks/useReturnTo";
+import { useDirtyTracker } from "@/hooks/useDirtyTracker";
+import { UnsavedChangesGuard } from "@/components/ui/UnsavedChangesGuard";
 import { validateRequired } from "@/lib/formValidation";
 
 import { TextField } from "./TemplateEdit";
@@ -74,6 +76,7 @@ export const FieldTypeEdit = () => {
 		isAdd ? { id: "", name: "", use_cases: [], input_schema: [] } : { id: "" }
 	);
 	const [mode, setMode] = useState<"declarative" | "module">("declarative");
+	const [seeded, setSeeded] = useState(isAdd);
 	const [isLegacy, setIsLegacy] = useState(false);
 	const [settingsParseError, setSettingsParseError] = useState(false);
 	const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
@@ -101,6 +104,7 @@ export const FieldTypeEdit = () => {
 					: [],
 			});
 			setMode(isModule ? "module" : "declarative");
+			setSeeded(true);
 			setSettingsParseError(data.settings_parse_error === true);
 
 			// A pre-existing record with no input_schema and no module is a legacy
@@ -135,6 +139,10 @@ export const FieldTypeEdit = () => {
 			}
 		},
 	});
+
+	// Dirty while the user has edited the form, but not while a save is in flight
+	// (a successful save navigates away and must not be intercepted).
+	const isDirty = useDirtyTracker({ body, mode }, seeded) && !saveMutation.isPending;
 
 	if (!isAdd && !idParam) {
 		return <Navigate to="/developer/field-types" replace />;
@@ -395,6 +403,8 @@ export const FieldTypeEdit = () => {
 					</button>
 				</div>
 			</form>
+
+			<UnsavedChangesGuard isDirty={isDirty} />
 		</div>
 	);
 };

@@ -28,6 +28,8 @@ import { isFieldRequired, isFieldValueEmpty } from "@/renderer/forms/validation"
 
 import { useLock } from "@/hooks/useLock";
 import { useScrollToFirstError } from "@/hooks/useScrollToFirstError";
+import { useDirtyTracker } from "@/hooks/useDirtyTracker";
+import { UnsavedChangesGuard } from "@/components/ui/UnsavedChangesGuard";
 import { ApiError } from "@/types/api";
 import { canPublishPage } from "@/lib/permissions";
 import { toast } from "@/lib/toast";
@@ -226,6 +228,15 @@ export const PageEdit = () => {
 		saveMutation.mutate({ ...body, publish });
 	};
 
+	// Dirty once the page has loaded and been edited; suppressed while a save or
+	// delete is in flight (both navigate away) and when the row is read-only
+	// because another user holds the lock.
+	const isDirty =
+		useDirtyTracker(body, body !== null) &&
+		!saveMutation.isPending &&
+		!deleteMutation.isPending &&
+		!lock.ownedByOther;
+
 	if (!valid) {
 		return <Navigate to="/pages" replace />;
 	}
@@ -400,6 +411,8 @@ export const PageEdit = () => {
 					invalidateKey={["pages", "list", page.parent]}
 				/>
 			)}
+
+			<UnsavedChangesGuard isDirty={isDirty} />
 		</div>
 	);
 };

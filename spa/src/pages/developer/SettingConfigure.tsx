@@ -20,6 +20,8 @@ import { HTMLField } from "@/renderer/fields/HTMLField";
 import { ApiError } from "@/types/api";
 import { toast } from "@/lib/toast";
 import { useScrollToFirstError } from "@/hooks/useScrollToFirstError";
+import { useDirtyTracker } from "@/hooks/useDirtyTracker";
+import { UnsavedChangesGuard } from "@/components/ui/UnsavedChangesGuard";
 import { validateRequired } from "@/lib/formValidation";
 
 import { TextField } from "./TemplateEdit";
@@ -167,6 +169,10 @@ export const SettingConfigure = () => {
 	const typeKnown = typeGroups.some((g) => g.options.some((o) => o.id === body.type));
 
 	const isPending = createMutation.isPending || updateMutation.isPending;
+
+	// In add mode the form is pristine immediately; in edit mode wait for the
+	// loaded definition to seed `body` before baselining.
+	const isDirty = useDirtyTracker(body, !isEdit || seeded) && !isPending;
 
 	const submit = () => {
 		const errors = validateRequired([{ field: "id", label: "ID", value: body.id }]);
@@ -380,6 +386,8 @@ export const SettingConfigure = () => {
 					</button>
 				</div>
 			</form>
+
+			<UnsavedChangesGuard isDirty={isDirty} />
 		</div>
 	);
 };

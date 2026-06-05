@@ -17,6 +17,8 @@ import type { ModuleFormField } from "@/api/endpoints/modules";
 import { useAuthStore } from "@/auth/store";
 import { useLock } from "@/hooks/useLock";
 import { useReturnTo } from "@/hooks/useReturnTo";
+import { useDirtyTracker } from "@/hooks/useDirtyTracker";
+import { UnsavedChangesGuard } from "@/components/ui/UnsavedChangesGuard";
 import { ApiError } from "@/types/api";
 import { toast } from "@/lib/toast";
 
@@ -93,6 +95,13 @@ export const SettingEdit = () => {
 			}
 		},
 	});
+
+	// `value` is undefined until the setting loads (and stays undefined for an
+	// unrevealed encrypted secret), so it doubles as the "ready" signal.
+	const isDirty =
+		useDirtyTracker(value, value !== undefined) &&
+		!saveMutation.isPending &&
+		!lock.ownedByOther;
 
 	if (!settingId) {
 		return <ErrorPanel error={new Error("Missing setting id")} />;
@@ -235,6 +244,8 @@ export const SettingEdit = () => {
 					</button>
 				</div>
 			</form>
+
+			<UnsavedChangesGuard isDirty={isDirty} />
 		</div>
 	);
 };

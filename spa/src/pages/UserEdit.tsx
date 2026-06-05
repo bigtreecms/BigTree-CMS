@@ -29,6 +29,8 @@ import { isAdmin, isDeveloper } from "@/lib/permissions";
 import { toast } from "@/lib/toast";
 import { ApiError } from "@/types/api";
 import { useReturnTo } from "@/hooks/useReturnTo";
+import { useDirtyTracker } from "@/hooks/useDirtyTracker";
+import { UnsavedChangesGuard } from "@/components/ui/UnsavedChangesGuard";
 
 type PermsTab = "pages" | "modules" | "files";
 
@@ -64,6 +66,7 @@ export const UserEdit = () => {
 	const [passwordOpen, setPasswordOpen] = useState(false);
 	const [confirmDelete, setConfirmDelete] = useState(false);
 	const [confirmRemove2fa, setConfirmRemove2fa] = useState(false);
+	const [seeded, setSeeded] = useState(false);
 
 	// Seed local state when the fetched user changes.
 	useEffect(() => {
@@ -82,6 +85,7 @@ export const UserEdit = () => {
 		});
 		setPermissions(u.permissions ?? {});
 		setAlerts(u.alerts ?? {});
+		setSeeded(true);
 	}, [userQ.data]);
 
 	const updateMutation = useMutation({
@@ -149,6 +153,11 @@ export const UserEdit = () => {
 	const targetUser = userQ.data;
 	const canEditThisUser = canManageUsers || isSelf;
 	const canEditLevel = canManageUsers && !isSelf;
+
+	const isDirty =
+		useDirtyTracker({ form, permissions, alerts }, seeded) &&
+		!updateMutation.isPending &&
+		!deleteMutation.isPending;
 
 	if (!Number.isFinite(id) || id <= 0) {
 		return <AccessDenied title="Invalid user" message="That URL doesn't point to a user." />;
@@ -509,6 +518,8 @@ export const UserEdit = () => {
 				variant="danger"
 				onConfirm={() => remove2faMutation.mutate()}
 			/>
+
+			<UnsavedChangesGuard isDirty={isDirty} />
 		</div>
 	);
 };

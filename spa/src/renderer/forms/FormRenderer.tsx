@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
 import type { ModuleForm, ModuleFormField } from "@/api/endpoints/modules";
+import { UnsavedChangesGuard } from "@/components/ui/UnsavedChangesGuard";
 import { useScrollToFirstError } from "@/hooks/useScrollToFirstError";
 import { ApiError } from "@/types/api";
 
@@ -83,6 +84,15 @@ export const FormRenderer = ({
 
 	useScrollToFirstError(fieldErrors);
 
+	// Baseline the form started from, so we can tell when the user has made
+	// edits. Reseeded alongside `values` whenever the form/entry changes.
+	const baselineRef = useRef<Record<string, unknown>>(values);
+
+	// Dirty while the user has unsaved edits — but never while we're mid-submit
+	// (a successful save navigates away and must not be intercepted) or in a
+	// read-only/disabled view where no edits are possible.
+	const isDirty = !disabled && !submitting && !valuesAreEqual(values, baselineRef.current);
+
 	const renderContext = useMemo<FormRenderContextValue | null>(() => {
 		if (!moduleId) {
 			return null;
@@ -96,7 +106,9 @@ export const FormRenderer = ({
 	}, [moduleId, form.id, entryId]);
 
 	useEffect(() => {
-		setValues(seedValues(form, initialValues));
+		const seeded = seedValues(form, initialValues);
+		setValues(seeded);
+		baselineRef.current = seeded;
 		setFieldErrors({});
 		setGeneralError(null);
 	}, [form, initialValues]);
@@ -230,11 +242,50 @@ export const FormRenderer = ({
 		</form>
 	);
 
+	const leaveGuard = <UnsavedChangesGuard isDirty={isDirty} />;
+
 	if (!renderContext) {
-		return body;
+		return (
+			<>
+				{body}
+				{leaveGuard}
+			</>
+		);
 	}
 
-	return <FormRenderContextProvider value={renderContext}>{body}</FormRenderContextProvider>;
+	return (
+		<FormRenderContextProvider value={renderContext}>
+			{body}
+			{leaveGuard}
+		</FormRenderContextProvider>
+	);
+};
+
+/**
+ * Shallow value-equality for the form's flat value map. Keys are seeded from
+ * `form.fields` in a stable order and only ever replaced (never reordered), so
+ * a per-key JSON comparison is enough to detect edits — including nested
+ * arrays/objects like relation id lists.
+ */
+const valuesAreEqual = (a: Record<string, unknown>, b: Record<string, unknown>): boolean => {
+	const aKeys = Object.keys(a);
+	const bKeys = Object.keys(b);
+
+	if (aKeys.length !== bKeys.length) {
+		return false;
+	}
+
+	for (const key of aKeys) {
+		if (!Object.prototype.hasOwnProperty.call(b, key)) {
+			return false;
+		}
+
+		if (JSON.stringify(a[key]) !== JSON.stringify(b[key])) {
+			return false;
+		}
+	}
+
+	return true;
 };
 
 interface MtmFieldSettings {

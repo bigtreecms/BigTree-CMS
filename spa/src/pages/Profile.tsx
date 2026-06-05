@@ -15,6 +15,8 @@ import { TimezoneSelect } from "@/components/users/TimezoneSelect";
 import { TwoFactorPanel } from "@/components/users/TwoFactorPanel";
 import { toast } from "@/lib/toast";
 import { ApiError } from "@/types/api";
+import { useDirtyTracker } from "@/hooks/useDirtyTracker";
+import { UnsavedChangesGuard } from "@/components/ui/UnsavedChangesGuard";
 
 /**
  * Self-service profile editor — Account + Security tabs.
@@ -40,6 +42,7 @@ export const Profile = () => {
 	const [form, setForm] = useState<UpdateUserPayload>({});
 	const [passwordOpen, setPasswordOpen] = useState(false);
 	const [tab, setTab] = useState<TabValue>("account");
+	const [seeded, setSeeded] = useState(false);
 
 	useEffect(() => {
 		if (!meQ.data) {
@@ -53,6 +56,7 @@ export const Profile = () => {
 			timezone: meQ.data.timezone,
 			daily_digest: meQ.data.daily_digest,
 		});
+		setSeeded(true);
 	}, [meQ.data]);
 
 	const updateMutation = useMutation({
@@ -96,6 +100,8 @@ export const Profile = () => {
 			toast.error("Failed to save profile");
 		},
 	});
+
+	const isDirty = useDirtyTracker(form, seeded) && !updateMutation.isPending;
 
 	if (!currentUser) {
 		return null;
@@ -190,6 +196,8 @@ export const Profile = () => {
 				userId={me.id}
 				requireCurrent={true}
 			/>
+
+			<UnsavedChangesGuard isDirty={isDirty} />
 		</div>
 	);
 };

@@ -12,6 +12,8 @@ import {
 
 import { ApiError } from "@/types/api";
 import { useScrollToFirstError } from "@/hooks/useScrollToFirstError";
+import { useDirtyTracker } from "@/hooks/useDirtyTracker";
+import { UnsavedChangesGuard } from "@/components/ui/UnsavedChangesGuard";
 import { toast } from "@/lib/toast";
 import { validateRequired } from "@/lib/formValidation";
 
@@ -167,6 +169,10 @@ export const ModuleShellTab = ({ moduleId, module }: ModuleShellTabProps) => {
 	const setGbp = (patch: Partial<ModuleGbpConfig>) =>
 		setState((prev) => ({ ...prev, gbp: { ...prev.gbp, ...patch } }));
 
+	// The parent only mounts this tab once the module has loaded, so `state` is
+	// already seeded on first render — no separate "ready" gate needed here.
+	const isDirty = useDirtyTracker(state) && !saveMutation.isPending;
+
 	const handleSubmit = (event: React.FormEvent) => {
 		event.preventDefault();
 
@@ -195,151 +201,159 @@ export const ModuleShellTab = ({ moduleId, module }: ModuleShellTabProps) => {
 	];
 
 	return (
-		<form onSubmit={handleSubmit} className="space-y-4">
-			{generalError && (
-				<div className="rounded-md border border-danger/40 bg-danger/5 px-3 py-2 text-[12.5px] text-danger">
-					{generalError}
-				</div>
-			)}
+		<>
+			<form onSubmit={handleSubmit} className="space-y-4">
+				{generalError && (
+					<div className="rounded-md border border-danger/40 bg-danger/5 px-3 py-2 text-[12.5px] text-danger">
+						{generalError}
+					</div>
+				)}
 
-			<div className="space-y-4 rounded-xl border border-border bg-surface p-4">
-				<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-					<TextInput
-						label="Name"
-						value={state.name}
-						onChange={(v) => set({ name: v })}
-						error={fieldErrors.name}
-						required
-					/>
-					<SelectInput
-						label="Group"
-						value={creatingGroup ? NEW_GROUP_OPTION : state.group}
-						onChange={onGroupChange}
-						options={groupOptions}
-					/>
-					<TextInput
-						label="Route"
-						value={state.route}
-						onChange={(v) => set({ route: v })}
-						hint="URL slug. Auto-generated from the name when left blank."
-						error={fieldErrors.route}
-						mono
-					/>
-					<DataTableSelect
-						label="Data table"
-						value={state.table}
-						onChange={(v) => set({ table: v })}
-						hint="MySQL table backing this module's entries."
-					/>
-					<TextInput
-						label="Handler class"
-						value={state.class}
-						onChange={(v) => set({ class: v })}
-						hint="Optional custom module class."
-						mono
+				<div className="space-y-4 rounded-xl border border-border bg-surface p-4">
+					<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+						<TextInput
+							label="Name"
+							value={state.name}
+							onChange={(v) => set({ name: v })}
+							error={fieldErrors.name}
+							required
+						/>
+						<SelectInput
+							label="Group"
+							value={creatingGroup ? NEW_GROUP_OPTION : state.group}
+							onChange={onGroupChange}
+							options={groupOptions}
+						/>
+						<TextInput
+							label="Route"
+							value={state.route}
+							onChange={(v) => set({ route: v })}
+							hint="URL slug. Auto-generated from the name when left blank."
+							error={fieldErrors.route}
+							mono
+						/>
+						<DataTableSelect
+							label="Data table"
+							value={state.table}
+							onChange={(v) => set({ table: v })}
+							hint="MySQL table backing this module's entries."
+						/>
+						<TextInput
+							label="Handler class"
+							value={state.class}
+							onChange={(v) => set({ class: v })}
+							hint="Optional custom module class."
+							mono
+						/>
+					</div>
+					{creatingGroup && (
+						<div className="flex flex-wrap items-end gap-2 rounded-md border border-border bg-surface-2 p-3">
+							<div className="min-w-[200px] flex-1">
+								<TextInput
+									label="New group name"
+									value={newGroupName}
+									onChange={setNewGroupName}
+								/>
+							</div>
+							<button
+								type="button"
+								disabled={!newGroupName.trim() || createGroupMutation.isPending}
+								onClick={() => createGroupMutation.mutate(newGroupName.trim())}
+								className="inline-flex items-center rounded-md bg-accent px-3 py-2 text-[12.5px] font-medium text-accent-fg hover:bg-accent-hover disabled:opacity-50"
+							>
+								{createGroupMutation.isPending ? "Creating…" : "Create group"}
+							</button>
+							<button
+								type="button"
+								onClick={() => {
+									setCreatingGroup(false);
+									setNewGroupName("");
+								}}
+								className="inline-flex items-center rounded-md border border-border bg-surface px-3 py-2 text-[12.5px] text-text-2 hover:bg-hover"
+							>
+								Cancel
+							</button>
+						</div>
+					)}
+
+					<IconPicker
+						value={state.icon}
+						onChange={(v) => set({ icon: v })}
+						hint="Shown beside the module in the admin navigation."
 					/>
 				</div>
-				{creatingGroup && (
-					<div className="flex flex-wrap items-end gap-2 rounded-md border border-border bg-surface-2 p-3">
-						<div className="min-w-[200px] flex-1">
+
+				<div className="space-y-3 rounded-xl border border-border bg-surface p-4">
+					<CheckboxInput
+						label="Expose this module via GraphQL"
+						checked={state.graphql}
+						onChange={(v) => set({ graphql: v })}
+					/>
+					{state.graphql && (
+						<TextInput
+							label="GraphQL type"
+							value={state.graphql_type}
+							onChange={(v) => set({ graphql_type: v })}
+							mono
+						/>
+					)}
+				</div>
+
+				<div className="space-y-3 rounded-xl border border-border bg-surface p-4">
+					<CheckboxInput
+						label="Group-based permissions (per-category access)"
+						checked={Boolean(state.gbp.enabled)}
+						onChange={(v) => setGbp({ enabled: v })}
+					/>
+					{state.gbp.enabled && (
+						<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+							<DataTableSelect
+								label="Category table"
+								value={state.gbp.other_table ?? ""}
+								onChange={(v) => setGbp({ other_table: v })}
+								hint="Table whose rows act as permission categories."
+							/>
 							<TextInput
-								label="New group name"
-								value={newGroupName}
-								onChange={setNewGroupName}
+								label="Title field"
+								value={state.gbp.title_field ?? ""}
+								onChange={(v) => setGbp({ title_field: v })}
+								hint="Column on the category table used as its label."
+								mono
+							/>
+							<TextInput
+								label="Permission group name"
+								value={state.gbp.name ?? ""}
+								onChange={(v) => setGbp({ name: v })}
+								hint="Shown in the user permission tree."
+							/>
+							<TextInput
+								label="Item parser"
+								value={state.gbp.item_parser ?? ""}
+								onChange={(v) => setGbp({ item_parser: v })}
+								hint="Optional PHP parser for category labels."
+								mono
 							/>
 						</div>
-						<button
-							type="button"
-							disabled={!newGroupName.trim() || createGroupMutation.isPending}
-							onClick={() => createGroupMutation.mutate(newGroupName.trim())}
-							className="inline-flex items-center rounded-md bg-accent px-3 py-2 text-[12.5px] font-medium text-accent-fg hover:bg-accent-hover disabled:opacity-50"
-						>
-							{createGroupMutation.isPending ? "Creating…" : "Create group"}
-						</button>
-						<button
-							type="button"
-							onClick={() => {
-								setCreatingGroup(false);
-								setNewGroupName("");
-							}}
-							className="inline-flex items-center rounded-md border border-border bg-surface px-3 py-2 text-[12.5px] text-text-2 hover:bg-hover"
-						>
-							Cancel
-						</button>
-					</div>
-				)}
+					)}
+				</div>
 
-				<IconPicker
-					value={state.icon}
-					onChange={(v) => set({ icon: v })}
-					hint="Shown beside the module in the admin navigation."
-				/>
-			</div>
+				<div className="flex justify-end">
+					<button
+						type="submit"
+						className="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-[12.5px] font-medium text-accent-fg disabled:opacity-50 hover:bg-accent-hover"
+						disabled={saveMutation.isPending}
+					>
+						<Save size={13} />
+						{saveMutation.isPending
+							? "Saving…"
+							: isAdd
+								? "Create module"
+								: "Save module"}
+					</button>
+				</div>
+			</form>
 
-			<div className="space-y-3 rounded-xl border border-border bg-surface p-4">
-				<CheckboxInput
-					label="Expose this module via GraphQL"
-					checked={state.graphql}
-					onChange={(v) => set({ graphql: v })}
-				/>
-				{state.graphql && (
-					<TextInput
-						label="GraphQL type"
-						value={state.graphql_type}
-						onChange={(v) => set({ graphql_type: v })}
-						mono
-					/>
-				)}
-			</div>
-
-			<div className="space-y-3 rounded-xl border border-border bg-surface p-4">
-				<CheckboxInput
-					label="Group-based permissions (per-category access)"
-					checked={Boolean(state.gbp.enabled)}
-					onChange={(v) => setGbp({ enabled: v })}
-				/>
-				{state.gbp.enabled && (
-					<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-						<DataTableSelect
-							label="Category table"
-							value={state.gbp.other_table ?? ""}
-							onChange={(v) => setGbp({ other_table: v })}
-							hint="Table whose rows act as permission categories."
-						/>
-						<TextInput
-							label="Title field"
-							value={state.gbp.title_field ?? ""}
-							onChange={(v) => setGbp({ title_field: v })}
-							hint="Column on the category table used as its label."
-							mono
-						/>
-						<TextInput
-							label="Permission group name"
-							value={state.gbp.name ?? ""}
-							onChange={(v) => setGbp({ name: v })}
-							hint="Shown in the user permission tree."
-						/>
-						<TextInput
-							label="Item parser"
-							value={state.gbp.item_parser ?? ""}
-							onChange={(v) => setGbp({ item_parser: v })}
-							hint="Optional PHP parser for category labels."
-							mono
-						/>
-					</div>
-				)}
-			</div>
-
-			<div className="flex justify-end">
-				<button
-					type="submit"
-					className="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-[12.5px] font-medium text-accent-fg disabled:opacity-50 hover:bg-accent-hover"
-					disabled={saveMutation.isPending}
-				>
-					<Save size={13} />
-					{saveMutation.isPending ? "Saving…" : isAdd ? "Create module" : "Save module"}
-				</button>
-			</div>
-		</form>
+			<UnsavedChangesGuard isDirty={isDirty} />
+		</>
 	);
 };
