@@ -22,6 +22,8 @@
 				"render" => "string|max:32",
 				"value_type" => "string|max:32",
 				"input_schema" => "array",
+				"module_source" => "string|max:262144",
+				"settings_schema" => "array",
 			],
 			"audit" => ["table" => "field-types", "type" => "created", "entry" => "%id%"],
 		],

@@ -127,6 +127,17 @@
 			if (!$ft) {
 				throw new NotFoundException("Field type $id not found", "resource_not_found", 404);
 			}
+
+			// Local module types keep their source + settings on disk; surface both so
+			// the editor can load them (falling back to any record-stored source
+			// pre-migration).
+			if (($ft["render"] ?? "") === "module" && empty($ft["asset_url"])) {
+				$source = $this->readModuleSource($id);
+				$ft["module_source"] = $source !== "" ? $source : (string)($ft["module_source"] ?? "");
+				$ft["settings_schema"] = $this->readSettingsSchema($id);
+				$ft["settings_parse_error"] = $this->settingsParseFailed($id);
+			}
+
 			return Response::ok($ft);
 		}
 
@@ -149,7 +160,7 @@
 				"self_draw" => !empty($d["self_draw"]) ? "on" : "",
 			];
 
-			BigTreeJSONDB::insert("field-types", $this->applyDeclarative($record, $d));
+			BigTreeJSONDB::insert("field-types", $this->applyRenderFields($record, $d));
 
 			return Response::created(BigTreeJSONDB::get("field-types", $id), null);
 		}
@@ -167,7 +178,7 @@
 				"use_cases" => isset($d["use_cases"]) && is_array($d["use_cases"]) ? $this->normalizeUseCases($d["use_cases"]) : $existing["use_cases"],
 				"self_draw" => isset($d["self_draw"]) ? (!empty($d["self_draw"]) ? "on" : "") : ($existing["self_draw"] ?? ""),
 			]);
-			BigTreeJSONDB::update("field-types", $id, $this->applyDeclarative($next, $d));
+			BigTreeJSONDB::update("field-types", $id, $this->applyRenderFields($next, $d));
 
 			return Response::ok(BigTreeJSONDB::get("field-types", $id));
 		}
@@ -231,21 +242,37 @@
 			$render = $this->renderKind($ft, "custom");
 
 			if ($render === "module") {
-				$r = Response::ok([
+				$payload = [
 					"id" => $id,
 					"name" => $ft["name"] ?? $id,
 					"category" => "custom",
 					"render" => "module",
 					"value_type" => isset($ft["value_type"]) ? (string)$ft["value_type"] : "string",
 					"contract_version" => (int)($ft["contract_version"] ?? 1),
-					"asset_url" => (string)$ft["asset_url"],
-					// SRI hash pinned at install/build; the sandbox refuses an
-					// unsigned (empty) module, so untrusted code can't be swapped out
-					// from under a verified manifest.
-					"integrity" => isset($ft["integrity"]) ? (string)$ft["integrity"] : "",
-					"trust" => isset($ft["trust"]) ? (string)$ft["trust"] : "marketplace",
-					"settings_schema" => is_array($ft["settings_schema"] ?? null) ? $ft["settings_schema"] : [],
-				]);
+				];
+
+				if (!empty($ft["asset_url"])) {
+					// Installed-extension module: external bundle, SRI-pinned at build.
+					$payload["asset_url"] = (string)$ft["asset_url"];
+					$payload["integrity"] = isset($ft["integrity"]) ? (string)$ft["integrity"] : "";
+					$payload["trust"] = isset($ft["trust"]) ? (string)$ft["trust"] : "marketplace";
+					$payload["settings_schema"] = is_array($ft["settings_schema"] ?? null) ? $ft["settings_schema"] : [];
+				} else {
+					// Locally authored, implicitly trusted — source + settings on disk,
+					// run in-context. (Fall back to a record-stored source for records
+					// saved before source moved to the filesystem.)
+					$source = $this->readModuleSource($id);
+
+					if ($source === "" && !empty($ft["module_source"])) {
+						$source = (string)$ft["module_source"];
+					}
+
+					$payload["module_source"] = $source;
+					$payload["trust"] = "local";
+					$payload["settings_schema"] = $this->readSettingsSchema($id);
+				}
+
+				$r = Response::ok($payload);
 				$r->header("Cache-Control", "private, max-age=60");
 
 				return $r;
@@ -309,19 +336,35 @@
 			}
 
 			$incoming = is_array($request->body["field"] ?? null) ? $request->body["field"] : [];
+			$settings = is_array($incoming["settings"] ?? null) ? $incoming["settings"] : [];
+			$key = (string)($incoming["key"] ?? "field");
 
 			$field = [
 				"type" => $id,
-				"key" => (string)($incoming["key"] ?? "field"),
+				"key" => $key,
+				// Legacy draw.php files read the field key from "column" and their
+				// configured settings from "options"; the SPA sends "key"/"settings",
+				// so mirror both names for compatibility.
+				"column" => $key,
 				"value" => $incoming["value"] ?? "",
 				"id" => (string)($incoming["id"] ?? ("field-" . bin2hex(random_bytes(4)))),
 				"title" => (string)($incoming["title"] ?? ""),
 				"subtitle" => (string)($incoming["subtitle"] ?? ""),
 				"tabindex" => (int)($incoming["tabindex"] ?? 0),
-				"settings" => is_array($incoming["settings"] ?? null) ? $incoming["settings"] : [],
+				"settings" => $settings,
+				"options" => $settings,
 				"required" => !empty($incoming["required"]),
 				"has_value" => array_key_exists("value", $incoming),
 			];
+
+			// Extension field types expect their extension context set (relative
+			// resource paths, Extension::cacheData, etc.) — mirror admin.php.
+			$saved_context = $bigtree["extension_context"] ?? null;
+
+			if (strpos($id, "*") !== false) {
+				[$extension] = explode("*", $id, 2);
+				$bigtree["extension_context"] = $extension;
+			}
 
 			ob_start();
 
@@ -329,10 +372,12 @@
 				include $path;
 			} catch (\Throwable $e) {
 				ob_end_clean();
+				$bigtree["extension_context"] = $saved_context;
 				throw new BadRequestException("Render failed: " . $e->getMessage(), "render_error", 400);
 			}
 
 			$html = (string)ob_get_clean();
+			$bigtree["extension_context"] = $saved_context;
 
 			return Response::ok([
 				"id" => $id,
@@ -379,7 +424,7 @@
 				return "declarative";
 			}
 
-			if (!empty($source["asset_url"])) {
+			if (!empty($source["asset_url"]) || !empty($source["module_source"])) {
 				return "module";
 			}
 
@@ -388,6 +433,107 @@
 			}
 
 			return $bucket === "default" ? "core-component" : "server";
+		}
+
+		/**
+		 * Persist the render-mode fields from a request body. A `module` type stores
+		 * asset_url / trust / integrity (and drops any input_schema); everything else
+		 * falls through to the declarative handler. The legacy `server` (draw.php)
+		 * mode is no longer authored here — it survives only on already-installed
+		 * records and is rendered via the POST /render bridge.
+		 */
+		private function applyRenderFields(array $record, array $body) {
+			$render = isset($body["render"]) ? (string)$body["render"] : null;
+
+			if ($render !== "module") {
+				return $this->applyDeclarative($record, $body);
+			}
+
+			// Locally authored module: the source is stored on the record and served
+			// to the SPA, which runs it in-context. It's implicitly trusted (you wrote
+			// it on your own install) — trust / integrity only matter when a module is
+			// packaged into an extension for someone else, which is the build step's
+			// job, not this editor's.
+			$source = isset($body["module_source"]) ? (string)$body["module_source"] : "";
+
+			if (trim($source) === "") {
+				throw new BadRequestException(
+					"A module field type needs its source code.",
+					"missing_module_source",
+					400
+				);
+			}
+
+			$id = (string)($record["id"] ?? "");
+
+			// Store source + settings on disk under custom/admin/field-types/{id}/ so
+			// they can be edited in a real editor — not buried in field-types.json.
+			// The record only carries marker fields; schema()/get() read the files.
+			$this->writeModuleSource($id, $source);
+
+			// Settings schema (built in the SPA) → settings.js. Only written when
+			// supplied, so a partial update doesn't wipe it.
+			if (isset($body["settings_schema"]) && is_array($body["settings_schema"])) {
+				$this->writeSettingsSchema($id, $this->sanitizeSettingsSchema($body["settings_schema"]));
+			}
+
+			$record["render"] = "module";
+			$record["trust"] = "local";
+			$record["value_type"] = isset($body["value_type"]) ? (string)$body["value_type"] : "string";
+			$record["self_draw"] = "";
+			unset(
+				$record["input_schema"],
+				$record["asset_url"],
+				$record["integrity"],
+				$record["module_source"],
+				$record["settings_schema"]
+			);
+
+			return $record;
+		}
+
+		/**
+		 * Whitelist a module's declared settings descriptors. Each needs an id and a
+		 * known control; recognised descriptor keys pass through, everything else is
+		 * dropped so a module can't inject arbitrary data into the settings designer.
+		 */
+		private function sanitizeSettingsSchema(array $input) {
+			$controls = [
+				"string", "int", "textarea", "bool", "enum", "note", "heading",
+				"directory", "db_table", "db_column", "db_column_sort", "list_maker",
+				"source_fields", "callout_groups", "image_options", "matrix_columns",
+			];
+			$keys = [
+				"label", "hint", "note", "heading", "placeholder", "default", "required",
+				"options", "depends_on", "show_if", "contexts", "context_defaults",
+				"columns", "keys",
+			];
+			$clean = [];
+
+			foreach ($input as $descriptor) {
+				if (!is_array($descriptor)) {
+					continue;
+				}
+
+				$id = isset($descriptor["id"]) ? trim((string)$descriptor["id"]) : "";
+				$control = isset($descriptor["control"]) ? (string)$descriptor["control"] : "";
+
+				if ($id === "" || !in_array($control, $controls, true)) {
+					continue;
+				}
+
+				$entry = ["id" => $id, "control" => $control];
+
+				foreach ($keys as $key) {
+					if (array_key_exists($key, $descriptor)) {
+						$entry[$key] = $descriptor[$key];
+					}
+				}
+
+				$clean[] = $entry;
+			}
+
+			return $clean;
 		}
 
 		/**
@@ -527,9 +673,267 @@
 			return is_array($schemas) ? $schemas : [];
 		}
 
+		/**
+		 * A single path segment is safe when it's non-empty, contains only
+		 * letters / digits / dot / dash / underscore (extension ids are reverse-DNS
+		 * like "com.fastspot.date-range"), and has no ".." traversal.
+		 */
+		private function safeSegment($segment) {
+			return $segment !== ""
+				&& (bool)preg_match('/^[a-z0-9][a-z0-9._-]*$/i', $segment)
+				&& strpos($segment, "..") === false;
+		}
+
+		/** Filesystem path of a local module type's source. */
+		private function moduleSourcePath($id) {
+			return SERVER_ROOT . "custom/admin/field-types/$id/draw.js";
+		}
+
+		/** Write a local module type's source to disk, creating the directory. */
+		private function writeModuleSource($id, $source) {
+			if (!$this->safeSegment($id)) {
+				throw new BadRequestException("Invalid field type id.", "invalid_id", 400);
+			}
+
+			if (!BigTree::putFile($this->moduleSourcePath($id), $source)) {
+				throw new BadRequestException(
+					"Could not write the module file — check that custom/admin/field-types/ is writable.",
+					"module_write_failed",
+					400
+				);
+			}
+		}
+
+		/** Read a local module type's source from disk ("" if none). */
+		private function readModuleSource($id) {
+			if (!$this->safeSegment($id)) {
+				return "";
+			}
+
+			$path = $this->moduleSourcePath($id);
+
+			return is_file($path) ? (string)file_get_contents($path) : "";
+		}
+
+		/** Filesystem path of a local module type's settings schema. */
+		private function settingsSchemaPath($id) {
+			return SERVER_ROOT . "custom/admin/field-types/$id/settings.js";
+		}
+
+		/**
+		 * Write a module type's settings schema to settings.js as an ES module
+		 * (`export default <json>;`) — valid, editable JS whose payload we can read
+		 * back without a JS engine (see readSettingsSchema).
+		 */
+		private function writeSettingsSchema($id, array $descriptors) {
+			if (!$this->safeSegment($id)) {
+				throw new BadRequestException("Invalid field type id.", "invalid_id", 400);
+			}
+
+			$json = json_encode(
+				array_values($descriptors),
+				JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE
+			);
+			$contents = "export default " . $json . ";\n";
+
+			if (!BigTree::putFile($this->settingsSchemaPath($id), $contents)) {
+				throw new BadRequestException(
+					"Could not write the settings file — check that custom/admin/field-types/ is writable.",
+					"settings_write_failed",
+					400
+				);
+			}
+		}
+
+		/**
+		 * Read a module type's settings schema from settings.js. Strips the
+		 * `export default … ;` wrapper we write and decodes the JSON payload; returns
+		 * [] for a missing file or a hand-edit we can't parse.
+		 */
+		private function readSettingsSchema($id) {
+			if (!$this->safeSegment($id)) {
+				return [];
+			}
+
+			$path = $this->settingsSchemaPath($id);
+
+			if (!is_file($path)) {
+				return [];
+			}
+
+			$decoded = $this->looseJsonDecode($this->settingsSchemaPayload($path));
+
+			return is_array($decoded) ? $decoded : [];
+		}
+
+		/** Strip the `export default … ;` wrapper, leaving the JSON-ish payload. */
+		private function settingsSchemaPayload($path) {
+			$raw = trim((string)file_get_contents($path));
+			$raw = preg_replace('/^export\s+default\s+/', "", $raw);
+
+			return rtrim($raw, "; \t\r\n");
+		}
+
+		/**
+		 * True when settings.js exists with real content we couldn't parse — so the
+		 * SPA can warn that the shown (empty) settings don't reflect the file, rather
+		 * than silently dropping the author's hand-edit.
+		 */
+		private function settingsParseFailed($id) {
+			if (!$this->safeSegment($id)) {
+				return false;
+			}
+
+			$path = $this->settingsSchemaPath($id);
+
+			if (!is_file($path)) {
+				return false;
+			}
+
+			$payload = $this->settingsSchemaPayload($path);
+
+			if ($payload === "" || $payload === "[]") {
+				return false;
+			}
+
+			return !is_array($this->looseJsonDecode($payload));
+		}
+
+		/**
+		 * Decode the payload of a settings.js file. Tries strict JSON first (the
+		 * format we write), then tolerates the JS object-literal style a developer is
+		 * likely to hand-write — single quotes, unquoted keys, trailing commas, and
+		 * line/block comments — by normalizing to JSON in a single string-aware pass
+		 * (so string contents are never rewritten).
+		 */
+		private function looseJsonDecode($raw) {
+			$decoded = json_decode($raw, true);
+
+			if (is_array($decoded)) {
+				return $decoded;
+			}
+
+			$out = "";
+			$len = strlen($raw);
+			$quote = null;
+
+			for ($i = 0; $i < $len; $i++) {
+				$ch = $raw[$i];
+
+				// Inside a string: copy through, normalising the delimiter to ".
+				if ($quote !== null) {
+					if ($ch === "\\") {
+						$out .= $ch . ($raw[$i + 1] ?? "");
+						$i++;
+					} elseif ($ch === $quote) {
+						$out .= '"';
+						$quote = null;
+					} elseif ($ch === '"') {
+						$out .= '\\"';
+					} else {
+						$out .= $ch;
+					}
+
+					continue;
+				}
+
+				// Comments.
+				if ($ch === "/" && ($raw[$i + 1] ?? "") === "/") {
+					while ($i < $len && $raw[$i] !== "\n") {
+						$i++;
+					}
+
+					continue;
+				}
+
+				if ($ch === "/" && ($raw[$i + 1] ?? "") === "*") {
+					$i += 2;
+
+					while ($i < $len && !($raw[$i] === "*" && ($raw[$i + 1] ?? "") === "/")) {
+						$i++;
+					}
+
+					$i++;
+
+					continue;
+				}
+
+				// String open.
+				if ($ch === '"' || $ch === "'") {
+					$quote = $ch;
+					$out .= '"';
+
+					continue;
+				}
+
+				// Drop a trailing comma before } or ].
+				if ($ch === ",") {
+					$j = $i + 1;
+
+					while ($j < $len && ctype_space($raw[$j])) {
+						$j++;
+					}
+
+					if ($j < $len && ($raw[$j] === "}" || $raw[$j] === "]")) {
+						continue;
+					}
+
+					$out .= $ch;
+
+					continue;
+				}
+
+				// A bare identifier followed by ":" is an unquoted key — quote it.
+				// (true/false/null and other value identifiers pass through.)
+				if (ctype_alpha($ch) || $ch === "_" || $ch === "\$") {
+					$start = $i;
+
+					while (
+						$i < $len &&
+						(ctype_alnum($raw[$i]) || $raw[$i] === "_" || $raw[$i] === "\$")
+					) {
+						$i++;
+					}
+
+					$word = substr($raw, $start, $i - $start);
+					$j = $i;
+
+					while ($j < $len && ctype_space($raw[$j])) {
+						$j++;
+					}
+
+					$out .= ($j < $len && $raw[$j] === ":") ? '"' . $word . '"' : $word;
+					$i--;
+
+					continue;
+				}
+
+				$out .= $ch;
+			}
+
+			$decoded = json_decode($out, true);
+
+			return is_array($decoded) ? $decoded : null;
+		}
+
 		private function resolveDrawPath($id) {
-			// Sanity: id must be a directory-safe name to prevent traversal.
-			if (!preg_match('/^[a-z0-9_-]+$/i', $id)) {
+			// Extension-namespaced types are "{extension}*{name}" and live at
+			// extensions/{extension}/field-types/{name}/draw.php — mirrors the legacy
+			// resolution in admin.php. The "*" and the dots in an extension id mean
+			// the whole id is NOT a single safe segment, so split first.
+			if (strpos($id, "*") !== false) {
+				[$extension, $local] = explode("*", $id, 2);
+
+				if (!$this->safeSegment($extension) || !$this->safeSegment($local)) {
+					return null;
+				}
+
+				$path = SERVER_ROOT . "extensions/$extension/field-types/$local/draw.php";
+
+				return file_exists($path) ? $path : null;
+			}
+
+			if (!$this->safeSegment($id)) {
 				return null;
 			}
 
@@ -547,11 +951,12 @@
 				return $core;
 			}
 
-			// 3. Registered custom/extension type via JSONDB record
+			// 3. Registered extension type whose record names an extension but whose
+			//    id isn't "*"-namespaced (older records).
 			$ft = BigTreeJSONDB::get("field-types", $id);
 
-			if ($ft && !empty($ft["extension"])) {
-				$ext = SERVER_ROOT . "extensions/" . preg_replace('/[^a-z0-9._-]/i', '', $ft["extension"]) . "/field-types/$id/draw.php";
+			if ($ft && !empty($ft["extension"]) && $this->safeSegment((string)$ft["extension"])) {
+				$ext = SERVER_ROOT . "extensions/" . $ft["extension"] . "/field-types/$id/draw.php";
 
 				if (file_exists($ext)) {
 					return $ext;

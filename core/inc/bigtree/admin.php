@@ -2372,10 +2372,10 @@
 				@unlink(SERVER_ROOT."custom/admin/form-field-types/draw/$id.php");
 				@unlink(SERVER_ROOT."custom/admin/form-field-types/process/$id.php");
 				@unlink(SERVER_ROOT."custom/admin/ajax/developer/field-options/$id.php");
-				@unlink(SERVER_ROOT."custom/admin/field-types/$id/draw/.php");
-				@unlink(SERVER_ROOT."custom/admin/field-types/$id/process.php");
-				@unlink(SERVER_ROOT."custom/admin/field-types/$id/settings.php");
-				@unlink(SERVER_ROOT."custom/admin/field-types/$id/");
+
+				// Removes the whole type directory — legacy draw.php/process.php/
+				// settings.php and the SPA's local module draw.js.
+				BigTree::deleteDirectory(SERVER_ROOT."custom/admin/field-types/$id/");
 			}
 
 			@unlink(SERVER_ROOT."cache/bigtree-form-field-types.json");

@@ -24,8 +24,13 @@ export type FieldUseCase = "templates" | "modules" | "settings" | "callouts" | "
  */
 export type FieldRenderMode = "core-component" | "declarative" | "module" | "server";
 
-/** Trust level — gates in-context vs sandboxed execution for `module` types. */
-export type FieldTrust = "core" | "verified" | "marketplace";
+/**
+ * Trust level for `module` types. "local" is a module authored on this install
+ * (implicitly trusted, source stored on the record, run in-context). The others
+ * apply to modules delivered by an installed extension: core/verified run
+ * in-context, marketplace runs sandboxed.
+ */
+export type FieldTrust = "local" | "core" | "verified" | "marketplace";
 
 export interface FieldType {
 	id: string;
@@ -38,6 +43,8 @@ export interface FieldType {
 	contract_version?: number;
 	trust?: FieldTrust;
 	asset_url?: string;
+	/** (local module) true when settings.js exists but couldn't be parsed. */
+	settings_parse_error?: boolean;
 	/** Some entries carry their own draw/process/settings php paths — kept loose. */
 	[key: string]: unknown;
 }
@@ -216,12 +223,19 @@ export interface FieldTypeCreateBody {
 	name?: string;
 	use_cases?: string[];
 	self_draw?: boolean;
-	/** Render contract — set to "declarative" when an input_schema is supplied. */
+	/** Render contract — "declarative" with an input_schema, or "module". */
 	render?: FieldRenderMode;
 	/** Stored value shape; "object" for declarative composites. */
 	value_type?: string;
 	/** Tier 1 composite definition — see InputDescriptor. */
 	input_schema?: InputDescriptor[];
+	/** (render "module", local) the field's source code — stored and run in-context. */
+	module_source?: string;
+	/**
+	 * Per-field settings the type exposes (extracted from a module's `settings`
+	 * export on save; drives the settings designer when the field is placed).
+	 */
+	settings_schema?: SettingDescriptor[];
 }
 
 /**
@@ -276,6 +290,27 @@ export interface SettingDescriptor {
 }
 
 /**
+ * Overlay configured settings on top of the schema's declared defaults, so a
+ * setting the field instance didn't configure falls back to its `default`.
+ * Configured values win over defaults. Used to build the effective settings a
+ * module receives as `host.field.settings`.
+ */
+export const applySettingDefaults = (
+	schema: SettingDescriptor[] | undefined,
+	settings: Record<string, unknown> | undefined
+): Record<string, unknown> => {
+	const withDefaults: Record<string, unknown> = {};
+
+	for (const descriptor of schema ?? []) {
+		if (descriptor.default !== undefined && descriptor.default !== null) {
+			withDefaults[descriptor.id] = descriptor.default;
+		}
+	}
+
+	return { ...withDefaults, ...(settings ?? {}) };
+};
+
+/**
  * One sub-field of a `declarative` field type. Each descriptor is rendered with
  * a primitive field component (by `type`) and its value stored under `id` in the
  * composite object value. The shape intentionally mirrors a form field so the
@@ -299,9 +334,11 @@ export interface FieldTypeSchema {
 	contract_version?: number;
 	settings_schema?: SettingDescriptor[];
 	input_schema?: InputDescriptor[];
-	/** (render "module") URL of the field type's ES module bundle. */
+	/** (render "module", local) the field's source code, run in-context. */
+	module_source?: string;
+	/** (render "module", extension) URL of the field type's ES module bundle. */
 	asset_url?: string;
-	/** (render "module") SRI hash ("sha384-…") the sandbox verifies before exec. */
+	/** (render "module", extension) SRI hash the sandbox verifies before exec. */
 	integrity?: string;
 	/** Gates in-context vs sandboxed execution for module types. */
 	trust?: FieldTrust;

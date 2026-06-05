@@ -9,12 +9,18 @@ import { ErrorPanel } from "@/components/ui/ErrorPanel";
 
 import { DeveloperSectionNav } from "@/components/developer/DeveloperSectionNav";
 import { InputSchemaBuilder } from "@/components/developer/InputSchemaBuilder";
+import { ModuleSourceEditor } from "@/components/developer/field-module/ModuleSourceEditor";
+import {
+	MODULE_STARTER,
+	MODULE_STARTER_SETTINGS,
+} from "@/components/developer/field-module/starterTemplate";
 
 import {
 	fieldTypesApi,
 	type FieldTypeCreateBody,
 	type FieldUseCase,
 	type InputDescriptor,
+	type SettingDescriptor,
 } from "@/api/endpoints/field-types";
 
 import { ApiError } from "@/types/api";
@@ -49,7 +55,6 @@ const USE_CASES: Array<{ value: FieldUseCase; label: string }> = [
 	{ value: "modules", label: "Modules" },
 	{ value: "settings", label: "Settings" },
 	{ value: "callouts", label: "Callouts" },
-	{ value: "feeds", label: "Feeds" },
 ];
 
 export const FieldTypeEdit = () => {
@@ -66,9 +71,11 @@ export const FieldTypeEdit = () => {
 	});
 
 	const [body, setBody] = useState<FieldTypeCreateBody>(() =>
-		isAdd ? { id: "", name: "", use_cases: [], self_draw: false, input_schema: [] } : { id: "" }
+		isAdd ? { id: "", name: "", use_cases: [], input_schema: [] } : { id: "" }
 	);
-	const [mode, setMode] = useState<"declarative" | "server">("declarative");
+	const [mode, setMode] = useState<"declarative" | "module">("declarative");
+	const [isLegacy, setIsLegacy] = useState(false);
+	const [settingsParseError, setSettingsParseError] = useState(false);
 	const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
 	useScrollToFirstError(fieldErrors);
@@ -80,16 +87,28 @@ export const FieldTypeEdit = () => {
 			const inputSchema = Array.isArray(data.input_schema)
 				? (data.input_schema as InputDescriptor[])
 				: [];
+			const moduleSource = typeof data.module_source === "string" ? data.module_source : "";
+			const isModule = data.render === "module" || moduleSource !== "" || !!data.asset_url;
 
 			setBody({
 				id: data.id,
 				name: data.name,
 				use_cases: toUseCaseList(data.use_cases),
-				self_draw: !!data.self_draw,
 				input_schema: inputSchema,
+				module_source: moduleSource,
+				settings_schema: Array.isArray(data.settings_schema)
+					? (data.settings_schema as SettingDescriptor[])
+					: [],
 			});
-			setMode(
-				data.render === "declarative" || inputSchema.length > 0 ? "declarative" : "server"
+			setMode(isModule ? "module" : "declarative");
+			setSettingsParseError(data.settings_parse_error === true);
+
+			// A pre-existing record with no input_schema and no module is a legacy
+			// draw.php type — saving here migrates it to the chosen mode. An
+			// extension-delivered module (asset_url, no local source) is also flagged
+			// so the author knows saving replaces it with local code.
+			setIsLegacy(
+				(!isModule && inputSchema.length === 0) || (!!data.asset_url && !moduleSource)
 			);
 		}
 	}, [isAdd, detailQ.data]);
@@ -97,17 +116,10 @@ export const FieldTypeEdit = () => {
 	const saveMutation = useMutation({
 		mutationFn: (next: FieldTypeCreateBody) =>
 			isAdd ? fieldTypesApi.create(next) : fieldTypesApi.update(idParam as string, next),
-		onSuccess: (fresh) => {
+		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ["field-types"] });
 			toast.success(isAdd ? "Field type created" : "Field type saved");
-
-			if (isAdd) {
-				navigate(`/developer/field-types/${encodeURIComponent(fresh.id)}/edit`, {
-					replace: true,
-				});
-			} else {
-				navigate(returnTo);
-			}
+			navigate(returnTo);
 		},
 		onError: (err) => {
 			if (err instanceof ApiError) {
@@ -175,7 +187,7 @@ export const FieldTypeEdit = () => {
 
 			<PageHead
 				title={title}
-				sub="Compose a custom field type from built-in primitives (declarative), or register one that ships its own draw.php / process.php under custom/admin/field-types/{id}/."
+				sub="Compose a custom field type from built-in primitives (declarative), or write a JavaScript module that draws it in the SPA."
 				actions={
 					<Link
 						to="/developer/field-types"
@@ -213,18 +225,32 @@ export const FieldTypeEdit = () => {
 
 					setFieldErrors({});
 					setGeneralError(null);
-					const payload: FieldTypeCreateBody =
-						mode === "declarative"
-							? {
-									...body,
-									render: "declarative",
-									value_type: "object",
-									self_draw: false,
-									input_schema: body.input_schema ?? [],
-								}
-							: { ...body, render: "server", input_schema: [] };
 
-					saveMutation.mutate(payload);
+					if (mode !== "module") {
+						saveMutation.mutate({
+							...body,
+							render: "declarative",
+							value_type: "object",
+							input_schema: body.input_schema ?? [],
+						});
+
+						return;
+					}
+
+					if (!(body.module_source ?? "").trim()) {
+						setGeneralError("Please write the module's code before saving.");
+
+						return;
+					}
+
+					saveMutation.mutate({
+						...body,
+						render: "module",
+						input_schema: [],
+						module_source: body.module_source ?? "",
+						value_type: body.value_type ?? "string",
+						settings_schema: body.settings_schema ?? [],
+					});
 				}}
 				className="space-y-4 rounded-xl border border-border bg-surface p-4"
 			>
@@ -233,7 +259,7 @@ export const FieldTypeEdit = () => {
 						label="ID"
 						value={body.id ?? ""}
 						onChange={(v) => set({ id: v })}
-						hint="Becomes the folder name under custom/admin/field-types/."
+						hint="A unique identifier (letters, numbers, - or _)."
 						error={fieldErrors.id}
 						disabled={!isAdd}
 						required
@@ -269,6 +295,14 @@ export const FieldTypeEdit = () => {
 					</div>
 				</div>
 
+				{isLegacy && (
+					<div className="rounded-md border border-accent/30 bg-accent-soft px-3 py-2 text-[12px] text-text-2">
+						This is a legacy <code>draw.php</code> field type. It still renders through
+						the server bridge, but new types can&apos;t be authored that way — pick a
+						render mode below to migrate it. Saving will convert it.
+					</div>
+				)}
+
 				<div>
 					<div className="mb-2 text-[12px] font-semibold uppercase tracking-[0.06em] text-text-3">
 						Rendering
@@ -284,7 +318,8 @@ export const FieldTypeEdit = () => {
 							/>
 							<span>
 								<span className="font-medium">Declarative</span> — compose this
-								field from built-in primitives. Renders natively in the SPA.
+								field from built-in primitives. No code; renders natively in the
+								SPA.
 							</span>
 						</label>
 						<label className="flex items-start gap-2 text-[12.5px] text-text-2">
@@ -292,13 +327,27 @@ export const FieldTypeEdit = () => {
 								type="radio"
 								name="render-mode"
 								className="mt-0.5 h-4 w-4 accent-accent"
-								checked={mode === "server"}
-								onChange={() => setMode("server")}
+								checked={mode === "module"}
+								onChange={() => {
+									setMode("module");
+
+									if (!(body.module_source ?? "").trim()) {
+										set({
+											module_source: MODULE_STARTER,
+											settings_schema:
+												body.settings_schema &&
+												body.settings_schema.length > 0
+													? body.settings_schema
+													: MODULE_STARTER_SETTINGS,
+										});
+									}
+								}}
 							/>
 							<span>
-								<span className="font-medium">Server-rendered</span> — ships its own
-								draw.php / process.php under custom/admin/field-types/
-								{idParam || "{id}"}/.
+								<span className="font-medium">JavaScript module</span> — write code
+								that draws the field. Runs locally in the SPA; you implicitly trust
+								your own code (distribution trust is handled when packaging an
+								extension).
 							</span>
 						</label>
 					</div>
@@ -315,15 +364,18 @@ export const FieldTypeEdit = () => {
 						/>
 					</div>
 				) : (
-					<label className="flex items-center gap-2 text-[12.5px] text-text-2">
-						<input
-							type="checkbox"
-							className="h-4 w-4 accent-accent"
-							checked={!!body.self_draw}
-							onChange={(e) => set({ self_draw: e.target.checked })}
-						/>
-						Self-drawing (the type renders its own outer wrapper, not just the input)
-					</label>
+					<ModuleSourceEditor
+						value={body.module_source ?? ""}
+						onChange={(v) => set({ module_source: v })}
+						settingsSchema={body.settings_schema ?? []}
+						onSettingsSchemaChange={(next) => {
+							setSettingsParseError(false);
+							set({ settings_schema: next });
+						}}
+						settingsParseError={settingsParseError}
+						typeId={body.id ?? ""}
+						name={body.name ?? ""}
+					/>
 				)}
 
 				<div className="flex justify-end gap-2 border-t border-border pt-3">

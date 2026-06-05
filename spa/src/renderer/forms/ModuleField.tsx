@@ -4,25 +4,34 @@ import { StubField } from "@/renderer/fields/StubField";
 import type { FieldComponentProps } from "@/renderer/fields/types";
 
 import type { FieldHost, FieldInstance, FieldModule } from "./fieldModuleContract";
-import { loadFieldModule } from "./fieldModuleLoader";
+import { loadFieldModule, loadFieldModuleFromSource } from "./fieldModuleLoader";
 
 interface ModuleFieldProps extends FieldComponentProps {
-	/** URL of the module bundle (schema.asset_url). */
-	assetUrl: string;
+	/** URL of the module bundle (extension-delivered, schema.asset_url). */
+	assetUrl?: string;
+	/** Inline source (locally authored, schema.module_source) — run in-context. */
+	source?: string;
+	/**
+	 * Called with the load/render error message, or null on success. Lets the
+	 * live preview surface compile errors; when provided, the failure is shown by
+	 * the caller and this component renders nothing instead of a stub.
+	 */
+	onError?: (message: string | null) => void;
 }
 
 /**
- * Renders a `module` field type in-context: dynamically imports the module
- * bundle and mounts it through the imperative field contract
- * (`fieldModuleContract.ts`). Intended for trusted (`core` / `verified`) types
- * only — marketplace modules must go through the iframe sandbox (step 5);
- * CustomField enforces that, this component assumes it.
+ * Renders a `module` field type in-context: imports the module (from inline
+ * `source` or an `assetUrl`) and mounts it through the imperative field contract
+ * (`fieldModuleContract.ts`). Local source and trusted (`core`/`verified`)
+ * bundles run here; untrusted marketplace bundles go through the iframe sandbox
+ * (CustomField enforces that — this component assumes a trusted module).
  *
  * Module render/update calls run inside try/catch (they happen in effects, not
  * React render, so an ErrorBoundary wouldn't catch them); any failure falls back
- * to <StubField />, which preserves the value.
+ * to <StubField /> (preserving the value), or to `onError` when a caller wants
+ * to handle it.
  */
-export const ModuleField = ({ assetUrl, ...props }: ModuleFieldProps) => {
+export const ModuleField = ({ assetUrl, source, onError, ...props }: ModuleFieldProps) => {
 	const containerRef = useRef<HTMLDivElement>(null);
 	const instanceRef = useRef<FieldInstance | null>(null);
 	const moduleRef = useRef<FieldModule | null>(null);
@@ -33,8 +42,10 @@ export const ModuleField = ({ assetUrl, ...props }: ModuleFieldProps) => {
 	const propsRef = useRef(props);
 	propsRef.current = props;
 
-	// Stable onChange so the module never holds a stale closure.
+	// Stable refs so the module/host never hold a stale closure.
 	const onChangeRef = useRef((next: unknown) => propsRef.current.onChange(next));
+	const onErrorRef = useRef(onError);
+	onErrorRef.current = onError;
 
 	const buildHost = (): FieldHost => ({
 		element: containerRef.current as HTMLElement,
@@ -45,28 +56,36 @@ export const ModuleField = ({ assetUrl, ...props }: ModuleFieldProps) => {
 		onChange: onChangeRef.current,
 	});
 
-	// Mount / unmount the module when the asset URL changes.
+	// Mount / unmount the module when its source or asset URL changes.
 	useEffect(() => {
 		let cancelled = false;
 
 		setStatus("loading");
 
-		loadFieldModule(assetUrl)
-			.then((mod) => {
-				if (cancelled || !containerRef.current) {
-					return;
-				}
+		const load =
+			source != null
+				? loadFieldModuleFromSource(source)
+				: assetUrl
+					? loadFieldModule(assetUrl)
+					: Promise.reject(new Error("No module source or asset URL provided."));
 
-				moduleRef.current = mod;
-				instanceRef.current = mod.render(buildHost()) || null;
-				setStatus("ready");
-			})
-			.catch((err) => {
-				if (!cancelled) {
-					console.error("Field module load failed:", err);
-					setStatus("error");
-				}
-			});
+		load.then((mod) => {
+			if (cancelled || !containerRef.current) {
+				return;
+			}
+
+			moduleRef.current = mod;
+			instanceRef.current = mod.render(buildHost()) || null;
+			setStatus("ready");
+			onErrorRef.current?.(null);
+		}).catch((err: unknown) => {
+			if (!cancelled) {
+				const message = err instanceof Error ? err.message : "Failed to load module.";
+				console.error("Field module load failed:", err);
+				setStatus("error");
+				onErrorRef.current?.(message);
+			}
+		});
 
 		return () => {
 			cancelled = true;
@@ -80,7 +99,7 @@ export const ModuleField = ({ assetUrl, ...props }: ModuleFieldProps) => {
 			instanceRef.current = null;
 			moduleRef.current = null;
 		};
-	}, [assetUrl]);
+	}, [assetUrl, source]);
 
 	// Push value / disabled / error changes into the mounted instance.
 	useEffect(() => {
@@ -93,11 +112,14 @@ export const ModuleField = ({ assetUrl, ...props }: ModuleFieldProps) => {
 		} catch (err) {
 			console.error("Field module update failed:", err);
 			setStatus("error");
+			onErrorRef.current?.(err instanceof Error ? err.message : "Module update failed.");
 		}
 	}, [props.value, props.disabled, props.error, status]);
 
 	if (status === "error") {
-		return <StubField {...props} />;
+		// When a caller handles errors (live preview), render nothing and let it
+		// show the message; otherwise fall back to the value-preserving stub.
+		return onError ? null : <StubField {...props} />;
 	}
 
 	return (
