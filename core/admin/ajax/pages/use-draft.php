@@ -48,6 +48,13 @@
 		$change_id = $admin->createPendingChange("bigtree_pages", $revision["page"], $changes);
 	}
 
+	BigTreeAdmin::$IRLsCreated = [];
+	BigTreeAdmin::trackResourcesInValue($changes);
+
+	if (!empty($changes["external"])) {
+		BigTreeAdmin::trackResourcesInValue($changes["external"]);
+	}
+
 	$admin->allocateResources("bigtree_pages", "p".$change_id);
 	
 	$admin->growl("Pages","Loaded Saved Revision");

@@ -59,6 +59,7 @@
 
 	$bigtree["crops"] = array();
 	$bigtree["errors"] = array();
+	BigTreeAdmin::$IRLsCreated = [];
 	
 	// Parse resources
 	include BigTree::path("admin/modules/pages/_resource-parse.php");

@@ -51,6 +51,7 @@
 	$bigtree["many-to-many"] = [];
 	$bigtree["errors"] = [];
 	$bigtree["entry"] = [];
+	BigTreeAdmin::$IRLsCreated = [];
 	
 	$bigtree["post_data"] = $_POST;
 	$bigtree["file_data"] = BigTree::parsedFilesArray();

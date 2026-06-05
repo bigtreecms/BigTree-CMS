@@ -48,6 +48,7 @@
 	$bigtree["many-to-many"] = [];
 	$bigtree["errors"] = [];
 	$bigtree["entry"] = [];
+	BigTreeAdmin::$IRLsCreated = [];
 	
 	$cached_types = $admin->getCachedFieldTypes();
 	$bigtree["field_types"] = $cached_types["modules"];

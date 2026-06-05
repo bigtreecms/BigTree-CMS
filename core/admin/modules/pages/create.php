@@ -1,7 +1,7 @@
 <?php
 	$admin->verifyCSRFToken();
 	$access_level = $admin->getPageAccessLevel(intval($_POST["parent"]));
-	
+
 	if ($access_level != "p" && $access_level != "e") {
 ?>
 <div class="container">
@@ -28,6 +28,8 @@
 
 	$bigtree["crops"] = array();
 	$bigtree["errors"] = array();
+	BigTreeAdmin::$IRLsCreated = [];
+
 	// Initiate the Storage class for backwards compat.
 	$upload_service = new BigTreeStorage;
 
