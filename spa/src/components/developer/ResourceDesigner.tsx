@@ -243,7 +243,7 @@ export const ResourceDesigner = ({
 
 						return (
 							<li
-								key={`${index}-${id}`}
+								key={index}
 								className={`rounded-md border border-border bg-surface transition-colors ${
 									isDragging ? "bg-accent-soft shadow-md" : ""
 								} ${isDropTarget ? "shadow-[inset_0_2px_0_0_var(--color-accent)]" : ""}`}

@@ -6,6 +6,7 @@ import {
 	Layers,
 	Layout,
 	Megaphone,
+	Package,
 	Rss,
 	Settings as SettingsIcon,
 	Wrench,
@@ -78,6 +79,12 @@ const SUBJECTS: SubjectCard[] = [
 		icon: <SettingsIcon size={16} />,
 		title: "Settings",
 		description: "Define new settings (the user-facing edit screen is under /settings).",
+	},
+	{
+		to: "/developer/extensions",
+		icon: <Package size={16} />,
+		title: "Extensions",
+		description: "Build, install, upgrade, and uninstall extension packages.",
 	},
 ];
 

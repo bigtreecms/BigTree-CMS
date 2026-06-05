@@ -8,11 +8,13 @@ import { PageHead } from "@/components/shell/PageHead";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 
 import { DeveloperSectionNav } from "@/components/developer/DeveloperSectionNav";
+import { InputSchemaBuilder } from "@/components/developer/InputSchemaBuilder";
 
 import {
 	fieldTypesApi,
 	type FieldTypeCreateBody,
 	type FieldUseCase,
+	type InputDescriptor,
 } from "@/api/endpoints/field-types";
 
 import { ApiError } from "@/types/api";
@@ -22,6 +24,25 @@ import { useReturnTo } from "@/hooks/useReturnTo";
 import { validateRequired } from "@/lib/formValidation";
 
 import { TextField } from "./TemplateEdit";
+
+/**
+ * The detail endpoint returns a field type's raw record, where `use_cases` may be
+ * either the stored associative map ({ templates: "on" }) or — for older flat
+ * payloads — a list of slugs. Normalize both to the list the checkboxes use.
+ */
+const toUseCaseList = (value: unknown): string[] => {
+	if (Array.isArray(value)) {
+		return value.filter((v): v is string => typeof v === "string");
+	}
+
+	if (value && typeof value === "object") {
+		return Object.entries(value as Record<string, unknown>)
+			.filter(([, v]) => !!v)
+			.map(([k]) => k);
+	}
+
+	return [];
+};
 
 const USE_CASES: Array<{ value: FieldUseCase; label: string }> = [
 	{ value: "templates", label: "Templates" },
@@ -45,8 +66,9 @@ export const FieldTypeEdit = () => {
 	});
 
 	const [body, setBody] = useState<FieldTypeCreateBody>(() =>
-		isAdd ? { id: "", name: "", use_cases: [], self_draw: false } : { id: "" }
+		isAdd ? { id: "", name: "", use_cases: [], self_draw: false, input_schema: [] } : { id: "" }
 	);
+	const [mode, setMode] = useState<"declarative" | "server">("declarative");
 	const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
 	useScrollToFirstError(fieldErrors);
@@ -54,14 +76,21 @@ export const FieldTypeEdit = () => {
 
 	useEffect(() => {
 		if (!isAdd && detailQ.data) {
+			const data = detailQ.data;
+			const inputSchema = Array.isArray(data.input_schema)
+				? (data.input_schema as InputDescriptor[])
+				: [];
+
 			setBody({
-				id: detailQ.data.id,
-				name: detailQ.data.name,
-				use_cases: Array.isArray(detailQ.data.use_cases)
-					? (detailQ.data.use_cases as string[])
-					: [],
-				self_draw: !!detailQ.data.self_draw,
+				id: data.id,
+				name: data.name,
+				use_cases: toUseCaseList(data.use_cases),
+				self_draw: !!data.self_draw,
+				input_schema: inputSchema,
 			});
+			setMode(
+				data.render === "declarative" || inputSchema.length > 0 ? "declarative" : "server"
+			);
 		}
 	}, [isAdd, detailQ.data]);
 
@@ -146,7 +175,7 @@ export const FieldTypeEdit = () => {
 
 			<PageHead
 				title={title}
-				sub="Custom field types ship draw.php / process.php under custom/admin/field-types/{id}/. This screen only edits the registry entry."
+				sub="Compose a custom field type from built-in primitives (declarative), or register one that ships its own draw.php / process.php under custom/admin/field-types/{id}/."
 				actions={
 					<Link
 						to="/developer/field-types"
@@ -184,7 +213,18 @@ export const FieldTypeEdit = () => {
 
 					setFieldErrors({});
 					setGeneralError(null);
-					saveMutation.mutate(body);
+					const payload: FieldTypeCreateBody =
+						mode === "declarative"
+							? {
+									...body,
+									render: "declarative",
+									value_type: "object",
+									self_draw: false,
+									input_schema: body.input_schema ?? [],
+								}
+							: { ...body, render: "server", input_schema: [] };
+
+					saveMutation.mutate(payload);
 				}}
 				className="space-y-4 rounded-xl border border-border bg-surface p-4"
 			>
@@ -229,15 +269,62 @@ export const FieldTypeEdit = () => {
 					</div>
 				</div>
 
-				<label className="flex items-center gap-2 text-[12.5px] text-text-2">
-					<input
-						type="checkbox"
-						className="h-4 w-4 accent-accent"
-						checked={!!body.self_draw}
-						onChange={(e) => set({ self_draw: e.target.checked })}
-					/>
-					Self-drawing (the type renders its own outer wrapper, not just the input)
-				</label>
+				<div>
+					<div className="mb-2 text-[12px] font-semibold uppercase tracking-[0.06em] text-text-3">
+						Rendering
+					</div>
+					<div className="flex flex-col gap-2 rounded-md border border-border bg-surface-2 p-3">
+						<label className="flex items-start gap-2 text-[12.5px] text-text-2">
+							<input
+								type="radio"
+								name="render-mode"
+								className="mt-0.5 h-4 w-4 accent-accent"
+								checked={mode === "declarative"}
+								onChange={() => setMode("declarative")}
+							/>
+							<span>
+								<span className="font-medium">Declarative</span> — compose this
+								field from built-in primitives. Renders natively in the SPA.
+							</span>
+						</label>
+						<label className="flex items-start gap-2 text-[12.5px] text-text-2">
+							<input
+								type="radio"
+								name="render-mode"
+								className="mt-0.5 h-4 w-4 accent-accent"
+								checked={mode === "server"}
+								onChange={() => setMode("server")}
+							/>
+							<span>
+								<span className="font-medium">Server-rendered</span> — ships its own
+								draw.php / process.php under custom/admin/field-types/
+								{idParam || "{id}"}/.
+							</span>
+						</label>
+					</div>
+				</div>
+
+				{mode === "declarative" ? (
+					<div>
+						<div className="mb-2 text-[12px] font-semibold uppercase tracking-[0.06em] text-text-3">
+							Fields
+						</div>
+						<InputSchemaBuilder
+							value={body.input_schema ?? []}
+							onChange={(next) => set({ input_schema: next })}
+						/>
+					</div>
+				) : (
+					<label className="flex items-center gap-2 text-[12.5px] text-text-2">
+						<input
+							type="checkbox"
+							className="h-4 w-4 accent-accent"
+							checked={!!body.self_draw}
+							onChange={(e) => set({ self_draw: e.target.checked })}
+						/>
+						Self-drawing (the type renders its own outer wrapper, not just the input)
+					</label>
+				)}
 
 				<div className="flex justify-end gap-2 border-t border-border pt-3">
 					<Link

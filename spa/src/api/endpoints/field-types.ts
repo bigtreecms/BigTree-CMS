@@ -15,12 +15,29 @@ import { decodeHtmlEntities } from "@/lib/html";
 
 export type FieldUseCase = "templates" | "modules" | "settings" | "callouts" | "feeds";
 
+/**
+ * How the SPA draws a field type's input (see spa/.custom-field-types-design.md):
+ *  - core-component: a first-party React component in the field registry.
+ *  - declarative:    composed from `input_schema` primitives into one object value.
+ *  - module:         a (sandboxed) third-party ES module bundle at `asset_url`.
+ *  - server:         the POST /field-types/{id}/render bridge (legacy draw.php).
+ */
+export type FieldRenderMode = "core-component" | "declarative" | "module" | "server";
+
+/** Trust level — gates in-context vs sandboxed execution for `module` types. */
+export type FieldTrust = "core" | "verified" | "marketplace";
+
 export interface FieldType {
 	id: string;
 	name: string;
 	use_cases?: FieldUseCase[] | string[];
 	self_draw?: boolean | string;
 	extension?: string;
+	render?: FieldRenderMode;
+	value_type?: string;
+	contract_version?: number;
+	trust?: FieldTrust;
+	asset_url?: string;
 	/** Some entries carry their own draw/process/settings php paths — kept loose. */
 	[key: string]: unknown;
 }
@@ -199,6 +216,12 @@ export interface FieldTypeCreateBody {
 	name?: string;
 	use_cases?: string[];
 	self_draw?: boolean;
+	/** Render contract — set to "declarative" when an input_schema is supplied. */
+	render?: FieldRenderMode;
+	/** Stored value shape; "object" for declarative composites. */
+	value_type?: string;
+	/** Tier 1 composite definition — see InputDescriptor. */
+	input_schema?: InputDescriptor[];
 }
 
 /**
@@ -252,12 +275,36 @@ export interface SettingDescriptor {
 	show_if?: SettingShowIf;
 }
 
+/**
+ * One sub-field of a `declarative` field type. Each descriptor is rendered with
+ * a primitive field component (by `type`) and its value stored under `id` in the
+ * composite object value. The shape intentionally mirrors a form field so the
+ * declarative renderer can reuse the built-in components verbatim.
+ */
+export interface InputDescriptor {
+	id: string;
+	type: string;
+	title?: string;
+	subtitle?: string;
+	required?: boolean;
+	settings?: Record<string, unknown>;
+}
+
 export interface FieldTypeSchema {
 	id: string;
 	name: string;
 	category?: string;
+	render?: FieldRenderMode;
 	value_type?: string;
+	contract_version?: number;
 	settings_schema?: SettingDescriptor[];
+	input_schema?: InputDescriptor[];
+	/** (render "module") URL of the field type's ES module bundle. */
+	asset_url?: string;
+	/** (render "module") SRI hash ("sha384-…") the sandbox verifies before exec. */
+	integrity?: string;
+	/** Gates in-context vs sandboxed execution for module types. */
+	trust?: FieldTrust;
 	self_draw?: boolean;
 	render_fallback?: boolean;
 	[key: string]: unknown;

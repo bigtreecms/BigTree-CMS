@@ -26,6 +26,8 @@ import { DebugUpgrade } from "@/pages/developer/debug/DebugUpgrade";
 import { Developer } from "@/pages/developer/Developer";
 import { DeveloperSettings } from "@/pages/developer/DeveloperSettings";
 import { Extensions } from "@/pages/developer/Extensions";
+import { ExtensionInstall } from "@/pages/developer/ExtensionInstall";
+import { ExtensionBuild } from "@/pages/developer/ExtensionBuild";
 import { FeedEdit } from "@/pages/developer/FeedEdit";
 import { Feeds } from "@/pages/developer/Feeds";
 import { FieldTypeEdit } from "@/pages/developer/FieldTypeEdit";
@@ -361,6 +363,14 @@ export const router = createBrowserRouter(
 								{
 									path: "extensions",
 									element: <Extensions />,
+								},
+								{
+									path: "extensions/install",
+									element: <ExtensionInstall />,
+								},
+								{
+									path: "extensions/build",
+									element: <ExtensionBuild />,
 								},
 								{
 									path: "backups",

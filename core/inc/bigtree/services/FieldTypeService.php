@@ -66,6 +66,32 @@
 				}
 			}
 
+			// Enrich each entry with the render contract the SPA needs to decide how
+			// to draw the input: "core-component" (built-in React), "declarative"
+			// (input_schema composed from primitives), "module" (sandboxed JS), or
+			// "server" (POST /field-types/{id}/render bridge). trust gates in-context
+			// vs sandbox execution (see spa/.custom-field-types-design.md).
+			$schemas = $this->loadSchemas();
+
+			foreach ($entries as $id => &$entry) {
+				$schema = isset($schemas[$id]) && is_array($schemas[$id]) ? $schemas[$id] : null;
+				$record = $schema === null ? BigTreeJSONDB::get("field-types", $id) : null;
+				$source = $schema ?? (is_array($record) ? $record : []);
+
+				$entry["render"] = $this->renderKind($source, $entry["_bucket"]);
+				$entry["value_type"] = isset($source["value_type"]) ? (string)$source["value_type"] : "string";
+				$entry["contract_version"] = (int)($source["contract_version"] ?? 1);
+				$entry["trust"] = isset($source["trust"])
+					? (string)$source["trust"]
+					: ($entry["_bucket"] === "default" ? "core" : "marketplace");
+
+				if (!empty($source["asset_url"])) {
+					$entry["asset_url"] = (string)$source["asset_url"];
+				}
+			}
+
+			unset($entry);
+
 			if ($split) {
 				$payload = ["default" => [], "custom" => []];
 
@@ -116,12 +142,14 @@
 				throw new ConflictException("Field type $id already exists", "duplicate_id", 409);
 			}
 
-			BigTreeJSONDB::insert("field-types", [
+			$record = [
 				"id" => $id,
 				"name" => BigTree::safeEncode($d["name"] ?? $id),
-				"use_cases" => is_array($d["use_cases"] ?? null) ? $d["use_cases"] : [],
+				"use_cases" => $this->normalizeUseCases($d["use_cases"] ?? null),
 				"self_draw" => !empty($d["self_draw"]) ? "on" : "",
-			]);
+			];
+
+			BigTreeJSONDB::insert("field-types", $this->applyDeclarative($record, $d));
 
 			return Response::created(BigTreeJSONDB::get("field-types", $id), null);
 		}
@@ -136,10 +164,10 @@
 			$d = $request->body;
 			$next = array_merge($existing, [
 				"name" => isset($d["name"]) ? BigTree::safeEncode($d["name"]) : $existing["name"],
-				"use_cases" => isset($d["use_cases"]) && is_array($d["use_cases"]) ? $d["use_cases"] : $existing["use_cases"],
+				"use_cases" => isset($d["use_cases"]) && is_array($d["use_cases"]) ? $this->normalizeUseCases($d["use_cases"]) : $existing["use_cases"],
 				"self_draw" => isset($d["self_draw"]) ? (!empty($d["self_draw"]) ? "on" : "") : ($existing["self_draw"] ?? ""),
 			]);
-			BigTreeJSONDB::update("field-types", $id, $next);
+			BigTreeJSONDB::update("field-types", $id, $this->applyDeclarative($next, $d));
 
 			return Response::ok(BigTreeJSONDB::get("field-types", $id));
 		}
@@ -173,24 +201,77 @@
 			$id = (string)$request->route_params["id"];
 			$schemas = $this->loadSchemas();
 
-			if (isset($schemas[$id])) {
-				$r = Response::ok($schemas[$id]);
+			if (isset($schemas[$id]) && is_array($schemas[$id])) {
+				$schema = $schemas[$id];
+				$schema["render"] = $this->renderKind($schema, "default");
+				$schema["contract_version"] = (int)($schema["contract_version"] ?? 1);
+
+				// Schema-file types are first-party (shipped in core/custom php), so
+				// they default to a high trust level — a module among them may load
+				// in-context rather than being forced into the sandbox.
+				if (!isset($schema["trust"])) {
+					$schema["trust"] = "core";
+				}
+
+				$r = Response::ok($schema);
 				$r->header("Cache-Control", "private, max-age=300");
 
 				return $r;
 			}
 
-			// Fall back: custom or extension field type — registered in JSONDB.
+			// Fall back: custom or extension field type — registered in JSONDB. A
+			// declarative type carries an input_schema (composed from the primitive
+			// controls); everything else gets the server-render bridge stub.
 			$ft = BigTreeJSONDB::get("field-types", $id);
 
 			if (!$ft) {
 				throw new NotFoundException("Field type $id not found", "resource_not_found", 404);
 			}
 
+			$render = $this->renderKind($ft, "custom");
+
+			if ($render === "module") {
+				$r = Response::ok([
+					"id" => $id,
+					"name" => $ft["name"] ?? $id,
+					"category" => "custom",
+					"render" => "module",
+					"value_type" => isset($ft["value_type"]) ? (string)$ft["value_type"] : "string",
+					"contract_version" => (int)($ft["contract_version"] ?? 1),
+					"asset_url" => (string)$ft["asset_url"],
+					// SRI hash pinned at install/build; the sandbox refuses an
+					// unsigned (empty) module, so untrusted code can't be swapped out
+					// from under a verified manifest.
+					"integrity" => isset($ft["integrity"]) ? (string)$ft["integrity"] : "",
+					"trust" => isset($ft["trust"]) ? (string)$ft["trust"] : "marketplace",
+					"settings_schema" => is_array($ft["settings_schema"] ?? null) ? $ft["settings_schema"] : [],
+				]);
+				$r->header("Cache-Control", "private, max-age=60");
+
+				return $r;
+			}
+
+			if ($render === "declarative") {
+				$r = Response::ok([
+					"id" => $id,
+					"name" => $ft["name"] ?? $id,
+					"category" => "custom",
+					"render" => "declarative",
+					"value_type" => isset($ft["value_type"]) ? (string)$ft["value_type"] : "object",
+					"contract_version" => (int)($ft["contract_version"] ?? 1),
+					"input_schema" => array_values($ft["input_schema"]),
+					"settings_schema" => is_array($ft["settings_schema"] ?? null) ? $ft["settings_schema"] : [],
+				]);
+				$r->header("Cache-Control", "private, max-age=60");
+
+				return $r;
+			}
+
 			$r = Response::ok([
 				"id" => $id,
 				"name" => $ft["name"] ?? $id,
 				"category" => "custom",
+				"render" => $render,
 				"value_type" => "string",
 				"ui" => ["component" => "ServerRendered", "props" => []],
 				"settings_schema" => [],
@@ -261,6 +342,175 @@
 		}
 
 		// — helpers —
+
+		/**
+		 * Compute a Subresource-Integrity string ("sha384-<base64>") for a module
+		 * bundle. Pinned into a field type's record at extension build/install time
+		 * so the sandbox can verify the served bytes before executing them. Returns
+		 * "" when the file is unreadable.
+		 */
+		public static function computeIntegrity($path, $algo = "sha384") {
+			if (!is_file($path) || !is_readable($path)) {
+				return "";
+			}
+
+			$raw = hash_file($algo, $path, true);
+
+			if ($raw === false) {
+				return "";
+			}
+
+			return $algo . "-" . base64_encode($raw);
+		}
+
+		/**
+		 * Derive the SPA render contract for a field type from its schema entry or
+		 * JSONDB record. An explicit "render" key wins; otherwise an input_schema
+		 * means declarative, an asset_url means a (sandboxed) JS module, self_draw
+		 * means the server-render bridge. Built-ins ("default" bucket) without any
+		 * of those are first-party React components.
+		 */
+		private function renderKind(array $source, $bucket) {
+			if (!empty($source["render"])) {
+				return (string)$source["render"];
+			}
+
+			if (!empty($source["input_schema"]) && is_array($source["input_schema"])) {
+				return "declarative";
+			}
+
+			if (!empty($source["asset_url"])) {
+				return "module";
+			}
+
+			if (!empty($source["self_draw"])) {
+				return "server";
+			}
+
+			return $bucket === "default" ? "core-component" : "server";
+		}
+
+		/**
+		 * Fold the declarative-render fields (render / value_type / input_schema)
+		 * from a request body into a JSONDB record. A non-empty input_schema makes
+		 * the type declarative; an explicitly empty one clears it back to a
+		 * server-rendered type. Keys absent from the body are left untouched so a
+		 * partial PATCH never wipes an existing input_schema by omission.
+		 */
+		private function applyDeclarative(array $record, array $body) {
+			if (array_key_exists("input_schema", $body)) {
+				$schema = is_array($body["input_schema"]) ? $this->sanitizeInputSchema($body["input_schema"]) : [];
+
+				if (!empty($schema)) {
+					$record["input_schema"] = $schema;
+					$record["render"] = "declarative";
+					$record["value_type"] = isset($body["value_type"]) ? (string)$body["value_type"] : "object";
+				} else {
+					unset($record["input_schema"]);
+
+					if (($record["render"] ?? "") === "declarative") {
+						unset($record["render"]);
+					}
+				}
+			} elseif (isset($body["render"])) {
+				$record["render"] = (string)$body["render"];
+			}
+
+			return $record;
+		}
+
+		/**
+		 * Normalize a use_cases value into the associative map the rest of BigTree
+		 * expects — {use_case => "on"}. The SPA posts a flat list of slugs
+		 * (["templates", "modules"]) while extensions and the legacy admin store the
+		 * map form; getCachedFieldTypes() iterates as $case => $val, so a list ends
+		 * up filed under numeric keys and the type never appears for any real use
+		 * case. Accept either shape on the way in and always persist the map.
+		 */
+		private function normalizeUseCases($input) {
+			if (!is_array($input)) {
+				return [];
+			}
+
+			$normalized = [];
+
+			foreach ($input as $key => $value) {
+				// List form: ["templates", ...] — the slug is the value.
+				if (is_int($key)) {
+					if (is_string($value) && $value !== "") {
+						$normalized[$value] = "on";
+					}
+
+					continue;
+				}
+
+				// Map form: {"templates" => "on"|true|...} — keep truthy entries.
+				if (!empty($value)) {
+					$normalized[$key] = "on";
+				}
+			}
+
+			return $normalized;
+		}
+
+		/**
+		 * Validate and whitelist a declarative input_schema. Each descriptor must
+		 * carry a key-safe id and a field-type slug; only known keys survive.
+		 * Throws a 400 on a malformed descriptor so the author gets a clear error
+		 * rather than a silently broken field type.
+		 */
+		private function sanitizeInputSchema(array $input) {
+			$clean = [];
+			$seen = [];
+
+			foreach ($input as $descriptor) {
+				if (!is_array($descriptor)) {
+					continue;
+				}
+
+				$id = isset($descriptor["id"]) ? trim((string)$descriptor["id"]) : "";
+				$type = isset($descriptor["type"]) ? trim((string)$descriptor["type"]) : "";
+
+				if ($id === "" || $type === "") {
+					throw new BadRequestException("Each input field needs an id and a type", "invalid_input_schema", 400);
+				}
+
+				if (!preg_match('/^[a-z0-9_-]+$/i', $id)) {
+					throw new BadRequestException("Input field id \"$id\" must be alphanumeric (with - or _)", "invalid_input_schema", 400);
+				}
+
+				if (!preg_match('/^[a-z0-9_-]+$/i', $type)) {
+					throw new BadRequestException("Input field type \"$type\" is invalid", "invalid_input_schema", 400);
+				}
+
+				if (isset($seen[$id])) {
+					throw new BadRequestException("Duplicate input field id \"$id\"", "invalid_input_schema", 400);
+				}
+
+				$seen[$id] = true;
+				$entry = ["id" => $id, "type" => $type];
+
+				if (isset($descriptor["title"])) {
+					$entry["title"] = (string)$descriptor["title"];
+				}
+
+				if (isset($descriptor["subtitle"])) {
+					$entry["subtitle"] = (string)$descriptor["subtitle"];
+				}
+
+				if (!empty($descriptor["required"])) {
+					$entry["required"] = true;
+				}
+
+				if (isset($descriptor["settings"]) && is_array($descriptor["settings"])) {
+					$entry["settings"] = $descriptor["settings"];
+				}
+
+				$clean[] = $entry;
+			}
+
+			return $clean;
+		}
 
 		private function loadSchemas() {
 			$schemas = include SERVER_ROOT . "core/inc/bigtree/api/field-type-schemas.php";

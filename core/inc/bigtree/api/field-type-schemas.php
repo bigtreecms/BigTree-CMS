@@ -15,6 +15,21 @@
 	 *   settings_schema  - per-instance settings the developer configures on this field
 	 *   validation   - hints the SPA can use to validate client-side (server still re-validates)
 	 *   self_draw    - if true, the SPA should use POST /field-types/{id}/render instead
+	 *   render       - explicit render contract for the SPA, overrides the derived
+	 *                  default: core-component | declarative | module | server.
+	 *                  Built-ins are core-component (a first-party React component);
+	 *                  custom types are usually declarative or module/server.
+	 *   input_schema - (render "declarative") ordered list of sub-field descriptors
+	 *                  composed from the primitive field types into one object value:
+	 *                    id       - key written into the composite object value
+	 *                    type     - a primitive field-type slug (text, list, image, …)
+	 *                    title    - sub-field label
+	 *                    subtitle - optional inline hint
+	 *                    required - bool
+	 *                    settings - per-sub-field settings (same shape as a form field)
+	 *   contract_version - integer; the SPA falls back if it can't honor the contract
+	 *   trust        - core | verified | marketplace (gates in-context vs sandbox JS)
+	 *   asset_url    - (render "module") URL of the field type's ES module bundle
 	 *
 	 * settings_schema descriptor:
 	 *   id           - the settings key written to storage (MUST match what the

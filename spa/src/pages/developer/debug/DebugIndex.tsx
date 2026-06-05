@@ -1,13 +1,5 @@
 import { Link } from "react-router-dom";
-import {
-	Activity,
-	Archive,
-	History,
-	Package,
-	ShieldCheck,
-	UserCog,
-	ArrowUpCircle,
-} from "lucide-react";
+import { Activity, Archive, History, ShieldCheck, UserCog, ArrowUpCircle } from "lucide-react";
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
@@ -51,12 +43,6 @@ const CARDS: DebugCard[] = [
 		icon: <History size={16} />,
 		title: "Audit trail",
 		description: "Browse the change history per user, table, and date range.",
-	},
-	{
-		to: "/developer/extensions",
-		icon: <Package size={16} />,
-		title: "Extensions",
-		description: "Installed extensions and their manifests — review or uninstall.",
 	},
 	{
 		to: "/developer/debug/upgrade",
