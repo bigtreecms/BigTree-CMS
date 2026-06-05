@@ -237,6 +237,107 @@
 		}
 
 		/*
+			Function: trackResource
+				Adds a resource ID to the list of resources used during the current request.
+
+			Parameters:
+				resource - A resource ID
+		*/
+
+		public static function trackResource($resource) {
+			$resource = intval($resource);
+
+			if ($resource > 0) {
+				static::$IRLsCreated[] = $resource;
+			}
+		}
+
+		/*
+			Function: trackResourcesInValue
+				Scans a value for resource references and adds them to IRLsCreated.
+
+			Parameters:
+				value - A string or array to scan
+				reference_keys - Optional array keys that contain numeric resource IDs
+		*/
+
+		public static function trackResourcesInValue($value, $reference_keys = null) {
+			$resources = [];
+			static::collectResourcesInValue($value, $resources, $reference_keys, null);
+
+			foreach ($resources as $resource) {
+				static::trackResource($resource);
+			}
+		}
+
+		/*
+			Function: findResourcesInData
+				Returns all resource IDs referenced in a value.
+
+			Parameters:
+				data - A string or array to scan
+				reference_keys - Optional array keys that contain numeric resource IDs
+
+			Returns:
+				An array of resource IDs.
+		*/
+
+		public static function findResourcesInData($data, $reference_keys = null) {
+			$resources = [];
+			static::collectResourcesInValue($data, $resources, $reference_keys, null);
+
+			return array_values(array_unique(array_filter(array_map("intval", $resources))));
+		}
+
+		private static function collectResourcesInValue($value, &$resources, $reference_keys, $current_key) {
+			if (is_array($value)) {
+				foreach ($value as $key => $piece) {
+					static::collectResourcesInValue($piece, $resources, $reference_keys, $key);
+				}
+			} else {
+				if ($reference_keys !== null && $current_key !== null && in_array($current_key, $reference_keys, true)) {
+					if (is_numeric($value) && intval($value) > 0) {
+						$resources[] = intval($value);
+					}
+				}
+
+				if (is_string($value) && $value !== "") {
+					if (preg_match_all("/irl:\/\/(\d+)/", $value, $matches)) {
+						foreach ($matches[1] as $id) {
+							$resources[] = intval($id);
+						}
+					}
+
+					if (preg_match_all("/resource:\/\/([^\s\"']+)/", $value, $matches)) {
+						foreach ($matches[1] as $file) {
+							$resource = static::getResourceByFile($file);
+
+							if ($resource) {
+								$resources[] = intval($resource["id"]);
+							}
+						}
+					}
+
+					if (strpos($value, "files/resources/") !== false) {
+						preg_match_all(
+							"#(?:\{wwwroot\}|\{staticroot\}|".preg_quote(WWW_ROOT, "#")."|".preg_quote(STATIC_ROOT, "#")."|https?://[^/\"']+)?files/resources/[^\\s\"'<>]+#",
+							$value,
+							$matches
+						);
+
+						foreach ($matches[0] as $url) {
+							$resource = static::getResourceByFile($url);
+
+							if ($resource) {
+								$resources[] = intval($resource["id"]);
+							}
+						}
+					}
+				}
+			}
+		}
+
+		/*
 			Function: allocateResources
 				Assigns resources from $this->IRLsCreated
 
@@ -248,7 +349,7 @@
 		public static function allocateResources($table, $entry) {
 			SQL::delete("bigtree_resource_allocation", ["table" => $table, "entry" => $entry]);
 
-			foreach (static::$IRLsCreated as $resource) {
+			foreach (array_unique(static::$IRLsCreated) as $resource) {
 				SQL::insert("bigtree_resource_allocation", [
 					"table" => $table,
 					"entry" => $entry,
@@ -256,6 +357,8 @@
 					"updated_at" => "NOW()"
 				]);
 			}
+
+			static::$IRLsCreated = [];
 		}
 
 		/*
@@ -6478,12 +6581,17 @@
 				$resource = static::getResourceByFile(substr($og_image, 11));
 
 				if ($resource) {
+					static::trackResource($resource["id"]);
 					$og_image = "irl://".$resource["id"];
 					$og_image_width = $resource["width"];
 					$og_image_height = $resource["height"];
 				} else {
 					$og_image = "";
 				}
+			}
+
+			if ($og_image) {
+				static::trackResourcesInValue($og_image);
 			}
 
 			$data = [
@@ -7454,6 +7562,16 @@
 		public static function makeIPL($url) {
 			global $bigtree;
 
+			if (substr($url, 0, 6) === "irl://") {
+				$parts = explode("//", substr($url, 6), 2);
+
+				if (!empty($parts[0]) && is_numeric($parts[0])) {
+					static::trackResource($parts[0]);
+				}
+
+				return $url;
+			}
+
 			if (strpos($url, WWW_ROOT) === 0) {
 				$path_components = explode("/", rtrim(substr($url, strlen(WWW_ROOT)), "/"));
 			} else {
@@ -7484,7 +7602,7 @@
 							$resource = static::getResourceByFile($url);
 
 							if ($resource) {
-								static::$IRLsCreated[] = $resource["id"];
+								static::trackResource($resource["id"]);
 
 								return "irl://".$resource["id"]."//".$resource["prefix"];
 							}
@@ -7511,7 +7629,7 @@
 				if ($path_components[0] == "files" && $path_components[1] == "resources") {
 					$resource = static::getResourceByFile($url);
 					if ($resource) {
-						static::$IRLsCreated[] = $resource["id"];
+						static::trackResource($resource["id"]);
 
 						return "irl://".$resource["id"]."//".$resource["prefix"];
 					}
@@ -7866,6 +7984,8 @@
 			} else {
 				$output = $admin->autoIPL($output);
 			}
+
+			static::trackResourcesInValue($output);
 
 			// Restore context
 			$bigtree["extension_context"] = $bigtree["saved_extension_context"];
