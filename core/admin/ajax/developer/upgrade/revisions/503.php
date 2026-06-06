@@ -5,28 +5,41 @@
 	$reference_field_types = ["image-reference", "file-reference", "video-reference"];
 	$content_field_types = ["html", "textarea", "link"];
 
+	BigTreeAdmin::primeResourceFileCache();
+
 	$valid_resources = array_flip(SQL::fetchAllSingle("SELECT id FROM bigtree_resources"));
 
 	$insert_resource_allocations = function($table, $entry, $resource_ids) use ($valid_resources) {
 		$entry = strval($entry);
+		$resource_ids = array_unique(array_filter(array_map("intval", $resource_ids)));
 
-		foreach (array_unique(array_filter(array_map("intval", $resource_ids))) as $resource) {
-			if (!isset($valid_resources[$resource])) {
+		if (!$resource_ids) {
+			return;
+		}
+
+		$existing = array_flip(SQL::fetchAllSingle(
+			"SELECT resource FROM bigtree_resource_allocation WHERE `table` = ? AND entry = ?",
+			$table,
+			$entry
+		));
+
+		foreach ($resource_ids as $resource) {
+			if (!isset($valid_resources[$resource]) || isset($existing[$resource])) {
 				continue;
 			}
 
-			if (!SQL::exists("bigtree_resource_allocation", ["table" => $table, "entry" => $entry, "resource" => $resource])) {
-				SQL::insert("bigtree_resource_allocation", [
-					"table" => $table,
-					"entry" => $entry,
-					"resource" => $resource,
-					"updated_at" => "NOW()"
-				]);
-			}
+			SQL::insert("bigtree_resource_allocation", [
+				"table" => $table,
+				"entry" => $entry,
+				"resource" => $resource,
+				"updated_at" => "NOW()"
+			]);
+
+			$existing[$resource] = true;
 		}
 	};
 
-	$get_field_keys = function($fields, $types) use (&$get_field_keys, $admin) {
+	$get_field_keys = function($fields, $types) use (&$get_field_keys, $admin, &$callout_group_field_cache) {
 		$keys = [];
 
 		foreach ($fields as $field) {
@@ -47,11 +60,19 @@
 			}
 
 			if ($type === "callouts" && !empty($field["settings"]["groups"])) {
-				$callouts = $admin->getCalloutsInGroups($field["settings"]["groups"], false);
+				$group_key = implode(",", $field["settings"]["groups"]);
 
-				foreach ($callouts as $callout) {
-					$keys = array_merge($keys, $get_field_keys($callout["resources"] ?? [], $types));
+				if (!isset($callout_group_field_cache[$group_key])) {
+					$callout_fields = [];
+
+					foreach ($admin->getCalloutsInGroups($field["settings"]["groups"], false) as $callout) {
+						$callout_fields = array_merge($callout_fields, $callout["resources"] ?? []);
+					}
+
+					$callout_group_field_cache[$group_key] = $get_field_keys($callout_fields, $types);
 				}
+
+				$keys = array_merge($keys, $callout_group_field_cache[$group_key]);
 			}
 
 			if ($type === "matrix" && !empty($field["settings"]["columns"])) {
@@ -62,47 +83,33 @@
 		return array_values(array_unique(array_filter($keys)));
 	};
 
-	$collect_resources_from_fields = function($data, $fields) use ($get_field_keys, $reference_field_types, $content_field_types) {
-		$reference_keys = $get_field_keys($fields, $reference_field_types);
-		$content_keys = $get_field_keys($fields, $content_field_types);
-		$resources = BigTreeAdmin::findResourcesInData($data, $reference_keys);
+	$callout_group_field_cache = [];
 
-		$scan_content_fields = function($value) use (&$scan_content_fields, $content_keys) {
-			$found = [];
-
-			if (is_array($value)) {
-				foreach ($value as $key => $piece) {
-					if (in_array($key, $content_keys, true) && $piece !== null && $piece !== "") {
-						$found = array_merge($found, BigTreeAdmin::findResourcesInData($piece, null));
-					}
-
-					$found = array_merge($found, $scan_content_fields($piece));
-				}
-			}
-
-			return $found;
-		};
-
-		return array_merge($resources, $scan_content_fields($data), BigTreeAdmin::findResourcesInData($data, null));
+	$collect_resources_from_fields = function($data, $reference_keys) {
+		return BigTreeAdmin::findResourcesInData($data, $reference_keys ?: null);
 	};
 
-	$collect_resources_from_row = function($row, $fields) use ($collect_resources_from_fields) {
-		$resources = $collect_resources_from_fields($row, $fields);
+	$decode_row_values = function($row) {
+		$decoded = [];
 
-		foreach ($row as $value) {
-			if (is_string($value) && $value !== "" && ($value[0] === "[" || $value[0] === "{")) {
-				$decoded = json_decode($value, true);
-
-				if (is_array($decoded)) {
-					$resources = array_merge($resources, $collect_resources_from_fields($decoded, $fields));
-				}
+		foreach ($row as $key => $val) {
+			if (is_null($val)) {
+				$decoded[$key] = null;
+			} elseif (is_string($val) && is_array(json_decode($val, true))) {
+				$decoded[$key] = BigTree::untranslateArray(json_decode($val, true));
+			} else {
+				$decoded[$key] = $val;
 			}
 		}
 
-		return $resources;
+		return $decoded;
 	};
 
-	$build_segments = function() {
+	$collect_resources_from_row = function($row, $reference_keys) use ($collect_resources_from_fields, $decode_row_values) {
+		return $collect_resources_from_fields($decode_row_values($row), $reference_keys);
+	};
+
+	$build_segments = function() use ($admin) {
 		$segments = [
 			[
 				"type" => "pages",
@@ -117,7 +124,7 @@
 			[
 				"type" => "open_graph",
 				"label" => "open graph entries",
-				"count" => (int) SQL::fetchSingle("SELECT COUNT(*) FROM bigtree_open_graph")
+				"count" => (int) SQL::fetchSingle("SELECT COUNT(*) FROM bigtree_open_graph WHERE image IS NOT NULL AND image != ''")
 			],
 			[
 				"type" => "settings",
@@ -126,12 +133,16 @@
 			]
 		];
 
-		foreach (BigTreeJSONDB::getAll("module-forms") as $form) {
+		$seen_tables = [];
+
+		foreach ($admin->getModuleForms() as $form) {
 			$table = $form["table"] ?? "";
 
-			if (!$table || !SQL::tableExists($table)) {
+			if (!$table || !SQL::tableExists($table) || isset($seen_tables[$table])) {
 				continue;
 			}
+
+			$seen_tables[$table] = true;
 
 			$segments[] = [
 				"type" => "module_table",
@@ -187,27 +198,33 @@
 		return null;
 	};
 
-	// Cached per request for batch processors
-	$template_fields = [];
+	$template_reference_keys = [];
+	$module_reference_keys = [];
 
 	foreach (BigTreeJSONDB::getAll("templates") as $template) {
-		$template_fields[$template["id"]] = $template["resources"] ?? [];
+		$template_reference_keys[$template["id"]] = $get_field_keys($template["resources"] ?? [], $reference_field_types);
 	}
 
-	$module_fields_by_table = [];
-
-	foreach (BigTreeJSONDB::getAll("module-forms") as $form) {
+	foreach ($admin->getModuleForms() as $form) {
 		$table = $form["table"] ?? "";
 
-		if ($table) {
-			$module_fields_by_table[$table] = $form["fields"] ?? [];
+		if (!$table) {
+			continue;
+		}
+
+		$keys = $get_field_keys($form["fields"] ?? [], $reference_field_types);
+
+		if (isset($module_reference_keys[$table])) {
+			$module_reference_keys[$table] = array_values(array_unique(array_merge($module_reference_keys[$table], $keys)));
+		} else {
+			$module_reference_keys[$table] = $keys;
 		}
 	}
 
 	$process_batch = function($work) use (
 		$batch_size,
-		$template_fields,
-		$module_fields_by_table,
+		$template_reference_keys,
+		$module_reference_keys,
 		$reference_field_types,
 		$content_field_types,
 		$insert_resource_allocations,
@@ -224,30 +241,25 @@
 
 			foreach ($pages as $page) {
 				$resources_data = json_decode($page["resources"], true) ?: [];
-				$fields = $template_fields[$page["template"]] ?? [];
+				$reference_keys = $template_reference_keys[$page["template"]] ?? [];
 				$data = [
 					"resources" => $resources_data,
 					"external" => $page["external"]
 				];
 
-				$resource_ids = array_merge(
-					$collect_resources_from_fields($data, $fields),
-					$collect_resources_from_fields($resources_data, $fields)
-				);
-
-				$insert_resource_allocations("bigtree_pages", $page["id"], $resource_ids);
+				$insert_resource_allocations("bigtree_pages", $page["id"], $collect_resources_from_fields($data, $reference_keys));
 			}
 		} elseif ($segment["type"] === "pending_pages") {
 			$pending_pages = SQL::fetchAll("SELECT id, changes FROM bigtree_pending_changes WHERE `table` = 'bigtree_pages' ORDER BY id ASC LIMIT $start, $batch_size");
 
 			foreach ($pending_pages as $change) {
 				$changes = json_decode($change["changes"], true) ?: [];
-				$fields = $template_fields[$changes["template"] ?? ""] ?? [];
+				$reference_keys = $template_reference_keys[$changes["template"] ?? ""] ?? [];
 
-				$insert_resource_allocations("bigtree_pages", "p".$change["id"], $collect_resources_from_fields($changes, $fields));
+				$insert_resource_allocations("bigtree_pages", "p".$change["id"], $collect_resources_from_fields($changes, $reference_keys));
 			}
 		} elseif ($segment["type"] === "open_graph") {
-			$open_graph_entries = SQL::fetchAll("SELECT `table`, entry, image FROM bigtree_open_graph ORDER BY id ASC LIMIT $start, $batch_size");
+			$open_graph_entries = SQL::fetchAll("SELECT `table`, entry, image FROM bigtree_open_graph WHERE image IS NOT NULL AND image != '' ORDER BY id ASC LIMIT $start, $batch_size");
 
 			foreach ($open_graph_entries as $entry) {
 				$insert_resource_allocations($entry["table"], $entry["entry"], BigTreeAdmin::findResourcesInData($entry["image"], null));
@@ -265,46 +277,38 @@
 				}
 
 				$setting_type = $setting["type"] ?? "";
-				$resource_ids = [];
+				$reference_keys = null;
 
 				if (in_array($setting_type, $reference_field_types, true)) {
-					$resource_ids = BigTreeAdmin::findResourcesInData(["value" => $value], ["value"]);
+					$reference_keys = ["value"];
 				}
 
-				if (in_array($setting_type, $content_field_types, true)) {
-					$resource_ids = array_merge($resource_ids, BigTreeAdmin::findResourcesInData($value, null));
-				}
-
-				if (!$resource_ids) {
-					$resource_ids = BigTreeAdmin::findResourcesInData($value, null);
-				}
-
-				$insert_resource_allocations("bigtree_settings", $setting["id"], $resource_ids);
+				$insert_resource_allocations("bigtree_settings", $setting["id"], $collect_resources_from_fields(["value" => $value], $reference_keys));
 			}
 		} elseif ($segment["type"] === "module_table") {
 			$table = $segment["table"];
-			$fields = $segment["fields"];
+			$reference_keys = $module_reference_keys[$table] ?? [];
 			$rows = SQL::fetchAll("SELECT * FROM `$table` ORDER BY id ASC LIMIT $start, $batch_size");
 
 			foreach ($rows as $row) {
-				$insert_resource_allocations($table, $row["id"], $collect_resources_from_row($row, $fields));
+				$insert_resource_allocations($table, $row["id"], $collect_resources_from_row($row, $reference_keys));
 			}
 		} elseif ($segment["type"] === "pending_modules") {
 			$pending_changes = SQL::fetchAll("SELECT id, `table`, changes FROM bigtree_pending_changes WHERE `table` != 'bigtree_pages' ORDER BY id ASC LIMIT $start, $batch_size");
 
 			foreach ($pending_changes as $change) {
 				$changes = json_decode($change["changes"], true) ?: [];
-				$fields = $module_fields_by_table[$change["table"]] ?? [];
+				$reference_keys = $module_reference_keys[$change["table"]] ?? [];
 
-				$insert_resource_allocations($change["table"], "p".$change["id"], $collect_resources_from_fields($changes, $fields));
+				$insert_resource_allocations($change["table"], "p".$change["id"], $collect_resources_from_fields($changes, $reference_keys));
 			}
 		}
 	};
 
-	$segments = $build_segments();
-	$total_pages = $get_total_pages($segments);
-
 	if (empty($_GET["page"])) {
+		$segments = $build_segments();
+		$total_pages = $get_total_pages($segments);
+
 		if ($total_pages === 0) {
 			$admin->updateInternalSettingValue("bigtree-internal-revision", 503);
 
@@ -325,6 +329,7 @@
 
 	$page = intval($_GET["page"]);
 	$total_pages = intval($_GET["total_pages"]);
+	$segments = $build_segments();
 	$work = $resolve_page($page, $segments);
 
 	if ($work) {
