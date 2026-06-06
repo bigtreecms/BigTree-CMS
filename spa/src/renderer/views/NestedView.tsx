@@ -16,6 +16,7 @@ import {
 } from "./viewHelpers";
 import { BuiltinToggleButtons } from "./BuiltinToggleButtons";
 import { useEntryDelete } from "./useEntryDelete";
+import { useModuleEntryLinks } from "@/pages/ModuleLayout";
 
 /**
  * Runtime for the `nested` view type.
@@ -117,6 +118,7 @@ interface DragApi {
 
 export const NestedView = ({ moduleId, view }: NestedViewProps) => {
 	const navigate = useNavigate();
+	const { editPath } = useModuleEntryLinks();
 	const queryClient = useQueryClient();
 	const [query, setQuery] = useState("");
 	const [debouncedQuery, setDebouncedQuery] = useState("");
@@ -136,7 +138,12 @@ export const NestedView = ({ moduleId, view }: NestedViewProps) => {
 	// ordering, id ASC is the stable tiebreak. getSearchResults special-cases
 	// this exact string (see auto-modules.php:1482).
 	const listQuery = useQuery({
-		queryKey: ["module-entries", moduleId, view.id, { q: debouncedQuery || undefined, view: view.id }] as const,
+		queryKey: [
+			"module-entries",
+			moduleId,
+			view.id,
+			{ q: debouncedQuery || undefined, view: view.id },
+		] as const,
 		queryFn: () =>
 			autoModulesApi.list(moduleId, {
 				view: view.id,
@@ -189,7 +196,7 @@ export const NestedView = ({ moduleId, view }: NestedViewProps) => {
 		const entryId = Number(row.id);
 
 		if (Number.isFinite(entryId) && entryId > 0) {
-			navigate(`/modules/${moduleId}/view/${view.id}/edit/${entryId}`);
+			navigate(editPath(entryId));
 		}
 	};
 
@@ -303,7 +310,9 @@ export const NestedView = ({ moduleId, view }: NestedViewProps) => {
 			</div>
 
 			{debouncedQuery && (
-				<div className="mb-2 text-[11.5px] text-text-3">Reordering disabled while searching.</div>
+				<div className="mb-2 text-[11.5px] text-text-3">
+					Reordering disabled while searching.
+				</div>
 			)}
 
 			<div className="overflow-hidden rounded-xl border border-border bg-surface">
@@ -311,7 +320,9 @@ export const NestedView = ({ moduleId, view }: NestedViewProps) => {
 					<div className="p-9 text-center text-[13px] text-text-3">Loading entries…</div>
 				) : rows.length === 0 ? (
 					<div className="p-9 text-center text-[13px] text-text-3">
-						{debouncedQuery ? `No entries match “${debouncedQuery}”.` : "No entries yet."}
+						{debouncedQuery
+							? `No entries match “${debouncedQuery}”.`
+							: "No entries yet."}
 					</div>
 				) : tree ? (
 					<ul className="divide-y divide-border">
@@ -390,6 +401,7 @@ const NestedRow = ({
 	viewId,
 	drag,
 }: NestedRowProps) => {
+	const { editPath, actionPath } = useModuleEntryLinks();
 	const id = String(node.row.id);
 	const isOpen = expanded.has(id);
 	const hasChildren = node.children.length > 0;
@@ -424,7 +436,9 @@ const NestedRow = ({
 								? "cursor-grab hover:bg-hover hover:text-text-2 active:cursor-grabbing"
 								: "cursor-default opacity-25"
 						}`}
-						title={drag.canDrag ? "Drag to reorder within siblings" : "Reordering disabled"}
+						title={
+							drag.canDrag ? "Drag to reorder within siblings" : "Reordering disabled"
+						}
 						aria-hidden="true"
 					>
 						<GripVertical size={13} />
@@ -476,7 +490,7 @@ const NestedRow = ({
 						return (
 							<Link
 								key={action.key}
-								to={`/modules/${moduleId}/view/${viewId}/${action.route}/${node.row.id}`}
+								to={actionPath(action.route, node.row.id)}
 								className="rounded p-1 text-text-3 hover:bg-hover hover:text-text"
 								title={action.name}
 								aria-label={action.name}
@@ -488,7 +502,7 @@ const NestedRow = ({
 					})}
 					{builtins.edit && (
 						<Link
-							to={`/modules/${moduleId}/view/${viewId}/edit/${node.row.id}`}
+							to={editPath(node.row.id)}
 							className="rounded p-1 text-text-3 hover:bg-hover hover:text-text"
 							title="Edit"
 							onClick={(e) => e.stopPropagation()}

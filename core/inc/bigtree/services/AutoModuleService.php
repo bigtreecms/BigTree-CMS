@@ -421,6 +421,35 @@
 		// the query string or body so we can resolve. Fallbacks: a view whose
 		// table matches `module["table"]`, or the module's first listed view.
 		private function resolveTable(array $module, Request $request): string {
+			$form_id = (string)($request->query["form"] ?? $request->body["form"] ?? "");
+
+			// Form-only actions (no view) send the form id as the authoritative
+			// reference. Resolve the table directly from it.
+			if ($form_id) {
+				$form = BigTreeAutoModule::getForm($form_id);
+
+				// Same cross-module guard as views below: the Permission middleware
+				// only authorized the module in the URL, so a client-supplied form
+				// must belong to it. getForm() stamps the owning module id.
+				if ($form && (string)($form["module"] ?? "") !== (string)($module["id"] ?? "")) {
+					throw new AuthorizationException(
+						"Form does not belong to this module",
+						"permission_denied",
+						403
+					);
+				}
+
+				if ($form && !empty($form["table"])) {
+					return (string)$form["table"];
+				}
+
+				throw new NotFoundException(
+					"No table resolvable for form $form_id",
+					"no_form",
+					404
+				);
+			}
+
 			$view_id = (string)($request->query["view"] ?? $request->body["view"] ?? "");
 
 			if ($view_id) {

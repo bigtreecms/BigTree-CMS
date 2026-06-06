@@ -1,12 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-	Edit,
-	GripVertical,
-	Search,
-	Trash,
-	X,
-} from "lucide-react";
+import { Edit, GripVertical, Search, Trash, X } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 
 import { autoModulesApi, type ModuleEntryRow } from "@/api/endpoints/auto-modules";
@@ -17,6 +11,7 @@ import { toast } from "@/lib/toast";
 import { formatCellValue, iconForCustomAction, parseViewActions } from "./viewHelpers";
 import { BuiltinToggleButtons } from "./BuiltinToggleButtons";
 import { useEntryDelete } from "./useEntryDelete";
+import { useModuleEntryLinks } from "@/pages/ModuleLayout";
 
 /**
  * Runtime for the `draggable` view type. Flat list ordered by position; the
@@ -43,6 +38,7 @@ interface DraggableRow {
 
 export const DraggableView = ({ moduleId, view }: DraggableViewProps) => {
 	const navigate = useNavigate();
+	const { editPath, actionPath } = useModuleEntryLinks();
 	const queryClient = useQueryClient();
 	const [query, setQuery] = useState("");
 	const [debouncedQuery, setDebouncedQuery] = useState("");
@@ -56,8 +52,14 @@ export const DraggableView = ({ moduleId, view }: DraggableViewProps) => {
 	}, [query]);
 
 	const listQuery = useQuery({
-		queryKey: ["module-entries", moduleId, view.id, { q: debouncedQuery || undefined, view: view.id }] as const,
-		queryFn: () => autoModulesApi.list(moduleId, { view: view.id, q: debouncedQuery || undefined }),
+		queryKey: [
+			"module-entries",
+			moduleId,
+			view.id,
+			{ q: debouncedQuery || undefined, view: view.id },
+		] as const,
+		queryFn: () =>
+			autoModulesApi.list(moduleId, { view: view.id, q: debouncedQuery || undefined }),
 		placeholderData: keepPreviousData,
 	});
 
@@ -103,7 +105,7 @@ export const DraggableView = ({ moduleId, view }: DraggableViewProps) => {
 		const entryId = Number(row.id);
 
 		if (Number.isFinite(entryId) && entryId > 0) {
-			navigate(`/modules/${moduleId}/view/${view.id}/edit/${entryId}`);
+			navigate(editPath(entryId));
 		}
 	};
 
@@ -111,7 +113,10 @@ export const DraggableView = ({ moduleId, view }: DraggableViewProps) => {
 		<>
 			<div className="mb-3 flex flex-wrap items-center gap-3">
 				<div className="relative max-w-md flex-1">
-					<Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-3" />
+					<Search
+						size={14}
+						className="absolute left-3 top-1/2 -translate-y-1/2 text-text-3"
+					/>
 					<input
 						className="w-full rounded-md border border-border bg-surface py-1.5 pl-9 pr-9 text-[13.5px] placeholder:text-text-3 focus:outline-none focus:ring-1 focus:ring-accent-ring"
 						placeholder={`Search ${view.title.toLowerCase()}…`}
@@ -142,7 +147,9 @@ export const DraggableView = ({ moduleId, view }: DraggableViewProps) => {
 					<div className="p-9 text-center text-[13px] text-text-3">Loading entries…</div>
 				) : rows.length === 0 ? (
 					<div className="p-9 text-center text-[13px] text-text-3">
-						{debouncedQuery ? `No entries match “${debouncedQuery}”.` : "No entries yet."}
+						{debouncedQuery
+							? `No entries match “${debouncedQuery}”.`
+							: "No entries yet."}
 					</div>
 				) : (
 					<ul>
@@ -201,7 +208,7 @@ export const DraggableView = ({ moduleId, view }: DraggableViewProps) => {
 											return (
 												<Link
 													key={action.key}
-													to={`/modules/${moduleId}/view/${view.id}/${action.route}/${r.row.id}`}
+													to={actionPath(action.route, r.row.id)}
 													className="rounded p-1 text-text-3 hover:bg-hover hover:text-text"
 													title={action.name}
 													aria-label={action.name}
@@ -213,7 +220,7 @@ export const DraggableView = ({ moduleId, view }: DraggableViewProps) => {
 										})}
 										{builtins.edit && (
 											<Link
-												to={`/modules/${moduleId}/view/${view.id}/edit/${r.row.id}`}
+												to={editPath(r.row.id)}
 												className="rounded p-1 text-text-3 hover:bg-hover hover:text-text"
 												title="Edit"
 												onClick={(e) => e.stopPropagation()}

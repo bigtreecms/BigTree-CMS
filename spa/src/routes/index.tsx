@@ -46,14 +46,9 @@ import { ModuleGroups } from "@/pages/developer/ModuleGroups";
 import { SettingConfigure } from "@/pages/developer/SettingConfigure";
 import { TemplateEdit } from "@/pages/developer/TemplateEdit";
 import { Templates } from "@/pages/developer/Templates";
-import { ModuleEntry } from "@/pages/ModuleEntry";
-import { ModuleAction } from "@/pages/ModuleAction";
-import { ModuleEntryAdd } from "@/pages/ModuleEntryAdd";
-import { ModuleEntryEdit } from "@/pages/ModuleEntryEdit";
+import { ModuleDispatcher } from "@/pages/ModuleDispatcher";
 import { ModuleLayout } from "@/pages/ModuleLayout";
-import { ModuleReport } from "@/pages/ModuleReport";
 import { Modules } from "@/pages/Modules";
-import { ModuleView } from "@/pages/ModuleView";
 import { PageAdd } from "@/pages/PageAdd";
 import { PageEdit } from "@/pages/PageEdit";
 import { PageRevisions } from "@/pages/PageRevisions";
@@ -169,18 +164,11 @@ export const router = createBrowserRouter(
 							children: [
 								{ index: true, element: <Modules /> },
 								{
-									path: ":id",
+									path: ":moduleRoute",
 									element: <ModuleLayout />,
 									children: [
-										{ index: true, element: <ModuleEntry /> },
-										{ path: "view/:sid", element: <ModuleView /> },
-										{ path: "view/:sid/add", element: <ModuleEntryAdd /> },
-										{
-											path: "view/:sid/edit/:eid",
-											element: <ModuleEntryEdit />,
-										},
-										{ path: "report/:sid", element: <ModuleReport /> },
-										{ path: "action/:sid", element: <ModuleAction /> },
+										{ index: true, element: <ModuleDispatcher /> },
+										{ path: "*", element: <ModuleDispatcher /> },
 									],
 								},
 							],

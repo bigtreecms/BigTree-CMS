@@ -1,42 +1,105 @@
 import type { SubNavItem } from "@/components/shell/SubNav";
 import { iconFor } from "@/lib/legacyIcons";
-import type { ModuleAction } from "@/api/endpoints/modules";
+import type { ModuleAction, ModuleSummary } from "@/api/endpoints/modules";
 
 const enc = encodeURIComponent;
 
 /**
- * Resolve a module action to the SPA route that runs it. Mirrors the legacy
- * router, which dispatches a module action by its `view` / `report` / `form`
- * target:
- *   - view   → /modules/:id/view/:viewId
- *   - report → /modules/:id/report/:reportId
- *   - form   → /modules/:id/view/_/add   (form-only actions; the renderer reads
- *              the form from the view fallback chain — in practice the admin
- *              always pairs a form with a view)
- * Custom (module) actions draw their own React UI and run at
- *   - module → /modules/:id/action/:actionId
+ * Module routing mirrors the legacy admin: a module and its actions are addressed
+ * by their human-readable `route` (URL slug), not their internal slug id. The URL
+ * shape is `/modules/:moduleRoute/:actionRoute[/...commands]`, e.g.
+ * `/modules/news/add` or `/modules/news/edit/5`. The action's relation
+ * (custom module / view / report / form) decides what renders — resolved by the
+ * ModuleDispatcher, not encoded in the URL.
  *
- * Returns null for actions with no runnable target (e.g. a legacy custom-PHP
- * action with no React module — those can't run in the SPA).
+ * These helpers port BigTreeAdmin::getModuleByRoute / getModuleActionByRoute and
+ * centralize every route-based link the SPA builds.
  */
-export const moduleActionTarget = (moduleId: string, action: ModuleAction): string | null => {
-	if (action.render === "module") {
-		return `/modules/${enc(moduleId)}/action/${enc(action.id)}`;
-	}
 
-	if (action.view) {
-		return `/modules/${enc(moduleId)}/view/${enc(action.view)}`;
-	}
+/** Resolve a module by its URL route. */
+export const resolveModuleByRoute = (
+	route: string,
+	modules: ModuleSummary[]
+): ModuleSummary | undefined => {
+	return modules.find((m) => m.route === route);
+};
 
-	if (action.report) {
-		return `/modules/${enc(moduleId)}/report/${enc(action.report)}`;
-	}
+export interface ResolvedAction {
+	action: ModuleAction;
+	/** Trailing path segments not part of the action route (e.g. an entry id). */
+	commands: string[];
+}
 
-	if (action.form) {
-		return `/modules/${enc(moduleId)}/view/_/add`;
+/**
+ * Port of BigTreeAdmin::getModuleActionByRoute. Greedy longest-match: join the
+ * path segments after the module route, try to match an action `route`; on a
+ * miss, pop the last segment into `commands` and retry. With no segments we look
+ * for the landing action (`route === ""`). Returns null when nothing matches.
+ */
+export const resolveActionByRoute = (
+	actions: ModuleAction[],
+	segments: string[]
+): ResolvedAction | null => {
+	const route = segments.length ? [...segments] : [""];
+	const commands: string[] = [];
+
+	while (route.length) {
+		const action = actions.find((a) => a.route === route.join("/"));
+
+		if (action) {
+			return { action, commands: commands.reverse() };
+		}
+
+		const last = route.pop();
+
+		if (last !== undefined) {
+			commands.push(last);
+		}
 	}
 
 	return null;
+};
+
+/**
+ * An action can run in the SPA if it draws its own UI (custom module action) or
+ * relates to an auto-module form / view / report. Legacy custom-PHP actions
+ * (render "server", no relation) have no native runtime and are skipped.
+ */
+export const isRunnableAction = (action: ModuleAction): boolean => {
+	return (
+		action.render === "module" ||
+		Boolean(action.view) ||
+		Boolean(action.report) ||
+		Boolean(action.form)
+	);
+};
+
+/** `/modules/:route` — a module's landing URL. */
+export const modulePath = (module: Pick<ModuleSummary, "route">): string => {
+	return `/modules/${enc(module.route)}`;
+};
+
+/**
+ * `/modules/:route/:actionRoute[/...commands]`. The landing action has an empty
+ * route, which collapses to the module path. Commands are appended in order
+ * (e.g. the entry id for an edit link).
+ */
+export const moduleActionPath = (
+	module: Pick<ModuleSummary, "route">,
+	action: Pick<ModuleAction, "route">,
+	...commands: Array<string | number>
+): string => {
+	const parts = [`/modules/${enc(module.route)}`];
+
+	if (action.route) {
+		parts.push(enc(action.route));
+	}
+
+	for (const command of commands) {
+		parts.push(enc(String(command)));
+	}
+
+	return parts.join("/");
 };
 
 /** Legacy stores the nav toggle as boolean `true` or the PHP string "on"/"1". */
@@ -45,12 +108,13 @@ const isInNav = (value: ModuleAction["in_nav"]): boolean => {
 };
 
 /**
- * Build the sub-nav items for a module: keep only actions flagged for the nav
- * and within the user's level, then map each to its runnable route + icon.
- * Preserves the order the actions endpoint returns (position DESC).
+ * Build the sub-nav items for a module: keep only actions flagged for the nav,
+ * within the user's level, and runnable in the SPA, then map each to its
+ * route-based URL + icon. Preserves the order the actions endpoint returns
+ * (position DESC).
  */
 export const visibleModuleActions = (
-	moduleId: string,
+	module: Pick<ModuleSummary, "route">,
 	actions: ModuleAction[],
 	userLevel: number
 ): SubNavItem[] => {
@@ -61,15 +125,13 @@ export const visibleModuleActions = (
 			continue;
 		}
 
-		const to = moduleActionTarget(moduleId, action);
-
-		if (!to) {
+		if (!isRunnableAction(action)) {
 			continue;
 		}
 
 		items.push({
 			label: action.name,
-			to,
+			to: moduleActionPath(module, action),
 			icon: iconFor(action.class),
 		});
 	}

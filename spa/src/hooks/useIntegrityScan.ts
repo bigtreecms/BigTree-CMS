@@ -1,4 +1,5 @@
 import { useCallback, useRef, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 
 import {
 	integrityApi,
@@ -6,6 +7,7 @@ import {
 	type IntegrityModule,
 	type IntegritySession,
 } from "@/api/endpoints/integrity";
+import { modulesApi } from "@/api/endpoints/modules";
 
 /** A single broken link/image, resolved with where it lives and how to fix it. */
 export interface ScanFinding {
@@ -20,16 +22,31 @@ export interface ScanFinding {
 
 export type ScanPhase = "idle" | "scanning" | "paused" | "done";
 
-const moduleEditLink = (mod: IntegrityModule | undefined, itemId: number | string): string => {
+/** Map a module's internal id to its URL route (built from the module list). */
+type RouteResolver = (moduleId: string | number) => string | undefined;
+
+const moduleEditLink = (
+	mod: IntegrityModule | undefined,
+	itemId: number | string,
+	routeFor: RouteResolver
+): string => {
 	if (!mod) {
 		return "#";
 	}
 
-	if (mod.edit_view_id !== null && mod.edit_view_id !== undefined) {
-		return `/modules/${mod.module_id}/view/${mod.edit_view_id}/edit/${itemId}`;
+	const route = routeFor(mod.module_id);
+
+	if (!route) {
+		return "/modules";
 	}
 
-	return `/modules/${mod.module_id}`;
+	// The module is reached by route; editing goes through its conventional
+	// "edit" action route (the legacy admin's `/<route>/edit/<id>`).
+	if (mod.edit_view_id !== null && mod.edit_view_id !== undefined) {
+		return `/modules/${route}/edit/${itemId}`;
+	}
+
+	return `/modules/${route}`;
 };
 
 const totalUnits = (session: IntegritySession): number =>
@@ -54,7 +71,8 @@ const toModuleFinding = (
 	mod: IntegrityModule | undefined,
 	itemId: string | number,
 	error: IntegrityError,
-	index: number
+	index: number,
+	routeFor: RouteResolver
 ): ScanFinding => ({
 	key: `m-${mod?.id ?? "?"}-${itemId}-${error.field}-${error.url}-${index}`,
 	location: "Module",
@@ -62,7 +80,7 @@ const toModuleFinding = (
 	type: error.type,
 	field: error.field,
 	url: error.url,
-	editTo: moduleEditLink(mod, itemId),
+	editTo: moduleEditLink(mod, itemId, routeFor),
 });
 
 /**
@@ -77,6 +95,7 @@ const toModuleFinding = (
  * write state after a newer run started.
  */
 export const useIntegrityScan = () => {
+	const queryClient = useQueryClient();
 	const [phase, setPhase] = useState<ScanPhase>("idle");
 	const [findings, setFindings] = useState<ScanFinding[]>([]);
 	const [completed, setCompleted] = useState(0);
@@ -87,152 +106,166 @@ export const useIntegrityScan = () => {
 	const cancelled = useRef(false);
 	const token = useRef(0);
 
-	const start = useCallback(async (useExternal: boolean) => {
-		token.current += 1;
-		const myToken = token.current;
-		cancelled.current = false;
+	const start = useCallback(
+		async (useExternal: boolean) => {
+			token.current += 1;
+			const myToken = token.current;
+			cancelled.current = false;
 
-		setExternal(useExternal);
-		setPhase("scanning");
-		setCurrentLabel("Preparing scan…");
+			setExternal(useExternal);
+			setPhase("scanning");
+			setCurrentLabel("Preparing scan…");
 
-		const session = await integrityApi.start(useExternal);
+			const session = await integrityApi.start(useExternal);
 
-		if (cancelled.current || myToken !== token.current) {
-			return;
-		}
+			if (cancelled.current || myToken !== token.current) {
+				return;
+			}
 
-		setTotal(totalUnits(session));
+			setTotal(totalUnits(session));
 
-		// Seed any errors already discovered in a resumed session.
-		const moduleByForm = new Map(session.modules.map((m) => [m.id, m]));
-		const seeded: ScanFinding[] = [];
-
-		Object.entries(session.page_errors).forEach(([id, { nav_title, errors }]) => {
-			errors.forEach((error, i) => seeded.push(toPageFinding(id, nav_title, error, i)));
-		});
-
-		Object.entries(session.module_errors).forEach(([formId, items]) => {
-			Object.entries(items).forEach(([itemId, errors]) => {
-				errors.forEach((error, i) =>
-					seeded.push(toModuleFinding(moduleByForm.get(formId), itemId, error, i))
-				);
+			// Module findings link to the module by its route, so resolve module
+			// id → route from the (cached) module list once up front.
+			const modules = await queryClient.fetchQuery({
+				queryKey: ["modules", "list"],
+				queryFn: () => modulesApi.list(),
 			});
-		});
+			const routeById = new Map(modules.map((m) => [String(m.id), m.route]));
+			const routeFor: RouteResolver = (id) => routeById.get(String(id));
 
-		setFindings(seeded);
+			// Seed any errors already discovered in a resumed session.
+			const moduleByForm = new Map(session.modules.map((m) => [m.id, m]));
+			const seeded: ScanFinding[] = [];
 
-		// Work out where to resume. The legacy scanner finishes all pages before
-		// touching modules, so any module progress means pages are already done.
-		const resumingModules = session.current_module > 0 || session.current_item > 0;
-		let done = 0;
+			Object.entries(session.page_errors).forEach(([id, { nav_title, errors }]) => {
+				errors.forEach((error, i) => seeded.push(toPageFinding(id, nav_title, error, i)));
+			});
 
-		if (resumingModules) {
-			done = session.pages.length;
+			Object.entries(session.module_errors).forEach(([formId, items]) => {
+				Object.entries(items).forEach(([itemId, errors]) => {
+					errors.forEach((error, i) =>
+						seeded.push(
+							toModuleFinding(moduleByForm.get(formId), itemId, error, i, routeFor)
+						)
+					);
+				});
+			});
 
-			for (let m = 0; m < session.current_module; m++) {
-				done += session.modules[m]?.items.length ?? 0;
-			}
+			setFindings(seeded);
 
-			done += session.current_item;
-		} else {
-			done = session.current_page;
-		}
+			// Work out where to resume. The legacy scanner finishes all pages before
+			// touching modules, so any module progress means pages are already done.
+			const resumingModules = session.current_module > 0 || session.current_item > 0;
+			let done = 0;
 
-		setCompleted(done);
+			if (resumingModules) {
+				done = session.pages.length;
 
-		// — Pages —
-		if (!resumingModules) {
-			for (let i = session.current_page; i < session.pages.length; i++) {
-				if (cancelled.current || myToken !== token.current) {
-					return;
+				for (let m = 0; m < session.current_module; m++) {
+					done += session.modules[m]?.items.length ?? 0;
 				}
 
-				const id = session.pages[i];
+				done += session.current_item;
+			} else {
+				done = session.current_page;
+			}
 
-				if (id === undefined) {
+			setCompleted(done);
+
+			// — Pages —
+			if (!resumingModules) {
+				for (let i = session.current_page; i < session.pages.length; i++) {
+					if (cancelled.current || myToken !== token.current) {
+						return;
+					}
+
+					const id = session.pages[i];
+
+					if (id === undefined) {
+						continue;
+					}
+
+					setCurrentLabel(`Scanning pages — ${i + 1} of ${session.pages.length}`);
+
+					try {
+						const res = await integrityApi.checkPage(useExternal, id, i);
+
+						if (res.errors.length) {
+							setFindings((prev) => [
+								...prev,
+								...res.errors.map((error, idx) =>
+									toPageFinding(res.id, res.nav_title, error, idx)
+								),
+							]);
+						}
+					} catch {
+						// Skip a page that errored/timed out and keep going, like the legacy scanner.
+					}
+
+					setCompleted((c) => c + 1);
+				}
+			}
+
+			// — Module entries —
+			const startModule = resumingModules ? session.current_module : 0;
+
+			for (let m = startModule; m < session.modules.length; m++) {
+				const mod = session.modules[m];
+
+				if (!mod) {
 					continue;
 				}
 
-				setCurrentLabel(`Scanning pages — ${i + 1} of ${session.pages.length}`);
+				const startItem =
+					resumingModules && m === session.current_module ? session.current_item : 0;
 
-				try {
-					const res = await integrityApi.checkPage(useExternal, id, i);
-
-					if (res.errors.length) {
-						setFindings((prev) => [
-							...prev,
-							...res.errors.map((error, idx) =>
-								toPageFinding(res.id, res.nav_title, error, idx)
-							),
-						]);
+				for (let j = startItem; j < mod.items.length; j++) {
+					if (cancelled.current || myToken !== token.current) {
+						return;
 					}
-				} catch {
-					// Skip a page that errored/timed out and keep going, like the legacy scanner.
-				}
 
-				setCompleted((c) => c + 1);
-			}
-		}
+					const itemId = mod.items[j];
 
-		// — Module entries —
-		const startModule = resumingModules ? session.current_module : 0;
-
-		for (let m = startModule; m < session.modules.length; m++) {
-			const mod = session.modules[m];
-
-			if (!mod) {
-				continue;
-			}
-
-			const startItem =
-				resumingModules && m === session.current_module ? session.current_item : 0;
-
-			for (let j = startItem; j < mod.items.length; j++) {
-				if (cancelled.current || myToken !== token.current) {
-					return;
-				}
-
-				const itemId = mod.items[j];
-
-				if (itemId === undefined) {
-					continue;
-				}
-
-				setCurrentLabel(`Scanning ${mod.name} — ${j + 1} of ${mod.items.length}`);
-
-				try {
-					const res = await integrityApi.checkModuleItem({
-						external: useExternal,
-						form: mod.id,
-						id: itemId,
-						module: m,
-						index: j,
-					});
-
-					if (res.errors.length) {
-						setFindings((prev) => [
-							...prev,
-							...res.errors.map((error, idx) =>
-								toModuleFinding(mod, res.id, error, idx)
-							),
-						]);
+					if (itemId === undefined) {
+						continue;
 					}
-				} catch {
-					// Skip and continue.
+
+					setCurrentLabel(`Scanning ${mod.name} — ${j + 1} of ${mod.items.length}`);
+
+					try {
+						const res = await integrityApi.checkModuleItem({
+							external: useExternal,
+							form: mod.id,
+							id: itemId,
+							module: m,
+							index: j,
+						});
+
+						if (res.errors.length) {
+							setFindings((prev) => [
+								...prev,
+								...res.errors.map((error, idx) =>
+									toModuleFinding(mod, res.id, error, idx, routeFor)
+								),
+							]);
+						}
+					} catch {
+						// Skip and continue.
+					}
+
+					setCompleted((c) => c + 1);
 				}
-
-				setCompleted((c) => c + 1);
 			}
-		}
 
-		if (cancelled.current || myToken !== token.current) {
-			return;
-		}
+			if (cancelled.current || myToken !== token.current) {
+				return;
+			}
 
-		setCurrentLabel("");
-		setPhase("done");
-	}, []);
+			setCurrentLabel("");
+			setPhase("done");
+		},
+		[queryClient]
+	);
 
 	const stop = useCallback(() => {
 		cancelled.current = true;

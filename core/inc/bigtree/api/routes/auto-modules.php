@@ -11,25 +11,27 @@
 			"service" => [AutoModuleService::class, "create"],
 			"permission" => ["module" => "%id%", "min" => "e"],
 			"allow_unknown" => true,
-			"query" => ["view" => "string|max:128"],
+			"query" => ["view" => "string|max:128", "form" => "string|max:128"],
 			"audit" => ["table" => "module_entry", "type" => "created", "entry" => "%id%"],
 		],
+		// `form` joins `view` here because edit screens reached via a form action
+		// (no view) send the form id as the authoritative table reference.
 		"GET /modules/{id}/entries/{eid:int}" => [
 			"service" => [AutoModuleService::class, "get"],
 			"permission" => ["module" => "%id%", "min" => "v"],
-			"query" => ["view" => "string|max:128"],
+			"query" => ["view" => "string|max:128", "form" => "string|max:128"],
 		],
 		"PATCH /modules/{id}/entries/{eid:int}" => [
 			"service" => [AutoModuleService::class, "update"],
 			"permission" => ["module" => "%id%", "min" => "e"],
 			"allow_unknown" => true,
-			"query" => ["view" => "string|max:128"],
+			"query" => ["view" => "string|max:128", "form" => "string|max:128"],
 			"audit" => ["table" => "module_entry", "type" => "updated", "entry" => "%eid%"],
 		],
 		"DELETE /modules/{id}/entries/{eid:int}" => [
 			"service" => [AutoModuleService::class, "delete"],
 			"permission" => ["module" => "%id%", "min" => "p"],
-			"query" => ["view" => "string|max:128"],
+			"query" => ["view" => "string|max:128", "form" => "string|max:128"],
 			"audit" => ["table" => "module_entry", "type" => "deleted", "entry" => "%eid%"],
 		],
 		"POST /modules/{id}/entries/reorder" => [

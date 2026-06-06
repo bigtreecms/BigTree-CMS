@@ -84,7 +84,7 @@ export const LinkFinder = () => {
 				kind: "module",
 				label: m.name,
 				groupLabel: "Modules",
-				value: `/modules/${m.id}`,
+				value: `/modules/${m.route}`,
 			})
 		),
 		...(filesQuery.data ?? []).slice(0, 10).map(

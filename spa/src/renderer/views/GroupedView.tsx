@@ -14,6 +14,7 @@ import {
 } from "./viewHelpers";
 import { BuiltinToggleButtons } from "./BuiltinToggleButtons";
 import { useEntryDelete } from "./useEntryDelete";
+import { useModuleEntryLinks } from "@/pages/ModuleLayout";
 
 /**
  * Runtime for the `grouped` view type. Rows are bucketed by their cached
@@ -43,6 +44,7 @@ const specialGroupTitles: Record<string, Record<string, string>> = {
 
 export const GroupedView = ({ moduleId, view }: GroupedViewProps) => {
 	const navigate = useNavigate();
+	const { editPath, actionPath } = useModuleEntryLinks();
 	const [query, setQuery] = useState("");
 	const [debouncedQuery, setDebouncedQuery] = useState("");
 	const [collapsed, setCollapsed] = useState<Set<string>>(() => new Set());
@@ -55,8 +57,14 @@ export const GroupedView = ({ moduleId, view }: GroupedViewProps) => {
 	}, [query]);
 
 	const listQuery = useQuery({
-		queryKey: ["module-entries", moduleId, view.id, { q: debouncedQuery || undefined, view: view.id }] as const,
-		queryFn: () => autoModulesApi.list(moduleId, { view: view.id, q: debouncedQuery || undefined }),
+		queryKey: [
+			"module-entries",
+			moduleId,
+			view.id,
+			{ q: debouncedQuery || undefined, view: view.id },
+		] as const,
+		queryFn: () =>
+			autoModulesApi.list(moduleId, { view: view.id, q: debouncedQuery || undefined }),
 	});
 
 	const settings = view.settings as Record<string, unknown> | undefined;
@@ -127,7 +135,7 @@ export const GroupedView = ({ moduleId, view }: GroupedViewProps) => {
 		const entryId = Number(row.id);
 
 		if (Number.isFinite(entryId) && entryId > 0) {
-			navigate(`/modules/${moduleId}/view/${view.id}/edit/${entryId}`);
+			navigate(editPath(entryId));
 		}
 	};
 
@@ -135,7 +143,10 @@ export const GroupedView = ({ moduleId, view }: GroupedViewProps) => {
 		<>
 			<div className="mb-3 flex flex-wrap items-center gap-3">
 				<div className="relative max-w-md flex-1">
-					<Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-3" />
+					<Search
+						size={14}
+						className="absolute left-3 top-1/2 -translate-y-1/2 text-text-3"
+					/>
 					<input
 						className="w-full rounded-md border border-border bg-surface py-1.5 pl-9 pr-9 text-[13.5px] placeholder:text-text-3 focus:outline-none focus:ring-1 focus:ring-accent-ring"
 						placeholder={`Search ${view.title.toLowerCase()}…`}
@@ -157,7 +168,8 @@ export const GroupedView = ({ moduleId, view }: GroupedViewProps) => {
 
 			{!groupField && (
 				<div className="mb-3 rounded-md border border-border bg-surface-2 px-3 py-2 text-[12.5px] text-text-2">
-					This grouped view doesn't have a group column configured — showing as a flat list.
+					This grouped view doesn't have a group column configured — showing as a flat
+					list.
 				</div>
 			)}
 
@@ -192,7 +204,9 @@ export const GroupedView = ({ moduleId, view }: GroupedViewProps) => {
 									<h3 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-text">
 										{title}
 									</h3>
-									<span className="text-[11px] tabular-nums text-text-3">{items.length}</span>
+									<span className="text-[11px] tabular-nums text-text-3">
+										{items.length}
+									</span>
 								</button>
 
 								{!isCollapsed && (
@@ -214,7 +228,9 @@ export const GroupedView = ({ moduleId, view }: GroupedViewProps) => {
 															<span
 																key={key}
 																className={`truncate text-text-2 ${
-																	isFirst ? "font-medium text-text" : "flex-1"
+																	isFirst
+																		? "font-medium text-text"
+																		: "flex-1"
 																}`}
 															>
 																{formatCellValue(row[valueKey])}
@@ -225,12 +241,17 @@ export const GroupedView = ({ moduleId, view }: GroupedViewProps) => {
 
 												<div className="flex items-center gap-1">
 													{custom.map((action) => {
-														const Icon = iconForCustomAction(action.className);
+														const Icon = iconForCustomAction(
+															action.className
+														);
 
 														return (
 															<Link
 																key={action.key}
-																to={`/modules/${moduleId}/view/${view.id}/${action.route}/${row.id}`}
+																to={actionPath(
+																	action.route,
+																	row.id
+																)}
 																className="rounded p-1 text-text-3 hover:bg-hover hover:text-text"
 																title={action.name}
 																aria-label={action.name}
@@ -242,7 +263,7 @@ export const GroupedView = ({ moduleId, view }: GroupedViewProps) => {
 													})}
 													{builtins.edit && (
 														<Link
-															to={`/modules/${moduleId}/view/${view.id}/edit/${row.id}`}
+															to={editPath(row.id)}
 															className="rounded p-1 text-text-3 hover:bg-hover hover:text-text"
 															title="Edit"
 															onClick={(e) => e.stopPropagation()}

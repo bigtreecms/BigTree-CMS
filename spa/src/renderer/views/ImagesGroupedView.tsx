@@ -8,6 +8,7 @@ import type { ModuleView } from "@/api/endpoints/modules";
 
 import { ImagesGrid } from "./ImagesView";
 import { decodeHTMLEntities, parseViewActions } from "./viewHelpers";
+import { useModuleEntryLinks } from "@/pages/ModuleLayout";
 
 /**
  * Runtime for `images-grouped` — combines GroupedView's section-per-bucket
@@ -21,6 +22,7 @@ interface ImagesGroupedViewProps {
 
 export const ImagesGroupedView = ({ moduleId, view }: ImagesGroupedViewProps) => {
 	const navigate = useNavigate();
+	const { editPath } = useModuleEntryLinks();
 	const [query, setQuery] = useState("");
 	const [debouncedQuery, setDebouncedQuery] = useState("");
 	const [collapsed, setCollapsed] = useState<Set<string>>(() => new Set());
@@ -32,8 +34,14 @@ export const ImagesGroupedView = ({ moduleId, view }: ImagesGroupedViewProps) =>
 	}, [query]);
 
 	const listQuery = useQuery({
-		queryKey: ["module-entries", moduleId, view.id, { q: debouncedQuery || undefined, view: view.id }] as const,
-		queryFn: () => autoModulesApi.list(moduleId, { view: view.id, q: debouncedQuery || undefined }),
+		queryKey: [
+			"module-entries",
+			moduleId,
+			view.id,
+			{ q: debouncedQuery || undefined, view: view.id },
+		] as const,
+		queryFn: () =>
+			autoModulesApi.list(moduleId, { view: view.id, q: debouncedQuery || undefined }),
 	});
 
 	const settings = view.settings as Record<string, unknown> | undefined;
@@ -52,8 +60,7 @@ export const ImagesGroupedView = ({ moduleId, view }: ImagesGroupedViewProps) =>
 
 		for (const row of rows) {
 			const raw = row.group_field;
-			const key =
-				raw == null || raw === "" ? "—" : decodeHTMLEntities(String(raw));
+			const key = raw == null || raw === "" ? "—" : decodeHTMLEntities(String(raw));
 			const bucket = byGroup.get(key) ?? [];
 			bucket.push(row);
 			byGroup.set(key, bucket);
@@ -84,7 +91,7 @@ export const ImagesGroupedView = ({ moduleId, view }: ImagesGroupedViewProps) =>
 		const entryId = Number(row.id);
 
 		if (Number.isFinite(entryId) && entryId > 0) {
-			navigate(`/modules/${moduleId}/view/${view.id}/edit/${entryId}`);
+			navigate(editPath(entryId));
 		}
 	};
 
@@ -92,7 +99,10 @@ export const ImagesGroupedView = ({ moduleId, view }: ImagesGroupedViewProps) =>
 		<>
 			<div className="mb-3 flex flex-wrap items-center gap-3">
 				<div className="relative max-w-md flex-1">
-					<Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-3" />
+					<Search
+						size={14}
+						className="absolute left-3 top-1/2 -translate-y-1/2 text-text-3"
+					/>
 					<input
 						className="w-full rounded-md border border-border bg-surface py-1.5 pl-9 pr-9 text-[13.5px] placeholder:text-text-3 focus:outline-none focus:ring-1 focus:ring-accent-ring"
 						placeholder={`Search ${view.title.toLowerCase()}…`}
@@ -143,7 +153,9 @@ export const ImagesGroupedView = ({ moduleId, view }: ImagesGroupedViewProps) =>
 									<h3 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-text">
 										{groupKey}
 									</h3>
-									<span className="text-[11px] tabular-nums text-text-3">{items.length}</span>
+									<span className="text-[11px] tabular-nums text-text-3">
+										{items.length}
+									</span>
 								</button>
 
 								{!isCollapsed && (

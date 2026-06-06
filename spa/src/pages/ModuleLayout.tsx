@@ -1,4 +1,4 @@
-import { createContext, useContext } from "react";
+import { createContext, useCallback, useContext } from "react";
 import { Navigate, Outlet, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 
@@ -6,13 +6,17 @@ import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { SubNav } from "@/components/shell/SubNav";
 import { useAuthStore } from "@/auth/store";
 import { LEVEL } from "@/lib/permissions";
-import { visibleModuleActions } from "@/lib/moduleActions";
+import { moduleActionPath, modulePath, visibleModuleActions } from "@/lib/moduleActions";
 import { modulesApi, type ModuleAction, type ModuleSummary } from "@/api/endpoints/modules";
 
 interface ModuleContextValue {
+	/** Internal slug id — used for every API call. */
 	moduleId: string;
 	module: ModuleSummary | undefined;
 	actions: ModuleAction[];
+	/** Conventional add/edit form actions, for view-row links. */
+	addAction: ModuleAction | undefined;
+	editAction: ModuleAction | undefined;
 	isLoading: boolean;
 }
 
@@ -30,15 +34,51 @@ export const useModuleContext = (): ModuleContextValue => {
 };
 
 /**
- * Layout route for /modules/:id/*. Loads the module record and its actions a
- * single time (children read them via useModuleContext), draws the breadcrumb
- * base and the module sub-nav (the SPA equivalent of legacy `<nav id="sub_nav">`),
- * then renders the active sub-page through the <Outlet />.
+ * Route-based link builders for view renderers (edit a row, run a custom row
+ * action). Edit falls back to the conventional "edit" route when the module has
+ * no explicit edit action, matching the legacy view-row links.
+ */
+export const useModuleEntryLinks = () => {
+	const { module, editAction } = useModuleContext();
+
+	const editPath = useCallback(
+		(entryId: string | number): string => {
+			return module
+				? moduleActionPath(module, editAction ?? { route: "edit" }, entryId)
+				: "#";
+		},
+		[module, editAction]
+	);
+
+	const actionPath = useCallback(
+		(actionRoute: string, entryId: string | number): string => {
+			return module ? moduleActionPath(module, { route: actionRoute }, entryId) : "#";
+		},
+		[module]
+	);
+
+	return { editPath, actionPath };
+};
+
+/**
+ * Layout route for /modules/:moduleRoute/*. Resolves the module by its URL route
+ * (mirroring the legacy admin) via the cached module list, then loads that
+ * module's record + actions a single time. Children read everything through
+ * useModuleContext and the <ModuleDispatcher /> resolves the active action from
+ * the remaining path. Draws the breadcrumb base and the module sub-nav.
  */
 export const ModuleLayout = () => {
-	const { id } = useParams<{ id: string }>();
-	const moduleId = id ?? "";
+	const { moduleRoute } = useParams<{ moduleRoute: string }>();
+	const route = moduleRoute ?? "";
 	const userLevel = useAuthStore((s) => s.user?.level ?? LEVEL.NORMAL);
+
+	const listQuery = useQuery({
+		queryKey: ["modules", "list"],
+		queryFn: () => modulesApi.list(),
+	});
+
+	const resolved = listQuery.data?.find((m) => m.route === route);
+	const moduleId = resolved?.id ?? "";
 
 	const moduleQuery = useQuery({
 		queryKey: ["modules", "detail", moduleId],
@@ -52,18 +92,24 @@ export const ModuleLayout = () => {
 		enabled: moduleId !== "",
 	});
 
-	if (moduleId === "") {
+	// The list resolved but no module owns this route → 404 to the module index.
+	if (listQuery.isSuccess && !resolved) {
 		return <Navigate to="/modules" replace />;
 	}
 
+	const module = moduleQuery.data ?? resolved;
 	const actions = actionsQuery.data ?? [];
-	const navItems = visibleModuleActions(moduleId, actions, userLevel);
+	const addAction = actions.find((a) => a.route === "add");
+	const editAction = actions.find((a) => a.route === "edit");
+	const navItems = module ? visibleModuleActions(module, actions, userLevel) : [];
 
 	const value: ModuleContextValue = {
 		moduleId,
-		module: moduleQuery.data,
+		module,
 		actions,
-		isLoading: moduleQuery.isLoading || actionsQuery.isLoading,
+		addAction,
+		editAction,
+		isLoading: listQuery.isLoading || moduleQuery.isLoading || actionsQuery.isLoading,
 	};
 
 	return (
@@ -72,8 +118,8 @@ export const ModuleLayout = () => {
 				items={[
 					{ label: "Modules", to: "/modules" },
 					{
-						label: moduleQuery.data?.name ?? "…",
-						to: `/modules/${encodeURIComponent(moduleId)}`,
+						label: module?.name ?? "…",
+						to: module ? modulePath(module) : "/modules",
 					},
 				]}
 			/>

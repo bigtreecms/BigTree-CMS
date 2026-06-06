@@ -10,6 +10,7 @@ import { expandImageUrl } from "@/lib/imageUrl";
 
 import { type CustomViewAction, parseViewActions } from "./viewHelpers";
 import { useEntryDelete } from "./useEntryDelete";
+import { useModuleEntryLinks } from "@/pages/ModuleLayout";
 
 /**
  * Runtime for the `images` view type — a grid of thumbnail cards.
@@ -33,6 +34,7 @@ interface ImagesViewProps {
 
 export const ImagesView = ({ moduleId, view }: ImagesViewProps) => {
 	const navigate = useNavigate();
+	const { editPath } = useModuleEntryLinks();
 	const [query, setQuery] = useState("");
 	const [debouncedQuery, setDebouncedQuery] = useState("");
 
@@ -68,7 +70,7 @@ export const ImagesView = ({ moduleId, view }: ImagesViewProps) => {
 		const entryId = Number(row.id);
 
 		if (Number.isFinite(entryId) && entryId > 0) {
-			navigate(`/modules/${moduleId}/view/${view.id}/edit/${entryId}`);
+			navigate(editPath(entryId));
 		}
 	};
 
@@ -145,6 +147,7 @@ export const ImagesGrid = ({
 	customActions,
 }: ImagesGridProps) => {
 	const { requestDelete, dialog: deleteDialog } = useEntryDelete(moduleId, viewId);
+	const { editPath, actionPath } = useModuleEntryLinks();
 
 	const hasActions = canEdit || canDelete || customActions.length > 0;
 
@@ -188,7 +191,7 @@ export const ImagesGrid = ({
 								{customActions.map((action) => (
 									<Link
 										key={action.key}
-										to={`/modules/${moduleId}/view/${viewId}/${action.route}/${row.id}`}
+										to={actionPath(action.route, row.id)}
 										className="rounded p-1 text-text-3 hover:bg-hover hover:text-text"
 										title={action.name}
 										aria-label={action.name}
@@ -201,7 +204,7 @@ export const ImagesGrid = ({
 
 								{canEdit && (
 									<Link
-										to={`/modules/${moduleId}/view/${viewId}/edit/${row.id}`}
+										to={editPath(row.id)}
 										className="rounded p-1 text-text-3 hover:bg-hover hover:text-text"
 										title="Edit"
 										aria-label="Edit"

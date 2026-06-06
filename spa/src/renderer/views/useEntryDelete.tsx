@@ -21,7 +21,7 @@ export const useEntryDelete = (moduleId: string, viewId: string) => {
 	const [confirmDelete, setConfirmDelete] = useState<ModuleEntryRow | null>(null);
 
 	const deleteMutation = useMutation({
-		mutationFn: (entryId: number) => autoModulesApi.delete(moduleId, entryId, viewId),
+		mutationFn: (entryId: number) => autoModulesApi.delete(moduleId, entryId, { view: viewId }),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ["module-entries", moduleId, viewId] });
 			toast.success("Entry deleted");

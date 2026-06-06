@@ -63,6 +63,29 @@ export interface ModuleEntryDetail {
  */
 const viewQuery = (viewId?: string) => (viewId ? { view: viewId } : undefined);
 
+/**
+ * The table a module entry belongs to is resolved server-side from either the
+ * active view (list/edit screens) or the form (form-only actions, which have no
+ * view). Exactly one of these is the authoritative reference depending on how
+ * the screen was reached — pass whichever one applies.
+ */
+export interface EntryTableRef {
+	view?: string;
+	form?: string;
+}
+
+const refQuery = (ref?: EntryTableRef) => {
+	if (ref?.form) {
+		return { form: ref.form };
+	}
+
+	if (ref?.view) {
+		return { view: ref.view };
+	}
+
+	return undefined;
+};
+
 export const autoModulesApi = {
 	list: (moduleId: string, params: ModuleEntriesListParams = {}) =>
 		api.get<ModuleEntriesListResponse>(`/modules/${encodeURIComponent(moduleId)}/entries`, {
@@ -74,34 +97,39 @@ export const autoModulesApi = {
 			},
 		}),
 
-	get: (moduleId: string, entryId: number, viewId?: string) =>
+	get: (moduleId: string, entryId: number, ref?: EntryTableRef) =>
 		api.get<ModuleEntryDetail>(`/modules/${encodeURIComponent(moduleId)}/entries/${entryId}`, {
-			query: viewQuery(viewId),
+			query: refQuery(ref),
 		}),
 
-	create: (moduleId: string, body: Record<string, unknown>, viewId?: string, publish = false) =>
+	create: (
+		moduleId: string,
+		body: Record<string, unknown>,
+		ref?: EntryTableRef,
+		publish = false
+	) =>
 		api.post<ModuleEntryRow | { pending_id: number; pending: true }>(
 			`/modules/${encodeURIComponent(moduleId)}/entries`,
 			publish ? { ...body, __publish__: true } : body,
-			{ query: viewQuery(viewId) }
+			{ query: refQuery(ref) }
 		),
 
 	update: (
 		moduleId: string,
 		entryId: number,
 		body: Record<string, unknown>,
-		viewId?: string,
+		ref?: EntryTableRef,
 		publish = false
 	) =>
 		api.patch<ModuleEntryDetail | { pending: true }>(
 			`/modules/${encodeURIComponent(moduleId)}/entries/${entryId}`,
 			publish ? { ...body, __publish__: true } : body,
-			{ query: viewQuery(viewId) }
+			{ query: refQuery(ref) }
 		),
 
-	delete: (moduleId: string, entryId: number, viewId?: string) =>
+	delete: (moduleId: string, entryId: number, ref?: EntryTableRef) =>
 		api.delete<void>(`/modules/${encodeURIComponent(moduleId)}/entries/${entryId}`, undefined, {
-			query: viewQuery(viewId),
+			query: refQuery(ref),
 		}),
 
 	reorder: (moduleId: string, ids: Array<number | string>, viewId?: string) =>

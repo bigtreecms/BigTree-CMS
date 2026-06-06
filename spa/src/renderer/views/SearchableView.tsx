@@ -23,6 +23,7 @@ import {
 } from "./viewHelpers";
 import { BuiltinToggleButtons } from "./BuiltinToggleButtons";
 import { useEntryDelete } from "./useEntryDelete";
+import { useModuleEntryLinks } from "@/pages/ModuleLayout";
 
 /**
  * Runtime for the `searchable` view type — the most common module view. Reads
@@ -50,6 +51,7 @@ interface SearchableViewProps {
 
 export const SearchableView = ({ moduleId, view }: SearchableViewProps) => {
 	const navigate = useNavigate();
+	const { editPath, actionPath } = useModuleEntryLinks();
 	const [page, setPage] = useState(1);
 	const [query, setQuery] = useState("");
 	const [debouncedQuery, setDebouncedQuery] = useState("");
@@ -134,7 +136,7 @@ export const SearchableView = ({ moduleId, view }: SearchableViewProps) => {
 								return (
 									<Link
 										key={action.key}
-										to={`/modules/${moduleId}/view/${view.id}/${action.route}/${entryId}`}
+										to={actionPath(action.route, entryId)}
 										className="rounded p-1 text-text-3 hover:bg-hover hover:text-text"
 										title={action.name}
 										aria-label={action.name}
@@ -147,7 +149,7 @@ export const SearchableView = ({ moduleId, view }: SearchableViewProps) => {
 
 							{builtins.edit && (
 								<Link
-									to={`/modules/${moduleId}/view/${view.id}/edit/${entryId}`}
+									to={editPath(entryId)}
 									className="rounded p-1 text-text-3 hover:bg-hover hover:text-text"
 									title="Edit"
 									aria-label="Edit"
@@ -186,7 +188,18 @@ export const SearchableView = ({ moduleId, view }: SearchableViewProps) => {
 		}
 
 		return cols;
-	}, [fieldColumns, hasRowActions, builtins, custom, moduleId, view.id, requestDelete]);
+	}, [
+		fieldColumns,
+		hasRowActions,
+		builtins,
+		builtinCount,
+		custom,
+		moduleId,
+		view.id,
+		requestDelete,
+		editPath,
+		actionPath,
+	]);
 
 	const rows = listQuery.data?.items ?? [];
 	const meta = listQuery.data?.meta;
@@ -209,7 +222,7 @@ export const SearchableView = ({ moduleId, view }: SearchableViewProps) => {
 			return;
 		}
 
-		navigate(`/modules/${moduleId}/view/${view.id}/edit/${entryId}`);
+		navigate(editPath(entryId));
 	};
 
 	return (
@@ -249,7 +262,9 @@ export const SearchableView = ({ moduleId, view }: SearchableViewProps) => {
 				getRowKey={(row) => row.id as string | number}
 				isLoading={listQuery.isLoading && !listQuery.data}
 				loadingLabel="Loading entries…"
-				emptyLabel={debouncedQuery ? `No entries match “${debouncedQuery}”.` : "No entries yet."}
+				emptyLabel={
+					debouncedQuery ? `No entries match “${debouncedQuery}”.` : "No entries yet."
+				}
 				sort={sort}
 				onSortChange={onSortChange}
 				onRowClick={builtins.edit ? onRowClick : undefined}

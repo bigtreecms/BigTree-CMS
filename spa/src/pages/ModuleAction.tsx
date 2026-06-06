@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { Navigate, useNavigate, useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 
 import { PageHead } from "@/components/shell/PageHead";
@@ -13,7 +13,8 @@ import { ActionRunner } from "@/renderer/actions/ActionRunner";
 import type { ActionHost } from "@/renderer/actions/actionModuleContract";
 
 /**
- * /modules/:id/action/:sid — runtime page for a custom (module) action.
+ * Runtime page for a custom (module) action, rendered by <ModuleDispatcher />
+ * when the resolved action's `render` is "module".
  *
  * Loads the action's render contract, builds the ActionHost (context + invoke +
  * navigation/toast) and hands it to <ActionRunner />, which imports and renders
@@ -21,13 +22,14 @@ import type { ActionHost } from "@/renderer/actions/actionModuleContract";
  * in-context; untrusted marketplace modules need the iframe sandbox (a later
  * build step) and show a notice until then.
  */
-export const ModuleAction = () => {
-	const { id, sid } = useParams<{ id: string; sid: string }>();
-	const moduleId = id ?? "";
-	const actionId = sid ?? "";
+interface ModuleActionProps {
+	actionId: string;
+}
+
+export const ModuleAction = ({ actionId }: ModuleActionProps) => {
 	const navigate = useNavigate();
 	const userLevel = useAuthStore((s) => s.user?.level ?? LEVEL.NORMAL);
-	const { module, actions } = useModuleContext();
+	const { moduleId, module, actions } = useModuleContext();
 
 	const action = actions.find((a) => a.id === actionId);
 
@@ -65,10 +67,6 @@ export const ModuleAction = () => {
 			toast: (message: string, kind = "info") => toast[kind](message),
 		};
 	}, [action, actions, moduleId, actionId, userLevel, navigate]);
-
-	if (moduleId === "" || actionId === "") {
-		return <Navigate to="/modules" replace />;
-	}
 
 	const schema = schemaQuery.data;
 	const title = action?.name ?? module?.name ?? "Action";

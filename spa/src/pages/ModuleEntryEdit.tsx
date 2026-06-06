@@ -1,39 +1,36 @@
-import { Navigate, useNavigate, useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { PageHead } from "@/components/shell/PageHead";
 
 import { autoModulesApi } from "@/api/endpoints/auto-modules";
-import { modulesApi, type ModuleForm, type ModuleView } from "@/api/endpoints/modules";
+import { modulesApi } from "@/api/endpoints/modules";
 import { FormRenderer } from "@/renderer/forms/FormRenderer";
 import { useLock } from "@/hooks/useLock";
+import { modulePath, moduleActionPath } from "@/lib/moduleActions";
+import { useModuleContext } from "@/pages/ModuleLayout";
 import { toast } from "@/lib/toast";
 
+interface ModuleEntryEditProps {
+	formId: string;
+	entryId: number;
+}
+
 /**
- * /modules/:id/view/:sid/edit/:eid
+ * Edit screen, rendered by <ModuleDispatcher /> when the active action relates to
+ * a form and carries an entry id command (e.g. `/modules/news/edit/5`). The form
+ * id comes from the resolved action and is used both to render the form and as
+ * the table ref (`?form=`) for the entry fetch / save.
  *
- * Loads the entry's current data, acquires a `module:{id}` lock for the
- * lifetime of the page, and renders the same FormRenderer used by Add. The
- * lock owner banner appears at the top of the form when another user has
- * the row open; in that case the form goes read-only.
- *
- * On submit, PATCH /modules/:id/entries/:eid — the auto-module service
- * decides whether to apply directly or to create a pending change row based
- * on the user's per-module permission level.
+ * Acquires a `module:{id}` lock for the lifetime of the page; the form goes
+ * read-only while another user holds the row. On submit, PATCH
+ * /modules/:id/entries/:eid — the service applies directly or creates a pending
+ * change row based on the user's per-module permission level.
  */
-export const ModuleEntryEdit = () => {
-	const { id, sid, eid } = useParams<{ id: string; sid: string; eid: string }>();
-	const moduleId = id ?? "";
-	const viewId = sid ?? "";
-	const entryId = eid ? Number.parseInt(eid, 10) : NaN;
+export const ModuleEntryEdit = ({ formId, entryId }: ModuleEntryEditProps) => {
+	const { moduleId, module, actions } = useModuleContext();
 	const navigate = useNavigate();
 	const queryClient = useQueryClient();
-
-	const viewsQuery = useQuery({
-		queryKey: ["modules", "views", moduleId],
-		queryFn: () => modulesApi.views(moduleId),
-		enabled: moduleId !== "",
-	});
 
 	const formsQuery = useQuery({
 		queryKey: ["modules", "forms", moduleId],
@@ -42,8 +39,8 @@ export const ModuleEntryEdit = () => {
 	});
 
 	const entryQuery = useQuery({
-		queryKey: ["module-entries", moduleId, "detail", entryId, viewId],
-		queryFn: () => autoModulesApi.get(moduleId, entryId, viewId),
+		queryKey: ["module-entries", moduleId, "detail", entryId, formId],
+		queryFn: () => autoModulesApi.get(moduleId, entryId, { form: formId }),
 		enabled: moduleId !== "" && Number.isFinite(entryId),
 	});
 
@@ -59,9 +56,21 @@ export const ModuleEntryEdit = () => {
 		enabled: moduleId !== "",
 	});
 
+	const form = formsQuery.data?.find((f) => f.id === formId);
+
+	const returnAction = form?.return_view
+		? actions.find((a) => a.view === form.return_view)
+		: undefined;
+	const returnPath =
+		module && returnAction
+			? moduleActionPath(module, returnAction)
+			: module
+				? modulePath(module)
+				: "/modules";
+
 	const updateMutation = useMutation({
 		mutationFn: ({ values, publish }: { values: Record<string, unknown>; publish: boolean }) =>
-			autoModulesApi.update(moduleId, entryId, values, viewId, publish),
+			autoModulesApi.update(moduleId, entryId, values, { form: formId }, publish),
 		onSuccess: (result) => {
 			queryClient.invalidateQueries({ queryKey: ["module-entries", moduleId] });
 
@@ -73,20 +82,12 @@ export const ModuleEntryEdit = () => {
 				toast.success("Entry published");
 			}
 
-			navigate(`/modules/${encodeURIComponent(moduleId)}/view/${encodeURIComponent(viewId)}`);
+			navigate(returnPath);
 		},
 	});
 
-	if (moduleId === "" || viewId === "" || !Number.isFinite(entryId)) {
-		return <Navigate to="/modules" replace />;
-	}
-
-	const view = viewsQuery.data?.find((v) => v.id === viewId);
-	const form = resolveForm(view, formsQuery.data ?? []);
 	const initialValues = pickItemValues(entryQuery.data);
-
-	const isLoading = viewsQuery.isLoading || formsQuery.isLoading || entryQuery.isLoading;
-
+	const isLoading = formsQuery.isLoading || entryQuery.isLoading;
 	const readOnly = lock.ownedByOther;
 
 	return (
@@ -114,11 +115,7 @@ export const ModuleEntryEdit = () => {
 					moduleId={moduleId}
 					entryId={entryId}
 					disabled={readOnly}
-					onCancel={() =>
-						navigate(
-							`/modules/${encodeURIComponent(moduleId)}/view/${encodeURIComponent(viewId)}`
-						)
-					}
+					onCancel={() => navigate(returnPath)}
 					submitLabel="Save"
 					canPublish={moduleQuery.data?.access === "p"}
 					onSubmit={async (values, opts) => {
@@ -133,33 +130,9 @@ export const ModuleEntryEdit = () => {
 	);
 };
 
-const resolveForm = (view: ModuleView | undefined, forms: ModuleForm[]): ModuleForm | undefined => {
-	if (forms.length === 0) {
-		return undefined;
-	}
-
-	if (view?.related_form) {
-		const byId = forms.find((f) => f.id === view.related_form);
-
-		if (byId) {
-			return byId;
-		}
-	}
-
-	if (view?.table) {
-		const byTable = forms.find((f) => f.table === view.table);
-
-		if (byTable) {
-			return byTable;
-		}
-	}
-
-	return forms[0];
-};
-
 /**
- * Strip out the BigTree envelope (`item`, pending-change metadata) and
- * surface just the row's column values for the form to consume.
+ * Strip out the BigTree envelope (`item`, pending-change metadata) and surface
+ * just the row's column values for the form to consume.
  */
 const pickItemValues = (
 	entry: { item?: Record<string, unknown> } | undefined
