@@ -14,6 +14,21 @@
     />
 
     <title>BigTree Admin</title>
+
+    <!-- SDK import map: lets custom action modules (and the live preview) resolve
+         bare `react` / `@bigtree/ui` / `@bigtree/fields` imports to the SPA's own
+         singletons. Inert for app code (Vite resolves those at build time); only
+         the blob-imported author modules consume it. See src/sdk/registerSdk.ts. -->
+    <script type="importmap">
+      {
+        "imports": {
+          "react": "/sdk/react.js",
+          "react/jsx-runtime": "/sdk/react-jsx-runtime.js",
+          "@bigtree/ui": "/sdk/ui.js",
+          "@bigtree/fields": "/sdk/fields.js"
+        }
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>

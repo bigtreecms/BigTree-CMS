@@ -47,6 +47,7 @@ import { SettingConfigure } from "@/pages/developer/SettingConfigure";
 import { TemplateEdit } from "@/pages/developer/TemplateEdit";
 import { Templates } from "@/pages/developer/Templates";
 import { ModuleEntry } from "@/pages/ModuleEntry";
+import { ModuleAction } from "@/pages/ModuleAction";
 import { ModuleEntryAdd } from "@/pages/ModuleEntryAdd";
 import { ModuleEntryEdit } from "@/pages/ModuleEntryEdit";
 import { ModuleLayout } from "@/pages/ModuleLayout";
@@ -179,6 +180,7 @@ export const router = createBrowserRouter(
 											element: <ModuleEntryEdit />,
 										},
 										{ path: "report/:sid", element: <ModuleReport /> },
+										{ path: "action/:sid", element: <ModuleAction /> },
 									],
 								},
 							],

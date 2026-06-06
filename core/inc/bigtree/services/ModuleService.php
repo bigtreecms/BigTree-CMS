@@ -4,6 +4,7 @@
 	use BigTree\Api\Request;
 	use BigTree\Api\Response;
 	use BigTree\Api\ETag;
+	use BigTree\Api\Exceptions\AuthorizationException;
 	use BigTree\Api\Exceptions\BadRequestException;
 	use BigTree\Api\Exceptions\ConflictException;
 	use BigTree\Api\Exceptions\NotFoundException;
@@ -439,6 +440,59 @@
 			$module = $this->loadModule($request->route_params["id"]);
 
 			return Response::ok($this->sortByPosition($module["actions"] ?? []));
+		}
+
+		/**
+		 * GET /modules/{id}/actions/{sid}/schema
+		 * Render contract for a single action so the SPA knows how to draw + run it.
+		 * Mirrors FieldTypeService::schema: a custom "module" action returns its
+		 * drawing source (local, run in-context) or asset_url + integrity + trust
+		 * (extension-delivered) plus the declared server handler. Auto actions
+		 * (form/view/report) and legacy custom-PHP actions return their kind only.
+		 */
+		public function actionSchema(Request $request) {
+			$module = $this->loadModule($request->route_params["id"]);
+			$action_id = (string)$request->route_params["sid"];
+			$action = $this->findSub($module["actions"] ?? [], $action_id);
+
+			if (!$action) {
+				throw new NotFoundException("Action $action_id not found", "resource_not_found", 404);
+			}
+
+			$render = $this->actionRenderKind($action);
+			$payload = [
+				"id" => $action_id,
+				"name" => (string)($action["name"] ?? ""),
+				"route" => (string)($action["route"] ?? ""),
+				"render" => $render,
+				"handler" => (string)($action["handler"] ?? ""),
+				"contract_version" => (int)($action["contract_version"] ?? 1),
+			];
+
+			if ($render === "module") {
+				if (!empty($action["asset_url"])) {
+					// Installed-extension module: external bundle, SRI-pinned at build.
+					$payload["asset_url"] = (string)$action["asset_url"];
+					$payload["integrity"] = (string)($action["integrity"] ?? "");
+					$payload["trust"] = (string)($action["trust"] ?? "marketplace");
+				} else {
+					// Locally authored, implicitly trusted — source on disk, in-context.
+					// (Fall back to a record-stored source for any pre-migration record.)
+					$source = $this->readActionSource($module, (string)($action["route"] ?? ""));
+
+					if ($source === "" && !empty($action["module_source"])) {
+						$source = (string)$action["module_source"];
+					}
+
+					$payload["module_source"] = $source;
+					$payload["trust"] = "local";
+				}
+			}
+
+			$r = Response::ok($payload);
+			$r->header("Cache-Control", "private, max-age=60");
+
+			return $r;
 		}
 
 		public function forms(Request $request) {
@@ -911,13 +965,18 @@
 
 		public function createAction(Request $request) {
 			$module_id = $request->route_params["id"];
-			$this->loadModule($module_id);
+			$module = $this->loadModule($module_id);
 			$d = $request->body;
 
 			$route_raw = (string)($d["route"] ?? "");
 
 			if ($route_raw !== "" && (!ctype_alnum(str_replace("-", "", $route_raw)) || strlen($route_raw) > 127)) {
 				throw new BadRequestException("Action route must be alphanumeric (with -) and ≤ 127 chars", "invalid_route", 400);
+			}
+
+			// Auto-generate the route from the name when blank (as the UI promises).
+			if ($route_raw === "") {
+				$route_raw = BigTreeCMS::urlify((string)($d["name"] ?? ""));
 			}
 
 			$route = BigTreeAdmin::uniqueModuleActionRoute($module_id, $route_raw);
@@ -928,7 +987,7 @@
 				$context->incrementPosition("actions");
 			}
 
-			$id = $context->insert("actions", [
+			$record = [
 				"route" => $route,
 				"in_nav" => !empty($d["in_nav"]) ? "on" : "",
 				"class" => (string)($d["icon"] ?? ($d["class"] ?? "")),
@@ -938,7 +997,26 @@
 				"report" => !empty($d["report"]) ? $d["report"] : null,
 				"level" => (int)($d["level"] ?? 0),
 				"position" => $position,
-			]);
+			];
+
+			// A custom (module) action draws its own UI from a local .mjs and submits
+			// to a declared handler. Stamp the marker fields on the record; the source
+			// itself lives on disk (written below, once we know the final route).
+			$source = null;
+
+			if ((string)($d["render"] ?? "") === "module") {
+				$source = $this->validateModuleSource($d);
+				$record["render"] = "module";
+				$record["trust"] = "local";
+				$record["handler"] = $this->validateActionHandler($d["handler"] ?? "");
+				$record["contract_version"] = (int)($d["contract_version"] ?? 1);
+			}
+
+			$id = $context->insert("actions", $record);
+
+			if ($source !== null) {
+				$this->writeActionSource($module, $route, $source);
+			}
 
 			return Response::created($this->getSubResource($module_id, "actions", $id), null);
 		}
@@ -1002,12 +1080,68 @@
 					throw new BadRequestException("Action route must be alphanumeric (with -) and ≤ 127 chars", "invalid_route", 400);
 				}
 
+				// Auto-generate from the name when explicitly cleared.
+				if ($route_raw === "") {
+					$route_raw = BigTreeCMS::urlify((string)($d["name"] ?? ($existing["name"] ?? "")));
+				}
+
 				$update["route"] = BigTreeAdmin::uniqueModuleActionRoute($module_id, $route_raw, $action_id);
+			}
+
+			// Render mode (custom module action vs auto/legacy). Switching into "module"
+			// stamps the markers + writes the source; switching away clears them and
+			// removes the source file. Source writes happen after the DB update once the
+			// final route is known (the source path is keyed by module + action route).
+			$write_source = null;
+			$clear_module = false;
+
+			if (array_key_exists("render", $d)) {
+				if ((string)$d["render"] === "module") {
+					$update["render"] = "module";
+					$update["trust"] = "local";
+					$update["contract_version"] = (int)($d["contract_version"]
+						?? ($existing["contract_version"] ?? 1));
+
+					if (array_key_exists("handler", $d)) {
+						$update["handler"] = $this->validateActionHandler($d["handler"]);
+					}
+
+					if (array_key_exists("module_source", $d)) {
+						$write_source = $this->validateModuleSource($d);
+					}
+				} else {
+					$update["render"] = "";
+					$update["trust"] = "";
+					$update["handler"] = "";
+					$clear_module = true;
+				}
+			} elseif (array_key_exists("module_source", $d)
+				&& $this->actionRenderKind($existing) === "module") {
+				// Editing the source of an already-module action without re-sending render.
+				$write_source = $this->validateModuleSource($d);
 			}
 
 			if ($update) {
 				$context->update("actions", $action_id, $update);
 			}
+
+			// Filesystem: the source lives alongside where legacy custom actions did —
+			// extensions/{ext}/modules/{local}/{action}.js or custom/admin/modules/{route}/{action}.js.
+			$old_route = (string)($existing["route"] ?? "");
+			$new_route = (string)($update["route"] ?? $old_route);
+
+			if ($new_route !== $old_route && $old_route !== "") {
+				$this->moveActionSource($module, $old_route, $new_route);
+			}
+
+			if ($write_source !== null) {
+				$this->writeActionSource($module, $new_route, $write_source);
+			}
+
+			if ($clear_module) {
+				$this->deleteActionSource($module, $new_route);
+			}
+
 			return Response::ok($this->getSubResource($module_id, "actions", $action_id));
 		}
 
@@ -1023,6 +1157,11 @@
 
 			$context = BigTreeJSONDB::getSubset("modules", $module_id);
 			$context->delete("actions", $action_id);
+
+			// Remove the on-disk drawing source for a custom (module) action.
+			if ($this->actionRenderKind($existing) === "module") {
+				$this->deleteActionSource($module, (string)($existing["route"] ?? ""));
+			}
 
 			// Cascade: if this action referenced a form/view/report and no other action does, delete it too.
 			$siblings = array_values(array_filter($module["actions"] ?? [], function ($a) use ($action_id) {
@@ -1063,6 +1202,124 @@
 			}
 
 			return Response::noContent();
+		}
+
+		/**
+		 * POST /modules/{id}/actions/{sid}/invoke
+		 * Run a custom (module) action's declared server handler with the JSON
+		 * payload the SPA submits. The headline security property: the handler must
+		 * be explicitly opted in by the module class (getActionHandlers) — a client
+		 * can never name an arbitrary method on the class. The action's level and any
+		 * per-handler minimum are enforced against the caller. (Auth + CSRF are
+		 * handled by the API layer like every other authenticated route.)
+		 */
+		public function invokeAction(Request $request) {
+			$module_id = $request->route_params["id"];
+			$action_id = $request->route_params["sid"];
+			$module = $this->loadModule($module_id);
+			$action = $this->findSub($module["actions"] ?? [], $action_id);
+
+			if (!$action) {
+				throw new NotFoundException("Action $action_id not found", "resource_not_found", 404);
+			}
+
+			$handler = $this->validateActionHandler($action["handler"] ?? "");
+
+			if ($handler === "") {
+				throw new BadRequestException("This action has no server handler to run.", "no_handler", 400);
+			}
+
+			$class = (string)($module["class"] ?? "");
+
+			if ($class === "" || !class_exists($class)) {
+				throw new BadRequestException("This module has no class to run the action on.", "missing_module_class", 400);
+			}
+
+			$instance = new $class();
+
+			// Whitelist: the class must explicitly opt the handler in. Never dispatch
+			// a client-named method that wasn't declared by the module author.
+			$allowed = $this->declaredActionHandlers($instance);
+
+			if (!array_key_exists($handler, $allowed)) {
+				throw new AuthorizationException("This action's handler is not enabled on the module.", "forbidden_handler", 403);
+			}
+
+			// Level gate: the action's own level plus any per-handler minimum.
+			$required = max((int)($action["level"] ?? 0), (int)$allowed[$handler]);
+			$user_level = (int)($request->user->level ?? 0);
+
+			if ($user_level < $required) {
+				throw new AuthorizationException("You don't have access to run this action.", "permission_denied", 403);
+			}
+
+			if (!method_exists($instance, $handler)) {
+				throw new BadRequestException("The action handler \"$handler\" is declared but missing on the module class.", "handler_missing", 400);
+			}
+
+			$body = is_array($request->body) ? $request->body : [];
+			$payload = $body["payload"] ?? null;
+			$context = [
+				"module_id" => (string)$module_id,
+				"action_id" => (string)$action_id,
+				"route" => (string)($action["route"] ?? ""),
+				"user" => $request->user,
+				"selection" => is_array($body["selection"] ?? null) ? $body["selection"] : [],
+			];
+
+			$result = $instance->$handler($payload, $context);
+
+			return Response::ok($result);
+		}
+
+		/**
+		 * The handler methods a module class has opted in, as a name => min-level
+		 * map. Two equivalent conventions (the existence of the handler method is
+		 * never enough on its own — opt-in is explicit so the client can't reach an
+		 * arbitrary method):
+		 *
+		 *   public static $ActionHandlers = ["doThing" => 1, "other"];   // property
+		 *   public function getActionHandlers() { return ["doThing" => 1]; } // method
+		 *
+		 * Either may be a list of names (min level 0) or a name => level map. No
+		 * declaration = nothing runnable.
+		 */
+		private function declaredActionHandlers($instance) {
+			$raw = null;
+
+			if (method_exists($instance, "getActionHandlers")) {
+				$raw = $instance->getActionHandlers();
+			} else {
+				$class = get_class($instance);
+
+				if (property_exists($class, "ActionHandlers")) {
+					try {
+						$property = new \ReflectionProperty($class, "ActionHandlers");
+
+						if ($property->isStatic() && $property->isPublic()) {
+							$raw = $property->getValue();
+						}
+					} catch (\Throwable $e) {
+						$raw = null;
+					}
+				}
+			}
+
+			if (!is_array($raw)) {
+				return [];
+			}
+
+			$map = [];
+
+			foreach ($raw as $key => $value) {
+				if (is_int($key)) {
+					$map[(string)$value] = 0;
+				} else {
+					$map[(string)$key] = (int)$value;
+				}
+			}
+
+			return $map;
 		}
 
 		// — Form CRUD —
@@ -1878,6 +2135,176 @@
 			}
 
 			return null;
+		}
+
+		// — Custom (module) action helpers —
+
+		/**
+		 * Derive an action's render contract for the SPA. An explicit "render" key
+		 * wins; an asset_url / module_source means a custom JS module; a
+		 * form/view/report means an auto action; anything else is a legacy custom-PHP
+		 * action the SPA can't run natively.
+		 */
+		private function actionRenderKind(array $action) {
+			if (!empty($action["render"])) {
+				return (string)$action["render"];
+			}
+
+			if (!empty($action["asset_url"]) || !empty($action["module_source"])) {
+				return "module";
+			}
+
+			if (!empty($action["form"]) || !empty($action["view"]) || !empty($action["report"])) {
+				return "auto";
+			}
+
+			return "server";
+		}
+
+		/**
+		 * Validate the optional handler method name a module action submits to. It
+		 * must be a legal PHP method identifier; the invoke endpoint additionally
+		 * checks the module class has opted it in (see ModuleService::invokeAction).
+		 */
+		private function validateActionHandler($handler) {
+			$handler = trim((string)$handler);
+
+			if ($handler === "") {
+				return "";
+			}
+
+			if (!preg_match('/^[A-Za-z_][A-Za-z0-9_]*$/', $handler)) {
+				throw new BadRequestException(
+					"Action handler must be a valid method name.",
+					"invalid_handler",
+					400
+				);
+			}
+
+			return $handler;
+		}
+
+		/** Pull a non-empty module source from a request body, or 400. */
+		private function validateModuleSource(array $body) {
+			$source = isset($body["module_source"]) ? (string)$body["module_source"] : "";
+
+			if (trim($source) === "") {
+				throw new BadRequestException(
+					"A custom (module) action needs its drawing source code.",
+					"missing_module_source",
+					400
+				);
+			}
+
+			return $source;
+		}
+
+		/**
+		 * A single path segment is safe when it's non-empty, contains only
+		 * letters / digits / dot / dash / underscore, and has no ".." traversal.
+		 * (Routes are already alnum+dash, but this guards the filesystem regardless.)
+		 */
+		private function safeSegment($segment) {
+			return $segment !== ""
+				&& (bool)preg_match('/^[a-z0-9][a-z0-9._-]*$/i', $segment)
+				&& strpos($segment, "..") === false;
+		}
+
+		/**
+		 * Split a module record into [extension, local-route]. An extension module's
+		 * route is namespaced "{extension}*{local-route}"; a core/custom module has
+		 * no extension and the route is used as-is. Falls back to splitting the route
+		 * on `*` when the `extension` field is absent.
+		 */
+		private function moduleRouteParts(array $module) {
+			$route = (string)($module["route"] ?? "");
+			$extension = (string)($module["extension"] ?? "");
+
+			if ($extension !== "" && strpos($route, $extension . "*") === 0) {
+				$route = substr($route, strlen($extension) + 1);
+			} elseif ($extension === "" && strpos($route, "*") !== false) {
+				[$extension, $route] = explode("*", $route, 2);
+			}
+
+			return [$extension, $route];
+		}
+
+		/**
+		 * Filesystem path of a local module action's source ("" if any segment is
+		 * unsafe). Mirrors where legacy custom actions live:
+		 *   - extension module → extensions/{extension}/modules/{local}/{action}.js
+		 *   - core/custom module → custom/admin/modules/{route}/{action}.js
+		 */
+		private function actionSourcePath(array $module, $action_route) {
+			$action = (string)$action_route;
+
+			if (!$this->safeSegment($action)) {
+				return "";
+			}
+
+			[$extension, $local] = $this->moduleRouteParts($module);
+
+			if (!$this->safeSegment($local)) {
+				return "";
+			}
+
+			if ($extension !== "") {
+				if (!$this->safeSegment($extension)) {
+					return "";
+				}
+
+				return SERVER_ROOT . "extensions/$extension/modules/$local/$action.js";
+			}
+
+			return SERVER_ROOT . "custom/admin/modules/$local/$action.js";
+		}
+
+		/** Write a local module action's source to disk, creating the directory. */
+		private function writeActionSource(array $module, $action_route, $source) {
+			$path = $this->actionSourcePath($module, $action_route);
+
+			if ($path === "") {
+				throw new BadRequestException("Invalid module or action route.", "invalid_route", 400);
+			}
+
+			if (!BigTree::putFile($path, $source)) {
+				throw new BadRequestException(
+					"Could not write the action file — check that its modules directory is writable.",
+					"module_write_failed",
+					400
+				);
+			}
+		}
+
+		/** Read a local module action's source from disk ("" if none). */
+		private function readActionSource(array $module, $action_route) {
+			$path = $this->actionSourcePath($module, $action_route);
+
+			if ($path === "") {
+				return "";
+			}
+
+			return is_file($path) ? (string)file_get_contents($path) : "";
+		}
+
+		/** Remove a local module action's source file. */
+		private function deleteActionSource(array $module, $action_route) {
+			$path = $this->actionSourcePath($module, $action_route);
+
+			if ($path !== "" && is_file($path)) {
+				@unlink($path);
+			}
+		}
+
+		/** Move a module action's source file when its route changes. */
+		private function moveActionSource(array $module, $old_route, $new_route) {
+			$old_path = $this->actionSourcePath($module, $old_route);
+			$new_path = $this->actionSourcePath($module, $new_route);
+
+			if ($old_path !== "" && $new_path !== "" && is_file($old_path) && !is_file($new_path)) {
+				BigTree::makeDirectory(dirname($new_path));
+				@rename($old_path, $new_path);
+			}
 		}
 
 		private function sortByPosition(array $rows) {

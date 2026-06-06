@@ -75,6 +75,35 @@ export interface ModuleAction {
 	form: string | null;
 	view: string | null;
 	report: string | null;
+	/**
+	 * Present on a custom (module) action — it draws its own UI from a JS module
+	 * and submits to a declared server handler. Absent on auto (form/view/report)
+	 * and legacy custom-PHP actions. See ModuleActionSchema for the full contract.
+	 */
+	render?: "module" | string;
+	trust?: "local" | "core" | "verified" | "marketplace" | string;
+	handler?: string;
+	contract_version?: number;
+}
+
+/**
+ * Render contract for one action from `/modules/{id}/actions/{sid}/schema`.
+ * `render` is "module" for a custom JS action, "auto" for form/view/report, or
+ * "server" for a legacy custom-PHP action the SPA can't run natively. A module
+ * action carries either `module_source` (local, run in-context) or
+ * `asset_url` + `integrity` (extension-delivered, sandboxed when untrusted).
+ */
+export interface ModuleActionSchema {
+	id: string;
+	name: string;
+	route: string;
+	render: "module" | "auto" | "server" | string;
+	handler: string;
+	contract_version: number;
+	trust?: "local" | "core" | "verified" | "marketplace" | string;
+	module_source?: string;
+	asset_url?: string;
+	integrity?: string;
 }
 
 /**
@@ -330,6 +359,11 @@ export interface ModuleActionBody {
 	report?: string | null;
 	level?: number;
 	position?: number;
+	/** Custom (module) action authoring — see ModuleAction / ModuleActionSchema. */
+	render?: "module" | "";
+	handler?: string;
+	module_source?: string;
+	contract_version?: number;
 }
 
 export interface ModuleFormBody {
@@ -401,6 +435,12 @@ export const modulesApi = {
 	listGroups: () => api.get<ModuleGroup[]>("/module-groups"),
 
 	actions: (id: string) => api.get<ModuleAction[]>(`/modules/${enc(id)}/actions`),
+
+	actionSchema: (id: string, sid: string) =>
+		api.get<ModuleActionSchema>(`/modules/${enc(id)}/actions/${enc(sid)}/schema`),
+
+	invokeAction: (id: string, sid: string, payload: unknown) =>
+		api.post<unknown>(`/modules/${enc(id)}/actions/${enc(sid)}/invoke`, { payload }),
 
 	createAction: (id: string, body: ModuleActionBody) =>
 		api.post<ModuleAction>(`/modules/${enc(id)}/actions`, body),

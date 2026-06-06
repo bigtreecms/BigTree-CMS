@@ -13,10 +13,17 @@ const enc = encodeURIComponent;
  *   - form   → /modules/:id/view/_/add   (form-only actions; the renderer reads
  *              the form from the view fallback chain — in practice the admin
  *              always pairs a form with a view)
- * Returns null for actions with no runnable target (e.g. a custom action whose
- * handler lives only in legacy PHP).
+ * Custom (module) actions draw their own React UI and run at
+ *   - module → /modules/:id/action/:actionId
+ *
+ * Returns null for actions with no runnable target (e.g. a legacy custom-PHP
+ * action with no React module — those can't run in the SPA).
  */
 export const moduleActionTarget = (moduleId: string, action: ModuleAction): string | null => {
+	if (action.render === "module") {
+		return `/modules/${enc(moduleId)}/action/${enc(action.id)}`;
+	}
+
 	if (action.view) {
 		return `/modules/${enc(moduleId)}/view/${enc(action.view)}`;
 	}

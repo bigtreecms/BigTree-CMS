@@ -66,6 +66,12 @@
 		// — Sub-resources (reads visible to module:v, writes level:2) —
 
 		"GET /modules/{id}/actions" => ["service" => [ModuleService::class, "actions"], "permission" => ["module" => "%id%", "min" => "v"]],
+		// Render contract for a custom (module) action — drawing source / asset URL /
+		// trust / declared handler. Read-only; gated by module view like the list.
+		"GET /modules/{id}/actions/{sid}/schema" => [
+			"service" => [ModuleService::class, "actionSchema"],
+			"permission" => ["module" => "%id%", "min" => "v"],
+		],
 		"POST /modules/{id}/actions" => [
 			"service" => [ModuleService::class, "createAction"],
 			"permission" => ["level" => 2],
@@ -80,6 +86,10 @@
 				"report" => "int|min:0",
 				"level" => "int|in:0,1,2",
 				"position" => "int|min:0",
+				"render" => "string|max:32",
+				"handler" => "string|max:255",
+				"module_source" => "string",
+				"contract_version" => "int|min:1",
 			],
 			"audit" => ["table" => "module-actions", "type" => "created", "entry" => "%id%"],
 		],
@@ -99,6 +109,16 @@
 			"permission" => ["level" => 2],
 			"body" => ["ids" => "required|array"],
 			"audit" => ["table" => "module-actions", "type" => "reordered", "entry" => "%id%"],
+		],
+		// Run a custom (module) action's declared server handler. Gated by module
+		// view here; the service additionally enforces the action's level + the
+		// handler's declared minimum, and only dispatches methods the module class
+		// has opted in (never a client-named method).
+		"POST /modules/{id}/actions/{sid}/invoke" => [
+			"service" => [ModuleService::class, "invokeAction"],
+			"permission" => ["module" => "%id%", "min" => "v"],
+			"allow_unknown" => true,
+			"audit" => ["table" => "module-actions", "type" => "invoked", "entry" => "%sid%"],
 		],
 
 		"GET /modules/{id}/forms" => ["service" => [ModuleService::class, "forms"], "permission" => ["module" => "%id%", "min" => "v"]],
