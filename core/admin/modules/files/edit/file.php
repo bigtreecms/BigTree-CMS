@@ -41,6 +41,7 @@
 	}
 
 	$meta_date_format = $bigtree["config"]["date_format"] ? $bigtree["config"]["date_format"]." @ g:ia" : "F j, Y @ g:ia";
+	$resource_usages = $admin->getResourceAllocationUsage($file["id"]);
 	
 	$bigtree["field_namespace"] = "file_field_";
 ?>
@@ -186,6 +187,58 @@
 
 					BigTreeAdmin::drawField($field);
 				}
+			}
+		?>
+
+		<hr>
+
+		<h3>File Usage</h3>
+
+		<?php
+			if (count($resource_usages)) {
+		?>
+		<div class="table file_usage_table">
+			<header>
+				<span class="view_column file_usage_location">Location</span>
+				<span class="view_column file_usage_entry">Entry</span>
+				<span class="view_column file_usage_status">Status</span>
+			</header>
+			<ul>
+				<?php
+					foreach ($resource_usages as $usage) {
+						if ($usage["pending"]) {
+							$usage_status = "Pending Draft";
+						} elseif ($usage["location"] === "Settings") {
+							$usage_status = "—";
+						} else {
+							$usage_status = "Published";
+						}
+				?>
+				<li>
+					<section class="view_column file_usage_location"><?=htmlspecialchars($usage["location"])?></section>
+					<section class="view_column file_usage_entry">
+						<?php
+							if ($usage["edit_url"]) {
+						?>
+						<a href="<?=htmlspecialchars($usage["edit_url"])?>"><?=htmlspecialchars($usage["title"])?></a>
+						<?php
+							} else {
+								echo htmlspecialchars($usage["title"]);
+							}
+						?>
+					</section>
+					<section class="view_column file_usage_status"><?=$usage_status?></section>
+				</li>
+				<?php
+					}
+				?>
+			</ul>
+		</div>
+		<?php
+			} else {
+		?>
+		<p>This file is not used in any pages, modules, or settings.</p>
+		<?php
 			}
 		?>
 	</section>

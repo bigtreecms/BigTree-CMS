@@ -23,6 +23,9 @@
 
 		public static $IRLPrefixes = [];
 		public static $IRLsCreated = [];
+		private static $ResourceByFileCache = [];
+		private static $ResourceByUrlCache = [];
+		private static $ResourceFileCachePrimed = false;
 		public static $PerPage = 15;
 
 		// Open Graph Types
@@ -253,6 +256,187 @@
 		}
 
 		/*
+			Function: getResourceUrlPrefixes
+				Returns known URL prefixes for resource files across all configured domains.
+
+			Returns:
+				An array of URL prefixes sorted longest first.
+		*/
+
+		public static function getResourceUrlPrefixes() {
+			global $bigtree;
+
+			static $prefixes = null;
+
+			if ($prefixes !== null) {
+				return $prefixes;
+			}
+
+			$roots = [];
+			$add_root = function($root) use (&$roots) {
+				if (!is_string($root) || $root === "") {
+					return;
+				}
+
+				if (substr($root, 0, 7) !== "http://" && substr($root, 0, 8) !== "https://" && substr($root, 0, 2) !== "//") {
+					return;
+				}
+
+				$roots[] = rtrim($root, "/")."/";
+			};
+
+			$add_root(WWW_ROOT);
+			$add_root(STATIC_ROOT);
+
+			if (!empty($bigtree["config"]["sites"]) && is_array($bigtree["config"]["sites"])) {
+				foreach ($bigtree["config"]["sites"] as $site) {
+					$add_root($site["www_root"] ?? "");
+					$add_root($site["static_root"] ?? "");
+				}
+			}
+
+			BigTreeCMS::generateReplaceableRoots();
+
+			foreach (BigTreeCMS::$ReplaceableRoots as $hard_root => $token) {
+				$add_root($hard_root);
+			}
+
+			$prefixes = array_values(array_unique($roots));
+			usort($prefixes, function($a, $b) {
+				return strlen($b) - strlen($a);
+			});
+
+			return $prefixes;
+		}
+
+		/*
+			Function: getResourcePathFromUrl
+				Extracts the files/resources/... path from a URL.
+
+			Parameters:
+				url - A full or relative URL
+
+			Returns:
+				A site-relative resource path or false.
+		*/
+
+		public static function getResourcePathFromUrl($url) {
+			if (!is_string($url) || $url === "") {
+				return false;
+			}
+
+			if (strpos($url, "files/resources/") === 0) {
+				return $url;
+			}
+
+			$path = parse_url($url, PHP_URL_PATH);
+
+			if (is_string($path)) {
+				$path = ltrim($path, "/");
+
+				if (strpos($path, "files/resources/") === 0) {
+					return $path;
+				}
+			}
+
+			foreach (static::getResourceUrlPrefixes() as $prefix) {
+				if (strpos($url, $prefix) === 0) {
+					$remainder = ltrim(substr($url, strlen($prefix)), "/");
+
+					if (strpos($remainder, "files/resources/") === 0) {
+						return $remainder;
+					}
+				}
+			}
+
+			return false;
+		}
+
+		/*
+			Function: getResourceByUrl
+				Returns a resource entry for a given file URL across all configured domains.
+
+			Parameters:
+				url - A full or relative resource URL
+
+			Returns:
+				A resource entry or false.
+		*/
+
+		public static function getResourceByUrl($url) {
+			if (array_key_exists($url, static::$ResourceByUrlCache)) {
+				return static::$ResourceByUrlCache[$url] ?: false;
+			}
+
+			$resource = static::getResourceByFile($url);
+
+			if ($resource) {
+				static::$ResourceByUrlCache[$url] = $resource;
+
+				return $resource;
+			}
+
+			$path = static::getResourcePathFromUrl($url);
+
+			if ($path) {
+				$resource = static::getResourceByFile($path);
+
+				if ($resource) {
+					static::$ResourceByUrlCache[$url] = $resource;
+
+					return $resource;
+				}
+
+				$resource = static::getResourceByFile(BigTreeCMS::replaceHardRoots($url));
+
+				if ($resource) {
+					static::$ResourceByUrlCache[$url] = $resource;
+
+					return $resource;
+				}
+			}
+
+			static::$ResourceByUrlCache[$url] = false;
+
+			return false;
+		}
+
+		/*
+			Function: primeResourceFileCache
+				Preloads resource file lookups to avoid repeated database queries during bulk scans.
+		*/
+
+		public static function primeResourceFileCache() {
+			if (static::$ResourceFileCachePrimed) {
+				return;
+			}
+
+			static::$ResourceFileCachePrimed = true;
+
+			foreach (SQL::fetchAll("SELECT * FROM bigtree_resources") as $resource) {
+				$item = BigTree::untranslateArray($resource);
+				$item["prefix"] = false;
+				$item["crops"] = !empty($item["crops"]) ? json_decode($item["crops"], true) : null;
+				$item["thumbs"] = !empty($item["thumbs"]) ? json_decode($item["thumbs"], true) : null;
+				$item["metadata"] = !empty($item["metadata"]) ? json_decode($item["metadata"], true) : null;
+				$item["video_data"] = !empty($item["video_data"]) ? json_decode($item["video_data"], true) : null;
+
+				static::cacheResourceByFile($resource["file"], $item);
+			}
+		}
+
+		private static function cacheResourceByFile($file, $item) {
+			$tokenized_file = BigTreeCMS::replaceHardRoots($file);
+			$single_domain_tokenized_file = static::stripMultipleRootTokens($tokenized_file);
+
+			static::$ResourceByFileCache[$file] = $item;
+			static::$ResourceByFileCache[$tokenized_file] = $item;
+			static::$ResourceByFileCache[$single_domain_tokenized_file] = $item;
+			static::$ResourceByFileCache[str_replace("{wwwroot}", "{staticroot}", $single_domain_tokenized_file)] = $item;
+			static::$ResourceByFileCache[str_replace("{staticroot}", "{wwwroot}", $single_domain_tokenized_file)] = $item;
+		}
+
+		/*
 			Function: trackResourcesInValue
 				Scans a value for resource references and adds them to IRLsCreated.
 
@@ -320,13 +504,13 @@
 
 					if (strpos($value, "files/resources/") !== false) {
 						preg_match_all(
-							"#(?:\{wwwroot\}|\{staticroot\}|".preg_quote(WWW_ROOT, "#")."|".preg_quote(STATIC_ROOT, "#")."|https?://[^/\"']+)?files/resources/[^\\s\"'<>]+#",
+							"#(?:\{wwwroot(?::[^}]+)?\}|\{staticroot(?::[^}]+)?\}|https?://[^/\"'\\s]+|//[^/\"'\\s]+)?/?files/resources/[^\\s\"'<>]+#",
 							$value,
 							$matches
 						);
 
 						foreach ($matches[0] as $url) {
-							$resource = static::getResourceByFile($url);
+							$resource = static::getResourceByUrl($url);
 
 							if ($resource) {
 								$resources[] = intval($resource["id"]);
@@ -5813,6 +5997,10 @@
 		*/
 
 		public static function getResourceByFile($file) {
+			if (array_key_exists($file, static::$ResourceByFileCache)) {
+				return static::$ResourceByFileCache[$file] ?: false;
+			}
+
 			if (static::$IRLPrefixes === false) {
 				static::$IRLPrefixes = [];
 				$settings = BigTreeJSONDB::get("config", "media-settings");
@@ -5875,6 +6063,8 @@
 				}
 
 				if (!$item) {
+					static::$ResourceByFileCache[$file] = false;
+
 					return false;
 				}
 			}
@@ -5884,8 +6074,11 @@
 			$item["thumbs"] = !empty($item["thumbs"]) ? json_decode($item["thumbs"], true) : null;
 			$item["metadata"] = !empty($item["metadata"]) ? json_decode($item["metadata"], true) : null;
 			$item["video_data"] = !empty($item["video_data"]) ? json_decode($item["video_data"], true) : null;
+			$item = BigTree::untranslateArray($item);
 
-			return BigTree::untranslateArray($item);
+			static::cacheResourceByFile($file, $item);
+
+			return $item;
 		}
 
 		/*
@@ -5927,6 +6120,152 @@
 
 		public static function getResourceAllocation($id) {
 			return SQL::fetchAll("SELECT * FROM bigtree_resource_allocation WHERE resource = ? ORDER BY updated_at DESC", $id);
+		}
+
+		/*
+			Function: getResourceAllocationUsage
+				Returns resource allocation entries with human readable labels and edit URLs.
+
+			Parameters:
+				id - The id of the resource.
+
+			Returns:
+				An array of usage arrays containing location, title, edit_url, pending, and updated_at.
+		*/
+
+		public static function getResourceAllocationUsage($id) {
+			global $cms;
+
+			$allocations = static::getResourceAllocation($id);
+			$usages = [];
+			$table_cache = [];
+
+			foreach ($allocations as $allocation) {
+				$table = $allocation["table"];
+				$entry = strval($allocation["entry"]);
+				$pending = (substr($entry, 0, 1) === "p");
+				$usage = [
+					"location" => $table,
+					"title" => $entry,
+					"edit_url" => null,
+					"pending" => $pending,
+					"updated_at" => $allocation["updated_at"]
+				];
+
+				if ($table === "bigtree_pages") {
+					$usage["location"] = "Pages";
+
+					if ($pending) {
+						$page = $cms->getPendingPage($entry);
+						$usage["edit_url"] = ADMIN_ROOT."pages/edit/".$entry."/";
+					} else {
+						$page = $cms->getPage($entry, false);
+						$usage["edit_url"] = ADMIN_ROOT."pages/edit/".$entry."/";
+					}
+
+					if ($page) {
+						$usage["title"] = $page["nav_title"] ?: $page["title"];
+					} else {
+						$usage["title"] = "Deleted Page (".$entry.")";
+						$usage["edit_url"] = null;
+					}
+				} elseif ($table === "bigtree_settings") {
+					$setting = static::getSetting($entry);
+					$usage["location"] = "Settings";
+
+					if ($setting) {
+						$usage["title"] = $setting["name"] ?: $setting["id"];
+
+						if (empty($setting["system"])) {
+							$usage["edit_url"] = ADMIN_ROOT."settings/edit/".$entry."/";
+						}
+					} else {
+						$usage["title"] = "Deleted Setting (".$entry.")";
+					}
+				} else {
+					if (!isset($table_cache[$table])) {
+						$table_cache[$table] = static::getModuleEditInfoForTable($table);
+					}
+
+					$module_info = $table_cache[$table];
+					$usage["location"] = $module_info["location"];
+
+					if ($module_info["edit_url"]) {
+						$usage["edit_url"] = $module_info["edit_url"].$entry."/";
+					}
+
+					$item = BigTreeAutoModule::getItem($table, $entry);
+
+					if ($item) {
+						$usage["title"] = static::getModuleEntryTitle($item["item"], $entry);
+					} else {
+						$usage["title"] = "Deleted Entry (".$entry.")";
+						$usage["edit_url"] = null;
+					}
+				}
+
+				$usages[] = $usage;
+			}
+
+			return $usages;
+		}
+
+		private static function getModuleEditInfoForTable($table) {
+			$view = BigTreeAutoModule::getViewForTable($table);
+			$module_id = BigTreeAutoModule::getModuleForView($view["id"]);
+			$module = $module_id ? BigTreeJSONDB::get("modules", $module_id) : null;
+
+			if (!$module) {
+				return [
+					"location" => $table,
+					"edit_url" => null
+				];
+			}
+
+			if ($view && !empty($view["edit_url"])) {
+				return [
+					"location" => $module["name"],
+					"edit_url" => $view["edit_url"]
+				];
+			}
+
+			foreach ($module["forms"] as $form) {
+				if (($form["table"] ?? "") !== $table) {
+					continue;
+				}
+
+				$action = static::getModuleActionForForm($form);
+
+				if ($module && $action) {
+					return [
+						"location" => $module["name"],
+						"edit_url" => ADMIN_ROOT.$module["route"]."/".$action["route"]."/"
+					];
+				}
+			}
+
+			return [
+				"location" => $table,
+				"edit_url" => null
+			];
+		}
+
+		private static function getModuleEntryTitle($item, $entry) {
+			if (!is_array($item)) {
+				return "Entry ".$entry;
+			}
+
+			foreach (["title", "name", "nav_title", "headline", "label"] as $key) {
+				if (!empty($item[$key]) && is_string($item[$key])) {
+					return strip_tags($item[$key]);
+				}
+			}
+
+			if (!empty($item["id"])) {
+				return "Entry ".$item["id"];
+			}
+
+			return "Entry ".$entry;
 		}
 
 		/*
@@ -7467,6 +7806,14 @@
 				return $url;
 			}
 
+			$resource = static::getResourceByUrl($url);
+
+			if ($resource) {
+				static::trackResource($resource["id"]);
+
+				return "irl://".$resource["id"]."//".$resource["prefix"];
+			}
+
 			if (strpos($url, WWW_ROOT) === 0) {
 				$path_components = explode("/", rtrim(substr($url, strlen(WWW_ROOT)), "/"));
 			} else {
@@ -7488,20 +7835,23 @@
 			// If we have multiple sites, try each domain
 			if (is_array($bigtree["config"]["sites"]) && count($bigtree["config"]["sites"]) > 1) {
 				foreach ($bigtree["config"]["sites"] as $site_key => $configuration) {
-					// This is the site we're pointing to
-					if (strpos($url, $configuration["www_root"]) !== false) {
-						$path_components = explode("/", rtrim(str_replace($configuration["www_root"], "", $url), "/"));
+					$site_roots = array_filter([
+						$configuration["www_root"] ?? "",
+						$configuration["static_root"] ?? ""
+					]);
+					$matched_root = false;
 
-						// Check for resource link
-						if ($path_components[0] == "files" && $path_components[1] == "resources") {
-							$resource = static::getResourceByFile($url);
+					foreach ($site_roots as $site_root) {
+						if ($site_root && strpos($url, $site_root) !== false) {
+							$matched_root = $site_root;
 
-							if ($resource) {
-								static::trackResource($resource["id"]);
-
-								return "irl://".$resource["id"]."//".$resource["prefix"];
-							}
+							break;
 						}
+					}
+
+					// This is the site we're pointing to
+					if ($matched_root) {
+						$path_components = explode("/", rtrim(str_replace($matched_root, "", $url), "/"));
 
 						// Get the root path of the site for calculating an IPL and add it to the path components
 						$f = sqlfetch(sqlquery("SELECT path FROM bigtree_pages WHERE id = '".$configuration["trunk"]."'"));
@@ -7520,16 +7870,6 @@
 
 				return BigTreeCMS::replaceHardRoots($url);
 			} else {
-				// Check for resource link
-				if ($path_components[0] == "files" && $path_components[1] == "resources") {
-					$resource = static::getResourceByFile($url);
-					if ($resource) {
-						static::trackResource($resource["id"]);
-
-						return "irl://".$resource["id"]."//".$resource["prefix"];
-					}
-				}
-
 				// Check for page link
 				[$navid, $commands, $routed_state, $get_vars, $hash] = static::getPageIDForPath($path_components);
 			}
