@@ -18,11 +18,18 @@ export interface LockConflictDetails {
 }
 
 export const locksApi = {
-	acquire: (payload: { table: string; item_id: string | number; title?: string }) =>
+	acquire: (payload: {
+		table: string;
+		item_id: string | number;
+		title?: string;
+		/** Forcibly take over a lock held by another user (the "Unlock" action). */
+		force?: boolean;
+	}) =>
 		api.post<LockHandle>("/locks", {
 			table: payload.table,
 			item_id: String(payload.item_id),
 			title: payload.title,
+			force: payload.force,
 		}),
 
 	refresh: (lockId: number) => api.post<LockHandle>(`/locks/${lockId}/refresh`),

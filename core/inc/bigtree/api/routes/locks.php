@@ -9,6 +9,7 @@
 				"table" => "required|string|max:255",
 				"item_id" => "required|string|max:255",
 				"title" => "string|max:1024",
+				"force" => "bool",
 			],
 		],
 		"POST /locks/{id:int}/refresh" => [

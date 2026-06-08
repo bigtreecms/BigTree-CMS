@@ -6,6 +6,7 @@ import { Eye, EyeOff, Lock, Save, ShieldAlert } from "lucide-react";
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
+import { LockBanner } from "@/components/ui/LockBanner";
 
 import { settingsApi, type SettingDetail } from "@/api/endpoints/settings";
 
@@ -190,9 +191,11 @@ export const SettingEdit = () => {
 			/>
 
 			{readOnly && (
-				<div className="mb-3 rounded-md border border-border bg-surface-2 px-3 py-2 text-[12.5px] text-text-2">
-					Locked by {lock.lockOwner?.name ?? "another user"} — editing is disabled.
-				</div>
+				<LockBanner
+					owner={lock.lockOwner}
+					lockedAt={lock.lockedAt}
+					onUnlock={lock.forceUnlock}
+				/>
 			)}
 
 			{generalError && (

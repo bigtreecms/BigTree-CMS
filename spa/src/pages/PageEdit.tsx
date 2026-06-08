@@ -7,6 +7,7 @@ import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
+import { LockBanner } from "@/components/ui/LockBanner";
 
 import { LinkFinder } from "@/components/pages/LinkFinder";
 import { MovePageDialog } from "@/components/pages/MovePageDialog";
@@ -376,9 +377,11 @@ export const PageEdit = () => {
 			)}
 
 			{readOnly && (
-				<div className="mb-3 rounded-md border border-border bg-surface-2 px-3 py-2 text-[12.5px] text-text-2">
-					Locked by {lock.lockOwner?.name ?? "another user"} — editing is disabled.
-				</div>
+				<LockBanner
+					owner={lock.lockOwner}
+					lockedAt={lock.lockedAt}
+					onUnlock={lock.forceUnlock}
+				/>
 			)}
 
 			{generalError && (

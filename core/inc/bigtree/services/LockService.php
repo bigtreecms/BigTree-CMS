@@ -10,6 +10,8 @@
 	 * Concurrent-edit locks against bigtree_locks. Mirrors legacy semantics:
 	 * - lock auto-refreshes if held by same user
 	 * - a lock older than 5 minutes is treated as stale and may be taken over
+	 * - a held lock may be forcibly taken over when `force` is set (mirrors the
+	 *   legacy admin's "Unlock" button on the _locked.php interstitial)
 	 */
 	class LockService {
 		const STALE_SECONDS = 300;
@@ -18,10 +20,11 @@
 			$table = (string)$request->body["table"];
 			$item_id = (string)$request->body["item_id"];
 			$me = (int)$request->user->id;
+			$force = filter_var($request->body["force"] ?? false, FILTER_VALIDATE_BOOLEAN);
 
 			$row = SQL::fetch("SELECT * FROM bigtree_locks WHERE `table` = ? AND item_id = ?", $table, $item_id);
 
-			if ($row && (int)$row["user"] !== $me && strtotime($row["last_accessed"]) > (time() - self::STALE_SECONDS)) {
+			if (!$force && $row && (int)$row["user"] !== $me && strtotime($row["last_accessed"]) > (time() - self::STALE_SECONDS)) {
 				$holder = SQL::fetch("SELECT id, name, email FROM bigtree_users WHERE id = ?", $row["user"]);
 				$conflict = new ConflictException("Locked by another user", "lock_held", 409);
 				$conflict->details = [

@@ -618,10 +618,13 @@ const AddBar = ({
 				return;
 			}
 
-			onPhotoUploaded(result.file);
-
+			// Defer adding the gallery item until any manual crops are finalized.
+			// If the user cancels the cropper, no item is added, so the photo is
+			// not used.
 			if (result.pending_crops.length > 0) {
 				setCropState({ file: result.file, crops: result.pending_crops });
+			} else {
+				onPhotoUploaded(result.file);
 			}
 		},
 		[onPhotoUploaded]
@@ -776,7 +779,13 @@ const AddBar = ({
 				open={Boolean(cropState)}
 				file={cropState?.file ?? ""}
 				crops={cropState?.crops ?? []}
-				onComplete={() => setCropState(null)}
+				onComplete={() => {
+					if (cropState) {
+						onPhotoUploaded(cropState.file);
+					}
+
+					setCropState(null);
+				}}
 				onCancel={() => setCropState(null)}
 			/>
 		</>
@@ -935,11 +944,12 @@ const LocalVideoPrompt = ({ settings, onClose, onCreated }: LocalVideoPromptProp
 			return;
 		}
 
-		onCreated(result.file, videoUrl as string);
-
+		// Defer adding the video item until any manual cover crops are finalized,
+		// so cancelling the cropper does not create an item with an uncropped cover.
 		if (result.pending_crops.length > 0) {
 			setCropState({ file: result.file, crops: result.pending_crops });
 		} else {
+			onCreated(result.file, videoUrl as string);
 			onClose();
 		}
 	}, [items, step, videoUrl, processSettings, onCreated, onClose]);
@@ -1057,6 +1067,10 @@ const LocalVideoPrompt = ({ settings, onClose, onCreated }: LocalVideoPromptProp
 				file={cropState?.file ?? ""}
 				crops={cropState?.crops ?? []}
 				onComplete={() => {
+					if (cropState) {
+						onCreated(cropState.file, videoUrl as string);
+					}
+
 					setCropState(null);
 					onClose();
 				}}

@@ -76,10 +76,14 @@ export const ImageField = ({ field, value, onChange, disabled }: FieldComponentP
 			}
 
 			setError(null);
-			onChange(result.file);
 
+			// Defer committing the new image until any manual crops are finalized.
+			// If the user cancels the cropper, nothing was changed, so the
+			// previously selected image (or empty state) is left intact.
 			if (result.pending_crops.length > 0) {
 				setCropState({ file: result.file, crops: result.pending_crops });
+			} else {
+				onChange(result.file);
 			}
 		},
 		[onChange]
@@ -316,7 +320,13 @@ export const ImageField = ({ field, value, onChange, disabled }: FieldComponentP
 				open={Boolean(cropState)}
 				file={cropState?.file ?? ""}
 				crops={cropState?.crops ?? []}
-				onComplete={() => setCropState(null)}
+				onComplete={() => {
+					if (cropState) {
+						onChange(cropState.file);
+					}
+
+					setCropState(null);
+				}}
 				onCancel={() => setCropState(null)}
 			/>
 		</div>

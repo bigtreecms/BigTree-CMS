@@ -31,8 +31,14 @@ export interface UseLockResult {
 	error: string | null;
 	/** Manually release. Called automatically on unmount. */
 	release: () => Promise<void>;
-	/** Try to take the lock again — useful after a "force unlock" interaction. */
+	/** Try to take the lock again (re-acquires without forcing). */
 	retry: () => void;
+	/**
+	 * Forcibly take over a lock held by another user, mirroring the legacy
+	 * admin's "Unlock" button. Re-runs acquisition with `force`, which evicts
+	 * the current holder and grants us the lock.
+	 */
+	forceUnlock: () => void;
 }
 
 /**
@@ -60,6 +66,9 @@ export const useLock = ({
 
 	const lockIdRef = useRef<number | null>(null);
 	const cancelledRef = useRef(false);
+	// Set just before bumping retryToken to make the next acquisition force a
+	// takeover; reset as soon as that attempt runs so a later retry is gentle.
+	const forceRef = useRef(false);
 
 	useEffect(() => {
 		if (!enabled) {
@@ -76,8 +85,11 @@ export const useLock = ({
 		let refreshHandle: number | undefined;
 
 		const acquire = async () => {
+			const force = forceRef.current;
+			forceRef.current = false;
+
 			try {
-				const handle = await locksApi.acquire({ table, item_id: itemId, title });
+				const handle = await locksApi.acquire({ table, item_id: itemId, title, force });
 
 				if (cancelledRef.current) {
 					void locksApi.release(handle.lock_id).catch(() => {});
@@ -150,6 +162,11 @@ export const useLock = ({
 		setRetryToken((n) => n + 1);
 	};
 
+	const forceUnlock = () => {
+		forceRef.current = true;
+		setRetryToken((n) => n + 1);
+	};
+
 	return {
 		acquired,
 		ownedByOther,
@@ -158,16 +175,34 @@ export const useLock = ({
 		error,
 		release,
 		retry,
+		forceUnlock,
 	};
 };
 
 /**
- * The 409 payload puts {locked_by, last_accessed} in the first error's
- * `details` slot. We don't bother typing the whole ApiError shape; this
- * narrow read keeps the assumption local.
+ * The 409 payload carries {locked_by, last_accessed} merged directly onto the
+ * first error object (the Kernel array_merges an exception's `details` into the
+ * error entry, so they sit alongside `code`/`message` — not under a nested
+ * `details` key). We don't bother typing the whole ApiError shape; this narrow
+ * read keeps the assumption local.
  */
 const pickConflictDetails = (err: ApiError): LockConflictDetails | null => {
-	const first = err.errors[0] as { details?: LockConflictDetails } | undefined;
+	const first = err.errors[0] as
+		| (Partial<LockConflictDetails> & { details?: LockConflictDetails })
+		| undefined;
 
-	return first?.details ?? null;
+	if (!first) {
+		return null;
+	}
+
+	// Preferred shape: fields merged onto the error entry. Fall back to a nested
+	// `details` object in case the envelope shape changes.
+	if ("locked_by" in first || "last_accessed" in first) {
+		return {
+			locked_by: first.locked_by ?? null,
+			last_accessed: first.last_accessed ?? "",
+		};
+	}
+
+	return first.details ?? null;
 };

@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { PageHead } from "@/components/shell/PageHead";
+import { LockBanner } from "@/components/ui/LockBanner";
 
 import { autoModulesApi } from "@/api/endpoints/auto-modules";
 import { modulesApi } from "@/api/endpoints/modules";
@@ -118,9 +119,11 @@ export const ModuleEntryEdit = ({ formId, entryId }: ModuleEntryEditProps) => {
 			<PageHead title={form ? `Edit ${form.title}` : "Edit entry"} />
 
 			{readOnly && (
-				<div className="mb-3 rounded-md border border-border bg-surface-2 px-3 py-2 text-[12.5px] text-text-2">
-					Locked by {lock.lockOwner?.name ?? "another user"} — editing is disabled.
-				</div>
+				<LockBanner
+					owner={lock.lockOwner}
+					lockedAt={lock.lockedAt}
+					onUnlock={lock.forceUnlock}
+				/>
 			)}
 
 			{isLoading ? (

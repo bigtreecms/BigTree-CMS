@@ -1,5 +1,6 @@
 import { Editor } from "@tinymce/tinymce-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import type { Editor as TinyMCEEditor } from "tinymce";
 
 import { useAuthStore } from "@/auth/store";
 
@@ -76,6 +77,21 @@ export const HTMLField = ({ field, value, onChange, disabled }: FieldComponentPr
 	const theme = useDocumentTheme();
 	const dark = theme === "dark";
 
+	// `@tinymce/tinymce-react` only translates the `disabled` prop into TinyMCE's
+	// `readonly` *mode*, which in TinyMCE 7 leaves the toolbar interactive and the
+	// surface only partially locked. We drive the dedicated `disabled` editor
+	// option instead (added in TinyMCE 7.6) — it greys out the whole editor and
+	// fully blocks editing — both at init and live as the lock state changes.
+	const editorRef = useRef<TinyMCEEditor | null>(null);
+
+	useEffect(() => {
+		const editor = editorRef.current;
+
+		if (editor && editor.initialized) {
+			editor.options.set("disabled", Boolean(disabled));
+		}
+	}, [disabled]);
+
 	const text = typeof value === "string" ? value : value == null ? "" : String(value);
 
 	// `import.meta.env.BASE_URL` is "/" in dev (assets served via the public
@@ -92,8 +108,13 @@ export const HTMLField = ({ field, value, onChange, disabled }: FieldComponentPr
 			licenseKey="gpl"
 			value={text}
 			disabled={disabled}
+			onInit={(_evt, editor) => {
+				editorRef.current = editor;
+				editor.options.set("disabled", Boolean(disabled));
+			}}
 			onEditorChange={(html) => onChange(html)}
 			init={{
+				disabled: Boolean(disabled),
 				menubar: false,
 				plugins: isSimple ? SIMPLE_PLUGINS : FULL_PLUGINS,
 				toolbar: isSimple ? SIMPLE_TOOLBAR : FULL_TOOLBAR,
