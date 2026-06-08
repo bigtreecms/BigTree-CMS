@@ -11,6 +11,7 @@
 	use BigTreeAutoModule;
 	use BigTreeJSONDB;
 	use BigTreeAdmin;
+	use BigTreeCMS;
 	use SQL;
 
 	/**
@@ -128,6 +129,7 @@
 			unset($data["id"]);
 
 			$this->applyGeocoding($module, $table, $data);
+			$this->applyRoute($module, $table, $data, 0);
 
 			$user_level = PermissionService::userModuleLevel($request->user, $module_id);
 			$can_publish = $user_level === "p" || ((int)$request->user->level) > 0;
@@ -194,6 +196,9 @@
 			unset($data["id"]);
 
 			$this->applyGeocoding($module, $table, $data);
+			// A pending entry has no live row yet, so there is nothing to exclude from
+			// the uniqueness check; a numeric id excludes its own live row.
+			$this->applyRoute($module, $table, $data, $is_pending ? 0 : (int)$lookup_id);
 
 			$user_level = PermissionService::userModuleLevel($request->user, $module_id);
 			$can_publish = $user_level === "p" || ((int)$request->user->level) > 0;
@@ -464,6 +469,105 @@
 					$data["latitude"] = $result["latitude"];
 					$data["longitude"] = $result["longitude"];
 				}
+			}
+		}
+
+		/**
+		 * Run the server-side "route" field processor over the submitted entry data
+		 * before it is persisted. Mirrors the legacy route field's process.php:
+		 *
+		 *  - An empty value is generated from the configured `source` column(s) by
+		 *    concatenating them and urlifying the result.
+		 *  - A value the editor typed is urlified as-is.
+		 *  - Unless the field opts out via `not_unique`, the route is made unique by
+		 *    appending `-2`, `-3`, … until no other row in the table uses it (the row
+		 *    being edited is excluded via $edit_id).
+		 *  - `keep_original` preserves the stored route on an existing entry.
+		 *
+		 * The legacy admin hid this field and only processed it on the backend; the
+		 * SPA now exposes it, but generation and uniqueness still happen here so the
+		 * stored value matches the legacy behavior regardless of client.
+		 */
+		private function applyRoute(array $module, string $table, array &$data, int $edit_id = 0): void {
+			$form = null;
+
+			foreach ((array)($module["forms"] ?? []) as $candidate) {
+				if (($candidate["table"] ?? "") === $table) {
+					$form = $candidate;
+
+					break;
+				}
+			}
+
+			if (!$form) {
+				return;
+			}
+
+			foreach ((array)($form["fields"] ?? []) as $field) {
+				if (($field["type"] ?? "") !== "route") {
+					continue;
+				}
+
+				$column = (string)($field["column"] ?? "");
+
+				if ($column === "" || !array_key_exists($column, $data)) {
+					continue;
+				}
+
+				$settings = is_array($field["settings"] ?? null) ? $field["settings"] : [];
+
+				// Keep the original route on an existing entry when configured to —
+				// the editor's submitted (stored) value is left untouched.
+				if (!empty($settings["keep_original"]) && $edit_id && trim((string)$data[$column]) !== "") {
+					continue;
+				}
+
+				// A route the editor typed wins; an empty field regenerates from the
+				// configured source column(s).
+				$base = trim(strip_tags((string)$data[$column]));
+
+				if ($base === "") {
+					$source = $settings["source"] ?? "";
+					$source_fields = is_array($source) ? $source : [$source];
+					$parts = [];
+
+					foreach ($source_fields as $source_field) {
+						$source_field = trim((string)$source_field);
+
+						if ($source_field === "" || !isset($data[$source_field])) {
+							continue;
+						}
+
+						$value = $data[$source_field];
+
+						if (!is_array($value) && (string)$value !== "") {
+							$parts[] = strip_tags((string)$value);
+						}
+					}
+
+					$base = trim(implode(" ", $parts));
+				}
+
+				$route = BigTreeCMS::urlify($base);
+
+				// Enforce uniqueness unless the field opts out, appending -2, -3, …
+				// until the route is free (excluding the row being edited). Capped at
+				// 1000 attempts to avoid a timeout, matching the legacy processor.
+				if (empty($settings["not_unique"]) && $route !== "") {
+					$original_route = $route;
+					$x = 2;
+
+					while ($x < 1000 && SQL::exists($table, [$column => $route], $edit_id ?: null)) {
+						$route = $original_route."-".$x;
+						$x++;
+					}
+
+					if ($x == 1000) {
+						$route = "";
+					}
+				}
+
+				$data[$column] = $route;
 			}
 		}
 
