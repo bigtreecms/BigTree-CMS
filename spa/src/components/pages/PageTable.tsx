@@ -136,7 +136,7 @@ export const PageTable = ({
 			</div>
 
 			<div className="w-full overflow-hidden rounded-lg border border-border bg-surface">
-				<div className="grid h-[34px] grid-cols-[28px_1fr_240px_56px_56px_56px] items-center gap-x-3 border-b border-border bg-surface-2 px-2 pr-3 text-[10.5px] font-semibold uppercase tracking-[0.06em] text-text-3">
+				<div className="hidden h-[34px] grid-cols-[28px_1fr_240px_56px_56px_56px] items-center gap-x-3 border-b border-border bg-surface-2 px-2 pr-3 text-[10.5px] font-semibold uppercase tracking-[0.06em] text-text-3 sm:grid">
 					<span />
 					<span>Title</span>
 					<span>Status & updated</span>

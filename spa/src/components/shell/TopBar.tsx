@@ -6,6 +6,7 @@ import { messagesApi } from "@/api/endpoints/dashboard";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { Bell, ChevronDown, ExternalLink, LogOut, Moon, Search, Sun, User } from "lucide-react";
 import { useAuthStore } from "@/auth/store";
+import { MobileNav } from "./MobileNav";
 
 /**
  * Top bar — site title (from root page nav_title), View Site link, global search
@@ -54,9 +55,11 @@ export const TopBar = ({ dark, onToggleDark, onOpenSearch }: TopBarProps) => {
 	const wwwRoot = siteQ.data?.www_root || "/";
 
 	return (
-		<header className="sticky top-0 z-30 flex h-[52px] items-center gap-4 border-b border-border bg-surface px-5">
+		<header className="sticky top-0 z-30 flex h-[52px] items-center gap-2 border-b border-border bg-surface px-3 sm:px-5 lg:gap-4">
+			<MobileNav siteName={siteName} wwwRoot={wwwRoot} />
+
 			{/* Brand */}
-			<div className="flex items-center gap-2.5">
+			<div className="flex shrink-0 items-center gap-2.5">
 				<div className="grid h-[26px] w-[26px] place-items-center rounded-md bg-accent text-accent-fg">
 					<svg
 						width="14"
@@ -71,13 +74,13 @@ export const TopBar = ({ dark, onToggleDark, onOpenSearch }: TopBarProps) => {
 				<span className="text-[14px] font-semibold tracking-[-0.01em]">{siteName}</span>
 			</div>
 
-			<div className="h-[22px] w-px bg-border" />
+			<div className="hidden h-[22px] w-px bg-border sm:block" />
 
 			<a
 				href={wwwRoot}
 				target="_blank"
 				rel="noopener noreferrer"
-				className="inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-border bg-surface px-2.5 py-1 text-[12.5px] text-text-2 transition-colors hover:border-border-strong hover:bg-hover"
+				className="hidden shrink-0 cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-md border border-border bg-surface px-2.5 py-1 text-[12.5px] text-text-2 transition-colors hover:border-border-strong hover:bg-hover sm:inline-flex"
 			>
 				<ExternalLink size={13} />
 				<span>View site</span>
@@ -88,13 +91,23 @@ export const TopBar = ({ dark, onToggleDark, onOpenSearch }: TopBarProps) => {
 			<button
 				type="button"
 				onClick={onOpenSearch}
-				className="flex w-60 cursor-text items-center gap-2 rounded-md border border-border bg-surface-2 px-2.5 py-1.5 text-[12.5px] text-text-3 transition-colors hover:border-border-strong"
+				className="hidden w-60 cursor-text items-center gap-2 rounded-md border border-border bg-surface-2 px-2.5 py-1.5 text-[12.5px] text-text-3 transition-colors hover:border-border-strong sm:flex"
 			>
 				<Search size={13} />
 				<span>Search pages, modules…</span>
 				<kbd className="ml-auto rounded border border-border bg-surface px-1.5 py-px font-mono text-[10px] text-text-3">
 					⌘K
 				</kbd>
+			</button>
+
+			<button
+				type="button"
+				onClick={onOpenSearch}
+				title="Search"
+				aria-label="Search"
+				className="grid h-[30px] w-[30px] cursor-pointer place-items-center rounded-md bg-transparent text-text-2 transition-colors hover:bg-hover hover:text-text sm:hidden"
+			>
+				<Search size={15} />
 			</button>
 
 			<button

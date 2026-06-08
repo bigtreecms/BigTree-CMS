@@ -13,7 +13,7 @@ import {
 import { useAuthStore } from "@/auth/store";
 import { isAdmin } from "@/lib/permissions";
 
-interface DropdownItem {
+export interface DropdownItem {
 	label: string;
 	to: string;
 	icon: LucideIcon;
@@ -30,7 +30,7 @@ interface DropdownItem {
  * Hover/focus-within (rather than a click menu) keeps the Dashboard link itself
  * directly clickable, matching the prototype's `nav.dropdown` behaviour.
  */
-const ITEMS: DropdownItem[] = [
+export const DASHBOARD_ITEMS: DropdownItem[] = [
 	{ label: "Overview", to: "/dashboard", icon: LayoutDashboard },
 	{ label: "Pending Changes", to: "/pending-changes", icon: Bell },
 	{ label: "Messages", to: "/messages", icon: Mail },
@@ -49,7 +49,7 @@ const tabClass = (isActive: boolean) =>
 export const DashboardTab = () => {
 	const user = useAuthStore((s) => s.user);
 	const admin = isAdmin(user);
-	const items = ITEMS.filter((item) => !item.adminOnly || admin);
+	const items = DASHBOARD_ITEMS.filter((item) => !item.adminOnly || admin);
 
 	return (
 		<div className="group relative">

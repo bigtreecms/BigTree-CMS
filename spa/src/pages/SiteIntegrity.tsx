@@ -241,11 +241,13 @@ const StartPanel = ({
 				The site integrity check searches your site for broken or dead links and missing
 				images and alerts you to their presence.
 			</p>
-			<p className="mb-5 flex items-start gap-2 text-[12.5px] leading-relaxed text-text-3">
+			<div className="mb-5 flex items-start gap-2 text-[12.5px] leading-relaxed text-text-3">
 				<AlertTriangle size={14} className="mt-0.5 shrink-0 text-warn" />
-				Including external links takes <strong>significantly longer</strong> and may report{" "}
-				<strong>false positives</strong>.
-			</p>
+				<p>
+					Including external links takes <strong>significantly longer</strong> and may
+					report <strong>false positives</strong>.
+				</p>
+			</div>
 			<div className="flex flex-wrap gap-2">
 				<button
 					type="button"

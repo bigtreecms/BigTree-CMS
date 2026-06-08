@@ -43,37 +43,47 @@ export const PendingChangeGroup = ({
 				{group.changes.map((change) => {
 					const busy = busyId === change.id;
 					const isNew = change.item_id === null;
+					const badgeCls = isNew
+						? "bg-accent-soft text-accent"
+						: "bg-surface-3 text-text-2";
+					const when = relativeTime(change.date);
 
 					return (
 						<li
 							key={change.id}
-							className="grid grid-cols-[minmax(0,1fr)_90px_140px_auto] items-center gap-x-3 border-b border-border px-4 py-2.5 text-[13px] transition-colors last:border-b-0 hover:bg-surface-2"
+							className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 border-b border-border px-4 py-2.5 text-[13px] transition-colors last:border-b-0 hover:bg-surface-2 sm:grid-cols-[minmax(0,1fr)_90px_140px_auto]"
 						>
 							<button
 								type="button"
 								onClick={() => onOpen(change)}
 								className="min-w-0 text-left"
 							>
-								<div className="truncate font-medium text-text hover:text-accent">
-									{change.title || `Change #${change.id}`}
+								<div className="flex items-center gap-2">
+									<span className="min-w-0 truncate font-medium text-text hover:text-accent">
+										{change.title || `Change #${change.id}`}
+									</span>
+									{/* Badge sits inline with the title on mobile, where the
+									    dedicated badge column is hidden. */}
+									<span
+										className={`shrink-0 rounded px-1.5 py-0.5 text-[10.5px] font-semibold uppercase tracking-wide sm:hidden ${badgeCls}`}
+									>
+										{isNew ? "New" : "Edit"}
+									</span>
 								</div>
 								<div className="truncate text-[11px] text-text-3">
 									User #{change.user}
+									<span className="sm:hidden"> · {when}</span>
 								</div>
 							</button>
 
 							<span
-								className={`justify-self-start rounded px-1.5 py-0.5 text-[10.5px] font-semibold uppercase tracking-wide ${
-									isNew
-										? "bg-accent-soft text-accent"
-										: "bg-surface-3 text-text-2"
-								}`}
+								className={`hidden justify-self-start rounded px-1.5 py-0.5 text-[10.5px] font-semibold uppercase tracking-wide sm:inline-block ${badgeCls}`}
 							>
 								{isNew ? "New" : "Edit"}
 							</span>
 
-							<span className="text-[11.5px] tabular-nums text-text-3">
-								{relativeTime(change.date)}
+							<span className="hidden text-[11.5px] tabular-nums text-text-3 sm:block">
+								{when}
 							</span>
 
 							<div className="flex items-center gap-1 justify-self-end">

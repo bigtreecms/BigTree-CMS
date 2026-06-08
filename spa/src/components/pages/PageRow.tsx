@@ -60,7 +60,7 @@ export const PageRow = ({
 
 	return (
 		<div
-			className={`grid h-[var(--row-h)] grid-cols-[28px_1fr_240px_56px_56px_56px] items-center gap-x-3 border-b border-border px-2 pr-3 text-[13px] transition-colors last:border-b-0 hover:bg-surface-2 ${
+			className={`grid min-h-[var(--row-h)] grid-cols-[24px_1fr_auto_auto_auto] items-center gap-x-2 border-b border-border px-2 pr-3 py-2 text-[13px] transition-colors last:border-b-0 hover:bg-surface-2 sm:h-[var(--row-h)] sm:min-h-0 sm:grid-cols-[28px_1fr_240px_56px_56px_56px] sm:gap-x-3 sm:py-0 ${
 				isDragging ? "bg-accent-soft shadow-md" : ""
 			} ${isDropTarget ? "shadow-[inset_0_2px_0_0_var(--color-accent)]" : ""}`}
 			draggable={canReorder}
@@ -87,22 +87,33 @@ export const PageRow = ({
 				<span className="grid h-[22px] w-[22px] flex-shrink-0 place-items-center text-text-3">
 					<FileText size={15} />
 				</span>
-				<Link
-					to={`/pages/${row.id}`}
-					className="min-w-0 flex-1 outline-none"
-					onClick={(e) => {
-						// Don't navigate when the user double-clicks the inner editable span
-						if ((e.target as HTMLElement).closest("[contenteditable='true']")) {
-							e.preventDefault();
-						}
-					}}
-				>
-					<EditableTitle value={row.nav_title} onChange={onRename} />
-				</Link>
+				<div className="min-w-0 flex-1">
+					<Link
+						to={`/pages/${row.id}`}
+						className="block min-w-0 outline-none"
+						onClick={(e) => {
+							// Don't navigate when the user double-clicks the inner editable span
+							if ((e.target as HTMLElement).closest("[contenteditable='true']")) {
+								e.preventDefault();
+							}
+						}}
+					>
+						<EditableTitle value={row.nav_title} onChange={onRename} />
+					</Link>
+
+					{/* On mobile the dedicated status column is hidden, so the
+					    status + updated time sit under the title instead. */}
+					<div className="mt-1 flex items-center gap-2 sm:hidden">
+						<StatusBadge status={statusFor(row)} />
+						<span className="overflow-hidden text-ellipsis whitespace-nowrap text-[12px] text-text-3 tabular-nums">
+							{relativeTime(row.updated_at)}
+						</span>
+					</div>
+				</div>
 			</div>
 
-			{/* Status + updated */}
-			<div className="flex min-w-0 items-center gap-2.5">
+			{/* Status + updated (desktop column; shown under the title on mobile) */}
+			<div className="hidden min-w-0 items-center gap-2.5 sm:flex">
 				<StatusBadge status={statusFor(row)} />
 				<span className="overflow-hidden text-ellipsis whitespace-nowrap text-[12px] text-text-3 tabular-nums">
 					{relativeTime(row.updated_at)}

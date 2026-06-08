@@ -21,7 +21,7 @@ export const PageHead = ({ title, sub, actions, badge }: PageHeadProps) => {
 				</h1>
 				{sub && <div className="mt-0.5 text-[13px] text-text-3">{sub}</div>}
 			</div>
-			{actions && <div className="flex items-center gap-2">{actions}</div>}
+			{actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
 		</div>
 	);
 };

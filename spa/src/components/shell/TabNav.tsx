@@ -64,7 +64,7 @@ export const TabNav = () => {
 
 	return (
 		<nav
-			className="flex items-center gap-0.5 border-b border-border bg-surface px-4"
+			className="hidden items-center gap-0.5 border-b border-border bg-surface px-4 lg:flex"
 			role="tablist"
 		>
 			{tabs.map(({ id, label, path, icon: Icon }) =>

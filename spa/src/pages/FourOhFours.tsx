@@ -439,7 +439,7 @@ export const FourOhFours = ({ type }: FourOhFoursProps) => {
 					onChange={(v) => navigate(TYPE_ROUTE[v])}
 				/>
 
-				<div className="relative max-w-md flex-1">
+				<div className="relative w-full sm:w-auto sm:max-w-md sm:flex-1">
 					<Search
 						size={14}
 						className="absolute left-3 top-1/2 -translate-y-1/2 text-text-3"
@@ -452,7 +452,7 @@ export const FourOhFours = ({ type }: FourOhFoursProps) => {
 					/>
 				</div>
 
-				<div className="flex-1" />
+				<div className="hidden flex-1 sm:block" />
 
 				{selectedCount > 0 && (
 					<button
