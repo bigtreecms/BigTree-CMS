@@ -44,7 +44,10 @@ export const resolveActionByRoute = (
 	const commands: string[] = [];
 
 	while (route.length) {
-		const action = actions.find((a) => a.route === route.join("/"));
+		// The landing action stores its route as null/"" — normalize so the empty
+		// segment matches it (legacy compares with loose ==, where null == "").
+		const routeString = route.join("/");
+		const action = actions.find((a) => (a.route ?? "") === routeString);
 
 		if (action) {
 			return { action, commands: commands.reverse() };

@@ -10,8 +10,13 @@ import {
 	decodeHTMLEntities,
 	formatCellValue,
 	iconForCustomAction,
+	isPersistedEntryId,
 	parseViewActions,
+	statusDimClass,
+	statusFromRow,
+	statusRowClass,
 } from "./viewHelpers";
+import { ViewStatusBadge } from "./ViewStatusBadge";
 import { BuiltinToggleButtons } from "./BuiltinToggleButtons";
 import { useEntryDelete } from "./useEntryDelete";
 import { useModuleEntryLinks } from "@/pages/ModuleLayout";
@@ -128,15 +133,11 @@ export const GroupedView = ({ moduleId, view }: GroupedViewProps) => {
 	};
 
 	const openEdit = (row: ModuleEntryRow) => {
-		if (!builtins.edit) {
+		if (!builtins.edit || !isPersistedEntryId(row.id)) {
 			return;
 		}
 
-		const entryId = Number(row.id);
-
-		if (Number.isFinite(entryId) && entryId > 0) {
-			navigate(editPath(entryId));
-		}
+		navigate(editPath(row.id));
 	};
 
 	return (
@@ -211,89 +212,105 @@ export const GroupedView = ({ moduleId, view }: GroupedViewProps) => {
 
 								{!isCollapsed && (
 									<ul className="divide-y divide-border">
-										{items.map((row) => (
-											<li
-												key={String(row.id)}
-												className={`flex items-center gap-4 px-3 py-2 text-[13px] hover:bg-surface-2 ${
-													builtins.edit ? "cursor-pointer" : ""
-												}`}
-												onClick={() => openEdit(row)}
-											>
-												<div className="flex min-w-0 flex-1 items-center gap-4">
-													{fieldColumns.map(([key], index) => {
-														const valueKey = `column${index + 1}`;
-														const isFirst = index === 0;
+										{items.map((row) => {
+											const status = statusFromRow(row);
+											const dim = statusDimClass(status.key);
 
-														return (
-															<span
-																key={key}
-																className={`truncate text-text-2 ${
-																	isFirst
-																		? "font-medium text-text"
-																		: "flex-1"
-																}`}
-															>
-																{formatCellValue(row[valueKey])}
-															</span>
-														);
-													})}
-												</div>
+											return (
+												<li
+													key={String(row.id)}
+													className={`flex items-center gap-4 px-3 py-2 text-[13px] hover:bg-surface-2 ${statusRowClass(
+														status.key
+													)} ${builtins.edit ? "cursor-pointer" : ""}`}
+													onClick={() => openEdit(row)}
+												>
+													<div
+														className={`flex min-w-0 flex-1 items-center gap-4 ${dim}`}
+													>
+														{fieldColumns.map(([key], index) => {
+															const valueKey = `column${index + 1}`;
+															const isFirst = index === 0;
 
-												<div className="flex items-center gap-1">
-													{custom.map((action) => {
-														const Icon = iconForCustomAction(
-															action.className
-														);
+															return (
+																<span
+																	key={key}
+																	className={`truncate text-text-2 ${
+																		isFirst
+																			? "font-medium text-text"
+																			: "flex-1"
+																	}`}
+																>
+																	{formatCellValue(row[valueKey])}
+																</span>
+															);
+														})}
+													</div>
 
-														return (
+													<ViewStatusBadge
+														row={row}
+														className="flex-shrink-0"
+													/>
+
+													<div
+														className={`flex items-center gap-1 ${dim}`}
+													>
+														{custom.map((action) => {
+															const Icon = iconForCustomAction(
+																action.className
+															);
+
+															return (
+																<Link
+																	key={action.key}
+																	to={actionPath(
+																		action.route,
+																		row.id
+																	)}
+																	className="rounded p-1 text-text-3 hover:bg-hover hover:text-text"
+																	title={action.name}
+																	aria-label={action.name}
+																	onClick={(e) =>
+																		e.stopPropagation()
+																	}
+																>
+																	<Icon size={15} />
+																</Link>
+															);
+														})}
+														{builtins.edit && (
 															<Link
-																key={action.key}
-																to={actionPath(
-																	action.route,
-																	row.id
-																)}
+																to={editPath(row.id)}
 																className="rounded p-1 text-text-3 hover:bg-hover hover:text-text"
-																title={action.name}
-																aria-label={action.name}
+																title="Edit"
 																onClick={(e) => e.stopPropagation()}
 															>
-																<Icon size={15} />
+																<Edit size={15} />
 															</Link>
-														);
-													})}
-													{builtins.edit && (
-														<Link
-															to={editPath(row.id)}
-															className="rounded p-1 text-text-3 hover:bg-hover hover:text-text"
-															title="Edit"
-															onClick={(e) => e.stopPropagation()}
-														>
-															<Edit size={15} />
-														</Link>
-													)}
-													<BuiltinToggleButtons
-														moduleId={moduleId}
-														viewId={view.id}
-														row={row}
-														builtins={builtins}
-													/>
-													{builtins.delete && (
-														<button
-															type="button"
-															className="rounded p-1 text-text-3 hover:bg-hover hover:text-danger"
-															title="Delete"
-															aria-label="Delete"
-															onClick={(e) => {
-																e.stopPropagation();
-																requestDelete(row);
-															}}
-														>
-															<Trash size={15} />
-														</button>
-													)}
-												</div>
-											</li>
-										))}
+														)}
+														<BuiltinToggleButtons
+															moduleId={moduleId}
+															viewId={view.id}
+															row={row}
+															builtins={builtins}
+														/>
+														{builtins.delete && (
+															<button
+																type="button"
+																className="rounded p-1 text-text-3 hover:bg-hover hover:text-danger"
+																title="Delete"
+																aria-label="Delete"
+																onClick={(e) => {
+																	e.stopPropagation();
+																	requestDelete(row);
+																}}
+															>
+																<Trash size={15} />
+															</button>
+														)}
+													</div>
+												</li>
+											);
+										})}
 									</ul>
 								)}
 							</section>

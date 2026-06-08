@@ -18,9 +18,14 @@ import {
 	formatCellValue,
 	formatSortParam,
 	iconForCustomAction,
+	isPersistedEntryId,
 	parseSortSetting,
 	parseViewActions,
+	statusDimClass,
+	statusFromRow,
+	statusRowClass,
 } from "./viewHelpers";
+import { ViewStatusBadge } from "./ViewStatusBadge";
 import { BuiltinToggleButtons } from "./BuiltinToggleButtons";
 import { useEntryDelete } from "./useEntryDelete";
 import { useModuleEntryLinks } from "@/pages/ModuleLayout";
@@ -107,12 +112,31 @@ export const SearchableView = ({ moduleId, view }: SearchableViewProps) => {
 				sortable: true,
 				align: field.numeric ? "right" : "left",
 				headerAlign: field.numeric ? "right" : "left",
-				cell: (row) => (
-					<span className={field.numeric ? "tabular-nums text-text-2" : "text-text-2"}>
-						{formatCellValue(row[valueKey])}
-					</span>
-				),
+				cell: (row) => {
+					const dim = statusDimClass(statusFromRow(row).key);
+
+					return (
+						<span
+							className={`${field.numeric ? "tabular-nums text-text-2" : "text-text-2"} ${dim}`}
+						>
+							{formatCellValue(row[valueKey])}
+						</span>
+					);
+				},
 			};
+		});
+
+		// Status column — mirrors the legacy admin's sortable "Status" header
+		// (sort key `_status_`, which BigTreeAutoModule::getSearchResults orders
+		// alphabetically by status label). Always shown, like the legacy view.
+		cols.push({
+			key: "_status_",
+			header: "Status",
+			width: "92px",
+			sortable: true,
+			align: "left",
+			headerAlign: "left",
+			cell: (row) => <ViewStatusBadge row={row} />,
 		});
 
 		if (hasRowActions) {
@@ -126,10 +150,13 @@ export const SearchableView = ({ moduleId, view }: SearchableViewProps) => {
 				headerAlign: "right",
 				cell: (row) => {
 					const entryId = Number(row.id);
-					const canMutate = Number.isFinite(entryId) && entryId > 0;
+					// Custom actions act on a live row (real numeric id); edit and
+					// delete also accept a "p"-prefixed pending id.
+					const canEditOrDelete = isPersistedEntryId(row.id);
+					const dim = statusDimClass(statusFromRow(row).key);
 
 					return (
-						<div className="flex w-full items-center justify-end gap-1">
+						<div className={`flex w-full items-center justify-end gap-1 ${dim}`}>
 							{custom.map((action) => {
 								const Icon = iconForCustomAction(action.className);
 
@@ -147,9 +174,9 @@ export const SearchableView = ({ moduleId, view }: SearchableViewProps) => {
 								);
 							})}
 
-							{builtins.edit && (
+							{builtins.edit && canEditOrDelete && (
 								<Link
-									to={editPath(entryId)}
+									to={editPath(row.id)}
 									className="rounded p-1 text-text-3 hover:bg-hover hover:text-text"
 									title="Edit"
 									aria-label="Edit"
@@ -172,7 +199,7 @@ export const SearchableView = ({ moduleId, view }: SearchableViewProps) => {
 									className="rounded p-1 text-text-3 hover:bg-hover hover:text-danger disabled:opacity-40"
 									title="Delete"
 									aria-label="Delete"
-									disabled={!canMutate}
+									disabled={!canEditOrDelete}
 									onClick={(e) => {
 										e.stopPropagation();
 										requestDelete(row);
@@ -212,17 +239,11 @@ export const SearchableView = ({ moduleId, view }: SearchableViewProps) => {
 	};
 
 	const onRowClick = (row: ModuleEntryRow) => {
-		if (!builtins.edit) {
+		if (!builtins.edit || !isPersistedEntryId(row.id)) {
 			return;
 		}
 
-		const entryId = Number(row.id);
-
-		if (!Number.isFinite(entryId) || entryId <= 0) {
-			return;
-		}
-
-		navigate(editPath(entryId));
+		navigate(editPath(row.id));
 	};
 
 	return (
@@ -268,6 +289,7 @@ export const SearchableView = ({ moduleId, view }: SearchableViewProps) => {
 				sort={sort}
 				onSortChange={onSortChange}
 				onRowClick={builtins.edit ? onRowClick : undefined}
+				rowClassName={(row) => statusRowClass(statusFromRow(row).key)}
 			/>
 
 			{deleteDialog}

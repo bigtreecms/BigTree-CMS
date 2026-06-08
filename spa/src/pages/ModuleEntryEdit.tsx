@@ -9,11 +9,14 @@ import { FormRenderer } from "@/renderer/forms/FormRenderer";
 import { useLock } from "@/hooks/useLock";
 import { modulePath, moduleActionPath } from "@/lib/moduleActions";
 import { useModuleContext } from "@/pages/ModuleLayout";
+import { isPersistedEntryId, numericEntryId } from "@/renderer/views/viewHelpers";
 import { toast } from "@/lib/toast";
 
 interface ModuleEntryEditProps {
 	formId: string;
-	entryId: number;
+	// May be a real numeric id or a "p"-prefixed pending id (e.g. "p5"); also a
+	// raw string straight from the URL. Validated below.
+	entryId: number | string;
 }
 
 /**
@@ -32,6 +35,11 @@ export const ModuleEntryEdit = ({ formId, entryId }: ModuleEntryEditProps) => {
 	const navigate = useNavigate();
 	const queryClient = useQueryClient();
 
+	// A pending ("p"-prefixed) entry has no live row id; `liveId` is null for it,
+	// so MTM relation lookups (which query the live connecting table) are skipped.
+	const validEntry = isPersistedEntryId(entryId);
+	const liveId = numericEntryId(entryId);
+
 	const formsQuery = useQuery({
 		queryKey: ["modules", "forms", moduleId],
 		queryFn: () => modulesApi.forms(moduleId),
@@ -39,15 +47,15 @@ export const ModuleEntryEdit = ({ formId, entryId }: ModuleEntryEditProps) => {
 	});
 
 	const entryQuery = useQuery({
-		queryKey: ["module-entries", moduleId, "detail", entryId, formId],
+		queryKey: ["module-entries", moduleId, "detail", String(entryId), formId],
 		queryFn: () => autoModulesApi.get(moduleId, entryId, { form: formId }),
-		enabled: moduleId !== "" && Number.isFinite(entryId),
+		enabled: moduleId !== "" && validEntry,
 	});
 
 	const lock = useLock({
 		table: `module:${moduleId}`,
 		itemId: entryId,
-		enabled: moduleId !== "" && Number.isFinite(entryId),
+		enabled: moduleId !== "" && validEntry,
 	});
 
 	const moduleQuery = useQuery({
@@ -113,7 +121,7 @@ export const ModuleEntryEdit = ({ formId, entryId }: ModuleEntryEditProps) => {
 					form={form}
 					initialValues={initialValues}
 					moduleId={moduleId}
-					entryId={entryId}
+					entryId={liveId}
 					disabled={readOnly}
 					onCancel={() => navigate(returnPath)}
 					submitLabel="Save"

@@ -7,7 +7,7 @@ import { autoModulesApi, type ModuleEntryRow } from "@/api/endpoints/auto-module
 import type { ModuleView } from "@/api/endpoints/modules";
 
 import { ImagesGrid } from "./ImagesView";
-import { decodeHTMLEntities, parseViewActions } from "./viewHelpers";
+import { decodeHTMLEntities, isPersistedEntryId, parseViewActions } from "./viewHelpers";
 import { useModuleEntryLinks } from "@/pages/ModuleLayout";
 
 /**
@@ -84,15 +84,11 @@ export const ImagesGroupedView = ({ moduleId, view }: ImagesGroupedViewProps) =>
 	};
 
 	const openEdit = (row: ModuleEntryRow) => {
-		if (!builtins.edit) {
+		if (!builtins.edit || !isPersistedEntryId(row.id)) {
 			return;
 		}
 
-		const entryId = Number(row.id);
-
-		if (Number.isFinite(entryId) && entryId > 0) {
-			navigate(editPath(entryId));
-		}
+		navigate(editPath(row.id));
 	};
 
 	return (

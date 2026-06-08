@@ -92,14 +92,15 @@
 
 		public function get(Request $request) {
 			$module_id = $request->route_params["id"];
-			$entry_id = (int)$request->route_params["eid"];
+			$raw_id = (string)$request->route_params["eid"];
 			$module = $this->loadModule($module_id);
 			$table = $this->resolveTable($module, $request);
 
-			$pending = BigTreeAutoModule::getPendingItem($table, $entry_id);
+			[, $lookup_id] = $this->parseEntryId($raw_id);
+			$pending = BigTreeAutoModule::getPendingItem($table, $lookup_id);
 
 			if (!$pending) {
-				throw new NotFoundException("Entry $entry_id not found", "resource_not_found", 404);
+				throw new NotFoundException("Entry $raw_id not found", "resource_not_found", 404);
 			}
 
 			if (PermissionService::userRowLevel($request->user, $module, $pending["item"] ?? []) === "n") {
@@ -163,14 +164,17 @@
 
 		public function update(Request $request) {
 			$module_id = $request->route_params["id"];
-			$entry_id = (int)$request->route_params["eid"];
+			$raw_id = (string)$request->route_params["eid"];
 			$module = $this->loadModule($module_id);
 			$table = $this->resolveTable($module, $request);
 
-			$existing = BigTreeAutoModule::getPendingItem($table, $entry_id);
+			// A pending ("p"-prefixed) entry edits its bigtree_pending_changes row;
+			// a numeric id edits a live row (directly on publish, or as a draft).
+			[$is_pending, $lookup_id, $pending_change_id] = $this->parseEntryId($raw_id);
+			$existing = BigTreeAutoModule::getPendingItem($table, $lookup_id);
 
 			if (!$existing) {
-				throw new NotFoundException("Entry $entry_id not found", "resource_not_found", 404);
+				throw new NotFoundException("Entry $raw_id not found", "resource_not_found", 404);
 			}
 
 			if (PermissionService::userRowLevel($request->user, $module, $existing["item"] ?? []) === "n") {
@@ -197,6 +201,21 @@
 			// Publishers/admins write live only when they explicitly publish; without
 			// the flag they (like editors) submit a pending change.
 			if ($can_publish && $publish) {
+				// A pending entry has no live row yet — publishing it promotes the
+				// pending change to a real row (with the edited data). A numeric id
+				// updates its live row in place.
+				if ($is_pending) {
+					$this->bindLegacyAdmin($request->user);
+					$new_id = (int)BigTreeAutoModule::publishPendingItem($table, $pending_change_id, $data, $mtm, $tags, $og);
+					$fresh = BigTreeAutoModule::getItem($table, $new_id);
+					Hooks::fire("module_entry.updated", [
+						"module" => $module_id, "table" => $table, "id" => $new_id, "item" => $fresh["item"] ?? $fresh,
+					], ["user_id" => $request->user->id]);
+
+					return Response::ok($fresh);
+				}
+
+				$entry_id = (int)$lookup_id;
 				BigTreeAutoModule::updateItem($table, $entry_id, $data, $mtm, $tags, $og);
 				$fresh = BigTreeAutoModule::getItem($table, $entry_id);
 				Hooks::fire("module_entry.updated", [
@@ -207,12 +226,14 @@
 			}
 
 			// submitChange requires a logged-in legacy admin ($admin->ID / ->track()),
-			// which the API request has no session for — bridge the JWT user in.
+			// which the API request has no session for — bridge the JWT user in. It
+			// understands the "p" prefix, so editing a pending entry updates its
+			// existing change rather than creating a second one.
 			$this->bindLegacyAdmin($request->user);
 
-			BigTreeAutoModule::submitChange($module_id, $table, $entry_id, $data, $mtm, $tags, null, $og);
+			BigTreeAutoModule::submitChange($module_id, $table, $lookup_id, $data, $mtm, $tags, null, $og);
 			Hooks::fire("module_entry.pending_updated", [
-				"module" => $module_id, "table" => $table, "id" => $entry_id,
+				"module" => $module_id, "table" => $table, "id" => $raw_id,
 			], ["user_id" => $request->user->id]);
 
 			return Response::ok(["pending" => true]);
@@ -220,23 +241,32 @@
 
 		public function delete(Request $request) {
 			$module_id = $request->route_params["id"];
-			$entry_id = (int)$request->route_params["eid"];
+			$raw_id = (string)$request->route_params["eid"];
 			$module = $this->loadModule($module_id);
 			$table = $this->resolveTable($module, $request);
 
-			$existing = BigTreeAutoModule::getPendingItem($table, $entry_id);
+			// Pending (never-published) entries carry a "p" prefix in the view
+			// cache, e.g. "p5". Deleting one rejects the pending change rather than
+			// touching a published row — mirroring the legacy admin's delete action.
+			[$is_pending, $lookup_id, $pending_change_id] = $this->parseEntryId($raw_id);
+			$existing = BigTreeAutoModule::getPendingItem($table, $lookup_id);
 
 			if (!$existing) {
-				throw new NotFoundException("Entry $entry_id not found", "resource_not_found", 404);
+				throw new NotFoundException("Entry $raw_id not found", "resource_not_found", 404);
 			}
 
 			if (PermissionService::userRowLevel($request->user, $module, $existing["item"] ?? []) === "n") {
 				throw new AuthorizationException("Row access denied by group permissions", "permission_denied", 403);
 			}
 
-			BigTreeAutoModule::deleteItem($table, $entry_id);
+			if ($is_pending) {
+				BigTreeAutoModule::deletePendingItem($table, $pending_change_id);
+			} else {
+				BigTreeAutoModule::deleteItem($table, (int)$lookup_id);
+			}
+
 			Hooks::fire("module_entry.deleted", [
-				"module" => $module_id, "table" => $table, "id" => $entry_id,
+				"module" => $module_id, "table" => $table, "id" => $raw_id,
 			], ["user_id" => $request->user->id]);
 
 			return Response::noContent();
@@ -319,6 +349,28 @@
 			}
 
 			return $m;
+		}
+
+		/**
+		 * Split a route entry id into its concrete form. Pending (never-published)
+		 * entries arrive with a "p" prefix (e.g. "p5") — they only exist in
+		 * bigtree_pending_changes; everything else is a real numeric row id.
+		 *
+		 * Returns [is_pending, lookup_id, pending_change_id] where `lookup_id` is the
+		 * value to hand BigTreeAutoModule::getPendingItem (which understands the "p"
+		 * prefix) and `pending_change_id` is the numeric bigtree_pending_changes id
+		 * (only meaningful when pending). Throws 404 for anything that's neither.
+		 */
+		private function parseEntryId(string $raw): array {
+			if (strlen($raw) > 1 && $raw[0] === "p" && ctype_digit(substr($raw, 1))) {
+				return [true, $raw, (int)substr($raw, 1)];
+			}
+
+			if (ctype_digit($raw)) {
+				return [false, (string)(int)$raw, (int)$raw];
+			}
+
+			throw new NotFoundException("Entry $raw not found", "resource_not_found", 404);
 		}
 
 		/**

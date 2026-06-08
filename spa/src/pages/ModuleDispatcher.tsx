@@ -69,7 +69,10 @@ export const ModuleDispatcher = () => {
 		const eid = commands[0];
 
 		if (eid !== undefined) {
-			return <ModuleEntryEdit formId={action.form} entryId={Number.parseInt(eid, 10)} />;
+			// Pass the raw id through — pending entries carry a "p" prefix (e.g.
+			// "p5") that must survive to the edit form / API; parseInt would turn
+			// it into NaN. ModuleEntryEdit validates and normalizes it.
+			return <ModuleEntryEdit formId={action.form} entryId={eid} />;
 		}
 
 		return <ModuleEntryAdd formId={action.form} />;

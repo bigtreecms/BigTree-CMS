@@ -1,12 +1,4 @@
-import {
-	Archive,
-	ArrowRight,
-	Check,
-	Download,
-	Eye,
-	Star,
-	type LucideIcon,
-} from "lucide-react";
+import { Archive, ArrowRight, Check, Download, Eye, Star, type LucideIcon } from "lucide-react";
 
 import type { DataTableSort } from "@/components/ui/DataTable";
 import type { ModuleView, ModuleViewFieldConfig } from "@/api/endpoints/modules";
@@ -97,6 +89,96 @@ export const parseViewActions = (
 	}
 
 	return { builtins, custom };
+};
+
+/**
+ * Entry status — derived from the cached `status` column the view-cache writes
+ * for every row (see BigTreeAutoModule::cacheRecord in auto-modules.php). The
+ * legacy admin renders the same four states in its "Status" view column:
+ *
+ *   l → Published   c → Changed   p → Pending   i → Inactive
+ *
+ * "Changed" is a published row that has unpublished edits waiting; "Pending" is
+ * a brand-new row that has never been published; "Inactive" is archived or
+ * not-yet-approved.
+ */
+export type StatusKey = "published" | "pending" | "changed" | "inactive";
+
+export interface ViewStatus {
+	label: string;
+	key: StatusKey;
+}
+
+export const statusFromRow = (row: Record<string, unknown>): ViewStatus => {
+	const raw = typeof row.status === "string" ? row.status : "";
+
+	if (raw === "p") {
+		return { label: "Pending", key: "pending" };
+	}
+
+	if (raw === "c") {
+		return { label: "Changed", key: "changed" };
+	}
+
+	if (raw === "i") {
+		return { label: "Inactive", key: "inactive" };
+	}
+
+	return { label: "Published", key: "published" };
+};
+
+// Color of the status label. Mirrors the legacy admin's intent: published reads
+// as "live" (green), pending/changed need attention (warn), inactive is muted.
+export const statusTextClass: Record<StatusKey, string> = {
+	published: "text-success",
+	pending: "text-warn",
+	changed: "text-warn",
+	inactive: "text-text-3",
+};
+
+// The legacy admin tints pending/changed rows and dims their non-status content
+// to 50% opacity — the version shown in the list isn't the live one. Inactive
+// and published rows render normally. We honor only these two states (matching
+// the legacy `li.pending` CSS rule, which `c` and `p` both map to).
+export const statusIsMuted = (key: StatusKey): boolean => key === "pending" || key === "changed";
+
+// Background tint applied to the whole row for muted statuses.
+export const statusRowClass = (key: StatusKey): string => (statusIsMuted(key) ? "bg-warn-bg" : "");
+
+// Opacity applied to a row's non-status content (field columns + actions) for
+// muted statuses. The status label itself must NOT receive this class.
+export const statusDimClass = (key: StatusKey): string => (statusIsMuted(key) ? "opacity-60" : "");
+
+// Whether an id refers to a persisted entry — either a positive integer (a
+// published row) or a "p"-prefixed pending id (e.g. "p5", a brand-new entry that
+// only exists in bigtree_pending_changes). Both can be opened in the edit form
+// and deleted (deleting a pending id rejects the change). archive/approve/
+// feature still require a real int id (they act on a live row).
+export const isPersistedEntryId = (id: unknown): boolean => {
+	if (typeof id === "number") {
+		return Number.isFinite(id) && id > 0;
+	}
+
+	if (typeof id === "string") {
+		return /^p\d+$/.test(id) || (/^\d+$/.test(id) && Number(id) > 0);
+	}
+
+	return false;
+};
+
+// The numeric form of an entry id, or null for pending ("p"-prefixed) ids that
+// have no live row yet. Used where only a real row id makes sense (MTM relation
+// lookups, archive/approve/feature).
+export const numericEntryId = (id: unknown): number | null => {
+	if (typeof id === "number") {
+		return Number.isFinite(id) && id > 0 ? id : null;
+	}
+
+	if (typeof id === "string" && /^\d+$/.test(id) && Number(id) > 0) {
+		return Number(id);
+	}
+
+	return null;
 };
 
 export const parseSortSetting = (view: ModuleView): DataTableSort | undefined => {

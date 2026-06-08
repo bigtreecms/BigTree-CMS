@@ -10,10 +10,15 @@ import { toast } from "@/lib/toast";
 import {
 	formatCellValue,
 	iconForCustomAction,
+	isPersistedEntryId,
 	parseViewActions,
+	statusDimClass,
+	statusFromRow,
+	statusRowClass,
 	type BuiltinViewActionFlags,
 	type CustomViewAction,
 } from "./viewHelpers";
+import { ViewStatusBadge } from "./ViewStatusBadge";
 import { BuiltinToggleButtons } from "./BuiltinToggleButtons";
 import { useEntryDelete } from "./useEntryDelete";
 import { useModuleEntryLinks } from "@/pages/ModuleLayout";
@@ -77,33 +82,6 @@ const buildTree = (rows: ModuleEntryRow[]): TreeNode[] => {
 	}
 
 	return roots;
-};
-
-type StatusKey = "published" | "pending" | "changed" | "inactive";
-
-const statusFromRow = (row: ModuleEntryRow): { label: string; key: StatusKey } => {
-	const raw = typeof row.status === "string" ? row.status : "";
-
-	if (raw === "p") {
-		return { label: "Pending", key: "pending" };
-	}
-
-	if (raw === "c") {
-		return { label: "Changed", key: "changed" };
-	}
-
-	if (raw === "i") {
-		return { label: "Inactive", key: "inactive" };
-	}
-
-	return { label: "Published", key: "published" };
-};
-
-const statusClassName: Record<StatusKey, string> = {
-	published: "text-success",
-	pending: "text-warning",
-	changed: "text-warning",
-	inactive: "text-text-3",
 };
 
 interface DragApi {
@@ -189,15 +167,11 @@ export const NestedView = ({ moduleId, view }: NestedViewProps) => {
 	};
 
 	const openEdit = (row: ModuleEntryRow) => {
-		if (!builtins.edit) {
+		if (!builtins.edit || !isPersistedEntryId(row.id)) {
 			return;
 		}
 
-		const entryId = Number(row.id);
-
-		if (Number.isFinite(entryId) && entryId > 0) {
-			navigate(editPath(entryId));
-		}
+		navigate(editPath(row.id));
 	};
 
 	const canDrag = !debouncedQuery && !listQuery.isLoading;
@@ -407,17 +381,18 @@ const NestedRow = ({
 	const hasChildren = node.children.length > 0;
 	const indentPx = depth * 20;
 	const status = statusFromRow(node.row);
+	const dim = statusDimClass(status.key);
 	const isDragging = drag.dragId === id;
 	const isOver = drag.overId === id && drag.dragId !== id;
 
 	return (
 		<>
 			<li
-				className={`flex items-center gap-2 px-3 py-2 text-[13px] hover:bg-surface-2 ${
-					builtins.edit ? "cursor-pointer" : ""
-				} ${isDragging ? "bg-accent-soft opacity-60" : ""} ${
-					isOver ? "shadow-[inset_0_2px_0_0_var(--color-accent)]" : ""
-				}`}
+				className={`flex items-center gap-2 px-3 py-2 text-[13px] hover:bg-surface-2 ${statusRowClass(
+					status.key
+				)} ${builtins.edit ? "cursor-pointer" : ""} ${
+					isDragging ? "bg-accent-soft opacity-60" : ""
+				} ${isOver ? "shadow-[inset_0_2px_0_0_var(--color-accent)]" : ""}`}
 				draggable={drag.canDrag}
 				onDragStart={(e) => drag.onDragStart(e, node.row)}
 				onDragOver={(e) => drag.onDragOver(e, node.row)}
@@ -461,7 +436,7 @@ const NestedRow = ({
 					)}
 				</span>
 
-				<div className="flex min-w-0 flex-1 items-center gap-4">
+				<div className={`flex min-w-0 flex-1 items-center gap-4 ${dim}`}>
 					{fieldColumns.map(([key], index) => {
 						const valueKey = `column${index + 1}`;
 						const isFirst = index === 0;
@@ -477,13 +452,9 @@ const NestedRow = ({
 					})}
 				</div>
 
-				<span
-					className={`flex-shrink-0 text-[11px] font-semibold uppercase tracking-[0.06em] ${statusClassName[status.key]}`}
-				>
-					{status.label}
-				</span>
+				<ViewStatusBadge row={node.row} className="flex-shrink-0" />
 
-				<div className="flex items-center gap-1">
+				<div className={`flex items-center gap-1 ${dim}`}>
 					{custom.map((action) => {
 						const Icon = iconForCustomAction(action.className);
 

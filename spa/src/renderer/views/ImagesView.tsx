@@ -8,7 +8,7 @@ import type { ModuleView } from "@/api/endpoints/modules";
 
 import { expandImageUrl } from "@/lib/imageUrl";
 
-import { type CustomViewAction, parseViewActions } from "./viewHelpers";
+import { type CustomViewAction, isPersistedEntryId, parseViewActions } from "./viewHelpers";
 import { useEntryDelete } from "./useEntryDelete";
 import { useModuleEntryLinks } from "@/pages/ModuleLayout";
 
@@ -63,15 +63,11 @@ export const ImagesView = ({ moduleId, view }: ImagesViewProps) => {
 	const rows = listQuery.data?.items ?? [];
 
 	const openEdit = (row: ModuleEntryRow) => {
-		if (!builtins.edit) {
+		if (!builtins.edit || !isPersistedEntryId(row.id)) {
 			return;
 		}
 
-		const entryId = Number(row.id);
-
-		if (Number.isFinite(entryId) && entryId > 0) {
-			navigate(editPath(entryId));
-		}
+		navigate(editPath(row.id));
 	};
 
 	return (

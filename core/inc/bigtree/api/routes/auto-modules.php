@@ -16,19 +16,25 @@
 		],
 		// `form` joins `view` here because edit screens reached via a form action
 		// (no view) send the form id as the authoritative table reference.
-		"GET /modules/{id}/entries/{eid:int}" => [
+		// `eid` is a string (not `:int`) so a pending entry — whose view-cache id
+		// carries a "p" prefix, e.g. "p5" — can be loaded into the edit form.
+		"GET /modules/{id}/entries/{eid}" => [
 			"service" => [AutoModuleService::class, "get"],
 			"permission" => ["module" => "%id%", "min" => "v"],
 			"query" => ["view" => "string|max:128", "form" => "string|max:128"],
 		],
-		"PATCH /modules/{id}/entries/{eid:int}" => [
+		// `eid` is a string so a pending entry ("p5") can be re-saved (updates the
+		// pending change) or, on publish, promoted to a live row.
+		"PATCH /modules/{id}/entries/{eid}" => [
 			"service" => [AutoModuleService::class, "update"],
 			"permission" => ["module" => "%id%", "min" => "e"],
 			"allow_unknown" => true,
 			"query" => ["view" => "string|max:128", "form" => "string|max:128"],
 			"audit" => ["table" => "module_entry", "type" => "updated", "entry" => "%eid%"],
 		],
-		"DELETE /modules/{id}/entries/{eid:int}" => [
+		// `eid` is a string (not `:int`) so pending entries — whose view-cache id
+		// carries a "p" prefix, e.g. "p5" — can be deleted/rejected too.
+		"DELETE /modules/{id}/entries/{eid}" => [
 			"service" => [AutoModuleService::class, "delete"],
 			"permission" => ["module" => "%id%", "min" => "p"],
 			"query" => ["view" => "string|max:128", "form" => "string|max:128"],

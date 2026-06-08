@@ -8,7 +8,16 @@ import type { ModuleView } from "@/api/endpoints/modules";
 import { useDragReorder } from "@/hooks/useDragReorder";
 import { toast } from "@/lib/toast";
 
-import { formatCellValue, iconForCustomAction, parseViewActions } from "./viewHelpers";
+import {
+	formatCellValue,
+	iconForCustomAction,
+	isPersistedEntryId,
+	parseViewActions,
+	statusDimClass,
+	statusFromRow,
+	statusRowClass,
+} from "./viewHelpers";
+import { ViewStatusBadge } from "./ViewStatusBadge";
 import { BuiltinToggleButtons } from "./BuiltinToggleButtons";
 import { useEntryDelete } from "./useEntryDelete";
 import { useModuleEntryLinks } from "@/pages/ModuleLayout";
@@ -98,15 +107,11 @@ export const DraggableView = ({ moduleId, view }: DraggableViewProps) => {
 	const fieldColumns = useMemo(() => Object.entries(view.fields ?? {}), [view.fields]);
 
 	const openEdit = (row: ModuleEntryRow) => {
-		if (!builtins.edit) {
+		if (!builtins.edit || !isPersistedEntryId(row.id)) {
 			return;
 		}
 
-		const entryId = Number(row.id);
-
-		if (Number.isFinite(entryId) && entryId > 0) {
-			navigate(editPath(entryId));
-		}
+		navigate(editPath(row.id));
 	};
 
 	return (
@@ -156,13 +161,17 @@ export const DraggableView = ({ moduleId, view }: DraggableViewProps) => {
 						{rows.map((r) => {
 							const isDragging = drag.dragId === r.id;
 							const isOver = drag.overId === r.id && drag.dragId !== r.id;
+							const status = statusFromRow(r.row);
+							const dim = statusDimClass(status.key);
 
 							return (
 								<li
 									key={String(r.id)}
-									className={`flex items-center gap-2 border-b border-border px-3 py-2 text-[13px] last:border-b-0 hover:bg-surface-2 ${
-										isDragging ? "bg-accent-soft shadow-md" : ""
-									} ${isOver ? "shadow-[inset_0_2px_0_0_var(--color-accent)]" : ""}`}
+									className={`flex items-center gap-2 border-b border-border px-3 py-2 text-[13px] last:border-b-0 hover:bg-surface-2 ${statusRowClass(
+										status.key
+									)} ${isDragging ? "bg-accent-soft shadow-md" : ""} ${
+										isOver ? "shadow-[inset_0_2px_0_0_var(--color-accent)]" : ""
+									}`}
 									draggable={canDrag}
 									onDragStart={(e) => drag.onDragStart(e, r.id)}
 									onDragOver={(e) => drag.onDragOver(e, r.id)}
@@ -183,7 +192,9 @@ export const DraggableView = ({ moduleId, view }: DraggableViewProps) => {
 										<GripVertical size={14} />
 									</span>
 
-									<div className="flex min-w-0 flex-1 items-center gap-4">
+									<div
+										className={`flex min-w-0 flex-1 items-center gap-4 ${dim}`}
+									>
 										{fieldColumns.map(([key], index) => {
 											const valueKey = `column${index + 1}`;
 											const isFirst = index === 0;
@@ -201,7 +212,9 @@ export const DraggableView = ({ moduleId, view }: DraggableViewProps) => {
 										})}
 									</div>
 
-									<div className="flex items-center gap-1">
+									<ViewStatusBadge row={r.row} className="flex-shrink-0" />
+
+									<div className={`flex items-center gap-1 ${dim}`}>
 										{custom.map((action) => {
 											const Icon = iconForCustomAction(action.className);
 

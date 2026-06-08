@@ -6,6 +6,8 @@ import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { autoModulesApi, type ModuleEntryRow } from "@/api/endpoints/auto-modules";
 import { toast } from "@/lib/toast";
 
+import { isPersistedEntryId, statusFromRow } from "./viewHelpers";
+
 /**
  * Shared delete flow for the module-view runtimes. Owns the confirm dialog, the
  * delete mutation, and view-cache invalidation so each view type doesn't have to
@@ -21,10 +23,15 @@ export const useEntryDelete = (moduleId: string, viewId: string) => {
 	const [confirmDelete, setConfirmDelete] = useState<ModuleEntryRow | null>(null);
 
 	const deleteMutation = useMutation({
-		mutationFn: (entryId: number) => autoModulesApi.delete(moduleId, entryId, { view: viewId }),
-		onSuccess: () => {
+		mutationFn: (entryId: number | string) =>
+			autoModulesApi.delete(moduleId, entryId, { view: viewId }),
+		onSuccess: (_data, entryId) => {
 			queryClient.invalidateQueries({ queryKey: ["module-entries", moduleId, viewId] });
-			toast.success("Entry deleted");
+			toast.success(
+				typeof entryId === "string" && entryId.startsWith("p")
+					? "Pending entry deleted"
+					: "Entry deleted"
+			);
 		},
 		onError: () => {
 			toast.error("Could not delete entry");
@@ -38,6 +45,8 @@ export const useEntryDelete = (moduleId: string, viewId: string) => {
 		setConfirmDelete(row);
 	}, []);
 
+	const isPending = confirmDelete ? statusFromRow(confirmDelete).key === "pending" : false;
+
 	const dialog = confirmDelete ? (
 		<ConfirmDialog
 			open={true}
@@ -46,15 +55,17 @@ export const useEntryDelete = (moduleId: string, viewId: string) => {
 					setConfirmDelete(null);
 				}
 			}}
-			title="Delete entry?"
-			description="This action cannot be undone."
+			title={isPending ? "Delete pending entry?" : "Delete entry?"}
+			description={
+				isPending
+					? "This deletes the pending entry — it has never been published, so nothing live is affected."
+					: "This action cannot be undone."
+			}
 			confirmLabel="Delete"
 			variant="danger"
 			onConfirm={() => {
-				const entryId = Number(confirmDelete.id);
-
-				if (Number.isFinite(entryId) && entryId > 0) {
-					deleteMutation.mutate(entryId);
+				if (isPersistedEntryId(confirmDelete.id)) {
+					deleteMutation.mutate(confirmDelete.id);
 				}
 			}}
 		/>

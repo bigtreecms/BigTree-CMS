@@ -35,6 +35,12 @@ interface DataTableProps<Row> {
 	onSortChange?: (sort: DataTableSort) => void;
 	onRowClick?: (row: Row) => void;
 	/**
+	 * Optional extra classes applied per row (e.g. a status-based background
+	 * tint). Returned classes are appended after the base row classes, so they
+	 * win on conflicting properties.
+	 */
+	rowClassName?: (row: Row) => string | undefined;
+	/**
 	 * When provided, rows gain a drag handle and can be reordered; the callback
 	 * receives the row keys in their new order. Purely additive — without it the
 	 * table behaves exactly as before. Reordering is a desktop-only affordance.
@@ -61,6 +67,7 @@ export const DataTable = <Row,>({
 	sort,
 	onSortChange,
 	onRowClick,
+	rowClassName,
 	onReorder,
 }: DataTableProps<Row>) => {
 	const reorderable = !!onReorder;
@@ -142,7 +149,9 @@ export const DataTable = <Row,>({
 							key={key}
 							className={`grid grid-cols-1 md:grid-cols-[var(--dt-cols)] gap-x-4 border-b border-border px-3.5 py-2 text-[13px] last:border-b-0 hover:bg-surface-2 md:items-center md:py-1.5 ${
 								onRowClick ? "cursor-pointer" : ""
-							} ${isDropTarget ? "shadow-[inset_0_2px_0_0_var(--color-accent)]" : ""}`}
+							} ${isDropTarget ? "shadow-[inset_0_2px_0_0_var(--color-accent)]" : ""} ${
+								rowClassName?.(row) ?? ""
+							}`}
 							style={colsStyle}
 							onClick={() => onRowClick?.(row)}
 							onDragOver={reorderable ? (e) => drag.onDragOver(e, key) : undefined}

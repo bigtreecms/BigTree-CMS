@@ -67,7 +67,8 @@ export interface GbpCategory {
 export interface ModuleAction {
 	id: string;
 	name: string;
-	route: string;
+	/** The landing action stores null/"" here; all others have a slug. */
+	route: string | null;
 	class: string;
 	in_nav: boolean | string;
 	level: number;

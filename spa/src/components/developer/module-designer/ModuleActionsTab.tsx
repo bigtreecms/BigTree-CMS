@@ -229,7 +229,7 @@ export const ModuleActionsTab = ({ moduleId }: ModuleActionsTabProps) => {
 					<SubRow
 						key={a.id}
 						title={a.name}
-						subtitle={a.route}
+						subtitle={a.route ?? undefined}
 						badge={a.in_nav === true || a.in_nav === "on" ? "in nav" : undefined}
 						onEdit={() => crud.startEdit(a.id)}
 						onDelete={() => setPendingDelete(a)}

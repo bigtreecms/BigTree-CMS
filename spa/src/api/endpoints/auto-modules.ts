@@ -97,10 +97,13 @@ export const autoModulesApi = {
 			},
 		}),
 
-	get: (moduleId: string, entryId: number, ref?: EntryTableRef) =>
-		api.get<ModuleEntryDetail>(`/modules/${encodeURIComponent(moduleId)}/entries/${entryId}`, {
-			query: refQuery(ref),
-		}),
+	// `entryId` accepts the "p"-prefixed pending id (e.g. "p5") so the edit form
+	// can load a never-published entry's data, in addition to a real numeric id.
+	get: (moduleId: string, entryId: number | string, ref?: EntryTableRef) =>
+		api.get<ModuleEntryDetail>(
+			`/modules/${encodeURIComponent(moduleId)}/entries/${encodeURIComponent(String(entryId))}`,
+			{ query: refQuery(ref) }
+		),
 
 	create: (
 		moduleId: string,
@@ -114,23 +117,29 @@ export const autoModulesApi = {
 			{ query: refQuery(ref) }
 		),
 
+	// `entryId` accepts the "p"-prefixed pending id (e.g. "p5") — saving then
+	// updates that pending change (or, on publish, promotes it to a live row).
 	update: (
 		moduleId: string,
-		entryId: number,
+		entryId: number | string,
 		body: Record<string, unknown>,
 		ref?: EntryTableRef,
 		publish = false
 	) =>
 		api.patch<ModuleEntryDetail | { pending: true }>(
-			`/modules/${encodeURIComponent(moduleId)}/entries/${entryId}`,
+			`/modules/${encodeURIComponent(moduleId)}/entries/${encodeURIComponent(String(entryId))}`,
 			publish ? { ...body, __publish__: true } : body,
 			{ query: refQuery(ref) }
 		),
 
-	delete: (moduleId: string, entryId: number, ref?: EntryTableRef) =>
-		api.delete<void>(`/modules/${encodeURIComponent(moduleId)}/entries/${entryId}`, undefined, {
-			query: refQuery(ref),
-		}),
+	// `entryId` accepts the "p"-prefixed pending id (e.g. "p5") in addition to a
+	// real numeric id; the server rejects the pending change in that case.
+	delete: (moduleId: string, entryId: number | string, ref?: EntryTableRef) =>
+		api.delete<void>(
+			`/modules/${encodeURIComponent(moduleId)}/entries/${encodeURIComponent(String(entryId))}`,
+			undefined,
+			{ query: refQuery(ref) }
+		),
 
 	reorder: (moduleId: string, ids: Array<number | string>, viewId?: string) =>
 		api.post<void>(`/modules/${encodeURIComponent(moduleId)}/entries/reorder`, {
