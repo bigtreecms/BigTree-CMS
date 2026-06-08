@@ -14,7 +14,7 @@ import { ResourceDesigner, type ResourceEntry } from "@/components/developer/Res
 import { useResourceSettingsValidation } from "@/components/developer/field-settings/useResourceSettingsValidation";
 
 import { calloutsApi, type CalloutEditBody } from "@/api/endpoints/callouts";
-import type { ModuleFormField } from "@/api/endpoints/modules";
+import type { TemplateResource } from "@/api/endpoints/templates";
 
 import { ApiError } from "@/types/api";
 import { toast } from "@/lib/toast";
@@ -245,7 +245,7 @@ export const CalloutEdit = () => {
 					<ResourceDesigner
 						resources={(body.resources ?? []) as unknown as ResourceEntry[]}
 						onChange={(next) =>
-							set({ resources: next as unknown as ModuleFormField[] })
+							set({ resources: next as unknown as TemplateResource[] })
 						}
 						keyField="id"
 						useCase="callouts"

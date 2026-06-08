@@ -576,14 +576,41 @@
 				"publish_at", "expire_at", "max_age", "trunk", "resources", "open_graph",
 			];
 
+			// Capture the published value of each overlaid field before replacing it
+			// so the SPA can show a published-vs-pending comparison per field, and
+			// record which fields actually differ for the "Pending" markers.
+			$original = [];
+			$changed_fields = [];
+
 			foreach ($overlay_fields as $field) {
 				if (array_key_exists($field, $changes)) {
+					$published = $out[$field] ?? null;
+					$original[$field] = $published;
 					$out[$field] = $changes[$field];
+
+					// Compare structurally for arrays/objects, stringwise for
+					// scalars, so "1" vs 1 (or reordered nothing) isn't a false diff.
+					$matches = (is_array($published) || is_array($changes[$field]))
+						? json_encode($published) === json_encode($changes[$field])
+						: (string)$published === (string)$changes[$field];
+
+					if (!$matches) {
+						$changed_fields[] = $field;
+					}
 				}
 			}
 
+			$owner_id = !empty($change["user"]) ? (int)$change["user"] : null;
+
 			$out["changes_applied"] = true;
 			$out["pending_change_id"] = (int)$change["id"];
+			$out["pending_original"] = $original;
+			$out["changed_fields"] = $changed_fields;
+			// Attribute the draft so the SPA can label it ("Your draft" vs "Draft by …").
+			$out["pending_owner"] = $owner_id;
+			$out["pending_owner_name"] = $owner_id
+				? SQL::fetchSingle("SELECT name FROM bigtree_users WHERE id = ?", $owner_id)
+				: null;
 			$out["updated_at"] = $change["date"];
 		}
 

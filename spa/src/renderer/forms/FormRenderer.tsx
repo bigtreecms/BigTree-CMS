@@ -59,6 +59,27 @@ export interface FormRendererProps {
 	 * connecting table (the entry payload doesn't carry MTM data inline).
 	 */
 	entryId?: number | null;
+	/**
+	 * Columns whose draft value differs from the published content. Each gets a
+	 * "Pending" badge and a published-vs-draft comparison toggle.
+	 */
+	pendingFields?: string[];
+	/**
+	 * Published (live) values keyed by column, for the comparison panel. Null
+	 * when the entry has never been published (a brand-new draft).
+	 */
+	publishedValues?: Record<string, unknown> | null;
+	/**
+	 * Pending state of the loaded entry, if any: "updated" = a live row with a
+	 * queued edit overlaid; "pending" = a never-published new draft. Drives the
+	 * banner copy and per-field "New" vs "Pending" labelling.
+	 */
+	pendingStatus?: "updated" | "pending";
+	/**
+	 * Heading for the draft side of each field comparison, attributed to the
+	 * pending change's owner (e.g. "Your draft" / "Draft by Jane").
+	 */
+	pendingLabel?: string;
 }
 
 export const FormRenderer = ({
@@ -74,6 +95,10 @@ export const FormRenderer = ({
 	header,
 	moduleId,
 	entryId,
+	pendingFields,
+	publishedValues,
+	pendingStatus,
+	pendingLabel,
 }: FormRendererProps) => {
 	const [values, setValues] = useState<Record<string, unknown>>(() =>
 		seedValues(form, initialValues)
@@ -92,6 +117,15 @@ export const FormRenderer = ({
 	// (a successful save navigates away and must not be intercepted) or in a
 	// read-only/disabled view where no edits are possible.
 	const isDirty = !disabled && !submitting && !valuesAreEqual(values, baselineRef.current);
+
+	const pendingSet = useMemo(() => new Set(pendingFields ?? []), [pendingFields]);
+	const isNewDraft = pendingStatus === "pending";
+	// Count only changed columns that are actually rendered on this form, so the
+	// banner doesn't include internal/non-form columns from the change blob.
+	const pendingCount = useMemo(
+		() => form.fields.filter((field) => pendingSet.has(field.column)).length,
+		[form.fields, pendingSet]
+	);
 
 	const renderContext = useMemo<FormRenderContextValue | null>(() => {
 		if (!moduleId) {
@@ -182,6 +216,20 @@ export const FormRenderer = ({
 					</div>
 				)}
 
+				{pendingStatus && (
+					<div className="mb-4 rounded-md border border-warn/40 bg-warn/5 px-3 py-2 text-[12.5px] text-text-2">
+						{isNewDraft
+							? "This is an unpublished draft and isn’t live yet. "
+							: "You’re editing unpublished changes — the live entry still shows the previously published content. "}
+						{!isNewDraft &&
+							pendingCount > 0 &&
+							`${pendingCount} field${pendingCount === 1 ? "" : "s"} changed — `}
+						{canPublish
+							? "“Save” keeps it pending; “Save & Publish” makes it live."
+							: "“Save” updates the draft for a publisher to review."}
+					</div>
+				)}
+
 				{form.fields.length === 0 ? (
 					<div className="rounded-md border border-dashed border-border bg-surface-2 p-6 text-center text-[12.5px] text-text-3">
 						This form has no fields configured.
@@ -192,6 +240,11 @@ export const FormRenderer = ({
 							key={field.column}
 							field={field}
 							error={fieldErrors[field.column]}
+							pending={pendingSet.has(field.column)}
+							isNew={isNewDraft}
+							publishedValue={publishedValues?.[field.column]}
+							currentValue={values[field.column]}
+							pendingLabel={pendingLabel}
 						>
 							<FieldRenderer
 								field={field}

@@ -5,6 +5,7 @@ import { ChevronDown, ChevronRight, GripVertical, Plus, Trash } from "lucide-rea
 import { useAuthStore } from "@/auth/store";
 
 import { calloutsApi, type CalloutSummary } from "@/api/endpoints/callouts";
+import { resourceToFormField } from "@/api/endpoints/templates";
 
 import { FieldRenderer } from "@/renderer/forms/FieldRenderer";
 import { FieldRow } from "@/renderer/forms/FieldRow";
@@ -65,6 +66,25 @@ const seedRows = (raw: unknown): CalloutRow[] => {
 };
 
 const stripUid = (rows: CalloutRow[]): RowData[] => rows.map((r) => r.data);
+
+/**
+ * Structural equality of two row sets by their data payloads (ignoring the
+ * ephemeral uids). Used to decide whether an incoming `value` is a real change
+ * or just the echo of our own edit, so we don't needlessly regenerate uids.
+ */
+const rowsDataEqual = (a: CalloutRow[], b: CalloutRow[]): boolean => {
+	if (a.length !== b.length) {
+		return false;
+	}
+
+	for (let i = 0; i < a.length; i++) {
+		if (JSON.stringify(a[i]?.data) !== JSON.stringify(b[i]?.data)) {
+			return false;
+		}
+	}
+
+	return true;
+};
 
 const toInt = (raw: unknown): number => {
 	const n = typeof raw === "number" ? raw : Number(raw);
@@ -163,17 +183,18 @@ export const CalloutsField = ({ field, value, onChange, disabled }: FieldCompone
 	const [expanded, setExpanded] = useState<Set<string>>(new Set());
 	const [pendingType, setPendingType] = useState<string>("");
 
-	const ownChange = useMemo(() => ({ current: false }), []);
-
+	// Re-seed from the incoming value only when it genuinely differs from the
+	// rows we already hold. The echo of our own onChange (and any unrelated
+	// re-render that passes a structurally-equal value) is ignored, so row uids
+	// — and the expand/collapse state keyed on them — survive. Only an external
+	// change (e.g. switching records) regenerates the rows.
 	useEffect(() => {
-		if (ownChange.current) {
-			ownChange.current = false;
+		setRows((prev) => {
+			const incoming = seedRows(value);
 
-			return;
-		}
-
-		setRows(seedRows(value));
-	}, [value, ownChange]);
+			return rowsDataEqual(prev, incoming) ? prev : incoming;
+		});
+	}, [value]);
 
 	// Pre-select the first available type once the catalog loads so the Add
 	// button isn't disabled-for-no-reason on first paint.
@@ -185,7 +206,6 @@ export const CalloutsField = ({ field, value, onChange, disabled }: FieldCompone
 
 	const commit = (next: CalloutRow[]) => {
 		setRows(next);
-		ownChange.current = true;
 		onChange(stripUid(next));
 	};
 
@@ -400,16 +420,25 @@ const CalloutRowItem = ({
 							This callout type has no fields configured.
 						</div>
 					) : (
-						callout.resources.map((resource) => (
-							<FieldRow key={resource.column} field={resource}>
-								<FieldRenderer
-									field={resource}
-									value={row.data[resource.column]}
-									onChange={(next) => onCellChange(resource.column, next)}
-									disabled={rowDisabled}
-								/>
-							</FieldRow>
-						))
+						callout.resources.map((resource) => {
+							// Callout resources are keyed by `id` (like template
+							// resources), so adapt to the `column`-keyed field shape
+							// the renderer expects. Using `resource.id` directly is
+							// essential: every field shares `row.data[undefined]`
+							// otherwise (one field's edits leak into all of them).
+							const formField = resourceToFormField(resource);
+
+							return (
+								<FieldRow key={formField.column} field={formField}>
+									<FieldRenderer
+										field={formField}
+										value={row.data[formField.column]}
+										onChange={(next) => onCellChange(formField.column, next)}
+										disabled={rowDisabled}
+									/>
+								</FieldRow>
+							);
+						})
 					)}
 
 					{index < totalRows - 1 && (

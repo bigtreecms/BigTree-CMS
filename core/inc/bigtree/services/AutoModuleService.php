@@ -108,6 +108,14 @@
 				throw new AuthorizationException("Row access denied by group permissions", "permission_denied", 403);
 			}
 
+			// Resolve the draft's owner so the SPA can attribute the pending change
+			// ("Your draft" vs "Draft by …") instead of assuming the current user.
+			$owner_id = isset($pending["owner"]) && $pending["owner"] ? (int)$pending["owner"] : null;
+			$pending["owner"] = $owner_id;
+			$pending["owner_name"] = $owner_id
+				? SQL::fetchSingle("SELECT name FROM bigtree_users WHERE id = ?", $owner_id)
+				: null;
+
 			return Response::ok($pending);
 		}
 

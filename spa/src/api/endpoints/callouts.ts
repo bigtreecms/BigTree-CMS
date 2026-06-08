@@ -1,6 +1,6 @@
 import { api } from "@/api/client";
 
-import type { ModuleFormField } from "@/api/endpoints/modules";
+import type { TemplateResource } from "@/api/endpoints/templates";
 
 /**
  * Callouts catalog endpoints. The CalloutsField (and later the Developer
@@ -8,9 +8,9 @@ import type { ModuleFormField } from "@/api/endpoints/modules";
  * types and read each type's `resources` schema, which drives the per-row
  * sub-field rendering.
  *
- * A "resource" in callout JSON-DB storage is structurally equivalent to a
- * `ModuleFormField` (column / type / settings), so we re-use that interface
- * rather than coining a parallel type.
+ * A callout "resource" is keyed by `id` (legacy JSON storage), exactly like a
+ * template resource — NOT by `column` like a module-form field. Consumers map
+ * it to the ModuleFormField shape via `resourceToFormField` before rendering.
  */
 
 export interface CalloutSummary {
@@ -21,7 +21,7 @@ export interface CalloutSummary {
 	position: number;
 	display_field: string;
 	display_default: string;
-	resources: ModuleFormField[];
+	resources: TemplateResource[];
 }
 
 export interface CalloutGroup {
@@ -37,7 +37,7 @@ export interface CalloutEditBody {
 	level?: number;
 	display_field?: string;
 	display_default?: string;
-	resources?: ModuleFormField[];
+	resources?: TemplateResource[];
 }
 
 export interface CalloutGroupEditBody {
@@ -64,8 +64,7 @@ export const calloutsApi = {
 
 	getGroup: (id: string) => api.get<CalloutGroup>(`/callout-groups/${encodeURIComponent(id)}`),
 
-	createGroup: (body: CalloutGroupEditBody) =>
-		api.post<CalloutGroup>("/callout-groups", body),
+	createGroup: (body: CalloutGroupEditBody) => api.post<CalloutGroup>("/callout-groups", body),
 
 	updateGroup: (id: string, body: CalloutGroupEditBody) =>
 		api.patch<CalloutGroup>(`/callout-groups/${encodeURIComponent(id)}`, body),

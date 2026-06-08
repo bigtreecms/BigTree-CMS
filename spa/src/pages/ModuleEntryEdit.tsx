@@ -8,6 +8,8 @@ import { modulesApi } from "@/api/endpoints/modules";
 import { FormRenderer } from "@/renderer/forms/FormRenderer";
 import { useLock } from "@/hooks/useLock";
 import { modulePath, moduleActionPath } from "@/lib/moduleActions";
+import { draftOwnerLabel } from "@/lib/fieldComparison";
+import { useAuthStore } from "@/auth/store";
 import { useModuleContext } from "@/pages/ModuleLayout";
 import { isPersistedEntryId, numericEntryId } from "@/renderer/views/viewHelpers";
 import { toast } from "@/lib/toast";
@@ -34,6 +36,7 @@ export const ModuleEntryEdit = ({ formId, entryId }: ModuleEntryEditProps) => {
 	const { moduleId, module, actions } = useModuleContext();
 	const navigate = useNavigate();
 	const queryClient = useQueryClient();
+	const currentUserId = useAuthStore((s) => s.user?.id);
 
 	// A pending ("p"-prefixed) entry has no live row id; `liveId` is null for it,
 	// so MTM relation lookups (which query the live connecting table) are skipped.
@@ -98,6 +101,18 @@ export const ModuleEntryEdit = ({ formId, entryId }: ModuleEntryEditProps) => {
 	const isLoading = formsQuery.isLoading || entryQuery.isLoading;
 	const readOnly = lock.ownedByOther;
 
+	// Surface which fields carry queued changes so the form can badge them and
+	// offer a published-vs-draft comparison. Only "updated"/"pending" entries
+	// have anything to show.
+	const entryStatus = entryQuery.data?.status;
+	const pendingStatus =
+		entryStatus === "updated" || entryStatus === "pending" ? entryStatus : undefined;
+	const pendingFields = pendingStatus ? entryQuery.data?.changed_fields : undefined;
+	const publishedValues = pendingStatus ? (entryQuery.data?.original ?? null) : undefined;
+	const pendingLabel = pendingStatus
+		? draftOwnerLabel(entryQuery.data?.owner, entryQuery.data?.owner_name, currentUserId)
+		: undefined;
+
 	return (
 		<>
 			<PageHead title={form ? `Edit ${form.title}` : "Edit entry"} />
@@ -122,6 +137,10 @@ export const ModuleEntryEdit = ({ formId, entryId }: ModuleEntryEditProps) => {
 					initialValues={initialValues}
 					moduleId={moduleId}
 					entryId={liveId}
+					pendingFields={pendingFields}
+					publishedValues={publishedValues}
+					pendingStatus={pendingStatus}
+					pendingLabel={pendingLabel}
 					disabled={readOnly}
 					onCancel={() => navigate(returnPath)}
 					submitLabel="Save"

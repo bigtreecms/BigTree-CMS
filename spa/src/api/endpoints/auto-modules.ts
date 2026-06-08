@@ -47,8 +47,23 @@ export interface ModuleEntriesListParams {
 
 export interface ModuleEntryDetail {
 	item: ModuleEntryRow;
-	// Pending changes / mtm / tags etc. live alongside `item` — kept loose for
-	// the form runtime to interpret.
+	/**
+	 * Pending-change state of the entry:
+	 *   "published" — live row, no queued change
+	 *   "updated"   — live row with a queued edit overlaid onto `item`
+	 *   "pending"   — a never-published new draft (no live counterpart)
+	 */
+	status?: "published" | "updated" | "pending";
+	/** Published (live) column values before the pending overlay; null for new drafts. */
+	original?: Record<string, unknown> | null;
+	/** Columns whose draft value differs from the published content. */
+	changed_fields?: string[];
+	/** User id of whoever created the pending change (null when not pending). */
+	owner?: number | null;
+	/** Display name of the pending change's owner, for attribution. */
+	owner_name?: string | null;
+	// mtm / tags / open_graph etc. live alongside `item` — kept loose for the
+	// form runtime to interpret.
 	[key: string]: unknown;
 }
 

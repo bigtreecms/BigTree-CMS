@@ -986,6 +986,8 @@
 			$status = "published";
 			$many_to_many = array();
 			$owner = false;
+			$original = null;
+			$changed_fields = array();
 
 			// The entry is pending if there's a "p" prefix on the id
 			if (substr($id,0,1) == "p") {
@@ -1013,6 +1015,9 @@
 
 				$status = "pending";
 				$owner = $change["user"];
+				// A never-published draft has no live counterpart to diff against;
+				// every field it carries is "new", so flag them all as changed.
+				$changed_fields = is_array($item) ? array_keys($item) : array();
 			// Otherwise it's a live entry
 			} else {
 				$id = sqlescape($id);
@@ -1028,6 +1033,11 @@
 				if ($change) {
 					$status = "updated";
 					$changes = json_decode($change["changes"],true);
+
+					// Keep the published row before overlaying the draft so the SPA
+					// can show a published-vs-pending comparison per field.
+					$original = $item;
+					$changed_fields = is_array($changes) ? array_keys($changes) : array();
 
 					foreach ($changes as $key => $val) {
 						$item[$key] = $val;
@@ -1055,19 +1065,31 @@
 			}
 
 			// Process the internal page links, turn json_encoded arrays into arrays.
-			foreach ($item as $key => $val) {
-				if (is_null($val)) {
-					$item[$key] = null;
-				} else if (is_array($val)) {
-					$item[$key] = BigTree::untranslateArray($val);
-				} elseif (is_array(json_decode($val,true))) {
-					$item[$key] = BigTree::untranslateArray(json_decode($val,true));
-				} else {
-					$item[$key] = BigTreeCMS::replaceInternalPageLinks($val);
+			// Applied to both the (possibly overlaid) item and the published
+			// original so the two are display-normalized identically for diffing.
+			$normalize = function ($row) {
+				foreach ($row as $key => $val) {
+					if (is_null($val)) {
+						$row[$key] = null;
+					} else if (is_array($val)) {
+						$row[$key] = BigTree::untranslateArray($val);
+					} elseif (is_array(json_decode($val,true))) {
+						$row[$key] = BigTree::untranslateArray(json_decode($val,true));
+					} else {
+						$row[$key] = BigTreeCMS::replaceInternalPageLinks($val);
+					}
 				}
+
+				return $row;
+			};
+
+			$item = $normalize($item);
+
+			if (is_array($original)) {
+				$original = $normalize($original);
 			}
 
-			return array("item" => $item, "mtm" => $many_to_many, "tags" => $tags, "open_graph" => $open_graph, "status" => $status, "owner" => $owner);
+			return array("item" => $item, "original" => $original, "changed_fields" => $changed_fields, "mtm" => $many_to_many, "tags" => $tags, "open_graph" => $open_graph, "status" => $status, "owner" => $owner);
 		}
 
 		/*

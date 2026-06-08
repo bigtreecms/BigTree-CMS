@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Navigate, useLocation, useNavigate, useParams } from "react-router-dom";
 import { Calendar, ChevronLeft, Save } from "lucide-react";
@@ -25,6 +25,10 @@ import { resourceToFormField, templatesApi, type TemplateSummary } from "@/api/e
 import { FieldRenderer } from "@/renderer/forms/FieldRenderer";
 import { FieldRow } from "@/renderer/forms/FieldRow";
 import { isFieldRequired, isFieldValueEmpty } from "@/renderer/forms/validation";
+import { PendingBadge } from "@/components/pending-changes/PendingBadge";
+import { PendingFieldCompare } from "@/components/pending-changes/PendingFieldCompare";
+import { draftOwnerLabel, fieldValuesEqual } from "@/lib/fieldComparison";
+import { useAuthStore } from "@/auth/store";
 
 import { useLock } from "@/hooks/useLock";
 import { useScrollToFirstError } from "@/hooks/useScrollToFirstError";
@@ -47,6 +51,19 @@ import { toast } from "@/lib/toast";
 type TabValue = "properties" | "content" | "seo" | "sharing";
 
 const PAGE_TABS: TabValue[] = ["properties", "content", "seo", "sharing"];
+
+/**
+ * Resolves per-field pending-change state for the page editor's field wrappers.
+ * Present only when editing a live page that has a queued EDIT overlaid; a field
+ * is "pending" when its column appears in the change's `changed_fields`.
+ */
+export interface PendingFieldInfo {
+	isPending: (column: string) => boolean;
+	published: (column: string) => unknown;
+	current: (column: string) => unknown;
+	/** Heading for the draft column, attributed to the change's owner. */
+	label: string;
+}
 
 const seedBody = (page: PageDetail): PageEditBody => ({
 	nav_title: page.nav_title,
@@ -199,6 +216,53 @@ export const PageEdit = () => {
 		setBody((prev) => (prev ? { ...prev, ...patch } : prev));
 	};
 
+	// Per-field pending markers apply only when editing a live page with a queued
+	// EDIT overlaid (NEW drafts are wholly unpublished — the banner covers that).
+	const pageData = pageQuery.data;
+	const currentUserId = useAuthStore((s) => s.user?.id);
+	const pendingInfo = useMemo<PendingFieldInfo | undefined>(() => {
+		if (draft || !pageData?.changes_applied) {
+			return undefined;
+		}
+
+		const changed = new Set(pageData.changed_fields ?? []);
+		const original = pageData.pending_original ?? {};
+
+		return {
+			isPending: (column) => changed.has(column),
+			published: (column) => original[column],
+			current: (column) => (body as Record<string, unknown> | null)?.[column],
+			label: draftOwnerLabel(
+				pageData.pending_owner,
+				pageData.pending_owner_name,
+				currentUserId
+			),
+		};
+	}, [draft, pageData, body, currentUserId]);
+
+	// Which template resources carry a queued change, computed ONCE from the
+	// loaded data (published vs. the overlaid draft). Deliberately not derived
+	// from the live `body` — otherwise simply typing into a field would flip it
+	// to "pending" before saving (and toggling that flag collapses callouts).
+	const changedResourceIds = useMemo<Set<string> | null>(() => {
+		if (!pendingInfo || !pageData) {
+			return null;
+		}
+
+		const published = (pageData.pending_original?.resources ?? {}) as Record<string, unknown>;
+		const loadedDraft = (pageData.resources ?? {}) as Record<string, unknown>;
+		const ids = new Set<string>();
+
+		for (const key of new Set([...Object.keys(published), ...Object.keys(loadedDraft)])) {
+			if (!fieldValuesEqual(published[key], loadedDraft[key])) {
+				ids.add(key);
+			}
+		}
+
+		return ids;
+		// pendingInfo already keys off pageData; depend on pageData for the data.
+	}, [pendingInfo, pageData]);
+
 	const handleSave = (publish: boolean) => {
 		if (!body || saveMutation.isPending || lock.ownedByOther) {
 			return;
@@ -341,6 +405,7 @@ export const PageEdit = () => {
 							fieldErrors={fieldErrors}
 							disabled={readOnly}
 							onPatch={setBodyPatch}
+							pending={pendingInfo}
 						/>
 					)}
 
@@ -353,6 +418,15 @@ export const PageEdit = () => {
 							fieldErrors={fieldErrors}
 							disabled={readOnly}
 							onChange={(resources) => setBodyPatch({ resources })}
+							publishedResources={
+								pendingInfo
+									? ((page.pending_original?.resources as
+											| Record<string, unknown>
+											| undefined) ?? {})
+									: undefined
+							}
+							changedResourceIds={changedResourceIds}
+							pendingLabel={pendingInfo?.label}
 						/>
 					)}
 
@@ -363,11 +437,17 @@ export const PageEdit = () => {
 							fieldErrors={fieldErrors}
 							disabled={readOnly}
 							onPatch={setBodyPatch}
+							pending={pendingInfo}
 						/>
 					)}
 
 					{activeTab === "sharing" && (
-						<SharingTab body={body} disabled={readOnly} onPatch={setBodyPatch} />
+						<SharingTab
+							body={body}
+							disabled={readOnly}
+							onPatch={setBodyPatch}
+							pending={pendingInfo}
+						/>
 					)}
 				</div>
 
@@ -464,6 +544,7 @@ interface PropertiesTabProps {
 	fieldErrors: Record<string, string>;
 	disabled?: boolean;
 	onPatch: (patch: Partial<PageEditBody>) => void;
+	pending?: PendingFieldInfo;
 }
 
 export const PropertiesTab = ({
@@ -473,6 +554,7 @@ export const PropertiesTab = ({
 	fieldErrors,
 	disabled,
 	onPatch,
+	pending,
 }: PropertiesTabProps) => {
 	const flexibleTemplates = templates.filter((t) => !t.routed);
 	const specialTemplates = templates.filter((t) => t.routed);
@@ -480,7 +562,12 @@ export const PropertiesTab = ({
 	return (
 		<>
 			<div className="grid grid-cols-1 gap-[18px] md:grid-cols-2 md:gap-x-[22px]">
-				<Field label="Navigation Title" error={fieldErrors.nav_title}>
+				<Field
+					label="Navigation Title"
+					error={fieldErrors.nav_title}
+					column="nav_title"
+					pending={pending}
+				>
 					<input
 						className={INPUT}
 						value={body.nav_title ?? ""}
@@ -494,6 +581,8 @@ export const PropertiesTab = ({
 					label="Page Title"
 					hint="(web browsers use this for their title bar)"
 					error={fieldErrors.title}
+					column="title"
+					pending={pending}
 				>
 					<input
 						className={INPUT}
@@ -506,21 +595,36 @@ export const PropertiesTab = ({
 			</div>
 
 			<div className="grid grid-cols-1 gap-[18px] md:grid-cols-3 md:gap-x-[22px]">
-				<Field label="Publish At" hint="(blank = immediately)">
+				<Field
+					label="Publish At"
+					hint="(blank = immediately)"
+					column="publish_at"
+					pending={pending}
+				>
 					<DateInput
 						value={body.publish_at ?? ""}
 						onChange={(v) => onPatch({ publish_at: v || null })}
 						disabled={disabled}
 					/>
 				</Field>
-				<Field label="Expire At" hint="(blank = never)">
+				<Field
+					label="Expire At"
+					hint="(blank = never)"
+					column="expire_at"
+					pending={pending}
+				>
 					<DateInput
 						value={body.expire_at ?? ""}
 						onChange={(v) => onPatch({ expire_at: v || null })}
 						disabled={disabled}
 					/>
 				</Field>
-				<Field label="Content Max Age" hint="(before alerts)">
+				<Field
+					label="Content Max Age"
+					hint="(before alerts)"
+					column="max_age"
+					pending={pending}
+				>
 					<select
 						className={INPUT}
 						value={body.max_age ?? 0}
@@ -542,19 +646,28 @@ export const PropertiesTab = ({
 					checked={Boolean(body.in_nav)}
 					onChange={(v) => onPatch({ in_nav: v })}
 					disabled={disabled}
+					column="in_nav"
+					pending={pending}
 				/>
 				<Check
 					label="Trunk"
 					checked={Boolean(body.trunk)}
 					onChange={(v) => onPatch({ trunk: v })}
 					disabled={disabled}
+					column="trunk"
+					pending={pending}
 				/>
 			</div>
 
 			<div className="my-1 h-px bg-border" />
 
 			<div className="grid grid-cols-1 gap-[18px] md:grid-cols-2 md:gap-x-[22px]">
-				<Field label="Template" error={fieldErrors.template}>
+				<Field
+					label="Template"
+					error={fieldErrors.template}
+					column="template"
+					pending={pending}
+				>
 					<select
 						className={INPUT}
 						value={templateDisabled ? "" : (body.template ?? "")}
@@ -596,6 +709,8 @@ export const PropertiesTab = ({
 					label="External Link"
 					hint="(include http://, overrides template)"
 					error={fieldErrors.external}
+					column="external"
+					pending={pending}
 				>
 					<input
 						className={INPUT}
@@ -628,6 +743,18 @@ interface ContentTabProps {
 	fieldErrors: Record<string, string>;
 	disabled?: boolean;
 	onChange: (resources: Record<string, unknown>) => void;
+	/**
+	 * Published resource values keyed by resource id, for per-field comparison.
+	 * Undefined unless the page has a queued EDIT overlaid.
+	 */
+	publishedResources?: Record<string, unknown>;
+	/**
+	 * Resource ids that carry a queued change (computed once at load). Drives the
+	 * "Pending" marker so it doesn't flip on while the user is still typing.
+	 */
+	changedResourceIds?: Set<string> | null;
+	/** Heading for the draft column in resource comparisons, attributed to its owner. */
+	pendingLabel?: string;
 }
 
 export const ContentTab = ({
@@ -638,6 +765,9 @@ export const ContentTab = ({
 	fieldErrors,
 	disabled,
 	onChange,
+	publishedResources,
+	changedResourceIds,
+	pendingLabel,
 }: ContentTabProps) => {
 	const resources = (body.resources ?? {}) as Record<string, unknown>;
 
@@ -685,12 +815,18 @@ export const ContentTab = ({
 			<div className="flex flex-col gap-[18px]">
 				{template.resources.map((resource) => {
 					const formField = resourceToFormField(resource);
+					const publishedValue = publishedResources?.[resource.id];
+					const pending = Boolean(changedResourceIds?.has(resource.id));
 
 					return (
 						<FieldRow
 							key={resource.id}
 							field={formField}
 							error={fieldErrors[resource.id]}
+							pending={pending}
+							publishedValue={publishedValue}
+							currentValue={resources[resource.id]}
+							pendingLabel={pendingLabel}
 						>
 							<FieldRenderer
 								field={formField}
@@ -713,9 +849,10 @@ interface SeoTabProps {
 	fieldErrors: Record<string, string>;
 	disabled?: boolean;
 	onPatch: (patch: Partial<PageEditBody>) => void;
+	pending?: PendingFieldInfo;
 }
 
-export const SeoTab = ({ body, page, fieldErrors, disabled, onPatch }: SeoTabProps) => {
+export const SeoTab = ({ body, page, fieldErrors, disabled, onPatch, pending }: SeoTabProps) => {
 	const description = body.meta_description ?? "";
 	// Parent path → "/foo/bar/" — purely cosmetic so we approximate by stripping
 	// the page's own route from page.path. Falls back to "/".
@@ -732,6 +869,8 @@ export const SeoTab = ({ body, page, fieldErrors, disabled, onPatch }: SeoTabPro
 				hint="(leave blank to auto generate)"
 				error={fieldErrors.route}
 				wide
+				column="route"
+				pending={pending}
 			>
 				<div className="flex items-center gap-0 overflow-hidden rounded-md border border-border-strong bg-surface focus-within:border-accent focus-within:ring-1 focus-within:ring-accent-ring">
 					<span className="border-r border-border bg-surface-2 px-3 py-[7px] font-mono text-[12.5px] text-text-3">
@@ -747,7 +886,13 @@ export const SeoTab = ({ body, page, fieldErrors, disabled, onPatch }: SeoTabPro
 				</div>
 			</Field>
 
-			<Field label="Meta Description" error={fieldErrors.meta_description} wide>
+			<Field
+				label="Meta Description"
+				error={fieldErrors.meta_description}
+				wide
+				column="meta_description"
+				pending={pending}
+			>
 				<textarea
 					rows={5}
 					className={INPUT_TEXTAREA}
@@ -768,6 +913,8 @@ export const SeoTab = ({ body, page, fieldErrors, disabled, onPatch }: SeoTabPro
 				hint="Most search engines ignore this."
 				error={fieldErrors.meta_keywords}
 				wide
+				column="meta_keywords"
+				pending={pending}
 			>
 				<input
 					className={INPUT}
@@ -782,6 +929,8 @@ export const SeoTab = ({ body, page, fieldErrors, disabled, onPatch }: SeoTabPro
 				checked={Boolean(body.seo_invisible)}
 				onChange={(v) => onPatch({ seo_invisible: v })}
 				disabled={disabled}
+				column="seo_invisible"
+				pending={pending}
 			/>
 		</>
 	);
@@ -791,9 +940,10 @@ interface SharingTabProps {
 	body: PageEditBody;
 	disabled?: boolean;
 	onPatch: (patch: Partial<PageEditBody>) => void;
+	pending?: PendingFieldInfo;
 }
 
-export const SharingTab = ({ body, disabled, onPatch }: SharingTabProps) => {
+export const SharingTab = ({ body, disabled, onPatch, pending }: SharingTabProps) => {
 	const og = body.open_graph ?? {};
 
 	const setOg = (patch: Partial<NonNullable<PageEditBody["open_graph"]>>) => {
@@ -802,7 +952,13 @@ export const SharingTab = ({ body, disabled, onPatch }: SharingTabProps) => {
 
 	return (
 		<>
-			<Field label="Open Graph Title" hint="(defaults to the page title if left empty)" wide>
+			<Field
+				label="Open Graph Title"
+				hint="(defaults to the page title if left empty)"
+				wide
+				column="open_graph"
+				pending={pending}
+			>
 				<input
 					className={INPUT}
 					value={og.title ?? ""}
@@ -862,42 +1018,67 @@ interface FieldProps {
 	children: React.ReactNode;
 	error?: string;
 	wide?: boolean;
+	/** Column this field maps to; enables pending markers when `pending` is set. */
+	column?: string;
+	pending?: PendingFieldInfo;
 }
 
-export const Field = ({ label, hint, children, error, wide }: FieldProps) => (
-	<div className={`flex flex-col gap-1.5 ${wide ? "w-full" : ""}`}>
-		<span className="text-[11.5px] font-medium text-text-2">
-			{label}
-			{hint && <span className="ml-1 text-[11px] text-text-3">{hint}</span>}
-		</span>
-		{children}
-		{error && (
-			<span data-field-error className="text-[11.5px] text-danger">
-				{error}
+export const Field = ({ label, hint, children, error, wide, column, pending }: FieldProps) => {
+	const showPending = Boolean(column && pending?.isPending(column));
+
+	return (
+		<div className={`flex flex-col gap-1.5 ${wide ? "w-full" : ""}`}>
+			<span className="flex items-center gap-1.5 text-[11.5px] font-medium text-text-2">
+				<span>
+					{label}
+					{hint && <span className="ml-1 text-[11px] text-text-3">{hint}</span>}
+				</span>
+				{showPending && <PendingBadge />}
 			</span>
-		)}
-	</div>
-);
+			{children}
+			{showPending && column && pending && (
+				<PendingFieldCompare
+					published={pending.published(column)}
+					pending={pending.current(column)}
+					pendingLabel={pending.label}
+				/>
+			)}
+			{error && (
+				<span data-field-error className="text-[11.5px] text-danger">
+					{error}
+				</span>
+			)}
+		</div>
+	);
+};
 
 interface CheckProps {
 	label: string;
 	checked: boolean;
 	onChange: (next: boolean) => void;
 	disabled?: boolean;
+	/** Column this toggle maps to; shows a "Pending" badge when changed. */
+	column?: string;
+	pending?: PendingFieldInfo;
 }
 
-export const Check = ({ label, checked, onChange, disabled }: CheckProps) => (
-	<label className="inline-flex cursor-pointer items-center gap-2 text-[12.5px] text-text-2 has-[input:disabled]:cursor-not-allowed has-[input:disabled]:opacity-60">
-		<input
-			type="checkbox"
-			className="h-4 w-4 rounded border-border accent-accent"
-			checked={checked}
-			onChange={(e) => onChange(e.target.checked)}
-			disabled={disabled}
-		/>
-		{label}
-	</label>
-);
+export const Check = ({ label, checked, onChange, disabled, column, pending }: CheckProps) => {
+	const showPending = Boolean(column && pending?.isPending(column));
+
+	return (
+		<label className="inline-flex cursor-pointer items-center gap-2 text-[12.5px] text-text-2 has-[input:disabled]:cursor-not-allowed has-[input:disabled]:opacity-60">
+			<input
+				type="checkbox"
+				className="h-4 w-4 rounded border-border accent-accent"
+				checked={checked}
+				onChange={(e) => onChange(e.target.checked)}
+				disabled={disabled}
+			/>
+			{label}
+			{showPending && <PendingBadge />}
+		</label>
+	);
+};
 
 interface DateInputProps {
 	value: string;

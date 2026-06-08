@@ -97,6 +97,14 @@ export interface PageDetail {
 	pending_change_id?: number;
 	/** True for a NEW draft that only exists in bigtree_pending_changes (no live row; `id` is 0). */
 	pending?: boolean;
+	/** Published values of the overlaid fields (incl. `resources`), for comparison. */
+	pending_original?: Record<string, unknown>;
+	/** Page columns whose draft value differs from the published content. */
+	changed_fields?: string[];
+	/** User id of whoever created the pending change. */
+	pending_owner?: number | null;
+	/** Display name of the pending change's owner, for attribution. */
+	pending_owner_name?: string | null;
 }
 
 /** Body shape for POST /pages and PATCH /pages/{id} edits. */

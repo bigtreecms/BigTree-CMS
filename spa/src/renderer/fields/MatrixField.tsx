@@ -70,6 +70,24 @@ const seedRows = (raw: unknown): MatrixRow[] => {
 
 const stripUid = (rows: MatrixRow[]): RowData[] => rows.map((r) => r.data);
 
+/**
+ * Structural equality of two row sets by their data payloads (ignoring the
+ * ephemeral uids), so we can tell our own edit's echo from an external change.
+ */
+const rowsDataEqual = (a: MatrixRow[], b: MatrixRow[]): boolean => {
+	if (a.length !== b.length) {
+		return false;
+	}
+
+	for (let i = 0; i < a.length; i++) {
+		if (JSON.stringify(a[i]?.data) !== JSON.stringify(b[i]?.data)) {
+			return false;
+		}
+	}
+
+	return true;
+};
+
 const normalizeColumnSettings = (raw: unknown): Record<string, unknown> => {
 	if (typeof raw === "string" && raw.trim().length > 0) {
 		try {
@@ -192,23 +210,20 @@ export const MatrixField = ({ field, value, onChange, disabled }: FieldComponent
 	const [rows, setRows] = useState<MatrixRow[]>(() => seedRows(value));
 	const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
-	// Re-seed when the upstream value identity changes (edit-page mount / reset).
-	// Skip when we're the source of the change — we just wrote `rows → onChange`.
-	const ownChange = useMemo(() => ({ current: false }), []);
-
+	// Re-seed only when the incoming value genuinely differs from the rows we
+	// already hold (edit-page mount / record switch / reset). The echo of our own
+	// onChange — and any unrelated re-render passing a structurally-equal value —
+	// is ignored, so row uids (and the expand state keyed on them) survive.
 	useEffect(() => {
-		if (ownChange.current) {
-			ownChange.current = false;
+		setRows((prev) => {
+			const incoming = seedRows(value);
 
-			return;
-		}
-
-		setRows(seedRows(value));
-	}, [value, ownChange]);
+			return rowsDataEqual(prev, incoming) ? prev : incoming;
+		});
+	}, [value]);
 
 	const commit = (next: MatrixRow[]) => {
 		setRows(next);
-		ownChange.current = true;
 		onChange(stripUid(next));
 	};
 

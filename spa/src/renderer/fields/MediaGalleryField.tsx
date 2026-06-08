@@ -127,6 +127,24 @@ const seedItems = (raw: unknown): MediaItem[] => {
 
 const stripUid = (items: MediaItem[]): MediaItemData[] => items.map((it) => it.data);
 
+/**
+ * Structural equality of two item sets by their data payloads (ignoring the
+ * ephemeral uids), so we can tell our own edit's echo from an external change.
+ */
+const itemsDataEqual = (a: MediaItem[], b: MediaItem[]): boolean => {
+	if (a.length !== b.length) {
+		return false;
+	}
+
+	for (let i = 0; i < a.length; i++) {
+		if (JSON.stringify(a[i]?.data) !== JSON.stringify(b[i]?.data)) {
+			return false;
+		}
+	}
+
+	return true;
+};
+
 const toInt = (raw: unknown): number => {
 	const n = typeof raw === "number" ? raw : Number(raw);
 
@@ -205,21 +223,20 @@ export const MediaGalleryField = ({ field, value, onChange, disabled }: FieldCom
 	const [videoPromptOpen, setVideoPromptOpen] = useState(false);
 	const [localVideoOpen, setLocalVideoOpen] = useState(false);
 
-	const ownChange = useMemo(() => ({ current: false }), []);
-
+	// Re-seed only when the incoming value genuinely differs from the items we
+	// already hold (mount / record switch / reset). The echo of our own onChange
+	// — and any unrelated re-render passing a structurally-equal value — is
+	// ignored, so item uids (and the expand state keyed on them) survive.
 	useEffect(() => {
-		if (ownChange.current) {
-			ownChange.current = false;
+		setItems((prev) => {
+			const incoming = seedItems(value);
 
-			return;
-		}
-
-		setItems(seedItems(value));
-	}, [value, ownChange]);
+			return itemsDataEqual(prev, incoming) ? prev : incoming;
+		});
+	}, [value]);
 
 	const commit = (next: MediaItem[]) => {
 		setItems(next);
-		ownChange.current = true;
 		onChange(stripUid(next));
 	};
 
