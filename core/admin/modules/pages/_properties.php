@@ -14,6 +14,8 @@
 		if (isset($page["changes_applied"])) {
 			$status = "Changes Pending";
 			$preview_url = $cms->getPreviewLink($page["id"]);
+		} elseif (!empty($page["archived"]) || !empty($page["archived_inherited"])) {
+			$status = "Archived";
 		} else {
 			$status = "Published";
 		}

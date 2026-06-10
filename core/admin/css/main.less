@@ -467,6 +467,7 @@
 	.property_block p a { color: #191919; }
 	.property_block p span { float: left; }
 	.property_block .published { color: #2CAA56; }
+	.property_block .archived { color: #666; }
 	.property_block .changes_pending { color: #666; }
 	.property_block .unpublished { color: #333; }
 	.property_block .icon_small { margin: 1px 5px; }
@@ -960,6 +961,9 @@
 			color: #59A8E9;
 		}
 	}
+	.table.file_usage_table > ul li.archived { background: #F5F5F5; }
+	.table.file_usage_table > ul li.archived section { opacity: 0.75; }
+	.table.file_usage_table > ul li.archived section.file_usage_status { opacity: 1; }
 
 /* Message Center */
 	.message_thread section:first-child header { border-radius: 5px 5px 0 0; border-top: none; }

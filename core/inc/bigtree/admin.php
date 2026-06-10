@@ -6185,7 +6185,7 @@
 				id - The id of the resource.
 
 			Returns:
-				An array of usage arrays containing location, title, edit_url, pending, and updated_at.
+				An array of usage arrays containing location, title, edit_url, pending, archived, and updated_at.
 		*/
 
 		public static function getResourceAllocationUsage($id) {
@@ -6204,6 +6204,7 @@
 					"title" => $entry,
 					"edit_url" => null,
 					"pending" => $pending,
+					"archived" => false,
 					"updated_at" => $allocation["updated_at"]
 				];
 
@@ -6211,7 +6212,7 @@
 					$usage["location"] = "Pages";
 
 					if ($pending) {
-						$page = $cms->getPendingPage($entry);
+						$page = $cms->getPendingPage($entry, false);
 						$usage["edit_url"] = ADMIN_ROOT."pages/edit/".$entry."/";
 					} else {
 						$page = $cms->getPage($entry, false);
@@ -6220,6 +6221,7 @@
 
 					if ($page) {
 						$usage["title"] = $page["nav_title"] ?: $page["title"];
+						$usage["archived"] = !empty($page["archived"]) || !empty($page["archived_inherited"]);
 					} else {
 						$usage["title"] = "Deleted Page (".$entry.")";
 						$usage["edit_url"] = null;
