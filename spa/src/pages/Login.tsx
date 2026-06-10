@@ -1,14 +1,16 @@
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
 
 import { ApiError } from "@/types/api";
-import { authApi } from "@/auth/endpoints";
+import { authApi, type TwoFactorSetup } from "@/auth/endpoints";
 import { useAuthStore } from "@/auth/store";
 import { useForm } from "react-hook-form";
+import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Fingerprint } from "lucide-react";
 import { Field } from "@/components/ui/Field";
+import { TwoFactorEnrollForm } from "@/components/users/TwoFactorEnrollForm";
 import { isWebAuthnSupported } from "@/lib/webauthn";
 
 const schema = z.object({
@@ -36,9 +38,22 @@ export const Login = () => {
 	const authenticated = useAuthStore((s) => !!s.accessToken);
 
 	const [mfa, setMfa] = useState<{ token: string } | null>(null);
+	const [enroll, setEnroll] = useState<{ token: string; setup: TwoFactorSetup } | null>(null);
+	const [enrollCode, setEnrollCode] = useState("");
+	const [enrollBusy, setEnrollBusy] = useState(false);
 	const [serverError, setServerError] = useState<string | null>(null);
 	const [passkeyBusy, setPasskeyBusy] = useState(false);
 	const passkeySupported = isWebAuthnSupported();
+
+	// Cosmetic only — the server clamps the remember flag regardless. If the
+	// policy fetch fails we show the checkbox; worst case it's a no-op.
+	const policyQuery = useQuery({
+		queryKey: ["auth", "login-policy"],
+		queryFn: () => authApi.loginPolicy(),
+		staleTime: 5 * 60 * 1000,
+		retry: false,
+	});
+	const rememberDisabled = policyQuery.data?.remember_disabled ?? false;
 
 	const form = useForm<FormValues>({
 		resolver: zodResolver(schema),
@@ -58,11 +73,41 @@ export const Login = () => {
 				setMfa({ token: result.mfa_token });
 				return;
 			}
+			if ("two_factor_setup_required" in result) {
+				// Policy mandates 2FA and this account hasn't enrolled — fetch the
+				// ceremony payload and pause the login on the enrollment step.
+				const setup = await authApi.twoFactorSetupRequired(result.setup_token);
+				setEnroll({ token: result.setup_token, setup });
+				setEnrollCode("");
+				return;
+			}
 			navigate(returnTo, { replace: true });
 		} catch (err) {
 			handleSubmitError(err);
 		}
 	}
+
+	const onConfirmEnroll = async () => {
+		if (!enroll || enrollBusy) {
+			return;
+		}
+
+		setServerError(null);
+		setEnrollBusy(true);
+
+		try {
+			await authApi.enableTwoFactorRequired(
+				enroll.token,
+				enroll.setup.secret,
+				enrollCode.trim()
+			);
+			navigate(returnTo, { replace: true });
+		} catch (err) {
+			handleSubmitError(err);
+		} finally {
+			setEnrollBusy(false);
+		}
+	};
 
 	const onSubmitMfa = async ({ code }: { code: string }) => {
 		if (!mfa) {
@@ -127,7 +172,11 @@ export const Login = () => {
 
 	return (
 		<div className="grid min-h-screen place-items-center bg-bg px-4">
-			<div className="w-full max-w-[360px] rounded-lg border border-border bg-surface p-6 shadow-md">
+			<div
+				className={`w-full rounded-lg border border-border bg-surface p-6 shadow-md ${
+					enroll ? "max-w-[520px]" : "max-w-[360px]"
+				}`}
+			>
 				<div className="mb-5 flex items-center gap-2.5">
 					<div className="grid h-8 w-8 place-items-center rounded-md bg-accent text-accent-fg">
 						<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
@@ -136,9 +185,13 @@ export const Login = () => {
 					</div>
 					<div>
 						<h1 className="text-[15px] font-semibold tracking-[-0.01em]">
-							Sign in to BigTree
+							{enroll ? "Set up two-factor authentication" : "Sign in to BigTree"}
 						</h1>
-						<p className="text-[12px] text-text-3">Use your admin credentials.</p>
+						<p className="text-[12px] text-text-3">
+							{enroll
+								? "Your organization requires a second factor to sign in."
+								: "Use your admin credentials."}
+						</p>
 					</div>
 				</div>
 
@@ -148,7 +201,24 @@ export const Login = () => {
 					</div>
 				)}
 
-				{!mfa ? (
+				{enroll ? (
+					<div className="text-[12.5px]">
+						<TwoFactorEnrollForm
+							setup={enroll.setup}
+							code={enrollCode}
+							onCodeChange={setEnrollCode}
+							onCancel={() => {
+								setEnroll(null);
+								setEnrollCode("");
+								setServerError(null);
+							}}
+							onConfirm={onConfirmEnroll}
+							busy={enrollBusy}
+							confirmLabel="Verify & sign in"
+							cancelLabel="Back"
+						/>
+					</div>
+				) : !mfa ? (
 					<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
 						<Field label="Email" error={form.formState.errors.email?.message}>
 							<input
@@ -169,10 +239,12 @@ export const Login = () => {
 							/>
 						</Field>
 
-						<label className="flex cursor-pointer items-center gap-2 text-[12.5px] text-text-2">
-							<input type="checkbox" {...form.register("remember")} />
-							Remember me
-						</label>
+						{!rememberDisabled && (
+							<label className="flex cursor-pointer items-center gap-2 text-[12.5px] text-text-2">
+								<input type="checkbox" {...form.register("remember")} />
+								Remember me
+							</label>
+						)}
 
 						<button
 							type="submit"

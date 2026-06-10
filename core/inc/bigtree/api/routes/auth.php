@@ -2,6 +2,12 @@
 	use BigTree\Services\AuthService;
 
 	return [
+		"GET /auth/login-policy" => [
+			"service" => [AuthService::class, "loginPolicy"],
+			"permission" => "public",
+			"rate_limit" => ["per_minute" => 30],
+		],
+
 		"POST /auth/login" => [
 			"service" => [AuthService::class, "login"],
 			"permission" => "public",
@@ -40,6 +46,28 @@
 			],
 			"rate_limit" => ["per_minute" => 10],
 			"audit" => ["table" => "bigtree_users", "type" => "2fa_enabled", "entry" => "%id%"],
+		],
+
+		// — Forced TOTP enrollment (security policy mandates 2FA; user has no secret).
+		// Authenticated solely by the setup token from the login response. —
+
+		"POST /auth/2fa/setup-required" => [
+			"service" => [AuthService::class, "twoFactorSetupRequired"],
+			"permission" => "public",
+			"body" => ["setup_token" => "required|string|max:64"],
+			"rate_limit" => ["per_minute" => 10],
+		],
+
+		"POST /auth/2fa/enable-required" => [
+			"service" => [AuthService::class, "twoFactorEnableRequired"],
+			"permission" => "public",
+			"body" => [
+				"setup_token" => "required|string|max:64",
+				"secret" => "required|string|max:128",
+				"code" => "required|regex:/^[0-9]{6,8}$/",
+			],
+			"rate_limit" => ["per_minute" => 10],
+			"audit" => ["table" => "bigtree_users", "type" => "2fa_enabled", "entry" => "0"],
 		],
 
 		"POST /auth/2fa/disable" => [
@@ -95,6 +123,7 @@
 				"client_data_json" => "required|string",
 				"authenticator_data" => "required|string",
 				"signature" => "required|string",
+				"remember" => "bool",
 			],
 			"rate_limit" => ["per_minute" => 10],
 		],

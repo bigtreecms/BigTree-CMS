@@ -13,19 +13,21 @@
 	 */
 	class TokenStore {
 		const COOKIE = "bigtree_refresh";
-		const TTL_SECONDS = 2592000;          // 30 days
+		const TTL_SECONDS = 2592000;          // 30 days ("remember me" sessions)
+		const SHORT_TTL_SECONDS = 43200;      // 12 hours (sessions without "remember me")
 		const ACCESS_TTL_SECONDS = 900;       // 15 min
 
-		public static function issueFamily($user_id, $ip, $user_agent) {
+		public static function issueFamily($user_id, $ip, $user_agent, $remember = false) {
 			$family_id = bin2hex(random_bytes(16));
 
-			return self::issue($user_id, $family_id, $ip, $user_agent);
+			return self::issue($user_id, $family_id, $ip, $user_agent, $remember);
 		}
 
-		public static function issue($user_id, $family_id, $ip, $user_agent) {
+		public static function issue($user_id, $family_id, $ip, $user_agent, $remember = false) {
 			$raw = self::randomToken();
 			$hash = hash("sha256", $raw);
-			$expires_at = date("Y-m-d H:i:s", time() + self::TTL_SECONDS);
+			$ttl = $remember ? self::TTL_SECONDS : self::SHORT_TTL_SECONDS;
+			$expires_at = date("Y-m-d H:i:s", time() + $ttl);
 
 			$id = SQL::insert("bigtree_refresh_tokens", [
 				"user_id" => (int)$user_id,
@@ -70,7 +72,14 @@
 				throw new AuthenticationException("Refresh token expired", "refresh_token_expired", 401);
 			}
 
-			$new = self::issue($row["user_id"], $row["family_id"], $ip, $user_agent);
+			// Preserve the session class across rotation: a family minted without
+			// "remember me" keeps its short sliding window. The class is derived
+			// from the presented row's own lifetime (no schema change needed); rows
+			// predating SHORT_TTL_SECONDS all carry 30-day spans and stay remembered.
+			$lifetime = strtotime($row["expires_at"]) - strtotime($row["issued_at"]);
+			$remember = $lifetime > self::SHORT_TTL_SECONDS;
+
+			$new = self::issue($row["user_id"], $row["family_id"], $ip, $user_agent, $remember);
 			SQL::update("bigtree_refresh_tokens", $row["id"], ["rotated_to" => $new["id"]]);
 
 			return ["user_id" => (int)$row["user_id"], "new_token" => $new];

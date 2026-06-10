@@ -30,6 +30,19 @@
 				throw new AuthorizationException("No authenticated user", "permission_denied", 403);
 			}
 
+			// Developer mode locks everyone below developer level out of the
+			// admin (legacy does the same in admin/router.php). Public routes
+			// stay open above so developers can still log in.
+			global $bigtree;
+
+			if (!empty($bigtree["config"]["developer_mode"]) && $request->user->level < 2) {
+				throw new AuthorizationException(
+					"The admin is currently undergoing maintenance and is limited to developer access",
+					"developer_mode",
+					403
+				);
+			}
+
 			$this->enforce($decl, $request);
 
 			return $next($request);

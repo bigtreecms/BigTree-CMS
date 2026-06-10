@@ -10,6 +10,17 @@
 	chdir(__DIR__ . "/../../../../..");
 	define("BIGTREE_API_TEST", true);
 
+	// Mirror core/launch.php's config setup — bootstrap.php expects
+	// $bigtree["config"] to be populated already (the web front controller
+	// does this). Without it the DB never connects and DB-backed tests skip.
+	$bigtree = ["config" => ["debug" => false]];
+	$server_root = getcwd() . "/";
+
+	if (file_exists($server_root . "custom/environment.php")) {
+		include $server_root . "custom/environment.php";
+		include $server_root . "custom/settings.php";
+	}
+
 	require __DIR__ . "/../../../../bootstrap.php";
 	require __DIR__ . "/TestCase.php";
 

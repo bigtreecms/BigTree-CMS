@@ -112,6 +112,12 @@ interface AuthState {
 	 * Route guards key off this to avoid flashing the login screen.
 	 */
 	hydrating: boolean;
+	/**
+	 * Set when the API rejects a request with the "developer_mode" code — the
+	 * admin is in maintenance and limited to developers. Not persisted; the
+	 * Shell renders a lockout screen while this is true.
+	 */
+	developerLockout: boolean;
 
 	setSession: (access: string, refresh: string, expiresInSeconds: number, user: AuthUser) => void;
 	/**
@@ -129,6 +135,7 @@ interface AuthState {
 	stopEmulation: () => void;
 	clear: () => void;
 	setHydrated: () => void;
+	setDeveloperLockout: (locked: boolean) => void;
 }
 
 const initial = loadPersisted();
@@ -143,6 +150,7 @@ export const useAuthStore = create<AuthState>((set) => ({
 	// render protected routes immediately. We still kick off a background
 	// refresh in the fetch layer if requests start returning 401.
 	hydrating: !initial,
+	developerLockout: false,
 
 	setSession: (access, refresh, expiresInSeconds, user) => {
 		const expiresAt = Date.now() + expiresInSeconds * 1000;
@@ -206,10 +214,13 @@ export const useAuthStore = create<AuthState>((set) => ({
 			user: null,
 			emulatedBy: null,
 			hydrating: false,
+			developerLockout: false,
 		});
 	},
 
 	setHydrated: () => set({ hydrating: false }),
+
+	setDeveloperLockout: (locked) => set({ developerLockout: locked }),
 }));
 
 /** Imperative access for non-React code (the fetch wrapper). */

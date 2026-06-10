@@ -6536,6 +6536,85 @@
 		}
 
 		/*
+			Function: getSecurityPolicy
+				Loads the security policy into $bigtree["security-policy"] (if not already loaded) and returns it.
+
+			Returns:
+				The security policy array (empty array if none is configured).
+		*/
+
+		public static function getSecurityPolicy() {
+			global $bigtree;
+
+			if (!isset($bigtree["security-policy"]) || !is_array($bigtree["security-policy"])) {
+				$policy = BigTreeCMS::getSetting("bigtree-internal-security-policy");
+				$bigtree["security-policy"] = is_array($policy) ? $policy : [];
+			}
+
+			return $bigtree["security-policy"];
+		}
+
+		/*
+			Function: isIPBannedByPolicy
+				Checks an IP against the security policy's banned IPs list.
+
+			Parameters:
+				ip - An IP address as a long integer (via ip2long)
+
+			Returns:
+				true if the IP is on the banned list
+		*/
+
+		public static function isIPBannedByPolicy($ip) {
+			$policy = static::getSecurityPolicy();
+
+			if (!empty($policy["banned_ips"])) {
+				$banned = explode("\n", $policy["banned_ips"]);
+
+				foreach ($banned as $address) {
+					if (ip2long(trim($address)) == $ip) {
+						return true;
+					}
+				}
+			}
+
+			return false;
+		}
+
+		/*
+			Function: isIPAllowedByPolicy
+				Checks an IP against the security policy's allowed IP ranges.
+
+			Parameters:
+				ip - An IP address as a long integer (via ip2long)
+
+			Returns:
+				true if no ranges are configured or the IP falls inside one of them
+		*/
+
+		public static function isIPAllowedByPolicy($ip) {
+			$policy = static::getSecurityPolicy();
+
+			if (empty($policy["allowed_ips"])) {
+				return true;
+			}
+
+			$list = explode("\n", $policy["allowed_ips"]);
+
+			foreach ($list as $item) {
+				[$begin, $end] = explode(",", $item);
+				$begin = ip2long(trim($begin));
+				$end = ip2long(trim($end));
+
+				if ($begin <= $ip && $end >= $ip) {
+					return true;
+				}
+			}
+
+			return false;
+		}
+
+		/*
 			Function: initSecurity
 				Sets up security environment variables and runs white/blacklists for IP checks.
 		*/
@@ -6544,40 +6623,11 @@
 			global $bigtree;
 
 			$ip = ip2long(BigTree::remoteIP());
-			$bigtree["security-policy"] = $p = BigTreeCMS::getSetting("bigtree-internal-security-policy");
+			static::getSecurityPolicy();
 
-			// Check banned IPs list for the user's IP
-			if (!empty($p["banned_ips"])) {
-				$banned = explode("\n", $p["banned_ips"]);
-
-				foreach ($banned as $address) {
-					if (ip2long(trim($address)) == $ip) {
-						$bigtree["layout"] = "login";
-						$this->stop(file_get_contents(BigTree::path("admin/pages/ip-restriction.php")));
-					}
-				}
-			}
-
-			// Check allowed IP ranges list for user's IP
-			if (!empty($p["allowed_ips"])) {
-				$allowed = false;
-				// Go through the list and see if our IP address is allowed
-				$list = explode("\n", $p["allowed_ips"]);
-
-				foreach ($list as $item) {
-					[$begin, $end] = explode(",", $item);
-					$begin = ip2long(trim($begin));
-					$end = ip2long(trim($end));
-
-					if ($begin <= $ip && $end >= $ip) {
-						$allowed = true;
-					}
-				}
-
-				if (!$allowed) {
-					$bigtree["layout"] = "login";
-					$this->stop(file_get_contents(BigTree::path("admin/pages/ip-restriction.php")));
-				}
+			if (static::isIPBannedByPolicy($ip) || !static::isIPAllowedByPolicy($ip)) {
+				$bigtree["layout"] = "login";
+				$this->stop(file_get_contents(BigTree::path("admin/pages/ip-restriction.php")));
 			}
 		}
 

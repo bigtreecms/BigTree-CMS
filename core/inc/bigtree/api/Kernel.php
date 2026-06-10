@@ -24,6 +24,18 @@
 			$request->request_id = $request_id;
 
 			try {
+				// IP restriction policy (banned / allowed lists) gates every route,
+				// including public ones — the same check the legacy admin runs in
+				// BigTreeAdmin::initSecurity(). Loading the policy here also makes it
+				// available to services that read $bigtree["security-policy"] (e.g.
+				// the failed-login ban recording in AuthService).
+				\BigTreeAdmin::getSecurityPolicy();
+				$ip = ip2long($request->ip);
+
+				if (\BigTreeAdmin::isIPBannedByPolicy($ip) || !\BigTreeAdmin::isIPAllowedByPolicy($ip)) {
+					throw new Exceptions\AuthorizationException("Access from this IP address is restricted", "ip_restricted", 403);
+				}
+
 				// Reject malformed JSON early.
 				if (isset($request->body["__json_error__"])) {
 					throw new BadRequestException("Malformed JSON body: " . $request->body["__json_error__"], "malformed_json", 400);

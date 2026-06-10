@@ -6,6 +6,7 @@ import { authApi, type TwoFactorSetup } from "@/auth/endpoints";
 
 import { ApiError } from "@/types/api";
 import { toast } from "@/lib/toast";
+import { TwoFactorEnrollForm } from "./TwoFactorEnrollForm";
 
 /**
  * Profile → Security TOTP manager.
@@ -133,74 +134,17 @@ export const TwoFactorPanel = ({ enabled }: TwoFactorPanelProps) => {
 				)}
 
 				{!enabled && setup && (
-					<div className="rounded-md border border-border bg-surface-2 p-4">
-						<p className="mb-3 text-text-2">
-							Scan this QR code with your authenticator app, or enter the key
-							manually, then type the 6-digit code it shows to confirm.
-						</p>
-
-						<div className="flex flex-col gap-4 sm:flex-row sm:items-start">
-							<img
-								src={setup.qr_image}
-								alt="Two-factor QR code"
-								className="h-40 w-40 shrink-0 rounded-md border border-border bg-white p-2"
-							/>
-
-							<div className="min-w-0 flex-1 space-y-3">
-								<div>
-									<span className="mb-1 block text-[11.5px] font-medium text-text-3">
-										Manual entry key
-									</span>
-									<code className="block break-all rounded border border-border bg-surface px-2 py-1.5 text-[12px] text-text-2">
-										{setup.secret}
-									</code>
-								</div>
-
-								<label className="block">
-									<span className="mb-1 block text-[12px] font-medium text-text-2">
-										Verification code
-									</span>
-									<input
-										type="text"
-										inputMode="numeric"
-										autoComplete="one-time-code"
-										value={enableCode}
-										onChange={(e) => setEnableCode(e.target.value)}
-										placeholder="123456"
-										autoFocus
-										className="w-full rounded-md border border-border bg-surface px-3 py-2 text-[13.5px] tracking-[0.2em] focus:outline-none focus:ring-1 focus:ring-accent-ring"
-									/>
-								</label>
-
-								<div className="flex justify-end gap-2">
-									<button
-										type="button"
-										onClick={() => {
-											setSetup(null);
-											setEnableCode("");
-										}}
-										disabled={enableMutation.isPending}
-										className="rounded-md border border-border bg-surface px-3 py-1.5 hover:bg-hover"
-									>
-										Cancel
-									</button>
-									<button
-										type="button"
-										onClick={() => enableMutation.mutate()}
-										disabled={
-											enableMutation.isPending ||
-											enableCode.trim().length === 0
-										}
-										className="rounded-md bg-accent px-3 py-1.5 font-medium text-accent-fg disabled:opacity-50 hover:bg-accent-hover"
-									>
-										{enableMutation.isPending
-											? "Verifying…"
-											: "Verify & enable"}
-									</button>
-								</div>
-							</div>
-						</div>
-					</div>
+					<TwoFactorEnrollForm
+						setup={setup}
+						code={enableCode}
+						onCodeChange={setEnableCode}
+						onCancel={() => {
+							setSetup(null);
+							setEnableCode("");
+						}}
+						onConfirm={() => enableMutation.mutate()}
+						busy={enableMutation.isPending}
+					/>
 				)}
 
 				{enabled && disabling && (

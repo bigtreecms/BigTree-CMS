@@ -46,7 +46,9 @@ export const SettingsSchemaBuilder = ({ value, onChange }: SettingsSchemaBuilder
 		}
 
 		const copy = [...value];
-		[copy[index], copy[target]] = [copy[target], copy[index]];
+		const moved = copy[index]!;
+		copy[index] = copy[target]!;
+		copy[target] = moved;
 		onChange(copy);
 	};
 

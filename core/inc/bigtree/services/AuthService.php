@@ -31,10 +31,37 @@
 
 		// — Public endpoint methods —
 
+		/**
+		 * GET /auth/login-policy
+		 * The slice of the security policy the login screen needs before
+		 * authentication. Deliberately tiny — nothing here may leak information
+		 * beyond what the login UI itself reveals.
+		 */
+		public function loginPolicy(Request $request) {
+			$policy = BigTreeAdmin::getSecurityPolicy();
+
+			return Response::ok([
+				"remember_disabled" => !empty($policy["remember_disabled"]),
+			]);
+		}
+
+		/**
+		 * The client's "remember me" flag, clamped by the security policy — when
+		 * remember_disabled is set, every login path ignores the flag (the legacy
+		 * admin does the same in login/process.php).
+		 */
+		private function rememberRequested(Request $request) {
+			if (!empty(BigTreeAdmin::getSecurityPolicy()["remember_disabled"])) {
+				return false;
+			}
+
+			return !empty($request->body["remember"]);
+		}
+
 		public function login(Request $request) {
 			$email = strtolower(trim((string)($request->body["email"] ?? "")));
 			$password = (string)($request->body["password"] ?? "");
-			$remember = !empty($request->body["remember"]);
+			$remember = $this->rememberRequested($request);
 
 			if ($email === "" || $password === "") {
 				throw new BadRequestException("Email and password required", "missing_credentials", 400);
@@ -64,17 +91,25 @@
 			}
 
 			// 2FA gate: any user who has enrolled a TOTP secret (self-service or
-			// otherwise) must complete the second factor. The secret itself is the
-			// per-user opt-in — there is no separate global toggle.
-			$two_factor_required = !empty($user["2fa_secret"]);
-
-			if ($two_factor_required) {
+			// otherwise) must complete the second factor.
+			if (!empty($user["2fa_secret"])) {
 				$mfa_token = $this->issueMfaPartial((int)$user["id"], $remember);
 
 				return Response::ok(["mfa_required" => true, "mfa_token" => $mfa_token]);
 			}
 
-			return $this->issueTokens($user, $request);
+			// Policy-mandated 2FA: when the security policy requires TOTP, a user
+			// with no enrolled secret must complete enrollment before any tokens
+			// are issued (legacy redirects to login/2fa/setup at this point). The
+			// setup token authorizes only the enrollment endpoints below. Passkey
+			// logins bypass this gate — WebAuthn is already a strong factor.
+			if ((BigTreeAdmin::getSecurityPolicy()["two_factor"] ?? "") === "google") {
+				$setup_token = $this->issueMfaPartial((int)$user["id"], $remember, true);
+
+				return Response::ok(["two_factor_setup_required" => true, "setup_token" => $setup_token]);
+			}
+
+			return $this->issueTokens($user, $request, $remember);
 		}
 
 		public function twoFactor(Request $request) {
@@ -87,7 +122,9 @@
 
 			$user = SQL::fetch("SELECT * FROM bigtree_users WHERE 2fa_login_token = ?", $mfa_token);
 
-			if (!$user) {
+			// Setup tokens (forced-enrollment flow) authorize only the enrollment
+			// endpoints — they can't complete a code-verification login.
+			if (!$user || $this->tokenIsSetup($mfa_token)) {
 				throw new AuthenticationException("Invalid or expired MFA token", "invalid_mfa_token", 401);
 			}
 
@@ -107,10 +144,16 @@
 				throw new AuthenticationException("Invalid 2FA code", "invalid_2fa_code", 401);
 			}
 
+			// The partial token carries the original "remember me" choice; read it
+			// before the one-shot clear below. Re-clamped against the policy in case
+			// it changed between the password step and the code entry.
+			$remember = $this->tokenRemember($user["2fa_login_token"])
+				&& empty(BigTreeAdmin::getSecurityPolicy()["remember_disabled"]);
+
 			// One-shot: clear the token so the partial can't be reused.
 			SQL::update("bigtree_users", $user["id"], ["2fa_login_token" => ""]);
 
-			return $this->issueTokens($user, $request);
+			return $this->issueTokens($user, $request, $remember);
 		}
 
 		/**
@@ -123,19 +166,25 @@
 		 * legacy login/2fa/setup hidden-field handoff.
 		 */
 		public function twoFactorSetup(Request $request) {
+
+			return Response::ok($this->totpCeremony($request->user->email));
+		}
+
+		/** Mint a fresh TOTP secret + QR/otpauth payload for an enrollment ceremony. */
+		private function totpCeremony($email) {
 			include_once BigTree::path("inc/lib/GoogleAuthenticator.php");
 
 			$site_title = SQL::fetchSingle("SELECT nav_title FROM bigtree_pages WHERE id = 0") ?: "BigTree";
-			$label = $site_title . " (" . $request->user->email . ")";
+			$label = $site_title . " (" . $email . ")";
 			$secret = GoogleAuthenticator::generateSecret();
 			$qr = GoogleAuthenticator::getQRCode($label, $secret);
 			$otpauth = "otpauth://totp/" . rawurlencode($label) . "?secret=" . $secret . "&issuer=BigTree";
 
-			return Response::ok([
+			return [
 				"secret" => $secret,
 				"qr_image" => $qr,
 				"otpauth_uri" => $otpauth,
-			]);
+			];
 		}
 
 		/**
@@ -161,6 +210,80 @@
 			SQL::update("bigtree_users", $user_id, ["2fa_secret" => $secret]);
 
 			return Response::ok(["id" => $user_id, "two_factor_enabled" => true]);
+		}
+
+		/**
+		 * POST /auth/2fa/setup-required { setup_token }
+		 * Forced-enrollment ceremony start for a user the security policy blocked
+		 * at login (policy mandates TOTP, user has no secret). The setup token from
+		 * the login response is the sole credential. Mirrors twoFactorSetup but
+		 * pre-auth: the secret is held client-side until enable-required verifies it.
+		 */
+		public function twoFactorSetupRequired(Request $request) {
+			$user = $this->userBySetupToken((string)($request->body["setup_token"] ?? ""));
+
+			return Response::ok($this->totpCeremony($user["email"]));
+		}
+
+		/**
+		 * POST /auth/2fa/enable-required { setup_token, secret, code }
+		 * Completes forced enrollment: verifies the code against the pending
+		 * secret, persists it, and finishes the login with a full token bundle.
+		 */
+		public function twoFactorEnableRequired(Request $request) {
+			include_once BigTree::path("inc/lib/GoogleAuthenticator.php");
+
+			$setup_token = (string)($request->body["setup_token"] ?? "");
+			$user = $this->userBySetupToken($setup_token);
+			$secret = trim((string)($request->body["secret"] ?? ""));
+			$code = trim((string)($request->body["code"] ?? ""));
+
+			if ($secret === "" || $code === "") {
+				throw new BadRequestException("secret and code required", "missing_fields", 400);
+			}
+
+			if (!GoogleAuthenticator::verifyCode($secret, $code)) {
+				throw new BadRequestException("That code is incorrect or expired", "invalid_2fa_code", 400);
+			}
+
+			// The setup token carries the original "remember me" choice; read it
+			// before the one-shot clear, re-clamped against the current policy.
+			$remember = $this->tokenRemember($setup_token)
+				&& empty(BigTreeAdmin::getSecurityPolicy()["remember_disabled"]);
+
+			SQL::update("bigtree_users", $user["id"], [
+				"2fa_secret" => $secret,
+				"2fa_login_token" => "",
+			]);
+			$user["2fa_secret"] = $secret;
+
+			return $this->issueTokens($user, $request, $remember);
+		}
+
+		/**
+		 * Resolve and validate a forced-enrollment setup token: must match a user,
+		 * carry the setup flag, be unexpired, and the user must still be without a
+		 * secret (someone who enrolled in another tab goes back through login).
+		 */
+		private function userBySetupToken($setup_token) {
+			if ($setup_token === "") {
+				throw new BadRequestException("setup_token required", "missing_fields", 400);
+			}
+
+			$user = SQL::fetch("SELECT * FROM bigtree_users WHERE 2fa_login_token = ?", $setup_token);
+
+			if (!$user || !$this->tokenIsSetup($setup_token) || !empty($user["2fa_secret"])) {
+				throw new AuthenticationException("Invalid or expired setup token", "invalid_setup_token", 401);
+			}
+
+			$expiry = $this->tokenExpiry($setup_token);
+
+			if ($expiry === null || $expiry < time()) {
+				SQL::update("bigtree_users", $user["id"], ["2fa_login_token" => ""]);
+				throw new AuthenticationException("Invalid or expired setup token", "invalid_setup_token", 401);
+			}
+
+			return $user;
 		}
 
 		/**
@@ -393,7 +516,7 @@
 			SQL::update("bigtree_passkey_challenges", $challenge_row["id"], ["consumed" => 1]);
 			BigTreeAdmin::updatePasskeyUsed($passkey["id"], $new_sign_count);
 
-			return $this->issueTokens($user, $request);
+			return $this->issueTokens($user, $request, $this->rememberRequested($request));
 		}
 
 		// — Password reset —
@@ -736,34 +859,52 @@
 			}
 		}
 
-		private function issueMfaPartial($user_id, $remember) {
+		private function issueMfaPartial($user_id, $remember, $setup = false) {
 			// Embed an absolute expiry in the token so twoFactor() can enforce the
-			// MFA_PARTIAL_TTL window without a schema change. The random prefix is hex,
-			// so the "." separator is unambiguous.
-			$token = bin2hex(random_bytes(16)) . "." . (time() + self::MFA_PARTIAL_TTL);
+			// MFA_PARTIAL_TTL window without a schema change. The random prefix is
+			// hex, so the "." separator is unambiguous. A flags segment rides along:
+			// "r" carries the "remember me" choice across the hand-off, "s" marks a
+			// forced-enrollment setup token (valid only for the setup endpoints).
+			$flags = ($remember ? "r" : "") . ($setup ? "s" : "");
+			$token = bin2hex(random_bytes(16)) . "." . (time() + self::MFA_PARTIAL_TTL) . ($flags !== "" ? ".$flags" : "");
 			SQL::update("bigtree_users", $user_id, ["2fa_login_token" => $token]);
 
 			return $token;
 		}
 
 		/**
-		 * Parse the absolute-expiry suffix from an expiring opaque token ("<secret>.<unix_ts>").
-		 * Returns the unix timestamp, or null when no valid suffix is present (e.g. a
-		 * legacy token minted before expiries were embedded — treated as invalid).
+		 * Parse the absolute-expiry segment from an expiring opaque token
+		 * ("<secret>.<unix_ts>[.flags]"). Returns the unix timestamp, or null when
+		 * no valid segment is present (e.g. a legacy token minted before expiries
+		 * were embedded — treated as invalid).
 		 */
 		private function tokenExpiry($value): ?int {
-			$parts = explode(".", (string)$value, 2);
+			$parts = explode(".", (string)$value);
 
-			if (count($parts) !== 2 || $parts[1] === "" || !ctype_digit($parts[1])) {
+			if (count($parts) < 2 || $parts[1] === "" || !ctype_digit($parts[1])) {
 				return null;
 			}
 
 			return (int)$parts[1];
 		}
 
-		private function issueTokens(array $user, Request $request) {
+		/** Whether an expiring opaque token carries the "remember me" flag. */
+		private function tokenRemember($value): bool {
+			$parts = explode(".", (string)$value);
+
+			return strpos($parts[2] ?? "", "r") !== false;
+		}
+
+		/** Whether an expiring opaque token is a forced-enrollment setup token. */
+		private function tokenIsSetup($value): bool {
+			$parts = explode(".", (string)$value);
+
+			return strpos($parts[2] ?? "", "s") !== false;
+		}
+
+		private function issueTokens(array $user, Request $request, $remember = false) {
 			$access = $this->issueAccessToken($user);
-			$refresh = TokenStore::issueFamily((int)$user["id"], $request->ip, $request->user_agent);
+			$refresh = TokenStore::issueFamily((int)$user["id"], $request->ip, $request->user_agent, $remember);
 
 			// Both tokens go in the body. The SPA persists them to localStorage.
 			// No cookie is set — there's no value in HttpOnly for the refresh

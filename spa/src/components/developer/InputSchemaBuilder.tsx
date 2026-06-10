@@ -65,7 +65,9 @@ export const InputSchemaBuilder = ({ value, onChange }: InputSchemaBuilderProps)
 		}
 
 		const copy = [...value];
-		[copy[index], copy[target]] = [copy[target], copy[index]];
+		const moved = copy[index]!;
+		copy[index] = copy[target]!;
+		copy[target] = moved;
 		onChange(copy);
 	};
 

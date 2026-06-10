@@ -10,6 +10,12 @@ import {
 	type SandboxOutbound,
 } from "./fieldSandboxProtocol";
 
+/**
+ * Distributes over a union before omitting, so each member keeps its own keys.
+ * A plain Omit<Union, K> collapses to only the keys common to all members.
+ */
+type DistributiveOmit<T, K extends PropertyKey> = T extends unknown ? Omit<T, K> : never;
+
 interface SandboxedFieldProps extends FieldComponentProps {
 	assetUrl: string;
 	/** SRI string (e.g. "sha384-…"); the sandbox refuses unsigned modules. */
@@ -42,7 +48,7 @@ export const SandboxedField = ({
 	const propsRef = useRef(props);
 	propsRef.current = props;
 
-	const post = (msg: Omit<SandboxOutbound, "channel">) => {
+	const post = (msg: DistributiveOmit<SandboxOutbound, "channel">) => {
 		iframeRef.current?.contentWindow?.postMessage(
 			{ ...msg, channel: channelRef.current },
 			FIELD_SANDBOX_TARGET_ORIGIN

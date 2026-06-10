@@ -21,7 +21,13 @@ interface LoginMfaResponse {
 	mfa_token: string;
 }
 
-type LoginResponse = LoginTokenResponse | LoginMfaResponse;
+/** Security policy mandates TOTP and this user hasn't enrolled — login pauses for enrollment. */
+interface LoginSetupRequiredResponse {
+	two_factor_setup_required: true;
+	setup_token: string;
+}
+
+type LoginResponse = LoginTokenResponse | LoginMfaResponse | LoginSetupRequiredResponse;
 
 /** GET /auth/2fa/setup — the enrollment ceremony payload. */
 export interface TwoFactorSetup {
@@ -36,7 +42,19 @@ export interface TwoFactorState {
 	two_factor_enabled: boolean;
 }
 
+/** GET /auth/login-policy — the policy slice the login screen needs pre-auth. */
+export interface LoginPolicy {
+	remember_disabled: boolean;
+}
+
 export const authApi = {
+	/**
+	 * Security-policy flags that shape the login UI (e.g. hiding "Remember me").
+	 * Cosmetic only — the server clamps regardless of what the client sends.
+	 */
+	loginPolicy: (): Promise<LoginPolicy> =>
+		api.get<LoginPolicy>("/auth/login-policy", { skipAuth: true }),
+
 	/**
 	 * Submit credentials. Returns either a token bundle (immediate login) or
 	 * an mfa_required envelope (login continues via twoFactor()).
@@ -79,6 +97,38 @@ export const authApi = {
 	/** Finish enrollment: verify the code against the pending secret + store it. */
 	enableTwoFactor: (secret: string, code: string) =>
 		api.post<TwoFactorState>("/auth/2fa/enable", { secret, code }),
+
+	/**
+	 * Forced-enrollment ceremony start (policy mandates 2FA, user has no secret).
+	 * Authenticated solely by the setup token from the login response.
+	 */
+	twoFactorSetupRequired: (setupToken: string) =>
+		api.post<TwoFactorSetup>(
+			"/auth/2fa/setup-required",
+			{ setup_token: setupToken },
+			{ skipAuth: true }
+		),
+
+	/**
+	 * Finish forced enrollment: verify the code, persist the secret, and complete
+	 * the login — the response is a full token bundle, installed like any login.
+	 */
+	enableTwoFactorRequired: async (
+		setupToken: string,
+		secret: string,
+		code: string
+	): Promise<LoginTokenResponse> => {
+		const data = await api.post<LoginTokenResponse>(
+			"/auth/2fa/enable-required",
+			{ setup_token: setupToken, secret, code },
+			{ skipAuth: true }
+		);
+		useAuthStore
+			.getState()
+			.setSession(data.access_token, data.refresh_token, data.expires_in, data.user);
+
+		return data;
+	},
 
 	/** Turn off TOTP for the current user (requires a valid current code). */
 	disableTwoFactor: (code: string) => api.post<TwoFactorState>("/auth/2fa/disable", { code }),

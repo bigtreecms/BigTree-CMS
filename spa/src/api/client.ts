@@ -171,7 +171,16 @@ async function handleResponse<T>(
 		authStore.getState().clear();
 	}
 
-	throw new ApiError(response.status, payload as ApiErrorPayload | null);
+	const error = new ApiError(response.status, payload as ApiErrorPayload | null);
+
+	// Developer mode: the admin is in maintenance and limited to developers.
+	// Flag it globally so the Shell can swap to the lockout screen instead of
+	// every page surfacing its own 403.
+	if (error.status === 403 && error.code === "developer_mode") {
+		authStore.getState().setDeveloperLockout(true);
+	}
+
+	throw error;
 }
 
 export const api = {
