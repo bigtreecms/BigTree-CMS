@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Save } from "lucide-react";
+import { RefreshCw, Save } from "lucide-react";
 
 import { ConfigureLayout } from "@/components/developer/ConfigureLayout";
 import { Field } from "@/components/ui/Field";
@@ -78,6 +78,7 @@ export const ConfigureCloudStorage = () => {
 	const [defaultContainer, setDefaultContainer] = useState<string>("");
 	const [cloudfront, setCloudfront] = useState({ distribution: "", domain: "", ssl: "" });
 	const [generalError, setGeneralError] = useState<string | null>(null);
+	const [recacheProgress, setRecacheProgress] = useState<number | null>(null);
 
 	useEffect(() => {
 		if (detailQ.data) {
@@ -169,6 +170,49 @@ export const ConfigureCloudStorage = () => {
 					: "Could not start Google OAuth";
 			setGeneralError(msg);
 			toast.error(msg);
+		},
+	});
+
+	// Walks every page of the S3 bucket, forwarding the marker the server hands
+	// back, until the recache reports complete. Mirrors the legacy amazon-cache
+	// AJAX loop but keeps the paging entirely on the client.
+	const recacheMutation = useMutation({
+		mutationFn: async () => {
+			let marker: string | undefined;
+			let cached = 0;
+
+			setRecacheProgress(0);
+
+			for (;;) {
+				const page = await configureApi.cloudStorage.recacheAmazon(marker);
+				cached += page.cached;
+				setRecacheProgress(cached);
+
+				if (page.complete || !page.marker) {
+					break;
+				}
+
+				marker = page.marker;
+			}
+
+			return cached;
+		},
+		onSuccess: (cached) => {
+			toast.success(
+				cached > 0
+					? `Cached ${cached} S3 file${cached === 1 ? "" : "s"}`
+					: "S3 file cache is up to date"
+			);
+			setGeneralError(null);
+		},
+		onError: (err) => {
+			const msg =
+				err instanceof ApiError && err.message ? err.message : "Could not recache S3 files";
+			setGeneralError(msg);
+			toast.error(msg);
+		},
+		onSettled: () => {
+			setRecacheProgress(null);
 		},
 	});
 
@@ -288,6 +332,26 @@ export const ConfigureCloudStorage = () => {
 							saveProviderMutation.mutate({ provider: "amazon", body: drafts.amazon })
 						}
 						saving={saveProviderMutation.isPending}
+						footnote={
+							defaultService === "amazon" ? (
+								<button
+									type="button"
+									disabled={recacheMutation.isPending}
+									onClick={() => recacheMutation.mutate()}
+									className="inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-[12.5px] font-medium text-text hover:bg-hover disabled:opacity-60"
+								>
+									<RefreshCw
+										size={13}
+										className={
+											recacheMutation.isPending ? "animate-spin" : undefined
+										}
+									/>
+									{recacheMutation.isPending
+										? `Recaching… ${recacheProgress ?? 0} cached`
+										: "Recache S3 files"}
+								</button>
+							) : undefined
+						}
 					>
 						<Field label="AWS region">
 							<select

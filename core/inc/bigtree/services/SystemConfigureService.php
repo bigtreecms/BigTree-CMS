@@ -286,6 +286,72 @@
 			return null;
 		}
 
+		/**
+		 * Re-push the local file cache the Files browser reads against the live
+		 * Amazon S3 bucket, mirroring the legacy /developer/cloud-storage/amazon/
+		 * recache flow. Because a bucket can hold far more objects than a single
+		 * request can page through before timing out, this works one S3 page at a
+		 * time: the SPA calls it repeatedly, forwarding the `marker` it returns,
+		 * until `complete` comes back true.
+		 *
+		 * On the first call (no marker) the existing cache is cleared so removed
+		 * objects don't linger. Each subsequent call appends any not-yet-cached
+		 * objects in that page. Matches core/admin/ajax/developer/amazon-cache.php.
+		 */
+		public function recacheAmazonStorage(Request $request) {
+			$storage = new \BigTreeStorage();
+
+			if (($storage->Settings->Service ?? "") !== "amazon") {
+				throw new BadRequestException("Amazon S3 is not the active storage service.", "amazon_not_active", 400);
+			}
+
+			$bucket = (string)($storage->Settings->Container ?? "");
+
+			if ($bucket === "") {
+				throw new BadRequestException("No Amazon S3 bucket is configured.", "no_bucket", 400);
+			}
+
+			$marker = trim((string)($request->body["marker"] ?? ""));
+
+			if ($marker === "") {
+				\SQL::delete("bigtree_caches", ["identifier" => "org.bigtreecms.cloudfiles"]);
+			}
+
+			$cloud = new \BigTreeCloudStorage("amazon");
+			$page = $cloud->getS3BucketPage($bucket, $marker !== "" ? $marker : null);
+
+			if ($page === false) {
+				$error = !empty($cloud->Errors) ? end($cloud->Errors) : "Failed to read the S3 bucket.";
+
+				throw new BadRequestException(is_string($error) ? $error : "Failed to read the S3 bucket.", "recache_failed", 400);
+			}
+
+			$cached = 0;
+
+			foreach ($page as $item) {
+				if (!\SQL::exists("bigtree_caches", ["key" => $item["path"], "identifier" => "org.bigtreecms.cloudfiles"])) {
+					\SQL::insert("bigtree_caches", [
+						"identifier" => "org.bigtreecms.cloudfiles",
+						"key" => $item["path"],
+						"value" => [
+							"name" => $item["name"],
+							"path" => $item["path"],
+							"size" => $item["size"],
+						],
+					]);
+
+					$cached++;
+				}
+			}
+
+			return Response::ok([
+				"complete" => empty($cloud->NextPage),
+				"marker" => $cloud->NextPage ?: null,
+				"cached" => $cached,
+				"processed" => count($page),
+			]);
+		}
+
 		// — payment-gateway —
 
 		public function getPaymentGateway(Request $request) {

@@ -164,6 +164,11 @@
 			"multipart" => true,
 			"audit" => ["table" => "bigtree_settings", "type" => "cloud_storage_configured", "entry" => "bigtree-internal-cloud-storage"],
 		],
+		"POST /system/configure/cloud-storage/amazon/recache" => [
+			"service" => [SystemConfigureService::class, "recacheAmazonStorage"],
+			"permission" => ["level" => 2],
+			"allow_unknown" => true,
+		],
 
 		"GET /system/configure/payment-gateway" => [
 			"service" => [SystemConfigureService::class, "getPaymentGateway"],

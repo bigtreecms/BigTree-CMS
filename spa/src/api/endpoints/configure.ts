@@ -51,6 +51,14 @@ export interface CloudStorageConfig {
 	providers: Record<CloudProvider, CloudProviderState>;
 }
 
+/** One page of the paged S3 recache. Loop while `complete` is false. */
+export interface AmazonRecacheResponse {
+	complete: boolean;
+	marker: string | null;
+	cached: number;
+	processed: number;
+}
+
 export type PaymentGatewayId =
 	| ""
 	| "authorize.net"
@@ -157,6 +165,15 @@ export const configureApi = {
 				"/system/configure/cloud-storage/google/oauth/start",
 				{}
 			),
+		/**
+		 * Re-push one page of the local file cache against the live S3 bucket.
+		 * The bucket is paged server-side: pass the `marker` returned by the
+		 * previous call (omit it to start fresh) and loop until `complete`.
+		 */
+		recacheAmazon: (marker?: string) =>
+			api.post<AmazonRecacheResponse>("/system/configure/cloud-storage/amazon/recache", {
+				marker: marker ?? "",
+			}),
 	},
 
 	paymentGateway: {
