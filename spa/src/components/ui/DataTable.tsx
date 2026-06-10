@@ -147,7 +147,7 @@ export const DataTable = <Row,>({
 					return (
 						<div
 							key={key}
-							className={`grid grid-cols-1 md:grid-cols-[var(--dt-cols)] gap-x-4 border-b border-border px-3.5 py-2 text-[13px] last:border-b-0 hover:bg-surface-2 md:items-center md:py-1.5 ${
+							className={`grid grid-cols-1 gap-x-4 gap-y-2 border-b border-border px-3.5 py-2.5 text-[13px] last:border-b-0 hover:bg-surface-2 md:grid-cols-[var(--dt-cols)] md:items-center md:gap-y-0 md:py-1.5 ${
 								onRowClick ? "cursor-pointer" : ""
 							} ${isDropTarget ? "shadow-[inset_0_2px_0_0_var(--color-accent)]" : ""} ${
 								rowClassName?.(row) ?? ""
@@ -177,11 +177,38 @@ export const DataTable = <Row,>({
 											? "md:text-center"
 											: "";
 
+								// On mobile the header row is hidden and cells stack into a
+								// single column, so each cell would otherwise lose its
+								// context. Re-surface the column header as a small label
+								// above the value — skipping hidden columns and non-text
+								// headers (e.g. a select-all checkbox or an empty actions
+								// header). The label follows the column's alignment so
+								// right-aligned columns line up.
+								const mobileLabel =
+									!col.hideOnMobile &&
+									typeof col.header === "string" &&
+									col.header.trim().length > 0
+										? col.header
+										: null;
+								const labelAlignClass =
+									col.align === "right"
+										? "text-right"
+										: col.align === "center"
+											? "text-center"
+											: "";
+
 								return (
 									<div
 										key={col.key}
 										className={`${col.hideOnMobile ? "hidden md:block" : ""} ${alignClass}`}
 									>
+										{mobileLabel && (
+											<span
+												className={`mb-0.5 block text-[10px] font-semibold uppercase tracking-[0.06em] text-text-3 md:hidden ${labelAlignClass}`}
+											>
+												{mobileLabel}
+											</span>
+										)}
 										{col.cell(row)}
 									</div>
 								);

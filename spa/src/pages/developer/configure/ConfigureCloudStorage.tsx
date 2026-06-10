@@ -192,8 +192,8 @@ export const ConfigureCloudStorage = () => {
 						<div className="mb-3 text-[12.5px] font-semibold text-text">
 							Default storage service
 						</div>
-						<div className="flex items-end gap-3">
-							<div className="flex-1">
+						<div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+							<div className="sm:flex-1">
 								<Field label="Service">
 									<select
 										className={inputClass}
@@ -214,7 +214,7 @@ export const ConfigureCloudStorage = () => {
 								</Field>
 							</div>
 
-							<div className="flex-1">
+							<div className="sm:flex-1">
 								<Field label="Container / bucket (optional)">
 									<input
 										className={inputClass}
@@ -229,7 +229,7 @@ export const ConfigureCloudStorage = () => {
 								type="button"
 								onClick={() => saveDefaultMutation.mutate()}
 								disabled={saveDefaultMutation.isPending}
-								className="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-[12.5px] font-medium text-accent-fg hover:bg-accent-hover disabled:opacity-60"
+								className="inline-flex w-full items-center justify-center gap-1.5 rounded-md bg-accent px-3 py-2 text-[12.5px] font-medium text-accent-fg hover:bg-accent-hover disabled:opacity-60 sm:w-auto sm:justify-start sm:py-1.5"
 							>
 								<Save size={13} />
 								{saveDefaultMutation.isPending ? "Saving…" : "Update default"}

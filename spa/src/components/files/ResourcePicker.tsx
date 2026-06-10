@@ -15,6 +15,8 @@ import { SlideOver } from "@/components/ui/SlideOver";
 import { resourceFoldersApi, type ResourceSummary } from "@/api/endpoints/resource-folders";
 import { resourcesApi } from "@/api/endpoints/resources";
 
+import { expandImageUrl } from "@/lib/imageUrl";
+
 export type ResourcePickerType = "image" | "file" | "video";
 
 interface ResourcePickerProps {
@@ -249,7 +251,7 @@ const ResourceTile = ({ resource, type, onPick }: ResourceTileProps) => {
 			<div className="aspect-square w-full bg-surface-2">
 				{resource.is_image && resource.file ? (
 					<img
-						src={resource.file}
+						src={expandImageUrl(resource.file)}
 						alt=""
 						className="h-full w-full object-cover"
 						loading="lazy"

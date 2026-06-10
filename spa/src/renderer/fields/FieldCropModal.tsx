@@ -147,7 +147,7 @@ export const FieldCropModal = ({
 						/>
 					</div>
 
-					<div className="flex items-center gap-3 border-t border-border bg-surface-2 px-5 py-3">
+					<div className="flex flex-wrap items-center gap-x-3 gap-y-2 border-t border-border bg-surface-2 px-5 py-3">
 						<label htmlFor="field-crop-zoom" className="text-[11.5px] text-text-3">
 							Zoom
 						</label>
@@ -159,33 +159,33 @@ export const FieldCropModal = ({
 							step={0.05}
 							value={zoom}
 							onChange={(e) => setZoom(parseFloat(e.target.value))}
-							className="w-40 accent-accent"
+							className="w-32 max-w-full accent-accent sm:w-40"
 						/>
 
 						{tooSmall && (
-							<span className="text-[11.5px] text-warn">
+							<span className="w-full text-[11.5px] text-warn sm:w-auto">
 								Selection is below the required {minWidth}×{minHeight}px.
 							</span>
 						)}
 
-						<div className="flex-1" />
-
-						<button
-							type="button"
-							className="rounded-md border border-border px-3 py-1.5 text-[12.5px] hover:bg-hover disabled:opacity-50"
-							onClick={onCancel}
-							disabled={busy}
-						>
-							Cancel
-						</button>
-						<button
-							type="button"
-							className="rounded-md bg-accent px-3 py-1.5 text-[12.5px] font-medium text-accent-fg disabled:opacity-60 hover:bg-accent-hover"
-							onClick={finalizeCurrent}
-							disabled={!validCrop || busy}
-						>
-							{busy ? "Cropping…" : isLast ? "Finish" : "Crop & continue"}
-						</button>
+						<div className="ml-auto flex items-center gap-2">
+							<button
+								type="button"
+								className="rounded-md border border-border px-3 py-1.5 text-[12.5px] hover:bg-hover disabled:opacity-50"
+								onClick={onCancel}
+								disabled={busy}
+							>
+								Cancel
+							</button>
+							<button
+								type="button"
+								className="rounded-md bg-accent px-3 py-1.5 text-[12.5px] font-medium text-accent-fg disabled:opacity-60 hover:bg-accent-hover"
+								onClick={finalizeCurrent}
+								disabled={!validCrop || busy}
+							>
+								{busy ? "Cropping…" : isLast ? "Finish" : "Crop & continue"}
+							</button>
+						</div>
 					</div>
 				</Dialog.Content>
 			</Dialog.Portal>

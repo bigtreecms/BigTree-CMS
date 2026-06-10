@@ -136,7 +136,7 @@ export const SearchableView = ({ moduleId, view }: SearchableViewProps) => {
 			sortable: true,
 			align: "left",
 			headerAlign: "left",
-			cell: (row) => <ViewStatusBadge row={row} />,
+			cell: (row) => <ViewStatusBadge row={row} plainOnMobile />,
 		});
 
 		if (hasRowActions) {
@@ -249,7 +249,7 @@ export const SearchableView = ({ moduleId, view }: SearchableViewProps) => {
 	return (
 		<>
 			<div className="mb-3 flex flex-wrap items-center gap-3">
-				<div className="relative max-w-md flex-1">
+				<div className="relative w-full sm:w-auto sm:max-w-md sm:flex-1">
 					<Search
 						size={14}
 						className="absolute left-3 top-1/2 -translate-y-1/2 text-text-3"

@@ -92,7 +92,7 @@ export const TagMerge = () => {
 				sub="Pick a target tag — every relation pointing at the source tags will be re-pointed to it, then the source tags will be deleted."
 			/>
 
-			<section className="mb-5 rounded-lg border border-border bg-surface">
+			<section className="mb-5 overflow-hidden rounded-lg border border-border bg-surface">
 				<div className="border-b border-border bg-surface-2 px-4 py-2.5 text-[12.5px] font-semibold">
 					Source tags
 				</div>
@@ -137,7 +137,7 @@ export const TagMerge = () => {
 				</div>
 			</section>
 
-			<section className="rounded-lg border border-border bg-surface">
+			<section className="overflow-hidden rounded-lg border border-border bg-surface">
 				<div className="border-b border-border bg-surface-2 px-4 py-2.5 text-[12.5px] font-semibold">
 					Target tag
 				</div>

@@ -21,6 +21,7 @@ import {
 	type ResourcePrefixedAsset,
 } from "@/api/endpoints/resources";
 import { formatBytes } from "@/lib/bytes";
+import { expandImageUrl } from "@/lib/imageUrl";
 import { toast } from "@/lib/toast";
 
 interface FileDetailProps {
@@ -118,7 +119,7 @@ export const FileDetail = ({ resourceId, onOpenChange, folderQueryKey }: FileDet
 		}
 
 		try {
-			await navigator.clipboard.writeText(resource.file);
+			await navigator.clipboard.writeText(expandImageUrl(resource.file));
 			toast.success("URL copied");
 		} catch {
 			toast.error("Could not copy URL");
@@ -234,7 +235,7 @@ const Preview = ({ resource }: PreviewProps) => {
 		return (
 			<div className="overflow-hidden rounded-lg border border-border bg-surface-2">
 				<img
-					src={resource.file}
+					src={expandImageUrl(resource.file)}
 					alt={resource.name}
 					className="block max-h-[260px] w-full object-contain"
 				/>
@@ -257,6 +258,8 @@ interface MetaGridProps {
 }
 
 const MetaGrid = ({ resource, onCopyUrl }: MetaGridProps) => {
+	const fileUrl = expandImageUrl(resource.file);
+
 	const rows: Array<[string, React.ReactNode]> = [
 		["Type", resource.mimetype || resource.type || "—"],
 		["Size", formatBytes(resource.size)],
@@ -286,13 +289,13 @@ const MetaGrid = ({ resource, onCopyUrl }: MetaGridProps) => {
 			<dt className="text-text-3">URL</dt>
 			<dd className="flex min-w-0 items-center gap-1.5">
 				<a
-					href={resource.file}
+					href={fileUrl}
 					target="_blank"
 					rel="noopener noreferrer"
 					className="inline-flex items-center gap-1 truncate text-accent hover:underline"
 				>
 					<LinkIcon size={12} />
-					<span className="truncate font-mono text-[11.5px]">{resource.file}</span>
+					<span className="truncate font-mono text-[11.5px]">{fileUrl}</span>
 				</a>
 				<button
 					type="button"
@@ -381,7 +384,7 @@ const CropsSection = ({ crops, onAddCrop }: CropsSectionProps) => {
 							className="overflow-hidden rounded-md border border-border bg-surface"
 						>
 							<img
-								src={c.file}
+								src={expandImageUrl(c.file)}
 								alt=""
 								className="block aspect-video w-full object-cover"
 							/>

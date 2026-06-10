@@ -244,11 +244,14 @@ export const columnWidth = (field: ModuleViewFieldConfig): string => {
 		return "minmax(0,1fr)";
 	}
 
-	// Treat the legacy pixel width as a minimum and a proportional weight so
-	// columns grow to fill the table when the configured widths total less
-	// than the available space. Without the `fr` max, the grid stops at the
-	// summed px widths and the trailing Actions column floats in the middle.
-	return `minmax(${px}px, ${px}fr)`;
+	// Use the legacy pixel width purely as a proportional weight (the `fr` max),
+	// with a `0` minimum so columns can shrink to fit narrower viewports. A hard
+	// `${px}px` minimum used to force the grid wider than the container at
+	// constrained desktop widths (e.g. iPad landscape ~1024px), which clipped the
+	// trailing Actions column under the card's `overflow-hidden`. Keeping the `fr`
+	// weight preserves the "grow to fill, in proportion" behaviour on wide
+	// screens; the `0` min just lets cells truncate instead of overflowing.
+	return `minmax(0, ${px}fr)`;
 };
 
 // Legacy admin double-encodes by design: BigTree::safeEncode runs once at form

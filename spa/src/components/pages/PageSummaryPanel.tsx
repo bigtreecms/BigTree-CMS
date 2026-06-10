@@ -107,7 +107,7 @@ export const PageSummaryPanel = ({ page, liveUrl, defaultOpen = false }: PageSum
 		>
 			<button
 				type="button"
-				className={`flex w-full items-center gap-2.5 px-4 py-2.5 text-left transition-colors ${
+				className={`flex w-full flex-wrap items-center gap-x-2.5 gap-y-1.5 px-4 py-2.5 text-left transition-colors ${
 					open
 						? "border-b border-border bg-surface-2"
 						: "border-b border-transparent hover:bg-surface-2"
@@ -139,7 +139,7 @@ export const PageSummaryPanel = ({ page, liveUrl, defaultOpen = false }: PageSum
 							{status.label}
 						</span>
 						<span className="text-text-4">·</span>
-						<span className="text-text-2">
+						<span className="whitespace-nowrap text-text-2">
 							{ageDays !== null ? `${ageDays} days old` : "Age unknown"}
 						</span>
 						{page?.id !== undefined && (

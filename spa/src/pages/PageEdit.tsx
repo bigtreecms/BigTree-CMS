@@ -1184,57 +1184,63 @@ export const WizardFooter = ({
 
 			{secondary}
 
-			<div className="flex-1" />
+			{/* Desktop-only spacer; on mobile the action group below claims its own row. */}
+			<div className="hidden flex-1 sm:block" />
 
-			{wizardMode && !isLast && (
+			{/* On mobile this is a full-width row (so Back sits alone above and the
+			    save actions share a line); on desktop `contents` dissolves the wrapper
+			    so the buttons lay out exactly as before. */}
+			<div className="flex w-full flex-wrap items-center justify-end gap-2 sm:contents">
+				{wizardMode && !isLast && (
+					<button
+						type="button"
+						onClick={() =>
+							onSelect(PAGE_TABS[index + 1] ?? PAGE_TABS[PAGE_TABS.length - 1]!)
+						}
+						className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] hover:bg-hover"
+					>
+						Next Step
+						<ChevronLeft size={13} className="rotate-180" />
+					</button>
+				)}
+
+				{wizardMode && onWizardCreate && (
+					<button
+						type="button"
+						onClick={onWizardCreate}
+						className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] hover:bg-hover"
+						disabled={primaryDisabled}
+					>
+						{createLabel ?? "Create"}
+					</button>
+				)}
+
 				<button
 					type="button"
-					onClick={() =>
-						onSelect(PAGE_TABS[index + 1] ?? PAGE_TABS[PAGE_TABS.length - 1]!)
+					onClick={onPrimary}
+					className={
+						showPublish
+							? "inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] font-medium text-text-2 disabled:opacity-50 hover:bg-hover"
+							: "inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-[12.5px] font-medium text-accent-fg disabled:opacity-50 hover:bg-accent-hover"
 					}
-					className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] hover:bg-hover"
-				>
-					Next Step
-					<ChevronLeft size={13} className="rotate-180" />
-				</button>
-			)}
-
-			{wizardMode && onWizardCreate && (
-				<button
-					type="button"
-					onClick={onWizardCreate}
-					className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] hover:bg-hover"
 					disabled={primaryDisabled}
 				>
-					{createLabel ?? "Create"}
-				</button>
-			)}
-
-			<button
-				type="button"
-				onClick={onPrimary}
-				className={
-					showPublish
-						? "inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] font-medium text-text-2 disabled:opacity-50 hover:bg-hover"
-						: "inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-[12.5px] font-medium text-accent-fg disabled:opacity-50 hover:bg-accent-hover"
-				}
-				disabled={primaryDisabled}
-			>
-				<Save size={13} />
-				{primaryLabel}
-			</button>
-
-			{showPublish && (
-				<button
-					type="button"
-					onClick={onPublish}
-					className="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-[12.5px] font-medium text-accent-fg disabled:opacity-50 hover:bg-accent-hover"
-					disabled={publishDisabled}
-				>
 					<Save size={13} />
-					{publishLabel}
+					{primaryLabel}
 				</button>
-			)}
+
+				{showPublish && (
+					<button
+						type="button"
+						onClick={onPublish}
+						className="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-[12.5px] font-medium text-accent-fg disabled:opacity-50 hover:bg-accent-hover"
+						disabled={publishDisabled}
+					>
+						<Save size={13} />
+						{publishLabel}
+					</button>
+				)}
+			</div>
 		</div>
 	);
 };
