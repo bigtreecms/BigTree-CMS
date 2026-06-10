@@ -210,11 +210,13 @@
 							$usage_status = "Pending Draft";
 						} elseif ($usage["location"] === "Settings") {
 							$usage_status = "—";
+						} elseif (!empty($usage["archived"])) {
+							$usage_status = "Archived";
 						} else {
 							$usage_status = "Published";
 						}
 				?>
-				<li>
+				<li<?php if (!empty($usage["archived"])) { ?> class="archived"<?php } ?>>
 					<section class="view_column file_usage_location"><?=htmlspecialchars($usage["location"])?></section>
 					<section class="view_column file_usage_entry">
 						<?php
