@@ -80,7 +80,9 @@ export const ConfigureGeocoding = () => {
 		},
 		onError: (err) => {
 			const msg =
-				err instanceof ApiError && err.message ? err.message : "Could not save geocoding config";
+				err instanceof ApiError && err.message
+					? err.message
+					: "Could not save geocoding config";
 			setGeneralError(msg);
 			toast.error(msg);
 		},
@@ -127,7 +129,10 @@ export const ConfigureGeocoding = () => {
 						<select
 							value={draft.service}
 							onChange={(e) =>
-								setDraft({ ...draft, service: e.target.value as GeocodingServiceId })
+								setDraft({
+									...draft,
+									service: e.target.value as GeocodingServiceId,
+								})
 							}
 							className={inputClass}
 						>
@@ -146,7 +151,9 @@ export const ConfigureGeocoding = () => {
 								<input
 									className={inputClass}
 									value={draft.google_key}
-									onChange={(e) => setDraft({ ...draft, google_key: e.target.value })}
+									onChange={(e) =>
+										setDraft({ ...draft, google_key: e.target.value })
+									}
 								/>
 							</Field>
 						)}
@@ -156,7 +163,9 @@ export const ConfigureGeocoding = () => {
 								<input
 									className={inputClass}
 									value={draft.bing_key}
-									onChange={(e) => setDraft({ ...draft, bing_key: e.target.value })}
+									onChange={(e) =>
+										setDraft({ ...draft, bing_key: e.target.value })
+									}
 								/>
 							</Field>
 						)}
@@ -166,7 +175,9 @@ export const ConfigureGeocoding = () => {
 								<input
 									className={inputClass}
 									value={draft.mapquest_key}
-									onChange={(e) => setDraft({ ...draft, mapquest_key: e.target.value })}
+									onChange={(e) =>
+										setDraft({ ...draft, mapquest_key: e.target.value })
+									}
 								/>
 							</Field>
 						)}

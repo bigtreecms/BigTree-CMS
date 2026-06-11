@@ -8,3 +8,4 @@
 .DS_Store
 .htaccess
 /cron-run.php
+/spa/*.tsbuildinfo

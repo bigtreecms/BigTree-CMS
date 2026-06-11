@@ -110,7 +110,11 @@ export const DebugUpgrade = () => {
 		setStage("complete");
 	};
 
-	const install = async (body: { ftp_username?: string; ftp_password?: string; ftp_root?: string }) => {
+	const install = async (body: {
+		ftp_username?: string;
+		ftp_password?: string;
+		ftp_root?: string;
+	}) => {
 		setStage("installing");
 		const res = await systemApi.upgrade.install(body);
 
@@ -218,8 +222,8 @@ export const DebugUpgrade = () => {
 					{data.config_ignored && (
 						<div className="mb-4 flex items-start gap-2 rounded-lg border border-warn/40 bg-warn-bg/30 p-3 text-[12.5px] text-text-2">
 							<AlertTriangle size={15} className="mt-0.5 shrink-0 text-warn" />
-							Updates are disabled in this install's configuration
-							(<code>ignore_admin_updates</code>).
+							Updates are disabled in this install's configuration (
+							<code>ignore_admin_updates</code>).
 						</div>
 					)}
 
@@ -232,9 +236,7 @@ export const DebugUpgrade = () => {
 						</div>
 					)}
 
-					{stage === "idle" && (
-						<UpdateList data={data} onInstall={start} />
-					)}
+					{stage === "idle" && <UpdateList data={data} onInstall={start} />}
 
 					{busy && (
 						<div className="flex items-center gap-2 rounded-lg border border-border bg-surface p-4 text-[12.5px] text-text-2">
@@ -253,11 +255,15 @@ export const DebugUpgrade = () => {
 
 							<div className="p-4">
 								{stage === "credentials" ? (
-									<form className="max-w-sm space-y-3" onSubmit={submitCredentials}>
+									<form
+										className="max-w-sm space-y-3"
+										onSubmit={submitCredentials}
+									>
 										<p className="text-[12.5px] text-text-3">
 											The server can't write to <code>/core/</code> directly.
-											Enter your {method} credentials so BigTree can install the
-											update. Your existing core and database are backed up to
+											Enter your {method} credentials so BigTree can install
+											the update. Your existing core and database are backed
+											up to
 											<code> /backups/</code> first.
 										</p>
 										<Field label={`${method} username`}>
@@ -277,15 +283,20 @@ export const DebugUpgrade = () => {
 												onChange={(e) => setPassword(e.target.value)}
 											/>
 										</Field>
-										<button type="submit" className={primaryBtn} disabled={!username}>
+										<button
+											type="submit"
+											className={primaryBtn}
+											disabled={!username}
+										>
 											Install
 										</button>
 									</form>
 								) : (
 									<form className="max-w-sm space-y-3" onSubmit={submitFtpRoot}>
 										<p className="text-[12.5px] text-text-3">
-											BigTree couldn't find the install directory automatically.
-											Enter the full {method} path to the directory that contains
+											BigTree couldn't find the install directory
+											automatically. Enter the full {method} path to the
+											directory that contains
 											<code> /core/</code>.
 										</p>
 										{badRoot && (
@@ -300,7 +311,11 @@ export const DebugUpgrade = () => {
 												onChange={(e) => setFtpRoot(e.target.value)}
 											/>
 										</Field>
-										<button type="submit" className={primaryBtn} disabled={!ftpRoot}>
+										<button
+											type="submit"
+											className={primaryBtn}
+											disabled={!ftpRoot}
+										>
 											Set directory & install
 										</button>
 									</form>

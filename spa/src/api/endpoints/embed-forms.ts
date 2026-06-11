@@ -37,12 +37,8 @@ export interface EmbedFormSubmitResponse {
 }
 
 export const embedFormsApi = {
-	get: (hash: string) =>
-		api.get<EmbedFormConfig>(`/embed-forms/${encodeURIComponent(hash)}`),
+	get: (hash: string) => api.get<EmbedFormConfig>(`/embed-forms/${encodeURIComponent(hash)}`),
 
 	submit: (hash: string, body: EmbedFormSubmitRequest) =>
-		api.post<EmbedFormSubmitResponse>(
-			`/embed-forms/${encodeURIComponent(hash)}/submit`,
-			body
-		),
+		api.post<EmbedFormSubmitResponse>(`/embed-forms/${encodeURIComponent(hash)}/submit`, body),
 };

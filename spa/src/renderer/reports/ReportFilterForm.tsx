@@ -1,9 +1,6 @@
 import { useMemo, useState, type FormEvent } from "react";
 
-import type {
-	ModuleReportFilter,
-	ModuleReportFilterOption,
-} from "@/api/endpoints/modules";
+import type { ModuleReportFilter, ModuleReportFilterOption } from "@/api/endpoints/modules";
 
 /**
  * Filter form for a saved report. Builds inputs from the report's `filters`
@@ -98,14 +95,13 @@ export const ReportFilterForm = ({
 	};
 
 	return (
-		<form
-			onSubmit={handleSubmit}
-			className="rounded-xl border border-border bg-surface p-4"
-		>
+		<form onSubmit={handleSubmit} className="rounded-xl border border-border bg-surface p-4">
 			<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
 				{filters.map(({ column, filter }) => (
 					<div key={column} className="flex flex-col gap-1.5">
-						<label className="text-[12px] font-medium text-text-2">{filter.title}</label>
+						<label className="text-[12px] font-medium text-text-2">
+							{filter.title}
+						</label>
 						<FilterInput
 							column={column}
 							filter={filter}
@@ -151,11 +147,7 @@ export const ReportFilterForm = ({
 					className="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-[12.5px] font-medium text-accent-fg disabled:opacity-60 hover:bg-accent-hover"
 					disabled={submitting}
 				>
-					{submitting
-						? "Running…"
-						: reportType === "csv"
-							? "Export CSV"
-							: "Run Report"}
+					{submitting ? "Running…" : reportType === "csv" ? "Export CSV" : "Run Report"}
 				</button>
 			</div>
 		</form>

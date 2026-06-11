@@ -125,7 +125,7 @@
 			$table = $this->resolveTable($module, $request);
 
 			$data = $request->body;
-			$mtm = (array)($data["__mtm__"] ?? []);
+			$mtm = $this->validateMtm($module, $table, (array)($data["__mtm__"] ?? []));
 			$tags = (array)($data["__tags__"] ?? []);
 			$og = (array)($data["__open_graph__"] ?? []);
 			$publish = !empty($data["__publish__"]);
@@ -192,7 +192,7 @@
 			}
 
 			$data = $request->body;
-			$mtm = (array)($data["__mtm__"] ?? []);
+			$mtm = $this->validateMtm($module, $table, (array)($data["__mtm__"] ?? []));
 			$tags = (array)($data["__tags__"] ?? []);
 			$og = (array)($data["__open_graph__"] ?? []);
 			$publish = !empty($data["__publish__"]);
@@ -411,6 +411,68 @@
 					$admin->Timezone = $row["timezone"];
 				}
 			}
+		}
+
+		/**
+		 * Validate the client-supplied __mtm__ descriptor against the module's form
+		 * definition. The legacy admin builds the table/column identifiers server-side
+		 * from trusted form settings (many-to-many/process.php); the API trusts the
+		 * client, so we must reject any (table, my-id, other-id) triple not declared by
+		 * a many-to-many field on this form before it reaches BigTreeAutoModule, which
+		 * interpolates those identifiers raw into SQL.
+		 *
+		 * @return array The submitted $mtm, filtered to declared triples.
+		 * @throws BadRequestException when an entry names an undeclared triple.
+		 */
+		private function validateMtm(array $module, string $table, array $mtm): array {
+			if (!$mtm) {
+				return [];
+			}
+
+			// Collect the (table, my-id, other-id) triples declared on this form.
+			$allowed = [];
+
+			foreach ((array)($module["forms"] ?? []) as $candidate) {
+				if (($candidate["table"] ?? "") !== $table) {
+					continue;
+				}
+
+				foreach ((array)($candidate["fields"] ?? []) as $field) {
+					if (($field["type"] ?? "") !== "many-to-many") {
+						continue;
+					}
+
+					$settings = is_array($field["settings"] ?? null) ? $field["settings"] : [];
+					$key = ($settings["mtm-connecting-table"] ?? "") . "\0"
+						. ($settings["mtm-my-id"] ?? "") . "\0"
+						. ($settings["mtm-other-id"] ?? "");
+					$allowed[$key] = true;
+				}
+			}
+
+			$clean = [];
+
+			foreach ($mtm as $entry) {
+				if (!is_array($entry)) {
+					continue;
+				}
+
+				$key = ($entry["table"] ?? "") . "\0"
+					. ($entry["my-id"] ?? "") . "\0"
+					. ($entry["other-id"] ?? "");
+
+				if (!isset($allowed[$key])) {
+					throw new BadRequestException(
+						"Many-to-many relationship is not declared by this module form",
+						"invalid_mtm",
+						400
+					);
+				}
+
+				$clean[] = $entry;
+			}
+
+			return $clean;
 		}
 
 		/**

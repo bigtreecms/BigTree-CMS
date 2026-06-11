@@ -33,13 +33,7 @@ interface DateLikeFieldProps extends FieldComponentProps {
 	kind: "date" | "datetime" | "time";
 }
 
-export const DateLikeField = ({
-	field,
-	value,
-	onChange,
-	disabled,
-	kind,
-}: DateLikeFieldProps) => {
+export const DateLikeField = ({ field, value, onChange, disabled, kind }: DateLikeFieldProps) => {
 	const inputType = kind === "datetime" ? "datetime-local" : kind;
 
 	return (

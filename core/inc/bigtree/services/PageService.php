@@ -937,14 +937,68 @@
 			return Response::ok($out);
 		}
 
+		/**
+		 * Decide which requested ids may actually be repositioned, given the set of
+		 * real child page ids of the target folder. Pending NEW pages carry a
+		 * bigtree_pending_changes id (a different table), and ids from other folders
+		 * are not children of $parent — both must be ignored so reorder cannot
+		 * rewrite an unrelated live page's position.
+		 *
+		 * Pure helper (no DB) so the corruption-guard logic can be unit-tested
+		 * directly. $childIds is the set of genuine child page ids; $requestedIds is
+		 * the ordered id list from the request. Returns the requested ids that are
+		 * real children, in the requested order.
+		 *
+		 * @param int[] $childIds
+		 * @param int[] $requestedIds
+		 * @return int[]
+		 */
+		public static function filterReorderableIds(array $childIds, array $requestedIds): array
+		{
+			$valid = array_flip(array_map("intval", $childIds));
+			$reorderable = [];
+
+			foreach ($requestedIds as $id) {
+				$id = (int)$id;
+
+				if (isset($valid[$id])) {
+					$reorderable[] = $id;
+				}
+			}
+
+			return $reorderable;
+		}
+
 		public function reorder(Request $request) {
 			$parent = (int)$request->route_params["parent"];
 			$this->enforce($request->user, $parent, "e", "reorder children of");
 			$ids = array_map("intval", (array)$request->body["ids"]);
+
+			// Only real pages that are actually children of $parent may be repositioned.
+			// This rejects pending-change ids (which live in a different table) and ids
+			// from other folders, both of which would otherwise corrupt unrelated rows.
+			$childIds = [];
+
+			if ($ids) {
+				$placeholders = implode(",", array_fill(0, count($ids), "?"));
+				$rows = SQL::fetchAll(
+					"SELECT id FROM bigtree_pages WHERE parent = ? AND id IN ($placeholders)",
+					...array_merge([$parent], $ids)
+				);
+				$childIds = array_map("intval", array_column($rows, "id"));
+			}
+
+			$reorderable = array_flip(self::filterReorderableIds($childIds, $ids));
 			$pos = count($ids);
 
 			foreach ($ids as $id) {
-				SQL::update("bigtree_pages", $id, ["position" => $pos--, "updated_at" => "NOW()"]);
+				if (isset($reorderable[$id])) {
+					SQL::update("bigtree_pages", $id, ["position" => $pos--, "updated_at" => "NOW()"]);
+				} else {
+					// The dropped id still consumes its slot, so the surviving real
+					// pages keep their intended relative spacing.
+					$pos--;
+				}
 			}
 
 			return Response::noContent();

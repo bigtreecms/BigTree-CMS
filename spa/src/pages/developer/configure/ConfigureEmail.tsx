@@ -7,17 +7,17 @@ import { Field } from "@/components/ui/Field";
 import { FormShell } from "@/components/ui/FormShell";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 
-import {
-	configureApi,
-	type EmailConfig,
-	type EmailServiceId,
-} from "@/api/endpoints/configure";
+import { configureApi, type EmailConfig, type EmailServiceId } from "@/api/endpoints/configure";
 
 import { ApiError } from "@/types/api";
 import { toast } from "@/lib/toast";
 
 const SERVICES: Array<{ id: EmailServiceId; label: string; blurb: string }> = [
-	{ id: "local", label: "Local server", blurb: "PHP's native mail() — fine for low volume, often gets marked as spam." },
+	{
+		id: "local",
+		label: "Local server",
+		blurb: "PHP's native mail() — fine for low volume, often gets marked as spam.",
+	},
 	{ id: "smtp", label: "SMTP", blurb: "PHPMailer over a standard SMTP relay." },
 	{ id: "mandrill", label: "Mandrill", blurb: "Transactional email by the makers of MailChimp." },
 	{ id: "mailgun", label: "Mailgun", blurb: "Transactional email by Rackspace." },
@@ -57,7 +57,9 @@ export const ConfigureEmail = () => {
 		},
 		onError: (err) => {
 			const msg =
-				err instanceof ApiError && err.message ? err.message : "Could not save email config";
+				err instanceof ApiError && err.message
+					? err.message
+					: "Could not save email config";
 			setGeneralError(msg);
 			toast.error(msg);
 		},
@@ -99,9 +101,7 @@ export const ConfigureEmail = () => {
 			title="Email"
 			sub="Picks the delivery service BigTree uses for password resets, daily digests, and EmailService::sendEmail() calls."
 		>
-			{detailQ.isLoading && (
-				<p className="text-[12.5px] text-text-3">Loading…</p>
-			)}
+			{detailQ.isLoading && <p className="text-[12.5px] text-text-3">Loading…</p>}
 
 			{detailQ.error && <ErrorPanel error={detailQ.error} />}
 
@@ -229,14 +229,18 @@ export const ConfigureEmail = () => {
 									<input
 										className={inputClass}
 										value={draft.settings.sendgrid_api_user ?? ""}
-										onChange={(e) => onChange("sendgrid_api_user", e.target.value)}
+										onChange={(e) =>
+											onChange("sendgrid_api_user", e.target.value)
+										}
 									/>
 								</Field>
 								<Field label="API key">
 									<input
 										className={inputClass}
 										value={draft.settings.sendgrid_api_key ?? ""}
-										onChange={(e) => onChange("sendgrid_api_key", e.target.value)}
+										onChange={(e) =>
+											onChange("sendgrid_api_key", e.target.value)
+										}
 									/>
 								</Field>
 							</>

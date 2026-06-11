@@ -16,6 +16,9 @@
 	class PermissionService {
 		const LEVELS = ["n" => 0, "v" => 1, "e" => 2, "p" => 3];
 
+		/** Request-scoped id → parent memo for the page tree, shared across userPageLevel calls. */
+		private static $page_parent_cache = [];
+
 		public static function userHasModuleAccess($user, $module_id_or_route, $min = "v") {
 			$rank = self::userModuleLevel($user, $module_id_or_route);
 
@@ -145,12 +148,11 @@
 			$seen = [];
 
 			while ($current > 0) {
-				$parent_row = SQL::fetch("SELECT parent FROM bigtree_pages WHERE id = ?", $current);
+				$parent = self::pageParent($current);
 
-				if (!$parent_row) {
+				if ($parent === null) {
 					return "n";
 				}
-				$parent = (int)$parent_row["parent"];
 
 				if (isset($seen[$parent])) break; // cycle safety
 				$seen[$parent] = true;
@@ -245,6 +247,25 @@
 		}
 
 		// — helpers —
+
+		/**
+		 * Cached "SELECT parent FROM bigtree_pages WHERE id = ?" lookup. The page list
+		 * resolves access for every sibling in a folder, and every sibling walks the
+		 * same ancestor chain to the root — so without memoization the identical parent
+		 * rows are re-fetched once per sibling (N×depth queries for an N-child folder).
+		 * Returns the parent id, or null if the page row does not exist.
+		 */
+		private static function pageParent(int $id): ?int {
+			if (array_key_exists($id, self::$page_parent_cache)) {
+				return self::$page_parent_cache[$id];
+			}
+
+			$row = SQL::fetch("SELECT parent FROM bigtree_pages WHERE id = ?", $id);
+			$parent = $row ? (int)$row["parent"] : null;
+			self::$page_parent_cache[$id] = $parent;
+
+			return $parent;
+		}
 
 		private static function extractLevel($user) {
 			if (is_object($user)) {

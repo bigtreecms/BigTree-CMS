@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+    branches: [master, remaster]
+  pull_request:
+
+jobs:
+  spa:
+    name: SPA (typecheck / lint / test / build)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: spa
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: spa/package-lock.json
+      - run: npm ci
+      - run: npm run typecheck
+      # NOTE: `npm run lint` (eslint . --max-warnings 0) is currently RED on this
+      # base commit due to ~34 pre-existing Prettier errors in files outside this
+      # plan's scope. This step is intentionally left strict so CI starts gating
+      # that debt; it will pass once the pre-existing lint debt is cleared.
+      - run: npm run lint
+      - run: npm test
+      - run: npm run build
+
+  php:
+    name: PHP (syntax lint)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.2"
+      - name: Lint changed PHP under the new API + services
+        run: |
+          find core/inc/bigtree/api core/inc/bigtree/services -name '*.php' -print0 \
+            | xargs -0 -n1 -P4 php -l

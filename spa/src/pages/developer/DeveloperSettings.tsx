@@ -44,7 +44,11 @@ export const DeveloperSettings = () => {
 	}, [search]);
 
 	const query = useQuery({
-		queryKey: ["settings", "list", { page, per_page: PER_PAGE, q: debounced, include_system: true }],
+		queryKey: [
+			"settings",
+			"list",
+			{ page, per_page: PER_PAGE, q: debounced, include_system: true },
+		],
 		queryFn: () =>
 			settingsApi.list({
 				page,

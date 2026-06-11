@@ -60,8 +60,7 @@ export const EmbedFormRenderer = ({ hash }: EmbedFormRendererProps) => {
 	}, [submitted?.redirect]);
 
 	const submitMutation = useMutation({
-		mutationFn: (values: Record<string, unknown>) =>
-			embedFormsApi.submit(hash, { values }),
+		mutationFn: (values: Record<string, unknown>) => embedFormsApi.submit(hash, { values }),
 		onSuccess: (response) => {
 			setSubmitted({
 				message: response.thank_you_message,

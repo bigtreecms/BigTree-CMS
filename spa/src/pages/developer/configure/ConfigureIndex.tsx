@@ -27,7 +27,8 @@ const CARDS: ConfigureCard[] = [
 		to: "/developer/configure/email",
 		icon: <Mail size={16} />,
 		title: "Email",
-		description: "SMTP, Mandrill, Mailgun, Postmark, SendGrid — pick the delivery service BigTree uses.",
+		description:
+			"SMTP, Mandrill, Mailgun, Postmark, SendGrid — pick the delivery service BigTree uses.",
 	},
 	{
 		to: "/developer/configure/geocoding",
@@ -45,7 +46,8 @@ const CARDS: ConfigureCard[] = [
 		to: "/developer/configure/payment-gateway",
 		icon: <CreditCard size={16} />,
 		title: "Payment gateway",
-		description: "Authorize.Net / PayPal / LinkPoint credentials for module forms that take payments.",
+		description:
+			"Authorize.Net / PayPal / LinkPoint credentials for module forms that take payments.",
 	},
 	{
 		to: "/developer/configure/analytics",
@@ -57,7 +59,8 @@ const CARDS: ConfigureCard[] = [
 		to: "/developer/configure/services",
 		icon: <Share2 size={16} />,
 		title: "Services",
-		description: "Twitter, Instagram, YouTube, Flickr, Salesforce, Disqus, Facebook integrations.",
+		description:
+			"Twitter, Instagram, YouTube, Flickr, Salesforce, Disqus, Facebook integrations.",
 	},
 	{
 		to: "/developer/configure/media-presets",

@@ -179,10 +179,19 @@ export const Pages = () => {
 	}, [rows]);
 
 	function handleReorder(scope: "visible" | "hidden", orderedIds: number[]) {
+		// Pending NEW pages live only in bigtree_pending_changes and carry a
+		// pending-change id, not a real page id. They must never enter the reorder
+		// payload — the server writes position onto bigtree_pages by id, so a
+		// pending id would rewrite an unrelated live page's position.
+		const isReal = (id: number) => !rows.find((r) => r.id === id)?.pending;
+
 		// We get the in-scope ids back; merge with the unaffected section so
 		// the full ordering can be persisted.
 		const others = scope === "visible" ? hidden : visible;
-		const merged = [...orderedIds, ...others.map((r) => r.id)];
+		const merged = [
+			...orderedIds.filter(isReal),
+			...others.filter((r) => !r.pending).map((r) => r.id),
+		];
 		reorderMutation.mutate(merged);
 	}
 
