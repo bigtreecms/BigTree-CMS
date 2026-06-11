@@ -98,7 +98,7 @@ export const MessageThread = () => {
 
 			<PageHead
 				title={message.subject || "(no subject)"}
-				sub={`From #${message.sender} · ${message.date}`}
+				sub={`From ${message.sender_name ?? `#${message.sender}`} · ${message.date}`}
 				actions={
 					<div className="flex flex-wrap items-center gap-2">
 						<Link
@@ -122,10 +122,10 @@ export const MessageThread = () => {
 
 			<dl className="mb-4 grid grid-cols-[120px_minmax(0,1fr)] gap-x-3 gap-y-1.5 rounded-lg border border-border bg-surface-2 p-3 text-[12.5px]">
 				<dt className="text-text-3">From</dt>
-				<dd className="text-text-2">User #{message.sender}</dd>
+				<dd className="text-text-2">{message.sender_name ?? `User #${message.sender}`}</dd>
 				<dt className="text-text-3">To</dt>
 				<dd className="text-text-2">
-					{message.recipients.map((id) => `User #${id}`).join(", ")}
+					{message.recipient_names.map((r) => r.name ?? `User #${r.id}`).join(", ")}
 				</dd>
 				<dt className="text-text-3">Date</dt>
 				<dd className="text-text-2">{message.date}</dd>

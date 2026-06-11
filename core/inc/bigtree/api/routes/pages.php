@@ -105,6 +105,12 @@
 			"permission" => ["level" => 0],
 		],
 
+		// Admin-only, matching legacy pages/access-levels.php's level gate.
+		"GET /pages/{id:int}/access-levels" => [
+			"service" => [PageService::class, "accessLevels"],
+			"permission" => ["level" => 1],
+		],
+
 		"GET /pages/{id:int}/revisions" => [
 			"service" => [PageService::class, "listRevisions"],
 			"permission" => ["level" => 0],

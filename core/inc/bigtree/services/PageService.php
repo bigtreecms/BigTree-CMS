@@ -293,6 +293,48 @@
 		}
 
 		/**
+		 * GET /pages/{id}/access-levels
+		 * Port of legacy pages/access-levels.php: who can edit vs. publish this
+		 * page. Every user is run through the page-permission resolution
+		 * (explicit grant or inherited up the tree; admins+ are always
+		 * publishers) and bucketed by the resulting rank.
+		 */
+		public function accessLevels(Request $request) {
+			$id = (int)$request->route_params["id"];
+
+			if (!SQL::exists("bigtree_pages", $id)) {
+				throw new NotFoundException("Page $id not found", "resource_not_found", 404);
+			}
+
+			$publishers = [];
+			$editors = [];
+			$users = SQL::fetchAll("SELECT id, name, email, level, permissions FROM bigtree_users ORDER BY name");
+
+			foreach ($users as $user) {
+				$rank = PermissionService::userPageLevel($user, $id);
+
+				if ($rank !== "p" && $rank !== "e") {
+					continue;
+				}
+
+				$entry = [
+					"id" => (int)$user["id"],
+					"name" => $user["name"],
+					"email" => $user["email"],
+					"level" => (int)$user["level"],
+				];
+
+				if ($rank === "p") {
+					$publishers[] = $entry;
+				} else {
+					$editors[] = $entry;
+				}
+			}
+
+			return Response::ok(["publishers" => $publishers, "editors" => $editors]);
+		}
+
+		/**
 		 * POST /pages/{id}/duplicate
 		 * Port of legacy pages/duplicate.php: copy the page into a NEW pending
 		 * draft under the same parent, with " (Copy)" titles and a fresh route.

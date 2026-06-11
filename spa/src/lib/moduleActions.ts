@@ -105,21 +105,43 @@ export const moduleActionPath = (
 	return parts.join("/");
 };
 
+/**
+ * Absolute URL of an action in the classic admin. Legacy custom-PHP actions
+ * have no SPA runtime, so we send the user to the legacy admin to finish the
+ * task there (until the action is ported to the action-module system).
+ */
+export const legacyActionUrl = (
+	adminRoot: string,
+	module: Pick<ModuleSummary, "route">,
+	action: Pick<ModuleAction, "route">,
+	...commands: Array<string | number>
+): string => {
+	const parts = [module.route, action.route ?? "", ...commands.map(String)]
+		.filter((segment) => segment !== "")
+		.map(enc);
+
+	return adminRoot.replace(/\/+$/, "/") + parts.join("/") + "/";
+};
+
 /** Legacy stores the nav toggle as boolean `true` or the PHP string "on"/"1". */
 const isInNav = (value: ModuleAction["in_nav"]): boolean => {
 	return value === true || value === "on" || value === "1";
 };
 
 /**
- * Build the sub-nav items for a module: keep only actions flagged for the nav,
- * within the user's level, and runnable in the SPA, then map each to its
- * route-based URL + icon. Preserves the order the actions endpoint returns
- * (position DESC).
+ * Build the sub-nav items for a module: keep only actions flagged for the nav
+ * and within the user's level, then map each to its route-based URL + icon.
+ * Preserves the order the actions endpoint returns (position DESC).
+ *
+ * Actions that can't run in the SPA (legacy custom-PHP pages) become external
+ * links into the classic admin when `adminRoot` is known; without it they're
+ * omitted, matching the previous behavior.
  */
 export const visibleModuleActions = (
 	module: Pick<ModuleSummary, "route">,
 	actions: ModuleAction[],
-	userLevel: number
+	userLevel: number,
+	adminRoot?: string
 ): SubNavItem[] => {
 	const items: SubNavItem[] = [];
 
@@ -129,6 +151,15 @@ export const visibleModuleActions = (
 		}
 
 		if (!isRunnableAction(action)) {
+			if (adminRoot) {
+				items.push({
+					label: action.name,
+					to: legacyActionUrl(adminRoot, module, action),
+					icon: iconFor(action.class),
+					external: true,
+				});
+			}
+
 			continue;
 		}
 

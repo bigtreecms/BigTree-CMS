@@ -32,9 +32,9 @@ export const MessagesTable = ({ messages }: MessagesTableProps) => {
 								className="grid h-6 w-6 place-items-center rounded-full text-[10.5px] font-semibold text-white"
 								style={{ background: avatarColor(m.sender) }}
 							>
-								{senderInitials(m.sender)}
+								{senderInitials(m.sender, m.sender_name)}
 							</span>
-							<span>User #{m.sender}</span>
+							<span>{m.sender_name ?? `User #${m.sender}`}</span>
 						</span>
 						<span className="overflow-hidden text-ellipsis whitespace-nowrap">
 							{m.subject}
@@ -78,7 +78,15 @@ const avatarColor = (id: number): string => {
 	return `oklch(58% 0.11 ${hue})`;
 };
 
-/** Placeholder initials while we don't have user-detail lookups wired yet. */
-const senderInitials = (id: number): string => {
+/** Initials from the sender's name, falling back to the id for deleted accounts. */
+const senderInitials = (id: number, name: string | null): string => {
+	if (name) {
+		const parts = name.trim().split(/\s+/);
+		const first = parts[0]?.[0] ?? "";
+		const last = parts.length > 1 ? (parts[parts.length - 1]?.[0] ?? "") : "";
+
+		return (first + last).toUpperCase() || `#${id}`.slice(-2);
+	}
+
 	return `#${id}`.slice(-2);
 };

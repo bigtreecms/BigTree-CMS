@@ -1,5 +1,7 @@
+import { useEffect } from "react";
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 
+import { authApi } from "@/auth/endpoints";
 import { useAuthStore } from "@/auth/store";
 
 /**
@@ -12,6 +14,15 @@ export const ProtectedRoute = () => {
 	const hydrating = useAuthStore((s) => s.hydrating);
 	const authenticated = useAuthStore((s) => !!s.accessToken && !!s.user);
 	const location = useLocation();
+
+	// Bridge the token auth into the legacy PHP session (front-end BigTree bar
+	// / on-page editing). Idempotent per page load, fire-and-forget — covers
+	// every login path and the persisted-token boot in one place.
+	useEffect(() => {
+		if (authenticated) {
+			authApi.establishPhpSession();
+		}
+	}, [authenticated]);
 
 	if (hydrating) {
 		return (

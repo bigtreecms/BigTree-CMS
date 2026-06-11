@@ -36,6 +36,8 @@ interface ColumnRow {
 	title: string;
 	parser?: string;
 	numeric?: string | boolean;
+	/** Column width in px ("" = auto). The renderer uses it as a proportional weight. */
+	width?: string;
 }
 
 type Draft = {
@@ -75,6 +77,7 @@ const columnsToRows = (fields: ModuleView["fields"]): ColumnRow[] => {
 		title: cfg.title ?? "",
 		parser: cfg.parser,
 		numeric: cfg.numeric,
+		width: cfg.width != null && cfg.width !== "" ? String(cfg.width) : "",
 	}));
 };
 
@@ -90,6 +93,7 @@ const rowsToColumns = (rows: ColumnRow[]): Record<string, ModuleViewFieldConfig>
 			title: row.title,
 			parser: row.parser,
 			numeric: row.numeric,
+			width: row.width ?? "",
 		};
 	}
 
@@ -383,6 +387,18 @@ export const ModuleViewsTab = ({ moduleId, moduleTable }: ModuleViewsTabProps) =
 												}
 												placeholder="Heading"
 												className="flex-1 rounded-md border border-border bg-surface px-2 py-1 text-[12.5px] focus:outline-none focus:ring-1 focus:ring-accent-ring"
+											/>
+											<input
+												type="number"
+												min={0}
+												value={col.width ?? ""}
+												onChange={(e) =>
+													setColumn(index, { width: e.target.value })
+												}
+												placeholder="auto"
+												title="Column width in px (relative weight; blank = auto)"
+												aria-label="Column width"
+												className="w-20 flex-shrink-0 rounded-md border border-border bg-surface px-2 py-1 text-[12.5px] tabular-nums focus:outline-none focus:ring-1 focus:ring-accent-ring"
 											/>
 											<button
 												type="button"

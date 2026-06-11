@@ -85,6 +85,13 @@
 			"rate_limit" => ["per_minute" => 20],
 		],
 
+		"POST /auth/php-session" => [
+			"service" => [AuthService::class, "phpSession"],
+			"permission" => ["level" => 0],
+			"body" => ["remember" => "bool"],
+			"rate_limit" => ["per_minute" => 20],
+		],
+
 		"POST /auth/logout" => [
 			"service" => [AuthService::class, "logout"],
 			"permission" => "public",

@@ -47,6 +47,12 @@ export interface LoginPolicy {
 	remember_disabled: boolean;
 }
 
+/**
+ * Once-per-page-load guard for the PHP session bridge. Reset on logout so a
+ * re-login re-establishes the legacy session.
+ */
+let phpSessionEstablished = false;
+
 export const authApi = {
 	/**
 	 * Security-policy flags that shape the login UI (e.g. hiding "Remember me").
@@ -54,6 +60,24 @@ export const authApi = {
 	 */
 	loginPolicy: (): Promise<LoginPolicy> =>
 		api.get<LoginPolicy>("/auth/login-policy", { skipAuth: true }),
+
+	/**
+	 * Fire-and-forget bridge into the legacy PHP session (POST
+	 * /auth/php-session) so the front-end BigTree bar / on-page editing work
+	 * after an SPA-only login. Only meaningful when the SPA shares the site's
+	 * origin (prod); in dev the cookies land on the Vite host — harmless.
+	 * Idempotent per page load; failures simply retry on the next call.
+	 */
+	establishPhpSession: (): void => {
+		if (phpSessionEstablished) {
+			return;
+		}
+		phpSessionEstablished = true;
+
+		void api.post("/auth/php-session", {}).catch(() => {
+			phpSessionEstablished = false;
+		});
+	},
 
 	/**
 	 * Submit credentials. Returns either a token bundle (immediate login) or
@@ -133,7 +157,10 @@ export const authApi = {
 	/** Turn off TOTP for the current user (requires a valid current code). */
 	disableTwoFactor: (code: string) => api.post<TwoFactorState>("/auth/2fa/disable", { code }),
 
-	/** End the session — revokes the refresh token server-side, clears localStorage. */
+	/**
+	 * End the session — revokes the refresh token server-side (which also tears
+	 * down the bridged PHP session + cookies), clears localStorage.
+	 */
 	logout: async (): Promise<void> => {
 		const refresh = useAuthStore.getState().refreshToken;
 		try {
@@ -143,12 +170,14 @@ export const authApi = {
 		} catch {
 			// best effort; even if the server call fails we still want to clear state locally
 		}
+		phpSessionEstablished = false;
 		useAuthStore.getState().clear();
 	},
 
 	/** Sign out from every device (bumps token_version). */
 	logoutAll: async (): Promise<void> => {
 		await api.post<void>("/auth/logout-all");
+		phpSessionEstablished = false;
 		useAuthStore.getState().clear();
 	},
 

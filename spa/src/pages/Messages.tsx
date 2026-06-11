@@ -59,8 +59,10 @@ export const Messages = () => {
 						</div>
 						<div className="truncate text-[11px] text-text-3">
 							{folder === "in"
-								? `From #${row.sender}`
-								: `To ${row.recipients.map((r) => `#${r}`).join(", ")}`}
+								? `From ${row.sender_name ?? `#${row.sender}`}`
+								: `To ${row.recipient_names
+										.map((r) => r.name ?? `#${r.id}`)
+										.join(", ")}`}
 						</div>
 					</div>
 				);

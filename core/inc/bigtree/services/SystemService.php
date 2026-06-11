@@ -128,6 +128,9 @@
 			return Response::ok([
 				"nav_title" => html_entity_decode((string)($root["nav_title"] ?? "BigTree"), ENT_QUOTES | ENT_HTML5, 'UTF-8'),
 				"www_root" => $bigtree["config"]["www_root"] ?? "",
+				// The classic admin's root — the SPA links here for legacy-only
+				// surfaces (custom-PHP module actions, front-end preview, etc.).
+				"admin_root" => $bigtree["config"]["admin_root"] ?? "",
 			]);
 		}
 

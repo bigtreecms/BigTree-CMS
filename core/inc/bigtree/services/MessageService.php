@@ -38,7 +38,15 @@
 				"SELECT * FROM bigtree_messages WHERE " . $where . " ORDER BY date DESC LIMIT " . (int)$p["limit"] . " OFFSET " . (int)$p["offset"],
 			], $args));
 
-			return Response::ok(array_map([$this, "present"], $rows), Pagination::offsetMeta($p["page"], $p["per_page"], $total));
+			$names = $this->nameMap($rows);
+
+			return Response::ok(
+				array_map(function ($r) use ($names) {
+
+					return $this->present($r, $names);
+				}, $rows),
+				Pagination::offsetMeta($p["page"], $p["per_page"], $total)
+			);
 		}
 
 		public function unreadCount(Request $request) {
@@ -55,7 +63,42 @@
 			$id = (int)$request->route_params["id"];
 			$message = $this->loadAccessible($id, $request->user);
 
-			return Response::ok($this->present($message));
+			return Response::ok($this->present($message, $this->nameMap([$message])));
+		}
+
+		/**
+		 * One batched lookup of every sender/recipient name across the given
+		 * message rows, keyed by user id. Deleted users simply drop out of the
+		 * map (presented as null names).
+		 */
+		private function nameMap(array $rows): array {
+			$ids = [];
+
+			foreach ($rows as $r) {
+				$ids[] = (int)$r["sender"];
+
+				foreach (explode("|", $r["recipients"] ?? "") as $part) {
+					if ($part !== "") {
+						$ids[] = (int)$part;
+					}
+				}
+			}
+
+			$ids = array_values(array_unique(array_filter($ids)));
+
+			if (!$ids) {
+				return [];
+			}
+
+			$placeholders = implode(",", array_fill(0, count($ids), "?"));
+			$users = SQL::fetchAll("SELECT id, name FROM bigtree_users WHERE id IN ($placeholders)", ...$ids);
+			$map = [];
+
+			foreach ($users as $u) {
+				$map[(int)$u["id"]] = $u["name"];
+			}
+
+			return $map;
 		}
 
 		public function create(Request $request) {
@@ -82,7 +125,9 @@
 				"response_to" => $in_response_to,
 			]);
 
-			return Response::created($this->present(SQL::fetch("SELECT * FROM bigtree_messages WHERE id = ?", $id)), null);
+			$row = SQL::fetch("SELECT * FROM bigtree_messages WHERE id = ?", $id);
+
+			return Response::created($this->present($row, $this->nameMap([$row])), null);
 		}
 
 		public function markRead(Request $request) {
@@ -116,12 +161,18 @@
 			return $row;
 		}
 
-		private function present(array $r) {
+		private function present(array $r, array $names = []) {
+			$recipients = array_values(array_filter(array_map("intval", explode("|", $r["recipients"] ?? ""))));
 
 			return [
 				"id" => (int)$r["id"],
 				"sender" => (int)$r["sender"],
-				"recipients" => array_values(array_filter(array_map("intval", explode("|", $r["recipients"] ?? "")))),
+				"sender_name" => $names[(int)$r["sender"]] ?? null,
+				"recipients" => $recipients,
+				"recipient_names" => array_map(function ($id) use ($names) {
+
+					return ["id" => $id, "name" => $names[$id] ?? null];
+				}, $recipients),
 				"subject" => $r["subject"],
 				"message" => $r["message"],
 				"response_to" => (int)$r["response_to"],

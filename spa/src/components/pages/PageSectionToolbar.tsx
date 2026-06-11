@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Copy, Edit, FileText, List as PagesIcon, Move, Plus } from "lucide-react";
+import { Copy, Edit, FileText, List as PagesIcon, Move, Plus, ShieldCheck } from "lucide-react";
 
 /**
  * Section-level subnav that sits between the breadcrumb/title and the wizard
@@ -11,7 +11,7 @@ import { Copy, Edit, FileText, List as PagesIcon, Move, Plus } from "lucide-reac
  * dialog and Duplicate fires POST /pages/{id}/duplicate — so the parent
  * supplies callbacks for those instead of `to` Link targets.
  */
-type Action = "view" | "add" | "edit" | "revisions" | "move" | "duplicate";
+type Action = "view" | "add" | "edit" | "revisions" | "move" | "duplicate" | "access";
 
 interface PageSectionToolbarProps {
 	active: Action;
@@ -19,6 +19,8 @@ interface PageSectionToolbarProps {
 	parentId: number;
 	onMove?: () => void;
 	onDuplicate?: () => void;
+	/** Admin-only access-levels viewer; the item renders only when provided. */
+	onAccessLevels?: () => void;
 }
 
 interface ItemSpec {
@@ -36,6 +38,7 @@ export const PageSectionToolbar = ({
 	parentId,
 	onMove,
 	onDuplicate,
+	onAccessLevels,
 }: PageSectionToolbarProps) => {
 	const items: ItemSpec[] = [
 		{
@@ -79,6 +82,16 @@ export const PageSectionToolbar = ({
 			disabled: !pageId || !onDuplicate,
 		},
 	];
+
+	if (onAccessLevels) {
+		items.push({
+			id: "access",
+			label: "Access Levels",
+			icon: <ShieldCheck size={13} />,
+			onClick: onAccessLevels,
+			disabled: !pageId,
+		});
+	}
 
 	return (
 		<nav className="mb-4 flex items-stretch gap-0 overflow-x-auto rounded-md border border-border bg-surface px-1 py-1 text-[12.5px]">

@@ -1,6 +1,6 @@
 import { useLayoutEffect, useRef, useState } from "react";
 import { NavLink } from "react-router-dom";
-import { ChevronDown, type LucideIcon } from "lucide-react";
+import { ChevronDown, ExternalLink, type LucideIcon } from "lucide-react";
 
 /**
  * One entry in a section sub-navigation bar. Section-agnostic: modules build
@@ -15,6 +15,11 @@ export interface SubNavItem {
 	 *  stays active on its `/add` and `/edit` sub-routes (legacy substring
 	 *  behavior). */
 	end?: boolean;
+	/**
+	 * `to` is a full URL outside the SPA (e.g. a legacy custom-PHP action in
+	 * the classic admin) — rendered as a plain anchor with an external glyph.
+	 */
+	external?: boolean;
 }
 
 interface SubNavProps {
@@ -33,6 +38,16 @@ const itemClass = (isActive: boolean): string =>
 
 const ItemLink = ({ item }: { item: SubNavItem }) => {
 	const Icon = item.icon;
+
+	if (item.external) {
+		return (
+			<a href={item.to} className={itemClass(false)} title="Opens in the classic admin">
+				{Icon && <Icon size={14} />}
+				<span>{item.label}</span>
+				<ExternalLink size={11} className="text-text-3" />
+			</a>
+		);
+	}
 
 	return (
 		<NavLink to={item.to} end={item.end} className={({ isActive }) => itemClass(isActive)}>
@@ -63,6 +78,22 @@ const MoreMenu = ({ items }: { items: SubNavItem[] }) => {
 			>
 				{items.map((item) => {
 					const Icon = item.icon;
+
+					if (item.external) {
+						return (
+							<a
+								key={item.to}
+								href={item.to}
+								role="menuitem"
+								title="Opens in the classic admin"
+								className="flex items-center gap-2 rounded px-2.5 py-1.5 text-[13px] text-text-2 transition-colors hover:bg-hover hover:text-text"
+							>
+								{Icon && <Icon size={14} className="shrink-0" />}
+								<span>{item.label}</span>
+								<ExternalLink size={11} className="shrink-0 text-text-3" />
+							</a>
+						);
+					}
 
 					return (
 						<NavLink

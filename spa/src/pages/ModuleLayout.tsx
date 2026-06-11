@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { SubNav } from "@/components/shell/SubNav";
 import { useAuthStore } from "@/auth/store";
+import { useSiteInfo } from "@/hooks/useSiteInfo";
 import { LEVEL } from "@/lib/permissions";
 import { moduleActionPath, modulePath, visibleModuleActions } from "@/lib/moduleActions";
 import { modulesApi, type ModuleAction, type ModuleSummary } from "@/api/endpoints/modules";
@@ -71,6 +72,7 @@ export const ModuleLayout = () => {
 	const { moduleRoute } = useParams<{ moduleRoute: string }>();
 	const route = moduleRoute ?? "";
 	const userLevel = useAuthStore((s) => s.user?.level ?? LEVEL.NORMAL);
+	const site = useSiteInfo();
 
 	const listQuery = useQuery({
 		queryKey: ["modules", "list"],
@@ -101,7 +103,9 @@ export const ModuleLayout = () => {
 	const actions = actionsQuery.data ?? [];
 	const addAction = actions.find((a) => a.route === "add");
 	const editAction = actions.find((a) => a.route === "edit");
-	const navItems = module ? visibleModuleActions(module, actions, userLevel) : [];
+	const navItems = module
+		? visibleModuleActions(module, actions, userLevel, site?.admin_root)
+		: [];
 
 	const value: ModuleContextValue = {
 		moduleId,

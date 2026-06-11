@@ -9,6 +9,7 @@ import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { LockBanner } from "@/components/ui/LockBanner";
 
+import { AccessLevelsDialog } from "@/components/pages/AccessLevelsDialog";
 import { LinkFinder } from "@/components/pages/LinkFinder";
 import { MovePageDialog } from "@/components/pages/MovePageDialog";
 import { PageSectionToolbar } from "@/components/pages/PageSectionToolbar";
@@ -155,6 +156,7 @@ export const PageEdit = () => {
 	const [generalError, setGeneralError] = useState<string | null>(null);
 	const [confirmDelete, setConfirmDelete] = useState(false);
 	const [movingOpen, setMovingOpen] = useState(false);
+	const [accessOpen, setAccessOpen] = useState(false);
 
 	useScrollToFirstError(fieldErrors);
 
@@ -243,6 +245,7 @@ export const PageEdit = () => {
 	// EDIT overlaid (NEW drafts are wholly unpublished — the banner covers that).
 	const pageData = pageQuery.data;
 	const currentUserId = useAuthStore((s) => s.user?.id);
+	const isAdminUser = useAuthStore((s) => (s.user?.level ?? 0) >= 1);
 	const pendingInfo = useMemo<PendingFieldInfo | undefined>(() => {
 		if (draft || !pageData?.changes_applied) {
 			return undefined;
@@ -393,6 +396,11 @@ export const PageEdit = () => {
 						? undefined
 						: () => duplicateMutation.mutate()
 				}
+				onAccessLevels={
+					// Admin-only viewer (the endpoint enforces it too); drafts have
+					// no live page to inspect.
+					!draft && isAdminUser ? () => setAccessOpen(true) : undefined
+				}
 			/>
 
 			{page.changes_applied && (
@@ -527,6 +535,14 @@ export const PageEdit = () => {
 					onOpenChange={setMovingOpen}
 					page={{ id: page.id, nav_title: page.nav_title, parent: page.parent }}
 					invalidateKey={["pages", "list", page.parent]}
+				/>
+			)}
+
+			{!draft && isAdminUser && (
+				<AccessLevelsDialog
+					open={accessOpen}
+					onOpenChange={setAccessOpen}
+					pageId={page.id}
 				/>
 			)}
 

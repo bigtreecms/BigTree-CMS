@@ -1,7 +1,9 @@
 import { useParams } from "react-router-dom";
+import { ExternalLink } from "lucide-react";
 
-import { isRunnableAction, resolveActionByRoute } from "@/lib/moduleActions";
+import { isRunnableAction, legacyActionUrl, resolveActionByRoute } from "@/lib/moduleActions";
 import { useModuleContext } from "@/pages/ModuleLayout";
+import { useSiteInfo } from "@/hooks/useSiteInfo";
 import { ModuleAction } from "@/pages/ModuleAction";
 import { ModuleEntryAdd } from "@/pages/ModuleEntryAdd";
 import { ModuleEntryEdit } from "@/pages/ModuleEntryEdit";
@@ -27,7 +29,8 @@ const card = (message: string) => (
  */
 export const ModuleDispatcher = () => {
 	const { "*": splat } = useParams();
-	const { actions, isLoading } = useModuleContext();
+	const { module, actions, isLoading } = useModuleContext();
+	const site = useSiteInfo();
 
 	if (isLoading) {
 		return card("Loading module…");
@@ -78,6 +81,33 @@ export const ModuleDispatcher = () => {
 		return <ModuleEntryAdd formId={action.form} />;
 	}
 
-	// Runnable check (custom/view/report/form) failed → legacy custom-PHP action.
-	return card("This action can't run in the new admin.");
+	// Runnable check (custom/view/report/form) failed → legacy custom-PHP
+	// action. Send the user to the classic admin to finish the task there
+	// (until the action is ported to the action-module system).
+	const legacyUrl =
+		module && site?.admin_root
+			? legacyActionUrl(site.admin_root, module, action, ...commands)
+			: null;
+
+	return (
+		<div className="rounded-xl border border-border bg-surface p-9 text-center">
+			<p className="mb-1 text-[13px] font-medium">This action runs in the classic admin.</p>
+			<p className="mb-4 text-[12.5px] text-text-3">
+				It's a custom PHP page that hasn't been ported to the new admin yet.
+			</p>
+			{legacyUrl ? (
+				<a
+					href={legacyUrl}
+					className="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-[12.5px] font-medium text-accent-fg hover:bg-accent-hover"
+				>
+					<ExternalLink size={13} />
+					Open in the classic admin
+				</a>
+			) : (
+				<p className="text-[12.5px] text-text-3">
+					Open the classic admin and navigate to this module to use it.
+				</p>
+			)}
+		</div>
+	);
 };

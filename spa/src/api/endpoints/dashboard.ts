@@ -125,7 +125,11 @@ export const pendingChangesApi = {
 export interface Message {
 	id: number;
 	sender: number;
+	/** Sender's display name; null when the account was deleted. */
+	sender_name: string | null;
 	recipients: number[];
+	/** Resolved names aligned with `recipients` (null = deleted account). */
+	recipient_names: Array<{ id: number; name: string | null }>;
 	subject: string;
 	message: string;
 	response_to: number;

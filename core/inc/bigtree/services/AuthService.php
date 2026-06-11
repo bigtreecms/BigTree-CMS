@@ -352,7 +352,164 @@
 				TokenStore::revokeByRaw($raw);
 			}
 
+			// Best-effort teardown of the legacy PHP session the bridge endpoint
+			// may have established (mirrors BigTreeAdmin::logout's cookie/session
+			// clearing, minus the redirect).
+			$this->destroyPhpSession();
+
 			return Response::noContent();
+		}
+
+		/**
+		 * POST /auth/php-session
+		 * Bridges the SPA's token auth into the legacy PHP session so the
+		 * front-end BigTree bar / on-page editing work after an SPA-only login.
+		 * Mirrors the session-establishment half of BigTreeAdmin::login
+		 * (single-site path): a bigtree_user_sessions chain, the
+		 * bigtree_admin[*] cookies, and the $_SESSION["bigtree_admin"] payload.
+		 *
+		 * Cookies are host-scoped, so this only has an effect when the SPA is
+		 * served from the site's own origin (prod). In dev (Vite origin) the
+		 * call succeeds but the cookies land on the wrong host — harmless.
+		 *
+		 * Multi-site installs: the primary domain is covered here; alternate
+		 * domains still require the legacy CORS login chain, so the response
+		 * includes `multi_site_login_key` for a future SPA hand-off.
+		 */
+		public function phpSession(Request $request) {
+			global $bigtree;
+
+			$user = SQL::fetch("SELECT * FROM bigtree_users WHERE id = ?", (int)$request->user->id);
+
+			if (!$user) {
+				throw new AuthenticationException("User no longer exists", "unknown_user", 401);
+			}
+
+			$remember = $this->rememberRequested($request);
+
+			// CSRF token + session chain, generated exactly like BigTreeAdmin::login.
+			$csrf_token = base64_encode(random_bytes(32));
+			$csrf_token_field = "__csrf_token_" . BigTree::randomString(32) . "__";
+
+			$chain = uniqid("chain-", true);
+
+			while (SQL::fetchSingle("SELECT id FROM bigtree_user_sessions WHERE chain = ?", $chain)) {
+				$chain = uniqid("chain-", true);
+			}
+
+			$session = uniqid("session-", true);
+
+			while (SQL::fetchSingle("SELECT id FROM bigtree_user_sessions WHERE id = ?", $session)) {
+				$session = uniqid("session-", true);
+			}
+
+			SQL::insert("bigtree_user_sessions", [
+				"id" => $session,
+				"chain" => $chain,
+				"email" => $user["email"],
+				"csrf_token" => $csrf_token,
+				"csrf_token_field" => $csrf_token_field,
+			]);
+
+			$cookie_domain = str_replace(DOMAIN, "", WWW_ROOT);
+
+			// The email cookie powers the BigTree bar even without "remember me".
+			setcookie('bigtree_admin[email]', $user["email"], strtotime("+1 month"), $cookie_domain, "", false, true);
+
+			if ($remember) {
+				setcookie('bigtree_admin[login]', json_encode([$session, $chain]), strtotime("+1 month"), $cookie_domain, "", false, true);
+			}
+
+			// PHP session payload — what the legacy admin/front-end bar read.
+			\BigTreeSessionHandler::start();
+
+			if (session_status() === PHP_SESSION_ACTIVE) {
+				// Fixation hygiene on the state change. Unlike the legacy login we
+				// don't rename the old DB row to the new id — the API caller
+				// usually has no prior session row, and the rename collides with
+				// the row the handler writes for the regenerated id. Passing true
+				// destroys the old session instead so exactly one row is written.
+				session_regenerate_id(true);
+
+				$_SESSION["bigtree_admin"]["id"] = $user["id"];
+				$_SESSION["bigtree_admin"]["email"] = $user["email"];
+				$_SESSION["bigtree_admin"]["level"] = $user["level"];
+				$_SESSION["bigtree_admin"]["name"] = $user["name"];
+				$_SESSION["bigtree_admin"]["permissions"] = json_decode($user["permissions"], true);
+				$_SESSION["bigtree_admin"]["csrf_token"] = $csrf_token;
+				$_SESSION["bigtree_admin"]["csrf_token_field"] = $csrf_token_field;
+				$session_id = session_id();
+				session_write_close();
+
+				// Flag the (now-written) row as a login session so logout_all and
+				// session bookkeeping treat it like a legacy login.
+				if (($bigtree["config"]["session_handler"] ?? "") === "db") {
+					SQL::update("bigtree_sessions", $session_id, [
+						"is_login" => "on",
+						"logged_in_user" => $user["id"],
+					]);
+				}
+			}
+
+			$payload = ["established" => true];
+
+			// Multi-site: hand back the key for the legacy CORS chain so alternate
+			// domains can be logged in by whoever wants to drive that flow.
+			if (!empty($bigtree["config"]["sites"]) && is_array($bigtree["config"]["sites"])) {
+				$cache_data = [
+					"user_id" => $user["id"],
+					"session" => $session,
+					"chain" => $chain,
+					"stay_logged_in" => $remember,
+					"login_redirect" => false,
+					"remaining_sites" => [],
+					"csrf_token" => $csrf_token,
+					"csrf_token_field" => $csrf_token_field,
+				];
+
+				foreach ($bigtree["config"]["sites"] as $site_key => $site_configuration) {
+					$cache_data["remaining_sites"][$site_key] = $site_configuration["www_root"];
+				}
+
+				$payload["multi_site_login_key"] = BigTreeCMS::cacheUnique("org.bigtreecms.login-session", $cache_data);
+			}
+
+			return Response::ok($payload);
+		}
+
+		/** Clear the legacy PHP session + bigtree_admin cookies (logout helper). */
+		private function destroyPhpSession() {
+			try {
+				$cookie_domain = str_replace(DOMAIN, "", WWW_ROOT);
+
+				if (!empty($_COOKIE["bigtree_admin"]["login"])) {
+					$decoded = json_decode($_COOKIE["bigtree_admin"]["login"], true);
+
+					if (is_array($decoded) && count($decoded) === 2) {
+						[$session, $chain] = $decoded;
+						$valid = SQL::fetchSingle(
+							"SELECT id FROM bigtree_user_sessions WHERE id = ? AND chain = ?",
+							(string)$session, (string)$chain
+						);
+
+						if ($valid) {
+							SQL::query("DELETE FROM bigtree_user_sessions WHERE chain = ?", (string)$chain);
+						}
+					}
+				}
+
+				setcookie("bigtree_admin[email]", "", time() - 3600, $cookie_domain);
+				setcookie("bigtree_admin[login]", "", time() - 3600, $cookie_domain);
+
+				\BigTreeSessionHandler::start();
+
+				if (session_status() === PHP_SESSION_ACTIVE) {
+					unset($_SESSION["bigtree_admin"]);
+					session_write_close();
+				}
+			} catch (\Throwable $e) {
+				// Session teardown is best-effort — token revocation already happened.
+			}
 		}
 
 		public function logoutAll(Request $request) {

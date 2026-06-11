@@ -21,6 +21,18 @@ export interface SystemVersion {
 	php: string;
 }
 
+/** GET /system/site — site identity + the roots the SPA links out to. */
+export interface SiteInfo {
+	nav_title: string;
+	www_root: string;
+	/** The classic admin's root URL, for legacy-only surfaces. */
+	admin_root: string;
+}
+
+export const siteApi = {
+	get: () => api.get<SiteInfo>("/system/site"),
+};
+
 /**
  * GET /system/status — the developer "Site Status" audit. Status strings
  * follow the legacy convention: "bad" (critical), "ok" (warning), "good" (ok).

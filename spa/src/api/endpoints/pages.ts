@@ -179,6 +179,20 @@ export interface PageSeoRating {
 	color: string | null;
 }
 
+/** One user row in the access-levels breakdown. */
+export interface PageAccessUser {
+	id: number;
+	name: string;
+	email: string;
+	level: number;
+}
+
+/** GET /pages/{id}/access-levels — who can edit vs. publish the page. */
+export interface PageAccessLevels {
+	publishers: PageAccessUser[];
+	editors: PageAccessUser[];
+}
+
 export const isPendingResult = (r: unknown): r is PagePendingResult =>
 	typeof r === "object" && r !== null && (r as { pending?: unknown }).pending === true;
 
@@ -209,6 +223,9 @@ export const pagesApi = {
 	search: (q: string) => api.get<PageSearchHit[]>("/pages/search", { query: { q } }),
 
 	seoRating: (id: number) => api.get<PageSeoRating>(`/pages/${id}/seo-rating`),
+
+	/** Who can edit vs. publish this page (admin-only; legacy access-levels.php). */
+	accessLevels: (id: number) => api.get<PageAccessLevels>(`/pages/${id}/access-levels`),
 
 	create: (body: PageEditBody) => api.post<PageDetail | PagePendingResult>("/pages", body),
 
