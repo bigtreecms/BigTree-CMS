@@ -310,6 +310,76 @@
 		}
 
 		/*
+			Function: getKnownResourcePrefixes
+				Returns all known thumbnail / crop file name prefixes from media settings presets and existing resources.
+
+			Returns:
+				An array of file name prefixes sorted longest first.
+		*/
+
+		public static function getKnownResourcePrefixes() {
+			static $prefixes = null;
+
+			if ($prefixes !== null) {
+				return $prefixes;
+			}
+
+			$found = [];
+			$add_prefix_list = function($list) use (&$found, &$add_prefix_list) {
+				if (!is_array($list)) {
+					return;
+				}
+
+				foreach ($list as $entry) {
+					if (!is_array($entry)) {
+						continue;
+					}
+
+					if (!empty($entry["prefix"])) {
+						$found[] = $entry["prefix"];
+					}
+
+					$add_prefix_list($entry["thumbs"] ?? null);
+					$add_prefix_list($entry["center_crops"] ?? null);
+				}
+			};
+
+			$settings = BigTreeJSONDB::get("config", "media-settings");
+
+			if (!empty($settings["presets"]) && is_array($settings["presets"])) {
+				foreach ($settings["presets"] as $preset) {
+					$add_prefix_list($preset["crops"] ?? null);
+					$add_prefix_list($preset["thumbs"] ?? null);
+					$add_prefix_list($preset["center_crops"] ?? null);
+				}
+			}
+
+			// Resources keep the prefixes they were generated with, even if media settings have since changed
+			foreach (SQL::fetchAll("SELECT DISTINCT crops, thumbs FROM bigtree_resources WHERE crops != '' OR thumbs != ''") as $row) {
+				foreach ([$row["crops"], $row["thumbs"]] as $encoded) {
+					$data = $encoded ? json_decode($encoded, true) : null;
+
+					if (!is_array($data)) {
+						continue;
+					}
+
+					foreach ($data as $prefix => $dimensions) {
+						if (is_string($prefix) && $prefix !== "") {
+							$found[] = $prefix;
+						}
+					}
+				}
+			}
+
+			$prefixes = array_values(array_unique(array_filter($found)));
+			usort($prefixes, function($a, $b) {
+				return strlen($b) - strlen($a);
+			});
+
+			return $prefixes;
+		}
+
+		/*
 			Function: getResourcePathFromUrl
 				Extracts the files/resources/... path from a URL.
 
@@ -413,15 +483,9 @@
 
 			static::$ResourceFileCachePrimed = true;
 
-			foreach (SQL::fetchAll("SELECT * FROM bigtree_resources") as $resource) {
-				$item = BigTree::untranslateArray($resource);
-				$item["prefix"] = false;
-				$item["crops"] = !empty($item["crops"]) ? json_decode($item["crops"], true) : null;
-				$item["thumbs"] = !empty($item["thumbs"]) ? json_decode($item["thumbs"], true) : null;
-				$item["metadata"] = !empty($item["metadata"]) ? json_decode($item["metadata"], true) : null;
-				$item["video_data"] = !empty($item["video_data"]) ? json_decode($item["video_data"], true) : null;
-
-				static::cacheResourceByFile($resource["file"], $item);
+			// Only ids are cached up front to keep memory low; lookups pull full rows on demand
+			foreach (SQL::fetchAll("SELECT id, file FROM bigtree_resources") as $resource) {
+				static::cacheResourceByFile($resource["file"], intval($resource["id"]));
 			}
 		}
 
@@ -5998,87 +6062,102 @@
 
 		public static function getResourceByFile($file) {
 			if (array_key_exists($file, static::$ResourceByFileCache)) {
-				return static::$ResourceByFileCache[$file] ?: false;
+				$cached = static::$ResourceByFileCache[$file];
+
+				// Primed id stubs fall through to a full lookup
+				if (is_array($cached) || !$cached) {
+					return $cached ?: false;
+				}
 			}
 
-			if (static::$IRLPrefixes === false) {
-				static::$IRLPrefixes = [];
-				$settings = BigTreeJSONDB::get("config", "media-settings");
-
-				if (is_array($settings["presets"]["default"]["crops"])) {
-					foreach ($settings["presets"]["default"]["crops"] as $crop) {
-						if (!empty($crop["prefix"])) {
-							static::$IRLPrefixes[] = $crop["prefix"];
-						}
-
-						if (!empty($crop["thumbs"]) && is_array($crop["thumbs"])) {
-							foreach ($crop["thumbs"] as $thumb) {
-								if (!empty($thumb["prefix"])) {
-									static::$IRLPrefixes[] = $thumb["prefix"];
-								}
-							}
-						}
-					}
-				}
-
-				if (is_array($settings["presets"]["default"]["thumbs"])) {
-					foreach ($settings["presets"]["default"]["thumbs"] as $thumb) {
-						if (!empty($thumb["prefix"])) {
-							static::$IRLPrefixes[] = $thumb["prefix"];
-						}
-					}
-				}
-
-				if (is_array($settings["presets"]["default"]["center_crops"])) {
-					foreach ($settings["presets"]["default"]["center_crops"] as $crop) {
-						if (!empty($crop["prefix"])) {
-							static::$IRLPrefixes[] = $crop["prefix"];
-						}
-					}
-				}
+			if (!is_array(static::$IRLPrefixes) || !count(static::$IRLPrefixes)) {
+				static::$IRLPrefixes = static::getKnownResourcePrefixes();
 			}
 
 			$last_prefix = false;
-			$tokenized_file = BigTreeCMS::replaceHardRoots($file);
-			$single_domain_tokenized_file = static::stripMultipleRootTokens($tokenized_file);
-			$item = SQL::fetch("SELECT * FROM bigtree_resources WHERE file = ? OR file = ? OR file = ?",
-							   $file, $tokenized_file, $single_domain_tokenized_file);
+			$item = static::lookupResourceByFileCandidates($file, $already_decoded);
 
-			// Try variations of either {staticroot} or {wwwroot} depending on which root got converted
+			// Try stripping thumbnail / crop prefixes to match the original file
 			if (!$item) {
-				$item = SQL::fetch("SELECT * FROM bigtree_resources WHERE file = ? OR file = ?",
-								   str_replace("{wwwroot}", "{staticroot}", $single_domain_tokenized_file),
-								   str_replace("{staticroot}", "{wwwroot}", $single_domain_tokenized_file));
+				foreach (static::$IRLPrefixes as $prefix) {
+					$sfile = str_replace("files/resources/$prefix", "files/resources/", $file);
+
+					if ($sfile === $file) {
+						continue;
+					}
+
+					$item = static::lookupResourceByFileCandidates($sfile, $already_decoded);
+
+					if ($item) {
+						$last_prefix = $prefix;
+
+						break;
+					}
+				}
 			}
 
 			if (!$item) {
-				foreach (static::$IRLPrefixes as $prefix) {
-					if (!$item) {
-						$sfile = str_replace("files/resources/$prefix", "files/resources/", $file);
-						$tokenized_file = BigTreeCMS::replaceHardRoots($sfile);
-						$single_domain_tokenized_file = static::stripMultipleRootTokens($tokenized_file);
-						$item = sqlfetch(sqlquery("SELECT * FROM bigtree_resources WHERE file = '".sqlescape($sfile)."' OR file = '".sqlescape($tokenized_file)."' OR file = '".sqlescape($single_domain_tokenized_file)."'"));
-						$last_prefix = $prefix;
-					}
-				}
+				static::$ResourceByFileCache[$file] = false;
 
-				if (!$item) {
-					static::$ResourceByFileCache[$file] = false;
+				return false;
+			}
 
-					return false;
-				}
+			// Items served from the cache have already been decoded
+			if (!$already_decoded) {
+				$item["prefix"] = false;
+				$item["crops"] = !empty($item["crops"]) ? json_decode($item["crops"], true) : null;
+				$item["thumbs"] = !empty($item["thumbs"]) ? json_decode($item["thumbs"], true) : null;
+				$item["metadata"] = !empty($item["metadata"]) ? json_decode($item["metadata"], true) : null;
+				$item["video_data"] = !empty($item["video_data"]) ? json_decode($item["video_data"], true) : null;
+				$item = BigTree::untranslateArray($item);
+
+				// Replace any primed id stubs for this resource with the decoded row
+				static::cacheResourceByFile($item["file"], $item);
 			}
 
 			$item["prefix"] = $last_prefix;
-			$item["crops"] = !empty($item["crops"]) ? json_decode($item["crops"], true) : null;
-			$item["thumbs"] = !empty($item["thumbs"]) ? json_decode($item["thumbs"], true) : null;
-			$item["metadata"] = !empty($item["metadata"]) ? json_decode($item["metadata"], true) : null;
-			$item["video_data"] = !empty($item["video_data"]) ? json_decode($item["video_data"], true) : null;
-			$item = BigTree::untranslateArray($item);
 
 			static::cacheResourceByFile($file, $item);
 
 			return $item;
+		}
+
+		private static function lookupResourceByFileCandidates($file, &$already_decoded) {
+			$already_decoded = false;
+			$tokenized_file = BigTreeCMS::replaceHardRoots($file);
+			$single_domain_tokenized_file = static::stripMultipleRootTokens($tokenized_file);
+			$candidates = array_values(array_unique([
+				$file,
+				$tokenized_file,
+				$single_domain_tokenized_file,
+				str_replace("{wwwroot}", "{staticroot}", $single_domain_tokenized_file),
+				str_replace("{staticroot}", "{wwwroot}", $single_domain_tokenized_file)
+			]));
+
+			foreach ($candidates as $candidate) {
+				if (!empty(static::$ResourceByFileCache[$candidate])) {
+					$entry = static::$ResourceByFileCache[$candidate];
+
+					if (is_array($entry)) {
+						$already_decoded = true;
+
+						return $entry;
+					}
+
+					// Primed entries only store the resource id; pull the full row on demand
+					return SQL::fetch("SELECT * FROM bigtree_resources WHERE id = ?", $entry);
+				}
+			}
+
+			// The primed cache contains every resource, so a miss is final
+			if (static::$ResourceFileCachePrimed) {
+				return false;
+			}
+
+			return SQL::fetch(
+				"SELECT * FROM bigtree_resources WHERE file IN (".implode(", ", array_fill(0, count($candidates), "?")).")",
+				...$candidates
+			);
 		}
 
 		/*
