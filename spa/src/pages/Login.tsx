@@ -1,4 +1,4 @@
-import { Navigate, useLocation, useNavigate } from "react-router-dom";
+import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 
 import { ApiError } from "@/types/api";
 import { authApi, type TwoFactorSetup } from "@/auth/endpoints";
@@ -23,6 +23,8 @@ type FormValues = z.infer<typeof schema>;
 
 interface LocationState {
 	from?: string;
+	/** Set by the reset-password screen after a successful reset. */
+	resetSuccess?: boolean;
 }
 
 /**
@@ -195,6 +197,12 @@ export const Login = () => {
 					</div>
 				</div>
 
+				{state?.resetSuccess && !serverError && (
+					<div className="mb-3 rounded-md border border-success/30 bg-success-bg px-3 py-2 text-[12.5px] text-success">
+						Password updated. Sign in with your new password.
+					</div>
+				)}
+
 				{serverError && (
 					<div className="mb-3 rounded-md border border-danger/30 bg-danger-bg px-3 py-2 text-[12.5px] text-danger">
 						{serverError}
@@ -238,6 +246,13 @@ export const Login = () => {
 								className="w-full rounded-md border border-border bg-surface px-2.5 py-1.5 text-[13px] outline-none transition-colors focus:border-accent"
 							/>
 						</Field>
+
+						<Link
+							to="/login/forgot"
+							className="block text-right text-[12px] text-text-3 hover:text-text-2"
+						>
+							Forgot password?
+						</Link>
 
 						{!rememberDisabled && (
 							<label className="flex cursor-pointer items-center gap-2 text-[12.5px] text-text-2">

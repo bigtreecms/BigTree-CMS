@@ -80,11 +80,42 @@ export interface CreateVideoPayload {
 
 export const UPLOAD_PATH = "/resources/upload";
 
+/** A developer-configured metadata field definition (per file kind). */
+export interface ResourceMetadataField {
+	id: string;
+	title: string;
+	subtitle: string;
+	type: string;
+	settings: Record<string, unknown> | null;
+}
+
+/** Metadata definitions split by file kind, from GET /resources/metadata-fields. */
+export interface ResourceMetadataConfig {
+	file: ResourceMetadataField[];
+	image: ResourceMetadataField[];
+	video: ResourceMetadataField[];
+}
+
 export const resourcesApi = {
 	get: (id: number) => api.get<ResourceDetail>(`/resources/${id}`),
 
+	/** Developer-defined metadata fields, readable by any editor. */
+	metadataFields: () => api.get<ResourceMetadataConfig>("/resources/metadata-fields"),
+
 	update: (id: number, body: UpdateResourcePayload) =>
 		api.patch<ResourceDetail>(`/resources/${id}`, body),
+
+	/**
+	 * Swap the stored bytes while keeping the URL + allocations. Images are
+	 * re-run through the default media preset (crops/thumbs regenerate) and
+	 * must be at least as large as the largest existing crop.
+	 */
+	replace: (id: number, file: File) => {
+		const form = new FormData();
+		form.append("file", file);
+
+		return api.post<ResourceDetail>(`/resources/${id}/replace`, form);
+	},
 
 	delete: (id: number) => api.delete<void>(`/resources/${id}`),
 

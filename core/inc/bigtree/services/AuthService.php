@@ -744,13 +744,15 @@
 			global $bigtree;
 
 			$site_title = SQL::fetchSingle("SELECT nav_title FROM bigtree_pages WHERE id = 0") ?: "BigTree";
-			$login_root = ($bigtree["config"]["force_secure_login"] ?? false)
-				? str_replace("http://", "https://", ADMIN_ROOT) . "login/"
-				: ADMIN_ROOT . "login/";
+			$admin_root = ($bigtree["config"]["force_secure_login"] ?? false)
+				? str_replace("http://", "https://", ADMIN_ROOT)
+				: ADMIN_ROOT;
 
-			// SPA reset URL takes precedence; falls back to legacy admin reset page.
+			// Config override first (used in dev where the SPA runs on its own
+			// origin); default to the SPA's reset route. The legacy admin's
+			// login/reset-password page accepts the same token if needed.
 			$reset_url = ($bigtree["config"]["api"]["spa_reset_url"] ?? "")
-				?: ($login_root . "reset-password/$hash/");
+				?: ($admin_root . "spa/login/reset/{token}");
 			$reset_url = str_replace("{token}", $hash, $reset_url);
 
 			$tmpl = BigTree::path("admin/email/reset-password.html");

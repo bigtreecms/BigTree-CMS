@@ -6,7 +6,9 @@ import { LockBanner } from "@/components/ui/LockBanner";
 
 import { autoModulesApi } from "@/api/endpoints/auto-modules";
 import { modulesApi } from "@/api/endpoints/modules";
+import type { Tag } from "@/api/endpoints/tags";
 import { FormRenderer } from "@/renderer/forms/FormRenderer";
+import type { OpenGraphValue } from "@/renderer/forms/OpenGraphSection";
 import { useLock } from "@/hooks/useLock";
 import { modulePath, moduleActionPath } from "@/lib/moduleActions";
 import { draftOwnerLabel } from "@/lib/fieldComparison";
@@ -138,6 +140,8 @@ export const ModuleEntryEdit = ({ formId, entryId }: ModuleEntryEditProps) => {
 				<FormRenderer
 					form={form}
 					initialValues={initialValues}
+					initialTags={pickTags(entryQuery.data)}
+					initialOpenGraph={pickOpenGraph(entryQuery.data)}
 					moduleId={moduleId}
 					entryId={liveId}
 					pendingFields={pendingFields}
@@ -179,4 +183,28 @@ const pickItemValues = (
 
 	// In some shapes the row is the response itself.
 	return entry as unknown as Record<string, unknown>;
+};
+
+/** The entry's current tags from the envelope (full rows, used as chips). */
+const pickTags = (entry: Record<string, unknown> | undefined): Tag[] => {
+	const tags = entry?.tags;
+
+	if (!Array.isArray(tags)) {
+		return [];
+	}
+
+	return tags.filter(
+		(t): t is Tag => Boolean(t) && typeof t === "object" && "id" in (t as object)
+	);
+};
+
+/** The entry's Open Graph row from the envelope (null when unset). */
+const pickOpenGraph = (entry: Record<string, unknown> | undefined): OpenGraphValue | null => {
+	const og = entry?.open_graph;
+
+	if (og && typeof og === "object" && !Array.isArray(og)) {
+		return og as OpenGraphValue;
+	}
+
+	return null;
 };

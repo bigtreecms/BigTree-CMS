@@ -8,7 +8,7 @@ import { Copy, Edit, FileText, List as PagesIcon, Move, Plus } from "lucide-reac
  * design.
  *
  * Move / Duplicate aren't standalone routes in this SPA — Move opens a
- * dialog and Duplicate isn't backed by an endpoint yet — so the parent
+ * dialog and Duplicate fires POST /pages/{id}/duplicate — so the parent
  * supplies callbacks for those instead of `to` Link targets.
  */
 type Action = "view" | "add" | "edit" | "revisions" | "move" | "duplicate";
@@ -76,7 +76,7 @@ export const PageSectionToolbar = ({
 			label: "Duplicate Page",
 			icon: <Copy size={13} />,
 			onClick: onDuplicate,
-			disabled: true,
+			disabled: !pageId || !onDuplicate,
 		},
 	];
 

@@ -292,6 +292,68 @@
 			return $this->present($page, true);
 		}
 
+		/**
+		 * POST /pages/{id}/duplicate
+		 * Port of legacy pages/duplicate.php: copy the page into a NEW pending
+		 * draft under the same parent, with " (Copy)" titles and a fresh route.
+		 * Requires publisher access on both the page and its parent, and (like
+		 * legacy) refuses top-level pages. Improvement over legacy: tags and
+		 * Open Graph are carried into the copy too.
+		 */
+		public function duplicate(Request $request) {
+			$id = (int)$request->route_params["id"];
+			$page = SQL::fetch("SELECT * FROM bigtree_pages WHERE id = ?", $id);
+
+			if (!$page) {
+				throw new NotFoundException("Page $id not found", "resource_not_found", 404);
+			}
+
+			$parent = (int)$page["parent"];
+
+			if ($parent < 1) {
+				throw new BadRequestException("Top-level pages can't be duplicated", "not_duplicatable", 400);
+			}
+
+			$this->enforce($request->user, $id, "p", "duplicate");
+			$this->enforce($request->user, $parent, "p", "duplicate into");
+
+			$d = [
+				"parent" => $parent,
+				"nav_title" => $page["nav_title"] . " (Copy)",
+				"title" => $page["title"] . " (Copy)",
+				"route" => "",
+				"in_nav" => !empty($page["in_nav"]),
+				"meta_keywords" => $page["meta_keywords"],
+				"meta_description" => $page["meta_description"],
+				"seo_invisible" => !empty($page["seo_invisible"]),
+				"template" => $page["template"],
+				"external" => $page["external"],
+				"new_window" => !empty($page["new_window"]),
+				"resources" => json_decode($page["resources"] ?: "{}", true) ?: [],
+				"publish_at" => $page["publish_at"],
+				"expire_at" => $page["expire_at"],
+				"max_age" => (int)$page["max_age"],
+				"tags" => array_map(function ($t) {
+
+					return (int)$t["id"];
+				}, $this->loadTags($id)),
+			];
+
+			$og = $this->loadOpenGraph($id);
+
+			if ($og) {
+				$d["open_graph"] = $og;
+			}
+
+			$pending_id = $this->writePendingPageChange($request->user, "NEW", $parent, $d);
+
+			Hooks::fire("page.pending_created", [
+				"parent" => $parent, "pending_change_id" => (int)$pending_id, "duplicated_from" => $id,
+			], ["user_id" => $request->user->id]);
+
+			return Response::created(["pending_change_id" => (int)$pending_id, "pending" => true], null);
+		}
+
 		public function update(Request $request) {
 			$id = (int)$request->route_params["id"];
 			$this->enforce($request->user, $id, "e");

@@ -37,6 +37,8 @@ import { Files } from "@/pages/Files";
 import { FourOhFours } from "@/pages/FourOhFours";
 import { Import301 } from "@/pages/Import301";
 import { Login } from "@/pages/Login";
+import { ForgotPassword } from "@/pages/ForgotPassword";
+import { ResetPassword } from "@/pages/ResetPassword";
 import { MessageThread } from "@/pages/MessageThread";
 import { Messages } from "@/pages/Messages";
 import { ModuleDesigner } from "@/pages/developer/ModuleDesigner";
@@ -84,6 +86,8 @@ import { LEVEL } from "@/lib/permissions";
 export const router = createBrowserRouter(
 	[
 		{ path: "/login", element: <Login /> },
+		{ path: "/login/forgot", element: <ForgotPassword /> },
+		{ path: "/login/reset/:token", element: <ResetPassword /> },
 		{ path: "/embed/:hash", element: <EmbedForm /> },
 		{
 			element: <ProtectedRoute />,

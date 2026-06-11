@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
 	Copy,
@@ -7,6 +7,7 @@ import {
 	Film,
 	Image as ImageIcon,
 	Link as LinkIcon,
+	RefreshCw,
 	Trash,
 } from "lucide-react";
 
@@ -18,8 +19,13 @@ import {
 	resourcesApi,
 	type ResourceAllocation,
 	type ResourceDetail,
+	type ResourceMetadataField,
 	type ResourcePrefixedAsset,
 } from "@/api/endpoints/resources";
+import { resourceFoldersApi } from "@/api/endpoints/resource-folders";
+import type { ModuleFormField } from "@/api/endpoints/modules";
+import { FieldRenderer } from "@/renderer/forms/FieldRenderer";
+import { ApiError } from "@/types/api";
 import { formatBytes } from "@/lib/bytes";
 import { expandImageUrl } from "@/lib/imageUrl";
 import { toast } from "@/lib/toast";
@@ -37,16 +43,19 @@ const RESOURCE_ALLOCATIONS_KEY = (id: number) => ["resources", "allocations", id
 
 /**
  * Slide-over detail panel for a single resource. Loads `/resources/{id}` and
- * `/resources/{id}/allocations` and exposes rename + delete. Folder-move and
- * metadata editing are deferred until the ResourcePicker (task 8) lands so
- * the folder tree can be reused.
+ * `/resources/{id}/allocations` and exposes rename, folder move, metadata
+ * editing (developer-defined fields, per file kind), and delete — mirroring
+ * the legacy files/edit/file.php form.
  */
 export const FileDetail = ({ resourceId, onOpenChange, folderQueryKey }: FileDetailProps) => {
 	const queryClient = useQueryClient();
 	const open = resourceId !== null;
 	const [name, setName] = useState("");
+	const [folder, setFolder] = useState(0);
+	const [metadata, setMetadata] = useState<Record<string, unknown>>({});
 	const [confirmDelete, setConfirmDelete] = useState(false);
 	const [cropOpen, setCropOpen] = useState(false);
+	const replaceInputRef = useRef<HTMLInputElement>(null);
 
 	const detailQuery = useQuery({
 		queryKey: resourceId ? RESOURCE_DETAIL_KEY(resourceId) : ["resources", "detail", "noop"],
@@ -62,15 +71,39 @@ export const FileDetail = ({ resourceId, onOpenChange, folderQueryKey }: FileDet
 		enabled: resourceId !== null,
 	});
 
+	const foldersQuery = useQuery({
+		queryKey: ["resource-folders", "flat"],
+		queryFn: () => resourceFoldersApi.listFlat(),
+		enabled: open,
+	});
+
+	const metadataFieldsQuery = useQuery({
+		queryKey: ["resources", "metadata-fields"],
+		queryFn: () => resourcesApi.metadataFields(),
+		enabled: open,
+		staleTime: 5 * 60 * 1000,
+	});
+
 	const resource = detailQuery.data;
 
-	// Sync the editable name field with whatever the server returned (resets
-	// when switching between resources or after a save).
+	// Sync the editable fields with whatever the server returned (resets when
+	// switching between resources or after a save).
 	useEffect(() => {
 		if (resource) {
 			setName(resource.name);
+			setFolder(resource.folder ?? 0);
+			setMetadata(resource.metadata ?? {});
 		}
 	}, [resource]);
+
+	// The metadata definitions that apply to this file's kind.
+	const metaFields: ResourceMetadataField[] = !resource
+		? []
+		: resource.is_video
+			? (metadataFieldsQuery.data?.video ?? [])
+			: resource.is_image
+				? (metadataFieldsQuery.data?.image ?? [])
+				: (metadataFieldsQuery.data?.file ?? []);
 
 	const updateMutation = useMutation({
 		mutationFn: () => {
@@ -78,7 +111,7 @@ export const FileDetail = ({ resourceId, onOpenChange, folderQueryKey }: FileDet
 				throw new Error("no resource loaded");
 			}
 
-			return resourcesApi.update(resource.id, { name: name.trim() });
+			return resourcesApi.update(resource.id, { name: name.trim(), folder, metadata });
 		},
 		onSuccess: (updated) => {
 			queryClient.invalidateQueries({ queryKey: folderQueryKey });
@@ -88,6 +121,28 @@ export const FileDetail = ({ resourceId, onOpenChange, folderQueryKey }: FileDet
 		},
 		onError: () => {
 			toast.error("Could not save changes");
+		},
+	});
+
+	const replaceMutation = useMutation({
+		mutationFn: (file: File) => {
+			if (!resource) {
+				throw new Error("no resource loaded");
+			}
+
+			return resourcesApi.replace(resource.id, file);
+		},
+		onSuccess: (updated) => {
+			queryClient.setQueryData(RESOURCE_DETAIL_KEY(updated.id), updated);
+			queryClient.invalidateQueries({ queryKey: folderQueryKey });
+			toast.success("File replaced", {
+				description: "The URL is unchanged — existing references keep working.",
+			});
+		},
+		onError: (err) => {
+			toast.error(
+				err instanceof ApiError && err.message ? err.message : "Could not replace the file"
+			);
 		},
 	});
 
@@ -110,8 +165,29 @@ export const FileDetail = ({ resourceId, onOpenChange, folderQueryKey }: FileDet
 		},
 	});
 
-	const dirty = !!resource && name.trim() !== resource.name && name.trim().length > 0;
-	const pending = updateMutation.isPending || deleteMutation.isPending;
+	const dirty =
+		!!resource &&
+		name.trim().length > 0 &&
+		(name.trim() !== resource.name ||
+			folder !== (resource.folder ?? 0) ||
+			JSON.stringify(metadata) !== JSON.stringify(resource.metadata ?? {}));
+	const pending =
+		updateMutation.isPending || deleteMutation.isPending || replaceMutation.isPending;
+
+	// Min replacement size: the largest existing crop (matches the server rule).
+	const cropList = Object.values(resource?.crops ?? {});
+	const minWidth = cropList.reduce((m, c) => Math.max(m, c.width || 0), 0);
+	const minHeight = cropList.reduce((m, c) => Math.max(m, c.height || 0), 0);
+
+	const onPickReplacement = (event: React.ChangeEvent<HTMLInputElement>) => {
+		const file = event.target.files?.[0];
+		// Allow re-selecting the same file later.
+		event.target.value = "";
+
+		if (file) {
+			replaceMutation.mutate(file);
+		}
+	};
 
 	const copyUrl = async () => {
 		if (!resource?.file) {
@@ -172,7 +248,37 @@ export const FileDetail = ({ resourceId, onOpenChange, folderQueryKey }: FileDet
 					</div>
 				) : (
 					<div className="space-y-5">
-						<Preview resource={resource} />
+						<Preview resource={resource} cacheKey={detailQuery.dataUpdatedAt} />
+
+						{!resource.is_video && (
+							<div className="flex flex-wrap items-center gap-2">
+								<input
+									ref={replaceInputRef}
+									type="file"
+									className="hidden"
+									accept={resource.is_image ? "image/*" : undefined}
+									onChange={onPickReplacement}
+								/>
+								<button
+									type="button"
+									className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] hover:bg-hover disabled:opacity-50"
+									onClick={() => replaceInputRef.current?.click()}
+									disabled={pending}
+								>
+									<RefreshCw
+										size={13}
+										className={replaceMutation.isPending ? "animate-spin" : ""}
+									/>
+									{replaceMutation.isPending ? "Replacing…" : "Replace file"}
+								</button>
+								<span className="text-[11.5px] text-text-3">
+									Keeps the URL and references.
+									{resource.is_image && (minWidth > 0 || minHeight > 0)
+										? ` Minimum size ${minWidth}×${minHeight}px (largest crop).`
+										: ""}
+								</span>
+							</div>
+						)}
 
 						<label className="block">
 							<span className="mb-1 block text-[12px] font-medium text-text-2">
@@ -186,7 +292,69 @@ export const FileDetail = ({ resourceId, onOpenChange, folderQueryKey }: FileDet
 							/>
 						</label>
 
+						<label className="block">
+							<span className="mb-1 block text-[12px] font-medium text-text-2">
+								Folder
+							</span>
+							<select
+								className="w-full rounded-md border border-border bg-surface px-3 py-2 text-[13.5px] focus:outline-none focus:ring-1 focus:ring-accent-ring"
+								value={folder}
+								onChange={(e) => setFolder(Number(e.target.value))}
+							>
+								<option value={0}>Home</option>
+								{(foldersQuery.data ?? []).map((f) => (
+									<option key={f.id} value={f.id}>
+										{" ".repeat((f.depth + 1) * 2)}
+										{f.name}
+									</option>
+								))}
+							</select>
+						</label>
+
 						<MetaGrid resource={resource} onCopyUrl={copyUrl} />
+
+						{metaFields.length > 0 && (
+							<section>
+								<h3 className="mb-1.5 text-[12px] font-semibold uppercase tracking-[0.06em] text-text-3">
+									Metadata
+								</h3>
+								<div className="flex flex-col gap-3 rounded-lg border border-border bg-surface-2 p-3">
+									{metaFields.map((def) => {
+										const field: ModuleFormField = {
+											column: def.id,
+											title: def.title,
+											subtitle: def.subtitle,
+											type: def.type,
+											settings: def.settings ?? undefined,
+										};
+
+										return (
+											<label key={def.id} className="block">
+												<span className="mb-1 block text-[12px] font-medium text-text-2">
+													{def.title}
+													{def.subtitle && (
+														<span className="ml-1 font-normal text-text-3">
+															{def.subtitle}
+														</span>
+													)}
+												</span>
+												<FieldRenderer
+													field={field}
+													value={metadata[def.id]}
+													onChange={(next) =>
+														setMetadata((prev) => ({
+															...prev,
+															[def.id]: next,
+														}))
+													}
+													disabled={pending}
+												/>
+											</label>
+										);
+									})}
+								</div>
+							</section>
+						)}
 
 						<AllocationsList
 							isLoading={allocationsQuery.isLoading}
@@ -228,14 +396,16 @@ export const FileDetail = ({ resourceId, onOpenChange, folderQueryKey }: FileDet
 
 interface PreviewProps {
 	resource: ResourceDetail;
+	/** Cache-buster appended to the image URL so replacements show immediately. */
+	cacheKey?: number;
 }
 
-const Preview = ({ resource }: PreviewProps) => {
+const Preview = ({ resource, cacheKey }: PreviewProps) => {
 	if (resource.is_image && resource.file) {
 		return (
 			<div className="overflow-hidden rounded-lg border border-border bg-surface-2">
 				<img
-					src={expandImageUrl(resource.file)}
+					src={expandImageUrl(resource.file) + (cacheKey ? `?${cacheKey}` : "")}
 					alt={resource.name}
 					className="block max-h-[260px] w-full object-contain"
 				/>

@@ -67,6 +67,46 @@
 			]);
 		}
 
+		/**
+		 * GET /resource-folders/flat
+		 * The full folder tree flattened in display order (depth-first, siblings
+		 * by name) for folder-move selects. Folders the user can't access are
+		 * omitted; their accessible descendants still appear (a child can carry
+		 * an explicit grant even when its parent is denied), at their natural
+		 * depth so indentation stays meaningful.
+		 */
+		public function listFoldersFlat(Request $request) {
+			$rows = SQL::fetchAll("SELECT id, parent, name FROM bigtree_resource_folders ORDER BY name");
+			$children = [];
+
+			foreach ($rows as $row) {
+				$children[(int)$row["parent"]][] = $row;
+			}
+
+			$me = $request->user;
+			$out = [];
+			$walk = function ($parent, $depth) use (&$walk, &$out, $children, $me) {
+				foreach ($children[$parent] ?? [] as $row) {
+					$access = PermissionService::userFolderLevel($me, (int)$row["id"]);
+
+					if ($access !== "n") {
+						$out[] = [
+							"id" => (int)$row["id"],
+							"parent" => (int)$row["parent"],
+							"name" => $row["name"],
+							"depth" => $depth,
+							"access" => $access,
+						];
+					}
+
+					$walk((int)$row["id"], $depth + 1);
+				}
+			};
+			$walk(0, 0);
+
+			return Response::ok($out);
+		}
+
 		public function createFolder(Request $request) {
 			$d = $request->body;
 			$parent = (int)$d["parent"];
@@ -198,6 +238,140 @@
 			}
 
 			return Response::ok($this->presentResource(SQL::fetch("SELECT * FROM bigtree_resources WHERE id = ?", $id), true));
+		}
+
+		/**
+		 * POST /resources/{id}/replace (multipart, "file" field)
+		 * Swap the stored bytes while keeping the resource row, its URL, and its
+		 * allocations. Port of the legacy files/update/file.php replace branch:
+		 *
+		 *  - The new file is stored under the existing basename so references
+		 *    keep resolving.
+		 *  - Images must be at least as large as the largest existing crop (the
+		 *    legacy edit form's min-size rule), get re-run through the default
+		 *    media preset, and have their crops/thumbs regenerated in place.
+		 *  - Managed videos have no replaceable file and are rejected.
+		 */
+		public function replaceResource(Request $request) {
+			$id = (int)$request->route_params["id"];
+			$existing = SQL::fetch("SELECT * FROM bigtree_resources WHERE id = ?", $id);
+
+			if (!$existing) {
+				throw new NotFoundException("Resource $id not found", "resource_not_found", 404);
+			}
+			$this->enforceFolder($request->user, (int)$existing["folder"], "p", "replace resource in folder");
+
+			if (!empty($existing["is_video"])) {
+				throw new BadRequestException("Managed videos have no replaceable file", "not_replaceable", 400);
+			}
+
+			$file_set = $request->file("file");
+
+			if (!$file_set) {
+				throw new BadRequestException("Missing 'file' upload", "missing_file", 400);
+			}
+			$file = $file_set[0];
+
+			$this->assertUploadOk($file);
+
+			$mime = $this->detectMime($file["tmp_name"], $file["type"], $file["name"]);
+			$file_name = pathinfo($existing["file"], PATHINFO_BASENAME);
+			$storage = new BigTreeStorage();
+
+			if (!empty($existing["is_image"])) {
+				if (strpos($mime, "image/") !== 0) {
+					throw new BadRequestException("The replacement for an image must be an image", "type_mismatch", 400);
+				}
+
+				// Legacy min-size rule: the replacement must cover the largest
+				// existing crop so regenerated crops don't upscale.
+				$existing_crops = json_decode($existing["crops"] ?: "[]", true) ?: [];
+				$min_width = $min_height = 0;
+
+				foreach ($existing_crops as $crop) {
+					$min_width = max($min_width, (int)($crop["width"] ?? 0));
+					$min_height = max($min_height, (int)($crop["height"] ?? 0));
+				}
+
+				[$new_width, $new_height] = @getimagesize($file["tmp_name"]) ?: [0, 0];
+
+				if ($new_width < $min_width || $new_height < $min_height) {
+					throw new BadRequestException(
+						"Replacing this file requires a minimum image size of {$min_width}x{$min_height}",
+						"image_too_small",
+						400
+					);
+				}
+
+				$image = new BigTreeImage($file["tmp_name"], $this->buildImageUploadSettings([]));
+
+				if ($image->Error) {
+					throw new BadRequestException("Image processing failed: " . $image->Error, "image_invalid", 400);
+				}
+
+				// Store over the existing path; thumbs/crops then regenerate
+				// against the same StoredName, overwriting their predecessors.
+				$force_local = ($existing["location"] ?? "") === "local";
+
+				if (!$image->replace($file_name, $force_local)) {
+					throw new BadRequestException("Storage refused image: " . ($image->Error ?: "unknown"), "storage_failed", 400);
+				}
+
+				$image->filterGeneratableCrops();
+				$this->ensureListPreviewCrop($image);
+
+				$image->processThumbnails();
+				$pending = $image->processCrops();
+				$this->autoProcessCropRegistry($image, is_array($pending) ? $pending : []);
+
+				[$crop_prefixes, $thumb_prefixes] = $this->buildResourcePrefixes($image);
+				unset($crop_prefixes["list-preview/"]);
+
+				// Drop derived files whose prefix didn't regenerate (preset changed
+				// since the original upload) so stale crops don't linger in storage.
+				$existing_thumbs = json_decode($existing["thumbs"] ?: "[]", true) ?: [];
+				$stale = array_diff(
+					array_merge(array_keys($existing_crops), array_keys($existing_thumbs)),
+					array_merge(array_keys($crop_prefixes), array_keys($thumb_prefixes))
+				);
+
+				foreach ($stale as $prefix) {
+					try {
+						$storage->delete(BigTree::prefixFile($existing["file"], $prefix));
+					} catch (\Throwable $e) {
+						// Missing derivative isn't fatal.
+					}
+				}
+
+				SQL::update("bigtree_resources", $id, [
+					"mimetype" => $mime,
+					"md5" => @md5_file($file["tmp_name"]),
+					"size" => (int)$file["size"],
+					"width" => $image->Width,
+					"height" => $image->Height,
+					"crops" => json_encode($crop_prefixes),
+					"thumbs" => json_encode($thumb_prefixes),
+					"file_last_updated" => "NOW()",
+					"last_updated" => "NOW()",
+				]);
+			} else {
+				if (!$storage->replace($file["tmp_name"], $file_name, "files/resources/")) {
+					throw new BadRequestException("Storage refused upload", "storage_failed", 400);
+				}
+
+				SQL::update("bigtree_resources", $id, [
+					"mimetype" => $mime,
+					"md5" => @md5_file($file["tmp_name"]),
+					"size" => (int)$file["size"],
+					"file_last_updated" => "NOW()",
+					"last_updated" => "NOW()",
+				]);
+			}
+
+			$fresh = SQL::fetch("SELECT * FROM bigtree_resources WHERE id = ?", $id);
+			Hooks::fire("resource.replaced", $fresh, ["user_id" => $request->user->id]);
+
+			return Response::ok($this->presentResource($fresh, true));
 		}
 
 		public function deleteResource(Request $request) {

@@ -50,6 +50,16 @@ export interface FolderContents {
 	access: FolderAccess;
 }
 
+/** A row from GET /resource-folders/flat — the whole tree in display order. */
+export interface FlatFolderRow {
+	id: number;
+	parent: number;
+	name: string;
+	/** Nesting depth (0 = directly under Home) for select-option indentation. */
+	depth: number;
+	access: FolderAccess;
+}
+
 export interface CreateFolderPayload {
 	parent: number;
 	name: string;
@@ -70,6 +80,9 @@ export const resourceFoldersApi = {
 		api
 			.get<FolderContents>("/resource-folders", { query: { parent } })
 			.then((res) => res.folders ?? []),
+
+	/** The whole tree flattened (depth-first), permission-filtered server-side. */
+	listFlat: () => api.get<FlatFolderRow[]>("/resource-folders/flat"),
 
 	create: (body: CreateFolderPayload) => api.post<ResourceFolderRow>("/resource-folders", body),
 

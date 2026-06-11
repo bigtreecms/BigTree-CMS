@@ -221,6 +221,12 @@ export const pagesApi = {
 
 	move: (id: number, parent: number) => api.post<void>(`/pages/${id}/move`, { parent }),
 
+	/**
+	 * Copy a page into a NEW pending draft under the same parent (" (Copy)"
+	 * titles, fresh route). Returns the draft's pending change id.
+	 */
+	duplicate: (id: number) => api.post<PagePendingResult>(`/pages/${id}/duplicate`),
+
 	reorder: (parent: number, ids: number[]) => api.post<void>(`/pages/${parent}/reorder`, { ids }),
 
 	revisions: {

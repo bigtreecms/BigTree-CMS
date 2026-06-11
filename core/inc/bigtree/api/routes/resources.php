@@ -1,5 +1,6 @@
 <?php
 	use BigTree\Services\ResourceService;
+	use BigTree\Services\SystemConfigureService;
 
 	return [
 		// — Folders —
@@ -7,6 +8,10 @@
 			"service" => [ResourceService::class, "listFolders"],
 			"permission" => ["level" => 0],
 			"query" => ["parent" => "int|min:0"],
+		],
+		"GET /resource-folders/flat" => [
+			"service" => [ResourceService::class, "listFoldersFlat"],
+			"permission" => ["level" => 0],
 		],
 		"POST /resource-folders" => [
 			"service" => [ResourceService::class, "createFolder"],
@@ -27,6 +32,13 @@
 		],
 
 		// — Resources (search / upload first; static paths before {id}) —
+		// Metadata definitions are developer-configured but must be readable by
+		// anyone who can edit a file (the legacy file editor renders them for
+		// every user) — hence level 0 here vs. level 2 on the configure routes.
+		"GET /resources/metadata-fields" => [
+			"service" => [SystemConfigureService::class, "getFileMetadata"],
+			"permission" => ["level" => 0],
+		],
 		"GET /resources/search" => [
 			"service" => [ResourceService::class, "search"],
 			"permission" => ["level" => 0],
@@ -63,6 +75,12 @@
 			"service" => [ResourceService::class, "deleteResource"],
 			"permission" => ["level" => 0],
 			"audit" => ["table" => "bigtree_resources", "type" => "deleted", "entry" => "%id%"],
+		],
+		"POST /resources/{id:int}/replace" => [
+			"service" => [ResourceService::class, "replaceResource"],
+			"permission" => ["level" => 0],
+			"multipart" => true,
+			"audit" => ["table" => "bigtree_resources", "type" => "replaced", "entry" => "%id%"],
 		],
 
 		// — Crops —

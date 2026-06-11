@@ -14,9 +14,12 @@
 			"query" => ["q" => "required|string|max:200"],
 		],
 
+		// Level 0 on purpose: the legacy tag browser lets any editor create tags
+		// inline from page/module forms (ajax/tags/create-tag.php has no gate).
+		// Destructive actions (delete/merge) stay admin-only below.
 		"POST /tags" => [
 			"service" => [TagService::class, "create"],
-			"permission" => ["level" => 1],
+			"permission" => ["level" => 0],
 			"body" => ["tag" => "required|string|max:255"],
 			"audit" => ["table" => "bigtree_tags", "type" => "created", "entry" => "%id%"],
 		],

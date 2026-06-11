@@ -11,6 +11,7 @@ import { PageSectionToolbar } from "@/components/pages/PageSectionToolbar";
 
 import { isPendingResult, pagesApi, type PageEditBody } from "@/api/endpoints/pages";
 import { resourceToFormField, templatesApi } from "@/api/endpoints/templates";
+import type { Tag } from "@/api/endpoints/tags";
 
 import { isFieldRequired, isFieldValueEmpty } from "@/renderer/forms/validation";
 
@@ -74,6 +75,8 @@ export const PageAdd = () => {
 	})();
 
 	const [body, setBody] = useState<PageEditBody>(() => seedBody(parent));
+	// Full Tag objects for the browser chips; body.tags carries just the ids.
+	const [tagObjects, setTagObjects] = useState<Tag[]>([]);
 	const [activeTab, setActiveTab] = useState<TabValue>("properties");
 	const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
@@ -276,6 +279,11 @@ export const PageAdd = () => {
 							templateDisabled={templateDisabled}
 							fieldErrors={fieldErrors}
 							onChange={(resources) => setBodyPatch({ resources })}
+							tags={tagObjects}
+							onTagsChange={(next) => {
+								setTagObjects(next);
+								setBodyPatch({ tags: next.map((t) => t.id) });
+							}}
 						/>
 					)}
 

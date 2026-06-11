@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
 import type { ModuleForm, ModuleFormField } from "@/api/endpoints/modules";
+import type { Tag } from "@/api/endpoints/tags";
+import { TagInput } from "@/components/tags/TagInput";
 import { UnsavedChangesGuard } from "@/components/ui/UnsavedChangesGuard";
 import { useScrollToFirstError } from "@/hooks/useScrollToFirstError";
 import { ApiError } from "@/types/api";
@@ -8,6 +10,7 @@ import { ApiError } from "@/types/api";
 import { FieldRenderer } from "./FieldRenderer";
 import { FieldRow } from "./FieldRow";
 import { FormRenderContextProvider, type FormRenderContextValue } from "./FormContext";
+import { OpenGraphSection, type OpenGraphValue } from "./OpenGraphSection";
 import { validateRequiredFields } from "./validation";
 
 /**
@@ -80,6 +83,14 @@ export interface FormRendererProps {
 	 * pending change's owner (e.g. "Your draft" / "Draft by Jane").
 	 */
 	pendingLabel?: string;
+	/**
+	 * The entry's current tags (forms with `tagging` enabled). Submitted as
+	 * `__tags__` ids; the server replaces the entry's tag set wholesale, so
+	 * callers should always pass what the entry currently has.
+	 */
+	initialTags?: Tag[];
+	/** The entry's Open Graph data (forms with `open_graph` enabled). */
+	initialOpenGraph?: OpenGraphValue | null;
 }
 
 export const FormRenderer = ({
@@ -99,6 +110,8 @@ export const FormRenderer = ({
 	publishedValues,
 	pendingStatus,
 	pendingLabel,
+	initialTags,
+	initialOpenGraph,
 }: FormRendererProps) => {
 	const [values, setValues] = useState<Record<string, unknown>>(() =>
 		seedValues(form, initialValues)
@@ -107,16 +120,31 @@ export const FormRenderer = ({
 	const [generalError, setGeneralError] = useState<string | null>(null);
 	const [submitting, setSubmitting] = useState(false);
 
+	// Tag browser / Open Graph sections render only when the form definition
+	// opts in (mirrors the legacy form's `tagging` / `open_graph` flags).
+	const showTagging = Boolean(form.tagging);
+	const showOpenGraph = Boolean(form.open_graph);
+	const [tags, setTags] = useState<Tag[]>(initialTags ?? []);
+	const [openGraph, setOpenGraph] = useState<OpenGraphValue>(initialOpenGraph ?? {});
+
 	useScrollToFirstError(fieldErrors);
 
 	// Baseline the form started from, so we can tell when the user has made
 	// edits. Reseeded alongside `values` whenever the form/entry changes.
 	const baselineRef = useRef<Record<string, unknown>>(values);
+	const tagsBaselineRef = useRef<Tag[]>(initialTags ?? []);
+	const ogBaselineRef = useRef<OpenGraphValue>(initialOpenGraph ?? {});
 
 	// Dirty while the user has unsaved edits — but never while we're mid-submit
 	// (a successful save navigates away and must not be intercepted) or in a
 	// read-only/disabled view where no edits are possible.
-	const isDirty = !disabled && !submitting && !valuesAreEqual(values, baselineRef.current);
+	const isDirty =
+		!disabled &&
+		!submitting &&
+		(!valuesAreEqual(values, baselineRef.current) ||
+			JSON.stringify(tags.map((t) => t.id)) !==
+				JSON.stringify(tagsBaselineRef.current.map((t) => t.id)) ||
+			JSON.stringify(openGraph) !== JSON.stringify(ogBaselineRef.current));
 
 	const pendingSet = useMemo(() => new Set(pendingFields ?? []), [pendingFields]);
 	const isNewDraft = pendingStatus === "pending";
@@ -143,8 +171,17 @@ export const FormRenderer = ({
 		const seeded = seedValues(form, initialValues);
 		setValues(seeded);
 		baselineRef.current = seeded;
+		setTags(initialTags ?? []);
+		tagsBaselineRef.current = initialTags ?? [];
+		setOpenGraph(initialOpenGraph ?? {});
+		ogBaselineRef.current = initialOpenGraph ?? {};
 		setFieldErrors({});
 		setGeneralError(null);
+		// Tags + OG arrive in the same payload as `initialValues`, so they're
+		// read here without being deps — callers pass fresh array identities per
+		// render and including them would reseed (wiping in-progress edits) on
+		// every keystroke.
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [form, initialValues]);
 
 	const setFieldValue = (column: string, next: unknown) => {
@@ -181,7 +218,21 @@ export const FormRenderer = ({
 		setFieldErrors({});
 
 		try {
-			await onSubmit(packForSubmit(form, values), { publish });
+			// Copy — packForSubmit returns the state object itself for simple forms.
+			const payload = { ...packForSubmit(form, values) };
+
+			// The server replaces the entry's tag set / OG row wholesale on every
+			// save (legacy semantics), so always send the current state when the
+			// form has the feature enabled.
+			if (showTagging) {
+				payload["__tags__"] = tags.map((t) => t.id);
+			}
+
+			if (showOpenGraph) {
+				payload["__open_graph__"] = openGraph;
+			}
+
+			await onSubmit(payload, { publish });
 		} catch (err) {
 			if (err instanceof ApiError) {
 				const fe = err.fieldErrors();
@@ -255,6 +306,29 @@ export const FormRenderer = ({
 							/>
 						</FieldRow>
 					))
+				)}
+
+				{showTagging && (
+					<div className="mt-5 border-t border-border pt-4">
+						<span className="mb-1.5 block text-[12px] font-medium text-text-2">
+							Tags
+						</span>
+						<TagInput
+							multiple
+							value={tags}
+							onChange={setTags}
+							disabled={disabled || submitting}
+							placeholder="Search for or add tags…"
+						/>
+					</div>
+				)}
+
+				{showOpenGraph && (
+					<OpenGraphSection
+						value={openGraph}
+						onChange={setOpenGraph}
+						disabled={disabled || submitting}
+					/>
 				)}
 			</div>
 

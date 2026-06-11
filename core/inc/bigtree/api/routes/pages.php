@@ -82,6 +82,11 @@
 			"permission" => ["level" => 0],
 			"audit" => ["table" => "bigtree_pages", "type" => "unarchived", "entry" => "%id%"],
 		],
+		"POST /pages/{id:int}/duplicate" => [
+			"service" => [PageService::class, "duplicate"],
+			"permission" => ["level" => 0],
+			"audit" => ["table" => "bigtree_pages", "type" => "duplicated", "entry" => "%id%"],
+		],
 		"POST /pages/{id:int}/move" => [
 			"service" => [PageService::class, "move"],
 			"permission" => ["level" => 0],

@@ -21,6 +21,8 @@ import {
 	type PageEditBody,
 } from "@/api/endpoints/pages";
 import { pendingChangesApi } from "@/api/endpoints/dashboard";
+import { TagInput } from "@/components/tags/TagInput";
+import type { Tag } from "@/api/endpoints/tags";
 import { resourceToFormField, templatesApi, type TemplateSummary } from "@/api/endpoints/templates";
 
 import { FieldRenderer } from "@/renderer/forms/FieldRenderer";
@@ -83,6 +85,7 @@ const seedBody = (page: PageDetail): PageEditBody => ({
 	trunk: page.trunk,
 	resources: (page.resources ?? {}) as Record<string, unknown>,
 	open_graph: page.open_graph ? { ...page.open_graph } : undefined,
+	tags: (page.tags ?? []).map((t) => t.id),
 });
 
 export const PageEdit = () => {
@@ -145,6 +148,8 @@ export const PageEdit = () => {
 	});
 
 	const [body, setBody] = useState<PageEditBody | null>(null);
+	// Full Tag objects for the browser chips; body.tags carries just the ids.
+	const [tagObjects, setTagObjects] = useState<Tag[]>([]);
 	const [activeTab, setActiveTab] = useState<TabValue>("content");
 	const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 	const [generalError, setGeneralError] = useState<string | null>(null);
@@ -156,6 +161,7 @@ export const PageEdit = () => {
 	useEffect(() => {
 		if (pageQuery.data) {
 			setBody(seedBody(pageQuery.data));
+			setTagObjects(pageQuery.data.tags ?? []);
 			setFieldErrors({});
 			setGeneralError(null);
 		}
@@ -196,6 +202,22 @@ export const PageEdit = () => {
 			} else {
 				setGeneralError(err instanceof Error ? err.message : "Save failed");
 			}
+		},
+	});
+
+	const duplicateMutation = useMutation({
+		mutationFn: () => pagesApi.duplicate(id),
+		onSuccess: (result) => {
+			queryClient.invalidateQueries({ queryKey: ["pages", "list"] });
+			toast.success("Page duplicated", {
+				description: "The copy was created as an unpublished draft.",
+			});
+			navigate(`/pages/draft/${result.pending_change_id}/edit`);
+		},
+		onError: (err) => {
+			toast.error(
+				err instanceof ApiError && err.message ? err.message : "Could not duplicate page"
+			);
 		},
 	});
 
@@ -363,6 +385,14 @@ export const PageEdit = () => {
 				pageId={page.id}
 				parentId={page.parent}
 				onMove={draft ? undefined : () => setMovingOpen(true)}
+				onDuplicate={
+					// Live, non-top-level pages only (drafts have nothing to copy;
+					// legacy refuses top-level pages). The server enforces publisher
+					// access on the page + parent.
+					draft || page.parent < 1 || duplicateMutation.isPending
+						? undefined
+						: () => duplicateMutation.mutate()
+				}
 			/>
 
 			{page.changes_applied && (
@@ -421,6 +451,11 @@ export const PageEdit = () => {
 							fieldErrors={fieldErrors}
 							disabled={readOnly}
 							onChange={(resources) => setBodyPatch({ resources })}
+							tags={tagObjects}
+							onTagsChange={(next) => {
+								setTagObjects(next);
+								setBodyPatch({ tags: next.map((t) => t.id) });
+							}}
 							publishedResources={
 								pendingInfo
 									? ((page.pending_original?.resources as
@@ -746,6 +781,9 @@ interface ContentTabProps {
 	fieldErrors: Record<string, string>;
 	disabled?: boolean;
 	onChange: (resources: Record<string, unknown>) => void;
+	/** Selected tags. Rendering the tag browser requires onTagsChange too. */
+	tags?: Tag[];
+	onTagsChange?: (next: Tag[]) => void;
 	/**
 	 * Published resource values keyed by resource id, for per-field comparison.
 	 * Undefined unless the page has a queued EDIT overlaid.
@@ -768,17 +806,36 @@ export const ContentTab = ({
 	fieldErrors,
 	disabled,
 	onChange,
+	tags,
+	onTagsChange,
 	publishedResources,
 	changedResourceIds,
 	pendingLabel,
 }: ContentTabProps) => {
 	const resources = (body.resources ?? {}) as Record<string, unknown>;
 
+	// Tags apply to the page itself (not the template), so the browser renders
+	// regardless of which resource branch we land in — mirrors the legacy
+	// content tab's always-present tag sidebar.
+	const tagsSection = onTagsChange ? (
+		<div className="mt-5 border-t border-border pt-4">
+			<span className="mb-1.5 block text-[12px] font-medium text-text-2">Tags</span>
+			<TagInput
+				multiple
+				value={tags ?? []}
+				onChange={onTagsChange}
+				disabled={disabled}
+				placeholder="Search for or add tags…"
+			/>
+		</div>
+	) : null;
+
 	if (templateDisabled) {
 		return (
 			<>
 				<TemplateTag label="— External Link —" />
 				<NoResources reason="external" />
+				{tagsSection}
 			</>
 		);
 	}
@@ -793,9 +850,12 @@ export const ContentTab = ({
 
 	if (!template) {
 		return (
-			<div className="rounded-md border border-dashed border-border bg-surface-2 p-4 text-[12.5px] text-text-3">
-				No template assigned. Pick one in the <strong>Properties</strong> tab.
-			</div>
+			<>
+				<div className="rounded-md border border-dashed border-border bg-surface-2 p-4 text-[12.5px] text-text-3">
+					No template assigned. Pick one in the <strong>Properties</strong> tab.
+				</div>
+				{tagsSection}
+			</>
 		);
 	}
 
@@ -804,6 +864,7 @@ export const ContentTab = ({
 			<>
 				<TemplateTag label={template.name} />
 				<NoResources reason="empty" />
+				{tagsSection}
 			</>
 		);
 	}
@@ -842,6 +903,7 @@ export const ContentTab = ({
 					);
 				})}
 			</div>
+			{tagsSection}
 		</>
 	);
 };
