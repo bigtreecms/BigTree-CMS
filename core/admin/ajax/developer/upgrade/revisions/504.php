@@ -1,12 +1,19 @@
 <?php
 	// BigTree 4.6 — REST API foundation
 
+	// This migration is idempotent: the same schema ships in core/setup/base.sql,
+	// so a database created from a recent base (or a dev branch that already ran an
+	// earlier copy of this migration) may already have these objects. Each step is
+	// guarded so re-running is a no-op.
+
 	// Adds token_version column to users (stateless JWT revocation mechanism).
-	SQL::query("ALTER TABLE `bigtree_users` ADD COLUMN `token_version` INT(11) UNSIGNED NOT NULL DEFAULT 1 AFTER `change_password_hash`");
+	if (!SQL::fetch("SHOW COLUMNS FROM `bigtree_users` LIKE 'token_version'")) {
+		SQL::query("ALTER TABLE `bigtree_users` ADD COLUMN `token_version` INT(11) UNSIGNED NOT NULL DEFAULT 1 AFTER `change_password_hash`");
+	}
 
 	// Refresh tokens: rotated per /auth/refresh, with theft detection via family_id.
 	SQL::query("
-		CREATE TABLE `bigtree_refresh_tokens` (
+		CREATE TABLE IF NOT EXISTS `bigtree_refresh_tokens` (
 			`id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
 			`user_id` INT(11) UNSIGNED NOT NULL,
 			`token_hash` CHAR(64) NOT NULL UNIQUE,
@@ -26,7 +33,7 @@
 
 	// Passkey challenge ledger: replaces $_SESSION-stored challenges so the API stays stateless.
 	SQL::query("
-		CREATE TABLE `bigtree_passkey_challenges` (
+		CREATE TABLE IF NOT EXISTS `bigtree_passkey_challenges` (
 			`id` CHAR(32) PRIMARY KEY,
 			`challenge` VARCHAR(255) NOT NULL,
 			`user_id` INT(11) UNSIGNED NULL DEFAULT NULL,
@@ -39,7 +46,7 @@
 
 	// API rate-limit buckets (fixed window).
 	SQL::query("
-		CREATE TABLE `bigtree_api_rate_limits` (
+		CREATE TABLE IF NOT EXISTS `bigtree_api_rate_limits` (
 			`bucket` VARCHAR(64) NOT NULL,
 			`window_start` TIMESTAMP NOT NULL DEFAULT '1970-01-02 00:00:01',
 			`count` INT(11) UNSIGNED NOT NULL DEFAULT 0,
@@ -49,7 +56,7 @@
 
 	// Audit-trail context sibling table (so the legacy bigtree_audit_trail schema stays unchanged).
 	SQL::query("
-		CREATE TABLE `bigtree_audit_trail_context` (
+		CREATE TABLE IF NOT EXISTS `bigtree_audit_trail_context` (
 			`audit_id` INT(11) UNSIGNED NOT NULL PRIMARY KEY,
 			`ip` VARCHAR(45) DEFAULT NULL,
 			`user_agent` VARCHAR(255) DEFAULT NULL,
@@ -62,7 +69,7 @@
 
 	echo BigTree::json([
 		"complete" => true,
-		"response" => "Upgrading to BigTree 4.6 REST API foundation (503)"
+		"response" => "Upgrading to BigTree 4.6 REST API foundation (504)"
 	]);
 
-	$admin->updateInternalSettingValue("bigtree-internal-revision", 503);
+	$admin->updateInternalSettingValue("bigtree-internal-revision", 504);
