@@ -146,6 +146,7 @@
 			// the flag they (like editors) save a pending draft.
 			if ($can_publish && $publish) {
 				$id = BigTreeAutoModule::createItem($table, $data, $mtm, $tags, null, $og);
+				$this->trackModuleResources($table, (int)$id, $data);
 				$item = BigTreeAutoModule::getItem($table, $id);
 				Hooks::fire("module_entry.created", [
 					"module" => $module_id, "table" => $table, "id" => (int)$id, "item" => $item["item"] ?? $item,
@@ -165,6 +166,7 @@
 			$pending_id = BigTreeAutoModule::createPendingItem(
 				$module_id, $table, $data, $mtm, $tags, null, false, $og
 			);
+			$this->trackModuleResources($table, "p".$pending_id, $data);
 			Hooks::fire("module_entry.pending_created", [
 				"module" => $module_id, "table" => $table, "pending_id" => (int)$pending_id,
 			], ["user_id" => $request->user->id]);
@@ -218,8 +220,13 @@
 				// pending change to a real row (with the edited data). A numeric id
 				// updates its live row in place.
 				if ($is_pending) {
+					global $admin;
+
 					$this->bindLegacyAdmin($request->user);
 					$new_id = (int)BigTreeAutoModule::publishPendingItem($table, $pending_change_id, $data, $mtm, $tags, $og);
+					// Publishing promotes the pending draft to a live row; re-key its
+					// already-tracked allocations from "p{change}" onto the new live id.
+					$admin->updateResourceAllocation($table, $new_id, $pending_change_id);
 					$fresh = BigTreeAutoModule::getItem($table, $new_id);
 					Hooks::fire("module_entry.updated", [
 						"module" => $module_id, "table" => $table, "id" => $new_id, "item" => $fresh["item"] ?? $fresh,
@@ -229,7 +236,18 @@
 				}
 
 				$entry_id = (int)$lookup_id;
+				// Publishing a live update discards any outstanding draft of this row, so
+				// drop the draft's allocations before re-scanning the live row's data.
+				$pending_change_id = SQL::fetchSingle(
+					"SELECT id FROM bigtree_pending_changes WHERE `table` = ? AND item_id = ?", $table, $entry_id
+				);
+
+				if ($pending_change_id) {
+					\BigTreeAdmin::deallocateResources($table, "p".$pending_change_id);
+				}
+
 				BigTreeAutoModule::updateItem($table, $entry_id, $data, $mtm, $tags, $og);
+				$this->trackModuleResources($table, $entry_id, $data);
 				$fresh = BigTreeAutoModule::getItem($table, $entry_id);
 				Hooks::fire("module_entry.updated", [
 					"module" => $module_id, "table" => $table, "id" => $entry_id, "item" => $fresh["item"] ?? $fresh,
@@ -244,7 +262,8 @@
 			// existing change rather than creating a second one.
 			$this->bindLegacyAdmin($request->user);
 
-			BigTreeAutoModule::submitChange($module_id, $table, $lookup_id, $data, $mtm, $tags, null, $og);
+			$change_allocation_id = BigTreeAutoModule::submitChange($module_id, $table, $lookup_id, $data, $mtm, $tags, null, $og);
+			$this->trackModuleResources($table, "p".$change_allocation_id, $data);
 			Hooks::fire("module_entry.pending_updated", [
 				"module" => $module_id, "table" => $table, "id" => $raw_id,
 			], ["user_id" => $request->user->id]);
@@ -274,8 +293,19 @@
 
 			if ($is_pending) {
 				BigTreeAutoModule::deletePendingItem($table, $pending_change_id);
+				\BigTreeAdmin::deallocateResources($table, "p".$pending_change_id);
 			} else {
 				BigTreeAutoModule::deleteItem($table, (int)$lookup_id);
+				\BigTreeAdmin::deallocateResources($table, (int)$lookup_id);
+
+				// Drop allocations for any outstanding draft of the deleted row too.
+				$pending_change_id = SQL::fetchSingle(
+					"SELECT id FROM bigtree_pending_changes WHERE `table` = ? AND item_id = ?", $table, (int)$lookup_id
+				);
+
+				if ($pending_change_id) {
+					\BigTreeAdmin::deallocateResources($table, "p".$pending_change_id);
+				}
 			}
 
 			Hooks::fire("module_entry.deleted", [
@@ -411,6 +441,36 @@
 					$admin->Timezone = $row["timezone"];
 				}
 			}
+		}
+
+		/**
+		 * Resource-reference column keys for a table, collected from every module form
+		 * that writes to it. Reference fields (image/file/video-reference) store a bare
+		 * numeric resource id, so the allocation scanner needs the column names to spot
+		 * them; content fields (html/link/etc.) embed irl:// / resource:// / file URLs
+		 * that are matched without keys. Mirrors the migration's per-table key build.
+		 */
+		private function referenceKeysForTable(string $table): array {
+			$keys = [];
+
+			foreach (\BigTreeAdmin::getModuleForms() as $form) {
+				if (($form["table"] ?? "") !== $table) {
+					continue;
+				}
+
+				$keys = array_merge($keys, \BigTreeAdmin::getResourceReferenceKeys($form["fields"] ?? []));
+			}
+
+			return array_values(array_unique($keys));
+		}
+
+		/**
+		 * (Re)allocate the resources referenced by a just-written module entry. The API
+		 * stores data without running field processors, so we scan the persisted data
+		 * directly. `$entry` is the live row id or a "p"-prefixed pending change id.
+		 */
+		private function trackModuleResources(string $table, $entry, array $data): void {
+			\BigTreeAdmin::allocateResourcesFromData($table, $entry, $data, $this->referenceKeysForTable($table));
 		}
 
 		/**

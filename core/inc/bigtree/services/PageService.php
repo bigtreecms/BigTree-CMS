@@ -281,6 +281,11 @@
 
 			$page = SQL::fetch("SELECT * FROM bigtree_pages WHERE id = ?", $id);
 
+			$this->allocatePageResources((int)$id, $page["template"], [
+				"resources" => json_decode($page["resources"] ?: "{}", true) ?: [],
+				"external" => $page["external"],
+			]);
+
 			// Fire the template's publish hook (legacy convention — extensions and
 			// templates can register a function that runs on every save).
 			$this->fireTemplatePublishHook(
@@ -522,6 +527,13 @@
 			// Publishing live supersedes any queued draft for this page (mirrors
 			// updatePage:9819) — otherwise a stale EDIT change would keep showing
 			// "Changed" and could be re-approved over the freshly published content.
+			// Drop the superseded draft's resource allocations before deleting it.
+			foreach (SQL::fetchAllSingle(
+				"SELECT id FROM bigtree_pending_changes WHERE `table` = 'bigtree_pages' AND item_id = ?", $id
+			) as $stale_change_id) {
+				\BigTreeAdmin::deallocateResources("bigtree_pages", "p".$stale_change_id);
+			}
+
 			SQL::delete("bigtree_pending_changes", ["table" => "bigtree_pages", "item_id" => $id]);
 
 			// Tags + open-graph: only touch if the caller included the keys, so a partial
@@ -535,6 +547,11 @@
 			}
 
 			$fresh = SQL::fetch("SELECT * FROM bigtree_pages WHERE id = ?", $id);
+
+			$this->allocatePageResources($id, $fresh["template"], [
+				"resources" => json_decode($fresh["resources"] ?: "{}", true) ?: [],
+				"external" => $fresh["external"],
+			]);
 
 			// Template publish hook fires on update too. Pass the merged update payload
 			// so the hook sees only what changed (matches legacy updatePage:9813).
@@ -577,7 +594,10 @@
 				$row["type"] = "NEW";
 				$row["pending_page_parent"] = $item_or_parent;
 
-				return (int)SQL::insert("bigtree_pending_changes", $row);
+				$change_id = (int)SQL::insert("bigtree_pending_changes", $row);
+				$this->allocatePageResources("p".$change_id, $changes["template"] ?? "", $changes);
+
+				return $change_id;
 			}
 
 			// EDIT — collapse onto any existing queued change for this page.
@@ -594,11 +614,15 @@
 
 			if ($existing) {
 				SQL::update("bigtree_pending_changes", (int)$existing, $row);
+				$this->allocatePageResources("p".(int)$existing, $changes["template"] ?? "", $changes);
 
 				return (int)$existing;
 			}
 
-			return (int)SQL::insert("bigtree_pending_changes", $row);
+			$change_id = (int)SQL::insert("bigtree_pending_changes", $row);
+			$this->allocatePageResources("p".$change_id, $changes["template"] ?? "", $changes);
+
+			return $change_id;
 		}
 
 		/**
@@ -650,6 +674,9 @@
 			}
 
 			SQL::delete("bigtree_pending_changes", (int)$row["id"]);
+			// performCreate/performUpdate already allocated against the live page id;
+			// drop the now-deleted draft's allocations so they don't dangle.
+			\BigTreeAdmin::deallocateResources("bigtree_pages", "p".(int)$row["id"]);
 
 			return $result;
 		}
@@ -799,6 +826,8 @@
 				"tags_changes" => $tags_changes,
 				"open_graph_changes" => $open_graph_changes,
 			]);
+
+			$this->allocatePageResources("p".$pcid, $changes["template"] ?? "", $changes);
 
 			return $changes;
 		}
@@ -1117,6 +1146,11 @@
 
 			$fresh = SQL::fetch("SELECT * FROM bigtree_pages WHERE id = ?", $id);
 
+			$this->allocatePageResources($id, $fresh["template"], [
+				"resources" => json_decode($fresh["resources"] ?: "{}", true) ?: [],
+				"external" => $fresh["external"],
+			]);
+
 			$this->fireTemplatePublishHook($fresh["template"], $id, $update, [], []);
 			Hooks::fire("page.updated", $fresh, ["user_id" => $request->user->id, "previous" => $page]);
 
@@ -1263,6 +1297,20 @@
 			}
 		}
 
+		/**
+		 * (Re)allocate the resources referenced by a page or page pending change. The
+		 * API stores page data without running field processors, so we scan the stored
+		 * data directly. `$entry` is the live page id or a "p"-prefixed pending change
+		 * id; reference-field columns (which store bare resource ids) are resolved from
+		 * the template definition. Mirrors the backfill migration's page scan.
+		 */
+		private function allocatePageResources($entry, $template_id, array $data): void {
+			$template = $template_id ? \BigTreeJSONDB::get("templates", (string)$template_id) : null;
+			$reference_keys = \BigTreeAdmin::getResourceReferenceKeys($template["resources"] ?? []);
+
+			\BigTreeAdmin::allocateResourcesFromData("bigtree_pages", $entry, $data, $reference_keys);
+		}
+
 		private function repathChildren($old_path, $new_path) {
 			$descendants = SQL::fetchAll("SELECT id, path FROM bigtree_pages WHERE path LIKE ?", $old_path . "/%");
 
@@ -1276,6 +1324,16 @@
 			$children = SQL::fetchAllSingle("SELECT id FROM bigtree_pages WHERE path LIKE ?", $path . "%");
 
 			foreach ($children as $cid) {
+				// Drop resource allocations for the page and any queued drafts before
+				// the row goes away, so nothing dangles in bigtree_resource_allocation.
+				\BigTreeAdmin::deallocateResources("bigtree_pages", (int)$cid);
+
+				foreach (SQL::fetchAllSingle(
+					"SELECT id FROM bigtree_pending_changes WHERE `table` = 'bigtree_pages' AND item_id = ?", (int)$cid
+				) as $change_id) {
+					\BigTreeAdmin::deallocateResources("bigtree_pages", "p".$change_id);
+				}
+
 				SQL::delete("bigtree_pages", (int)$cid);
 			}
 		}

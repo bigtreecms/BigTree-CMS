@@ -10,6 +10,7 @@
 	use BigTree\Api\Exceptions\AuthorizationException;
 	use BigTree;
 	use BigTreeAdmin;
+	use BigTreeAutoModule;
 	use BigTreeCMS;
 	use BigTreeImage;
 	use BigTreeJSONDB;
@@ -701,6 +702,133 @@
 
 				return ["table" => $a["table"], "entry" => $a["entry"], "updated_at" => $a["updated_at"]];
 			}, $rows));
+		}
+
+		/**
+		 * Enriched "where is this file used" list for the SPA file detail panel. Each
+		 * allocation row is resolved into a human location + title + status, plus an
+		 * SPA link descriptor (no legacy ADMIN_ROOT URLs). Parallels the legacy admin's
+		 * BigTreeAdmin::getResourceAllocationUsage(), which emits ADMIN_ROOT links for
+		 * the PHP file edit screen.
+		 */
+		public function usage(Request $request) {
+			global $cms;
+
+			$id = (int)$request->route_params["id"];
+
+			if (!SQL::exists("bigtree_resources", $id)) {
+				throw new NotFoundException("Resource $id not found", "resource_not_found", 404);
+			}
+
+			$allocations = BigTreeAdmin::getResourceAllocation($id);
+			$usages = [];
+			$module_cache = [];
+
+			foreach ($allocations as $allocation) {
+				$table = $allocation["table"];
+				$entry = (string)$allocation["entry"];
+				$pending = (substr($entry, 0, 1) === "p");
+				$usage = [
+					"location" => $table,
+					"title" => $entry,
+					"status" => $pending ? "pending" : "published",
+					"updated_at" => $allocation["updated_at"],
+					"link" => null,
+				];
+
+				if ($table === "bigtree_pages") {
+					$usage["location"] = "Pages";
+					$page = $pending ? $cms->getPendingPage($entry, false) : $cms->getPage($entry, false);
+
+					if ($page) {
+						$usage["title"] = $page["nav_title"] ?: $page["title"];
+
+						if (!$pending && (!empty($page["archived"]) || !empty($page["archived_inherited"]))) {
+							$usage["status"] = "archived";
+						}
+
+						$usage["link"] = ["kind" => "page", "entry" => $entry];
+					} else {
+						$usage["title"] = "Deleted Page (".$entry.")";
+						$usage["status"] = "none";
+					}
+				} elseif ($table === "bigtree_settings") {
+					$usage["location"] = "Settings";
+					$setting = BigTreeAdmin::getSetting($entry);
+					// Settings have no pending/archived lifecycle.
+					$usage["status"] = "published";
+
+					if ($setting) {
+						$usage["title"] = $setting["name"] ?: $setting["id"];
+
+						if (empty($setting["system"])) {
+							$usage["link"] = ["kind" => "setting", "entry" => $entry];
+						}
+					} else {
+						$usage["title"] = "Deleted Setting (".$entry.")";
+						$usage["status"] = "none";
+					}
+				} else {
+					if (!isset($module_cache[$table])) {
+						$module_cache[$table] = $this->resolveModuleForTable($table);
+					}
+
+					$module_info = $module_cache[$table];
+					$usage["location"] = $module_info["name"];
+					$item = BigTreeAutoModule::getItem($table, $entry);
+
+					if ($item) {
+						$usage["title"] = $this->moduleEntryTitle($item["item"] ?? $item, $entry);
+
+						if ($module_info["id"]) {
+							$usage["link"] = [
+								"kind" => "module_entry",
+								"module" => $module_info["id"],
+								"entry" => $entry,
+							];
+						}
+					} else {
+						$usage["title"] = "Deleted Entry (".$entry.")";
+						$usage["status"] = "none";
+					}
+				}
+
+				$usages[] = $usage;
+			}
+
+			return Response::ok($usages);
+		}
+
+		/** Resolve a module's id + display name from one of its tables (cached per call). */
+		private function resolveModuleForTable(string $table): array {
+			$view = BigTreeAutoModule::getViewForTable($table);
+			$module_id = $view ? BigTreeAutoModule::getModuleForView($view["id"]) : null;
+			$module = $module_id ? BigTreeJSONDB::get("modules", $module_id) : null;
+
+			if (!$module) {
+				return ["id" => null, "name" => $table];
+			}
+
+			return ["id" => $module_id, "name" => $module["name"] ?: $table];
+		}
+
+		/** Best-effort human title for a module entry row (mirrors the legacy admin). */
+		private function moduleEntryTitle($item, $entry): string {
+			if (!is_array($item)) {
+				return "Entry ".$entry;
+			}
+
+			foreach (["title", "name", "nav_title", "headline", "label"] as $key) {
+				if (!empty($item[$key]) && is_string($item[$key])) {
+					return strip_tags($item[$key]);
+				}
+			}
+
+			if (!empty($item["id"])) {
+				return "Entry ".$item["id"];
+			}
+
+			return "Entry ".$entry;
 		}
 
 		public function allocate(Request $request) {

@@ -1967,6 +1967,12 @@
 			$entry = [];
 			$fields = (array)($form["fields"] ?? []);
 
+			// Field processors (image/file/video-reference) push referenced resource
+			// ids into IRLsCreated as they run; reset it so we allocate only this
+			// submission's resources after the row is written (mirrors the legacy
+			// embeddable-form/process.php).
+			\BigTreeAdmin::$IRLsCreated = [];
+
 			foreach ($fields as $resource) {
 				if (!is_array($resource)) {
 					continue;
@@ -2021,6 +2027,9 @@
 				);
 				$status = "published";
 			}
+
+			// Track resource allocation against the new row (pending rows key on "p{id}").
+			\BigTreeAdmin::allocateResources($form["table"], $pending ? "p".$edit_id : $edit_id);
 
 			if (!empty($form["hooks"]["post"]) && is_callable($form["hooks"]["post"])) {
 				call_user_func($form["hooks"]["post"], $edit_id, $entry, !$pending);

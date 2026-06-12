@@ -7,6 +7,7 @@
 	use BigTree\Api\Exceptions\NotFoundException;
 	use BigTree\Api\Exceptions\AuthorizationException;
 	use BigTree\Api\Exceptions\BadRequestException;
+	use BigTreeAdmin;
 	use BigTreeAutoModule;
 	use BigTreeJSONDB;
 	use SQL;
@@ -113,6 +114,10 @@
 				$item_id = BigTreeAutoModule::publishPendingItem($row["table"], $id, $changes, $mtm_changes, $tags_changes, $open_graph_changes);
 			}
 
+			// Re-key the draft's tracked resource allocations from "p{change}" onto the
+			// now-live row (mirrors legacy dashboard/approve-change.php).
+			$this->reallocatePendingResources($row["table"], $item_id, $id);
+
 			if (!empty($row["publish_hook"]) && is_callable($row["publish_hook"])) {
 				call_user_func($row["publish_hook"], $row["table"], $item_id, $changes, $mtm_changes, $tags_changes, $open_graph_changes);
 			}
@@ -130,11 +135,28 @@
 			$this->enforcePublisher($request->user, $row);
 
 			SQL::delete("bigtree_pending_changes", $id);
+			// Discard the draft's resource allocations (mirrors legacy reject-change.php).
+			BigTreeAdmin::deallocateResources($row["table"], "p".$id);
 
 			return Response::noContent();
 		}
 
 		// — helpers —
+
+		/**
+		 * Re-key a published draft's resource allocations from its "p{change}" entry
+		 * onto the new live row id. updateResourceAllocation is a legacy instance
+		 * method, so bridge in a bare BigTreeAdmin the way the other write services do.
+		 */
+		private function reallocatePendingResources(string $table, $live_id, int $change_id): void {
+			global $admin;
+
+			if (!($admin instanceof BigTreeAdmin)) {
+				$admin = new BigTreeAdmin();
+			}
+
+			$admin->updateResourceAllocation($table, $live_id, $change_id);
+		}
 
 		private function enforceVisibility($user, array $row) {
 			if ((int)$user->level >= 1) {

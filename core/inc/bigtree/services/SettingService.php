@@ -166,6 +166,7 @@
 
 			BigTreeJSONDB::delete("settings", $id);
 			SQL::delete("bigtree_settings", $id);
+			BigTreeAdmin::deallocateResources("bigtree_settings", $id);
 
 			return Response::noContent();
 		}
@@ -182,6 +183,17 @@
 			} else {
 				SQL::update("bigtree_settings", $id, ["value" => $json]);
 			}
+
+			// Track resource allocations from the plaintext value. Reference-type
+			// settings store a bare resource id under "value"; other types embed
+			// irl:// / resource:// / file URLs that scan without reference keys.
+			$reference_keys = in_array(
+				$def["type"] ?? "",
+				["image-reference", "file-reference", "video-reference"],
+				true
+			) ? ["value"] : null;
+
+			BigTreeAdmin::allocateResourcesFromData("bigtree_settings", $id, ["value" => $value], $reference_keys);
 		}
 
 		private function updateDefinition($old_id, array $existing, array $d) {

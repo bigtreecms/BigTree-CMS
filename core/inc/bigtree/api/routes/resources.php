@@ -105,6 +105,11 @@
 			"service" => [ResourceService::class, "allocations"],
 			"permission" => ["level" => 0],
 		],
+		// Enriched "used by" list (resolved location/title/status + SPA links).
+		"GET /resources/{id:int}/usage" => [
+			"service" => [ResourceService::class, "usage"],
+			"permission" => ["level" => 0],
+		],
 		"POST /resources/{id:int}/allocations" => [
 			"service" => [ResourceService::class, "allocate"],
 			"permission" => ["level" => 0],

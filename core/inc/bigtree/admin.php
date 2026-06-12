@@ -610,6 +610,99 @@
 		}
 
 		/*
+			Function: allocateResourcesFromData
+				Scans a data set for resource references and (re)allocates them to the
+				given table/entry. Resets the per-request IRL list before scanning, so
+				callers that have already tracked resources during field processing
+				should call allocateResources directly instead. Intended for the REST
+				API write paths, which store data without running field processors.
+
+			Parameters:
+				table - Table in which the entry resides
+				entry - Entry ID to assign to (use "p".$change_id for pending changes)
+				data - The stored entry data to scan (string or array)
+				reference_keys - Optional column keys holding bare resource IDs
+		*/
+
+		public static function allocateResourcesFromData($table, $entry, $data, $reference_keys = null) {
+			static::$IRLsCreated = [];
+			static::trackResourcesInValue($data, $reference_keys);
+			static::allocateResources($table, $entry);
+		}
+
+		/*
+			Function: getResourceReferenceKeys
+				Returns the column keys for reference-type fields (image-reference,
+				file-reference, video-reference) within a set of form or template field
+				definitions, recursing into callouts, callout groups, and matrix columns.
+				Used to locate bare numeric resource IDs when scanning stored entry data.
+
+			Parameters:
+				fields - An array of field definitions (form fields or template resources)
+				types - Optional array of field types to treat as references
+
+			Returns:
+				An array of column keys.
+		*/
+
+		public static function getResourceReferenceKeys($fields, $types = null) {
+			if ($types === null) {
+				$types = ["image-reference", "file-reference", "video-reference"];
+			}
+
+			$callout_group_cache = [];
+
+			return static::walkResourceReferenceKeys($fields, $types, $callout_group_cache);
+		}
+
+		private static function walkResourceReferenceKeys($fields, $types, &$callout_group_cache) {
+			global $admin;
+
+			$keys = [];
+
+			foreach ($fields as $field) {
+				$type = $field["type"] ?? "";
+
+				if (in_array($type, $types, true)) {
+					$key = $field["column"] ?? $field["id"] ?? null;
+
+					if ($key) {
+						$keys[] = $key;
+					}
+				}
+
+				if ($type === "callouts" && !empty($field["settings"]["callouts"])) {
+					foreach ($field["settings"]["callouts"] as $callout) {
+						$keys = array_merge($keys, static::walkResourceReferenceKeys($callout["fields"] ?? [], $types, $callout_group_cache));
+					}
+				}
+
+				if ($type === "callouts" && !empty($field["settings"]["groups"])) {
+					$group_key = implode(",", $field["settings"]["groups"]);
+
+					if (!isset($callout_group_cache[$group_key])) {
+						$callout_fields = [];
+						$admin_instance = ($admin instanceof BigTreeAdmin) ? $admin : new static();
+
+						foreach ($admin_instance->getCalloutsInGroups($field["settings"]["groups"], false) as $callout) {
+							$callout_fields = array_merge($callout_fields, $callout["resources"] ?? []);
+						}
+
+						$callout_group_cache[$group_key] = static::walkResourceReferenceKeys($callout_fields, $types, $callout_group_cache);
+					}
+
+					$keys = array_merge($keys, $callout_group_cache[$group_key]);
+				}
+
+				if ($type === "matrix" && !empty($field["settings"]["columns"])) {
+					$keys = array_merge($keys, static::walkResourceReferenceKeys($field["settings"]["columns"], $types, $callout_group_cache));
+				}
+			}
+
+			return array_values(array_unique(array_filter($keys)));
+		}
+
+		/*
 			Function: archivePage
 				Archives a page.
 
