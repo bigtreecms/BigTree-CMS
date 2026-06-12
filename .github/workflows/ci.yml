@@ -30,14 +30,100 @@ jobs:
       - run: npm run build
 
   php:
-    name: PHP (syntax lint)
+    name: PHP (lint + API tests)
     runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: bigtree_test
+        ports:
+          - 3306:3306
+        # Wait for MySQL to accept connections before any step runs.
+        options: >-
+          --health-cmd="mysqladmin ping -proot"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
     steps:
       - uses: actions/checkout@v4
       - uses: shivammathur/setup-php@v2
         with:
           php-version: "8.2"
+          extensions: mysqli, gd, json
+      # Existing syntax-lint step — covers files the test suite never loads.
       - name: Lint changed PHP under the new API + services
         run: |
           find core/inc/bigtree/api core/inc/bigtree/services -name '*.php' -print0 \
             | xargs -0 -n1 -P4 php -l
+      # base.sql is the canonical installer schema and contains FOREIGN KEY
+      # constraints whose tables are not defined in dependency order, so a plain
+      # import fails on FK ordering. Disable FK checks for the load.
+      - name: Load schema
+        run: |
+          (echo 'SET FOREIGN_KEY_CHECKS=0;'; cat core/setup/base.sql) \
+            | mysql -h 127.0.0.1 -P 3306 -uroot -proot bigtree_test
+      # custom/environment.php + custom/settings.php are gitignored / local-only;
+      # the test runner (core/inc/bigtree/api/_test/run.php) includes them before
+      # bootstrap.php, which needs DB credentials AND a handful of non-DB config
+      # keys it dereferences unconditionally near the top (core/bootstrap.php:6-14:
+      # domain, www_root, admin_root). We also create two filesystem prerequisites
+      # a fresh (gitignored) checkout lacks:
+      #   - cache/composer-check.flag, or bootstrap.php:44-74 re-merges composer.json
+      #     and die()s with "BigTree has updated your composer.json file" before any
+      #     test runs.
+      #   - custom/inc/required/, or bootstrap.php:200 opendir()s a missing dir.
+      - name: Write CI env files
+        run: |
+          mkdir -p custom/inc/required cache
+          touch cache/composer-check.flag
+          cat > custom/environment.php <<'PHP'
+          <?php
+          // Non-DB config bootstrap.php reads unconditionally (dummy CI values).
+          $bigtree["config"]["debug"] = false;
+          $bigtree["config"]["domain"] = "http://localhost/";
+          $bigtree["config"]["www_root"] = "http://localhost/";
+          $bigtree["config"]["static_root"] = "http://localhost/";
+          $bigtree["config"]["admin_root"] = "http://localhost/admin/";
+          $bigtree["config"]["sql_interface"] = "mysqli";
+
+          // Read database.
+          $bigtree["config"]["db"]["host"] = "127.0.0.1";
+          $bigtree["config"]["db"]["name"] = "bigtree_test";
+          $bigtree["config"]["db"]["user"] = "root";
+          $bigtree["config"]["db"]["password"] = "root";
+          $bigtree["config"]["db"]["port"] = 3306;
+          $bigtree["config"]["db"]["socket"] = null;
+
+          // Write database (identical block — single-server CI setup).
+          $bigtree["config"]["db_write"]["host"] = "127.0.0.1";
+          $bigtree["config"]["db_write"]["name"] = "bigtree_test";
+          $bigtree["config"]["db_write"]["user"] = "root";
+          $bigtree["config"]["db_write"]["password"] = "root";
+          $bigtree["config"]["db_write"]["port"] = 3306;
+          $bigtree["config"]["db_write"]["socket"] = null;
+          PHP
+          cat > custom/settings.php <<'PHP'
+          <?php
+          // Minimal settings for the API test harness.
+          PHP
+      # The test runner SILENTLY SKIPS DB-backed assertions if PHP can't reach
+      # the database (measured: 128 pass with no DB vs 141 with the schema, and
+      # Failed stays 0 either way). A pass-count floor can't reliably tell those
+      # apart, so gate DB connectivity explicitly here — fail loud before the suite.
+      - name: Verify DB connectivity
+        run: |
+          php -r 'mysqli_report(MYSQLI_REPORT_OFF); $bigtree=["config"=>[]]; include "custom/environment.php"; $d=$bigtree["config"]["db"]; $m=@new mysqli($d["host"],$d["user"],$d["password"],$d["name"],$d["port"]?:3306); if($m->connect_errno){fwrite(STDERR,"DB connect failed: ".$m->connect_error."\n");exit(1);} if($m->query("SELECT 1 FROM bigtree_users LIMIT 1")===false){fwrite(STDERR,"schema missing (bigtree_users)\n");exit(1);} echo "DB OK\n";'
+      # DB-down detection is handled by the "Verify DB connectivity" pre-flight
+      # above. The pass-count check here is only a "runner executed" sanity check
+      # (it confirms run.php produced a summary at all); the Failed: 0 assertion
+      # still gates real test failures.
+      - name: Run API test suite
+        run: |
+          OUTPUT=$(php core/inc/bigtree/api/_test/run.php)
+          echo "$OUTPUT"
+          echo "$OUTPUT" | grep -qE 'Passed: [1-9][0-9]+ ' \
+            || { echo "Test runner produced no summary"; exit 1; }
+          echo "$OUTPUT" | grep -q 'Failed: 0' \
+            || { echo "One or more API tests failed"; exit 1; }

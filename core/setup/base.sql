@@ -62,7 +62,7 @@ DROP TABLE IF EXISTS `bigtree_tags_rel`;
 CREATE TABLE `bigtree_tags_rel` (`id` int(11) unsigned NOT NULL AUTO_INCREMENT, `table` varchar(1024) NOT NULL, `tag` int(11) unsigned NOT NULL, `entry` varchar(1024) NOT NULL, PRIMARY KEY (`id`), KEY `tag` (`tag`), KEY `entry` (`entry`), FOREIGN KEY (`tag`) REFERENCES `bigtree_tags` (`id`) ON DELETE CASCADE) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 DROP TABLE IF EXISTS `bigtree_users`;
-CREATE TABLE `bigtree_users` (`id` int(11) unsigned NOT NULL AUTO_INCREMENT,`email` varchar(1024) NOT NULL DEFAULT '',`password` varchar(1024) NOT NULL DEFAULT '',`new_hash` char(2) NOT NULL,`2fa_secret` varchar(1024) NOT NULL,`2fa_login_token` varchar(1024) NOT NULL,`name` varchar(1024) NOT NULL DEFAULT '',`company` varchar(1024) NOT NULL DEFAULT '',`level` int(11) unsigned NOT NULL DEFAULT '0',`permissions` text NOT NULL,`alerts` text NOT NULL,`daily_digest` char(2) NOT NULL,`timezone` varchar(1024) NOT NULL,`change_password_hash` varchar(1024) NOT NULL,PRIMARY KEY (`id`),KEY `email` (`email`),KEY `password` (`password`)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+CREATE TABLE `bigtree_users` (`id` int(11) unsigned NOT NULL AUTO_INCREMENT,`email` varchar(1024) NOT NULL DEFAULT '',`password` varchar(1024) NOT NULL DEFAULT '',`new_hash` char(2) NOT NULL,`2fa_secret` varchar(1024) NOT NULL,`2fa_login_token` varchar(1024) NOT NULL,`name` varchar(1024) NOT NULL DEFAULT '',`company` varchar(1024) NOT NULL DEFAULT '',`level` int(11) unsigned NOT NULL DEFAULT '0',`permissions` text NOT NULL,`alerts` text NOT NULL,`daily_digest` char(2) NOT NULL,`timezone` varchar(1024) NOT NULL,`change_password_hash` varchar(1024) NOT NULL,`token_version` int(11) unsigned NOT NULL DEFAULT '1',PRIMARY KEY (`id`),KEY `email` (`email`),KEY `password` (`password`)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 DROP TABLE IF EXISTS `bigtree_user_sessions`;
 CREATE TABLE `bigtree_user_sessions` (`id` varchar(1024) NOT NULL DEFAULT '', `email` varchar(1024) DEFAULT NULL, `chain` varchar(1024) DEFAULT NULL, `csrf_token` varchar(1024) DEFAULT NULL, `csrf_token_field` varchar(1024) DEFAULT NULL, PRIMARY KEY (`id`), KEY `email` (`email`), KEY `chain` (`chain`)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
@@ -70,10 +70,58 @@ CREATE TABLE `bigtree_user_sessions` (`id` varchar(1024) NOT NULL DEFAULT '', `e
 DROP TABLE IF EXISTS `bigtree_user_passkeys`;
 CREATE TABLE `bigtree_user_passkeys` (`id` int(10) unsigned NOT NULL AUTO_INCREMENT, `user` int(10) unsigned NOT NULL, `credential_id` text NOT NULL, `public_key` text NOT NULL, `sign_count` int(10) unsigned NOT NULL DEFAULT '0', `name` varchar(255) NOT NULL DEFAULT '', `aaguid` varchar(36) NOT NULL DEFAULT '', `transports` varchar(255) NOT NULL DEFAULT '', `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP, `last_used` datetime DEFAULT NULL, PRIMARY KEY (`id`), KEY `user_idx` (`user`)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+DROP TABLE IF EXISTS `bigtree_refresh_tokens`;
+CREATE TABLE `bigtree_refresh_tokens` (
+	`id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+	`user_id` INT(11) UNSIGNED NOT NULL,
+	`token_hash` CHAR(64) NOT NULL UNIQUE,
+	`family_id` CHAR(32) NOT NULL,
+	`issued_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	`expires_at` TIMESTAMP NULL DEFAULT NULL,
+	`rotated_to` BIGINT UNSIGNED NULL DEFAULT NULL,
+	`revoked` TINYINT(1) NOT NULL DEFAULT 0,
+	`user_agent` VARCHAR(255) DEFAULT NULL,
+	`ip` VARCHAR(45) DEFAULT NULL,
+	KEY `user_id` (`user_id`),
+	KEY `family_id` (`family_id`),
+	KEY `expires_at` (`expires_at`),
+	CONSTRAINT `bigtree_refresh_tokens_user_fk` FOREIGN KEY (`user_id`) REFERENCES `bigtree_users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+DROP TABLE IF EXISTS `bigtree_passkey_challenges`;
+CREATE TABLE `bigtree_passkey_challenges` (
+	`id` CHAR(32) PRIMARY KEY,
+	`challenge` VARCHAR(255) NOT NULL,
+	`user_id` INT(11) UNSIGNED NULL DEFAULT NULL,
+	`purpose` ENUM('auth','register') NOT NULL,
+	`created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	`consumed` TINYINT(1) NOT NULL DEFAULT 0,
+	KEY `created_at` (`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+DROP TABLE IF EXISTS `bigtree_api_rate_limits`;
+CREATE TABLE `bigtree_api_rate_limits` (
+	`bucket` VARCHAR(64) NOT NULL,
+	`window_start` TIMESTAMP NOT NULL DEFAULT '1970-01-02 00:00:01',
+	`count` INT(11) UNSIGNED NOT NULL DEFAULT 0,
+	PRIMARY KEY (`bucket`, `window_start`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+DROP TABLE IF EXISTS `bigtree_audit_trail_context`;
+CREATE TABLE `bigtree_audit_trail_context` (
+	`audit_id` INT(11) UNSIGNED NOT NULL PRIMARY KEY,
+	`ip` VARCHAR(45) DEFAULT NULL,
+	`user_agent` VARCHAR(255) DEFAULT NULL,
+	`request_id` CHAR(32) DEFAULT NULL,
+	`method` VARCHAR(8) DEFAULT NULL,
+	`path` VARCHAR(255) DEFAULT NULL,
+	CONSTRAINT `bigtree_audit_trail_context_fk` FOREIGN KEY (`audit_id`) REFERENCES `bigtree_audit_trail` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 INSERT INTO `bigtree_pages` (`id`, `trunk`, `parent`, `in_nav`, `nav_title`, `route`, `path`, `title`, `meta_keywords`, `meta_description`, `template`, `external`, `new_window`, `resources`, `archived`, `archived_inherited`, `position`, `created_at`, `updated_at`, `publish_at`, `expire_at`, `max_age`, `last_edited_by`, `ga_page_views`) VALUES (0,'on',-1,'on','BigTree Site','','','BigTree Site','','','home','','','{}','','',0,NOW(),NOW(),NULL,NULL,0,0,0);
 
 INSERT INTO `bigtree_settings` (`id`,`value`) VALUES ('bigtree-internal-storage','{"Service":"local"}');
-INSERT INTO `bigtree_settings` (`id`,`value`) VALUES ('bigtree-internal-revision','502');
+INSERT INTO `bigtree_settings` (`id`,`value`) VALUES ('bigtree-internal-revision','503');
 INSERT INTO `bigtree_settings` (`id`,`value`) VALUES ('bigtree-internal-security-policy','{"password":{"invitations": "on"}}');
 INSERT INTO `bigtree_settings` (`id`,`value`) VALUES ('bigtree-internal-deleted-users','{}');
 INSERT INTO `bigtree_settings` (`id`, `value`) VALUES ('bigtree-file-metadata-fields', '{}');
