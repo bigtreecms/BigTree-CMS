@@ -1,4 +1,4 @@
 <?php
 	// BigTree Version
 	define("BIGTREE_VERSION", "4.6");
-	define("BIGTREE_REVISION", 503);
+	define("BIGTREE_REVISION", 504);
