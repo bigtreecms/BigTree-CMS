@@ -73,6 +73,18 @@ COUNT=$(echo "$BODY" | jq '.data | length')
 [ "$COUNT" -ge 1 ] || { echo "FAIL: expected at least 1 allocation, got $COUNT"; exit 1; }
 echo "  ✓ allocation count = $COUNT"
 
+# 6b. Enriched usage list — resolves each allocation into location/title/status/link.
+say "GET /resources/$RES_ID/usage"
+RESPONSE=$(curl -s -w "\n%{http_code}" "$BASE/resources/$RES_ID/usage" -H "Authorization: Bearer $ACCESS")
+BODY=$(echo "$RESPONSE" | sed '$d')
+STATUS=$(echo "$RESPONSE" | tail -n 1)
+expect_status 200 "$STATUS" "usage returns 200"
+# The fake "smoke_test" row resolves to a deleted entry, so status is "none".
+jq -e '.data | length >= 1' <<<"$BODY" > /dev/null || { echo "FAIL: expected >= 1 usage row"; exit 1; }
+jq -e '.data[0] | has("location") and has("title") and has("status") and has("updated_at") and has("link")' \
+  <<<"$BODY" > /dev/null || { echo "FAIL: usage row missing expected keys"; exit 1; }
+echo "  ✓ usage row shape ok (status=$(jq -r '.data[0].status' <<<"$BODY"))"
+
 # 7. Deallocate
 say "DELETE /resources/$RES_ID/allocations"
 STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X DELETE "$BASE/resources/$RES_ID/allocations" \
