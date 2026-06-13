@@ -780,10 +780,12 @@
 					if ($item) {
 						$usage["title"] = $this->moduleEntryTitle($item["item"] ?? $item, $entry);
 
-						if ($module_info["id"]) {
+						if ($module_info["id"] && $module_info["route"]) {
 							$usage["link"] = [
 								"kind" => "module_entry",
 								"module" => $module_info["id"],
+								"route" => $module_info["route"],
+								"edit_route" => $module_info["edit_route"],
 								"entry" => $entry,
 							];
 						}
@@ -799,17 +801,41 @@
 			return Response::ok($usages);
 		}
 
-		/** Resolve a module's id + display name from one of its tables (cached per call). */
+		/**
+		 * Resolve a module's id, display name, URL route, and the edit-action route for
+		 * one of its tables (cached per usage() call). The SPA builds an entry-precise
+		 * link from `/modules/{route}/{edit_route}/{entry}`.
+		 */
 		private function resolveModuleForTable(string $table): array {
 			$view = BigTreeAutoModule::getViewForTable($table);
 			$module_id = $view ? BigTreeAutoModule::getModuleForView($view["id"]) : null;
 			$module = $module_id ? BigTreeJSONDB::get("modules", $module_id) : null;
 
 			if (!$module) {
-				return ["id" => null, "name" => $table];
+				return ["id" => null, "name" => $table, "route" => null, "edit_route" => null];
 			}
 
-			return ["id" => $module_id, "name" => $module["name"] ?: $table];
+			$edit_route = null;
+
+			foreach ($module["forms"] ?? [] as $form) {
+				if (($form["table"] ?? "") !== $table) {
+					continue;
+				}
+
+				$action = BigTreeAdmin::getModuleActionForForm($form);
+
+				if ($action) {
+					$edit_route = $action["route"] ?? null;
+					break;
+				}
+			}
+
+			return [
+				"id" => $module_id,
+				"name" => $module["name"] ?: $table,
+				"route" => $module["route"] ?? null,
+				"edit_route" => $edit_route,
+			];
 		}
 
 		/** Best-effort human title for a module entry row (mirrors the legacy admin). */
