@@ -356,6 +356,12 @@
 					"last_updated" => "NOW()",
 				]);
 			} else {
+				// Non-image resource: bytes are stored verbatim under the existing
+				// file name. If that name is a .svg (e.g. a legacy-uploaded SVG with
+				// is_image=""), neutralize active content first — a stored SVG is
+				// served inline from the site origin and is an XSS vector.
+				self::sanitizeSvgUpload($file["tmp_name"], $file_name, $mime);
+
 				if (!$storage->replace($file["tmp_name"], $file_name, "files/resources/")) {
 					throw new BadRequestException("Storage refused upload", "storage_failed", 400);
 				}
@@ -508,6 +514,11 @@
 			}
 
 			// Generic file branch: straight passthrough to BigTreeStorage::store.
+			// SVG can't reach here today (an image/svg+xml mime is is_image and the
+			// image branch's BigTreeImage gate rejects it), but if SVG is ever stored
+			// through this branch its active content must be stripped first — so the
+			// guard is wired in now and activates automatically the moment it is.
+			self::sanitizeSvgUpload($file["tmp_name"], $file["name"], $mime);
 			$stored_path = $storage->store($file["tmp_name"], $file["name"], "files/resources/");
 
 			if (!$stored_path) {
@@ -642,7 +653,7 @@
 			$target_w = (int)($request->body["target_width"] ?? $w);
 			$target_h = (int)($request->body["target_height"] ?? $h);
 			$name_prefix = trim((string)($request->body["prefix"] ?? "crop-")) ?: "crop-";
-			$directory = trim((string)($request->body["directory"] ?? "files/resources/crops/"));
+			$directory = self::safeStorageDirectory($request->body["directory"] ?? null, "files/resources/crops/");
 
 			if ($w <= 0 || $h <= 0 || $target_w <= 0 || $target_h <= 0) {
 				throw new BadRequestException("width/height/target_width/target_height must be > 0", "bad_dimensions", 400);
@@ -987,6 +998,98 @@
 		}
 
 		/**
+		 * Validate a caller-supplied storage directory. Resource crops/uploads must
+		 * land inside the site's files tree — never escape it via "../" or absolute
+		 * paths. Returns a normalized, trailing-slashed relative path or throws.
+		 *
+		 * BigTreeStorage::replace()/store() only sanitize the *file name*, not the
+		 * relative path, so this is the gate that keeps the directory in bounds.
+		 */
+		private static function safeStorageDirectory($raw, string $default): string {
+			$dir = trim((string)($raw ?? ""));
+
+			if ($dir === "") {
+				$dir = $default;
+			}
+
+			// Reject absolute paths, drive letters, UNC/scheme prefixes, NUL bytes.
+			if (
+				$dir[0] === "/" ||
+				strpos($dir, "\0") !== false ||
+				strpos($dir, "://") !== false ||
+				strpos($dir, "\\") !== false ||
+				preg_match('/^[A-Za-z]:/', $dir)
+			) {
+				throw new BadRequestException("Invalid storage directory", "bad_directory", 400);
+			}
+
+			// Reject any traversal segment.
+			foreach (explode("/", $dir) as $segment) {
+				if ($segment === "..") {
+					throw new BadRequestException("Invalid storage directory", "bad_directory", 400);
+				}
+			}
+
+			// Normalize to a single trailing slash, no leading slash.
+			return rtrim($dir, "/") . "/";
+		}
+
+		/**
+		 * Neutralize active content in an SVG before it is stored. SVGs are served as
+		 * static files from the site origin, so a stored <script>/on*-handler is a
+		 * stored-XSS vector when another admin opens the file URL. Strips scripts,
+		 * event handlers, <foreignObject>, and javascript:/data:text/html URIs.
+		 *
+		 * This is intentionally destructive toward active content — a sanitized SVG may
+		 * lose interactivity, which is the correct trade-off for user-uploaded assets.
+		 * It is a regex mitigation, not a proof; a DOM-based sanitizer would be stronger
+		 * if SVG ever becomes a first-class, dependency-justified feature.
+		 */
+		private static function sanitizeSvg(string $svg): string {
+			// Drop <script> … </script> (greedy-safe, case-insensitive).
+			$svg = preg_replace('#<script\b[^>]*>.*?</script\s*>#is', "", $svg);
+			$svg = preg_replace('#<script\b[^>]*/?>#i', "", $svg);
+			// Drop <foreignObject> … </foreignObject>.
+			$svg = preg_replace('#<foreignObject\b[^>]*>.*?</foreignObject\s*>#is', "", $svg);
+			// Strip on* event-handler attributes.
+			$svg = preg_replace('#\son[a-z]+\s*=\s*"(?:[^"]*)"#i', "", $svg);
+			$svg = preg_replace("#\son[a-z]+\s*=\s*'(?:[^']*)'#i", "", $svg);
+			$svg = preg_replace('#\son[a-z]+\s*=\s*[^\s>]+#i', "", $svg);
+			// Strip javascript:/data:text/html in href/xlink:href.
+			$svg = preg_replace('#(href|xlink:href)\s*=\s*("|\')\s*(?:javascript|data\s*:\s*text/html)[^"\']*\2#i', '$1=$2#$2', $svg);
+
+			return $svg;
+		}
+
+		/**
+		 * If an upload is an SVG (by the name it will be stored under, or its detected
+		 * mime), rewrite the temp file in place with active content stripped before it
+		 * reaches storage. No-op for any non-SVG upload.
+		 *
+		 * Wired into both the resource-replace passthrough (reachable today for a
+		 * legacy-uploaded .svg resource, which has is_image="") and the generic-file
+		 * upload branch (currently unreachable for SVG — the image branch's
+		 * BigTreeImage gate rejects SVG first — but live the moment SVG storage is ever
+		 * enabled there).
+		 */
+		private static function sanitizeSvgUpload(string $tmp_path, string $stored_name, string $mime): void {
+			$is_svg = $mime === "image/svg+xml"
+				|| strtolower(pathinfo($stored_name, PATHINFO_EXTENSION)) === "svg";
+
+			if (!$is_svg) {
+				return;
+			}
+
+			$raw = @file_get_contents($tmp_path);
+
+			if ($raw === false) {
+				return;
+			}
+
+			@file_put_contents($tmp_path, self::sanitizeSvg($raw));
+		}
+
+		/**
 		 * Compose the BigTreeImage settings dict for an image upload. Pulls the
 		 * default media preset from JSON config, layers in any caller-supplied
 		 * settings, and pins the storage directory. Mirrors the legacy admin's
@@ -997,8 +1100,14 @@
 			$preset = is_array($media["presets"]["default"] ?? null) ? $media["presets"]["default"] : [];
 
 			// Caller-supplied keys override the preset, then we force the directory.
+			// The "directory" comes from the request body (settings JSON) on the
+			// upload path, so it must be validated the same way crop() validates its
+			// directory — storage only sanitizes the file name, not the path.
 			$settings = array_merge($preset, $user_settings);
-			$settings["directory"] = $user_settings["directory"] ?? ($preset["directory"] ?? "files/resources/");
+			$settings["directory"] = self::safeStorageDirectory(
+				$user_settings["directory"] ?? ($preset["directory"] ?? null),
+				"files/resources/"
+			);
 
 			foreach (["crops", "thumbs", "center_crops"] as $key) {
 				if (!isset($settings[$key]) || !is_array($settings[$key])) {

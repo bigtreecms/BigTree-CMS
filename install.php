@@ -572,6 +572,19 @@ RewriteRule ^$ site/ [L]
 RewriteRule (.*) site/$1 [L]');
 		}
 
+		// Harden serving of user-uploaded resources: never let a stored SVG render
+		// inline in the site origin (a <script>/on*-handler in an uploaded SVG is a
+		// stored-XSS vector when another admin opens the file URL). Scoped to the
+		// resources tree so legitimate inline SVGs elsewhere on the site are
+		// unaffected. Pairs with ResourceService::sanitizeSvg (store-time strip).
+		bt_touch_writable("site/files/resources/.htaccess",'<IfModule mod_headers.c>
+	<FilesMatch "\.svg$">
+		Header set Content-Disposition "attachment"
+		Header set Content-Security-Policy "default-src \'none\'; style-src \'unsafe-inline\'; sandbox"
+		Header set X-Content-Type-Options "nosniff"
+	</FilesMatch>
+</IfModule>');
+
 		$installed = true;
 	}
 

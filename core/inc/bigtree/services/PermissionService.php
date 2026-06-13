@@ -19,6 +19,9 @@
 		/** Request-scoped id → parent memo for the page tree, shared across userPageLevel calls. */
 		private static $page_parent_cache = [];
 
+		/** Request-scoped id → parent memo for the resource-folder tree, shared across userFolderLevel calls. */
+		private static $folder_parent_cache = [];
+
 		public static function userHasModuleAccess($user, $module_id_or_route, $min = "v") {
 			$rank = self::userModuleLevel($user, $module_id_or_route);
 
@@ -206,12 +209,12 @@
 				if (isset($seen[$current])) return "e"; // cycle safety
 				$seen[$current] = true;
 
-				$row = SQL::fetch("SELECT parent FROM bigtree_resource_folders WHERE id = ?", $current);
+				$parent = self::folderParent($current);
 
-				if (!$row) {
+				if ($parent === null) {
 					return "e";
 				}
-				$current = (int)$row["parent"];
+				$current = $parent;
 			}
 		}
 
@@ -263,6 +266,25 @@
 			$row = SQL::fetch("SELECT parent FROM bigtree_pages WHERE id = ?", $id);
 			$parent = $row ? (int)$row["parent"] : null;
 			self::$page_parent_cache[$id] = $parent;
+
+			return $parent;
+		}
+
+		/**
+		 * Cached "SELECT parent FROM bigtree_resource_folders WHERE id = ?" lookup.
+		 * The file manager resolves access for every folder in a listing, and every
+		 * folder walks the same ancestor chain to the root — so without memoization the
+		 * identical parent rows are re-fetched once per sibling. Returns the parent id,
+		 * or null if the folder row does not exist.
+		 */
+		private static function folderParent(int $id): ?int {
+			if (array_key_exists($id, self::$folder_parent_cache)) {
+				return self::$folder_parent_cache[$id];
+			}
+
+			$row = SQL::fetch("SELECT parent FROM bigtree_resource_folders WHERE id = ?", $id);
+			$parent = $row ? (int)$row["parent"] : null;
+			self::$folder_parent_cache[$id] = $parent;
 
 			return $parent;
 		}
