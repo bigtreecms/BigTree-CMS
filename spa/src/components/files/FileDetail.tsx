@@ -14,10 +14,10 @@ import {
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { SlideOver } from "@/components/ui/SlideOver";
 import { CropModal } from "@/components/files/CropModal";
+import { FileUsageList } from "@/components/files/FileUsageList";
 
 import {
 	resourcesApi,
-	type ResourceAllocation,
 	type ResourceDetail,
 	type ResourceMetadataField,
 	type ResourcePrefixedAsset,
@@ -39,11 +39,11 @@ interface FileDetailProps {
 }
 
 const RESOURCE_DETAIL_KEY = (id: number) => ["resources", "detail", id] as const;
-const RESOURCE_ALLOCATIONS_KEY = (id: number) => ["resources", "allocations", id] as const;
+const RESOURCE_USAGE_KEY = (id: number) => ["resources", "usage", id] as const;
 
 /**
  * Slide-over detail panel for a single resource. Loads `/resources/{id}` and
- * `/resources/{id}/allocations` and exposes rename, folder move, metadata
+ * `/resources/{id}/usage` and exposes rename, folder move, metadata
  * editing (developer-defined fields, per file kind), and delete — mirroring
  * the legacy files/edit/file.php form.
  */
@@ -63,11 +63,9 @@ export const FileDetail = ({ resourceId, onOpenChange, folderQueryKey }: FileDet
 		enabled: resourceId !== null,
 	});
 
-	const allocationsQuery = useQuery({
-		queryKey: resourceId
-			? RESOURCE_ALLOCATIONS_KEY(resourceId)
-			: ["resources", "allocations", "noop"],
-		queryFn: () => resourcesApi.allocations(resourceId as number),
+	const usageQuery = useQuery({
+		queryKey: resourceId ? RESOURCE_USAGE_KEY(resourceId) : ["resources", "usage", "noop"],
+		queryFn: () => resourcesApi.usage(resourceId as number),
 		enabled: resourceId !== null,
 	});
 
@@ -356,9 +354,9 @@ export const FileDetail = ({ resourceId, onOpenChange, folderQueryKey }: FileDet
 							</section>
 						)}
 
-						<AllocationsList
-							isLoading={allocationsQuery.isLoading}
-							allocations={allocationsQuery.data ?? []}
+						<FileUsageList
+							isLoading={usageQuery.isLoading}
+							usages={usageQuery.data ?? []}
 						/>
 
 						{resource.is_image && (
@@ -381,7 +379,7 @@ export const FileDetail = ({ resourceId, onOpenChange, folderQueryKey }: FileDet
 					onOpenChange={setConfirmDelete}
 					title={`Delete “${resource.name}”?`}
 					description={`This permanently removes the file and all of its crops. ${
-						(allocationsQuery.data?.length ?? 0) > 0
+						(usageQuery.data?.length ?? 0) > 0
 							? "It's currently used by other content — those references will break."
 							: "It does not appear to be in use."
 					}`}
@@ -477,44 +475,6 @@ const MetaGrid = ({ resource, onCopyUrl }: MetaGridProps) => {
 				</button>
 			</dd>
 		</dl>
-	);
-};
-
-interface AllocationsListProps {
-	isLoading: boolean;
-	allocations: ResourceAllocation[];
-}
-
-const AllocationsList = ({ isLoading, allocations }: AllocationsListProps) => {
-	return (
-		<section>
-			<h3 className="mb-1.5 text-[12px] font-semibold uppercase tracking-[0.06em] text-text-3">
-				Used by
-			</h3>
-
-			{isLoading ? (
-				<div className="text-[12.5px] text-text-3">Loading…</div>
-			) : allocations.length === 0 ? (
-				<div className="rounded-md border border-dashed border-border bg-surface-2 px-3 py-2 text-[12.5px] text-text-3">
-					Not currently referenced anywhere.
-				</div>
-			) : (
-				<ul className="divide-y divide-border rounded-md border border-border bg-surface">
-					{allocations.map((a, i) => (
-						<li
-							key={`${a.table}-${a.entry}-${i}`}
-							className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_140px] gap-2 px-3 py-1.5 text-[12px]"
-						>
-							<span className="truncate font-mono text-text-2">{a.table}</span>
-							<span className="truncate font-mono text-text-2">{a.entry}</span>
-							<span className="text-right tabular-nums text-text-3">
-								{a.updated_at}
-							</span>
-						</li>
-					))}
-				</ul>
-			)}
-		</section>
 	);
 };
 

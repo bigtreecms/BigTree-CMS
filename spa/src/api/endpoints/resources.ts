@@ -49,6 +49,29 @@ export interface ResourceAllocation {
 	updated_at: string;
 }
 
+/** Where a resource links to in the SPA, resolved server-side from an allocation. */
+export type ResourceUsageLink =
+	| { kind: "page"; entry: string }
+	| { kind: "setting"; entry: string }
+	| {
+			kind: "module_entry";
+			module: string;
+			route: string;
+			edit_route: string | null;
+			entry: string;
+	  };
+
+export type ResourceUsageStatus = "published" | "archived" | "pending" | "none";
+
+/** An enriched allocation row for the file detail "Used by" panel. */
+export interface ResourceUsage {
+	location: string;
+	title: string;
+	status: ResourceUsageStatus;
+	updated_at: string;
+	link: ResourceUsageLink | null;
+}
+
 export interface UpdateResourcePayload {
 	name?: string;
 	folder?: number;
@@ -130,6 +153,9 @@ export const resourcesApi = {
 	crop: (id: number, body: CropPayload) => api.post<CropResult>(`/resources/${id}/crop`, body),
 
 	allocations: (id: number) => api.get<ResourceAllocation[]>(`/resources/${id}/allocations`),
+
+	/** Enriched "used by" list (resolved location/title/status + SPA link). */
+	usage: (id: number) => api.get<ResourceUsage[]>(`/resources/${id}/usage`),
 
 	allocate: (id: number, table: string, entry: string) =>
 		api.post<ResourceAllocation>(`/resources/${id}/allocations`, { table, entry }),
