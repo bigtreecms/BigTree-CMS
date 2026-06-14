@@ -10,6 +10,7 @@ import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { ComposeMessage } from "@/components/messages/ComposeMessage";
 import { messagesApi } from "@/api/endpoints/dashboard";
 import { useAuthStore } from "@/auth/store";
+import { sanitizeHtml } from "@/lib/html";
 
 /**
  * Single-message view. Marks the message read on mount, refreshes the unread
@@ -147,7 +148,7 @@ export const MessageThread = () => {
 			<article
 				className="rounded-xl border border-border bg-surface p-4 text-[13.5px] leading-relaxed text-text"
 				/* Sanitised server-side; only inline tags survive. */
-				dangerouslySetInnerHTML={{ __html: html }}
+				dangerouslySetInnerHTML={{ __html: sanitizeHtml(html) }}
 			/>
 
 			<ComposeMessage

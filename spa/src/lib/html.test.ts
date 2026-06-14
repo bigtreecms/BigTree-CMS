@@ -1,6 +1,7 @@
+// @vitest-environment jsdom
 import { describe, expect, it } from "vitest";
 
-import { decodeHtmlEntities, stripHtml } from "@/lib/html";
+import { decodeHtmlEntities, sanitizeHtml, stripHtml } from "@/lib/html";
 
 describe("decodeHtmlEntities", () => {
 	it("returns the input unchanged when there is no ampersand", () => {
@@ -42,5 +43,37 @@ describe("stripHtml", () => {
 
 	it("decodes entities that survive tag stripping", () => {
 		expect(stripHtml("<p>A &amp; B</p>")).toBe("A & B");
+	});
+});
+
+describe("sanitizeHtml", () => {
+	it("returns an empty string for falsy input", () => {
+		expect(sanitizeHtml("")).toBe("");
+	});
+
+	it("preserves ordinary formatting markup", () => {
+		const result = sanitizeHtml("<p>Hello <strong>world</strong></p>");
+
+		expect(result).toContain("Hello");
+		expect(result).toContain("<strong>world</strong>");
+	});
+
+	it("strips script elements", () => {
+		const result = sanitizeHtml("<p>ok</p><script>alert(1)</script>");
+
+		expect(result).not.toContain("<script");
+		expect(result).not.toContain("alert(1)");
+	});
+
+	it("strips inline event handler attributes", () => {
+		const result = sanitizeHtml('<img src=x onerror="alert(1)">');
+
+		expect(result).not.toContain("onerror");
+	});
+
+	it("neutralizes javascript: links", () => {
+		const result = sanitizeHtml('<a href="javascript:alert(1)">x</a>');
+
+		expect(result).not.toContain("javascript:");
 	});
 });

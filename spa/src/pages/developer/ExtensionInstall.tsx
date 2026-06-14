@@ -14,6 +14,7 @@ import {
 } from "@/api/endpoints/extensions";
 import { ApiError } from "@/types/api";
 import { toast } from "@/lib/toast";
+import { sanitizeHtml } from "@/lib/html";
 
 /**
  * Two-step extension installer (legacy install/{unpack,process}.php):
@@ -109,7 +110,7 @@ export const ExtensionInstall = () => {
 							<div
 								className="overflow-x-auto rounded-lg border border-border bg-surface-2 p-3 text-[12.5px] text-text-2"
 								// install.php output is developer-authored markup (level-2 gated).
-								dangerouslySetInnerHTML={{ __html: result.output }}
+								dangerouslySetInnerHTML={{ __html: sanitizeHtml(result.output) }}
 							/>
 						</div>
 					) : (

@@ -22,6 +22,7 @@ import { useDirtyTracker } from "@/hooks/useDirtyTracker";
 import { UnsavedChangesGuard } from "@/components/ui/UnsavedChangesGuard";
 import { ApiError } from "@/types/api";
 import { toast } from "@/lib/toast";
+import { sanitizeHtml } from "@/lib/html";
 
 /**
  * /settings/:id/edit — value editor for a single setting.
@@ -177,7 +178,7 @@ export const SettingEdit = () => {
 						// the subtitle on a tight baseline).
 						<div
 							className="[&_p]:m-0 [&_p+p]:mt-1"
-							dangerouslySetInnerHTML={{ __html: setting.description }}
+							dangerouslySetInnerHTML={{ __html: sanitizeHtml(setting.description) }}
 						/>
 					) : undefined
 				}

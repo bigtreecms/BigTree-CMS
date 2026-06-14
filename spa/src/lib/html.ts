@@ -1,3 +1,5 @@
+import DOMPurify from "dompurify";
+
 /**
  * Decode the HTML entities that PHP's htmlspecialchars()/htmlentities() write
  * into stored strings (field-type names, titles, …). The legacy admin renders
@@ -57,4 +59,24 @@ export const stripHtml = (value: string): string => {
 		.trim();
 
 	return decodeHtmlEntities(text);
+};
+
+/**
+ * The single client-side sanitization point for `dangerouslySetInnerHTML`.
+ *
+ * Passes the value through DOMPurify with the default HTML profile, which
+ * strips `<script>` elements, event-handler attributes (e.g. `onerror`),
+ * and `javascript:`/`data:` script URLs while preserving ordinary formatting
+ * markup (`<p>`, `<strong>`, `<a href>`, lists, etc.).
+ *
+ * Use this to wrap every `__html` value before passing it to React — it is
+ * defense-in-depth against stored XSS in the admin's authenticated session
+ * should any server-side filter ever be bypassed or misconfigured.
+ */
+export const sanitizeHtml = (value: string): string => {
+	if (!value) {
+		return "";
+	}
+
+	return DOMPurify.sanitize(value, { USE_PROFILES: { html: true } }) as string;
 };
