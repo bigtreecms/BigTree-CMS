@@ -1377,6 +1377,21 @@
 		}
 
 		/*
+			Function: log
+				Writes a non-fatal diagnostic message to the PHP error log, prefixed
+				for grep-ability. Used where the caller wants a breadcrumb (a failed
+				passkey attempt, an uncallable template hook, etc.) but not an
+				exception or a hard failure.
+
+			Parameters:
+				message - The message to log.
+		*/
+
+		public static function log($message) {
+			@error_log("[BigTree] ".$message);
+		}
+
+		/*
 			Function: makeDirectory
 				Makes a directory (and all applicable parent directories).
 				Sets permissions to 777.

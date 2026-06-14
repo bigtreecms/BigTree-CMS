@@ -59,9 +59,13 @@ export const fourOhFoursApi = {
 			},
 		}),
 
-	/** Unpaginated dump of a bucket, used to build the "Export CSV" download. */
+	/**
+	 * Unpaginated dump of a bucket, used to build the "Export CSV" download.
+	 * Returns `{ data, meta }` so the caller can warn when the server capped the
+	 * export (`meta.capped`) — the backend bounds the row count to protect memory.
+	 */
 	export: (type: FourOhFourType, siteKey?: string) =>
-		api.get<FourOhFour[]>("/404s/export", {
+		api.getWithMeta<FourOhFour[]>("/404s/export", {
 			query: { type, site_key: siteKey },
 		}),
 

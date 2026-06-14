@@ -6,7 +6,7 @@ import { ColorField } from "@/renderer/fields/ColorField";
 import { DateLikeField } from "@/renderer/fields/DateField";
 import { GeocodingField } from "@/renderer/fields/GeocodingField";
 import { HiddenField } from "@/renderer/fields/HiddenField";
-import { HTMLField } from "@/renderer/fields/HTMLField";
+import { HTMLFieldLazy } from "@/renderer/fields/HTMLFieldLazy";
 import { ImageField } from "@/renderer/fields/ImageField";
 import { LinkField } from "@/renderer/fields/LinkField";
 import { MatrixField } from "@/renderer/fields/MatrixField";
@@ -121,7 +121,7 @@ registerFieldType(
 );
 registerFieldType(
 	"html",
-	core((props) => <HTMLField {...props} />)
+	core((props) => <HTMLFieldLazy {...props} />)
 );
 registerFieldType(
 	"image",

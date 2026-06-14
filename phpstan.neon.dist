@@ -1,0 +1,41 @@
+includes:
+    # Existing findings captured so the gate is green today; new findings still
+    # fail. Regenerate (shrinking it) when a baselined file is cleaned up.
+    - phpstan-baseline.neon
+
+parameters:
+    level: 4
+    paths:
+        - core/inc/bigtree/api
+        - core/inc/bigtree/services
+    # bootstrap.php cannot be loaded standalone (it expects web globals, runs a
+    # composer-check that die()s, and opendir()s install-only dirs), so instead
+    # of bootstrapFiles we let PHPStan scan the legacy tree for symbol
+    # definitions (the global SQL class, BigTree* god-classes) without executing
+    # anything. This resolves the cross-layer coupling the new API/services have
+    # back into the legacy classes.
+    scanDirectories:
+        - core/inc/bigtree
+        - core/inc/lib
+    # BigTreeAdmin / BigTreeCMS are eval()'d at runtime in bootstrap.php, so they
+    # have no static definition. This minimal PHPStan-only bootstrap declares them
+    # against their real base classes (it does NOT run the real bootstrap).
+    bootstrapFiles:
+        - phpstan-bootstrap.php
+    treatPhpDocTypesAsCertain: false
+    ignoreErrors:
+        # SQL::fetch / fetchAll / fetchSingle / fetchAllSingle / rows are dispatched
+        # through __callStatic/__call (core/inc/bigtree/sql-class.php), so PHPStan
+        # cannot see them. These are the canonical data-access calls in every
+        # service — ignored (not baselined) so NEW service code using them passes
+        # the gate rather than tripping a fresh staticMethod.notFound.
+        -
+            identifier: staticMethod.notFound
+            message: '#^Call to an undefined static method SQL::(fetch|fetchAll|fetchSingle|fetchAllSingle|rows)\(\)\.$#'
+        -
+            identifier: method.notFound
+            message: '#^Call to an undefined method SQL::(fetch|fetchAll|fetchSingle|fetchAllSingle|rows)\(\)\.$#'
+            # Chained-instance form ($query->fetch()) is rare in services today;
+            # keep the ignore so future chained code passes, without failing now
+            # when it matches nothing.
+            reportUnmatched: false

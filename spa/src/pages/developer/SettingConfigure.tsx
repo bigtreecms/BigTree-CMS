@@ -15,7 +15,7 @@ import { settingsApi, type SettingCreateBody } from "@/api/endpoints/settings";
 import { fieldTypesApi, fieldTypesForUseCase } from "@/api/endpoints/field-types";
 import type { ModuleFormField } from "@/api/endpoints/modules";
 
-import { HTMLField } from "@/renderer/fields/HTMLField";
+import { HTMLFieldLazy } from "@/renderer/fields/HTMLFieldLazy";
 
 import { ApiError } from "@/types/api";
 import { toast } from "@/lib/toast";
@@ -276,7 +276,7 @@ export const SettingConfigure = () => {
 					<span className="mb-1 block text-[12px] font-medium text-text-2">
 						Description
 					</span>
-					<HTMLField
+					<HTMLFieldLazy
 						field={DESCRIPTION_FIELD}
 						value={body.description ?? ""}
 						onChange={(v) => set({ description: typeof v === "string" ? v : "" })}

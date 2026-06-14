@@ -49,7 +49,7 @@ export const ImagesGroupedView = ({ moduleId, view }: ImagesGroupedViewProps) =>
 
 	const { builtins, custom } = useMemo(() => parseViewActions(view.actions), [view.actions]);
 
-	const rows = listQuery.data?.items ?? [];
+	const rows = useMemo(() => listQuery.data?.items ?? [], [listQuery.data?.items]);
 
 	// The view cache always stores the bucket value in a fixed `group_field`
 	// column (see BigTreeAutoModule::cacheRecord), regardless of which source

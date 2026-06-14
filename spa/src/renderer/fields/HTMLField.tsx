@@ -137,3 +137,8 @@ export const HTMLField = ({ field, value, onChange, disabled }: FieldComponentPr
 		/>
 	);
 };
+
+// Default export so HTMLFieldLazy can code-split this module (and its ~1.5MB
+// TinyMCE dependency) behind a dynamic import. Keep the named export for any
+// direct importers.
+export default HTMLField;

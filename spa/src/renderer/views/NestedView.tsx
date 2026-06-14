@@ -149,7 +149,10 @@ export const NestedView = ({ moduleId, view }: NestedViewProps) => {
 	const { builtins, custom } = useMemo(() => parseViewActions(view.actions), [view.actions]);
 	const fieldColumns = useMemo(() => Object.entries(view.fields ?? {}), [view.fields]);
 
-	const rows = localRows ?? listQuery.data?.items ?? [];
+	const rows = useMemo(
+		() => localRows ?? listQuery.data?.items ?? [],
+		[localRows, listQuery.data?.items]
+	);
 	const tree = useMemo(() => (debouncedQuery ? null : buildTree(rows)), [rows, debouncedQuery]);
 
 	const toggle = (id: string) => {

@@ -79,7 +79,7 @@ export const GroupedView = ({ moduleId, view }: GroupedViewProps) => {
 	const { builtins, custom } = useMemo(() => parseViewActions(view.actions), [view.actions]);
 	const fieldColumns = useMemo(() => Object.entries(view.fields ?? {}), [view.fields]);
 
-	const rows = listQuery.data?.items ?? [];
+	const rows = useMemo(() => listQuery.data?.items ?? [], [listQuery.data?.items]);
 	const groupTitles = listQuery.data?.groups;
 
 	const groups = useMemo(() => {

@@ -1901,6 +1901,10 @@
 			$columns = $table_description["columns"];
 
 			foreach ($data as $key => $val) {
+				if (!isset($columns[$key])) {
+					continue;
+				}
+
 				$allow_null = $columns[$key]["allow_null"];
 				$type = $columns[$key]["type"];
 
@@ -1922,7 +1926,7 @@
 				}
 				// Sanitize Date/Times
 				if ($type == "datetime" || $type == "timestamp") {
-					if (substr($val,0,3) == "NOW") {
+					if (substr((string)$val,0,3) == "NOW") {
 						$data[$key] = "NOW()";
 					} elseif (!$val && $allow_null == "YES") {
 						$data[$key] = "NULL";
@@ -1934,7 +1938,7 @@
 				}
 				// Sanitize Dates/Years
 				if ($type == "date" || $type == "year") {
-					if (substr($val,0,3) == "NOW") {
+					if (substr((string)$val,0,3) == "NOW") {
 						$data[$key] = "NOW()";
 					} elseif (!$val && $allow_null == "YES") {
 						$data[$key] = "NULL";
@@ -1946,7 +1950,7 @@
 				}
 				// Sanitize Times
 				if ($type == "time") {
-					if (substr($val,0,3) == "NOW") {
+					if (substr((string)$val,0,3) == "NOW") {
 						$data[$key] = "NOW()";
 					} elseif (!$val && $allow_null == "YES") {
 						$data[$key] = "NULL";

@@ -156,7 +156,7 @@ export const FourOhFours = ({ type }: FourOhFoursProps) => {
 
 	const exportMutation = useMutation({
 		mutationFn: () => fourOhFoursApi.export(type),
-		onSuccess: (rows) => {
+		onSuccess: ({ data: rows, meta }) => {
 			if (rows.length === 0) {
 				toast.error("Nothing to export.");
 
@@ -174,6 +174,15 @@ export const FourOhFours = ({ type }: FourOhFoursProps) => {
 					r.ignored ? "Yes" : "No",
 				])
 			);
+
+			if (meta?.capped) {
+				toast.warning(
+					`Export capped at the ${Number(meta.max).toLocaleString()} most-requested entries.`
+				);
+
+				return;
+			}
+
 			toast.success(`Exported ${rows.length} ${rows.length === 1 ? "entry" : "entries"}`);
 		},
 		onError: (err) => apiToast(err, "CSV export failed"),

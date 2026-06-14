@@ -41,11 +41,36 @@
 
 			[$where, $args] = $this->buildConditions($type, $site_key, "");
 
-			$rows = SQL::fetchAll(...array_merge([
-				"SELECT * FROM bigtree_404s" . $where . " ORDER BY requests DESC, id DESC",
-			], $args));
+			// Hard ceiling so an "Export CSV" click can't OOM the box on a site with a
+			// huge 404 log. Fetch in chunks to keep peak memory flat; the list endpoint
+			// paginates for the same reason. Rows are ordered by request volume so the
+			// cap keeps the most relevant entries. LIMIT/OFFSET are integer-cast and
+			// interpolated exactly as list() does (a `?` placeholder would quote them).
+			$max = 50000;
+			$chunk = 1000;
+			$out = [];
 
-			return Response::ok(array_map([$this, "present"], $rows));
+			for ($offset = 0; $offset < $max; $offset += $chunk) {
+				$limit = min($chunk, $max - $offset);
+				$rows = SQL::fetchAll(...array_merge([
+					"SELECT * FROM bigtree_404s" . $where .
+					" ORDER BY requests DESC, id DESC LIMIT " . (int)$limit . " OFFSET " . (int)$offset,
+				], $args));
+
+				if (!$rows) {
+					break;
+				}
+
+				foreach ($rows as $r) {
+					$out[] = $this->present($r);
+				}
+
+				if (count($rows) < $limit) {
+					break;
+				}
+			}
+
+			return Response::ok($out, ["capped" => count($out) >= $max, "max" => $max]);
 		}
 
 		/**

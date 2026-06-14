@@ -52,11 +52,22 @@ jobs:
         with:
           php-version: "8.2"
           extensions: mysqli, gd, json
+          # PHPStan + php-cs-fixer installed as CI tools (NOT via composer — this
+          # repo commits vendor/ and must not bloat it). Scoped to the new API +
+          # services surface; see phpstan.neon.dist / .php-cs-fixer.dist.php.
+          tools: phpstan, php-cs-fixer
       # Existing syntax-lint step — covers files the test suite never loads.
       - name: Lint changed PHP under the new API + services
         run: |
           find core/inc/bigtree/api core/inc/bigtree/services -name '*.php' -print0 \
             | xargs -0 -n1 -P4 php -l
+      # Static analysis + style run against api+services only and need no DB, so
+      # they sit ahead of the schema load. Both are green-on-day-one (PHPStan via
+      # a committed baseline; style via a pared-back hygiene rule set).
+      - name: PHP static analysis (api + services)
+        run: phpstan analyse --no-progress
+      - name: PHP code style check (api + services)
+        run: php-cs-fixer fix --dry-run --diff
       # base.sql is the canonical installer schema and contains FOREIGN KEY
       # constraints whose tables are not defined in dependency order, so a plain
       # import fails on FK ordering. Disable FK checks for the load.

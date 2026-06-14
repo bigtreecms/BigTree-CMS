@@ -1,0 +1,73 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Offset ''license'' does not exist on null\.$#'
+			identifier: offsetAccess.notFound
+			count: 3
+			path: core/inc/bigtree/services/ExtensionService.php
+
+		-
+			message: '#^Variable \$table” might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: core/inc/bigtree/services/ExtensionService.php
+
+		-
+			message: '#^Path in include\(\) "/core/inc/bigtree/api/field\-type\-schemas\.php" is not a file or it does not exist\.$#'
+			identifier: include.fileNotFound
+			count: 1
+			path: core/inc/bigtree/services/FieldTypeService.php
+
+		-
+			message: '#^Path in include\(\) "/custom/inc/bigtree/api/field\-type\-schemas\.php" is not a file or it does not exist\.$#'
+			identifier: include.fileNotFound
+			count: 1
+			path: core/inc/bigtree/services/FieldTypeService.php
+
+		-
+			message: '#^Call to function is_array\(\) with non\-empty\-list\<string\|null\> will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: core/inc/bigtree/services/FourOhFourService.php
+
+		-
+			message: '#^Ternary operator condition is always true\.$#'
+			identifier: ternary.alwaysTrue
+			count: 1
+			path: core/inc/bigtree/services/FourOhFourService.php
+
+		-
+			message: '#^Ternary operator condition is always false\.$#'
+			identifier: ternary.alwaysFalse
+			count: 1
+			path: core/inc/bigtree/services/ImageService.php
+
+		-
+			message: '#^Variable \$claims might not be defined\.$#'
+			identifier: variable.undefined
+			count: 3
+			path: core/inc/bigtree/services/OAuthBrokerService.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between mixed and null will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: core/inc/bigtree/services/PageService.php
+
+		-
+			message: '#^Ternary operator condition is always false\.$#'
+			identifier: ternary.alwaysFalse
+			count: 4
+			path: core/inc/bigtree/services/ResourceService.php
+
+		-
+			message: '#^Path in include\(\) "/core/version\.php" is not a file or it does not exist\.$#'
+			identifier: include.fileNotFound
+			count: 1
+			path: core/inc/bigtree/services/SystemService.php
+
+		-
+			message: '#^Static method SQL\:\:exists\(\) invoked with 4 parameters, 2\-3 required\.$#'
+			identifier: arguments.count
+			count: 1
+			path: core/inc/bigtree/services/UserService.php
