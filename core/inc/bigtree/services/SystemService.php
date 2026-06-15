@@ -3,6 +3,7 @@
 
 	use BigTree\Api\Jwt;
 	use BigTree\Api\Manifest;
+	use BigTree\Api\OpenApi;
 	use BigTree\Api\Pagination;
 	use BigTree\Api\Request;
 	use BigTree\Api\Response;
@@ -51,6 +52,18 @@
 				"revision" => $revision,
 				"php" => PHP_VERSION,
 			]);
+		}
+
+		/**
+		 * GET /openapi.json
+		 *
+		 * Returns an OpenAPI 3.0.3 document generated from the live route manifest.
+		 * Served without authentication so external clients and tooling can discover
+		 * the API contract without a token. Change permission to ["level" => 0] if
+		 * the spec should be admin-only.
+		 */
+		public function openapi(Request $request) {
+			return Response::raw(200, OpenApi::build(Manifest::load()));
 		}
 
 		public function clearCache(Request $request) {

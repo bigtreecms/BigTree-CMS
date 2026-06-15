@@ -21,10 +21,8 @@ jobs:
           cache-dependency-path: spa/package-lock.json
       - run: npm ci
       - run: npm run typecheck
-      # NOTE: `npm run lint` (eslint . --max-warnings 0) is currently RED on this
-      # base commit due to ~34 pre-existing Prettier errors in files outside this
-      # plan's scope. This step is intentionally left strict so CI starts gating
-      # that debt; it will pass once the pre-existing lint debt is cleared.
+      # eslint runs with --max-warnings 0 and includes prettier; the tree is clean
+      # at HEAD and this step gates any new lint/format drift.
       - run: npm run lint
       - run: npm test
       - run: npm run build

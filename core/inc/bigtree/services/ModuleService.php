@@ -1178,7 +1178,10 @@
 				$still_referenced = false;
 
 				foreach ($siblings as $sib) {
-					if (($sib[$rel] ?? null) == $target_id) { $still_referenced = true; break; }
+					if ((string)($sib[$rel] ?? "") === (string)$target_id) {
+						$still_referenced = true;
+						break;
+					}
 				}
 
 				if (!$still_referenced) {
@@ -1415,7 +1418,7 @@
 				$title = (string)$d["title"];
 
 				foreach ($module["actions"] ?? [] as $action) {
-					if (($action["form"] ?? "") != $form_id) {
+					if ((string)($action["form"] ?? "") !== (string)$form_id) {
 						continue;
 					}
 

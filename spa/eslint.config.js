@@ -1,6 +1,7 @@
 import js from "@eslint/js";
 import tseslint from "typescript-eslint";
 import reactHooks from "eslint-plugin-react-hooks";
+import react from "eslint-plugin-react";
 import prettierPlugin from "eslint-plugin-prettier";
 import configPrettier from "eslint-config-prettier";
 
@@ -27,6 +28,15 @@ export default tseslint.config(
 	configPrettier,
 	{
 		ignores: ["node_modules/**", "dist/**", "**/*.tsbuildinfo", "public/**"],
+	},
+	{
+		files: ["**/*.{ts,tsx}"],
+		plugins: {
+			react,
+		},
+		rules: {
+			"react/jsx-no-target-blank": "error",
+		},
 	},
 	{
 		files: ["**/*.{ts,tsx}"],
