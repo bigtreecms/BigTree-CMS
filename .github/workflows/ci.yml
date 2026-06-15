@@ -136,3 +136,111 @@ jobs:
             || { echo "Test runner produced no summary"; exit 1; }
           echo "$OUTPUT" | grep -q 'Failed: 0' \
             || { echo "One or more API tests failed"; exit 1; }
+
+  smoke:
+    name: API smoke tests (auth)
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: bigtree_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -proot"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.2"
+          extensions: mysqli, gd, json
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+      - name: Load schema
+        run: |
+          (echo 'SET FOREIGN_KEY_CHECKS=0;'; cat core/setup/base.sql) \
+            | mysql -h 127.0.0.1 -P 3306 -uroot -proot bigtree_test
+      # Unlike the API test runner (which never boots the HTTP layer), the smoke
+      # server runs the real front controller, so its env needs the standard
+      # bootstrap keys the php job writes PLUS two the login/token path
+      # dereferences: settings_key (AES_DECRYPT of settings — core/inc/bigtree/
+      # cms.php) and api.jwt_secret (JWT signing — AuthService::issueTokens).
+      # Both are dummy CI values; roots point at the local php -S server.
+      - name: Write CI env files
+        run: |
+          mkdir -p custom/inc/required cache
+          touch cache/composer-check.flag
+          cat > custom/environment.php <<'PHP'
+          <?php
+          $bigtree["config"]["debug"] = false;
+          $bigtree["config"]["domain"] = "http://127.0.0.1:8080/";
+          $bigtree["config"]["www_root"] = "http://127.0.0.1:8080/";
+          $bigtree["config"]["static_root"] = "http://127.0.0.1:8080/";
+          $bigtree["config"]["admin_root"] = "http://127.0.0.1:8080/admin/";
+          $bigtree["config"]["sql_interface"] = "mysqli";
+          $bigtree["config"]["settings_key"] = "ci-smoke-settings-key-aaaaaaaaaaaaaaaa";
+          $bigtree["config"]["api"]["jwt_secret"] = "ci-smoke-jwt-secret-at-least-32-bytes-long";
+
+          // Read database.
+          $bigtree["config"]["db"]["host"] = "127.0.0.1";
+          $bigtree["config"]["db"]["name"] = "bigtree_test";
+          $bigtree["config"]["db"]["user"] = "root";
+          $bigtree["config"]["db"]["password"] = "root";
+          $bigtree["config"]["db"]["port"] = 3306;
+          $bigtree["config"]["db"]["socket"] = null;
+
+          // Write database (identical block — single-server CI setup).
+          $bigtree["config"]["db_write"]["host"] = "127.0.0.1";
+          $bigtree["config"]["db_write"]["name"] = "bigtree_test";
+          $bigtree["config"]["db_write"]["user"] = "root";
+          $bigtree["config"]["db_write"]["password"] = "root";
+          $bigtree["config"]["db_write"]["port"] = 3306;
+          $bigtree["config"]["db_write"]["socket"] = null;
+          PHP
+          cat > custom/settings.php <<'PHP'
+          <?php
+          // Minimal settings for the smoke-test server.
+          PHP
+      # Seed a level-2 (developer) admin whose password hash comes from the same
+      # password_hash(PASSWORD_DEFAULT) AuthService::verifyPassword checks when
+      # new_hash = 'on'. All NOT-NULL columns are set.
+      - name: Seed smoke-test admin user
+        env:
+          BIGTREE_TEST_EMAIL: smoke@ci.local
+          BIGTREE_TEST_PASSWORD: SmokeTest-CI-2026!
+        run: |
+          HASH=$(php -r 'echo password_hash(getenv("BIGTREE_TEST_PASSWORD"), PASSWORD_DEFAULT);')
+          mysql -h 127.0.0.1 -P 3306 -uroot -proot bigtree_test \
+            -e "INSERT INTO bigtree_users (email,password,new_hash,\`2fa_secret\`,\`2fa_login_token\`,name,company,level,permissions,alerts,daily_digest,timezone,change_password_hash,token_version) VALUES ('${BIGTREE_TEST_EMAIL}','${HASH}','on','','','Smoke CI','',2,'{}','','','UTC','',1) ON DUPLICATE KEY UPDATE password=VALUES(password), new_hash='on', level=2, token_version=1;"
+      # Boot the app under php's built-in server via ci-router.php (emulates the
+      # .htaccess rewrite), then poll /auth/login-policy until it answers 200.
+      - name: Start PHP server
+        run: |
+          REPO_ROOT="$(pwd)/" php -S 127.0.0.1:8080 \
+            core/inc/bigtree/api/_smoke/ci-router.php > /tmp/php-smoke.log 2>&1 &
+          for i in $(seq 1 20); do
+            if [ "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8080/admin/api/v1/auth/login-policy)" = "200" ]; then
+              echo "Server ready after ${i}s"
+              break
+            fi
+            if [ "$i" -eq 20 ]; then
+              echo "Server did not become ready; log:"
+              cat /tmp/php-smoke.log
+              exit 1
+            fi
+            sleep 1
+          done
+      - name: Run auth smoke tests
+        env:
+          BIGTREE_API_BASE: http://127.0.0.1:8080/admin/api/v1
+          BIGTREE_TEST_EMAIL: smoke@ci.local
+          BIGTREE_TEST_PASSWORD: SmokeTest-CI-2026!
+        run: bash core/inc/bigtree/api/_smoke/auth.sh
+      - name: Dump PHP server log on failure
+        if: failure()
+        run: cat /tmp/php-smoke.log || true
