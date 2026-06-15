@@ -1,5 +1,9 @@
 {
+    "name": "bigtree/cms",
+    "description": "BigTree CMS - a content management system built on PHP and MySQL.",
+    "license": "LGPL-3.0-or-later",
     "require": {
+        "php": "^8.2",
         "aws/aws-sdk-php": "^3",
         "ext-gd": "*",
         "ext-json": "*",
@@ -11,5 +15,11 @@
         "google/analytics-data": "^0.10.0",
         "wikimedia/less.php": "^4.1",
         "chillerlan/php-qrcode": "^4"
+    },
+    "scripts": {
+        "pre-autoload-dump": "Aws\\Script\\Composer\\Composer::removeUnusedServices"
+    },
+    "extra": {
+        "aws/aws-sdk-php": ["S3", "CloudFront"]
     }
 }

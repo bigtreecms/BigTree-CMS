@@ -1,3 +1,5 @@
+import { memo } from "react";
+
 import type { FieldComponentProps } from "@/renderer/fields/types";
 
 import { CustomField } from "./CustomField";
@@ -13,7 +15,7 @@ import { lookupFieldType } from "./fieldRegistry";
  *
  * Adding a new built-in is a `registerFieldType(...)` call in the registry.
  */
-export const FieldRenderer = (props: FieldComponentProps) => {
+const FieldRendererComponent = (props: FieldComponentProps) => {
 	const entry = lookupFieldType(props.field.type);
 
 	if (entry) {
@@ -22,3 +24,5 @@ export const FieldRenderer = (props: FieldComponentProps) => {
 
 	return <CustomField {...props} />;
 };
+
+export const FieldRenderer = memo(FieldRendererComponent);

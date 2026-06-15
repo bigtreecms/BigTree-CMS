@@ -5,8 +5,8 @@
 namespace Google\Api;
 
 use Google\Protobuf\Internal\GPBType;
-use Google\Protobuf\Internal\RepeatedField;
 use Google\Protobuf\Internal\GPBUtil;
+use Google\Protobuf\RepeatedField;
 
 /**
  * A context rule provides information about the context for an individual API
@@ -25,13 +25,15 @@ class ContextRule extends \Google\Protobuf\Internal\Message
      */
     protected $selector = '';
     /**
-     * A list of full type names of requested contexts.
+     * A list of full type names of requested contexts, only the requested context
+     * will be made available to the backend.
      *
      * Generated from protobuf field <code>repeated string requested = 2;</code>
      */
     private $requested;
     /**
-     * A list of full type names of provided contexts.
+     * A list of full type names of provided contexts. It is used to support
+     * propagating HTTP headers and ETags from the response extension.
      *
      * Generated from protobuf field <code>repeated string provided = 3;</code>
      */
@@ -61,14 +63,16 @@ class ContextRule extends \Google\Protobuf\Internal\Message
      *           Selects the methods to which this rule applies.
      *           Refer to [selector][google.api.DocumentationRule.selector] for syntax
      *           details.
-     *     @type array<string>|\Google\Protobuf\Internal\RepeatedField $requested
-     *           A list of full type names of requested contexts.
-     *     @type array<string>|\Google\Protobuf\Internal\RepeatedField $provided
-     *           A list of full type names of provided contexts.
-     *     @type array<string>|\Google\Protobuf\Internal\RepeatedField $allowed_request_extensions
+     *     @type string[] $requested
+     *           A list of full type names of requested contexts, only the requested context
+     *           will be made available to the backend.
+     *     @type string[] $provided
+     *           A list of full type names of provided contexts. It is used to support
+     *           propagating HTTP headers and ETags from the response extension.
+     *     @type string[] $allowed_request_extensions
      *           A list of full type names or extension IDs of extensions allowed in grpc
      *           side channel from client to backend.
-     *     @type array<string>|\Google\Protobuf\Internal\RepeatedField $allowed_response_extensions
+     *     @type string[] $allowed_response_extensions
      *           A list of full type names or extension IDs of extensions allowed in grpc
      *           side channel from backend to client.
      * }
@@ -109,10 +113,11 @@ class ContextRule extends \Google\Protobuf\Internal\Message
     }
 
     /**
-     * A list of full type names of requested contexts.
+     * A list of full type names of requested contexts, only the requested context
+     * will be made available to the backend.
      *
      * Generated from protobuf field <code>repeated string requested = 2;</code>
-     * @return \Google\Protobuf\Internal\RepeatedField
+     * @return RepeatedField<string>
      */
     public function getRequested()
     {
@@ -120,10 +125,11 @@ class ContextRule extends \Google\Protobuf\Internal\Message
     }
 
     /**
-     * A list of full type names of requested contexts.
+     * A list of full type names of requested contexts, only the requested context
+     * will be made available to the backend.
      *
      * Generated from protobuf field <code>repeated string requested = 2;</code>
-     * @param array<string>|\Google\Protobuf\Internal\RepeatedField $var
+     * @param string[] $var
      * @return $this
      */
     public function setRequested($var)
@@ -135,10 +141,11 @@ class ContextRule extends \Google\Protobuf\Internal\Message
     }
 
     /**
-     * A list of full type names of provided contexts.
+     * A list of full type names of provided contexts. It is used to support
+     * propagating HTTP headers and ETags from the response extension.
      *
      * Generated from protobuf field <code>repeated string provided = 3;</code>
-     * @return \Google\Protobuf\Internal\RepeatedField
+     * @return RepeatedField<string>
      */
     public function getProvided()
     {
@@ -146,10 +153,11 @@ class ContextRule extends \Google\Protobuf\Internal\Message
     }
 
     /**
-     * A list of full type names of provided contexts.
+     * A list of full type names of provided contexts. It is used to support
+     * propagating HTTP headers and ETags from the response extension.
      *
      * Generated from protobuf field <code>repeated string provided = 3;</code>
-     * @param array<string>|\Google\Protobuf\Internal\RepeatedField $var
+     * @param string[] $var
      * @return $this
      */
     public function setProvided($var)
@@ -165,7 +173,7 @@ class ContextRule extends \Google\Protobuf\Internal\Message
      * side channel from client to backend.
      *
      * Generated from protobuf field <code>repeated string allowed_request_extensions = 4;</code>
-     * @return \Google\Protobuf\Internal\RepeatedField
+     * @return RepeatedField<string>
      */
     public function getAllowedRequestExtensions()
     {
@@ -177,7 +185,7 @@ class ContextRule extends \Google\Protobuf\Internal\Message
      * side channel from client to backend.
      *
      * Generated from protobuf field <code>repeated string allowed_request_extensions = 4;</code>
-     * @param array<string>|\Google\Protobuf\Internal\RepeatedField $var
+     * @param string[] $var
      * @return $this
      */
     public function setAllowedRequestExtensions($var)
@@ -193,7 +201,7 @@ class ContextRule extends \Google\Protobuf\Internal\Message
      * side channel from backend to client.
      *
      * Generated from protobuf field <code>repeated string allowed_response_extensions = 5;</code>
-     * @return \Google\Protobuf\Internal\RepeatedField
+     * @return RepeatedField<string>
      */
     public function getAllowedResponseExtensions()
     {
@@ -205,7 +213,7 @@ class ContextRule extends \Google\Protobuf\Internal\Message
      * side channel from backend to client.
      *
      * Generated from protobuf field <code>repeated string allowed_response_extensions = 5;</code>
-     * @param array<string>|\Google\Protobuf\Internal\RepeatedField $var
+     * @param string[] $var
      * @return $this
      */
     public function setAllowedResponseExtensions($var)

@@ -20,8 +20,7 @@ We would love to have the community work with us on BigTree. Guidelines are curr
 ## Architecture (5.0+)
 
 BigTree 5 adds three modernised layers on top of a frozen legacy core.
-The codebase remains **PHP 7.4-compatible** (CI is run against 8.2, but 7.4
-is the minimum).
+Requires **PHP 8.2+** (CI runs against 8.2).
 
 ```
 core/                          ← legacy core (frozen, bug-fix only)

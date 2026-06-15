@@ -53,10 +53,8 @@ use Google\ApiCore\ValidationException;
  */
 class AbsoluteResourceTemplate implements ResourceTemplateInterface
 {
-    /** @var RelativeResourceTemplate */
-    private $resourceTemplate;
-
-    /** @var string */
+    private RelativeResourceTemplate $resourceTemplate;
+    /** @var string|bool */
     private $verb;
 
     /**
@@ -84,7 +82,7 @@ class AbsoluteResourceTemplate implements ResourceTemplateInterface
      */
     public function __toString()
     {
-        return sprintf("/%s%s", $this->resourceTemplate, $this->renderVerb());
+        return sprintf('/%s%s', $this->resourceTemplate, $this->renderVerb());
     }
 
     /**
@@ -92,7 +90,7 @@ class AbsoluteResourceTemplate implements ResourceTemplateInterface
      */
     public function render(array $bindings)
     {
-        return sprintf("/%s%s", $this->resourceTemplate->render($bindings), $this->renderVerb());
+        return sprintf('/%s%s', $this->resourceTemplate->render($bindings), $this->renderVerb());
     }
 
     /**
@@ -114,7 +112,7 @@ class AbsoluteResourceTemplate implements ResourceTemplateInterface
     public function match(string $path)
     {
         if (empty($path)) {
-            throw $this->matchException($path, "path cannot be empty");
+            throw $this->matchException($path, 'path cannot be empty');
         }
         if ($path[0] !== '/') {
             throw $this->matchException($path, "missing leading '/'");

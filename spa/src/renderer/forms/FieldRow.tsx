@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { memo, type ReactNode } from "react";
 
 import type { ModuleFormField } from "@/api/endpoints/modules";
 import { PendingBadge } from "@/components/pending-changes/PendingBadge";
@@ -33,7 +33,7 @@ interface FieldRowProps {
  * When `pending`, the label gets a "Pending"/"New" badge and a "Compare with
  * published" toggle is rendered beneath the control.
  */
-export const FieldRow = ({
+const FieldRowComponent = ({
 	field,
 	error,
 	children,
@@ -76,3 +76,5 @@ export const FieldRow = ({
 		</div>
 	);
 };
+
+export const FieldRow = memo(FieldRowComponent);

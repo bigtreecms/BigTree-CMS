@@ -32,10 +32,9 @@
 namespace Google\ApiCore;
 
 use Exception;
-use Google\Protobuf\Internal\RepeatedField;
+use Google\Protobuf\RepeatedField;
 use Google\Rpc\Status;
 use GuzzleHttp\Exception\RequestException;
-use Google\ApiCore\Testing\MockStatus;
 use stdClass;
 
 /**
@@ -47,6 +46,7 @@ class ApiException extends Exception
     private $metadata;
     private $basicMessage;
     private $decodedMetadataErrorInfo;
+    private array $protobufErrors;
 
     /**
      * ApiException constructor.
@@ -62,8 +62,9 @@ class ApiException extends Exception
     public function __construct(
         string $message,
         int $code,
-        string $status = null,
-        array $optionalArgs = []
+        ?string $status = null,
+        array $optionalArgs = [],
+        array $protobufErrors = [],
     ) {
         $optionalArgs += [
             'previous' => null,
@@ -77,6 +78,7 @@ class ApiException extends Exception
         if ($this->metadata) {
             $this->decodedMetadataErrorInfo = self::decodeMetadataErrorInfo($this->metadata);
         }
+        $this->protobufErrors = $protobufErrors;
     }
 
     public function getStatus()
@@ -139,17 +141,29 @@ class ApiException extends Exception
     }
 
     /**
+     * Returns the unserialized errors
+     * @return array
+     */
+    public function getErrorDetails(): array
+    {
+        return $this->protobufErrors;
+    }
+
+    /**
      * @param stdClass $status
      * @return ApiException
      */
     public static function createFromStdClass(stdClass $status)
     {
         $metadata = property_exists($status, 'metadata') ? $status->metadata : null;
+        $errors = [];
+
         return self::create(
             $status->details,
             $status->code,
             $metadata,
-            Serializer::decodeMetadata((array) $metadata)
+            Serializer::decodeMetadata((array) $metadata, $errors),
+            $errors,
         );
     }
 
@@ -163,14 +177,16 @@ class ApiException extends Exception
     public static function createFromApiResponse(
         $basicMessage,
         $rpcCode,
-        array $metadata = null,
-        Exception $previous = null
+        ?array $metadata = null,
+        ?Exception $previous = null
     ) {
+        $errors = [];
         return self::create(
             $basicMessage,
             $rpcCode,
             $metadata,
-            Serializer::decodeMetadata((array) $metadata),
+            Serializer::decodeMetadata((array) $metadata, $errors),
+            $errors,
             $previous
         );
     }
@@ -187,14 +203,15 @@ class ApiException extends Exception
     public static function createFromRestApiResponse(
         $basicMessage,
         $rpcCode,
-        array $metadata = null,
-        Exception $previous = null
+        ?array $metadata = null,
+        ?Exception $previous = null
     ) {
         return self::create(
             $basicMessage,
             $rpcCode,
             $metadata,
             is_null($metadata) ? [] : $metadata,
+            self::decodeMetadataToProtobufErrors($metadata ?? []),
             $previous
         );
     }
@@ -236,6 +253,7 @@ class ApiException extends Exception
      * @param int $rpcCode
      * @param iterable|null $metadata
      * @param array $decodedMetadata
+     * @param array|null $protobufErrors
      * @param Exception|null $previous
      * @return ApiException
      */
@@ -244,7 +262,8 @@ class ApiException extends Exception
         int $rpcCode,
         $metadata,
         array $decodedMetadata,
-        Exception $previous = null
+        ?array $protobufErrors = null,
+        ?Exception $previous = null
     ) {
         $containsErrorInfo = self::containsErrorInfo($decodedMetadata);
         $rpcStatus = ApiStatus::statusFromRpcCode($rpcCode);
@@ -264,11 +283,51 @@ class ApiException extends Exception
             $metadata = iterator_to_array($metadata);
         }
 
-        return new ApiException($message, $rpcCode, $rpcStatus, [
-            'previous' => $previous,
-            'metadata' => $metadata,
-            'basicMessage' => $basicMessage,
-        ]);
+        return new ApiException(
+            $message,
+            $rpcCode,
+            $rpcStatus,
+            [
+                'previous' => $previous,
+                'metadata' => $metadata,
+                'basicMessage' => $basicMessage,
+            ],
+            $protobufErrors ?? []
+        );
+    }
+
+    /**
+     * Encodes decoded metadata to the Protobuf error type
+     *
+     * @param array $metadata
+     * @return array
+     */
+    private static function decodeMetadataToProtobufErrors(array $metadata): array
+    {
+        $result = [];
+        Serializer::loadKnownMetadataTypes();
+
+        foreach ($metadata as $error) {
+            $message = null;
+
+            if (!isset($error['@type'])) {
+                continue;
+            }
+
+            $type = $error['@type'];
+
+            if (!isset(KnownTypes::TYPE_URLS[$type])) {
+                continue;
+            }
+
+            $class = KnownTypes::TYPE_URLS[$type];
+            $message = new $class();
+            $jsonMessage = json_encode(array_diff_key($error, ['@type' => true]));
+            $message->mergeFromJsonString($jsonMessage);
+            $result[] = $message;
+        }
+
+        return $result;
     }
 
     /**
@@ -333,14 +392,5 @@ class ApiException extends Exception
     public function getMetadata()
     {
         return $this->metadata;
-    }
-
-    /**
-     * String representation of ApiException
-     * @return string
-     */
-    public function __toString()
-    {
-        return __CLASS__ . ": $this->message\n";
     }
 }

@@ -5,8 +5,8 @@
 namespace Google\Api;
 
 use Google\Protobuf\Internal\GPBType;
-use Google\Protobuf\Internal\RepeatedField;
 use Google\Protobuf\Internal\GPBUtil;
+use Google\Protobuf\RepeatedField;
 
 /**
  * `QuotaLimit` defines a specific limit that applies over a specified duration
@@ -88,8 +88,8 @@ class QuotaLimit extends \Google\Protobuf\Internal\Message
     protected $metric = '';
     /**
      * Specify the unit of the quota limit. It uses the same syntax as
-     * [Metric.unit][]. The supported unit kinds are determined by the quota
-     * backend system.
+     * [MetricDescriptor.unit][google.api.MetricDescriptor.unit]. The supported
+     * unit kinds are determined by the quota backend system.
      * Here are some examples:
      * * "1/min/{project}" for quota per minute per project.
      * Note: the order of unit components is insignificant.
@@ -165,8 +165,8 @@ class QuotaLimit extends \Google\Protobuf\Internal\Message
      *           defined within the service config.
      *     @type string $unit
      *           Specify the unit of the quota limit. It uses the same syntax as
-     *           [Metric.unit][]. The supported unit kinds are determined by the quota
-     *           backend system.
+     *           [MetricDescriptor.unit][google.api.MetricDescriptor.unit]. The supported
+     *           unit kinds are determined by the quota backend system.
      *           Here are some examples:
      *           * "1/min/{project}" for quota per minute per project.
      *           Note: the order of unit components is insignificant.
@@ -425,8 +425,8 @@ class QuotaLimit extends \Google\Protobuf\Internal\Message
 
     /**
      * Specify the unit of the quota limit. It uses the same syntax as
-     * [Metric.unit][]. The supported unit kinds are determined by the quota
-     * backend system.
+     * [MetricDescriptor.unit][google.api.MetricDescriptor.unit]. The supported
+     * unit kinds are determined by the quota backend system.
      * Here are some examples:
      * * "1/min/{project}" for quota per minute per project.
      * Note: the order of unit components is insignificant.
@@ -442,8 +442,8 @@ class QuotaLimit extends \Google\Protobuf\Internal\Message
 
     /**
      * Specify the unit of the quota limit. It uses the same syntax as
-     * [Metric.unit][]. The supported unit kinds are determined by the quota
-     * backend system.
+     * [MetricDescriptor.unit][google.api.MetricDescriptor.unit]. The supported
+     * unit kinds are determined by the quota backend system.
      * Here are some examples:
      * * "1/min/{project}" for quota per minute per project.
      * Note: the order of unit components is insignificant.

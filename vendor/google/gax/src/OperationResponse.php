@@ -32,7 +32,12 @@
 
 namespace Google\ApiCore;
 
+use Google\LongRunning\CancelOperationRequest;
+use Google\LongRunning\Client\OperationsClient;
+use Google\LongRunning\DeleteOperationRequest;
+use Google\LongRunning\GetOperationRequest;
 use Google\LongRunning\Operation;
+use Google\LongRunning\OperationsClient as LegacyOperationsClient;
 use Google\Protobuf\Any;
 use Google\Protobuf\Internal\Message;
 use Google\Rpc\Status;
@@ -51,6 +56,8 @@ use LogicException;
  * more control is required, it is possible to make calls against the
  * Operations API directly instead of via the OperationResponse object
  * using an Operations Client instance.
+ *
+ * @template T = mixed
  */
 class OperationResponse
 {
@@ -60,30 +67,35 @@ class OperationResponse
     const DEFAULT_POLLING_MULTIPLIER = 2;
     const DEFAULT_MAX_POLLING_INTERVAL = 60000;
     const DEFAULT_MAX_POLLING_DURATION = 0;
+    private const NEW_CLIENT_NAMESPACE = '\\Client\\';
 
-    private $operationName;
-    private $operationsClient;
+    private string $operationName;
+    private ?object $operationsClient;
 
-    private $operationReturnType;
-    private $metadataReturnType;
-    private $defaultPollSettings = [
+    private ?string $operationReturnType;
+    private ?string $metadataReturnType;
+    private array $defaultPollSettings = [
         'initialPollDelayMillis' => self::DEFAULT_POLLING_INTERVAL,
         'pollDelayMultiplier' => self::DEFAULT_POLLING_MULTIPLIER,
         'maxPollDelayMillis' => self::DEFAULT_MAX_POLLING_INTERVAL,
         'totalPollTimeoutMillis' => self::DEFAULT_MAX_POLLING_DURATION,
     ];
 
-    private $lastProtoResponse;
-    private $deleted = false;
+    private ?object $lastProtoResponse;
+    private bool $deleted = false;
 
-    private $additionalArgs;
-    private $getOperationMethod;
-    private $cancelOperationMethod;
-    private $deleteOperationMethod;
-    private $operationStatusMethod;
+    private array $additionalArgs;
+    private string $getOperationMethod;
+    private ?string $cancelOperationMethod;
+    private ?string $deleteOperationMethod;
+    private string $getOperationRequest;
+    private ?string $cancelOperationRequest;
+    private ?string $deleteOperationRequest;
+    private string $operationStatusMethod;
+    /** @var mixed */
     private $operationStatusDoneValue;
-    private $operationErrorCodeMethod;
-    private $operationErrorMessageMethod;
+    private ?string $operationErrorCodeMethod;
+    private ?string $operationErrorMessageMethod;
 
     /**
      * OperationResponse constructor.
@@ -126,6 +138,9 @@ class OperationResponse
             'additionalOperationArguments' => [],
             'operationErrorCodeMethod' => null,
             'operationErrorMessageMethod' => null,
+            'getOperationRequest' => GetOperationRequest::class,
+            'cancelOperationRequest' => CancelOperationRequest::class,
+            'deleteOperationRequest' => DeleteOperationRequest::class,
         ];
         $this->operationReturnType = $options['operationReturnType'];
         $this->metadataReturnType = $options['metadataReturnType'];
@@ -138,6 +153,9 @@ class OperationResponse
         $this->operationStatusDoneValue = $options['operationStatusDoneValue'];
         $this->operationErrorCodeMethod = $options['operationErrorCodeMethod'];
         $this->operationErrorMessageMethod = $options['operationErrorMessageMethod'];
+        $this->getOperationRequest = $options['getOperationRequest'];
+        $this->cancelOperationRequest = $options['cancelOperationRequest'];
+        $this->deleteOperationRequest = $options['deleteOperationRequest'];
 
         if (isset($options['initialPollDelayMillis'])) {
             $this->defaultPollSettings['initialPollDelayMillis'] = $options['initialPollDelayMillis'];
@@ -256,19 +274,18 @@ class OperationResponse
     public function reload()
     {
         if ($this->deleted) {
-            throw new ValidationException("Cannot call reload() on a deleted operation");
+            throw new ValidationException('Cannot call reload() on a deleted operation');
         }
-        $this->lastProtoResponse = $this->operationsCall(
-            $this->getOperationMethod,
-            $this->getName(),
-            $this->additionalArgs
-        );
+
+        $requestClass = $this->isNewSurfaceOperationsClient() ? $this->getOperationRequest : null;
+        $this->lastProtoResponse = $this->operationsCall($this->getOperationMethod, $requestClass);
     }
 
     /**
-     * Return the result of the operation. If operationSucceeded() is false, return null.
+     * Return the result of the operation. If operationSucceeded() is false,
+     * return null.
      *
-     * @return mixed|null The result of the operation, or null if operationSucceeded() is false
+     * @return T|null
      */
     public function getResult()
     {
@@ -385,7 +402,9 @@ class OperationResponse
         if (is_null($this->cancelOperationMethod)) {
             throw new LogicException('The cancel operation is not supported by this API');
         }
-        $this->operationsCall($this->cancelOperationMethod, $this->getName(), $this->additionalArgs);
+
+        $requestClass = $this->isNewSurfaceOperationsClient() ? $this->cancelOperationRequest : null;
+        $this->operationsCall($this->cancelOperationMethod, $requestClass);
     }
 
     /**
@@ -404,7 +423,9 @@ class OperationResponse
         if (is_null($this->deleteOperationMethod)) {
             throw new LogicException('The delete operation is not supported by this API');
         }
-        $this->operationsCall($this->deleteOperationMethod, $this->getName(), $this->additionalArgs);
+
+        $requestClass = $this->isNewSurfaceOperationsClient() ? $this->deleteOperationRequest : null;
+        $this->operationsCall($this->deleteOperationMethod, $requestClass);
         $this->deleted = true;
     }
 
@@ -446,10 +467,37 @@ class OperationResponse
         return $metadata;
     }
 
-    private function operationsCall($method, $name, array $additionalArgs)
+    /**
+     * Call the operations client to perform an operation.
+     *
+     * @param string $method The method to call on the operations client.
+     * @param string|null $requestClass The request class to use for the call.
+     *                                  Will be null for legacy operations clients.
+     */
+    private function operationsCall(string $method, ?string $requestClass)
     {
-        $args = array_merge([$name], $additionalArgs);
-        return call_user_func_array([$this->operationsClient, $method], $args);
+        // V1 GAPIC clients have an empty $requestClass
+        if (empty($requestClass)) {
+            if ($this->additionalArgs) {
+                return $this->operationsClient->$method(
+                    $this->getName(),
+                    ...array_values($this->additionalArgs)
+                );
+            }
+            return $this->operationsClient->$method($this->getName());
+        }
+
+        if (!method_exists($requestClass, 'build')) {
+            throw new LogicException('Request class must support the static build method');
+        }
+        // In V2 of Compute, the Request "build" methods contain the operation ID last instead
+        // of first. Compute is the only API which uses $additionalArgs, so switching the order
+        // will not break anything.
+        $request = $requestClass::build(...array_merge(
+            array_values($this->additionalArgs),
+            [$this->getName()]
+        ));
+        return $this->operationsClient->$method($request);
     }
 
     private function canHaveResult()
@@ -481,5 +529,11 @@ class OperationResponse
     private function hasProtoResponse()
     {
         return !is_null($this->lastProtoResponse);
+    }
+
+    private function isNewSurfaceOperationsClient(): bool
+    {
+        return !$this->operationsClient instanceof LegacyOperationsClient
+            && false !== strpos(get_class($this->operationsClient), self::NEW_CLIENT_NAMESPACE);
     }
 }

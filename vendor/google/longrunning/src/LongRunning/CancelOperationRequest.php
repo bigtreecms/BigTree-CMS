@@ -5,11 +5,12 @@
 namespace Google\LongRunning;
 
 use Google\Protobuf\Internal\GPBType;
-use Google\Protobuf\Internal\RepeatedField;
 use Google\Protobuf\Internal\GPBUtil;
+use Google\Protobuf\RepeatedField;
 
 /**
- * The request message for [Operations.CancelOperation][google.longrunning.Operations.CancelOperation].
+ * The request message for
+ * [Operations.CancelOperation][google.longrunning.Operations.CancelOperation].
  *
  * Generated from protobuf message <code>google.longrunning.CancelOperationRequest</code>
  */
@@ -21,6 +22,19 @@ class CancelOperationRequest extends \Google\Protobuf\Internal\Message
      * Generated from protobuf field <code>string name = 1;</code>
      */
     private $name = '';
+
+    /**
+     * @param string $name The name of the operation resource to be cancelled.
+     *
+     * @return \Google\LongRunning\CancelOperationRequest
+     *
+     * @experimental
+     */
+    public static function build(string $name): self
+    {
+        return (new self())
+            ->setName($name);
+    }
 
     /**
      * Constructor.

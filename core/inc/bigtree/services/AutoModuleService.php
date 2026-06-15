@@ -54,24 +54,45 @@
 				throw new NotFoundException("No view defined for module $module_id", "no_view", 404);
 			}
 
-			$page = (int)($request->query["page"] ?? 1);
+			$page = max(1, (int)($request->query["page"] ?? 1));
 			$query = (string)($request->query["q"] ?? "");
 			$sort = (string)($request->query["sort"] ?? "id DESC");
 
-			$results = BigTreeAutoModule::getSearchResults($view, $page, $query, $sort, false);
+			// The row-level permission predicate (userRowLevel) is a PHP function
+			// that depends on the user's gbp map, so the database can't pre-filter
+			// it. getSearchResults must therefore run BEFORE we know which rows the
+			// user may see. If we let it paginate first and filtered the slice
+			// afterward, a gbp-restricted user would get short/empty pages and a
+			// meta count that describes rows they can't reach. Instead fetch the
+			// full result set ("all"), filter it, and paginate the accessible rows
+			// here so meta and the page slice both reflect the post-filter set.
+			$results = BigTreeAutoModule::getSearchResults($view, "all", $query, $sort, false);
 
-			$results["results"] = array_filter($results["results"] ?? [], function ($row) use ($request, $module) {
+			$accessible = array_values(array_filter($results["results"] ?? [], function ($row) use ($request, $module) {
 
 				return PermissionService::userRowLevel($request->user, $module, $row) !== "n";
-			});
+			}));
+
+			// per_page mirrors getSearchResults' own derivation (legacy reads the
+			// view's setting, falling back to the admin default) — the legacy
+			// function never returned it, so the previous read always yielded 0.
+			$per_page = !empty($view["settings"]["per_page"])
+				? (int)$view["settings"]["per_page"]
+				: (int)BigTreeAdmin::$PerPage;
+			$per_page = max(1, $per_page);
+
+			$total = count($accessible);
+			$pages = (int)ceil($total / $per_page);
+			$pages = $pages > 0 ? $pages : 1;
+			$items = array_slice($accessible, ($page - 1) * $per_page, $per_page);
 
 			$payload = [
 				"view" => ["id" => $view["id"] ?? null, "title" => $view["title"] ?? ""],
-				"items" => array_values($results["results"]),
+				"items" => array_values($items),
 				"meta" => [
 					"page" => $page,
-					"per_page" => (int)($results["per_page"] ?? 0),
-					"pages" => (int)($results["pages"] ?? 0),
+					"per_page" => $per_page,
+					"pages" => $pages,
 				],
 			];
 

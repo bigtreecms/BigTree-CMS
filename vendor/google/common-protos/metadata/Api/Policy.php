@@ -15,18 +15,7 @@ class Policy
           return;
         }
         $pool->internalAddGeneratedFile(
-            '
-ë
-google/api/policy.proto
-google.api google/protobuf/descriptor.proto"S
-FieldPolicy
-selector (	
-resource_permission (	
-resource_type (	"S
-MethodPolicy
-selector	 (	1
-request_policies (2.google.api.FieldPolicyBp
-com.google.apiBPolicyProtoPZEgoogle.golang.org/genproto/googleapis/api/serviceconfig;serviceconfigø¢GAPIbproto3'
+            "\x0A\xE8\x02\x0A\x17google/api/policy.proto\x12\x0Agoogle.api\x1A google/protobuf/descriptor.proto\"S\x0A\x0BFieldPolicy\x12\x10\x0A\x08selector\x18\x01 \x01(\x09\x12\x1B\x0A\x13resource_permission\x18\x02 \x01(\x09\x12\x15\x0A\x0Dresource_type\x18\x03 \x01(\x09\"S\x0A\x0CMethodPolicy\x12\x10\x0A\x08selector\x18\x09 \x01(\x09\x121\x0A\x10request_policies\x18\x02 \x03(\x0B2\x17.google.api.FieldPolicyBm\x0A\x0Ecom.google.apiB\x0BPolicyProtoP\x01ZEgoogle.golang.org/genproto/googleapis/api/serviceconfig;serviceconfig\xA2\x02\x04GAPIb\x06proto3"
         , true);
 
         static::$is_initialized = true;

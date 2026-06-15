@@ -4,6 +4,7 @@ namespace Aws\Signature;
 use Aws\Credentials\CredentialsInterface;
 use AWS\CRT\Auth\Signable;
 use AWS\CRT\Auth\SignatureType;
+use AWS\CRT\Auth\SignedBodyHeaderType;
 use AWS\CRT\Auth\Signing;
 use AWS\CRT\Auth\SigningAlgorithm;
 use AWS\CRT\Auth\SigningConfigAWS;
@@ -154,6 +155,9 @@ class SignatureV4 implements SignatureInterface
                 $presignHeaders[] = $lName;
             }
         }
+
+        sort($presignHeaders);
+
         return $presignHeaders;
     }
 
@@ -345,12 +349,14 @@ class SignatureV4 implements SignatureInterface
         }
 
         $qs = '';
-        ksort($query);
+        uksort($query, static function (string $a, string $b): int {
+            return strcmp(rawurlencode($a), rawurlencode($b));
+        });
         foreach ($query as $k => $v) {
             if (!is_array($v)) {
                 $qs .= rawurlencode($k) . '=' . rawurlencode($v !== null ? $v : '') . '&';
             } else {
-                sort($v);
+                sort($v, SORT_STRING);
                 foreach ($v as $value) {
                     $qs .= rawurlencode($k) . '=' . rawurlencode($value !== null ? $value : '') . '&';
                 }
@@ -446,7 +452,7 @@ class SignatureV4 implements SignatureInterface
         );
     }
 
-    private function verifyCRTLoaded()
+    protected function verifyCRTLoaded()
     {
         if (!extension_loaded('awscrt')) {
             throw new CommonRuntimeException(
@@ -457,7 +463,7 @@ class SignatureV4 implements SignatureInterface
         }
     }
 
-    private function createCRTStaticCredentialsProvider($credentials)
+    protected function createCRTStaticCredentialsProvider($credentials)
     {
         return new StaticCredentialsProvider([
             'access_key_id' => $credentials->getAccessKeyId(),
@@ -468,16 +474,17 @@ class SignatureV4 implements SignatureInterface
 
     private function removeIllegalV4aHeaders(&$request)
     {
-        $illegalV4aHeaders = [
+        static $illegalV4aHeaders = [
             self::AMZ_CONTENT_SHA256_HEADER,
-            "aws-sdk-invocation-id",
-            "aws-sdk-retry",
-            'x-amz-region-set'
+            'aws-sdk-invocation-id',
+            'aws-sdk-retry',
+            'x-amz-region-set',
+            'transfer-encoding'
         ];
         $storedHeaders = [];
 
         foreach ($illegalV4aHeaders as $header) {
-            if ($request->hasHeader($header)){
+            if ($request->hasHeader($header)) {
                 $storedHeaders[$header] = $request->getHeader($header);
                 $request = $request->withoutHeader($header);
             }
@@ -500,18 +507,24 @@ class SignatureV4 implements SignatureInterface
      * @param CredentialsInterface $credentials
      * @param RequestInterface $request
      * @param $signingService
+     * @param SigningConfigAWS|null $signingConfig
      * @return RequestInterface
      */
-    protected function signWithV4a(CredentialsInterface $credentials, RequestInterface $request, $signingService)
-    {
+    protected function signWithV4a(
+        CredentialsInterface $credentials,
+        RequestInterface $request,
+        $signingService,
+        ?SigningConfigAWS $signingConfig = null
+    ){
         $this->verifyCRTLoaded();
-        $credentials_provider = $this->createCRTStaticCredentialsProvider($credentials);
-        $signingConfig = new SigningConfigAWS([
+        $signingConfig = $signingConfig ?? new SigningConfigAWS([
             'algorithm' => SigningAlgorithm::SIGv4_ASYMMETRIC,
             'signature_type' => SignatureType::HTTP_REQUEST_HEADERS,
-            'credentials_provider' => $credentials_provider,
+            'credentials_provider' => $this->createCRTStaticCredentialsProvider($credentials),
             'signed_body_value' => $this->getPayload($request),
-            'region' => "*",
+            'should_normalize_uri_path' => true,
+            'use_double_uri_encode' => true,
+            'region' => $this->region,
             'service' => $signingService,
             'date' => time(),
         ]);

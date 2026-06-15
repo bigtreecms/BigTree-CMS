@@ -36,16 +36,16 @@ use Google\ApiCore\Call;
 
 /**
 * Middleware which filters the $options array.
+*
+* @internal
 */
-class OptionsFilterMiddleware
+class OptionsFilterMiddleware implements MiddlewareInterface
 {
     use ArrayTrait;
 
     /** @var callable */
     private $nextHandler;
-
-    /** @var array */
-    private $permittedOptions;
+    private array $permittedOptions;
 
     public function __construct(
         callable $nextHandler,

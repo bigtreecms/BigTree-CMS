@@ -39,14 +39,14 @@ use Google\Protobuf\Internal\Message;
 
 /**
 * Middleware which wraps the response in an PagedListResponses object.
+*
+* @internal
 */
-class PagedMiddleware
+class PagedMiddleware implements MiddlewareInterface
 {
     /** @var callable */
     private $nextHandler;
-
-    /** @var PageStreamingDescriptor */
-    private $descriptor;
+    private PageStreamingDescriptor $descriptor;
 
     /**
      * @param callable $nextHandler

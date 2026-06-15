@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
 import type { ModuleForm, ModuleFormField } from "@/api/endpoints/modules";
 import type { Tag } from "@/api/endpoints/tags";
@@ -7,8 +7,7 @@ import { UnsavedChangesGuard } from "@/components/ui/UnsavedChangesGuard";
 import { useScrollToFirstError } from "@/hooks/useScrollToFirstError";
 import { ApiError } from "@/types/api";
 
-import { FieldRenderer } from "./FieldRenderer";
-import { FieldRow } from "./FieldRow";
+import { FieldRowItem } from "./FieldRowItem";
 import { FormRenderContextProvider, type FormRenderContextValue } from "./FormContext";
 import { OpenGraphSection, type OpenGraphValue } from "./OpenGraphSection";
 import { validateRequiredFields } from "./validation";
@@ -184,18 +183,25 @@ export const FormRenderer = ({
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [form, initialValues]);
 
-	const setFieldValue = (column: string, next: unknown) => {
+	// Stable across renders so the memoized FieldRowItem / FieldRenderer don't
+	// re-render every field on each keystroke. The error-clear is done inside the
+	// functional updater (rather than reading `fieldErrors`) so this callback has
+	// no value deps: when there's no error for the column the previous map is
+	// returned unchanged, so unrelated fields keep their identity.
+	const setFieldValue = useCallback((column: string, next: unknown) => {
 		setValues((prev) => ({ ...prev, [column]: next }));
 
-		if (fieldErrors[column]) {
-			setFieldErrors((prev) => {
-				const copy = { ...prev };
-				delete copy[column];
+		setFieldErrors((prev) => {
+			if (!prev[column]) {
+				return prev;
+			}
 
-				return copy;
-			});
-		}
-	};
+			const copy = { ...prev };
+			delete copy[column];
+
+			return copy;
+		});
+	}, []);
 
 	const handleSubmit = async (event: React.FormEvent, publish = false) => {
 		event.preventDefault();
@@ -287,24 +293,18 @@ export const FormRenderer = ({
 					</div>
 				) : (
 					form.fields.map((field) => (
-						<FieldRow
+						<FieldRowItem
 							key={field.column}
 							field={field}
+							value={values[field.column]}
+							setFieldValue={setFieldValue}
 							error={fieldErrors[field.column]}
+							disabled={disabled || submitting}
 							pending={pendingSet.has(field.column)}
 							isNew={isNewDraft}
 							publishedValue={publishedValues?.[field.column]}
-							currentValue={values[field.column]}
 							pendingLabel={pendingLabel}
-						>
-							<FieldRenderer
-								field={field}
-								value={values[field.column]}
-								onChange={(next) => setFieldValue(field.column, next)}
-								disabled={disabled || submitting}
-								error={fieldErrors[field.column]}
-							/>
-						</FieldRow>
+						/>
 					))
 				)}
 

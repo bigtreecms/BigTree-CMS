@@ -42,12 +42,13 @@ class MockResponse extends \Google\Protobuf\Internal\Message
      *
      *     @type string $name
      *     @type int|string $number
-     *     @type string[]|\Google\Protobuf\Internal\RepeatedField $resources_list
+     *     @type string[]|\Google\Protobuf\RepeatedField $resources_list
      *     @type string $next_page_token
      *     @type array|\Google\Protobuf\Internal\MapField $resources_map
      * }
      */
-    public function __construct($data = NULL) {
+    public function __construct($data = null)
+    {
         \GPBMetadata\ApiCore\Testing\Mocks::initOnce();
         parent::__construct($data);
     }
@@ -68,7 +69,7 @@ class MockResponse extends \Google\Protobuf\Internal\Message
      */
     public function setName($var)
     {
-        GPBUtil::checkString($var, True);
+        GPBUtil::checkString($var, true);
         $this->name = $var;
 
         return $this;
@@ -98,7 +99,7 @@ class MockResponse extends \Google\Protobuf\Internal\Message
 
     /**
      * Generated from protobuf field <code>repeated string resources_list = 3;</code>
-     * @return \Google\Protobuf\Internal\RepeatedField
+     * @return \Google\Protobuf\RepeatedField
      */
     public function getResourcesList()
     {
@@ -107,7 +108,7 @@ class MockResponse extends \Google\Protobuf\Internal\Message
 
     /**
      * Generated from protobuf field <code>repeated string resources_list = 3;</code>
-     * @param string[]|\Google\Protobuf\Internal\RepeatedField $var
+     * @param string[]|\Google\Protobuf\RepeatedField $var
      * @return $this
      */
     public function setResourcesList($var)
@@ -134,7 +135,7 @@ class MockResponse extends \Google\Protobuf\Internal\Message
      */
     public function setNextPageToken($var)
     {
-        GPBUtil::checkString($var, True);
+        GPBUtil::checkString($var, true);
         $this->next_page_token = $var;
 
         return $this;
@@ -163,4 +164,3 @@ class MockResponse extends \Google\Protobuf\Internal\Message
     }
 
 }
-

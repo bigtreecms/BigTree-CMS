@@ -72,6 +72,7 @@ class Signer
      * @return array The values needed to construct a signed URL or cookie
      * @throws \InvalidArgumentException  when not provided either a policy or a
      *                                    resource and a expires
+     * @throws \RuntimeException when generated signature is empty
      *
      * @link http://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/private-content-signed-cookies.html
      */
@@ -80,8 +81,10 @@ class Signer
         $signatureHash = [];
         if ($policy) {
             $policy = preg_replace('/\s/s', '', $policy);
+            self::validatePolicy($policy);
             $signatureHash['Policy'] = $this->encode($policy);
         } elseif ($resource && $expires) {
+            self::validateResourceUrl($resource);
             $expires = (int) $expires; // Handle epoch passed as string
             $policy = $this->createCannedPolicy($resource, $expires);
             $signatureHash['Expires'] = $expires;
@@ -113,7 +116,20 @@ class Signer
     private function sign($policy)
     {
         $signature = '';
-        openssl_sign($policy, $signature, $this->pkHandle);
+        
+        if(!openssl_sign($policy, $signature, $this->pkHandle)) {
+            $errorMessages = [];
+            while(($newMessage = openssl_error_string()) !== false) {
+                $errorMessages[] = $newMessage;
+            }
+            
+            $exceptionMessage = "An error has occurred when signing the policy";
+            if (count($errorMessages) > 0) {
+                $exceptionMessage = implode("\n", $errorMessages);
+            }
+
+            throw new \RuntimeException($exceptionMessage);
+        }
 
         return $signature;
     }
@@ -121,5 +137,36 @@ class Signer
     private function encode($policy)
     {
         return strtr(base64_encode($policy), '+=/', '-_~');
+    }
+
+    /**
+     * Validates a customer provided json document.
+     *
+     * @param string $jsonPolicy
+     *
+     * @return void
+     */
+    private static function validatePolicy(string $jsonPolicy): void
+    {
+        $policy = json_decode($jsonPolicy, true);
+        foreach ($policy['Statement'] ?? [] as $statement) {
+            if (isset($statement['Resource'])) {
+                self::validateResourceUrl($statement['Resource']);
+            }
+        }
+    }
+
+    /**
+     * @param string $url
+     *
+     * @return void
+     */
+    private static function validateResourceUrl(string $url): void
+    {
+        if (preg_match('/["\\\\\x00-\x1F]/', $url)) {
+            throw new \InvalidArgumentException(
+                'URL contains invalid characters: ", \\, or control characters'
+            );
+        }
     }
 }

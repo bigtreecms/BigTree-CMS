@@ -29,22 +29,32 @@ use GuzzleHttp\Psr7\Utils;
  */
 class Iam
 {
+    /**
+     * @deprecated
+     */
     const IAM_API_ROOT = 'https://iamcredentials.googleapis.com/v1';
     const SIGN_BLOB_PATH = '%s:signBlob?alt=json';
     const SERVICE_ACCOUNT_NAME = 'projects/-/serviceAccounts/%s';
+    private const IAM_API_ROOT_TEMPLATE = 'https://iamcredentials.UNIVERSE_DOMAIN/v1';
+    private const GENERATE_ID_TOKEN_PATH = '%s:generateIdToken';
 
     /**
      * @var callable
      */
     private $httpHandler;
 
+    private string $universeDomain;
+
     /**
-     * @param callable $httpHandler [optional] The HTTP Handler to send requests.
+     * @param callable|null $httpHandler [optional] The HTTP Handler to send requests.
      */
-    public function __construct(callable $httpHandler = null)
-    {
+    public function __construct(
+        ?callable $httpHandler = null,
+        string $universeDomain = GetUniverseDomainInterface::DEFAULT_UNIVERSE_DOMAIN
+    ) {
         $this->httpHandler = $httpHandler
             ?: HttpHandlerFactory::build(HttpClientCache::getHttpClient());
+        $this->universeDomain = $universeDomain;
     }
 
     /**
@@ -64,9 +74,9 @@ class Iam
      */
     public function signBlob($email, $accessToken, $stringToSign, array $delegates = [])
     {
-        $httpHandler = $this->httpHandler;
         $name = sprintf(self::SERVICE_ACCOUNT_NAME, $email);
-        $uri = self::IAM_API_ROOT . '/' . sprintf(self::SIGN_BLOB_PATH, $name);
+        $apiRoot = str_replace('UNIVERSE_DOMAIN', $this->universeDomain, self::IAM_API_ROOT_TEMPLATE);
+        $uri = $apiRoot . '/' . sprintf(self::SIGN_BLOB_PATH, $name);
 
         if ($delegates) {
             foreach ($delegates as &$delegate) {
@@ -92,9 +102,54 @@ class Iam
             Utils::streamFor(json_encode($body))
         );
 
-        $res = $httpHandler($request);
+        $res = ($this->httpHandler)($request);
         $body = json_decode((string) $res->getBody(), true);
 
         return $body['signedBlob'];
+    }
+
+    /**
+     * Sign a string using the IAM signBlob API.
+     *
+     * Note that signing using IAM requires your service account to have the
+     * `iam.serviceAccounts.signBlob` permission, part of the "Service Account
+     * Token Creator" IAM role.
+     *
+     * @param string $clientEmail The service account email.
+     * @param string $targetAudience The audience for the ID token.
+     * @param string $bearerToken The token to authenticate the IAM request.
+     * @param array<string, string> $headers [optional] Additional headers to send with the request.
+     *
+     * @return string The signed string, base64-encoded.
+     */
+    public function generateIdToken(
+        string $clientEmail,
+        string $targetAudience,
+        string $bearerToken,
+        array $headers = []
+    ): string {
+        $name = sprintf(self::SERVICE_ACCOUNT_NAME, $clientEmail);
+        $apiRoot = str_replace('UNIVERSE_DOMAIN', $this->universeDomain, self::IAM_API_ROOT_TEMPLATE);
+        $uri = $apiRoot . '/' . sprintf(self::GENERATE_ID_TOKEN_PATH, $name);
+
+        $headers['Authorization'] = 'Bearer ' . $bearerToken;
+
+        $body = [
+            'audience' => $targetAudience,
+            'includeEmail' => true,
+            'useEmailAzp' => true,
+        ];
+
+        $request = new Psr7\Request(
+            'POST',
+            $uri,
+            $headers,
+            Utils::streamFor(json_encode($body))
+        );
+
+        $res = ($this->httpHandler)($request);
+        $body = json_decode((string) $res->getBody(), true);
+
+        return $body['token'];
     }
 }

@@ -39,30 +39,11 @@ class JsonStreamDecoder
 {
     const ESCAPE_CHAR = '\\';
 
-    /**
-     * @var StreamInterface
-     */
-    private $stream;
-
-    /**
-     * @var bool
-     */
-    private $closeCalled = false;
-
-    /**
-     * @var string
-     */
-    private $decodeType;
-
-    /**
-     * @var bool
-     */
-    private $ignoreUnknown = true;
-
-    /**
-     * @var int
-     */
-    private $readChunkSize = 1024;
+    private StreamInterface $stream;
+    private bool $closeCalled = false;
+    private string $decodeType;
+    private bool $ignoreUnknown = true;
+    private int $readChunkSize = 1024;
 
     /**
      * JsonStreamDecoder is a HTTP-JSON response stream decoder for JSON-ecoded
@@ -183,7 +164,7 @@ class JsonStreamDecoder
                 if ($b === '}' && !$str) {
                     $level--;
                     if ($level === 1) {
-                        $end = $cursor+1;
+                        $end = $cursor + 1;
                     }
                 }
                 // Track the closing of an array if not in a string value.
@@ -214,7 +195,7 @@ class JsonStreamDecoder
 
                     // Dump the part of the chunk used for parsing the message
                     // and use the remaining for the next message.
-                    $remaining = $chunkLength-$length;
+                    $remaining = $chunkLength - $length;
                     $chunk = substr($chunk, $end, $remaining);
 
                     // Reset all indices and exit chunk processing.

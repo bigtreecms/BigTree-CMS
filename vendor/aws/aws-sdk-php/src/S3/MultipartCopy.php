@@ -9,7 +9,28 @@ use GuzzleHttp\Psr7;
 
 class MultipartCopy extends AbstractUploadManager
 {
-    use MultipartUploadingTrait;
+    use MultipartUploadingTrait {
+        getInitiateParams as private traitGetInitiateParams;
+    }
+
+    private const VALID_METADATA_DIRECTIVES = [
+        'COPY' => true,
+        'REPLACE' => true,
+    ];
+
+    /**
+     * Metadata fields that can be copied from the source object
+     * to the destination during a multipart copy.
+     */
+    private static array $copyMetadataFields = [
+        'CacheControl',
+        'ContentDisposition',
+        'ContentEncoding',
+        'ContentLanguage',
+        'ContentType',
+        'Expires',
+        'Metadata',
+    ];
 
     /** @var string|array */
     private $source;
@@ -50,8 +71,20 @@ class MultipartCopy extends AbstractUploadManager
      *   of the multipart upload and that is used to resume a previous upload.
      *   When this option is provided, the `bucket`, `key`, and `part_size`
      *   options are ignored.
-     * - source_metadata: (Aws\ResultInterface) An object that represents the
-     *   result of executing a HeadObject command on the copy source.
+     * - metadata_directive: (string, default='COPY') Specifies whether to copy
+     *   source object metadata to the destination. Set to 'COPY' to
+     *   automatically forward metadata fields (Metadata, CacheControl,
+     *   ContentDisposition, ContentEncoding, ContentLanguage, ContentType,
+     *   Expires) from the source object. When set to 'COPY', source metadata
+     *   takes precedence and any matching fields provided in 'params' are
+     *   ignored. Set to 'REPLACE' to suppress automatic metadata copying and
+     *   use your own values via the 'params' option.
+     * - source_metadata: (Aws\ResultInterface) The result of a HeadObject call
+     *   on the copy source. If not provided, the SDK makes a HeadObject request
+     *   to obtain the source object's size and metadata. Providing this avoids
+     *   the extra request.
+     * - display_progress: (boolean) Set true to track status in 1/8th increments
+     *   for upload.
      *
      * @param S3ClientInterface $client Client used for the upload.
      * @param string|array $source Location of the data to be copied (in the
@@ -75,6 +108,12 @@ class MultipartCopy extends AbstractUploadManager
             $client,
             array_change_key_case($config) + ['source_metadata' => null]
         );
+
+        if ($this->displayProgress) {
+            $this->getState()->setProgressThresholds(
+                $this->sourceMetadata["ContentLength"]
+            );
+        }
     }
 
     /**
@@ -171,6 +210,31 @@ class MultipartCopy extends AbstractUploadManager
         return $result->search('CopyPartResult.ETag');
     }
 
+    protected function getInitiateParams()
+    {
+        $params = $this->traitGetInitiateParams();
+
+        $directive = strtoupper($this->config['metadata_directive'] ?? 'COPY');
+
+        if (!isset(self::VALID_METADATA_DIRECTIVES[$directive])) {
+            throw new \InvalidArgumentException(
+                "Invalid metadata_directive value '$directive'."
+                . " Must be 'COPY' or 'REPLACE'."
+            );
+        }
+
+        if ($directive === 'COPY') {
+            $sourceMetadata = $this->getSourceMetadata();
+            foreach (self::$copyMetadataFields as $field) {
+                if (!empty($sourceMetadata[$field])) {
+                    $params[$field] = $sourceMetadata[$field];
+                }
+            }
+        }
+
+        return $params;
+    }
+
     protected function getSourceMimeType()
     {
         return $this->getSourceMetadata()['ContentType'];
@@ -238,5 +302,4 @@ class MultipartCopy extends AbstractUploadManager
         $sourceBuilder .= ltrim(rawurldecode($inputSource), '/');
         return $sourceBuilder;
     }
-
 }

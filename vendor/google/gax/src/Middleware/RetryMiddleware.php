@@ -39,26 +39,36 @@ use GuzzleHttp\Promise\PromiseInterface;
 
 /**
  * Middleware that adds retry functionality.
+ *
+ * @internal
  */
-class RetryMiddleware
+class RetryMiddleware implements MiddlewareInterface
 {
     /** @var callable */
     private $nextHandler;
+    private RetrySettings $retrySettings;
+    private ?float $deadlineMs;
+    /** @var callable */
+    private $delayHandler;
 
-    /** @var RetrySettings */
-    private $retrySettings;
-
-    /** @var float|null */
-    private $deadlineMs;
+    /*
+     * The number of retries that have already been attempted.
+     * The original API call will have $retryAttempts set to 0.
+     */
+    private int $retryAttempts;
 
     public function __construct(
         callable $nextHandler,
         RetrySettings $retrySettings,
-        $deadlineMs = null
+        $deadlineMs = null,
+        $retryAttempts = 0,
+        ?callable $delayHandler = null
     ) {
         $this->nextHandler = $nextHandler;
         $this->retrySettings = $retrySettings;
         $this->deadlineMs = $deadlineMs;
+        $this->retryAttempts = $retryAttempts;
+        $this->delayHandler = ($delayHandler ?? [$this, 'sleepMillis']);
     }
 
     /**
@@ -80,20 +90,34 @@ class RetryMiddleware
             }
         }
 
+        // Setting the retry attempt for logging
+        if ($this->retryAttempts > 0) {
+            $options['retryAttempt'] = $this->retryAttempts;
+        }
+
         // Call the handler immediately if retry settings are disabled.
         if (!$this->retrySettings->retriesEnabled()) {
             return $nextHandler($call, $options);
         }
 
         return $nextHandler($call, $options)->then(null, function ($e) use ($call, $options) {
-            if (!$e instanceof ApiException) {
+            $retryFunction = $this->getRetryFunction();
+
+            // If the number of retries has surpassed the max allowed retries
+            // then throw the exception as we normally would.
+            // If the maxRetries is set to 0, then we don't check this condition.
+            if (0 !== $this->retrySettings->getMaxRetries()
+                && $this->retryAttempts >= $this->retrySettings->getMaxRetries()
+            ) {
+                throw $e;
+            }
+            // If the retry function returns false then throw the
+            // exception as we normally would.
+            if (!$retryFunction($e, $options)) {
                 throw $e;
             }
 
-            if (!in_array($e->getStatus(), $this->retrySettings->getRetryableCodes())) {
-                throw $e;
-            }
-
+            // Retry function returned true, so we attempt another retry
             return $this->retry($call, $options, $e->getStatus());
         });
     }
@@ -127,7 +151,7 @@ class RetryMiddleware
             );
         }
 
-        $delayMs = min($delayMs * $delayMult, $maxDelayMs);
+        $nextDelayMs = min($delayMs * $delayMult, $maxDelayMs);
         $timeoutMs = (int) min(
             $timeoutMs * $timeoutMult,
             $maxTimeoutMs,
@@ -137,13 +161,18 @@ class RetryMiddleware
         $nextHandler = new RetryMiddleware(
             $this->nextHandler,
             $this->retrySettings->with([
-                'initialRetryDelayMillis' => $delayMs,
+                'initialRetryDelayMillis' => $nextDelayMs,
             ]),
-            $deadlineMs
+            $deadlineMs,
+            $this->retryAttempts + 1,
+            $this->delayHandler,
         );
 
         // Set the timeout for the call
         $options['timeoutMillis'] = $timeoutMs;
+
+        // Sleep for the length of the delay
+        ($this->delayHandler)($delayMs);
 
         return $nextHandler(
             $call,
@@ -154,5 +183,35 @@ class RetryMiddleware
     protected function getCurrentTimeMs()
     {
         return microtime(true) * 1000.0;
+    }
+
+    /**
+     * This is the default retry behaviour.
+     */
+    private function getRetryFunction()
+    {
+        return $this->retrySettings->getRetryFunction() ??
+            function (\Throwable $e, array $options): bool {
+                // This is the default retry behaviour, i.e. we don't retry an ApiException
+                // and for other exception types, we only retry when the error code is in
+                // the list of retryable error codes.
+                if (!$e instanceof ApiException) {
+                    return false;
+                }
+
+                if (!in_array($e->getStatus(), $this->retrySettings->getRetryableCodes())) {
+                    return false;
+                }
+
+                return true;
+            };
+    }
+
+    /**
+     * @param int $millis
+     */
+    private function sleepMillis(int $millis)
+    {
+        usleep($millis * 1000);
     }
 }

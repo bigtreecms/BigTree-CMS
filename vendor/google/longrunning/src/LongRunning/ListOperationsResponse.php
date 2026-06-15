@@ -5,11 +5,12 @@
 namespace Google\LongRunning;
 
 use Google\Protobuf\Internal\GPBType;
-use Google\Protobuf\Internal\RepeatedField;
 use Google\Protobuf\Internal\GPBUtil;
+use Google\Protobuf\RepeatedField;
 
 /**
- * The response message for [Operations.ListOperations][google.longrunning.Operations.ListOperations].
+ * The response message for
+ * [Operations.ListOperations][google.longrunning.Operations.ListOperations].
  *
  * Generated from protobuf message <code>google.longrunning.ListOperationsResponse</code>
  */
@@ -27,6 +28,15 @@ class ListOperationsResponse extends \Google\Protobuf\Internal\Message
      * Generated from protobuf field <code>string next_page_token = 2;</code>
      */
     private $next_page_token = '';
+    /**
+     * Unordered list. Unreachable resources. Populated when the request sets
+     * `ListOperationsRequest.return_partial_success` and reads across
+     * collections e.g. when attempting to list all resources across all supported
+     * locations.
+     *
+     * Generated from protobuf field <code>repeated string unreachable = 3 [(.google.api.field_behavior) = UNORDERED_LIST];</code>
+     */
+    private $unreachable;
 
     /**
      * Constructor.
@@ -34,10 +44,15 @@ class ListOperationsResponse extends \Google\Protobuf\Internal\Message
      * @param array $data {
      *     Optional. Data for populating the Message object.
      *
-     *     @type array<\Google\LongRunning\Operation>|\Google\Protobuf\Internal\RepeatedField $operations
+     *     @type \Google\LongRunning\Operation[] $operations
      *           A list of operations that matches the specified filter in the request.
      *     @type string $next_page_token
      *           The standard List next-page token.
+     *     @type string[] $unreachable
+     *           Unordered list. Unreachable resources. Populated when the request sets
+     *           `ListOperationsRequest.return_partial_success` and reads across
+     *           collections e.g. when attempting to list all resources across all supported
+     *           locations.
      * }
      */
     public function __construct($data = NULL) {
@@ -49,7 +64,7 @@ class ListOperationsResponse extends \Google\Protobuf\Internal\Message
      * A list of operations that matches the specified filter in the request.
      *
      * Generated from protobuf field <code>repeated .google.longrunning.Operation operations = 1;</code>
-     * @return \Google\Protobuf\Internal\RepeatedField
+     * @return RepeatedField<\Google\LongRunning\Operation>
      */
     public function getOperations()
     {
@@ -60,7 +75,7 @@ class ListOperationsResponse extends \Google\Protobuf\Internal\Message
      * A list of operations that matches the specified filter in the request.
      *
      * Generated from protobuf field <code>repeated .google.longrunning.Operation operations = 1;</code>
-     * @param array<\Google\LongRunning\Operation>|\Google\Protobuf\Internal\RepeatedField $var
+     * @param \Google\LongRunning\Operation[] $var
      * @return $this
      */
     public function setOperations($var)
@@ -93,6 +108,38 @@ class ListOperationsResponse extends \Google\Protobuf\Internal\Message
     {
         GPBUtil::checkString($var, True);
         $this->next_page_token = $var;
+
+        return $this;
+    }
+
+    /**
+     * Unordered list. Unreachable resources. Populated when the request sets
+     * `ListOperationsRequest.return_partial_success` and reads across
+     * collections e.g. when attempting to list all resources across all supported
+     * locations.
+     *
+     * Generated from protobuf field <code>repeated string unreachable = 3 [(.google.api.field_behavior) = UNORDERED_LIST];</code>
+     * @return RepeatedField<string>
+     */
+    public function getUnreachable()
+    {
+        return $this->unreachable;
+    }
+
+    /**
+     * Unordered list. Unreachable resources. Populated when the request sets
+     * `ListOperationsRequest.return_partial_success` and reads across
+     * collections e.g. when attempting to list all resources across all supported
+     * locations.
+     *
+     * Generated from protobuf field <code>repeated string unreachable = 3 [(.google.api.field_behavior) = UNORDERED_LIST];</code>
+     * @param string[] $var
+     * @return $this
+     */
+    public function setUnreachable($var)
+    {
+        $arr = GPBUtil::checkRepeatedField($var, \Google\Protobuf\Internal\GPBType::STRING);
+        $this->unreachable = $arr;
 
         return $this;
     }

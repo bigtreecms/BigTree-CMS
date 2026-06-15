@@ -30,6 +30,9 @@ class Service extends AbstractModel
     /** @var boolean */
     private $modifiedModel = false;
 
+    /** @var string */
+    private $protocol;
+
     /**
      * @param array    $definition
      * @param callable $provider
@@ -69,6 +72,8 @@ class Service extends AbstractModel
         if (isset($definition['clientContextParams'])) {
            $this->clientContextParams = $definition['clientContextParams'];
         }
+
+        $this->protocol = $this->selectProtocol($definition);
     }
 
     /**
@@ -86,7 +91,8 @@ class Service extends AbstractModel
             'json'      => Serializer\JsonRpcSerializer::class,
             'query'     => Serializer\QuerySerializer::class,
             'rest-json' => Serializer\RestJsonSerializer::class,
-            'rest-xml'  => Serializer\RestXmlSerializer::class
+            'rest-xml'  => Serializer\RestXmlSerializer::class,
+            'smithy-rpc-v2-cbor' => Serializer\RpcV2CborSerializer::class
         ];
 
         $proto = $api->getProtocol();
@@ -114,14 +120,15 @@ class Service extends AbstractModel
      * @return callable
      * @throws \UnexpectedValueException
      */
-    public static function createErrorParser($protocol, Service $api = null)
+    public static function createErrorParser($protocol, ?Service $api = null)
     {
         static $mapping = [
             'json'      => ErrorParser\JsonRpcErrorParser::class,
             'query'     => ErrorParser\XmlErrorParser::class,
             'rest-json' => ErrorParser\RestJsonErrorParser::class,
             'rest-xml'  => ErrorParser\XmlErrorParser::class,
-            'ec2'       => ErrorParser\XmlErrorParser::class
+            'ec2'       => ErrorParser\XmlErrorParser::class,
+            'smithy-rpc-v2-cbor' => ErrorParser\RpcV2CborErrorParser::class
         ];
 
         if (isset($mapping[$protocol])) {
@@ -144,7 +151,8 @@ class Service extends AbstractModel
             'json'      => Parser\JsonRpcParser::class,
             'query'     => Parser\QueryParser::class,
             'rest-json' => Parser\RestJsonParser::class,
-            'rest-xml'  => Parser\RestXmlParser::class
+            'rest-xml'  => Parser\RestXmlParser::class,
+            'smithy-rpc-v2-cbor' => Parser\RpcV2CborParser::class
         ];
 
         $proto = $api->getProtocol();
@@ -219,7 +227,7 @@ class Service extends AbstractModel
      */
     public function getServiceName()
     {
-        return $this->definition['metadata']['serviceIdentifier'];
+        return $this->definition['metadata']['serviceIdentifier'] ?? null;
     }
 
     /**
@@ -241,7 +249,7 @@ class Service extends AbstractModel
      */
     public function getProtocol()
     {
-        return $this->definition['metadata']['protocol'];
+        return $this->protocol;
     }
 
     /**
@@ -284,7 +292,7 @@ class Service extends AbstractModel
                 $this->definition['operations'][$name],
                 $this->shapeMap
             );
-        } else if ($this->modifiedModel) {
+        } elseif ($this->modifiedModel) {
             $this->operations[$name] = new Operation(
                 $this->definition['operations'][$name],
                 $this->shapeMap
@@ -517,6 +525,7 @@ class Service extends AbstractModel
     public function setDefinition($definition)
     {
         $this->definition = $definition;
+        $this->shapeMap = new ShapeMap($definition['shapes']);
         $this->modifiedModel = true;
     }
 
@@ -531,5 +540,28 @@ class Service extends AbstractModel
     public function isModifiedModel()
     {
         return $this->modifiedModel;
+    }
+
+    /**
+     * Accepts a list of protocols derived from the service model.
+     * Returns the highest priority compatible auth scheme if the `protocols` trait is present.
+     * Otherwise, returns the value of the `protocol` field, if set, or null.
+     *
+     * @param array $definition
+     *
+     * @return string|null
+     */
+    private function selectProtocol(array $definition): string | null
+    {
+        $modeledProtocols = $definition['metadata']['protocols'] ?? null;
+        if (!empty($modeledProtocols)) {
+            foreach(SupportedProtocols::cases() as $protocol) {
+                if (in_array($protocol->value, $modeledProtocols)) {
+                    return $protocol->value;
+                }
+            }
+        }
+
+        return $definition['metadata']['protocol'] ?? null;
     }
 }
