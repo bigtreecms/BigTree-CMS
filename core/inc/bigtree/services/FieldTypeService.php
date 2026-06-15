@@ -679,9 +679,8 @@
 		 * like "com.fastspot.date-range"), and has no ".." traversal.
 		 */
 		private function safeSegment($segment) {
-			return $segment !== ""
-				&& (bool)preg_match('/^[a-z0-9][a-z0-9._-]*$/i', $segment)
-				&& strpos($segment, "..") === false;
+
+			return \BigTree\Api\Sanitize::pathSegment((string)$segment);
 		}
 
 		/** Filesystem path of a local module type's source. */

@@ -2217,9 +2217,8 @@
 		 * (Routes are already alnum+dash, but this guards the filesystem regardless.)
 		 */
 		private function safeSegment($segment) {
-			return $segment !== ""
-				&& (bool)preg_match('/^[a-z0-9][a-z0-9._-]*$/i', $segment)
-				&& strpos($segment, "..") === false;
+
+			return \BigTree\Api\Sanitize::pathSegment((string)$segment);
 		}
 
 		/**

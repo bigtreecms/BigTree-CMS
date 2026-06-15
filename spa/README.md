@@ -11,10 +11,14 @@ React + TypeScript + Tailwind admin frontend for BigTree's REST API.
 
 ```bash
 nvm use            # picks up Node 20 from .nvmrc
-npm install
+npm ci
 cp .env.example .env.local   # then edit VITE_API_TARGET
 npm run dev
 ```
+
+Use `npm ci`, not `npm install` — this repo's `node_modules` is pnpm-tainted and
+`npm install` corrupts it (you'll see a duplicate-vite `TS2769` build error).
+Node 20 is required (`.nvmrc` is provided; run `nvm use`).
 
 The dev server runs at <http://localhost:5173>. It proxies `/admin/api/v1/*` to
 `VITE_API_TARGET` (your PHP server), so the SPA's requests look same-origin and

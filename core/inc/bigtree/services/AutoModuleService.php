@@ -332,11 +332,39 @@
 			$module = $this->loadModule($module_id);
 			$table = $this->resolveTable($module, $request);
 			$ids = array_map("intval", (array)$request->body["ids"]);
+
+			// Only rows that (a) are genuine members of $table and (b) the user has
+			// publisher ("p") row-level access to may be repositioned. Without this a
+			// user with reorder access could rewrite the ordering of rows that
+			// group-based permissions hide from them, or write positions onto ids
+			// that aren't members of this table at all. Mirrors PageService::reorder.
+			$rows = [];
+
+			if ($ids) {
+				$placeholders = implode(",", array_fill(0, count($ids), "?"));
+				$fetched = SQL::fetchAll(
+					"SELECT * FROM `$table` WHERE id IN ($placeholders)",
+					...$ids
+				);
+
+				foreach ($fetched as $row) {
+					$rows[(int)$row["id"]] = $row;
+				}
+			}
+
+			$reorderable = $this->filterReorderableIds($request->user, $module, $rows, $ids);
 			$pos = count($ids);
 
 			foreach ($ids as $id) {
-				SQL::update($table, $id, ["position" => $pos--]);
-				BigTreeAutoModule::recacheItem($id, $table);
+				if (isset($reorderable[$id])) {
+					SQL::update($table, $id, ["position" => $pos--]);
+					BigTreeAutoModule::recacheItem($id, $table);
+				} else {
+					// Ids the user can't reorder (or that aren't members of $table)
+					// still consume their slot, so the surviving rows keep their
+					// intended relative spacing.
+					$pos--;
+				}
 			}
 
 			foreach (BigTreeAutoModule::getDependantViews($table) as $dep) {
@@ -344,6 +372,37 @@
 			}
 
 			return Response::noContent();
+		}
+
+		/**
+		 * Build the allow-set of ids that may actually be repositioned by reorder().
+		 * An id is reorderable only when its row was fetched from the module's table
+		 * (so it's a genuine member) and the user has publisher ("p") row-level
+		 * access to it — matching toggleFlag, since reorder is a publish-like
+		 * reordering of live content. $rows is the fetched rows keyed by id (each a
+		 * plain SELECT * row, the exact shape userRowLevel expects). Returns a set
+		 * keyed by id (the value is true) so the caller can isset()-test it.
+		 *
+		 * @param array<int,array<string,mixed>> $rows
+		 * @param int[] $ids
+		 * @return array<int,bool>
+		 */
+		private function filterReorderableIds($user, array $module, array $rows, array $ids): array {
+			$reorderable = [];
+
+			foreach ($ids as $id) {
+				$id = (int)$id;
+
+				if (!isset($rows[$id])) {
+					continue;
+				}
+
+				if (PermissionService::userRowLevel($user, $module, $rows[$id]) === "p") {
+					$reorderable[$id] = true;
+				}
+			}
+
+			return $reorderable;
 		}
 
 		// Toggle one of the three legacy boolean columns (archived / approved /

@@ -1,5 +1,7 @@
 import type { ModuleReport, ModuleReportRunResponse } from "@/api/endpoints/modules";
 
+import { csvCell as encodeCsvCell } from "@/lib/csv";
+
 /**
  * Convert a report's run-response into a CSV file and trigger a browser
  * download. The legacy admin streams CSV directly from PHP; the SPA does the
@@ -106,7 +108,7 @@ const csvCell = (value: unknown, decoder: HTMLTextAreaElement | null): string =>
 		}
 	}
 
-	return `"${raw.replace(/"/g, '""')}"`;
+	return encodeCsvCell(raw);
 };
 
 const createDecoder = (): HTMLTextAreaElement | null => {
