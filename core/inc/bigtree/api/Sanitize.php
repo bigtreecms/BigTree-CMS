@@ -20,4 +20,33 @@
 				&& (bool)preg_match('/^[a-z0-9][a-z0-9._-]*$/i', $segment)
 				&& strpos($segment, "..") === false;
 		}
+
+		// Field title → safe MySQL column name (urlify, hyphens→underscores, strip the
+		// rest). Mirrors form-create.php's `$cms->urlify` + str_replace.
+		public static function columnName(string $title): string {
+			$name = \BigTreeCMS::urlify($title);
+			$name = str_replace(["`", "-"], ["", "_"], $name);
+
+			return preg_replace('/[^A-Za-z0-9_]/', "", $name);
+		}
+
+		// Validate a sort clause against an allow-list of known columns so we never
+		// concatenate user-controlled text into SQL. Returns a backticked
+		// ``\`col\` DIR`` for an allowed column, otherwise ``\`fallback\` ASC``.
+		public static function orderClause(string $raw, array $columns, string $fallback): string {
+			$trimmed = trim($raw);
+
+			if ($trimmed !== "") {
+				if (preg_match('/^`?([A-Za-z0-9_-]+)`?(?:\s+(ASC|DESC))?\s*$/i', $trimmed, $m)) {
+					$col = $m[1];
+					$dir = strtoupper($m[2] ?? "ASC");
+
+					if (!empty($columns[$col])) {
+						return "`$col` $dir";
+					}
+				}
+			}
+
+			return "`$fallback` ASC";
+		}
 	}

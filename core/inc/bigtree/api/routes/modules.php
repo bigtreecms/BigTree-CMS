@@ -1,5 +1,7 @@
 <?php
 	use BigTree\Services\ModuleService;
+	use BigTree\Services\ModuleReportService;
+	use BigTree\Services\ModuleViewService;
 
 	return [
 		"GET /modules" => ["service" => [ModuleService::class, "list"], "permission" => ["level" => 0]],
@@ -163,7 +165,7 @@
 
 		"GET /modules/{id}/views" => ["service" => [ModuleService::class, "views"], "permission" => ["module" => "%id%", "min" => "v"]],
 		"POST /modules/{id}/views" => [
-			"service" => [ModuleService::class, "createView"],
+			"service" => [ModuleViewService::class, "createView"],
 			"permission" => ["level" => 2],
 			"body" => [
 				"title" => "required|string|max:255",
@@ -180,20 +182,20 @@
 			"audit" => ["table" => "module-views", "type" => "created", "entry" => "%id%"],
 		],
 		"PATCH /modules/{id}/views/{sid}" => [
-			"service" => [ModuleService::class, "updateView"],
+			"service" => [ModuleViewService::class, "updateView"],
 			"permission" => ["level" => 2],
 			"allow_unknown" => true,
 			"audit" => ["table" => "module-views", "type" => "updated", "entry" => "%sid%"],
 		],
 		"DELETE /modules/{id}/views/{sid}" => [
-			"service" => [ModuleService::class, "deleteView"],
+			"service" => [ModuleViewService::class, "deleteView"],
 			"permission" => ["level" => 2],
 			"audit" => ["table" => "module-views", "type" => "deleted", "entry" => "%sid%"],
 		],
 
 		"GET /modules/{id}/reports" => ["service" => [ModuleService::class, "reports"], "permission" => ["module" => "%id%", "min" => "v"]],
 		"POST /modules/{id}/reports" => [
-			"service" => [ModuleService::class, "createReport"],
+			"service" => [ModuleReportService::class, "createReport"],
 			"permission" => ["level" => 2],
 			"body" => [
 				"title" => "required|string|max:255",
@@ -208,22 +210,22 @@
 			"audit" => ["table" => "module-reports", "type" => "created", "entry" => "%id%"],
 		],
 		"PATCH /modules/{id}/reports/{sid}" => [
-			"service" => [ModuleService::class, "updateReport"],
+			"service" => [ModuleReportService::class, "updateReport"],
 			"permission" => ["level" => 2],
 			"allow_unknown" => true,
 			"audit" => ["table" => "module-reports", "type" => "updated", "entry" => "%sid%"],
 		],
 		"DELETE /modules/{id}/reports/{sid}" => [
-			"service" => [ModuleService::class, "deleteReport"],
+			"service" => [ModuleReportService::class, "deleteReport"],
 			"permission" => ["level" => 2],
 			"audit" => ["table" => "module-reports", "type" => "deleted", "entry" => "%sid%"],
 		],
 		"GET /modules/{id}/reports/{sid}/prepare" => [
-			"service" => [ModuleService::class, "prepareReport"],
+			"service" => [ModuleReportService::class, "prepareReport"],
 			"permission" => ["module" => "%id%", "min" => "v"],
 		],
 		"POST /modules/{id}/reports/{sid}/run" => [
-			"service" => [ModuleService::class, "runReport"],
+			"service" => [ModuleReportService::class, "runReport"],
 			"permission" => ["module" => "%id%", "min" => "v"],
 			"body" => ["filters" => "array", "sort" => "array"],
 		],
@@ -231,7 +233,7 @@
 		// Category list for a GBP module — consumed by the user editor's module
 		// permission tree, so gated at admin (level 1) rather than module view.
 		"GET /modules/{id}/gbp-categories" => [
-			"service" => [ModuleService::class, "gbpCategories"],
+			"service" => [ModuleViewService::class, "gbpCategories"],
 			"permission" => ["level" => 1],
 		],
 

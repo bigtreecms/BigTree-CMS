@@ -20,6 +20,8 @@
 	 * via API is a follow-on (the developer UI still creates them).
 	 */
 	class ModuleService {
+		use ModuleSubResourceSupport;
+
 		public function list(Request $request) {
 			$rows = BigTreeJSONDB::getAll("modules", "position", "DESC");
 
@@ -154,7 +156,7 @@
 					continue;
 				}
 
-				$base = $this->safeColumnName($title);
+				$base = \BigTree\Api\Sanitize::columnName($title);
 
 				if ($base === "") {
 					continue;
@@ -311,15 +313,6 @@
 				"level" => 0,
 				"position" => (int)$position,
 			]);
-		}
-
-		// Field title → safe MySQL column name (urlify, hyphens→underscores, strip the
-		// rest). Mirrors form-create.php's `$cms->urlify` + str_replace.
-		private function safeColumnName($title) {
-			$name = BigTreeCMS::urlify((string)$title);
-			$name = str_replace(["`", "-"], ["", "_"], $name);
-
-			return preg_replace('/[^A-Za-z0-9_]/', "", $name);
 		}
 
 		// Field type → column SQL type (the exact legacy form-create.php mapping).
@@ -514,55 +507,6 @@
 		}
 
 		/**
-		 * Categories for a group-based-permissions module. These are rows from
-		 * the module's configured `gbp.other_table`, used by the user editor to
-		 * render per-category permission radios. Mirrors the legacy
-		 * users/edit.php category lookup: select id + title_field, order by the
-		 * title field, and run each label through the optional item_parser.
-		 *
-		 *   GET /modules/{id}/gbp-categories
-		 *
-		 * Returns [{ id, title }]. An empty list when the module isn't GBP, the
-		 * config is incomplete, or the other table doesn't exist.
-		 */
-		public function gbpCategories(Request $request) {
-			$module = $this->loadModule($request->route_params["id"]);
-			$gbp = is_array($module["gbp"] ?? null) ? $module["gbp"] : [];
-
-			if (empty($gbp["enabled"])) {
-				return Response::ok([]);
-			}
-
-			$other_table = (string)($gbp["other_table"] ?? "");
-			$title_field = (string)($gbp["title_field"] ?? "");
-
-			if ($other_table === "" || $title_field === "" || !BigTree::tableExists($other_table)) {
-				return Response::ok([]);
-			}
-
-			$ot = sqlescape($other_table);
-			$tf = sqlescape($title_field);
-			$item_parser = $gbp["item_parser"] ?? "";
-			$categories = [];
-			$q = sqlquery("SELECT id, `$tf` FROM `$ot` ORDER BY `$tf` ASC");
-
-			while ($c = sqlfetch($q)) {
-				$title = $c[$title_field] ?? "";
-
-				if (!empty($item_parser) && is_callable($item_parser)) {
-					$title = call_user_func($item_parser, $title, $c["id"]);
-				}
-
-				$categories[] = [
-					"id" => (string)$c["id"],
-					"title" => (string)$title,
-				];
-			}
-
-			return Response::ok($categories);
-		}
-
-		/**
 		 * Resolve {id, title} options for a one-to-many or many-to-many form
 		 * field. Driven by the field's stored `settings` so the SPA does not
 		 * need to know — or be allowed to name — the underlying tables.
@@ -676,7 +620,7 @@
 			// Sort clause — validate against the column list so we never
 			// concatenate user-controlled text into the SQL. Default to the
 			// descriptor when the configured sort references a missing column.
-			$order_by = $this->safeOrderClause($sort, $schema["columns"], $descriptor);
+			$order_by = \BigTree\Api\Sanitize::orderClause($sort, $schema["columns"], $descriptor);
 
 			$entry_raw = trim((string)($request->query["entry"] ?? ""));
 
@@ -927,7 +871,7 @@
 				throw new BadRequestException("Field `$column` references columns that don't exist on `$table`", "invalid_field_settings", 400);
 			}
 
-			$order_by = $this->safeOrderClause($sort, $schema["columns"], $descriptor);
+			$order_by = \BigTree\Api\Sanitize::orderClause($sort, $schema["columns"], $descriptor);
 			$options = [];
 			$query = \sqlquery("SELECT `id`, `$descriptor` AS `__label` FROM `$table` ORDER BY $order_by");
 
@@ -936,23 +880,6 @@
 			}
 
 			return $options;
-		}
-
-		private function safeOrderClause(string $raw, array $columns, string $fallback): string {
-			$trimmed = trim($raw);
-
-			if ($trimmed !== "") {
-				if (preg_match('/^`?([A-Za-z0-9_-]+)`?(?:\s+(ASC|DESC))?\s*$/i', $trimmed, $m)) {
-					$col = $m[1];
-					$dir = strtoupper($m[2] ?? "ASC");
-
-					if (!empty($columns[$col])) {
-						return "`$col` $dir";
-					}
-				}
-			}
-
-			return "`$fallback` ASC";
 		}
 
 		// — Action CRUD —
@@ -1449,343 +1376,6 @@
 			return Response::noContent();
 		}
 
-		// — View CRUD —
-
-		public function createView(Request $request) {
-			$module_id = $request->route_params["id"];
-			$this->loadModule($module_id);
-			$d = $request->body;
-			$context = BigTreeJSONDB::getSubset("modules", $module_id);
-
-			$id = $context->insert("views", [
-				"title" => BigTree::safeEncode((string)$d["title"]),
-				"description" => BigTree::safeEncode((string)($d["description"] ?? "")),
-				"table" => (string)($d["table"] ?? ""),
-				"type" => (string)($d["type"] ?? ""),
-				"settings" => is_array($d["settings"] ?? null) ? $d["settings"] : [],
-				"fields" => is_array($d["fields"] ?? null) ? $d["fields"] : [],
-				"actions" => is_array($d["actions"] ?? null) ? $d["actions"] : [],
-				"related_form" => !empty($d["related_form"]) ? $d["related_form"] : null,
-				"preview_url" => BigTree::safeEncode((string)($d["preview_url"] ?? "")),
-				"exclude_from_search" => !empty($d["exclude_from_search"]),
-			]);
-
-			if (!empty($d["table"])) {
-				BigTreeAdmin::updateModuleViewColumnNumericStatusForTable($d["table"]);
-			}
-
-			return Response::created($this->getSubResource($module_id, "views", $id), null);
-		}
-
-		public function updateView(Request $request) {
-			$module_id = $request->route_params["id"];
-			$view_id = $request->route_params["sid"];
-			$module = $this->loadModule($module_id);
-			$existing = $this->findSub($module["views"] ?? [], $view_id);
-
-			if (!$existing) {
-				throw new NotFoundException("View $view_id not found", "resource_not_found", 404);
-			}
-
-			$d = $request->body;
-			$context = BigTreeJSONDB::getSubset("modules", $module_id);
-
-			$update = [];
-
-			if (isset($d["title"])) {
-				$update["title"] = BigTree::safeEncode((string)$d["title"]);
-			}
-
-			if (isset($d["description"])) {
-				$update["description"] = BigTree::safeEncode((string)$d["description"]);
-			}
-
-			if (isset($d["table"])) {
-				$update["table"] = (string)$d["table"];
-			}
-
-			if (isset($d["type"])) {
-				$update["type"] = (string)$d["type"];
-			}
-
-			if (isset($d["settings"]) && is_array($d["settings"])) {
-				$update["settings"] = $d["settings"];
-			}
-
-			if (isset($d["fields"]) && is_array($d["fields"])) {
-				$update["fields"] = $d["fields"];
-			}
-
-			if (isset($d["actions"]) && is_array($d["actions"])) {
-				$update["actions"] = $d["actions"];
-			}
-
-			if (array_key_exists("related_form", $d)) {
-				$update["related_form"] = $d["related_form"] ? $d["related_form"] : null;
-			}
-
-			if (isset($d["preview_url"])) {
-				$update["preview_url"] = BigTree::safeEncode((string)$d["preview_url"]);
-			}
-
-			if (array_key_exists("exclude_from_search", $d)) {
-				$update["exclude_from_search"] = !empty($d["exclude_from_search"]);
-			}
-
-			if ($update) {
-				$context->update("views", $view_id, $update);
-				$new_table = $update["table"] ?? ($existing["table"] ?? "");
-
-				if ($new_table !== "") {
-					BigTreeAdmin::updateModuleViewColumnNumericStatusForTable($new_table);
-				}
-			}
-
-			return Response::ok($this->getSubResource($module_id, "views", $view_id));
-		}
-
-		public function deleteView(Request $request) {
-			$module_id = $request->route_params["id"];
-			$view_id = $request->route_params["sid"];
-			$module = $this->loadModule($module_id);
-			$existing = $this->findSub($module["views"] ?? [], $view_id);
-
-			if (!$existing) {
-				throw new NotFoundException("View $view_id not found", "resource_not_found", 404);
-			}
-
-			$context = BigTreeJSONDB::getSubset("modules", $module_id);
-			$context->delete("views", $view_id);
-
-			foreach ($module["actions"] ?? [] as $action) {
-				if (($action["view"] ?? "") == $view_id) {
-					$context->delete("actions", $action["id"]);
-				}
-			}
-
-			return Response::noContent();
-		}
-
-		// — Report CRUD —
-
-		public function createReport(Request $request) {
-			$module_id = $request->route_params["id"];
-			$this->loadModule($module_id);
-			$d = $request->body;
-			$context = BigTreeJSONDB::getSubset("modules", $module_id);
-
-			$id = $context->insert("reports", [
-				"title" => BigTree::safeEncode((string)$d["title"]),
-				"table" => (string)($d["table"] ?? ""),
-				"type" => (string)($d["type"] ?? "csv"),
-				"filters" => is_array($d["filters"] ?? null) ? $d["filters"] : [],
-				"fields" => $d["fields"] ?? "",
-				"parser" => (string)($d["parser"] ?? ""),
-				"view" => !empty($d["view"]) ? $d["view"] : null,
-				"streaming" => !empty($d["streaming"]),
-			]);
-
-			return Response::created($this->getSubResource($module_id, "reports", $id), null);
-		}
-
-		public function updateReport(Request $request) {
-			$module_id = $request->route_params["id"];
-			$report_id = $request->route_params["sid"];
-			$module = $this->loadModule($module_id);
-			$existing = $this->findSub($module["reports"] ?? [], $report_id);
-
-			if (!$existing) {
-				throw new NotFoundException("Report $report_id not found", "resource_not_found", 404);
-			}
-
-			$d = $request->body;
-			$context = BigTreeJSONDB::getSubset("modules", $module_id);
-
-			$update = [];
-
-			if (isset($d["title"])) {
-				$update["title"] = BigTree::safeEncode((string)$d["title"]);
-			}
-
-			if (isset($d["table"])) {
-				$update["table"] = (string)$d["table"];
-			}
-
-			if (isset($d["type"])) {
-				$update["type"] = (string)$d["type"];
-			}
-
-			if (isset($d["filters"]) && is_array($d["filters"])) {
-				$update["filters"] = $d["filters"];
-			}
-
-			if (array_key_exists("fields", $d)) {
-				$update["fields"] = $d["fields"];
-			}
-
-			if (isset($d["parser"])) {
-				$update["parser"] = (string)$d["parser"];
-			}
-
-			if (array_key_exists("view", $d)) {
-				$update["view"] = $d["view"] ? $d["view"] : null;
-			}
-
-			if (array_key_exists("streaming", $d)) {
-				$update["streaming"] = !empty($d["streaming"]);
-			}
-
-			if ($update) {
-				$context->update("reports", $report_id, $update);
-			}
-			return Response::ok($this->getSubResource($module_id, "reports", $report_id));
-		}
-
-		public function deleteReport(Request $request) {
-			$module_id = $request->route_params["id"];
-			$report_id = $request->route_params["sid"];
-			$module = $this->loadModule($module_id);
-			$existing = $this->findSub($module["reports"] ?? [], $report_id);
-
-			if (!$existing) {
-				throw new NotFoundException("Report $report_id not found", "resource_not_found", 404);
-			}
-
-			$context = BigTreeJSONDB::getSubset("modules", $module_id);
-			$context->delete("reports", $report_id);
-
-			foreach ($module["actions"] ?? [] as $action) {
-				if (($action["report"] ?? "") == $report_id) {
-					$context->delete("actions", $action["id"]);
-				}
-			}
-
-			return Response::noContent();
-		}
-
-		/**
-		 * Surface everything the SPA needs to draw the report filter form before
-		 * running it: the report itself, its related view and form (for sort
-		 * column options), and the resolved dropdown options for any
-		 * `dropdown`-typed filter.
-		 *
-		 *   GET /modules/{id}/reports/{sid}/prepare
-		 *
-		 * Dropdown options come from the related form's poplist when the filter
-		 * column is a db-backed list field, otherwise from a DISTINCT() on the
-		 * report's underlying table. This mirrors the legacy dropdown.php partial
-		 * so the SPA renders the same option set the PHP admin showed.
-		 */
-		public function prepareReport(Request $request) {
-			$module_id = $request->route_params["id"];
-			$report_id = $request->route_params["sid"];
-
-			$this->loadModule($module_id);
-			$report = \BigTreeAutoModule::getReport($report_id);
-
-			if (!$report) {
-				throw new NotFoundException("Report $report_id not found", "resource_not_found", 404);
-			}
-
-			$form = \BigTreeAutoModule::getRelatedFormForReport($report);
-			$view = !empty($report["view"])
-				? \BigTreeAutoModule::getView($report["view"])
-				: \BigTreeAutoModule::getRelatedViewForReport($report);
-
-			$filter_options = [];
-
-			if (!empty($report["filters"]) && is_array($report["filters"])) {
-				foreach ($report["filters"] as $column => $filter) {
-					if (($filter["type"] ?? "") !== "dropdown") {
-						continue;
-					}
-
-					$filter_options[$column] = $this->resolveDropdownFilterOptions(
-						$column,
-						$report,
-						$form
-					);
-				}
-			}
-
-			return Response::ok([
-				"report" => $report,
-				"view" => $view,
-				"form" => $form,
-				"filter_options" => $filter_options,
-			]);
-		}
-
-		/**
-		 * Execute a saved report and return its rows.
-		 *
-		 *   POST /modules/{id}/reports/{sid}/run
-		 *   {
-		 *     "filters": { <filter-id>: <value | { start, end }> },
-		 *     "sort":    { "field": "<column>", "order": "ASC" | "DESC" }
-		 *   }
-		 *
-		 * Mirrors `BigTreeAutoModule::getReportResults` from the legacy admin: the
-		 * report's stored type/parser/poplist handling is applied server-side and
-		 * the SPA only ever sees parsed rows, the related view/form config, and a
-		 * row count.
-		 *
-		 * Returns:
-		 *   {
-		 *     report: { id, title, type, fields, parser, streaming, view, table, module },
-		 *     view:   <view config | null>,
-		 *     form:   <form config | null>,
-		 *     items:  [ <row>, ... ],
-		 *     meta:   { count }
-		 *   }
-		 */
-		public function runReport(Request $request) {
-			$module_id = $request->route_params["id"];
-			$report_id = $request->route_params["sid"];
-
-			$module = $this->loadModule($module_id);
-			$existing = $this->findSub($module["reports"] ?? [], $report_id);
-
-			if (!$existing) {
-				throw new NotFoundException("Report $report_id not found", "resource_not_found", 404);
-			}
-
-			$report = \BigTreeAutoModule::getReport($report_id);
-
-			if (!$report) {
-				throw new NotFoundException("Report $report_id not found", "resource_not_found", 404);
-			}
-
-			$form = \BigTreeAutoModule::getRelatedFormForReport($report);
-			$view = !empty($report["view"])
-				? \BigTreeAutoModule::getView($report["view"])
-				: \BigTreeAutoModule::getRelatedViewForReport($report);
-
-			$body = $request->body ?? [];
-			$filters = is_array($body["filters"] ?? null) ? $body["filters"] : [];
-			$sort_field = (string)($body["sort"]["field"] ?? "id");
-			$sort_order = (string)($body["sort"]["order"] ?? "DESC");
-
-			$items = \BigTreeAutoModule::getReportResults(
-				$report,
-				$view,
-				$form,
-				$filters,
-				$sort_field,
-				$sort_order
-			);
-
-			$items = is_array($items) ? array_values($items) : [];
-
-			return Response::ok([
-				"report" => $report,
-				"view" => $view,
-				"form" => $form,
-				"items" => $items,
-				"meta" => ["count" => count($items)],
-			]);
-		}
-
 		// — Embed-form CRUD —
 
 		public function createEmbedForm(Request $request) {
@@ -2042,105 +1632,6 @@
 				"thank_you_message" => $form["thank_you_message"] ?? "",
 				"redirect_url" => $form["redirect_url"] ?? "",
 			]);
-		}
-
-		/**
-		 * Resolve the option set for a dropdown report filter. Honors the
-		 * related form's db-populated list config when present, otherwise falls
-		 * back to a DISTINCT() on the report's underlying table — matching the
-		 * legacy admin's dropdown.php partial.
-		 *
-		 * Returns a list of `{ value, label }` so the SPA can render `<option>`
-		 * elements without re-querying anything.
-		 */
-		private function resolveDropdownFilterOptions(string $column, array $report, $form): array {
-			$field = null;
-
-			if (is_array($form) && is_array($form["fields"] ?? null)) {
-				foreach ($form["fields"] as $candidate) {
-					if (($candidate["column"] ?? "") === $column) {
-						$field = $candidate;
-
-						break;
-					}
-				}
-			}
-
-			$settings = is_array($field["settings"] ?? null) ? $field["settings"] : [];
-			$out = [];
-
-			if ($field && ($field["type"] ?? "") === "list" && ($settings["list_type"] ?? "") === "db") {
-				$pop_table = (string)($settings["pop-table"] ?? "");
-				$pop_description = (string)($settings["pop-description"] ?? "");
-				$pop_sort = (string)($settings["pop-sort"] ?? "");
-
-				if ($pop_table === "" || $pop_description === "") {
-					return $out;
-				}
-
-				$pop_table_safe = str_replace("`", "", $pop_table);
-				$pop_description_safe = str_replace("`", "", $pop_description);
-				$order_by = $pop_sort !== "" ? str_replace(";", "", $pop_sort) : "id ASC";
-				$query = "SELECT id, `$pop_description_safe` FROM `$pop_table_safe` ORDER BY $order_by";
-				$rs = sqlquery($query);
-
-				while ($row = sqlfetch($rs)) {
-					$out[] = [
-						"value" => $row["id"],
-						"label" => (string)$row[$pop_description],
-					];
-				}
-
-				return $out;
-			}
-
-			$table = (string)($report["table"] ?? "");
-
-			if ($table === "") {
-				return $out;
-			}
-
-			$col_safe = str_replace("`", "", $column);
-			$table_safe = str_replace("`", "", $table);
-			$rs = sqlquery("SELECT DISTINCT(`$col_safe`) AS v FROM `$table_safe` ORDER BY `$col_safe`");
-
-			while ($row = sqlfetch($rs)) {
-				$v = (string)$row["v"];
-				$out[] = ["value" => $v, "label" => $v];
-			}
-
-			return $out;
-		}
-
-		// — sub-resource helpers —
-
-		private function loadModule($id) {
-			$m = BigTreeJSONDB::get("modules", $id);
-
-			if (!$m) {
-				throw new NotFoundException("Module $id not found", "resource_not_found", 404);
-			}
-			return $m;
-		}
-
-		private function getSubResource($module_id, $bucket, $sub_id) {
-			$module = BigTreeJSONDB::get("modules", $module_id);
-			$found = $this->findSub($module[$bucket] ?? [], $sub_id);
-
-			if (!$found) {
-				throw new NotFoundException("Sub-resource $sub_id not found", "resource_not_found", 404);
-			}
-			return $found;
-		}
-
-		private function findSub(array $rows, $id) {
-			foreach ($rows as $row) {
-				if (($row["id"] ?? "") == $id) {
-					return $row;
-				}
-			}
-
-			return null;
 		}
 
 		// — Custom (module) action helpers —
