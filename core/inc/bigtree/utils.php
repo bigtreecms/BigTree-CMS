@@ -2883,6 +2883,9 @@
 			// Limit the request to 5 seconds
 			curl_setopt($handle, CURLOPT_TIMEOUT, 5);
 
+			// Bound the TCP/DNS connect phase so a stalled host can't eat the full timeout
+			curl_setopt($handle, CURLOPT_CONNECTTIMEOUT, 3);
+
 			// We want just the header (NOBODY sets it to a HEAD request)
 			curl_setopt($handle, CURLOPT_HEADER, true);
 			curl_setopt($handle, CURLOPT_NOBODY, true);

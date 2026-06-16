@@ -83,11 +83,49 @@
 			global $bigtree;
 			$trusted = $bigtree["config"]["api"]["trusted_proxies"] ?? [];
 			$remote = $_SERVER["REMOTE_ADDR"] ?? "0.0.0.0";
+			$xff = $_SERVER["HTTP_X_FORWARDED_FOR"] ?? "";
 
-			if (in_array($remote, $trusted, true) && !empty($_SERVER["HTTP_X_FORWARDED_FOR"])) {
-				$forwarded = explode(",", $_SERVER["HTTP_X_FORWARDED_FOR"]);
+			return self::resolveForwardedIp($remote, is_array($trusted) ? $trusted : [], $xff);
+		}
 
-				return trim($forwarded[0]);
+		/**
+		 * Resolve the real client IP from REMOTE_ADDR and the X-Forwarded-For header.
+		 *
+		 * Pure helper (no $_SERVER/globals) so it can be unit-tested directly.
+		 *
+		 * X-Forwarded-For is appended left-to-right as a request traverses proxies, so the
+		 * leftmost entry is client-controlled and untrustworthy. We only trust XFF at all if
+		 * REMOTE_ADDR is one of our declared trusted proxies, then walk the list right-to-left
+		 * skipping entries that are themselves trusted proxies and return the first non-trusted
+		 * hop — the real client as seen by our trusted edge. Trusted proxies are matched by
+		 * exact string only (no CIDR ranges). If every hop is trusted, or the chosen value is
+		 * not a syntactically valid IP, we fall back to REMOTE_ADDR so a garbage/spoofed token
+		 * can never become a rate-limit or ban key.
+		 */
+		private static function resolveForwardedIp(string $remote, array $trusted, string $xffHeader): string {
+			if (!in_array($remote, $trusted, true) || $xffHeader === "") {
+
+				return $remote;
+			}
+
+			$forwarded = array_values(array_filter(array_map("trim", explode(",", $xffHeader)), function ($entry) {
+
+				return $entry !== "";
+			}));
+
+			for ($i = count($forwarded) - 1; $i >= 0; $i--) {
+				$candidate = $forwarded[$i];
+
+				if (in_array($candidate, $trusted, true)) {
+					continue;
+				}
+
+				if (filter_var($candidate, FILTER_VALIDATE_IP) === false) {
+
+					return $remote;
+				}
+
+				return $candidate;
 			}
 
 			return $remote;

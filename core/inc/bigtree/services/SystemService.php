@@ -438,8 +438,16 @@
 		 * Streams the backup file via PHP's readfile() — no buffering, no memory
 		 * pressure regardless of dump size. Public route (no Bearer required) so
 		 * the SPA can use a regular <a download> link; the URL itself is gated by
-		 * an HMAC-signed token (issued by createBackup/listBackups, scoped to the
-		 * issuing user_id + backup_id, short TTL).
+		 * an HMAC-signed token (issued by createBackup/listBackups) bound to a
+		 * specific backup_id with a short TTL.
+		 *
+		 * The token is BEARER-style, not user-scoped: because the route is
+		 * "public" (Authenticate skips it before $request->user is loaded) there
+		 * is no authenticated user to compare against, so anyone holding a valid,
+		 * unexpired token for this backup_id may redeem it. We validate the claims
+		 * we can enforce here — bid (backup id) and exp (expiry). The uid claim is
+		 * minted for audit/correlation only and is intentionally NOT enforced (see
+		 * buildDownloadUrl). Keep these checks in sync with the claims minted there.
 		 *
 		 * The token check uses hash_equals via Pagination::decodeCursor for
 		 * constant-time comparison.
@@ -457,6 +465,9 @@
 				throw new AuthenticationException("Invalid download token", "invalid_token", 401);
 			}
 
+			// Enforce the claims minted in buildDownloadUrl. The uid claim is
+			// deliberately NOT checked: this is a public route, so there is no
+			// authenticated user to compare it against (see method docblock).
 			if (($payload["bid"] ?? "") !== $backup_id) {
 				throw new AuthenticationException("Token does not match this backup", "token_backup_mismatch", 401);
 			}
@@ -894,8 +905,15 @@
 
 		/**
 		 * Build an absolute download URL with an HMAC-signed token that scopes the
-		 * download to a specific user + backup + short TTL. Reuses the cursor
+		 * download to a specific backup_id with a short TTL. Reuses the cursor
 		 * encoder so we don't reinvent the HMAC primitive.
+		 *
+		 * The token is BEARER-style: the /download route is public (no Bearer
+		 * required) so a browser <a download> link works, which means downloadBackup
+		 * cannot enforce the issuing user. The uid claim is included for
+		 * audit/correlation only and is NOT validated at redemption — do not rely on
+		 * it for access control. Any claim added here that SHOULD gate access must
+		 * also be checked in downloadBackup.
 		 */
 		private function buildDownloadUrl($backup_id, $user_id) {
 			$payload = [

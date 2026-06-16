@@ -197,3 +197,163 @@
 			SQL::query("DELETE FROM bigtree_module_view_cache WHERE view = ?", $view_id);
 		}
 	}
+
+	/**
+	 * Fast-path equivalence for a NON-gbp module: list() lets the database
+	 * paginate (getSearchResults($view, $page, …)) instead of loading the full
+	 * set. This must return byte-identical page slices and the same meta.pages
+	 * as a full-load-then-slice would. We verify by comparing each DB-paginated
+	 * page against array_slice over the full "all" set in the same sort order.
+	 */
+	function test_automodule_list_pagination_fast_path_non_gbp() {
+		try {
+			SQL::fetchSingle("SELECT view FROM bigtree_module_view_cache LIMIT 1");
+		} catch (\Throwable $e) {
+			echo "  (skipped — database unavailable in this harness: " . $e->getMessage() . ")\n";
+
+			return;
+		}
+
+		$view_id = "ZZ_amlp_fp_" . uniqid();
+		$per_page = 3;
+
+		// per_page lives in the view setting so getSearchResults' page-mode
+		// derivation matches list()'s — proving meta.pages and the slices agree.
+		$view = [
+			"id" => $view_id,
+			"table" => "ZZ_amlp_table",
+			"type" => "standard",
+			"fields" => ["column1" => ["title" => "Label"]],
+			"settings" => ["per_page" => $per_page],
+		];
+
+		// gbp DISABLED — userRowLevel resolves identically for every row, so the
+		// fast path is taken and per-row filtering is a no-op.
+		$module = [
+			"id" => "ZZ_amlp_fp_module",
+			"gbp" => ["enabled" => false],
+		];
+
+		$n = 10;
+
+		try {
+			for ($i = 1; $i <= $n; $i++) {
+				_amlp_insert_cache_row($view_id, $i, "", "row-$i");
+			}
+
+			// The reference: the full ordered set as list()'s old code would load it.
+			$all = BigTreeAutoModule::getSearchResults($view, "all", "", "id ASC", false);
+			T::equals(count($all["results"]), $n, "fast-path reference: 'all' returns every cached row");
+
+			$expected_pages = (int)ceil($n / $per_page); // ceil(10/3) = 4
+			$seen = [];
+
+			for ($p = 1; $p <= $expected_pages; $p++) {
+				// This is the exact call list()'s fast path makes: page number,
+				// not "all".
+				$dbpage = BigTreeAutoModule::getSearchResults($view, $p, "", "id ASC", false);
+
+				// meta.pages list() would report on the fast path = $results["pages"].
+				T::equals((int)$dbpage["pages"], $expected_pages, "fast-path page $p reports pages = ceil(N/per_page)");
+
+				// The DB-paginated slice must equal the full-set slice for that page.
+				$expected_slice = array_slice($all["results"], ($p - 1) * $per_page, $per_page);
+				$db_ids = array_map(fn($r) => (int)$r["id"], $dbpage["results"]);
+				$expected_ids = array_map(fn($r) => (int)$r["id"], $expected_slice);
+				T::equals($db_ids, $expected_ids, "fast-path page $p slice matches full-load-then-slice");
+
+				foreach ($dbpage["results"] as $row) {
+					$seen[] = (int)$row["id"];
+				}
+			}
+
+			// No rows dropped: the union of every page is exactly the full set.
+			T::equals(count($seen), count(array_unique($seen)), "fast path returns no row twice");
+			sort($seen);
+			T::equals($seen, range(1, $n), "fast path reaches every row across pages (none dropped)");
+		} finally {
+			SQL::query("DELETE FROM bigtree_module_view_cache WHERE view = ?", $view_id);
+		}
+	}
+
+	/**
+	 * Admin (level > 0) on a gbp-ENABLED, non-grouped module: userRowLevel
+	 * short-circuits to "p" for every row, so the fast path is taken (gbp is
+	 * enabled but the user is admin). The admin must see all rows, correctly
+	 * DB-paginated, identical to a full-load-then-slice.
+	 */
+	function test_automodule_list_pagination_fast_path_admin_on_gbp() {
+		try {
+			SQL::fetchSingle("SELECT view FROM bigtree_module_view_cache LIMIT 1");
+		} catch (\Throwable $e) {
+			echo "  (skipped — database unavailable in this harness: " . $e->getMessage() . ")\n";
+
+			return;
+		}
+
+		$view_id = "ZZ_amlp_adm_" . uniqid();
+		$per_page = 4;
+
+		$view = [
+			"id" => $view_id,
+			"table" => "ZZ_amlp_table",
+			"type" => "standard",
+			"fields" => ["column1" => ["title" => "Label"]],
+			"settings" => ["per_page" => $per_page],
+		];
+
+		// gbp ENABLED — but an admin (level > 0) reaches userRowLevel's level>0
+		// short-circuit, so list()'s branch condition ($gbp_enabled && level===0)
+		// is false and the fast path runs.
+		$module = [
+			"id" => "ZZ_amlp_adm_module",
+			"gbp" => ["enabled" => true, "group_field" => "gbp_field"],
+		];
+
+		$admin_user = (object)["id" => 1, "level" => 1, "permissions" => []];
+
+		// Sanity: confirm the branch the fast path depends on. An admin sees every
+		// row (userRowLevel never returns "n"), regardless of gbp grouping.
+		$probe_row = ["id" => 1, "gbp_field" => "beta"];
+		T::equals(
+			PermissionService::userRowLevel($admin_user, $module, $probe_row),
+			"p",
+			"admin (level>0) resolves to 'p' on a gbp row — fast path is correct for admins"
+		);
+
+		$n = 9;
+
+		try {
+			// Mixed groups; an admin must still see every one of them.
+			for ($i = 1; $i <= $n; $i++) {
+				$group = ($i % 2 === 0) ? "beta" : "alpha";
+				_amlp_insert_cache_row($view_id, $i, $group, "row-$i");
+			}
+
+			$all = BigTreeAutoModule::getSearchResults($view, "all", "", "id ASC", false);
+			T::equals(count($all["results"]), $n, "admin reference: 'all' returns every cached row");
+
+			$expected_pages = (int)ceil($n / $per_page); // ceil(9/4) = 3
+			$seen = [];
+
+			for ($p = 1; $p <= $expected_pages; $p++) {
+				$dbpage = BigTreeAutoModule::getSearchResults($view, $p, "", "id ASC", false);
+				T::equals((int)$dbpage["pages"], $expected_pages, "admin fast-path page $p reports pages = ceil(N/per_page)");
+
+				$expected_slice = array_slice($all["results"], ($p - 1) * $per_page, $per_page);
+				$db_ids = array_map(fn($r) => (int)$r["id"], $dbpage["results"]);
+				$expected_ids = array_map(fn($r) => (int)$r["id"], $expected_slice);
+				T::equals($db_ids, $expected_ids, "admin fast-path page $p slice matches full-load-then-slice");
+
+				foreach ($dbpage["results"] as $row) {
+					$seen[] = (int)$row["id"];
+				}
+			}
+
+			T::equals(count($seen), count(array_unique($seen)), "admin fast path returns no row twice");
+			sort($seen);
+			T::equals($seen, range(1, $n), "admin sees every row across pages (gbp enabled, fast path)");
+		} finally {
+			SQL::query("DELETE FROM bigtree_module_view_cache WHERE view = ?", $view_id);
+		}
+	}

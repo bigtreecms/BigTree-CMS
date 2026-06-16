@@ -58,33 +58,61 @@
 			$query = (string)($request->query["q"] ?? "");
 			$sort = (string)($request->query["sort"] ?? "id DESC");
 
-			// The row-level permission predicate (userRowLevel) is a PHP function
-			// that depends on the user's gbp map, so the database can't pre-filter
-			// it. getSearchResults must therefore run BEFORE we know which rows the
-			// user may see. If we let it paginate first and filtered the slice
-			// afterward, a gbp-restricted user would get short/empty pages and a
-			// meta count that describes rows they can't reach. Instead fetch the
-			// full result set ("all"), filter it, and paginate the accessible rows
-			// here so meta and the page slice both reflect the post-filter set.
-			$results = BigTreeAutoModule::getSearchResults($view, "all", $query, $sort, false);
-
-			$accessible = array_values(array_filter($results["results"] ?? [], function ($row) use ($request, $module) {
-
-				return PermissionService::userRowLevel($request->user, $module, $row) !== "n";
-			}));
-
 			// per_page mirrors getSearchResults' own derivation (legacy reads the
 			// view's setting, falling back to the admin default) — the legacy
 			// function never returned it, so the previous read always yielded 0.
+			// Shared by both the full-set and DB-pagination paths below.
 			$per_page = !empty($view["settings"]["per_page"])
 				? (int)$view["settings"]["per_page"]
 				: (int)BigTreeAdmin::$PerPage;
 			$per_page = max(1, $per_page);
 
-			$total = count($accessible);
-			$pages = (int)ceil($total / $per_page);
-			$pages = $pages > 0 ? $pages : 1;
-			$items = array_slice($accessible, ($page - 1) * $per_page, $per_page);
+			// The row-level permission predicate (PermissionService::userRowLevel)
+			// is a PHP function the database can't pre-filter. It can only change
+			// WHICH rows are visible (relative to the page slice) when gbp is
+			// enabled AND the user is non-admin: admins short-circuit to "p" for
+			// every row, and a gbp-disabled module resolves to the same module-level
+			// permission for every row (all-or-nothing — and the user already passed
+			// the route's module-permission check). In those cases per-row filtering
+			// is a no-op on the page slice, so the database can paginate directly.
+			//
+			// IMPORTANT: this branch condition is coupled to userRowLevel's logic.
+			// If userRowLevel ever gains a new per-row dimension beyond gbp, revisit
+			// it. Grouped views are intentionally kept on the full-set path to avoid
+			// any change to how grouping interacts with pagination.
+			$gbp_enabled = !empty($module["gbp"]["enabled"]);
+			$user_level = $this->userLevel($request->user);
+			$grouped = in_array($view["type"] ?? "", ["grouped", "images-grouped"], true);
+			$needs_full_set = ($gbp_enabled && $user_level === 0) || $grouped;
+
+			if ($needs_full_set) {
+				// Fetch the full result set ("all"), filter it, and paginate the
+				// accessible rows here so meta and the page slice both reflect the
+				// post-filter set (plan 006 correctness). The filter is a no-op for
+				// the grouped-but-non-gbp / grouped-admin cases that reach here.
+				$results = BigTreeAutoModule::getSearchResults($view, "all", $query, $sort, false);
+				$rows = $results["results"] ?? [];
+
+				if ($gbp_enabled && $user_level === 0) {
+					$rows = array_values(array_filter($rows, function ($row) use ($request, $module) {
+
+						return PermissionService::userRowLevel($request->user, $module, $row) !== "n";
+					}));
+				}
+
+				$total = count($rows);
+				$pages = (int)ceil($total / $per_page);
+				$pages = $pages > 0 ? $pages : 1;
+				$items = array_slice($rows, ($page - 1) * $per_page, $per_page);
+			} else {
+				// Fast path: per-row filtering can't change the slice, so let the
+				// database paginate a single page. getSearchResults derives per_page
+				// and pages from the same view setting / admin default used above, so
+				// its "pages" agrees with the per_page we report in meta.
+				$results = BigTreeAutoModule::getSearchResults($view, $page, $query, $sort, false);
+				$items = $results["results"] ?? [];
+				$pages = max(1, (int)($results["pages"] ?? 1));
+			}
 
 			$payload = [
 				"view" => ["id" => $view["id"] ?? null, "title" => $view["title"] ?? ""],
@@ -472,6 +500,25 @@
 			}
 
 			return $m;
+		}
+
+		/**
+		 * The authenticated user's admin level, mirroring
+		 * PermissionService::extractLevel (which is private). Handles both the
+		 * object form set by the Authenticate middleware and an array form.
+		 * Used by list() to decide whether per-row gbp filtering can change the
+		 * page slice — keep this in sync with PermissionService::extractLevel.
+		 */
+		private function userLevel($user): int {
+			if (is_object($user)) {
+				return (int)($user->level ?? 0);
+			}
+
+			if (is_array($user)) {
+				return (int)($user["level"] ?? 0);
+			}
+
+			return 0;
 		}
 
 		/**
