@@ -813,13 +813,23 @@
 				if (empty($settings["not_unique"]) && $route !== "") {
 					$original_route = $route;
 					$x = 2;
+					$found = false;
 
-					while ($x < 1000 && SQL::exists($table, [$column => $route], $edit_id ?: null)) {
+					// Test each candidate — the bare route first, then -2, -3, …, -999
+					// — and stop on the first one that is free. Only blank the route if
+					// every candidate up to the cap genuinely collides.
+					while ($x <= 1000) {
+						if (!SQL::exists($table, [$column => $route], $edit_id ?: null)) {
+							$found = true;
+
+							break;
+						}
+
 						$route = $original_route."-".$x;
 						$x++;
 					}
 
-					if ($x == 1000) {
+					if (!$found) {
 						$route = "";
 					}
 				}

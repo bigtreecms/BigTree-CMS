@@ -2206,110 +2206,39 @@
 		}
 
 		/**
-		 * A single path segment is safe when it's non-empty, contains only
-		 * letters / digits / dot / dash / underscore, and has no ".." traversal.
-		 * (Routes are already alnum+dash, but this guards the filesystem regardless.)
+		 * Lazily-built collaborator that owns the action-source filesystem codegen
+		 * (read/write/move/delete of a local action's on-disk drawing source). The
+		 * concern was extracted from this class to keep filesystem IO out of CRUD;
+		 * these wrappers preserve the former private-method call sites verbatim.
 		 */
-		private function safeSegment($segment) {
+		private $action_source_service = null;
 
-			return \BigTree\Api\Sanitize::pathSegment((string)$segment);
+		private function actionSourceService(): ModuleActionSourceService {
+			if ($this->action_source_service === null) {
+				$this->action_source_service = new ModuleActionSourceService();
+			}
+
+			return $this->action_source_service;
 		}
 
-		/**
-		 * Split a module record into [extension, local-route]. An extension module's
-		 * route is namespaced "{extension}*{local-route}"; a core/custom module has
-		 * no extension and the route is used as-is. Falls back to splitting the route
-		 * on `*` when the `extension` field is absent.
-		 */
-		private function moduleRouteParts(array $module) {
-			$route = (string)($module["route"] ?? "");
-			$extension = (string)($module["extension"] ?? "");
-
-			if ($extension !== "" && strpos($route, $extension . "*") === 0) {
-				$route = substr($route, strlen($extension) + 1);
-			} elseif ($extension === "" && strpos($route, "*") !== false) {
-				[$extension, $route] = explode("*", $route, 2);
-			}
-
-			return [$extension, $route];
-		}
-
-		/**
-		 * Filesystem path of a local module action's source ("" if any segment is
-		 * unsafe). Mirrors where legacy custom actions live:
-		 *   - extension module → extensions/{extension}/modules/{local}/{action}.js
-		 *   - core/custom module → custom/admin/modules/{route}/{action}.js
-		 */
-		private function actionSourcePath(array $module, $action_route) {
-			$action = (string)$action_route;
-
-			if (!$this->safeSegment($action)) {
-				return "";
-			}
-
-			[$extension, $local] = $this->moduleRouteParts($module);
-
-			if (!$this->safeSegment($local)) {
-				return "";
-			}
-
-			if ($extension !== "") {
-				if (!$this->safeSegment($extension)) {
-					return "";
-				}
-
-				return SERVER_ROOT . "extensions/$extension/modules/$local/$action.js";
-			}
-
-			return SERVER_ROOT . "custom/admin/modules/$local/$action.js";
-		}
-
-		/** Write a local module action's source to disk, creating the directory. */
 		private function writeActionSource(array $module, $action_route, $source) {
-			$path = $this->actionSourcePath($module, $action_route);
 
-			if ($path === "") {
-				throw new BadRequestException("Invalid module or action route.", "invalid_route", 400);
-			}
-
-			if (!BigTree::putFile($path, $source)) {
-				throw new BadRequestException(
-					"Could not write the action file — check that its modules directory is writable.",
-					"module_write_failed",
-					400
-				);
-			}
+			$this->actionSourceService()->writeActionSource($module, $action_route, $source);
 		}
 
-		/** Read a local module action's source from disk ("" if none). */
 		private function readActionSource(array $module, $action_route) {
-			$path = $this->actionSourcePath($module, $action_route);
 
-			if ($path === "") {
-				return "";
-			}
-
-			return is_file($path) ? (string)file_get_contents($path) : "";
+			return $this->actionSourceService()->readActionSource($module, $action_route);
 		}
 
-		/** Remove a local module action's source file. */
 		private function deleteActionSource(array $module, $action_route) {
-			$path = $this->actionSourcePath($module, $action_route);
 
-			if ($path !== "" && is_file($path)) {
-				@unlink($path);
-			}
+			$this->actionSourceService()->deleteActionSource($module, $action_route);
 		}
 
-		/** Move a module action's source file when its route changes. */
 		private function moveActionSource(array $module, $old_route, $new_route) {
-			$old_path = $this->actionSourcePath($module, $old_route);
-			$new_path = $this->actionSourcePath($module, $new_route);
 
-			if ($old_path !== "" && $new_path !== "" && is_file($old_path) && !is_file($new_path)) {
-				BigTree::makeDirectory(dirname($new_path));
-				@rename($old_path, $new_path);
-			}
+			$this->actionSourceService()->moveActionSource($module, $old_route, $new_route);
 		}
 
 		private function sortByPosition(array $rows) {

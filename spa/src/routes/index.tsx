@@ -1,37 +1,116 @@
+import { Suspense, lazy } from "react";
+import type { ComponentType } from "react";
 import { Navigate, Outlet, createBrowserRouter } from "react-router-dom";
 
-import { CalloutEdit } from "@/pages/developer/CalloutEdit";
-import { CalloutGroupEdit } from "@/pages/developer/CalloutGroupEdit";
-import { CalloutGroups } from "@/pages/developer/CalloutGroups";
-import { Callouts } from "@/pages/developer/Callouts";
-import { ConfigureAnalytics } from "@/pages/developer/configure/ConfigureAnalytics";
-import { ConfigureCloudStorage } from "@/pages/developer/configure/ConfigureCloudStorage";
-import { ConfigureEmail } from "@/pages/developer/configure/ConfigureEmail";
-import { ConfigureFileMetadata } from "@/pages/developer/configure/ConfigureFileMetadata";
-import { ConfigureGeocoding } from "@/pages/developer/configure/ConfigureGeocoding";
-import { ConfigureIndex } from "@/pages/developer/configure/ConfigureIndex";
-import { ConfigureMediaPresets } from "@/pages/developer/configure/ConfigureMediaPresets";
-import { ConfigurePaymentGateway } from "@/pages/developer/configure/ConfigurePaymentGateway";
-import { ConfigureServices } from "@/pages/developer/configure/ConfigureServices";
+import { RouteFallback } from "./RouteFallback";
+
+/**
+ * The entire developer section is gated behind LEVEL.DEVELOPER and visited far
+ * less often than the editorial pages, so its page modules are code-split into
+ * their own chunks via React.lazy. The router stores a `default` export, so each
+ * named-export page is re-exported through `.then(...)`. A shared `lazyDev`
+ * helper keeps the mapping terse. Frequently-used top-level pages (Dashboard,
+ * Pages, Modules, Files, …) stay eager so primary navigation is not delayed.
+ */
+const lazyDev = <T,>(loader: () => Promise<T>, name: keyof T) => {
+	return lazy(() =>
+		loader().then((module) => ({
+			default: module[name] as ComponentType,
+		}))
+	);
+};
+
+const CalloutEdit = lazyDev(() => import("@/pages/developer/CalloutEdit"), "CalloutEdit");
+const CalloutGroupEdit = lazyDev(
+	() => import("@/pages/developer/CalloutGroupEdit"),
+	"CalloutGroupEdit"
+);
+const CalloutGroups = lazyDev(() => import("@/pages/developer/CalloutGroups"), "CalloutGroups");
+const Callouts = lazyDev(() => import("@/pages/developer/Callouts"), "Callouts");
+const ConfigureAnalytics = lazyDev(
+	() => import("@/pages/developer/configure/ConfigureAnalytics"),
+	"ConfigureAnalytics"
+);
+const ConfigureCloudStorage = lazyDev(
+	() => import("@/pages/developer/configure/ConfigureCloudStorage"),
+	"ConfigureCloudStorage"
+);
+const ConfigureEmail = lazyDev(
+	() => import("@/pages/developer/configure/ConfigureEmail"),
+	"ConfigureEmail"
+);
+const ConfigureFileMetadata = lazyDev(
+	() => import("@/pages/developer/configure/ConfigureFileMetadata"),
+	"ConfigureFileMetadata"
+);
+const ConfigureGeocoding = lazyDev(
+	() => import("@/pages/developer/configure/ConfigureGeocoding"),
+	"ConfigureGeocoding"
+);
+const ConfigureIndex = lazyDev(
+	() => import("@/pages/developer/configure/ConfigureIndex"),
+	"ConfigureIndex"
+);
+const ConfigureMediaPresets = lazyDev(
+	() => import("@/pages/developer/configure/ConfigureMediaPresets"),
+	"ConfigureMediaPresets"
+);
+const ConfigurePaymentGateway = lazyDev(
+	() => import("@/pages/developer/configure/ConfigurePaymentGateway"),
+	"ConfigurePaymentGateway"
+);
+const ConfigureServices = lazyDev(
+	() => import("@/pages/developer/configure/ConfigureServices"),
+	"ConfigureServices"
+);
+const Backups = lazyDev(() => import("@/pages/developer/Backups"), "Backups");
+const DebugAudit = lazyDev(() => import("@/pages/developer/debug/DebugAudit"), "DebugAudit");
+const DebugEmulator = lazyDev(
+	() => import("@/pages/developer/debug/DebugEmulator"),
+	"DebugEmulator"
+);
+const DebugIndex = lazyDev(() => import("@/pages/developer/debug/DebugIndex"), "DebugIndex");
+const DebugSecurity = lazyDev(
+	() => import("@/pages/developer/debug/DebugSecurity"),
+	"DebugSecurity"
+);
+const DebugStatus = lazyDev(() => import("@/pages/developer/debug/DebugStatus"), "DebugStatus");
+const DebugUpgrade = lazyDev(() => import("@/pages/developer/debug/DebugUpgrade"), "DebugUpgrade");
+const Developer = lazyDev(() => import("@/pages/developer/Developer"), "Developer");
+const DeveloperSettings = lazyDev(
+	() => import("@/pages/developer/DeveloperSettings"),
+	"DeveloperSettings"
+);
+const Extensions = lazyDev(() => import("@/pages/developer/Extensions"), "Extensions");
+const ExtensionInstall = lazyDev(
+	() => import("@/pages/developer/ExtensionInstall"),
+	"ExtensionInstall"
+);
+const ExtensionBuild = lazyDev(() => import("@/pages/developer/ExtensionBuild"), "ExtensionBuild");
+const FeedEdit = lazyDev(() => import("@/pages/developer/FeedEdit"), "FeedEdit");
+const Feeds = lazyDev(() => import("@/pages/developer/Feeds"), "Feeds");
+const FieldTypeEdit = lazyDev(() => import("@/pages/developer/FieldTypeEdit"), "FieldTypeEdit");
+const FieldTypes = lazyDev(() => import("@/pages/developer/FieldTypes"), "FieldTypes");
+const ModuleDesigner = lazyDev(() => import("@/pages/developer/ModuleDesigner"), "ModuleDesigner");
+const ModuleDesignerEdit = lazyDev(
+	() => import("@/pages/developer/ModuleDesignerEdit"),
+	"ModuleDesignerEdit"
+);
+const ModuleGroupEdit = lazyDev(
+	() => import("@/pages/developer/ModuleGroupEdit"),
+	"ModuleGroupEdit"
+);
+const ModuleGroups = lazyDev(() => import("@/pages/developer/ModuleGroups"), "ModuleGroups");
+const SettingConfigure = lazyDev(
+	() => import("@/pages/developer/SettingConfigure"),
+	"SettingConfigure"
+);
+const TemplateEdit = lazyDev(() => import("@/pages/developer/TemplateEdit"), "TemplateEdit");
+const Templates = lazyDev(() => import("@/pages/developer/Templates"), "Templates");
+
 import { Analytics } from "@/pages/Analytics";
 import { Dashboard } from "@/pages/Dashboard";
 import { EmbedForm } from "@/pages/EmbedForm";
-import { Backups } from "@/pages/developer/Backups";
-import { DebugAudit } from "@/pages/developer/debug/DebugAudit";
-import { DebugEmulator } from "@/pages/developer/debug/DebugEmulator";
-import { DebugIndex } from "@/pages/developer/debug/DebugIndex";
-import { DebugSecurity } from "@/pages/developer/debug/DebugSecurity";
-import { DebugStatus } from "@/pages/developer/debug/DebugStatus";
-import { DebugUpgrade } from "@/pages/developer/debug/DebugUpgrade";
-import { Developer } from "@/pages/developer/Developer";
-import { DeveloperSettings } from "@/pages/developer/DeveloperSettings";
-import { Extensions } from "@/pages/developer/Extensions";
-import { ExtensionInstall } from "@/pages/developer/ExtensionInstall";
-import { ExtensionBuild } from "@/pages/developer/ExtensionBuild";
-import { FeedEdit } from "@/pages/developer/FeedEdit";
-import { Feeds } from "@/pages/developer/Feeds";
-import { FieldTypeEdit } from "@/pages/developer/FieldTypeEdit";
-import { FieldTypes } from "@/pages/developer/FieldTypes";
 import { Create301 } from "@/pages/Create301";
 import { Files } from "@/pages/Files";
 import { FourOhFours } from "@/pages/FourOhFours";
@@ -41,13 +120,6 @@ import { ForgotPassword } from "@/pages/ForgotPassword";
 import { ResetPassword } from "@/pages/ResetPassword";
 import { MessageThread } from "@/pages/MessageThread";
 import { Messages } from "@/pages/Messages";
-import { ModuleDesigner } from "@/pages/developer/ModuleDesigner";
-import { ModuleDesignerEdit } from "@/pages/developer/ModuleDesignerEdit";
-import { ModuleGroupEdit } from "@/pages/developer/ModuleGroupEdit";
-import { ModuleGroups } from "@/pages/developer/ModuleGroups";
-import { SettingConfigure } from "@/pages/developer/SettingConfigure";
-import { TemplateEdit } from "@/pages/developer/TemplateEdit";
-import { Templates } from "@/pages/developer/Templates";
 import { ModuleDispatcher } from "@/pages/ModuleDispatcher";
 import { ModuleLayout } from "@/pages/ModuleLayout";
 import { Modules } from "@/pages/Modules";
@@ -248,7 +320,9 @@ export const router = createBrowserRouter(
 							path: "developer",
 							element: (
 								<RequireLevel level={LEVEL.DEVELOPER}>
-									<Outlet />
+									<Suspense fallback={<RouteFallback />}>
+										<Outlet />
+									</Suspense>
 								</RequireLevel>
 							),
 							children: [

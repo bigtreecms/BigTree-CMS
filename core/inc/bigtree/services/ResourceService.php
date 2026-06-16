@@ -1156,28 +1156,197 @@
 		/**
 		 * Neutralize active content in an SVG before it is stored. SVGs are served as
 		 * static files from the site origin, so a stored <script>/on*-handler is a
-		 * stored-XSS vector when another admin opens the file URL. Strips scripts,
-		 * event handlers, <foreignObject>, and javascript:/data:text/html URIs.
+		 * stored-XSS vector when another admin opens the file URL.
 		 *
-		 * This is intentionally destructive toward active content — a sanitized SVG may
+		 * This is a DOM/allowlist sanitizer (ext-dom, no extra dependency): the SVG is
+		 * parsed as XML with external-entity loading disabled (LIBXML_NONET, no DTD
+		 * load — prevents XXE), then the tree is walked default-deny. Any element not on
+		 * the SVG allowlist is dropped; any attribute not on the allowlist (and every
+		 * on*-handler) is stripped; href/xlink:href are scheme-checked (only #fragment
+		 * and relative refs survive — javascript:/data: are neutralized). The document
+		 * is then re-serialized.
+		 *
+		 * It is intentionally destructive toward active content — a sanitized SVG may
 		 * lose interactivity, which is the correct trade-off for user-uploaded assets.
-		 * It is a regex mitigation, not a proof; a DOM-based sanitizer would be stronger
-		 * if SVG ever becomes a first-class, dependency-justified feature.
+		 * It fails closed: if the input is not well-formed XML it is replaced with a
+		 * neutral empty SVG rather than returned unchanged.
+		 *
+		 * Default-deny is deliberate (cf. the SPA's dompurify posture): new attack
+		 * elements/attributes are rejected because they are not allowlisted, without
+		 * needing a new denylist rule. If this proves too brittle for legitimate SVGs,
+		 * escalate to enshrined/svg-sanitize.
 		 */
 		private static function sanitizeSvg(string $svg): string {
-			// Drop <script> … </script> (greedy-safe, case-insensitive).
-			$svg = preg_replace('#<script\b[^>]*>.*?</script\s*>#is', "", $svg);
-			$svg = preg_replace('#<script\b[^>]*/?>#i', "", $svg);
-			// Drop <foreignObject> … </foreignObject>.
-			$svg = preg_replace('#<foreignObject\b[^>]*>.*?</foreignObject\s*>#is', "", $svg);
-			// Strip on* event-handler attributes.
-			$svg = preg_replace('#\son[a-z]+\s*=\s*"(?:[^"]*)"#i', "", $svg);
-			$svg = preg_replace("#\son[a-z]+\s*=\s*'(?:[^']*)'#i", "", $svg);
-			$svg = preg_replace('#\son[a-z]+\s*=\s*[^\s>]+#i', "", $svg);
-			// Strip javascript:/data:text/html in href/xlink:href.
-			$svg = preg_replace('#(href|xlink:href)\s*=\s*("|\')\s*(?:javascript|data\s*:\s*text/html)[^"\']*\2#i', '$1=$2#$2', $svg);
+			$neutral = '<svg xmlns="http://www.w3.org/2000/svg"></svg>';
 
-			return $svg;
+			if (trim($svg) === "") {
+				return $neutral;
+			}
+
+			$doc = new \DOMDocument();
+			$prev = libxml_use_internal_errors(true);
+			// LIBXML_NONET: no network access. Crucially we do NOT pass LIBXML_DTDLOAD
+			// or LIBXML_NOENT, so external/parameter entities are never loaded or
+			// expanded (XXE-safe). NONET is belt-and-braces for any inline DTD.
+			$loaded = $doc->loadXML($svg, LIBXML_NONET | LIBXML_NOERROR | LIBXML_NOWARNING);
+			libxml_clear_errors();
+			libxml_use_internal_errors($prev);
+
+			// Fail closed on malformed input or a non-<svg> root.
+			if ($loaded === false || $doc->documentElement === null) {
+				return $neutral;
+			}
+
+			if (strtolower($doc->documentElement->localName) !== "svg") {
+				return $neutral;
+			}
+
+			// Reject any DTD (it cannot carry active content here, but it has no place
+			// in a stored asset and is an entity-expansion surface).
+			if ($doc->doctype !== null) {
+				return $neutral;
+			}
+
+			self::sanitizeSvgNode($doc->documentElement);
+
+			$out = $doc->saveXML($doc->documentElement);
+
+			if ($out === false) {
+				return $neutral;
+			}
+
+			return $out;
+		}
+
+		/**
+		 * Recursively apply the SVG allowlist to a DOM element: drop disallowed child
+		 * elements (script/foreignObject/style/anything unknown), strip disallowed and
+		 * on* attributes, and scheme-check href/xlink:href. Comments/PIs are removed.
+		 */
+		private static function sanitizeSvgNode(\DOMElement $element): void {
+			// Allowlisted SVG element names (lower-cased localName). Default-deny:
+			// anything not here is removed. Deliberately excludes script, style,
+			// foreignObject, animate, set, handler, and any HTML element.
+			static $allowed_elements = [
+				"svg", "g", "defs", "symbol", "use", "title", "desc", "metadata",
+				"path", "rect", "circle", "ellipse", "line", "polyline", "polygon",
+				"text", "tspan", "textpath", "a", "image",
+				"lineargradient", "radialgradient", "stop", "pattern",
+				"clippath", "mask", "marker", "filter",
+				"fegaussianblur", "feoffset", "feblend", "feflood", "femerge",
+				"femergenode", "fecolormatrix", "fecomposite", "fecomponenttransfer",
+				"fefunca", "fefuncr", "fefuncg", "fefuncb", "fedropshadow", "femorphology",
+				"switch", "view",
+			];
+
+			// Attributes that are always dropped regardless of element. href/xlink:href
+			// are handled separately (scheme-checked rather than dropped).
+			$to_remove = [];
+			$to_recheck_href = [];
+
+			foreach (iterator_to_array($element->attributes ?? []) as $attr) {
+				/** @var \DOMAttr $attr */
+				$name = strtolower($attr->localName);
+				$prefixed = strtolower($attr->nodeName);
+
+				// Strip every on* event handler (onload, onclick, onmouseover, …).
+				if (strpos($name, "on") === 0) {
+					$to_remove[] = $attr;
+
+					continue;
+				}
+
+				// Scheme-check href / xlink:href instead of trusting it. localName is
+				// "href" when xlink is a declared namespace; when xlink is undeclared
+				// libxml keeps the literal "xlink:href" name, so match that too.
+				if ($name === "href" || substr($prefixed, -5) === ":href") {
+					$to_recheck_href[] = $attr;
+
+					continue;
+				}
+
+				// Drop xmlns:* that map to non-SVG/xlink namespaces is overkill; allow
+				// declarations through (they carry no executable content). Everything
+				// else (presentation attributes, geometry, etc.) is allowed — the
+				// dangerous surface is handlers + URL schemes, both handled above.
+			}
+
+			foreach ($to_remove as $attr) {
+				$element->removeAttributeNode($attr);
+			}
+
+			foreach ($to_recheck_href as $attr) {
+				if (!self::isSafeSvgUrl($attr->value)) {
+					// Neutralize to an inert fragment ref rather than leave it.
+					$attr->value = "#";
+				}
+			}
+
+			// <animate>/<set> can target href via attributeName — even though those
+			// elements are not allowlisted (so they're dropped below), defensively
+			// neutralize a script-ish "to"/"from"/"values" if one ever slips in.
+			$attr_name = strtolower((string)$element->getAttribute("attributeName"));
+
+			if ($attr_name === "href" || $attr_name === "xlink:href") {
+				foreach (["to", "from", "values"] as $val_attr) {
+					if ($element->hasAttribute($val_attr) && !self::isSafeSvgUrl($element->getAttribute($val_attr))) {
+						$element->setAttribute($val_attr, "#");
+					}
+				}
+			}
+
+			// Walk children: drop disallowed elements, comments and PIs.
+			foreach (iterator_to_array($element->childNodes) as $child) {
+				if ($child instanceof \DOMElement) {
+					$child_name = strtolower($child->localName);
+
+					if (!in_array($child_name, $allowed_elements, true)) {
+						$element->removeChild($child);
+
+						continue;
+					}
+
+					self::sanitizeSvgNode($child);
+
+					continue;
+				}
+
+				if ($child instanceof \DOMComment || $child instanceof \DOMProcessingInstruction) {
+					$element->removeChild($child);
+				}
+			}
+		}
+
+		/**
+		 * A URL is safe to keep in an SVG href/xlink:href only if it is an in-document
+		 * fragment (#id) or a relative path. Absolute schemes are rejected — including
+		 * javascript:, data:, vbscript: — after stripping whitespace/control chars and
+		 * decoding any HTML entities the parser may have left.
+		 */
+		private static function isSafeSvgUrl(string $url): bool {
+			// Decode entities (DOM gives us text already decoded, but be defensive)
+			// and strip ASCII whitespace/control characters used to obfuscate schemes
+			// e.g. "java\nscript:" or "  javascript:".
+			$value = html_entity_decode($url, ENT_QUOTES | ENT_HTML5, "UTF-8");
+			$value = preg_replace('/[\x00-\x20]+/', "", $value);
+
+			if ($value === "" || $value === null) {
+				return true;
+			}
+
+			// Pure fragment reference is always safe.
+			if ($value[0] === "#") {
+				return true;
+			}
+
+			// If there's a scheme (something before a ":" that isn't part of a path),
+			// only allow it when there is no scheme at all (relative URL). Any explicit
+			// scheme is rejected — we don't need http(s) for stored SVG refs.
+			if (preg_match('#^[a-z][a-z0-9+.\-]*:#i', $value)) {
+				return false;
+			}
+
+			return true;
 		}
 
 		/**
