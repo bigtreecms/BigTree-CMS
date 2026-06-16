@@ -56,7 +56,6 @@ class ComposerStaticInit2a1c8026dd7928b6bf194237c0f8197e
             'GuzzleHttp\\' => 11,
             'Grpc\\Gcp\\' => 9,
             'Grpc\\' => 5,
-            'GraphQL\\' => 8,
             'Google\\Type\\' => 12,
             'Google\\Rpc\\' => 11,
             'Google\\Protobuf\\' => 16,
@@ -174,10 +173,6 @@ class ComposerStaticInit2a1c8026dd7928b6bf194237c0f8197e
         'Grpc\\' => 
         array (
             0 => __DIR__ . '/..' . '/grpc/grpc/src/lib',
-        ),
-        'GraphQL\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/webonyx/graphql-php/src',
         ),
         'Google\\Type\\' => 
         array (

@@ -32,8 +32,6 @@ export interface ModuleSummary {
 	icon: string;
 	route: string;
 	position: number;
-	graphql: boolean;
-	graphql_type: string;
 	/**
 	 * Caller's permission level for this module, returned by GET /modules/{id}.
 	 * "p" unlocks "Save & Publish" on the module's forms. Optional because list
@@ -312,8 +310,6 @@ export interface ModuleCreateBody {
 	gbp?: ModuleGbpConfig;
 	icon?: string;
 	route?: string;
-	graphql?: boolean;
-	graphql_type?: string;
 }
 
 export type ModuleUpdateBody = Partial<ModuleCreateBody>;
@@ -338,8 +334,6 @@ export interface ModuleScaffoldBody {
 	route?: string;
 	icon?: string;
 	class?: string;
-	graphql?: boolean;
-	graphql_type?: string;
 	/** Singular item title for the form ("Add Article"); derived from name if blank. */
 	item_title?: string;
 	/** Plural view title ("Viewing Articles"); derived from name if blank. */

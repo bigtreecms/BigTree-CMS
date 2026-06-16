@@ -11,7 +11,7 @@
 		$group = $group_existing;
 	}
 	
-	$admin->updateModule($id,$name,$group,$class,$gbp,$icon,!empty($graphql));
+	$admin->updateModule($id,$name,$group,$class,$gbp,$icon);
 
 	$admin->growl("Developer","Updated Module");
 	BigTree::redirect(DEVELOPER_ROOT."modules/");

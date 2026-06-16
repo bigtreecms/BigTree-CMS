@@ -7,8 +7,7 @@
 	
 	// Stop notices
 	$gbp = array();
-	$name = $route = $group_new = $group_existing = $table = $class = $graphql_type = "";
-	$graphql = false;
+	$name = $route = $group_new = $group_existing = $table = $class = "";
 	$icon = "gear";
 
 	if (isset($_SESSION["bigtree_admin"]["saved"])) {
@@ -78,18 +77,6 @@
 				<input type="checkbox" name="gbp[enabled]" id="gbp_on" <?php if (isset($gbp["enabled"]) && $gbp["enabled"]) { ?>checked="checked" <?php } ?>/>
 				<label class="for_checkbox">Enable Advanced Permissions</label>
 			</fieldset>
-			
-			<div id="graphql_wrapper"<?php if (empty($class)) { ?> style="display: none;"<?php } ?>>
-				<fieldset>
-					<input type="checkbox" name="graphql" id="graphql" <?php if (!empty($graphql)) { ?>checked="checked" <?php } ?>/>
-					<label>Enable GraphQL API <small>(default retrieval endpoint)</small></label>
-				</fieldset>
-				
-				<fieldset id="graphql_type_wrapper"<?php if (empty($graphql)) { ?> style="display: none;"<?php } ?>>
-					<label for="graphql_type">GraphQL Type ID <small>(if left empty, the class name will be used)</small></label>
-					<input type="text" id="graphql_type" name="graphql_type" value="<?=BigTree::safeEncode($graphql_type ?? "")?>">
-				</fieldset>
-			</div>
 		</section>
 		<?php include BigTree::path("admin/modules/developer/modules/_gbp.php"); ?>
 		<footer>

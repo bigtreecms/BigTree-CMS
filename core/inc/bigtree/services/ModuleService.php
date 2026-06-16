@@ -94,8 +94,6 @@
 				"gbp" => $d["gbp"] ?? ["enabled" => false],
 				"icon" => $d["icon"] ?? "",
 				"route" => $route,
-				"graphql" => !empty($d["graphql"]) ? "on" : "",
-				"graphql_type" => $d["graphql_type"] ?? "",
 				"position" => 0,
 			]);
 
@@ -206,8 +204,6 @@
 				"gbp" => $d["gbp"] ?? ["enabled" => false],
 				"icon" => $d["icon"] ?? "",
 				"route" => $route,
-				"graphql" => !empty($d["graphql"]) ? "on" : "",
-				"graphql_type" => $d["graphql_type"] ?? "",
 				"position" => 0,
 			]);
 
@@ -386,8 +382,6 @@
 				"class" => $d["class"] ?? null,
 				"gbp" => $d["gbp"] ?? null,
 				"icon" => $d["icon"] ?? null,
-				"graphql" => array_key_exists("graphql", $d) ? (!empty($d["graphql"]) ? "on" : "") : null,
-				"graphql_type" => $d["graphql_type"] ?? null,
 			], function ($v) { return $v !== null; }));
 
 			BigTreeJSONDB::update("modules", $id, $next);
@@ -2463,8 +2457,6 @@
 				"icon" => $m["icon"] ?? "",
 				"route" => $m["route"] ?? "",
 				"position" => (int)($m["position"] ?? 0),
-				"graphql" => !empty($m["graphql"]),
-				"graphql_type" => $m["graphql_type"] ?? "",
 			];
 		}
 	}

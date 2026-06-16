@@ -1620,15 +1620,12 @@
 				permissions - The group-based permissions.
 				icon - The icon to use.
 				route - Desired route to use (defaults to auto generating if this is left false).
-				graphql - Whether to enable GraphQL registration for this module (defaults to false)
-				graphql_type - The default GraphQL type for this module (defaults to class name)
 
 			Returns:
 				The new module id.
 		*/
 
-		public function createModule($name, $group, $class, $table, $permissions, $icon, $route = false,
-		                             $graphql = false, $graphql_type = null) {
+		public function createModule($name, $group, $class, $table, $permissions, $icon, $route = false) {
 			// Find an available module route.
 			$route = $route ?: BigTreeCMS::urlify($name);
 
@@ -1642,7 +1639,6 @@
 				"class" => $class,
 				"group" => $group ?: null,
 				"gbp" => $permissions,
-				"graphql" => $graphql,
 				"icon" => $icon,
 				"actions" => [],
 				"embeddable-forms" => [],
@@ -1657,7 +1653,6 @@
 				fwrite($f, "<?php\n");
 				fwrite($f, "	use BigTree\Model;\n\n");
 				fwrite($f, "	class $class extends Model {\n\n");
-				fwrite($f, '		public static $GraphQLType = '.($graphql_type ? '"'.$graphql_type.'"' : 'null').';'."\n");
 				fwrite($f, '		public static $NavPosition = "bottom";'."\n");
 				fwrite($f, '		public static $Table = "'.$table.'";'."\n\n");
 				fwrite($f, "	}\n\n");
@@ -9910,10 +9905,9 @@
 				class - The module class to create.
 				permissions - The group-based permissions.
 				icon - The icon to use.
-				graphql - Whether to enable GraphQL endpoints for this module (defaults to false).
 		*/
 
-		public function updateModule($id, $name, $group, $class, $permissions, $icon, $graphql = false) {
+		public function updateModule($id, $name, $group, $class, $permissions, $icon) {
 			// If this has a permissions table, wipe that table's view cache
 			if ($permissions["table"]) {
 				BigTreeAutoModule::clearCache($permissions["table"]);
@@ -9924,7 +9918,6 @@
 				"group" => $group ?: null,
 				"class" => $class,
 				"gbp" => $permissions,
-				"graphql" => !empty($graphql),
 				"icon" => $icon
 			]);
 

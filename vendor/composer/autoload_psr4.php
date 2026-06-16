@@ -26,7 +26,6 @@ return array(
     'GuzzleHttp\\' => array($vendorDir . '/guzzlehttp/guzzle/src'),
     'Grpc\\Gcp\\' => array($vendorDir . '/google/grpc-gcp/src'),
     'Grpc\\' => array($vendorDir . '/grpc/grpc/src/lib'),
-    'GraphQL\\' => array($vendorDir . '/webonyx/graphql-php/src'),
     'Google\\Type\\' => array($vendorDir . '/google/common-protos/src/Type'),
     'Google\\Rpc\\' => array($vendorDir . '/google/common-protos/src/Rpc'),
     'Google\\Protobuf\\' => array($vendorDir . '/google/protobuf/src/Google/Protobuf'),

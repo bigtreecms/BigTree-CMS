@@ -49,18 +49,6 @@
 					<?php } ?>
 				</ul>
 			</fieldset>
-			
-			<div id="graphql_wrapper"<?php if (empty($class)) { ?> style="display: none;"<?php } ?>>
-				<fieldset>
-					<input type="checkbox" name="graphql" id="graphql" <?php if (!empty($graphql)) { ?>checked="checked" <?php } ?>/>
-					<label>Enable GraphQL API <small>(default retrieval endpoint)</small></label>
-				</fieldset>
-				
-				<fieldset id="graphql_type_wrapper"<?php if (empty($graphql)) { ?> style="display: none;"<?php } ?>>
-					<label for="graphql_type">GraphQL Type ID <small>(if left empty, the class name will be used)</small></label>
-					<input type="text" id="graphql_type" name="graphql_type" value="<?=BigTree::safeEncode($graphql_type ?? "")?>">
-				</fieldset>
-			</div>
 		</section>
 		<footer>
 			<input type="submit" class="button blue" value="Continue" />

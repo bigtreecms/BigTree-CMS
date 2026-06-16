@@ -7,15 +7,9 @@
 	namespace BigTree;
 	
 	use BigTree, BigTreeAdmin, BigTreeCMS, BigTreeAutoModule, SQL;
-	use BigTree\GraphQL\TypeService;
-	use BigTree\GraphQL\QueryService;
-	use GraphQL\Type\Definition\ObjectType;
-	use GraphQL\Type\Definition\Type;
-	
+
 	class Model {
-		
-		public static $GraphQLEnabled = false;
-		public static $GraphQLType = null;
+
 		public static $NavPosition = "bottom";
 		public static $Table = "";
 		
@@ -765,87 +759,6 @@
 									LIMIT $count");
 			
 			return array_map([static::class, "get"], $items);
-		}
-		
-		/*
-			Function: registerGraphQLMethods
-				Registers GraphQL methods for use with the GraphQL API.
-				Methods should be uniquely keyed across all modules and match graphql-php syntax.
-		*/
-		
-		public static function registerGraphQLMethods() {
-			$type = static::$GraphQLType ?: static::class;
-			
-			QueryService::register("query", [
-				"get$type" => [
-					"type" => Type::listOf(TypeService::get($type)),
-					"args" => [
-						"sort_field" => Type::string(),
-						"sort_direction" => Type::string(),
-						"per_page" => Type::int(),
-						"page" => Type::int()
-					],
-					"resolve" => function ($root, $args, $context) {
-						$order = "";
-						$limit = "";
-						
-						if (!empty($args["sort_field"])) {
-							// Validate field against TypeService
-							$type = TypeService::get(static::$GraphQLType ?: static::class);
-							
-							if (isset($type->config["fields"][$args["sort_field"]])) {
-								$sort_direction = strtolower(!empty($args["sort_direction"]) ? $args["sort_direction"] : "ASC");
-								
-								if ($sort_direction != "asc" && $sort_direction != "desc") {
-									$sort_direction = "asc";
-								}
-								
-								$order = "ORDER BY `".$args["sort_field"]."` $sort_direction";
-							}
-						}
-						
-						if (!empty($args["per_page"])) {
-							$page = !empty($args["page"]) ? intval($args["page"]) : 1;
-							$per_page = intval($args["per_page"]);
-							$limit = "LIMIT ".(($page - 1) * $per_page).", $per_page";
-						}
-						
-						return SQL::fetchAll("SELECT * FROM ".static::$Table." $order $limit");
-					}
-				]
-			]);
-		}
-		
-		/*
-			Function: registerGraphQLTypes
-				Registers GraphQL object types for use with the GraphQL API.
-				Types should be uniquely keyed across all modules and match graphql-php syntax.
-		*/
-		
-		public static function registerGraphQLTypes() {
-			$fields = [];
-			$db_schema = SQL::describeTable(static::$Table);
-			
-			foreach ($db_schema["columns"] as $id => $column) {
-				$type = Type::string();
-				
-				if (!empty($column["auto_increment"])) {
-					$type = Type::id();
-				} elseif (in_array($column["type"], TypeService::$ScalarTypeRefs["int"])) {
-					$type = Type::int();
-				} elseif (in_array($column["type"], TypeService::$ScalarTypeRefs["float"])) {
-					$type = Type::float();
-				} elseif (in_array($column["type"], TypeService::$ScalarTypeRefs["boolean"])) {
-					$type = Type::boolean();
-				}
-				
-				$fields[$id] = $type;
-			}
-			
-			TypeService::set(static::$GraphQLType ?: static::class, new ObjectType([
-				"name" => static::$GraphQLType ?: static::class,
-				"fields" => $fields
-			]));
 		}
 		
 		/*

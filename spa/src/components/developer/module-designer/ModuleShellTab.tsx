@@ -38,8 +38,6 @@ type ShellState = {
 	icon: string;
 	class: string;
 	table: string;
-	graphql: boolean;
-	graphql_type: string;
 	gbp: ModuleGbpConfig;
 };
 
@@ -50,8 +48,6 @@ const emptyState = (): ShellState => ({
 	icon: "",
 	class: "",
 	table: "",
-	graphql: false,
-	graphql_type: "",
 	gbp: { enabled: false },
 });
 
@@ -62,8 +58,6 @@ const fromModule = (m: ModuleSummary): ShellState => ({
 	icon: m.icon ?? "",
 	class: m.class ?? "",
 	table: m.table ?? "",
-	graphql: Boolean(m.graphql),
-	graphql_type: m.graphql_type ?? "",
 	gbp: m.gbp ?? { enabled: false },
 });
 
@@ -126,8 +120,6 @@ export const ModuleShellTab = ({ moduleId, module }: ModuleShellTabProps) => {
 		icon: s.icon || undefined,
 		class: s.class || undefined,
 		table: s.table || undefined,
-		graphql: s.graphql,
-		graphql_type: s.graphql_type || undefined,
 		gbp: s.gbp.enabled
 			? {
 					enabled: true,
@@ -281,22 +273,6 @@ export const ModuleShellTab = ({ moduleId, module }: ModuleShellTabProps) => {
 						onChange={(v) => set({ icon: v })}
 						hint="Shown beside the module in the admin navigation."
 					/>
-				</div>
-
-				<div className="space-y-3 rounded-xl border border-border bg-surface p-4">
-					<CheckboxInput
-						label="Expose this module via GraphQL"
-						checked={state.graphql}
-						onChange={(v) => set({ graphql: v })}
-					/>
-					{state.graphql && (
-						<TextInput
-							label="GraphQL type"
-							value={state.graphql_type}
-							onChange={(v) => set({ graphql_type: v })}
-							mono
-						/>
-					)}
 				</div>
 
 				<div className="space-y-3 rounded-xl border border-border bg-surface p-4">

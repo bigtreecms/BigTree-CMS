@@ -66,6 +66,11 @@ jobs:
         run: phpstan analyse --no-progress
       - name: PHP code style check (api + services)
         run: php-cs-fixer fix --dry-run --diff
+      # composer audit reads the committed composer.lock and fails on known
+      # advisories (needs no DB, just network to the advisory DB), so it sits
+      # with the other static checks ahead of the schema load.
+      - name: Composer audit (fail on known advisories)
+        run: composer audit --no-dev
       # base.sql is the canonical installer schema and contains FOREIGN KEY
       # constraints whose tables are not defined in dependency order, so a plain
       # import fails on FK ordering. Disable FK checks for the load.
