@@ -735,6 +735,50 @@
 			$usages = [];
 			$module_cache = [];
 
+			// — Pass 1: bucket allocations by destination kind so each group can be
+			// resolved with a single query instead of one fetch per allocation. —
+			//
+			// IMPORTANT: if a new $table branch is added in the rebuild pass below, it
+			// must also be bucketed here (and vice versa) — keep the two passes aligned.
+			$live_page_ids = [];          // numeric bigtree_pages ids
+			$module_ids = [];             // [$table => [live entry ids]]
+
+			foreach ($allocations as $allocation) {
+				$table = $allocation["table"];
+				$entry = (string)$allocation["entry"];
+				$pending = (substr($entry, 0, 1) === "p");
+
+				if ($table === "bigtree_pages") {
+					// Pending pages are resolved per-row (see rebuild pass) because
+					// their title/status come from the pending_changes blob.
+					if (!$pending) {
+						$live_page_ids[$entry] = true;
+					}
+				} elseif ($table === "bigtree_settings") {
+					// Settings live in the JSON DB (already a single cached read),
+					// resolved directly in the rebuild pass — no SQL to batch.
+					continue;
+				} else {
+					// Pending module entries are resolved per-row (getItem applies the
+					// pending overlay); live entries are batched per table.
+					if (!$pending) {
+						$module_ids[$table][$entry] = true;
+					}
+				}
+			}
+
+			// — Batch-fetch each bucket into id → row maps. —
+			$page_map = $this->batchPages(array_keys($live_page_ids));
+			$module_maps = [];
+
+			foreach ($module_ids as $table => $ids) {
+				$module_maps[$table] = $this->batchModuleItems($table, array_keys($ids));
+			}
+
+			// — Pass 2: rebuild $usages from the maps, preserving the exact per-entry
+			// fields, statuses, link descriptors, and order of the per-row version.
+			// Ids missing from a batched map fall through to the "Deleted …"/status:none
+			// branch exactly as the per-row if ($page)/if ($item) checks did. —
 			foreach ($allocations as $allocation) {
 				$table = $allocation["table"];
 				$entry = (string)$allocation["entry"];
@@ -749,7 +793,8 @@
 
 				if ($table === "bigtree_pages") {
 					$usage["location"] = "Pages";
-					$page = $pending ? $cms->getPendingPage($entry, false) : $cms->getPage($entry, false);
+					// Pending pages still go per-row; live pages come from the batch map.
+					$page = $pending ? $cms->getPendingPage($entry, false) : ($page_map[$entry] ?? false);
 
 					if ($page) {
 						$usage["title"] = $page["nav_title"] ?: $page["title"];
@@ -786,7 +831,8 @@
 
 					$module_info = $module_cache[$table];
 					$usage["location"] = $module_info["name"];
-					$item = BigTreeAutoModule::getItem($table, $entry);
+					// Pending module entries still go per-row; live entries come from the batch map.
+					$item = $pending ? BigTreeAutoModule::getItem($table, $entry) : ($module_maps[$table][$entry] ?? false);
 
 					if ($item) {
 						$usage["title"] = $this->moduleEntryTitle($item["item"] ?? $item, $entry);
@@ -810,6 +856,79 @@
 			}
 
 			return Response::ok($usages);
+		}
+
+		/**
+		 * Batch-fetch live page rows for usage() with a single IN(...) query, keyed by
+		 * id (as a string, matching the allocation entry). Returns only the columns
+		 * usage() consumes; mirrors the relevant output of $cms->getPage($entry, false)
+		 * (decode = false, so no resources/open_graph/external transforms — none of
+		 * which usage() reads).
+		 *
+		 * @param string[] $ids Live page ids.
+		 * @return array<string,array> id => page row.
+		 */
+		private function batchPages(array $ids): array {
+			if (!$ids) {
+
+				return [];
+			}
+
+			$placeholders = implode(",", array_fill(0, count($ids), "?"));
+			$rows = SQL::fetchAll(
+				"SELECT id, nav_title, title, archived, archived_inherited FROM bigtree_pages WHERE id IN ($placeholders)",
+				...$ids
+			);
+			$map = [];
+
+			foreach ($rows as $row) {
+				$map[(string)$row["id"]] = $row;
+			}
+
+			return $map;
+		}
+
+		/**
+		 * Batch-fetch live module-entry rows for one table with a single IN(...) query,
+		 * keyed by id (as a string). Each row is wrapped as ["item" => $row] to match
+		 * the shape BigTreeAutoModule::getItem returns, and each field gets the same
+		 * internal-page-link / untranslateArray transform getItem applies, so
+		 * moduleEntryTitle() sees byte-identical values. Tags (which usage() never
+		 * reads) are intentionally not fetched.
+		 *
+		 * @param string   $table Module table name.
+		 * @param string[] $ids   Live entry ids.
+		 * @return array<string,array> id => ["item" => transformed row].
+		 */
+		private function batchModuleItems(string $table, array $ids): array {
+			if (!$ids) {
+
+				return [];
+			}
+
+			$placeholders = implode(",", array_fill(0, count($ids), "?"));
+			$rows = SQL::fetchAll(
+				"SELECT * FROM `".str_replace("`", "", $table)."` WHERE id IN ($placeholders)",
+				...$ids
+			);
+			$map = [];
+
+			foreach ($rows as $row) {
+				// Mirror BigTreeAutoModule::getItem's per-field decoding so titles match.
+				foreach ($row as $key => $val) {
+					if (is_null($val)) {
+						$row[$key] = null;
+					} elseif (is_array(json_decode($val, true))) {
+						$row[$key] = BigTree::untranslateArray(json_decode($val, true));
+					} else {
+						$row[$key] = BigTreeCMS::replaceInternalPageLinks($val);
+					}
+				}
+
+				$map[(string)$row["id"]] = ["item" => $row];
+			}
+
+			return $map;
 		}
 
 		/**

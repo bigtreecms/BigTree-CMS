@@ -54,10 +54,16 @@ jobs:
           # repo commits vendor/ and must not bloat it). Scoped to the new API +
           # services surface; see phpstan.neon.dist / .php-cs-fixer.dist.php.
           tools: phpstan, php-cs-fixer
-      # Existing syntax-lint step — covers files the test suite never loads.
-      - name: Lint changed PHP under the new API + services
+      # Tree-wide syntax lint: php -l every PHP file under core/ (not just the new
+      # api+services surface). Legacy files still receive bug-fixes and were
+      # previously unchecked in CI; this catches the most embarrassing class of
+      # regression (a fat-fingered parse error) across the whole tree. Non-breaking
+      # (only genuine syntax errors fail) and DB-free, so it runs ahead of the
+      # static-analysis and schema steps. PHPStan + php-cs-fixer below stay scoped
+      # to api+services intentionally.
+      - name: Lint all PHP (core/)
         run: |
-          find core/inc/bigtree/api core/inc/bigtree/services -name '*.php' -print0 \
+          find core -name '*.php' -print0 \
             | xargs -0 -n1 -P4 php -l
       # Static analysis + style run against api+services only and need no DB, so
       # they sit ahead of the schema load. Both are green-on-day-one (PHPStan via
@@ -71,13 +77,11 @@ jobs:
       # with the other static checks ahead of the schema load.
       - name: Composer audit (fail on known advisories)
         run: composer audit --no-dev
-      # base.sql is the canonical installer schema and contains FOREIGN KEY
-      # constraints whose tables are not defined in dependency order, so a plain
-      # import fails on FK ordering. Disable FK checks for the load.
+      # base.sql is the canonical installer schema. FOREIGN KEY constraints are
+      # added as trailing ALTER TABLE statements after all tables exist, so it
+      # imports cleanly with FK checks enabled (no FOREIGN_KEY_CHECKS=0 needed).
       - name: Load schema
-        run: |
-          (echo 'SET FOREIGN_KEY_CHECKS=0;'; cat core/setup/base.sql) \
-            | mysql -h 127.0.0.1 -P 3306 -uroot -proot bigtree_test
+        run: mysql -h 127.0.0.1 -P 3306 -uroot -proot bigtree_test < core/setup/base.sql
       # custom/environment.php + custom/settings.php are gitignored / local-only;
       # the test runner (core/inc/bigtree/api/_test/run.php) includes them before
       # bootstrap.php, which needs DB credentials AND a handful of non-DB config
@@ -167,9 +171,7 @@ jobs:
       - name: Install jq
         run: sudo apt-get update && sudo apt-get install -y jq
       - name: Load schema
-        run: |
-          (echo 'SET FOREIGN_KEY_CHECKS=0;'; cat core/setup/base.sql) \
-            | mysql -h 127.0.0.1 -P 3306 -uroot -proot bigtree_test
+        run: mysql -h 127.0.0.1 -P 3306 -uroot -proot bigtree_test < core/setup/base.sql
       # Unlike the API test runner (which never boots the HTTP layer), the smoke
       # server runs the real front controller, so its env needs the standard
       # bootstrap keys the php job writes PLUS two the login/token path
