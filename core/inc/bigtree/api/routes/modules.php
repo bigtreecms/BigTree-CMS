@@ -1,5 +1,6 @@
 <?php
 	use BigTree\Services\ModuleService;
+	use BigTree\Services\ModuleFormService;
 	use BigTree\Services\ModuleReportService;
 	use BigTree\Services\ModuleViewService;
 
@@ -121,7 +122,7 @@
 
 		"GET /modules/{id}/forms" => ["service" => [ModuleService::class, "forms"], "permission" => ["module" => "%id%", "min" => "v"]],
 		"POST /modules/{id}/forms" => [
-			"service" => [ModuleService::class, "createForm"],
+			"service" => [ModuleFormService::class, "createForm"],
 			"permission" => ["level" => 2],
 			"body" => [
 				"title" => "required|string|max:255",
@@ -137,13 +138,13 @@
 			"audit" => ["table" => "module-forms", "type" => "created", "entry" => "%id%"],
 		],
 		"PATCH /modules/{id}/forms/{sid}" => [
-			"service" => [ModuleService::class, "updateForm"],
+			"service" => [ModuleFormService::class, "updateForm"],
 			"permission" => ["level" => 2],
 			"allow_unknown" => true,
 			"audit" => ["table" => "module-forms", "type" => "updated", "entry" => "%sid%"],
 		],
 		"DELETE /modules/{id}/forms/{sid}" => [
-			"service" => [ModuleService::class, "deleteForm"],
+			"service" => [ModuleFormService::class, "deleteForm"],
 			"permission" => ["level" => 2],
 			"audit" => ["table" => "module-forms", "type" => "deleted", "entry" => "%sid%"],
 		],
@@ -152,14 +153,14 @@
 		// SPA. Read-only; gated by view access on the module so editors can fill
 		// in relation pickers without needing publisher rights.
 		"GET /modules/{id}/forms/{sid}/relation-options" => [
-			"service" => [ModuleService::class, "relationOptions"],
+			"service" => [ModuleFormService::class, "relationOptions"],
 			"permission" => ["module" => "%id%", "min" => "v"],
 		],
 
 		// Dynamic list-field options (db / state / country) for the SPA SelectField.
 		// Read-only; gated by view access like relation-options.
 		"GET /modules/{id}/forms/{sid}/list-options" => [
-			"service" => [ModuleService::class, "listOptions"],
+			"service" => [ModuleFormService::class, "listOptions"],
 			"permission" => ["module" => "%id%", "min" => "v"],
 		],
 
