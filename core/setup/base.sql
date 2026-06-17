@@ -120,6 +120,21 @@ CREATE TABLE `bigtree_audit_trail_context` (
 	`path` VARCHAR(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- Migration ledger (017 Phase 1). No FK by design — it references revision files, not rows.
+-- Fresh installs intentionally ship with an EMPTY ledger; the seeded
+-- `bigtree-internal-revision` setting below is the floor. Phase 2's pending() treats every
+-- revision <= that floor as applied even when absent from this table, which keeps fresh and
+-- upgraded installs consistent without seeding ~40 historical rows here. Do NOT seed rows.
+DROP TABLE IF EXISTS `bigtree_migrations`;
+CREATE TABLE `bigtree_migrations` (
+	`revision`    INT(11) UNSIGNED NOT NULL PRIMARY KEY,
+	`name`        VARCHAR(255) NOT NULL DEFAULT '',
+	`checksum`    CHAR(64) NOT NULL DEFAULT '',
+	`applied_at`  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	`duration_ms` INT(11) UNSIGNED NULL DEFAULT NULL,
+	`success`     TINYINT(1) NOT NULL DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 -- Foreign key constraints (added after all tables exist so this file imports with FOREIGN_KEY_CHECKS=1).
 ALTER TABLE `bigtree_locks` ADD CONSTRAINT `bigtree_locks_ibfk_1` FOREIGN KEY (`user`) REFERENCES `bigtree_users` (`id`) ON DELETE CASCADE;
 ALTER TABLE `bigtree_messages` ADD CONSTRAINT `bigtree_messages_ibfk_1` FOREIGN KEY (`sender`) REFERENCES `bigtree_users` (`id`) ON DELETE CASCADE;
@@ -135,7 +150,7 @@ ALTER TABLE `bigtree_audit_trail_context` ADD CONSTRAINT `bigtree_audit_trail_co
 INSERT INTO `bigtree_pages` (`id`, `trunk`, `parent`, `in_nav`, `nav_title`, `route`, `path`, `title`, `meta_keywords`, `meta_description`, `template`, `external`, `new_window`, `resources`, `archived`, `archived_inherited`, `position`, `created_at`, `updated_at`, `publish_at`, `expire_at`, `max_age`, `last_edited_by`, `ga_page_views`) VALUES (0,'on',-1,'on','BigTree Site','','','BigTree Site','','','home','','','{}','','',0,NOW(),NOW(),NULL,NULL,0,0,0);
 
 INSERT INTO `bigtree_settings` (`id`,`value`) VALUES ('bigtree-internal-storage','{"Service":"local"}');
-INSERT INTO `bigtree_settings` (`id`,`value`) VALUES ('bigtree-internal-revision','504');
+INSERT INTO `bigtree_settings` (`id`,`value`) VALUES ('bigtree-internal-revision','505');
 INSERT INTO `bigtree_settings` (`id`,`value`) VALUES ('bigtree-internal-security-policy','{"password":{"invitations": "on"}}');
 INSERT INTO `bigtree_settings` (`id`,`value`) VALUES ('bigtree-internal-deleted-users','{}');
 INSERT INTO `bigtree_settings` (`id`, `value`) VALUES ('bigtree-file-metadata-fields', '{}');
