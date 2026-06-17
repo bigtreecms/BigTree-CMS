@@ -56,7 +56,7 @@
 
 			$page = max(1, (int)($request->query["page"] ?? 1));
 			$query = (string)($request->query["q"] ?? "");
-			$sort = (string)($request->query["sort"] ?? "id DESC");
+			$sort = $this->safeSort((string)($request->query["sort"] ?? "id DESC"), $view);
 
 			// per_page mirrors getSearchResults' own derivation (legacy reads the
 			// view's setting, falling back to the admin default) — the legacy
@@ -519,6 +519,53 @@
 			}
 
 			return 0;
+		}
+
+		/**
+		 * Whitelist the client-supplied sort against the columns this view can actually
+		 * sort by, returning a guaranteed-safe "<field> <DIR>" string for
+		 * BigTreeAutoModule::getSearchResults — which concatenates the sort field into
+		 * ORDER BY unescaped (legacy/frozen). The accepted fields are exactly the view's
+		 * own field keys plus the legacy specials "id" and "_status_"; the direction is
+		 * normalized to ASC/DESC. The legacy "position desc, id asc" ordering is allowed
+		 * verbatim. Anything else falls back to "id DESC".
+		 *
+		 * The allow-list mirrors which fields BigTreeAutoModule::getSearchResults maps to
+		 * column$x; if that field-mapping or the view schema changes, revisit this helper
+		 * so legitimate new sortable fields aren't silently downgraded to "id DESC".
+		 */
+		private function safeSort(string $raw, array $view): string {
+			$raw = trim($raw);
+
+			// Legacy multi-column special the SPA may send for manual ordering.
+			if (strtolower($raw) === "position desc, id asc") {
+
+				return "position desc, id asc";
+			}
+
+			// Field is either inside backticks (`col` DIR) or the first space-delimited
+			// token; strip any backticks before matching.
+			if (preg_match('/^`([^`]*)`(?:\s+(.*))?$/', $raw, $m)) {
+				$field = $m[1];
+				$rest = $m[2] ?? "";
+			} else {
+				$parts = explode(" ", $raw, 2);
+				$field = $parts[0] ?? "";
+				$rest = $parts[1] ?? "";
+			}
+
+			$allowed = array_keys(is_array($view["fields"] ?? null) ? $view["fields"] : []);
+			$allowed[] = "id";
+			$allowed[] = "_status_";
+
+			if ($field === "" || !in_array($field, $allowed, true)) {
+
+				return "id DESC";
+			}
+
+			$direction = strtoupper(trim($rest)) === "ASC" ? "ASC" : "DESC";
+
+			return $field . " " . $direction;
 		}
 
 		/**

@@ -25,6 +25,7 @@
 	 * Skips on an unavailable DB, like the sibling tests.
 	 */
 
+	use BigTree\Services\AutoModuleService;
 	use BigTree\Services\PermissionService;
 
 	/**
@@ -356,4 +357,76 @@
 		} finally {
 			SQL::query("DELETE FROM bigtree_module_view_cache WHERE view = ?", $view_id);
 		}
+	}
+
+	/**
+	 * AutoModuleService::list whitelists the client-supplied `sort` query param
+	 * (plan 033) before forwarding it to BigTreeAutoModule::getSearchResults, which
+	 * concatenates the sort field into ORDER BY unescaped. safeSort accepts only the
+	 * view's own field keys plus the legacy specials "id"/"_status_" (and the
+	 * "position desc, id asc" ordering verbatim), normalizing the direction to
+	 * ASC/DESC; anything else falls back to "id DESC". These are pure unit
+	 * assertions on the private helper via reflection (the pattern MtmValidationTest
+	 * uses), so they run WITHOUT a database.
+	 */
+	function test_automodule_safe_sort_neutralizes_injection() {
+		$svc = new AutoModuleService();
+		$ref = new ReflectionMethod($svc, "safeSort");
+		$ref->setAccessible(true);
+
+		$view = ["fields" => ["title" => ["title" => "Title"], "column1" => ["title" => "Label"]]];
+
+		// Old-format branch: payload starts with "column" (the legacy guard's hole)
+		// but is not a declared field key, so it is rejected → "id DESC".
+		T::equals(
+			$ref->invoke($svc, "column1,(SELECT(SLEEP(9)))", $view),
+			"id DESC",
+			"old-format ORDER BY injection is neutralized to id DESC"
+		);
+
+		// Backtick branch: spaces allowed in the payload, still rejected → "id DESC".
+		T::equals(
+			$ref->invoke($svc, "`column1,(SELECT(SLEEP(9)))` ASC", $view),
+			"id DESC",
+			"backtick-format ORDER BY injection is neutralized to id DESC"
+		);
+
+		// A field-like token that is not a declared key also falls back.
+		T::equals(
+			$ref->invoke($svc, "nonexistent_col DESC", $view),
+			"id DESC",
+			"an undeclared sort field falls back to id DESC"
+		);
+	}
+
+	function test_automodule_safe_sort_preserves_legitimate_sorts() {
+		$svc = new AutoModuleService();
+		$ref = new ReflectionMethod($svc, "safeSort");
+		$ref->setAccessible(true);
+
+		$view = ["fields" => ["title" => ["title" => "Title"]]];
+
+		// A declared field key with an explicit direction passes through.
+		T::equals($ref->invoke($svc, "title ASC", $view), "title ASC", "declared field + ASC is preserved");
+
+		// Direction is normalized to upper-case.
+		T::equals($ref->invoke($svc, "title asc", $view), "title ASC", "lower-case direction is normalized to ASC");
+
+		// Anything that isn't ASC normalizes to DESC.
+		T::equals($ref->invoke($svc, "title", $view), "title DESC", "missing direction defaults to DESC");
+
+		// The legacy specials are accepted without being view-field keys.
+		T::equals($ref->invoke($svc, "id DESC", $view), "id DESC", "id DESC passes through unchanged");
+		T::equals($ref->invoke($svc, "_status_ ASC", $view), "_status_ ASC", "the _status_ special is accepted");
+
+		// The legacy manual-ordering special string passes verbatim.
+		T::equals(
+			$ref->invoke($svc, "position desc, id asc", $view),
+			"position desc, id asc",
+			"the position desc, id asc ordering passes through verbatim"
+		);
+
+		// A view with no fields still accepts the specials and rejects everything else.
+		T::equals($ref->invoke($svc, "title ASC", []), "id DESC", "a fieldless view rejects unknown fields");
+		T::equals($ref->invoke($svc, "id ASC", []), "id ASC", "a fieldless view still accepts id");
 	}

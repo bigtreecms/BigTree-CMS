@@ -36,20 +36,36 @@
 	 * Extract a revision's JSON object from captured child output.
 	 *
 	 * BigTree::json() pretty-prints (multi-line), and a revision may emit leading
-	 * notices, so we take the substring from the last "{" to the last "}" and decode
+	 * notices, so we take the substring from the FIRST "{" to the LAST "}" and decode
 	 * it. Returns the decoded array, or null if no JSON object is present.
 	 */
 	function migrate_run_extract_json(string $raw): ?array {
-		$start = strrpos($raw, "{");
 		$end = strrpos($raw, "}");
 
-		if ($start === false || $end === false || $end < $start) {
+		if ($end === false) {
+
 			return null;
 		}
 
-		$decoded = json_decode(substr($raw, $start, $end - $start + 1), true);
+		// Scan opening braces left-to-right: the outermost object starts at the
+		// FIRST "{" before the last "}". Retry from later "{" positions so leading
+		// process output containing a stray brace (a PHP notice, etc.) can't defeat
+		// the decode. The previous strrpos()-for-both approach truncated any object
+		// with a nested object into invalid JSON.
+		$offset = 0;
 
-		return is_array($decoded) ? $decoded : null;
+		while (($start = strpos($raw, "{", $offset)) !== false && $start <= $end) {
+			$decoded = json_decode(substr($raw, $start, $end - $start + 1), true);
+
+			if (is_array($decoded)) {
+
+				return $decoded;
+			}
+
+			$offset = $start + 1;
+		}
+
+		return null;
 	}
 
 	// Mirror migrate-status.php's bootstrap so SQL / BigTreeCMS / constants load.

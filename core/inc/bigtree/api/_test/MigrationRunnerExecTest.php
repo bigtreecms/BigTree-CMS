@@ -323,6 +323,89 @@
 		}
 	}
 
+	function test_migration_runner_nested_object_batched_revision_converges() {
+		if (!_migexec_has_table()) {
+			echo "  (skipped — bigtree_migrations not present in this harness)\n";
+
+			return;
+		}
+
+		// Regression for plan 034: a batched revision whose initial (no-page) call
+		// echoes a pretty-printed JSON object containing a NESTED object alongside
+		// {pages}. The old runner parser (strrpos for BOTH braces) truncated such
+		// output into invalid JSON, dropped the page count, and falsely flagged the
+		// revision "no page count reported". Drive it through the runner's child mode
+		// exactly like the flat batched test and assert it converges to one success=1
+		// row WITH the page count correctly parsed from the nested-object output.
+		$revision = MIGEXEC_BASE + 300;
+		$file = _migexec_revision_path($revision);
+
+		$body = "<?php\n"
+			. "\t\\BigTree\\Services\\MigrationService::begin($revision);\n"
+			. "\t\$total_pages = 2;\n"
+			. "\tif (empty(\$_GET[\"page\"])) {\n"
+			. "\t\techo BigTree::json([\"complete\" => false, \"pages\" => \$total_pages, \"response\" => [\"detail\" => \"nested batched\", \"meta\" => [\"x\" => 1]]]);\n"
+			. "\t\tdie();\n"
+			. "\t}\n"
+			. "\t\$page = (int)\$_GET[\"page\"];\n"
+			. "\tif (\$page < \$total_pages) {\n"
+			. "\t\techo BigTree::json([\"complete\" => false, \"response\" => [\"detail\" => \"page \".\$page]]);\n"
+			. "\t} else {\n"
+			. "\t\t\\BigTree\\Services\\MigrationService::finish($revision);\n"
+			. "\t\techo BigTree::json([\"complete\" => true, \"response\" => [\"detail\" => \"done\"]]);\n"
+			. "\t}\n";
+
+		try {
+			_migexec_cleanup();
+			file_put_contents($file, $body);
+
+			// The runner parses the initial output with migrate_run_extract_json; mirror
+			// that helper's FIRST "{" to LAST "}" extraction so the nested object is
+			// preserved (the pre-034 strrpos-for-both approach would null this out).
+			$initial = _migexec_run_child($revision);
+			$end = strrpos($initial, "}");
+			$initial_json = null;
+
+			if ($end !== false) {
+				$offset = 0;
+
+				while (($s = strpos($initial, "{", $offset)) !== false && $s <= $end) {
+					$decoded = json_decode(substr($initial, $s, $end - $s + 1), true);
+
+					if (is_array($decoded)) {
+						$initial_json = $decoded;
+
+						break;
+					}
+
+					$offset = $s + 1;
+				}
+			}
+
+			T::ok(is_array($initial_json), "nested-object batched revision output decodes (not truncated to null)");
+			T::equals((int)($initial_json["pages"] ?? 0), 2, "page count is parsed from a nested-object response (regression for plan 034)");
+			T::ok(is_array($initial_json["response"] ?? null), "the nested object survives extraction intact");
+
+			$row = SQL::fetch("SELECT * FROM bigtree_migrations WHERE revision = ?", $revision);
+			T::equals((int)$row["success"], 0, "nested-object batched revision is in-flight (success=0) after the no-page call");
+
+			// Drive the pages exactly like the runner loop until it converges.
+			_migexec_run_child($revision, 1, 2);
+			$mid = SQL::fetch("SELECT * FROM bigtree_migrations WHERE revision = ?", $revision);
+			T::equals((int)$mid["success"], 0, "still in-flight after a non-final page");
+
+			_migexec_run_child($revision, 2, 2);
+			$final = SQL::fetch("SELECT * FROM bigtree_migrations WHERE revision = ?", $revision);
+			$count = (int)SQL::fetchSingle("SELECT COUNT(*) FROM bigtree_migrations WHERE revision = ?", $revision);
+
+			T::equals((int)$final["success"], 1, "nested-object batched revision ends success=1 on the final page");
+			T::equals($count, 1, "nested-object batched revision records exactly one ledger row");
+		} finally {
+			@unlink($file);
+			_migexec_cleanup();
+		}
+	}
+
 	function test_migration_runner_page_loop_cap_stops() {
 		// Characterize the runner's page-loop cap WITHOUT a DB: the loop runs at most
 		// (total_pages + 2) pages and reports failure if the revision never "drops
