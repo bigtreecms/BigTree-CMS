@@ -11,7 +11,6 @@ import { LockBanner } from "@/components/ui/LockBanner";
 import { settingsApi, type SettingDetail } from "@/api/endpoints/settings";
 
 import { FieldRenderer } from "@/renderer/forms/FieldRenderer";
-import { FieldRow } from "@/renderer/forms/FieldRow";
 import { isFieldRequired, isFieldValueEmpty } from "@/renderer/forms/validation";
 import type { ModuleFormField } from "@/api/endpoints/modules";
 
@@ -220,14 +219,22 @@ export const SettingEdit = () => {
 							: "Only publishers can decrypt and edit it."}
 					</div>
 				) : (
-					<FieldRow field={formField} error={fieldError ?? undefined}>
+					// Single-field page — the PageHead title already names the
+					// setting, so we render the control without FieldRow's
+					// duplicate label and keep only its error markup.
+					<>
 						<FieldRenderer
 							field={formField}
 							value={value}
 							onChange={setValue}
 							disabled={readOnly}
 						/>
-					</FieldRow>
+						{fieldError && (
+							<div data-field-error className="mt-1 text-[11.5px] text-danger">
+								{fieldError}
+							</div>
+						)}
+					</>
 				)}
 
 				<div className="mt-4 flex justify-end gap-2">
@@ -299,17 +306,12 @@ const FlagBar = ({ setting, revealEncrypted, canReveal, onReveal }: FlagBarProps
 		);
 	}
 
-	flags.push(
-		<span
-			key="id"
-			className="rounded bg-surface-2 px-1.5 py-0.5 font-mono text-[10.5px] text-text-3"
-		>
-			{setting.id}
-		</span>
-	);
-
 	const showReveal = setting.encrypted && setting.value_omitted && canReveal;
 	const showHidden = setting.encrypted && !setting.value_omitted;
+
+	if (flags.length === 0 && !showReveal && !showHidden) {
+		return null;
+	}
 
 	return (
 		<div className="mb-3 flex flex-wrap items-center gap-2">

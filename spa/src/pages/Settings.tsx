@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { Lock, Search, ShieldAlert, X } from "lucide-react";
+import { Pencil, Search, X } from "lucide-react";
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
@@ -59,7 +59,7 @@ export const Settings = () => {
 		{
 			key: "name",
 			header: "Name",
-			width: "minmax(0,1.6fr)",
+			width: "minmax(0,1.3fr)",
 			cell: (row) => (
 				<div className="min-w-0">
 					<div className="truncate font-medium text-text" title={row.name}>
@@ -77,33 +77,42 @@ export const Settings = () => {
 			),
 		},
 		{
-			key: "id",
-			header: "ID",
-			width: "minmax(0,1fr)",
-			hideOnMobile: true,
-			cell: (row) => (
-				<span className="truncate font-mono text-[11.5px] text-text-3" title={row.id}>
-					{row.id}
-				</span>
-			),
+			key: "value",
+			header: "Value",
+			width: "minmax(0,1.7fr)",
+			cell: (row) => {
+				const { text, muted } = formatSettingValue(row);
+
+				return (
+					<span
+						className={`truncate ${muted ? "italic text-text-3" : "text-text-2"}`}
+						title={muted ? undefined : text}
+					>
+						{text}
+					</span>
+				);
+			},
 		},
 		{
-			key: "type",
-			header: "Type",
-			width: "120px",
-			hideOnMobile: true,
+			key: "edit",
+			header: "Edit",
+			width: "60px",
+			headerAlign: "right",
+			align: "right",
 			cell: (row) => (
-				<span className="rounded bg-surface-2 px-1.5 py-0.5 text-[11px] font-medium text-text-3">
-					{row.type || "text"}
-				</span>
+				<button
+					type="button"
+					className="inline-grid h-7 w-7 place-items-center rounded text-text-3 hover:bg-hover hover:text-text"
+					title="Edit setting"
+					aria-label={`Edit ${row.name}`}
+					onClick={(e) => {
+						e.stopPropagation();
+						navigate(`/settings/${encodeURIComponent(row.id)}/edit`);
+					}}
+				>
+					<Pencil size={14} />
+				</button>
 			),
-		},
-		{
-			key: "flags",
-			header: "Flags",
-			width: "150px",
-			hideOnMobile: true,
-			cell: (row) => <FlagPills setting={row} />,
 		},
 	];
 
@@ -165,33 +174,44 @@ export const Settings = () => {
 	);
 };
 
-const FlagPills = ({ setting }: { setting: SettingDetail }) => (
-	<div className="flex flex-wrap items-center gap-1">
-		{setting.encrypted && (
-			<span
-				className="inline-flex items-center gap-1 rounded bg-info-bg px-1.5 py-0.5 text-[10.5px] font-medium text-info"
-				title="Stored encrypted at rest"
-			>
-				<ShieldAlert size={10} />
-				Encrypted
-			</span>
-		)}
-		{setting.locked && (
-			<span
-				className="inline-flex items-center gap-1 rounded bg-warn-bg px-1.5 py-0.5 text-[10.5px] font-medium text-warn"
-				title="Marked as locked in the definition (cannot delete via API)"
-			>
-				<Lock size={10} />
-				Locked
-			</span>
-		)}
-		{setting.system && (
-			<span
-				className="rounded bg-surface-2 px-1.5 py-0.5 text-[10.5px] font-medium text-text-3"
-				title="System setting"
-			>
-				System
-			</span>
-		)}
-	</div>
-);
+/**
+ * Mirror the legacy admin's settings-list Value column (see
+ * core/admin/ajax/settings/get-page.php):
+ *
+ *   - encrypted             → "— Encrypted Value —"
+ *   - array / object value  → "— Click Edit To View —"
+ *   - HTML-only string      → "— Click Edit To View —" (nothing left after strip)
+ *   - plain string          → stripped & trimmed to 100 chars
+ *   - empty / null          → blank
+ *
+ * `muted` flags the placeholder strings so they render in italic muted text.
+ */
+const formatSettingValue = (setting: SettingDetail): { text: string; muted: boolean } => {
+	if (setting.encrypted) {
+		return { text: "— Encrypted Value —", muted: true };
+	}
+
+	const value = setting.value;
+
+	if (value === null || value === undefined || value === "") {
+		return { text: "", muted: false };
+	}
+
+	if (typeof value === "object") {
+		return { text: "— Click Edit To View —", muted: true };
+	}
+
+	if (typeof value === "string") {
+		const stripped = stripHtml(value);
+
+		if (stripped.length === 0) {
+			return { text: "— Click Edit To View —", muted: true };
+		}
+
+		const trimmed = stripped.length > 100 ? `${stripped.slice(0, 100)}…` : stripped;
+
+		return { text: trimmed, muted: false };
+	}
+
+	return { text: String(value), muted: false };
+};
