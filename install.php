@@ -56,7 +56,18 @@
 			$_POST[$key] = $val;
 		}
 	}
-	
+
+	// Refuse to run if BigTree is already installed. install.php is a one-shot
+	// file that deletes itself on success (see the @unlink near the end of this
+	// script); this guard is defense-in-depth for when that self-delete fails and
+	// the file is left web-reachable — re-running it would recreate tables and
+	// insert a fresh level-2 admin user, enabling takeover + data loss. To
+	// intentionally reinstall, delete custom/environment.php first.
+	if (file_exists(__DIR__ . "/custom/environment.php")) {
+		header("HTTP/1.1 403 Forbidden");
+		die("BigTree is already installed. To reinstall, remove custom/environment.php and run this script again.");
+	}
+
 	// Issues that are game enders first.
 	$fails = [];
 	if (version_compare(PHP_VERSION,"5.3.0","<")) {

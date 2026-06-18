@@ -1806,16 +1806,14 @@
 				$seeds = $seedings[$seeds];
 			}
 
-			// Seed generator
-			[$usec, $sec] = explode(' ', microtime());
-			$seed = (float) $sec + ((float) $usec * 100000);
-			mt_srand((int) $seed);
-
-			// Generate
+			// Generate using a cryptographically secure source (random_int, PHP 8.2+).
+			// These strings are used for security-sensitive values (e.g. password-set
+			// tokens), so a non-CSPRNG like mt_rand must not be used here.
 			$str = '';
 			$seeds_count = strlen($seeds);
+
 			for ($i = 0; $length > $i; $i++) {
-				$str .= $seeds[mt_rand(0, $seeds_count - 1)];
+				$str .= $seeds[random_int(0, $seeds_count - 1)];
 			}
 
 			return $str;
