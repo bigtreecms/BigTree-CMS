@@ -18,6 +18,7 @@ import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
+import { HeaderBtn } from "@/components/ui/HeaderBtn";
 
 import { integrityApi } from "@/api/endpoints/integrity";
 import { useIntegrityScan, type ScanFinding } from "@/hooks/useIntegrityScan";
@@ -108,34 +109,25 @@ export const SiteIntegrity = () => {
 					showResults ? (
 						<>
 							{isRunning ? (
-								<button
-									type="button"
-									onClick={scan.stop}
-									className="inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-border bg-surface px-2.5 py-1.5 text-[12.5px] font-medium text-text-2 transition-colors hover:border-border-strong hover:bg-hover"
-								>
-									<Square size={14} />
+								<HeaderBtn icon={<Square size={13} />} onClick={scan.stop}>
 									Stop
-								</button>
+								</HeaderBtn>
 							) : null}
 
-							<button
-								type="button"
+							<HeaderBtn
+								icon={<Download size={13} />}
 								onClick={handleExport}
 								disabled={exporting || scan.findings.length === 0}
-								className="inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-border bg-surface px-2.5 py-1.5 text-[12.5px] font-medium text-text-2 transition-colors hover:border-border-strong hover:bg-hover disabled:cursor-not-allowed disabled:opacity-50"
 							>
-								<Download size={14} />
 								{exporting ? "Exporting…" : "Export CSV"}
-							</button>
+							</HeaderBtn>
 
-							<button
-								type="button"
+							<HeaderBtn
+								icon={<RotateCcw size={13} />}
 								onClick={() => setConfirmReset(true)}
-								className="inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-border bg-surface px-2.5 py-1.5 text-[12.5px] font-medium text-text-2 transition-colors hover:border-border-strong hover:bg-hover"
 							>
-								<RotateCcw size={14} />
 								Reset
-							</button>
+							</HeaderBtn>
 						</>
 					) : undefined
 				}

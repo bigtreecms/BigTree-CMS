@@ -7,6 +7,7 @@ import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
+import { HeaderBtn } from "@/components/ui/HeaderBtn";
 import { LockBanner } from "@/components/ui/LockBanner";
 
 import { AccessLevelsDialog } from "@/components/pages/AccessLevelsDialog";
@@ -370,14 +371,9 @@ export const PageEdit = () => {
 				title={page.nav_title || "Untitled page"}
 				sub="Edit the page's properties, content, SEO, and sharing metadata."
 				actions={
-					<button
-						type="button"
-						className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] text-danger hover:bg-danger/5 disabled:opacity-50"
-						onClick={() => setConfirmDelete(true)}
-						disabled={readOnly}
-					>
+					<HeaderBtn danger onClick={() => setConfirmDelete(true)} disabled={readOnly}>
 						Delete
-					</button>
+					</HeaderBtn>
 				}
 			/>
 

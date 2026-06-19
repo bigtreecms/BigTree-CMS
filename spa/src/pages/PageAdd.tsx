@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
+import { HeaderBtn } from "@/components/ui/HeaderBtn";
 
 import { PageSummaryPanel } from "@/components/pages/PageSummaryPanel";
 import { PageSectionToolbar } from "@/components/pages/PageSectionToolbar";
@@ -231,13 +232,9 @@ export const PageAdd = () => {
 				title={body.nav_title?.trim() || "New subpage"}
 				sub="Configure properties, then add content, SEO, and sharing metadata."
 				actions={
-					<Link
-						to={`/pages/${parent}`}
-						className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] hover:bg-hover"
-					>
-						<X size={13} />
+					<HeaderBtn icon={<X size={13} />} to={`/pages/${parent}`}>
 						Cancel
-					</Link>
+					</HeaderBtn>
 				}
 			/>
 

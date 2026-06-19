@@ -17,6 +17,7 @@ import {
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+import { HeaderBtn } from "@/components/ui/HeaderBtn";
 import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
 import { FileDetail } from "@/components/files/FileDetail";
 import { FolderEditor } from "@/components/files/FolderEditor";
@@ -341,22 +342,18 @@ export const Files = () => {
 				actions={
 					canCreateFolder && !isSearching ? (
 						<>
-							<button
-								type="button"
-								className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-sm hover:bg-hover"
+							<HeaderBtn
+								icon={<Video size={13} />}
 								onClick={() => setVideoCreatorOpen(true)}
 							>
-								<Video size={14} />
-								<span>Add video</span>
-							</button>
-							<button
-								type="button"
-								className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-sm hover:bg-hover"
+								Add video
+							</HeaderBtn>
+							<HeaderBtn
+								icon={<FolderPlus size={13} />}
 								onClick={() => setFolderEditor("new")}
 							>
-								<FolderPlus size={14} />
-								<span>New folder</span>
-							</button>
+								New folder
+							</HeaderBtn>
 						</>
 					) : undefined
 				}

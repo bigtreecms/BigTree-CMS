@@ -6,6 +6,7 @@ import { Check, Download, EyeOff, Link2, Plus, Search, Trash, Upload, X } from "
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+import { HeaderBtn } from "@/components/ui/HeaderBtn";
 import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
 import { Pager } from "@/components/ui/Pager";
 import { SubNav } from "@/components/ui/SubNav";
@@ -391,47 +392,40 @@ export const FourOhFours = ({ type }: FourOhFoursProps) => {
 				sub={total === 1 ? "1 entry" : `${total.toLocaleString()} entries`}
 				actions={
 					<>
-						<button
-							type="button"
-							className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] hover:bg-hover disabled:opacity-60"
+						<HeaderBtn
+							icon={<Download size={13} />}
 							disabled={exportMutation.isPending}
 							onClick={() => exportMutation.mutate()}
 						>
-							<Download size={13} />
 							{exportMutation.isPending ? "Exporting…" : "Export CSV"}
-						</button>
+						</HeaderBtn>
 
 						{type === "301" && (
 							<>
-								<button
-									type="button"
-									className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] hover:bg-hover"
+								<HeaderBtn
+									icon={<Upload size={13} />}
 									onClick={() => navigate("/dashboard/404s/301/import")}
 								>
-									<Upload size={13} />
 									Import CSV
-								</button>
+								</HeaderBtn>
 
-								<button
-									type="button"
-									className="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-[12.5px] font-medium text-accent-fg hover:bg-accent-hover"
+								<HeaderBtn
+									primary
+									icon={<Plus size={13} />}
 									onClick={() => navigate("/dashboard/404s/301/add")}
 								>
-									<Plus size={13} />
 									Add 301
-								</button>
+								</HeaderBtn>
 							</>
 						)}
 
 						{type === "404" && (
-							<button
-								type="button"
-								className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] hover:bg-hover"
+							<HeaderBtn
+								icon={<Trash size={13} />}
 								onClick={() => setConfirmClearDead(true)}
 							>
-								<Trash size={13} />
 								Clear dead
-							</button>
+							</HeaderBtn>
 						)}
 					</>
 				}

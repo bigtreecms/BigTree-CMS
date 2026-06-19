@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Link, Navigate, useParams } from "react-router-dom";
+import { Navigate, useParams } from "react-router-dom";
 import { ChevronLeft, RotateCcw, Save, Trash } from "lucide-react";
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
+import { HeaderBtn } from "@/components/ui/HeaderBtn";
 
 import { pagesApi, type PageRevision } from "@/api/endpoints/pages";
 
@@ -133,13 +134,9 @@ export const PageRevisions = () => {
 				title={`Revisions for ${page.nav_title || "page"}`}
 				sub={page.path}
 				actions={
-					<Link
-						to={`/pages/${page.id}/edit`}
-						className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] hover:bg-hover"
-					>
-						<ChevronLeft size={13} />
+					<HeaderBtn icon={<ChevronLeft size={13} />} to={`/pages/${page.id}/edit`}>
 						Back to editor
-					</Link>
+					</HeaderBtn>
 				}
 			/>
 

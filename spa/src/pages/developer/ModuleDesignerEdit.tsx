@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, Navigate, useParams, useSearchParams } from "react-router-dom";
+import { Navigate, useParams, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import {
 	ChevronLeft,
@@ -15,6 +15,7 @@ import {
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
+import { HeaderBtn } from "@/components/ui/HeaderBtn";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { TabbedEditor, type TabbedEditorTab } from "@/components/ui/TabbedEditor";
 
@@ -159,13 +160,9 @@ export const ModuleDesignerEdit = () => {
 						: "Editing module definition."
 				}
 				actions={
-					<Link
-						to="/developer/modules"
-						className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] hover:bg-hover"
-					>
-						<ChevronLeft size={13} />
+					<HeaderBtn icon={<ChevronLeft size={13} />} to="/developer/modules">
 						Back
-					</Link>
+					</HeaderBtn>
 				}
 			/>
 

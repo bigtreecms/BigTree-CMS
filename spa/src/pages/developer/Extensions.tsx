@@ -1,12 +1,12 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Link } from "react-router-dom";
 import { Hammer, Package, RefreshCw, Trash2, Upload } from "lucide-react";
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
 import { DeveloperSectionNav } from "@/components/developer/DeveloperSectionNav";
 import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
+import { HeaderBtn } from "@/components/ui/HeaderBtn";
 import { SlideOver } from "@/components/ui/SlideOver";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
@@ -212,31 +212,25 @@ export const Extensions = () => {
 				title="Extensions"
 				sub="Installed extensions and their manifests. Uninstalling removes everything the extension declares."
 				actions={
-					<div className="flex items-center gap-2">
-						<button
-							type="button"
+					<>
+						<HeaderBtn
+							icon={<RefreshCw size={13} />}
 							onClick={() => recacheMutation.mutate()}
 							disabled={recacheMutation.isPending}
-							className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] hover:bg-hover disabled:opacity-50"
 						>
-							<RefreshCw size={13} />
 							{recacheMutation.isPending ? "Refreshing…" : "Refresh hooks cache"}
-						</button>
-						<Link
-							to="/developer/extensions/build"
-							className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] hover:bg-hover"
-						>
-							<Hammer size={13} />
+						</HeaderBtn>
+						<HeaderBtn icon={<Hammer size={13} />} to="/developer/extensions/build">
 							Build extension
-						</Link>
-						<Link
+						</HeaderBtn>
+						<HeaderBtn
+							primary
+							icon={<Upload size={13} />}
 							to="/developer/extensions/install"
-							className="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-[12.5px] font-medium text-accent-fg hover:bg-accent-hover"
 						>
-							<Upload size={13} />
 							Install extension
-						</Link>
-					</div>
+						</HeaderBtn>
+					</>
 				}
 			/>
 

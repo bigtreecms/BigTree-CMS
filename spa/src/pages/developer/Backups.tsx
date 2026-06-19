@@ -8,6 +8,7 @@ import { DeveloperSectionNav } from "@/components/developer/DeveloperSectionNav"
 import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
+import { HeaderBtn } from "@/components/ui/HeaderBtn";
 
 import { systemApi, type Backup } from "@/api/endpoints/system";
 import { formatBytes } from "@/lib/bytes";
@@ -130,15 +131,14 @@ export const Backups = () => {
 				title="Backups"
 				sub="On-demand SQL dumps of the full database. Download links are short-lived and expire."
 				actions={
-					<button
-						type="button"
+					<HeaderBtn
+						primary
+						icon={<Plus size={13} />}
 						onClick={() => createMutation.mutate()}
 						disabled={createMutation.isPending}
-						className="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-[12.5px] font-medium text-accent-fg hover:bg-accent-hover disabled:opacity-60"
 					>
-						<Plus size={13} />
 						{createMutation.isPending ? "Backing up…" : "New backup"}
-					</button>
+					</HeaderBtn>
 				}
 			/>
 

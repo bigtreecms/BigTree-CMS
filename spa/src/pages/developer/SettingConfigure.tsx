@@ -5,6 +5,7 @@ import { ChevronLeft, Save } from "lucide-react";
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
+import { HeaderBtn } from "@/components/ui/HeaderBtn";
 
 import { DeveloperSectionNav } from "@/components/developer/DeveloperSectionNav";
 import { FieldSettingsEditor } from "@/components/developer/FieldSettingsEditor";
@@ -225,13 +226,9 @@ export const SettingConfigure = () => {
 						: "Define a new setting. The value-editor opens after creation."
 				}
 				actions={
-					<Link
-						to="/developer/settings"
-						className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] hover:bg-hover"
-					>
-						<ChevronLeft size={13} />
+					<HeaderBtn icon={<ChevronLeft size={13} />} to="/developer/settings">
 						Back
-					</Link>
+					</HeaderBtn>
 				}
 			/>
 

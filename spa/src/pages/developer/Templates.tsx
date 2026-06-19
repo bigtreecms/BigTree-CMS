@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Plus, Trash } from "lucide-react";
 
@@ -7,6 +7,7 @@ import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
+import { HeaderBtn } from "@/components/ui/HeaderBtn";
 
 import { DeveloperSectionNav } from "@/components/developer/DeveloperSectionNav";
 
@@ -147,13 +148,9 @@ export const Templates = () => {
 				title="Templates"
 				sub={rows.length === 1 ? "1 template" : `${rows.length} templates`}
 				actions={
-					<Link
-						to="/developer/templates/add"
-						className="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-[12.5px] font-medium text-accent-fg hover:bg-accent-hover"
-					>
-						<Plus size={13} />
+					<HeaderBtn primary icon={<Plus size={13} />} to="/developer/templates/add">
 						Add template
-					</Link>
+					</HeaderBtn>
 				}
 			/>
 

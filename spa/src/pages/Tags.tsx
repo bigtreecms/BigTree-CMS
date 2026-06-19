@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { GitMerge, Plus, Search, Trash, X } from "lucide-react";
 
@@ -8,7 +8,9 @@ import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
+import { HeaderBtn } from "@/components/ui/HeaderBtn";
 import { Pager } from "@/components/ui/Pager";
+import { SubNav } from "@/components/ui/SubNav";
 
 import { tagsApi, type Tag } from "@/api/endpoints/tags";
 import { isAdmin } from "@/lib/permissions";
@@ -134,23 +136,31 @@ export const Tags = () => {
 
 	return (
 		<div className="mx-auto max-w-screen-2xl px-6 py-4">
-			<Breadcrumb items={[{ label: "Tags" }]} />
+			<Breadcrumb items={[{ label: "Tags" }, { label: "View Tags" }]} />
 
 			<PageHead
 				title="Tags"
 				sub={`${total} tag${total === 1 ? "" : "s"}`}
 				actions={
 					canEdit ? (
-						<Link
-							to="/tags/add"
-							className="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-[12.5px] font-medium text-accent-fg hover:bg-accent-hover"
-						>
-							<Plus size={14} />
+						<HeaderBtn primary icon={<Plus size={13} />} to="/tags/add">
 							Add tag
-						</Link>
+						</HeaderBtn>
 					) : undefined
 				}
 			/>
+
+			{canEdit && (
+				<SubNav<"list" | "add">
+					className="mb-4"
+					value="list"
+					onChange={(v) => navigate(v === "add" ? "/tags/add" : "/tags")}
+					items={[
+						{ value: "list", label: "View Tags" },
+						{ value: "add", label: "Add Tag", icon: <Plus size={13} /> },
+					]}
+				/>
+			)}
 
 			<div className="mb-3 flex flex-wrap items-center gap-3">
 				<div className="relative w-full sm:w-auto sm:max-w-md sm:flex-1">

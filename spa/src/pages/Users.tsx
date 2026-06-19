@@ -17,6 +17,7 @@ import { useAuthStore } from "@/auth/store";
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+import { HeaderBtn } from "@/components/ui/HeaderBtn";
 import { Pager } from "@/components/ui/Pager";
 import { SubNav } from "@/components/ui/SubNav";
 import { TimezoneSelect } from "@/components/users/TimezoneSelect";
@@ -346,23 +347,13 @@ export const Users = () => {
 				}
 				actions={
 					view === "list" ? (
-						<button
-							type="button"
-							className="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-sm font-medium text-accent-fg hover:bg-accent-hover"
-							onClick={() => setView("add")}
-						>
-							<Plus size={14} />
-							<span>Add user</span>
-						</button>
+						<HeaderBtn primary icon={<Plus size={13} />} onClick={() => setView("add")}>
+							Add user
+						</HeaderBtn>
 					) : (
-						<button
-							type="button"
-							className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-sm hover:bg-hover"
-							onClick={() => setView("list")}
-						>
-							<ChevronLeft size={14} />
-							<span>Back to list</span>
-						</button>
+						<HeaderBtn icon={<ChevronLeft size={13} />} onClick={() => setView("list")}>
+							Back to list
+						</HeaderBtn>
 					)
 				}
 			/>

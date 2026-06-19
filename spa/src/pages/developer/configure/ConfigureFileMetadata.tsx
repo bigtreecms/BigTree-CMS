@@ -5,6 +5,7 @@ import { Save } from "lucide-react";
 import { useScrollToFirstError } from "@/hooks/useScrollToFirstError";
 import { ConfigureLayout } from "@/components/developer/ConfigureLayout";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
+import { HeaderBtn } from "@/components/ui/HeaderBtn";
 import { ResourceDesigner, type ResourceEntry } from "@/components/developer/ResourceDesigner";
 import { useResourceSettingsValidation } from "@/components/developer/field-settings/useResourceSettingsValidation";
 
@@ -146,15 +147,14 @@ export const ConfigureFileMetadata = () => {
 			title="File metadata"
 			sub="Custom fields collected on file / image / video uploads, surfaced on the Files screen and in the upload field type."
 			actions={
-				<button
-					type="button"
+				<HeaderBtn
+					primary
+					icon={<Save size={13} />}
 					onClick={handleSave}
 					disabled={saveMutation.isPending}
-					className="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-[12.5px] font-medium text-accent-fg hover:bg-accent-hover disabled:opacity-60"
 				>
-					<Save size={13} />
 					{saveMutation.isPending ? "Saving…" : "Save"}
-				</button>
+				</HeaderBtn>
 			}
 		>
 			{detailQ.isLoading && <p className="text-[12.5px] text-text-3">Loading…</p>}

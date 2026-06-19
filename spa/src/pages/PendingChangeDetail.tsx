@@ -1,11 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Link, Navigate, useNavigate, useParams } from "react-router-dom";
+import { Navigate, useNavigate, useParams } from "react-router-dom";
 import { Check, ChevronLeft, X } from "lucide-react";
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
+import { HeaderBtn } from "@/components/ui/HeaderBtn";
 
 import { pendingChangesApi } from "@/api/endpoints/dashboard";
 
@@ -99,33 +100,27 @@ export const PendingChangeDetail = () => {
 				title={change.title || `Pending change #${change.id}`}
 				sub={`${change.type} · ${change.table} · ${change.date}`}
 				actions={
-					<div className="flex flex-wrap items-center gap-2">
-						<Link
-							to="/dashboard"
-							className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] hover:bg-hover"
-						>
-							<ChevronLeft size={13} />
+					<>
+						<HeaderBtn icon={<ChevronLeft size={13} />} to="/dashboard">
 							Back
-						</Link>
-						<button
-							type="button"
+						</HeaderBtn>
+						<HeaderBtn
+							danger
+							icon={<X size={13} />}
 							onClick={() => setConfirm("reject")}
 							disabled={busy}
-							className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] text-danger hover:bg-danger/5 disabled:opacity-50"
 						>
-							<X size={13} />
 							Reject
-						</button>
-						<button
-							type="button"
+						</HeaderBtn>
+						<HeaderBtn
+							primary
+							icon={<Check size={13} />}
 							onClick={() => setConfirm("approve")}
 							disabled={busy}
-							className="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-[12.5px] font-medium text-accent-fg disabled:opacity-50 hover:bg-accent-hover"
 						>
-							<Check size={13} />
 							Approve & publish
-						</button>
-					</div>
+						</HeaderBtn>
+					</>
 				}
 			/>
 

@@ -4,6 +4,7 @@ import { ChevronDown, ChevronRight, Plus, Save, Trash } from "lucide-react";
 
 import { ConfigureLayout } from "@/components/developer/ConfigureLayout";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
+import { HeaderBtn } from "@/components/ui/HeaderBtn";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { MediaPresetEditor } from "@/components/developer/MediaPresetEditor";
 
@@ -88,14 +89,9 @@ export const ConfigureMediaPresets = () => {
 			title="Media presets"
 			sub="Reusable image-field configurations — minimum dimensions, crops, thumbnails. Save the dropdown of choices an editor sees on every image field."
 			actions={
-				<button
-					type="button"
-					onClick={addPreset}
-					className="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-[12.5px] font-medium text-accent-fg hover:bg-accent-hover"
-				>
-					<Plus size={13} />
+				<HeaderBtn primary icon={<Plus size={13} />} onClick={addPreset}>
 					Add preset
-				</button>
+				</HeaderBtn>
 			}
 		>
 			{detailQ.isLoading && <p className="text-[12.5px] text-text-3">Loading…</p>}

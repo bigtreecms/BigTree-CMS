@@ -1,10 +1,11 @@
 import { useRef, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { AlertTriangle, CheckCircle2, ChevronLeft, Package, Upload } from "lucide-react";
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
+import { HeaderBtn } from "@/components/ui/HeaderBtn";
 import { DeveloperSectionNav } from "@/components/developer/DeveloperSectionNav";
 
 import {
@@ -78,13 +79,9 @@ export const ExtensionInstall = () => {
 				title="Install extension"
 				sub="Upload an extension package (.zip). You'll review what it changes before it's installed."
 				actions={
-					<Link
-						to="/developer/extensions"
-						className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] hover:bg-hover"
-					>
-						<ChevronLeft size={13} />
+					<HeaderBtn icon={<ChevronLeft size={13} />} to="/developer/extensions">
 						Back
-					</Link>
+					</HeaderBtn>
 				}
 			/>
 

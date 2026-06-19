@@ -7,6 +7,7 @@ import { useAuthStore } from "@/auth/store";
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
+import { HeaderBtn } from "@/components/ui/HeaderBtn";
 import { TabbedEditor } from "@/components/ui/TabbedEditor";
 import { GravatarAvatar } from "@/components/users/GravatarAvatar";
 import { PasskeysPanel } from "@/components/users/PasskeysPanel";
@@ -166,24 +167,19 @@ export const Profile = () => {
 				sub="Manage your account details, passkeys, and password."
 				actions={
 					tab === "account" ? (
-						<button
+						<HeaderBtn
+							primary
 							type="submit"
 							form="profile-form"
+							icon={<Save size={13} />}
 							disabled={updateMutation.isPending}
-							className="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-[12.5px] font-medium text-accent-fg disabled:opacity-60 hover:bg-accent-hover"
 						>
-							<Save size={14} />
 							{updateMutation.isPending ? "Saving…" : "Save"}
-						</button>
+						</HeaderBtn>
 					) : (
-						<button
-							type="button"
-							onClick={() => setPasswordOpen(true)}
-							className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] hover:bg-hover"
-						>
-							<Key size={14} />
+						<HeaderBtn icon={<Key size={13} />} onClick={() => setPasswordOpen(true)}>
 							Change password
-						</button>
+						</HeaderBtn>
 					)
 				}
 			/>

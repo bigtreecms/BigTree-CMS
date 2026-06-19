@@ -5,6 +5,7 @@ import { ChevronLeft, Save } from "lucide-react";
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
+import { HeaderBtn } from "@/components/ui/HeaderBtn";
 
 import { fourOhFoursApi } from "@/api/endpoints/four-oh-fours";
 
@@ -79,13 +80,9 @@ export const Create301 = () => {
 				title="Add 301 redirect"
 				sub="Send an old URL to a new destination."
 				actions={
-					<Link
-						to="/dashboard/404s/301"
-						className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] hover:bg-hover"
-					>
-						<ChevronLeft size={13} />
+					<HeaderBtn icon={<ChevronLeft size={13} />} to="/dashboard/404s/301">
 						Back
-					</Link>
+					</HeaderBtn>
 				}
 			/>
 

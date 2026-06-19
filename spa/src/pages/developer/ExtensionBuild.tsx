@@ -5,6 +5,7 @@ import { ChevronLeft, Download, Package } from "lucide-react";
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
+import { HeaderBtn } from "@/components/ui/HeaderBtn";
 import { DeveloperSectionNav } from "@/components/developer/DeveloperSectionNav";
 
 import {
@@ -219,13 +220,9 @@ export const ExtensionBuild = () => {
 				title="Build extension"
 				sub="Package modules, templates, and other components into a distributable extension."
 				actions={
-					<Link
-						to="/developer/extensions"
-						className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] hover:bg-hover"
-					>
-						<ChevronLeft size={13} />
+					<HeaderBtn icon={<ChevronLeft size={13} />} to="/developer/extensions">
 						Back
-					</Link>
+					</HeaderBtn>
 				}
 			/>
 

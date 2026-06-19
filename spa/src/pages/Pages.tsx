@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Link, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { Archive, Edit, Eye, EyeOff, FileText, Plus } from "lucide-react";
 import { CardEmpty } from "@/components/dashboard/CardEmpty";
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
@@ -240,30 +240,21 @@ export const Pages = () => {
 							Preview
 						</HeaderBtn>
 						{!isRoot && (
-							<Link
+							<HeaderBtn
+								icon={<FileText size={13} />}
 								to={`/pages/${parent}/edit/revisions`}
-								className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-sm hover:bg-hover"
 							>
-								<FileText size={13} />
 								Revisions
-							</Link>
+							</HeaderBtn>
 						)}
 						{!isRoot && (
-							<Link
-								to={`/pages/${parent}/edit`}
-								className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-sm hover:bg-hover"
-							>
-								<Edit size={13} />
+							<HeaderBtn icon={<Edit size={13} />} to={`/pages/${parent}/edit`}>
 								Edit page
-							</Link>
+							</HeaderBtn>
 						)}
-						<Link
-							to={`/pages/add/${parent}`}
-							className="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-sm font-medium text-accent-fg hover:bg-accent-hover"
-						>
-							<Plus size={13} />
+						<HeaderBtn primary icon={<Plus size={13} />} to={`/pages/add/${parent}`}>
 							Add subpage
-						</Link>
+						</HeaderBtn>
 					</>
 				}
 			/>

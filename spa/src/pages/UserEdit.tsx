@@ -18,6 +18,7 @@ import { PageHead } from "@/components/shell/PageHead";
 import { AccessDenied } from "@/components/ui/AccessDenied";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
+import { HeaderBtn } from "@/components/ui/HeaderBtn";
 import { SubNav } from "@/components/ui/SubNav";
 import { GravatarAvatar } from "@/components/users/GravatarAvatar";
 import { ModulePermissionsTree } from "@/components/users/ModulePermissionsTree";
@@ -230,33 +231,26 @@ export const UserEdit = () => {
 				}
 				actions={
 					<>
-						<button
-							type="button"
+						<HeaderBtn
+							icon={<ChevronLeft size={13} />}
 							onClick={() => navigate("/users")}
-							className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] hover:bg-hover"
 						>
-							<ChevronLeft size={14} />
-							<span>Back to users</span>
-						</button>
+							Back to users
+						</HeaderBtn>
 
-						<button
-							type="button"
-							onClick={() => setPasswordOpen(true)}
-							className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] hover:bg-hover"
-						>
-							<Key size={14} />
-							<span>Change password</span>
-						</button>
+						<HeaderBtn icon={<Key size={13} />} onClick={() => setPasswordOpen(true)}>
+							Change password
+						</HeaderBtn>
 
-						<button
+						<HeaderBtn
+							primary
 							type="submit"
 							form="user-edit-form"
+							icon={<Save size={13} />}
 							disabled={updateMutation.isPending}
-							className="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-[12.5px] font-medium text-accent-fg disabled:opacity-60 hover:bg-accent-hover"
 						>
-							<Save size={14} />
 							{updateMutation.isPending ? "Saving…" : "Save changes"}
-						</button>
+						</HeaderBtn>
 					</>
 				}
 			/>

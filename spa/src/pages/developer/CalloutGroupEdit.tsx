@@ -6,6 +6,7 @@ import { ChevronLeft, Save, Trash } from "lucide-react";
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
 import { Combobox, type ComboboxOption } from "@/components/ui/Combobox";
+import { HeaderBtn } from "@/components/ui/HeaderBtn";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { UnsavedChangesGuard } from "@/components/ui/UnsavedChangesGuard";
 import { useDirtyTracker } from "@/hooks/useDirtyTracker";
@@ -158,13 +159,9 @@ export const CalloutGroupEdit = () => {
 			<PageHead
 				title={title}
 				actions={
-					<Link
-						to="/developer/callout-groups"
-						className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] hover:bg-hover"
-					>
-						<ChevronLeft size={13} />
+					<HeaderBtn icon={<ChevronLeft size={13} />} to="/developer/callout-groups">
 						Back
-					</Link>
+					</HeaderBtn>
 				}
 			/>
 

@@ -6,6 +6,7 @@ import { ChevronLeft, Save } from "lucide-react";
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
+import { HeaderBtn } from "@/components/ui/HeaderBtn";
 
 import { DeveloperSectionNav } from "@/components/developer/DeveloperSectionNav";
 import { InputSchemaBuilder } from "@/components/developer/InputSchemaBuilder";
@@ -197,13 +198,9 @@ export const FieldTypeEdit = () => {
 				title={title}
 				sub="Compose a custom field type from built-in primitives (declarative), or write a JavaScript module that draws it in the SPA."
 				actions={
-					<Link
-						to="/developer/field-types"
-						className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] hover:bg-hover"
-					>
-						<ChevronLeft size={13} />
+					<HeaderBtn icon={<ChevronLeft size={13} />} to="/developer/field-types">
 						Back
-					</Link>
+					</HeaderBtn>
 				}
 			/>
 

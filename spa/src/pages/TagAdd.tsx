@@ -7,6 +7,8 @@ import { useAuthStore } from "@/auth/store";
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
 import { AccessDenied } from "@/components/ui/AccessDenied";
+import { HeaderBtn } from "@/components/ui/HeaderBtn";
+import { SubNav } from "@/components/ui/SubNav";
 import { TagInput } from "@/components/tags/TagInput";
 
 import { tagsApi, type Tag } from "@/api/endpoints/tags";
@@ -119,20 +121,26 @@ export const TagAdd = () => {
 
 	return (
 		<div className="mx-auto max-w-screen-md px-6 py-4">
-			<Breadcrumb items={[{ label: "Tags", to: "/tags" }, { label: "Add tag" }]} />
+			<Breadcrumb items={[{ label: "Tags", to: "/tags" }, { label: "Add Tag" }]} />
 
 			<PageHead
 				title="Add tag"
 				sub="Create a tag, optionally merging existing tags into it."
 				actions={
-					<Link
-						to="/tags"
-						className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] hover:bg-hover"
-					>
-						<ChevronLeft size={13} />
-						Back
-					</Link>
+					<HeaderBtn icon={<ChevronLeft size={13} />} to="/tags">
+						Back to list
+					</HeaderBtn>
 				}
+			/>
+
+			<SubNav<"list" | "add">
+				className="mb-4"
+				value="add"
+				onChange={(v) => navigate(v === "add" ? "/tags/add" : "/tags")}
+				items={[
+					{ value: "list", label: "View Tags" },
+					{ value: "add", label: "Add Tag", icon: <Plus size={13} /> },
+				]}
 			/>
 
 			{error && (

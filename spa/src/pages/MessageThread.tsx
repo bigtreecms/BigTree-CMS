@@ -6,6 +6,7 @@ import { ChevronLeft, Reply } from "lucide-react";
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
+import { HeaderBtn } from "@/components/ui/HeaderBtn";
 
 import { ComposeMessage } from "@/components/messages/ComposeMessage";
 import { messagesApi } from "@/api/endpoints/dashboard";
@@ -101,23 +102,18 @@ export const MessageThread = () => {
 				title={message.subject || "(no subject)"}
 				sub={`From ${message.sender_name ?? `#${message.sender}`} · ${message.date}`}
 				actions={
-					<div className="flex flex-wrap items-center gap-2">
-						<Link
-							to="/messages"
-							className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] hover:bg-hover"
-						>
-							<ChevronLeft size={13} />
+					<>
+						<HeaderBtn icon={<ChevronLeft size={13} />} to="/messages">
 							Inbox
-						</Link>
-						<button
-							type="button"
-							className="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-[12.5px] font-medium text-accent-fg hover:bg-accent-hover"
+						</HeaderBtn>
+						<HeaderBtn
+							primary
+							icon={<Reply size={13} />}
 							onClick={() => setComposeOpen(true)}
 						>
-							<Reply size={13} />
 							Reply
-						</button>
-					</div>
+						</HeaderBtn>
+					</>
 				}
 			/>
 

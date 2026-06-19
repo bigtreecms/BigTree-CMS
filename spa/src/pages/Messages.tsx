@@ -6,6 +6,7 @@ import { Inbox, Plus, Send } from "lucide-react";
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
 import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
+import { HeaderBtn } from "@/components/ui/HeaderBtn";
 import { Pager } from "@/components/ui/Pager";
 import { SubNav } from "@/components/ui/SubNav";
 
@@ -87,14 +88,13 @@ export const Messages = () => {
 				title="Messages"
 				sub={total === 1 ? "1 message" : `${total.toLocaleString()} messages`}
 				actions={
-					<button
-						type="button"
-						className="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-[12.5px] font-medium text-accent-fg hover:bg-accent-hover"
+					<HeaderBtn
+						primary
+						icon={<Plus size={13} />}
 						onClick={() => setComposeOpen(true)}
 					>
-						<Plus size={13} />
 						New message
-					</button>
+					</HeaderBtn>
 				}
 			/>
 

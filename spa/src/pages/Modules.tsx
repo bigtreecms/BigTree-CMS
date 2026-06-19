@@ -6,6 +6,7 @@ import { Plus, Search, X } from "lucide-react";
 import { useAuthStore } from "@/auth/store";
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
+import { HeaderBtn } from "@/components/ui/HeaderBtn";
 import { iconFor } from "@/lib/legacyIcons";
 import { modulePath } from "@/lib/moduleActions";
 import { isDeveloper } from "@/lib/permissions";
@@ -135,13 +136,9 @@ export const Modules = () => {
 				sub={subText}
 				actions={
 					canCreate ? (
-						<Link
-							to="/developer/modules/add"
-							className="inline-flex cursor-pointer items-center gap-1.5 rounded-md bg-accent px-2.5 py-1.5 text-[12.5px] font-medium text-accent-fg transition-colors hover:bg-accent-hover"
-						>
-							<Plus size={13} />
+						<HeaderBtn primary icon={<Plus size={13} />} to="/developer/modules/add">
 							New module
-						</Link>
+						</HeaderBtn>
 					) : undefined
 				}
 			/>
