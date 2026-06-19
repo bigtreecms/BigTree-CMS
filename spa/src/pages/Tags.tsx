@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { GitMerge, Plus, Search, Trash, X } from "lucide-react";
 
@@ -37,7 +37,6 @@ export const Tags = () => {
 
 	const [query, setQuery] = useState("");
 	const [page, setPage] = useState(1);
-	const [newTag, setNewTag] = useState("");
 	const [confirmDelete, setConfirmDelete] = useState<Tag | null>(null);
 
 	useEffect(() => {
@@ -60,18 +59,6 @@ export const Tags = () => {
 	const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
 	const safePage = Math.min(page, totalPages);
 
-	const createMutation = useMutation({
-		mutationFn: (tag: string) => tagsApi.create(tag),
-		onSuccess: (created) => {
-			queryClient.invalidateQueries({ queryKey: ["tags"] });
-			toast.success(`Tag “${created.tag}” added`);
-			setNewTag("");
-		},
-		onError: () => {
-			toast.error("Could not create tag");
-		},
-	});
-
 	const deleteMutation = useMutation({
 		mutationFn: (id: number) => tagsApi.delete(id),
 		onSuccess: () => {
@@ -82,17 +69,6 @@ export const Tags = () => {
 			toast.error("Could not delete tag");
 		},
 	});
-
-	const submitNew = (event: React.FormEvent) => {
-		event.preventDefault();
-		const trimmed = newTag.trim();
-
-		if (!trimmed || createMutation.isPending) {
-			return;
-		}
-
-		createMutation.mutate(trimmed);
-	};
 
 	const columns: DataTableColumn<Tag>[] = [
 		{
@@ -160,31 +136,21 @@ export const Tags = () => {
 		<div className="mx-auto max-w-screen-2xl px-6 py-4">
 			<Breadcrumb items={[{ label: "Tags" }]} />
 
-			<PageHead title="Tags" sub={`${total} tag${total === 1 ? "" : "s"}`} />
-
-			{canEdit && (
-				<form
-					onSubmit={submitNew}
-					className="mb-4 flex flex-wrap items-center gap-2 rounded-lg border border-border bg-surface-2 px-3 py-2"
-				>
-					<label className="text-[12.5px] font-medium text-text-2">Add tag</label>
-					<input
-						type="text"
-						className="flex-1 min-w-[200px] rounded-md border border-border bg-surface px-3 py-1.5 text-[13.5px] focus:outline-none focus:ring-1 focus:ring-accent-ring"
-						placeholder="e.g. announcements"
-						value={newTag}
-						onChange={(e) => setNewTag(e.target.value)}
-					/>
-					<button
-						type="submit"
-						className="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-[12.5px] font-medium text-accent-fg disabled:opacity-60 hover:bg-accent-hover"
-						disabled={!newTag.trim() || createMutation.isPending}
-					>
-						<Plus size={14} />
-						{createMutation.isPending ? "Adding…" : "Add"}
-					</button>
-				</form>
-			)}
+			<PageHead
+				title="Tags"
+				sub={`${total} tag${total === 1 ? "" : "s"}`}
+				actions={
+					canEdit ? (
+						<Link
+							to="/tags/add"
+							className="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-[12.5px] font-medium text-accent-fg hover:bg-accent-hover"
+						>
+							<Plus size={14} />
+							Add tag
+						</Link>
+					) : undefined
+				}
+			/>
 
 			<div className="mb-3 flex flex-wrap items-center gap-3">
 				<div className="relative w-full sm:w-auto sm:max-w-md sm:flex-1">

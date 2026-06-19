@@ -133,6 +133,7 @@ import { SettingEdit } from "@/pages/SettingEdit";
 import { Settings } from "@/pages/Settings";
 import { SiteIntegrity } from "@/pages/SiteIntegrity";
 import { Profile } from "@/pages/Profile";
+import { TagAdd } from "@/pages/TagAdd";
 import { TagMerge } from "@/pages/TagMerge";
 import { Tags } from "@/pages/Tags";
 import { UserEdit } from "@/pages/UserEdit";
@@ -295,6 +296,7 @@ export const router = createBrowserRouter(
 							),
 							children: [
 								{ index: true, element: <Tags /> },
+								{ path: "add", element: <TagAdd /> },
 								{ path: "merge", element: <TagMerge /> },
 							],
 						},
