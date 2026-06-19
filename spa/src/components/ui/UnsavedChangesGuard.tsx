@@ -1,3 +1,5 @@
+import { useRef } from "react";
+
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { useUnsavedChangesWarning } from "@/hooks/useUnsavedChangesWarning";
 
@@ -17,11 +19,28 @@ interface UnsavedChangesGuardProps {
 export const UnsavedChangesGuard = ({ isDirty }: UnsavedChangesGuardProps) => {
 	const blocker = useUnsavedChangesWarning(isDirty);
 
+	// ConfirmDialog routes a confirm through onConfirm *and* onOpenChange(false).
+	// Without this flag the close handler would call reset() right after
+	// proceed() — cancelling the navigation and re-arming the blocker, so the
+	// dialog immediately reappears. The ref lets the confirm-driven close skip
+	// the reset while still resetting on a genuine dismiss (Stay / ESC / overlay).
+	const confirmingRef = useRef(false);
+
 	return (
 		<ConfirmDialog
 			open={blocker.state === "blocked"}
 			onOpenChange={(open) => {
-				if (!open && blocker.state === "blocked") {
+				if (open) {
+					return;
+				}
+
+				if (confirmingRef.current) {
+					confirmingRef.current = false;
+
+					return;
+				}
+
+				if (blocker.state === "blocked") {
 					blocker.reset();
 				}
 			}}
@@ -30,7 +49,10 @@ export const UnsavedChangesGuard = ({ isDirty }: UnsavedChangesGuardProps) => {
 			confirmLabel="Leave page"
 			cancelLabel="Stay"
 			variant="danger"
-			onConfirm={() => blocker.proceed?.()}
+			onConfirm={() => {
+				confirmingRef.current = true;
+				blocker.proceed?.();
+			}}
 		/>
 	);
 };
