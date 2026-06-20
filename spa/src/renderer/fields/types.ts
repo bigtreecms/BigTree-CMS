@@ -1,3 +1,4 @@
+import { inputClass } from "@/components/ui/TextInput";
 import type { ModuleFormField } from "@/api/endpoints/modules";
 
 /**
@@ -28,6 +29,9 @@ export const settingsOf = (field: ModuleFormField): Record<string, unknown> => {
 	return raw as Record<string, unknown>;
 };
 
-/** Standard Tailwind class for text-style inputs across all field components. */
-export const INPUT_CLASS =
-	"w-full rounded-md border border-border bg-surface px-3 py-2 text-[13.5px] placeholder:text-text-3 focus:outline-none focus:ring-1 focus:ring-accent-ring disabled:cursor-not-allowed disabled:opacity-60";
+/**
+ * Standard Tailwind class for text-style inputs across all field components.
+ * Re-exported from the canonical {@link inputClass} primitive so the renderer
+ * engine and the rest of the admin can't drift apart.
+ */
+export const INPUT_CLASS = inputClass;

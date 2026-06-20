@@ -18,8 +18,12 @@ import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { Button } from "@/components/ui/Button";
+import { Field } from "@/components/ui/Field";
 import { Pager } from "@/components/ui/Pager";
+import { SelectField } from "@/components/ui/SelectField";
 import { SubNav } from "@/components/ui/SubNav";
+import { TextField } from "@/components/ui/TextField";
+import { TextInput } from "@/components/ui/TextInput";
 import { TimezoneSelect } from "@/components/users/TimezoneSelect";
 import { isDeveloper } from "@/lib/permissions";
 import { toast } from "@/lib/toast";
@@ -553,82 +557,59 @@ export const Users = () => {
 					</div>
 
 					<div className="grid grid-cols-1 gap-x-6 gap-y-4 p-4 md:grid-cols-2">
-						<div>
-							<label className="mb-1 block text-[12px] font-medium text-text-2">
-								First name *
-							</label>
-							<input
+						<Field label="First name" required>
+							<TextInput
 								ref={firstRef}
-								className="w-full rounded-md border border-border bg-surface px-3 py-2 text-[13.5px] focus:outline-none focus:ring-1 focus:ring-accent-ring"
 								value={first}
 								onChange={(e) => setFirst(e.target.value)}
 								placeholder="e.g. Alex"
 							/>
-						</div>
-						<div>
-							<label className="mb-1 block text-[12px] font-medium text-text-2">
-								Last name *
-							</label>
-							<input
-								className="w-full rounded-md border border-border bg-surface px-3 py-2 text-[13.5px] focus:outline-none focus:ring-1 focus:ring-accent-ring"
-								value={last}
-								onChange={(e) => setLast(e.target.value)}
-								placeholder="e.g. Chen"
-							/>
-						</div>
+						</Field>
+						<TextField
+							label="Last name"
+							required
+							value={last}
+							onChange={setLast}
+							placeholder="e.g. Chen"
+						/>
 
-						<div className="md:col-span-2">
-							<label className="mb-1 block text-[12px] font-medium text-text-2">
-								Email address *
-							</label>
-							<input
-								type="email"
-								className="w-full rounded-md border border-border bg-surface px-3 py-2 text-[13.5px] focus:outline-none focus:ring-1 focus:ring-accent-ring"
-								value={email}
-								onChange={(e) => setEmail(e.target.value)}
-								placeholder="name@northwind-energy.local"
-							/>
-							<p className="mt-1 text-[12px] text-text-3">
-								Used for login and password-reset emails.
-							</p>
-						</div>
+						<TextField
+							className="md:col-span-2"
+							label="Email address"
+							required
+							type="email"
+							value={email}
+							onChange={setEmail}
+							placeholder="name@northwind-energy.local"
+							hint="Used for login and password-reset emails."
+						/>
 
-						<div>
-							<label className="mb-1 block text-[12px] font-medium text-text-2">
-								Company / Team
-							</label>
-							<input
-								className="w-full rounded-md border border-border bg-surface px-3 py-2 text-[13.5px] focus:outline-none focus:ring-1 focus:ring-accent-ring"
-								value={company}
-								onChange={(e) => setCompany(e.target.value)}
-								placeholder="e.g. Northwind Digital Team"
-							/>
-						</div>
+						<TextField
+							label="Company / Team"
+							value={company}
+							onChange={setCompany}
+							placeholder="e.g. Northwind Digital Team"
+						/>
 
-						<div>
-							<label className="mb-1 block text-[12px] font-medium text-text-2">
-								User level
-							</label>
-							<select
-								className="w-full rounded-md border border-border bg-surface px-3 py-2 text-[13.5px] focus:outline-none focus:ring-1 focus:ring-accent-ring"
-								value={level}
-								onChange={(e) => setLevel(e.target.value as User["level"])}
-							>
-								<option value="Normal User">Normal User</option>
-								<option value="Administrator">Administrator</option>
-								{isDeveloper(currentUser) && (
-									<option value="Developer">Developer</option>
-								)}
-							</select>
-							<p className="mt-1 text-[12px] text-text-3">
-								{level === "Developer" &&
-									"Full access including the Developer section (templates, module designer, configure, debug)."}
-								{level === "Administrator" &&
-									"Manage pages, modules, files, settings, and other users."}
-								{level === "Normal User" &&
-									"Per-resource access only — set up grants after creation."}
-							</p>
-						</div>
+						<SelectField
+							label="User level"
+							value={level}
+							onChange={(next) => setLevel(next as User["level"])}
+							options={[
+								{ value: "Normal User", label: "Normal User" },
+								{ value: "Administrator", label: "Administrator" },
+								...(isDeveloper(currentUser)
+									? [{ value: "Developer", label: "Developer" }]
+									: []),
+							]}
+							hint={
+								level === "Developer"
+									? "Full access including the Developer section (templates, module designer, configure, debug)."
+									: level === "Administrator"
+										? "Manage pages, modules, files, settings, and other users."
+										: "Per-resource access only — set up grants after creation."
+							}
+						/>
 
 						<div>
 							<label className="mb-1 block text-[12px] font-medium text-text-2">
@@ -672,19 +653,15 @@ export const Users = () => {
 						</div>
 
 						{!sendInvite && (
-							<div className="mt-3">
-								<label className="mb-1 block text-[12px] font-medium text-text-2">
-									Initial password
-								</label>
-								<input
+							<Field label="Initial password" className="mt-3">
+								<TextInput
 									type="password"
 									autoComplete="new-password"
 									value={password}
 									onChange={(e) => setPassword(e.target.value)}
-									className="w-full rounded-md border border-border bg-surface px-3 py-2 text-[13.5px] focus:outline-none focus:ring-1 focus:ring-accent-ring"
 									placeholder="At least 8 characters"
 								/>
-							</div>
+							</Field>
 						)}
 					</div>
 

@@ -9,6 +9,7 @@ import { PageHead } from "@/components/shell/PageHead";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { Button } from "@/components/ui/Button";
 import { TabbedEditor } from "@/components/ui/TabbedEditor";
+import { TextField } from "@/components/ui/TextField";
 import { GravatarAvatar } from "@/components/users/GravatarAvatar";
 import { PasskeysPanel } from "@/components/users/PasskeysPanel";
 import { PasswordChangeDialog } from "@/components/users/PasswordChangeDialog";
@@ -223,36 +224,25 @@ const AccountTab = ({ me, form, onChange, onSubmit }: AccountTabProps) => (
 		</div>
 
 		<div className="grid gap-4 p-4 md:grid-cols-2">
-			<label className="block">
-				<span className="mb-1 block text-[12px] font-medium text-text-2">Name</span>
-				<input
-					type="text"
-					value={form.name ?? ""}
-					onChange={(e) => onChange({ ...form, name: e.target.value })}
-					className="w-full rounded-md border border-border bg-surface px-3 py-2 text-[13.5px] focus:outline-none focus:ring-1 focus:ring-accent-ring"
-				/>
-			</label>
+			<TextField
+				label="Name"
+				value={form.name ?? ""}
+				onChange={(name) => onChange({ ...form, name })}
+			/>
 
-			<label className="block">
-				<span className="mb-1 block text-[12px] font-medium text-text-2">Email</span>
-				<input
-					type="email"
-					required
-					value={form.email ?? ""}
-					onChange={(e) => onChange({ ...form, email: e.target.value })}
-					className="w-full rounded-md border border-border bg-surface px-3 py-2 text-[13.5px] focus:outline-none focus:ring-1 focus:ring-accent-ring"
-				/>
-			</label>
+			<TextField
+				label="Email"
+				type="email"
+				required
+				value={form.email ?? ""}
+				onChange={(email) => onChange({ ...form, email })}
+			/>
 
-			<label className="block">
-				<span className="mb-1 block text-[12px] font-medium text-text-2">Company</span>
-				<input
-					type="text"
-					value={form.company ?? ""}
-					onChange={(e) => onChange({ ...form, company: e.target.value })}
-					className="w-full rounded-md border border-border bg-surface px-3 py-2 text-[13.5px] focus:outline-none focus:ring-1 focus:ring-accent-ring"
-				/>
-			</label>
+			<TextField
+				label="Company"
+				value={form.company ?? ""}
+				onChange={(company) => onChange({ ...form, company })}
+			/>
 
 			<label className="block">
 				<span className="mb-1 block text-[12px] font-medium text-text-2">Timezone</span>

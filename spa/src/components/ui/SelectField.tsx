@@ -1,8 +1,10 @@
 import { Field } from "./Field";
+import { Select } from "./Select";
 
 /**
  * Labeled `<select>` — the dropdown counterpart to {@link TextField}, composed
- * on {@link Field} for shared label/hint/error chrome.
+ * on {@link Field} for shared label/hint/error chrome around the bare
+ * {@link Select} primitive.
  */
 
 interface SelectOption {
@@ -19,6 +21,8 @@ interface SelectFieldProps {
 	error?: string;
 	disabled?: boolean;
 	required?: boolean;
+	/** Layout-only classes forwarded to the wrapping {@link Field} (e.g. grid spans). */
+	className?: string;
 }
 
 export const SelectField = ({
@@ -30,19 +34,15 @@ export const SelectField = ({
 	error,
 	disabled,
 	required,
+	className,
 }: SelectFieldProps) => (
-	<Field label={label} hint={hint} error={error} required={required}>
-		<select
-			value={value}
-			onChange={(e) => onChange(e.target.value)}
-			disabled={disabled}
-			className="w-full rounded-md border border-border bg-surface px-2.5 py-2 text-[13px] focus:outline-none focus:ring-1 focus:ring-accent-ring disabled:cursor-not-allowed disabled:opacity-60"
-		>
+	<Field label={label} hint={hint} error={error} required={required} className={className}>
+		<Select value={value} onChange={(e) => onChange(e.target.value)} disabled={disabled}>
 			{options.map((o) => (
 				<option key={o.value} value={o.value}>
 					{o.label}
 				</option>
 			))}
-		</select>
+		</Select>
 	</Field>
 );

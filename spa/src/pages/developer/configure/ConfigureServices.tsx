@@ -5,6 +5,7 @@ import { CheckCircle2, ChevronDown, ChevronRight, Unplug } from "lucide-react";
 
 import { ConfigureLayout } from "@/components/developer/ConfigureLayout";
 import { Button } from "@/components/ui/Button";
+import { inputClass } from "@/components/ui/TextInput";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { Field } from "@/components/ui/Field";
@@ -13,9 +14,6 @@ import { configureApi, type ServiceCredentials } from "@/api/endpoints/configure
 
 import { ApiError } from "@/types/api";
 import { toast } from "@/lib/toast";
-
-const inputClass =
-	"w-full rounded-md border border-border bg-surface px-3 py-2 text-[13px] outline-none focus:border-accent focus:ring-2 focus:ring-accent-ring";
 
 interface ServiceMeta {
 	id: string;

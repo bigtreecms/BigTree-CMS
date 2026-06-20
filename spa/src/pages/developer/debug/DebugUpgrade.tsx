@@ -4,6 +4,7 @@ import { AlertTriangle, CheckCircle2, Download, Loader2 } from "lucide-react";
 
 import { DebugLayout } from "@/components/developer/DebugLayout";
 import { Button } from "@/components/ui/Button";
+import { inputClass } from "@/components/ui/TextInput";
 import { Field } from "@/components/ui/Field";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 
@@ -14,9 +15,6 @@ import {
 	type UpgradeMethod,
 } from "@/api/endpoints/system";
 import { ApiError } from "@/types/api";
-
-const inputClass =
-	"w-full rounded-md border border-border bg-surface px-3 py-2 text-[13px] outline-none focus:border-accent focus:ring-2 focus:ring-accent-ring";
 
 const primaryBtn =
 	"inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-[12.5px] font-medium text-accent-fg hover:bg-accent-hover disabled:opacity-60";

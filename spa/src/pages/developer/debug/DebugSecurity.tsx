@@ -4,6 +4,7 @@ import { Save, ShieldOff } from "lucide-react";
 
 import { DebugLayout } from "@/components/developer/DebugLayout";
 import { Button } from "@/components/ui/Button";
+import { inputClass } from "@/components/ui/TextInput";
 import { Field } from "@/components/ui/Field";
 import { FormShell } from "@/components/ui/FormShell";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
@@ -11,9 +12,6 @@ import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { systemApi, type SecurityPolicy } from "@/api/endpoints/system";
 import { ApiError } from "@/types/api";
 import { toast } from "@/lib/toast";
-
-const inputClass =
-	"w-full rounded-md border border-border bg-surface px-3 py-2 text-[13px] outline-none focus:border-accent focus:ring-2 focus:ring-accent-ring";
 
 const narrowInputClass =
 	"w-16 rounded-md border border-border bg-surface px-2 py-1 text-center text-[13px] tabular-nums outline-none focus:border-accent focus:ring-2 focus:ring-accent-ring";

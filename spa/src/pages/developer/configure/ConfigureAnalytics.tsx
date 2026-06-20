@@ -3,6 +3,7 @@ import { CheckCircle2, Unplug } from "lucide-react";
 
 import { ConfigureLayout } from "@/components/developer/ConfigureLayout";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+import { inputClass } from "@/components/ui/TextInput";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { Field } from "@/components/ui/Field";
 import { UploadButton } from "@/components/ui/UploadButton";
@@ -12,9 +13,6 @@ import { type AnalyticsStatus, configureApi } from "@/api/endpoints/configure";
 import { ApiError } from "@/types/api";
 import { toast } from "@/lib/toast";
 import { useState } from "react";
-
-const inputClass =
-	"w-full rounded-md border border-border bg-surface px-3 py-2 text-[13px] outline-none focus:border-accent focus:ring-2 focus:ring-accent-ring";
 
 export const ConfigureAnalytics = () => {
 	const queryClient = useQueryClient();

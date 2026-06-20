@@ -4,6 +4,7 @@ import { ChevronDown, ChevronRight, Plus, Save, Trash } from "lucide-react";
 
 import { ConfigureLayout } from "@/components/developer/ConfigureLayout";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
+import { inputClass } from "@/components/ui/TextInput";
 import { Button } from "@/components/ui/Button";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { MediaPresetEditor } from "@/components/developer/MediaPresetEditor";
@@ -12,9 +13,6 @@ import { configureApi, type MediaPreset } from "@/api/endpoints/configure";
 
 import { ApiError } from "@/types/api";
 import { toast } from "@/lib/toast";
-
-const inputClass =
-	"w-full rounded-md border border-border bg-surface px-3 py-2 text-[13px] outline-none focus:border-accent focus:ring-2 focus:ring-accent-ring";
 
 /**
  * Media presets — reusable image-field configurations.

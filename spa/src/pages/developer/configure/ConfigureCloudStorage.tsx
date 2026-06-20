@@ -5,6 +5,7 @@ import { RefreshCw, Save } from "lucide-react";
 
 import { ConfigureLayout } from "@/components/developer/ConfigureLayout";
 import { Field } from "@/components/ui/Field";
+import { inputClass } from "@/components/ui/TextInput";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { UploadButton } from "@/components/ui/UploadButton";
 
@@ -12,9 +13,6 @@ import { configureApi, type CloudProvider } from "@/api/endpoints/configure";
 
 import { ApiError } from "@/types/api";
 import { toast } from "@/lib/toast";
-
-const inputClass =
-	"w-full rounded-md border border-border bg-surface px-3 py-2 text-[13px] outline-none focus:border-accent focus:ring-2 focus:ring-accent-ring";
 
 const AWS_REGIONS = [
 	{ value: "us-east-1", label: "US East (N. Virginia)" },

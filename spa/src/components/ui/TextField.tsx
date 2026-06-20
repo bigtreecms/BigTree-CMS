@@ -1,14 +1,17 @@
 import { Field } from "./Field";
+import { TextInput, inputClass } from "./TextInput";
 
 /**
  * Labeled single-line text input — the standard control for admin forms.
- * Composes {@link Field} for the label/hint/error chrome so every form field
- * reads and renders consistently. For a bare input without the label wrapper,
- * use a plain `<input>` with `inputClass`.
+ * Composes {@link Field} for the label/hint/error chrome around the bare
+ * {@link TextInput} primitive so every form field reads and renders
+ * consistently. For a bare input without the label wrapper, use {@link TextInput}
+ * (or a plain `<input>` with `inputClass`).
  */
 
-export const inputClass =
-	"w-full rounded-md border border-border bg-surface px-3 py-2 text-[13px] focus:outline-none focus:ring-1 focus:ring-accent-ring disabled:cursor-not-allowed disabled:opacity-60";
+// Re-exported for the many call sites that style a one-off control with the
+// canonical class; the source of truth lives in ./TextInput.
+export { inputClass };
 
 interface TextFieldProps {
 	label: string;
@@ -20,6 +23,8 @@ interface TextFieldProps {
 	required?: boolean;
 	type?: string;
 	placeholder?: string;
+	/** Layout-only classes forwarded to the wrapping {@link Field} (e.g. grid spans). */
+	className?: string;
 }
 
 export const TextField = ({
@@ -32,15 +37,15 @@ export const TextField = ({
 	required,
 	type = "text",
 	placeholder,
+	className,
 }: TextFieldProps) => (
-	<Field label={label} hint={hint} error={error} required={required}>
-		<input
+	<Field label={label} hint={hint} error={error} required={required} className={className}>
+		<TextInput
 			type={type}
 			value={value}
 			onChange={(e) => onChange(e.target.value)}
 			disabled={disabled}
 			placeholder={placeholder}
-			className={inputClass}
 		/>
 	</Field>
 );
