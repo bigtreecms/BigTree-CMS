@@ -5,7 +5,7 @@ import { AlertTriangle, CheckCircle2, ChevronLeft, Package, Upload } from "lucid
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
-import { HeaderBtn } from "@/components/ui/HeaderBtn";
+import { Button } from "@/components/ui/Button";
 import { DeveloperSectionNav } from "@/components/developer/DeveloperSectionNav";
 
 import {
@@ -79,9 +79,9 @@ export const ExtensionInstall = () => {
 				title="Install extension"
 				sub="Upload an extension package (.zip). You'll review what it changes before it's installed."
 				actions={
-					<HeaderBtn icon={<ChevronLeft size={13} />} to="/developer/extensions">
+					<Button icon={<ChevronLeft size={13} />} to="/developer/extensions">
 						Back
-					</HeaderBtn>
+					</Button>
 				}
 			/>
 

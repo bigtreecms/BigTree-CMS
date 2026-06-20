@@ -1,11 +1,11 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ChevronLeft, Upload } from "lucide-react";
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
-import { HeaderBtn } from "@/components/ui/HeaderBtn";
+import { Button } from "@/components/ui/Button";
 
 import { fourOhFoursApi } from "@/api/endpoints/four-oh-fours";
 
@@ -72,9 +72,9 @@ export const Import301 = () => {
 				title="Import 301 redirects"
 				sub="Bulk-create redirects from a CSV file."
 				actions={
-					<HeaderBtn icon={<ChevronLeft size={13} />} to="/dashboard/404s/301">
+					<Button icon={<ChevronLeft size={13} />} to="/dashboard/404s/301">
 						Back
-					</HeaderBtn>
+					</Button>
 				}
 			/>
 
@@ -148,20 +148,15 @@ export const Import301 = () => {
 				</label>
 
 				<div className="flex justify-end gap-2 border-t border-border pt-3">
-					<Link
-						to="/dashboard/404s/301"
-						className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] text-text-2 hover:bg-hover"
-					>
-						Cancel
-					</Link>
-					<button
+					<Button to="/dashboard/404s/301">Cancel</Button>
+					<Button
+						variant="primary"
 						type="submit"
-						className="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-[12.5px] font-medium text-accent-fg disabled:opacity-50 hover:bg-accent-hover"
+						icon={<Upload size={13} />}
 						disabled={importMutation.isPending || !file}
 					>
-						<Upload size={13} />
 						{importMutation.isPending ? "Importing…" : "Import"}
-					</button>
+					</Button>
 				</div>
 			</form>
 		</div>

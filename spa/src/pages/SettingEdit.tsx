@@ -5,6 +5,7 @@ import { Eye, EyeOff, Lock, Save, ShieldAlert } from "lucide-react";
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
+import { Button } from "@/components/ui/Button";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { LockBanner } from "@/components/ui/LockBanner";
 
@@ -238,21 +239,15 @@ export const SettingEdit = () => {
 				)}
 
 				<div className="mt-4 flex justify-end gap-2">
-					<button
-						type="button"
-						onClick={() => navigate("/settings")}
-						className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] text-text-2 hover:bg-hover"
-					>
-						Cancel
-					</button>
-					<button
+					<Button onClick={() => navigate("/settings")}>Cancel</Button>
+					<Button
+						variant="primary"
 						type="submit"
-						className="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-[12.5px] font-medium text-accent-fg disabled:opacity-50 hover:bg-accent-hover"
+						icon={<Save size={13} />}
 						disabled={readOnly || saveMutation.isPending || valueWithheld}
 					>
-						<Save size={13} />
 						{saveMutation.isPending ? "Saving…" : "Save"}
-					</button>
+					</Button>
 				</div>
 			</form>
 

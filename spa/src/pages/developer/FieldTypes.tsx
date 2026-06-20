@@ -7,7 +7,7 @@ import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
-import { HeaderBtn } from "@/components/ui/HeaderBtn";
+import { Button } from "@/components/ui/Button";
 
 import { DeveloperSectionNav } from "@/components/developer/DeveloperSectionNav";
 
@@ -133,9 +133,13 @@ export const FieldTypes = () => {
 				title="Field types"
 				sub={`${rows.length} custom field type${rows.length === 1 ? "" : "s"}`}
 				actions={
-					<HeaderBtn primary icon={<Plus size={13} />} to="/developer/field-types/add">
+					<Button
+						variant="primary"
+						icon={<Plus size={13} />}
+						to="/developer/field-types/add"
+					>
 						Add custom type
-					</HeaderBtn>
+					</Button>
 				}
 			/>
 

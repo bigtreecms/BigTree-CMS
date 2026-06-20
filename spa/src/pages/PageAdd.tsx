@@ -5,7 +5,7 @@ import { ChevronLeft, ChevronRight, X } from "lucide-react";
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
-import { HeaderBtn } from "@/components/ui/HeaderBtn";
+import { Button } from "@/components/ui/Button";
 
 import { PageSummaryPanel } from "@/components/pages/PageSummaryPanel";
 import { PageSectionToolbar } from "@/components/pages/PageSectionToolbar";
@@ -232,9 +232,9 @@ export const PageAdd = () => {
 				title={body.nav_title?.trim() || "New subpage"}
 				sub="Configure properties, then add content, SEO, and sharing metadata."
 				actions={
-					<HeaderBtn icon={<X size={13} />} to={`/pages/${parent}`}>
+					<Button icon={<X size={13} />} to={`/pages/${parent}`}>
 						Cancel
-					</HeaderBtn>
+					</Button>
 				}
 			/>
 

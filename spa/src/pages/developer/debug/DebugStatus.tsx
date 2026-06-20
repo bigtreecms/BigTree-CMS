@@ -5,7 +5,7 @@ import { Trash2 } from "lucide-react";
 
 import { DebugLayout } from "@/components/developer/DebugLayout";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
-import { HeaderBtn } from "@/components/ui/HeaderBtn";
+import { Button } from "@/components/ui/Button";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 
 import { systemApi } from "@/api/endpoints/system";
@@ -68,13 +68,13 @@ export const DebugStatus = () => {
 			title="Site Status"
 			sub="Directory permissions, content warnings, and PHP server parameters for this install."
 			actions={
-				<HeaderBtn
+				<Button
 					icon={<Trash2 size={13} />}
 					onClick={() => setConfirmClear(true)}
 					disabled={clearCache.isPending}
 				>
 					{clearCache.isPending ? "Clearing…" : "Clear cache"}
-				</HeaderBtn>
+				</Button>
 			}
 		>
 			<p className="mb-5 text-[12.5px] text-text-3">

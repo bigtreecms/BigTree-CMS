@@ -6,7 +6,7 @@ import { ChevronLeft, Reply } from "lucide-react";
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
-import { HeaderBtn } from "@/components/ui/HeaderBtn";
+import { Button } from "@/components/ui/Button";
 
 import { ComposeMessage } from "@/components/messages/ComposeMessage";
 import { messagesApi } from "@/api/endpoints/dashboard";
@@ -103,16 +103,16 @@ export const MessageThread = () => {
 				sub={`From ${message.sender_name ?? `#${message.sender}`} · ${message.date}`}
 				actions={
 					<>
-						<HeaderBtn icon={<ChevronLeft size={13} />} to="/messages">
+						<Button icon={<ChevronLeft size={13} />} to="/messages">
 							Inbox
-						</HeaderBtn>
-						<HeaderBtn
-							primary
+						</Button>
+						<Button
+							variant="primary"
 							icon={<Reply size={13} />}
 							onClick={() => setComposeOpen(true)}
 						>
 							Reply
-						</HeaderBtn>
+						</Button>
 					</>
 				}
 			/>

@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
-import { Link, Navigate, useNavigate, useParams } from "react-router-dom";
+import { Navigate, useNavigate, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ChevronLeft, Save } from "lucide-react";
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
-import { HeaderBtn } from "@/components/ui/HeaderBtn";
+import { Button } from "@/components/ui/Button";
 import { UnsavedChangesGuard } from "@/components/ui/UnsavedChangesGuard";
 import { useDirtyTracker } from "@/hooks/useDirtyTracker";
 
@@ -166,9 +166,9 @@ export const FeedEdit = () => {
 			<PageHead
 				title={title}
 				actions={
-					<HeaderBtn icon={<ChevronLeft size={13} />} to="/developer/feeds">
+					<Button icon={<ChevronLeft size={13} />} to="/developer/feeds">
 						Back
-					</HeaderBtn>
+					</Button>
 				}
 			/>
 
@@ -272,20 +272,15 @@ export const FeedEdit = () => {
 				)}
 
 				<div className="flex justify-end gap-2 border-t border-border pt-3">
-					<Link
-						to="/developer/feeds"
-						className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] text-text-2 hover:bg-hover"
-					>
-						Cancel
-					</Link>
-					<button
+					<Button to="/developer/feeds">Cancel</Button>
+					<Button
+						variant="primary"
 						type="submit"
-						className="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-[12.5px] font-medium text-accent-fg disabled:opacity-50 hover:bg-accent-hover"
+						icon={<Save size={13} />}
 						disabled={saveMutation.isPending}
 					>
-						<Save size={13} />
 						{saveMutation.isPending ? "Saving…" : isAdd ? "Create feed" : "Save feed"}
-					</button>
+					</Button>
 				</div>
 			</form>
 

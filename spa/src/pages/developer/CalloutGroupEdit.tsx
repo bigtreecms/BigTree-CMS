@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
-import { Link, Navigate, useNavigate, useParams } from "react-router-dom";
+import { Navigate, useNavigate, useParams } from "react-router-dom";
 import { useMutation, useQueries, useQueryClient } from "@tanstack/react-query";
 import { ChevronLeft, Save, Trash } from "lucide-react";
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
 import { Combobox, type ComboboxOption } from "@/components/ui/Combobox";
-import { HeaderBtn } from "@/components/ui/HeaderBtn";
+import { Button } from "@/components/ui/Button";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { UnsavedChangesGuard } from "@/components/ui/UnsavedChangesGuard";
 import { useDirtyTracker } from "@/hooks/useDirtyTracker";
@@ -159,9 +159,9 @@ export const CalloutGroupEdit = () => {
 			<PageHead
 				title={title}
 				actions={
-					<HeaderBtn icon={<ChevronLeft size={13} />} to="/developer/callout-groups">
+					<Button icon={<ChevronLeft size={13} />} to="/developer/callout-groups">
 						Back
-					</HeaderBtn>
+					</Button>
 				}
 			/>
 
@@ -294,20 +294,15 @@ export const CalloutGroupEdit = () => {
 				</div>
 
 				<div className="flex justify-end gap-2 border-t border-border pt-3">
-					<Link
-						to="/developer/callout-groups"
-						className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] text-text-2 hover:bg-hover"
-					>
-						Cancel
-					</Link>
-					<button
+					<Button to="/developer/callout-groups">Cancel</Button>
+					<Button
+						variant="primary"
 						type="submit"
-						className="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-[12.5px] font-medium text-accent-fg disabled:opacity-50 hover:bg-accent-hover"
+						icon={<Save size={13} />}
 						disabled={saveMutation.isPending}
 					>
-						<Save size={13} />
 						{saveMutation.isPending ? "Saving…" : isAdd ? "Create group" : "Save group"}
-					</button>
+					</Button>
 				</div>
 			</form>
 

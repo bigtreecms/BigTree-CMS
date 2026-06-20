@@ -6,7 +6,7 @@ import { Check, Download, EyeOff, Link2, Plus, Search, Trash, Upload, X } from "
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
-import { HeaderBtn } from "@/components/ui/HeaderBtn";
+import { Button } from "@/components/ui/Button";
 import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
 import { Pager } from "@/components/ui/Pager";
 import { SubNav } from "@/components/ui/SubNav";
@@ -392,40 +392,40 @@ export const FourOhFours = ({ type }: FourOhFoursProps) => {
 				sub={total === 1 ? "1 entry" : `${total.toLocaleString()} entries`}
 				actions={
 					<>
-						<HeaderBtn
+						<Button
 							icon={<Download size={13} />}
 							disabled={exportMutation.isPending}
 							onClick={() => exportMutation.mutate()}
 						>
 							{exportMutation.isPending ? "Exporting…" : "Export CSV"}
-						</HeaderBtn>
+						</Button>
 
 						{type === "301" && (
 							<>
-								<HeaderBtn
+								<Button
 									icon={<Upload size={13} />}
 									onClick={() => navigate("/dashboard/404s/301/import")}
 								>
 									Import CSV
-								</HeaderBtn>
+								</Button>
 
-								<HeaderBtn
-									primary
+								<Button
+									variant="primary"
 									icon={<Plus size={13} />}
 									onClick={() => navigate("/dashboard/404s/301/add")}
 								>
 									Add 301
-								</HeaderBtn>
+								</Button>
 							</>
 						)}
 
 						{type === "404" && (
-							<HeaderBtn
+							<Button
 								icon={<Trash size={13} />}
 								onClick={() => setConfirmClearDead(true)}
 							>
 								Clear dead
-							</HeaderBtn>
+							</Button>
 						)}
 					</>
 				}

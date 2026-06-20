@@ -18,7 +18,7 @@ import { PageHead } from "@/components/shell/PageHead";
 import { AccessDenied } from "@/components/ui/AccessDenied";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
-import { HeaderBtn } from "@/components/ui/HeaderBtn";
+import { Button } from "@/components/ui/Button";
 import { SubNav } from "@/components/ui/SubNav";
 import { GravatarAvatar } from "@/components/users/GravatarAvatar";
 import { ModulePermissionsTree } from "@/components/users/ModulePermissionsTree";
@@ -231,26 +231,23 @@ export const UserEdit = () => {
 				}
 				actions={
 					<>
-						<HeaderBtn
-							icon={<ChevronLeft size={13} />}
-							onClick={() => navigate("/users")}
-						>
+						<Button icon={<ChevronLeft size={13} />} onClick={() => navigate("/users")}>
 							Back to users
-						</HeaderBtn>
+						</Button>
 
-						<HeaderBtn icon={<Key size={13} />} onClick={() => setPasswordOpen(true)}>
+						<Button icon={<Key size={13} />} onClick={() => setPasswordOpen(true)}>
 							Change password
-						</HeaderBtn>
+						</Button>
 
-						<HeaderBtn
-							primary
+						<Button
+							variant="primary"
 							type="submit"
 							form="user-edit-form"
 							icon={<Save size={13} />}
 							disabled={updateMutation.isPending}
 						>
 							{updateMutation.isPending ? "Saving…" : "Save changes"}
-						</HeaderBtn>
+						</Button>
 					</>
 				}
 			/>

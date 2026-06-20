@@ -7,7 +7,7 @@ import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
-import { HeaderBtn } from "@/components/ui/HeaderBtn";
+import { Button } from "@/components/ui/Button";
 
 import { pagesApi, type PageRevision } from "@/api/endpoints/pages";
 
@@ -134,9 +134,9 @@ export const PageRevisions = () => {
 				title={`Revisions for ${page.nav_title || "page"}`}
 				sub={page.path}
 				actions={
-					<HeaderBtn icon={<ChevronLeft size={13} />} to={`/pages/${page.id}/edit`}>
+					<Button icon={<ChevronLeft size={13} />} to={`/pages/${page.id}/edit`}>
 						Back to editor
-					</HeaderBtn>
+					</Button>
 				}
 			/>
 

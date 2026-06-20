@@ -8,7 +8,7 @@ import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
-import { HeaderBtn } from "@/components/ui/HeaderBtn";
+import { Button } from "@/components/ui/Button";
 import { Pager } from "@/components/ui/Pager";
 import { SubNav } from "@/components/ui/SubNav";
 
@@ -143,9 +143,9 @@ export const Tags = () => {
 				sub={`${total} tag${total === 1 ? "" : "s"}`}
 				actions={
 					canEdit ? (
-						<HeaderBtn primary icon={<Plus size={13} />} to="/tags/add">
+						<Button variant="primary" icon={<Plus size={13} />} to="/tags/add">
 							Add tag
-						</HeaderBtn>
+						</Button>
 					) : undefined
 				}
 			/>

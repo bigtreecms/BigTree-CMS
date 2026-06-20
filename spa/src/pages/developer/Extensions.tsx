@@ -6,7 +6,7 @@ import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
 import { DeveloperSectionNav } from "@/components/developer/DeveloperSectionNav";
 import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
-import { HeaderBtn } from "@/components/ui/HeaderBtn";
+import { Button } from "@/components/ui/Button";
 import { SlideOver } from "@/components/ui/SlideOver";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
@@ -213,23 +213,23 @@ export const Extensions = () => {
 				sub="Installed extensions and their manifests. Uninstalling removes everything the extension declares."
 				actions={
 					<>
-						<HeaderBtn
+						<Button
 							icon={<RefreshCw size={13} />}
 							onClick={() => recacheMutation.mutate()}
 							disabled={recacheMutation.isPending}
 						>
 							{recacheMutation.isPending ? "Refreshing…" : "Refresh hooks cache"}
-						</HeaderBtn>
-						<HeaderBtn icon={<Hammer size={13} />} to="/developer/extensions/build">
+						</Button>
+						<Button icon={<Hammer size={13} />} to="/developer/extensions/build">
 							Build extension
-						</HeaderBtn>
-						<HeaderBtn
-							primary
+						</Button>
+						<Button
+							variant="primary"
 							icon={<Upload size={13} />}
 							to="/developer/extensions/install"
 						>
 							Install extension
-						</HeaderBtn>
+						</Button>
 					</>
 				}
 			/>

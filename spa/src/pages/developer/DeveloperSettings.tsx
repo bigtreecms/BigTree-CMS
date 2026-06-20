@@ -7,7 +7,7 @@ import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
-import { HeaderBtn } from "@/components/ui/HeaderBtn";
+import { Button } from "@/components/ui/Button";
 import { Pager } from "@/components/ui/Pager";
 
 import { DeveloperSectionNav } from "@/components/developer/DeveloperSectionNav";
@@ -162,9 +162,13 @@ export const DeveloperSettings = () => {
 				title="Settings (admin)"
 				sub={total === 1 ? "1 setting" : `${total.toLocaleString()} settings`}
 				actions={
-					<HeaderBtn primary icon={<Plus size={13} />} to="/developer/settings/add">
+					<Button
+						variant="primary"
+						icon={<Plus size={13} />}
+						to="/developer/settings/add"
+					>
 						Add setting
-					</HeaderBtn>
+					</Button>
 				}
 			/>
 

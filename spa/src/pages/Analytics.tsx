@@ -6,7 +6,7 @@ import { Settings as SettingsIcon } from "lucide-react";
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
-import { HeaderBtn } from "@/components/ui/HeaderBtn";
+import { Button } from "@/components/ui/Button";
 import { TrafficBars } from "@/components/dashboard/TrafficBars";
 import { MetricComparison } from "@/components/analytics/MetricComparison";
 import { TrafficSourceTable } from "@/components/analytics/TrafficSourceTable";
@@ -58,9 +58,9 @@ const buildRangeLabels = () => {
 };
 
 const ConfigLink = () => (
-	<HeaderBtn icon={<SettingsIcon size={13} />} to="/developer/configure/analytics">
+	<Button icon={<SettingsIcon size={13} />} to="/developer/configure/analytics">
 		Analytics settings
-	</HeaderBtn>
+	</Button>
 );
 
 export const Analytics = () => {

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ChevronLeft, Plus } from "lucide-react";
 
@@ -7,7 +7,7 @@ import { useAuthStore } from "@/auth/store";
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
 import { AccessDenied } from "@/components/ui/AccessDenied";
-import { HeaderBtn } from "@/components/ui/HeaderBtn";
+import { Button } from "@/components/ui/Button";
 import { SubNav } from "@/components/ui/SubNav";
 import { TagInput } from "@/components/tags/TagInput";
 
@@ -127,9 +127,9 @@ export const TagAdd = () => {
 				title="Add tag"
 				sub="Create a tag, optionally merging existing tags into it."
 				actions={
-					<HeaderBtn icon={<ChevronLeft size={13} />} to="/tags">
+					<Button icon={<ChevronLeft size={13} />} to="/tags">
 						Back to list
-					</HeaderBtn>
+					</Button>
 				}
 			/>
 
@@ -205,26 +205,21 @@ export const TagAdd = () => {
 				</div>
 
 				<div className="flex justify-end gap-2 border-t border-border pt-3">
-					<Link
-						to="/tags"
-						className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] text-text-2 hover:bg-hover"
-					>
-						Cancel
-					</Link>
-					<button
+					<Button to="/tags">Cancel</Button>
+					<Button
+						variant="primary"
 						type="submit"
-						className="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-[12.5px] font-medium text-accent-fg disabled:opacity-50 hover:bg-accent-hover"
+						icon={<Plus size={13} />}
 						disabled={
 							normalized === "" || duplicate || checking || createMutation.isPending
 						}
 					>
-						<Plus size={13} />
 						{createMutation.isPending
 							? "Creating…"
 							: checking
 								? "Checking…"
 								: "Create tag"}
-					</button>
+					</Button>
 				</div>
 			</form>
 

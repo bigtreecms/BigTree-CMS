@@ -7,7 +7,7 @@ import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
 import { PageTable } from "@/components/pages/PageTable";
 import { MovePageDialog } from "@/components/pages/MovePageDialog";
-import { HeaderBtn } from "@/components/ui/HeaderBtn";
+import { Button } from "@/components/ui/Button";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { toast } from "@/lib/toast";
@@ -236,25 +236,29 @@ export const Pages = () => {
 				}
 				actions={
 					<>
-						<HeaderBtn icon={<Eye size={13} />} href={previewUrl} target="_blank">
+						<Button icon={<Eye size={13} />} href={previewUrl} target="_blank">
 							Preview
-						</HeaderBtn>
+						</Button>
 						{!isRoot && (
-							<HeaderBtn
+							<Button
 								icon={<FileText size={13} />}
 								to={`/pages/${parent}/edit/revisions`}
 							>
 								Revisions
-							</HeaderBtn>
+							</Button>
 						)}
 						{!isRoot && (
-							<HeaderBtn icon={<Edit size={13} />} to={`/pages/${parent}/edit`}>
+							<Button icon={<Edit size={13} />} to={`/pages/${parent}/edit`}>
 								Edit page
-							</HeaderBtn>
+							</Button>
 						)}
-						<HeaderBtn primary icon={<Plus size={13} />} to={`/pages/add/${parent}`}>
+						<Button
+							variant="primary"
+							icon={<Plus size={13} />}
+							to={`/pages/add/${parent}`}
+						>
 							Add subpage
-						</HeaderBtn>
+						</Button>
 					</>
 				}
 			/>

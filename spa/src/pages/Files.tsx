@@ -17,7 +17,7 @@ import {
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
-import { HeaderBtn } from "@/components/ui/HeaderBtn";
+import { Button } from "@/components/ui/Button";
 import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
 import { FileDetail } from "@/components/files/FileDetail";
 import { FolderEditor } from "@/components/files/FolderEditor";
@@ -342,18 +342,18 @@ export const Files = () => {
 				actions={
 					canCreateFolder && !isSearching ? (
 						<>
-							<HeaderBtn
+							<Button
 								icon={<Video size={13} />}
 								onClick={() => setVideoCreatorOpen(true)}
 							>
 								Add video
-							</HeaderBtn>
-							<HeaderBtn
+							</Button>
+							<Button
 								icon={<FolderPlus size={13} />}
 								onClick={() => setFolderEditor("new")}
 							>
 								New folder
-							</HeaderBtn>
+							</Button>
 						</>
 					) : undefined
 				}

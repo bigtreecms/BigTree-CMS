@@ -7,7 +7,7 @@ import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
-import { HeaderBtn } from "@/components/ui/HeaderBtn";
+import { Button } from "@/components/ui/Button";
 import { LockBanner } from "@/components/ui/LockBanner";
 
 import { AccessLevelsDialog } from "@/components/pages/AccessLevelsDialog";
@@ -371,9 +371,13 @@ export const PageEdit = () => {
 				title={page.nav_title || "Untitled page"}
 				sub="Edit the page's properties, content, SEO, and sharing metadata."
 				actions={
-					<HeaderBtn danger onClick={() => setConfirmDelete(true)} disabled={readOnly}>
+					<Button
+						variant="danger"
+						onClick={() => setConfirmDelete(true)}
+						disabled={readOnly}
+					>
 						Delete
-					</HeaderBtn>
+					</Button>
 				}
 			/>
 

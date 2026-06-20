@@ -6,7 +6,7 @@ import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
-import { HeaderBtn } from "@/components/ui/HeaderBtn";
+import { Button } from "@/components/ui/Button";
 
 import { pendingChangesApi } from "@/api/endpoints/dashboard";
 
@@ -101,25 +101,25 @@ export const PendingChangeDetail = () => {
 				sub={`${change.type} · ${change.table} · ${change.date}`}
 				actions={
 					<>
-						<HeaderBtn icon={<ChevronLeft size={13} />} to="/dashboard">
+						<Button icon={<ChevronLeft size={13} />} to="/dashboard">
 							Back
-						</HeaderBtn>
-						<HeaderBtn
-							danger
+						</Button>
+						<Button
+							variant="danger"
 							icon={<X size={13} />}
 							onClick={() => setConfirm("reject")}
 							disabled={busy}
 						>
 							Reject
-						</HeaderBtn>
-						<HeaderBtn
-							primary
+						</Button>
+						<Button
+							variant="primary"
 							icon={<Check size={13} />}
 							onClick={() => setConfirm("approve")}
 							disabled={busy}
 						>
 							Approve & publish
-						</HeaderBtn>
+						</Button>
 					</>
 				}
 			/>

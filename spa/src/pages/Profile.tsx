@@ -7,7 +7,7 @@ import { useAuthStore } from "@/auth/store";
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
-import { HeaderBtn } from "@/components/ui/HeaderBtn";
+import { Button } from "@/components/ui/Button";
 import { TabbedEditor } from "@/components/ui/TabbedEditor";
 import { GravatarAvatar } from "@/components/users/GravatarAvatar";
 import { PasskeysPanel } from "@/components/users/PasskeysPanel";
@@ -167,19 +167,19 @@ export const Profile = () => {
 				sub="Manage your account details, passkeys, and password."
 				actions={
 					tab === "account" ? (
-						<HeaderBtn
-							primary
+						<Button
+							variant="primary"
 							type="submit"
 							form="profile-form"
 							icon={<Save size={13} />}
 							disabled={updateMutation.isPending}
 						>
 							{updateMutation.isPending ? "Saving…" : "Save"}
-						</HeaderBtn>
+						</Button>
 					) : (
-						<HeaderBtn icon={<Key size={13} />} onClick={() => setPasswordOpen(true)}>
+						<Button icon={<Key size={13} />} onClick={() => setPasswordOpen(true)}>
 							Change password
-						</HeaderBtn>
+						</Button>
 					)
 				}
 			/>

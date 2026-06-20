@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ChevronLeft, Save } from "lucide-react";
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
-import { HeaderBtn } from "@/components/ui/HeaderBtn";
+import { Button } from "@/components/ui/Button";
 
 import { DeveloperSectionNav } from "@/components/developer/DeveloperSectionNav";
 import { FieldSettingsEditor } from "@/components/developer/FieldSettingsEditor";
@@ -226,9 +226,9 @@ export const SettingConfigure = () => {
 						: "Define a new setting. The value-editor opens after creation."
 				}
 				actions={
-					<HeaderBtn icon={<ChevronLeft size={13} />} to="/developer/settings">
+					<Button icon={<ChevronLeft size={13} />} to="/developer/settings">
 						Back
-					</HeaderBtn>
+					</Button>
 				}
 			/>
 
@@ -361,18 +361,13 @@ export const SettingConfigure = () => {
 				</div>
 
 				<div className="flex justify-end gap-2 border-t border-border pt-3">
-					<Link
-						to="/developer/settings"
-						className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] text-text-2 hover:bg-hover"
-					>
-						Cancel
-					</Link>
-					<button
+					<Button to="/developer/settings">Cancel</Button>
+					<Button
+						variant="primary"
 						type="submit"
-						className="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-[12.5px] font-medium text-accent-fg disabled:opacity-50 hover:bg-accent-hover"
+						icon={<Save size={13} />}
 						disabled={isPending}
 					>
-						<Save size={13} />
 						{isEdit
 							? isPending
 								? "Saving…"
@@ -380,7 +375,7 @@ export const SettingConfigure = () => {
 							: isPending
 								? "Creating…"
 								: "Create setting"}
-					</button>
+					</Button>
 				</div>
 			</form>
 

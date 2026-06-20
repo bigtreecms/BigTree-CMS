@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
-import { Link, Navigate, useNavigate, useParams } from "react-router-dom";
+import { Navigate, useNavigate, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ChevronLeft, Save } from "lucide-react";
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
-import { HeaderBtn } from "@/components/ui/HeaderBtn";
+import { Button } from "@/components/ui/Button";
 import { UnsavedChangesGuard } from "@/components/ui/UnsavedChangesGuard";
 import { useDirtyTracker } from "@/hooks/useDirtyTracker";
 
@@ -135,9 +135,9 @@ export const ModuleGroupEdit = () => {
 			<PageHead
 				title={isAdd ? "Add module group" : body.name || idParam || "Edit module group"}
 				actions={
-					<HeaderBtn icon={<ChevronLeft size={13} />} to="/developer/module-groups">
+					<Button icon={<ChevronLeft size={13} />} to="/developer/module-groups">
 						Back
-					</HeaderBtn>
+					</Button>
 				}
 			/>
 
@@ -194,20 +194,15 @@ export const ModuleGroupEdit = () => {
 				</div>
 
 				<div className="flex justify-end gap-2 border-t border-border pt-3">
-					<Link
-						to="/developer/module-groups"
-						className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] text-text-2 hover:bg-hover"
-					>
-						Cancel
-					</Link>
-					<button
+					<Button to="/developer/module-groups">Cancel</Button>
+					<Button
+						variant="primary"
 						type="submit"
-						className="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-[12.5px] font-medium text-accent-fg disabled:opacity-50 hover:bg-accent-hover"
+						icon={<Save size={13} />}
 						disabled={saveMutation.isPending}
 					>
-						<Save size={13} />
 						{saveMutation.isPending ? "Saving…" : isAdd ? "Create group" : "Save group"}
-					</button>
+					</Button>
 				</div>
 			</form>
 

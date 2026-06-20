@@ -18,7 +18,7 @@ import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
-import { HeaderBtn } from "@/components/ui/HeaderBtn";
+import { Button } from "@/components/ui/Button";
 
 import { integrityApi } from "@/api/endpoints/integrity";
 import { useIntegrityScan, type ScanFinding } from "@/hooks/useIntegrityScan";
@@ -109,25 +109,25 @@ export const SiteIntegrity = () => {
 					showResults ? (
 						<>
 							{isRunning ? (
-								<HeaderBtn icon={<Square size={13} />} onClick={scan.stop}>
+								<Button icon={<Square size={13} />} onClick={scan.stop}>
 									Stop
-								</HeaderBtn>
+								</Button>
 							) : null}
 
-							<HeaderBtn
+							<Button
 								icon={<Download size={13} />}
 								onClick={handleExport}
 								disabled={exporting || scan.findings.length === 0}
 							>
 								{exporting ? "Exporting…" : "Export CSV"}
-							</HeaderBtn>
+							</Button>
 
-							<HeaderBtn
+							<Button
 								icon={<RotateCcw size={13} />}
 								onClick={() => setConfirmReset(true)}
 							>
 								Reset
-							</HeaderBtn>
+							</Button>
 						</>
 					) : undefined
 				}

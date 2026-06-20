@@ -7,7 +7,7 @@ import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
-import { HeaderBtn } from "@/components/ui/HeaderBtn";
+import { Button } from "@/components/ui/Button";
 
 import { DeveloperSectionNav } from "@/components/developer/DeveloperSectionNav";
 
@@ -148,9 +148,13 @@ export const Templates = () => {
 				title="Templates"
 				sub={rows.length === 1 ? "1 template" : `${rows.length} templates`}
 				actions={
-					<HeaderBtn primary icon={<Plus size={13} />} to="/developer/templates/add">
+					<Button
+						variant="primary"
+						icon={<Plus size={13} />}
+						to="/developer/templates/add"
+					>
 						Add template
-					</HeaderBtn>
+					</Button>
 				}
 			/>
 

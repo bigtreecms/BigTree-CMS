@@ -17,7 +17,7 @@ import { useAuthStore } from "@/auth/store";
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
-import { HeaderBtn } from "@/components/ui/HeaderBtn";
+import { Button } from "@/components/ui/Button";
 import { Pager } from "@/components/ui/Pager";
 import { SubNav } from "@/components/ui/SubNav";
 import { TimezoneSelect } from "@/components/users/TimezoneSelect";
@@ -347,13 +347,17 @@ export const Users = () => {
 				}
 				actions={
 					view === "list" ? (
-						<HeaderBtn primary icon={<Plus size={13} />} onClick={() => setView("add")}>
+						<Button
+							variant="primary"
+							icon={<Plus size={13} />}
+							onClick={() => setView("add")}
+						>
 							Add user
-						</HeaderBtn>
+						</Button>
 					) : (
-						<HeaderBtn icon={<ChevronLeft size={13} />} onClick={() => setView("list")}>
+						<Button icon={<ChevronLeft size={13} />} onClick={() => setView("list")}>
 							Back to list
-						</HeaderBtn>
+						</Button>
 					)
 				}
 			/>

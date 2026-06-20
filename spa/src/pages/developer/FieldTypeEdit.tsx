@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
-import { Link, Navigate, useNavigate, useParams } from "react-router-dom";
+import { Navigate, useNavigate, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ChevronLeft, Save } from "lucide-react";
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
-import { HeaderBtn } from "@/components/ui/HeaderBtn";
+import { Button } from "@/components/ui/Button";
 
 import { DeveloperSectionNav } from "@/components/developer/DeveloperSectionNav";
 import { InputSchemaBuilder } from "@/components/developer/InputSchemaBuilder";
@@ -198,9 +198,9 @@ export const FieldTypeEdit = () => {
 				title={title}
 				sub="Compose a custom field type from built-in primitives (declarative), or write a JavaScript module that draws it in the SPA."
 				actions={
-					<HeaderBtn icon={<ChevronLeft size={13} />} to="/developer/field-types">
+					<Button icon={<ChevronLeft size={13} />} to="/developer/field-types">
 						Back
-					</HeaderBtn>
+					</Button>
 				}
 			/>
 
@@ -384,20 +384,15 @@ export const FieldTypeEdit = () => {
 				)}
 
 				<div className="flex justify-end gap-2 border-t border-border pt-3">
-					<Link
-						to="/developer/field-types"
-						className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] text-text-2 hover:bg-hover"
-					>
-						Cancel
-					</Link>
-					<button
+					<Button to="/developer/field-types">Cancel</Button>
+					<Button
+						variant="primary"
 						type="submit"
-						className="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-[12.5px] font-medium text-accent-fg disabled:opacity-50 hover:bg-accent-hover"
+						icon={<Save size={13} />}
 						disabled={saveMutation.isPending}
 					>
-						<Save size={13} />
 						{saveMutation.isPending ? "Saving…" : isAdd ? "Create field type" : "Save"}
-					</button>
+					</Button>
 				</div>
 			</form>
 

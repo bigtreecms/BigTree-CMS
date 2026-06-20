@@ -7,7 +7,7 @@ import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
-import { HeaderBtn } from "@/components/ui/HeaderBtn";
+import { Button } from "@/components/ui/Button";
 
 import { DeveloperSectionNav } from "@/components/developer/DeveloperSectionNav";
 
@@ -116,9 +116,9 @@ export const ModuleDesigner = () => {
 				title="Modules"
 				sub={rows.length === 1 ? "1 module" : `${rows.length} modules`}
 				actions={
-					<HeaderBtn primary icon={<Plus size={13} />} to="/developer/modules/add">
+					<Button variant="primary" icon={<Plus size={13} />} to="/developer/modules/add">
 						New module
-					</HeaderBtn>
+					</Button>
 				}
 			/>
 

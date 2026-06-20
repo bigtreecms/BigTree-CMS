@@ -15,7 +15,7 @@ import {
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
-import { HeaderBtn } from "@/components/ui/HeaderBtn";
+import { Button } from "@/components/ui/Button";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { TabbedEditor, type TabbedEditorTab } from "@/components/ui/TabbedEditor";
 
@@ -160,9 +160,9 @@ export const ModuleDesignerEdit = () => {
 						: "Editing module definition."
 				}
 				actions={
-					<HeaderBtn icon={<ChevronLeft size={13} />} to="/developer/modules">
+					<Button icon={<ChevronLeft size={13} />} to="/developer/modules">
 						Back
-					</HeaderBtn>
+					</Button>
 				}
 			/>
 
