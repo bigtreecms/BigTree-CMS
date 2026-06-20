@@ -7,6 +7,7 @@ import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { Button } from "@/components/ui/Button";
+import { Checkbox } from "@/components/ui/Checkbox";
 import { SelectField } from "@/components/ui/SelectField";
 import { TextField } from "@/components/ui/TextField";
 import { UnsavedChangesGuard } from "@/components/ui/UnsavedChangesGuard";
@@ -236,15 +237,11 @@ export const TemplateEdit = () => {
 					/>
 				</div>
 
-				<label className="flex items-center gap-2 text-[12.5px] text-text-2">
-					<input
-						type="checkbox"
-						className="h-4 w-4 accent-accent"
-						checked={Boolean(body.routed)}
-						onChange={(e) => set({ routed: e.target.checked })}
-					/>
-					Routed template (template handler can capture URL segments)
-				</label>
+				<Checkbox
+					label="Routed template (template handler can capture URL segments)"
+					checked={Boolean(body.routed)}
+					onChange={(routed) => set({ routed })}
+				/>
 
 				<div>
 					<div className="mb-2 text-[12px] font-semibold uppercase tracking-[0.06em] text-text-3">

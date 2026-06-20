@@ -7,6 +7,7 @@ import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { Button } from "@/components/ui/Button";
+import { Checkbox } from "@/components/ui/Checkbox";
 
 import { DeveloperSectionNav } from "@/components/developer/DeveloperSectionNav";
 import { InputSchemaBuilder } from "@/components/developer/InputSchemaBuilder";
@@ -284,18 +285,12 @@ export const FieldTypeEdit = () => {
 					</div>
 					<div className="flex flex-wrap gap-3 rounded-md border border-border bg-surface-2 p-3">
 						{USE_CASES.map((u) => (
-							<label
+							<Checkbox
 								key={u.value}
-								className="inline-flex cursor-pointer items-center gap-2 text-[12.5px] text-text-2"
-							>
-								<input
-									type="checkbox"
-									className="h-4 w-4 accent-accent"
-									checked={selectedUseCases.has(u.value)}
-									onChange={() => toggleUseCase(u.value)}
-								/>
-								{u.label}
-							</label>
+								label={u.label}
+								checked={selectedUseCases.has(u.value)}
+								onChange={() => toggleUseCase(u.value)}
+							/>
 						))}
 					</div>
 				</div>

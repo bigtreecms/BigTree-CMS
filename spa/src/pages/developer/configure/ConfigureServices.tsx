@@ -5,6 +5,7 @@ import { CheckCircle2, ChevronDown, ChevronRight, Unplug } from "lucide-react";
 
 import { ConfigureLayout } from "@/components/developer/ConfigureLayout";
 import { Button } from "@/components/ui/Button";
+import { Checkbox } from "@/components/ui/Checkbox";
 import { inputClass } from "@/components/ui/TextInput";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
@@ -274,19 +275,13 @@ export const ConfigureServices = () => {
 										)}
 
 										{s.testEnv && (
-											<label className="flex items-center gap-2 text-[12.5px] text-text-2">
-												<input
-													type="checkbox"
-													className="h-4 w-4 accent-accent"
-													checked={!!draft.test_environment}
-													onChange={(e) =>
-														setDraft(s.id, {
-															test_environment: e.target.checked,
-														})
-													}
-												/>
-												Use the test / sandbox environment
-											</label>
+											<Checkbox
+												label="Use the test / sandbox environment"
+												checked={!!draft.test_environment}
+												onChange={(test_environment) =>
+													setDraft(s.id, { test_environment })
+												}
+											/>
 										)}
 
 										<Button

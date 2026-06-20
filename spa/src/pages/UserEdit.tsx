@@ -16,6 +16,7 @@ import { useAuthStore } from "@/auth/store";
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
 import { AccessDenied } from "@/components/ui/AccessDenied";
+import { Checkbox } from "@/components/ui/Checkbox";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { Button } from "@/components/ui/Button";
@@ -324,19 +325,11 @@ export const UserEdit = () => {
 								/>
 							)}
 
-							<label className="flex items-center gap-2">
-								<input
-									type="checkbox"
-									checked={form.daily_digest ?? false}
-									onChange={(e) =>
-										setForm({ ...form, daily_digest: e.target.checked })
-									}
-									className="h-4 w-4 cursor-pointer accent-accent"
-								/>
-								<span className="text-[12.5px] text-text-2">
-									Send daily digest email
-								</span>
-							</label>
+							<Checkbox
+								label="Send daily digest email"
+								checked={form.daily_digest ?? false}
+								onChange={(daily_digest) => setForm({ ...form, daily_digest })}
+							/>
 						</div>
 					</div>
 

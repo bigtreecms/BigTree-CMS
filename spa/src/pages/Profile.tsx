@@ -8,6 +8,7 @@ import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { Button } from "@/components/ui/Button";
+import { Checkbox } from "@/components/ui/Checkbox";
 import { TabbedEditor } from "@/components/ui/TabbedEditor";
 import { TextField } from "@/components/ui/TextField";
 import { GravatarAvatar } from "@/components/users/GravatarAvatar";
@@ -252,15 +253,12 @@ const AccountTab = ({ me, form, onChange, onSubmit }: AccountTabProps) => (
 				/>
 			</label>
 
-			<label className="md:col-span-2 flex items-center gap-2">
-				<input
-					type="checkbox"
-					checked={form.daily_digest ?? false}
-					onChange={(e) => onChange({ ...form, daily_digest: e.target.checked })}
-					className="h-4 w-4 cursor-pointer accent-accent"
-				/>
-				<span className="text-[12.5px] text-text-2">Send me a daily digest email</span>
-			</label>
+			<Checkbox
+				label="Send me a daily digest email"
+				checked={form.daily_digest ?? false}
+				onChange={(daily_digest) => onChange({ ...form, daily_digest })}
+				className="md:col-span-2"
+			/>
 		</div>
 	</form>
 );

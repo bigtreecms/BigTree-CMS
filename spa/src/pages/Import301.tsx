@@ -6,6 +6,7 @@ import { ChevronLeft, Upload } from "lucide-react";
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
 import { Button } from "@/components/ui/Button";
+import { Checkbox } from "@/components/ui/Checkbox";
 
 import { fourOhFoursApi } from "@/api/endpoints/four-oh-fours";
 
@@ -137,15 +138,11 @@ export const Import301 = () => {
 					/>
 				</label>
 
-				<label className="flex items-center gap-2 text-[12.5px] text-text-2">
-					<input
-						type="checkbox"
-						className="h-4 w-4 accent-accent"
-						checked={firstRowTitles}
-						onChange={(e) => setFirstRowTitles(e.target.checked)}
-					/>
-					First row contains column titles
-				</label>
+				<Checkbox
+					label="First row contains column titles"
+					checked={firstRowTitles}
+					onChange={setFirstRowTitles}
+				/>
 
 				<div className="flex justify-end gap-2 border-t border-border pt-3">
 					<Button to="/dashboard/404s/301">Cancel</Button>

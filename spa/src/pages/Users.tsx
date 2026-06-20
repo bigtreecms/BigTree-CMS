@@ -8,6 +8,7 @@ import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { Button } from "@/components/ui/Button";
+import { Checkbox } from "@/components/ui/Checkbox";
 import { Field } from "@/components/ui/Field";
 import { Pager } from "@/components/ui/Pager";
 import { SearchInput } from "@/components/ui/SearchInput";
@@ -594,17 +595,11 @@ export const Users = () => {
 						</div>
 
 						<div className="md:col-span-2">
-							<label className="flex items-center gap-2">
-								<input
-									type="checkbox"
-									checked={dailyDigest}
-									onChange={(e) => setDailyDigest(e.target.checked)}
-									className="h-4 w-4 cursor-pointer accent-accent"
-								/>
-								<span className="text-[12.5px] text-text-2">
-									Send daily digest email
-								</span>
-							</label>
+							<Checkbox
+								label="Send daily digest email"
+								checked={dailyDigest}
+								onChange={setDailyDigest}
+							/>
 						</div>
 					</div>
 

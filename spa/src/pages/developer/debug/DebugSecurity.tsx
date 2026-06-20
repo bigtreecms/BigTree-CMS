@@ -4,6 +4,7 @@ import { Save, ShieldOff } from "lucide-react";
 
 import { DebugLayout } from "@/components/developer/DebugLayout";
 import { Button } from "@/components/ui/Button";
+import { Checkbox } from "@/components/ui/Checkbox";
 import { inputClass } from "@/components/ui/TextInput";
 import { Field } from "@/components/ui/Field";
 import { FormShell } from "@/components/ui/FormShell";
@@ -287,24 +288,6 @@ export const DebugSecurity = () => {
 		</DebugLayout>
 	);
 };
-
-interface CheckboxProps {
-	label: string;
-	checked: boolean;
-	onChange: (checked: boolean) => void;
-}
-
-const Checkbox = ({ label, checked, onChange }: CheckboxProps) => (
-	<label className="flex cursor-pointer items-start gap-2 text-[12.5px] text-text-2">
-		<input
-			type="checkbox"
-			checked={checked}
-			onChange={(e) => onChange(e.target.checked)}
-			className="mt-0.5 accent-[var(--accent)]"
-		/>
-		<span>{label}</span>
-	</label>
-);
 
 /**
  * Lifts active bans. Separate from the policy form since these are immediate

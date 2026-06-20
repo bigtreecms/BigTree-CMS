@@ -5,6 +5,7 @@ import { ChevronLeft, Download, Package } from "lucide-react";
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
 import { Button } from "@/components/ui/Button";
+import { Checkbox } from "@/components/ui/Checkbox";
 import { DeveloperSectionNav } from "@/components/developer/DeveloperSectionNav";
 
 import {
@@ -344,30 +345,24 @@ export const ExtensionBuild = () => {
 										<div className="space-y-1">
 											{Object.keys(licensesQ.data["Open Source"]).map(
 												(name) => (
-													<label
+													<Checkbox
 														key={name}
-														className="flex items-center gap-2 text-[12.5px] text-text-2"
-													>
-														<input
-															type="checkbox"
-															className="h-4 w-4 accent-accent"
-															checked={openLicenses.has(name)}
-															onChange={() =>
-																setOpenLicenses((prev) => {
-																	const next = new Set(prev);
+														label={name}
+														checked={openLicenses.has(name)}
+														onChange={() =>
+															setOpenLicenses((prev) => {
+																const next = new Set(prev);
 
-																	if (next.has(name)) {
-																		next.delete(name);
-																	} else {
-																		next.add(name);
-																	}
+																if (next.has(name)) {
+																	next.delete(name);
+																} else {
+																	next.add(name);
+																}
 
-																	return next;
-																})
-															}
-														/>
-														{name}
-													</label>
+																return next;
+															})
+														}
+													/>
 												)
 											)}
 										</div>

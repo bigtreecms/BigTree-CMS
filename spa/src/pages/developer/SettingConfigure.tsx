@@ -6,6 +6,7 @@ import { ChevronLeft, Save } from "lucide-react";
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
 import { Button } from "@/components/ui/Button";
+import { Checkbox } from "@/components/ui/Checkbox";
 
 import { DeveloperSectionNav } from "@/components/developer/DeveloperSectionNav";
 import { FieldSettingsEditor } from "@/components/developer/FieldSettingsEditor";
@@ -331,33 +332,21 @@ export const SettingConfigure = () => {
 				</div>
 
 				<div className="grid grid-cols-1 gap-3 rounded-md border border-border bg-surface-2 p-3 md:grid-cols-3">
-					<label className="flex items-center gap-2 text-[12.5px] text-text-2">
-						<input
-							type="checkbox"
-							className="h-4 w-4 accent-accent"
-							checked={!!body.encrypted}
-							onChange={(e) => set({ encrypted: e.target.checked })}
-						/>
-						Encrypted at rest
-					</label>
-					<label className="flex items-center gap-2 text-[12.5px] text-text-2">
-						<input
-							type="checkbox"
-							className="h-4 w-4 accent-accent"
-							checked={!!body.locked}
-							onChange={(e) => set({ locked: e.target.checked })}
-						/>
-						Locked (cannot delete)
-					</label>
-					<label className="flex items-center gap-2 text-[12.5px] text-text-2">
-						<input
-							type="checkbox"
-							className="h-4 w-4 accent-accent"
-							checked={!!body.system}
-							onChange={(e) => set({ system: e.target.checked })}
-						/>
-						System
-					</label>
+					<Checkbox
+						label="Encrypted at rest"
+						checked={!!body.encrypted}
+						onChange={(encrypted) => set({ encrypted })}
+					/>
+					<Checkbox
+						label="Locked (cannot delete)"
+						checked={!!body.locked}
+						onChange={(locked) => set({ locked })}
+					/>
+					<Checkbox
+						label="System"
+						checked={!!body.system}
+						onChange={(system) => set({ system })}
+					/>
 				</div>
 
 				<div className="flex justify-end gap-2 border-t border-border pt-3">
