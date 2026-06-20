@@ -7,6 +7,7 @@ import { useAuthStore } from "@/auth/store";
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
 import { AccessDenied } from "@/components/ui/AccessDenied";
+import { Button } from "@/components/ui/Button";
 import { TagInput } from "@/components/tags/TagInput";
 
 import { tagsApi, type Tag } from "@/api/endpoints/tags";
@@ -162,15 +163,14 @@ export const TagMerge = () => {
 					>
 						Cancel
 					</button>
-					<button
-						type="button"
+					<Button
+						variant="primary"
+						icon={<ArrowRight size={13} />}
 						disabled={!valid || mergeMutation.isPending}
-						className="inline-flex items-center gap-1.5 rounded-md bg-accent px-4 py-1.5 text-[12.5px] font-medium text-accent-fg disabled:opacity-60 hover:bg-accent-hover"
 						onClick={() => mergeMutation.mutate()}
 					>
-						<ArrowRight size={13} />
 						{mergeMutation.isPending ? "Merging…" : "Merge tags"}
-					</button>
+					</Button>
 				</div>
 			</section>
 		</div>

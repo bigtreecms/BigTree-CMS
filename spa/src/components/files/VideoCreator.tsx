@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { ApiError } from "@/types/api";
+import { Button } from "@/components/ui/Button";
 import { SlideOver } from "@/components/ui/SlideOver";
 import { resourcesApi, type ResourceDetail } from "@/api/endpoints/resources";
 import { toast } from "@/lib/toast";
@@ -87,14 +88,13 @@ export const VideoCreator = ({
 					>
 						Cancel
 					</button>
-					<button
-						type="button"
+					<Button
+						variant="primary"
 						disabled={!looksValid || createMutation.isPending}
-						className="rounded-md bg-accent px-3 py-1.5 text-[12.5px] font-medium text-accent-fg disabled:opacity-60 hover:bg-accent-hover"
 						onClick={submit}
 					>
 						{createMutation.isPending ? "Adding…" : "Add video"}
-					</button>
+					</Button>
 				</div>
 			}
 		>

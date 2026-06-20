@@ -458,14 +458,13 @@ export const FourOhFours = ({ type }: FourOhFoursProps) => {
 				<div className="hidden flex-1 sm:block" />
 
 				{selectedCount > 0 && (
-					<button
-						type="button"
-						className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] text-danger hover:bg-danger/5"
+					<Button
+						variant="dangerGhost"
+						icon={<Trash size={13} />}
 						onClick={() => setConfirmBulkDelete(true)}
 					>
-						<Trash size={13} />
 						Delete {selectedCount}
-					</button>
+					</Button>
 				)}
 			</div>
 

@@ -1,14 +1,18 @@
 import type { MouseEventHandler, ReactNode } from "react";
 import { Link } from "react-router-dom";
 
-export type ButtonVariant = "primary" | "secondary" | "danger";
-export type ButtonSize = "sm" | "md";
+export type ButtonVariant = "primary" | "secondary" | "danger" | "dangerGhost";
+export type ButtonSize = "sm" | "md" | "lg";
 
 interface ButtonProps {
 	children: ReactNode;
-	/** `primary` = accent fill, `danger` = destructive bordered, `secondary` (default) = bordered surface. */
+	/**
+	 * `primary` = accent fill, `secondary` (default) = bordered surface,
+	 * `danger` = solid destructive (confirm CTAs), `dangerGhost` = bordered
+	 * destructive (subtle, e.g. a header Delete next to other actions).
+	 */
 	variant?: ButtonVariant;
-	/** `sm` = tight (header actions), `md` (default) = standard form/footer button. */
+	/** `sm` = tight/inline, `md` (default) = standard, `lg` = prominent (e.g. full-width auth submits). */
 	size?: ButtonSize;
 	icon?: ReactNode;
 	onClick?: MouseEventHandler<HTMLButtonElement | HTMLAnchorElement>;
@@ -47,13 +51,16 @@ const baseClassName =
 const sizeClassName: Record<ButtonSize, string> = {
 	sm: "px-2.5 py-1.5 text-[12.5px]",
 	md: "px-3 py-1.5 text-[12.5px]",
+	lg: "px-3 py-2 text-[13px]",
 };
 
 const variantClassName: Record<ButtonVariant, string> = {
 	primary: "bg-accent text-accent-fg hover:bg-accent-hover",
 	secondary:
 		"border border-border bg-surface text-text-2 hover:border-border-strong hover:bg-hover",
-	danger: "border border-border bg-surface text-danger hover:border-danger/40 hover:bg-danger/5",
+	danger: "bg-danger text-white hover:bg-danger/90",
+	dangerGhost:
+		"border border-border bg-surface text-danger hover:border-danger/40 hover:bg-danger/5",
 };
 
 export const Button = ({

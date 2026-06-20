@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Save } from "lucide-react";
 
 import { ConfigureLayout } from "@/components/developer/ConfigureLayout";
+import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
 import { FormShell } from "@/components/ui/FormShell";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
@@ -109,14 +110,14 @@ export const ConfigureEmail = () => {
 				<FormShell
 					onSubmit={onSubmit}
 					footer={
-						<button
+						<Button
+							variant="primary"
 							type="submit"
+							icon={<Save size={13} />}
 							disabled={saveMutation.isPending}
-							className="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-[12.5px] font-medium text-accent-fg hover:bg-accent-hover disabled:opacity-60"
 						>
-							<Save size={13} />
 							{saveMutation.isPending ? "Saving…" : "Save"}
-						</button>
+						</Button>
 					}
 				>
 					{generalError && <ErrorPanel error={new Error(generalError)} />}

@@ -5,6 +5,7 @@ import { Fingerprint, Key, Plus, Trash } from "lucide-react";
 import { passkeysApi, type PasskeyRecord } from "@/auth/endpoints";
 import { isWebAuthnSupported } from "@/lib/webauthn";
 
+import { Button } from "@/components/ui/Button";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 
 import { ApiError } from "@/types/api";
@@ -77,18 +78,17 @@ export const PasskeysPanel = () => {
 					</h3>
 				</div>
 				{supported && !showAddPrompt && (
-					<button
-						type="button"
-						className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] hover:bg-hover disabled:opacity-50"
+					<Button
+						variant="secondary"
+						icon={<Plus size={13} />}
 						onClick={() => {
 							setShowAddPrompt(true);
 							setDraftName(guessDefaultName());
 						}}
 						disabled={registerMutation.isPending}
 					>
-						<Plus size={13} />
 						Add passkey
-					</button>
+					</Button>
 				)}
 			</header>
 
@@ -119,9 +119,8 @@ export const PasskeysPanel = () => {
 							</span>
 						</label>
 						<div className="mt-3 flex justify-end gap-2">
-							<button
-								type="button"
-								className="rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] hover:bg-hover"
+							<Button
+								variant="secondary"
 								onClick={() => {
 									setShowAddPrompt(false);
 									setDraftName("");
@@ -129,17 +128,16 @@ export const PasskeysPanel = () => {
 								disabled={registerMutation.isPending}
 							>
 								Cancel
-							</button>
-							<button
-								type="button"
-								className="rounded-md bg-accent px-3 py-1.5 text-[12.5px] font-medium text-accent-fg disabled:opacity-50 hover:bg-accent-hover"
+							</Button>
+							<Button
+								variant="primary"
 								onClick={handleRegister}
 								disabled={registerMutation.isPending}
 							>
 								{registerMutation.isPending
 									? "Waiting for authenticator…"
 									: "Register passkey"}
-							</button>
+							</Button>
 						</div>
 					</div>
 				)}

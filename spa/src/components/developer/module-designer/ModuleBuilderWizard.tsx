@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Plus, Save, Trash } from "lucide-react";
 
+import { Button } from "@/components/ui/Button";
 import {
 	modulesApi,
 	type ModuleScaffoldBody,
@@ -333,14 +334,14 @@ export const ModuleBuilderWizard = () => {
 			</div>
 
 			<div className="flex justify-end">
-				<button
+				<Button
+					variant="primary"
 					type="submit"
-					className="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-[12.5px] font-medium text-accent-fg disabled:opacity-50 hover:bg-accent-hover"
+					icon={<Save size={13} />}
 					disabled={scaffoldMutation.isPending}
 				>
-					<Save size={13} />
 					{scaffoldMutation.isPending ? "Building…" : "Build module"}
-				</button>
+				</Button>
 			</div>
 		</form>
 	);

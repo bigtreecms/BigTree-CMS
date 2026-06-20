@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { GripVertical, Plus, Trash } from "lucide-react";
 
+import { Button } from "@/components/ui/Button";
 import { useDragReorder } from "@/hooks/useDragReorder";
 
 import {
@@ -413,16 +414,16 @@ export const ModuleViewsTab = ({ moduleId, moduleTable }: ModuleViewsTabProps) =
 								})}
 							</ul>
 						)}
-						<button
-							type="button"
+						<Button
+							variant="secondary"
+							icon={<Plus size={13} />}
+							className="mt-2"
 							disabled={!draft.table}
-							className="mt-2 inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] hover:bg-hover disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-surface"
 							onClick={addColumn}
 							title={draft.table ? undefined : "Select a data table first"}
 						>
-							<Plus size={13} />
 							Add column
-						</button>
+						</Button>
 					</div>
 
 					{draft.type !== "searchable" && draft.type !== "draggable" && (

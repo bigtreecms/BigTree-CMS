@@ -160,15 +160,14 @@ export const ConfigureMediaPresets = () => {
 
 			{presets.length > 0 && (
 				<div className="sticky bottom-4 mt-4 flex justify-end">
-					<button
-						type="button"
+					<Button
+						variant="primary"
+						icon={<Save size={13} />}
 						onClick={() => saveMutation.mutate(presets)}
 						disabled={saveMutation.isPending}
-						className="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-[12.5px] font-medium text-accent-fg hover:bg-accent-hover disabled:opacity-60"
 					>
-						<Save size={13} />
 						{saveMutation.isPending ? "Saving…" : "Save all"}
-					</button>
+					</Button>
 				</div>
 			)}
 

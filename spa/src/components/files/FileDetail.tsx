@@ -11,6 +11,7 @@ import {
 	Trash,
 } from "lucide-react";
 
+import { Button } from "@/components/ui/Button";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { SlideOver } from "@/components/ui/SlideOver";
 import { CropModal } from "@/components/files/CropModal";
@@ -228,14 +229,13 @@ export const FileDetail = ({ resourceId, onOpenChange, folderQueryKey }: FileDet
 							>
 								Close
 							</button>
-							<button
-								type="button"
+							<Button
+								variant="primary"
 								disabled={!dirty || pending}
-								className="rounded-md bg-accent px-3 py-1.5 text-[12.5px] font-medium text-accent-fg disabled:opacity-60 hover:bg-accent-hover"
 								onClick={() => updateMutation.mutate()}
 							>
 								{updateMutation.isPending ? "Saving…" : "Save changes"}
-							</button>
+							</Button>
 						</div>
 					</div>
 				}
@@ -257,18 +257,21 @@ export const FileDetail = ({ resourceId, onOpenChange, folderQueryKey }: FileDet
 									accept={resource.is_image ? "image/*" : undefined}
 									onChange={onPickReplacement}
 								/>
-								<button
-									type="button"
-									className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] hover:bg-hover disabled:opacity-50"
+								<Button
+									variant="secondary"
+									icon={
+										<RefreshCw
+											size={13}
+											className={
+												replaceMutation.isPending ? "animate-spin" : ""
+											}
+										/>
+									}
 									onClick={() => replaceInputRef.current?.click()}
 									disabled={pending}
 								>
-									<RefreshCw
-										size={13}
-										className={replaceMutation.isPending ? "animate-spin" : ""}
-									/>
 									{replaceMutation.isPending ? "Replacing…" : "Replace file"}
-								</button>
+								</Button>
 								<span className="text-[11.5px] text-text-3">
 									Keeps the URL and references.
 									{resource.is_image && (minWidth > 0 || minHeight > 0)

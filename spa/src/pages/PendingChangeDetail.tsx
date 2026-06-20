@@ -105,7 +105,7 @@ export const PendingChangeDetail = () => {
 							Back
 						</Button>
 						<Button
-							variant="danger"
+							variant="dangerGhost"
 							icon={<X size={13} />}
 							onClick={() => setConfirm("reject")}
 							disabled={busy}

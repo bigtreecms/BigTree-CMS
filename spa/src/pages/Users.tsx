@@ -689,17 +689,13 @@ export const Users = () => {
 					</div>
 
 					<div className="flex justify-end gap-2 border-t border-border bg-surface-2 px-4 py-3">
-						<button
-							type="button"
-							className="rounded-md border border-border px-4 py-1.5 text-sm hover:bg-hover"
-							onClick={() => setView("list")}
-						>
+						<Button variant="secondary" onClick={() => setView("list")}>
 							Cancel
-						</button>
-						<button
+						</Button>
+						<Button
+							variant="primary"
 							type="submit"
 							disabled={!validAdd || createUserMutation.isPending}
-							className="inline-flex items-center gap-1.5 rounded-md bg-accent px-4 py-1.5 text-sm font-medium text-accent-fg disabled:opacity-60 hover:bg-accent-hover"
 						>
 							{createUserMutation.isPending ? (
 								"Creating..."
@@ -709,7 +705,7 @@ export const Users = () => {
 									Create user
 								</>
 							)}
-						</button>
+						</Button>
 					</div>
 				</form>
 			)}

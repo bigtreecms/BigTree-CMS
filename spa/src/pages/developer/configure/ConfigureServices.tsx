@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CheckCircle2, ChevronDown, ChevronRight, Unplug } from "lucide-react";
 
 import { ConfigureLayout } from "@/components/developer/ConfigureLayout";
+import { Button } from "@/components/ui/Button";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { Field } from "@/components/ui/Field";
@@ -290,8 +291,8 @@ export const ConfigureServices = () => {
 											</label>
 										)}
 
-										<button
-											type="button"
+										<Button
+											variant="primary"
 											disabled={
 												connectMutation.isPending ||
 												!draft.key.trim() ||
@@ -303,12 +304,11 @@ export const ConfigureServices = () => {
 													body: draft,
 												})
 											}
-											className="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-[12.5px] font-medium text-accent-fg hover:bg-accent-hover disabled:opacity-60"
 										>
 											{connectMutation.isPending
 												? "Starting…"
 												: "Save & connect"}
-										</button>
+										</Button>
 									</div>
 								)}
 							</div>

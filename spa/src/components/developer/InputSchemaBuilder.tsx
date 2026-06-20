@@ -2,6 +2,7 @@ import { useState } from "react";
 import { ChevronDown, ChevronUp, Plus, Settings2, Trash2 } from "lucide-react";
 
 import type { InputDescriptor } from "@/api/endpoints/field-types";
+import { Button } from "@/components/ui/Button";
 import { FieldSettingsEditor } from "@/components/developer/FieldSettingsEditor";
 import { INPUT_CLASS } from "@/renderer/fields/types";
 
@@ -187,14 +188,9 @@ export const InputSchemaBuilder = ({ value, onChange }: InputSchemaBuilderProps)
 				</div>
 			))}
 
-			<button
-				type="button"
-				onClick={add}
-				className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] text-text-2 hover:bg-hover"
-			>
-				<Plus size={14} />
+			<Button variant="secondary" icon={<Plus size={14} />} onClick={add}>
 				Add sub-field
-			</button>
+			</Button>
 		</div>
 	);
 };

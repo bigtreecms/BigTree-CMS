@@ -1,5 +1,6 @@
 import { ChevronDown, ChevronUp, Plus, Trash2 } from "lucide-react";
 
+import { Button } from "@/components/ui/Button";
 import type { SettingControl, SettingDescriptor } from "@/api/endpoints/field-types";
 import { INPUT_CLASS } from "@/renderer/fields/types";
 
@@ -261,14 +262,9 @@ export const SettingsSchemaBuilder = ({ value, onChange }: SettingsSchemaBuilder
 				);
 			})}
 
-			<button
-				type="button"
-				onClick={add}
-				className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] text-text-2 hover:bg-hover"
-			>
-				<Plus size={14} />
+			<Button variant="secondary" icon={<Plus size={14} />} onClick={add}>
 				Add setting
-			</button>
+			</Button>
 		</div>
 	);
 };

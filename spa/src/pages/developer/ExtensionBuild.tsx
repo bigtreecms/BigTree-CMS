@@ -1,6 +1,5 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Link } from "react-router-dom";
 import { ChevronLeft, Download, Package } from "lucide-react";
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
@@ -267,12 +266,9 @@ export const ExtensionBuild = () => {
 							<Download size={13} />
 							Download package
 						</a>
-						<Link
-							to="/developer/extensions"
-							className="rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] hover:bg-hover"
-						>
+						<Button variant="secondary" to="/developer/extensions">
 							Done
-						</Link>
+						</Button>
 					</div>
 				</div>
 			) : (
@@ -404,13 +400,9 @@ export const ExtensionBuild = () => {
 							)}
 
 							<div className="flex justify-end">
-								<button
-									type="button"
-									onClick={goFromDetails}
-									className="rounded-md bg-accent px-3 py-1.5 text-[12.5px] font-medium text-accent-fg hover:bg-accent-hover"
-								>
+								<Button variant="primary" onClick={goFromDetails}>
 									Next: components
-								</button>
+								</Button>
 							</div>
 						</div>
 					)}
@@ -466,23 +458,18 @@ export const ExtensionBuild = () => {
 							</p>
 
 							<div className="flex justify-between">
-								<button
-									type="button"
-									onClick={() => setStep("details")}
-									className="rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] hover:bg-hover"
-								>
+								<Button variant="secondary" onClick={() => setStep("details")}>
 									Back
-								</button>
-								<button
-									type="button"
+								</Button>
+								<Button
+									variant="primary"
 									disabled={totalPicked === 0 || inspectMutation.isPending}
 									onClick={() => inspectMutation.mutate()}
-									className="rounded-md bg-accent px-3 py-1.5 text-[12.5px] font-medium text-accent-fg hover:bg-accent-hover disabled:opacity-50"
 								>
 									{inspectMutation.isPending
 										? "Inspecting…"
 										: "Next: files & tables"}
-								</button>
+								</Button>
 							</div>
 						</div>
 					)}
@@ -506,20 +493,12 @@ export const ExtensionBuild = () => {
 							/>
 
 							<div className="flex justify-between">
-								<button
-									type="button"
-									onClick={() => setStep("components")}
-									className="rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] hover:bg-hover"
-								>
+								<Button variant="secondary" onClick={() => setStep("components")}>
 									Back
-								</button>
-								<button
-									type="button"
-									onClick={() => setStep("review")}
-									className="rounded-md bg-accent px-3 py-1.5 text-[12.5px] font-medium text-accent-fg hover:bg-accent-hover"
-								>
+								</Button>
+								<Button variant="primary" onClick={() => setStep("review")}>
 									Next: review
-								</button>
+								</Button>
 							</div>
 						</div>
 					)}
@@ -549,21 +528,16 @@ export const ExtensionBuild = () => {
 							</div>
 
 							<div className="flex justify-between">
-								<button
-									type="button"
-									onClick={() => setStep("files")}
-									className="rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] hover:bg-hover"
-								>
+								<Button variant="secondary" onClick={() => setStep("files")}>
 									Back
-								</button>
-								<button
-									type="button"
+								</Button>
+								<Button
+									variant="primary"
 									disabled={buildMutation.isPending}
 									onClick={doBuild}
-									className="rounded-md bg-accent px-3 py-1.5 text-[12.5px] font-medium text-accent-fg hover:bg-accent-hover disabled:opacity-50"
 								>
 									{buildMutation.isPending ? "Building…" : "Build extension"}
-								</button>
+								</Button>
 							</div>
 						</div>
 					)}

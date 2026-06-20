@@ -293,59 +293,51 @@ export const PageAdd = () => {
 
 				<div className="flex flex-wrap items-center gap-2 border-t border-border bg-surface-2 px-4 py-3">
 					{!isFirst && (
-						<button
-							type="button"
+						<Button
+							variant="secondary"
+							icon={<ChevronLeft size={13} />}
 							onClick={() => setActiveTab(PAGE_TABS[tabIndex - 1] ?? PAGE_TABS[0]!)}
-							className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] hover:bg-hover"
 						>
-							<ChevronLeft size={13} />
 							Back
-						</button>
+						</Button>
 					)}
 
 					{/* Desktop-only spacer; on mobile the action group below claims its own row. */}
 					<div className="hidden flex-1 sm:block" />
 
 					{!isLast && (
-						<button
-							type="button"
+						<Button
+							variant="secondary"
 							onClick={() =>
 								setActiveTab(
 									PAGE_TABS[tabIndex + 1] ?? PAGE_TABS[PAGE_TABS.length - 1]!
 								)
 							}
-							className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] hover:bg-hover"
 						>
 							Next Step
 							<ChevronRight size={13} />
-						</button>
+						</Button>
 					)}
 
 					{/* Commit actions stay grouped: full-width row on mobile so Create and
 						    Create & Publish share a line; `contents` on desktop lays them inline. */}
 					<div className="flex w-full flex-wrap items-center justify-end gap-2 sm:contents">
-						<button
-							type="button"
+						<Button
+							variant={canPublish ? "secondary" : "primary"}
 							onClick={() => handleSubmit(false)}
-							className={
-								canPublish
-									? "inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] font-medium text-text-2 hover:bg-hover disabled:opacity-50"
-									: "inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-[12.5px] font-medium text-accent-fg hover:bg-accent-hover disabled:opacity-50"
-							}
 							disabled={!canCreate || createMutation.isPending}
 						>
 							{createMutation.isPending ? "Saving…" : "Create"}
-						</button>
+						</Button>
 
 						{canPublish && (
-							<button
-								type="button"
+							<Button
+								variant="primary"
 								onClick={() => handleSubmit(true)}
-								className="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-[12.5px] font-medium text-accent-fg disabled:opacity-50 hover:bg-accent-hover"
 								disabled={!canCreate || createMutation.isPending}
 							>
 								{createMutation.isPending ? "Saving…" : "Create & Publish"}
-							</button>
+							</Button>
 						)}
 					</div>
 				</div>

@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Save, ShieldOff } from "lucide-react";
 
 import { DebugLayout } from "@/components/developer/DebugLayout";
+import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
 import { FormShell } from "@/components/ui/FormShell";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
@@ -114,14 +115,14 @@ export const DebugSecurity = () => {
 					bounded={false}
 					onSubmit={onSubmit}
 					footer={
-						<button
+						<Button
+							variant="primary"
 							type="submit"
+							icon={<Save size={13} />}
 							disabled={saveMutation.isPending}
-							className="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-[12.5px] font-medium text-accent-fg hover:bg-accent-hover disabled:opacity-60"
 						>
-							<Save size={13} />
 							{saveMutation.isPending ? "Saving…" : "Save policy"}
-						</button>
+						</Button>
 					}
 				>
 					<div className="grid grid-cols-1 gap-6 lg:grid-cols-2">

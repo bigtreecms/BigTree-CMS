@@ -207,21 +207,12 @@ const StartPanel = ({
 					Resume to continue where the scanner left off, or reset to begin a new scan.
 				</p>
 				<div className="flex flex-wrap gap-2">
-					<button
-						type="button"
-						onClick={onResume}
-						className="inline-flex cursor-pointer items-center gap-1.5 rounded-md bg-accent px-3 py-2 text-[12.5px] font-medium text-accent-fg transition-colors hover:bg-accent-hover"
-					>
+					<Button variant="primary" onClick={onResume}>
 						Resume session
-					</button>
-					<button
-						type="button"
-						onClick={onReset}
-						className="inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-2 text-[12.5px] font-medium text-text-2 transition-colors hover:border-border-strong hover:bg-hover"
-					>
-						<RotateCcw size={14} />
+					</Button>
+					<Button variant="secondary" icon={<RotateCcw size={14} />} onClick={onReset}>
 						Reset
-					</button>
+					</Button>
 				</div>
 			</div>
 		);
@@ -241,22 +232,20 @@ const StartPanel = ({
 				</p>
 			</div>
 			<div className="flex flex-wrap gap-2">
-				<button
-					type="button"
+				<Button
+					variant="primary"
+					icon={<Server size={14} />}
 					onClick={() => onStart(false)}
-					className="inline-flex cursor-pointer items-center gap-1.5 rounded-md bg-accent px-3 py-2 text-[12.5px] font-medium text-accent-fg transition-colors hover:bg-accent-hover"
 				>
-					<Server size={14} />
 					Only internal links
-				</button>
-				<button
-					type="button"
+				</Button>
+				<Button
+					variant="secondary"
+					icon={<Globe size={14} />}
 					onClick={() => onStart(true)}
-					className="inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-2 text-[12.5px] font-medium text-text-2 transition-colors hover:border-border-strong hover:bg-hover"
 				>
-					<Globe size={14} />
 					Include external links
-				</button>
+				</Button>
 			</div>
 		</div>
 	);

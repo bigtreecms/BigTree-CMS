@@ -1,6 +1,8 @@
 import type { ReactNode } from "react";
 import { Check } from "lucide-react";
 
+import { Button } from "./Button";
+
 export interface WizardStep {
 	key: string;
 	title: string;
@@ -105,44 +107,33 @@ export const Wizard = ({
 			<div className="flex items-center justify-between border-t border-border bg-surface-2 px-5 py-3">
 				<div>
 					{onCancel && (
-						<button
-							type="button"
-							className="rounded-md border border-border px-3 py-1.5 text-[12.5px] hover:bg-hover"
-							onClick={onCancel}
-						>
+						<Button variant="secondary" onClick={onCancel}>
 							{cancelLabel}
-						</button>
+						</Button>
 					)}
 				</div>
 
 				<div className="flex items-center gap-2">
-					<button
-						type="button"
+					<Button
+						variant="secondary"
 						disabled={current === 0}
-						className="rounded-md border border-border px-3 py-1.5 text-[12.5px] disabled:opacity-50 hover:bg-hover"
 						onClick={() => onStepChange(current - 1)}
 					>
 						{backLabel}
-					</button>
+					</Button>
 
 					{isLast ? (
-						<button
-							type="button"
-							disabled={!canAdvance}
-							className="rounded-md bg-accent px-3 py-1.5 text-[12.5px] font-medium text-accent-fg disabled:opacity-60 hover:bg-accent-hover"
-							onClick={onFinish}
-						>
+						<Button variant="primary" disabled={!canAdvance} onClick={onFinish}>
 							{finishLabel}
-						</button>
+						</Button>
 					) : (
-						<button
-							type="button"
+						<Button
+							variant="primary"
 							disabled={!canAdvance}
-							className="rounded-md bg-accent px-3 py-1.5 text-[12.5px] font-medium text-accent-fg disabled:opacity-60 hover:bg-accent-hover"
 							onClick={() => onStepChange(current + 1)}
 						>
 							{nextLabel}
-						</button>
+						</Button>
 					)}
 				</div>
 			</div>

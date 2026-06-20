@@ -4,6 +4,7 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { X } from "lucide-react";
 import Cropper, { type Area } from "react-easy-crop";
 
+import { Button } from "@/components/ui/Button";
 import { resourcesApi, type ResourceDetail } from "@/api/endpoints/resources";
 import { toast } from "@/lib/toast";
 
@@ -225,14 +226,13 @@ export const CropModal = ({ open, onOpenChange, resource }: CropModalProps) => {
 						>
 							Cancel
 						</button>
-						<button
-							type="button"
+						<Button
+							variant="primary"
 							disabled={!validCrop || cropMutation.isPending}
-							className="rounded-md bg-accent px-3 py-1.5 text-[12.5px] font-medium text-accent-fg disabled:opacity-60 hover:bg-accent-hover"
 							onClick={() => cropMutation.mutate()}
 						>
 							{cropMutation.isPending ? "Saving…" : "Save crop"}
-						</button>
+						</Button>
 					</div>
 				</Dialog.Content>
 			</Dialog.Portal>

@@ -1,6 +1,8 @@
 import { Component, type ErrorInfo, type ReactNode } from "react";
 import { RotateCcw } from "lucide-react";
 
+import { Button } from "./Button";
+
 /**
  * Catches render-time crashes in the active route so a thrown component
  * doesn't blank the whole app — the shell (TopBar/TabNav) stays mounted and
@@ -47,14 +49,14 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 						<pre className="mt-3 max-h-40 overflow-auto rounded bg-surface-2 p-2 font-mono text-[11.5px] text-text-3">
 							{error.message}
 						</pre>
-						<button
-							type="button"
+						<Button
+							variant="secondary"
+							icon={<RotateCcw size={13} />}
+							className="mt-3"
 							onClick={() => this.setState({ error: null })}
-							className="mt-3 inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] font-medium text-text hover:bg-surface-2"
 						>
-							<RotateCcw size={13} />
 							Try again
-						</button>
+						</Button>
 					</div>
 				</div>
 			);

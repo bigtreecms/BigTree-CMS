@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { keepPreviousData } from "@tanstack/react-query";
 import { Search, X } from "lucide-react";
 
+import { Button } from "@/components/ui/Button";
 import { SlideOver } from "@/components/ui/SlideOver";
 
 import { messagesApi, type Message } from "@/api/endpoints/dashboard";
@@ -146,22 +147,20 @@ export const ComposeMessage = ({
 			width="md"
 			footer={
 				<div className="flex items-center justify-end gap-2">
-					<button
-						type="button"
-						className="rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] hover:bg-hover"
+					<Button
+						variant="secondary"
 						onClick={() => onOpenChange(false)}
 						disabled={sendMutation.isPending}
 					>
 						Cancel
-					</button>
-					<button
-						type="button"
-						className="rounded-md bg-accent px-3 py-1.5 text-[12.5px] font-medium text-accent-fg disabled:opacity-50 hover:bg-accent-hover"
+					</Button>
+					<Button
+						variant="primary"
 						onClick={() => sendMutation.mutate()}
 						disabled={!canSend || sendMutation.isPending}
 					>
 						{sendMutation.isPending ? "Sending…" : "Send message"}
-					</button>
+					</Button>
 				</div>
 			}
 		>

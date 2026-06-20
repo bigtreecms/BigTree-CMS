@@ -372,7 +372,7 @@ export const PageEdit = () => {
 				sub="Edit the page's properties, content, SEO, and sharing metadata."
 				actions={
 					<Button
-						variant="danger"
+						variant="dangerGhost"
 						onClick={() => setConfirmDelete(true)}
 						disabled={readOnly}
 					>
@@ -1250,14 +1250,13 @@ export const WizardFooter = ({
 	return (
 		<div className="flex flex-wrap items-center gap-2 border-t border-border bg-surface-2 px-4 py-3">
 			{!isFirst && (
-				<button
-					type="button"
+				<Button
+					variant="secondary"
+					icon={<ChevronLeft size={13} />}
 					onClick={() => onSelect(PAGE_TABS[index - 1] ?? PAGE_TABS[0]!)}
-					className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] hover:bg-hover"
 				>
-					<ChevronLeft size={13} />
 					Back
-				</button>
+				</Button>
 			)}
 
 			{secondary}
@@ -1270,53 +1269,41 @@ export const WizardFooter = ({
 			    so the buttons lay out exactly as before. */}
 			<div className="flex w-full flex-wrap items-center justify-end gap-2 sm:contents">
 				{wizardMode && !isLast && (
-					<button
-						type="button"
+					<Button
+						variant="secondary"
 						onClick={() =>
 							onSelect(PAGE_TABS[index + 1] ?? PAGE_TABS[PAGE_TABS.length - 1]!)
 						}
-						className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] hover:bg-hover"
 					>
 						Next Step
 						<ChevronLeft size={13} className="rotate-180" />
-					</button>
+					</Button>
 				)}
 
 				{wizardMode && onWizardCreate && (
-					<button
-						type="button"
-						onClick={onWizardCreate}
-						className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] hover:bg-hover"
-						disabled={primaryDisabled}
-					>
+					<Button variant="secondary" onClick={onWizardCreate} disabled={primaryDisabled}>
 						{createLabel ?? "Create"}
-					</button>
+					</Button>
 				)}
 
-				<button
-					type="button"
+				<Button
+					variant={showPublish ? "secondary" : "primary"}
+					icon={<Save size={13} />}
 					onClick={onPrimary}
-					className={
-						showPublish
-							? "inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] font-medium text-text-2 disabled:opacity-50 hover:bg-hover"
-							: "inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-[12.5px] font-medium text-accent-fg disabled:opacity-50 hover:bg-accent-hover"
-					}
 					disabled={primaryDisabled}
 				>
-					<Save size={13} />
 					{primaryLabel}
-				</button>
+				</Button>
 
 				{showPublish && (
-					<button
-						type="button"
+					<Button
+						variant="primary"
+						icon={<Save size={13} />}
 						onClick={onPublish}
-						className="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-[12.5px] font-medium text-accent-fg disabled:opacity-50 hover:bg-accent-hover"
 						disabled={publishDisabled}
 					>
-						<Save size={13} />
 						{publishLabel}
-					</button>
+					</Button>
 				)}
 			</div>
 		</div>

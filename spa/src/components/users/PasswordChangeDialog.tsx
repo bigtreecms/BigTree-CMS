@@ -3,6 +3,7 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { useMutation } from "@tanstack/react-query";
 import { Eye, EyeOff } from "lucide-react";
 
+import { Button } from "@/components/ui/Button";
 import { usersApi } from "@/api/endpoints/users";
 import { ApiError } from "@/types/api";
 import { toast } from "@/lib/toast";
@@ -171,13 +172,9 @@ export const PasswordChangeDialog = ({
 							>
 								Cancel
 							</button>
-							<button
-								type="submit"
-								disabled={mutation.isPending}
-								className="rounded-md bg-accent px-4 py-1.5 text-[12.5px] font-medium text-accent-fg disabled:opacity-60 hover:bg-accent-hover"
-							>
+							<Button variant="primary" type="submit" disabled={mutation.isPending}>
 								{mutation.isPending ? "Saving…" : "Change password"}
-							</button>
+							</Button>
 						</div>
 					</form>
 				</Dialog.Content>

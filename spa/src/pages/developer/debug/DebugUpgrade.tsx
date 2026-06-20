@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { AlertTriangle, CheckCircle2, Download, Loader2 } from "lucide-react";
 
 import { DebugLayout } from "@/components/developer/DebugLayout";
+import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 
@@ -384,14 +385,14 @@ const UpdateList = ({ data, onInstall }: UpdateListProps) => {
 					</div>
 
 					{update.installable ? (
-						<button
-							type="button"
+						<Button
+							variant="primary"
+							icon={<Download size={13} />}
+							className="shrink-0"
 							onClick={() => onInstall(update)}
-							className="inline-flex shrink-0 items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-[12.5px] font-medium text-accent-fg hover:bg-accent-hover"
 						>
-							<Download size={13} />
 							Install {update.version}
-						</button>
+						</Button>
 					) : (
 						<span className="shrink-0 self-center rounded-md border border-border px-2.5 py-1 text-[11.5px] text-text-3">
 							Manual install only

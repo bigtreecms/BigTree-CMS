@@ -9,6 +9,7 @@ import { useState } from "react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Fingerprint } from "lucide-react";
+import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
 import { TwoFactorEnrollForm } from "@/components/users/TwoFactorEnrollForm";
 import { isWebAuthnSupported } from "@/lib/webauthn";
@@ -261,13 +262,15 @@ export const Login = () => {
 							</label>
 						)}
 
-						<button
+						<Button
+							variant="primary"
+							size="lg"
 							type="submit"
+							className="mt-1 w-full justify-center"
 							disabled={form.formState.isSubmitting}
-							className="mt-1 w-full rounded-md bg-accent px-3 py-2 text-[13px] font-medium text-accent-fg transition-colors hover:bg-accent-hover disabled:opacity-60"
 						>
 							{form.formState.isSubmitting ? "Signing in…" : "Sign in"}
-						</button>
+						</Button>
 
 						{passkeySupported && (
 							<>
@@ -276,17 +279,18 @@ export const Login = () => {
 									or
 									<span className="h-px flex-1 bg-border" />
 								</div>
-								<button
-									type="button"
+								<Button
+									variant="secondary"
+									size="lg"
+									className="w-full justify-center"
+									icon={<Fingerprint size={14} />}
 									onClick={onPasskeySignIn}
 									disabled={passkeyBusy || form.formState.isSubmitting}
-									className="inline-flex w-full items-center justify-center gap-2 rounded-md border border-border bg-surface px-3 py-2 text-[13px] hover:bg-hover disabled:opacity-60"
 								>
-									<Fingerprint size={14} />
 									{passkeyBusy
 										? "Waiting for authenticator…"
 										: "Sign in with a passkey"}
-								</button>
+								</Button>
 							</>
 						)}
 					</form>
@@ -304,13 +308,15 @@ export const Login = () => {
 							{...mfaForm.register("code", { required: true })}
 							className="w-full rounded-md border border-border bg-surface px-2.5 py-1.5 text-center font-mono text-[14px] tracking-widest outline-none focus:border-accent"
 						/>
-						<button
+						<Button
+							variant="primary"
+							size="lg"
 							type="submit"
+							className="w-full justify-center"
 							disabled={mfaForm.formState.isSubmitting}
-							className="w-full rounded-md bg-accent px-3 py-2 text-[13px] font-medium text-accent-fg transition-colors hover:bg-accent-hover disabled:opacity-60"
 						>
 							{mfaForm.formState.isSubmitting ? "Verifying…" : "Verify"}
-						</button>
+						</Button>
 						<button
 							type="button"
 							onClick={() => setMfa(null)}

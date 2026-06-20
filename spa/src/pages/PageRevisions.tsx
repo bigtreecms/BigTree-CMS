@@ -160,15 +160,14 @@ export const PageRevisions = () => {
 							placeholder="Optional"
 						/>
 					</label>
-					<button
-						type="button"
-						className="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-[12.5px] font-medium text-accent-fg disabled:opacity-50 hover:bg-accent-hover"
+					<Button
+						variant="primary"
+						icon={<Save size={13} />}
 						onClick={() => saveMutation.mutate()}
 						disabled={saveMutation.isPending}
 					>
-						<Save size={13} />
 						{saveMutation.isPending ? "Saving…" : "Save revision"}
-					</button>
+					</Button>
 				</div>
 			</section>
 

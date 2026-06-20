@@ -116,20 +116,12 @@ export const ExtensionInstall = () => {
 						</p>
 					)}
 					<div className="flex gap-2">
-						<button
-							type="button"
-							onClick={() => navigate("/developer/extensions")}
-							className="rounded-md bg-accent px-3 py-1.5 text-[12.5px] font-medium text-accent-fg hover:bg-accent-hover"
-						>
+						<Button variant="primary" onClick={() => navigate("/developer/extensions")}>
 							Done
-						</button>
-						<button
-							type="button"
-							onClick={reset}
-							className="rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] hover:bg-hover"
-						>
+						</Button>
+						<Button variant="secondary" onClick={reset}>
 							Install another
-						</button>
+						</Button>
 					</div>
 				</div>
 			) : preview ? (
@@ -180,21 +172,16 @@ export const ExtensionInstall = () => {
 					)}
 
 					<div className="flex gap-2">
-						<button
-							type="button"
+						<Button
+							variant="primary"
 							disabled={!preview.ready || processMutation.isPending}
 							onClick={() => processMutation.mutate()}
-							className="rounded-md bg-accent px-3 py-1.5 text-[12.5px] font-medium text-accent-fg hover:bg-accent-hover disabled:opacity-50"
 						>
 							{processMutation.isPending ? "Installing…" : "Install"}
-						</button>
-						<button
-							type="button"
-							onClick={reset}
-							className="rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] hover:bg-hover"
-						>
+						</Button>
+						<Button variant="secondary" onClick={reset}>
 							Choose a different file
-						</button>
+						</Button>
 					</div>
 				</div>
 			) : (
@@ -211,27 +198,25 @@ export const ExtensionInstall = () => {
 					/>
 
 					<div className="flex flex-wrap items-center gap-3">
-						<button
-							type="button"
+						<Button
+							variant="secondary"
+							icon={<Upload size={13} />}
 							onClick={() => inputRef.current?.click()}
-							className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] hover:bg-hover"
 						>
-							<Upload size={13} />
 							Choose package
-						</button>
+						</Button>
 						{file && (
 							<span className="font-mono text-[12px] text-text-2">{file.name}</span>
 						)}
 					</div>
 
-					<button
-						type="button"
+					<Button
+						variant="primary"
 						disabled={!file || unpackMutation.isPending}
 						onClick={() => file && unpackMutation.mutate(file)}
-						className="rounded-md bg-accent px-3 py-1.5 text-[12.5px] font-medium text-accent-fg hover:bg-accent-hover disabled:opacity-50"
 					>
 						{unpackMutation.isPending ? "Uploading…" : "Upload & review"}
-					</button>
+					</Button>
 				</div>
 			)}
 		</div>

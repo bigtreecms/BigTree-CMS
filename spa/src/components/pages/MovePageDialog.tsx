@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ChevronRight, Folder, Home, Search, X } from "lucide-react";
 
+import { Button } from "@/components/ui/Button";
 import { SlideOver } from "@/components/ui/SlideOver";
 
 import { pagesApi, type PageListRow, type PageSearchHit } from "@/api/endpoints/pages";
@@ -150,14 +151,13 @@ export const MovePageDialog = ({
 						>
 							Cancel
 						</button>
-						<button
-							type="button"
-							className="rounded-md bg-accent px-3 py-1.5 text-[12.5px] font-medium text-accent-fg disabled:opacity-50 hover:bg-accent-hover"
+						<Button
+							variant="primary"
 							onClick={() => target && moveMutation.mutate({ parent: target.id })}
 							disabled={!target || moveMutation.isPending}
 						>
 							{moveMutation.isPending ? "Moving…" : "Move page"}
-						</button>
+						</Button>
 					</div>
 				</div>
 			}

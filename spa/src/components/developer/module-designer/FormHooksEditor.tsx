@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Zap } from "lucide-react";
 
+import { Button } from "@/components/ui/Button";
 import { SlideOver } from "@/components/ui/SlideOver";
 
 import { TextInput } from "./inputs";
@@ -84,19 +85,14 @@ export const FormHooksEditor = ({ value, onChange }: FormHooksEditorProps) => {
 	return (
 		<div>
 			<span className="mb-1 block text-[12px] font-medium text-text-2">Hooks</span>
-			<button
-				type="button"
-				onClick={() => setOpen(true)}
-				className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] hover:bg-hover"
-			>
-				<Zap size={13} />
+			<Button variant="secondary" icon={<Zap size={13} />} onClick={() => setOpen(true)}>
 				Manage Hooks
 				{activeCount > 0 && (
 					<span className="rounded bg-accent-soft px-1.5 py-0.5 text-[10.5px] font-medium text-accent">
 						{activeCount}
 					</span>
 				)}
-			</button>
+			</Button>
 			<span className="mt-1 block text-[11px] text-text-3">
 				PHP functions called at each stage of the form lifecycle.
 			</span>
@@ -108,13 +104,9 @@ export const FormHooksEditor = ({ value, onChange }: FormHooksEditorProps) => {
 				description="Enter the name of a PHP function to call at each stage of the form lifecycle. Leave a field blank to skip that hook."
 				footer={
 					<div className="flex justify-end">
-						<button
-							type="button"
-							onClick={() => setOpen(false)}
-							className="rounded-md bg-accent px-3 py-1.5 text-[12.5px] font-medium text-white hover:opacity-90"
-						>
+						<Button variant="primary" onClick={() => setOpen(false)}>
 							Done
-						</button>
+						</Button>
 					</div>
 				}
 			>

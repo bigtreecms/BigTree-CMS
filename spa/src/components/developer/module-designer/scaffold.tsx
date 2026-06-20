@@ -1,6 +1,8 @@
 import type { DragEvent, ReactNode } from "react";
 import { GripVertical, Pencil, Plus, Trash, X } from "lucide-react";
 
+import { Button } from "@/components/ui/Button";
+
 /**
  * Presentational chrome shared by every sub-resource tab (actions, forms,
  * views, reports, embed forms): a row list with edit/delete affordances, an
@@ -132,14 +134,9 @@ interface AddSubButtonProps {
 }
 
 export const AddSubButton = ({ label, onClick }: AddSubButtonProps) => (
-	<button
-		type="button"
-		className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] hover:bg-hover"
-		onClick={onClick}
-	>
-		<Plus size={13} />
+	<Button variant="secondary" icon={<Plus size={13} />} onClick={onClick}>
 		{label}
-	</button>
+	</Button>
 );
 
 interface EditorCardProps {
@@ -173,21 +170,12 @@ export const EditorCard = ({
 		</div>
 		<div className="space-y-4 p-4">{children}</div>
 		<div className="flex justify-end gap-2 border-t border-border px-4 py-3">
-			<button
-				type="button"
-				className="rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] text-text-2 hover:bg-hover"
-				onClick={onClose}
-			>
+			<Button variant="secondary" onClick={onClose}>
 				Cancel
-			</button>
-			<button
-				type="button"
-				className="rounded-md bg-accent px-3 py-1.5 text-[12.5px] font-medium text-accent-fg disabled:opacity-50 hover:bg-accent-hover"
-				onClick={onSave}
-				disabled={saving}
-			>
+			</Button>
+			<Button variant="primary" onClick={onSave} disabled={saving}>
 				{saving ? "Saving…" : saveLabel}
-			</button>
+			</Button>
 		</div>
 	</div>
 );

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
+import { Button } from "@/components/ui/Button";
 import { SlideOver } from "@/components/ui/SlideOver";
 import { resourceFoldersApi, type ResourceFolderRow } from "@/api/endpoints/resource-folders";
 import { toast } from "@/lib/toast";
@@ -107,14 +108,9 @@ export const FolderEditor = ({
 					>
 						Cancel
 					</button>
-					<button
-						type="button"
-						disabled={!valid || pending}
-						className="rounded-md bg-accent px-3 py-1.5 text-[12.5px] font-medium text-accent-fg disabled:opacity-60 hover:bg-accent-hover"
-						onClick={submit}
-					>
+					<Button variant="primary" disabled={!valid || pending} onClick={submit}>
 						{pending ? "Saving…" : isRename ? "Rename" : "Create"}
-					</button>
+					</Button>
 				</div>
 			}
 		>

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronDown, ChevronRight, GripVertical, Plus, Trash } from "lucide-react";
 
+import { Button } from "@/components/ui/Button";
 import type { ModuleFormField } from "@/api/endpoints/modules";
 import {
 	fieldTypesApi,
@@ -416,15 +417,14 @@ export const ResourceDesigner = ({
 			)}
 
 			<div className="flex items-center gap-2">
-				<button
-					type="button"
-					className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] hover:bg-hover disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-surface"
+				<Button
+					variant="secondary"
+					icon={<Plus size={13} />}
 					onClick={addEntry}
 					disabled={addDisabled}
 				>
-					<Plus size={13} />
 					Add field
-				</button>
+				</Button>
 				{addDisabled && (
 					<span className="text-[11.5px] text-text-3">
 						Choose a data table before adding fields.

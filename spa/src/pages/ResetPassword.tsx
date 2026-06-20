@@ -7,6 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { ApiError } from "@/types/api";
 import { authApi } from "@/auth/endpoints";
 import { AuthCard } from "@/components/ui/AuthCard";
+import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
 
 const schema = z
@@ -115,13 +116,15 @@ export const ResetPassword = () => {
 					/>
 				</Field>
 
-				<button
+				<Button
+					variant="primary"
+					size="lg"
 					type="submit"
+					className="mt-1 w-full justify-center"
 					disabled={form.formState.isSubmitting}
-					className="mt-1 w-full rounded-md bg-accent px-3 py-2 text-[13px] font-medium text-accent-fg transition-colors hover:bg-accent-hover disabled:opacity-60"
 				>
 					{form.formState.isSubmitting ? "Saving…" : "Set new password"}
-				</button>
+				</Button>
 			</form>
 		</AuthCard>
 	);

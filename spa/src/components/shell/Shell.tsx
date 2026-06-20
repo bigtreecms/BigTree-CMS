@@ -6,6 +6,7 @@ import { TabNav } from "./TabNav";
 import { EmulationBanner } from "./EmulationBanner";
 import { QuickSearch } from "./QuickSearch";
 import { Toaster } from "@/components/ui/Toaster";
+import { Button } from "@/components/ui/Button";
 import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
 import { applyTheme, resolveInitialTheme } from "@/lib/theme";
 import { authApi } from "@/auth/endpoints";
@@ -52,13 +53,9 @@ export const Shell = () => {
 						We are currently undergoing site maintenance. If your need is urgent, please
 						contact your webmaster.
 					</p>
-					<button
-						type="button"
-						onClick={() => void authApi.logout()}
-						className="rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] text-text-2 hover:bg-hover"
-					>
+					<Button variant="secondary" onClick={() => void authApi.logout()}>
 						Sign out
-					</button>
+					</Button>
 				</div>
 			</div>
 		);

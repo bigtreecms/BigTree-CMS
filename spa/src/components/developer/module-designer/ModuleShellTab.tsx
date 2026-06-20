@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Save } from "lucide-react";
 
+import { Button } from "@/components/ui/Button";
 import {
 	modulesApi,
 	type ModuleCreateBody,
@@ -314,18 +315,18 @@ export const ModuleShellTab = ({ moduleId, module }: ModuleShellTabProps) => {
 				</div>
 
 				<div className="flex justify-end">
-					<button
+					<Button
+						variant="primary"
 						type="submit"
-						className="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-[12.5px] font-medium text-accent-fg disabled:opacity-50 hover:bg-accent-hover"
+						icon={<Save size={13} />}
 						disabled={saveMutation.isPending}
 					>
-						<Save size={13} />
 						{saveMutation.isPending
 							? "Saving…"
 							: isAdd
 								? "Create module"
 								: "Save module"}
-					</button>
+					</Button>
 				</div>
 			</form>
 
