@@ -21,7 +21,7 @@ import { useScrollToFirstError } from "@/hooks/useScrollToFirstError";
 import { useReturnTo } from "@/hooks/useReturnTo";
 import { validateRequired } from "@/lib/formValidation";
 
-import { TextField } from "./TemplateEdit";
+import { TextField } from "@/components/ui/TextField";
 
 export const CalloutGroupEdit = () => {
 	const { id: idParam } = useParams<{ id: string }>();

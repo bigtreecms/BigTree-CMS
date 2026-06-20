@@ -32,7 +32,7 @@ import { useDirtyTracker } from "@/hooks/useDirtyTracker";
 import { UnsavedChangesGuard } from "@/components/ui/UnsavedChangesGuard";
 import { validateRequired } from "@/lib/formValidation";
 
-import { TextField } from "./TemplateEdit";
+import { TextField } from "@/components/ui/TextField";
 
 /**
  * The detail endpoint returns a field type's raw record, where `use_cases` may be

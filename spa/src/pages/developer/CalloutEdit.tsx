@@ -23,7 +23,8 @@ import { useScrollToFirstError } from "@/hooks/useScrollToFirstError";
 import { useReturnTo } from "@/hooks/useReturnTo";
 import { validateRequired } from "@/lib/formValidation";
 
-import { SelectField, TextField } from "./TemplateEdit";
+import { SelectField } from "@/components/ui/SelectField";
+import { TextField } from "@/components/ui/TextField";
 
 export const CalloutEdit = () => {
 	const { id: idParam } = useParams<{ id: string }>();

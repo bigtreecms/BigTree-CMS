@@ -25,7 +25,8 @@ import { useScrollToFirstError } from "@/hooks/useScrollToFirstError";
 import { useReturnTo } from "@/hooks/useReturnTo";
 import { validateRequired } from "@/lib/formValidation";
 
-import { SelectField, TextField } from "./TemplateEdit";
+import { SelectField } from "@/components/ui/SelectField";
+import { TextField } from "@/components/ui/TextField";
 
 const FEED_TYPES = [
 	{ value: "custom", label: "Custom" },

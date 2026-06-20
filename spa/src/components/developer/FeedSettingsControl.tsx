@@ -1,6 +1,6 @@
 import { DataColumnSelect } from "./DataColumnSelect";
 
-import { TextField } from "@/pages/developer/TemplateEdit";
+import { TextField } from "@/components/ui/TextField";
 
 /**
  * Per-feed-type settings form — the SPA equivalent of the legacy

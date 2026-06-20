@@ -16,7 +16,8 @@ import { useDirtyTracker } from "@/hooks/useDirtyTracker";
 import { UnsavedChangesGuard } from "@/components/ui/UnsavedChangesGuard";
 import { validateRequired } from "@/lib/formValidation";
 
-import { SelectField, TextField } from "./developer/TemplateEdit";
+import { SelectField } from "@/components/ui/SelectField";
+import { TextField } from "@/components/ui/TextField";
 
 /**
  * /dashboard/404s/301/add — manually create a single 301 redirect. Mirrors the

@@ -12,7 +12,7 @@ import { fourOhFoursApi } from "@/api/endpoints/four-oh-fours";
 import { ApiError } from "@/types/api";
 import { toast } from "@/lib/toast";
 
-import { SelectField } from "./developer/TemplateEdit";
+import { SelectField } from "@/components/ui/SelectField";
 
 /**
  * /dashboard/404s/301/import — guided CSV import for 301 redirects. Mirrors the

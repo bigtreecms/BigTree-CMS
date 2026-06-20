@@ -25,7 +25,7 @@ import { useDirtyTracker } from "@/hooks/useDirtyTracker";
 import { UnsavedChangesGuard } from "@/components/ui/UnsavedChangesGuard";
 import { validateRequired } from "@/lib/formValidation";
 
-import { TextField } from "./TemplateEdit";
+import { TextField } from "@/components/ui/TextField";
 
 /**
  * Descriptions are WYSIWYG HTML. We reuse the renderer's HTMLField in its

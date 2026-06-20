@@ -7,6 +7,8 @@ import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { Button } from "@/components/ui/Button";
+import { SelectField } from "@/components/ui/SelectField";
+import { TextField } from "@/components/ui/TextField";
 import { UnsavedChangesGuard } from "@/components/ui/UnsavedChangesGuard";
 import { useDirtyTracker } from "@/hooks/useDirtyTracker";
 
@@ -285,72 +287,3 @@ export const TemplateEdit = () => {
 		</div>
 	);
 };
-
-// Small local field primitives kept in-file to avoid scattering more shared UI
-// across the codebase until we extract a real form-controls module.
-
-interface TextFieldProps {
-	label: string;
-	value: string;
-	onChange: (next: string) => void;
-	hint?: string;
-	error?: string;
-	disabled?: boolean;
-	required?: boolean;
-	type?: string;
-}
-
-export const TextField = ({
-	label,
-	value,
-	onChange,
-	hint,
-	error,
-	disabled,
-	required,
-	type = "text",
-}: TextFieldProps) => (
-	<label className="block">
-		<span className="mb-1 block text-[12px] font-medium text-text-2">
-			{label}
-			{required && <span className="text-danger"> *</span>}
-		</span>
-		<input
-			type={type}
-			value={value}
-			onChange={(e) => onChange(e.target.value)}
-			disabled={disabled}
-			className="w-full rounded-md border border-border bg-surface px-3 py-2 text-[13px] focus:outline-none focus:ring-1 focus:ring-accent-ring disabled:cursor-not-allowed disabled:opacity-60"
-		/>
-		{hint && <span className="mt-1 block text-[11px] text-text-3">{hint}</span>}
-		{error && (
-			<span data-field-error className="mt-1 block text-[11.5px] text-danger">
-				{error}
-			</span>
-		)}
-	</label>
-);
-
-interface SelectFieldProps {
-	label: string;
-	value: string;
-	onChange: (next: string) => void;
-	options: Array<{ value: string; label: string }>;
-}
-
-export const SelectField = ({ label, value, onChange, options }: SelectFieldProps) => (
-	<label className="block">
-		<span className="mb-1 block text-[12px] font-medium text-text-2">{label}</span>
-		<select
-			value={value}
-			onChange={(e) => onChange(e.target.value)}
-			className="w-full rounded-md border border-border bg-surface px-2.5 py-2 text-[13px] focus:outline-none focus:ring-1 focus:ring-accent-ring"
-		>
-			{options.map((o) => (
-				<option key={o.value} value={o.value}>
-					{o.label}
-				</option>
-			))}
-		</select>
-	</label>
-);
