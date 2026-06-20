@@ -8,6 +8,7 @@ import { PageHead } from "@/components/shell/PageHead";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { Button } from "@/components/ui/Button";
+import { TextInput } from "@/components/ui/TextInput";
 
 import { pagesApi, type PageRevision } from "@/api/endpoints/pages";
 
@@ -152,9 +153,7 @@ export const PageRevisions = () => {
 								(what's special about this version?)
 							</span>
 						</span>
-						<input
-							type="text"
-							className="w-full rounded-md border border-border bg-surface px-3 py-2 text-[13px] placeholder:text-text-3 focus:outline-none focus:ring-1 focus:ring-accent-ring"
+						<TextInput
 							value={description}
 							onChange={(e) => setDescription(e.target.value)}
 							placeholder="Optional"

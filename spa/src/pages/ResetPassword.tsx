@@ -9,6 +9,7 @@ import { authApi } from "@/auth/endpoints";
 import { AuthCard } from "@/components/ui/AuthCard";
 import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
+import { TextInput } from "@/components/ui/TextInput";
 
 const schema = z
 	.object({
@@ -98,21 +99,19 @@ export const ResetPassword = () => {
 
 			<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
 				<Field label="New password" error={form.formState.errors.password?.message}>
-					<input
+					<TextInput
 						type="password"
 						autoComplete="new-password"
 						autoFocus
 						{...form.register("password")}
-						className="w-full rounded-md border border-border bg-surface px-2.5 py-1.5 text-[13px] outline-none transition-colors focus:border-accent"
 					/>
 				</Field>
 
 				<Field label="Confirm password" error={form.formState.errors.confirm?.message}>
-					<input
+					<TextInput
 						type="password"
 						autoComplete="new-password"
 						{...form.register("confirm")}
-						className="w-full rounded-md border border-border bg-surface px-2.5 py-1.5 text-[13px] outline-none transition-colors focus:border-accent"
 					/>
 				</Field>
 

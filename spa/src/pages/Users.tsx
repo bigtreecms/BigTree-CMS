@@ -1,17 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-	ChevronDown,
-	ChevronLeft,
-	ChevronUp,
-	Edit,
-	Key,
-	Plus,
-	Search,
-	Trash,
-	X,
-} from "lucide-react";
+import { ChevronDown, ChevronLeft, ChevronUp, Edit, Key, Plus, Trash } from "lucide-react";
 
 import { useAuthStore } from "@/auth/store";
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
@@ -20,6 +10,7 @@ import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
 import { Pager } from "@/components/ui/Pager";
+import { SearchInput } from "@/components/ui/SearchInput";
 import { SelectField } from "@/components/ui/SelectField";
 import { SubNav } from "@/components/ui/SubNav";
 import { TextField } from "@/components/ui/TextField";
@@ -380,28 +371,12 @@ export const Users = () => {
 				<>
 					{/* Toolbar */}
 					<div className="mb-3 flex flex-wrap items-center gap-3">
-						<div className="relative flex-1 max-w-md">
-							<Search
-								size={14}
-								className="absolute left-3 top-1/2 -translate-y-1/2 text-text-3"
-							/>
-							<input
-								className="w-full rounded-md border border-border bg-surface py-1.5 pl-9 pr-9 text-[13.5px] placeholder:text-text-3 focus:outline-none focus:ring-1 focus:ring-accent-ring"
-								placeholder="Search by name, email, company…"
-								value={query}
-								onChange={(e) => setQuery(e.target.value)}
-							/>
-							{query && (
-								<button
-									type="button"
-									className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-text-3 hover:bg-hover hover:text-text"
-									onClick={() => setQuery("")}
-									aria-label="Clear search"
-								>
-									<X size={14} />
-								</button>
-							)}
-						</div>
+						<SearchInput
+							value={query}
+							onChange={setQuery}
+							placeholder="Search by name, email, company…"
+							className="flex-1 max-w-md"
+						/>
 
 						<div className="flex-1" />
 

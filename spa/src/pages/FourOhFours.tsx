@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Check, Download, EyeOff, Link2, Plus, Search, Trash, Upload, X } from "lucide-react";
+import { Check, Download, EyeOff, Link2, Plus, Trash, Upload, X } from "lucide-react";
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
@@ -9,6 +9,7 @@ import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { Button } from "@/components/ui/Button";
 import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
 import { Pager } from "@/components/ui/Pager";
+import { SearchInput } from "@/components/ui/SearchInput";
 import { SubNav } from "@/components/ui/SubNav";
 
 import {
@@ -442,18 +443,12 @@ export const FourOhFours = ({ type }: FourOhFoursProps) => {
 					onChange={(v) => navigate(TYPE_ROUTE[v])}
 				/>
 
-				<div className="relative w-full sm:w-auto sm:max-w-md sm:flex-1">
-					<Search
-						size={14}
-						className="absolute left-3 top-1/2 -translate-y-1/2 text-text-3"
-					/>
-					<input
-						className="w-full rounded-md border border-border bg-surface py-1.5 pl-9 pr-3 text-[13.5px] placeholder:text-text-3 focus:outline-none focus:ring-1 focus:ring-accent-ring"
-						placeholder="Search by URL…"
-						value={search}
-						onChange={(e) => setSearch(e.target.value)}
-					/>
-				</div>
+				<SearchInput
+					value={search}
+					onChange={setSearch}
+					placeholder="Search by URL…"
+					className="w-full sm:w-auto sm:max-w-md sm:flex-1"
+				/>
 
 				<div className="hidden flex-1 sm:block" />
 

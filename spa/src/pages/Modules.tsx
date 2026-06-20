@@ -1,12 +1,13 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { Plus, Search, X } from "lucide-react";
+import { Plus } from "lucide-react";
 
 import { useAuthStore } from "@/auth/store";
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
 import { Button } from "@/components/ui/Button";
+import { SearchInput } from "@/components/ui/SearchInput";
 import { iconFor } from "@/lib/legacyIcons";
 import { modulePath } from "@/lib/moduleActions";
 import { isDeveloper } from "@/lib/permissions";
@@ -147,27 +148,12 @@ export const Modules = () => {
 				}
 			/>
 
-			<div className="relative mb-5 flex max-w-md items-center gap-2.5">
-				<span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-text-3">
-					<Search size={14} />
-				</span>
-				<input
-					className="w-full rounded-md border border-border bg-surface py-1.5 pl-9 pr-9 text-[13.5px] placeholder:text-text-3 focus:outline-none focus:ring-1 focus:ring-accent-ring"
-					placeholder="Search modules…"
-					value={query}
-					onChange={(e) => setQuery(e.target.value)}
-				/>
-				{query && (
-					<button
-						type="button"
-						className="absolute right-2 top-1/2 -translate-y-1/2 grid h-[22px] w-[22px] place-items-center rounded text-text-3 hover:bg-hover hover:text-text"
-						onClick={() => setQuery("")}
-						aria-label="Clear search"
-					>
-						<X size={13} />
-					</button>
-				)}
-			</div>
+			<SearchInput
+				value={query}
+				onChange={setQuery}
+				placeholder="Search modules…"
+				className="mb-5 max-w-md"
+			/>
 
 			{isLoading ? (
 				<div className="rounded-xl border border-border bg-surface p-9 text-center text-[13px] text-text-3">

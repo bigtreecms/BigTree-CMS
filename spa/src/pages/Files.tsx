@@ -8,10 +8,8 @@ import {
 	Folder,
 	FolderPlus,
 	Image as ImageIcon,
-	Search,
 	Trash,
 	Video,
-	X,
 } from "lucide-react";
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
@@ -19,6 +17,7 @@ import { PageHead } from "@/components/shell/PageHead";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { Button } from "@/components/ui/Button";
 import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
+import { SearchInput } from "@/components/ui/SearchInput";
 import { FileDetail } from "@/components/files/FileDetail";
 import { FolderEditor } from "@/components/files/FolderEditor";
 import { UploadZone } from "@/components/files/UploadZone";
@@ -364,28 +363,12 @@ export const Files = () => {
 			)}
 
 			<div className="mb-3 flex flex-wrap items-center gap-3">
-				<div className="relative w-full sm:w-auto sm:max-w-md sm:flex-1">
-					<Search
-						size={14}
-						className="absolute left-3 top-1/2 -translate-y-1/2 text-text-3"
-					/>
-					<input
-						className="w-full rounded-md border border-border bg-surface py-1.5 pl-9 pr-9 text-[13.5px] placeholder:text-text-3 focus:outline-none focus:ring-1 focus:ring-accent-ring"
-						placeholder="Search files by name…"
-						value={query}
-						onChange={(e) => setQuery(e.target.value)}
-					/>
-					{query && (
-						<button
-							type="button"
-							className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-text-3 hover:bg-hover hover:text-text"
-							onClick={() => setQuery("")}
-							aria-label="Clear search"
-						>
-							<X size={14} />
-						</button>
-					)}
-				</div>
+				<SearchInput
+					value={query}
+					onChange={setQuery}
+					placeholder="Search files by name…"
+					className="w-full sm:w-auto sm:max-w-md sm:flex-1"
+				/>
 
 				<div className="flex-1" />
 			</div>

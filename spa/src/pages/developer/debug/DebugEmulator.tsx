@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import { keepPreviousData, useMutation, useQuery } from "@tanstack/react-query";
-import { Eye, Search, X } from "lucide-react";
+import { Eye } from "lucide-react";
 
 import { useAuthStore } from "@/auth/store";
 import { authApi } from "@/auth/endpoints";
 import { DebugLayout } from "@/components/developer/DebugLayout";
 import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
 import { Pager } from "@/components/ui/Pager";
+import { SearchInput } from "@/components/ui/SearchInput";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { usersApi, type UserListItem, levelToLabel } from "@/api/endpoints/users";
@@ -117,28 +118,12 @@ export const DebugEmulator = () => {
 			sub="Assume another user's identity to debug permissions. You drop to their access level until you stop."
 		>
 			<div className="mb-3 flex flex-wrap items-center gap-3">
-				<div className="relative w-full sm:w-auto sm:max-w-md sm:flex-1">
-					<Search
-						size={14}
-						className="absolute left-3 top-1/2 -translate-y-1/2 text-text-3"
-					/>
-					<input
-						className="w-full rounded-md border border-border bg-surface py-1.5 pl-9 pr-9 text-[13.5px] placeholder:text-text-3 focus:outline-none focus:ring-1 focus:ring-accent-ring"
-						placeholder="Search by name, email, company…"
-						value={query}
-						onChange={(e) => setQuery(e.target.value)}
-					/>
-					{query && (
-						<button
-							type="button"
-							className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-text-3 hover:bg-hover hover:text-text"
-							onClick={() => setQuery("")}
-							aria-label="Clear search"
-						>
-							<X size={14} />
-						</button>
-					)}
-				</div>
+				<SearchInput
+					value={query}
+					onChange={setQuery}
+					placeholder="Search by name, email, company…"
+					className="w-full sm:w-auto sm:max-w-md sm:flex-1"
+				/>
 
 				<div className="flex-1" />
 

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { GitMerge, Plus, Search, Trash, X } from "lucide-react";
+import { GitMerge, Plus, Trash } from "lucide-react";
 
 import { useAuthStore } from "@/auth/store";
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
@@ -10,6 +10,7 @@ import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
 import { Button } from "@/components/ui/Button";
 import { Pager } from "@/components/ui/Pager";
+import { SearchInput } from "@/components/ui/SearchInput";
 import { SubNav } from "@/components/ui/SubNav";
 
 import { tagsApi, type Tag } from "@/api/endpoints/tags";
@@ -163,28 +164,12 @@ export const Tags = () => {
 			)}
 
 			<div className="mb-3 flex flex-wrap items-center gap-3">
-				<div className="relative w-full sm:w-auto sm:max-w-md sm:flex-1">
-					<Search
-						size={14}
-						className="absolute left-3 top-1/2 -translate-y-1/2 text-text-3"
-					/>
-					<input
-						className="w-full rounded-md border border-border bg-surface py-1.5 pl-9 pr-9 text-[13.5px] placeholder:text-text-3 focus:outline-none focus:ring-1 focus:ring-accent-ring"
-						placeholder="Search tags…"
-						value={query}
-						onChange={(e) => setQuery(e.target.value)}
-					/>
-					{query && (
-						<button
-							type="button"
-							className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-text-3 hover:bg-hover hover:text-text"
-							onClick={() => setQuery("")}
-							aria-label="Clear search"
-						>
-							<X size={14} />
-						</button>
-					)}
-				</div>
+				<SearchInput
+					value={query}
+					onChange={setQuery}
+					placeholder="Search tags…"
+					className="w-full sm:w-auto sm:max-w-md sm:flex-1"
+				/>
 
 				<div className="flex-1" />
 

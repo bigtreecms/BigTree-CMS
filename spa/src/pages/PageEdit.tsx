@@ -9,6 +9,9 @@ import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { Button } from "@/components/ui/Button";
 import { LockBanner } from "@/components/ui/LockBanner";
+import { Select } from "@/components/ui/Select";
+import { TextArea } from "@/components/ui/TextArea";
+import { TextInput } from "@/components/ui/TextInput";
 
 import { AccessLevelsDialog } from "@/components/pages/AccessLevelsDialog";
 import { LinkFinder } from "@/components/pages/LinkFinder";
@@ -622,8 +625,7 @@ export const PropertiesTab = ({
 					column="nav_title"
 					pending={pending}
 				>
-					<input
-						className={INPUT}
+					<TextInput
 						value={body.nav_title ?? ""}
 						onChange={(e) => onPatch({ nav_title: e.target.value })}
 						placeholder="Shown in site nav and breadcrumbs"
@@ -638,8 +640,7 @@ export const PropertiesTab = ({
 					column="title"
 					pending={pending}
 				>
-					<input
-						className={INPUT}
+					<TextInput
 						value={body.title ?? ""}
 						onChange={(e) => onPatch({ title: e.target.value })}
 						placeholder={body.nav_title || "e.g. About us — Your Site"}
@@ -679,8 +680,7 @@ export const PropertiesTab = ({
 					column="max_age"
 					pending={pending}
 				>
-					<select
-						className={INPUT}
+					<Select
 						value={body.max_age ?? 0}
 						onChange={(e) => onPatch({ max_age: Number(e.target.value) })}
 						disabled={disabled}
@@ -690,7 +690,7 @@ export const PropertiesTab = ({
 						<option value={90}>90 days</option>
 						<option value={180}>6 months</option>
 						<option value={365}>1 year</option>
-					</select>
+					</Select>
 				</Field>
 			</div>
 
@@ -722,8 +722,7 @@ export const PropertiesTab = ({
 					column="template"
 					pending={pending}
 				>
-					<select
-						className={INPUT}
+					<Select
 						value={templateDisabled ? "" : (body.template ?? "")}
 						onChange={(e) => onPatch({ template: e.target.value })}
 						disabled={disabled || templateDisabled}
@@ -751,7 +750,7 @@ export const PropertiesTab = ({
 								</optgroup>
 							</>
 						)}
-					</select>
+					</Select>
 					{templateDisabled && (
 						<span className="mt-1 block text-[11px] text-warn">
 							Disabled while External Link is set.
@@ -766,8 +765,7 @@ export const PropertiesTab = ({
 					column="external"
 					pending={pending}
 				>
-					<input
-						className={INPUT}
+					<TextInput
 						value={body.external ?? ""}
 						onChange={(e) => onPatch({ external: e.target.value })}
 						placeholder="https://"
@@ -974,9 +972,8 @@ export const SeoTab = ({ body, page, fieldErrors, disabled, onPatch, pending }: 
 				column="meta_description"
 				pending={pending}
 			>
-				<textarea
+				<TextArea
 					rows={5}
-					className={INPUT_TEXTAREA}
 					value={description}
 					onChange={(e) => onPatch({ meta_description: e.target.value })}
 					placeholder="Concise summary shown in search engine result snippets. Aim for 150–160 characters."
@@ -997,8 +994,7 @@ export const SeoTab = ({ body, page, fieldErrors, disabled, onPatch, pending }: 
 				column="meta_keywords"
 				pending={pending}
 			>
-				<input
-					className={INPUT}
+				<TextInput
 					value={body.meta_keywords ?? ""}
 					onChange={(e) => onPatch({ meta_keywords: e.target.value })}
 					disabled={disabled}
@@ -1040,8 +1036,7 @@ export const SharingTab = ({ body, disabled, onPatch, pending }: SharingTabProps
 				column="open_graph"
 				pending={pending}
 			>
-				<input
-					className={INPUT}
+				<TextInput
 					value={og.title ?? ""}
 					onChange={(e) => setOg({ title: e.target.value })}
 					disabled={disabled}
@@ -1053,8 +1048,7 @@ export const SharingTab = ({ body, disabled, onPatch, pending }: SharingTabProps
 				hint="(defaults to the page's meta description if left empty)"
 				wide
 			>
-				<input
-					className={INPUT}
+				<TextInput
 					value={og.description ?? ""}
 					onChange={(e) => setOg({ description: e.target.value })}
 					disabled={disabled}
@@ -1063,8 +1057,7 @@ export const SharingTab = ({ body, disabled, onPatch, pending }: SharingTabProps
 
 			<div className="grid grid-cols-1 gap-[18px] md:grid-cols-2 md:gap-x-[22px]">
 				<Field label="Open Graph Type">
-					<select
-						className={INPUT}
+					<Select
 						value={og.type ?? ""}
 						onChange={(e) => setOg({ type: e.target.value })}
 						disabled={disabled}
@@ -1074,11 +1067,10 @@ export const SharingTab = ({ body, disabled, onPatch, pending }: SharingTabProps
 						<option value="article">article</option>
 						<option value="profile">profile</option>
 						<option value="video.movie">video.movie</option>
-					</select>
+					</Select>
 				</Field>
 				<Field label="Open Graph Image" hint="(min 1200×630)">
-					<input
-						className={INPUT}
+					<TextInput
 						value={og.image ?? ""}
 						onChange={(e) => setOg({ image: e.target.value })}
 						placeholder="https://"
@@ -1172,9 +1164,9 @@ export const DateInput = ({ value, onChange, disabled }: DateInputProps) => {
 
 	return (
 		<div className="relative">
-			<input
+			<TextInput
 				type="datetime-local"
-				className={`${INPUT} pr-8 font-mono text-[12.5px]`}
+				className="pr-8 font-mono text-[12.5px]"
 				value={normalized}
 				onChange={(e) => onChange(e.target.value)}
 				disabled={disabled}
@@ -1309,15 +1301,6 @@ export const WizardFooter = ({
 		</div>
 	);
 };
-
-// — Shared Tailwind tokens (re-used from FieldRenderer's INPUT_CLASS but
-// duplicated here to avoid a non-trivial import for two strings). —
-
-export const INPUT =
-	"w-full rounded-md border border-border-strong bg-surface px-2.5 py-[7px] text-[13px] text-text placeholder:text-text-3 focus:border-accent focus:outline-none focus:ring-[3px] focus:ring-accent-ring disabled:cursor-not-allowed disabled:opacity-60";
-
-export const INPUT_TEXTAREA =
-	"w-full min-h-[78px] rounded-md border border-border-strong bg-surface px-2.5 py-[7px] text-[13px] leading-6 text-text placeholder:text-text-3 focus:border-accent focus:outline-none focus:ring-[3px] focus:ring-accent-ring disabled:cursor-not-allowed disabled:opacity-60";
 
 const computeParentPath = (page?: PageDetail): string => {
 	if (!page) {

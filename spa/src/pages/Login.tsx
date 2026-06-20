@@ -11,6 +11,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Fingerprint } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
+import { TextInput } from "@/components/ui/TextInput";
 import { TwoFactorEnrollForm } from "@/components/users/TwoFactorEnrollForm";
 import { isWebAuthnSupported } from "@/lib/webauthn";
 
@@ -230,21 +231,19 @@ export const Login = () => {
 				) : !mfa ? (
 					<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
 						<Field label="Email" error={form.formState.errors.email?.message}>
-							<input
+							<TextInput
 								type="email"
 								autoComplete="email"
 								autoFocus
 								{...form.register("email")}
-								className="w-full rounded-md border border-border bg-surface px-2.5 py-1.5 text-[13px] outline-none transition-colors focus:border-accent"
 							/>
 						</Field>
 
 						<Field label="Password" error={form.formState.errors.password?.message}>
-							<input
+							<TextInput
 								type="password"
 								autoComplete="current-password"
 								{...form.register("password")}
-								className="w-full rounded-md border border-border bg-surface px-2.5 py-1.5 text-[13px] outline-none transition-colors focus:border-accent"
 							/>
 						</Field>
 
