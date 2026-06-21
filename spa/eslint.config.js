@@ -4,6 +4,7 @@ import reactHooks from "eslint-plugin-react-hooks";
 import react from "eslint-plugin-react";
 import prettierPlugin from "eslint-plugin-prettier";
 import configPrettier from "eslint-config-prettier";
+import storybook from "eslint-plugin-storybook";
 
 export default tseslint.config(
 	js.configs.recommended,
@@ -27,7 +28,13 @@ export default tseslint.config(
 	},
 	configPrettier,
 	{
-		ignores: ["node_modules/**", "dist/**", "**/*.tsbuildinfo", "public/**"],
+		ignores: [
+			"node_modules/**",
+			"dist/**",
+			"storybook-static/**",
+			"**/*.tsbuildinfo",
+			"public/**",
+		],
 	},
 	{
 		files: ["**/*.{ts,tsx}"],
@@ -46,5 +53,6 @@ export default tseslint.config(
 				tsconfigRootDir: import.meta.dirname,
 			},
 		},
-	}
+	},
+	storybook.configs["flat/recommended"]
 );

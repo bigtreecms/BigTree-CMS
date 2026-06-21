@@ -7,5 +7,6 @@
 /.idea
 .DS_Store
 .htaccess
+.claude
 /cron-run.php
 /spa/*.tsbuildinfo

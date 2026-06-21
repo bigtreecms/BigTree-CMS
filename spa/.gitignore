@@ -4,3 +4,6 @@ dist
 *.log
 .vite
 .eslintcache
+
+*storybook.log
+storybook-static
