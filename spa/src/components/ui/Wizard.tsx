@@ -68,7 +68,7 @@ export const Wizard = ({
 									}}
 								>
 									<span
-										className={`flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-semibold tabular-nums ${
+										className={`flex size-6  items-center justify-center rounded-full text-[11px] font-semibold tabular-nums ${
 											completed
 												? "bg-accent text-accent-fg"
 												: active
@@ -97,7 +97,7 @@ export const Wizard = ({
 				</ol>
 			</div>
 
-			<div className="px-5 py-5">
+			<div className="p-5">
 				{step?.description && (
 					<p className="mb-4 text-[13px] text-text-2">{step.description}</p>
 				)}

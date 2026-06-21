@@ -362,7 +362,7 @@ export const ModuleViewsTab = ({ moduleId, moduleTable }: ModuleViewsTabProps) =
 											onDrop={columnDrag.onDrop}
 										>
 											<span
-												className="grid h-6 w-6 flex-shrink-0 cursor-grab place-items-center rounded text-text-4 hover:bg-hover hover:text-text-2 active:cursor-grabbing"
+												className="grid size-6 shrink-0 cursor-grab place-items-center rounded text-text-4 hover:bg-hover hover:text-text-2 active:cursor-grabbing"
 												title="Drag to reorder"
 												draggable
 												onDragStart={(e) =>
@@ -377,7 +377,7 @@ export const ModuleViewsTab = ({ moduleId, moduleTable }: ModuleViewsTabProps) =
 												value={col.key}
 												onChange={(v) => setColumn(index, { key: v })}
 												ariaLabel="Column"
-												className="w-48 flex-shrink-0"
+												className="w-48 shrink-0"
 											/>
 											<input
 												type="text"
@@ -398,7 +398,7 @@ export const ModuleViewsTab = ({ moduleId, moduleTable }: ModuleViewsTabProps) =
 												placeholder="auto"
 												title="Column width in px (relative weight; blank = auto)"
 												aria-label="Column width"
-												className="w-20 flex-shrink-0 rounded-md border border-border bg-surface px-2 py-1 text-[12.5px] tabular-nums focus:outline-none focus:ring-1 focus:ring-accent-ring"
+												className="w-20 shrink-0 rounded-md border border-border bg-surface px-2 py-1 text-[12.5px] tabular-nums focus:outline-none focus:ring-1 focus:ring-accent-ring"
 											/>
 											<button
 												type="button"

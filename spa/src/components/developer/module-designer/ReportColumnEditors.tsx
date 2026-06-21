@@ -113,7 +113,7 @@ interface DragHandleProps {
 
 const DragHandle = ({ onDragStart, onDragEnd }: DragHandleProps) => (
 	<span
-		className="grid h-6 w-6 flex-shrink-0 cursor-grab place-items-center rounded text-text-4 hover:bg-hover hover:text-text-2 active:cursor-grabbing"
+		className="grid size-6 shrink-0 cursor-grab place-items-center rounded text-text-4 hover:bg-hover hover:text-text-2 active:cursor-grabbing"
 		title="Drag to reorder"
 		draggable
 		onDragStart={onDragStart}
@@ -140,7 +140,7 @@ const DeleteButton = ({ onClick }: DeleteButtonProps) => (
 );
 
 const ColumnTag = ({ column }: { column: string }) => (
-	<span className="w-32 flex-shrink-0 truncate font-mono text-[11px] text-text-3" title={column}>
+	<span className="w-32 shrink-0 truncate font-mono text-[11px] text-text-3" title={column}>
 		{column}
 	</span>
 );
@@ -221,7 +221,7 @@ export const ReportFiltersEditor = ({
 											type: e.target.value as ModuleReportFilterType,
 										})
 									}
-									className="w-44 flex-shrink-0 rounded-md border border-border bg-surface px-2 py-1 text-[12.5px] focus:outline-none focus:ring-1 focus:ring-accent-ring"
+									className="w-44 shrink-0 rounded-md border border-border bg-surface px-2 py-1 text-[12.5px] focus:outline-none focus:ring-1 focus:ring-accent-ring"
 								>
 									{FILTER_TYPE_OPTIONS.map((o) => (
 										<option key={o.value} value={o.value}>

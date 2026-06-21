@@ -134,7 +134,7 @@ export const FeedEdit = () => {
 
 	if (!isAdd && detailQ.isLoading) {
 		return (
-			<div className="mx-auto max-w-screen-lg px-6 py-4">
+			<div className="mx-auto max-w-5xl px-6 py-4">
 				<EmptyState>Loading…</EmptyState>
 			</div>
 		);
@@ -142,7 +142,7 @@ export const FeedEdit = () => {
 
 	if (!isAdd && detailQ.error) {
 		return (
-			<div className="mx-auto max-w-screen-lg px-6 py-4">
+			<div className="mx-auto max-w-5xl px-6 py-4">
 				<ErrorPanel error={detailQ.error} />
 			</div>
 		);
@@ -154,7 +154,7 @@ export const FeedEdit = () => {
 	const title = isAdd ? "Add feed" : body.name || idParam || "Edit feed";
 
 	return (
-		<div className="mx-auto max-w-screen-lg px-6 py-4">
+		<div className="mx-auto max-w-5xl px-6 py-4">
 			<Breadcrumb
 				items={[
 					{ label: "Developer", to: "/developer" },

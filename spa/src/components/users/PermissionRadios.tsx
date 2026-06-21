@@ -48,7 +48,7 @@ export const PermissionRadios = ({
 							checked={checked}
 							disabled={disabled}
 							onChange={() => onChange(opt.value)}
-							className="h-3.5 w-3.5 cursor-pointer accent-accent disabled:cursor-not-allowed disabled:opacity-50"
+							className="size-3.5 cursor-pointer accent-accent disabled:cursor-not-allowed disabled:opacity-50"
 						/>
 					</label>
 				);

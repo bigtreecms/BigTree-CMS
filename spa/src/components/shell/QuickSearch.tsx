@@ -272,8 +272,8 @@ export const QuickSearch = ({ open, onClose }: QuickSearchProps) => {
 			}}
 		>
 			<Dialog.Portal>
-				<Dialog.Overlay className="fixed inset-0 z-[60] bg-black/35 backdrop-blur-[1px]" />
-				<Dialog.Content className="fixed left-1/2 top-[10vh] z-[70] w-[min(620px,94vw)] -translate-x-1/2 rounded-xl border border-border bg-surface shadow-lg focus:outline-none">
+				<Dialog.Overlay className="fixed inset-0 z-60 bg-black/35 backdrop-blur-[1px]" />
+				<Dialog.Content className="fixed left-1/2 top-[10vh] z-70 w-[min(620px,94vw)] -translate-x-1/2 rounded-xl border border-border bg-surface shadow-lg focus:outline-none">
 					{/* Search input row */}
 					<div className="flex items-center gap-3 border-b border-border px-4 py-3">
 						<Search size={18} className="text-text-3" />

@@ -23,7 +23,7 @@ export const TrafficBars = ({ series }: TrafficBarsProps) => {
 					>
 						<div className="relative flex flex-1 items-end">
 							<div
-								className="flex w-full justify-center rounded-t-[5px] bg-accent pt-1 transition-[filter,background] group-hover:brightness-110"
+								className="flex w-full justify-center rounded-t-sm bg-accent pt-1 transition-[filter,background] group-hover:brightness-110"
 								style={{ height: `${pct}%`, minHeight: "22px" }}
 							>
 								<span className="whitespace-nowrap text-[10.5px] font-semibold text-accent-fg tabular-nums">

@@ -271,7 +271,7 @@ export const MatrixField = ({ field, value, onChange, disabled }: FieldComponent
 
 	if (columns.length === 0) {
 		return (
-			<div className="rounded-md border border-dashed border-border bg-surface-2 px-3 py-3 text-[12px] text-text-3">
+			<div className="rounded-md border border-dashed border-border bg-surface-2 p-3 text-[12px] text-text-3">
 				This matrix field has no columns configured.
 			</div>
 		);

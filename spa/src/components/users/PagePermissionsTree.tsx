@@ -177,7 +177,7 @@ const TreeRow = ({
 						checked={alertOn}
 						disabled={!!alertInheritedFromAbove}
 						onChange={(e) => setAlert(idKey, e.target.checked)}
-						className="h-3.5 w-3.5 cursor-pointer accent-accent disabled:cursor-not-allowed disabled:opacity-50"
+						className="size-3.5 cursor-pointer accent-accent disabled:cursor-not-allowed disabled:opacity-50"
 					/>
 				</label>
 

@@ -133,7 +133,7 @@ export const DeveloperSettings = () => {
 			cell: (row) =>
 				row.locked ? (
 					<span
-						className="grid h-7 w-7 place-items-center text-text-3 opacity-40"
+						className="grid size-7 place-items-center text-text-3 opacity-40"
 						title="Locked — cannot be deleted"
 					>
 						<Trash size={13} />

@@ -108,7 +108,7 @@ export const ConfigureAnalytics = () => {
 							<ol className="space-y-5">
 								<li>
 									<div className="mb-2 flex items-center gap-2 text-[12.5px] font-semibold text-text">
-										<span className="flex h-5 w-5 items-center justify-center rounded-full bg-accent text-[11px] text-accent-fg">
+										<span className="flex size-5 items-center justify-center rounded-full bg-accent text-[11px] text-accent-fg">
 											1
 										</span>
 										Upload service-account key
@@ -142,7 +142,7 @@ export const ConfigureAnalytics = () => {
 
 								<li className={hasCredentials ? "" : "opacity-50"}>
 									<div className="mb-2 flex items-center gap-2 text-[12.5px] font-semibold text-text">
-										<span className="flex h-5 w-5 items-center justify-center rounded-full bg-accent text-[11px] text-accent-fg">
+										<span className="flex size-5 items-center justify-center rounded-full bg-accent text-[11px] text-accent-fg">
 											2
 										</span>
 										Set + verify property ID

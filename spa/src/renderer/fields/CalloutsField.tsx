@@ -269,7 +269,7 @@ export const CalloutsField = ({ field, value, onChange, disabled }: FieldCompone
 
 	if (calloutsQuery.isLoading) {
 		return (
-			<div className="rounded-md border border-dashed border-border bg-surface-2 px-3 py-3 text-[12px] text-text-3">
+			<div className="rounded-md border border-dashed border-border bg-surface-2 p-3 text-[12px] text-text-3">
 				Loading callouts…
 			</div>
 		);
@@ -387,12 +387,12 @@ const CalloutRowItem = ({
 						<span className="truncate text-[11.5px] text-text-3">{typeName}</span>
 					)}
 					{tooLowLevel && (
-						<span className="ml-1 rounded bg-surface-2 px-1.5 py-0.5 text-[10.5px] font-medium uppercase tracking-[0.05em] text-text-3">
+						<span className="ml-1 rounded bg-surface-2 px-1.5 py-0.5 text-[10.5px] font-medium uppercase tracking-wider text-text-3">
 							Locked
 						</span>
 					)}
 					{typeMissing && (
-						<span className="ml-1 rounded bg-danger/10 px-1.5 py-0.5 text-[10.5px] font-medium uppercase tracking-[0.05em] text-danger">
+						<span className="ml-1 rounded bg-danger/10 px-1.5 py-0.5 text-[10.5px] font-medium uppercase tracking-wider text-danger">
 							Missing type
 						</span>
 					)}
@@ -416,7 +416,7 @@ const CalloutRowItem = ({
 					className="border-t border-border px-3 pb-1 pt-3"
 				>
 					{callout.resources.length === 0 ? (
-						<div className="rounded-md border border-dashed border-border bg-surface-2 px-3 py-3 text-[12px] text-text-3">
+						<div className="rounded-md border border-dashed border-border bg-surface-2 p-3 text-[12px] text-text-3">
 							This callout type has no fields configured.
 						</div>
 					) : (

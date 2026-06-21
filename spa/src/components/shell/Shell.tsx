@@ -43,7 +43,7 @@ export const Shell = () => {
 		return (
 			<div className="grid min-h-screen place-items-center bg-bg px-4">
 				<div className="w-full max-w-[420px] rounded-lg border border-border bg-surface p-6 text-center shadow-md">
-					<div className="mx-auto mb-3 grid h-10 w-10 place-items-center rounded-full bg-info-bg text-info">
+					<div className="mx-auto mb-3 grid size-10 place-items-center rounded-full bg-info-bg text-info">
 						<Wrench size={18} />
 					</div>
 					<h1 className="mb-1 text-[15px] font-semibold tracking-[-0.01em]">

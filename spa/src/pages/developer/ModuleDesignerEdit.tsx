@@ -73,7 +73,7 @@ export const ModuleDesignerEdit = () => {
 
 	if (!isAdd && detailQ.isLoading) {
 		return (
-			<div className="mx-auto max-w-screen-lg px-6 py-4">
+			<div className="mx-auto max-w-5xl px-6 py-4">
 				<EmptyState>Loading…</EmptyState>
 			</div>
 		);
@@ -81,7 +81,7 @@ export const ModuleDesignerEdit = () => {
 
 	if (!isAdd && detailQ.error) {
 		return (
-			<div className="mx-auto max-w-screen-lg px-6 py-4">
+			<div className="mx-auto max-w-5xl px-6 py-4">
 				<ErrorPanel error={detailQ.error} />
 			</div>
 		);
@@ -142,7 +142,7 @@ export const ModuleDesignerEdit = () => {
 	const activeTab = tabs.some((t) => t.value === tab) ? tab : "shell";
 
 	return (
-		<div className="mx-auto max-w-screen-lg px-6 py-4">
+		<div className="mx-auto max-w-5xl px-6 py-4">
 			<Breadcrumb
 				items={[
 					{ label: "Developer", to: "/developer" },
@@ -175,7 +175,7 @@ export const ModuleDesignerEdit = () => {
 							onClick={() => setAddMode("existing")}
 							className="flex flex-col items-start gap-2 rounded-xl border border-border bg-surface p-5 text-left transition-colors hover:border-border-strong hover:bg-hover"
 						>
-							<span className="grid h-9 w-9 place-items-center rounded-lg bg-accent-soft text-accent">
+							<span className="grid size-9 place-items-center rounded-lg bg-accent-soft text-accent">
 								<Database size={18} />
 							</span>
 							<span className="text-[13.5px] font-semibold text-text">
@@ -191,7 +191,7 @@ export const ModuleDesignerEdit = () => {
 							onClick={() => setAddMode("build")}
 							className="flex flex-col items-start gap-2 rounded-xl border border-border bg-surface p-5 text-left transition-colors hover:border-border-strong hover:bg-hover"
 						>
-							<span className="grid h-9 w-9 place-items-center rounded-lg bg-accent-soft text-accent">
+							<span className="grid size-9 place-items-center rounded-lg bg-accent-soft text-accent">
 								<Wand2 size={18} />
 							</span>
 							<span className="text-[13.5px] font-semibold text-text">

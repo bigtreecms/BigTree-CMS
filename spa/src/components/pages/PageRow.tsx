@@ -60,7 +60,7 @@ export const PageRow = ({
 
 	return (
 		<div
-			className={`grid min-h-[var(--row-h)] grid-cols-[24px_1fr_auto_auto_auto] items-center gap-x-2 border-b border-border px-2 pr-3 py-2 text-[13px] transition-colors last:border-b-0 hover:bg-surface-2 sm:h-[var(--row-h)] sm:min-h-0 sm:grid-cols-[28px_1fr_240px_56px_56px_56px] sm:gap-x-3 sm:py-0 ${
+			className={`grid min-h-(--row-h) grid-cols-[24px_1fr_auto_auto_auto] items-center gap-x-2 border-b border-border p-2 pr-3  text-[13px] transition-colors last:border-b-0 hover:bg-surface-2 sm:h-(--row-h) sm:min-h-0 sm:grid-cols-[28px_1fr_240px_56px_56px_56px] sm:gap-x-3 sm:py-0 ${
 				isDragging ? "bg-accent-soft shadow-md" : ""
 			} ${isDropTarget ? "shadow-[inset_0_2px_0_0_var(--color-accent)]" : ""}`}
 			draggable={canReorder}
@@ -71,7 +71,7 @@ export const PageRow = ({
 		>
 			{/* Grip */}
 			<span
-				className={`grid h-6 w-6 place-items-center rounded text-text-4 ${
+				className={`grid size-6  place-items-center rounded text-text-4 ${
 					canReorder
 						? "cursor-grab hover:bg-hover hover:text-text-2 active:cursor-grabbing"
 						: "cursor-default opacity-25 hover:bg-transparent hover:text-text-4"
@@ -84,7 +84,7 @@ export const PageRow = ({
 
 			{/* Title cell */}
 			<div className="flex min-w-0 items-center gap-2.5">
-				<span className="grid h-[22px] w-[22px] flex-shrink-0 place-items-center text-text-3">
+				<span className="grid size-[22px] shrink-0 place-items-center text-text-3">
 					<FileText size={15} />
 				</span>
 				<div className="min-w-0 flex-1">
@@ -105,7 +105,7 @@ export const PageRow = ({
 					    status + updated time sit under the title instead. */}
 					<div className="mt-1 flex items-center gap-2 sm:hidden">
 						<StatusBadge status={statusFor(row)} />
-						<span className="overflow-hidden text-ellipsis whitespace-nowrap text-[12px] text-text-3 tabular-nums">
+						<span className="truncate text-[12px] text-text-3 tabular-nums">
 							{relativeTime(row.updated_at)}
 						</span>
 					</div>
@@ -115,7 +115,7 @@ export const PageRow = ({
 			{/* Status + updated (desktop column; shown under the title on mobile) */}
 			<div className="hidden min-w-0 items-center gap-2.5 sm:flex">
 				<StatusBadge status={statusFor(row)} />
-				<span className="overflow-hidden text-ellipsis whitespace-nowrap text-[12px] text-text-3 tabular-nums">
+				<span className="truncate text-[12px] text-text-3 tabular-nums">
 					{relativeTime(row.updated_at)}
 				</span>
 			</div>
@@ -125,7 +125,7 @@ export const PageRow = ({
 				<button
 					type="button"
 					onClick={onDelete}
-					className="grid h-7 w-7 place-items-center rounded-md border-0 bg-transparent text-text-3 transition-colors hover:bg-hover hover:text-danger disabled:cursor-not-allowed disabled:opacity-40"
+					className="grid size-7 place-items-center rounded-md border-0 bg-transparent text-text-3 transition-colors hover:bg-hover hover:text-danger disabled:cursor-not-allowed disabled:opacity-40"
 					title="Delete"
 					disabled={locked}
 				>
@@ -135,7 +135,7 @@ export const PageRow = ({
 				<button
 					type="button"
 					onClick={onToggleArchive}
-					className="grid h-7 w-7 place-items-center rounded-md border-0 bg-transparent text-text-3 transition-colors hover:bg-hover hover:text-text disabled:cursor-not-allowed disabled:opacity-40"
+					className="grid size-7 place-items-center rounded-md border-0 bg-transparent text-text-3 transition-colors hover:bg-hover hover:text-text disabled:cursor-not-allowed disabled:opacity-40"
 					title={leftActionLabel ?? (row.archived ? "Restore" : "Archive")}
 					disabled={locked}
 				>
@@ -148,7 +148,7 @@ export const PageRow = ({
 				<button
 					type="button"
 					onClick={onMove}
-					className="grid h-7 w-7 place-items-center rounded-md border-0 bg-transparent text-text-3 transition-colors hover:bg-hover hover:text-text disabled:cursor-not-allowed disabled:opacity-40"
+					className="grid size-7 place-items-center rounded-md border-0 bg-transparent text-text-3 transition-colors hover:bg-hover hover:text-text disabled:cursor-not-allowed disabled:opacity-40"
 					title="Move to a different parent"
 					disabled={locked || row.archived}
 					aria-label="Move page"
@@ -164,7 +164,7 @@ export const PageRow = ({
 				<button
 					type="button"
 					onClick={onDelete}
-					className="grid h-7 w-7 place-items-center rounded-md border-0 bg-transparent text-text-3 transition-colors hover:bg-hover hover:text-danger disabled:cursor-not-allowed disabled:opacity-40"
+					className="grid size-7 place-items-center rounded-md border-0 bg-transparent text-text-3 transition-colors hover:bg-hover hover:text-danger disabled:cursor-not-allowed disabled:opacity-40"
 					title="Delete"
 					disabled={locked}
 				>
@@ -178,7 +178,7 @@ export const PageRow = ({
 							: `/pages/${row.id}/edit`
 					}
 					state={{ from: location.pathname + location.search }}
-					className="grid h-7 w-7 place-items-center rounded-md border-0 bg-transparent text-text-3 transition-colors hover:bg-hover hover:text-text"
+					className="grid size-7 place-items-center rounded-md border-0 bg-transparent text-text-3 transition-colors hover:bg-hover hover:text-text"
 					title="Edit page"
 					aria-disabled={locked}
 					onClick={(e) => {

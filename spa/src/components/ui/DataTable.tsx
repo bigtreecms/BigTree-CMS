@@ -100,7 +100,7 @@ export const DataTable = <Row,>({
 	return (
 		<Card className="overflow-hidden">
 			<div
-				className="hidden md:grid md:grid-cols-[var(--dt-cols)] items-center gap-4 border-b border-border bg-surface-2 px-3.5 py-2 text-[10.5px] font-semibold uppercase tracking-[0.06em] text-text-3"
+				className="hidden md:grid md:grid-cols-(--dt-cols) items-center gap-4 border-b border-border bg-surface-2 px-3.5 py-2 text-[10.5px] font-semibold uppercase tracking-[0.06em] text-text-3"
 				style={colsStyle}
 			>
 				{reorderable && <div aria-hidden="true" />}
@@ -148,7 +148,7 @@ export const DataTable = <Row,>({
 					return (
 						<div
 							key={key}
-							className={`grid grid-cols-1 gap-x-4 gap-y-2 border-b border-border px-3.5 py-2.5 text-[13px] last:border-b-0 hover:bg-surface-2 md:grid-cols-[var(--dt-cols)] md:items-center md:gap-y-0 md:py-1.5 ${
+							className={`grid grid-cols-1 gap-x-4 gap-y-2 border-b border-border px-3.5 py-2.5 text-[13px] last:border-b-0 hover:bg-surface-2 md:grid-cols-(--dt-cols) md:items-center md:gap-y-0 md:py-1.5 ${
 								onRowClick ? "cursor-pointer" : ""
 							} ${isDropTarget ? "shadow-[inset_0_2px_0_0_var(--color-accent)]" : ""} ${
 								rowClassName?.(row) ?? ""
@@ -160,7 +160,7 @@ export const DataTable = <Row,>({
 						>
 							{reorderable && (
 								<span
-									className="hidden h-6 w-6 cursor-grab place-items-center rounded text-text-4 hover:bg-hover hover:text-text-2 active:cursor-grabbing md:grid"
+									className="hidden size-6 cursor-grab place-items-center rounded text-text-4 hover:bg-hover hover:text-text-2 active:cursor-grabbing md:grid"
 									title="Drag to reorder"
 									draggable
 									onClick={(e) => e.stopPropagation()}

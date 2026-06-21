@@ -40,7 +40,7 @@ export const TwoFactorEnrollForm = ({
 			<img
 				src={setup.qr_image}
 				alt="Two-factor QR code"
-				className="h-40 w-40 shrink-0 rounded-md border border-border bg-white p-2"
+				className="size-40 shrink-0 rounded-md border border-border bg-white p-2"
 			/>
 
 			<div className="min-w-0 flex-1 space-y-3">

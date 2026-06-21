@@ -67,7 +67,7 @@ export const ExtensionInstall = () => {
 	};
 
 	return (
-		<div className="mx-auto max-w-screen-md px-6 py-4">
+		<div className="mx-auto max-w-3xl px-6 py-4">
 			<Breadcrumb
 				items={[
 					{ label: "Developer", to: "/developer" },

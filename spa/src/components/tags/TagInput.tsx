@@ -238,7 +238,7 @@ export const TagInput = (props: TagInputProps) => {
 			</div>
 
 			{open && trimmed.length > 0 && (
-				<div className="absolute left-0 right-0 top-full z-10 mt-1 max-h-64 overflow-y-auto rounded-md border border-border bg-surface shadow-md">
+				<div className="absolute inset-x-0 top-full z-10 mt-1 max-h-64 overflow-y-auto rounded-md border border-border bg-surface shadow-md">
 					{searchQuery.isLoading ? (
 						<div className="px-3 py-2 text-[12.5px] text-text-3">Searching…</div>
 					) : (

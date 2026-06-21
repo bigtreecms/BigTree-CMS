@@ -31,7 +31,7 @@ export const IconPicker = ({ value, onChange, label = "Icon", hint }: IconPicker
 						title={slug}
 						aria-label={slug}
 						aria-pressed={isActive}
-						className={`grid h-8 w-8 place-items-center rounded-md border transition-colors ${
+						className={`grid size-8  place-items-center rounded-md border transition-colors ${
 							isActive
 								? "border-accent bg-accent-soft text-accent"
 								: "border-transparent text-text-2 hover:bg-hover hover:text-text"

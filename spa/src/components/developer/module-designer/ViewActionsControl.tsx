@@ -121,7 +121,7 @@ export const ViewActionsControl = ({
 									id={`view-action-${action.route}`}
 									checked={on}
 									onChange={(e) => toggle(action.route, e.target.checked)}
-									className="h-4 w-4 flex-shrink-0 accent-[var(--color-accent)]"
+									className="size-4 shrink-0 accent-accent"
 								/>
 								<label
 									htmlFor={`view-action-${action.route}`}

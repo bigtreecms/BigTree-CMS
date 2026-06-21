@@ -223,7 +223,7 @@ export const FourOhFours = ({ type }: FourOhFoursProps) => {
 					checked={rows.length > 0 && selected.size === rows.length}
 					onChange={toggleAll}
 					aria-label="Select all"
-					className="h-3.5 w-3.5 accent-accent"
+					className="size-3.5 accent-accent"
 				/>
 			),
 			width: "32px",
@@ -237,7 +237,7 @@ export const FourOhFours = ({ type }: FourOhFoursProps) => {
 					}}
 					onClick={(e) => e.stopPropagation()}
 					aria-label="Select row"
-					className="h-3.5 w-3.5 accent-accent"
+					className="size-3.5 accent-accent"
 				/>
 			),
 		},

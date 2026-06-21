@@ -53,7 +53,7 @@ export const Badge = ({
 				bordered ? "border border-border " : ""
 			}${uppercase ? "uppercase tracking-[0.04em] " : ""}${TONE_CLASS[tone]} ${className}`}
 		>
-			{dot ? <span className="h-1.5 w-1.5 rounded-full bg-current" /> : null}
+			{dot ? <span className="size-1.5 rounded-full bg-current" /> : null}
 			{icon}
 			{children}
 		</span>

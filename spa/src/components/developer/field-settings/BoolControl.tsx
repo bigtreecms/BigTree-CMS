@@ -12,7 +12,7 @@ export const BoolControl = ({ descriptor, settings, onPatch }: ControlProps) => 
 		<label className="flex items-start gap-2 text-[12px] text-text-2">
 			<input
 				type="checkbox"
-				className="mt-0.5 h-4 w-4 accent-accent"
+				className="mt-0.5 size-4 accent-accent"
 				checked={checked}
 				onChange={(e) => onPatch({ [descriptor.id]: e.target.checked ? "on" : "" })}
 			/>

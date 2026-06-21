@@ -17,7 +17,7 @@ export const Toaster = () => {
 	}
 
 	return (
-		<div className="pointer-events-none fixed right-6 top-20 z-[200] flex flex-col gap-3">
+		<div className="pointer-events-none fixed right-6 top-20 z-200 flex flex-col gap-3">
 			{items.map((t) => (
 				<ToastCard key={t.id} item={t} />
 			))}
@@ -53,7 +53,7 @@ const ToastCard = ({ item }: ToastCardProps) => {
 
 			<div className="flex flex-1 items-start gap-3 py-3 pr-2">
 				<div
-					className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full ${palette.iconBg}`}
+					className={`mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full ${palette.iconBg}`}
 				>
 					<Icon size={15} className={palette.iconFg} />
 				</div>

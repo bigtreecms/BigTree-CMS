@@ -111,9 +111,9 @@ export const PendingChangesCard = ({
 									return (
 										<li
 											key={p.id}
-											className="flex items-center gap-2.5 rounded-[7px] p-2 transition-colors hover:bg-surface-2"
+											className="flex items-center gap-2.5 rounded-md p-2 transition-colors hover:bg-surface-2"
 										>
-											<span className="grid h-[26px] w-[26px] place-items-center rounded-md bg-surface-3 text-text-2">
+											<span className="grid size-[26px] place-items-center rounded-md bg-surface-3 text-text-2">
 												<FileText size={14} />
 											</span>
 											<Link

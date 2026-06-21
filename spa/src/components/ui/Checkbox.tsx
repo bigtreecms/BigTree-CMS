@@ -34,7 +34,7 @@ export const Checkbox = ({
 	>
 		<input
 			type="checkbox"
-			className={align === "start" ? "mt-0.5 h-4 w-4 accent-accent" : "h-4 w-4 accent-accent"}
+			className={align === "start" ? "mt-0.5 size-4  accent-accent" : "size-4  accent-accent"}
 			checked={checked}
 			onChange={(e) => onChange(e.target.checked)}
 			disabled={disabled}

@@ -325,7 +325,7 @@ export const DebugUpgrade = () => {
 					)}
 
 					{(stage === "migrating" || stage === "complete") && log.length > 0 && (
-						<pre className="mt-4 max-h-64 overflow-auto rounded-lg border border-border bg-surface-2 p-3 text-[12px] leading-6 text-text-2">
+						<pre className="mt-4 max-h-64 overflow-auto rounded-lg border border-border bg-surface-2 p-3 text-[12px]/6 text-text-2">
 							{log.join("\n")}
 						</pre>
 					)}

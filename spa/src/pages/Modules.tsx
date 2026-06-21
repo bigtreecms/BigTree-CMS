@@ -215,14 +215,14 @@ const ModuleTile = ({ module }: ModuleTileProps) => {
 				className="flex w-full items-center gap-2.5 rounded-md border border-border bg-surface py-2.5 pl-3 pr-12 text-[13.5px] font-medium text-text transition-colors hover:border-border-strong hover:bg-surface-2 focus-visible:border-accent focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent-ring"
 				title={`Manage ${module.name}`}
 			>
-				<span className="grid h-[26px] w-[26px] flex-shrink-0 place-items-center rounded-md bg-accent-soft text-accent">
+				<span className="grid size-[26px] shrink-0 place-items-center rounded-md bg-accent-soft text-accent">
 					<Icon size={15} />
 				</span>
 				<span className="min-w-0 flex-1 truncate">{module.name}</span>
 			</Link>
 			<Link
 				to={`${modulePath(module)}/add`}
-				className="absolute right-1.5 top-1/2 grid h-7 w-7 -translate-y-1/2 place-items-center rounded-md text-text-3 transition-colors hover:bg-accent hover:text-accent-fg"
+				className="absolute right-1.5 top-1/2 grid size-7 -translate-y-1/2 place-items-center rounded-md text-text-3 transition-colors hover:bg-accent hover:text-accent-fg"
 				title={`Add to ${module.name}`}
 				aria-label={`Add to ${module.name}`}
 				onClick={(e) => e.stopPropagation()}

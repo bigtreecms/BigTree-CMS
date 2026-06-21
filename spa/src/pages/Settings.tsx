@@ -103,7 +103,7 @@ export const Settings = () => {
 			cell: (row) => (
 				<button
 					type="button"
-					className="inline-grid h-7 w-7 place-items-center rounded text-text-3 hover:bg-hover hover:text-text"
+					className="inline-grid size-7 place-items-center rounded text-text-3 hover:bg-hover hover:text-text"
 					title="Edit setting"
 					aria-label={`Edit ${row.name}`}
 					onClick={(e) => {

@@ -42,7 +42,7 @@ export const MobileNav = ({ siteName, wwwRoot }: MobileNavProps) => {
 				<button
 					type="button"
 					aria-label="Open navigation"
-					className="grid h-[30px] w-[30px] cursor-pointer place-items-center rounded-md text-text-2 transition-colors hover:bg-hover hover:text-text lg:hidden"
+					className="grid size-[30px] cursor-pointer place-items-center rounded-md text-text-2 transition-colors hover:bg-hover hover:text-text lg:hidden"
 				>
 					<Menu size={18} />
 				</button>
@@ -53,7 +53,7 @@ export const MobileNav = ({ siteName, wwwRoot }: MobileNavProps) => {
 				<Dialog.Content className="fixed inset-y-0 left-0 z-50 flex w-[min(300px,85vw)] flex-col border-r border-border bg-surface shadow-lg outline-none data-[state=open]:animate-in data-[state=open]:slide-in-from-left">
 					<div className="flex items-center justify-between gap-3 border-b border-border bg-surface-2 px-4 py-3">
 						<Dialog.Title className="flex items-center gap-2.5 text-[14px] font-semibold tracking-[-0.01em] text-text">
-							<span className="grid h-[26px] w-[26px] place-items-center rounded-md bg-accent text-accent-fg">
+							<span className="grid size-[26px] place-items-center rounded-md bg-accent text-accent-fg">
 								<svg
 									width="14"
 									height="14"

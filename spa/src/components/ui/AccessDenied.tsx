@@ -22,7 +22,7 @@ export const AccessDenied = ({
 	return (
 		<div className="mx-auto max-w-screen-2xl px-6 py-12">
 			<Card className="mx-auto flex max-w-md flex-col items-center p-8 text-center">
-				<div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-danger/10 text-danger">
+				<div className="mb-3 flex size-12 items-center justify-center rounded-full bg-danger/10 text-danger">
 					<ShieldAlert size={22} />
 				</div>
 

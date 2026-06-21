@@ -528,7 +528,7 @@ const MediaItemRow = ({
 					)}
 
 					{columns.length === 0 ? (
-						<div className="rounded-md border border-dashed border-border bg-surface-2 px-3 py-3 text-[12px] text-text-3">
+						<div className="rounded-md border border-dashed border-border bg-surface-2 p-3 text-[12px] text-text-3">
 							No extra fields configured for this gallery.
 						</div>
 					) : (

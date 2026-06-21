@@ -125,7 +125,7 @@ export const ResourcePicker = ({
 						className="absolute left-3 top-1/2 -translate-y-1/2 text-text-3"
 					/>
 					<input
-						className="w-full rounded-md border border-border bg-surface py-1.5 pl-9 pr-9 text-[13.5px] placeholder:text-text-3 focus:outline-none focus:ring-1 focus:ring-accent-ring"
+						className="w-full rounded-md border border-border bg-surface py-1.5 px-9 text-[13.5px] placeholder:text-text-3 focus:outline-none focus:ring-1 focus:ring-accent-ring"
 						placeholder="Search the media library…"
 						value={query}
 						onChange={(e) => setQuery(e.target.value)}
@@ -254,11 +254,11 @@ const ResourceTile = ({ resource, type, onPick }: ResourceTileProps) => {
 					<img
 						src={expandImageUrl(resource.file)}
 						alt=""
-						className="h-full w-full object-cover"
+						className="size-full object-cover"
 						loading="lazy"
 					/>
 				) : (
-					<div className="grid h-full w-full place-items-center text-text-3">
+					<div className="grid size-full place-items-center text-text-3">
 						{iconForType(type, resource)}
 					</div>
 				)}

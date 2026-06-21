@@ -105,7 +105,7 @@ export const CheckboxInput = ({ label, checked, onChange, disabled }: CheckboxIn
 	<label className="flex items-center gap-2 text-[12.5px] text-text-2">
 		<input
 			type="checkbox"
-			className="h-4 w-4 accent-accent"
+			className="size-4 accent-accent"
 			checked={checked}
 			disabled={disabled}
 			onChange={(e) => onChange(e.target.checked)}

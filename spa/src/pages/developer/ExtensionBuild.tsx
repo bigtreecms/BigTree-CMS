@@ -208,7 +208,7 @@ export const ExtensionBuild = () => {
 	);
 
 	return (
-		<div className="mx-auto max-w-screen-md px-6 py-4">
+		<div className="mx-auto max-w-3xl px-6 py-4">
 			<Breadcrumb
 				items={[
 					{ label: "Developer", to: "/developer" },
@@ -382,7 +382,7 @@ export const ExtensionBuild = () => {
 														<input
 															type="radio"
 															name="closed-license"
-															className="h-4 w-4 accent-accent"
+															className="size-4 accent-accent"
 															checked={closedLicense === name}
 															onChange={() => setClosedLicense(name)}
 														/>
@@ -572,7 +572,7 @@ const ComponentChecklist = ({
 					>
 						<input
 							type="checkbox"
-							className="h-4 w-4 accent-accent"
+							className="size-4 accent-accent"
 							checked={picked.has(it.id)}
 							onChange={() => onToggle(it.id)}
 						/>
@@ -611,7 +611,7 @@ const TrimList = ({
 					<li key={item} className="flex items-center gap-2">
 						<input
 							type="checkbox"
-							className="h-4 w-4 accent-accent"
+							className="size-4 accent-accent"
 							checked={kept.has(item)}
 							onChange={() => {
 								const next = new Set(kept);

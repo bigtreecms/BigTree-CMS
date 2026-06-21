@@ -36,7 +36,7 @@ const StatusBadge = ({ status, value }: { status: StatusLevel; value?: string })
 			{value && (
 				<span className="font-mono text-[12.5px] tabular-nums text-text-2">{value}</span>
 			)}
-			<span className={`h-2 w-2 rounded-full ${meta.dot}`} />
+			<span className={`size-2 rounded-full ${meta.dot}`} />
 			<span className={`text-[11px] font-semibold uppercase tracking-[0.04em] ${meta.text}`}>
 				{meta.label}
 			</span>

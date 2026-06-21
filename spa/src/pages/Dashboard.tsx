@@ -56,7 +56,7 @@ export const Dashboard = () => {
 	});
 
 	return (
-		<div className="mx-auto max-w-screen-xl px-6 py-4">
+		<div className="mx-auto max-w-7xl px-6 py-4">
 			<Breadcrumb items={[{ label: "Dashboard" }]} />
 			<PageHead title="Dashboard" sub={`Welcome back, ${firstName}.`} />
 

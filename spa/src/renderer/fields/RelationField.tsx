@@ -264,7 +264,7 @@ export const RelationField = ({ field, value, onChange, disabled, kind }: Relati
 
 	if (!enabledCtx) {
 		return (
-			<div className="rounded-md border border-dashed border-border bg-surface-2 px-3 py-3 text-[12px] text-text-3">
+			<div className="rounded-md border border-dashed border-border bg-surface-2 p-3 text-[12px] text-text-3">
 				This {isMtm ? "many-to-many" : "one-to-many"} field needs to be rendered inside a
 				module form (FormRenderer was called without a moduleId).
 			</div>
@@ -289,7 +289,7 @@ export const RelationField = ({ field, value, onChange, disabled, kind }: Relati
 					disabled={disabled}
 				/>
 			) : (
-				<div className="rounded-md border border-dashed border-border bg-surface-2 px-3 py-3 text-center text-[12px] text-text-3">
+				<div className="rounded-md border border-dashed border-border bg-surface-2 p-3 text-center text-[12px] text-text-3">
 					Nothing selected yet — use the picker below to add items.
 				</div>
 			)}
@@ -467,7 +467,7 @@ const Picker = ({
 				/>
 				<input
 					type="text"
-					className="w-full rounded-md border border-border bg-surface py-1.5 pl-8 pr-8 text-[12.5px] placeholder:text-text-3 focus:outline-none focus:ring-1 focus:ring-accent-ring disabled:opacity-60"
+					className="w-full rounded-md border border-border bg-surface py-1.5 px-8 text-[12.5px] placeholder:text-text-3 focus:outline-none focus:ring-1 focus:ring-accent-ring disabled:opacity-60"
 					placeholder={placeholder}
 					value={search}
 					onChange={(e) => {

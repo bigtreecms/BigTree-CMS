@@ -62,7 +62,7 @@ const DimFields = ({ row, onChange, onRemove }: DimFieldsProps) => (
 		<label className="flex items-center gap-1 whitespace-nowrap text-[11px] text-text-3">
 			<input
 				type="checkbox"
-				className="h-3.5 w-3.5 accent-accent"
+				className="size-3.5 accent-accent"
 				checked={Boolean(row.grayscale)}
 				onChange={(e) => onChange({ grayscale: e.target.checked ? "on" : "" })}
 			/>
@@ -187,7 +187,7 @@ export const ImageOptionsControl = ({ settings, onPatch }: ControlProps) => {
 					<label className="flex items-center gap-2 text-[12px] text-text-2">
 						<input
 							type="checkbox"
-							className="h-4 w-4 accent-accent"
+							className="size-4 accent-accent"
 							checked={Boolean(settings.retina)}
 							onChange={(e) => onPatch({ retina: e.target.checked ? "on" : "" })}
 						/>

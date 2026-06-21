@@ -74,7 +74,7 @@ export const EditableTitle = ({ value, onChange }: EditableTitleProps) => {
 					ref.current?.blur();
 				}
 			}}
-			className={`-mx-1 -my-0.5 cursor-pointer overflow-hidden text-ellipsis whitespace-nowrap rounded px-1 py-0.5 font-medium text-text hover:bg-hover ${
+			className={`-mx-1 -my-0.5 cursor-pointer truncate   rounded px-1 py-0.5 font-medium text-text hover:bg-hover ${
 				editing ? "cursor-text bg-surface outline outline-2 outline-accent" : ""
 			}`}
 		>

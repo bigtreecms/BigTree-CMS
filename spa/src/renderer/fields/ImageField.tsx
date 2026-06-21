@@ -354,7 +354,7 @@ const PreviewThumb = ({ src, fallback }: PreviewThumbProps) => {
 
 	if (stage === 2 || (!src && !fallback)) {
 		return (
-			<div className="grid h-24 w-24 place-items-center text-text-3">
+			<div className="grid size-24 place-items-center text-text-3">
 				<ImageIcon size={22} />
 			</div>
 		);
@@ -366,7 +366,7 @@ const PreviewThumb = ({ src, fallback }: PreviewThumbProps) => {
 		<img
 			src={current}
 			alt=""
-			className="block h-24 w-24 object-cover"
+			className="block size-24 object-cover"
 			onError={() => setStage((s) => (s === 0 && src && src !== fallback ? 1 : 2))}
 		/>
 	);

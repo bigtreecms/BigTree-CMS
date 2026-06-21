@@ -105,7 +105,7 @@ export const ModuleGroupEdit = () => {
 
 	if (!isAdd && detailQ.isLoading) {
 		return (
-			<div className="mx-auto max-w-screen-md px-6 py-4">
+			<div className="mx-auto max-w-3xl px-6 py-4">
 				<EmptyState>Loading…</EmptyState>
 			</div>
 		);
@@ -113,7 +113,7 @@ export const ModuleGroupEdit = () => {
 
 	if (!isAdd && detailQ.error) {
 		return (
-			<div className="mx-auto max-w-screen-md px-6 py-4">
+			<div className="mx-auto max-w-3xl px-6 py-4">
 				<ErrorPanel error={detailQ.error} />
 			</div>
 		);
@@ -122,7 +122,7 @@ export const ModuleGroupEdit = () => {
 	const set = (patch: Partial<Body>) => setBody((prev) => ({ ...prev, ...patch }));
 
 	return (
-		<div className="mx-auto max-w-screen-md px-6 py-4">
+		<div className="mx-auto max-w-3xl px-6 py-4">
 			<Breadcrumb
 				items={[
 					{ label: "Developer", to: "/developer" },

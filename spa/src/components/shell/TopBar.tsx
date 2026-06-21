@@ -60,7 +60,7 @@ export const TopBar = ({ dark, onToggleDark, onOpenSearch }: TopBarProps) => {
 
 			{/* Brand */}
 			<div className="flex shrink-0 items-center gap-2.5">
-				<div className="grid h-[26px] w-[26px] place-items-center rounded-md bg-accent text-accent-fg">
+				<div className="grid size-[26px] place-items-center rounded-md bg-accent text-accent-fg">
 					<svg
 						width="14"
 						height="14"
@@ -105,7 +105,7 @@ export const TopBar = ({ dark, onToggleDark, onOpenSearch }: TopBarProps) => {
 				onClick={onOpenSearch}
 				title="Search"
 				aria-label="Search"
-				className="grid h-[30px] w-[30px] cursor-pointer place-items-center rounded-md bg-transparent text-text-2 transition-colors hover:bg-hover hover:text-text sm:hidden"
+				className="grid size-[30px] cursor-pointer place-items-center rounded-md bg-transparent text-text-2 transition-colors hover:bg-hover hover:text-text sm:hidden"
 			>
 				<Search size={15} />
 			</button>
@@ -114,7 +114,7 @@ export const TopBar = ({ dark, onToggleDark, onOpenSearch }: TopBarProps) => {
 				type="button"
 				onClick={onToggleDark}
 				title={dark ? "Light mode" : "Dark mode"}
-				className="grid h-[30px] w-[30px] cursor-pointer place-items-center rounded-md bg-transparent text-text-2 transition-colors hover:bg-hover hover:text-text"
+				className="grid size-[30px] cursor-pointer place-items-center rounded-md bg-transparent text-text-2 transition-colors hover:bg-hover hover:text-text"
 			>
 				{dark ? <Sun size={15} /> : <Moon size={15} />}
 			</button>
@@ -125,7 +125,7 @@ export const TopBar = ({ dark, onToggleDark, onOpenSearch }: TopBarProps) => {
 					unread > 0 ? `${unread} unread message${unread === 1 ? "" : "s"}` : "Messages"
 				}
 				onClick={() => navigate("/messages")}
-				className="relative grid h-[30px] w-[30px] cursor-pointer place-items-center rounded-md bg-transparent text-text-2 transition-colors hover:bg-hover hover:text-text"
+				className="relative grid size-[30px] cursor-pointer place-items-center rounded-md bg-transparent text-text-2 transition-colors hover:bg-hover hover:text-text"
 			>
 				<Bell size={15} />
 				{unread > 0 && (
@@ -142,7 +142,7 @@ export const TopBar = ({ dark, onToggleDark, onOpenSearch }: TopBarProps) => {
 						title="Account"
 						className="flex cursor-pointer items-center gap-2 rounded-md py-1 pl-1 pr-2 transition-colors hover:bg-hover"
 					>
-						<div className="grid h-6 w-6 place-items-center rounded bg-accent-soft text-[11px] font-semibold text-accent">
+						<div className="grid size-6 place-items-center rounded bg-accent-soft text-[11px] font-semibold text-accent">
 							{initials}
 						</div>
 						<span className="text-[13px] font-medium">
@@ -164,14 +164,14 @@ export const TopBar = ({ dark, onToggleDark, onOpenSearch }: TopBarProps) => {
 						<DropdownMenu.Item asChild>
 							<Link
 								to="/profile"
-								className="flex cursor-pointer select-none items-center gap-2 rounded px-3 py-1.5 text-[13px] text-text-2 outline-none transition-colors hover:bg-hover hover:text-text data-[highlighted]:bg-hover data-[highlighted]:text-text"
+								className="flex cursor-pointer select-none items-center gap-2 rounded px-3 py-1.5 text-[13px] text-text-2 outline-none transition-colors hover:bg-hover hover:text-text data-highlighted:bg-hover data-highlighted:text-text"
 							>
 								<User size={14} />
 								<span>Profile</span>
 							</Link>
 						</DropdownMenu.Item>
 						<DropdownMenu.Item
-							className="flex cursor-pointer select-none items-center gap-2 rounded px-3 py-1.5 text-[13px] text-text-2 outline-none transition-colors hover:bg-hover hover:text-text data-[highlighted]:bg-hover data-[highlighted]:text-text"
+							className="flex cursor-pointer select-none items-center gap-2 rounded px-3 py-1.5 text-[13px] text-text-2 outline-none transition-colors hover:bg-hover hover:text-text data-highlighted:bg-hover data-highlighted:text-text"
 							onSelect={async () => {
 								await authApi.logout();
 							}}

@@ -127,7 +127,7 @@ export const LinkFinder = () => {
 
 			{open && debounced.length >= 2 && (
 				<div className="absolute right-0 top-full z-20 mt-1 w-[min(420px,90vw)] overflow-hidden rounded-md border border-border bg-surface shadow-lg">
-					<div className="border-b border-border bg-surface-2 px-3 py-1 text-[10.5px] uppercase tracking-[0.05em] text-text-3">
+					<div className="border-b border-border bg-surface-2 px-3 py-1 text-[10.5px] uppercase tracking-wider text-text-3">
 						Pick an item to copy its reference
 					</div>
 
@@ -148,7 +148,7 @@ export const LinkFinder = () => {
 										<span className="min-w-0 flex-1 truncate text-[12.5px] text-text-2">
 											{hit.label}
 										</span>
-										<span className="text-[10.5px] uppercase tracking-[0.05em] text-text-3">
+										<span className="text-[10.5px] uppercase tracking-wider text-text-3">
 											{hit.groupLabel}
 										</span>
 									</button>

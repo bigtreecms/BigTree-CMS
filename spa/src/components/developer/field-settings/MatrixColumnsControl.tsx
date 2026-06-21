@@ -120,7 +120,7 @@ export const MatrixColumnsControl = ({ descriptor, settings, onPatch }: ControlP
 								<label className="flex items-center gap-1 whitespace-nowrap text-[11px] text-text-3">
 									<input
 										type="checkbox"
-										className="h-3.5 w-3.5 accent-accent"
+										className="size-3.5 accent-accent"
 										checked={Boolean(column.display_title)}
 										onChange={(e) =>
 											update(index, {

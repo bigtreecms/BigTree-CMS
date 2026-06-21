@@ -113,7 +113,7 @@ export const Profile = () => {
 
 	if (meQ.isLoading) {
 		return (
-			<div className="mx-auto max-w-screen-md px-6 py-4 text-[13px] text-text-3">
+			<div className="mx-auto max-w-3xl px-6 py-4 text-[13px] text-text-3">
 				Loading profile…
 			</div>
 		);
@@ -121,7 +121,7 @@ export const Profile = () => {
 
 	if (meQ.error) {
 		return (
-			<div className="mx-auto max-w-screen-md px-6 py-4">
+			<div className="mx-auto max-w-3xl px-6 py-4">
 				<ErrorPanel error={meQ.error} />
 			</div>
 		);
@@ -162,7 +162,7 @@ export const Profile = () => {
 	];
 
 	return (
-		<div className="mx-auto max-w-screen-md px-6 py-4">
+		<div className="mx-auto max-w-3xl px-6 py-4">
 			<Breadcrumb items={[{ label: "Profile" }]} />
 
 			<PageHead

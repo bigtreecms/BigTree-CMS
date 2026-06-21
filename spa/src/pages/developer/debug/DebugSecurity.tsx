@@ -135,7 +135,7 @@ export const DebugSecurity = () => {
 									Rules to throttle password brute-forcing.
 								</p>
 
-								<div className="space-y-2 text-[12.5px] leading-7 text-text-2">
+								<div className="space-y-2 text-[12.5px]/7 text-text-2">
 									<div>
 										<input
 											className={narrowInputClass}
@@ -354,7 +354,7 @@ const UnbanPanel = () => {
 					<button
 						type="submit"
 						disabled={!ip.trim() || unbanIP.isPending}
-						className="mb-[1px] rounded-md border border-border bg-surface px-3 py-2 text-[12.5px] font-medium text-text-2 hover:border-border-strong hover:bg-hover disabled:opacity-60"
+						className="mb-px rounded-md border border-border bg-surface px-3 py-2 text-[12.5px] font-medium text-text-2 hover:border-border-strong hover:bg-hover disabled:opacity-60"
 					>
 						Unban
 					</button>
@@ -384,7 +384,7 @@ const UnbanPanel = () => {
 					<button
 						type="submit"
 						disabled={!userId.trim() || unbanUser.isPending}
-						className="mb-[1px] rounded-md border border-border bg-surface px-3 py-2 text-[12.5px] font-medium text-text-2 hover:border-border-strong hover:bg-hover disabled:opacity-60"
+						className="mb-px rounded-md border border-border bg-surface px-3 py-2 text-[12.5px] font-medium text-text-2 hover:border-border-strong hover:bg-hover disabled:opacity-60"
 					>
 						Unban
 					</button>

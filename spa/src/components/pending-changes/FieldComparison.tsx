@@ -34,7 +34,7 @@ export const FieldComparison = ({
 	pendingLabel = "Pending draft",
 	fieldType,
 }: FieldComparisonProps) => (
-	<div className="mt-2 grid grid-cols-1 gap-2 rounded-md border border-warn/30 bg-warn/[0.03] p-2 sm:grid-cols-2">
+	<div className="mt-2 grid grid-cols-1 gap-2 rounded-md border border-warn/30 bg-warn/3 p-2 sm:grid-cols-2">
 		<ComparisonColumn
 			heading="Published"
 			value={published}
@@ -105,7 +105,7 @@ const ComparisonValue = ({ value, fieldType }: ComparisonValueProps) => {
 };
 
 const CodeBlock = ({ text }: { text: string }) => (
-	<pre className="max-h-48 overflow-auto whitespace-pre-wrap break-words rounded border border-border bg-surface px-2 py-1.5 font-mono text-[11.5px] leading-5 text-text-2">
+	<pre className="max-h-48 overflow-auto whitespace-pre-wrap wrap-break-word rounded border border-border bg-surface px-2 py-1.5 font-mono text-[11.5px]/5 text-text-2">
 		{text}
 	</pre>
 );

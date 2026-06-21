@@ -99,7 +99,7 @@ export const SiteIntegrity = () => {
 	const showResults = scan.phase !== "idle";
 
 	return (
-		<div className="mx-auto max-w-screen-lg px-6 py-4">
+		<div className="mx-auto max-w-5xl px-6 py-4">
 			<Breadcrumb
 				items={[{ label: "Dashboard", to: "/dashboard" }, { label: "Site Integrity" }]}
 			/>

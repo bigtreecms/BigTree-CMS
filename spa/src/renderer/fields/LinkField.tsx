@@ -158,7 +158,7 @@ export const LinkField = ({ field, value, onChange, disabled }: FieldComponentPr
 
 				<input
 					type="text"
-					className={`${INPUT_CLASS} pl-8 pr-8`}
+					className={`${INPUT_CLASS} px-8 `}
 					value={search || displayedInputValue}
 					placeholder={placeholder}
 					disabled={disabled}
@@ -199,7 +199,7 @@ export const LinkField = ({ field, value, onChange, disabled }: FieldComponentPr
 						<>
 							{pages.length > 0 && (
 								<>
-									<div className="border-b border-border bg-surface-2 px-3 py-1 text-[10.5px] font-semibold uppercase tracking-[0.05em] text-text-3">
+									<div className="border-b border-border bg-surface-2 px-3 py-1 text-[10.5px] font-semibold uppercase tracking-wider text-text-3">
 										Pages
 									</div>
 									<ul>
@@ -231,7 +231,7 @@ export const LinkField = ({ field, value, onChange, disabled }: FieldComponentPr
 
 							{resources.length > 0 && (
 								<>
-									<div className="border-b border-t border-border bg-surface-2 px-3 py-1 text-[10.5px] font-semibold uppercase tracking-[0.05em] text-text-3">
+									<div className="border-y border-border bg-surface-2 px-3 py-1 text-[10.5px] font-semibold uppercase tracking-wider text-text-3">
 										Files
 									</div>
 									<ul>

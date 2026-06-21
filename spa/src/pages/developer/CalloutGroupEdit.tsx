@@ -106,7 +106,7 @@ export const CalloutGroupEdit = () => {
 
 	if (!isAdd && groupQ.isLoading) {
 		return (
-			<div className="mx-auto max-w-screen-md px-6 py-4">
+			<div className="mx-auto max-w-3xl px-6 py-4">
 				<EmptyState>Loading…</EmptyState>
 			</div>
 		);
@@ -114,7 +114,7 @@ export const CalloutGroupEdit = () => {
 
 	if (!isAdd && groupQ.error) {
 		return (
-			<div className="mx-auto max-w-screen-md px-6 py-4">
+			<div className="mx-auto max-w-3xl px-6 py-4">
 				<ErrorPanel error={groupQ.error} />
 			</div>
 		);
@@ -147,7 +147,7 @@ export const CalloutGroupEdit = () => {
 	const title = isAdd ? "Add callout group" : body.name || idParam || "Edit callout group";
 
 	return (
-		<div className="mx-auto max-w-screen-md px-6 py-4">
+		<div className="mx-auto max-w-3xl px-6 py-4">
 			<Breadcrumb
 				items={[
 					{ label: "Developer", to: "/developer" },

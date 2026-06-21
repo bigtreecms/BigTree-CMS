@@ -41,9 +41,9 @@ export const ContentAlertsCard = ({ alerts, loading, error }: ContentAlertsCardP
 					{alerts.map((alert) => (
 						<li
 							key={alert.page_id}
-							className="flex items-center gap-2.5 rounded-[7px] p-2 transition-colors hover:bg-surface-2"
+							className="flex items-center gap-2.5 rounded-md p-2 transition-colors hover:bg-surface-2"
 						>
-							<span className="grid h-[26px] w-[26px] place-items-center rounded-md bg-warn-bg text-warn">
+							<span className="grid size-[26px] place-items-center rounded-md bg-warn-bg text-warn">
 								<Clock size={14} />
 							</span>
 							<Link

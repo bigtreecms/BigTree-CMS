@@ -81,7 +81,7 @@ export const Analytics = () => {
 		: "Visits, views and engagement from Google Analytics";
 
 	return (
-		<div className="mx-auto max-w-screen-xl px-6 py-4">
+		<div className="mx-auto max-w-7xl px-6 py-4">
 			<Breadcrumb
 				items={[{ label: "Dashboard", to: "/dashboard" }, { label: "Analytics" }]}
 			/>
@@ -119,7 +119,7 @@ export const Analytics = () => {
 							title="Two-week heads-up"
 							description="Visits over the past 14 days"
 						/>
-						<div className="px-4 py-4">
+						<div className="p-4">
 							{series && series.length > 0 ? (
 								<TrafficBars series={series} />
 							) : (

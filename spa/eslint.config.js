@@ -5,6 +5,7 @@ import react from "eslint-plugin-react";
 import prettierPlugin from "eslint-plugin-prettier";
 import configPrettier from "eslint-config-prettier";
 import storybook from "eslint-plugin-storybook";
+import betterTailwind from "eslint-plugin-better-tailwindcss";
 
 export default tseslint.config(
 	js.configs.recommended,
@@ -43,6 +44,22 @@ export default tseslint.config(
 		},
 		rules: {
 			"react/jsx-no-target-blank": "error",
+		},
+	},
+	{
+		files: ["**/*.{ts,tsx}"],
+		plugins: {
+			"better-tailwindcss": betterTailwind,
+		},
+		settings: {
+			"better-tailwindcss": {
+				entryPoint: "src/styles/index.css",
+			},
+		},
+		rules: {
+			// Replace arbitrary/legacy utilities with their canonical Tailwind
+			// equivalent (e.g. `h-[22px]` → `h-5.5`, `flex-shrink-0` → `shrink-0`).
+			"better-tailwindcss/enforce-canonical-classes": "error",
 		},
 	},
 	{

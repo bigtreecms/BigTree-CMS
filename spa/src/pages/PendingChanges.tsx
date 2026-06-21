@@ -108,7 +108,7 @@ export const PendingChanges = () => {
 	const total = changes.length;
 
 	return (
-		<div className="mx-auto max-w-screen-xl px-6 py-4">
+		<div className="mx-auto max-w-7xl px-6 py-4">
 			<Breadcrumb
 				items={[{ label: "Dashboard", to: "/dashboard" }, { label: "Pending changes" }]}
 			/>

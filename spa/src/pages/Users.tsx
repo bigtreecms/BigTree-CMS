@@ -142,7 +142,7 @@ const Switch = ({ on, onChange, label }: SwitchProps) => (
 		aria-pressed={on}
 	>
 		<span
-			className="inline-block h-3.5 w-3.5 rounded-full bg-white shadow transition-transform data-[on=true]:translate-x-4"
+			className="inline-block size-3.5 rounded-full bg-white shadow transition-transform data-[on=true]:translate-x-4"
 			data-on={on}
 		/>
 	</button>

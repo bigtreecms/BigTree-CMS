@@ -123,7 +123,7 @@ export const DraggableView = ({ moduleId, view }: DraggableViewProps) => {
 						className="absolute left-3 top-1/2 -translate-y-1/2 text-text-3"
 					/>
 					<input
-						className="w-full rounded-md border border-border bg-surface py-1.5 pl-9 pr-9 text-[13.5px] placeholder:text-text-3 focus:outline-none focus:ring-1 focus:ring-accent-ring"
+						className="w-full rounded-md border border-border bg-surface py-1.5 px-9 text-[13.5px] placeholder:text-text-3 focus:outline-none focus:ring-1 focus:ring-accent-ring"
 						placeholder={`Search ${view.title.toLowerCase()}…`}
 						value={query}
 						onChange={(e) => setQuery(e.target.value)}
@@ -180,7 +180,7 @@ export const DraggableView = ({ moduleId, view }: DraggableViewProps) => {
 									onClick={() => openEdit(r.row)}
 								>
 									<span
-										className={`grid h-6 w-6 place-items-center rounded text-text-4 ${
+										className={`grid size-6  place-items-center rounded text-text-4 ${
 											canDrag
 												? "cursor-grab hover:bg-hover hover:text-text-2 active:cursor-grabbing"
 												: "cursor-default opacity-25"
@@ -212,7 +212,7 @@ export const DraggableView = ({ moduleId, view }: DraggableViewProps) => {
 										})}
 									</div>
 
-									<ViewStatusBadge row={r.row} className="flex-shrink-0" />
+									<ViewStatusBadge row={r.row} className="shrink-0" />
 
 									<div className={`flex items-center gap-1 ${dim}`}>
 										{custom.map((action) => {

@@ -64,7 +64,7 @@ const SizeRowsEditor = ({ label, rows, onChange }: SizeRowsEditorProps) => {
 	return (
 		<div>
 			<div className="mb-1.5 flex items-center justify-between">
-				<span className="text-[11.5px] font-semibold uppercase tracking-[0.05em] text-text-3">
+				<span className="text-[11.5px] font-semibold uppercase tracking-wider text-text-3">
 					{label}
 				</span>
 				<button
@@ -109,7 +109,7 @@ const SizeRowsEditor = ({ label, rows, onChange }: SizeRowsEditorProps) => {
 							>
 								<input
 									type="checkbox"
-									className="h-3.5 w-3.5 accent-accent"
+									className="size-3.5 accent-accent"
 									checked={row.grayscale === "on"}
 									onChange={(e) =>
 										update(i, { grayscale: e.target.checked ? "on" : "" })
@@ -153,7 +153,7 @@ const CropsEditor = ({ crops, onChange }: CropsEditorProps) => {
 	return (
 		<div>
 			<div className="mb-1.5 flex items-center justify-between">
-				<span className="text-[11.5px] font-semibold uppercase tracking-[0.05em] text-text-3">
+				<span className="text-[11.5px] font-semibold uppercase tracking-wider text-text-3">
 					Crops
 				</span>
 				<button
@@ -199,7 +199,7 @@ const CropsEditor = ({ crops, onChange }: CropsEditorProps) => {
 								>
 									<input
 										type="checkbox"
-										className="h-3.5 w-3.5 accent-accent"
+										className="size-3.5 accent-accent"
 										checked={crop.grayscale === "on"}
 										onChange={(e) =>
 											update(i, { grayscale: e.target.checked ? "on" : "" })
@@ -278,7 +278,7 @@ export const MediaPresetEditor = ({ preset, onChange }: MediaPresetEditorProps) 
 			<label className="flex items-center gap-2 text-[12.5px] text-text-2">
 				<input
 					type="checkbox"
-					className="h-4 w-4 accent-accent"
+					className="size-4 accent-accent"
 					checked={preset.retina === "on"}
 					onChange={(e) => onChange({ retina: e.target.checked ? "on" : "" })}
 				/>

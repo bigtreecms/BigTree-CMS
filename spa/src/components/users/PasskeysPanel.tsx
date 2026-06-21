@@ -102,7 +102,7 @@ export const PasskeysPanel = () => {
 				)}
 
 				{supported && showAddPrompt && (
-					<div className="mb-4 rounded-md border border-border bg-surface-2 px-3 py-3">
+					<div className="mb-4 rounded-md border border-border bg-surface-2 p-3">
 						<label className="block">
 							<span className="mb-1 block text-[12px] font-medium text-text-2">
 								Passkey name

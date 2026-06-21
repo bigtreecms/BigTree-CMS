@@ -204,12 +204,7 @@ const PreviewTile = ({ pickerType, resource, loading }: PreviewTileProps) => {
 
 	if (resource.is_image && resource.file) {
 		return (
-			<img
-				src={resource.file}
-				alt=""
-				className="block h-20 w-20 object-cover"
-				loading="lazy"
-			/>
+			<img src={resource.file} alt="" className="block size-20 object-cover" loading="lazy" />
 		);
 	}
 
@@ -220,7 +215,7 @@ const PlaceholderTile = ({ pickerType }: { pickerType: ResourcePickerType }) => 
 	const Icon = pickerType === "video" ? VideoIcon : pickerType === "image" ? ImageIcon : FileIcon;
 
 	return (
-		<div className="grid h-20 w-20 place-items-center text-text-3">
+		<div className="grid size-20 place-items-center text-text-3">
 			<Icon size={22} />
 		</div>
 	);

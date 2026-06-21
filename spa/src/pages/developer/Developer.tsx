@@ -106,7 +106,7 @@ export const Developer = () => (
 					to={s.to}
 					className="group flex items-start gap-3 rounded-xl border border-border bg-surface p-4 transition-colors hover:border-accent-ring hover:bg-surface-2"
 				>
-					<span className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-accent-soft text-accent">
+					<span className="grid size-9 shrink-0 place-items-center rounded-md bg-accent-soft text-accent">
 						{s.icon}
 					</span>
 					<div className="min-w-0">

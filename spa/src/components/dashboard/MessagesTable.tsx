@@ -29,16 +29,14 @@ export const MessagesTable = ({ messages }: MessagesTableProps) => {
 					>
 						<span className="inline-flex items-center gap-2 font-medium">
 							<span
-								className="grid h-6 w-6 place-items-center rounded-full text-[10.5px] font-semibold text-white"
+								className="grid size-6 place-items-center rounded-full text-[10.5px] font-semibold text-white"
 								style={{ background: avatarColor(m.sender) }}
 							>
 								{senderInitials(m.sender, m.sender_name)}
 							</span>
 							<span>{m.sender_name ?? `User #${m.sender}`}</span>
 						</span>
-						<span className="overflow-hidden text-ellipsis whitespace-nowrap">
-							{m.subject}
-						</span>
+						<span className="truncate">{m.subject}</span>
 						<span className="text-[12px] text-text-3 tabular-nums">{date}</span>
 						<span className="text-[12px] text-text-3 tabular-nums">{time}</span>
 						<Button

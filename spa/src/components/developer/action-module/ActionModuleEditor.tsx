@@ -68,7 +68,7 @@ export const ActionModuleEditor = ({ value, onChange, name, route }: ActionModul
 					Host API reference
 				</button>
 				{showApi && (
-					<dl className="grid grid-cols-1 gap-x-4 gap-y-1.5 border-t border-border px-3 py-3 sm:grid-cols-[auto_1fr]">
+					<dl className="grid grid-cols-1 gap-x-4 gap-y-1.5 border-t border-border p-3 sm:grid-cols-[auto_1fr]">
 						{ACTION_HOST_API_REFERENCE.map((row) => (
 							<div key={row.name} className="contents">
 								<dt className="font-mono text-[11.5px] text-accent">{row.name}</dt>

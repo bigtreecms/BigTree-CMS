@@ -37,7 +37,7 @@ export const RadioField = ({ field, value, onChange, disabled }: FieldComponentP
 							checked={selected === optValue}
 							disabled={disabled}
 							onChange={() => onChange(optValue)}
-							className="h-3.5 w-3.5 accent-accent disabled:cursor-not-allowed"
+							className="size-3.5 accent-accent disabled:cursor-not-allowed"
 						/>
 						<span>{optLabel}</span>
 					</label>

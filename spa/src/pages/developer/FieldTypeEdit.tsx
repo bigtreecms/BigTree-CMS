@@ -153,7 +153,7 @@ export const FieldTypeEdit = () => {
 
 	if (!isAdd && detailQ.isLoading) {
 		return (
-			<div className="mx-auto max-w-screen-md px-6 py-4">
+			<div className="mx-auto max-w-3xl px-6 py-4">
 				<EmptyState>Loading…</EmptyState>
 			</div>
 		);
@@ -161,7 +161,7 @@ export const FieldTypeEdit = () => {
 
 	if (!isAdd && detailQ.error) {
 		return (
-			<div className="mx-auto max-w-screen-md px-6 py-4">
+			<div className="mx-auto max-w-3xl px-6 py-4">
 				<ErrorPanel error={detailQ.error} />
 			</div>
 		);
@@ -185,7 +185,7 @@ export const FieldTypeEdit = () => {
 	const title = isAdd ? "Add custom field type" : body.name || idParam || "Edit field type";
 
 	return (
-		<div className="mx-auto max-w-screen-md px-6 py-4">
+		<div className="mx-auto max-w-3xl px-6 py-4">
 			<Breadcrumb
 				items={[
 					{ label: "Developer", to: "/developer" },
@@ -311,7 +311,7 @@ export const FieldTypeEdit = () => {
 							<input
 								type="radio"
 								name="render-mode"
-								className="mt-0.5 h-4 w-4 accent-accent"
+								className="mt-0.5 size-4 accent-accent"
 								checked={mode === "declarative"}
 								onChange={() => setMode("declarative")}
 							/>
@@ -325,7 +325,7 @@ export const FieldTypeEdit = () => {
 							<input
 								type="radio"
 								name="render-mode"
-								className="mt-0.5 h-4 w-4 accent-accent"
+								className="mt-0.5 size-4 accent-accent"
 								checked={mode === "module"}
 								onChange={() => {
 									setMode("module");

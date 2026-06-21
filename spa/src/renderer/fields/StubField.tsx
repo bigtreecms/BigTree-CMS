@@ -38,7 +38,7 @@ export const StubField = ({ field, value, note }: StubFieldProps) => {
 				</span>
 			</div>
 			{display && (
-				<pre className="max-h-32 overflow-auto whitespace-pre-wrap break-words font-mono text-[11.5px] text-text-2">
+				<pre className="max-h-32 overflow-auto whitespace-pre-wrap wrap-break-word font-mono text-[11.5px] text-text-2">
 					{display}
 				</pre>
 			)}

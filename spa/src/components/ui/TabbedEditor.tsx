@@ -28,7 +28,7 @@ export const TabbedEditor = ({ tabs, value, onChange, className }: TabbedEditorP
 			onValueChange={onChange}
 			className={`flex flex-col ${className ?? ""}`}
 		>
-			<Tabs.List className="flex min-w-0 items-center gap-1 overflow-x-auto border-b border-border bg-surface px-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+			<Tabs.List className="flex min-w-0 items-center gap-1 overflow-x-auto border-b border-border bg-surface px-1 [-ms-overflow-style:none] scrollbar-none [&::-webkit-scrollbar]:hidden">
 				{tabs.map((tab) => (
 					<Tabs.Trigger
 						key={tab.value}

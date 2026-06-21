@@ -102,7 +102,7 @@ export const EmbedFormRenderer = ({ hash }: EmbedFormRendererProps) => {
 	const form = adaptConfigToForm(config);
 
 	return (
-		<div className="bigtree-embed-form mx-auto max-w-2xl px-6 py-6">
+		<div className="bigtree-embed-form mx-auto max-w-2xl p-6">
 			<h1 className="mb-4 text-[18px] font-semibold text-text">{config.title}</h1>
 			<FormRenderer
 				form={form}

@@ -268,7 +268,7 @@ export const NestedView = ({ moduleId, view }: NestedViewProps) => {
 						className="absolute left-3 top-1/2 -translate-y-1/2 text-text-3"
 					/>
 					<input
-						className="w-full rounded-md border border-border bg-surface py-1.5 pl-9 pr-9 text-[13.5px] placeholder:text-text-3 focus:outline-none focus:ring-1 focus:ring-accent-ring"
+						className="w-full rounded-md border border-border bg-surface py-1.5 px-9 text-[13.5px] placeholder:text-text-3 focus:outline-none focus:ring-1 focus:ring-accent-ring"
 						placeholder={`Search ${view.title.toLowerCase()}…`}
 						value={query}
 						onChange={(e) => setQuery(e.target.value)}
@@ -404,12 +404,12 @@ const NestedRow = ({
 				onClick={() => onEdit(node.row)}
 			>
 				<span
-					className="flex flex-shrink-0 items-center"
+					className="flex shrink-0 items-center"
 					style={{ paddingLeft: `${indentPx}px` }}
 					onClick={(e) => e.stopPropagation()}
 				>
 					<span
-						className={`grid h-5 w-5 place-items-center rounded text-text-4 ${
+						className={`grid size-5  place-items-center rounded text-text-4 ${
 							drag.canDrag
 								? "cursor-grab hover:bg-hover hover:text-text-2 active:cursor-grabbing"
 								: "cursor-default opacity-25"
@@ -425,7 +425,7 @@ const NestedRow = ({
 					{hasChildren ? (
 						<button
 							type="button"
-							className="grid h-5 w-5 place-items-center rounded text-text-3 hover:bg-hover hover:text-text"
+							className="grid size-5 place-items-center rounded text-text-3 hover:bg-hover hover:text-text"
 							onClick={(e) => {
 								e.stopPropagation();
 								onToggle(id);
@@ -435,7 +435,7 @@ const NestedRow = ({
 							{isOpen ? <ChevronDown size={13} /> : <ChevronRight size={13} />}
 						</button>
 					) : (
-						<span className="inline-block h-5 w-5" />
+						<span className="inline-block size-5" />
 					)}
 				</span>
 
@@ -455,7 +455,7 @@ const NestedRow = ({
 					})}
 				</div>
 
-				<ViewStatusBadge row={node.row} className="flex-shrink-0" />
+				<ViewStatusBadge row={node.row} className="shrink-0" />
 
 				<div className={`flex items-center gap-1 ${dim}`}>
 					{custom.map((action) => {

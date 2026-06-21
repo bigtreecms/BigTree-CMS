@@ -120,7 +120,7 @@ export const SettingsSchemaBuilder = ({ value, onChange }: SettingsSchemaBuilder
 									<label className="flex h-[38px] items-center gap-2 text-[12.5px] text-text-2">
 										<input
 											type="checkbox"
-											className="h-4 w-4 accent-accent"
+											className="size-4 accent-accent"
 											checked={!!descriptor.default}
 											onChange={(e) =>
 												patch(index, { default: e.target.checked })
@@ -156,7 +156,7 @@ export const SettingsSchemaBuilder = ({ value, onChange }: SettingsSchemaBuilder
 								<label className="flex items-center gap-2 text-[12.5px] text-text-2">
 									<input
 										type="checkbox"
-										className="h-4 w-4 accent-accent"
+										className="size-4 accent-accent"
 										checked={!!descriptor.required}
 										onChange={(e) =>
 											patch(index, { required: e.target.checked })

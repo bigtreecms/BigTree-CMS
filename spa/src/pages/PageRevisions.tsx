@@ -143,7 +143,7 @@ export const PageRevisions = () => {
 			/>
 
 			<Card className="mb-4 p-4">
-				<h2 className="mb-2 text-[12px] font-semibold uppercase tracking-[0.05em] text-text-3">
+				<h2 className="mb-2 text-[12px] font-semibold uppercase tracking-wider text-text-3">
 					Save current version as revision
 				</h2>
 				<div className="flex flex-wrap items-end gap-2">
@@ -240,7 +240,7 @@ const RevisionSection = ({
 	onRestore,
 }: RevisionSectionProps) => (
 	<section className="mb-4">
-		<h2 className="mb-2 text-[12px] font-semibold uppercase tracking-[0.05em] text-text-3">
+		<h2 className="mb-2 text-[12px] font-semibold uppercase tracking-wider text-text-3">
 			{title}
 		</h2>
 		{revisions.length === 0 ? (

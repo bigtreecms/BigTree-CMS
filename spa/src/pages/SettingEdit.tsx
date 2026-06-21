@@ -113,7 +113,7 @@ export const SettingEdit = () => {
 
 	if (settingQuery.isLoading || !settingQuery.data) {
 		return (
-			<div className="mx-auto max-w-screen-md px-6 py-4">
+			<div className="mx-auto max-w-3xl px-6 py-4">
 				<EmptyState>Loading…</EmptyState>
 			</div>
 		);
@@ -121,7 +121,7 @@ export const SettingEdit = () => {
 
 	if (settingQuery.error) {
 		return (
-			<div className="mx-auto max-w-screen-md px-6 py-4">
+			<div className="mx-auto max-w-3xl px-6 py-4">
 				<ErrorPanel error={settingQuery.error} />
 			</div>
 		);
@@ -166,7 +166,7 @@ export const SettingEdit = () => {
 	};
 
 	return (
-		<div className="mx-auto max-w-screen-md px-6 py-4">
+		<div className="mx-auto max-w-3xl px-6 py-4">
 			<Breadcrumb items={breadcrumbs} />
 
 			<PageHead

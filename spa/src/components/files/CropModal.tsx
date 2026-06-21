@@ -116,7 +116,7 @@ export const CropModal = ({ open, onOpenChange, resource }: CropModalProps) => {
 					/>
 				</div>
 
-				<aside className="space-y-4 border-t border-border bg-surface-2 px-4 py-4 md:border-l md:border-t-0">
+				<aside className="space-y-4 border-t border-border bg-surface-2 p-4 md:border-l md:border-t-0">
 					<div>
 						<label className="mb-1 block text-[11.5px] font-semibold uppercase tracking-[0.06em] text-text-3">
 							Aspect ratio

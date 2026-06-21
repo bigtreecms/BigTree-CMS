@@ -259,7 +259,7 @@ export const ResourceDesigner = ({
 									onDragEnd={drag.onDragEnd}
 								>
 									<span
-										className="grid h-6 w-6 flex-shrink-0 cursor-grab place-items-center rounded text-text-4 hover:bg-hover hover:text-text-2 active:cursor-grabbing"
+										className="grid size-6 shrink-0 cursor-grab place-items-center rounded text-text-4 hover:bg-hover hover:text-text-2 active:cursor-grabbing"
 										title="Drag to reorder"
 										aria-hidden="true"
 									>
@@ -361,7 +361,7 @@ export const ResourceDesigner = ({
 										<label className="mt-3 flex items-center gap-2 text-[12px] text-text-2">
 											<input
 												type="checkbox"
-												className="h-4 w-4 accent-accent"
+												className="size-4 accent-accent"
 												checked={readRequired(entry.settings)}
 												onChange={(e) =>
 													updateEntry(index, {
@@ -401,7 +401,7 @@ export const ResourceDesigner = ({
 											<label className="mt-2 flex items-center gap-2 text-[12px] text-text-2">
 												<input
 													type="checkbox"
-													className="h-4 w-4 accent-accent"
+													className="size-4 accent-accent"
 													checked={!!isDisplay}
 													onChange={() => onSetDisplayField(id)}
 													disabled={!id}

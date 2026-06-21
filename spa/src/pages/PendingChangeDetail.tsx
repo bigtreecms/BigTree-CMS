@@ -72,7 +72,7 @@ export const PendingChangeDetail = () => {
 
 	if (detailQ.isLoading || !detailQ.data) {
 		return (
-			<div className="mx-auto max-w-screen-lg px-6 py-4">
+			<div className="mx-auto max-w-5xl px-6 py-4">
 				<EmptyState>Loading…</EmptyState>
 			</div>
 		);
@@ -80,7 +80,7 @@ export const PendingChangeDetail = () => {
 
 	if (detailQ.error) {
 		return (
-			<div className="mx-auto max-w-screen-lg px-6 py-4">
+			<div className="mx-auto max-w-5xl px-6 py-4">
 				<ErrorPanel error={detailQ.error} />
 			</div>
 		);
@@ -90,7 +90,7 @@ export const PendingChangeDetail = () => {
 	const busy = approveMutation.isPending || rejectMutation.isPending;
 
 	return (
-		<div className="mx-auto max-w-screen-lg px-6 py-4">
+		<div className="mx-auto max-w-5xl px-6 py-4">
 			<Breadcrumb
 				items={[{ label: "Dashboard", to: "/dashboard" }, { label: "Pending changes" }]}
 			/>

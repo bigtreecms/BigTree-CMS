@@ -774,7 +774,7 @@ export const PropertiesTab = ({
 					<label className="mt-2 flex items-center gap-2 text-[12.5px] text-text-2">
 						<input
 							type="checkbox"
-							className="h-4 w-4 rounded border-border accent-accent"
+							className="size-4 rounded border-border accent-accent"
 							checked={Boolean(body.new_window)}
 							onChange={(e) => onPatch({ new_window: e.target.checked })}
 							disabled={disabled || !body.external}
@@ -1138,7 +1138,7 @@ export const Check = ({ label, checked, onChange, disabled, column, pending }: C
 		<label className="inline-flex cursor-pointer items-center gap-2 text-[12.5px] text-text-2 has-[input:disabled]:cursor-not-allowed has-[input:disabled]:opacity-60">
 			<input
 				type="checkbox"
-				className="h-4 w-4 rounded border-border accent-accent"
+				className="size-4 rounded border-border accent-accent"
 				checked={checked}
 				onChange={(e) => onChange(e.target.checked)}
 				disabled={disabled}

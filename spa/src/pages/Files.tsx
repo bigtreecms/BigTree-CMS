@@ -67,7 +67,7 @@ const FileThumb = ({ resource }: FileThumbProps) => {
 			<img
 				src={expandImageUrl(resource.file)}
 				alt=""
-				className="h-9 w-9 rounded object-cover ring-1 ring-border"
+				className="size-9 rounded object-cover ring-1 ring-border"
 				loading="lazy"
 			/>
 		);
@@ -76,14 +76,14 @@ const FileThumb = ({ resource }: FileThumbProps) => {
 	const Icon = resource.is_video ? Film : FileIcon;
 
 	return (
-		<span className="inline-grid h-9 w-9 place-items-center rounded bg-surface-2 text-text-3 ring-1 ring-border">
+		<span className="inline-grid size-9 place-items-center rounded bg-surface-2 text-text-3 ring-1 ring-border">
 			{resource.is_image ? <ImageIcon size={16} /> : <Icon size={16} />}
 		</span>
 	);
 };
 
 const FolderThumb = () => (
-	<span className="inline-grid h-9 w-9 place-items-center rounded bg-accent-soft text-accent ring-1 ring-border">
+	<span className="inline-grid size-9 place-items-center rounded bg-accent-soft text-accent ring-1 ring-border">
 		<Folder size={16} />
 	</span>
 );

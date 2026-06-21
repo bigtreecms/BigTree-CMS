@@ -117,7 +117,7 @@ export const PageSummaryPanel = ({ page, liveUrl, defaultOpen = false }: PageSum
 				aria-expanded={open}
 			>
 				<span
-					className={`grid h-4 w-4 place-items-center rounded text-text-3 transition-transform ${
+					className={`grid size-4  place-items-center rounded text-text-3 transition-transform ${
 						open ? "rotate-90 bg-accent-soft text-accent" : ""
 					}`}
 				>
@@ -151,12 +151,12 @@ export const PageSummaryPanel = ({ page, liveUrl, defaultOpen = false }: PageSum
 			</button>
 
 			{open && page && (
-				<div className="grid grid-cols-2 gap-x-7 gap-y-3.5 px-4 py-4 md:grid-cols-4">
+				<div className="grid grid-cols-2 gap-x-7 gap-y-3.5 p-4 md:grid-cols-4">
 					<Prop label="Status">
 						<span
 							className={`inline-flex items-center gap-1.5 text-[14px] font-medium ${TONE_TEXT[status.tone]}`}
 						>
-							<span className="h-1.5 w-1.5 rounded-full bg-current" />
+							<span className="size-1.5 rounded-full bg-current" />
 							{status.label}
 						</span>
 					</Prop>

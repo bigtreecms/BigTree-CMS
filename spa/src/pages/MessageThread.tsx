@@ -68,7 +68,7 @@ export const MessageThread = () => {
 
 	if (messageQ.isLoading || !messageQ.data) {
 		return (
-			<div className="mx-auto max-w-screen-md px-6 py-4">
+			<div className="mx-auto max-w-3xl px-6 py-4">
 				<EmptyState>Loading…</EmptyState>
 			</div>
 		);
@@ -76,7 +76,7 @@ export const MessageThread = () => {
 
 	if (messageQ.error) {
 		return (
-			<div className="mx-auto max-w-screen-md px-6 py-4">
+			<div className="mx-auto max-w-3xl px-6 py-4">
 				<ErrorPanel error={messageQ.error} />
 			</div>
 		);
@@ -89,7 +89,7 @@ export const MessageThread = () => {
 	const html = message.message;
 
 	return (
-		<div className="mx-auto max-w-screen-md px-6 py-4">
+		<div className="mx-auto max-w-3xl px-6 py-4">
 			<Breadcrumb
 				items={[
 					{ label: "Messages", to: "/messages" },

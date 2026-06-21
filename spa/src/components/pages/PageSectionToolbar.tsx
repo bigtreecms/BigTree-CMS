@@ -94,7 +94,7 @@ export const PageSectionToolbar = ({
 	}
 
 	return (
-		<nav className="mb-4 flex items-stretch gap-0 overflow-x-auto rounded-md border border-border bg-surface px-1 py-1 text-[12.5px]">
+		<nav className="mb-4 flex items-stretch gap-0 overflow-x-auto rounded-md border border-border bg-surface p-1 text-[12.5px]">
 			{items.map((it) => {
 				const isActive = it.id === active;
 				const className = `inline-flex shrink-0 items-center gap-1.5 rounded px-3 py-1.5 transition-colors ${

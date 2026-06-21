@@ -86,7 +86,7 @@ export const TagMerge = () => {
 	const valid = target !== null && sourceIds.length > 0 && !sourceIds.includes(target.id);
 
 	return (
-		<div className="mx-auto max-w-screen-md px-6 py-4">
+		<div className="mx-auto max-w-3xl px-6 py-4">
 			<Breadcrumb items={[{ label: "Tags", to: "/tags" }, { label: "Merge tags" }]} />
 
 			<PageHead

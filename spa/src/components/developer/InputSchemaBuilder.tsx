@@ -128,7 +128,7 @@ export const InputSchemaBuilder = ({ value, onChange }: InputSchemaBuilderProps)
 						<label className="flex items-center gap-2 self-end pb-2 text-[12.5px] text-text-2">
 							<input
 								type="checkbox"
-								className="h-4 w-4 accent-accent"
+								className="size-4 accent-accent"
 								checked={!!descriptor.required}
 								onChange={(e) => patch(index, { required: e.target.checked })}
 							/>
