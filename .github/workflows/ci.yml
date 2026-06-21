@@ -7,7 +7,7 @@ on:
 
 jobs:
   spa:
-    name: SPA (typecheck / lint / test / build)
+    name: SPA (typecheck / lint / test / build / storybook)
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -16,6 +16,8 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
+          # setup-node resolves "20" to the latest 20.x (>= 20.19), which
+          # Storybook 10 requires (it rejects 20.17 — oxc-parser engine).
           node-version: "20"
           cache: npm
           cache-dependency-path: spa/package-lock.json
@@ -26,6 +28,13 @@ jobs:
       - run: npm run lint
       - run: npm test
       - run: npm run build
+      # Storybook: the static build catches a broken story config, and
+      # test-storybook smoke-renders every story in a real headless Chromium via
+      # the Vitest browser project — so install just that browser (+ its OS deps)
+      # first. Only chromium is needed (vitest.config pins it).
+      - run: npm run build-storybook
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test-storybook
 
   php:
     name: PHP (lint + API tests)
