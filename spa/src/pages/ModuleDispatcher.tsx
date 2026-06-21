@@ -9,12 +9,10 @@ import { ModuleEntryAdd } from "@/pages/ModuleEntryAdd";
 import { ModuleEntryEdit } from "@/pages/ModuleEntryEdit";
 import { ModuleReport } from "@/pages/ModuleReport";
 import { ModuleView } from "@/pages/ModuleView";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { Card } from "@/components/ui/Card";
 
-const card = (message: string) => (
-	<div className="rounded-xl border border-border bg-surface p-9 text-center text-[13px] text-text-3">
-		{message}
-	</div>
-);
+const card = (message: string) => <EmptyState>{message}</EmptyState>;
 
 /**
  * Resolves the active module action from the URL and renders the matching screen,
@@ -90,7 +88,7 @@ export const ModuleDispatcher = () => {
 			: null;
 
 	return (
-		<div className="rounded-xl border border-border bg-surface p-9 text-center">
+		<Card className="p-9 text-center">
 			<p className="mb-1 text-[13px] font-medium">This action runs in the classic admin.</p>
 			<p className="mb-4 text-[12.5px] text-text-3">
 				It's a custom PHP page that hasn't been ported to the new admin yet.
@@ -108,6 +106,6 @@ export const ModuleDispatcher = () => {
 					Open the classic admin and navigate to this module to use it.
 				</p>
 			)}
-		</div>
+		</Card>
 	);
 };

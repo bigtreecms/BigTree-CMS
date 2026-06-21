@@ -6,6 +6,7 @@ import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { PendingChangeGroup } from "@/components/pending-changes/PendingChangeGroup";
 
 import { pendingChangesApi, type PendingChange } from "@/api/endpoints/dashboard";
@@ -128,13 +129,11 @@ export const PendingChanges = () => {
 			{listQ.error ? (
 				<ErrorPanel error={listQ.error} />
 			) : listQ.isLoading ? (
-				<div className="rounded-xl border border-border bg-surface p-9 text-center text-[13px] text-text-3">
-					Loading…
-				</div>
+				<EmptyState>Loading…</EmptyState>
 			) : total === 0 ? (
-				<div className="rounded-xl border border-dashed border-border bg-surface-2 p-9 text-center text-[13px] text-text-3">
+				<EmptyState dashed>
 					There are no changes awaiting your approval right now.
-				</div>
+				</EmptyState>
 			) : (
 				<div className="flex flex-col gap-4">
 					{groups.map((group) => (

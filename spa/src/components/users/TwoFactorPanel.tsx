@@ -7,6 +7,7 @@ import { authApi, type TwoFactorSetup } from "@/auth/endpoints";
 import { ApiError } from "@/types/api";
 import { toast } from "@/lib/toast";
 import { TwoFactorEnrollForm } from "./TwoFactorEnrollForm";
+import { Card } from "@/components/ui/Card";
 
 /**
  * Profile → Security TOTP manager.
@@ -75,7 +76,7 @@ export const TwoFactorPanel = ({ enabled }: TwoFactorPanelProps) => {
 	});
 
 	return (
-		<section className="rounded-xl border border-border bg-surface">
+		<Card>
 			<header className="flex items-center gap-2 border-b border-border bg-surface-2 px-4 py-3">
 				<ShieldCheck size={14} className="text-text-3" />
 				<h3 className="text-[12.5px] font-semibold uppercase tracking-[0.06em] text-text-3">
@@ -191,7 +192,7 @@ export const TwoFactorPanel = ({ enabled }: TwoFactorPanelProps) => {
 					</div>
 				)}
 			</div>
-		</section>
+		</Card>
 	);
 };
 

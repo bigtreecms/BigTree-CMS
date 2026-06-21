@@ -7,6 +7,7 @@ import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { Button } from "@/components/ui/Button";
+import { EmptyState } from "@/components/ui/EmptyState";
 
 import { ComposeMessage } from "@/components/messages/ComposeMessage";
 import { messagesApi } from "@/api/endpoints/dashboard";
@@ -68,9 +69,7 @@ export const MessageThread = () => {
 	if (messageQ.isLoading || !messageQ.data) {
 		return (
 			<div className="mx-auto max-w-screen-md px-6 py-4">
-				<div className="rounded-xl border border-border bg-surface p-9 text-center text-[13px] text-text-3">
-					Loading…
-				</div>
+				<EmptyState>Loading…</EmptyState>
 			</div>
 		);
 	}

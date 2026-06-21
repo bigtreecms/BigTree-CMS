@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 
 import { PageHead } from "@/components/shell/PageHead";
+import { Card } from "@/components/ui/Card";
 
 import { modulesApi } from "@/api/endpoints/modules";
 import { useAuthStore } from "@/auth/store";
@@ -71,9 +72,7 @@ export const ModuleAction = ({ actionId }: ModuleActionProps) => {
 	const schema = schemaQuery.data;
 	const title = action?.name ?? module?.name ?? "Action";
 
-	const card = (body: React.ReactNode) => (
-		<div className="rounded-xl border border-border bg-surface p-6 text-[13px]">{body}</div>
-	);
+	const card = (body: React.ReactNode) => <Card className="p-6 text-[13px]">{body}</Card>;
 
 	return (
 		<>

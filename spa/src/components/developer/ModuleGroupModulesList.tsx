@@ -10,6 +10,7 @@ import { ApiError } from "@/types/api";
 import { toast } from "@/lib/toast";
 
 import { useDragReorder } from "@/hooks/useDragReorder";
+import { Card } from "@/components/ui/Card";
 
 interface ModuleGroupModulesListProps {
 	groupId: string;
@@ -125,7 +126,7 @@ export const ModuleGroupModulesList = ({ groupId }: ModuleGroupModulesListProps)
 	};
 
 	return (
-		<section className="space-y-2 rounded-xl border border-border bg-surface p-4">
+		<Card className="space-y-2 p-4">
 			<div className="flex items-baseline justify-between">
 				<h2 className="text-[13px] font-semibold text-text">Modules in this group</h2>
 				<span className="text-[11px] tabular-nums text-text-3">
@@ -134,6 +135,6 @@ export const ModuleGroupModulesList = ({ groupId }: ModuleGroupModulesListProps)
 			</div>
 			<p className="text-[11.5px] text-text-3">Drag to change the order modules appear in.</p>
 			{body()}
-		</section>
+		</Card>
 	);
 };

@@ -19,6 +19,8 @@ import { PageHead } from "@/components/shell/PageHead";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { Button } from "@/components/ui/Button";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { Card } from "@/components/ui/Card";
 
 import { integrityApi } from "@/api/endpoints/integrity";
 import { useIntegrityScan, type ScanFinding } from "@/hooks/useIntegrityScan";
@@ -185,11 +187,7 @@ const StartPanel = ({
 	onReset,
 }: StartPanelProps) => {
 	if (loading) {
-		return (
-			<div className="rounded-xl border border-border bg-surface p-9 text-center text-[13px] text-text-3">
-				Loading…
-			</div>
-		);
+		return <EmptyState>Loading…</EmptyState>;
 	}
 
 	if (error) {
@@ -198,7 +196,7 @@ const StartPanel = ({
 
 	if (hasSession) {
 		return (
-			<div className="rounded-xl border border-border bg-surface p-6">
+			<Card className="p-6">
 				<div className="mb-1 flex items-center gap-2 text-[14px] font-semibold text-text">
 					<ShieldCheck size={16} className="text-accent" />
 					An integrity check is already in progress
@@ -214,12 +212,12 @@ const StartPanel = ({
 						Reset
 					</Button>
 				</div>
-			</div>
+			</Card>
 		);
 	}
 
 	return (
-		<div className="rounded-xl border border-border bg-surface p-6">
+		<Card className="p-6">
 			<p className="mb-2 text-[13px] leading-relaxed text-text-2">
 				The site integrity check searches your site for broken or dead links and missing
 				images and alerts you to their presence.
@@ -247,7 +245,7 @@ const StartPanel = ({
 					Include external links
 				</Button>
 			</div>
-		</div>
+		</Card>
 	);
 };
 

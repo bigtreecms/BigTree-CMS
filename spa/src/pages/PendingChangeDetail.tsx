@@ -7,6 +7,7 @@ import { PageHead } from "@/components/shell/PageHead";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { Button } from "@/components/ui/Button";
+import { EmptyState } from "@/components/ui/EmptyState";
 
 import { pendingChangesApi } from "@/api/endpoints/dashboard";
 
@@ -72,9 +73,7 @@ export const PendingChangeDetail = () => {
 	if (detailQ.isLoading || !detailQ.data) {
 		return (
 			<div className="mx-auto max-w-screen-lg px-6 py-4">
-				<div className="rounded-xl border border-border bg-surface p-9 text-center text-[13px] text-text-3">
-					Loading…
-				</div>
+				<EmptyState>Loading…</EmptyState>
 			</div>
 		);
 	}

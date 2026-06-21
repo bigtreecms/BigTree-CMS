@@ -8,6 +8,7 @@ import { Field } from "@/components/ui/Field";
 import { inputClass } from "@/components/ui/TextInput";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { UploadButton } from "@/components/ui/UploadButton";
+import { Card } from "@/components/ui/Card";
 
 import { configureApi, type CloudProvider } from "@/api/endpoints/configure";
 
@@ -230,7 +231,7 @@ export const ConfigureCloudStorage = () => {
 				<>
 					{generalError && <ErrorPanel error={new Error(generalError)} />}
 
-					<div className="mb-4 rounded-xl border border-border bg-surface p-4">
+					<Card className="mb-4 p-4">
 						<div className="mb-3 text-[12.5px] font-semibold text-text">
 							Default storage service
 						</div>
@@ -321,7 +322,7 @@ export const ConfigureCloudStorage = () => {
 							Only providers with stored credentials are pickable. Leave the container
 							blank to auto-create a unique bucket.
 						</p>
-					</div>
+					</Card>
 
 					<ProviderCard
 						title="Amazon S3"
@@ -526,7 +527,7 @@ interface ProviderCardProps {
 }
 
 const ProviderCard = ({ title, active, saving, onSave, footnote, children }: ProviderCardProps) => (
-	<div className="mb-3 rounded-xl border border-border bg-surface p-4">
+	<Card className="mb-3 p-4">
 		<div className="mb-3 flex items-center justify-between">
 			<div className="text-[12.5px] font-semibold text-text">{title}</div>
 			{active && (
@@ -551,7 +552,7 @@ const ProviderCard = ({ title, active, saving, onSave, footnote, children }: Pro
 				{saving ? "Saving…" : "Save credentials"}
 			</button>
 		</div>
-	</div>
+	</Card>
 );
 
 const labelFor = (p: CloudProvider) =>

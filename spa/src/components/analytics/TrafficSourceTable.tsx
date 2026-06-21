@@ -1,3 +1,5 @@
+import { Card, CardHeader } from "@/components/ui/Card";
+
 interface TrafficSourceTableProps {
 	title: string;
 	description: string;
@@ -20,11 +22,8 @@ export const TrafficSourceTable = ({
 	const rows = Object.entries(data ?? {}).sort(([, a], [, b]) => b.sessions - a.sessions);
 
 	return (
-		<section className="overflow-hidden rounded-xl border border-border bg-surface">
-			<header className="border-b border-border bg-surface-2 px-4 py-2.5">
-				<h2 className="text-[13px] font-semibold text-text">{title}</h2>
-				<p className="text-[11px] text-text-3">{description}</p>
-			</header>
+		<Card className="overflow-hidden">
+			<CardHeader title={title} description={description} />
 
 			<div className="grid grid-cols-[minmax(0,1fr)_110px_110px] gap-x-3 border-b border-border px-4 py-2 text-[10.5px] font-semibold uppercase tracking-[0.06em] text-text-3">
 				<span>{nameHeader}</span>
@@ -56,6 +55,6 @@ export const TrafficSourceTable = ({
 					))}
 				</ul>
 			)}
-		</section>
+		</Card>
 	);
 };

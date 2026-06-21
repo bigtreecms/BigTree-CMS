@@ -6,6 +6,7 @@ import { AlertTriangle, CheckCircle2, ChevronLeft, Package, Upload } from "lucid
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
 import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
 import { DeveloperSectionNav } from "@/components/developer/DeveloperSectionNav";
 
 import {
@@ -94,7 +95,7 @@ export const ExtensionInstall = () => {
 			)}
 
 			{result ? (
-				<div className="space-y-4 rounded-xl border border-border bg-surface p-5">
+				<Card className="space-y-4 p-5">
 					<div className="flex items-center gap-2 text-success">
 						<CheckCircle2 size={18} />
 						<span className="text-[14px] font-semibold">Installed “{result.id}”</span>
@@ -123,9 +124,9 @@ export const ExtensionInstall = () => {
 							Install another
 						</Button>
 					</div>
-				</div>
+				</Card>
 			) : preview ? (
-				<div className="space-y-4 rounded-xl border border-border bg-surface p-5">
+				<Card className="space-y-4 p-5">
 					<div className="flex items-center gap-2">
 						<Package size={16} className="text-text-3" />
 						<span className="text-[14px] font-semibold text-text">
@@ -183,9 +184,9 @@ export const ExtensionInstall = () => {
 							Choose a different file
 						</Button>
 					</div>
-				</div>
+				</Card>
 			) : (
-				<div className="space-y-4 rounded-xl border border-border bg-surface p-5">
+				<Card className="space-y-4 p-5">
 					<input
 						ref={inputRef}
 						type="file"
@@ -217,7 +218,7 @@ export const ExtensionInstall = () => {
 					>
 						{unpackMutation.isPending ? "Uploading…" : "Upload & review"}
 					</Button>
-				</div>
+				</Card>
 			)}
 		</div>
 	);

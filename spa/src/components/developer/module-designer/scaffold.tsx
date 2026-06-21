@@ -2,6 +2,7 @@ import type { DragEvent, ReactNode } from "react";
 import { GripVertical, Pencil, Plus, Trash, X } from "lucide-react";
 
 import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
 
 /**
  * Presentational chrome shared by every sub-resource tab (actions, forms,
@@ -156,7 +157,7 @@ export const EditorCard = ({
 	saveLabel = "Save",
 	children,
 }: EditorCardProps) => (
-	<div className="rounded-xl border border-border bg-surface">
+	<Card>
 		<div className="flex items-center justify-between border-b border-border px-4 py-2.5">
 			<span className="text-[13px] font-semibold text-text">{title}</span>
 			<button
@@ -177,5 +178,5 @@ export const EditorCard = ({
 				{saving ? "Saving…" : saveLabel}
 			</Button>
 		</div>
-	</div>
+	</Card>
 );

@@ -4,6 +4,7 @@ import { AlertTriangle, CheckCircle2, Download, Loader2 } from "lucide-react";
 
 import { DebugLayout } from "@/components/developer/DebugLayout";
 import { Button } from "@/components/ui/Button";
+import { Card, CardHeader } from "@/components/ui/Card";
 import { inputClass } from "@/components/ui/TextInput";
 import { Field } from "@/components/ui/Field";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
@@ -197,10 +198,10 @@ export const DebugUpgrade = () => {
 
 			{data && (
 				<>
-					<section className="mb-5 overflow-hidden rounded-xl border border-border bg-surface">
-						<header className="border-b border-border bg-surface-2 px-4 py-2.5 text-[11.5px] font-semibold uppercase tracking-[0.06em] text-text-3">
+					<Card className="mb-5 overflow-hidden">
+						<CardHeader className="text-[11.5px] font-semibold uppercase tracking-[0.06em] text-text-3">
 							Current install
-						</header>
+						</CardHeader>
 
 						<dl className="divide-y divide-border">
 							<div className="flex items-center justify-between px-4 py-2.5">
@@ -216,7 +217,7 @@ export const DebugUpgrade = () => {
 								</dd>
 							</div>
 						</dl>
-					</section>
+					</Card>
 
 					{data.config_ignored && (
 						<div className="mb-4 flex items-start gap-2 rounded-lg border border-warn/40 bg-warn-bg/30 p-3 text-[12.5px] text-text-2">
@@ -247,10 +248,10 @@ export const DebugUpgrade = () => {
 					)}
 
 					{(stage === "credentials" || stage === "ftp_root") && (
-						<section className="overflow-hidden rounded-xl border border-border bg-surface">
-							<header className="border-b border-border bg-surface-2 px-4 py-2.5 text-[11.5px] font-semibold uppercase tracking-[0.06em] text-text-3">
+						<Card className="overflow-hidden">
+							<CardHeader className="text-[11.5px] font-semibold uppercase tracking-[0.06em] text-text-3">
 								{method} credentials
-							</header>
+							</CardHeader>
 
 							<div className="p-4">
 								{stage === "credentials" ? (
@@ -320,7 +321,7 @@ export const DebugUpgrade = () => {
 									</form>
 								)}
 							</div>
-						</section>
+						</Card>
 					)}
 
 					{(stage === "migrating" || stage === "complete") && log.length > 0 && (
@@ -366,9 +367,9 @@ const UpdateList = ({ data, onInstall }: UpdateListProps) => {
 	return (
 		<div className="space-y-3">
 			{data.updates.map((update) => (
-				<div
+				<Card
 					key={update.type + update.version}
-					className="flex items-start justify-between gap-4 rounded-xl border border-border bg-surface p-4"
+					className="flex items-start justify-between gap-4 p-4"
 				>
 					<div className="min-w-0">
 						<div className="text-[13.5px] font-semibold text-text">
@@ -396,7 +397,7 @@ const UpdateList = ({ data, onInstall }: UpdateListProps) => {
 							Manual install only
 						</span>
 					)}
-				</div>
+				</Card>
 			))}
 		</div>
 	);

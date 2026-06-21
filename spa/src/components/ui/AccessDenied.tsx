@@ -3,6 +3,7 @@ import { ShieldAlert } from "lucide-react";
 
 import { useAuthStore } from "@/auth/store";
 import { hasLevel } from "@/lib/permissions";
+import { Card } from "@/components/ui/Card";
 
 interface AccessDeniedProps {
 	title?: string;
@@ -20,14 +21,14 @@ export const AccessDenied = ({
 }: AccessDeniedProps) => {
 	return (
 		<div className="mx-auto max-w-screen-2xl px-6 py-12">
-			<div className="mx-auto flex max-w-md flex-col items-center rounded-xl border border-border bg-surface p-8 text-center">
+			<Card className="mx-auto flex max-w-md flex-col items-center p-8 text-center">
 				<div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-danger/10 text-danger">
 					<ShieldAlert size={22} />
 				</div>
 
 				<h1 className="text-[15px] font-semibold tracking-[-0.01em] text-text">{title}</h1>
 				<p className="mt-1 text-[13px] text-text-2">{message}</p>
-			</div>
+			</Card>
 		</div>
 	);
 };

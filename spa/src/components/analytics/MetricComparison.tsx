@@ -1,3 +1,5 @@
+import { Card, CardHeader } from "@/components/ui/Card";
+
 import type { AnalyticsCachePeriod } from "@/api/endpoints/dashboard";
 import {
 	bounceGrowth,
@@ -69,11 +71,8 @@ export const MetricComparison = ({
 	];
 
 	return (
-		<section className="overflow-hidden rounded-xl border border-border bg-surface">
-			<header className="border-b border-border bg-surface-2 px-4 py-2.5">
-				<h2 className="text-[13px] font-semibold text-text">{title}</h2>
-				<p className="text-[11px] text-text-3">{rangeLabel}</p>
-			</header>
+		<Card className="overflow-hidden">
+			<CardHeader title={title} description={rangeLabel} />
 
 			<div className="grid grid-cols-2 gap-px bg-border md:grid-cols-4">
 				{metrics.map((m) => (
@@ -97,6 +96,6 @@ export const MetricComparison = ({
 					</div>
 				))}
 			</div>
-		</section>
+		</Card>
 	);
 };

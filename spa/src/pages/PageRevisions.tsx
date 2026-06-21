@@ -9,6 +9,8 @@ import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { Button } from "@/components/ui/Button";
 import { TextInput } from "@/components/ui/TextInput";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { Card } from "@/components/ui/Card";
 
 import { pagesApi, type PageRevision } from "@/api/endpoints/pages";
 
@@ -99,9 +101,7 @@ export const PageRevisions = () => {
 	if (pageQuery.isLoading || !pageQuery.data) {
 		return (
 			<div className="mx-auto max-w-screen-2xl px-6 py-4">
-				<div className="rounded-xl border border-border bg-surface p-9 text-center text-[13px] text-text-3">
-					Loading…
-				</div>
+				<EmptyState>Loading…</EmptyState>
 			</div>
 		);
 	}
@@ -141,7 +141,7 @@ export const PageRevisions = () => {
 				}
 			/>
 
-			<section className="mb-4 rounded-xl border border-border bg-surface p-4">
+			<Card className="mb-4 p-4">
 				<h2 className="mb-2 text-[12px] font-semibold uppercase tracking-[0.05em] text-text-3">
 					Save current version as revision
 				</h2>
@@ -168,7 +168,7 @@ export const PageRevisions = () => {
 						{saveMutation.isPending ? "Saving…" : "Save revision"}
 					</Button>
 				</div>
-			</section>
+			</Card>
 
 			<RevisionSection
 				title="Saved revisions"

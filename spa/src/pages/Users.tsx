@@ -16,6 +16,7 @@ import { SelectField } from "@/components/ui/SelectField";
 import { SubNav } from "@/components/ui/SubNav";
 import { TextField } from "@/components/ui/TextField";
 import { TextInput } from "@/components/ui/TextInput";
+import { Card } from "@/components/ui/Card";
 import { TimezoneSelect } from "@/components/users/TimezoneSelect";
 import { isDeveloper } from "@/lib/permissions";
 import { toast } from "@/lib/toast";
@@ -391,7 +392,7 @@ export const Users = () => {
 					</div>
 
 					{/* Users Table (CSS grid to match prototype responsive behavior) */}
-					<div className="overflow-hidden rounded-xl border border-border bg-surface">
+					<Card className="overflow-hidden">
 						{/* Head */}
 						<div className="hidden md:grid grid-cols-[minmax(0,1.3fr)_minmax(0,1.7fr)_minmax(0,1.4fr)_140px_74px] items-center gap-4 border-b border-border bg-surface-2 px-3.5 py-2 text-[10.5px] font-semibold uppercase tracking-[0.06em] text-text-3">
 							<button
@@ -507,7 +508,7 @@ export const Users = () => {
 								);
 							})
 						)}
-					</div>
+					</Card>
 
 					{totalPages > 1 && (
 						<div className="mt-3 flex items-center justify-between text-[12px] text-text-3">

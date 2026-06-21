@@ -6,6 +6,7 @@ import { Trash2 } from "lucide-react";
 import { DebugLayout } from "@/components/developer/DebugLayout";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { Button } from "@/components/ui/Button";
+import { Card, CardHeader } from "@/components/ui/Card";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 
 import { systemApi } from "@/api/endpoints/system";
@@ -90,10 +91,10 @@ export const DebugStatus = () => {
 			{data && (
 				<>
 					{data.warnings.length > 0 && (
-						<section className="mb-5 overflow-hidden rounded-xl border border-border bg-surface">
-							<header className="border-b border-border bg-surface-2 px-4 py-2.5 text-[11.5px] font-semibold uppercase tracking-[0.06em] text-text-3">
+						<Card className="mb-5 overflow-hidden">
+							<CardHeader className="text-[11.5px] font-semibold uppercase tracking-[0.06em] text-text-3">
 								Warnings
-							</header>
+							</CardHeader>
 
 							<ul className="divide-y divide-border">
 								{data.warnings.map((w, i) => (
@@ -126,13 +127,13 @@ export const DebugStatus = () => {
 									</li>
 								))}
 							</ul>
-						</section>
+						</Card>
 					)}
 
-					<section className="overflow-hidden rounded-xl border border-border bg-surface">
-						<header className="border-b border-border bg-surface-2 px-4 py-2.5 text-[11.5px] font-semibold uppercase tracking-[0.06em] text-text-3">
+					<Card className="overflow-hidden">
+						<CardHeader className="text-[11.5px] font-semibold uppercase tracking-[0.06em] text-text-3">
 							Server Parameters
-						</header>
+						</CardHeader>
 
 						<ul className="divide-y divide-border">
 							{data.parameters.map((p) => (
@@ -152,7 +153,7 @@ export const DebugStatus = () => {
 								</li>
 							))}
 						</ul>
-					</section>
+					</Card>
 				</>
 			)}
 

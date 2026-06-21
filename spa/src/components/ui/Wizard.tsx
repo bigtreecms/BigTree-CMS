@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { Check } from "lucide-react";
 
 import { Button } from "./Button";
+import { Card } from "@/components/ui/Card";
 
 export interface WizardStep {
 	key: string;
@@ -47,7 +48,7 @@ export const Wizard = ({
 	const canAdvance = step?.canAdvance ?? true;
 
 	return (
-		<div className="rounded-xl border border-border bg-surface">
+		<Card>
 			<div className="border-b border-border bg-surface-2 px-5 py-4">
 				<ol className="flex items-center gap-3">
 					{steps.map((s, idx) => {
@@ -137,6 +138,6 @@ export const Wizard = ({
 					)}
 				</div>
 			</div>
-		</div>
+		</Card>
 	);
 };

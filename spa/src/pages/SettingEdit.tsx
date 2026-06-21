@@ -20,6 +20,7 @@ import { useLock } from "@/hooks/useLock";
 import { useReturnTo } from "@/hooks/useReturnTo";
 import { useDirtyTracker } from "@/hooks/useDirtyTracker";
 import { UnsavedChangesGuard } from "@/components/ui/UnsavedChangesGuard";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { ApiError } from "@/types/api";
 import { toast } from "@/lib/toast";
 import { sanitizeHtml } from "@/lib/html";
@@ -112,9 +113,7 @@ export const SettingEdit = () => {
 	if (settingQuery.isLoading || !settingQuery.data) {
 		return (
 			<div className="mx-auto max-w-screen-md px-6 py-4">
-				<div className="rounded-xl border border-border bg-surface p-9 text-center text-[13px] text-text-3">
-					Loading…
-				</div>
+				<EmptyState>Loading…</EmptyState>
 			</div>
 		);
 	}

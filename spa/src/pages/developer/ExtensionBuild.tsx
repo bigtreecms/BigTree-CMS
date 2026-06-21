@@ -6,6 +6,7 @@ import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
 import { Button } from "@/components/ui/Button";
 import { Checkbox } from "@/components/ui/Checkbox";
+import { Card } from "@/components/ui/Card";
 import { DeveloperSectionNav } from "@/components/developer/DeveloperSectionNav";
 
 import {
@@ -248,7 +249,7 @@ export const ExtensionBuild = () => {
 			)}
 
 			{result ? (
-				<div className="space-y-4 rounded-xl border border-border bg-surface p-5">
+				<Card className="space-y-4 p-5">
 					<div className="flex items-center gap-2 text-text">
 						<Package size={18} className="text-text-3" />
 						<span className="text-[14px] font-semibold">
@@ -271,9 +272,9 @@ export const ExtensionBuild = () => {
 							Done
 						</Button>
 					</div>
-				</div>
+				</Card>
 			) : (
-				<div className="rounded-xl border border-border bg-surface p-5">
+				<Card className="p-5">
 					{step === "details" && (
 						<div className="space-y-4">
 							<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -536,7 +537,7 @@ export const ExtensionBuild = () => {
 							</div>
 						</div>
 					)}
-				</div>
+				</Card>
 			)}
 		</div>
 	);

@@ -15,6 +15,7 @@ import { ApiError } from "@/types/api";
 import { useScrollToFirstError } from "@/hooks/useScrollToFirstError";
 import { useDirtyTracker } from "@/hooks/useDirtyTracker";
 import { UnsavedChangesGuard } from "@/components/ui/UnsavedChangesGuard";
+import { Card } from "@/components/ui/Card";
 import { toast } from "@/lib/toast";
 import { validateRequired } from "@/lib/formValidation";
 
@@ -202,7 +203,7 @@ export const ModuleShellTab = ({ moduleId, module }: ModuleShellTabProps) => {
 					</div>
 				)}
 
-				<div className="space-y-4 rounded-xl border border-border bg-surface p-4">
+				<Card className="space-y-4 p-4">
 					<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
 						<TextInput
 							label="Name"
@@ -274,9 +275,9 @@ export const ModuleShellTab = ({ moduleId, module }: ModuleShellTabProps) => {
 						onChange={(v) => set({ icon: v })}
 						hint="Shown beside the module in the admin navigation."
 					/>
-				</div>
+				</Card>
 
-				<div className="space-y-3 rounded-xl border border-border bg-surface p-4">
+				<Card className="space-y-3 p-4">
 					<CheckboxInput
 						label="Group-based permissions (per-category access)"
 						checked={Boolean(state.gbp.enabled)}
@@ -312,7 +313,7 @@ export const ModuleShellTab = ({ moduleId, module }: ModuleShellTabProps) => {
 							/>
 						</div>
 					)}
-				</div>
+				</Card>
 
 				<div className="flex justify-end">
 					<Button

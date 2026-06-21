@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 
 import { PageHead } from "@/components/shell/PageHead";
+import { EmptyState } from "@/components/ui/EmptyState";
 
 import { modulesApi } from "@/api/endpoints/modules";
 import { useModuleContext } from "@/pages/ModuleLayout";
@@ -38,13 +39,9 @@ export const ModuleView = ({ viewId }: ModuleViewProps) => {
 			/>
 
 			{viewsQuery.isLoading ? (
-				<div className="rounded-xl border border-border bg-surface p-9 text-center text-[13px] text-text-3">
-					Loading view…
-				</div>
+				<EmptyState>Loading view…</EmptyState>
 			) : !view ? (
-				<div className="rounded-xl border border-border bg-surface p-9 text-center text-[13px] text-text-3">
-					That view doesn't exist on this module.
-				</div>
+				<EmptyState>That view doesn't exist on this module.</EmptyState>
 			) : (
 				<ViewRenderer moduleId={moduleId} view={view} />
 			)}

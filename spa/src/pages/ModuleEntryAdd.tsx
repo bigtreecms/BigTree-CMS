@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { PageHead } from "@/components/shell/PageHead";
+import { EmptyState } from "@/components/ui/EmptyState";
 
 import { autoModulesApi } from "@/api/endpoints/auto-modules";
 import { modulesApi } from "@/api/endpoints/modules";
@@ -78,13 +79,9 @@ export const ModuleEntryAdd = ({ formId }: ModuleEntryAddProps) => {
 			<PageHead title={form ? `Add ${form.title}` : "Add entry"} />
 
 			{formsQuery.isLoading ? (
-				<div className="rounded-xl border border-border bg-surface p-9 text-center text-[13px] text-text-3">
-					Loading form…
-				</div>
+				<EmptyState>Loading form…</EmptyState>
 			) : !form ? (
-				<div className="rounded-xl border border-border bg-surface p-9 text-center text-[13px] text-text-3">
-					This module doesn't have a form configured.
-				</div>
+				<EmptyState>This module doesn't have a form configured.</EmptyState>
 			) : (
 				<FormRenderer
 					form={form}

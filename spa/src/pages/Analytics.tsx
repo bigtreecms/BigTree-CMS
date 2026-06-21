@@ -7,6 +7,8 @@ import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { Button } from "@/components/ui/Button";
+import { Card, CardHeader } from "@/components/ui/Card";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { TrafficBars } from "@/components/dashboard/TrafficBars";
 import { MetricComparison } from "@/components/analytics/MetricComparison";
 import { TrafficSourceTable } from "@/components/analytics/TrafficSourceTable";
@@ -93,11 +95,9 @@ export const Analytics = () => {
 			{analyticsQ.error ? (
 				<ErrorPanel error={analyticsQ.error} />
 			) : analyticsQ.isLoading ? (
-				<div className="rounded-xl border border-border bg-surface p-9 text-center text-[13px] text-text-3">
-					Loading…
-				</div>
+				<EmptyState>Loading…</EmptyState>
 			) : !data?.configured ? (
-				<div className="rounded-xl border border-dashed border-border bg-surface-2 p-9 text-center text-[13px] leading-[1.6] text-text-3">
+				<EmptyState dashed className="leading-[1.6]">
 					Google Analytics isn't connected yet. Connect it from{" "}
 					<Link
 						to="/developer/configure/analytics"
@@ -106,21 +106,19 @@ export const Analytics = () => {
 						Developer → Analytics
 					</Link>{" "}
 					to start collecting traffic data.
-				</div>
+				</EmptyState>
 			) : !data.has_cache || !cache ? (
-				<div className="rounded-xl border border-dashed border-border bg-surface-2 p-9 text-center text-[13px] text-text-3">
+				<EmptyState dashed>
 					No traffic data has been cached yet — check back after the next analytics
 					refresh.
-				</div>
+				</EmptyState>
 			) : (
 				<div className="flex flex-col gap-4">
-					<section className="overflow-hidden rounded-xl border border-border bg-surface">
-						<header className="border-b border-border bg-surface-2 px-4 py-2.5">
-							<h2 className="text-[13px] font-semibold text-text">
-								Two-week heads-up
-							</h2>
-							<p className="text-[11px] text-text-3">Visits over the past 14 days</p>
-						</header>
+					<Card className="overflow-hidden">
+						<CardHeader
+							title="Two-week heads-up"
+							description="Visits over the past 14 days"
+						/>
 						<div className="px-4 py-4">
 							{series && series.length > 0 ? (
 								<TrafficBars series={series} />
@@ -130,7 +128,7 @@ export const Analytics = () => {
 								</p>
 							)}
 						</div>
-					</section>
+					</Card>
 
 					<MetricComparison
 						title="Current month"

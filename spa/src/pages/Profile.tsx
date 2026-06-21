@@ -20,6 +20,7 @@ import { toast } from "@/lib/toast";
 import { ApiError } from "@/types/api";
 import { useDirtyTracker } from "@/hooks/useDirtyTracker";
 import { UnsavedChangesGuard } from "@/components/ui/UnsavedChangesGuard";
+import { Card } from "@/components/ui/Card";
 
 /**
  * Self-service profile editor — Account + Security tabs.
@@ -270,7 +271,7 @@ interface SecurityTabProps {
 
 const SecurityTab = ({ me, onChangePassword }: SecurityTabProps) => (
 	<div className="space-y-4">
-		<section className="rounded-xl border border-border bg-surface">
+		<Card>
 			<header className="flex items-center gap-2 border-b border-border bg-surface-2 px-4 py-3">
 				<Key size={14} className="text-text-3" />
 				<h3 className="text-[12.5px] font-semibold uppercase tracking-[0.06em] text-text-3">
@@ -290,7 +291,7 @@ const SecurityTab = ({ me, onChangePassword }: SecurityTabProps) => (
 					Change password
 				</button>
 			</div>
-		</section>
+		</Card>
 
 		<TwoFactorPanel enabled={me.two_factor_enabled} />
 

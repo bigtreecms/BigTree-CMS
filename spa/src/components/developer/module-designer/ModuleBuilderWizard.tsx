@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Plus, Save, Trash } from "lucide-react";
 
 import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
 import {
 	modulesApi,
 	type ModuleScaffoldBody,
@@ -175,7 +176,7 @@ export const ModuleBuilderWizard = () => {
 				</div>
 			)}
 
-			<div className="space-y-4 rounded-xl border border-border bg-surface p-4">
+			<Card className="space-y-4 p-4">
 				<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
 					<TextInput
 						label="Name"
@@ -223,9 +224,9 @@ export const ModuleBuilderWizard = () => {
 					onChange={setIcon}
 					hint="Shown beside the module in the admin navigation."
 				/>
-			</div>
+			</Card>
 
-			<div className="space-y-3 rounded-xl border border-border bg-surface p-4">
+			<Card className="space-y-3 p-4">
 				<div className="flex items-center justify-between">
 					<span className="text-[13px] font-semibold text-text">Fields</span>
 					<button
@@ -284,9 +285,9 @@ export const ModuleBuilderWizard = () => {
 						</li>
 					))}
 				</ul>
-			</div>
+			</Card>
 
-			<div className="space-y-4 rounded-xl border border-border bg-surface p-4">
+			<Card className="space-y-4 p-4">
 				<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
 					<SelectInput
 						label="Landing view type"
@@ -331,7 +332,7 @@ export const ModuleBuilderWizard = () => {
 						onChange={(v) => setActions((p) => ({ ...p, archive: v }))}
 					/>
 				</div>
-			</div>
+			</Card>
 
 			<div className="flex justify-end">
 				<Button

@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { AlertCircle, AlertTriangle, Check, Info, X } from "lucide-react";
 
 import { useToastStore, type ToastItem, type ToastVariant } from "@/lib/toast";
+import { Card } from "@/components/ui/Card";
 
 /**
  * Singleton toast surface mounted once inside <Shell />. Reads the global
@@ -47,7 +48,7 @@ const ToastCard = ({ item }: ToastCardProps) => {
 	const Icon = palette.icon;
 
 	return (
-		<div className="pointer-events-auto flex w-80 items-start gap-3 overflow-hidden rounded-xl border border-border bg-surface shadow-lg">
+		<Card className="pointer-events-auto flex w-80 items-start gap-3 overflow-hidden shadow-lg">
 			<div className={`w-1 self-stretch ${palette.bar}`} />
 
 			<div className="flex flex-1 items-start gap-3 py-3 pr-2">
@@ -87,7 +88,7 @@ const ToastCard = ({ item }: ToastCardProps) => {
 			>
 				<X size={16} />
 			</button>
-		</div>
+		</Card>
 	);
 };
 

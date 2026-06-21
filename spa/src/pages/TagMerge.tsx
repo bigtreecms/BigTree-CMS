@@ -8,6 +8,7 @@ import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
 import { AccessDenied } from "@/components/ui/AccessDenied";
 import { Button } from "@/components/ui/Button";
+import { CardHeader } from "@/components/ui/Card";
 import { TagInput } from "@/components/tags/TagInput";
 
 import { tagsApi, type Tag } from "@/api/endpoints/tags";
@@ -94,9 +95,7 @@ export const TagMerge = () => {
 			/>
 
 			<section className="mb-5 overflow-hidden rounded-lg border border-border bg-surface">
-				<div className="border-b border-border bg-surface-2 px-4 py-2.5 text-[12.5px] font-semibold">
-					Source tags
-				</div>
+				<CardHeader className="text-[12.5px] font-semibold">Source tags</CardHeader>
 
 				<div className="px-4 py-3">
 					{sourceIds.length === 0 ? (
@@ -139,9 +138,7 @@ export const TagMerge = () => {
 			</section>
 
 			<section className="overflow-hidden rounded-lg border border-border bg-surface">
-				<div className="border-b border-border bg-surface-2 px-4 py-2.5 text-[12.5px] font-semibold">
-					Target tag
-				</div>
+				<CardHeader className="text-[12.5px] font-semibold">Target tag</CardHeader>
 
 				<div className="px-4 py-3">
 					<TagInput

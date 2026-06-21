@@ -7,7 +7,9 @@ import { useAuthStore } from "@/auth/store";
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
 import { Button } from "@/components/ui/Button";
+import { Card, CardHeader } from "@/components/ui/Card";
 import { SearchInput } from "@/components/ui/SearchInput";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { iconFor } from "@/lib/legacyIcons";
 import { modulePath } from "@/lib/moduleActions";
 import { isDeveloper } from "@/lib/permissions";
@@ -156,13 +158,11 @@ export const Modules = () => {
 			/>
 
 			{isLoading ? (
-				<div className="rounded-xl border border-border bg-surface p-9 text-center text-[13px] text-text-3">
-					Loading modules…
-				</div>
+				<EmptyState>Loading modules…</EmptyState>
 			) : filtered.length === 0 ? (
-				<div className="rounded-xl border border-dashed border-border bg-transparent p-9 text-center text-[13px] text-text-3">
+				<EmptyState dashed>
 					{trimmedQuery ? `No modules match “${query}”.` : "No modules available."}
-				</div>
+				</EmptyState>
 			) : (
 				<div className="flex flex-col gap-[22px]">
 					{filtered.map((g) => (
@@ -185,19 +185,19 @@ interface ModuleGroupCardProps {
 
 const ModuleGroupCard = ({ title, modules }: ModuleGroupCardProps) => {
 	return (
-		<section className="overflow-hidden rounded-xl border border-border bg-surface">
-			<header className="flex items-baseline gap-2 border-b border-border bg-surface-2 px-4 py-2.5">
+		<Card className="overflow-hidden">
+			<CardHeader className="flex items-baseline gap-2">
 				<h2 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-text">
 					{title}
 				</h2>
 				<span className="text-[11px] tabular-nums text-text-3">{modules.length}</span>
-			</header>
+			</CardHeader>
 			<div className="grid grid-cols-1 gap-2.5 p-3.5 sm:grid-cols-2">
 				{modules.map((module) => (
 					<ModuleTile key={module.id} module={module} />
 				))}
 			</div>
-		</section>
+		</Card>
 	);
 };
 

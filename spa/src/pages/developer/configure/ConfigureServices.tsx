@@ -10,6 +10,7 @@ import { inputClass } from "@/components/ui/TextInput";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { Field } from "@/components/ui/Field";
+import { Card } from "@/components/ui/Card";
 
 import { configureApi, type ServiceCredentials } from "@/api/endpoints/configure";
 
@@ -181,7 +182,7 @@ export const ConfigureServices = () => {
 						const draft = draftFor(s.id);
 
 						return (
-							<div key={s.id} className="rounded-xl border border-border bg-surface">
+							<Card key={s.id}>
 								<div className="flex items-center justify-between p-4">
 									<div className="min-w-0">
 										<div className="text-[13px] font-semibold text-text">
@@ -304,7 +305,7 @@ export const ConfigureServices = () => {
 										</Button>
 									</div>
 								)}
-							</div>
+							</Card>
 						);
 					})}
 				</div>

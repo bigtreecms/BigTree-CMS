@@ -1,5 +1,6 @@
 import { Check, FileText, X } from "lucide-react";
 
+import { Card, CardHeader } from "@/components/ui/Card";
 import type { PendingChange } from "@/api/endpoints/dashboard";
 import type { PendingChangeGroup as Group } from "@/lib/pendingChanges";
 import { isPageChange } from "@/lib/pendingChanges";
@@ -28,8 +29,8 @@ export const PendingChangeGroup = ({
 	onOpen,
 }: PendingChangeGroupProps) => {
 	return (
-		<section className="overflow-hidden rounded-xl border border-border bg-surface">
-			<header className="flex items-center justify-between border-b border-border bg-surface-2 px-4 py-2.5">
+		<Card className="overflow-hidden">
+			<CardHeader className="flex items-center justify-between">
 				<h2 className="flex items-center gap-2 text-[13px] font-semibold text-text">
 					<FileText size={14} className="text-text-3" />
 					{group.label}
@@ -37,7 +38,7 @@ export const PendingChangeGroup = ({
 				<span className="text-[11.5px] tabular-nums text-text-3">
 					{group.changes.length} change{group.changes.length === 1 ? "" : "s"}
 				</span>
-			</header>
+			</CardHeader>
 
 			<ul className="m-0 flex list-none flex-col p-0">
 				{group.changes.map((change) => {
@@ -112,6 +113,6 @@ export const PendingChangeGroup = ({
 					);
 				})}
 			</ul>
-		</section>
+		</Card>
 	);
 };

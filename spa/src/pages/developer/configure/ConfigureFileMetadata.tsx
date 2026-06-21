@@ -6,6 +6,7 @@ import { useScrollToFirstError } from "@/hooks/useScrollToFirstError";
 import { ConfigureLayout } from "@/components/developer/ConfigureLayout";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
 import { ResourceDesigner, type ResourceEntry } from "@/components/developer/ResourceDesigner";
 import { useResourceSettingsValidation } from "@/components/developer/field-settings/useResourceSettingsValidation";
 
@@ -165,7 +166,7 @@ export const ConfigureFileMetadata = () => {
 
 			<div className="space-y-4">
 				{BUCKETS.map((b) => (
-					<div key={b.id} className="rounded-xl border border-border bg-surface p-4">
+					<Card key={b.id} className="p-4">
 						<div className="mb-3">
 							<div className="text-[13px] font-semibold text-text">{b.label}</div>
 							<div className="text-[11.5px] text-text-3">{b.hint}</div>
@@ -178,7 +179,7 @@ export const ConfigureFileMetadata = () => {
 							useCase="settings"
 							settingsErrors={settingsErrors[b.id]}
 						/>
-					</div>
+					</Card>
 				))}
 			</div>
 		</ConfigureLayout>

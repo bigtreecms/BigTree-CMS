@@ -35,6 +35,7 @@ import { ApiError } from "@/types/api";
 import { useReturnTo } from "@/hooks/useReturnTo";
 import { useDirtyTracker } from "@/hooks/useDirtyTracker";
 import { UnsavedChangesGuard } from "@/components/ui/UnsavedChangesGuard";
+import { Card } from "@/components/ui/Card";
 
 type PermsTab = "pages" | "modules" | "files";
 
@@ -281,7 +282,7 @@ export const UserEdit = () => {
 
 			<form id="user-edit-form" onSubmit={submit} className="space-y-6">
 				<div className="grid gap-6 md:grid-cols-2">
-					<div className="rounded-xl border border-border bg-surface">
+					<Card>
 						<div className="rounded-t-xl flex items-center gap-3 border-b border-border bg-surface-2 px-4 py-3">
 							<GravatarAvatar email={form.email ?? targetUser.email} size={40} />
 							<div className="min-w-0">
@@ -331,9 +332,9 @@ export const UserEdit = () => {
 								onChange={(daily_digest) => setForm({ ...form, daily_digest })}
 							/>
 						</div>
-					</div>
+					</Card>
 
-					<div className="rounded-xl border border-border bg-surface">
+					<Card>
 						<div className="rounded-t-xl border-b border-border bg-surface-2 px-4 py-3 text-[13px] font-semibold tracking-[-0.01em]">
 							Personal
 						</div>
@@ -361,11 +362,11 @@ export const UserEdit = () => {
 								/>
 							</label>
 						</div>
-					</div>
+					</Card>
 				</div>
 
 				{canEditLevel && (
-					<div className="rounded-xl border border-border bg-surface">
+					<Card>
 						<div className="rounded-t-xl flex flex-wrap items-center justify-between gap-3 border-b border-border bg-surface-2 px-4 py-3">
 							<div className="min-w-0">
 								<div className="text-[13px] font-semibold tracking-[-0.01em]">
@@ -426,7 +427,7 @@ export const UserEdit = () => {
 								/>
 							)}
 						</div>
-					</div>
+					</Card>
 				)}
 			</form>
 

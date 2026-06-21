@@ -4,6 +4,7 @@ import { Save, ShieldOff } from "lucide-react";
 
 import { DebugLayout } from "@/components/developer/DebugLayout";
 import { Button } from "@/components/ui/Button";
+import { Card, CardHeader } from "@/components/ui/Card";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { inputClass } from "@/components/ui/TextInput";
 import { Field } from "@/components/ui/Field";
@@ -323,11 +324,11 @@ const UnbanPanel = () => {
 	});
 
 	return (
-		<section className="mt-6 overflow-hidden rounded-xl border border-border bg-surface">
-			<header className="flex items-center gap-2 border-b border-border bg-surface-2 px-4 py-2.5 text-[11.5px] font-semibold uppercase tracking-[0.06em] text-text-3">
+		<Card className="mt-6 overflow-hidden">
+			<CardHeader className="flex items-center gap-2 text-[11.5px] font-semibold uppercase tracking-[0.06em] text-text-3">
 				<ShieldOff size={13} />
 				Lift a login ban
-			</header>
+			</CardHeader>
 
 			<div className="grid grid-cols-1 gap-4 p-4 md:grid-cols-2">
 				<form
@@ -389,6 +390,6 @@ const UnbanPanel = () => {
 					</button>
 				</form>
 			</div>
-		</section>
+		</Card>
 	);
 };

@@ -27,6 +27,7 @@ import { validateRequired } from "@/lib/formValidation";
 
 import { SelectField } from "@/components/ui/SelectField";
 import { TextField } from "@/components/ui/TextField";
+import { EmptyState } from "@/components/ui/EmptyState";
 
 const FEED_TYPES = [
 	{ value: "custom", label: "Custom" },
@@ -134,9 +135,7 @@ export const FeedEdit = () => {
 	if (!isAdd && detailQ.isLoading) {
 		return (
 			<div className="mx-auto max-w-screen-lg px-6 py-4">
-				<div className="rounded-xl border border-border bg-surface p-9 text-center text-[13px] text-text-3">
-					Loading…
-				</div>
+				<EmptyState>Loading…</EmptyState>
 			</div>
 		);
 	}

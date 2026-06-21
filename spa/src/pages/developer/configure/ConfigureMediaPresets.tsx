@@ -7,6 +7,7 @@ import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { inputClass } from "@/components/ui/TextInput";
 import { Button } from "@/components/ui/Button";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+import { Card } from "@/components/ui/Card";
 import { MediaPresetEditor } from "@/components/developer/MediaPresetEditor";
 
 import { configureApi, type MediaPreset } from "@/api/endpoints/configure";
@@ -109,7 +110,7 @@ export const ConfigureMediaPresets = () => {
 					const isOpen = expanded === p.id;
 
 					return (
-						<div key={p.id} className="rounded-xl border border-border bg-surface">
+						<Card key={p.id}>
 							<div className="flex items-center gap-2 p-3">
 								<button
 									type="button"
@@ -151,7 +152,7 @@ export const ConfigureMediaPresets = () => {
 									/>
 								</div>
 							)}
-						</div>
+						</Card>
 					);
 				})}
 			</div>

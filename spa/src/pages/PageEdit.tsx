@@ -42,6 +42,7 @@ import { useLock } from "@/hooks/useLock";
 import { useScrollToFirstError } from "@/hooks/useScrollToFirstError";
 import { useDirtyTracker } from "@/hooks/useDirtyTracker";
 import { UnsavedChangesGuard } from "@/components/ui/UnsavedChangesGuard";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { ApiError } from "@/types/api";
 import { canPublishPage } from "@/lib/permissions";
 import { toast } from "@/lib/toast";
@@ -338,9 +339,7 @@ export const PageEdit = () => {
 	if (pageQuery.isLoading || !pageQuery.data || !body) {
 		return (
 			<div className="mx-auto max-w-screen-2xl px-6 py-4">
-				<div className="rounded-xl border border-border bg-surface p-9 text-center text-[13px] text-text-3">
-					Loading page…
-				</div>
+				<EmptyState>Loading page…</EmptyState>
 			</div>
 		);
 	}

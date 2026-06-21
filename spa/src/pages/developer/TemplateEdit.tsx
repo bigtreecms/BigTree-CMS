@@ -11,6 +11,7 @@ import { Checkbox } from "@/components/ui/Checkbox";
 import { SelectField } from "@/components/ui/SelectField";
 import { TextField } from "@/components/ui/TextField";
 import { UnsavedChangesGuard } from "@/components/ui/UnsavedChangesGuard";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { useDirtyTracker } from "@/hooks/useDirtyTracker";
 
 import { DeveloperSectionNav } from "@/components/developer/DeveloperSectionNav";
@@ -122,9 +123,7 @@ export const TemplateEdit = () => {
 	if (!isAdd && detailQ.isLoading) {
 		return (
 			<div className="mx-auto max-w-screen-lg px-6 py-4">
-				<div className="rounded-xl border border-border bg-surface p-9 text-center text-[13px] text-text-3">
-					Loading…
-				</div>
+				<EmptyState>Loading…</EmptyState>
 			</div>
 		);
 	}

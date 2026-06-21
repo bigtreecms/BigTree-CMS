@@ -7,6 +7,7 @@ import { inputClass } from "@/components/ui/TextInput";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { Field } from "@/components/ui/Field";
 import { UploadButton } from "@/components/ui/UploadButton";
+import { Card } from "@/components/ui/Card";
 
 import { type AnalyticsStatus, configureApi } from "@/api/endpoints/configure";
 
@@ -74,7 +75,7 @@ export const ConfigureAnalytics = () => {
 			{detailQ.error && <ErrorPanel error={detailQ.error} />}
 
 			{detailQ.data && (
-				<div className="rounded-xl border border-border bg-surface p-4">
+				<Card className="p-4">
 					{detailQ.data.verified ? (
 						<>
 							<div className="mb-3 flex items-center gap-2 text-[13px] font-semibold text-accent">
@@ -186,7 +187,7 @@ export const ConfigureAnalytics = () => {
 							)}
 						</>
 					)}
-				</div>
+				</Card>
 			)}
 
 			{confirmDisconnect && (

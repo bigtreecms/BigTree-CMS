@@ -2,6 +2,7 @@ import type { CSSProperties, ReactNode } from "react";
 import { ChevronDown, ChevronUp, GripVertical } from "lucide-react";
 
 import { useDragReorder } from "@/hooks/useDragReorder";
+import { Card } from "@/components/ui/Card";
 
 export interface DataTableColumn<Row> {
 	/** Used as the React key and as the sort identifier when `sortable` is on. */
@@ -97,7 +98,7 @@ export const DataTable = <Row,>({
 	};
 
 	return (
-		<div className="overflow-hidden rounded-xl border border-border bg-surface">
+		<Card className="overflow-hidden">
 			<div
 				className="hidden md:grid md:grid-cols-[var(--dt-cols)] items-center gap-4 border-b border-border bg-surface-2 px-3.5 py-2 text-[10.5px] font-semibold uppercase tracking-[0.06em] text-text-3"
 				style={colsStyle}
@@ -217,7 +218,7 @@ export const DataTable = <Row,>({
 					);
 				})
 			)}
-		</div>
+		</Card>
 	);
 };
 

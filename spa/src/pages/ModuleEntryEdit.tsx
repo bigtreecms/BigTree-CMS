@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { PageHead } from "@/components/shell/PageHead";
 import { LockBanner } from "@/components/ui/LockBanner";
+import { EmptyState } from "@/components/ui/EmptyState";
 
 import { autoModulesApi } from "@/api/endpoints/auto-modules";
 import { modulesApi } from "@/api/endpoints/modules";
@@ -129,13 +130,9 @@ export const ModuleEntryEdit = ({ formId, entryId }: ModuleEntryEditProps) => {
 			)}
 
 			{isLoading ? (
-				<div className="rounded-xl border border-border bg-surface p-9 text-center text-[13px] text-text-3">
-					Loading entry…
-				</div>
+				<EmptyState>Loading entry…</EmptyState>
 			) : !form ? (
-				<div className="rounded-xl border border-border bg-surface p-9 text-center text-[13px] text-text-3">
-					This module doesn't have a form configured.
-				</div>
+				<EmptyState>This module doesn't have a form configured.</EmptyState>
 			) : (
 				<FormRenderer
 					form={form}
