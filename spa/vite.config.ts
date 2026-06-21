@@ -110,6 +110,14 @@ export default defineConfig(({ mode }) => {
 				"@": path.resolve(__dirname, "src"),
 			},
 		},
+		// Pre-bundle the Radix deps that Storybook stories pull in (ConfirmDialog /
+		// SlideOver use Dialog, TabbedEditor uses Tabs). Without this, a cold
+		// `test-storybook` run optimizes them mid-run and reloads the browser,
+		// which flakes the Vitest browser project. No-op for the app dev server,
+		// which would optimize them anyway.
+		optimizeDeps: {
+			include: ["@radix-ui/react-dialog", "@radix-ui/react-tabs"],
+		},
 		server: {
 			port: 5173,
 			strictPort: true,

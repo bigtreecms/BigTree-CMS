@@ -1,0 +1,62 @@
+import type { Meta, StoryObj } from "@storybook/react-vite";
+
+import { AuthCard } from "./AuthCard";
+import { Button } from "./Button";
+import { Field } from "./Field";
+import { TextInput } from "./TextInput";
+
+/**
+ * Centered card layout for the unauthenticated screens (forgot / reset
+ * password). Mirrors the login framing so the flows feel like one surface. It
+ * fills the viewport (`min-h-screen`, its own `bg-bg`).
+ */
+const meta = {
+	title: "UI/AuthCard",
+	component: AuthCard,
+	tags: ["autodocs"],
+	parameters: { layout: "fullscreen" },
+	args: {
+		title: "Reset your password",
+		subtitle: "Enter a new password for your account.",
+		children: null,
+	},
+	render: (args) => (
+		<AuthCard {...args}>
+			<form className="flex flex-col gap-4">
+				<Field label="New password">
+					<TextInput type="password" placeholder="••••••••" />
+				</Field>
+				<Field label="Confirm password">
+					<TextInput type="password" placeholder="••••••••" />
+				</Field>
+				<Button variant="primary" size="lg" type="submit" className="w-full justify-center">
+					Set new password
+				</Button>
+			</form>
+		</AuthCard>
+	),
+} satisfies Meta<typeof AuthCard>;
+
+export default meta;
+type Story = StoryObj<typeof meta>;
+
+export const Default: Story = {};
+
+export const ForgotPassword: Story = {
+	args: {
+		title: "Forgot your password?",
+		subtitle: "We'll email you a reset link.",
+	},
+	render: (args) => (
+		<AuthCard {...args}>
+			<form className="flex flex-col gap-4">
+				<Field label="Email address">
+					<TextInput type="email" placeholder="you@example.com" />
+				</Field>
+				<Button variant="primary" size="lg" type="submit" className="w-full justify-center">
+					Send reset link
+				</Button>
+			</form>
+		</AuthCard>
+	),
+};
