@@ -5,7 +5,7 @@ import { AlertTriangle, CheckCircle2, Download, Loader2 } from "lucide-react";
 import { DebugLayout } from "@/components/developer/DebugLayout";
 import { Button } from "@/components/ui/Button";
 import { Card, CardHeader } from "@/components/ui/Card";
-import { inputClass } from "@/components/ui/TextInput";
+import { TextInput } from "@/components/ui/TextInput";
 import { Field } from "@/components/ui/Field";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 
@@ -267,17 +267,15 @@ export const DebugUpgrade = () => {
 											<code> /backups/</code> first.
 										</p>
 										<Field label={`${method} username`}>
-											<input
-												className={inputClass}
+											<TextInput
 												autoComplete="off"
 												value={username}
 												onChange={(e) => setUsername(e.target.value)}
 											/>
 										</Field>
 										<Field label={`${method} password`}>
-											<input
+											<TextInput
 												type="password"
-												className={inputClass}
 												autoComplete="off"
 												value={password}
 												onChange={(e) => setPassword(e.target.value)}
@@ -305,8 +303,7 @@ export const DebugUpgrade = () => {
 											</p>
 										)}
 										<Field label={`${method} path`}>
-											<input
-												className={inputClass}
+											<TextInput
 												value={ftpRoot}
 												onChange={(e) => setFtpRoot(e.target.value)}
 											/>

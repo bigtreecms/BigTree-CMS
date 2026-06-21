@@ -56,17 +56,23 @@
 	/* Text hierarchy (1 = primary, 4 = quaternary/disabled) */
 	--color-text: oklch(20% 0.01 250);
 	--color-text-2: oklch(40% 0.012 250);
-	--color-text-3: oklch(58% 0.012 250);
+	/* text-3 darkened 58%→52% so muted text clears WCAG AA (4.5:1) on every
+	   light surface incl. the danger-bg tint. Dark mode keeps its own value below. */
+	--color-text-3: oklch(52% 0.012 250);
 	--color-text-4: oklch(70% 0.01 250);
 
-	/* Status colors */
-	--color-success: oklch(55% 0.13 150);
+	/* Status colors. The foreground tones (success/warn/info) are darkened from
+	   their original lightness so `text-X` on the matching `-bg` soft tint (Badge,
+	   EmulationBanner, Toaster icons, status text) clears WCAG AA (4.5:1) in light
+	   mode. Dark mode restores the lighter originals below — there the same tones
+	   sit on dark tints and need to stay light. danger already passed. */
+	--color-success: oklch(52% 0.13 150);
 	--color-success-bg: oklch(96% 0.04 150);
-	--color-warn: oklch(70% 0.14 75);
+	--color-warn: oklch(52% 0.14 75);
 	--color-warn-bg: oklch(96% 0.04 75);
 	--color-danger: oklch(55% 0.18 25);
 	--color-danger-bg: oklch(96% 0.04 25);
-	--color-info: oklch(55% 0.13 240);
+	--color-info: oklch(52% 0.13 240);
 	--color-info-bg: oklch(96% 0.03 240);
 
 	/* Shadows — subtle, professional. The 0.5px hairline trick is what
@@ -99,6 +105,12 @@
 	--color-accent-soft: oklch(28% 0.05 var(--accent-h));
 	--color-accent-soft-2: oklch(34% 0.07 var(--accent-h));
 	--color-accent-fg: oklch(12% 0.02 var(--accent-h));
+
+	/* Restore the lighter status tones for dark mode — the @theme block darkened
+	   them for light-mode AA, but on these dark tints the text must stay light. */
+	--color-success: oklch(55% 0.13 150);
+	--color-warn: oklch(70% 0.14 75);
+	--color-info: oklch(55% 0.13 240);
 
 	--color-success-bg: oklch(28% 0.06 150);
 	--color-warn-bg: oklch(28% 0.06 75);

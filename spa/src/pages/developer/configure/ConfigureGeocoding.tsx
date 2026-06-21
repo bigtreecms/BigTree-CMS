@@ -4,7 +4,8 @@ import { Save } from "lucide-react";
 
 import { ConfigureLayout } from "@/components/developer/ConfigureLayout";
 import { Button } from "@/components/ui/Button";
-import { inputClass } from "@/components/ui/TextInput";
+import { Select } from "@/components/ui/Select";
+import { TextInput } from "@/components/ui/TextInput";
 import { Field } from "@/components/ui/Field";
 import { FormShell } from "@/components/ui/FormShell";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
@@ -125,7 +126,7 @@ export const ConfigureGeocoding = () => {
 					{generalError && <ErrorPanel error={new Error(generalError)} />}
 
 					<Field label="Service">
-						<select
+						<Select
 							value={draft.service}
 							onChange={(e) =>
 								setDraft({
@@ -133,22 +134,20 @@ export const ConfigureGeocoding = () => {
 									service: e.target.value as GeocodingServiceId,
 								})
 							}
-							className={inputClass}
 						>
 							{SERVICES.map((s) => (
 								<option key={s.id} value={s.id}>
 									{s.label}
 								</option>
 							))}
-						</select>
+						</Select>
 						<p className="mt-1 text-[11.5px] text-text-3">{active.help}</p>
 					</Field>
 
 					<div className="mt-4 space-y-3">
 						{draft.service === "google" && (
 							<Field label="Google Maps API key">
-								<input
-									className={inputClass}
+								<TextInput
 									value={draft.google_key}
 									onChange={(e) =>
 										setDraft({ ...draft, google_key: e.target.value })
@@ -159,8 +158,7 @@ export const ConfigureGeocoding = () => {
 
 						{draft.service === "bing" && (
 							<Field label="Bing Maps API key">
-								<input
-									className={inputClass}
+								<TextInput
 									value={draft.bing_key}
 									onChange={(e) =>
 										setDraft({ ...draft, bing_key: e.target.value })
@@ -171,8 +169,7 @@ export const ConfigureGeocoding = () => {
 
 						{draft.service === "mapquest" && (
 							<Field label="MapQuest API key">
-								<input
-									className={inputClass}
+								<TextInput
 									value={draft.mapquest_key}
 									onChange={(e) =>
 										setDraft({ ...draft, mapquest_key: e.target.value })

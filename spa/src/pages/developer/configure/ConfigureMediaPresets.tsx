@@ -4,7 +4,7 @@ import { ChevronDown, ChevronRight, Plus, Save, Trash } from "lucide-react";
 
 import { ConfigureLayout } from "@/components/developer/ConfigureLayout";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
-import { inputClass } from "@/components/ui/TextInput";
+import { TextInput } from "@/components/ui/TextInput";
 import { Button } from "@/components/ui/Button";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { Card } from "@/components/ui/Card";
@@ -126,8 +126,7 @@ export const ConfigureMediaPresets = () => {
 									)}
 								</button>
 
-								<input
-									className={inputClass}
+								<TextInput
 									value={(p.name as string) ?? ""}
 									placeholder="Preset name"
 									onChange={(e) => update(p.id, { name: e.target.value })}

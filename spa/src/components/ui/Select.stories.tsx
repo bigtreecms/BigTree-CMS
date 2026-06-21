@@ -11,6 +11,7 @@ const meta = {
 	title: "UI/Form/Select",
 	component: Select,
 	tags: ["autodocs"],
+	args: { "aria-label": "Status" },
 	decorators: [
 		(Story) => (
 			<div style={{ maxWidth: 320 }}>

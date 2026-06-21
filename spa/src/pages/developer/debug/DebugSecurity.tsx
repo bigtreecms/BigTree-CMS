@@ -6,7 +6,8 @@ import { DebugLayout } from "@/components/developer/DebugLayout";
 import { Button } from "@/components/ui/Button";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { Checkbox } from "@/components/ui/Checkbox";
-import { inputClass } from "@/components/ui/TextInput";
+import { TextArea } from "@/components/ui/TextArea";
+import { TextInput } from "@/components/ui/TextInput";
 import { Field } from "@/components/ui/Field";
 import { FormShell } from "@/components/ui/FormShell";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
@@ -221,8 +222,7 @@ export const DebugSecurity = () => {
 
 								<div className="mt-3 max-w-[220px]">
 									<Field label="Minimum password length (0 = no minimum)">
-										<input
-											className={inputClass}
+										<TextInput
 											value={String(draft.password.length)}
 											onChange={(e) => setPassword("length", e.target.value)}
 										/>
@@ -252,8 +252,8 @@ export const DebugSecurity = () => {
 
 						<div className="space-y-5">
 							<Field label="Allowed IP ranges">
-								<textarea
-									className={`${inputClass} h-24 resize-y font-mono text-[12px]`}
+								<TextArea
+									className="h-24 font-mono text-[12px]"
 									placeholder="e.g. 192.168.1.1, 192.168.1.128"
 									value={draft.allowed_ips}
 									onChange={(e) =>
@@ -269,8 +269,8 @@ export const DebugSecurity = () => {
 							</Field>
 
 							<Field label="Permanently banned IPs">
-								<textarea
-									className={`${inputClass} h-24 resize-y font-mono text-[12px]`}
+								<TextArea
+									className="h-24 font-mono text-[12px]"
 									value={draft.banned_ips}
 									onChange={(e) =>
 										setDraft((d) =>
@@ -343,8 +343,7 @@ const UnbanPanel = () => {
 				>
 					<div className="flex-1">
 						<Field label="Unban IP address">
-							<input
-								className={inputClass}
+							<TextInput
 								placeholder="e.g. 203.0.113.5"
 								value={ip}
 								onChange={(e) => setIp(e.target.value)}
@@ -373,8 +372,7 @@ const UnbanPanel = () => {
 				>
 					<div className="flex-1">
 						<Field label="Unban user (ID)">
-							<input
-								className={inputClass}
+							<TextInput
 								placeholder="e.g. 42"
 								value={userId}
 								onChange={(e) => setUserId(e.target.value)}

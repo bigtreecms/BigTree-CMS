@@ -4,7 +4,8 @@ import { Save } from "lucide-react";
 
 import { ConfigureLayout } from "@/components/developer/ConfigureLayout";
 import { Button } from "@/components/ui/Button";
-import { inputClass } from "@/components/ui/TextInput";
+import { Select } from "@/components/ui/Select";
+import { TextInput } from "@/components/ui/TextInput";
 import { Field } from "@/components/ui/Field";
 import { FormShell } from "@/components/ui/FormShell";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
@@ -215,19 +216,18 @@ export const ConfigurePaymentGateway = () => {
 					{generalError && <ErrorPanel error={new Error(generalError)} />}
 
 					<Field label="Gateway">
-						<select
+						<Select
 							value={draft.service}
 							onChange={(e) =>
 								setDraft({ ...draft, service: e.target.value as PaymentGatewayId })
 							}
-							className={inputClass}
 						>
 							{GATEWAYS.map((g) => (
 								<option key={g.id} value={g.id}>
 									{g.label}
 								</option>
 							))}
-						</select>
+						</Select>
 					</Field>
 
 					{fields.length > 0 && (
@@ -240,8 +240,7 @@ export const ConfigurePaymentGateway = () => {
 								if (f.type === "select" && f.options) {
 									return (
 										<Field key={f.key} label={f.label}>
-											<select
-												className={inputClass}
+											<Select
 												value={value}
 												onChange={(e) => onChange(f.key, e.target.value)}
 											>
@@ -250,16 +249,15 @@ export const ConfigurePaymentGateway = () => {
 														{o.label}
 													</option>
 												))}
-											</select>
+											</Select>
 										</Field>
 									);
 								}
 
 								return (
 									<Field key={f.key} label={f.label}>
-										<input
+										<TextInput
 											type={masked ? "password" : "text"}
-											className={inputClass}
 											value={value}
 											placeholder={
 												masked && isSet

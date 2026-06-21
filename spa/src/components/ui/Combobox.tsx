@@ -165,27 +165,31 @@ export const Combobox = <V extends string | number>({
 				aria-haspopup="listbox"
 				aria-expanded={open}
 				disabled={disabled}
-				className="flex w-full items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-left text-[13px] focus:outline-none focus:ring-1 focus:ring-accent-ring disabled:opacity-60"
+				className="flex w-full items-center rounded-md border border-border bg-surface py-1.5 pl-3 pr-8 text-left text-[13px] focus:outline-none focus:ring-1 focus:ring-accent-ring disabled:opacity-60"
 				onClick={() => setOpen((prev) => !prev)}
 			>
 				<span className={`min-w-0 flex-1 truncate ${value ? "text-text" : "text-text-3"}`}>
 					{value ? value.label : placeholder}
 				</span>
-
-				{clearable && value && !disabled ? (
-					<span
-						role="button"
-						tabIndex={-1}
-						className="rounded p-0.5 text-text-3 hover:bg-hover hover:text-text"
-						onClick={clear}
-						aria-label="Clear selection"
-					>
-						<X size={13} />
-					</span>
-				) : (
-					<ChevronsUpDown size={13} className="shrink-0 text-text-3" />
-				)}
 			</button>
+
+			{/* Trailing control sits as a sibling, not nested inside the trigger
+			    button — interactive controls must not be nested (a11y). */}
+			{clearable && value && !disabled ? (
+				<button
+					type="button"
+					className="absolute right-1.5 top-1/2 -translate-y-1/2 rounded p-0.5 text-text-3 hover:bg-hover hover:text-text"
+					onClick={clear}
+					aria-label="Clear selection"
+				>
+					<X size={13} />
+				</button>
+			) : (
+				<ChevronsUpDown
+					size={13}
+					className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-text-3"
+				/>
+			)}
 
 			{open && (
 				<div className="absolute z-20 mt-1 w-full overflow-hidden rounded-md border border-border bg-surface shadow-lg">

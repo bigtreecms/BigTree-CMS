@@ -5,7 +5,8 @@ import { RefreshCw, Save } from "lucide-react";
 
 import { ConfigureLayout } from "@/components/developer/ConfigureLayout";
 import { Field } from "@/components/ui/Field";
-import { inputClass } from "@/components/ui/TextInput";
+import { Select } from "@/components/ui/Select";
+import { TextInput } from "@/components/ui/TextInput";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { UploadButton } from "@/components/ui/UploadButton";
 import { Card } from "@/components/ui/Card";
@@ -238,8 +239,7 @@ export const ConfigureCloudStorage = () => {
 						<div className="flex flex-col gap-3 sm:flex-row sm:items-end">
 							<div className="sm:flex-1">
 								<Field label="Service">
-									<select
-										className={inputClass}
+									<Select
 										value={defaultService}
 										onChange={(e) => setDefaultService(e.target.value)}
 									>
@@ -253,14 +253,13 @@ export const ConfigureCloudStorage = () => {
 										{detailQ.data.providers.google.active && (
 											<option value="google">Google Cloud Storage</option>
 										)}
-									</select>
+									</Select>
 								</Field>
 							</div>
 
 							<div className="sm:flex-1">
 								<Field label="Container / bucket (optional)">
-									<input
-										className={inputClass}
+									<TextInput
 										placeholder="leave blank to auto-create"
 										value={defaultContainer}
 										onChange={(e) => setDefaultContainer(e.target.value)}
@@ -282,8 +281,7 @@ export const ConfigureCloudStorage = () => {
 						{defaultService === "amazon" && (
 							<div className="mt-3 grid grid-cols-1 gap-3 border-t border-border pt-3 md:grid-cols-3">
 								<Field label="CloudFront distribution (optional)">
-									<input
-										className={inputClass}
+									<TextInput
 										value={cloudfront.distribution}
 										onChange={(e) =>
 											setCloudfront((c) => ({
@@ -294,8 +292,7 @@ export const ConfigureCloudStorage = () => {
 									/>
 								</Field>
 								<Field label="CloudFront domain (optional)">
-									<input
-										className={inputClass}
+									<TextInput
 										placeholder="d111111abcdef8.cloudfront.net"
 										value={cloudfront.domain}
 										onChange={(e) =>
@@ -304,8 +301,7 @@ export const ConfigureCloudStorage = () => {
 									/>
 								</Field>
 								<Field label="Serve CloudFront over SSL">
-									<select
-										className={inputClass}
+									<Select
 										value={cloudfront.ssl}
 										onChange={(e) =>
 											setCloudfront((c) => ({ ...c, ssl: e.target.value }))
@@ -313,7 +309,7 @@ export const ConfigureCloudStorage = () => {
 									>
 										<option value="">No</option>
 										<option value="on">Yes</option>
-									</select>
+									</Select>
 								</Field>
 							</div>
 						)}
@@ -353,8 +349,7 @@ export const ConfigureCloudStorage = () => {
 						}
 					>
 						<Field label="AWS region">
-							<select
-								className={inputClass}
+							<Select
 								value={(drafts.amazon.region as string) ?? "us-east-1"}
 								onChange={(e) => update("amazon", "region", e.target.value)}
 							>
@@ -363,21 +358,19 @@ export const ConfigureCloudStorage = () => {
 										{r.label}
 									</option>
 								))}
-							</select>
+							</Select>
 						</Field>
 
 						<Field label="Access key ID">
-							<input
-								className={inputClass}
+							<TextInput
 								value={(drafts.amazon.key as string) ?? ""}
 								onChange={(e) => update("amazon", "key", e.target.value)}
 							/>
 						</Field>
 
 						<Field label="Secret access key">
-							<input
+							<TextInput
 								type="password"
-								className={inputClass}
 								value={(drafts.amazon.secret as string) ?? ""}
 								placeholder={
 									drafts.amazon.secret_set
@@ -402,9 +395,8 @@ export const ConfigureCloudStorage = () => {
 						saving={saveProviderMutation.isPending}
 					>
 						<Field label="API key">
-							<input
+							<TextInput
 								type="password"
-								className={inputClass}
 								value={(drafts.rackspace.api_key as string) ?? ""}
 								placeholder={
 									drafts.rackspace.api_key_set ? "•••••••• (stored)" : ""
@@ -414,15 +406,13 @@ export const ConfigureCloudStorage = () => {
 							/>
 						</Field>
 						<Field label="Username">
-							<input
-								className={inputClass}
+							<TextInput
 								value={(drafts.rackspace.username as string) ?? ""}
 								onChange={(e) => update("rackspace", "username", e.target.value)}
 							/>
 						</Field>
 						<Field label="Region">
-							<select
-								className={inputClass}
+							<Select
 								value={(drafts.rackspace.region as string) ?? "ORD"}
 								onChange={(e) => update("rackspace", "region", e.target.value)}
 							>
@@ -431,7 +421,7 @@ export const ConfigureCloudStorage = () => {
 										{r.label}
 									</option>
 								))}
-							</select>
+							</Select>
 						</Field>
 					</ProviderCard>
 
@@ -456,23 +446,20 @@ export const ConfigureCloudStorage = () => {
 						}
 					>
 						<Field label="Project ID">
-							<input
-								className={inputClass}
+							<TextInput
 								value={(drafts.google.project as string) ?? ""}
 								onChange={(e) => update("google", "project", e.target.value)}
 							/>
 						</Field>
 						<Field label="Client ID">
-							<input
-								className={inputClass}
+							<TextInput
 								value={(drafts.google.key as string) ?? ""}
 								onChange={(e) => update("google", "key", e.target.value)}
 							/>
 						</Field>
 						<Field label="Client secret">
-							<input
+							<TextInput
 								type="password"
-								className={inputClass}
 								value={(drafts.google.client_secret as string) ?? ""}
 								placeholder={
 									drafts.google.client_secret_set ? "•••••••• (stored)" : ""
@@ -482,8 +469,7 @@ export const ConfigureCloudStorage = () => {
 							/>
 						</Field>
 						<Field label="Certificate email (optional)">
-							<input
-								className={inputClass}
+							<TextInput
 								value={(drafts.google.certificate_email as string) ?? ""}
 								onChange={(e) =>
 									update("google", "certificate_email", e.target.value)

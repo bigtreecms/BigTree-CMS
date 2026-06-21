@@ -6,7 +6,7 @@ import { CheckCircle2, ChevronDown, ChevronRight, Unplug } from "lucide-react";
 import { ConfigureLayout } from "@/components/developer/ConfigureLayout";
 import { Button } from "@/components/ui/Button";
 import { Checkbox } from "@/components/ui/Checkbox";
-import { inputClass } from "@/components/ui/TextInput";
+import { TextInput } from "@/components/ui/TextInput";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { Field } from "@/components/ui/Field";
@@ -236,8 +236,7 @@ export const ConfigureServices = () => {
 									<div className="space-y-3 border-t border-border p-4">
 										<div className="grid grid-cols-1 gap-3 md:grid-cols-2">
 											<Field label={s.keyLabel}>
-												<input
-													className={inputClass}
+												<TextInput
 													value={draft.key}
 													onChange={(e) =>
 														setDraft(s.id, { key: e.target.value })
@@ -246,9 +245,8 @@ export const ConfigureServices = () => {
 												/>
 											</Field>
 											<Field label={s.secretLabel}>
-												<input
+												<TextInput
 													type="password"
-													className={inputClass}
 													value={draft.secret}
 													placeholder={
 														entry.has_secret
@@ -265,8 +263,7 @@ export const ConfigureServices = () => {
 
 										{entry.uses_scope && (
 											<Field label="Scope">
-												<input
-													className={inputClass}
+												<TextInput
 													value={draft.scope ?? ""}
 													onChange={(e) =>
 														setDraft(s.id, { scope: e.target.value })

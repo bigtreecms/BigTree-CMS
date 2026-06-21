@@ -4,7 +4,8 @@ import { Save } from "lucide-react";
 
 import { ConfigureLayout } from "@/components/developer/ConfigureLayout";
 import { Button } from "@/components/ui/Button";
-import { inputClass } from "@/components/ui/TextInput";
+import { Select } from "@/components/ui/Select";
+import { TextInput } from "@/components/ui/TextInput";
 import { Field } from "@/components/ui/Field";
 import { FormShell } from "@/components/ui/FormShell";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
@@ -121,17 +122,16 @@ export const ConfigureEmail = () => {
 					{generalError && <ErrorPanel error={new Error(generalError)} />}
 
 					<Field label="Service">
-						<select
+						<Select
 							value={draft.service}
 							onChange={(e) => onChangeService(e.target.value as EmailServiceId)}
-							className={inputClass}
 						>
 							{SERVICES.map((s) => (
 								<option key={s.id} value={s.id}>
 									{s.label}
 								</option>
 							))}
-						</select>
+						</Select>
 						<p className="mt-1 text-[11.5px] text-text-3">{active.blurb}</p>
 					</Field>
 
@@ -139,53 +139,47 @@ export const ConfigureEmail = () => {
 						{draft.service === "smtp" && (
 							<>
 								<Field label="Hostname">
-									<input
-										className={inputClass}
+									<TextInput
 										value={draft.settings.smtp_host ?? ""}
 										onChange={(e) => onChange("smtp_host", e.target.value)}
 									/>
 								</Field>
 								<Field label="Port">
-									<input
-										className={inputClass}
+									<TextInput
 										value={draft.settings.smtp_port ?? ""}
 										onChange={(e) => onChange("smtp_port", e.target.value)}
 										placeholder="25"
 									/>
 								</Field>
 								<Field label="Username">
-									<input
-										className={inputClass}
+									<TextInput
 										value={draft.settings.smtp_user ?? ""}
 										onChange={(e) => onChange("smtp_user", e.target.value)}
 									/>
 								</Field>
 								<Field label="Password">
-									<input
+									<TextInput
 										type="password"
-										className={inputClass}
 										value={draft.settings.smtp_password ?? ""}
 										onChange={(e) => onChange("smtp_password", e.target.value)}
 									/>
 								</Field>
 								<Field label="Security">
-									<select
-										className={inputClass}
+									<Select
 										value={draft.settings.smtp_security ?? ""}
 										onChange={(e) => onChange("smtp_security", e.target.value)}
 									>
 										<option value="">Plain text</option>
 										<option value="ssl">SSL</option>
 										<option value="tls">TLS</option>
-									</select>
+									</Select>
 								</Field>
 							</>
 						)}
 
 						{draft.service === "mandrill" && (
 							<Field label="API key">
-								<input
-									className={inputClass}
+								<TextInput
 									value={draft.settings.mandrill_key ?? ""}
 									onChange={(e) => onChange("mandrill_key", e.target.value)}
 								/>
@@ -195,15 +189,13 @@ export const ConfigureEmail = () => {
 						{draft.service === "mailgun" && (
 							<>
 								<Field label="API key">
-									<input
-										className={inputClass}
+									<TextInput
 										value={draft.settings.mailgun_key ?? ""}
 										onChange={(e) => onChange("mailgun_key", e.target.value)}
 									/>
 								</Field>
 								<Field label="Domain">
-									<input
-										className={inputClass}
+									<TextInput
 										placeholder="e.g. mg.example.com"
 										value={draft.settings.mailgun_domain ?? ""}
 										onChange={(e) => onChange("mailgun_domain", e.target.value)}
@@ -214,8 +206,7 @@ export const ConfigureEmail = () => {
 
 						{draft.service === "postmark" && (
 							<Field label="API key">
-								<input
-									className={inputClass}
+								<TextInput
 									value={draft.settings.postmark_key ?? ""}
 									onChange={(e) => onChange("postmark_key", e.target.value)}
 								/>
@@ -225,8 +216,7 @@ export const ConfigureEmail = () => {
 						{draft.service === "sendgrid" && (
 							<>
 								<Field label="API user">
-									<input
-										className={inputClass}
+									<TextInput
 										value={draft.settings.sendgrid_api_user ?? ""}
 										onChange={(e) =>
 											onChange("sendgrid_api_user", e.target.value)
@@ -234,8 +224,7 @@ export const ConfigureEmail = () => {
 									/>
 								</Field>
 								<Field label="API key">
-									<input
-										className={inputClass}
+									<TextInput
 										value={draft.settings.sendgrid_api_key ?? ""}
 										onChange={(e) =>
 											onChange("sendgrid_api_key", e.target.value)
@@ -246,8 +235,7 @@ export const ConfigureEmail = () => {
 						)}
 
 						<Field label='BigTree "From" address'>
-							<input
-								className={inputClass}
+							<TextInput
 								placeholder="no-reply@example.com"
 								value={draft.settings.bigtree_from ?? ""}
 								onChange={(e) => onChange("bigtree_from", e.target.value)}

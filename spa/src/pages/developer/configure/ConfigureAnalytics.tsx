@@ -3,7 +3,7 @@ import { CheckCircle2, Unplug } from "lucide-react";
 
 import { ConfigureLayout } from "@/components/developer/ConfigureLayout";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
-import { inputClass } from "@/components/ui/TextInput";
+import { TextInput } from "@/components/ui/TextInput";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { Field } from "@/components/ui/Field";
 import { UploadButton } from "@/components/ui/UploadButton";
@@ -150,8 +150,7 @@ export const ConfigureAnalytics = () => {
 
 									<div className="flex items-end gap-2">
 										<Field label="GA4 property ID" className="flex-1">
-											<input
-												className={inputClass}
+											<TextInput
 												value={propertyId}
 												disabled={!hasCredentials}
 												placeholder="e.g. 123456789"
