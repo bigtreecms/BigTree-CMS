@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
-import * as Dialog from "@radix-ui/react-dialog";
 import Cropper, { type Area } from "react-easy-crop";
 
+import { Button } from "@/components/ui/Button";
+import { Modal } from "@/components/ui/Modal";
 import { imagesApi, type PendingCrop } from "@/api/endpoints/images";
 import { expandImageUrl } from "@/lib/imageUrl";
 import { toast } from "@/lib/toast";
@@ -110,85 +111,67 @@ export const FieldCropModal = ({
 	};
 
 	return (
-		<Dialog.Root
+		<Modal
 			open={open}
 			onOpenChange={(next) => {
 				if (!next && !busy) {
 					onCancel();
 				}
 			}}
+			title={crops.length > 1 ? `Crop image ${index + 1} of ${crops.length}` : "Crop image"}
+			description={`Position the ${current.width}×${current.height}${current.retina ? " (retina)" : ""} crop. Drag to move, scroll or use the slider to zoom.`}
+			size="xl"
+			layout="bars"
+			scrim="dark"
+			footer={
+				<div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+					<label htmlFor="field-crop-zoom" className="text-[11.5px] text-text-3">
+						Zoom
+					</label>
+					<input
+						id="field-crop-zoom"
+						type="range"
+						min={1}
+						max={4}
+						step={0.05}
+						value={zoom}
+						onChange={(e) => setZoom(parseFloat(e.target.value))}
+						className="w-32 max-w-full accent-accent sm:w-40"
+					/>
+
+					{tooSmall && (
+						<span className="w-full text-[11.5px] text-warn sm:w-auto">
+							Selection is below the required {minWidth}×{minHeight}px.
+						</span>
+					)}
+
+					<div className="ml-auto flex items-center gap-2">
+						<Button variant="secondary" onClick={onCancel} disabled={busy}>
+							Cancel
+						</Button>
+						<Button
+							variant="primary"
+							onClick={finalizeCurrent}
+							disabled={!validCrop || busy}
+						>
+							{busy ? "Cropping…" : isLast ? "Finish" : "Crop & continue"}
+						</Button>
+					</div>
+				</div>
+			}
 		>
-			<Dialog.Portal>
-				<Dialog.Overlay className="fixed inset-0 z-50 bg-black/60 backdrop-blur-[2px]" />
-				<Dialog.Content className="fixed left-1/2 top-1/2 z-50 w-[min(900px,95vw)] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-xl border border-border bg-surface shadow-lg focus:outline-none">
-					<div className="border-b border-border bg-surface-2 px-5 py-3">
-						<Dialog.Title className="text-[14px] font-semibold tracking-[-0.01em] text-text">
-							{crops.length > 1
-								? `Crop image ${index + 1} of ${crops.length}`
-								: "Crop image"}
-						</Dialog.Title>
-						<Dialog.Description className="mt-0.5 text-[12px] text-text-3">
-							Position the {current.width}×{current.height}
-							{current.retina ? " (retina)" : ""} crop. Drag to move, scroll or use
-							the slider to zoom.
-						</Dialog.Description>
-					</div>
-
-					<div className="relative h-[460px] bg-black">
-						<Cropper
-							image={imageSrc}
-							crop={crop}
-							zoom={zoom}
-							aspect={aspect}
-							onCropChange={setCrop}
-							onZoomChange={setZoom}
-							onCropComplete={onCropComplete}
-							objectFit="contain"
-						/>
-					</div>
-
-					<div className="flex flex-wrap items-center gap-x-3 gap-y-2 border-t border-border bg-surface-2 px-5 py-3">
-						<label htmlFor="field-crop-zoom" className="text-[11.5px] text-text-3">
-							Zoom
-						</label>
-						<input
-							id="field-crop-zoom"
-							type="range"
-							min={1}
-							max={4}
-							step={0.05}
-							value={zoom}
-							onChange={(e) => setZoom(parseFloat(e.target.value))}
-							className="w-32 max-w-full accent-accent sm:w-40"
-						/>
-
-						{tooSmall && (
-							<span className="w-full text-[11.5px] text-warn sm:w-auto">
-								Selection is below the required {minWidth}×{minHeight}px.
-							</span>
-						)}
-
-						<div className="ml-auto flex items-center gap-2">
-							<button
-								type="button"
-								className="rounded-md border border-border px-3 py-1.5 text-[12.5px] hover:bg-hover disabled:opacity-50"
-								onClick={onCancel}
-								disabled={busy}
-							>
-								Cancel
-							</button>
-							<button
-								type="button"
-								className="rounded-md bg-accent px-3 py-1.5 text-[12.5px] font-medium text-accent-fg disabled:opacity-60 hover:bg-accent-hover"
-								onClick={finalizeCurrent}
-								disabled={!validCrop || busy}
-							>
-								{busy ? "Cropping…" : isLast ? "Finish" : "Crop & continue"}
-							</button>
-						</div>
-					</div>
-				</Dialog.Content>
-			</Dialog.Portal>
-		</Dialog.Root>
+			<div className="relative h-[460px] bg-black">
+				<Cropper
+					image={imageSrc}
+					crop={crop}
+					zoom={zoom}
+					aspect={aspect}
+					onCropChange={setCrop}
+					onZoomChange={setZoom}
+					onCropComplete={onCropComplete}
+					objectFit="contain"
+				/>
+			</div>
+		</Modal>
 	);
 };
