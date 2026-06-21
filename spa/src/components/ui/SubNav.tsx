@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
 
+import { SubNavItemContent } from "./SubNavItemContent";
+
 export interface SubNavItem<T extends string = string> {
 	value: T;
 	label: string;
@@ -42,8 +44,7 @@ export const SubNav = <T extends string>({ items, value, onChange, className }: 
 						}`}
 						onClick={() => onChange(item.value)}
 					>
-						{item.icon}
-						<span>{item.label}</span>
+						<SubNavItemContent icon={item.icon} label={item.label} />
 					</button>
 				);
 			})}

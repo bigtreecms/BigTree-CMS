@@ -5,6 +5,7 @@ import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { DebugLayout } from "@/components/developer/DebugLayout";
 import { TableSelect } from "@/components/developer/TableSelect";
 import { UserSelect } from "@/components/users/UserSelect";
+import { Badge } from "@/components/ui/Badge";
 import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
 import { Pager } from "@/components/ui/Pager";
 import { SlideOver } from "@/components/ui/SlideOver";
@@ -116,11 +117,7 @@ export const DebugAudit = () => {
 			key: "type",
 			header: "Action",
 			width: "150px",
-			cell: (row) => (
-				<span className="inline-flex items-center rounded-full border border-border bg-surface-2 px-2 py-px text-[11px] font-medium text-text-2">
-					{humanizeType(row.type)}
-				</span>
-			),
+			cell: (row) => <Badge bordered>{humanizeType(row.type)}</Badge>,
 		},
 	];
 

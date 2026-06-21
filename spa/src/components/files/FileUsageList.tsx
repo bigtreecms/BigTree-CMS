@@ -5,6 +5,7 @@ import type {
 	ResourceUsageLink,
 	ResourceUsageStatus,
 } from "@/api/endpoints/resources";
+import { Badge, type BadgeTone } from "@/components/ui/Badge";
 
 interface FileUsageListProps {
 	isLoading: boolean;
@@ -18,11 +19,11 @@ const STATUS_LABEL: Record<ResourceUsageStatus, string> = {
 	none: "—",
 };
 
-const STATUS_CLASS: Record<ResourceUsageStatus, string> = {
-	published: "bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300",
-	archived: "bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-300",
-	pending: "bg-sky-50 text-sky-700 dark:bg-sky-950 dark:text-sky-300",
-	none: "bg-surface-2 text-text-3",
+const STATUS_TONE: Record<ResourceUsageStatus, BadgeTone> = {
+	published: "success",
+	archived: "warn",
+	pending: "info",
+	none: "neutral",
 };
 
 /**
@@ -60,13 +61,7 @@ interface StatusBadgeProps {
 }
 
 const StatusBadge = ({ status }: StatusBadgeProps) => {
-	return (
-		<span
-			className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium ${STATUS_CLASS[status]}`}
-		>
-			{STATUS_LABEL[status]}
-		</span>
-	);
+	return <Badge tone={STATUS_TONE[status]}>{STATUS_LABEL[status]}</Badge>;
 };
 
 /**

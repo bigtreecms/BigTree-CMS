@@ -1,0 +1,61 @@
+import type { ReactNode } from "react";
+
+/**
+ * Static status / label pill. A Badge communicates state — it is not interactive.
+ * For a toggleable filter or a removable tag use `Chip` instead.
+ *
+ * Tones map to the design tokens (never raw colors), so badges read consistently
+ * in light + dark mode. Optionally render a leading colored `dot` (the classic
+ * status-pill treatment) or a custom `icon` node (caller controls its size).
+ */
+export type BadgeTone = "neutral" | "accent" | "success" | "warn" | "danger" | "info";
+
+const TONE_CLASS: Record<BadgeTone, string> = {
+	neutral: "bg-surface-2 text-text-3",
+	accent: "bg-accent-soft text-accent",
+	success: "bg-success-bg text-success",
+	warn: "bg-warn-bg text-warn",
+	danger: "bg-danger-bg text-danger",
+	info: "bg-info-bg text-info",
+};
+
+interface BadgeProps {
+	children: ReactNode;
+	/** Token-mapped status tone. Defaults to `neutral`. */
+	tone?: BadgeTone;
+	/** Leading colored dot (`bg-current`) — the at-a-glance status treatment. */
+	dot?: boolean;
+	/** Leading icon node; the caller sizes it (e.g. `<Key size={9} />`). */
+	icon?: ReactNode;
+	/** Add a `border-border` outline (subtle neutral pills). */
+	bordered?: boolean;
+	/** Uppercase + slight tracking (e.g. the "Pending" field badge). */
+	uppercase?: boolean;
+	/** Layout-only classes (e.g. `shrink-0`, `ml-auto`, `tabular-nums`). */
+	className?: string;
+	title?: string;
+}
+
+export const Badge = ({
+	children,
+	tone = "neutral",
+	dot = false,
+	icon,
+	bordered = false,
+	uppercase = false,
+	className = "",
+	title,
+}: BadgeProps) => {
+	return (
+		<span
+			title={title}
+			className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] font-medium ${
+				bordered ? "border border-border " : ""
+			}${uppercase ? "uppercase tracking-[0.04em] " : ""}${TONE_CLASS[tone]} ${className}`}
+		>
+			{dot ? <span className="h-1.5 w-1.5 rounded-full bg-current" /> : null}
+			{icon}
+			{children}
+		</span>
+	);
+};

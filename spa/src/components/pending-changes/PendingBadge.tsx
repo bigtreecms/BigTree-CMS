@@ -1,3 +1,5 @@
+import { Badge } from "@/components/ui/Badge";
+
 /**
  * Small "Pending" pill shown next to a form field whose draft value differs
  * from the published content. Mirrors the page tree's `.badge--warn` styling
@@ -10,8 +12,7 @@ interface PendingBadgeProps {
 }
 
 export const PendingBadge = ({ label = "Pending" }: PendingBadgeProps) => (
-	<span className="inline-flex items-center gap-1 rounded-full bg-warn-bg px-1.5 py-0.5 text-[10.5px] font-medium uppercase tracking-[0.04em] text-warn">
-		<span className="h-1.5 w-1.5 rounded-full bg-current" />
+	<Badge tone="warn" dot uppercase>
 		{label}
-	</span>
+	</Badge>
 );

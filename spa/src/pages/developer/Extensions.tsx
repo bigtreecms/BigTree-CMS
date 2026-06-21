@@ -6,6 +6,7 @@ import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
 import { DeveloperSectionNav } from "@/components/developer/DeveloperSectionNav";
 import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
+import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { SlideOver } from "@/components/ui/SlideOver";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
@@ -110,8 +111,9 @@ export const Extensions = () => {
 							<div className="flex items-center gap-2">
 								<span className="truncate font-medium text-text">{row.name}</span>
 								{updateById.get(row.id) && (
-									<span
-										className="shrink-0 rounded-full bg-accent-soft px-2 py-0.5 text-[10.5px] font-medium text-accent"
+									<Badge
+										tone="accent"
+										className="shrink-0"
 										title={
 											info?.version
 												? `Version ${info.version} available${
@@ -123,7 +125,7 @@ export const Extensions = () => {
 										}
 									>
 										Update available
-									</span>
+									</Badge>
 								)}
 							</div>
 							<div className="truncate font-mono text-[11px] text-text-3">

@@ -49,6 +49,11 @@ export const WithoutIcons: Story = {
  * The two SubNavs side by side. `ui/SubNav` (top) is a controlled pill; the
  * route-driven `shell/SubNav` (bottom) renders `NavLink`s, supports external
  * links, and collapses overflow into a "More" menu.
+ *
+ * **F4 decision:** the two are mechanically different (controlled state vs
+ * routed `NavLink`) so they keep separate APIs — but both now render their item
+ * content through the shared `SubNavItemContent` atom (`ui/SubNavItemContent`),
+ * the one visual layer they share, so icon/label ordering can't drift.
  */
 export const VsShellSubNav: Story = {
 	render: () => {

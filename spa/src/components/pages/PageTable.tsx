@@ -2,6 +2,7 @@ import { useState, type ReactNode } from "react";
 import type { PageListRow } from "@/api/endpoints/pages";
 import { PageRow } from "./PageRow";
 import { useDragReorder } from "@/hooks/useDragReorder";
+import { Badge } from "@/components/ui/Badge";
 import { Chip } from "@/components/ui/Chip";
 
 /**
@@ -107,9 +108,7 @@ export const PageTable = ({
 				<span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-text-3">
 					{title}
 				</span>
-				<span className="rounded-full bg-surface-2 px-1.5 py-0.5 text-[11px] font-medium text-text-3 tabular-nums">
-					{filtered.length}
-				</span>
+				<Badge className="tabular-nums">{filtered.length}</Badge>
 				<span className="flex-1" />
 				{enableFilters && (
 					<div className="flex gap-1">

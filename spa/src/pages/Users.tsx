@@ -7,6 +7,7 @@ import { useAuthStore } from "@/auth/store";
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { Field } from "@/components/ui/Field";
@@ -108,26 +109,21 @@ interface LevelBadgeProps {
 const LevelBadge = ({ level }: LevelBadgeProps) => {
 	if (level === "Developer") {
 		return (
-			<span className="inline-flex items-center gap-1 rounded-full bg-accent-soft px-2 py-px text-[11px] font-medium text-accent">
-				<Key size={9} /> Developer
-			</span>
+			<Badge tone="accent" icon={<Key size={9} />}>
+				Developer
+			</Badge>
 		);
 	}
 
 	if (level === "Administrator") {
 		return (
-			<span className="inline-flex items-center gap-1.5 rounded-full bg-info-bg px-2 py-px text-[11px] font-medium text-info">
-				<span className="inline-block h-1.5 w-1.5 rounded-full bg-current" />
+			<Badge tone="info" dot>
 				Administrator
-			</span>
+			</Badge>
 		);
 	}
 
-	return (
-		<span className="inline-flex items-center rounded-full border border-border bg-surface-2 px-2 py-px text-[11px] font-medium text-text-3">
-			Normal User
-		</span>
-	);
+	return <Badge bordered>Normal User</Badge>;
 };
 
 interface SwitchProps {

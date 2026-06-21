@@ -3,6 +3,7 @@ import { useQuery, type UseQueryResult } from "@tanstack/react-query";
 import { ChevronRight, ExternalLink, HelpCircle } from "lucide-react";
 
 import { pagesApi, type PageDetail, type PageSeoRating } from "@/api/endpoints/pages";
+import { Badge, type BadgeTone } from "@/components/ui/Badge";
 
 /**
  * Collapsible "Properties" summary panel that sits above every page-section
@@ -69,11 +70,11 @@ const daysSince = (iso: string | null | undefined): number | null => {
 	return Math.max(0, Math.round((Date.now() - then) / (1000 * 60 * 60 * 24)));
 };
 
-const TONE_PILL: Record<StatusTone, string> = {
-	ok: "bg-success-bg text-success",
-	draft: "bg-info-bg text-info",
-	warn: "bg-warn-bg text-warn",
-	danger: "bg-danger-bg text-danger",
+const TONE_BADGE: Record<StatusTone, BadgeTone> = {
+	ok: "success",
+	draft: "info",
+	warn: "warn",
+	danger: "danger",
 };
 
 const TONE_TEXT: Record<StatusTone, string> = {
@@ -132,12 +133,9 @@ export const PageSummaryPanel = ({ page, liveUrl, defaultOpen = false }: PageSum
 
 				{!open && (
 					<span className="ml-auto inline-flex items-center gap-2 text-[12px] text-text-3">
-						<span
-							className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] font-medium ${TONE_PILL[status.tone]}`}
-						>
-							<span className="h-1.5 w-1.5 rounded-full bg-current" />
+						<Badge tone={TONE_BADGE[status.tone]} dot>
 							{status.label}
-						</span>
+						</Badge>
 						<span className="text-text-4">·</span>
 						<span className="whitespace-nowrap text-text-2">
 							{ageDays !== null ? `${ageDays} days old` : "Age unknown"}

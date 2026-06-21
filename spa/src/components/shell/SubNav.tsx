@@ -2,6 +2,8 @@ import { useLayoutEffect, useRef, useState } from "react";
 import { NavLink } from "react-router-dom";
 import { ChevronDown, ExternalLink, type LucideIcon } from "lucide-react";
 
+import { SubNavItemContent } from "../ui/SubNavItemContent";
+
 /**
  * One entry in a section sub-navigation bar. Section-agnostic: modules build
  * these from their actions (see `lib/moduleActions`), but any section can hand
@@ -42,17 +44,18 @@ const ItemLink = ({ item }: { item: SubNavItem }) => {
 	if (item.external) {
 		return (
 			<a href={item.to} className={itemClass(false)} title="Opens in the classic admin">
-				{Icon && <Icon size={14} />}
-				<span>{item.label}</span>
-				<ExternalLink size={11} className="text-text-3" />
+				<SubNavItemContent
+					icon={Icon && <Icon size={14} />}
+					label={item.label}
+					trailing={<ExternalLink size={11} className="text-text-3" />}
+				/>
 			</a>
 		);
 	}
 
 	return (
 		<NavLink to={item.to} end={item.end} className={({ isActive }) => itemClass(isActive)}>
-			{Icon && <Icon size={14} />}
-			<span>{item.label}</span>
+			<SubNavItemContent icon={Icon && <Icon size={14} />} label={item.label} />
 		</NavLink>
 	);
 };
@@ -88,9 +91,13 @@ const MoreMenu = ({ items }: { items: SubNavItem[] }) => {
 								title="Opens in the classic admin"
 								className="flex items-center gap-2 rounded px-2.5 py-1.5 text-[13px] text-text-2 transition-colors hover:bg-hover hover:text-text"
 							>
-								{Icon && <Icon size={14} className="shrink-0" />}
-								<span>{item.label}</span>
-								<ExternalLink size={11} className="shrink-0 text-text-3" />
+								<SubNavItemContent
+									icon={Icon && <Icon size={14} className="shrink-0" />}
+									label={item.label}
+									trailing={
+										<ExternalLink size={11} className="shrink-0 text-text-3" />
+									}
+								/>
 							</a>
 						);
 					}
@@ -110,8 +117,10 @@ const MoreMenu = ({ items }: { items: SubNavItem[] }) => {
 								].join(" ")
 							}
 						>
-							{Icon && <Icon size={14} className="shrink-0" />}
-							<span>{item.label}</span>
+							<SubNavItemContent
+								icon={Icon && <Icon size={14} className="shrink-0" />}
+								label={item.label}
+							/>
 						</NavLink>
 					);
 				})}

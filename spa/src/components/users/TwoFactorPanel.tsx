@@ -8,6 +8,7 @@ import { ApiError } from "@/types/api";
 import { toast } from "@/lib/toast";
 import { TwoFactorEnrollForm } from "./TwoFactorEnrollForm";
 import { Card } from "@/components/ui/Card";
+import { Badge } from "@/components/ui/Badge";
 
 /**
  * Profile → Security TOTP manager.
@@ -86,14 +87,9 @@ export const TwoFactorPanel = ({ enabled }: TwoFactorPanelProps) => {
 
 			<div className="space-y-3 p-4 text-[12.5px]">
 				<div className="flex items-center justify-between gap-3">
-					<span
-						className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] font-medium ${
-							enabled ? "bg-success-bg text-success" : "bg-info-bg text-info"
-						}`}
-					>
-						<span className="h-1.5 w-1.5 rounded-full bg-current" />
+					<Badge tone={enabled ? "success" : "info"} dot>
 						{enabled ? "Enabled" : "Not enabled"}
-					</span>
+					</Badge>
 
 					{enabled && !disabling && (
 						<button
