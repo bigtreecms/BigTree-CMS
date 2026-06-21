@@ -1,7 +1,7 @@
 import type { MouseEventHandler, ReactNode } from "react";
 import { Link } from "react-router-dom";
 
-export type ButtonVariant = "primary" | "secondary" | "danger" | "dangerGhost";
+export type ButtonVariant = "primary" | "secondary" | "danger" | "dangerGhost" | "link";
 export type ButtonSize = "sm" | "md" | "lg";
 
 interface ButtonProps {
@@ -9,7 +9,9 @@ interface ButtonProps {
 	/**
 	 * `primary` = accent fill, `secondary` (default) = bordered surface,
 	 * `danger` = solid destructive (confirm CTAs), `dangerGhost` = bordered
-	 * destructive (subtle, e.g. a header Delete next to other actions).
+	 * destructive (subtle, e.g. a header Delete next to other actions),
+	 * `link` = borderless accent text (inline/ghost — e.g. a "View" link inside
+	 * a card; pair with `size="sm"` and negative-margin `className` to sit flush).
 	 */
 	variant?: ButtonVariant;
 	/** `sm` = tight/inline, `md` (default) = standard, `lg` = prominent (e.g. full-width auth submits). */
@@ -61,6 +63,7 @@ const variantClassName: Record<ButtonVariant, string> = {
 	danger: "bg-danger text-white hover:bg-danger/90",
 	dangerGhost:
 		"border border-border bg-surface text-danger hover:border-danger/40 hover:bg-danger/5",
+	link: "bg-transparent text-accent hover:bg-accent-soft",
 };
 
 export const Button = ({

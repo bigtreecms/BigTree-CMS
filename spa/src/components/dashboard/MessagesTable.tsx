@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { ChevronRight } from "lucide-react";
-import { LinkBtn } from "./LinkBtn";
+import { Button } from "@/components/ui/Button";
 import type { Message } from "@/api/endpoints/dashboard";
 
 interface MessagesTableProps {
@@ -41,9 +41,14 @@ export const MessagesTable = ({ messages }: MessagesTableProps) => {
 						</span>
 						<span className="text-[12px] text-text-3 tabular-nums">{date}</span>
 						<span className="text-[12px] text-text-3 tabular-nums">{time}</span>
-						<LinkBtn onClick={() => navigate(`/messages/${m.id}`)}>
+						<Button
+							variant="link"
+							size="sm"
+							className="-mx-2.5 -my-1.5"
+							onClick={() => navigate(`/messages/${m.id}`)}
+						>
 							View <ChevronRight size={11} />
-						</LinkBtn>
+						</Button>
 					</div>
 				);
 			})}

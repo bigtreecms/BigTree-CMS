@@ -4,7 +4,7 @@ import { Activity, ExternalLink } from "lucide-react";
 import { DashCard } from "./DashCard";
 import { CardError } from "./CardError";
 import { CardEmpty } from "./CardEmpty";
-import { SmallBtn } from "./SmallBtn";
+import { Button } from "@/components/ui/Button";
 import { TrafficBars } from "./TrafficBars";
 import type { AnalyticsResponse } from "@/api/endpoints/dashboard";
 import { buildTwoWeekSeries } from "@/lib/analytics";
@@ -42,10 +42,14 @@ export const TrafficCard = ({ data, loading, error }: TrafficCardProps) => {
 							total
 						</span>
 						{admin && (
-							<SmallBtn onClick={() => navigate("/analytics")}>
+							<Button
+								variant="secondary"
+								size="sm"
+								onClick={() => navigate("/analytics")}
+							>
 								<ExternalLink size={12} />
 								View analytics
-							</SmallBtn>
+							</Button>
 						)}
 					</div>
 				)

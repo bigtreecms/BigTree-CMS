@@ -4,7 +4,7 @@ import { Mail, ChevronRight } from "lucide-react";
 import { DashCard } from "./DashCard";
 import { CardError } from "./CardError";
 import { CardEmpty } from "./CardEmpty";
-import { SmallBtn } from "./SmallBtn";
+import { Button } from "@/components/ui/Button";
 import { MessagesTable } from "./MessagesTable";
 import type { Message } from "@/api/endpoints/dashboard";
 
@@ -44,10 +44,10 @@ export const UnreadMessagesCard = ({
 						: `${unread.length} unread`
 			}
 			action={
-				<SmallBtn onClick={() => navigate("/messages")}>
+				<Button variant="secondary" size="sm" onClick={() => navigate("/messages")}>
 					View all messages
 					<ChevronRight size={11} />
-				</SmallBtn>
+				</Button>
 			}
 		>
 			{error ? (

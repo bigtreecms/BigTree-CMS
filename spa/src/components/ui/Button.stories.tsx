@@ -20,7 +20,7 @@ const meta = {
 	argTypes: {
 		variant: {
 			control: "inline-radio",
-			options: ["primary", "secondary", "danger", "dangerGhost"],
+			options: ["primary", "secondary", "danger", "dangerGhost", "link"],
 		},
 		size: { control: "inline-radio", options: ["sm", "md", "lg"] },
 		onClick: { action: "clicked" },
@@ -47,6 +47,9 @@ export const Variants: Story = {
 			</Button>
 			<Button {...args} variant="dangerGhost">
 				Danger ghost
+			</Button>
+			<Button {...args} variant="link">
+				Link
 			</Button>
 		</div>
 	),
@@ -108,7 +111,7 @@ export const Disabled: Story = {
 /** The full matrix — every variant × every size. */
 export const Matrix: Story = {
 	render: () => {
-		const variants = ["primary", "secondary", "danger", "dangerGhost"] as const;
+		const variants = ["primary", "secondary", "danger", "dangerGhost", "link"] as const;
 		const sizes = ["sm", "md", "lg"] as const;
 
 		return (

@@ -5,7 +5,7 @@ import { Bell, Check, ChevronRight, FileText, X } from "lucide-react";
 import { DashCard } from "./DashCard";
 import { CardError } from "./CardError";
 import { EmptyPending } from "./EmptyPending";
-import { SmallBtn } from "./SmallBtn";
+import { Button } from "@/components/ui/Button";
 import {
 	pendingChangesApi,
 	type DashboardSummary,
@@ -79,10 +79,14 @@ export const PendingChangesCard = ({
 			sub={loading ? "Loading…" : `${totalPending} awaiting review`}
 			action={
 				groups.length > 0 ? (
-					<SmallBtn onClick={() => navigate("/pending-changes")}>
+					<Button
+						variant="secondary"
+						size="sm"
+						onClick={() => navigate("/pending-changes")}
+					>
 						{loading ? "…" : `${groups.length} categories`}
 						<ChevronRight size={11} />
-					</SmallBtn>
+					</Button>
 				) : null
 			}
 		>
