@@ -5,6 +5,7 @@ import type { InputDescriptor } from "@/api/endpoints/field-types";
 import { Button } from "@/components/ui/Button";
 import { FieldSettingsEditor } from "@/components/developer/FieldSettingsEditor";
 import { INPUT_CLASS } from "@/renderer/fields/types";
+import { InlineEmpty } from "@/components/ui/InlineEmpty";
 
 interface InputSchemaBuilderProps {
 	value: InputDescriptor[];
@@ -77,9 +78,9 @@ export const InputSchemaBuilder = ({ value, onChange }: InputSchemaBuilderProps)
 	return (
 		<div className="space-y-2">
 			{value.length === 0 && (
-				<p className="rounded-md border border-dashed border-border bg-surface-2 p-3 text-[12px] text-text-3">
+				<InlineEmpty pad="md">
 					No sub-fields yet. Add one to compose this field type from primitives.
-				</p>
+				</InlineEmpty>
 			)}
 
 			{value.map((descriptor, index) => (

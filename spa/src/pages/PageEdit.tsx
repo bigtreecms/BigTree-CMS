@@ -46,6 +46,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { ApiError } from "@/types/api";
 import { canPublishPage } from "@/lib/permissions";
 import { toast } from "@/lib/toast";
+import { InlineEmpty } from "@/components/ui/InlineEmpty";
 
 /**
  * Page editor — four tabs (Properties / Content / SEO / Sharing) above a
@@ -854,19 +855,15 @@ export const ContentTab = ({
 	}
 
 	if (loading) {
-		return (
-			<div className="rounded-md border border-dashed border-border bg-surface-2 p-4 text-center text-[12.5px] text-text-3">
-				Loading template…
-			</div>
-		);
+		return <InlineEmpty align="center">Loading template…</InlineEmpty>;
 	}
 
 	if (!template) {
 		return (
 			<>
-				<div className="rounded-md border border-dashed border-border bg-surface-2 p-4 text-[12.5px] text-text-3">
+				<InlineEmpty pad="lg">
 					No template assigned. Pick one in the <strong>Properties</strong> tab.
-				</div>
+				</InlineEmpty>
 				{tagsSection}
 			</>
 		);

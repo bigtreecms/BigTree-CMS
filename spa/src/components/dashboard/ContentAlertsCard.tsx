@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 
 import { DashCard } from "./DashCard";
 import { CardError } from "./CardError";
+import { InlineEmpty } from "@/components/ui/InlineEmpty";
 import type { ContentAlert } from "@/api/endpoints/dashboard";
 
 /**
@@ -32,9 +33,9 @@ export const ContentAlertsCard = ({ alerts, loading, error }: ContentAlertsCardP
 			{error ? (
 				<CardError error={error} />
 			) : alerts.length === 0 ? (
-				<div className="rounded-md border border-dashed border-border bg-surface-2 px-3 py-4 text-center text-[12.5px] text-text-3">
+				<InlineEmpty align="center">
 					You haven't flagged any pages, or all flagged pages are up to date.
-				</div>
+				</InlineEmpty>
 			) : (
 				<ul className="m-0 flex list-none flex-col gap-0.5 p-0">
 					{alerts.map((alert) => (

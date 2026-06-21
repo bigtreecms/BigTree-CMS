@@ -24,6 +24,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { ApiError } from "@/types/api";
 import { toast } from "@/lib/toast";
 import { sanitizeHtml } from "@/lib/html";
+import { InlineEmpty } from "@/components/ui/InlineEmpty";
 
 /**
  * /settings/:id/edit — value editor for a single setting.
@@ -212,12 +213,12 @@ export const SettingEdit = () => {
 				className="rounded-xl border border-border bg-surface p-4"
 			>
 				{valueWithheld ? (
-					<div className="rounded-md border border-dashed border-border bg-surface-2 p-4 text-[12.5px] text-text-3">
+					<InlineEmpty pad="lg">
 						This setting is encrypted.{" "}
 						{isPublisher
 							? "Click the Reveal button above to decrypt and edit it."
 							: "Only publishers can decrypt and edit it."}
-					</div>
+					</InlineEmpty>
 				) : (
 					// Single-field page — the PageHead title already names the
 					// setting, so we render the control without FieldRow's

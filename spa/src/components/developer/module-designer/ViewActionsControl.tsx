@@ -1,4 +1,5 @@
 import type { DbOption } from "@/api/endpoints/db";
+import { InlineEmpty } from "@/components/ui/InlineEmpty";
 
 interface ViewActionsControlProps {
 	/** Action map keyed by action route; built-ins store the value `"on"`. */
@@ -102,9 +103,7 @@ export const ViewActionsControl = ({
 			</div>
 
 			{!tableSelected ? (
-				<div className="rounded-md border border-dashed border-border bg-surface-2 px-3 py-4 text-center text-[12.5px] text-text-3">
-					Select a table to choose row actions.
-				</div>
+				<InlineEmpty align="center">Select a table to choose row actions.</InlineEmpty>
 			) : loading ? (
 				<div className="px-1 py-2 text-[12.5px] text-text-3">Loading columns…</div>
 			) : (

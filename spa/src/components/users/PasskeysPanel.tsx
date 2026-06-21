@@ -11,6 +11,7 @@ import { Card } from "@/components/ui/Card";
 
 import { ApiError } from "@/types/api";
 import { toast } from "@/lib/toast";
+import { InlineEmpty } from "@/components/ui/InlineEmpty";
 
 /**
  * Profile → Security passkey manager.
@@ -95,9 +96,9 @@ export const PasskeysPanel = () => {
 
 			<div className="p-4">
 				{!supported && (
-					<div className="rounded-md border border-dashed border-border bg-surface-2 px-3 py-3 text-[12.5px] text-text-3">
+					<InlineEmpty pad="md">
 						Your browser doesn't expose the WebAuthn API. Passkeys won't work here.
-					</div>
+					</InlineEmpty>
 				)}
 
 				{supported && showAddPrompt && (
@@ -146,9 +147,9 @@ export const PasskeysPanel = () => {
 				{passkeysQuery.isLoading ? (
 					<div className="text-[12.5px] text-text-3">Loading…</div>
 				) : (passkeysQuery.data?.length ?? 0) === 0 ? (
-					<div className="rounded-md border border-dashed border-border bg-surface-2 px-3 py-6 text-center text-[12.5px] text-text-3">
+					<InlineEmpty align="center" pad="xl">
 						No passkeys registered yet. Adding one lets you sign in without a password.
-					</div>
+					</InlineEmpty>
 				) : (
 					<ul className="divide-y divide-border overflow-hidden rounded-md border border-border">
 						{passkeysQuery.data!.map((p) => (

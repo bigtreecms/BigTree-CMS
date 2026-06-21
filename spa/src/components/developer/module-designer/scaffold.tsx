@@ -3,6 +3,7 @@ import { GripVertical, Pencil, Plus, Trash, X } from "lucide-react";
 
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { InlineEmpty } from "@/components/ui/InlineEmpty";
 
 /**
  * Presentational chrome shared by every sub-resource tab (actions, forms,
@@ -35,9 +36,9 @@ export const SubList = ({
 
 	if (isEmpty) {
 		return (
-			<div className="rounded-md border border-dashed border-border bg-surface-2 px-3 py-6 text-center text-[12.5px] text-text-3">
+			<InlineEmpty align="center" pad="xl">
 				{emptyLabel}
-			</div>
+			</InlineEmpty>
 		);
 	}
 

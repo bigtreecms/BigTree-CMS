@@ -5,6 +5,7 @@ import { SlideOver } from "@/components/ui/SlideOver";
 import { GravatarAvatar } from "@/components/users/GravatarAvatar";
 
 import { pagesApi, type PageAccessUser } from "@/api/endpoints/pages";
+import { InlineEmpty } from "@/components/ui/InlineEmpty";
 
 interface AccessLevelsDialogProps {
 	open: boolean;
@@ -78,9 +79,7 @@ const UserList = ({ title, icon, hint, users, empty }: UserListProps) => (
 		<p className="mb-2 text-[11.5px] text-text-3">{hint}</p>
 
 		{users.length === 0 ? (
-			<div className="rounded-md border border-dashed border-border bg-surface-2 px-3 py-2 text-[12.5px] text-text-3">
-				{empty}
-			</div>
+			<InlineEmpty pad="sm">{empty}</InlineEmpty>
 		) : (
 			<ul className="divide-y divide-border rounded-md border border-border bg-surface">
 				{users.map((user) => (

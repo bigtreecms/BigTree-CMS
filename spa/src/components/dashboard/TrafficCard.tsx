@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Activity, ExternalLink } from "lucide-react";
 import { DashCard } from "./DashCard";
 import { CardError } from "./CardError";
-import { CardEmpty } from "./CardEmpty";
+import { InlineEmpty } from "@/components/ui/InlineEmpty";
 import { Button } from "@/components/ui/Button";
 import { TrafficBars } from "./TrafficBars";
 import type { AnalyticsResponse } from "@/api/endpoints/dashboard";
@@ -60,16 +60,15 @@ export const TrafficCard = ({ data, loading, error }: TrafficCardProps) => {
 			) : error ? (
 				<CardError error={error} />
 			) : !data?.configured ? (
-				<div className="rounded-md border border-dashed border-border bg-surface-2 px-3.5 py-[14px] text-[12.5px] leading-[1.55] text-text-3">
+				<InlineEmpty className="leading-[1.55]">
 					Google Analytics isn't connected yet. Connect it in{" "}
 					<span className="font-mono text-text-2">Developer → Analytics</span> to see
 					traffic.
-				</div>
+				</InlineEmpty>
 			) : !series || series.length === 0 ? (
-				<CardEmpty
-					icon={Activity}
-					label="No traffic data yet — check back after the next cache refresh."
-				/>
+				<InlineEmpty icon={Activity}>
+					No traffic data yet — check back after the next cache refresh.
+				</InlineEmpty>
 			) : (
 				<TrafficBars series={series} />
 			)}

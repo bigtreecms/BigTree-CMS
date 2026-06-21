@@ -6,6 +6,7 @@ import type {
 	ResourceUsageStatus,
 } from "@/api/endpoints/resources";
 import { Badge, type BadgeTone } from "@/components/ui/Badge";
+import { InlineEmpty } from "@/components/ui/InlineEmpty";
 
 interface FileUsageListProps {
 	isLoading: boolean;
@@ -80,9 +81,7 @@ export const FileUsageList = ({ isLoading, usages }: FileUsageListProps) => {
 			{isLoading ? (
 				<div className="text-[12.5px] text-text-3">Loading…</div>
 			) : usages.length === 0 ? (
-				<div className="rounded-md border border-dashed border-border bg-surface-2 px-3 py-2 text-[12.5px] text-text-3">
-					Not currently referenced anywhere.
-				</div>
+				<InlineEmpty pad="sm">Not currently referenced anywhere.</InlineEmpty>
 			) : (
 				<ul className="divide-y divide-border rounded-md border border-border bg-surface">
 					{usages.map((usage, index) => {

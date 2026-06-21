@@ -23,6 +23,7 @@ import { validateRequired } from "@/lib/formValidation";
 
 import { TextField } from "@/components/ui/TextField";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { InlineEmpty } from "@/components/ui/InlineEmpty";
 
 export const CalloutGroupEdit = () => {
 	const { id: idParam } = useParams<{ id: string }>();
@@ -228,9 +229,9 @@ export const CalloutGroupEdit = () => {
 					{calloutsQ.isLoading ? (
 						<div className="text-[12.5px] text-text-3">Loading callouts…</div>
 					) : callouts.length === 0 ? (
-						<div className="rounded-md border border-dashed border-border bg-surface-2 px-3 py-3 text-[12.5px] text-text-3">
+						<InlineEmpty pad="md">
 							No callouts to pick from yet. Create one first.
-						</div>
+						</InlineEmpty>
 					) : (
 						<div className="space-y-2">
 							{selectedIds.length > 0 ? (
@@ -265,9 +266,9 @@ export const CalloutGroupEdit = () => {
 									})}
 								</ul>
 							) : (
-								<div className="rounded-md border border-dashed border-border bg-surface-2 px-3 py-3 text-[12.5px] text-text-3">
+								<InlineEmpty pad="md">
 									No callouts in this group yet — add one below.
-								</div>
+								</InlineEmpty>
 							)}
 
 							<Combobox<string>

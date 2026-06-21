@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Mail, ChevronRight } from "lucide-react";
 import { DashCard } from "./DashCard";
 import { CardError } from "./CardError";
-import { CardEmpty } from "./CardEmpty";
+import { InlineEmpty } from "@/components/ui/InlineEmpty";
 import { Button } from "@/components/ui/Button";
 import { MessagesTable } from "./MessagesTable";
 import type { Message } from "@/api/endpoints/dashboard";
@@ -53,7 +53,7 @@ export const UnreadMessagesCard = ({
 			{error ? (
 				<CardError error={error} />
 			) : unread.length === 0 ? (
-				<CardEmpty icon={Mail} label="No unread messages" />
+				<InlineEmpty icon={Mail}>No unread messages</InlineEmpty>
 			) : (
 				<MessagesTable messages={unread} />
 			)}

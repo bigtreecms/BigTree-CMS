@@ -8,6 +8,7 @@ import { SlideOver } from "@/components/ui/SlideOver";
 import { pagesApi, type PageListRow, type PageSearchHit } from "@/api/endpoints/pages";
 import { ApiError } from "@/types/api";
 import { toast } from "@/lib/toast";
+import { InlineEmpty } from "@/components/ui/InlineEmpty";
 
 interface MovePageDialogProps {
 	open: boolean;
@@ -232,13 +233,13 @@ export const MovePageDialog = ({
 
 				{(listQuery.isFetching && !listQuery.data && !isSearching) ||
 				(searchQuery.isFetching && !searchQuery.data && isSearching) ? (
-					<div className="rounded-md border border-dashed border-border bg-surface-2 px-3 py-3 text-center text-[12px] text-text-3">
+					<InlineEmpty align="center" pad="md">
 						Loading…
-					</div>
+					</InlineEmpty>
 				) : candidates.length === 0 ? (
-					<div className="rounded-md border border-dashed border-border bg-surface-2 px-3 py-4 text-center text-[12px] text-text-3">
+					<InlineEmpty align="center">
 						{isSearching ? `No pages match “${debounced}”.` : "No subpages here."}
-					</div>
+					</InlineEmpty>
 				) : (
 					<ul className="overflow-hidden rounded-md border border-border">
 						{candidates.map((row) => {

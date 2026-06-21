@@ -30,6 +30,7 @@ import { ApiError } from "@/types/api";
 import { formatBytes } from "@/lib/bytes";
 import { expandImageUrl } from "@/lib/imageUrl";
 import { toast } from "@/lib/toast";
+import { InlineEmpty } from "@/components/ui/InlineEmpty";
 
 interface FileDetailProps {
 	/** Resource id to load, or `null` to keep the SlideOver closed. */
@@ -506,9 +507,7 @@ const CropsSection = ({ crops, onAddCrop }: CropsSectionProps) => {
 			</div>
 
 			{entries.length === 0 ? (
-				<div className="rounded-md border border-dashed border-border bg-surface-2 px-3 py-2 text-[12.5px] text-text-3">
-					No saved crops yet.
-				</div>
+				<InlineEmpty pad="sm">No saved crops yet.</InlineEmpty>
 			) : (
 				<ul className="grid grid-cols-2 gap-2">
 					{entries.map(([prefix, c]) => (

@@ -4,6 +4,7 @@ import type { ModuleAction } from "@/api/endpoints/modules";
 import { toast } from "@/lib/toast";
 import { ActionRunner } from "@/renderer/actions/ActionRunner";
 import type { ActionHost } from "@/renderer/actions/actionModuleContract";
+import { InlineEmpty } from "@/components/ui/InlineEmpty";
 
 interface ActionModulePreviewProps {
 	source: string;
@@ -68,11 +69,7 @@ export const ActionModulePreview = ({ source, name, route }: ActionModulePreview
 	}, [name, route]);
 
 	if (!debounced.trim()) {
-		return (
-			<div className="rounded-md border border-dashed border-border bg-surface-2 p-3 text-[12px] text-text-3">
-				Write some code to see a live preview.
-			</div>
-		);
+		return <InlineEmpty pad="md">Write some code to see a live preview.</InlineEmpty>;
 	}
 
 	return (

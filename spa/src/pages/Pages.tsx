@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useParams } from "react-router-dom";
 import { Archive, Edit, Eye, EyeOff, FileText, Plus } from "lucide-react";
-import { CardEmpty } from "@/components/dashboard/CardEmpty";
+import { InlineEmpty } from "@/components/ui/InlineEmpty";
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
 import { PageTable } from "@/components/pages/PageTable";
@@ -404,7 +404,7 @@ export const Pages = () => {
 					{/* Global empty state when the current page truly has no children */}
 					{visible.length === 0 && hidden.length === 0 && archived.length === 0 && (
 						<div className="mt-6">
-							<CardEmpty icon={FileText} label="No subpages yet." />
+							<InlineEmpty icon={FileText}>No subpages yet.</InlineEmpty>
 						</div>
 					)}
 				</>

@@ -25,6 +25,7 @@ import {
 } from "./ReportColumnEditors";
 import { AddSubButton, EditorCard, SubList, SubRow } from "./scaffold";
 import { NEW_ROW, useSubCrud } from "./useSubCrud";
+import { InlineEmpty } from "@/components/ui/InlineEmpty";
 
 interface ModuleReportsTabProps {
 	moduleId: string;
@@ -296,9 +297,9 @@ export const ModuleReportsTab = ({ moduleId, moduleTable }: ModuleReportsTabProp
 					/>
 
 					{draft.table === "" ? (
-						<div className="rounded-md border border-dashed border-border bg-surface-2 px-3 py-4 text-center text-[12.5px] text-text-3">
+						<InlineEmpty align="center">
 							Choose a data table to configure filters and fields.
-						</div>
+						</InlineEmpty>
 					) : (
 						<>
 							<ReportFiltersEditor

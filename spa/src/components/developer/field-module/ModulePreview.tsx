@@ -6,6 +6,7 @@ import { ModuleField } from "@/renderer/forms/ModuleField";
 
 import { isVisible } from "../field-settings/evaluate";
 import { controlRegistry } from "../field-settings/registry";
+import { InlineEmpty } from "@/components/ui/InlineEmpty";
 
 interface ModulePreviewProps {
 	source: string;
@@ -55,11 +56,7 @@ export const ModulePreview = ({ source, settingsSchema, typeId, name }: ModulePr
 	);
 
 	if (!debounced.trim()) {
-		return (
-			<div className="rounded-md border border-dashed border-border bg-surface-2 p-3 text-[12px] text-text-3">
-				Write some code to see a live preview.
-			</div>
-		);
+		return <InlineEmpty pad="md">Write some code to see a live preview.</InlineEmpty>;
 	}
 
 	const onPatch = (patch: Record<string, unknown>) =>

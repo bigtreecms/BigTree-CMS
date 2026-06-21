@@ -4,6 +4,7 @@ import type { DbOption } from "@/api/endpoints/db";
 import type { ModuleReportFilter, ModuleReportFilterType } from "@/api/endpoints/modules";
 
 import { useDragReorder } from "@/hooks/useDragReorder";
+import { InlineEmpty } from "@/components/ui/InlineEmpty";
 
 /**
  * Column-driven editors for a module report's Filters and Fields, replacing the
@@ -185,9 +186,9 @@ export const ReportFiltersEditor = ({
 				Report Filters
 			</div>
 			{rows.length === 0 ? (
-				<div className="rounded-md border border-dashed border-border bg-surface-2 px-3 py-4 text-center text-[12.5px] text-text-3">
+				<InlineEmpty align="center">
 					No filters. Add columns below to let users filter the report.
-				</div>
+				</InlineEmpty>
 			) : (
 				<ul className="space-y-1.5">
 					{rows.map((row, index) => {
@@ -281,9 +282,9 @@ export const ReportFieldsEditor = ({
 				Fields to Include in CSV
 			</div>
 			{rows.length === 0 ? (
-				<div className="rounded-md border border-dashed border-border bg-surface-2 px-3 py-4 text-center text-[12.5px] text-text-3">
+				<InlineEmpty align="center">
 					No fields. Add columns below to include them in the CSV export.
-				</div>
+				</InlineEmpty>
 			) : (
 				<ul className="space-y-1.5">
 					{rows.map((row, index) => {

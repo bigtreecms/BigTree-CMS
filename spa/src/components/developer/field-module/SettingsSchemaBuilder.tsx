@@ -3,6 +3,7 @@ import { ChevronDown, ChevronUp, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import type { SettingControl, SettingDescriptor } from "@/api/endpoints/field-types";
 import { INPUT_CLASS } from "@/renderer/fields/types";
+import { InlineEmpty } from "@/components/ui/InlineEmpty";
 
 interface SettingsSchemaBuilderProps {
 	value: SettingDescriptor[];
@@ -61,10 +62,10 @@ export const SettingsSchemaBuilder = ({ value, onChange }: SettingsSchemaBuilder
 	return (
 		<div className="space-y-2">
 			{value.length === 0 && (
-				<p className="rounded-md border border-dashed border-border bg-surface-2 p-3 text-[12px] text-text-3">
+				<InlineEmpty pad="md">
 					No settings. Add one to let editors configure this field — read them in your
 					code as <code>host.field.settings</code>.
-				</p>
+				</InlineEmpty>
 			)}
 
 			{value.map((descriptor, index) => {

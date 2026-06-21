@@ -15,6 +15,7 @@ import { useDragReorder } from "@/hooks/useDragReorder";
 import { Combobox } from "@/components/ui/Combobox";
 
 import { FieldSettingsEditor } from "./FieldSettingsEditor";
+import { InlineEmpty } from "@/components/ui/InlineEmpty";
 
 /**
  * Shared editor for an array of `{column|id, type, title, subtitle, settings}`
@@ -229,9 +230,9 @@ export const ResourceDesigner = ({
 	return (
 		<div className="space-y-2">
 			{resources.length === 0 ? (
-				<div className="rounded-md border border-dashed border-border bg-surface-2 px-3 py-4 text-center text-[12.5px] text-text-3">
+				<InlineEmpty align="center">
 					No fields configured yet. Click <strong>Add field</strong> below to start.
-				</div>
+				</InlineEmpty>
 			) : (
 				<ul className="space-y-1.5">
 					{resources.map((entry, index) => {

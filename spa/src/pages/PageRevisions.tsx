@@ -16,6 +16,7 @@ import { pagesApi, type PageRevision } from "@/api/endpoints/pages";
 
 import { ApiError } from "@/types/api";
 import { toast } from "@/lib/toast";
+import { InlineEmpty } from "@/components/ui/InlineEmpty";
 
 /**
  * Revisions list for a single page.
@@ -243,9 +244,7 @@ const RevisionSection = ({
 			{title}
 		</h2>
 		{revisions.length === 0 ? (
-			<div className="rounded-md border border-dashed border-border bg-surface-2 px-3 py-4 text-center text-[12.5px] text-text-3">
-				{empty}
-			</div>
+			<InlineEmpty align="center">{empty}</InlineEmpty>
 		) : (
 			<ul className="divide-y divide-border overflow-hidden rounded-md border border-border bg-surface">
 				{revisions.map((rev) => (

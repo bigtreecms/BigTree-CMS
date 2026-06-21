@@ -25,6 +25,7 @@ import { AddSubButton, EditorCard, SubList, SubRow } from "./scaffold";
 import { ViewActionsControl } from "./ViewActionsControl";
 import { ViewTypeSettingsControl } from "./ViewTypeSettingsControl";
 import { NEW_ROW, useSubCrud } from "./useSubCrud";
+import { InlineEmpty } from "@/components/ui/InlineEmpty";
 
 interface ModuleViewsTabProps {
 	moduleId: string;
@@ -335,13 +336,11 @@ export const ModuleViewsTab = ({ moduleId, moduleTable }: ModuleViewsTabProps) =
 							Columns
 						</div>
 						{!draft.table ? (
-							<div className="rounded-md border border-dashed border-border bg-surface-2 px-3 py-4 text-center text-[12.5px] text-text-3">
+							<InlineEmpty align="center">
 								Select a data table to add columns.
-							</div>
+							</InlineEmpty>
 						) : draft.columns.length === 0 ? (
-							<div className="rounded-md border border-dashed border-border bg-surface-2 px-3 py-4 text-center text-[12.5px] text-text-3">
-								No columns configured.
-							</div>
+							<InlineEmpty align="center">No columns configured.</InlineEmpty>
 						) : (
 							<ul className="space-y-1.5">
 								{draft.columns.map((col, index) => {

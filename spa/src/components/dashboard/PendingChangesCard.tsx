@@ -4,7 +4,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Bell, Check, ChevronRight, FileText, X } from "lucide-react";
 import { DashCard } from "./DashCard";
 import { CardError } from "./CardError";
-import { EmptyPending } from "./EmptyPending";
+import { InlineEmpty } from "@/components/ui/InlineEmpty";
 import { Button } from "@/components/ui/Button";
 import {
 	pendingChangesApi,
@@ -99,7 +99,9 @@ export const PendingChangesCard = ({
 							Recent pending changes
 						</div>
 						{recent.length === 0 ? (
-							<EmptyPending label="No pending changes to review right now." />
+							<InlineEmpty fill pad="md" className="leading-[1.55]">
+								No pending changes to review right now.
+							</InlineEmpty>
 						) : (
 							<ul className="m-0 flex list-none flex-col gap-0.5 p-0">
 								{recent.map((p) => {
@@ -172,7 +174,9 @@ export const PendingChangesCard = ({
 							Awaiting publisher approval
 						</div>
 						{myPending === 0 ? (
-							<EmptyPending label="You have no changes awaiting a publisher's approval." />
+							<InlineEmpty fill pad="md" className="leading-[1.55]">
+								You have no changes awaiting a publisher's approval.
+							</InlineEmpty>
 						) : (
 							<div className="rounded-md border border-border bg-surface px-3.5 py-3 text-[13px] text-text">
 								<b className="font-semibold">{myPending}</b> of your change

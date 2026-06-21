@@ -16,6 +16,7 @@ import { resourceFoldersApi, type ResourceSummary } from "@/api/endpoints/resour
 import { resourcesApi } from "@/api/endpoints/resources";
 
 import { expandImageUrl } from "@/lib/imageUrl";
+import { InlineEmpty } from "@/components/ui/InlineEmpty";
 
 export type ResourcePickerType = "image" | "file" | "video";
 
@@ -177,11 +178,11 @@ export const ResourcePicker = ({
 						)}
 
 						{resources.length === 0 ? (
-							<div className="rounded-md border border-dashed border-border bg-surface-2 px-3 py-6 text-center text-[12.5px] text-text-3">
+							<InlineEmpty align="center" pad="xl">
 								{isSearching
 									? "No matching files."
 									: emptyMessage(type, minWidth, minHeight)}
-							</div>
+							</InlineEmpty>
 						) : (
 							<ul className="grid grid-cols-3 gap-2">
 								{resources.map((resource) => (

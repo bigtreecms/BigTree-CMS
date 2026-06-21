@@ -11,6 +11,7 @@ import { toast } from "@/lib/toast";
 
 import { useDragReorder } from "@/hooks/useDragReorder";
 import { Card } from "@/components/ui/Card";
+import { InlineEmpty } from "@/components/ui/InlineEmpty";
 
 interface ModuleGroupModulesListProps {
 	groupId: string;
@@ -71,10 +72,10 @@ export const ModuleGroupModulesList = ({ groupId }: ModuleGroupModulesListProps)
 
 		if (ordered.length === 0) {
 			return (
-				<div className="rounded-md border border-dashed border-border bg-surface-2 px-3 py-6 text-center text-[12.5px] text-text-3">
+				<InlineEmpty align="center" pad="xl">
 					No modules are assigned to this group yet. Assign a module to this group from
 					the module designer.
-				</div>
+				</InlineEmpty>
 			);
 		}
 
