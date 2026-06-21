@@ -9,6 +9,7 @@ import { PageHead } from "@/components/shell/PageHead";
 import { AccessDenied } from "@/components/ui/AccessDenied";
 import { Button } from "@/components/ui/Button";
 import { SubNav } from "@/components/ui/SubNav";
+import { TextInput } from "@/components/ui/TextInput";
 import { TagInput } from "@/components/tags/TagInput";
 
 import { tagsApi, type Tag } from "@/api/endpoints/tags";
@@ -160,14 +161,9 @@ export const TagAdd = () => {
 					>
 						Tag name
 					</label>
-					<input
+					<TextInput
 						id="tag-name"
-						type="text"
-						className={`w-full rounded-md border bg-surface px-3 py-1.5 text-[13.5px] focus:outline-none focus:ring-1 ${
-							duplicate
-								? "border-danger focus:ring-danger/40"
-								: "border-border focus:ring-accent-ring"
-						}`}
+						className={duplicate ? "border-danger focus:ring-danger/40" : undefined}
 						placeholder="e.g. announcements"
 						value={name}
 						onChange={(e) => {

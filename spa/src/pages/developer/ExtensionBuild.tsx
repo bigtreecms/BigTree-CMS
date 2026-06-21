@@ -7,6 +7,7 @@ import { PageHead } from "@/components/shell/PageHead";
 import { Button } from "@/components/ui/Button";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { Card } from "@/components/ui/Card";
+import { TextArea } from "@/components/ui/TextArea";
 import { DeveloperSectionNav } from "@/components/developer/DeveloperSectionNav";
 
 import {
@@ -261,13 +262,13 @@ export const ExtensionBuild = () => {
 						it.
 					</p>
 					<div className="flex gap-2">
-						<a
+						<Button
 							href={result.download_url}
-							className="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-[12.5px] font-medium text-accent-fg hover:bg-accent-hover"
+							variant="primary"
+							icon={<Download size={13} />}
 						>
-							<Download size={13} />
 							Download package
-						</a>
+						</Button>
 						<Button variant="secondary" to="/developer/extensions">
 							Done
 						</Button>
@@ -306,11 +307,10 @@ export const ExtensionBuild = () => {
 								<span className="mb-1 block text-[12px] font-medium text-text-2">
 									Description
 								</span>
-								<textarea
+								<TextArea
 									value={description}
 									onChange={(e) => setDescription(e.target.value)}
 									rows={2}
-									className="w-full rounded-md border border-border bg-surface px-3 py-2 text-[13px] focus:outline-none focus:ring-1 focus:ring-accent-ring"
 								/>
 							</label>
 							<TextInput

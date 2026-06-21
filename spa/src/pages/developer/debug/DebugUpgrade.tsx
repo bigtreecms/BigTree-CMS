@@ -17,9 +17,6 @@ import {
 } from "@/api/endpoints/system";
 import { ApiError } from "@/types/api";
 
-const primaryBtn =
-	"inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-[12.5px] font-medium text-accent-fg hover:bg-accent-hover disabled:opacity-60";
-
 type Stage =
 	| "idle"
 	| "downloading"
@@ -281,13 +278,13 @@ export const DebugUpgrade = () => {
 												onChange={(e) => setPassword(e.target.value)}
 											/>
 										</Field>
-										<button
+										<Button
+											variant="primary"
 											type="submit"
-											className={primaryBtn}
 											disabled={!username}
 										>
 											Install
-										</button>
+										</Button>
 									</form>
 								) : (
 									<form className="max-w-sm space-y-3" onSubmit={submitFtpRoot}>
@@ -308,13 +305,9 @@ export const DebugUpgrade = () => {
 												onChange={(e) => setFtpRoot(e.target.value)}
 											/>
 										</Field>
-										<button
-											type="submit"
-											className={primaryBtn}
-											disabled={!ftpRoot}
-										>
+										<Button variant="primary" type="submit" disabled={!ftpRoot}>
 											Set directory & install
-										</button>
+										</Button>
 									</form>
 								)}
 							</div>

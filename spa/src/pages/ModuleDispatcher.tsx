@@ -10,6 +10,7 @@ import { ModuleEntryEdit } from "@/pages/ModuleEntryEdit";
 import { ModuleReport } from "@/pages/ModuleReport";
 import { ModuleView } from "@/pages/ModuleView";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 
 const card = (message: string) => <EmptyState>{message}</EmptyState>;
@@ -94,13 +95,9 @@ export const ModuleDispatcher = () => {
 				It's a custom PHP page that hasn't been ported to the new admin yet.
 			</p>
 			{legacyUrl ? (
-				<a
-					href={legacyUrl}
-					className="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-[12.5px] font-medium text-accent-fg hover:bg-accent-hover"
-				>
-					<ExternalLink size={13} />
+				<Button href={legacyUrl} variant="primary" icon={<ExternalLink size={13} />}>
 					Open in the classic admin
-				</a>
+				</Button>
 			) : (
 				<p className="text-[12.5px] text-text-3">
 					Open the classic admin and navigate to this module to use it.

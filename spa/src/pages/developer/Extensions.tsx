@@ -163,19 +163,19 @@ export const Extensions = () => {
 				<div className="flex items-center justify-end gap-1.5">
 					{updateById.get(row.id) && (
 						<>
-							<button
-								type="button"
+							<Button
+								variant="primary"
+								size="sm"
 								disabled={upgradeMutation.isPending}
 								onClick={(e) => {
 									e.stopPropagation();
 									upgradeMutation.mutate(row.id);
 								}}
-								className="rounded-md bg-accent px-2 py-1 text-[11.5px] font-medium text-accent-fg hover:bg-accent-hover disabled:opacity-50"
 							>
 								{upgradeMutation.isPending && upgradeMutation.variables === row.id
 									? "Upgrading…"
 									: "Upgrade"}
-							</button>
+							</Button>
 							<button
 								type="button"
 								onClick={(e) => {
