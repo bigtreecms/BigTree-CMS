@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Bell, Check, ChevronRight, FileText, X } from "lucide-react";
@@ -6,6 +6,7 @@ import { DashCard } from "./DashCard";
 import { CardError } from "./CardError";
 import { InlineEmpty } from "@/components/ui/InlineEmpty";
 import { Button } from "@/components/ui/Button";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import {
 	pendingChangesApi,
 	type DashboardSummary,
@@ -30,6 +31,8 @@ export const PendingChangesCard = ({
 }: PendingChangesCardProps) => {
 	const navigate = useNavigate();
 	const queryClient = useQueryClient();
+	const [rejectId, setRejectId] = useState<number | null>(null);
+	const [approveId, setApproveId] = useState<number | null>(null);
 	const groups = useMemo(() => groupPendingByCategory(pending), [pending]);
 	const totalPending =
 		summary?.pending_changes.publishable ?? groups.reduce((s, g) => s + g.changes.length, 0);
@@ -132,7 +135,7 @@ export const PendingChangesCard = ({
 												className="rounded p-1 text-text-3 hover:bg-hover hover:text-danger disabled:opacity-40"
 												onClick={(e) => {
 													e.stopPropagation();
-													rejectMutation.mutate(p.id);
+													setRejectId(p.id);
 												}}
 												disabled={busy}
 												title="Reject"
@@ -154,7 +157,7 @@ export const PendingChangesCard = ({
 														return;
 													}
 
-													approveMutation.mutate(p.id);
+													setApproveId(p.id);
 												}}
 												disabled={busy}
 												title={isPage ? "Open to approve" : "Approve"}
@@ -186,6 +189,37 @@ export const PendingChangesCard = ({
 						)}
 					</div>
 				</div>
+			)}
+
+			{approveId !== null && (
+				<ConfirmDialog
+					open
+					onOpenChange={(open) => {
+						if (!open) {
+							setApproveId(null);
+						}
+					}}
+					title="Approve this change?"
+					description="The pending change will be published and made live on the site."
+					confirmLabel="Approve"
+					onConfirm={() => approveMutation.mutate(approveId)}
+				/>
+			)}
+
+			{rejectId !== null && (
+				<ConfirmDialog
+					open
+					onOpenChange={(open) => {
+						if (!open) {
+							setRejectId(null);
+						}
+					}}
+					title="Reject this change?"
+					description="The pending change will be discarded. The submitting user will need to redo their edits."
+					confirmLabel="Reject"
+					variant="danger"
+					onConfirm={() => rejectMutation.mutate(rejectId)}
+				/>
 			)}
 		</DashCard>
 	);
