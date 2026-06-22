@@ -20,6 +20,7 @@ import { SubNav } from "@/components/ui/SubNav";
 import { TextField } from "@/components/ui/TextField";
 import { TextInput } from "@/components/ui/TextInput";
 import { Card } from "@/components/ui/Card";
+import { IconButton } from "@/components/ui/IconButton";
 import { TimezoneSelect } from "@/components/users/TimezoneSelect";
 import { isDeveloper } from "@/lib/permissions";
 import { toast } from "@/lib/toast";
@@ -438,28 +439,27 @@ export const Users = () => {
 
 										{/* Actions */}
 										<div className="flex items-center justify-end gap-1 pl-11 md:pl-0">
-											<button
-												type="button"
-												className="rounded p-1 text-text-3 hover:bg-hover hover:text-text"
+											<IconButton
 												title="Edit"
+												label="Edit"
 												onClick={(e) => {
 													e.stopPropagation();
 													navigate(`/users/${u.id}/edit`);
 												}}
 											>
 												<Edit size={15} />
-											</button>
-											<button
-												type="button"
-												className="rounded p-1 text-text-3 hover:bg-hover hover:text-danger"
+											</IconButton>
+											<IconButton
+												tone="danger"
 												title="Delete"
+												label="Delete"
 												onClick={(e) => {
 													e.stopPropagation();
 													setConfirmDelete(u);
 												}}
 											>
 												<Trash size={15} />
-											</button>
+											</IconButton>
 										</div>
 									</div>
 								);

@@ -18,6 +18,7 @@ import { resourcesApi } from "@/api/endpoints/resources";
 
 import { expandImageUrl } from "@/lib/imageUrl";
 import { InlineEmpty } from "@/components/ui/InlineEmpty";
+import { IconButton } from "@/components/ui/IconButton";
 
 export type ResourcePickerType = "image" | "file" | "video";
 
@@ -132,14 +133,13 @@ export const ResourcePicker = ({
 						onChange={(e) => setQuery(e.target.value)}
 					/>
 					{query && (
-						<button
-							type="button"
-							className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-text-3 hover:bg-hover hover:text-text"
+						<IconButton
+							className="absolute right-2 top-1/2 -translate-y-1/2"
 							onClick={() => setQuery("")}
-							aria-label="Clear search"
+							label="Clear search"
 						>
 							<X size={14} />
-						</button>
+						</IconButton>
 					)}
 				</div>
 

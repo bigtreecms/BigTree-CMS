@@ -1,6 +1,7 @@
 import { Plus, Trash } from "lucide-react";
 
 import { Field } from "@/components/ui/Field";
+import { IconButton } from "@/components/ui/IconButton";
 import type { MediaPreset } from "@/api/endpoints/configure";
 
 /**
@@ -117,14 +118,14 @@ const SizeRowsEditor = ({ label, rows, onChange }: SizeRowsEditorProps) => {
 								/>
 								Gray
 							</label>
-							<button
-								type="button"
+							<IconButton
+								tone="danger"
 								onClick={() => remove(i)}
-								className="rounded-md border border-border bg-surface p-1 text-text-3 hover:bg-hover hover:text-danger"
-								aria-label="Remove"
+								className="rounded-md border border-border bg-surface"
+								label="Remove"
 							>
 								<Trash size={12} />
-							</button>
+							</IconButton>
 						</div>
 					))}
 				</div>
@@ -207,14 +208,14 @@ const CropsEditor = ({ crops, onChange }: CropsEditorProps) => {
 									/>
 									Gray
 								</label>
-								<button
-									type="button"
+								<IconButton
+									tone="danger"
 									onClick={() => remove(i)}
-									className="rounded-md border border-border bg-surface p-1 text-text-3 hover:bg-hover hover:text-danger"
-									aria-label="Remove crop"
+									className="rounded-md border border-border bg-surface"
+									label="Remove crop"
 								>
 									<Trash size={12} />
-								</button>
+								</IconButton>
 							</div>
 
 							<div className="mt-2.5 grid grid-cols-1 gap-2.5 border-t border-border pt-2.5 md:grid-cols-2">

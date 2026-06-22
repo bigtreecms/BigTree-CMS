@@ -4,6 +4,7 @@ import { GripVertical, Pencil, Plus, Trash, X } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { InlineEmpty } from "@/components/ui/InlineEmpty";
+import { IconButton } from "@/components/ui/IconButton";
 
 /**
  * Presentational chrome shared by every sub-resource tab (actions, forms,
@@ -109,24 +110,12 @@ export const SubRow = ({
 				<span className="truncate font-mono text-[11px] text-text-3">{subtitle}</span>
 			)}
 		</button>
-		<button
-			type="button"
-			className="rounded p-1 text-text-3 hover:bg-hover hover:text-text"
-			onClick={onEdit}
-			title="Edit"
-			aria-label="Edit"
-		>
+		<IconButton onClick={onEdit} title="Edit" label="Edit">
 			<Pencil size={13} />
-		</button>
-		<button
-			type="button"
-			className="rounded p-1 text-text-3 hover:bg-hover hover:text-danger"
-			onClick={onDelete}
-			title="Delete"
-			aria-label="Delete"
-		>
+		</IconButton>
+		<IconButton tone="danger" onClick={onDelete} title="Delete" label="Delete">
 			<Trash size={13} />
-		</button>
+		</IconButton>
 	</li>
 );
 
@@ -161,14 +150,9 @@ export const EditorCard = ({
 	<Card>
 		<div className="flex items-center justify-between border-b border-border px-4 py-2.5">
 			<span className="text-[13px] font-semibold text-text">{title}</span>
-			<button
-				type="button"
-				className="rounded p-1 text-text-3 hover:bg-hover hover:text-text"
-				onClick={onClose}
-				aria-label="Close editor"
-			>
+			<IconButton onClick={onClose} label="Close editor">
 				<X size={14} />
-			</button>
+			</IconButton>
 		</div>
 		<div className="space-y-4 p-4">{children}</div>
 		<div className="flex justify-end gap-2 border-t border-border px-4 py-3">

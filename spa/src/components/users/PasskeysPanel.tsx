@@ -13,6 +13,7 @@ import { Card } from "@/components/ui/Card";
 import { ApiError } from "@/types/api";
 import { toast } from "@/lib/toast";
 import { InlineEmpty } from "@/components/ui/InlineEmpty";
+import { IconButton } from "@/components/ui/IconButton";
 
 /**
  * Profile → Security passkey manager.
@@ -168,15 +169,14 @@ export const PasskeysPanel = () => {
 								<div className="truncate text-[11.5px] text-text-3">
 									{p.last_used ? `Last used ${p.last_used}` : "Never used"}
 								</div>
-								<button
-									type="button"
-									className="rounded p-1 text-text-3 hover:bg-hover hover:text-danger"
+								<IconButton
+									tone="danger"
 									onClick={() => setPendingDelete(p)}
-									aria-label="Remove passkey"
+									label="Remove passkey"
 									title="Remove passkey"
 								>
 									<Trash size={13} />
-								</button>
+								</IconButton>
 							</li>
 						))}
 					</ul>

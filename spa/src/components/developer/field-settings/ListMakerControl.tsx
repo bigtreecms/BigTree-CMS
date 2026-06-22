@@ -2,6 +2,7 @@ import { Plus, Trash } from "lucide-react";
 
 import { ControlShell } from "./ControlShell";
 import type { ControlProps } from "./types";
+import { IconButton } from "@/components/ui/IconButton";
 
 type Row = Record<string, string>;
 
@@ -50,14 +51,13 @@ export const ListMakerControl = ({ descriptor, settings, onPatch }: ControlProps
 								onChange={(e) => update(index, key, e.target.value)}
 							/>
 						))}
-						<button
-							type="button"
-							className="rounded p-1 text-text-3 hover:bg-hover hover:text-danger"
+						<IconButton
+							tone="danger"
 							onClick={() => remove(index)}
-							aria-label="Remove option"
+							label="Remove option"
 						>
 							<Trash size={13} />
-						</button>
+						</IconButton>
 					</div>
 				))}
 				<button

@@ -19,6 +19,7 @@ import { Combobox } from "@/components/ui/Combobox";
 
 import { FieldSettingsEditor } from "./FieldSettingsEditor";
 import { InlineEmpty } from "@/components/ui/InlineEmpty";
+import { IconButton } from "@/components/ui/IconButton";
 
 /**
  * Shared editor for an array of `{column|id, type, title, subtitle, settings}`
@@ -297,15 +298,14 @@ export const ResourceDesigner = ({
 										)}
 									</button>
 
-									<button
-										type="button"
-										className="rounded p-1 text-text-3 hover:bg-hover hover:text-danger"
+									<IconButton
+										tone="danger"
 										onClick={() => removeEntry(index)}
 										title="Delete field"
-										aria-label="Delete field"
+										label="Delete field"
 									>
 										<Trash size={13} />
-									</button>
+									</IconButton>
 								</div>
 
 								{isOpen && (

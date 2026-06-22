@@ -7,6 +7,7 @@ import { CardError } from "./CardError";
 import { InlineEmpty } from "@/components/ui/InlineEmpty";
 import { Button } from "@/components/ui/Button";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+import { IconButton } from "@/components/ui/IconButton";
 import {
 	pendingChangesApi,
 	type DashboardSummary,
@@ -130,22 +131,22 @@ export const PendingChangesCard = ({
 													{humanizeTable(p.table)} · {p.type} · {p.date}
 												</div>
 											</Link>
-											<button
-												type="button"
-												className="rounded p-1 text-text-3 hover:bg-hover hover:text-danger disabled:opacity-40"
+											<IconButton
+												tone="danger"
+												className="disabled:opacity-40"
 												onClick={(e) => {
 													e.stopPropagation();
 													setRejectId(p.id);
 												}}
 												disabled={busy}
 												title="Reject"
-												aria-label="Reject"
+												label="Reject"
 											>
 												<X size={13} />
-											</button>
-											<button
-												type="button"
-												className="rounded p-1 text-text-3 hover:bg-hover hover:text-success disabled:opacity-40"
+											</IconButton>
+											<IconButton
+												tone="success"
+												className="disabled:opacity-40"
 												onClick={(e) => {
 													e.stopPropagation();
 
@@ -161,10 +162,10 @@ export const PendingChangesCard = ({
 												}}
 												disabled={busy}
 												title={isPage ? "Open to approve" : "Approve"}
-												aria-label="Approve"
+												label="Approve"
 											>
 												<Check size={13} />
-											</button>
+											</IconButton>
 										</li>
 									);
 								})}

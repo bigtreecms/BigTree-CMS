@@ -2,6 +2,7 @@ import { Plus, Trash } from "lucide-react";
 
 import { ControlShell } from "./ControlShell";
 import type { ControlProps } from "./types";
+import { IconButton } from "@/components/ui/IconButton";
 
 /**
  * Repeatable list of source column names (route generation, geocoding address).
@@ -42,14 +43,13 @@ export const SourceFieldsControl = ({ descriptor, settings, onPatch }: ControlPr
 							value={row}
 							onChange={(e) => update(index, e.target.value)}
 						/>
-						<button
-							type="button"
-							className="rounded p-1 text-text-3 hover:bg-hover hover:text-danger"
+						<IconButton
+							tone="danger"
 							onClick={() => remove(index)}
-							aria-label="Remove source field"
+							label="Remove source field"
 						>
 							<Trash size={13} />
-						</button>
+						</IconButton>
 					</div>
 				))}
 				<button

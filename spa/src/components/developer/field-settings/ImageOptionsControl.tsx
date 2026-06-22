@@ -8,6 +8,7 @@ import { Select } from "../../ui/Select";
 
 import { ControlShell } from "./ControlShell";
 import type { ControlProps } from "./types";
+import { IconButton } from "@/components/ui/IconButton";
 
 /**
  * Image processing options shared by the image / video / media-gallery field
@@ -71,14 +72,9 @@ const DimFields = ({ row, onChange, onRemove }: DimFieldsProps) => (
 			/>
 			Grey
 		</label>
-		<button
-			type="button"
-			className="rounded p-1 text-text-3 hover:bg-hover hover:text-danger"
-			onClick={onRemove}
-			aria-label="Remove"
-		>
+		<IconButton tone="danger" onClick={onRemove} label="Remove">
 			<Trash size={13} />
-		</button>
+		</IconButton>
 	</div>
 );
 

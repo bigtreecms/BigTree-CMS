@@ -10,6 +10,7 @@ import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
 import { Button } from "@/components/ui/Button";
 import { Pager } from "@/components/ui/Pager";
 import { SearchInput } from "@/components/ui/SearchInput";
+import { IconButton } from "@/components/ui/IconButton";
 
 import { DeveloperSectionNav } from "@/components/developer/DeveloperSectionNav";
 
@@ -139,18 +140,17 @@ export const DeveloperSettings = () => {
 						<Trash size={13} />
 					</span>
 				) : (
-					<button
-						type="button"
-						className="rounded p-1 text-text-3 hover:bg-hover hover:text-danger"
+					<IconButton
+						tone="danger"
 						onClick={(e) => {
 							e.stopPropagation();
 							setConfirmDelete(row);
 						}}
 						title="Delete setting"
-						aria-label="Delete setting"
+						label="Delete setting"
 					>
 						<Trash size={13} />
-					</button>
+					</IconButton>
 				),
 		},
 	];

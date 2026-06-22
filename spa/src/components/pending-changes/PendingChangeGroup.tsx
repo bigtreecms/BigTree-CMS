@@ -1,6 +1,7 @@
 import { Check, FileText, X } from "lucide-react";
 
 import { Card, CardHeader } from "@/components/ui/Card";
+import { IconButton } from "@/components/ui/IconButton";
 import type { PendingChange } from "@/api/endpoints/dashboard";
 import type { PendingChangeGroup as Group } from "@/lib/pendingChanges";
 import { isPageChange } from "@/lib/pendingChanges";
@@ -88,26 +89,26 @@ export const PendingChangeGroup = ({
 							</span>
 
 							<div className="flex items-center gap-1 justify-self-end">
-								<button
-									type="button"
+								<IconButton
+									tone="danger"
 									onClick={() => onReject(change)}
 									disabled={busy}
 									title="Reject"
-									aria-label="Reject"
-									className="rounded p-1 text-text-3 hover:bg-hover hover:text-danger disabled:opacity-40"
+									label="Reject"
+									className="disabled:opacity-40"
 								>
 									<X size={14} />
-								</button>
-								<button
-									type="button"
+								</IconButton>
+								<IconButton
+									tone="success"
 									onClick={() => onApprove(change)}
 									disabled={busy}
 									title={isPageChange(change) ? "Open to approve" : "Approve"}
-									aria-label="Approve"
-									className="rounded p-1 text-text-3 hover:bg-hover hover:text-success disabled:opacity-40"
+									label="Approve"
+									className="disabled:opacity-40"
 								>
 									<Check size={14} />
-								</button>
+								</IconButton>
 							</div>
 						</li>
 					);

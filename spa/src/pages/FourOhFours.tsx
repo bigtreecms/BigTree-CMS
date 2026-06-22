@@ -11,6 +11,7 @@ import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
 import { Pager } from "@/components/ui/Pager";
 import { SearchInput } from "@/components/ui/SearchInput";
 import { SubNav } from "@/components/ui/SubNav";
+import { IconButton } from "@/components/ui/IconButton";
 
 import {
 	fourOhFoursApi,
@@ -285,24 +286,23 @@ export const FourOhFours = ({ type }: FourOhFoursProps) => {
 								}}
 								autoFocus
 							/>
-							<button
-								type="button"
-								className="rounded p-1 text-text-3 hover:bg-hover hover:text-accent"
+							<IconButton
+								tone="accent"
 								onClick={() =>
 									setRedirectMutation.mutate({ id: row.id, url: redirectDraft })
 								}
 								title="Save"
+								label="Save"
 							>
 								<Check size={13} />
-							</button>
-							<button
-								type="button"
-								className="rounded p-1 text-text-3 hover:bg-hover hover:text-text"
+							</IconButton>
+							<IconButton
 								onClick={() => setEditingRedirectId(null)}
 								title="Cancel"
+								label="Cancel"
 							>
 								<X size={13} />
-							</button>
+							</IconButton>
 						</div>
 					);
 				}
@@ -342,35 +342,33 @@ export const FourOhFours = ({ type }: FourOhFoursProps) => {
 					className="flex items-center justify-end gap-1"
 					onClick={(e) => e.stopPropagation()}
 				>
-					<button
-						type="button"
-						className="rounded p-1 text-text-3 hover:bg-hover hover:text-text"
+					<IconButton
 						onClick={() => {
 							setEditingRedirectId(row.id);
 							setRedirectDraft(row.redirect_url);
 						}}
 						title="Set redirect"
+						label="Set redirect"
 					>
 						<Link2 size={13} />
-					</button>
+					</IconButton>
 					{!row.ignored && (
-						<button
-							type="button"
-							className="rounded p-1 text-text-3 hover:bg-hover hover:text-text"
+						<IconButton
 							onClick={() => ignoreMutation.mutate(row.id)}
 							title="Ignore"
+							label="Ignore"
 						>
 							<EyeOff size={13} />
-						</button>
+						</IconButton>
 					)}
-					<button
-						type="button"
-						className="rounded p-1 text-text-3 hover:bg-hover hover:text-danger"
+					<IconButton
+						tone="danger"
 						onClick={() => deleteMutation.mutate(row.id)}
 						title="Delete"
+						label="Delete"
 					>
 						<Trash size={13} />
-					</button>
+					</IconButton>
 				</div>
 			),
 		},

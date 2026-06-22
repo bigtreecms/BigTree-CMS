@@ -8,6 +8,7 @@ import { PageHead } from "@/components/shell/PageHead";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
 import { Button } from "@/components/ui/Button";
+import { IconButton } from "@/components/ui/IconButton";
 
 import { DeveloperSectionNav } from "@/components/developer/DeveloperSectionNav";
 
@@ -122,18 +123,17 @@ export const Templates = () => {
 			width: "56px",
 			align: "right",
 			cell: (row) => (
-				<button
-					type="button"
-					className="rounded p-1 text-text-3 hover:bg-hover hover:text-danger"
+				<IconButton
+					tone="danger"
 					onClick={(e) => {
 						e.stopPropagation();
 						setConfirmDelete(row);
 					}}
 					title="Delete template"
-					aria-label="Delete template"
+					label="Delete template"
 				>
 					<Trash size={13} />
-				</button>
+				</IconButton>
 			),
 		},
 	];

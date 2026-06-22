@@ -17,6 +17,7 @@ import { pagesApi, type PageRevision } from "@/api/endpoints/pages";
 import { ApiError } from "@/types/api";
 import { toast } from "@/lib/toast";
 import { InlineEmpty } from "@/components/ui/InlineEmpty";
+import { IconButton } from "@/components/ui/IconButton";
 
 /**
  * Revisions list for a single page.
@@ -266,24 +267,22 @@ const RevisionSection = ({
 							{rev.updated_at}
 						</div>
 						<div className="flex justify-end gap-1">
-							<button
-								type="button"
-								className="rounded p-1 text-text-3 hover:bg-hover hover:text-accent"
+							<IconButton
+								tone="accent"
 								onClick={() => onRestore(rev)}
 								title="Restore revision"
-								aria-label="Restore revision"
+								label="Restore revision"
 							>
 								<RotateCcw size={13} />
-							</button>
-							<button
-								type="button"
-								className="rounded p-1 text-text-3 hover:bg-hover hover:text-danger"
+							</IconButton>
+							<IconButton
+								tone="danger"
 								onClick={() => onDelete(rev)}
 								title="Delete revision"
-								aria-label="Delete revision"
+								label="Delete revision"
 							>
 								<Trash size={13} />
-							</button>
+							</IconButton>
 						</div>
 					</li>
 				))}

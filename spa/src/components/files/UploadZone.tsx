@@ -5,6 +5,7 @@ import { useUploads, type UploadItem } from "@/hooks/useUploads";
 import { UPLOAD_PATH } from "@/api/endpoints/resources";
 import type { ResourceDetail } from "@/api/endpoints/resources";
 import { formatBytes } from "@/lib/bytes";
+import { IconButton } from "@/components/ui/IconButton";
 
 interface UploadZoneProps {
 	/** Target folder id; sent alongside each upload as `folder=`. 0 = home. */
@@ -189,15 +190,9 @@ const UploadRow = ({ item, onCancel }: UploadRowProps) => {
 				)}
 			</div>
 
-			<button
-				type="button"
-				className="rounded p-1 text-text-3 hover:bg-hover hover:text-text"
-				onClick={onCancel}
-				aria-label="Cancel upload"
-				disabled={done || failed}
-			>
+			<IconButton onClick={onCancel} label="Cancel upload" disabled={done || failed}>
 				<X size={13} />
-			</button>
+			</IconButton>
 		</li>
 	);
 };

@@ -26,6 +26,7 @@ import { ViewActionsControl } from "./ViewActionsControl";
 import { ViewTypeSettingsControl } from "./ViewTypeSettingsControl";
 import { NEW_ROW, useSubCrud } from "./useSubCrud";
 import { InlineEmpty } from "@/components/ui/InlineEmpty";
+import { IconButton } from "@/components/ui/IconButton";
 
 interface ModuleViewsTabProps {
 	moduleId: string;
@@ -400,14 +401,13 @@ export const ModuleViewsTab = ({ moduleId, moduleTable }: ModuleViewsTabProps) =
 												aria-label="Column width"
 												className="w-20 shrink-0 rounded-md border border-border bg-surface px-2 py-1 text-[12.5px] tabular-nums focus:outline-none focus:ring-1 focus:ring-accent-ring"
 											/>
-											<button
-												type="button"
-												className="rounded p-1 text-text-3 hover:bg-hover hover:text-danger"
+											<IconButton
+												tone="danger"
 												onClick={() => removeColumn(index)}
-												aria-label="Remove column"
+												label="Remove column"
 											>
 												<Trash size={13} />
-											</button>
+											</IconButton>
 										</li>
 									);
 								})}

@@ -9,6 +9,7 @@ import { pagesApi, type PageListRow, type PageSearchHit } from "@/api/endpoints/
 import { ApiError } from "@/types/api";
 import { toast } from "@/lib/toast";
 import { InlineEmpty } from "@/components/ui/InlineEmpty";
+import { IconButton } from "@/components/ui/IconButton";
 
 interface MovePageDialogProps {
 	open: boolean;
@@ -176,14 +177,13 @@ export const MovePageDialog = ({
 						onChange={(e) => setSearch(e.target.value)}
 					/>
 					{search && (
-						<button
-							type="button"
-							className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-text-3 hover:bg-hover hover:text-text"
+						<IconButton
+							className="absolute right-2 top-1/2 -translate-y-1/2"
 							onClick={() => setSearch("")}
-							aria-label="Clear search"
+							label="Clear search"
 						>
 							<X size={14} />
-						</button>
+						</IconButton>
 					)}
 				</div>
 
@@ -277,15 +277,13 @@ export const MovePageDialog = ({
 												</span>
 											)}
 											{!isSearching && hasChildren && (
-												<button
-													type="button"
-													className="rounded p-1 text-text-3 hover:bg-hover hover:text-text"
+												<IconButton
 													onClick={() => drillInto(row as PageListRow)}
 													title="Open subpages"
-													aria-label="Open subpages"
+													label="Open subpages"
 												>
 													<ChevronRight size={13} />
-												</button>
+												</IconButton>
 											)}
 										</div>
 									</div>

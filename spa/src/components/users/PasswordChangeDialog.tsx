@@ -3,6 +3,7 @@ import { useMutation } from "@tanstack/react-query";
 import { Eye, EyeOff } from "lucide-react";
 
 import { Button } from "@/components/ui/Button";
+import { IconButton } from "@/components/ui/IconButton";
 import { Modal } from "@/components/ui/Modal";
 import { usersApi } from "@/api/endpoints/users";
 import { ApiError } from "@/types/api";
@@ -128,14 +129,13 @@ export const PasswordChangeDialog = ({
 							onChange={(e) => setNext(e.target.value)}
 							className="w-full rounded-md border border-border bg-surface px-3 py-2 pr-9 text-[13.5px] focus:outline-none focus:ring-1 focus:ring-accent-ring"
 						/>
-						<button
-							type="button"
+						<IconButton
 							onClick={() => setShowNext((v) => !v)}
-							className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-text-3 hover:bg-hover hover:text-text"
-							aria-label={showNext ? "Hide password" : "Show password"}
+							className="absolute right-2 top-1/2 -translate-y-1/2"
+							label={showNext ? "Hide password" : "Show password"}
 						>
 							{showNext ? <EyeOff size={14} /> : <Eye size={14} />}
-						</button>
+						</IconButton>
 					</div>
 					<p className="mt-1 text-[11.5px] text-text-3">
 						Minimum 8 characters. Site security policy may require more.

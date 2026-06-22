@@ -6,6 +6,7 @@ import type { ModuleReportFilter, ModuleReportFilterType } from "@/api/endpoints
 import { useDragReorder } from "@/hooks/useDragReorder";
 import { InlineEmpty } from "@/components/ui/InlineEmpty";
 import { Loading } from "@/components/ui/Loading";
+import { IconButton } from "@/components/ui/IconButton";
 
 /**
  * Column-driven editors for a module report's Filters and Fields, replacing the
@@ -129,15 +130,9 @@ interface DeleteButtonProps {
 }
 
 const DeleteButton = ({ onClick }: DeleteButtonProps) => (
-	<button
-		type="button"
-		className="rounded p-1 text-text-3 hover:bg-hover hover:text-danger"
-		onClick={onClick}
-		title="Remove"
-		aria-label="Remove"
-	>
+	<IconButton tone="danger" onClick={onClick} title="Remove" label="Remove">
 		<Trash size={13} />
-	</button>
+	</IconButton>
 );
 
 const ColumnTag = ({ column }: { column: string }) => (

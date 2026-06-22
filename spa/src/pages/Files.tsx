@@ -18,6 +18,7 @@ import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { Button } from "@/components/ui/Button";
 import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
 import { SearchInput } from "@/components/ui/SearchInput";
+import { IconButton } from "@/components/ui/IconButton";
 import { FileDetail } from "@/components/files/FileDetail";
 import { FolderEditor } from "@/components/files/FolderEditor";
 import { UploadZone } from "@/components/files/UploadZone";
@@ -272,10 +273,10 @@ export const Files = () => {
 
 					return (
 						<div className="flex items-center justify-end gap-1">
-							<button
-								type="button"
-								className="rounded p-1 text-text-3 hover:bg-hover hover:text-text disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-text-3"
+							<IconButton
+								className="disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-text-3"
 								title="Rename folder"
+								label="Rename folder"
 								disabled={!canEdit}
 								onClick={(e) => {
 									e.stopPropagation();
@@ -283,11 +284,12 @@ export const Files = () => {
 								}}
 							>
 								<Edit size={15} />
-							</button>
-							<button
-								type="button"
-								className="rounded p-1 text-text-3 hover:bg-hover hover:text-danger disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-text-3"
+							</IconButton>
+							<IconButton
+								tone="danger"
+								className="disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-text-3"
 								title="Delete folder"
+								label="Delete folder"
 								disabled={!canEdit}
 								onClick={(e) => {
 									e.stopPropagation();
@@ -295,24 +297,23 @@ export const Files = () => {
 								}}
 							>
 								<Trash size={15} />
-							</button>
+							</IconButton>
 						</div>
 					);
 				}
 
 				return (
 					<div className="flex items-center justify-end gap-1">
-						<button
-							type="button"
-							className="rounded p-1 text-text-3 hover:bg-hover hover:text-text"
+						<IconButton
 							title="View file"
+							label="View file"
 							onClick={(e) => {
 								e.stopPropagation();
 								setDetailResourceId(row.resource.id);
 							}}
 						>
 							<Edit size={15} />
-						</button>
+						</IconButton>
 					</div>
 				);
 			},

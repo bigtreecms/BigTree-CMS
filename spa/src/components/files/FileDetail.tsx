@@ -33,6 +33,7 @@ import { formatBytes } from "@/lib/bytes";
 import { expandImageUrl } from "@/lib/imageUrl";
 import { toast } from "@/lib/toast";
 import { InlineEmpty } from "@/components/ui/InlineEmpty";
+import { IconButton } from "@/components/ui/IconButton";
 
 interface FileDetailProps {
 	/** Resource id to load, or `null` to keep the SlideOver closed. */
@@ -473,14 +474,14 @@ const MetaGrid = ({ resource, onCopyUrl }: MetaGridProps) => {
 								<LinkIcon size={12} />
 								<span className="truncate font-mono text-[11.5px]">{fileUrl}</span>
 							</a>
-							<button
-								type="button"
-								className="ml-auto shrink-0 rounded p-1 text-text-3 hover:bg-hover hover:text-text"
+							<IconButton
+								className="ml-auto shrink-0"
 								title="Copy URL"
+								label="Copy URL"
 								onClick={onCopyUrl}
 							>
 								<Copy size={12} />
-							</button>
+							</IconButton>
 						</>
 					),
 				},

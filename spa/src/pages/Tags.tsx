@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/Button";
 import { Pager } from "@/components/ui/Pager";
 import { SearchInput } from "@/components/ui/SearchInput";
 import { SubNav } from "@/components/ui/SubNav";
+import { IconButton } from "@/components/ui/IconButton";
 
 import { tagsApi, type Tag } from "@/api/endpoints/tags";
 import { isAdmin } from "@/lib/permissions";
@@ -106,10 +107,10 @@ export const Tags = () => {
 			headerAlign: "right",
 			cell: (tag) => (
 				<div className="flex items-center justify-end gap-1">
-					<button
-						type="button"
-						className="rounded p-1 text-text-3 hover:bg-hover hover:text-text disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-text-3"
+					<IconButton
+						className="disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-text-3"
 						title="Merge into another tag"
+						label="Merge into another tag"
 						disabled={!canEdit}
 						onClick={(e) => {
 							e.stopPropagation();
@@ -117,11 +118,12 @@ export const Tags = () => {
 						}}
 					>
 						<GitMerge size={15} />
-					</button>
-					<button
-						type="button"
-						className="rounded p-1 text-text-3 hover:bg-hover hover:text-danger disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-text-3"
+					</IconButton>
+					<IconButton
+						tone="danger"
+						className="disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-text-3"
 						title="Delete tag"
+						label="Delete tag"
 						disabled={!canEdit}
 						onClick={(e) => {
 							e.stopPropagation();
@@ -129,7 +131,7 @@ export const Tags = () => {
 						}}
 					>
 						<Trash size={15} />
-					</button>
+					</IconButton>
 				</div>
 			),
 		},

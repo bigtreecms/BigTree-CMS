@@ -24,6 +24,7 @@ import { validateRequired } from "@/lib/formValidation";
 import { TextField } from "@/components/ui/TextField";
 import { Loading } from "@/components/ui/Loading";
 import { InlineEmpty } from "@/components/ui/InlineEmpty";
+import { IconButton } from "@/components/ui/IconButton";
 
 export const CalloutGroupEdit = () => {
 	const { id: idParam } = useParams<{ id: string }>();
@@ -252,15 +253,14 @@ export const CalloutGroupEdit = () => {
 														{id}
 													</div>
 												</span>
-												<button
-													type="button"
-													className="rounded p-1 text-text-3 hover:bg-hover hover:text-danger"
+												<IconButton
+													tone="danger"
 													onClick={() => removeCallout(id)}
 													title="Remove from group"
-													aria-label={`Remove ${callout?.name ?? id} from group`}
+													label={`Remove ${callout?.name ?? id} from group`}
 												>
 													<Trash size={13} />
-												</button>
+												</IconButton>
 											</li>
 										);
 									})}

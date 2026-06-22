@@ -7,6 +7,7 @@ import { fieldTypesApi, fieldTypesForUseCase } from "@/api/endpoints/field-types
 import { FieldSettingsEditor } from "../FieldSettingsEditor";
 import { ControlShell } from "./ControlShell";
 import type { ControlProps } from "./types";
+import { IconButton } from "@/components/ui/IconButton";
 
 interface Column {
 	id?: string;
@@ -130,14 +131,13 @@ export const MatrixColumnsControl = ({ descriptor, settings, onPatch }: ControlP
 									/>
 									Title
 								</label>
-								<button
-									type="button"
-									className="rounded p-1 text-text-3 hover:bg-hover hover:text-danger"
+								<IconButton
+									tone="danger"
 									onClick={() => remove(index)}
-									aria-label="Remove column"
+									label="Remove column"
 								>
 									<Trash size={13} />
-								</button>
+								</IconButton>
 							</div>
 							{isOpen && (
 								<div className="border-t border-border p-2">
