@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useParams } from "react-router-dom";
 import { Archive, Edit, Eye, EyeOff, FileText, Plus } from "lucide-react";
 import { InlineEmpty } from "@/components/ui/InlineEmpty";
+import { Loading } from "@/components/ui/Loading";
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
 import { PageTable } from "@/components/pages/PageTable";
@@ -266,7 +267,7 @@ export const Pages = () => {
 			{error ? (
 				<ErrorPanel error={error} />
 			) : isLoading ? (
-				<div className="mt-6 text-[13px] text-text-3">Loading…</div>
+				<Loading className="mt-6" />
 			) : (
 				<>
 					{/* Only show section headers + tables when there is actual content */}

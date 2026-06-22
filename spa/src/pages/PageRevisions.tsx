@@ -9,7 +9,7 @@ import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { Button } from "@/components/ui/Button";
 import { TextInput } from "@/components/ui/TextInput";
-import { EmptyState } from "@/components/ui/EmptyState";
+import { Loading } from "@/components/ui/Loading";
 import { Card } from "@/components/ui/Card";
 
 import { pagesApi, type PageRevision } from "@/api/endpoints/pages";
@@ -102,7 +102,7 @@ export const PageRevisions = () => {
 	if (pageQuery.isLoading || !pageQuery.data) {
 		return (
 			<div className="mx-auto max-w-screen-2xl px-6 py-4">
-				<EmptyState>Loading…</EmptyState>
+				<Loading variant="card" />
 			</div>
 		);
 	}

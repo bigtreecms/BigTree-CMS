@@ -18,7 +18,7 @@ import { PageHead } from "@/components/shell/PageHead";
 import { Button } from "@/components/ui/Button";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { TabbedEditor, type TabbedEditorTab } from "@/components/ui/TabbedEditor";
-import { EmptyState } from "@/components/ui/EmptyState";
+import { Loading } from "@/components/ui/Loading";
 
 import { DeveloperSectionNav } from "@/components/developer/DeveloperSectionNav";
 import { ModuleActionsTab } from "@/components/developer/module-designer/ModuleActionsTab";
@@ -74,7 +74,7 @@ export const ModuleDesignerEdit = () => {
 	if (!isAdd && detailQ.isLoading) {
 		return (
 			<div className="mx-auto max-w-5xl px-6 py-4">
-				<EmptyState>Loading…</EmptyState>
+				<Loading variant="card" />
 			</div>
 		);
 	}

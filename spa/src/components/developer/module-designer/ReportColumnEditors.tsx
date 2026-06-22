@@ -5,6 +5,7 @@ import type { ModuleReportFilter, ModuleReportFilterType } from "@/api/endpoints
 
 import { useDragReorder } from "@/hooks/useDragReorder";
 import { InlineEmpty } from "@/components/ui/InlineEmpty";
+import { Loading } from "@/components/ui/Loading";
 
 /**
  * Column-driven editors for a module report's Filters and Fields, replacing the
@@ -236,7 +237,7 @@ export const ReportFiltersEditor = ({
 				</ul>
 			)}
 			{loading ? (
-				<p className="mt-2 text-[11.5px] text-text-3">Loading columns…</p>
+				<Loading className="mt-2" label="Loading columns…" />
 			) : (
 				<AddColumnPicker
 					label="Add filter column…"
@@ -317,7 +318,7 @@ export const ReportFieldsEditor = ({
 				</ul>
 			)}
 			{loading ? (
-				<p className="mt-2 text-[11.5px] text-text-3">Loading columns…</p>
+				<Loading className="mt-2" label="Loading columns…" />
 			) : (
 				<AddColumnPicker
 					label="Add CSV column…"

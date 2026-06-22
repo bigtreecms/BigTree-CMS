@@ -3,6 +3,7 @@ import { ChevronDown, ChevronUp, GripVertical } from "lucide-react";
 
 import { useDragReorder } from "@/hooks/useDragReorder";
 import { Card } from "@/components/ui/Card";
+import { Loading } from "@/components/ui/Loading";
 
 export interface DataTableColumn<Row> {
 	/** Used as the React key and as the sort identifier when `sortable` is on. */
@@ -137,7 +138,7 @@ export const DataTable = <Row,>({
 			</div>
 
 			{isLoading ? (
-				<div className="p-9 text-center text-[13px] text-text-3">{loadingLabel}</div>
+				<Loading variant="block" label={loadingLabel} />
 			) : rows.length === 0 ? (
 				<div className="p-9 text-center text-[13px] text-text-3">{emptyLabel}</div>
 			) : (

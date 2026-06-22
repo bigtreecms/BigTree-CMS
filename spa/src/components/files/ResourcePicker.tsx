@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 
 import { SlideOver } from "@/components/ui/SlideOver";
+import { Loading } from "@/components/ui/Loading";
 
 import { resourceFoldersApi, type ResourceSummary } from "@/api/endpoints/resource-folders";
 import { resourcesApi } from "@/api/endpoints/resources";
@@ -147,9 +148,7 @@ export const ResourcePicker = ({
 				)}
 
 				{contentsQuery.isLoading && !isSearching ? (
-					<div className="grid h-32 place-items-center text-[13px] text-text-3">
-						Loading…
-					</div>
+					<Loading variant="block" className="h-32" />
 				) : searchQuery.isFetching && isSearching && !searchQuery.data ? (
 					<div className="grid h-32 place-items-center text-[13px] text-text-3">
 						Searching…

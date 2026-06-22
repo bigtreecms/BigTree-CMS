@@ -9,6 +9,7 @@ import { PageHead } from "@/components/shell/PageHead";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { Button } from "@/components/ui/Button";
 import { Checkbox } from "@/components/ui/Checkbox";
+import { Loading } from "@/components/ui/Loading";
 import { TabbedEditor } from "@/components/ui/TabbedEditor";
 import { TextField } from "@/components/ui/TextField";
 import { GravatarAvatar } from "@/components/users/GravatarAvatar";
@@ -113,8 +114,8 @@ export const Profile = () => {
 
 	if (meQ.isLoading) {
 		return (
-			<div className="mx-auto max-w-3xl px-6 py-4 text-[13px] text-text-3">
-				Loading profile…
+			<div className="mx-auto max-w-3xl px-6 py-4">
+				<Loading label="Loading profile…" />
 			</div>
 		);
 	}

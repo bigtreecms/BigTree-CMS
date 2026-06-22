@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { PageHead } from "@/components/shell/PageHead";
 import { LockBanner } from "@/components/ui/LockBanner";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { Loading } from "@/components/ui/Loading";
 
 import { autoModulesApi } from "@/api/endpoints/auto-modules";
 import { modulesApi } from "@/api/endpoints/modules";
@@ -130,7 +131,7 @@ export const ModuleEntryEdit = ({ formId, entryId }: ModuleEntryEditProps) => {
 			)}
 
 			{isLoading ? (
-				<EmptyState>Loading entry…</EmptyState>
+				<Loading variant="card" label="Loading entry…" />
 			) : !form ? (
 				<EmptyState>This module doesn't have a form configured.</EmptyState>
 			) : (

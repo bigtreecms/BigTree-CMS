@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 
 import { fieldTypesApi, type FieldUseCase } from "@/api/endpoints/field-types";
+import { Loading } from "@/components/ui/Loading";
 
 import { isVisible } from "./field-settings/evaluate";
 import { JsonFallbackControl } from "./field-settings/JsonFallbackControl";
@@ -69,7 +70,7 @@ export const FieldSettingsEditor = ({
 		return (
 			<div className={rootMargin}>
 				{label}
-				<p className="text-[12px] text-text-3">Loading settings…</p>
+				<Loading label="Loading settings…" />
 			</div>
 		);
 	}

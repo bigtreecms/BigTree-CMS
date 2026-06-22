@@ -8,6 +8,7 @@ import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
 import { Avatar } from "@/components/ui/Avatar";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+import { Loading } from "@/components/ui/Loading";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Checkbox } from "@/components/ui/Checkbox";
@@ -385,9 +386,7 @@ export const Users = () => {
 						</div>
 
 						{isLoading && !isPlaceholderData ? (
-							<div className="p-9 text-center text-[13px] text-text-3">
-								Loading users…
-							</div>
+							<Loading variant="block" label="Loading users…" />
 						) : pageRows.length === 0 ? (
 							<div className="p-9 text-center text-[13px] text-text-3">
 								No users match “{query}”.

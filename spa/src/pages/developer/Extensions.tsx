@@ -6,6 +6,7 @@ import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
 import { DeveloperSectionNav } from "@/components/developer/DeveloperSectionNav";
 import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
+import { DescriptionList } from "@/components/ui/DescriptionList";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { SlideOver } from "@/components/ui/SlideOver";
@@ -265,14 +266,17 @@ export const Extensions = () => {
 			>
 				{detail && (
 					<div className="space-y-4">
-						<dl className="grid grid-cols-[120px_1fr] gap-y-2 text-[12.5px]">
-							<dt className="text-text-3">Version</dt>
-							<dd className="text-text-2">{detail.version || "—"}</dd>
-							<dt className="text-text-3">Installed</dt>
-							<dd className="text-text-2">
-								{detail.installed_at ? relativeTime(detail.installed_at) : "—"}
-							</dd>
-						</dl>
+						<DescriptionList
+							items={[
+								{ label: "Version", value: detail.version || "—" },
+								{
+									label: "Installed",
+									value: detail.installed_at
+										? relativeTime(detail.installed_at)
+										: "—",
+								},
+							]}
+						/>
 
 						<div>
 							<h3 className="mb-1.5 text-[11px] font-semibold uppercase tracking-[0.06em] text-text-3">

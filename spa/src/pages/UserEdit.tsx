@@ -17,6 +17,7 @@ import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
 import { AccessDenied } from "@/components/ui/AccessDenied";
 import { Checkbox } from "@/components/ui/Checkbox";
+import { Loading } from "@/components/ui/Loading";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { Button } from "@/components/ui/Button";
@@ -170,8 +171,8 @@ export const UserEdit = () => {
 
 	if (userQ.isLoading) {
 		return (
-			<div className="mx-auto max-w-screen-2xl px-6 py-4 text-[13px] text-text-3">
-				Loading user…
+			<div className="mx-auto max-w-screen-2xl px-6 py-4">
+				<Loading label="Loading user…" />
 			</div>
 		);
 	}

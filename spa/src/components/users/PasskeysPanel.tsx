@@ -6,6 +6,7 @@ import { passkeysApi, type PasskeyRecord } from "@/auth/endpoints";
 import { isWebAuthnSupported } from "@/lib/webauthn";
 
 import { Button } from "@/components/ui/Button";
+import { Loading } from "@/components/ui/Loading";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { Card } from "@/components/ui/Card";
 
@@ -145,7 +146,7 @@ export const PasskeysPanel = () => {
 				)}
 
 				{passkeysQuery.isLoading ? (
-					<div className="text-[12.5px] text-text-3">Loading…</div>
+					<Loading />
 				) : (passkeysQuery.data?.length ?? 0) === 0 ? (
 					<InlineEmpty align="center" pad="xl">
 						No passkeys registered yet. Adding one lets you sign in without a password.

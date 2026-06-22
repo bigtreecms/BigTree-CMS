@@ -6,6 +6,7 @@ import { DebugLayout } from "@/components/developer/DebugLayout";
 import { TableSelect } from "@/components/developer/TableSelect";
 import { UserSelect } from "@/components/users/UserSelect";
 import { Badge } from "@/components/ui/Badge";
+import { DescriptionList } from "@/components/ui/DescriptionList";
 import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
 import { Pager } from "@/components/ui/Pager";
 import { SlideOver } from "@/components/ui/SlideOver";
@@ -204,46 +205,47 @@ export const DebugAudit = () => {
 				width="lg"
 			>
 				{detail && (
-					<dl className="grid grid-cols-[120px_1fr] gap-y-2 text-[12.5px]">
-						<dt className="text-text-3">Date</dt>
-						<dd className="text-text-2">{formatDate(detail.date)}</dd>
-						<dt className="text-text-3">User</dt>
-						<dd className="text-text-2">
-							{detail.user_name ?? `User #${detail.user}`}
-							{detail.user_email ? ` (${detail.user_email})` : ""}
-						</dd>
-						<dt className="text-text-3">Table</dt>
-						<dd className="font-mono text-text-2">{detail.table}</dd>
-						<dt className="text-text-3">Entry</dt>
-						<dd className="font-mono text-text-2">{detail.entry}</dd>
-						<dt className="text-text-3">Action</dt>
-						<dd className="text-text-2">{humanizeType(detail.type)}</dd>
-
-						{detail.context && (
-							<>
-								<dt className="text-text-3">IP</dt>
-								<dd className="font-mono text-text-2">
-									{detail.context.ip ?? "—"}
-								</dd>
-								<dt className="text-text-3">Method</dt>
-								<dd className="font-mono text-text-2">
-									{detail.context.method ?? "—"}
-								</dd>
-								<dt className="text-text-3">Path</dt>
-								<dd className="break-all font-mono text-text-2">
-									{detail.context.path ?? "—"}
-								</dd>
-								<dt className="text-text-3">Request ID</dt>
-								<dd className="break-all font-mono text-text-2">
-									{detail.context.request_id ?? "—"}
-								</dd>
-								<dt className="text-text-3">User agent</dt>
-								<dd className="break-all text-text-2">
-									{detail.context.user_agent ?? "—"}
-								</dd>
-							</>
-						)}
-					</dl>
+					<DescriptionList
+						items={[
+							{ label: "Date", value: formatDate(detail.date) },
+							{
+								label: "User",
+								value: `${detail.user_name ?? `User #${detail.user}`}${detail.user_email ? ` (${detail.user_email})` : ""}`,
+							},
+							{ label: "Table", value: detail.table, valueClassName: "font-mono" },
+							{ label: "Entry", value: detail.entry, valueClassName: "font-mono" },
+							{ label: "Action", value: humanizeType(detail.type) },
+							...(detail.context
+								? [
+										{
+											label: "IP",
+											value: detail.context.ip ?? "—",
+											valueClassName: "font-mono",
+										},
+										{
+											label: "Method",
+											value: detail.context.method ?? "—",
+											valueClassName: "font-mono",
+										},
+										{
+											label: "Path",
+											value: detail.context.path ?? "—",
+											valueClassName: "break-all font-mono",
+										},
+										{
+											label: "Request ID",
+											value: detail.context.request_id ?? "—",
+											valueClassName: "break-all font-mono",
+										},
+										{
+											label: "User agent",
+											value: detail.context.user_agent ?? "—",
+											valueClassName: "break-all",
+										},
+									]
+								: []),
+						]}
+					/>
 				)}
 			</SlideOver>
 		</DebugLayout>

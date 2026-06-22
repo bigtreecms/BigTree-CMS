@@ -7,6 +7,7 @@ import { PageHead } from "@/components/shell/PageHead";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { Loading } from "@/components/ui/Loading";
 import { PendingChangeGroup } from "@/components/pending-changes/PendingChangeGroup";
 
 import { pendingChangesApi, type PendingChange } from "@/api/endpoints/dashboard";
@@ -129,7 +130,7 @@ export const PendingChanges = () => {
 			{listQ.error ? (
 				<ErrorPanel error={listQ.error} />
 			) : listQ.isLoading ? (
-				<EmptyState>Loading…</EmptyState>
+				<Loading variant="card" />
 			) : total === 0 ? (
 				<EmptyState dashed>
 					There are no changes awaiting your approval right now.

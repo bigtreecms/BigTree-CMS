@@ -5,6 +5,7 @@ import { ChevronLeft, Download, Package } from "lucide-react";
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
 import { Button } from "@/components/ui/Button";
+import { DescriptionList } from "@/components/ui/DescriptionList";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { Card } from "@/components/ui/Card";
 import { TextArea } from "@/components/ui/TextArea";
@@ -501,20 +502,17 @@ export const ExtensionBuild = () => {
 
 					{step === "review" && (
 						<div className="space-y-4">
-							<dl className="grid grid-cols-[140px_1fr] gap-y-1.5 text-[12.5px]">
-								<dt className="text-text-3">ID</dt>
-								<dd className="font-mono text-text-2">{id}</dd>
-								<dt className="text-text-3">Title</dt>
-								<dd className="text-text-2">{title}</dd>
-								<dt className="text-text-3">Version</dt>
-								<dd className="text-text-2">{version || "—"}</dd>
-								<dt className="text-text-3">Components</dt>
-								<dd className="text-text-2">{totalPicked} selected</dd>
-								<dt className="text-text-3">Tables</dt>
-								<dd className="text-text-2">{keptTables.size}</dd>
-								<dt className="text-text-3">Files</dt>
-								<dd className="text-text-2">{keptFiles.size}</dd>
-							</dl>
+							<DescriptionList
+								labelWidth={140}
+								items={[
+									{ label: "ID", value: id, valueClassName: "font-mono" },
+									{ label: "Title", value: title },
+									{ label: "Version", value: version || "—" },
+									{ label: "Components", value: `${totalPicked} selected` },
+									{ label: "Tables", value: keptTables.size },
+									{ label: "Files", value: keptFiles.size },
+								]}
+							/>
 
 							<div className="rounded-md border border-warn/40 bg-warn/5 px-3 py-2 text-[12px] text-text-2">
 								Building namespaces the selected components into this extension

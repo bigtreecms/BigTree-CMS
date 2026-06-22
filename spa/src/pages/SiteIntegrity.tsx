@@ -19,7 +19,7 @@ import { PageHead } from "@/components/shell/PageHead";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { Button } from "@/components/ui/Button";
-import { EmptyState } from "@/components/ui/EmptyState";
+import { Loading } from "@/components/ui/Loading";
 import { Card } from "@/components/ui/Card";
 
 import { integrityApi } from "@/api/endpoints/integrity";
@@ -187,7 +187,7 @@ const StartPanel = ({
 	onReset,
 }: StartPanelProps) => {
 	if (loading) {
-		return <EmptyState>Loading…</EmptyState>;
+		return <Loading variant="card" />;
 	}
 
 	if (error) {

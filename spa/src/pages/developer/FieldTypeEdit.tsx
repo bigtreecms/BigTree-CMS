@@ -34,7 +34,7 @@ import { UnsavedChangesGuard } from "@/components/ui/UnsavedChangesGuard";
 import { validateRequired } from "@/lib/formValidation";
 
 import { TextField } from "@/components/ui/TextField";
-import { EmptyState } from "@/components/ui/EmptyState";
+import { Loading } from "@/components/ui/Loading";
 
 /**
  * The detail endpoint returns a field type's raw record, where `use_cases` may be
@@ -154,7 +154,7 @@ export const FieldTypeEdit = () => {
 	if (!isAdd && detailQ.isLoading) {
 		return (
 			<div className="mx-auto max-w-3xl px-6 py-4">
-				<EmptyState>Loading…</EmptyState>
+				<Loading variant="card" />
 			</div>
 		);
 	}

@@ -1,5 +1,6 @@
 import type { DbOption } from "@/api/endpoints/db";
 import { InlineEmpty } from "@/components/ui/InlineEmpty";
+import { Loading } from "@/components/ui/Loading";
 
 interface ViewActionsControlProps {
 	/** Action map keyed by action route; built-ins store the value `"on"`. */
@@ -105,7 +106,7 @@ export const ViewActionsControl = ({
 			{!tableSelected ? (
 				<InlineEmpty align="center">Select a table to choose row actions.</InlineEmpty>
 			) : loading ? (
-				<div className="px-1 py-2 text-[12.5px] text-text-3">Loading columns…</div>
+				<Loading className="px-1 py-2" label="Loading columns…" />
 			) : (
 				<ul className="space-y-1.5">
 					{available.map((action) => {

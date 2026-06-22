@@ -20,7 +20,7 @@ import { useLock } from "@/hooks/useLock";
 import { useReturnTo } from "@/hooks/useReturnTo";
 import { useDirtyTracker } from "@/hooks/useDirtyTracker";
 import { UnsavedChangesGuard } from "@/components/ui/UnsavedChangesGuard";
-import { EmptyState } from "@/components/ui/EmptyState";
+import { Loading } from "@/components/ui/Loading";
 import { ApiError } from "@/types/api";
 import { toast } from "@/lib/toast";
 import { sanitizeHtml } from "@/lib/html";
@@ -114,7 +114,7 @@ export const SettingEdit = () => {
 	if (settingQuery.isLoading || !settingQuery.data) {
 		return (
 			<div className="mx-auto max-w-3xl px-6 py-4">
-				<EmptyState>Loading…</EmptyState>
+				<Loading variant="card" />
 			</div>
 		);
 	}

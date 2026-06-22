@@ -22,7 +22,7 @@ import { useReturnTo } from "@/hooks/useReturnTo";
 import { validateRequired } from "@/lib/formValidation";
 
 import { TextField } from "@/components/ui/TextField";
-import { EmptyState } from "@/components/ui/EmptyState";
+import { Loading } from "@/components/ui/Loading";
 import { InlineEmpty } from "@/components/ui/InlineEmpty";
 
 export const CalloutGroupEdit = () => {
@@ -107,7 +107,7 @@ export const CalloutGroupEdit = () => {
 	if (!isAdd && groupQ.isLoading) {
 		return (
 			<div className="mx-auto max-w-3xl px-6 py-4">
-				<EmptyState>Loading…</EmptyState>
+				<Loading variant="card" />
 			</div>
 		);
 	}
@@ -227,7 +227,7 @@ export const CalloutGroupEdit = () => {
 					</div>
 
 					{calloutsQ.isLoading ? (
-						<div className="text-[12.5px] text-text-3">Loading callouts…</div>
+						<Loading label="Loading callouts…" />
 					) : callouts.length === 0 ? (
 						<InlineEmpty pad="md">
 							No callouts to pick from yet. Create one first.

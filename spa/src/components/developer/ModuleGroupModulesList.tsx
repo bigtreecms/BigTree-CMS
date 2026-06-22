@@ -11,6 +11,7 @@ import { toast } from "@/lib/toast";
 
 import { useDragReorder } from "@/hooks/useDragReorder";
 import { Card } from "@/components/ui/Card";
+import { Loading } from "@/components/ui/Loading";
 import { InlineEmpty } from "@/components/ui/InlineEmpty";
 
 interface ModuleGroupModulesListProps {
@@ -64,9 +65,11 @@ export const ModuleGroupModulesList = ({ groupId }: ModuleGroupModulesListProps)
 	const body = () => {
 		if (query.isLoading) {
 			return (
-				<div className="rounded-md border border-border bg-surface p-9 text-center text-[13px] text-text-3">
-					Loading modules…
-				</div>
+				<Loading
+					variant="block"
+					className="rounded-md border border-border bg-surface"
+					label="Loading modules…"
+				/>
 			);
 		}
 

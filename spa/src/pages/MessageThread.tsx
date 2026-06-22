@@ -5,9 +5,10 @@ import { ChevronLeft, Reply } from "lucide-react";
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
+import { DescriptionList } from "@/components/ui/DescriptionList";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
+import { Loading } from "@/components/ui/Loading";
 import { Button } from "@/components/ui/Button";
-import { EmptyState } from "@/components/ui/EmptyState";
 
 import { ComposeMessage } from "@/components/messages/ComposeMessage";
 import { messagesApi } from "@/api/endpoints/dashboard";
@@ -69,7 +70,7 @@ export const MessageThread = () => {
 	if (messageQ.isLoading || !messageQ.data) {
 		return (
 			<div className="mx-auto max-w-3xl px-6 py-4">
-				<EmptyState>Loading…</EmptyState>
+				<Loading variant="card" />
 			</div>
 		);
 	}
@@ -116,29 +117,38 @@ export const MessageThread = () => {
 				}
 			/>
 
-			<dl className="mb-4 grid grid-cols-[120px_minmax(0,1fr)] gap-x-3 gap-y-1.5 rounded-lg border border-border bg-surface-2 p-3 text-[12.5px]">
-				<dt className="text-text-3">From</dt>
-				<dd className="text-text-2">{message.sender_name ?? `User #${message.sender}`}</dd>
-				<dt className="text-text-3">To</dt>
-				<dd className="text-text-2">
-					{message.recipient_names.map((r) => r.name ?? `User #${r.id}`).join(", ")}
-				</dd>
-				<dt className="text-text-3">Date</dt>
-				<dd className="text-text-2">{message.date}</dd>
-				{message.response_to > 0 && (
-					<>
-						<dt className="text-text-3">In reply to</dt>
-						<dd>
-							<Link
-								to={`/messages/${message.response_to}`}
-								className="text-accent hover:underline"
-							>
-								Message #{message.response_to}
-							</Link>
-						</dd>
-					</>
-				)}
-			</dl>
+			<DescriptionList
+				boxed
+				className="mb-4"
+				items={[
+					{
+						label: "From",
+						value: message.sender_name ?? `User #${message.sender}`,
+					},
+					{
+						label: "To",
+						value: message.recipient_names
+							.map((r) => r.name ?? `User #${r.id}`)
+							.join(", "),
+					},
+					{ label: "Date", value: message.date },
+					...(message.response_to > 0
+						? [
+								{
+									label: "In reply to",
+									value: (
+										<Link
+											to={`/messages/${message.response_to}`}
+											className="text-accent hover:underline"
+										>
+											Message #{message.response_to}
+										</Link>
+									),
+								},
+							]
+						: []),
+				]}
+			/>
 
 			<article
 				className="rounded-xl border border-border bg-surface p-4 text-[13.5px] leading-relaxed text-text"

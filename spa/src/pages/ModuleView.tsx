@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 
 import { PageHead } from "@/components/shell/PageHead";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { Loading } from "@/components/ui/Loading";
 
 import { modulesApi } from "@/api/endpoints/modules";
 import { useModuleContext } from "@/pages/ModuleLayout";
@@ -39,7 +40,7 @@ export const ModuleView = ({ viewId }: ModuleViewProps) => {
 			/>
 
 			{viewsQuery.isLoading ? (
-				<EmptyState>Loading view…</EmptyState>
+				<Loading variant="card" label="Loading view…" />
 			) : !view ? (
 				<EmptyState>That view doesn't exist on this module.</EmptyState>
 			) : (

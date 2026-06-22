@@ -9,6 +9,7 @@ import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { Button } from "@/components/ui/Button";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { Loading } from "@/components/ui/Loading";
 import { TrafficBars } from "@/components/dashboard/TrafficBars";
 import { MetricComparison } from "@/components/analytics/MetricComparison";
 import { TrafficSourceTable } from "@/components/analytics/TrafficSourceTable";
@@ -95,7 +96,7 @@ export const Analytics = () => {
 			{analyticsQ.error ? (
 				<ErrorPanel error={analyticsQ.error} />
 			) : analyticsQ.isLoading ? (
-				<EmptyState>Loading…</EmptyState>
+				<Loading variant="card" />
 			) : !data?.configured ? (
 				<EmptyState dashed className="leading-[1.6]">
 					Google Analytics isn't connected yet. Connect it from{" "}

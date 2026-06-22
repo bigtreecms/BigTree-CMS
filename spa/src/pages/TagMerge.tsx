@@ -8,6 +8,7 @@ import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
 import { AccessDenied } from "@/components/ui/AccessDenied";
 import { Button } from "@/components/ui/Button";
+import { Loading } from "@/components/ui/Loading";
 import { CardHeader } from "@/components/ui/Card";
 import { TagInput } from "@/components/tags/TagInput";
 
@@ -110,7 +111,7 @@ export const TagMerge = () => {
 							</button>
 						</p>
 					) : sourceLoading ? (
-						<p className="text-[13px] text-text-3">Loading…</p>
+						<Loading />
 					) : (
 						<ul className="flex flex-wrap gap-2">
 							{sourceTags.map((tag) => (

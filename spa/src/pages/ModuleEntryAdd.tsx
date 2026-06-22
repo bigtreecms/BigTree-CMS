@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { PageHead } from "@/components/shell/PageHead";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { Loading } from "@/components/ui/Loading";
 
 import { autoModulesApi } from "@/api/endpoints/auto-modules";
 import { modulesApi } from "@/api/endpoints/modules";
@@ -79,7 +80,7 @@ export const ModuleEntryAdd = ({ formId }: ModuleEntryAddProps) => {
 			<PageHead title={form ? `Add ${form.title}` : "Add entry"} />
 
 			{formsQuery.isLoading ? (
-				<EmptyState>Loading form…</EmptyState>
+				<Loading variant="card" label="Loading form…" />
 			) : !form ? (
 				<EmptyState>This module doesn't have a form configured.</EmptyState>
 			) : (

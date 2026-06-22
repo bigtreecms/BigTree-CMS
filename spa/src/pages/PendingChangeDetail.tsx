@@ -7,7 +7,8 @@ import { PageHead } from "@/components/shell/PageHead";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { Button } from "@/components/ui/Button";
-import { EmptyState } from "@/components/ui/EmptyState";
+import { DescriptionList } from "@/components/ui/DescriptionList";
+import { Loading } from "@/components/ui/Loading";
 
 import { pendingChangesApi } from "@/api/endpoints/dashboard";
 
@@ -73,7 +74,7 @@ export const PendingChangeDetail = () => {
 	if (detailQ.isLoading || !detailQ.data) {
 		return (
 			<div className="mx-auto max-w-5xl px-6 py-4">
-				<EmptyState>Loading…</EmptyState>
+				<Loading variant="card" />
 			</div>
 		);
 	}
@@ -171,28 +172,33 @@ interface MetaBlockProps {
 }
 
 const MetaBlock = ({ change }: MetaBlockProps) => (
-	<dl className="grid grid-cols-[120px_minmax(0,1fr)] gap-x-3 gap-y-1.5 rounded-lg border border-border bg-surface-2 p-3 text-[12.5px]">
-		<dt className="text-text-3">Submitted by</dt>
-		<dd className="text-text-2">User #{change.user}</dd>
-		<dt className="text-text-3">Table</dt>
-		<dd className="font-mono text-[12px] text-text-2">{change.table}</dd>
-		{change.module && (
-			<>
-				<dt className="text-text-3">Module</dt>
-				<dd className="font-mono text-[12px] text-text-2">{change.module}</dd>
-			</>
-		)}
-		{change.item_id !== null && (
-			<>
-				<dt className="text-text-3">Item</dt>
-				<dd className="font-mono text-[12px] text-text-2">#{change.item_id}</dd>
-			</>
-		)}
-		<dt className="text-text-3">Type</dt>
-		<dd className="text-text-2">{change.type}</dd>
-		<dt className="text-text-3">Date</dt>
-		<dd className="text-text-2">{change.date}</dd>
-	</dl>
+	<DescriptionList
+		boxed
+		items={[
+			{ label: "Submitted by", value: `User #${change.user}` },
+			{ label: "Table", value: change.table, valueClassName: "font-mono text-[12px]" },
+			...(change.module
+				? [
+						{
+							label: "Module",
+							value: change.module,
+							valueClassName: "font-mono text-[12px]",
+						},
+					]
+				: []),
+			...(change.item_id !== null
+				? [
+						{
+							label: "Item",
+							value: `#${change.item_id}`,
+							valueClassName: "font-mono text-[12px]",
+						},
+					]
+				: []),
+			{ label: "Type", value: change.type },
+			{ label: "Date", value: change.date },
+		]}
+	/>
 );
 
 interface DiffSectionProps {

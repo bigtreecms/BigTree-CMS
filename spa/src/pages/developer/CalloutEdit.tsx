@@ -25,7 +25,7 @@ import { validateRequired } from "@/lib/formValidation";
 
 import { SelectField } from "@/components/ui/SelectField";
 import { TextField } from "@/components/ui/TextField";
-import { EmptyState } from "@/components/ui/EmptyState";
+import { Loading } from "@/components/ui/Loading";
 
 export const CalloutEdit = () => {
 	const { id: idParam } = useParams<{ id: string }>();
@@ -121,7 +121,7 @@ export const CalloutEdit = () => {
 	if (!isAdd && detailQ.isLoading) {
 		return (
 			<div className="mx-auto max-w-5xl px-6 py-4">
-				<EmptyState>Loading…</EmptyState>
+				<Loading variant="card" />
 			</div>
 		);
 	}

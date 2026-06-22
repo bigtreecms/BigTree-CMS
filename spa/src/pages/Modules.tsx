@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/Button";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { SearchInput } from "@/components/ui/SearchInput";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { Loading } from "@/components/ui/Loading";
 import { iconFor } from "@/lib/legacyIcons";
 import { modulePath } from "@/lib/moduleActions";
 import { isDeveloper } from "@/lib/permissions";
@@ -158,7 +159,7 @@ export const Modules = () => {
 			/>
 
 			{isLoading ? (
-				<EmptyState>Loading modules…</EmptyState>
+				<Loading variant="card" label="Loading modules…" />
 			) : filtered.length === 0 ? (
 				<EmptyState dashed>
 					{trimmedQuery ? `No modules match “${query}”.` : "No modules available."}

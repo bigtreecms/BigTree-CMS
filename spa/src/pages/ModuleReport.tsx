@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 
 import { PageHead } from "@/components/shell/PageHead";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { Loading } from "@/components/ui/Loading";
 
 import { modulesApi } from "@/api/endpoints/modules";
 import { useModuleContext } from "@/pages/ModuleLayout";
@@ -34,7 +35,7 @@ export const ModuleReport = ({ reportId }: ModuleReportProps) => {
 			<PageHead title={report?.title ?? module?.name ?? "Report"} />
 
 			{reportsQuery.isLoading ? (
-				<EmptyState>Loading report…</EmptyState>
+				<Loading variant="card" label="Loading report…" />
 			) : !report ? (
 				<EmptyState>That report doesn't exist on this module.</EmptyState>
 			) : (

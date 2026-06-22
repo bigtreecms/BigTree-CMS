@@ -12,6 +12,8 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/components/ui/Button";
+import { DescriptionList } from "@/components/ui/DescriptionList";
+import { Loading } from "@/components/ui/Loading";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { SlideOver } from "@/components/ui/SlideOver";
 import { CropModal } from "@/components/files/CropModal";
@@ -242,9 +244,7 @@ export const FileDetail = ({ resourceId, onOpenChange, folderQueryKey }: FileDet
 				}
 			>
 				{detailQuery.isLoading || !resource ? (
-					<div className="grid h-40 place-items-center text-[13px] text-text-3">
-						Loading…
-					</div>
+					<Loading variant="block" className="h-40" />
 				) : (
 					<div className="space-y-5">
 						<Preview resource={resource} cacheKey={detailQuery.dataUpdatedAt} />
@@ -450,35 +450,42 @@ const MetaGrid = ({ resource, onCopyUrl }: MetaGridProps) => {
 	}
 
 	return (
-		<dl className="grid grid-cols-[110px_minmax(0,1fr)] gap-x-3 gap-y-1.5 rounded-lg border border-border bg-surface-2 p-3 text-[12.5px]">
-			{rows.map(([label, value]) => (
-				<div key={label} className="contents">
-					<dt className="text-text-3">{label}</dt>
-					<dd className="truncate text-text-2">{value}</dd>
-				</div>
-			))}
-
-			<dt className="text-text-3">URL</dt>
-			<dd className="flex min-w-0 items-center gap-1.5">
-				<a
-					href={fileUrl}
-					target="_blank"
-					rel="noopener noreferrer"
-					className="inline-flex items-center gap-1 truncate text-accent hover:underline"
-				>
-					<LinkIcon size={12} />
-					<span className="truncate font-mono text-[11.5px]">{fileUrl}</span>
-				</a>
-				<button
-					type="button"
-					className="ml-auto shrink-0 rounded p-1 text-text-3 hover:bg-hover hover:text-text"
-					title="Copy URL"
-					onClick={onCopyUrl}
-				>
-					<Copy size={12} />
-				</button>
-			</dd>
-		</dl>
+		<DescriptionList
+			boxed
+			labelWidth={110}
+			items={[
+				...rows.map(([label, value]) => ({
+					label,
+					value,
+					valueClassName: "truncate",
+				})),
+				{
+					label: "URL",
+					valueClassName: "flex items-center gap-1.5",
+					value: (
+						<>
+							<a
+								href={fileUrl}
+								target="_blank"
+								rel="noopener noreferrer"
+								className="inline-flex items-center gap-1 truncate text-accent hover:underline"
+							>
+								<LinkIcon size={12} />
+								<span className="truncate font-mono text-[11.5px]">{fileUrl}</span>
+							</a>
+							<button
+								type="button"
+								className="ml-auto shrink-0 rounded p-1 text-text-3 hover:bg-hover hover:text-text"
+								title="Copy URL"
+								onClick={onCopyUrl}
+							>
+								<Copy size={12} />
+							</button>
+						</>
+					),
+				},
+			]}
+		/>
 	);
 };
 
