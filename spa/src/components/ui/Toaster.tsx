@@ -83,7 +83,7 @@ const ToastCard = ({ item }: ToastCardProps) => {
 			<button
 				type="button"
 				onClick={() => dismiss(item.id)}
-				className="mt-2 mr-2 text-text-3 hover:text-text"
+				className="relative mt-2 mr-2 text-text-3 before:absolute before:-inset-3 before:content-[''] hover:text-text"
 				aria-label="Close notification"
 			>
 				<X size={16} />

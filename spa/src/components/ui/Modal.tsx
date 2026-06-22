@@ -63,7 +63,7 @@ export const Modal = ({
 
 	const closeButton = showClose && (
 		<Dialog.Close
-			className="rounded-md p-1 text-text-3 hover:bg-hover hover:text-text"
+			className="relative rounded-md p-1 text-text-3 before:absolute before:-inset-2 before:content-[''] hover:bg-hover hover:text-text"
 			aria-label="Close"
 		>
 			<X size={16} />

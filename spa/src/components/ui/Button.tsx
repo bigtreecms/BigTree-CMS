@@ -48,7 +48,7 @@ interface ButtonProps {
  */
 
 const baseClassName =
-	"inline-flex cursor-pointer items-center gap-1.5 rounded-md font-medium transition-colors disabled:cursor-default disabled:opacity-50";
+	"inline-flex cursor-pointer items-center gap-1.5 rounded-md font-medium transition active:scale-[0.96] disabled:cursor-default disabled:opacity-50 disabled:active:scale-100";
 
 const sizeClassName: Record<ButtonSize, string> = {
 	sm: "px-2.5 py-1.5 text-[12.5px]",

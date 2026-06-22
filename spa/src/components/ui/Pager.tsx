@@ -43,7 +43,7 @@ export const Pager = ({ page, totalPages, onChange }: PagerProps) => {
 		<div className="inline-flex items-center gap-0.5 rounded-md border border-border bg-surface p-0.5 text-[12px]">
 			<button
 				type="button"
-				className="flex h-6 min-w-7 items-center justify-center rounded px-1.5 text-text-2 hover:bg-hover disabled:cursor-not-allowed disabled:text-text-4 disabled:hover:bg-transparent"
+				className="flex h-6 min-w-7 items-center justify-center rounded px-1.5 text-text-2 transition hover:bg-hover active:scale-[0.96] disabled:cursor-not-allowed disabled:text-text-4 disabled:hover:bg-transparent disabled:active:scale-100"
 				disabled={page === 1}
 				onClick={() => onChange(page - 1)}
 				aria-label="Previous page"
@@ -67,7 +67,7 @@ export const Pager = ({ page, totalPages, onChange }: PagerProps) => {
 					<button
 						key={p}
 						type="button"
-						className={`flex h-6 min-w-7 items-center justify-center rounded px-1.5 tabular-nums ${
+						className={`flex h-6 min-w-7 items-center justify-center rounded px-1.5 tabular-nums transition active:scale-[0.96] ${
 							p === page
 								? "bg-accent font-semibold text-accent-fg"
 								: "text-text-2 hover:bg-hover"
@@ -81,7 +81,7 @@ export const Pager = ({ page, totalPages, onChange }: PagerProps) => {
 
 			<button
 				type="button"
-				className="flex h-6 min-w-7 items-center justify-center rounded px-1.5 text-text-2 hover:bg-hover disabled:cursor-not-allowed disabled:text-text-4 disabled:hover:bg-transparent"
+				className="flex h-6 min-w-7 items-center justify-center rounded px-1.5 text-text-2 transition hover:bg-hover active:scale-[0.96] disabled:cursor-not-allowed disabled:text-text-4 disabled:hover:bg-transparent disabled:active:scale-100"
 				disabled={page === totalPages}
 				onClick={() => onChange(page + 1)}
 				aria-label="Next page"

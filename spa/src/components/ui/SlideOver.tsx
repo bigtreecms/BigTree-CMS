@@ -36,9 +36,9 @@ export const SlideOver = ({
 	return (
 		<Dialog.Root open={open} onOpenChange={onOpenChange}>
 			<Dialog.Portal>
-				<Dialog.Overlay className="fixed inset-0 z-50 bg-black/40 backdrop-blur-[1px] data-[state=open]:animate-in data-[state=open]:fade-in" />
+				<Dialog.Overlay className="bt-overlay fixed inset-0 z-50 bg-black/40 backdrop-blur-[1px]" />
 				<Dialog.Content
-					className={`fixed inset-y-0 right-0 z-50 flex flex-col border-l border-border bg-surface shadow-lg outline-none data-[state=open]:animate-in data-[state=open]:slide-in-from-right ${WIDTHS[width]}`}
+					className={`bt-drawer fixed inset-y-0 right-0 z-50 flex flex-col border-l border-border bg-surface shadow-lg outline-none ${WIDTHS[width]}`}
 				>
 					<div className="flex items-start justify-between gap-3 border-b border-border bg-surface-2 px-5 py-3">
 						<div className="min-w-0">
@@ -54,7 +54,7 @@ export const SlideOver = ({
 						</div>
 
 						<Dialog.Close
-							className="rounded-md p-1 text-text-3 hover:bg-hover hover:text-text"
+							className="relative rounded-md p-1 text-text-3 before:absolute before:-inset-2 before:content-[''] hover:bg-hover hover:text-text"
 							aria-label="Close"
 						>
 							<X size={16} />
