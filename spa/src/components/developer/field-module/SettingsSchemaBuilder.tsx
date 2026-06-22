@@ -1,8 +1,10 @@
 import { ChevronDown, ChevronUp, Plus, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/Button";
+import { Checkbox } from "@/components/ui/Checkbox";
+import { Select } from "@/components/ui/Select";
+import { TextInput } from "@/components/ui/TextInput";
 import type { SettingControl, SettingDescriptor } from "@/api/endpoints/field-types";
-import { INPUT_CLASS } from "@/renderer/fields/types";
 import { InlineEmpty } from "@/components/ui/InlineEmpty";
 
 interface SettingsSchemaBuilderProps {
@@ -75,16 +77,14 @@ export const SettingsSchemaBuilder = ({ value, onChange }: SettingsSchemaBuilder
 					<div key={index} className="rounded-md border border-border bg-surface-2 p-3">
 						<div className="grid grid-cols-1 gap-3 md:grid-cols-3">
 							<Labeled label="Key">
-								<input
-									className={INPUT_CLASS}
+								<TextInput
 									value={descriptor.id}
 									onChange={(e) => patch(index, { id: e.target.value })}
 									placeholder="e.g. placeholder"
 								/>
 							</Labeled>
 							<Labeled label="Control">
-								<select
-									className={INPUT_CLASS}
+								<Select
 									value={control}
 									onChange={(e) =>
 										patch(index, { control: e.target.value as SettingControl })
@@ -95,11 +95,10 @@ export const SettingsSchemaBuilder = ({ value, onChange }: SettingsSchemaBuilder
 											{c.label}
 										</option>
 									))}
-								</select>
+								</Select>
 							</Labeled>
 							<Labeled label="Label">
-								<input
-									className={INPUT_CLASS}
+								<TextInput
 									value={descriptor.label ?? ""}
 									onChange={(e) => patch(index, { label: e.target.value })}
 								/>
@@ -108,8 +107,7 @@ export const SettingsSchemaBuilder = ({ value, onChange }: SettingsSchemaBuilder
 
 						<div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-3">
 							<Labeled label="Hint (optional)">
-								<input
-									className={INPUT_CLASS}
+								<TextInput
 									value={descriptor.hint ?? ""}
 									onChange={(e) => patch(index, { hint: e.target.value })}
 								/>
@@ -117,20 +115,14 @@ export const SettingsSchemaBuilder = ({ value, onChange }: SettingsSchemaBuilder
 
 							<Labeled label="Default (optional)">
 								{control === "bool" ? (
-									<label className="flex h-[38px] items-center gap-2 text-[12.5px] text-text-2">
-										<input
-											type="checkbox"
-											className="size-4 accent-accent"
-											checked={!!descriptor.default}
-											onChange={(e) =>
-												patch(index, { default: e.target.checked })
-											}
-										/>
-										Checked by default
-									</label>
+									<Checkbox
+										className="h-[38px]"
+										label="Checked by default"
+										checked={!!descriptor.default}
+										onChange={(next) => patch(index, { default: next })}
+									/>
 								) : (
-									<input
-										className={INPUT_CLASS}
+									<TextInput
 										type={control === "int" ? "number" : "text"}
 										value={
 											descriptor.default === undefined ||
@@ -153,17 +145,11 @@ export const SettingsSchemaBuilder = ({ value, onChange }: SettingsSchemaBuilder
 							</Labeled>
 
 							<div className="flex items-end justify-between gap-1 pb-1">
-								<label className="flex items-center gap-2 text-[12.5px] text-text-2">
-									<input
-										type="checkbox"
-										className="size-4 accent-accent"
-										checked={!!descriptor.required}
-										onChange={(e) =>
-											patch(index, { required: e.target.checked })
-										}
-									/>
-									Required
-								</label>
+								<Checkbox
+									label="Required"
+									checked={!!descriptor.required}
+									onChange={(next) => patch(index, { required: next })}
+								/>
 								<div className="flex items-end gap-1">
 									<button
 										type="button"
@@ -200,8 +186,7 @@ export const SettingsSchemaBuilder = ({ value, onChange }: SettingsSchemaBuilder
 								<div className="text-[11px] font-medium text-text-3">Options</div>
 								{optionsOf(descriptor).map((option, optionIndex) => (
 									<div key={optionIndex} className="flex items-center gap-2">
-										<input
-											className={INPUT_CLASS}
+										<TextInput
 											value={option.value}
 											placeholder="value"
 											onChange={(e) => {
@@ -213,8 +198,7 @@ export const SettingsSchemaBuilder = ({ value, onChange }: SettingsSchemaBuilder
 												patch(index, { options: next });
 											}}
 										/>
-										<input
-											className={INPUT_CLASS}
+										<TextInput
 											value={option.label}
 											placeholder="label"
 											onChange={(e) => {

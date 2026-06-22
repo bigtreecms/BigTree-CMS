@@ -21,6 +21,8 @@ interface SelectFieldProps {
 	error?: string;
 	disabled?: boolean;
 	required?: boolean;
+	/** Compact vertical padding for space-constrained sections. */
+	dense?: boolean;
 	/** Layout-only classes forwarded to the wrapping {@link Field} (e.g. grid spans). */
 	className?: string;
 }
@@ -34,10 +36,16 @@ export const SelectField = ({
 	error,
 	disabled,
 	required,
+	dense,
 	className,
 }: SelectFieldProps) => (
 	<Field label={label} hint={hint} error={error} required={required} className={className}>
-		<Select value={value} onChange={(e) => onChange(e.target.value)} disabled={disabled}>
+		<Select
+			value={value}
+			onChange={(e) => onChange(e.target.value)}
+			disabled={disabled}
+			dense={dense}
+		>
 			{options.map((o) => (
 				<option key={o.value} value={o.value}>
 					{o.label}

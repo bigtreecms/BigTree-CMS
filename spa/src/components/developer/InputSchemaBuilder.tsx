@@ -3,8 +3,10 @@ import { ChevronDown, ChevronUp, Plus, Settings2, Trash2 } from "lucide-react";
 
 import type { InputDescriptor } from "@/api/endpoints/field-types";
 import { Button } from "@/components/ui/Button";
+import { Checkbox } from "@/components/ui/Checkbox";
+import { Select } from "@/components/ui/Select";
+import { TextInput } from "@/components/ui/TextInput";
 import { FieldSettingsEditor } from "@/components/developer/FieldSettingsEditor";
-import { INPUT_CLASS } from "@/renderer/fields/types";
 import { InlineEmpty } from "@/components/ui/InlineEmpty";
 
 interface InputSchemaBuilderProps {
@@ -87,16 +89,14 @@ export const InputSchemaBuilder = ({ value, onChange }: InputSchemaBuilderProps)
 				<div key={index} className="rounded-md border border-border bg-surface-2 p-3">
 					<div className="grid grid-cols-1 gap-3 md:grid-cols-3">
 						<Labeled label="Key">
-							<input
-								className={INPUT_CLASS}
+							<TextInput
 								value={descriptor.id}
 								onChange={(e) => patch(index, { id: e.target.value })}
 								placeholder="e.g. first_name"
 							/>
 						</Labeled>
 						<Labeled label="Type">
-							<select
-								className={INPUT_CLASS}
+							<Select
 								value={descriptor.type}
 								onChange={(e) => patch(index, { type: e.target.value })}
 							>
@@ -105,11 +105,10 @@ export const InputSchemaBuilder = ({ value, onChange }: InputSchemaBuilderProps)
 										{t.label}
 									</option>
 								))}
-							</select>
+							</Select>
 						</Labeled>
 						<Labeled label="Label">
-							<input
-								className={INPUT_CLASS}
+							<TextInput
 								value={descriptor.title ?? ""}
 								onChange={(e) => patch(index, { title: e.target.value })}
 								placeholder="Shown above the field"
@@ -119,21 +118,17 @@ export const InputSchemaBuilder = ({ value, onChange }: InputSchemaBuilderProps)
 
 					<div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-3">
 						<Labeled label="Hint (optional)">
-							<input
-								className={INPUT_CLASS}
+							<TextInput
 								value={descriptor.subtitle ?? ""}
 								onChange={(e) => patch(index, { subtitle: e.target.value })}
 							/>
 						</Labeled>
-						<label className="flex items-center gap-2 self-end pb-2 text-[12.5px] text-text-2">
-							<input
-								type="checkbox"
-								className="size-4 accent-accent"
-								checked={!!descriptor.required}
-								onChange={(e) => patch(index, { required: e.target.checked })}
-							/>
-							Required
-						</label>
+						<Checkbox
+							className="self-end pb-2"
+							label="Required"
+							checked={!!descriptor.required}
+							onChange={(next) => patch(index, { required: next })}
+						/>
 						<div className="flex items-end justify-end gap-1 pb-1">
 							<button
 								type="button"

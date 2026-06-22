@@ -27,6 +27,7 @@ import { UnsavedChangesGuard } from "@/components/ui/UnsavedChangesGuard";
 import { validateRequired } from "@/lib/formValidation";
 
 import { TextField } from "@/components/ui/TextField";
+import { Select } from "@/components/ui/Select";
 import { Loading } from "@/components/ui/Loading";
 
 /**
@@ -285,11 +286,10 @@ export const SettingConfigure = () => {
 						<span className="mb-1 block text-[12px] font-medium text-text-2">
 							Field type
 						</span>
-						<select
+						<Select
 							value={body.type ?? "text"}
 							onChange={(e) => changeType(e.target.value)}
 							disabled={fieldTypesQ.isLoading}
-							className="w-full rounded-md border border-border bg-surface px-2.5 py-2 text-[13px] focus:outline-none focus:ring-1 focus:ring-accent-ring disabled:opacity-50"
 						>
 							{fieldTypesQ.isLoading && (
 								<option value={body.type ?? "text"}>Loading field types…</option>
@@ -306,7 +306,7 @@ export const SettingConfigure = () => {
 									))}
 								</optgroup>
 							))}
-						</select>
+						</Select>
 						<span className="mt-1 block text-[11px] text-text-3">
 							Determines the editor shown when setting this value, and the options
 							below.

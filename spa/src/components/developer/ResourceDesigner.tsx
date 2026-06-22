@@ -3,6 +3,9 @@ import { useQuery } from "@tanstack/react-query";
 import { ChevronDown, ChevronRight, GripVertical, Plus, Trash } from "lucide-react";
 
 import { Button } from "@/components/ui/Button";
+import { Checkbox } from "@/components/ui/Checkbox";
+import { Select } from "@/components/ui/Select";
+import { TextInput } from "@/components/ui/TextInput";
 import type { ModuleFormField } from "@/api/endpoints/modules";
 import {
 	fieldTypesApi,
@@ -358,22 +361,16 @@ export const ResourceDesigner = ({
 											/>
 										</div>
 
-										<label className="mt-3 flex items-center gap-2 text-[12px] text-text-2">
-											<input
-												type="checkbox"
-												className="size-4 accent-accent"
-												checked={readRequired(entry.settings)}
-												onChange={(e) =>
-													updateEntry(index, {
-														settings: writeRequired(
-															entry.settings,
-															e.target.checked
-														),
-													})
-												}
-											/>
-											Required field
-										</label>
+										<Checkbox
+											className="mt-3"
+											label="Required field"
+											checked={readRequired(entry.settings)}
+											onChange={(next) =>
+												updateEntry(index, {
+													settings: writeRequired(entry.settings, next),
+												})
+											}
+										/>
 
 										<div className="mt-3">
 											<span className="mb-1 block text-[12px] font-medium text-text-2">
@@ -398,16 +395,13 @@ export const ResourceDesigner = ({
 										</div>
 
 										{onSetDisplayField && (
-											<label className="mt-2 flex items-center gap-2 text-[12px] text-text-2">
-												<input
-													type="checkbox"
-													className="size-4 accent-accent"
-													checked={!!isDisplay}
-													onChange={() => onSetDisplayField(id)}
-													disabled={!id}
-												/>
-												Use this field's value as the row title
-											</label>
+											<Checkbox
+												className="mt-2"
+												label="Use this field's value as the row title"
+												checked={!!isDisplay}
+												onChange={() => onSetDisplayField(id)}
+												disabled={!id}
+											/>
 										)}
 									</div>
 								)}
@@ -446,12 +440,7 @@ interface LabelledInputProps {
 const LabelledInput = ({ label, value, onChange, hint }: LabelledInputProps) => (
 	<label className="block">
 		<span className="mb-1 block text-[11.5px] font-medium text-text-2">{label}</span>
-		<input
-			type="text"
-			className="w-full rounded-md border border-border bg-surface px-3 py-1.5 text-[13px] focus:outline-none focus:ring-1 focus:ring-accent-ring"
-			value={value}
-			onChange={(e) => onChange(e.target.value)}
-		/>
+		<TextInput dense value={value} onChange={(e) => onChange(e.target.value)} />
 		{hint && <span className="mt-1 block text-[11px] text-text-3">{hint}</span>}
 	</label>
 );
@@ -481,8 +470,8 @@ const LabelledSelect = ({ label, value, onChange, groups, loading }: LabelledSel
 	return (
 		<label className="block">
 			<span className="mb-1 block text-[11.5px] font-medium text-text-2">{label}</span>
-			<select
-				className="w-full rounded-md border border-border bg-surface px-2.5 py-1.5 text-[13px] focus:outline-none focus:ring-1 focus:ring-accent-ring disabled:opacity-50"
+			<Select
+				dense
 				value={value}
 				onChange={(e) => onChange(e.target.value)}
 				disabled={loading}
@@ -498,7 +487,7 @@ const LabelledSelect = ({ label, value, onChange, groups, loading }: LabelledSel
 						))}
 					</optgroup>
 				))}
-			</select>
+			</Select>
 		</label>
 	);
 };

@@ -1,8 +1,18 @@
 import { useMemo, useState } from "react";
 
+import { Checkbox } from "../../ui/Checkbox";
+import { Field } from "../../ui/Field";
+import { Select } from "../../ui/Select";
+import { TextArea } from "../../ui/TextArea";
+import { TextInput as BaseTextInput } from "../../ui/TextInput";
+
 /**
- * Small form primitives shared across the module designer tabs. Kept local to
- * the designer so the broader UI library isn't grown for a single section.
+ * Thin, designer-flavored wrappers over the shared `ui/*` form primitives. The
+ * module designer packs many fields per tab, so these default to the `dense`
+ * density; otherwise they delegate label/error chrome to {@link Field} and the
+ * control rendering to the canonical primitives (single source of truth — no
+ * fork). The bespoke {@link JsonInput} below is the one control with no shared
+ * equivalent.
  */
 
 interface TextInputProps {
@@ -28,28 +38,16 @@ export const TextInput = ({
 	placeholder,
 	mono,
 }: TextInputProps) => (
-	<label className="block">
-		<span className="mb-1 block text-[12px] font-medium text-text-2">
-			{label}
-			{required && <span className="text-danger"> *</span>}
-		</span>
-		<input
-			type="text"
+	<Field label={label} hint={hint} error={error} required={required}>
+		<BaseTextInput
+			dense
+			mono={mono}
 			value={value}
 			onChange={(e) => onChange(e.target.value)}
 			disabled={disabled}
 			placeholder={placeholder}
-			className={`w-full rounded-md border border-border bg-surface px-3 py-1.5 text-[13px] focus:outline-none focus:ring-1 focus:ring-accent-ring disabled:cursor-not-allowed disabled:opacity-60 ${
-				mono ? "font-mono text-[12px]" : ""
-			}`}
 		/>
-		{hint && <span className="mt-1 block text-[11px] text-text-3">{hint}</span>}
-		{error && (
-			<span data-field-error className="mt-1 block text-[11.5px] text-danger">
-				{error}
-			</span>
-		)}
-	</label>
+	</Field>
 );
 
 interface SelectInputProps {
@@ -71,27 +69,15 @@ export const SelectInput = ({
 	error,
 	disabled,
 }: SelectInputProps) => (
-	<label className="block">
-		<span className="mb-1 block text-[12px] font-medium text-text-2">{label}</span>
-		<select
-			value={value}
-			onChange={(e) => onChange(e.target.value)}
-			disabled={disabled}
-			className="w-full rounded-md border border-border bg-surface px-2.5 py-1.5 text-[13px] focus:outline-none focus:ring-1 focus:ring-accent-ring disabled:opacity-50"
-		>
+	<Field label={label} hint={hint} error={error}>
+		<Select dense value={value} onChange={(e) => onChange(e.target.value)} disabled={disabled}>
 			{options.map((o) => (
 				<option key={o.value} value={o.value}>
 					{o.label}
 				</option>
 			))}
-		</select>
-		{hint && <span className="mt-1 block text-[11px] text-text-3">{hint}</span>}
-		{error && (
-			<span data-field-error className="mt-1 block text-[11.5px] text-danger">
-				{error}
-			</span>
-		)}
-	</label>
+		</Select>
+	</Field>
 );
 
 interface CheckboxInputProps {
@@ -102,16 +88,7 @@ interface CheckboxInputProps {
 }
 
 export const CheckboxInput = ({ label, checked, onChange, disabled }: CheckboxInputProps) => (
-	<label className="flex items-center gap-2 text-[12.5px] text-text-2">
-		<input
-			type="checkbox"
-			className="size-4 accent-accent"
-			checked={checked}
-			disabled={disabled}
-			onChange={(e) => onChange(e.target.checked)}
-		/>
-		{label}
-	</label>
+	<Checkbox label={label} checked={checked} onChange={onChange} disabled={disabled} />
 );
 
 interface TextareaInputProps {
@@ -131,19 +108,16 @@ export const TextareaInput = ({
 	hint,
 	mono,
 }: TextareaInputProps) => (
-	<label className="block">
-		<span className="mb-1 block text-[12px] font-medium text-text-2">{label}</span>
-		<textarea
+	<Field label={label} hint={hint}>
+		<TextArea
+			mono={mono}
 			rows={rows}
 			value={value}
 			onChange={(e) => onChange(e.target.value)}
 			spellCheck={false}
-			className={`w-full rounded-md border border-border bg-surface px-3 py-2 text-[13px] leading-relaxed focus:outline-none focus:ring-1 focus:ring-accent-ring ${
-				mono ? "font-mono text-[11.5px]" : ""
-			}`}
+			className="leading-relaxed"
 		/>
-		{hint && <span className="mt-1 block text-[11px] text-text-3">{hint}</span>}
-	</label>
+	</Field>
 );
 
 interface JsonInputProps {
@@ -185,21 +159,25 @@ export const JsonInput = ({ label, value, onChange, hint, rows = 5 }: JsonInputP
 	};
 
 	return (
-		<label className="block">
-			<span className="mb-1 block text-[12px] font-medium text-text-2">
-				{label} <span className="text-text-3">(JSON)</span>
-			</span>
-			<textarea
+		<Field
+			label={
+				<>
+					{label} <span className="text-text-3">(JSON)</span>
+				</>
+			}
+			hint={hint}
+			error={error ?? undefined}
+		>
+			<TextArea
+				mono
 				rows={rows}
 				value={draft}
 				onChange={(e) => setDraft(e.target.value)}
 				onBlur={commit}
 				spellCheck={false}
-				className="w-full rounded-md border border-border bg-surface px-3 py-2 font-mono text-[11.5px] leading-relaxed focus:outline-none focus:ring-1 focus:ring-accent-ring"
+				className="leading-relaxed"
 			/>
-			{hint && <span className="mt-1 block text-[11px] text-text-3">{hint}</span>}
-			{error && <span className="mt-1 block text-[11.5px] text-danger">{error}</span>}
-		</label>
+		</Field>
 	);
 };
 

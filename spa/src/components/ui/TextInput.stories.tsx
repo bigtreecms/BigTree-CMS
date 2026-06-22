@@ -47,3 +47,19 @@ export const States: Story = {
 		</div>
 	),
 };
+
+/**
+ * `dense` trims the vertical padding for space-constrained sections (e.g. the
+ * module designer); `mono` switches to a monospace, slightly smaller face for
+ * identifier / code entry.
+ */
+export const Variants: Story = {
+	render: (args) => (
+		<div className="flex flex-col gap-3">
+			<TextInput {...args} defaultValue="Default" />
+			<TextInput {...args} defaultValue="Dense" dense />
+			<TextInput {...args} defaultValue="module_route" mono />
+			<TextInput {...args} defaultValue="module_route" dense mono />
+		</div>
+	),
+};

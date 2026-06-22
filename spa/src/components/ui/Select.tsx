@@ -1,8 +1,11 @@
 import { forwardRef, type SelectHTMLAttributes } from "react";
 
-import { inputClass } from "./TextInput";
+import { inputClassFor } from "./TextInput";
 
-type SelectProps = SelectHTMLAttributes<HTMLSelectElement>;
+type SelectProps = SelectHTMLAttributes<HTMLSelectElement> & {
+	/** Compact vertical padding to match dense text inputs (e.g. the module designer). */
+	dense?: boolean;
+};
 
 /**
  * Bare `<select>` sharing the canonical {@link inputClass} so dropdowns line up
@@ -10,15 +13,15 @@ type SelectProps = SelectHTMLAttributes<HTMLSelectElement>;
  * you also want the label/error chrome.
  */
 export const Select = forwardRef<HTMLSelectElement, SelectProps>(
-	({ className, children, ...rest }, ref) => (
-		<select
-			ref={ref}
-			className={className ? `${inputClass} ${className}` : inputClass}
-			{...rest}
-		>
-			{children}
-		</select>
-	)
+	({ dense, className, children, ...rest }, ref) => {
+		const base = inputClassFor({ dense });
+
+		return (
+			<select ref={ref} className={className ? `${base} ${className}` : base} {...rest}>
+				{children}
+			</select>
+		);
+	}
 );
 
 Select.displayName = "Select";

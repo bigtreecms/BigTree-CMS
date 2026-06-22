@@ -3,6 +3,9 @@ import { Plus, Trash } from "lucide-react";
 
 import { systemApi } from "@/api/endpoints/system";
 
+import { Checkbox } from "../../ui/Checkbox";
+import { Select } from "../../ui/Select";
+
 import { ControlShell } from "./ControlShell";
 import type { ControlProps } from "./types";
 
@@ -132,8 +135,8 @@ export const ImageOptionsControl = ({ settings, onPatch }: ControlProps) => {
 	return (
 		<div className="space-y-3 rounded-md border border-border bg-surface-2 p-3">
 			<ControlShell label="Existing Preset">
-				<select
-					className="w-full rounded-md border border-border bg-surface px-2.5 py-1.5 text-[13px] focus:outline-none focus:ring-1 focus:ring-accent-ring disabled:opacity-50"
+				<Select
+					dense
 					value={preset}
 					disabled={presetsQ.isLoading}
 					onChange={(e) => onPatch({ preset: e.target.value })}
@@ -144,7 +147,7 @@ export const ImageOptionsControl = ({ settings, onPatch }: ControlProps) => {
 							{p.name}
 						</option>
 					))}
-				</select>
+				</Select>
 			</ControlShell>
 
 			{preset !== "" ? (
@@ -184,15 +187,11 @@ export const ImageOptionsControl = ({ settings, onPatch }: ControlProps) => {
 						</ControlShell>
 					</div>
 
-					<label className="flex items-center gap-2 text-[12px] text-text-2">
-						<input
-							type="checkbox"
-							className="size-4 accent-accent"
-							checked={Boolean(settings.retina)}
-							onChange={(e) => onPatch({ retina: e.target.checked ? "on" : "" })}
-						/>
-						Create Hi-Resolution Retina Images When Available
-					</label>
+					<Checkbox
+						label="Create Hi-Resolution Retina Images When Available"
+						checked={Boolean(settings.retina)}
+						onChange={(next) => onPatch({ retina: next ? "on" : "" })}
+					/>
 
 					<div className="space-y-2 border-t border-border pt-2">
 						<div className="flex items-center justify-between">

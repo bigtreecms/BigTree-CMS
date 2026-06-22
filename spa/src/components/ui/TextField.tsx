@@ -23,6 +23,10 @@ interface TextFieldProps {
 	required?: boolean;
 	type?: string;
 	placeholder?: string;
+	/** Compact vertical padding for space-constrained sections. */
+	dense?: boolean;
+	/** Monospace + slightly smaller text for code/identifier entry. */
+	mono?: boolean;
 	/** Layout-only classes forwarded to the wrapping {@link Field} (e.g. grid spans). */
 	className?: string;
 }
@@ -37,6 +41,8 @@ export const TextField = ({
 	required,
 	type = "text",
 	placeholder,
+	dense,
+	mono,
 	className,
 }: TextFieldProps) => (
 	<Field label={label} hint={hint} error={error} required={required} className={className}>
@@ -46,6 +52,8 @@ export const TextField = ({
 			onChange={(e) => onChange(e.target.value)}
 			disabled={disabled}
 			placeholder={placeholder}
+			dense={dense}
+			mono={mono}
 		/>
 	</Field>
 );
