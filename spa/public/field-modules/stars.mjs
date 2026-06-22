@@ -16,8 +16,7 @@ export default {
 
 	render(host) {
 		const root = document.createElement("div");
-		root.style.display = "inline-flex";
-		root.style.gap = "4px";
+		root.style.cssText = "display:inline-flex;gap:4px";
 		host.element.appendChild(root);
 
 		const draw = (value, disabled) => {
@@ -29,13 +28,7 @@ export default {
 				star.type = "button";
 				star.textContent = i <= current ? "★" : "☆";
 				star.disabled = !!disabled;
-				star.style.fontSize = "20px";
-				star.style.lineHeight = "1";
-				star.style.background = "none";
-				star.style.border = "none";
-				star.style.padding = "0";
-				star.style.cursor = disabled ? "default" : "pointer";
-				star.style.color = i <= current ? "#f5a623" : "#bbb";
+				star.style.cssText = `font-size:20px;line-height:1;background:none;border:none;padding:0;cursor:${disabled ? "default" : "pointer"};color:${i <= current ? "#f5a623" : "#bbb"}`;
 				star.addEventListener("click", () => host.onChange(i));
 				root.appendChild(star);
 			}
