@@ -17,6 +17,7 @@ import { Pager } from "@/components/ui/Pager";
 import { SearchInput } from "@/components/ui/SearchInput";
 import { SelectField } from "@/components/ui/SelectField";
 import { SubNav } from "@/components/ui/SubNav";
+import { Switch } from "@/components/ui/Switch";
 import { TextField } from "@/components/ui/TextField";
 import { TextInput } from "@/components/ui/TextInput";
 import { Card } from "@/components/ui/Card";
@@ -89,28 +90,6 @@ const LevelBadge = ({ level }: LevelBadgeProps) => {
 
 	return <Badge bordered>Normal User</Badge>;
 };
-
-interface SwitchProps {
-	on: boolean;
-	onChange: (next: boolean) => void;
-	label?: string;
-}
-
-const Switch = ({ on, onChange, label }: SwitchProps) => (
-	<button
-		type="button"
-		className="switch inline-flex h-5 w-9 items-center rounded-full border border-border bg-surface p-0.5 transition-colors data-[on=true]:bg-accent"
-		data-on={on}
-		onClick={() => onChange(!on)}
-		aria-label={label}
-		aria-pressed={on}
-	>
-		<span
-			className="inline-block size-3.5 rounded-full bg-white shadow transition-transform data-[on=true]:translate-x-4"
-			data-on={on}
-		/>
-	</button>
-);
 
 // Main component
 export const Users = () => {
