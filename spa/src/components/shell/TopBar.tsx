@@ -6,6 +6,7 @@ import { messagesApi } from "@/api/endpoints/dashboard";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { Bell, ChevronDown, ExternalLink, LogOut, Moon, Search, Sun, User } from "lucide-react";
 import { useAuthStore } from "@/auth/store";
+import { Avatar } from "@/components/ui/Avatar";
 import { MobileNav } from "./MobileNav";
 
 /**
@@ -36,15 +37,6 @@ export const TopBar = ({ dark, onToggleDark, onOpenSearch }: TopBarProps) => {
 		refetchOnWindowFocus: false,
 	});
 	const unread = unreadQ.data?.unread ?? 0;
-	const initials = user?.name
-		? user.name
-				.split(/\s+/)
-				.map((w) => w[0])
-				.filter(Boolean)
-				.slice(0, 2)
-				.join("")
-				.toUpperCase()
-		: "?";
 
 	const siteQ = useQuery({
 		queryKey: ["system", "site"],
@@ -142,9 +134,7 @@ export const TopBar = ({ dark, onToggleDark, onOpenSearch }: TopBarProps) => {
 						title="Account"
 						className="flex cursor-pointer items-center gap-2 rounded-md py-1 pl-1 pr-2 transition-colors hover:bg-hover"
 					>
-						<div className="grid size-6 place-items-center rounded bg-accent-soft text-[11px] font-semibold text-accent">
-							{initials}
-						</div>
+						<Avatar name={user?.name} size={24} />
 						<span className="text-[13px] font-medium">
 							{user?.name?.split(" ")[0] ?? "User"}
 						</span>

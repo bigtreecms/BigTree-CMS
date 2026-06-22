@@ -284,7 +284,11 @@ export const UserEdit = () => {
 				<div className="grid gap-6 md:grid-cols-2">
 					<Card>
 						<div className="rounded-t-xl flex items-center gap-3 border-b border-border bg-surface-2 px-4 py-3">
-							<GravatarAvatar email={form.email ?? targetUser.email} size={40} />
+							<GravatarAvatar
+								email={form.email ?? targetUser.email}
+								name={form.name ?? targetUser.name}
+								size={40}
+							/>
 							<div className="min-w-0">
 								<div className="text-[13px] font-semibold tracking-[-0.01em]">
 									Account

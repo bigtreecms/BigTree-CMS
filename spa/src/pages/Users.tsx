@@ -6,6 +6,7 @@ import { ChevronDown, ChevronLeft, ChevronUp, Edit, Key, Plus, Trash } from "luc
 import { useAuthStore } from "@/auth/store";
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
+import { Avatar } from "@/components/ui/Avatar";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -62,45 +63,6 @@ type SortDir = "asc" | "desc";
 // No longer using large static mock data — we fetch from the real API below.
 
 const USERS_PER_PAGE = 15;
-
-// Deterministic hue from name (stable across renders, matches prototype)
-const hueFor = (first: string, last: string): number => {
-	let h = 0;
-	const s = first + last;
-
-	for (let i = 0; i < s.length; i++) {
-		h = (h * 31 + s.charCodeAt(i)) >>> 0;
-	}
-
-	return h % 360;
-};
-
-interface AvatarProps {
-	first: string;
-	last: string;
-	size?: number;
-}
-
-const Avatar = ({ first, last, size = 28 }: AvatarProps) => {
-	const h = hueFor(first, last);
-	const initials = (first[0] || "?") + (last[0] || "");
-
-	return (
-		<span
-			className="inline-grid place-items-center rounded-full font-bold select-none tabular-nums"
-			style={{
-				width: size,
-				height: size,
-				background: `oklch(72% 0.08 ${h})`,
-				color: `oklch(22% 0.04 ${h})`,
-				fontSize: size <= 24 ? 10 : 11,
-			}}
-			aria-hidden="true"
-		>
-			{initials}
-		</span>
-	);
-};
 
 interface LevelBadgeProps {
 	level: User["level"];
@@ -448,7 +410,7 @@ export const Users = () => {
 									>
 										{/* Name + Avatar */}
 										<div className="flex items-center gap-3 md:gap-2.5">
-											<Avatar first={u.first} last={u.last} />
+											<Avatar name={`${u.first} ${u.last}`} />
 											<span className="font-medium text-text">
 												{u.first} {u.last}
 											</span>

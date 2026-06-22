@@ -216,7 +216,7 @@ const AccountTab = ({ me, form, onChange, onSubmit }: AccountTabProps) => (
 		className="rounded-xl border border-border bg-surface"
 	>
 		<div className="flex items-center gap-4 border-b border-border bg-surface-2 px-4 py-3">
-			<GravatarAvatar email={form.email ?? me.email} size={48} />
+			<GravatarAvatar email={form.email ?? me.email} name={form.name ?? me.name} size={48} />
 			<div className="min-w-0">
 				<div className="text-[13.5px] font-semibold tracking-[-0.01em]">
 					{me.name || me.email}

@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { ChevronRight } from "lucide-react";
+import { Avatar } from "@/components/ui/Avatar";
 import { Button } from "@/components/ui/Button";
 import type { Message } from "@/api/endpoints/dashboard";
 
@@ -28,12 +29,7 @@ export const MessagesTable = ({ messages }: MessagesTableProps) => {
 						className="grid min-h-[44px] grid-cols-[1.4fr_2fr_110px_80px_80px] items-center gap-x-3 border-b border-border px-3.5 text-[13px] transition-colors last:border-b-0 hover:bg-surface-2"
 					>
 						<span className="inline-flex items-center gap-2 font-medium">
-							<span
-								className="grid size-6 place-items-center rounded-full text-[10.5px] font-semibold text-white"
-								style={{ background: avatarColor(m.sender) }}
-							>
-								{senderInitials(m.sender, m.sender_name)}
-							</span>
+							<Avatar name={m.sender_name} seed={String(m.sender)} size={24} />
 							<span>{m.sender_name ?? `User #${m.sender}`}</span>
 						</span>
 						<span className="truncate">{m.subject}</span>
@@ -72,24 +68,4 @@ const splitDateTime = (iso: string): { date: string; time: string } => {
 	} catch {
 		return { date: iso, time: "" };
 	}
-};
-
-/** Deterministic avatar color from a user id — same algo style as the prototype. */
-const avatarColor = (id: number): string => {
-	const hue = (id * 47) % 360;
-
-	return `oklch(58% 0.11 ${hue})`;
-};
-
-/** Initials from the sender's name, falling back to the id for deleted accounts. */
-const senderInitials = (id: number, name: string | null): string => {
-	if (name) {
-		const parts = name.trim().split(/\s+/);
-		const first = parts[0]?.[0] ?? "";
-		const last = parts.length > 1 ? (parts[parts.length - 1]?.[0] ?? "") : "";
-
-		return (first + last).toUpperCase() || `#${id}`.slice(-2);
-	}
-
-	return `#${id}`.slice(-2);
 };

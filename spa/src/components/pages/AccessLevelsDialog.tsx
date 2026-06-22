@@ -84,7 +84,7 @@ const UserList = ({ title, icon, hint, users, empty }: UserListProps) => (
 			<ul className="divide-y divide-border rounded-md border border-border bg-surface">
 				{users.map((user) => (
 					<li key={user.id} className="flex items-center gap-2.5 px-3 py-2">
-						<GravatarAvatar email={user.email} size={24} />
+						<GravatarAvatar email={user.email} name={user.name} size={24} />
 						<div className="min-w-0">
 							<div className="truncate text-[12.5px] font-medium">{user.name}</div>
 							<div className="truncate text-[11.5px] text-text-3">{user.email}</div>
