@@ -27,6 +27,11 @@ export const Dashboard = () => {
 	const admin = isAdmin(useAuthStore((s) => s.user));
 	const firstName = userName?.split(" ")[0] ?? "there";
 
+	// Only surface the traffic card once Analytics has actually been configured
+	// by the developer. While the (admin-only) query is in flight or errored we
+	// keep the card so its loading/error states show; once it resolves to an
+	// unconfigured response we hide it entirely rather than prompting to connect.
+
 	const [summaryQ, analyticsQ, pendingQ, messagesQ, alertsQ] = useQueries({
 		queries: [
 			{
@@ -61,13 +66,14 @@ export const Dashboard = () => {
 			<PageHead title="Dashboard" sub={`Welcome back, ${firstName}.`} />
 
 			<div className="flex flex-col gap-4">
-				{admin && (
-					<TrafficCard
-						data={analyticsQ.data}
-						loading={analyticsQ.isLoading}
-						error={analyticsQ.error}
-					/>
-				)}
+				{admin &&
+					(analyticsQ.isLoading || analyticsQ.error || analyticsQ.data?.configured) && (
+						<TrafficCard
+							data={analyticsQ.data}
+							loading={analyticsQ.isLoading}
+							error={analyticsQ.error}
+						/>
+					)}
 				<PendingChangesCard
 					summary={summaryQ.data}
 					pending={pendingQ.data ?? []}

@@ -59,12 +59,6 @@ export const TrafficCard = ({ data, loading, error }: TrafficCardProps) => {
 				<div className="text-[12.5px] text-text-3">Loading…</div>
 			) : error ? (
 				<CardError error={error} />
-			) : !data?.configured ? (
-				<InlineEmpty className="leading-[1.55]">
-					Google Analytics isn't connected yet. Connect it in{" "}
-					<span className="font-mono text-text-2">Developer → Analytics</span> to see
-					traffic.
-				</InlineEmpty>
 			) : !series || series.length === 0 ? (
 				<InlineEmpty icon={Activity}>
 					No traffic data yet — check back after the next cache refresh.
