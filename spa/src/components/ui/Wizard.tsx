@@ -1,8 +1,7 @@
-import type { ReactNode } from "react";
-import { Check } from "lucide-react";
-
 import { Button } from "./Button";
 import { Card } from "@/components/ui/Card";
+import { Check } from "lucide-react";
+import type { ReactNode } from "react";
 
 export interface WizardStep {
 	key: string;
@@ -49,7 +48,7 @@ export const Wizard = ({
 
 	return (
 		<Card>
-			<div className="border-b border-border bg-surface-2 px-5 py-4">
+			<div className="rounded-t-xl border-b border-border bg-surface-2 px-5 py-4">
 				<ol className="flex items-center gap-3">
 					{steps.map((s, idx) => {
 						const completed = idx < current;
@@ -105,7 +104,7 @@ export const Wizard = ({
 				{step?.content}
 			</div>
 
-			<div className="flex items-center justify-between border-t border-border bg-surface-2 px-5 py-3">
+			<div className="flex items-center justify-between rounded-b-xl border-t border-border bg-surface-2 px-5 py-3">
 				<div>
 					{onCancel && (
 						<Button variant="secondary" onClick={onCancel}>

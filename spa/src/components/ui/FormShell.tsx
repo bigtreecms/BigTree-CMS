@@ -32,7 +32,7 @@ export const FormShell = ({
 	const Inner = (
 		<>
 			{header && (
-				<div className="flex items-baseline justify-between border-b border-border bg-surface-2 px-4 py-3 text-[12.5px]">
+				<div className="flex items-baseline justify-between rounded-t-xl border-b border-border bg-surface-2 px-4 py-3 text-[12.5px]">
 					{header}
 				</div>
 			)}
@@ -40,7 +40,7 @@ export const FormShell = ({
 			<div className="p-4">{children}</div>
 
 			{footer && (
-				<div className="sticky bottom-0 flex justify-end gap-2 border-t border-border bg-surface-2 px-4 py-3">
+				<div className="sticky bottom-0 flex justify-end gap-2 rounded-b-xl border-t border-border bg-surface-2 px-4 py-3">
 					{footer}
 				</div>
 			)}
