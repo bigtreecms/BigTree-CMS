@@ -42,25 +42,27 @@ export const FieldCropModal = ({
 	const imageSrc = expandImageUrl(file);
 	const current: PendingCrop | undefined = crops[index];
 
-	// Reset transform state whenever the dialog opens or we move to a new crop.
-	useEffect(() => {
-		if (open) {
-			setCrop({ x: 0, y: 0 });
-			setZoom(1);
-			setAreaPixels(null);
-		}
-	}, [open, index]);
-
-	// Starting over (new image / re-open) resets to the first crop.
+	// Opening (or swapping the source image) starts over at the first crop with
+	// a fresh transform. Advancing between crops is handled in finalizeCurrent so
+	// we don't chain "index changed" → "reset transform" across an extra render.
 	useEffect(() => {
 		if (open) {
 			setIndex(0);
+			setCrop({ x: 0, y: 0 });
+			setZoom(1);
+			setAreaPixels(null);
 		}
 	}, [open, file]);
 
 	const onCropComplete = useCallback((_: Area, areaPx: Area) => {
 		setAreaPixels(areaPx);
 	}, []);
+
+	const resetTransform = () => {
+		setCrop({ x: 0, y: 0 });
+		setZoom(1);
+		setAreaPixels(null);
+	};
 
 	if (!current) {
 		return null;
@@ -102,6 +104,7 @@ export const FieldCropModal = ({
 				onComplete();
 			} else {
 				setIndex((i) => i + 1);
+				resetTransform();
 			}
 		} catch {
 			toast.error("Could not generate the crop. Please try again.");

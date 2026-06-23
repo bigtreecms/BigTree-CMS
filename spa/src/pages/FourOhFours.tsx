@@ -69,26 +69,33 @@ export const FourOhFours = ({ type }: FourOhFoursProps) => {
 	const [confirmBulkDelete, setConfirmBulkDelete] = useState(false);
 	const [confirmClearDead, setConfirmClearDead] = useState(false);
 
+	// Clears the multi-select + inline redirect editor — run from every handler
+	// that changes which rows are on screen, instead of chaining off page/search.
+	const resetRowState = () => {
+		setSelected(new Set());
+		setEditingRedirectId(null);
+		setRedirectDraft("");
+	};
+
+	// Switching buckets (the `type` prop, driven by the route) resets pagination
+	// and row state during render — no effect, so it can't cascade into another.
+	const [prevType, setPrevType] = useState(type);
+
+	if (type !== prevType) {
+		setPrevType(type);
+		setPage(1);
+		resetRowState();
+	}
+
 	useEffect(() => {
 		const handle = setTimeout(() => {
 			setDebounced(search.trim());
 			setPage(1);
+			resetRowState();
 		}, 200);
 
 		return () => clearTimeout(handle);
 	}, [search]);
-
-	// Reset selection + redirect editor when the bucket / page / search changes.
-	useEffect(() => {
-		setSelected(new Set());
-		setEditingRedirectId(null);
-		setRedirectDraft("");
-	}, [type, page, debounced]);
-
-	// Switching buckets resets pagination back to the first page.
-	useEffect(() => {
-		setPage(1);
-	}, [type]);
 
 	const listQ = useQuery({
 		queryKey: ["404s", "list", { type, page, per_page: PER_PAGE, q: debounced }],
@@ -477,7 +484,14 @@ export const FourOhFours = ({ type }: FourOhFoursProps) => {
 
 			{totalPages > 1 && (
 				<div className="mt-3 flex justify-end">
-					<Pager page={page} totalPages={totalPages} onChange={setPage} />
+					<Pager
+						page={page}
+						totalPages={totalPages}
+						onChange={(p) => {
+							setPage(p);
+							resetRowState();
+						}}
+					/>
 				</div>
 			)}
 

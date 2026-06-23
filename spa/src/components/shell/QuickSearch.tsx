@@ -44,18 +44,16 @@ export const QuickSearch = ({ open, onClose }: QuickSearchProps) => {
 	const [debouncedQuery, setDebouncedQuery] = useState("");
 	const [activeIndex, setActiveIndex] = useState(0);
 
-	// Debounce the typed query (250ms feels responsive but not too chatty)
+	// Debounce the typed query (250ms feels responsive but not too chatty) and
+	// reset the highlight in the same pass — folding the reset in here avoids an
+	// extra render hop from a separate "debouncedQuery changed" effect.
 	useEffect(() => {
 		const t = setTimeout(() => {
 			setDebouncedQuery(rawQuery.trim());
+			setActiveIndex(0);
 		}, 250);
 		return () => clearTimeout(t);
 	}, [rawQuery]);
-
-	// Reset highlight when results change
-	useEffect(() => {
-		setActiveIndex(0);
-	}, [debouncedQuery]);
 
 	// Auto-focus the input when the palette opens
 	useEffect(() => {
@@ -67,14 +65,20 @@ export const QuickSearch = ({ open, onClose }: QuickSearchProps) => {
 		}
 	}, [open]);
 
-	// Clear local state when palette is dismissed so next open feels fresh
-	useEffect(() => {
+	// Clear local state when the palette is dismissed so the next open feels
+	// fresh. Done during the open→closed render transition rather than in an
+	// effect, so it doesn't cascade into the scroll-into-view effect below.
+	const [prevOpen, setPrevOpen] = useState(open);
+
+	if (prevOpen !== open) {
+		setPrevOpen(open);
+
 		if (!open) {
 			setRawQuery("");
 			setDebouncedQuery("");
 			setActiveIndex(0);
 		}
-	}, [open]);
+	}
 
 	const { data: groups, isLoading } = useQuery({
 		queryKey: ["search", debouncedQuery],
