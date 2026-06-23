@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { File as FileIcon, Upload as UploadIcon, X } from "lucide-react";
 
+import { IconButton } from "@/components/ui/IconButton";
 import { UPLOAD_PATH, type ResourceDetail } from "@/api/endpoints/resources";
 import { useUploads } from "@/hooks/useUploads";
 
@@ -108,14 +109,14 @@ export const UploadField = ({ field, value, onChange, disabled }: FieldComponent
 						{filenameFromPath(currentPath)}
 					</a>
 					{showRemove && !disabled && (
-						<button
-							type="button"
-							className="ml-auto rounded p-1 text-text-3 hover:bg-hover hover:text-danger"
+						<IconButton
+							label="Remove file"
+							tone="danger"
+							className="ml-auto"
 							onClick={() => onChange("")}
-							aria-label="Remove file"
 						>
 							<X size={13} />
-						</button>
+						</IconButton>
 					)}
 				</div>
 			)}

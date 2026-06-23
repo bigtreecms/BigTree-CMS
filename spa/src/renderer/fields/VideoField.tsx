@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Search, Video as VideoIcon, X } from "lucide-react";
 
 import { ResourcePicker } from "@/components/files/ResourcePicker";
+import { IconButton } from "@/components/ui/IconButton";
 
 import { INPUT_CLASS, settingsOf, type FieldComponentProps } from "./types";
 
@@ -141,14 +142,9 @@ const PendingRow = ({ label, text, onClear, disabled }: PendingRowProps) => (
 			</div>
 		</div>
 		{!disabled && (
-			<button
-				type="button"
-				className="rounded p-1 text-text-3 hover:bg-hover hover:text-danger"
-				onClick={onClear}
-				aria-label="Clear"
-			>
+			<IconButton label="Clear" tone="danger" onClick={onClear}>
 				<X size={13} />
-			</button>
+			</IconButton>
 		)}
 	</div>
 );
@@ -199,14 +195,9 @@ const CurrentPreview = ({ value, onClear, disabled }: CurrentPreviewProps) => {
 				</div>
 			</div>
 			{!disabled && (
-				<button
-					type="button"
-					className="rounded p-1 text-text-3 hover:bg-hover hover:text-danger"
-					onClick={onClear}
-					aria-label="Remove video"
-				>
+				<IconButton label="Remove video" tone="danger" onClick={onClear}>
 					<X size={14} />
-				</button>
+				</IconButton>
 			)}
 		</div>
 	);

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { ExternalLink, File as FileIcon, Newspaper, Search, X } from "lucide-react";
 
+import { IconButton } from "@/components/ui/IconButton";
 import { searchApi, type SearchPage } from "@/api/endpoints/search";
 import { resourcesApi } from "@/api/endpoints/resources";
 import type { ResourceSummary } from "@/api/endpoints/resource-folders";
@@ -174,14 +175,13 @@ export const LinkField = ({ field, value, onChange, disabled }: FieldComponentPr
 				/>
 
 				{stored && !disabled && (
-					<button
-						type="button"
-						className="absolute right-1.5 top-1/2 -translate-y-1/2 rounded p-1 text-text-3 hover:bg-hover hover:text-text"
+					<IconButton
+						label="Clear"
+						className="absolute right-1.5 top-1/2 -translate-y-1/2"
 						onClick={clear}
-						aria-label="Clear"
 					>
 						<X size={12} />
-					</button>
+					</IconButton>
 				)}
 			</div>
 

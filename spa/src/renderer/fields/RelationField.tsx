@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { ArrowDown, ArrowUp, Plus, RotateCcw, Search, Trash, X } from "lucide-react";
 
+import { IconButton } from "@/components/ui/IconButton";
 import {
 	modulesApi,
 	type RelationOption,
@@ -401,14 +402,9 @@ const SelectedList = ({ ids, titles, sortable, onRemove, onMove, disabled }: Sel
 							{title}
 						</span>
 						{!disabled && (
-							<button
-								type="button"
-								className="rounded p-1 text-text-3 hover:bg-hover hover:text-danger"
-								onClick={() => onRemove(id)}
-								aria-label="Remove"
-							>
+							<IconButton label="Remove" tone="danger" onClick={() => onRemove(id)}>
 								<Trash size={12} />
-							</button>
+							</IconButton>
 						)}
 					</li>
 				);
@@ -479,17 +475,16 @@ const Picker = ({
 					disabled={disabled}
 				/>
 				{search && (
-					<button
-						type="button"
-						className="absolute right-1.5 top-1/2 -translate-y-1/2 rounded p-1 text-text-3 hover:bg-hover hover:text-text"
+					<IconButton
+						label="Clear"
+						className="absolute right-1.5 top-1/2 -translate-y-1/2"
 						onClick={() => {
 							onSearchChange("");
 							setOpen(false);
 						}}
-						aria-label="Clear"
 					>
 						<X size={12} />
-					</button>
+					</IconButton>
 				)}
 			</div>
 

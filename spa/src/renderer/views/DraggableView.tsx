@@ -1,7 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Edit, GripVertical, Search, Trash, X } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Edit, GripVertical, Trash } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+
+import { IconButton } from "@/components/ui/IconButton";
+import { SearchInput } from "@/components/ui/SearchInput";
 
 import { autoModulesApi, type ModuleEntryRow } from "@/api/endpoints/auto-modules";
 import type { ModuleView } from "@/api/endpoints/modules";
@@ -117,29 +120,13 @@ export const DraggableView = ({ moduleId, view }: DraggableViewProps) => {
 	return (
 		<>
 			<div className="mb-3 flex flex-wrap items-center gap-3">
-				<div className="relative w-full sm:w-auto sm:max-w-md sm:flex-1">
-					<Search
-						size={14}
-						className="absolute left-3 top-1/2 -translate-y-1/2 text-text-3"
-					/>
-					<input
-						aria-label={`Search ${view.title.toLowerCase()}`}
-						className="w-full rounded-md border border-border bg-surface py-1.5 px-9 text-[13.5px] placeholder:text-text-3 focus:outline-none focus:ring-1 focus:ring-accent-ring"
-						placeholder={`Search ${view.title.toLowerCase()}…`}
-						value={query}
-						onChange={(e) => setQuery(e.target.value)}
-					/>
-					{query && (
-						<button
-							type="button"
-							className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-text-3 hover:bg-hover hover:text-text"
-							onClick={() => setQuery("")}
-							aria-label="Clear search"
-						>
-							<X size={14} />
-						</button>
-					)}
-				</div>
+				<SearchInput
+					className="w-full sm:w-auto sm:max-w-md sm:flex-1"
+					value={query}
+					onChange={setQuery}
+					placeholder={`Search ${view.title.toLowerCase()}…`}
+					aria-label={`Search ${view.title.toLowerCase()}`}
+				/>
 			</div>
 
 			{debouncedQuery && (
@@ -220,27 +207,26 @@ export const DraggableView = ({ moduleId, view }: DraggableViewProps) => {
 											const Icon = iconForCustomAction(action.className);
 
 											return (
-												<Link
+												<IconButton
 													key={action.key}
 													to={actionPath(action.route, r.row.id)}
-													className="rounded p-1 text-text-3 hover:bg-hover hover:text-text"
+													label={action.name}
 													title={action.name}
-													aria-label={action.name}
 													onClick={(e) => e.stopPropagation()}
 												>
 													<Icon size={15} />
-												</Link>
+												</IconButton>
 											);
 										})}
 										{builtins.edit && (
-											<Link
+											<IconButton
 												to={editPath(r.row.id)}
-												className="rounded p-1 text-text-3 hover:bg-hover hover:text-text"
+												label="Edit"
 												title="Edit"
 												onClick={(e) => e.stopPropagation()}
 											>
 												<Edit size={15} />
-											</Link>
+											</IconButton>
 										)}
 										<BuiltinToggleButtons
 											moduleId={moduleId}
@@ -249,18 +235,17 @@ export const DraggableView = ({ moduleId, view }: DraggableViewProps) => {
 											builtins={builtins}
 										/>
 										{builtins.delete && (
-											<button
-												type="button"
-												className="rounded p-1 text-text-3 hover:bg-hover hover:text-danger"
+											<IconButton
+												label="Delete"
 												title="Delete"
-												aria-label="Delete"
+												tone="danger"
 												onClick={(e) => {
 													e.stopPropagation();
 													requestDelete(r.row);
 												}}
 											>
 												<Trash size={15} />
-											</button>
+											</IconButton>
 										)}
 									</div>
 								</li>

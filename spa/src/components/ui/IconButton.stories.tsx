@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { Check, ChevronDown, Pencil, Trash, X } from "lucide-react";
+import { Check, ChevronDown, ExternalLink, Pencil, Trash, X } from "lucide-react";
 
 import { IconButton } from "./IconButton";
 
@@ -52,7 +52,31 @@ export const Tones: Story = {
 	),
 };
 
-/** A disabled control dims and drops its hover treatment. */
+/**
+ * `to` renders a router `<Link>` and `href` renders an `<a>` — useful for
+ * icon-only row actions that navigate (e.g. an Edit pencil linking to a form).
+ * Both keep the same look and the required accessible `label`.
+ */
+export const AsLink: Story = {
+	render: () => (
+		<div className="flex items-center gap-2">
+			<IconButton label="Edit" tone="default" to="/pages" title="Edit">
+				<Pencil size={13} />
+			</IconButton>
+			<IconButton
+				label="Open docs"
+				tone="accent"
+				href="https://www.bigtreecms.org"
+				target="_blank"
+				title="Open docs"
+			>
+				<ExternalLink size={13} />
+			</IconButton>
+		</div>
+	),
+};
+
+/** A disabled control dims and drops its hover treatment (always a plain `<button>`). */
 export const Disabled: Story = {
 	args: { disabled: true },
 };

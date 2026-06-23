@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Crop, ImageIcon, Images, Search, Upload as UploadIcon, X } from "lucide-react";
 
 import { ResourcePicker } from "@/components/files/ResourcePicker";
+import { IconButton } from "@/components/ui/IconButton";
 
 import {
 	IMAGE_PROCESS_PATH,
@@ -272,17 +273,16 @@ export const ImageField = ({ field, value, onChange, disabled }: FieldComponentP
 						</a>
 					</div>
 					{showRemove && !disabled && (
-						<button
-							type="button"
-							className="rounded p-1 text-text-3 hover:bg-hover hover:text-danger"
+						<IconButton
+							label="Remove image"
+							tone="danger"
 							onClick={() => {
 								setShowCrops(false);
 								onChange("");
 							}}
-							aria-label="Remove image"
 						>
 							<X size={14} />
-						</button>
+						</IconButton>
 					)}
 				</div>
 			) : null}

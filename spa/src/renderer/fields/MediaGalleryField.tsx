@@ -21,6 +21,7 @@ import {
 	type ProcessImageResult,
 } from "@/api/endpoints/images";
 import { ResourcePicker } from "@/components/files/ResourcePicker";
+import { IconButton } from "@/components/ui/IconButton";
 import { useUploads, type UploadItem } from "@/hooks/useUploads";
 import { ApiError } from "@/types/api";
 import { expandImageUrl } from "@/lib/imageUrl";
@@ -447,16 +448,14 @@ const MediaItemRow = ({
 	return (
 		<li className="rounded-md border border-border bg-surface">
 			<div className="flex items-stretch gap-2 p-2">
-				<button
-					type="button"
-					className="flex flex-col items-center justify-center rounded p-1 text-text-3 hover:bg-hover hover:text-text disabled:cursor-not-allowed disabled:opacity-30"
+				<IconButton
+					label="Move up"
+					title="Move up"
 					onClick={() => onMove("up")}
 					disabled={disabled || index === 0}
-					title="Move up"
-					aria-label="Move up"
 				>
 					<GripVertical size={13} />
-				</button>
+				</IconButton>
 
 				<div className="overflow-hidden rounded border border-border bg-surface-2">
 					{previewUrl ? (
@@ -504,16 +503,15 @@ const MediaItemRow = ({
 					</span>
 				</button>
 
-				<button
-					type="button"
-					className="rounded p-1 text-text-3 hover:bg-hover hover:text-danger disabled:opacity-40"
+				<IconButton
+					label="Delete item"
+					title="Delete item"
+					tone="danger"
 					onClick={onDelete}
 					disabled={disabled}
-					title="Delete item"
-					aria-label="Delete item"
 				>
 					<Trash size={13} />
-				</button>
+				</IconButton>
 			</div>
 
 			{expanded && (

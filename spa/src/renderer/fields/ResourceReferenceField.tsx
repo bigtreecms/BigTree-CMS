@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { File as FileIcon, Image as ImageIcon, Search, Video as VideoIcon, X } from "lucide-react";
 
 import { ResourcePicker, type ResourcePickerType } from "@/components/files/ResourcePicker";
+import { IconButton } from "@/components/ui/IconButton";
 import { resourcesApi, type ResourceDetail } from "@/api/endpoints/resources";
 
 import { settingsOf, type FieldComponentProps } from "./types";
@@ -150,14 +151,9 @@ const ReferencePreview = ({
 				)}
 			</div>
 			{showRemove && !disabled && (
-				<button
-					type="button"
-					className="rounded p-1 text-text-3 hover:bg-hover hover:text-danger"
-					onClick={onClear}
-					aria-label="Remove reference"
-				>
+				<IconButton label="Remove reference" tone="danger" onClick={onClear}>
 					<X size={14} />
-				</button>
+				</IconButton>
 			)}
 		</div>
 	);

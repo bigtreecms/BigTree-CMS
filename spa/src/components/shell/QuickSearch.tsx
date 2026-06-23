@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import * as Dialog from "@radix-ui/react-dialog";
 import { FileText, LayoutGrid, Search, Tag, Users, X } from "lucide-react";
 
+import { IconButton } from "@/components/ui/IconButton";
 import { searchApi, type SearchResultGroups } from "@/api/endpoints/search";
 import { useAuthStore } from "@/auth/store";
 import { isAdmin } from "@/lib/permissions";
@@ -295,14 +296,9 @@ export const QuickSearch = ({ open, onClose }: QuickSearchProps) => {
 							className="flex-1 bg-transparent text-[15px] text-text placeholder:text-text-3 focus:outline-none"
 							spellCheck={false}
 						/>
-						<button
-							type="button"
-							onClick={onClose}
-							className="rounded p-1 text-text-3 transition hover:bg-hover hover:text-text"
-							title="Close (Esc)"
-						>
+						<IconButton label="Close" title="Close (Esc)" onClick={onClose}>
 							<X size={16} />
-						</button>
+						</IconButton>
 					</div>
 
 					{/* Results */}

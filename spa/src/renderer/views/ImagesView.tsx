@@ -1,7 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Edit, Image as ImageIcon, Search, Trash, X } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Edit, Image as ImageIcon, Trash } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+
+import { IconButton } from "@/components/ui/IconButton";
+import { SearchInput } from "@/components/ui/SearchInput";
 
 import { autoModulesApi, type ModuleEntryRow } from "@/api/endpoints/auto-modules";
 import type { ModuleView } from "@/api/endpoints/modules";
@@ -73,29 +76,13 @@ export const ImagesView = ({ moduleId, view }: ImagesViewProps) => {
 	return (
 		<>
 			<div className="mb-3 flex flex-wrap items-center gap-3">
-				<div className="relative w-full sm:w-auto sm:max-w-md sm:flex-1">
-					<Search
-						size={14}
-						className="absolute left-3 top-1/2 -translate-y-1/2 text-text-3"
-					/>
-					<input
-						aria-label={`Search ${view.title.toLowerCase()}`}
-						className="w-full rounded-md border border-border bg-surface py-1.5 px-9 text-[13.5px] placeholder:text-text-3 focus:outline-none focus:ring-1 focus:ring-accent-ring"
-						placeholder={`Search ${view.title.toLowerCase()}…`}
-						value={query}
-						onChange={(e) => setQuery(e.target.value)}
-					/>
-					{query && (
-						<button
-							type="button"
-							className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-text-3 hover:bg-hover hover:text-text"
-							onClick={() => setQuery("")}
-							aria-label="Clear search"
-						>
-							<X size={14} />
-						</button>
-					)}
-				</div>
+				<SearchInput
+					className="w-full sm:w-auto sm:max-w-md sm:flex-1"
+					value={query}
+					onChange={setQuery}
+					placeholder={`Search ${view.title.toLowerCase()}…`}
+					aria-label={`Search ${view.title.toLowerCase()}`}
+				/>
 			</div>
 
 			{listQuery.isLoading && !listQuery.data ? (
@@ -186,41 +173,34 @@ export const ImagesGrid = ({
 						{hasActions && (
 							<div className="flex items-center justify-end gap-1 border-t border-border bg-surface-2 px-2 py-1.5">
 								{customActions.map((action) => (
-									<Link
+									<IconButton
 										key={action.key}
 										to={actionPath(action.route, row.id)}
-										className="rounded p-1 text-text-3 hover:bg-hover hover:text-text"
+										label={action.name}
 										title={action.name}
-										aria-label={action.name}
 									>
 										<span className="inline-block text-[11px] font-medium">
 											{action.name.slice(0, 2)}
 										</span>
-									</Link>
+									</IconButton>
 								))}
 
 								{canEdit && (
-									<Link
-										to={editPath(row.id)}
-										className="rounded p-1 text-text-3 hover:bg-hover hover:text-text"
-										title="Edit"
-										aria-label="Edit"
-									>
+									<IconButton to={editPath(row.id)} label="Edit" title="Edit">
 										<Edit size={14} />
-									</Link>
+									</IconButton>
 								)}
 
 								{canDelete && (
-									<button
-										type="button"
-										className="rounded p-1 text-text-3 hover:bg-hover hover:text-danger disabled:opacity-40"
+									<IconButton
+										label="Delete"
 										title="Delete"
-										aria-label="Delete"
+										tone="danger"
 										disabled={!canMutate}
 										onClick={() => requestDelete(row)}
 									>
 										<Trash size={14} />
-									</button>
+									</IconButton>
 								)}
 							</div>
 						)}

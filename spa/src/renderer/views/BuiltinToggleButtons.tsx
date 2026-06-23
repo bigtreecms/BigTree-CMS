@@ -6,6 +6,7 @@ import {
 	type ModuleEntryFlagToggleResponse,
 	type ModuleEntryRow,
 } from "@/api/endpoints/auto-modules";
+import { IconButton } from "@/components/ui/IconButton";
 import { toast } from "@/lib/toast";
 
 import type { BuiltinViewActionFlags } from "./viewHelpers";
@@ -87,11 +88,9 @@ export const BuiltinToggleButtons = ({
 	return (
 		<>
 			{builtins.archive && (
-				<button
-					type="button"
-					className="rounded p-1 text-text-3 hover:bg-hover hover:text-text disabled:opacity-40"
+				<IconButton
+					label={archived ? "Restore" : "Archive"}
 					title={archived ? "Restore" : "Archive"}
-					aria-label={archived ? "Restore" : "Archive"}
 					disabled={!canMutate || archiveMutation.isPending}
 					onClick={(e) => {
 						e.stopPropagation();
@@ -99,15 +98,13 @@ export const BuiltinToggleButtons = ({
 					}}
 				>
 					{archived ? <ArchiveRestore size={15} /> : <Archive size={15} />}
-				</button>
+				</IconButton>
 			)}
 
 			{builtins.feature && (
-				<button
-					type="button"
-					className="rounded p-1 text-text-3 hover:bg-hover hover:text-text disabled:opacity-40"
+				<IconButton
+					label={featured ? "Unfeature" : "Feature"}
 					title={featured ? "Unfeature" : "Feature"}
-					aria-label={featured ? "Unfeature" : "Feature"}
 					disabled={!canMutate || featureMutation.isPending}
 					onClick={(e) => {
 						e.stopPropagation();
@@ -115,15 +112,13 @@ export const BuiltinToggleButtons = ({
 					}}
 				>
 					{featured ? <StarOff size={15} /> : <Star size={15} />}
-				</button>
+				</IconButton>
 			)}
 
 			{builtins.approve && (
-				<button
-					type="button"
-					className="rounded p-1 text-text-3 hover:bg-hover hover:text-text disabled:opacity-40"
+				<IconButton
+					label={approved ? "Unapprove" : "Approve"}
 					title={approved ? "Unapprove" : "Approve"}
-					aria-label={approved ? "Unapprove" : "Approve"}
 					disabled={!canMutate || approveMutation.isPending}
 					onClick={(e) => {
 						e.stopPropagation();
@@ -131,7 +126,7 @@ export const BuiltinToggleButtons = ({
 					}}
 				>
 					{approved ? <X size={15} /> : <Check size={15} />}
-				</button>
+				</IconButton>
 			)}
 		</>
 	);

@@ -1,6 +1,7 @@
 import { useEffect, useId, useMemo, useState } from "react";
 import { ChevronDown, ChevronRight, GripVertical, Plus, Trash } from "lucide-react";
 
+import { IconButton } from "@/components/ui/IconButton";
 import type { ModuleFormField } from "@/api/endpoints/modules";
 
 import { FieldRenderer } from "@/renderer/forms/FieldRenderer";
@@ -379,16 +380,14 @@ const MatrixRowItem = ({
 	return (
 		<li className={wrapperClass}>
 			<div className="flex items-center gap-2 px-2 py-1.5">
-				<button
-					type="button"
-					className="rounded p-1 text-text-3 hover:bg-hover hover:text-text disabled:cursor-not-allowed disabled:opacity-40"
+				<IconButton
+					label="Move up"
+					title="Move up"
 					onClick={() => onMove("up")}
 					disabled={disabled || index === 0}
-					title="Move up"
-					aria-label="Move up"
 				>
 					<GripVertical size={13} />
-				</button>
+				</IconButton>
 
 				<button
 					type="button"
@@ -410,16 +409,15 @@ const MatrixRowItem = ({
 					)}
 				</button>
 
-				<button
-					type="button"
-					className="rounded p-1 text-text-3 hover:bg-hover hover:text-danger disabled:opacity-40"
+				<IconButton
+					label="Delete item"
+					title="Delete item"
+					tone="danger"
 					onClick={onDelete}
 					disabled={disabled}
-					title="Delete item"
-					aria-label="Delete item"
 				>
 					<Trash size={13} />
-				</button>
+				</IconButton>
 			</div>
 
 			{expanded && (
