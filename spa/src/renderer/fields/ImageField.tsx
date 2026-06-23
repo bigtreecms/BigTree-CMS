@@ -232,6 +232,7 @@ export const ImageField = ({ field, value, onChange, disabled }: FieldComponentP
 					ref={inputRef}
 					type="file"
 					accept="image/*"
+					aria-label={field.title}
 					className="hidden"
 					onChange={(e) => {
 						handlePick(e.target.files);

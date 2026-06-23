@@ -60,6 +60,7 @@ export const UploadButton = ({
 				ref={inputRef}
 				type="file"
 				accept={accept}
+				aria-label={typeof label === "string" ? label : "Choose file"}
 				className="hidden"
 				onChange={handleChange}
 			/>

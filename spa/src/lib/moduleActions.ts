@@ -16,14 +16,6 @@ const enc = encodeURIComponent;
  * centralize every route-based link the SPA builds.
  */
 
-/** Resolve a module by its URL route. */
-export const resolveModuleByRoute = (
-	route: string,
-	modules: ModuleSummary[]
-): ModuleSummary | undefined => {
-	return modules.find((m) => m.route === route);
-};
-
 export interface ResolvedAction {
 	action: ModuleAction;
 	/** Trailing path segments not part of the action route (e.g. an entry id). */

@@ -22,7 +22,7 @@ export const Breadcrumb = ({ items }: BreadcrumbProps) => {
 				const isLast = i === items.length - 1;
 
 				return (
-					<span key={i} className="flex items-center gap-1.5">
+					<span key={it.to ?? it.label} className="flex items-center gap-1.5">
 						{i > 0 && <ChevronRight size={11} className="text-text-4" />}
 						{isLast ? (
 							<span className="text-text-2">{it.label}</span>

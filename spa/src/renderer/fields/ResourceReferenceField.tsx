@@ -185,6 +185,7 @@ const PreviewTile = ({ pickerType, resource, loading }: PreviewTileProps) => {
 					src={`https://www.youtube.com/embed/${encodeURIComponent(id)}`}
 					title={resource.name}
 					className="block aspect-video h-20 w-32"
+					sandbox="allow-scripts allow-same-origin allow-popups allow-presentation"
 					allowFullScreen
 				/>
 			);
@@ -196,6 +197,7 @@ const PreviewTile = ({ pickerType, resource, loading }: PreviewTileProps) => {
 					src={`https://player.vimeo.com/video/${encodeURIComponent(id)}`}
 					title={resource.name}
 					className="block aspect-video h-20 w-32"
+					sandbox="allow-scripts allow-same-origin allow-popups allow-presentation"
 					allowFullScreen
 				/>
 			);

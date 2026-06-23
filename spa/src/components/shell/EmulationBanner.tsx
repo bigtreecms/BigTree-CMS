@@ -3,6 +3,11 @@ import { Eye } from "lucide-react";
 import { authApi } from "@/auth/endpoints";
 import { useAuthStore } from "@/auth/store";
 
+const stop = () => {
+	authApi.stopEmulating();
+	window.location.reload();
+};
+
 /**
  * Persistent banner shown while a developer is emulating another user. Stopping
  * restores the developer's parked session and hard-reloads so every React Query
@@ -16,11 +21,6 @@ export const EmulationBanner = () => {
 	if (!emulatedBy) {
 		return null;
 	}
-
-	const stop = () => {
-		authApi.stopEmulating();
-		window.location.reload();
-	};
 
 	return (
 		<div className="flex items-center justify-center gap-3 border-b border-warn/30 bg-warn-bg px-4 py-1.5 text-[12.5px] font-medium text-warn">

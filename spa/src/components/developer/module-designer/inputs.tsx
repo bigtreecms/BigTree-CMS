@@ -181,7 +181,7 @@ export const JsonInput = ({ label, value, onChange, hint, rows = 5 }: JsonInputP
 	);
 };
 
-export const safeStringify = (value: unknown): string => {
+const safeStringify = (value: unknown): string => {
 	if (value === undefined || value === null) {
 		return "{}";
 	}

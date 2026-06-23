@@ -247,13 +247,19 @@ const AccountTab = ({ me, form, onChange, onSubmit }: AccountTabProps) => (
 				onChange={(company) => onChange({ ...form, company })}
 			/>
 
-			<label className="block">
-				<span className="mb-1 block text-[12px] font-medium text-text-2">Timezone</span>
+			<div className="block">
+				<label
+					htmlFor="profile-timezone"
+					className="mb-1 block text-[12px] font-medium text-text-2"
+				>
+					Timezone
+				</label>
 				<TimezoneSelect
+					id="profile-timezone"
 					value={form.timezone ?? ""}
 					onChange={(tz) => onChange({ ...form, timezone: tz })}
 				/>
-			</label>
+			</div>
 
 			<Checkbox
 				label="Send me a daily digest email"

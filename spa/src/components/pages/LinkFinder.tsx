@@ -117,6 +117,7 @@ export const LinkFinder = () => {
 					className="w-44 bg-transparent text-[12.5px] text-text outline-none placeholder:text-text-3 md:w-56"
 					value={q}
 					placeholder="Link Finder"
+					aria-label="Link Finder"
 					onChange={(e) => {
 						setQ(e.target.value);
 						setOpen(true);

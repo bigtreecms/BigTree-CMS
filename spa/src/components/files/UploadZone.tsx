@@ -29,29 +29,33 @@ export const UploadZone = ({ folderId, onUploaded }: UploadZoneProps) => {
 	const { items, enqueue, cancel } = useUploads();
 	const [isOver, setIsOver] = useState(false);
 	const inputRef = useRef<HTMLInputElement>(null);
-	const firedRef = useRef(new Set<number>());
+	const firedRef = useRef<Set<number> | null>(null);
+
+	if (firedRef.current === null) {
+		firedRef.current = new Set<number>();
+	}
+
+	const fired = firedRef.current;
 
 	useEffect(() => {
 		if (!onUploaded) {
 			return;
 		}
 
-		const newlyDone = items.filter(
-			(it) => it.status === "done" && !firedRef.current.has(it.id)
-		);
+		const newlyDone = items.filter((it) => it.status === "done" && !fired.has(it.id));
 
 		if (newlyDone.length === 0) {
 			return;
 		}
 
 		for (const it of newlyDone) {
-			firedRef.current.add(it.id);
+			fired.add(it.id);
 
 			if (it.result) {
 				onUploaded(it.result as ResourceDetail);
 			}
 		}
-	}, [items, onUploaded]);
+	}, [items, onUploaded, fired]);
 
 	const startUploads = (files: FileList | File[]) => {
 		enqueue(files, {
@@ -119,6 +123,7 @@ export const UploadZone = ({ folderId, onUploaded }: UploadZoneProps) => {
 					ref={inputRef}
 					type="file"
 					multiple
+					aria-label="Choose files to upload"
 					className="hidden"
 					onChange={(e) => {
 						if (e.target.files && e.target.files.length > 0) {

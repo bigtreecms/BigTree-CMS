@@ -5,7 +5,8 @@ import { ChevronDown, ChevronRight } from "lucide-react";
 import { pagesApi, type PageListRow } from "@/api/endpoints/pages";
 import type { PermissionCode, UserAlerts, UserPermissions } from "@/api/endpoints/users";
 
-import { PAGE_PERMISSION_OPTIONS, PermissionRadios } from "./PermissionRadios";
+import { PermissionRadios } from "./PermissionRadios";
+import { PAGE_PERMISSION_OPTIONS } from "./permissionOptions";
 
 interface PagePermissionsTreeProps {
 	value: UserPermissions["page"];
@@ -176,6 +177,7 @@ const TreeRow = ({
 						type="checkbox"
 						checked={alertOn}
 						disabled={!!alertInheritedFromAbove}
+						aria-label="Email alert on change"
 						onChange={(e) => setAlert(idKey, e.target.checked)}
 						className="size-3.5 cursor-pointer accent-accent disabled:cursor-not-allowed disabled:opacity-50"
 					/>

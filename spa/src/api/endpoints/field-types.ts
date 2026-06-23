@@ -85,7 +85,7 @@ export interface FieldTypeOption {
  * UI reconstructs the legacy "Default" vs "Custom" optgroups from this set.
  * (`route` is built-in but only offered for the "modules" use case.)
  */
-export const BUILTIN_FIELD_TYPE_IDS = new Set<string>([
+const BUILTIN_FIELD_TYPE_IDS = new Set<string>([
 	"text",
 	"textarea",
 	"html",

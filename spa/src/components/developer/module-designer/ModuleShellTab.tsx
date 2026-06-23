@@ -63,6 +63,24 @@ const fromModule = (m: ModuleSummary): ShellState => ({
 	gbp: m.gbp ?? { enabled: false },
 });
 
+const toBody = (s: ShellState): ModuleCreateBody => ({
+	name: s.name,
+	group: s.group || null,
+	route: s.route || undefined,
+	icon: s.icon || undefined,
+	class: s.class || undefined,
+	table: s.table || undefined,
+	gbp: s.gbp.enabled
+		? {
+				enabled: true,
+				other_table: s.gbp.other_table || "",
+				title_field: s.gbp.title_field || "",
+				name: s.gbp.name || "",
+				item_parser: s.gbp.item_parser || "",
+			}
+		: { enabled: false },
+});
+
 export const ModuleShellTab = ({ moduleId, module }: ModuleShellTabProps) => {
 	const isAdd = !moduleId;
 	const navigate = useNavigate();
@@ -114,24 +132,6 @@ export const ModuleShellTab = ({ moduleId, module }: ModuleShellTabProps) => {
 		setCreatingGroup(false);
 		setState((prev) => ({ ...prev, group: value }));
 	};
-
-	const toBody = (s: ShellState): ModuleCreateBody => ({
-		name: s.name,
-		group: s.group || null,
-		route: s.route || undefined,
-		icon: s.icon || undefined,
-		class: s.class || undefined,
-		table: s.table || undefined,
-		gbp: s.gbp.enabled
-			? {
-					enabled: true,
-					other_table: s.gbp.other_table || "",
-					title_field: s.gbp.title_field || "",
-					name: s.gbp.name || "",
-					item_parser: s.gbp.item_parser || "",
-				}
-			: { enabled: false },
-	});
 
 	const saveMutation = useMutation({
 		mutationFn: (s: ShellState) =>

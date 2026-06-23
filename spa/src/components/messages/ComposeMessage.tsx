@@ -172,7 +172,10 @@ export const ComposeMessage = ({
 				)}
 
 				<div>
-					<label className="mb-1 block text-[12px] font-medium text-text-2">
+					<label
+						htmlFor="compose-recipient-search"
+						className="mb-1 block text-[12px] font-medium text-text-2"
+					>
 						Recipients
 					</label>
 
@@ -203,6 +206,7 @@ export const ComposeMessage = ({
 							className="absolute left-3 top-1/2 -translate-y-1/2 text-text-3"
 						/>
 						<input
+							id="compose-recipient-search"
 							className="w-full rounded-md border border-border bg-surface py-1.5 pl-9 pr-3 text-[13px] placeholder:text-text-3 focus:outline-none focus:ring-1 focus:ring-accent-ring"
 							placeholder="Search users by name or email…"
 							value={search}

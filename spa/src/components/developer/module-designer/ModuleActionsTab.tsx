@@ -75,6 +75,40 @@ const emptyDraft = (): Draft => ({
 	handler: "",
 });
 
+const toBody = (d: Draft): ModuleActionBody => {
+	if (d.target === TARGET_MODULE) {
+		return {
+			name: d.name,
+			route: d.route || undefined,
+			in_nav: d.in_nav,
+			class: d.icon || undefined,
+			level: d.level,
+			form: null,
+			view: null,
+			report: null,
+			render: "module",
+			handler: d.handler || undefined,
+			module_source: d.source,
+			contract_version: 1,
+		};
+	}
+
+	const [kind, id] = d.target ? d.target.split(":") : [];
+
+	return {
+		name: d.name,
+		route: d.route || undefined,
+		in_nav: d.in_nav,
+		class: d.icon || undefined,
+		level: d.level,
+		form: kind === "form" ? id : null,
+		view: kind === "view" ? id : null,
+		report: kind === "report" ? id : null,
+		// Clear any module markers when this action isn't (or no longer is) a module.
+		render: "",
+	};
+};
+
 export const ModuleActionsTab = ({ moduleId }: ModuleActionsTabProps) => {
 	const queryClient = useQueryClient();
 	const crud = useSubCrud<ModuleAction, ModuleActionBody>({
@@ -175,40 +209,6 @@ export const ModuleActionsTab = ({ moduleId }: ModuleActionsTabProps) => {
 			target: value,
 			source: value === TARGET_MODULE && !p.source ? ACTION_STARTER : p.source,
 		}));
-
-	const toBody = (d: Draft): ModuleActionBody => {
-		if (d.target === TARGET_MODULE) {
-			return {
-				name: d.name,
-				route: d.route || undefined,
-				in_nav: d.in_nav,
-				class: d.icon || undefined,
-				level: d.level,
-				form: null,
-				view: null,
-				report: null,
-				render: "module",
-				handler: d.handler || undefined,
-				module_source: d.source,
-				contract_version: 1,
-			};
-		}
-
-		const [kind, id] = d.target ? d.target.split(":") : [];
-
-		return {
-			name: d.name,
-			route: d.route || undefined,
-			in_nav: d.in_nav,
-			class: d.icon || undefined,
-			level: d.level,
-			form: kind === "form" ? id : null,
-			view: kind === "view" ? id : null,
-			report: kind === "report" ? id : null,
-			// Clear any module markers when this action isn't (or no longer is) a module.
-			render: "",
-		};
-	};
 
 	const handleSave = () =>
 		crud.save(crud.editingId, toBody(draft), [

@@ -59,6 +59,10 @@ export const EditableTitle = ({ value, onChange }: EditableTitleProps) => {
 			ref={ref}
 			contentEditable={editing}
 			suppressContentEditableWarning
+			role="textbox"
+			aria-label="Edit title"
+			aria-readonly={!editing}
+			tabIndex={0}
 			onDoubleClick={startEdit}
 			onBlur={commit}
 			onKeyDown={(e) => {

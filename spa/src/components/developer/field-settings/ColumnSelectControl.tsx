@@ -31,6 +31,7 @@ export const ColumnSelectControl = ({ descriptor, settings, onPatch }: ControlPr
 				<input
 					type="text"
 					disabled
+					readOnly
 					value="Please select a table first"
 					className="w-full cursor-not-allowed rounded-md border border-border bg-surface-2 px-3 py-1.5 text-[13px] text-text-3"
 				/>

@@ -146,8 +146,8 @@ export const ExtensionInstall = () => {
 								Errors — fix these before installing
 							</div>
 							<ul className="list-disc space-y-1 pl-5 text-[12px] text-danger">
-								{preview.errors.map((e, i) => (
-									<li key={i}>{e}</li>
+								{preview.errors.map((e) => (
+									<li key={e}>{e}</li>
 								))}
 							</ul>
 						</div>
@@ -159,8 +159,8 @@ export const ExtensionInstall = () => {
 								Warnings
 							</div>
 							<ul className="list-disc space-y-1 pl-5 text-[12px] text-text-2">
-								{preview.warnings.map((w, i) => (
-									<li key={i}>{w}</li>
+								{preview.warnings.map((w) => (
+									<li key={w}>{w}</li>
 								))}
 							</ul>
 						</div>
@@ -190,6 +190,7 @@ export const ExtensionInstall = () => {
 					<input
 						ref={inputRef}
 						type="file"
+						aria-label="Extension package file"
 						accept=".zip,application/zip"
 						className="hidden"
 						onChange={(e) => {

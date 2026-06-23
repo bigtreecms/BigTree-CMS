@@ -70,7 +70,7 @@ export const expandImageUrl = (raw: unknown, prefix = ""): string => {
  * Insert `prefix` immediately before the filename in a path. Mirrors
  * `BigTree::prefixFile` from the PHP admin.
  */
-export const prefixFile = (path: string, prefix: string): string => {
+const prefixFile = (path: string, prefix: string): string => {
 	const idx = path.lastIndexOf("/");
 
 	if (idx < 0) {

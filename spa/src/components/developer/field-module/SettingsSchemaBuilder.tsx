@@ -23,6 +23,9 @@ const SETTING_CONTROLS: Array<{ value: SettingControl; label: string }> = [
 
 type EnumOption = { value: string; label: string };
 
+const optionsOf = (descriptor: SettingDescriptor): EnumOption[] =>
+	Array.isArray(descriptor.options) ? (descriptor.options as EnumOption[]) : [];
+
 const Labeled = ({ label, children }: { label: string; children: React.ReactNode }) => (
 	<label className="block">
 		<span className="mb-1 block text-[11px] font-medium text-text-3">{label}</span>
@@ -57,9 +60,6 @@ export const SettingsSchemaBuilder = ({ value, onChange }: SettingsSchemaBuilder
 	};
 
 	const add = () => onChange([...value, { id: "", control: "string", label: "" }]);
-
-	const optionsOf = (descriptor: SettingDescriptor): EnumOption[] =>
-		Array.isArray(descriptor.options) ? (descriptor.options as EnumOption[]) : [];
 
 	return (
 		<div className="space-y-2">

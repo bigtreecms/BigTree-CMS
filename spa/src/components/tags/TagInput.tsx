@@ -224,6 +224,7 @@ export const TagInput = (props: TagInputProps) => {
 						type="text"
 						className="flex-1 min-w-[120px] bg-transparent outline-none placeholder:text-text-3"
 						placeholder={props.placeholder ?? "Add tag…"}
+						aria-label={props.placeholder ?? "Add tag"}
 						value={text}
 						onChange={(e) => {
 							setText(e.target.value);

@@ -63,10 +63,7 @@ export const TabNav = () => {
 	const tabs = TABS.filter((tab) => userLevel >= tab.level);
 
 	return (
-		<nav
-			className="hidden items-center gap-0.5 border-b border-border bg-surface px-4 lg:flex"
-			role="tablist"
-		>
+		<nav className="hidden items-center gap-0.5 border-b border-border bg-surface px-4 lg:flex">
 			{tabs.map(({ id, label, path, icon: Icon }) =>
 				id === "dashboard" ? (
 					<DashboardTab key={id} />
@@ -74,7 +71,6 @@ export const TabNav = () => {
 					<NavLink
 						key={id}
 						to={path}
-						role="tab"
 						className={({ isActive }) =>
 							[
 								"flex items-center gap-1.5 px-3 py-2.5 text-[13px] font-medium transition-colors",

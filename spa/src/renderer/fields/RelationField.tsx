@@ -467,6 +467,7 @@ const Picker = ({
 				/>
 				<input
 					type="text"
+					aria-label="Search items"
 					className="w-full rounded-md border border-border bg-surface py-1.5 px-8 text-[12.5px] placeholder:text-text-3 focus:outline-none focus:ring-1 focus:ring-accent-ring disabled:opacity-60"
 					placeholder={placeholder}
 					value={search}

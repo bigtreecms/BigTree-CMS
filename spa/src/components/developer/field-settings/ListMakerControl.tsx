@@ -46,6 +46,7 @@ export const ListMakerControl = ({ descriptor, settings, onPatch }: ControlProps
 							<input
 								key={key}
 								type="text"
+								aria-label={key}
 								className="min-w-0 flex-1 rounded border border-border bg-surface px-2 py-1 text-[12.5px] focus:outline-none focus:ring-1 focus:ring-accent-ring"
 								value={row[key] ?? ""}
 								onChange={(e) => update(index, key, e.target.value)}

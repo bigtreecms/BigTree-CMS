@@ -40,7 +40,12 @@ export const SandboxedField = ({
 	...props
 }: SandboxedFieldProps) => {
 	const iframeRef = useRef<HTMLIFrameElement>(null);
-	const channelRef = useRef<string>(crypto.randomUUID());
+	const channelRef = useRef<string>("");
+
+	if (!channelRef.current) {
+		channelRef.current = crypto.randomUUID();
+	}
+
 	const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
 	const [height, setHeight] = useState(40);
 

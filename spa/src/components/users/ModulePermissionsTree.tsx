@@ -4,7 +4,8 @@ import { useQuery } from "@tanstack/react-query";
 import { modulesApi, type ModuleGroup, type ModuleSummary } from "@/api/endpoints/modules";
 import type { PermissionCode, UserPermissions } from "@/api/endpoints/users";
 
-import { MODULE_PERMISSION_OPTIONS, PermissionRadios } from "./PermissionRadios";
+import { PermissionRadios } from "./PermissionRadios";
+import { MODULE_PERMISSION_OPTIONS } from "./permissionOptions";
 
 const GRID_COLUMNS = "minmax(0,1fr) repeat(3, 80px)";
 

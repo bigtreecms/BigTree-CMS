@@ -46,12 +46,14 @@ const DimFields = ({ row, onChange, onRemove }: DimFieldsProps) => (
 		<input
 			className={inputClass}
 			placeholder="Prefix"
+			aria-label="Prefix"
 			value={row.prefix ?? ""}
 			onChange={(e) => onChange({ prefix: e.target.value })}
 		/>
 		<input
 			className={inputClass}
 			placeholder="Width"
+			aria-label="Width"
 			inputMode="numeric"
 			value={row.width ?? ""}
 			onChange={(e) => onChange({ width: e.target.value.replace(/[^0-9]/g, "") })}
@@ -59,6 +61,7 @@ const DimFields = ({ row, onChange, onRemove }: DimFieldsProps) => (
 		<input
 			className={inputClass}
 			placeholder="Height"
+			aria-label="Height"
 			inputMode="numeric"
 			value={row.height ?? ""}
 			onChange={(e) => onChange({ height: e.target.value.replace(/[^0-9]/g, "") })}

@@ -147,7 +147,13 @@ const ImagePreview = ({ value }: { value: unknown }) => {
 			{failed ? (
 				<CodeBlock text={src} />
 			) : (
-				<a href={src} target="_blank" rel="noopener noreferrer" className="block">
+				<a
+					href={src}
+					target="_blank"
+					rel="noopener noreferrer"
+					aria-label="Open image preview in a new tab"
+					className="block"
+				>
 					<img
 						src={src}
 						alt=""

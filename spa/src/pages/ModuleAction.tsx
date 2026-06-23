@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import type { ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 
@@ -26,6 +27,8 @@ import type { ActionHost } from "@/renderer/actions/actionModuleContract";
 interface ModuleActionProps {
 	actionId: string;
 }
+
+const card = (body: ReactNode) => <Card className="p-6 text-[13px]">{body}</Card>;
 
 export const ModuleAction = ({ actionId }: ModuleActionProps) => {
 	const navigate = useNavigate();
@@ -71,8 +74,6 @@ export const ModuleAction = ({ actionId }: ModuleActionProps) => {
 
 	const schema = schemaQuery.data;
 	const title = action?.name ?? module?.name ?? "Action";
-
-	const card = (body: React.ReactNode) => <Card className="p-6 text-[13px]">{body}</Card>;
 
 	return (
 		<>

@@ -11,6 +11,7 @@ export const TextareaField = ({ field, value, onChange, disabled }: FieldCompone
 
 	return (
 		<textarea
+			aria-label={field.title}
 			className={`${INPUT_CLASS} font-mono text-[12.5px] leading-relaxed`}
 			rows={rows}
 			maxLength={maxLength}

@@ -129,8 +129,14 @@ export const DebugAudit = () => {
 		>
 			<div className="mb-3 flex flex-wrap items-end gap-3">
 				<div>
-					<label className="mb-1 block text-[11px] font-medium text-text-3">User</label>
+					<label
+						htmlFor="audit-user"
+						className="mb-1 block text-[11px] font-medium text-text-3"
+					>
+						User
+					</label>
 					<UserSelect
+						id="audit-user"
 						value={userFilter}
 						onChange={setUserFilter}
 						ariaLabel="Filter by user"
@@ -139,8 +145,14 @@ export const DebugAudit = () => {
 				</div>
 
 				<div>
-					<label className="mb-1 block text-[11px] font-medium text-text-3">Table</label>
+					<label
+						htmlFor="audit-table"
+						className="mb-1 block text-[11px] font-medium text-text-3"
+					>
+						Table
+					</label>
 					<TableSelect
+						id="audit-table"
 						value={tableFilter}
 						onChange={setTableFilter}
 						ariaLabel="Filter by table"
@@ -149,8 +161,14 @@ export const DebugAudit = () => {
 				</div>
 
 				<div>
-					<label className="mb-1 block text-[11px] font-medium text-text-3">From</label>
+					<label
+						htmlFor="audit-start"
+						className="mb-1 block text-[11px] font-medium text-text-3"
+					>
+						From
+					</label>
 					<input
+						id="audit-start"
 						type="date"
 						className="rounded-md border border-border bg-surface px-3 py-1.5 text-[13px] focus:outline-none focus:ring-1 focus:ring-accent-ring"
 						value={start}
@@ -159,8 +177,14 @@ export const DebugAudit = () => {
 				</div>
 
 				<div>
-					<label className="mb-1 block text-[11px] font-medium text-text-3">To</label>
+					<label
+						htmlFor="audit-end"
+						className="mb-1 block text-[11px] font-medium text-text-3"
+					>
+						To
+					</label>
 					<input
+						id="audit-end"
 						type="date"
 						className="rounded-md border border-border bg-surface px-3 py-1.5 text-[13px] focus:outline-none focus:ring-1 focus:ring-accent-ring"
 						value={end}

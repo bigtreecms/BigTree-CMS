@@ -39,7 +39,7 @@ export const Loading = ({
 	const extra = className ? ` ${className}` : "";
 
 	return (
-		<div className={`${VARIANT_CLASS[variant]}${extra}`} role="status" aria-live="polite">
+		<output className={`${VARIANT_CLASS[variant]}${extra}`} aria-live="polite">
 			{!hideSpinner && (
 				<Loader2
 					size={variant === "inline" ? 13 : 15}
@@ -47,6 +47,6 @@ export const Loading = ({
 				/>
 			)}
 			{label != null && <span>{label}</span>}
-		</div>
+		</output>
 	);
 };

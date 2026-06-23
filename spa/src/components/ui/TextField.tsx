@@ -1,17 +1,13 @@
 import { Field } from "./Field";
-import { TextInput, inputClass } from "./TextInput";
+import { TextInput } from "./TextInput";
 
 /**
  * Labeled single-line text input — the standard control for admin forms.
  * Composes {@link Field} for the label/hint/error chrome around the bare
  * {@link TextInput} primitive so every form field reads and renders
  * consistently. For a bare input without the label wrapper, use {@link TextInput}
- * (or a plain `<input>` with `inputClass`).
+ * (or a plain `<input>` with the canonical `inputClass` from ./TextInput).
  */
-
-// Re-exported for the many call sites that style a one-off control with the
-// canonical class; the source of truth lives in ./TextInput.
-export { inputClass };
 
 interface TextFieldProps {
 	label: string;

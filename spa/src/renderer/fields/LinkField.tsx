@@ -158,6 +158,7 @@ export const LinkField = ({ field, value, onChange, disabled }: FieldComponentPr
 
 				<input
 					type="text"
+					aria-label={field.title}
 					className={`${INPUT_CLASS} px-8 `}
 					value={search || displayedInputValue}
 					placeholder={placeholder}

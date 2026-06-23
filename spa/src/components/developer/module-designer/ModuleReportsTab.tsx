@@ -117,6 +117,17 @@ const fieldsToRecord = (rows: FieldRow[]): Record<string, string> => {
 	return record;
 };
 
+const toBody = (d: Draft): ModuleReportBody => ({
+	title: d.title,
+	table: d.table,
+	type: d.type,
+	view: d.type === "view" ? d.view || null : null,
+	parser: d.parser || undefined,
+	streaming: d.streaming,
+	filters: filtersToRecord(d.filters),
+	fields: fieldsToRecord(d.fields),
+});
+
 export const ModuleReportsTab = ({ moduleId, moduleTable }: ModuleReportsTabProps) => {
 	const crud = useSubCrud<ModuleReport, ModuleReportBody>({
 		moduleId,
@@ -198,17 +209,6 @@ export const ModuleReportsTab = ({ moduleId, moduleTable }: ModuleReportsTabProp
 		{ value: "", label: "— No view —" },
 		...(viewsQ.data ?? []).map((v) => ({ value: v.id, label: v.title })),
 	];
-
-	const toBody = (d: Draft): ModuleReportBody => ({
-		title: d.title,
-		table: d.table,
-		type: d.type,
-		view: d.type === "view" ? d.view || null : null,
-		parser: d.parser || undefined,
-		streaming: d.streaming,
-		filters: filtersToRecord(d.filters),
-		fields: fieldsToRecord(d.fields),
-	});
 
 	const editorTitle = crud.editingId === NEW_ROW ? "New report" : "Edit report";
 

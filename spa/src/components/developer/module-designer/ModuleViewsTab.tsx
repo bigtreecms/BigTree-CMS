@@ -139,6 +139,27 @@ const emptyDraft = (table: string): Draft => ({
 	settings: {},
 });
 
+const toBody = (d: Draft): ModuleViewBody => ({
+	title: d.title,
+	description: d.description || undefined,
+	table: d.table,
+	type: d.type,
+	related_form: d.related_form || null,
+	preview_url: d.preview_url || undefined,
+	exclude_from_search: d.exclude_from_search,
+	settings: {
+		// Preserve per-view-type keys (group_field, nesting_column, image, …)
+		// the generic fields below don't cover, then overlay the generics.
+		...d.settings,
+		sort_column: d.sort_column || undefined,
+		sort_direction: d.sort_direction || undefined,
+		per_page: d.per_page || undefined,
+		filter: d.filter || undefined,
+	},
+	fields: rowsToColumns(d.columns),
+	actions: d.actions as Record<string, string>,
+});
+
 export const ModuleViewsTab = ({ moduleId, moduleTable }: ModuleViewsTabProps) => {
 	const crud = useSubCrud<ModuleView, ModuleViewBody>({
 		moduleId,
@@ -206,27 +227,6 @@ export const ModuleViewsTab = ({ moduleId, moduleTable }: ModuleViewsTabProps) =
 		() => {},
 		reorderColumns
 	);
-
-	const toBody = (d: Draft): ModuleViewBody => ({
-		title: d.title,
-		description: d.description || undefined,
-		table: d.table,
-		type: d.type,
-		related_form: d.related_form || null,
-		preview_url: d.preview_url || undefined,
-		exclude_from_search: d.exclude_from_search,
-		settings: {
-			// Preserve per-view-type keys (group_field, nesting_column, image, …)
-			// the generic fields below don't cover, then overlay the generics.
-			...d.settings,
-			sort_column: d.sort_column || undefined,
-			sort_direction: d.sort_direction || undefined,
-			per_page: d.per_page || undefined,
-			filter: d.filter || undefined,
-		},
-		fields: rowsToColumns(d.columns),
-		actions: d.actions as Record<string, string>,
-	});
 
 	const editorTitle = crud.editingId === NEW_ROW ? "New view" : "Edit view";
 
@@ -383,6 +383,7 @@ export const ModuleViewsTab = ({ moduleId, moduleTable }: ModuleViewsTabProps) =
 											<input
 												type="text"
 												value={col.title}
+												aria-label="Column heading"
 												onChange={(e) =>
 													setColumn(index, { title: e.target.value })
 												}

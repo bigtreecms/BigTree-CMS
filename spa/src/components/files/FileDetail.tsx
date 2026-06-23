@@ -256,6 +256,7 @@ export const FileDetail = ({ resourceId, onOpenChange, folderQueryKey }: FileDet
 									ref={replaceInputRef}
 									type="file"
 									className="hidden"
+									aria-label="Replace file"
 									accept={resource.is_image ? "image/*" : undefined}
 									onChange={onPickReplacement}
 								/>

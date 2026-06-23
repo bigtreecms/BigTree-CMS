@@ -53,7 +53,7 @@ export const DashboardTab = () => {
 
 	return (
 		<div className="group relative">
-			<NavLink to="/dashboard" role="tab" className={({ isActive }) => tabClass(isActive)}>
+			<NavLink to="/dashboard" className={({ isActive }) => tabClass(isActive)}>
 				<LayoutDashboard size={14} />
 				<span>Dashboard</span>
 				<ChevronDown size={12} className="text-text-3" />

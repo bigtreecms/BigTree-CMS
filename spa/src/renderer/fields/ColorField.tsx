@@ -16,6 +16,7 @@ export const ColorField = ({ field, value, onChange, disabled }: FieldComponentP
 			/>
 			<input
 				type="text"
+				aria-label={`${field.title} (hex)`}
 				className={`${INPUT_CLASS} flex-1 font-mono text-[12.5px]`}
 				value={stringValue}
 				placeholder="#000000"

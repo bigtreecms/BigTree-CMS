@@ -65,6 +65,18 @@ const emptyDraft = (table: string): Draft => ({
 	hooks: {},
 });
 
+const toBody = (d: Draft): ModuleEmbedFormBody => ({
+	title: d.title,
+	table: d.table,
+	fields: d.fields,
+	default_position: d.default_position || undefined,
+	default_pending: d.default_pending,
+	css: d.css || undefined,
+	redirect_url: d.redirect_url || undefined,
+	thank_you_message: d.thank_you_message || undefined,
+	hooks: d.hooks,
+});
+
 export const ModuleEmbedFormsTab = ({ moduleId, moduleTable }: ModuleEmbedFormsTabProps) => {
 	const crud = useSubCrud<ModuleEmbedForm, ModuleEmbedFormBody>({
 		moduleId,
@@ -112,18 +124,6 @@ export const ModuleEmbedFormsTab = ({ moduleId, moduleTable }: ModuleEmbedFormsT
 			}
 		}
 	}, [crud.editingId, crud.items, moduleTable]);
-
-	const toBody = (d: Draft): ModuleEmbedFormBody => ({
-		title: d.title,
-		table: d.table,
-		fields: d.fields,
-		default_position: d.default_position || undefined,
-		default_pending: d.default_pending,
-		css: d.css || undefined,
-		redirect_url: d.redirect_url || undefined,
-		thank_you_message: d.thank_you_message || undefined,
-		hooks: d.hooks,
-	});
 
 	const editorTitle = crud.editingId === NEW_ROW ? "New embed form" : "Edit embed form";
 

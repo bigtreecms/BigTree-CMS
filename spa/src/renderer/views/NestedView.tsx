@@ -268,6 +268,7 @@ export const NestedView = ({ moduleId, view }: NestedViewProps) => {
 						className="absolute left-3 top-1/2 -translate-y-1/2 text-text-3"
 					/>
 					<input
+						aria-label={`Search ${view.title.toLowerCase()}`}
 						className="w-full rounded-md border border-border bg-surface py-1.5 px-9 text-[13.5px] placeholder:text-text-3 focus:outline-none focus:ring-1 focus:ring-accent-ring"
 						placeholder={`Search ${view.title.toLowerCase()}…`}
 						value={query}

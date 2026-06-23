@@ -5,7 +5,8 @@ import { ChevronDown, ChevronRight } from "lucide-react";
 import { resourceFoldersApi, type ResourceFolderRow } from "@/api/endpoints/resource-folders";
 import type { PermissionCode, UserPermissions } from "@/api/endpoints/users";
 
-import { PermissionRadios, RESOURCE_PERMISSION_OPTIONS } from "./PermissionRadios";
+import { PermissionRadios } from "./PermissionRadios";
+import { RESOURCE_PERMISSION_OPTIONS } from "./permissionOptions";
 
 interface ResourcePermissionsTreeProps {
 	value: UserPermissions["resources"];

@@ -65,6 +65,7 @@ export const ModuleSourceEditor = ({
 				</div>
 				<textarea
 					value={value}
+					aria-label="Module code"
 					onChange={(e) => onChange(e.target.value)}
 					onKeyDown={onKeyDown}
 					spellCheck={false}

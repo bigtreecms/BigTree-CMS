@@ -97,9 +97,9 @@ export const DebugStatus = () => {
 							</CardHeader>
 
 							<ul className="divide-y divide-border">
-								{data.warnings.map((w, i) => (
+								{data.warnings.map((w) => (
 									<li
-										key={i}
+										key={`${w.parameter}-${w.page_id ?? ""}`}
 										className="flex items-center justify-between gap-4 px-4 py-2.5"
 									>
 										<div className="min-w-0">

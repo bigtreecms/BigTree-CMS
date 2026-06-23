@@ -66,6 +66,18 @@ const emptyDraft = (table: string): Draft => ({
 	hooks: {},
 });
 
+const toBody = (d: Draft): ModuleFormBody => ({
+	title: d.title,
+	table: d.table,
+	fields: d.fields,
+	default_position: d.default_position || undefined,
+	return_view: d.return_view || null,
+	return_url: d.return_url || undefined,
+	tagging: d.tagging,
+	open_graph: d.open_graph,
+	hooks: d.hooks,
+});
+
 export const ModuleFormsTab = ({ moduleId, moduleTable }: ModuleFormsTabProps) => {
 	const crud = useSubCrud<ModuleForm, ModuleFormBody>({
 		moduleId,
@@ -123,18 +135,6 @@ export const ModuleFormsTab = ({ moduleId, moduleTable }: ModuleFormsTabProps) =
 		{ value: "", label: "— Return to default view —" },
 		...(viewsQ.data ?? []).map((v) => ({ value: v.id, label: v.title })),
 	];
-
-	const toBody = (d: Draft): ModuleFormBody => ({
-		title: d.title,
-		table: d.table,
-		fields: d.fields,
-		default_position: d.default_position || undefined,
-		return_view: d.return_view || null,
-		return_url: d.return_url || undefined,
-		tagging: d.tagging,
-		open_graph: d.open_graph,
-		hooks: d.hooks,
-	});
 
 	const editorTitle = crud.editingId === NEW_ROW ? "New form" : "Edit form";
 

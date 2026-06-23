@@ -170,9 +170,11 @@ export const Users = () => {
 
 	useEffect(() => {
 		if (view === "add") {
-			setTimeout(() => {
+			const timer = setTimeout(() => {
 				firstRef.current?.focus();
 			}, 60);
+
+			return () => clearTimeout(timer);
 		}
 	}, [view]);
 
@@ -525,10 +527,17 @@ export const Users = () => {
 						/>
 
 						<div>
-							<label className="mb-1 block text-[12px] font-medium text-text-2">
+							<label
+								htmlFor="user-timezone"
+								className="mb-1 block text-[12px] font-medium text-text-2"
+							>
 								Timezone
 							</label>
-							<TimezoneSelect value={timezone} onChange={setTimezone} />
+							<TimezoneSelect
+								id="user-timezone"
+								value={timezone}
+								onChange={setTimezone}
+							/>
 						</div>
 
 						<div className="md:col-span-2">

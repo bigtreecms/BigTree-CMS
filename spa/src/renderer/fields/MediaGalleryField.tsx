@@ -759,6 +759,7 @@ const AddBar = ({
 				ref={inputRef}
 				type="file"
 				accept="image/*"
+				aria-label="Add images"
 				className="hidden"
 				onChange={(e) => {
 					handlePick(e.target.files);
@@ -1045,6 +1046,7 @@ const LocalVideoPrompt = ({ settings, onClose, onCreated }: LocalVideoPromptProp
 				ref={videoInputRef}
 				type="file"
 				accept="video/*"
+				aria-label="Choose video file"
 				className="hidden"
 				onChange={(e) => {
 					pickVideo(e.target.files);
@@ -1055,6 +1057,7 @@ const LocalVideoPrompt = ({ settings, onClose, onCreated }: LocalVideoPromptProp
 				ref={coverInputRef}
 				type="file"
 				accept="image/*"
+				aria-label="Choose cover image"
 				className="hidden"
 				onChange={(e) => {
 					pickCover(e.target.files);

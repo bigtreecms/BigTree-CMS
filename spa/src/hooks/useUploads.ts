@@ -37,7 +37,15 @@ export interface UploadOptions {
  */
 export const useUploads = () => {
 	const [items, setItems] = useState<UploadItem[]>([]);
-	const xhrs = useRef(new Map<number, XMLHttpRequest>());
+	const xhrs = useRef<Map<number, XMLHttpRequest> | null>(null);
+
+	// Lazy init so the Map isn't rebuilt and discarded on every render. Runs
+	// during render before any callback below can fire, so `.current` is always
+	// a Map by the time enqueue/cancel/reset read it.
+	if (xhrs.current === null) {
+		xhrs.current = new Map<number, XMLHttpRequest>();
+	}
+
 	const nextId = useRef(1);
 
 	const update = (id: number, patch: Partial<UploadItem>) => {
@@ -56,14 +64,14 @@ export const useUploads = () => {
 		setItems((current) => [...current, ...added]);
 
 		for (const item of added) {
-			startUpload(item, opts, update, xhrs.current);
+			startUpload(item, opts, update, xhrs.current!);
 		}
 
 		return added.map((i) => i.id);
 	}, []);
 
 	const cancel = useCallback((id: number) => {
-		const xhr = xhrs.current.get(id);
+		const xhr = xhrs.current!.get(id);
 
 		if (xhr) {
 			xhr.abort();
@@ -71,11 +79,13 @@ export const useUploads = () => {
 	}, []);
 
 	const reset = useCallback(() => {
-		for (const xhr of xhrs.current.values()) {
+		const map = xhrs.current!;
+
+		for (const xhr of map.values()) {
 			xhr.abort();
 		}
 
-		xhrs.current.clear();
+		map.clear();
 		setItems([]);
 	}, []);
 

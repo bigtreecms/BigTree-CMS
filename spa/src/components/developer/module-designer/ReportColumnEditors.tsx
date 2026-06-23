@@ -206,6 +206,7 @@ export const ReportFiltersEditor = ({
 								<input
 									type="text"
 									value={row.title}
+									aria-label="Filter label"
 									onChange={(e) => setRow(index, { title: e.target.value })}
 									placeholder="Filter label"
 									className="min-w-0 flex-1 rounded-md border border-border bg-surface px-2 py-1 text-[12.5px] focus:outline-none focus:ring-1 focus:ring-accent-ring"
@@ -302,6 +303,7 @@ export const ReportFieldsEditor = ({
 								<input
 									type="text"
 									value={row.title}
+									aria-label="CSV heading"
 									onChange={(e) => setRow(index, { title: e.target.value })}
 									placeholder="CSV heading"
 									className="min-w-0 flex-1 rounded-md border border-border bg-surface px-2 py-1 text-[12.5px] focus:outline-none focus:ring-1 focus:ring-accent-ring"

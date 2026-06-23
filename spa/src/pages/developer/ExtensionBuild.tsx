@@ -304,16 +304,20 @@ export const ExtensionBuild = () => {
 									hint="e.g. 4.5+"
 								/>
 							</div>
-							<label className="block">
-								<span className="mb-1 block text-[12px] font-medium text-text-2">
+							<div className="block">
+								<label
+									htmlFor="extension-description"
+									className="mb-1 block text-[12px] font-medium text-text-2"
+								>
 									Description
-								</span>
+								</label>
 								<TextArea
+									id="extension-description"
 									value={description}
 									onChange={(e) => setDescription(e.target.value)}
 									rows={2}
 								/>
-							</label>
+							</div>
 							<TextInput
 								label="Keywords"
 								value={keywords}
@@ -609,6 +613,7 @@ const TrimList = ({
 					<li key={item} className="flex items-center gap-2">
 						<input
 							type="checkbox"
+							aria-label={item}
 							className="size-4 accent-accent"
 							checked={kept.has(item)}
 							onChange={() => {

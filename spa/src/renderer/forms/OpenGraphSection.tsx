@@ -42,6 +42,7 @@ export const OpenGraphSection = ({ value, onChange, disabled }: OpenGraphSection
 						</span>
 					</span>
 					<input
+						aria-label="Open Graph title"
 						className={INPUT}
 						value={value.title ?? ""}
 						onChange={(e) => patch({ title: e.target.value })}
@@ -52,6 +53,7 @@ export const OpenGraphSection = ({ value, onChange, disabled }: OpenGraphSection
 				<div>
 					<span className={LABEL}>Description</span>
 					<input
+						aria-label="Open Graph description"
 						className={INPUT}
 						value={value.description ?? ""}
 						onChange={(e) => patch({ description: e.target.value })}
@@ -80,6 +82,7 @@ export const OpenGraphSection = ({ value, onChange, disabled }: OpenGraphSection
 							Image <span className="font-normal text-text-3">(min 1200×630)</span>
 						</span>
 						<input
+							aria-label="Open Graph image URL"
 							className={INPUT}
 							value={value.image ?? ""}
 							onChange={(e) => patch({ image: e.target.value })}

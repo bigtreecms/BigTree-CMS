@@ -89,18 +89,21 @@ const SizeRowsEditor = ({ label, rows, onChange }: SizeRowsEditorProps) => {
 							<input
 								className={inputClass}
 								placeholder="prefix"
+								aria-label="prefix"
 								value={row.prefix ?? ""}
 								onChange={(e) => update(i, { prefix: e.target.value })}
 							/>
 							<input
 								className={inputClass}
 								placeholder="width"
+								aria-label="width"
 								value={row.width ?? ""}
 								onChange={(e) => update(i, { width: e.target.value })}
 							/>
 							<input
 								className={inputClass}
 								placeholder="height"
+								aria-label="height"
 								value={row.height ?? ""}
 								onChange={(e) => update(i, { height: e.target.value })}
 							/>
@@ -179,18 +182,21 @@ const CropsEditor = ({ crops, onChange }: CropsEditorProps) => {
 								<input
 									className={inputClass}
 									placeholder="prefix"
+									aria-label="prefix"
 									value={crop.prefix ?? ""}
 									onChange={(e) => update(i, { prefix: e.target.value })}
 								/>
 								<input
 									className={inputClass}
 									placeholder="width"
+									aria-label="width"
 									value={crop.width ?? ""}
 									onChange={(e) => update(i, { width: e.target.value })}
 								/>
 								<input
 									className={inputClass}
 									placeholder="height"
+									aria-label="height"
 									value={crop.height ?? ""}
 									onChange={(e) => update(i, { height: e.target.value })}
 								/>

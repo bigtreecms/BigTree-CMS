@@ -270,6 +270,7 @@ export const FourOhFours = ({ type }: FourOhFoursProps) => {
 						>
 							<input
 								type="text"
+								aria-label="Redirect URL"
 								className="flex-1 rounded-md border border-border bg-surface px-2 py-1 font-mono text-[11.5px] focus:outline-none focus:ring-1 focus:ring-accent-ring"
 								value={redirectDraft}
 								onChange={(e) => setRedirectDraft(e.target.value)}

@@ -15,6 +15,9 @@ import { ApiError } from "@/types/api";
 import { toast } from "@/lib/toast";
 import { useState } from "react";
 
+const failed = (fallback: string) => (err: unknown) =>
+	toast.error(err instanceof ApiError && err.message ? err.message : fallback);
+
 export const ConfigureAnalytics = () => {
 	const queryClient = useQueryClient();
 	const detailQ = useQuery({
@@ -28,9 +31,6 @@ export const ConfigureAnalytics = () => {
 	const onStatus = (fresh: AnalyticsStatus) => {
 		queryClient.setQueryData(["configure", "analytics"], fresh);
 	};
-
-	const failed = (fallback: string) => (err: unknown) =>
-		toast.error(err instanceof ApiError && err.message ? err.message : fallback);
 
 	const disconnectMutation = useMutation({
 		mutationFn: () => configureApi.analytics.disconnect(),

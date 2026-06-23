@@ -153,6 +153,7 @@ export const QuickSearch = ({ open, onClose }: QuickSearchProps) => {
 	const renderPage = (p: any, idx: number, isActive: boolean) => (
 		<button
 			key={`p-${p.id}`}
+			type="button"
 			data-search-idx={idx}
 			onClick={() => {
 				navigate("/pages");
@@ -178,6 +179,7 @@ export const QuickSearch = ({ open, onClose }: QuickSearchProps) => {
 	const renderModule = (m: any, idx: number, isActive: boolean) => (
 		<button
 			key={`m-${m.id}`}
+			type="button"
 			data-search-idx={idx}
 			onClick={() => {
 				navigate("/modules");
@@ -198,6 +200,7 @@ export const QuickSearch = ({ open, onClose }: QuickSearchProps) => {
 	const renderEntryGroup = (g: any, idx: number, isActive: boolean) => (
 		<button
 			key={`e-${g.module.id}-${idx}`}
+			type="button"
 			data-search-idx={idx}
 			onClick={() => {
 				navigate("/modules");
@@ -224,6 +227,7 @@ export const QuickSearch = ({ open, onClose }: QuickSearchProps) => {
 	const renderTag = (t: any, idx: number, isActive: boolean) => (
 		<button
 			key={`t-${t.id}`}
+			type="button"
 			data-search-idx={idx}
 			onClick={() => {
 				navigate("/tags");
@@ -244,6 +248,7 @@ export const QuickSearch = ({ open, onClose }: QuickSearchProps) => {
 	const renderUser = (u: any, idx: number, isActive: boolean) => (
 		<button
 			key={`u-${u.id}`}
+			type="button"
 			data-search-idx={idx}
 			onClick={() => {
 				navigate("/users");
@@ -281,6 +286,7 @@ export const QuickSearch = ({ open, onClose }: QuickSearchProps) => {
 							ref={inputRef}
 							value={rawQuery}
 							onChange={(e) => setRawQuery(e.target.value)}
+							aria-label="Search pages, modules, tags, users"
 							placeholder="Search pages, modules, tags, users…"
 							className="flex-1 bg-transparent text-[15px] text-text placeholder:text-text-3 focus:outline-none"
 							spellCheck={false}

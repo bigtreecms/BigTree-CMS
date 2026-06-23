@@ -952,6 +952,7 @@ export const SeoTab = ({ body, page, fieldErrors, disabled, onPatch, pending }: 
 						{parentPath}
 					</span>
 					<input
+						aria-label="URL Route"
 						className="flex-1 bg-transparent px-3 py-[7px] text-[13px] outline-none placeholder:text-text-3"
 						value={body.route ?? ""}
 						onChange={(e) => onPatch({ route: e.target.value })}
@@ -1092,7 +1093,7 @@ interface FieldProps {
 	pending?: PendingFieldInfo;
 }
 
-export const Field = ({ label, hint, children, error, wide, column, pending }: FieldProps) => {
+const Field = ({ label, hint, children, error, wide, column, pending }: FieldProps) => {
 	const showPending = Boolean(column && pending?.isPending(column));
 
 	return (
@@ -1131,7 +1132,7 @@ interface CheckProps {
 	pending?: PendingFieldInfo;
 }
 
-export const Check = ({ label, checked, onChange, disabled, column, pending }: CheckProps) => {
+const Check = ({ label, checked, onChange, disabled, column, pending }: CheckProps) => {
 	const showPending = Boolean(column && pending?.isPending(column));
 
 	return (
@@ -1155,7 +1156,7 @@ interface DateInputProps {
 	disabled?: boolean;
 }
 
-export const DateInput = ({ value, onChange, disabled }: DateInputProps) => {
+const DateInput = ({ value, onChange, disabled }: DateInputProps) => {
 	const normalized = value ? value.replace(" ", "T").slice(0, 16) : "";
 
 	return (
@@ -1175,14 +1176,14 @@ export const DateInput = ({ value, onChange, disabled }: DateInputProps) => {
 	);
 };
 
-export const TemplateTag = ({ label }: { label: string }) => (
+const TemplateTag = ({ label }: { label: string }) => (
 	<div className="inline-flex items-center gap-2 self-start rounded-md border border-border bg-surface-2 px-2.5 py-1 text-[11px] uppercase tracking-[0.06em] text-text-3">
 		<span className="font-semibold text-text-3">Template:</span>
 		<span className="font-medium text-text-2">{label}</span>
 	</div>
 );
 
-export const NoResources = ({ reason }: { reason: "external" | "empty" | "redirect" }) => {
+const NoResources = ({ reason }: { reason: "external" | "empty" | "redirect" }) => {
 	const message =
 		reason === "external"
 			? "This page redirects to an external URL — its content lives elsewhere."
@@ -1216,7 +1217,7 @@ interface WizardFooterProps {
 	createLabel?: string;
 }
 
-export const WizardFooter = ({
+const WizardFooter = ({
 	activeTab,
 	onSelect,
 	primaryLabel,

@@ -139,6 +139,7 @@ export const DebugSecurity = () => {
 								<div className="space-y-2 text-[12.5px]/7 text-text-2">
 									<div>
 										<input
+											aria-label="Failed login attempts per user before ban"
 											className={narrowInputClass}
 											value={String(draft.user_fails.count)}
 											onChange={(e) =>
@@ -147,6 +148,7 @@ export const DebugSecurity = () => {
 										/>{" "}
 										failed logins for a given <strong>user</strong> over{" "}
 										<input
+											aria-label="Time window in minutes for user failed logins"
 											className={narrowInputClass}
 											value={String(draft.user_fails.time)}
 											onChange={(e) =>
@@ -155,6 +157,7 @@ export const DebugSecurity = () => {
 										/>{" "}
 										minutes bans the <strong>user</strong> for{" "}
 										<input
+											aria-label="User ban duration in minutes"
 											className={narrowInputClass}
 											value={String(draft.user_fails.ban)}
 											onChange={(e) =>
@@ -165,6 +168,7 @@ export const DebugSecurity = () => {
 									</div>
 									<div>
 										<input
+											aria-label="Failed login attempts per IP before ban"
 											className={narrowInputClass}
 											value={String(draft.ip_fails.count)}
 											onChange={(e) =>
@@ -173,6 +177,7 @@ export const DebugSecurity = () => {
 										/>{" "}
 										failed logins for a given <strong>IP</strong> over{" "}
 										<input
+											aria-label="Time window in minutes for IP failed logins"
 											className={narrowInputClass}
 											value={String(draft.ip_fails.time)}
 											onChange={(e) =>
@@ -181,6 +186,7 @@ export const DebugSecurity = () => {
 										/>{" "}
 										minutes bans the <strong>IP</strong> for{" "}
 										<input
+											aria-label="IP ban duration in minutes"
 											className={narrowInputClass}
 											value={String(draft.ip_fails.ban)}
 											onChange={(e) =>

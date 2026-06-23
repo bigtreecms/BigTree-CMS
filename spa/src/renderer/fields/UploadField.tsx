@@ -85,6 +85,7 @@ export const UploadField = ({ field, value, onChange, disabled }: FieldComponent
 				<input
 					ref={inputRef}
 					type="file"
+					aria-label={field.title}
 					className="hidden"
 					accept={settings.valid_extensions || undefined}
 					onChange={(e) => {

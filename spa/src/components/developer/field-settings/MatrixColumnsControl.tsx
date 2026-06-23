@@ -103,18 +103,21 @@ export const MatrixColumnsControl = ({ descriptor, settings, onPatch }: ControlP
 								<input
 									className={inputClass}
 									placeholder="ID"
+									aria-label="Column ID"
 									value={column.id ?? ""}
 									onChange={(e) => update(index, { id: e.target.value })}
 								/>
 								<input
 									className={inputClass}
 									placeholder="Title"
+									aria-label="Column title"
 									value={column.title ?? ""}
 									onChange={(e) => update(index, { title: e.target.value })}
 								/>
 								<input
 									className={inputClass}
 									placeholder="Subtitle"
+									aria-label="Column subtitle"
 									value={column.subtitle ?? ""}
 									onChange={(e) => update(index, { subtitle: e.target.value })}
 								/>

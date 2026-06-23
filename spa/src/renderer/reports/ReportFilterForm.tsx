@@ -114,8 +114,14 @@ export const ReportFilterForm = ({
 				))}
 
 				<div className="flex flex-col gap-1.5">
-					<label className="text-[12px] font-medium text-text-2">Sort By</label>
+					<label
+						htmlFor="report-sort-field"
+						className="text-[12px] font-medium text-text-2"
+					>
+						Sort By
+					</label>
 					<select
+						id="report-sort-field"
 						className="rounded-md border border-border bg-surface px-2 py-1.5 text-[12.5px] focus:outline-none focus:ring-1 focus:ring-accent-ring"
 						value={sortField}
 						onChange={(e) => setSortField(e.target.value)}
@@ -129,8 +135,14 @@ export const ReportFilterForm = ({
 				</div>
 
 				<div className="flex flex-col gap-1.5">
-					<label className="text-[12px] font-medium text-text-2">Sort Order</label>
+					<label
+						htmlFor="report-sort-order"
+						className="text-[12px] font-medium text-text-2"
+					>
+						Sort Order
+					</label>
 					<select
+						id="report-sort-order"
 						className="rounded-md border border-border bg-surface px-2 py-1.5 text-[12.5px] focus:outline-none focus:ring-1 focus:ring-accent-ring"
 						value={sortOrder}
 						onChange={(e) => setSortOrder(e.target.value as "ASC" | "DESC")}
@@ -178,6 +190,7 @@ const FilterInput = ({
 		return (
 			<input
 				type="text"
+				aria-label={`${column} search query`}
 				className={inputClass}
 				placeholder="Search query"
 				value={typeof value === "string" ? value : ""}
@@ -228,6 +241,7 @@ const FilterInput = ({
 				<div className="flex flex-col gap-1">
 					<input
 						type="date"
+						aria-label={`${column} start date`}
 						className={inputClass}
 						value={range.start ?? ""}
 						onChange={(e) => onRangeChange("start", e.target.value)}
@@ -237,6 +251,7 @@ const FilterInput = ({
 				<div className="flex flex-col gap-1">
 					<input
 						type="date"
+						aria-label={`${column} end date`}
 						className={inputClass}
 						value={range.end ?? ""}
 						onChange={(e) => onRangeChange("end", e.target.value)}

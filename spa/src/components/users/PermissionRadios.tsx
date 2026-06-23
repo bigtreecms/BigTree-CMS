@@ -1,9 +1,5 @@
 import type { PermissionCode } from "@/api/endpoints/users";
-
-interface PermissionOption {
-	value: PermissionCode;
-	label: string;
-}
+import type { PermissionOption } from "./permissionOptions";
 
 interface PermissionRadiosProps {
 	name: string;
@@ -47,6 +43,7 @@ export const PermissionRadios = ({
 							value={opt.value}
 							checked={checked}
 							disabled={disabled}
+							aria-label={opt.label}
 							onChange={() => onChange(opt.value)}
 							className="size-3.5 cursor-pointer accent-accent disabled:cursor-not-allowed disabled:opacity-50"
 						/>
@@ -56,23 +53,3 @@ export const PermissionRadios = ({
 		</>
 	);
 };
-
-export const PAGE_PERMISSION_OPTIONS: PermissionOption[] = [
-	{ value: "p", label: "Publisher" },
-	{ value: "e", label: "Editor" },
-	{ value: "n", label: "No Access" },
-	{ value: "i", label: "Inherit" },
-];
-
-export const MODULE_PERMISSION_OPTIONS: PermissionOption[] = [
-	{ value: "p", label: "Publisher" },
-	{ value: "e", label: "Editor" },
-	{ value: "n", label: "No Access" },
-];
-
-export const RESOURCE_PERMISSION_OPTIONS: PermissionOption[] = [
-	{ value: "p", label: "Creator" },
-	{ value: "e", label: "Consumer" },
-	{ value: "n", label: "No Access" },
-	{ value: "i", label: "Inherit" },
-];

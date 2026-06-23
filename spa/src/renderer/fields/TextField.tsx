@@ -12,6 +12,7 @@ export const TextField = ({ field, value, onChange, disabled }: FieldComponentPr
 	return (
 		<input
 			type="text"
+			aria-label={field.title}
 			className={INPUT_CLASS}
 			value={typeof value === "string" ? value : value == null ? "" : String(value)}
 			maxLength={maxLength}

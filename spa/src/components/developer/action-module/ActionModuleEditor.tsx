@@ -48,6 +48,7 @@ export const ActionModuleEditor = ({ value, onChange, name, route }: ActionModul
 				</div>
 				<textarea
 					value={value}
+					aria-label="Action code"
 					onChange={(e) => onChange(e.target.value)}
 					onKeyDown={onKeyDown}
 					spellCheck={false}

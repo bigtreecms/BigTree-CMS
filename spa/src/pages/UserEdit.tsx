@@ -357,15 +357,19 @@ export const UserEdit = () => {
 								onChange={(company) => setForm({ ...form, company })}
 							/>
 
-							<label className="block">
-								<span className="mb-1 block text-[12px] font-medium text-text-2">
+							<div className="block">
+								<label
+									htmlFor="user-edit-timezone"
+									className="mb-1 block text-[12px] font-medium text-text-2"
+								>
 									Timezone
-								</span>
+								</label>
 								<TimezoneSelect
+									id="user-edit-timezone"
 									value={form.timezone ?? ""}
 									onChange={(tz) => setForm({ ...form, timezone: tz })}
 								/>
-							</label>
+							</div>
 						</div>
 					</Card>
 				</div>

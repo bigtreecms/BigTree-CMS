@@ -72,6 +72,7 @@ export const VideoField = ({ field, value, onChange, disabled }: FieldComponentP
 			<div className="flex flex-wrap items-center gap-2">
 				<input
 					type="url"
+					aria-label="YouTube or Vimeo URL"
 					className={`${INPUT_CLASS} flex-1`}
 					placeholder="YouTube or Vimeo URL"
 					value={pendingUrl ?? ""}
@@ -176,6 +177,7 @@ const CurrentPreview = ({ value, onClear, disabled }: CurrentPreviewProps) => {
 						src={src}
 						title={`${value.service} video ${id}`}
 						className="block aspect-video h-32 w-56"
+						sandbox="allow-scripts allow-same-origin allow-popups allow-presentation"
 						allowFullScreen
 					/>
 				) : value.image ? (

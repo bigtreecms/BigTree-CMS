@@ -52,6 +52,7 @@ export const JsonFallbackControl = ({ value, onChange }: JsonFallbackControlProp
 		<div>
 			<textarea
 				rows={6}
+				aria-label="JSON settings"
 				className="w-full rounded-md border border-border bg-surface px-3 py-2 font-mono text-[11.5px] leading-relaxed focus:outline-none focus:ring-1 focus:ring-accent-ring"
 				value={draft}
 				onChange={(e) => setDraft(e.target.value)}

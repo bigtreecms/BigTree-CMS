@@ -202,6 +202,7 @@ export const Combobox = <V extends string | number>({
 							ref={inputRef}
 							className="w-full bg-transparent py-2 pl-8 pr-3 text-[13px] text-text outline-none placeholder:text-text-3"
 							placeholder={searchPlaceholder}
+							aria-label={searchPlaceholder}
 							value={query}
 							onChange={(e) => updateQuery(e.target.value)}
 							onKeyDown={onKeyDown}

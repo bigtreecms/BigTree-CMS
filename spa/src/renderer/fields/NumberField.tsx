@@ -13,6 +13,7 @@ export const NumberField = ({ field, value, onChange, disabled }: FieldComponent
 	return (
 		<input
 			type="number"
+			aria-label={field.title}
 			className={INPUT_CLASS}
 			value={value == null || value === "" ? "" : String(value)}
 			min={min}

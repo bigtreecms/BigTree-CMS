@@ -129,6 +129,7 @@ export const ResourcePicker = ({
 					<input
 						className="w-full rounded-md border border-border bg-surface py-1.5 px-9 text-[13.5px] placeholder:text-text-3 focus:outline-none focus:ring-1 focus:ring-accent-ring"
 						placeholder="Search the media library…"
+						aria-label="Search the media library"
 						value={query}
 						onChange={(e) => setQuery(e.target.value)}
 					/>

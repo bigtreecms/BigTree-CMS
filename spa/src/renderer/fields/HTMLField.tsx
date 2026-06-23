@@ -41,14 +41,16 @@ interface HTMLFieldSettings {
  * Track <html data-theme> so the editor's skin matches the rest of the SPA
  * without a page reload when the user toggles dark mode.
  */
+const readDocumentTheme = (): "light" | "dark" =>
+	document.documentElement.dataset.theme === "dark" ? "dark" : "light";
+
 const useDocumentTheme = (): "light" | "dark" => {
-	const read = () => (document.documentElement.dataset.theme === "dark" ? "dark" : "light");
-	const [theme, setTheme] = useState<"light" | "dark">(read);
+	const [theme, setTheme] = useState<"light" | "dark">(readDocumentTheme);
 
 	useEffect(() => {
 		const observer = new MutationObserver(() => {
 			setTheme((prev) => {
-				const next = read();
+				const next = readDocumentTheme();
 
 				return prev === next ? prev : next;
 			});
