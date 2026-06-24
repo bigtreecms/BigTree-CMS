@@ -8,6 +8,7 @@ import { PageHead } from "@/components/shell/PageHead";
 import { Alert } from "@/components/ui/Alert";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { Button } from "@/components/ui/Button";
+import { FormShell } from "@/components/ui/FormShell";
 import { UnsavedChangesGuard } from "@/components/ui/UnsavedChangesGuard";
 import { useDirtyTracker } from "@/hooks/useDirtyTracker";
 
@@ -168,7 +169,8 @@ export const CalloutEdit = () => {
 				</Alert>
 			)}
 
-			<form
+			<FormShell
+				bounded={false}
 				onSubmit={(e) => {
 					e.preventDefault();
 
@@ -191,85 +193,87 @@ export const CalloutEdit = () => {
 					setGeneralError(null);
 					saveMutation.mutate(body);
 				}}
-				className="space-y-4 rounded-xl border border-border bg-surface p-4"
+				footer={
+					<>
+						<Button to="/developer/callouts">Cancel</Button>
+						<Button
+							variant="primary"
+							type="submit"
+							icon={<Save size={13} />}
+							disabled={saveMutation.isPending}
+						>
+							{saveMutation.isPending
+								? "Saving…"
+								: isAdd
+									? "Create callout"
+									: "Save callout"}
+						</Button>
+					</>
+				}
 			>
-				<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+				<div className="space-y-4">
+					<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+						<TextField
+							label="ID"
+							value={body.id ?? ""}
+							onChange={(v) => set({ id: v })}
+							hint="Lowercase, hyphens or underscores. Cannot change after create."
+							error={fieldErrors.id}
+							disabled={!isAdd}
+							required
+						/>
+						<TextField
+							label="Name"
+							value={body.name ?? ""}
+							onChange={(v) => set({ name: v })}
+							error={fieldErrors.name}
+							required
+						/>
+					</div>
+
 					<TextField
-						label="ID"
-						value={body.id ?? ""}
-						onChange={(v) => set({ id: v })}
-						hint="Lowercase, hyphens or underscores. Cannot change after create."
-						error={fieldErrors.id}
-						disabled={!isAdd}
-						required
+						label="Description"
+						value={body.description ?? ""}
+						onChange={(v) => set({ description: v })}
 					/>
-					<TextField
-						label="Name"
-						value={body.name ?? ""}
-						onChange={(v) => set({ name: v })}
-						error={fieldErrors.name}
-						required
-					/>
-				</div>
 
-				<TextField
-					label="Description"
-					value={body.description ?? ""}
-					onChange={(v) => set({ description: v })}
-				/>
+					<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+						<SelectField
+							label="Minimum user level"
+							value={String(body.level ?? 0)}
+							onChange={(v) => set({ level: Number(v) })}
+							options={[
+								{ value: "0", label: "Editor (0)" },
+								{ value: "1", label: "Admin (1)" },
+								{ value: "2", label: "Developer (2)" },
+							]}
+						/>
+						<TextField
+							label="Default title text"
+							value={body.display_default ?? ""}
+							onChange={(v) => set({ display_default: v })}
+							hint="Fallback shown when display_field is empty."
+						/>
+					</div>
 
-				<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-					<SelectField
-						label="Minimum user level"
-						value={String(body.level ?? 0)}
-						onChange={(v) => set({ level: Number(v) })}
-						options={[
-							{ value: "0", label: "Editor (0)" },
-							{ value: "1", label: "Admin (1)" },
-							{ value: "2", label: "Developer (2)" },
-						]}
-					/>
-					<TextField
-						label="Default title text"
-						value={body.display_default ?? ""}
-						onChange={(v) => set({ display_default: v })}
-						hint="Fallback shown when display_field is empty."
-					/>
+					<div>
+						<SectionLabel className="mb-2">Fields</SectionLabel>
+						<ResourceDesigner
+							resources={(body.resources ?? []) as unknown as ResourceEntry[]}
+							onChange={(next) =>
+								set({ resources: next as unknown as TemplateResource[] })
+							}
+							keyField="id"
+							useCase="callouts"
+							settingsErrors={settingsErrors}
+							displayFieldId={body.display_field}
+							onSetDisplayField={(id) =>
+								set({ display_field: id === body.display_field ? "" : id })
+							}
+						/>
+					</div>
 				</div>
-
-				<div>
-					<SectionLabel className="mb-2">Fields</SectionLabel>
-					<ResourceDesigner
-						resources={(body.resources ?? []) as unknown as ResourceEntry[]}
-						onChange={(next) =>
-							set({ resources: next as unknown as TemplateResource[] })
-						}
-						keyField="id"
-						useCase="callouts"
-						settingsErrors={settingsErrors}
-						displayFieldId={body.display_field}
-						onSetDisplayField={(id) =>
-							set({ display_field: id === body.display_field ? "" : id })
-						}
-					/>
-				</div>
-
-				<div className="flex justify-end gap-2 border-t border-border pt-3">
-					<Button to="/developer/callouts">Cancel</Button>
-					<Button
-						variant="primary"
-						type="submit"
-						icon={<Save size={13} />}
-						disabled={saveMutation.isPending}
-					>
-						{saveMutation.isPending
-							? "Saving…"
-							: isAdd
-								? "Create callout"
-								: "Save callout"}
-					</Button>
-				</div>
-			</form>
+			</FormShell>
 
 			<UnsavedChangesGuard isDirty={isDirty} />
 		</div>

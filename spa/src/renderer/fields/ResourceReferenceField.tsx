@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { File as FileIcon, Image as ImageIcon, Search, Video as VideoIcon, X } from "lucide-react";
 
 import { ResourcePicker, type ResourcePickerType } from "@/components/files/ResourcePicker";
+import { Button } from "@/components/ui/Button";
 import { IconButton } from "@/components/ui/IconButton";
 import { resourcesApi, type ResourceDetail } from "@/api/endpoints/resources";
 
@@ -66,15 +67,14 @@ export const ResourceReferenceField = ({
 
 	return (
 		<div className="space-y-2">
-			<button
-				type="button"
-				className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] hover:bg-hover disabled:opacity-50"
+			<Button
+				variant="secondary"
+				icon={<Search size={13} />}
 				onClick={() => setPickerOpen(true)}
 				disabled={disabled}
 			>
-				<Search size={13} />
 				{resourceId ? "Replace" : "Browse media"}
-			</button>
+			</Button>
 
 			{resourceId && (
 				<ReferencePreview

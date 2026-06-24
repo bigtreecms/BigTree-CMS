@@ -8,6 +8,7 @@ import { PageHead } from "@/components/shell/PageHead";
 import { Alert } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
+import { FormShell } from "@/components/ui/FormShell";
 import { LockBanner } from "@/components/ui/LockBanner";
 
 import { settingsApi, type SettingDetail } from "@/api/endpoints/settings";
@@ -206,12 +207,24 @@ export const SettingEdit = () => {
 				</Alert>
 			)}
 
-			<form
+			<FormShell
 				onSubmit={(e) => {
 					e.preventDefault();
 					handleSave();
 				}}
-				className="rounded-xl border border-border bg-surface p-4"
+				footer={
+					<>
+						<Button onClick={() => navigate("/settings")}>Cancel</Button>
+						<Button
+							variant="primary"
+							type="submit"
+							icon={<Save size={13} />}
+							disabled={readOnly || saveMutation.isPending || valueWithheld}
+						>
+							{saveMutation.isPending ? "Saving…" : "Save"}
+						</Button>
+					</>
+				}
 			>
 				{valueWithheld ? (
 					<InlineEmpty pad="lg">
@@ -238,19 +251,7 @@ export const SettingEdit = () => {
 						)}
 					</>
 				)}
-
-				<div className="mt-4 flex justify-end gap-2">
-					<Button onClick={() => navigate("/settings")}>Cancel</Button>
-					<Button
-						variant="primary"
-						type="submit"
-						icon={<Save size={13} />}
-						disabled={readOnly || saveMutation.isPending || valueWithheld}
-					>
-						{saveMutation.isPending ? "Saving…" : "Save"}
-					</Button>
-				</div>
-			</form>
+			</FormShell>
 
 			<UnsavedChangesGuard isDirty={isDirty} />
 		</div>

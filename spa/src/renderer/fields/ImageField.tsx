@@ -3,6 +3,7 @@ import { Crop, ImageIcon, Images, Search, Upload as UploadIcon, X } from "lucide
 
 import { ResourcePicker } from "@/components/files/ResourcePicker";
 import { Alert } from "@/components/ui/Alert";
+import { Button } from "@/components/ui/Button";
 import { IconButton } from "@/components/ui/IconButton";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 
@@ -167,49 +168,45 @@ export const ImageField = ({ field, value, onChange, disabled }: FieldComponentP
 	return (
 		<div className="space-y-2">
 			<div className="flex flex-wrap items-center gap-2">
-				<button
-					type="button"
-					className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] hover:bg-hover disabled:opacity-50"
+				<Button
+					variant="secondary"
+					icon={<UploadIcon size={13} />}
 					onClick={() => inputRef.current?.click()}
 					disabled={busy}
 				>
-					<UploadIcon size={13} />
 					{currentPath ? "Replace image" : "Upload image"}
-				</button>
+				</Button>
 
 				{showBrowse && (
-					<button
-						type="button"
-						className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] hover:bg-hover disabled:opacity-50"
+					<Button
+						variant="secondary"
+						icon={<Search size={13} />}
 						onClick={() => setPickerOpen(true)}
 						disabled={busy}
 					>
-						<Search size={13} />
 						Browse media
-					</button>
+					</Button>
 				)}
 
 				{currentPath && configuredCrops.length > 0 && (
-					<button
-						type="button"
-						className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] hover:bg-hover disabled:opacity-50"
+					<Button
+						variant="secondary"
+						icon={<Crop size={13} />}
 						onClick={() => runReprocess({ file: currentPath, in_place: true })}
 						disabled={busy}
 					>
-						<Crop size={13} />
 						Choose new crops
-					</button>
+					</Button>
 				)}
 
 				{currentPath && configuredCrops.length > 0 && (
-					<button
-						type="button"
-						className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] hover:bg-hover disabled:opacity-50"
+					<Button
+						variant="secondary"
+						icon={<Images size={13} />}
 						onClick={() => setShowCrops((s) => !s)}
 					>
-						<Images size={13} />
 						{showCrops ? "Hide existing crops" : "Show existing crops"}
-					</button>
+					</Button>
 				)}
 
 				{(minWidth > 0 || minHeight > 0) && (

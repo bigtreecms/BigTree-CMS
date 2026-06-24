@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { ArrowDown, ArrowUp, Plus, RotateCcw, Search, Trash, X } from "lucide-react";
 
+import { EmptyState } from "@/components/ui/EmptyState";
 import { IconButton } from "@/components/ui/IconButton";
 import {
 	modulesApi,
@@ -265,10 +266,10 @@ export const RelationField = ({ field, value, onChange, disabled, kind }: Relati
 
 	if (!enabledCtx) {
 		return (
-			<div className="rounded-md border border-dashed border-border bg-surface-2 p-3 text-[12px] text-text-3">
+			<EmptyState size="sm" dashed>
 				This {isMtm ? "many-to-many" : "one-to-many"} field needs to be rendered inside a
 				module form (FormRenderer was called without a moduleId).
-			</div>
+			</EmptyState>
 		);
 	}
 
@@ -290,9 +291,9 @@ export const RelationField = ({ field, value, onChange, disabled, kind }: Relati
 					disabled={disabled}
 				/>
 			) : (
-				<div className="rounded-md border border-dashed border-border bg-surface-2 p-3 text-center text-[12px] text-text-3">
+				<EmptyState size="sm" dashed>
 					Nothing selected yet — use the picker below to add items.
-				</div>
+				</EmptyState>
 			)}
 
 			<Picker

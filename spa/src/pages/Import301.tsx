@@ -8,6 +8,7 @@ import { PageHead } from "@/components/shell/PageHead";
 import { Alert } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
 import { Checkbox } from "@/components/ui/Checkbox";
+import { FormShell } from "@/components/ui/FormShell";
 
 import { fourOhFoursApi } from "@/api/endpoints/four-oh-fours";
 
@@ -108,53 +109,55 @@ export const Import301 = () => {
 				</Alert>
 			)}
 
-			<form
+			<FormShell
 				onSubmit={(e) => {
 					e.preventDefault();
 					setError(null);
 					importMutation.mutate();
 				}}
-				className="space-y-4 rounded-xl border border-border bg-surface p-4"
+				footer={
+					<>
+						<Button to="/dashboard/404s/301">Cancel</Button>
+						<Button
+							variant="primary"
+							type="submit"
+							icon={<Upload size={13} />}
+							disabled={importMutation.isPending || !file}
+						>
+							{importMutation.isPending ? "Importing…" : "Import"}
+						</Button>
+					</>
+				}
 			>
-				{multisite && (
-					<SelectField
-						label="Site"
-						value={siteKey || sites[0]?.key || ""}
-						onChange={setSiteKey}
-						options={sites.map((site) => ({
-							value: site.key,
-							label: site.domain || site.key,
-						}))}
+				<div className="space-y-4">
+					{multisite && (
+						<SelectField
+							label="Site"
+							value={siteKey || sites[0]?.key || ""}
+							onChange={setSiteKey}
+							options={sites.map((site) => ({
+								value: site.key,
+								label: site.domain || site.key,
+							}))}
+						/>
+					)}
+
+					<Field label="CSV file" required>
+						<input
+							type="file"
+							accept=".csv,text/csv"
+							onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+							className="block w-full text-[12.5px] text-text-2 file:mr-3 file:rounded-md file:border file:border-border file:bg-surface-2 file:px-3 file:py-1.5 file:text-[12.5px] file:text-text hover:file:bg-hover"
+						/>
+					</Field>
+
+					<Checkbox
+						label="First row contains column titles"
+						checked={firstRowTitles}
+						onChange={setFirstRowTitles}
 					/>
-				)}
-
-				<Field label="CSV file" required>
-					<input
-						type="file"
-						accept=".csv,text/csv"
-						onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-						className="block w-full text-[12.5px] text-text-2 file:mr-3 file:rounded-md file:border file:border-border file:bg-surface-2 file:px-3 file:py-1.5 file:text-[12.5px] file:text-text hover:file:bg-hover"
-					/>
-				</Field>
-
-				<Checkbox
-					label="First row contains column titles"
-					checked={firstRowTitles}
-					onChange={setFirstRowTitles}
-				/>
-
-				<div className="flex justify-end gap-2 border-t border-border pt-3">
-					<Button to="/dashboard/404s/301">Cancel</Button>
-					<Button
-						variant="primary"
-						type="submit"
-						icon={<Upload size={13} />}
-						disabled={importMutation.isPending || !file}
-					>
-						{importMutation.isPending ? "Importing…" : "Import"}
-					</Button>
 				</div>
-			</form>
+			</FormShell>
 		</div>
 	);
 };

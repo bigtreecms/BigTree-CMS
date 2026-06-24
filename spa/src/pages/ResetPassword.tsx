@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 
 import { ApiError } from "@/types/api";
 import { authApi } from "@/auth/endpoints";
+import { Alert } from "@/components/ui/Alert";
 import { AuthCard } from "@/components/ui/AuthCard";
 import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
@@ -92,9 +93,9 @@ export const ResetPassword = () => {
 	return (
 		<AuthCard title="Choose a new password" subtitle="Then sign in with it right away.">
 			{serverError && (
-				<div className="mb-3 rounded-md border border-danger/30 bg-danger-bg px-3 py-2 text-[12.5px] text-danger">
+				<Alert tone="danger" className="mb-3">
 					{serverError}
-				</div>
+				</Alert>
 			)}
 
 			<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">

@@ -7,6 +7,7 @@ import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
 import { Alert } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
+import { FormShell } from "@/components/ui/FormShell";
 
 import { fourOhFoursApi } from "@/api/endpoints/four-oh-fours";
 
@@ -94,7 +95,7 @@ export const Create301 = () => {
 				</Alert>
 			)}
 
-			<form
+			<FormShell
 				onSubmit={(e) => {
 					e.preventDefault();
 
@@ -114,50 +115,52 @@ export const Create301 = () => {
 					setError(null);
 					createMutation.mutate();
 				}}
-				className="space-y-4 rounded-xl border border-border bg-surface p-4"
+				footer={
+					<>
+						<Button to="/dashboard/404s/301">Cancel</Button>
+						<Button
+							variant="primary"
+							type="submit"
+							icon={<Save size={13} />}
+							disabled={createMutation.isPending}
+						>
+							{createMutation.isPending ? "Creating…" : "Create redirect"}
+						</Button>
+					</>
+				}
 			>
-				{multisite && (
-					<SelectField
-						label="Site"
-						value={siteKey || sites[0]?.key || ""}
-						onChange={setSiteKey}
-						options={sites.map((site) => ({
-							value: site.key,
-							label: site.domain || site.key,
-						}))}
+				<div className="space-y-4">
+					{multisite && (
+						<SelectField
+							label="Site"
+							value={siteKey || sites[0]?.key || ""}
+							onChange={setSiteKey}
+							options={sites.map((site) => ({
+								value: site.key,
+								label: site.domain || site.key,
+							}))}
+						/>
+					)}
+
+					<TextField
+						label="From"
+						value={from}
+						onChange={setFrom}
+						hint="A full URL or just the path after your domain (e.g. /old-page/)."
+						error={fieldErrors.from}
+						required
 					/>
-				)}
 
-				<TextField
-					label="From"
-					value={from}
-					onChange={setFrom}
-					hint="A full URL or just the path after your domain (e.g. /old-page/)."
-					error={fieldErrors.from}
-					required
-				/>
-
-				<TextField
-					label="To"
-					value={to}
-					onChange={setTo}
-					hint="The destination — a full URL including http:// or an internal page."
-					error={fieldErrors.to}
-					required
-				/>
-
-				<div className="flex justify-end gap-2 border-t border-border pt-3">
-					<Button to="/dashboard/404s/301">Cancel</Button>
-					<Button
-						variant="primary"
-						type="submit"
-						icon={<Save size={13} />}
-						disabled={createMutation.isPending}
-					>
-						{createMutation.isPending ? "Creating…" : "Create redirect"}
-					</Button>
+					<TextField
+						label="To"
+						value={to}
+						onChange={setTo}
+						hint="The destination — a full URL including http:// or an internal page."
+						error={fieldErrors.to}
+						required
+					/>
 				</div>
-			</form>
+			</FormShell>
 
 			<UnsavedChangesGuard isDirty={isDirty} />
 		</div>

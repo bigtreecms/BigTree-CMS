@@ -1,6 +1,8 @@
 import { useEffect, useId, useMemo, useState } from "react";
 import { ChevronDown, ChevronRight, GripVertical, Plus, Trash } from "lucide-react";
 
+import { Button } from "@/components/ui/Button";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { IconButton } from "@/components/ui/IconButton";
 import type { ModuleFormField } from "@/api/endpoints/modules";
 
@@ -272,18 +274,18 @@ export const MatrixField = ({ field, value, onChange, disabled }: FieldComponent
 
 	if (columns.length === 0) {
 		return (
-			<div className="rounded-md border border-dashed border-border bg-surface-2 p-3 text-[12px] text-text-3">
+			<EmptyState size="sm" dashed>
 				This matrix field has no columns configured.
-			</div>
+			</EmptyState>
 		);
 	}
 
 	return (
 		<div className="space-y-2" data-matrix-style={style}>
 			{rows.length === 0 ? (
-				<div className="rounded-md border border-dashed border-border bg-surface-2 px-3 py-4 text-center text-[12.5px] text-text-3">
+				<EmptyState size="sm" dashed>
 					No items yet. Click <strong>Add item</strong> to create one.
-				</div>
+				</EmptyState>
 			) : (
 				<ul className="space-y-1.5">
 					{rows.map((row, index) => (
@@ -321,15 +323,14 @@ export const MatrixField = ({ field, value, onChange, disabled }: FieldComponent
 			)}
 
 			<div className="flex items-center justify-between gap-2">
-				<button
-					type="button"
-					className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] hover:bg-hover disabled:opacity-50"
+				<Button
+					variant="secondary"
+					icon={<Plus size={13} />}
 					onClick={addRow}
 					disabled={disabled || atLimit}
 				>
-					<Plus size={13} />
 					Add item
-				</button>
+				</Button>
 				{max > 0 && (
 					<span className="text-[11.5px] text-text-3 tabular-nums">
 						{rows.length} / {max}
@@ -447,14 +448,15 @@ const MatrixRowItem = ({
 					})}
 
 					{index < totalRows - 1 && (
-						<button
-							type="button"
-							className="mb-2 inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-2 py-1 text-[11.5px] text-text-3 hover:bg-hover disabled:opacity-40"
+						<Button
+							variant="secondary"
+							size="sm"
+							className="mb-2"
 							onClick={() => onMove("down")}
 							disabled={disabled}
 						>
 							Move down
-						</button>
+						</Button>
 					)}
 				</div>
 			)}

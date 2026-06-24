@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { AlertTriangle, CheckCircle2, Download, Loader2 } from "lucide-react";
 
 import { DebugLayout } from "@/components/developer/DebugLayout";
+import { Alert } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { TextInput } from "@/components/ui/TextInput";
@@ -328,10 +329,9 @@ export const DebugUpgrade = () => {
 					)}
 
 					{stage === "error" && error && (
-						<div className="mt-4 rounded-md border border-danger/30 bg-danger-bg p-4 text-[13px]">
-							<div className="mb-1 font-semibold text-danger">Upgrade failed</div>
+						<Alert tone="danger" title="Upgrade failed" className="mt-4">
 							<div className="text-text-2">{error}</div>
-						</div>
+						</Alert>
 					)}
 				</>
 			)}

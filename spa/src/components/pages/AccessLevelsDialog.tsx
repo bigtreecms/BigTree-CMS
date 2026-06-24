@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { ShieldCheck, UserPen } from "lucide-react";
 
+import { Alert } from "@/components/ui/Alert";
 import { SlideOver } from "@/components/ui/SlideOver";
 import { Loading } from "@/components/ui/Loading";
 import { GravatarAvatar } from "@/components/users/GravatarAvatar";
@@ -38,9 +39,7 @@ export const AccessLevelsDialog = ({ open, onOpenChange, pageId }: AccessLevelsD
 			{query.isLoading ? (
 				<Loading variant="block" className="h-32" />
 			) : query.error ? (
-				<div className="rounded-md border border-danger/30 bg-danger-bg px-3 py-2 text-[12.5px] text-danger">
-					Could not load access levels.
-				</div>
+				<Alert tone="danger">Could not load access levels.</Alert>
 			) : (
 				<div className="space-y-5">
 					<UserList

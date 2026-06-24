@@ -8,6 +8,7 @@ import { PageHead } from "@/components/shell/PageHead";
 import { Alert } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
 import { Checkbox } from "@/components/ui/Checkbox";
+import { FormShell } from "@/components/ui/FormShell";
 
 import { DeveloperSectionNav } from "@/components/developer/DeveloperSectionNav";
 import { FieldSettingsEditor } from "@/components/developer/FieldSettingsEditor";
@@ -243,128 +244,132 @@ export const SettingConfigure = () => {
 				</Alert>
 			)}
 
-			<form
+			<FormShell
 				onSubmit={(e) => {
 					e.preventDefault();
 					submit();
 				}}
-				className="space-y-4 rounded-xl border border-border bg-surface p-4"
-			>
-				<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-					<TextField
-						label="ID"
-						value={body.id}
-						onChange={(v) => set({ id: v })}
-						hint={
-							isEdit
-								? "Stable storage key, cannot be changed."
-								: "Stable storage key, cannot change later."
-						}
-						error={fieldErrors.id}
-						disabled={isEdit}
-						required
-					/>
-					<TextField
-						label="Name"
-						value={body.name ?? ""}
-						onChange={(v) => set({ name: v })}
-						error={fieldErrors.name}
-					/>
-				</div>
-
-				<div>
-					<span className="mb-1 block text-[12px] font-medium text-text-2">
-						Description
-					</span>
-					<HTMLFieldLazy
-						field={DESCRIPTION_FIELD}
-						value={body.description ?? ""}
-						onChange={(v) => set({ description: typeof v === "string" ? v : "" })}
-					/>
-				</div>
-
-				<div>
-					<Field className="max-w-sm" label="Field type">
-						<Select
-							value={body.type ?? "text"}
-							onChange={(e) => changeType(e.target.value)}
-							disabled={fieldTypesQ.isLoading}
+				footer={
+					<>
+						<Button to="/developer/settings">Cancel</Button>
+						<Button
+							variant="primary"
+							type="submit"
+							icon={<Save size={13} />}
+							disabled={isPending}
 						>
-							{fieldTypesQ.isLoading && (
-								<option value={body.type ?? "text"}>Loading field types…</option>
-							)}
-							{!fieldTypesQ.isLoading && !typeKnown && (
-								<option value={body.type ?? ""}>{body.type}</option>
-							)}
-							{typeGroups.map((group) => (
-								<optgroup key={group.label} label={group.label}>
-									{group.options.map((o) => (
-										<option key={o.id} value={o.id}>
-											{o.name}
-										</option>
-									))}
-								</optgroup>
-							))}
-						</Select>
-						<span className="mt-1 block text-[11px] text-text-3">
-							Determines the editor shown when setting this value, and the options
-							below.
-						</span>
-					</Field>
+							{isEdit
+								? isPending
+									? "Saving…"
+									: "Save setting"
+								: isPending
+									? "Creating…"
+									: "Create setting"}
+						</Button>
+					</>
+				}
+			>
+				<div className="space-y-4">
+					<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+						<TextField
+							label="ID"
+							value={body.id}
+							onChange={(v) => set({ id: v })}
+							hint={
+								isEdit
+									? "Stable storage key, cannot be changed."
+									: "Stable storage key, cannot change later."
+							}
+							error={fieldErrors.id}
+							disabled={isEdit}
+							required
+						/>
+						<TextField
+							label="Name"
+							value={body.name ?? ""}
+							onChange={(v) => set({ name: v })}
+							error={fieldErrors.name}
+						/>
+					</div>
 
-					<div className="mt-3">
+					<div>
 						<span className="mb-1 block text-[12px] font-medium text-text-2">
-							Field settings
+							Description
 						</span>
-						<div className="rounded-md border border-border bg-surface-2 p-3">
-							<FieldSettingsEditor
-								type={body.type ?? "text"}
-								useCase="settings"
-								value={body.settings}
-								onChange={(v) => set({ settings: v })}
-								hideLabel
-								errors={settingsErrors}
-							/>
+						<HTMLFieldLazy
+							field={DESCRIPTION_FIELD}
+							value={body.description ?? ""}
+							onChange={(v) => set({ description: typeof v === "string" ? v : "" })}
+						/>
+					</div>
+
+					<div>
+						<Field className="max-w-sm" label="Field type">
+							<Select
+								value={body.type ?? "text"}
+								onChange={(e) => changeType(e.target.value)}
+								disabled={fieldTypesQ.isLoading}
+							>
+								{fieldTypesQ.isLoading && (
+									<option value={body.type ?? "text"}>
+										Loading field types…
+									</option>
+								)}
+								{!fieldTypesQ.isLoading && !typeKnown && (
+									<option value={body.type ?? ""}>{body.type}</option>
+								)}
+								{typeGroups.map((group) => (
+									<optgroup key={group.label} label={group.label}>
+										{group.options.map((o) => (
+											<option key={o.id} value={o.id}>
+												{o.name}
+											</option>
+										))}
+									</optgroup>
+								))}
+							</Select>
+							<span className="mt-1 block text-[11px] text-text-3">
+								Determines the editor shown when setting this value, and the options
+								below.
+							</span>
+						</Field>
+
+						<div className="mt-3">
+							<span className="mb-1 block text-[12px] font-medium text-text-2">
+								Field settings
+							</span>
+							<div className="rounded-md border border-border bg-surface-2 p-3">
+								<FieldSettingsEditor
+									type={body.type ?? "text"}
+									useCase="settings"
+									value={body.settings}
+									onChange={(v) => set({ settings: v })}
+									hideLabel
+									errors={settingsErrors}
+								/>
+							</div>
 						</div>
 					</div>
-				</div>
 
-				<div className="grid grid-cols-1 gap-3 rounded-md border border-border bg-surface-2 p-3 md:grid-cols-3">
-					<Checkbox
-						label="Encrypted at rest"
-						checked={!!body.encrypted}
-						onChange={(encrypted) => set({ encrypted })}
-					/>
-					<Checkbox
-						label="Locked (cannot delete)"
-						checked={!!body.locked}
-						onChange={(locked) => set({ locked })}
-					/>
-					<Checkbox
-						label="System"
-						checked={!!body.system}
-						onChange={(system) => set({ system })}
-					/>
+					<div className="grid grid-cols-1 gap-3 rounded-md border border-border bg-surface-2 p-3 md:grid-cols-3">
+						<Checkbox
+							label="Encrypted at rest"
+							checked={!!body.encrypted}
+							onChange={(encrypted) => set({ encrypted })}
+						/>
+						<Checkbox
+							label="Locked (cannot delete)"
+							checked={!!body.locked}
+							onChange={(locked) => set({ locked })}
+						/>
+						<Checkbox
+							label="System"
+							checked={!!body.system}
+							onChange={(system) => set({ system })}
+						/>
+					</div>
 				</div>
-
-				<div className="flex justify-end gap-2 border-t border-border pt-3">
-					<Button to="/developer/settings">Cancel</Button>
-					<Button
-						variant="primary"
-						type="submit"
-						icon={<Save size={13} />}
-						disabled={isPending}
-					>
-						{isEdit
-							? isPending
-								? "Saving…"
-								: "Save setting"
-							: isPending
-								? "Creating…"
-								: "Create setting"}
-					</Button>
-				</div>
-			</form>
+			</FormShell>
 
 			<UnsavedChangesGuard isDirty={isDirty} />
 		</div>

@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { File as FileIcon, Upload as UploadIcon, X } from "lucide-react";
 
+import { Button } from "@/components/ui/Button";
 import { IconButton } from "@/components/ui/IconButton";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import { UPLOAD_PATH, type ResourceDetail } from "@/api/endpoints/resources";
@@ -69,15 +70,14 @@ export const UploadField = ({ field, value, onChange, disabled }: FieldComponent
 	return (
 		<div className="space-y-2">
 			<div className="flex flex-wrap items-center gap-2">
-				<button
-					type="button"
-					className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] hover:bg-hover disabled:opacity-50"
+				<Button
+					variant="secondary"
+					icon={<UploadIcon size={13} />}
 					onClick={() => inputRef.current?.click()}
 					disabled={disabled || Boolean(inFlight)}
 				>
-					<UploadIcon size={13} />
 					{currentPath ? "Replace file" : "Choose file"}
-				</button>
+				</Button>
 				{inFlight && (
 					<span className="inline-flex items-center gap-2 text-[12px] text-text-3">
 						<ProgressBar

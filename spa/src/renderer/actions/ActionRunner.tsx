@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 
+import { Alert } from "@/components/ui/Alert";
 import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
 
 import type { ActionHost, ActionModule } from "./actionModuleContract";
@@ -78,15 +79,14 @@ export const ActionRunner = ({ host, assetUrl, source, onError }: ActionRunnerPr
 		}
 
 		return (
-			<div className="rounded-md border border-danger/30 bg-danger-bg p-4 text-[13px]">
-				<div className="mb-1 font-semibold text-danger">This action couldn't load</div>
+			<Alert tone="danger" title="This action couldn't load">
 				<div className="text-text-2">
 					Its custom code failed to load. It may need to be rebuilt.
 				</div>
 				<pre className="mt-3 max-h-40 overflow-auto rounded bg-surface-2 p-2 font-mono text-[11.5px] text-text-3">
 					{error}
 				</pre>
-			</div>
+			</Alert>
 		);
 	}
 

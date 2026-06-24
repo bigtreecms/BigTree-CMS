@@ -21,3 +21,11 @@ export const Solid: Story = {};
 export const Dashed: Story = {
 	args: { dashed: true, children: "No modules match your search." },
 };
+
+export const Small: Story = {
+	args: { size: "sm", children: "No items yet." },
+};
+
+export const SmallDashed: Story = {
+	args: { size: "sm", dashed: true, children: "Nothing selected yet." },
+};

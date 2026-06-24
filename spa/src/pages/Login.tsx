@@ -9,6 +9,7 @@ import { useState } from "react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Fingerprint } from "lucide-react";
+import { Alert } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
 import { TextInput } from "@/components/ui/TextInput";
@@ -200,15 +201,15 @@ export const Login = () => {
 				</div>
 
 				{state?.resetSuccess && !serverError && (
-					<div className="mb-3 rounded-md border border-success/30 bg-success-bg px-3 py-2 text-[12.5px] text-success">
+					<Alert tone="success" className="mb-3">
 						Password updated. Sign in with your new password.
-					</div>
+					</Alert>
 				)}
 
 				{serverError && (
-					<div className="mb-3 rounded-md border border-danger/30 bg-danger-bg px-3 py-2 text-[12.5px] text-danger">
+					<Alert tone="danger" className="mb-3">
 						{serverError}
-					</div>
+					</Alert>
 				)}
 
 				{enroll ? (

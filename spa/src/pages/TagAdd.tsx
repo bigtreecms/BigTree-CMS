@@ -9,6 +9,7 @@ import { PageHead } from "@/components/shell/PageHead";
 import { Alert } from "@/components/ui/Alert";
 import { AccessDenied } from "@/components/ui/AccessDenied";
 import { Button } from "@/components/ui/Button";
+import { FormShell } from "@/components/ui/FormShell";
 import { SubNav } from "@/components/ui/SubNav";
 import { TextInput } from "@/components/ui/TextInput";
 import { TagInput } from "@/components/tags/TagInput";
@@ -152,66 +153,74 @@ export const TagAdd = () => {
 				</Alert>
 			)}
 
-			<form
+			<FormShell
 				onSubmit={submit}
-				className="space-y-4 rounded-xl border border-border bg-surface p-4"
+				footer={
+					<>
+						<Button to="/tags">Cancel</Button>
+						<Button
+							variant="primary"
+							type="submit"
+							icon={<Plus size={13} />}
+							disabled={
+								normalized === "" ||
+								duplicate ||
+								checking ||
+								createMutation.isPending
+							}
+						>
+							{createMutation.isPending
+								? "Creating…"
+								: checking
+									? "Checking…"
+									: "Create tag"}
+						</Button>
+					</>
+				}
 			>
-				<Field
-					label="Tag name"
-					error={duplicate ? `A tag named “${normalized}” already exists.` : undefined}
-					hint={
-						duplicate
-							? undefined
-							: "Only letters and numbers are kept — the name is normalized on save."
-					}
-				>
-					<TextInput
-						className={duplicate ? "border-danger focus:ring-danger/40" : undefined}
-						placeholder="e.g. announcements"
-						value={name}
-						onChange={(e) => {
-							setName(e.target.value);
-							setError(null);
-						}}
-						aria-invalid={duplicate}
-						autoFocus
-					/>
-				</Field>
-
-				<div>
-					<label className="mb-1 block text-[12.5px] font-medium text-text-2">
-						Tags to merge in <span className="font-normal text-text-3">(optional)</span>
-					</label>
-					<TagInput
-						multiple
-						value={mergeTags}
-						onChange={setMergeTags}
-						placeholder="Type to search for tags to merge…"
-					/>
-					<p className="mt-1.5 text-[11.5px] text-text-3">
-						Relations pointing at these tags will be re-pointed to the new tag, then the
-						merged tags will be deleted.
-					</p>
-				</div>
-
-				<div className="flex justify-end gap-2 border-t border-border pt-3">
-					<Button to="/tags">Cancel</Button>
-					<Button
-						variant="primary"
-						type="submit"
-						icon={<Plus size={13} />}
-						disabled={
-							normalized === "" || duplicate || checking || createMutation.isPending
+				<div className="space-y-4">
+					<Field
+						label="Tag name"
+						error={
+							duplicate ? `A tag named “${normalized}” already exists.` : undefined
+						}
+						hint={
+							duplicate
+								? undefined
+								: "Only letters and numbers are kept — the name is normalized on save."
 						}
 					>
-						{createMutation.isPending
-							? "Creating…"
-							: checking
-								? "Checking…"
-								: "Create tag"}
-					</Button>
+						<TextInput
+							className={duplicate ? "border-danger focus:ring-danger/40" : undefined}
+							placeholder="e.g. announcements"
+							value={name}
+							onChange={(e) => {
+								setName(e.target.value);
+								setError(null);
+							}}
+							aria-invalid={duplicate}
+							autoFocus
+						/>
+					</Field>
+
+					<div>
+						<label className="mb-1 block text-[12.5px] font-medium text-text-2">
+							Tags to merge in{" "}
+							<span className="font-normal text-text-3">(optional)</span>
+						</label>
+						<TagInput
+							multiple
+							value={mergeTags}
+							onChange={setMergeTags}
+							placeholder="Type to search for tags to merge…"
+						/>
+						<p className="mt-1.5 text-[11.5px] text-text-3">
+							Relations pointing at these tags will be re-pointed to the new tag, then
+							the merged tags will be deleted.
+						</p>
+					</div>
 				</div>
-			</form>
+			</FormShell>
 
 			<UnsavedChangesGuard isDirty={isDirty && !createMutation.isPending} />
 		</div>

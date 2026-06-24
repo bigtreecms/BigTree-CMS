@@ -4,6 +4,8 @@ import { ChevronDown, ChevronRight, GripVertical, Plus, Trash } from "lucide-rea
 
 import { useAuthStore } from "@/auth/store";
 
+import { Button } from "@/components/ui/Button";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { IconButton } from "@/components/ui/IconButton";
 import { Select } from "@/components/ui/Select";
 import { calloutsApi, type CalloutSummary } from "@/api/endpoints/callouts";
@@ -280,9 +282,9 @@ export const CalloutsField = ({ field, value, onChange, disabled }: FieldCompone
 	return (
 		<div className="space-y-2">
 			{rows.length === 0 ? (
-				<div className="rounded-md border border-dashed border-border bg-surface-2 px-3 py-4 text-center text-[12.5px] text-text-3">
+				<EmptyState size="sm" dashed>
 					No items yet. Pick a type below and click <strong>Add {noun}</strong>.
-				</div>
+				</EmptyState>
 			) : (
 				<ul className="space-y-1.5">
 					{rows.map((row, index) => (
@@ -415,9 +417,9 @@ const CalloutRowItem = ({
 					className="border-t border-border px-3 pb-1 pt-3"
 				>
 					{callout.resources.length === 0 ? (
-						<div className="rounded-md border border-dashed border-border bg-surface-2 p-3 text-[12px] text-text-3">
+						<EmptyState size="sm" dashed>
 							This callout type has no fields configured.
-						</div>
+						</EmptyState>
 					) : (
 						callout.resources.map((resource) => {
 							// Callout resources are keyed by `id` (like template
@@ -441,14 +443,15 @@ const CalloutRowItem = ({
 					)}
 
 					{index < totalRows - 1 && (
-						<button
-							type="button"
-							className="mb-2 inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-2 py-1 text-[11.5px] text-text-3 hover:bg-hover disabled:opacity-40"
+						<Button
+							variant="secondary"
+							size="sm"
+							className="mb-2"
 							onClick={() => onMove("down")}
 							disabled={disabled}
 						>
 							Move down
-						</button>
+						</Button>
 					)}
 				</div>
 			)}
@@ -479,9 +482,9 @@ const AddRow = ({
 }: AddRowProps) => {
 	if (availableTypes.length === 0) {
 		return (
-			<div className="rounded-md border border-dashed border-border bg-surface-2 px-3 py-2 text-[12px] text-text-3">
+			<EmptyState size="sm" dashed>
 				No {noun.toLowerCase()} types available for your access level.
-			</div>
+			</EmptyState>
 		);
 	}
 
@@ -501,15 +504,14 @@ const AddRow = ({
 					))}
 				</Select>
 
-				<button
-					type="button"
-					className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] hover:bg-hover disabled:opacity-50"
+				<Button
+					variant="secondary"
+					icon={<Plus size={13} />}
 					onClick={onAdd}
 					disabled={disabled || !value}
 				>
-					<Plus size={13} />
 					Add {noun}
-				</button>
+				</Button>
 			</div>
 
 			{max > 0 && (

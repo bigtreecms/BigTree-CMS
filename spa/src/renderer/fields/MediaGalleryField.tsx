@@ -21,6 +21,8 @@ import {
 	type ProcessImageResult,
 } from "@/api/endpoints/images";
 import { ResourcePicker } from "@/components/files/ResourcePicker";
+import { Button } from "@/components/ui/Button";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { IconButton } from "@/components/ui/IconButton";
 import { Field } from "@/components/ui/Field";
 import { useUploads, type UploadItem } from "@/hooks/useUploads";
@@ -345,9 +347,9 @@ export const MediaGalleryField = ({ field, value, onChange, disabled }: FieldCom
 	return (
 		<div className="space-y-2">
 			{items.length === 0 ? (
-				<div className="rounded-md border border-dashed border-border bg-surface-2 px-3 py-4 text-center text-[12.5px] text-text-3">
+				<EmptyState size="sm" dashed>
 					No items yet — use the buttons below to add media.
-				</div>
+				</EmptyState>
 			) : (
 				<ul className="grid grid-cols-1 gap-1.5 md:grid-cols-2">
 					{items.map((item, index) => (
@@ -527,9 +529,9 @@ const MediaItemRow = ({
 					)}
 
 					{columns.length === 0 ? (
-						<div className="rounded-md border border-dashed border-border bg-surface-2 p-3 text-[12px] text-text-3">
+						<EmptyState size="sm" dashed>
 							No extra fields configured for this gallery.
-						</div>
+						</EmptyState>
 					) : (
 						columns.map((column) => {
 							const subField: ModuleFormField = {
@@ -554,14 +556,15 @@ const MediaItemRow = ({
 					)}
 
 					{index < total - 1 && (
-						<button
-							type="button"
-							className="mb-2 inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-2 py-1 text-[11.5px] text-text-3 hover:bg-hover disabled:opacity-40"
+						<Button
+							variant="secondary"
+							size="sm"
+							className="mb-2"
 							onClick={() => onMove("down")}
 							disabled={disabled}
 						>
 							Move down
-						</button>
+						</Button>
 					)}
 				</div>
 			)}
@@ -686,8 +689,6 @@ const AddBar = ({
 	};
 
 	const showAnyVideo = allowYoutube || allowVimeo;
-	const buttonClass =
-		"inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] hover:bg-hover disabled:opacity-50";
 	const minWidth = toInt(settings.min_width);
 	const minHeight = toInt(settings.min_height);
 
@@ -697,47 +698,43 @@ const AddBar = ({
 				<div className="flex flex-wrap gap-2">
 					{allowPhotos && (
 						<>
-							<button
-								type="button"
-								className={buttonClass}
+							<Button
+								variant="secondary"
+								icon={<UploadIcon size={13} />}
 								onClick={() => inputRef.current?.click()}
 								disabled={busy || atLimit}
 							>
-								<UploadIcon size={13} />
 								Upload photo
-							</button>
-							<button
-								type="button"
-								className={buttonClass}
+							</Button>
+							<Button
+								variant="secondary"
+								icon={<Search size={13} />}
 								onClick={() => setPickerOpen(true)}
 								disabled={busy || atLimit}
 							>
-								<Search size={13} />
 								Browse photos
-							</button>
+							</Button>
 						</>
 					)}
 					{showAnyVideo && (
-						<button
-							type="button"
-							className={buttonClass}
+						<Button
+							variant="secondary"
+							icon={<Plus size={13} />}
 							onClick={onAskVideo}
 							disabled={busy || atLimit}
 						>
-							<Plus size={13} />
 							Add video URL
-						</button>
+						</Button>
 					)}
 					{allowLocal && (
-						<button
-							type="button"
-							className={buttonClass}
+						<Button
+							variant="secondary"
+							icon={<VideoIcon size={13} />}
 							onClick={onAskLocalVideo}
 							disabled={busy || atLimit}
 						>
-							<VideoIcon size={13} />
 							Add local video
-						</button>
+						</Button>
 					)}
 				</div>
 				<div className="flex items-center gap-3">
@@ -997,30 +994,28 @@ const LocalVideoPrompt = ({ settings, onClose, onCreated }: LocalVideoPromptProp
 			{step === "video" ? (
 				<>
 					<p className="mb-2 text-[11.5px] text-text-3">Upload an H.264 video file.</p>
-					<button
-						type="button"
-						className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] hover:bg-hover disabled:opacity-50"
+					<Button
+						variant="secondary"
+						icon={<UploadIcon size={13} />}
 						onClick={() => videoInputRef.current?.click()}
 						disabled={Boolean(inFlight)}
 					>
-						<UploadIcon size={13} />
 						Choose video
-					</button>
+					</Button>
 				</>
 			) : (
 				<>
 					<p className="mb-2 text-[11.5px] text-text-3">
 						Now choose a cover photo{coverHint}.
 					</p>
-					<button
-						type="button"
-						className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] hover:bg-hover disabled:opacity-50"
+					<Button
+						variant="secondary"
+						icon={<UploadIcon size={13} />}
 						onClick={() => coverInputRef.current?.click()}
 						disabled={Boolean(inFlight)}
 					>
-						<UploadIcon size={13} />
 						Choose cover photo
-					</button>
+					</Button>
 				</>
 			)}
 

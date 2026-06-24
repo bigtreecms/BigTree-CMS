@@ -5,6 +5,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import { authApi } from "@/auth/endpoints";
+import { Alert } from "@/components/ui/Alert";
 import { AuthCard } from "@/components/ui/AuthCard";
 import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
@@ -48,9 +49,9 @@ export const ForgotPassword = () => {
 			subtitle="We'll email you a link to choose a new one."
 		>
 			{serverError && (
-				<div className="mb-3 rounded-md border border-danger/30 bg-danger-bg px-3 py-2 text-[12.5px] text-danger">
+				<Alert tone="danger" className="mb-3">
 					{serverError}
-				</div>
+				</Alert>
 			)}
 
 			{sent ? (

@@ -9,6 +9,7 @@ import { Alert } from "@/components/ui/Alert";
 import { Combobox, type ComboboxOption } from "@/components/ui/Combobox";
 import { Button } from "@/components/ui/Button";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
+import { FormShell } from "@/components/ui/FormShell";
 import { UnsavedChangesGuard } from "@/components/ui/UnsavedChangesGuard";
 import { useDirtyTracker } from "@/hooks/useDirtyTracker";
 
@@ -176,7 +177,7 @@ export const CalloutGroupEdit = () => {
 				</Alert>
 			)}
 
-			<form
+			<FormShell
 				onSubmit={(e) => {
 					e.preventDefault();
 
@@ -196,115 +197,121 @@ export const CalloutGroupEdit = () => {
 					setGeneralError(null);
 					saveMutation.mutate(body);
 				}}
-				className="space-y-4 rounded-xl border border-border bg-surface p-4"
+				footer={
+					<>
+						<Button to="/developer/callout-groups">Cancel</Button>
+						<Button
+							variant="primary"
+							type="submit"
+							icon={<Save size={13} />}
+							disabled={saveMutation.isPending}
+						>
+							{saveMutation.isPending
+								? "Saving…"
+								: isAdd
+									? "Create group"
+									: "Save group"}
+						</Button>
+					</>
+				}
 			>
-				<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-					<TextField
-						label="ID"
-						value={body.id ?? ""}
-						onChange={(v) => set({ id: v })}
-						hint="Lowercase, hyphens or underscores."
-						error={fieldErrors.id}
-						disabled={!isAdd}
-						required
-					/>
-					<TextField
-						label="Name"
-						value={body.name ?? ""}
-						onChange={(v) => set({ name: v })}
-						error={fieldErrors.name}
-						required
-					/>
-				</div>
-
-				<div>
-					<div className="mb-2 flex items-center justify-between gap-2">
-						<SectionLabel>Callouts in this group</SectionLabel>
-						<span className="text-[11.5px] tabular-nums text-text-3">
-							{selectedIds.length === 1
-								? "1 callout"
-								: `${selectedIds.length} callouts`}
-						</span>
+				<div className="space-y-4">
+					<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+						<TextField
+							label="ID"
+							value={body.id ?? ""}
+							onChange={(v) => set({ id: v })}
+							hint="Lowercase, hyphens or underscores."
+							error={fieldErrors.id}
+							disabled={!isAdd}
+							required
+						/>
+						<TextField
+							label="Name"
+							value={body.name ?? ""}
+							onChange={(v) => set({ name: v })}
+							error={fieldErrors.name}
+							required
+						/>
 					</div>
 
-					{calloutsQ.isLoading ? (
-						<Loading label="Loading callouts…" />
-					) : callouts.length === 0 ? (
-						<InlineEmpty pad="md">
-							No callouts to pick from yet. Create one first.
-						</InlineEmpty>
-					) : (
-						<div className="space-y-2">
-							{selectedIds.length > 0 ? (
-								<ul className="divide-y divide-border overflow-hidden rounded-md border border-border">
-									{selectedIds.map((id) => {
-										const callout = calloutById.get(id);
-
-										return (
-											<li
-												key={id}
-												className="flex items-center gap-3 px-3 py-2 text-[12.5px]"
-											>
-												<span className="min-w-0 flex-1">
-													<div className="truncate text-text-2">
-														{callout?.name ?? id}
-													</div>
-													<div className="truncate font-mono text-[11px] text-text-3">
-														{id}
-													</div>
-												</span>
-												<IconButton
-													tone="danger"
-													onClick={() => removeCallout(id)}
-													title="Remove from group"
-													label={`Remove ${callout?.name ?? id} from group`}
-												>
-													<Trash size={13} />
-												</IconButton>
-											</li>
-										);
-									})}
-								</ul>
-							) : (
-								<InlineEmpty pad="md">
-									No callouts in this group yet — add one below.
-								</InlineEmpty>
-							)}
-
-							<Combobox<string>
-								value={null}
-								onChange={(option) => {
-									if (option) {
-										addCallout(option.value);
-									}
-								}}
-								options={addOptions}
-								placeholder="Add a callout…"
-								searchPlaceholder="Search callouts…"
-								emptyLabel={
-									addOptions.length === 0
-										? "All callouts are in this group."
-										: "No callouts match."
-								}
-								clearable={false}
-								ariaLabel="Add a callout to this group"
-							/>
+					<div>
+						<div className="mb-2 flex items-center justify-between gap-2">
+							<SectionLabel>Callouts in this group</SectionLabel>
+							<span className="text-[11.5px] tabular-nums text-text-3">
+								{selectedIds.length === 1
+									? "1 callout"
+									: `${selectedIds.length} callouts`}
+							</span>
 						</div>
-					)}
-				</div>
 
-				<div className="flex justify-end gap-2 border-t border-border pt-3">
-					<Button to="/developer/callout-groups">Cancel</Button>
-					<Button
-						variant="primary"
-						type="submit"
-						icon={<Save size={13} />}
-						disabled={saveMutation.isPending}
-					>
-						{saveMutation.isPending ? "Saving…" : isAdd ? "Create group" : "Save group"}
-					</Button>
+						{calloutsQ.isLoading ? (
+							<Loading label="Loading callouts…" />
+						) : callouts.length === 0 ? (
+							<InlineEmpty pad="md">
+								No callouts to pick from yet. Create one first.
+							</InlineEmpty>
+						) : (
+							<div className="space-y-2">
+								{selectedIds.length > 0 ? (
+									<ul className="divide-y divide-border overflow-hidden rounded-md border border-border">
+										{selectedIds.map((id) => {
+											const callout = calloutById.get(id);
+
+											return (
+												<li
+													key={id}
+													className="flex items-center gap-3 px-3 py-2 text-[12.5px]"
+												>
+													<span className="min-w-0 flex-1">
+														<div className="truncate text-text-2">
+															{callout?.name ?? id}
+														</div>
+														<div className="truncate font-mono text-[11px] text-text-3">
+															{id}
+														</div>
+													</span>
+													<IconButton
+														tone="danger"
+														onClick={() => removeCallout(id)}
+														title="Remove from group"
+														label={`Remove ${callout?.name ?? id} from group`}
+													>
+														<Trash size={13} />
+													</IconButton>
+												</li>
+											);
+										})}
+									</ul>
+								) : (
+									<InlineEmpty pad="md">
+										No callouts in this group yet — add one below.
+									</InlineEmpty>
+								)}
+
+								<Combobox<string>
+									value={null}
+									onChange={(option) => {
+										if (option) {
+											addCallout(option.value);
+										}
+									}}
+									options={addOptions}
+									placeholder="Add a callout…"
+									searchPlaceholder="Search callouts…"
+									emptyLabel={
+										addOptions.length === 0
+											? "All callouts are in this group."
+											: "No callouts match."
+									}
+									clearable={false}
+									ariaLabel="Add a callout to this group"
+								/>
+							</div>
+						)}
+					</div>
 				</div>
-			</form>
+			</FormShell>
 
 			<UnsavedChangesGuard isDirty={isDirty} />
 		</div>

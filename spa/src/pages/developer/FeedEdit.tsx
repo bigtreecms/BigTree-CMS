@@ -8,6 +8,7 @@ import { PageHead } from "@/components/shell/PageHead";
 import { Alert } from "@/components/ui/Alert";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { Button } from "@/components/ui/Button";
+import { FormShell } from "@/components/ui/FormShell";
 import { UnsavedChangesGuard } from "@/components/ui/UnsavedChangesGuard";
 import { useDirtyTracker } from "@/hooks/useDirtyTracker";
 
@@ -182,7 +183,8 @@ export const FeedEdit = () => {
 				</Alert>
 			)}
 
-			<form
+			<FormShell
+				bounded={false}
 				onSubmit={(e) => {
 					e.preventDefault();
 
@@ -205,82 +207,88 @@ export const FeedEdit = () => {
 					setGeneralError(null);
 					saveMutation.mutate(body);
 				}}
-				className="space-y-4 rounded-xl border border-border bg-surface p-4"
+				footer={
+					<>
+						<Button to="/developer/feeds">Cancel</Button>
+						<Button
+							variant="primary"
+							type="submit"
+							icon={<Save size={13} />}
+							disabled={saveMutation.isPending}
+						>
+							{saveMutation.isPending
+								? "Saving…"
+								: isAdd
+									? "Create feed"
+									: "Save feed"}
+						</Button>
+					</>
+				}
 			>
-				<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-					<TextField
-						label="ID / route"
-						value={body.id ?? ""}
-						onChange={(v) => set({ id: v })}
-						hint="Becomes the public path under /feeds/{id}/."
-						error={fieldErrors.id}
-						disabled={!isAdd}
-						required
-					/>
-					<TextField
-						label="Name"
-						value={body.name ?? ""}
-						onChange={(v) => set({ name: v })}
-						error={fieldErrors.name}
-						required
-					/>
-					<DataTableSelect
-						label="Source table"
-						value={body.table ?? ""}
-						onChange={(v) => set({ table: v })}
-						hint="Database table the feed pulls rows from."
-					/>
-					<SelectField
-						label="Type"
-						value={feedType}
-						onChange={(v) => set({ type: v })}
-						options={FEED_TYPES}
-					/>
-				</div>
-
-				<TextField
-					label="Description"
-					value={body.description ?? ""}
-					onChange={(v) => set({ description: v })}
-				/>
-
-				<div>
-					<SectionLabel className="mb-2">Feed settings</SectionLabel>
-					<FeedSettingsControl
-						type={feedType}
-						table={body.table ?? ""}
-						settings={asObject(body.settings)}
-						onChange={(next) => set({ settings: next })}
-					/>
-				</div>
-
-				{feedType === "custom" && (
-					<div>
-						<SectionLabel className="mb-2">Output fields</SectionLabel>
-						<ResourceDesigner
-							resources={(body.fields ?? []) as unknown as ResourceEntry[]}
-							onChange={(next) =>
-								set({ fields: next as unknown as ModuleFormField[] })
-							}
-							keyField="column"
-							useCase="feeds"
-							settingsErrors={settingsErrors}
+				<div className="space-y-4">
+					<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+						<TextField
+							label="ID / route"
+							value={body.id ?? ""}
+							onChange={(v) => set({ id: v })}
+							hint="Becomes the public path under /feeds/{id}/."
+							error={fieldErrors.id}
+							disabled={!isAdd}
+							required
+						/>
+						<TextField
+							label="Name"
+							value={body.name ?? ""}
+							onChange={(v) => set({ name: v })}
+							error={fieldErrors.name}
+							required
+						/>
+						<DataTableSelect
+							label="Source table"
+							value={body.table ?? ""}
+							onChange={(v) => set({ table: v })}
+							hint="Database table the feed pulls rows from."
+						/>
+						<SelectField
+							label="Type"
+							value={feedType}
+							onChange={(v) => set({ type: v })}
+							options={FEED_TYPES}
 						/>
 					</div>
-				)}
 
-				<div className="flex justify-end gap-2 border-t border-border pt-3">
-					<Button to="/developer/feeds">Cancel</Button>
-					<Button
-						variant="primary"
-						type="submit"
-						icon={<Save size={13} />}
-						disabled={saveMutation.isPending}
-					>
-						{saveMutation.isPending ? "Saving…" : isAdd ? "Create feed" : "Save feed"}
-					</Button>
+					<TextField
+						label="Description"
+						value={body.description ?? ""}
+						onChange={(v) => set({ description: v })}
+					/>
+
+					<div>
+						<SectionLabel className="mb-2">Feed settings</SectionLabel>
+						<FeedSettingsControl
+							type={feedType}
+							table={body.table ?? ""}
+							settings={asObject(body.settings)}
+							onChange={(next) => set({ settings: next })}
+						/>
+					</div>
+
+					{feedType === "custom" && (
+						<div>
+							<SectionLabel className="mb-2">Output fields</SectionLabel>
+							<ResourceDesigner
+								resources={(body.fields ?? []) as unknown as ResourceEntry[]}
+								onChange={(next) =>
+									set({ fields: next as unknown as ModuleFormField[] })
+								}
+								keyField="column"
+								useCase="feeds"
+								settingsErrors={settingsErrors}
+							/>
+						</div>
+					)}
 				</div>
-			</form>
+			</FormShell>
 
 			<UnsavedChangesGuard isDirty={isDirty} />
 		</div>

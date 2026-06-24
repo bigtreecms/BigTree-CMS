@@ -8,6 +8,7 @@ import { PageHead } from "@/components/shell/PageHead";
 import { Alert } from "@/components/ui/Alert";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { Button } from "@/components/ui/Button";
+import { FormShell } from "@/components/ui/FormShell";
 import { UnsavedChangesGuard } from "@/components/ui/UnsavedChangesGuard";
 import { useDirtyTracker } from "@/hooks/useDirtyTracker";
 
@@ -149,7 +150,7 @@ export const ModuleGroupEdit = () => {
 				</Alert>
 			)}
 
-			<form
+			<FormShell
 				onSubmit={(e) => {
 					e.preventDefault();
 
@@ -168,43 +169,49 @@ export const ModuleGroupEdit = () => {
 					setGeneralError(null);
 					saveMutation.mutate();
 				}}
-				className="space-y-4 rounded-xl border border-border bg-surface p-4"
+				footer={
+					<>
+						<Button to="/developer/module-groups">Cancel</Button>
+						<Button
+							variant="primary"
+							type="submit"
+							icon={<Save size={13} />}
+							disabled={saveMutation.isPending}
+						>
+							{saveMutation.isPending
+								? "Saving…"
+								: isAdd
+									? "Create group"
+									: "Save group"}
+						</Button>
+					</>
+				}
 			>
-				<TextField
-					label="Name"
-					value={body.name}
-					onChange={(v) => set({ name: v })}
-					error={fieldErrors.name}
-					required
-				/>
-				<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+				<div className="space-y-4">
 					<TextField
-						label="Route"
-						value={body.route}
-						onChange={(v) => set({ route: v })}
-						hint="Used on the Modules tab URL."
-						error={fieldErrors.route}
+						label="Name"
+						value={body.name}
+						onChange={(v) => set({ name: v })}
+						error={fieldErrors.name}
+						required
 					/>
-					<TextField
-						label="Position"
-						type="number"
-						value={String(body.position)}
-						onChange={(v) => set({ position: Number(v) || 0 })}
-					/>
+					<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+						<TextField
+							label="Route"
+							value={body.route}
+							onChange={(v) => set({ route: v })}
+							hint="Used on the Modules tab URL."
+							error={fieldErrors.route}
+						/>
+						<TextField
+							label="Position"
+							type="number"
+							value={String(body.position)}
+							onChange={(v) => set({ position: Number(v) || 0 })}
+						/>
+					</div>
 				</div>
-
-				<div className="flex justify-end gap-2 border-t border-border pt-3">
-					<Button to="/developer/module-groups">Cancel</Button>
-					<Button
-						variant="primary"
-						type="submit"
-						icon={<Save size={13} />}
-						disabled={saveMutation.isPending}
-					>
-						{saveMutation.isPending ? "Saving…" : isAdd ? "Create group" : "Save group"}
-					</Button>
-				</div>
-			</form>
+			</FormShell>
 
 			{!isAdd && idParam && (
 				<div className="mt-4">

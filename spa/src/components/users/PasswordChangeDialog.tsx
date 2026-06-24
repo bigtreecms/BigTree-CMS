@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { Eye, EyeOff } from "lucide-react";
 
+import { Alert } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
 import { IconButton } from "@/components/ui/IconButton";
@@ -147,11 +148,7 @@ export const PasswordChangeDialog = ({
 					/>
 				</Field>
 
-				{error && (
-					<div className="rounded-md border border-danger/30 bg-danger/10 px-3 py-2 text-[12.5px] text-danger">
-						{error}
-					</div>
-				)}
+				{error && <Alert tone="danger">{error}</Alert>}
 
 				<div className="mt-4 flex justify-end gap-2">
 					<Button variant="secondary" onClick={() => onOpenChange(false)}>

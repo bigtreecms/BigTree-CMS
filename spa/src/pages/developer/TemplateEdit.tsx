@@ -9,6 +9,7 @@ import { Alert } from "@/components/ui/Alert";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { Button } from "@/components/ui/Button";
 import { Checkbox } from "@/components/ui/Checkbox";
+import { FormShell } from "@/components/ui/FormShell";
 import { SelectField } from "@/components/ui/SelectField";
 import { TextField } from "@/components/ui/TextField";
 import { UnsavedChangesGuard } from "@/components/ui/UnsavedChangesGuard";
@@ -197,87 +198,92 @@ export const TemplateEdit = () => {
 				</Alert>
 			)}
 
-			<form
+			<FormShell
+				bounded={false}
 				onSubmit={handleSubmit}
-				className="space-y-4 rounded-xl border border-border bg-surface p-4"
+				footer={
+					<>
+						<Button to="/developer/templates">Cancel</Button>
+						<Button
+							variant="primary"
+							type="submit"
+							icon={<Save size={13} />}
+							disabled={saveMutation.isPending}
+						>
+							{saveMutation.isPending
+								? "Saving…"
+								: isAdd
+									? "Create template"
+									: "Save template"}
+						</Button>
+					</>
+				}
 			>
-				<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-					<TextField
-						label="ID"
-						value={body.id ?? ""}
-						onChange={(v) => set({ id: v })}
-						hint="Lowercase, hyphens or underscores. Cannot change after create."
-						error={fieldErrors.id}
-						disabled={!isAdd}
-						required
-					/>
-					<TextField
-						label="Name"
-						value={body.name ?? ""}
-						onChange={(v) => set({ name: v })}
-						error={fieldErrors.name}
-						required
-					/>
-					{body.routed && (
+				<div className="space-y-4">
+					<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
 						<TextField
-							label="Module (optional)"
-							value={body.module ?? ""}
-							onChange={(v) => set({ module: v })}
-							hint="Routed templates can bind to a module's content."
+							label="ID"
+							value={body.id ?? ""}
+							onChange={(v) => set({ id: v })}
+							hint="Lowercase, hyphens or underscores. Cannot change after create."
+							error={fieldErrors.id}
+							disabled={!isAdd}
+							required
 						/>
-					)}
-					<SelectField
-						label="Minimum user level"
-						value={String(body.level ?? 0)}
-						onChange={(v) => set({ level: Number(v) })}
-						options={[
-							{ value: "0", label: "Editor (0)" },
-							{ value: "1", label: "Admin (1)" },
-							{ value: "2", label: "Developer (2)" },
-						]}
+						<TextField
+							label="Name"
+							value={body.name ?? ""}
+							onChange={(v) => set({ name: v })}
+							error={fieldErrors.name}
+							required
+						/>
+						{body.routed && (
+							<TextField
+								label="Module (optional)"
+								value={body.module ?? ""}
+								onChange={(v) => set({ module: v })}
+								hint="Routed templates can bind to a module's content."
+							/>
+						)}
+						<SelectField
+							label="Minimum user level"
+							value={String(body.level ?? 0)}
+							onChange={(v) => set({ level: Number(v) })}
+							options={[
+								{ value: "0", label: "Editor (0)" },
+								{ value: "1", label: "Admin (1)" },
+								{ value: "2", label: "Developer (2)" },
+							]}
+						/>
+					</div>
+
+					<Checkbox
+						label="Routed template (template handler can capture URL segments)"
+						checked={Boolean(body.routed)}
+						onChange={(routed) => set({ routed })}
+					/>
+
+					<div>
+						<SectionLabel className="mb-2">
+							Resources (page content fields)
+						</SectionLabel>
+						<ResourceDesigner
+							resources={(body.resources ?? []) as unknown as ResourceEntry[]}
+							onChange={(next) =>
+								set({ resources: next as unknown as TemplateResource[] })
+							}
+							keyField="id"
+							useCase="templates"
+							settingsErrors={settingsErrors}
+						/>
+					</div>
+
+					<FormHooksEditor
+						value={(body.hooks as Record<string, unknown>) ?? {}}
+						onChange={(next) => set({ hooks: next })}
 					/>
 				</div>
-
-				<Checkbox
-					label="Routed template (template handler can capture URL segments)"
-					checked={Boolean(body.routed)}
-					onChange={(routed) => set({ routed })}
-				/>
-
-				<div>
-					<SectionLabel className="mb-2">Resources (page content fields)</SectionLabel>
-					<ResourceDesigner
-						resources={(body.resources ?? []) as unknown as ResourceEntry[]}
-						onChange={(next) =>
-							set({ resources: next as unknown as TemplateResource[] })
-						}
-						keyField="id"
-						useCase="templates"
-						settingsErrors={settingsErrors}
-					/>
-				</div>
-
-				<FormHooksEditor
-					value={(body.hooks as Record<string, unknown>) ?? {}}
-					onChange={(next) => set({ hooks: next })}
-				/>
-
-				<div className="flex justify-end gap-2 border-t border-border pt-3">
-					<Button to="/developer/templates">Cancel</Button>
-					<Button
-						variant="primary"
-						type="submit"
-						icon={<Save size={13} />}
-						disabled={saveMutation.isPending}
-					>
-						{saveMutation.isPending
-							? "Saving…"
-							: isAdd
-								? "Create template"
-								: "Save template"}
-					</Button>
-				</div>
-			</form>
+			</FormShell>
 
 			<UnsavedChangesGuard isDirty={isDirty} />
 		</div>

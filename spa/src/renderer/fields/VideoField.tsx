@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Search, Video as VideoIcon, X } from "lucide-react";
 
 import { ResourcePicker } from "@/components/files/ResourcePicker";
+import { Button } from "@/components/ui/Button";
 import { IconButton } from "@/components/ui/IconButton";
 
 import { INPUT_CLASS, settingsOf, type FieldComponentProps } from "./types";
@@ -81,15 +82,14 @@ export const VideoField = ({ field, value, onChange, disabled }: FieldComponentP
 					onChange={(e) => handleUrlChange(e.target.value)}
 				/>
 				{showBrowse && (
-					<button
-						type="button"
-						className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] hover:bg-hover disabled:opacity-50"
+					<Button
+						variant="secondary"
+						icon={<Search size={13} />}
 						onClick={() => setPickerOpen(true)}
 						disabled={disabled}
 					>
-						<Search size={13} />
 						Browse media
-					</button>
+					</Button>
 				)}
 			</div>
 
