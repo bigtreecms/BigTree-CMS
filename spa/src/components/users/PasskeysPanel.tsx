@@ -15,6 +15,7 @@ import { toast } from "@/lib/toast";
 import { InlineEmpty } from "@/components/ui/InlineEmpty";
 import { IconButton } from "@/components/ui/IconButton";
 import { Field } from "@/components/ui/Field";
+import { SectionLabel } from "@/components/ui/SectionLabel";
 
 /**
  * Profile → Security passkey manager.
@@ -78,9 +79,7 @@ export const PasskeysPanel = () => {
 			<header className="flex items-center justify-between border-b border-border bg-surface-2 px-4 py-3">
 				<div className="flex items-center gap-2">
 					<Key size={14} className="text-text-3" />
-					<h3 className="text-[12.5px] font-semibold uppercase tracking-[0.06em] text-text-3">
-						Passkeys
-					</h3>
+					<SectionLabel as="h3">Passkeys</SectionLabel>
 				</div>
 				{supported && !showAddPrompt && (
 					<Button

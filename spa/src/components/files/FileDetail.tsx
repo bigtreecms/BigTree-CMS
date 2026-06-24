@@ -37,6 +37,7 @@ import { IconButton } from "@/components/ui/IconButton";
 import { Select } from "@/components/ui/Select";
 import { TextInput } from "@/components/ui/TextInput";
 import { Field } from "@/components/ui/Field";
+import { SectionLabel } from "@/components/ui/SectionLabel";
 
 interface FileDetailProps {
 	/** Resource id to load, or `null` to keep the SlideOver closed. */
@@ -314,9 +315,9 @@ export const FileDetail = ({ resourceId, onOpenChange, folderQueryKey }: FileDet
 
 						{metaFields.length > 0 && (
 							<section>
-								<h3 className="mb-1.5 text-[12px] font-semibold uppercase tracking-[0.06em] text-text-3">
+								<SectionLabel as="h3" className="mb-1.5">
 									Metadata
-								</h3>
+								</SectionLabel>
 								<div className="flex flex-col gap-3 rounded-lg border border-border bg-surface-2 p-3">
 									{metaFields.map((def) => {
 										const field: ModuleFormField = {
@@ -493,9 +494,7 @@ const CropsSection = ({ crops, onAddCrop }: CropsSectionProps) => {
 	return (
 		<section>
 			<div className="mb-1.5 flex items-center justify-between">
-				<h3 className="text-[12px] font-semibold uppercase tracking-[0.06em] text-text-3">
-					Crops
-				</h3>
+				<SectionLabel as="h3">Crops</SectionLabel>
 				<button
 					type="button"
 					className="inline-flex items-center gap-1 rounded-md border border-border bg-surface px-2 py-1 text-[11.5px] hover:bg-hover"

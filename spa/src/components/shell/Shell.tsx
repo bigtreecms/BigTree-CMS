@@ -8,6 +8,7 @@ import { QuickSearch } from "./QuickSearch";
 import { Toaster } from "@/components/ui/Toaster";
 import { Button } from "@/components/ui/Button";
 import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
+import { IconTile } from "@/components/ui/IconTile";
 import { applyTheme, resolveInitialTheme } from "@/lib/theme";
 import { authApi } from "@/auth/endpoints";
 import { useAuthStore } from "@/auth/store";
@@ -43,9 +44,9 @@ export const Shell = () => {
 		return (
 			<div className="grid min-h-screen place-items-center bg-bg px-4">
 				<div className="w-full max-w-[420px] rounded-lg border border-border bg-surface p-6 text-center shadow-md">
-					<div className="mx-auto mb-3 grid size-10 place-items-center rounded-full bg-info-bg text-info">
+					<IconTile tone="info" size="lg" radius="full" className="mx-auto mb-3">
 						<Wrench size={18} />
-					</div>
+					</IconTile>
 					<h1 className="mb-1 text-[15px] font-semibold tracking-[-0.01em]">
 						Maintenance underway
 					</h1>

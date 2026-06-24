@@ -1,6 +1,7 @@
 import type { DbOption } from "@/api/endpoints/db";
 import { InlineEmpty } from "@/components/ui/InlineEmpty";
 import { Loading } from "@/components/ui/Loading";
+import { SectionLabel } from "@/components/ui/SectionLabel";
 
 interface ViewActionsControlProps {
 	/** Action map keyed by action route; built-ins store the value `"on"`. */
@@ -99,9 +100,7 @@ export const ViewActionsControl = ({
 
 	return (
 		<div>
-			<div className="mb-2 text-[12px] font-semibold uppercase tracking-[0.06em] text-text-3">
-				Row actions
-			</div>
+			<SectionLabel className="mb-2">Row actions</SectionLabel>
 
 			{!tableSelected ? (
 				<InlineEmpty align="center">Select a table to choose row actions.</InlineEmpty>

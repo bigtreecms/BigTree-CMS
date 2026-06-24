@@ -5,6 +5,7 @@ import { ChevronLeft, ChevronRight, X } from "lucide-react";
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
+import { Alert } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
 
 import { PageSummaryPanel } from "@/components/pages/PageSummaryPanel";
@@ -243,9 +244,9 @@ export const PageAdd = () => {
 			<PageSectionToolbar active="add" pageId={parent > 0 ? parent : 0} parentId={parent} />
 
 			{generalError && (
-				<div className="mb-3 rounded-md border border-danger/40 bg-danger/5 px-3 py-2 text-[12.5px] text-danger">
+				<Alert tone="danger" className="mb-3">
 					{generalError}
-				</div>
+				</Alert>
 			)}
 
 			<form

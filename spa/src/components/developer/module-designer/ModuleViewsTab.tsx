@@ -28,6 +28,7 @@ import { NEW_ROW, useSubCrud } from "./useSubCrud";
 import { DragHandle } from "@/components/ui/DragHandle";
 import { InlineEmpty } from "@/components/ui/InlineEmpty";
 import { IconButton } from "@/components/ui/IconButton";
+import { SectionLabel } from "@/components/ui/SectionLabel";
 
 interface ModuleViewsTabProps {
 	moduleId: string;
@@ -334,9 +335,7 @@ export const ModuleViewsTab = ({ moduleId, moduleTable }: ModuleViewsTabProps) =
 					/>
 
 					<div>
-						<div className="mb-2 text-[12px] font-semibold uppercase tracking-[0.06em] text-text-3">
-							Columns
-						</div>
+						<SectionLabel className="mb-2">Columns</SectionLabel>
 						{!draft.table ? (
 							<InlineEmpty align="center">
 								Select a data table to add columns.
@@ -425,9 +424,7 @@ export const ModuleViewsTab = ({ moduleId, moduleTable }: ModuleViewsTabProps) =
 
 					{draft.type !== "searchable" && draft.type !== "draggable" && (
 						<div>
-							<div className="mb-2 text-[12px] font-semibold uppercase tracking-[0.06em] text-text-3">
-								{draft.type} settings
-							</div>
+							<SectionLabel className="mb-2">{draft.type} settings</SectionLabel>
 							<ViewTypeSettingsControl
 								type={draft.type}
 								table={draft.table}

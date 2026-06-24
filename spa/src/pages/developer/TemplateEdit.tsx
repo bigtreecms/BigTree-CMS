@@ -5,6 +5,7 @@ import { ChevronLeft, Save } from "lucide-react";
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
+import { Alert } from "@/components/ui/Alert";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { Button } from "@/components/ui/Button";
 import { Checkbox } from "@/components/ui/Checkbox";
@@ -12,6 +13,7 @@ import { SelectField } from "@/components/ui/SelectField";
 import { TextField } from "@/components/ui/TextField";
 import { UnsavedChangesGuard } from "@/components/ui/UnsavedChangesGuard";
 import { Loading } from "@/components/ui/Loading";
+import { SectionLabel } from "@/components/ui/SectionLabel";
 import { useDirtyTracker } from "@/hooks/useDirtyTracker";
 
 import { DeveloperSectionNav } from "@/components/developer/DeveloperSectionNav";
@@ -190,9 +192,9 @@ export const TemplateEdit = () => {
 			<DeveloperSectionNav />
 
 			{generalError && (
-				<div className="mb-3 rounded-md border border-danger/40 bg-danger/5 px-3 py-2 text-[12.5px] text-danger">
+				<Alert tone="danger" className="mb-3">
 					{generalError}
-				</div>
+				</Alert>
 			)}
 
 			<form
@@ -243,9 +245,7 @@ export const TemplateEdit = () => {
 				/>
 
 				<div>
-					<div className="mb-2 text-[12px] font-semibold uppercase tracking-[0.06em] text-text-3">
-						Resources (page content fields)
-					</div>
+					<SectionLabel className="mb-2">Resources (page content fields)</SectionLabel>
 					<ResourceDesigner
 						resources={(body.resources ?? []) as unknown as ResourceEntry[]}
 						onChange={(next) =>

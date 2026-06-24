@@ -7,6 +7,7 @@ import { GravatarAvatar } from "@/components/users/GravatarAvatar";
 
 import { pagesApi, type PageAccessUser } from "@/api/endpoints/pages";
 import { InlineEmpty } from "@/components/ui/InlineEmpty";
+import { SectionLabel } from "@/components/ui/SectionLabel";
 
 interface AccessLevelsDialogProps {
 	open: boolean;
@@ -72,11 +73,10 @@ interface UserListProps {
 
 const UserList = ({ title, icon, hint, users, empty }: UserListProps) => (
 	<section>
-		<h3 className="mb-0.5 flex items-center gap-1.5 text-[12px] font-semibold uppercase tracking-[0.06em] text-text-3">
-			{icon}
+		<SectionLabel as="h3" icon={icon} className="mb-0.5">
 			{title}
 			<span className="tabular-nums">({users.length})</span>
-		</h3>
+		</SectionLabel>
 		<p className="mb-2 text-[11.5px] text-text-3">{hint}</p>
 
 		{users.length === 0 ? (

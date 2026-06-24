@@ -8,6 +8,7 @@ import type {
 import { Badge, type BadgeTone } from "@/components/ui/Badge";
 import { Loading } from "@/components/ui/Loading";
 import { InlineEmpty } from "@/components/ui/InlineEmpty";
+import { SectionLabel } from "@/components/ui/SectionLabel";
 
 interface FileUsageListProps {
 	isLoading: boolean;
@@ -75,9 +76,9 @@ const StatusBadge = ({ status }: StatusBadgeProps) => {
 export const FileUsageList = ({ isLoading, usages }: FileUsageListProps) => {
 	return (
 		<section>
-			<h3 className="mb-1.5 text-[12px] font-semibold uppercase tracking-[0.06em] text-text-3">
+			<SectionLabel as="h3" className="mb-1.5">
 				Used by
-			</h3>
+			</SectionLabel>
 
 			{isLoading ? (
 				<Loading />

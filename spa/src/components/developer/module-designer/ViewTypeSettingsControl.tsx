@@ -1,4 +1,5 @@
 import { DataColumnSelect } from "@/components/developer/DataColumnSelect";
+import { SectionLabel } from "@/components/ui/SectionLabel";
 import { DataTableSelect } from "@/components/developer/DataTableSelect";
 
 import { CheckboxInput, SelectInput, TextInput } from "./inputs";
@@ -71,9 +72,7 @@ export const ViewTypeSettingsControl = ({
 
 	const groupingParams = (withSortField: boolean) => (
 		<div className="space-y-4 border-t border-border pt-4">
-			<div className="text-[12px] font-semibold uppercase tracking-[0.06em] text-text-3">
-				Grouping parameters
-			</div>
+			<SectionLabel>Grouping parameters</SectionLabel>
 			<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
 				<DataTableSelect
 					label="Other table"

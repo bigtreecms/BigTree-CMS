@@ -17,6 +17,7 @@ import { PageHead } from "@/components/shell/PageHead";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { Button } from "@/components/ui/Button";
 import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
+import { IconTile } from "@/components/ui/IconTile";
 import { SearchInput } from "@/components/ui/SearchInput";
 import { IconButton } from "@/components/ui/IconButton";
 import { FileDetail } from "@/components/files/FileDetail";
@@ -77,16 +78,16 @@ const FileThumb = ({ resource }: FileThumbProps) => {
 	const Icon = resource.is_video ? Film : FileIcon;
 
 	return (
-		<span className="inline-grid size-9 place-items-center rounded bg-surface-2 text-text-3 ring-1 ring-border">
+		<IconTile tone="neutral" ringed>
 			{resource.is_image ? <ImageIcon size={16} /> : <Icon size={16} />}
-		</span>
+		</IconTile>
 	);
 };
 
 const FolderThumb = () => (
-	<span className="inline-grid size-9 place-items-center rounded bg-accent-soft text-accent ring-1 ring-border">
+	<IconTile ringed>
 		<Folder size={16} />
-	</span>
+	</IconTile>
 );
 
 export const Files = () => {

@@ -6,6 +6,7 @@ import { resourceFoldersApi, type ResourceFolderRow } from "@/api/endpoints/reso
 import type { PermissionCode, UserPermissions } from "@/api/endpoints/users";
 
 import { PermissionRadios } from "./PermissionRadios";
+import { PermissionTreeHeader } from "./PermissionTreeHeader";
 import { RESOURCE_PERMISSION_OPTIONS } from "./permissionOptions";
 
 interface ResourcePermissionsTreeProps {
@@ -33,17 +34,14 @@ export const ResourcePermissionsTree = ({ value, onChange }: ResourcePermissions
 
 	return (
 		<div>
-			<div
-				className="grid items-center gap-2 rounded-t-md border border-border bg-surface-2 px-3 py-2 text-[10.5px] font-semibold uppercase tracking-[0.06em] text-text-3"
-				style={{ gridTemplateColumns: "minmax(0,1fr) repeat(4, 80px)" }}
-			>
+			<PermissionTreeHeader columns="minmax(0,1fr) repeat(4, 80px)">
 				<div>Folder</div>
 				{RESOURCE_PERMISSION_OPTIONS.map((opt) => (
 					<div key={opt.value} className="text-center">
 						{opt.label}
 					</div>
 				))}
-			</div>
+			</PermissionTreeHeader>
 
 			<div className="border-x border-b border-border">
 				<FolderRow

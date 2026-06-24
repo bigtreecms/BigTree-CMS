@@ -5,8 +5,10 @@ import { AlertTriangle, CheckCircle2, ChevronLeft, Package, Upload } from "lucid
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
+import { Alert } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { SectionLabel } from "@/components/ui/SectionLabel";
 import { DeveloperSectionNav } from "@/components/developer/DeveloperSectionNav";
 
 import {
@@ -89,9 +91,9 @@ export const ExtensionInstall = () => {
 			<DeveloperSectionNav />
 
 			{error && (
-				<div className="mb-3 rounded-md border border-danger/40 bg-danger/5 px-3 py-2 text-[12.5px] text-danger">
+				<Alert tone="danger" className="mb-3">
 					{error}
-				</div>
+				</Alert>
 			)}
 
 			{result ? (
@@ -102,9 +104,9 @@ export const ExtensionInstall = () => {
 					</div>
 					{result.output ? (
 						<div>
-							<h3 className="mb-1.5 text-[11px] font-semibold uppercase tracking-[0.06em] text-text-3">
+							<SectionLabel as="h3" size="sm" className="mb-1.5">
 								Installer output
-							</h3>
+							</SectionLabel>
 							<div
 								className="overflow-x-auto rounded-lg border border-border bg-surface-2 p-3 text-[12.5px] text-text-2"
 								// install.php output is developer-authored markup (level-2 gated).
@@ -140,30 +142,27 @@ export const ExtensionInstall = () => {
 					</div>
 
 					{preview.errors.length > 0 && (
-						<div className="rounded-md border border-danger/40 bg-danger/5 p-3">
-							<div className="mb-1.5 flex items-center gap-1.5 text-[12px] font-semibold text-danger">
-								<AlertTriangle size={13} />
-								Errors — fix these before installing
-							</div>
-							<ul className="list-disc space-y-1 pl-5 text-[12px] text-danger">
+						<Alert
+							tone="danger"
+							icon={<AlertTriangle size={13} />}
+							title="Errors — fix these before installing"
+						>
+							<ul className="list-disc space-y-1 pl-5 text-[12px]">
 								{preview.errors.map((e) => (
 									<li key={e}>{e}</li>
 								))}
 							</ul>
-						</div>
+						</Alert>
 					)}
 
 					{preview.warnings.length > 0 && (
-						<div className="rounded-md border border-warn/40 bg-warn/5 p-3">
-							<div className="mb-1.5 text-[12px] font-semibold text-warn">
-								Warnings
-							</div>
+						<Alert tone="warn" title="Warnings">
 							<ul className="list-disc space-y-1 pl-5 text-[12px] text-text-2">
 								{preview.warnings.map((w) => (
 									<li key={w}>{w}</li>
 								))}
 							</ul>
-						</div>
+						</Alert>
 					)}
 
 					{preview.ready && preview.warnings.length === 0 && (

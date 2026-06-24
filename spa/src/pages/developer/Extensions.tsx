@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/Button";
 import { SlideOver } from "@/components/ui/SlideOver";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
+import { SectionLabel } from "@/components/ui/SectionLabel";
 
 import { extensionsApi, type Extension } from "@/api/endpoints/extensions";
 import { useIgnoredExtensionUpdates } from "@/hooks/useIgnoredExtensionUpdates";
@@ -279,9 +280,9 @@ export const Extensions = () => {
 						/>
 
 						<div>
-							<h3 className="mb-1.5 text-[11px] font-semibold uppercase tracking-[0.06em] text-text-3">
+							<SectionLabel as="h3" size="sm" className="mb-1.5">
 								Manifest
-							</h3>
+							</SectionLabel>
 							<pre className="overflow-x-auto rounded-lg border border-border bg-surface-2 p-3 font-mono text-[11.5px] leading-relaxed text-text-2">
 								{JSON.stringify(detail.manifest, null, 2)}
 							</pre>

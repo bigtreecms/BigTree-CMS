@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Crop, ImageIcon, Images, Search, Upload as UploadIcon, X } from "lucide-react";
 
 import { ResourcePicker } from "@/components/files/ResourcePicker";
+import { Alert } from "@/components/ui/Alert";
 import { IconButton } from "@/components/ui/IconButton";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 
@@ -248,12 +249,9 @@ export const ImageField = ({ field, value, onChange, disabled }: FieldComponentP
 			</div>
 
 			{error && (
-				<div
-					data-field-error
-					className="rounded-md border border-danger/40 bg-danger/5 px-3 py-2 text-[12px] text-danger"
-				>
+				<Alert tone="danger" data-field-error>
 					{error}
-				</div>
+				</Alert>
 			)}
 
 			{currentPath ? (

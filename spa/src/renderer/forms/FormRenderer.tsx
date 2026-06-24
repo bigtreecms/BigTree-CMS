@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import type { ModuleForm, ModuleFormField } from "@/api/endpoints/modules";
 import type { Tag } from "@/api/endpoints/tags";
 import { TagInput } from "@/components/tags/TagInput";
+import { Alert } from "@/components/ui/Alert";
 import { UnsavedChangesGuard } from "@/components/ui/UnsavedChangesGuard";
 import { useScrollToFirstError } from "@/hooks/useScrollToFirstError";
 import { ApiError } from "@/types/api";
@@ -268,9 +269,9 @@ export const FormRenderer = ({
 
 			<div className="p-4">
 				{generalError && (
-					<div className="mb-4 rounded-md border border-danger/40 bg-danger/5 px-3 py-2 text-[12.5px] text-danger">
+					<Alert tone="danger" className="mb-4">
 						{generalError}
-					</div>
+					</Alert>
 				)}
 
 				{pendingStatus && (

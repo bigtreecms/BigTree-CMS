@@ -5,6 +5,7 @@ import { ChevronLeft, Save } from "lucide-react";
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
+import { Alert } from "@/components/ui/Alert";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { Button } from "@/components/ui/Button";
 import { UnsavedChangesGuard } from "@/components/ui/UnsavedChangesGuard";
@@ -28,6 +29,7 @@ import { validateRequired } from "@/lib/formValidation";
 import { SelectField } from "@/components/ui/SelectField";
 import { TextField } from "@/components/ui/TextField";
 import { Loading } from "@/components/ui/Loading";
+import { SectionLabel } from "@/components/ui/SectionLabel";
 
 const FEED_TYPES = [
 	{ value: "custom", label: "Custom" },
@@ -175,9 +177,9 @@ export const FeedEdit = () => {
 			<DeveloperSectionNav />
 
 			{generalError && (
-				<div className="mb-3 rounded-md border border-danger/40 bg-danger/5 px-3 py-2 text-[12.5px] text-danger">
+				<Alert tone="danger" className="mb-3">
 					{generalError}
-				</div>
+				</Alert>
 			)}
 
 			<form
@@ -243,9 +245,7 @@ export const FeedEdit = () => {
 				/>
 
 				<div>
-					<div className="mb-2 text-[12px] font-semibold uppercase tracking-[0.06em] text-text-3">
-						Feed settings
-					</div>
+					<SectionLabel className="mb-2">Feed settings</SectionLabel>
 					<FeedSettingsControl
 						type={feedType}
 						table={body.table ?? ""}
@@ -256,9 +256,7 @@ export const FeedEdit = () => {
 
 				{feedType === "custom" && (
 					<div>
-						<div className="mb-2 text-[12px] font-semibold uppercase tracking-[0.06em] text-text-3">
-							Output fields
-						</div>
+						<SectionLabel className="mb-2">Output fields</SectionLabel>
 						<ResourceDesigner
 							resources={(body.fields ?? []) as unknown as ResourceEntry[]}
 							onChange={(next) =>

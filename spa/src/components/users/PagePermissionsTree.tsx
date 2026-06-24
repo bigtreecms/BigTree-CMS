@@ -6,6 +6,7 @@ import { pagesApi, type PageListRow } from "@/api/endpoints/pages";
 import type { PermissionCode, UserAlerts, UserPermissions } from "@/api/endpoints/users";
 
 import { PermissionRadios } from "./PermissionRadios";
+import { PermissionTreeHeader } from "./PermissionTreeHeader";
 import { PAGE_PERMISSION_OPTIONS } from "./permissionOptions";
 
 interface PagePermissionsTreeProps {
@@ -84,13 +85,8 @@ interface TreeHeaderProps {
 
 const TreeHeader = ({ isAdminUser }: TreeHeaderProps) => {
 	return (
-		<div
-			className="grid items-center gap-2 rounded-t-md border border-border bg-surface-2 px-3 py-2 text-[10.5px] font-semibold uppercase tracking-[0.06em] text-text-3"
-			style={{
-				gridTemplateColumns: isAdminUser
-					? "minmax(0,1fr) 120px"
-					: "minmax(0,1fr) 120px repeat(4, 80px)",
-			}}
+		<PermissionTreeHeader
+			columns={isAdminUser ? "minmax(0,1fr) 120px" : "minmax(0,1fr) 120px repeat(4, 80px)"}
 		>
 			<div>Page</div>
 			<div className="text-center">Content alerts</div>
@@ -101,7 +97,7 @@ const TreeHeader = ({ isAdminUser }: TreeHeaderProps) => {
 						{opt.label}
 					</div>
 				))}
-		</div>
+		</PermissionTreeHeader>
 	);
 };
 

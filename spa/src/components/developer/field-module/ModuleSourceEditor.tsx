@@ -1,4 +1,6 @@
 import { useState, type KeyboardEvent } from "react";
+import { Alert } from "@/components/ui/Alert";
+import { SectionLabel } from "@/components/ui/SectionLabel";
 import { ChevronDown, ChevronRight } from "lucide-react";
 
 import type { SettingDescriptor } from "@/api/endpoints/field-types";
@@ -60,9 +62,7 @@ export const ModuleSourceEditor = ({
 	return (
 		<div className="space-y-3">
 			<div>
-				<div className="mb-2 text-[12px] font-semibold uppercase tracking-[0.06em] text-text-3">
-					Module code
-				</div>
+				<SectionLabel className="mb-2">Module code</SectionLabel>
 				<textarea
 					value={value}
 					aria-label="Module code"
@@ -98,22 +98,18 @@ export const ModuleSourceEditor = ({
 			</div>
 
 			<div>
-				<div className="mb-2 text-[12px] font-semibold uppercase tracking-[0.06em] text-text-3">
-					Settings
-				</div>
+				<SectionLabel className="mb-2">Settings</SectionLabel>
 				{settingsParseError && (
-					<div className="mb-2 rounded-md border border-danger/40 bg-danger/5 px-3 py-2 text-[12px] text-danger">
+					<Alert tone="danger" className="mb-2">
 						Couldn&apos;t parse <code>settings.js</code> — the settings shown here may
 						be empty or out of date. Rebuild them below and save to overwrite the file.
-					</div>
+					</Alert>
 				)}
 				<SettingsSchemaBuilder value={settingsSchema} onChange={onSettingsSchemaChange} />
 			</div>
 
 			<div>
-				<div className="mb-2 text-[12px] font-semibold uppercase tracking-[0.06em] text-text-3">
-					Live preview
-				</div>
+				<SectionLabel className="mb-2">Live preview</SectionLabel>
 				<ModulePreview
 					source={value}
 					settingsSchema={settingsSchema}

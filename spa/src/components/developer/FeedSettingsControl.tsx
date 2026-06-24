@@ -1,6 +1,7 @@
 import { DataColumnSelect } from "./DataColumnSelect";
 
 import { TextField } from "@/components/ui/TextField";
+import { SectionLabel } from "@/components/ui/SectionLabel";
 
 /**
  * Per-feed-type settings form — the SPA equivalent of the legacy
@@ -79,9 +80,7 @@ export const FeedSettingsControl = ({
 				)}
 			</div>
 
-			<div className="text-[12px] font-semibold uppercase tracking-[0.06em] text-text-3">
-				Field mapping
-			</div>
+			<SectionLabel>Field mapping</SectionLabel>
 			<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
 				{column("title", "Title field")}
 				{column("description", "Description field")}

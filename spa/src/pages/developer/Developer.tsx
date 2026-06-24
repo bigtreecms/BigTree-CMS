@@ -14,6 +14,7 @@ import {
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
+import { IconTile } from "@/components/ui/IconTile";
 
 import { DeveloperSectionNav } from "@/components/developer/DeveloperSectionNav";
 
@@ -106,9 +107,7 @@ export const Developer = () => (
 					to={s.to}
 					className="group flex items-start gap-3 rounded-xl border border-border bg-surface p-4 transition-colors hover:border-accent-ring hover:bg-surface-2"
 				>
-					<span className="grid size-9 shrink-0 place-items-center rounded-md bg-accent-soft text-accent">
-						{s.icon}
-					</span>
+					<IconTile className="shrink-0">{s.icon}</IconTile>
 					<div className="min-w-0">
 						<div className="text-[13.5px] font-semibold text-text group-hover:text-accent">
 							{s.title}

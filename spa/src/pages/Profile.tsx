@@ -23,6 +23,7 @@ import { useDirtyTracker } from "@/hooks/useDirtyTracker";
 import { UnsavedChangesGuard } from "@/components/ui/UnsavedChangesGuard";
 import { Card } from "@/components/ui/Card";
 import { Field } from "@/components/ui/Field";
+import { SectionLabel } from "@/components/ui/SectionLabel";
 
 /**
  * Self-service profile editor — Account + Security tabs.
@@ -275,9 +276,7 @@ const SecurityTab = ({ me, onChangePassword }: SecurityTabProps) => (
 		<Card>
 			<header className="flex items-center gap-2 border-b border-border bg-surface-2 px-4 py-3">
 				<Key size={14} className="text-text-3" />
-				<h3 className="text-[12.5px] font-semibold uppercase tracking-[0.06em] text-text-3">
-					Password
-				</h3>
+				<SectionLabel as="h3">Password</SectionLabel>
 			</header>
 			<div className="flex items-center justify-between gap-3 p-4 text-[12.5px]">
 				<span className="text-text-3">

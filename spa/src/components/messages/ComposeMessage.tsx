@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { keepPreviousData } from "@tanstack/react-query";
 import { Search } from "lucide-react";
 
+import { Alert } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
 import { SlideOver } from "@/components/ui/SlideOver";
 import { Field } from "@/components/ui/Field";
@@ -167,11 +168,7 @@ export const ComposeMessage = ({
 			}
 		>
 			<div className="space-y-4">
-				{generalError && (
-					<div className="rounded-md border border-danger/40 bg-danger/5 px-3 py-2 text-[12.5px] text-danger">
-						{generalError}
-					</div>
-				)}
+				{generalError && <Alert tone="danger">{generalError}</Alert>}
 
 				<div>
 					<label

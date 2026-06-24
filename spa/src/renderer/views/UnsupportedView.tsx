@@ -1,4 +1,5 @@
 import type { ModuleView } from "@/api/endpoints/modules";
+import { SectionLabel } from "@/components/ui/SectionLabel";
 
 interface UnsupportedViewProps {
 	view: ModuleView;
@@ -25,9 +26,9 @@ export const UnsupportedView = ({ view }: UnsupportedViewProps) => {
 			</p>
 			{columns.length > 0 && (
 				<div className="mt-4">
-					<h4 className="text-[11px] font-semibold uppercase tracking-[0.06em] text-text-3">
+					<SectionLabel as="h4" size="sm">
 						Configured columns
-					</h4>
+					</SectionLabel>
 					<ul className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-[12.5px] text-text-2 sm:grid-cols-3">
 						{columns.map(([key, field]) => (
 							<li key={key} className="truncate">

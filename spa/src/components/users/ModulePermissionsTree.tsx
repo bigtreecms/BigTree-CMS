@@ -5,6 +5,7 @@ import { modulesApi, type ModuleGroup, type ModuleSummary } from "@/api/endpoint
 import type { PermissionCode, UserPermissions } from "@/api/endpoints/users";
 
 import { PermissionRadios } from "./PermissionRadios";
+import { PermissionTreeHeader } from "./PermissionTreeHeader";
 import { MODULE_PERMISSION_OPTIONS } from "./permissionOptions";
 
 const GRID_COLUMNS = "minmax(0,1fr) repeat(3, 80px)";
@@ -183,17 +184,14 @@ export const ModulePermissionsTree = ({
 
 	return (
 		<div>
-			<div
-				className="grid items-center gap-2 rounded-t-md border border-border bg-surface-2 px-3 py-2 text-[10.5px] font-semibold uppercase tracking-[0.06em] text-text-3"
-				style={{ gridTemplateColumns: GRID_COLUMNS }}
-			>
+			<PermissionTreeHeader columns={GRID_COLUMNS}>
 				<div>Module</div>
 				{MODULE_PERMISSION_OPTIONS.map((opt) => (
 					<div key={opt.value} className="text-center">
 						{opt.label}
 					</div>
 				))}
-			</div>
+			</PermissionTreeHeader>
 
 			<div className="border-x border-b border-border">
 				{grouped.map(({ group, modules }) => (

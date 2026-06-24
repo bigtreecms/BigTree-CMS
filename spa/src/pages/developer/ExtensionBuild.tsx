@@ -4,6 +4,7 @@ import { ChevronLeft, Download, Package } from "lucide-react";
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
+import { Alert } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
 import { DescriptionList } from "@/components/ui/DescriptionList";
 import { Checkbox } from "@/components/ui/Checkbox";
@@ -246,9 +247,9 @@ export const ExtensionBuild = () => {
 			</ol>
 
 			{error && (
-				<div className="mb-3 rounded-md border border-danger/40 bg-danger/5 px-3 py-2 text-[12.5px] text-danger">
+				<Alert tone="danger" className="mb-3">
 					{error}
-				</div>
+				</Alert>
 			)}
 
 			{result ? (

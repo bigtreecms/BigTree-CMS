@@ -5,6 +5,7 @@ import { ChevronLeft, Save, Trash } from "lucide-react";
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
+import { Alert } from "@/components/ui/Alert";
 import { Combobox, type ComboboxOption } from "@/components/ui/Combobox";
 import { Button } from "@/components/ui/Button";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
@@ -25,6 +26,7 @@ import { TextField } from "@/components/ui/TextField";
 import { Loading } from "@/components/ui/Loading";
 import { InlineEmpty } from "@/components/ui/InlineEmpty";
 import { IconButton } from "@/components/ui/IconButton";
+import { SectionLabel } from "@/components/ui/SectionLabel";
 
 export const CalloutGroupEdit = () => {
 	const { id: idParam } = useParams<{ id: string }>();
@@ -169,9 +171,9 @@ export const CalloutGroupEdit = () => {
 			<DeveloperSectionNav />
 
 			{generalError && (
-				<div className="mb-3 rounded-md border border-danger/40 bg-danger/5 px-3 py-2 text-[12.5px] text-danger">
+				<Alert tone="danger" className="mb-3">
 					{generalError}
-				</div>
+				</Alert>
 			)}
 
 			<form
@@ -217,9 +219,7 @@ export const CalloutGroupEdit = () => {
 
 				<div>
 					<div className="mb-2 flex items-center justify-between gap-2">
-						<div className="text-[12px] font-semibold uppercase tracking-[0.06em] text-text-3">
-							Callouts in this group
-						</div>
+						<SectionLabel>Callouts in this group</SectionLabel>
 						<span className="text-[11.5px] tabular-nums text-text-3">
 							{selectedIds.length === 1
 								? "1 callout"

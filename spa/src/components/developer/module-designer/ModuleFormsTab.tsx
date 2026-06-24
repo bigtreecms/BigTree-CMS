@@ -11,6 +11,7 @@ import {
 } from "@/api/endpoints/modules";
 
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+import { SectionLabel } from "@/components/ui/SectionLabel";
 import {
 	ResourceDesigner,
 	toModuleFormFields,
@@ -231,9 +232,7 @@ export const ModuleFormsTab = ({ moduleId, moduleTable }: ModuleFormsTabProps) =
 					</div>
 
 					<div>
-						<div className="mb-2 text-[12px] font-semibold uppercase tracking-[0.06em] text-text-3">
-							Fields
-						</div>
+						<SectionLabel className="mb-2">Fields</SectionLabel>
 						<ResourceDesigner
 							resources={draft.fields as unknown as ResourceEntry[]}
 							onChange={(next) =>

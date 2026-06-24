@@ -6,6 +6,7 @@ import { ChevronLeft, Plus } from "lucide-react";
 import { useAuthStore } from "@/auth/store";
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
+import { Alert } from "@/components/ui/Alert";
 import { AccessDenied } from "@/components/ui/AccessDenied";
 import { Button } from "@/components/ui/Button";
 import { SubNav } from "@/components/ui/SubNav";
@@ -146,9 +147,9 @@ export const TagAdd = () => {
 			/>
 
 			{error && (
-				<div className="mb-3 rounded-md border border-danger/40 bg-danger/5 px-3 py-2 text-[12.5px] text-danger">
+				<Alert tone="danger" className="mb-3">
 					{error}
-				</div>
+				</Alert>
 			)}
 
 			<form

@@ -5,6 +5,7 @@ import { ChevronLeft, Save } from "lucide-react";
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
+import { Alert } from "@/components/ui/Alert";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { Button } from "@/components/ui/Button";
 import { Checkbox } from "@/components/ui/Checkbox";
@@ -35,6 +36,7 @@ import { validateRequired } from "@/lib/formValidation";
 
 import { TextField } from "@/components/ui/TextField";
 import { Loading } from "@/components/ui/Loading";
+import { SectionLabel } from "@/components/ui/SectionLabel";
 
 /**
  * The detail endpoint returns a field type's raw record, where `use_cases` may be
@@ -207,9 +209,9 @@ export const FieldTypeEdit = () => {
 			<DeveloperSectionNav />
 
 			{generalError && (
-				<div className="mb-3 rounded-md border border-danger/40 bg-danger/5 px-3 py-2 text-[12.5px] text-danger">
+				<Alert tone="danger" className="mb-3">
 					{generalError}
-				</div>
+				</Alert>
 			)}
 
 			<form
@@ -279,9 +281,7 @@ export const FieldTypeEdit = () => {
 				</div>
 
 				<div>
-					<div className="mb-2 text-[12px] font-semibold uppercase tracking-[0.06em] text-text-3">
-						Use cases
-					</div>
+					<SectionLabel className="mb-2">Use cases</SectionLabel>
 					<div className="flex flex-wrap gap-3 rounded-md border border-border bg-surface-2 p-3">
 						{USE_CASES.map((u) => (
 							<Checkbox
@@ -295,17 +295,15 @@ export const FieldTypeEdit = () => {
 				</div>
 
 				{isLegacy && (
-					<div className="rounded-md border border-accent/30 bg-accent-soft px-3 py-2 text-[12px] text-text-2">
+					<Alert tone="info">
 						This is a legacy <code>draw.php</code> field type. It still renders through
 						the server bridge, but new types can&apos;t be authored that way — pick a
 						render mode below to migrate it. Saving will convert it.
-					</div>
+					</Alert>
 				)}
 
 				<div>
-					<div className="mb-2 text-[12px] font-semibold uppercase tracking-[0.06em] text-text-3">
-						Rendering
-					</div>
+					<SectionLabel className="mb-2">Rendering</SectionLabel>
 					<div className="flex flex-col gap-2 rounded-md border border-border bg-surface-2 p-3">
 						<label className="flex items-start gap-2 text-[12.5px] text-text-2">
 							<input
@@ -354,9 +352,7 @@ export const FieldTypeEdit = () => {
 
 				{mode === "declarative" ? (
 					<div>
-						<div className="mb-2 text-[12px] font-semibold uppercase tracking-[0.06em] text-text-3">
-							Fields
-						</div>
+						<SectionLabel className="mb-2">Fields</SectionLabel>
 						<InputSchemaBuilder
 							value={body.input_schema ?? []}
 							onChange={(next) => set({ input_schema: next })}

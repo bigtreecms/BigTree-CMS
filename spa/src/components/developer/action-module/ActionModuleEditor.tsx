@@ -1,4 +1,5 @@
 import { useState, type KeyboardEvent } from "react";
+import { SectionLabel } from "@/components/ui/SectionLabel";
 import { ChevronDown, ChevronRight } from "lucide-react";
 
 import { ActionModulePreview } from "./ActionModulePreview";
@@ -43,9 +44,7 @@ export const ActionModuleEditor = ({ value, onChange, name, route }: ActionModul
 	return (
 		<div className="space-y-3">
 			<div>
-				<div className="mb-2 text-[12px] font-semibold uppercase tracking-[0.06em] text-text-3">
-					Action code
-				</div>
+				<SectionLabel className="mb-2">Action code</SectionLabel>
 				<textarea
 					value={value}
 					aria-label="Action code"
@@ -81,9 +80,7 @@ export const ActionModuleEditor = ({ value, onChange, name, route }: ActionModul
 			</div>
 
 			<div>
-				<div className="mb-2 text-[12px] font-semibold uppercase tracking-[0.06em] text-text-3">
-					Live preview
-				</div>
+				<SectionLabel className="mb-2">Live preview</SectionLabel>
 				<ActionModulePreview source={value} name={name} route={route} />
 			</div>
 		</div>

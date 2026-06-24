@@ -4,6 +4,7 @@ import type { ModuleAction } from "@/api/endpoints/modules";
 import { toast } from "@/lib/toast";
 import { ActionRunner } from "@/renderer/actions/ActionRunner";
 import type { ActionHost } from "@/renderer/actions/actionModuleContract";
+import { Alert } from "@/components/ui/Alert";
 import { InlineEmpty } from "@/components/ui/InlineEmpty";
 
 interface ActionModulePreviewProps {
@@ -80,9 +81,9 @@ export const ActionModulePreview = ({ source, name, route }: ActionModulePreview
 			</div>
 
 			{error && (
-				<div className="rounded-md border border-danger/40 bg-danger/5 px-3 py-2 font-mono text-[11.5px] text-danger">
+				<Alert tone="danger" mono>
 					{error}
-				</div>
+				</Alert>
 			)}
 
 			{lastCall && (

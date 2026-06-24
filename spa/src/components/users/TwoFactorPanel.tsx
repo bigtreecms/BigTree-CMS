@@ -10,6 +10,7 @@ import { TwoFactorEnrollForm } from "./TwoFactorEnrollForm";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Field } from "@/components/ui/Field";
+import { SectionLabel } from "@/components/ui/SectionLabel";
 
 /**
  * Profile → Security TOTP manager.
@@ -81,9 +82,7 @@ export const TwoFactorPanel = ({ enabled }: TwoFactorPanelProps) => {
 		<Card>
 			<header className="flex items-center gap-2 border-b border-border bg-surface-2 px-4 py-3">
 				<ShieldCheck size={14} className="text-text-3" />
-				<h3 className="text-[12.5px] font-semibold uppercase tracking-[0.06em] text-text-3">
-					Two-factor authentication
-				</h3>
+				<SectionLabel as="h3">Two-factor authentication</SectionLabel>
 			</header>
 
 			<div className="space-y-3 p-4 text-[12.5px]">

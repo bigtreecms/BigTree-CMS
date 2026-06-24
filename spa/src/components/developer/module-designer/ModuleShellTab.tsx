@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Save } from "lucide-react";
 
+import { Alert } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
 import {
 	modulesApi,
@@ -197,11 +198,7 @@ export const ModuleShellTab = ({ moduleId, module }: ModuleShellTabProps) => {
 	return (
 		<>
 			<form onSubmit={handleSubmit} className="space-y-4">
-				{generalError && (
-					<div className="rounded-md border border-danger/40 bg-danger/5 px-3 py-2 text-[12.5px] text-danger">
-						{generalError}
-					</div>
-				)}
+				{generalError && <Alert tone="danger">{generalError}</Alert>}
 
 				<Card className="space-y-4 p-4">
 					<div className="grid grid-cols-1 gap-4 md:grid-cols-2">

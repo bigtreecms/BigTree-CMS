@@ -17,6 +17,7 @@ import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
 import { Button } from "@/components/ui/Button";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
+import { IconTile } from "@/components/ui/IconTile";
 import { TabbedEditor, type TabbedEditorTab } from "@/components/ui/TabbedEditor";
 import { Loading } from "@/components/ui/Loading";
 
@@ -175,9 +176,9 @@ export const ModuleDesignerEdit = () => {
 							onClick={() => setAddMode("existing")}
 							className="flex flex-col items-start gap-2 rounded-xl border border-border bg-surface p-5 text-left transition-colors hover:border-border-strong hover:bg-hover"
 						>
-							<span className="grid size-9 place-items-center rounded-lg bg-accent-soft text-accent">
+							<IconTile radius="lg">
 								<Database size={18} />
-							</span>
+							</IconTile>
 							<span className="text-[13.5px] font-semibold text-text">
 								Use an existing table
 							</span>
@@ -191,9 +192,9 @@ export const ModuleDesignerEdit = () => {
 							onClick={() => setAddMode("build")}
 							className="flex flex-col items-start gap-2 rounded-xl border border-border bg-surface p-5 text-left transition-colors hover:border-border-strong hover:bg-hover"
 						>
-							<span className="grid size-9 place-items-center rounded-lg bg-accent-soft text-accent">
+							<IconTile radius="lg">
 								<Wand2 size={18} />
-							</span>
+							</IconTile>
 							<span className="text-[13.5px] font-semibold text-text">
 								Build the table for me
 							</span>

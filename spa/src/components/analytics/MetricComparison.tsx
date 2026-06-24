@@ -1,4 +1,5 @@
 import { Card, CardHeader } from "@/components/ui/Card";
+import { SectionLabel } from "@/components/ui/SectionLabel";
 
 import type { AnalyticsCachePeriod } from "@/api/endpoints/dashboard";
 import {
@@ -78,9 +79,9 @@ export const MetricComparison = ({
 				{metrics.map((m) => (
 					<div key={m.label} className="bg-surface px-4 py-3">
 						<div className="flex items-center justify-between">
-							<span className="text-[10.5px] font-semibold uppercase tracking-[0.06em] text-text-3">
+							<SectionLabel as="span" size="sm">
 								{m.label}
-							</span>
+							</SectionLabel>
 							<span
 								className={`text-[11px] font-medium tabular-nums ${TONE_CLASS[m.growth.tone]}`}
 							>

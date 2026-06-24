@@ -5,6 +5,7 @@ import { ChevronLeft, Save } from "lucide-react";
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
+import { Alert } from "@/components/ui/Alert";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { Button } from "@/components/ui/Button";
 import { UnsavedChangesGuard } from "@/components/ui/UnsavedChangesGuard";
@@ -26,6 +27,7 @@ import { validateRequired } from "@/lib/formValidation";
 import { SelectField } from "@/components/ui/SelectField";
 import { TextField } from "@/components/ui/TextField";
 import { Loading } from "@/components/ui/Loading";
+import { SectionLabel } from "@/components/ui/SectionLabel";
 
 export const CalloutEdit = () => {
 	const { id: idParam } = useParams<{ id: string }>();
@@ -161,9 +163,9 @@ export const CalloutEdit = () => {
 			<DeveloperSectionNav />
 
 			{generalError && (
-				<div className="mb-3 rounded-md border border-danger/40 bg-danger/5 px-3 py-2 text-[12.5px] text-danger">
+				<Alert tone="danger" className="mb-3">
 					{generalError}
-				</div>
+				</Alert>
 			)}
 
 			<form
@@ -236,9 +238,7 @@ export const CalloutEdit = () => {
 				</div>
 
 				<div>
-					<div className="mb-2 text-[12px] font-semibold uppercase tracking-[0.06em] text-text-3">
-						Fields
-					</div>
+					<SectionLabel className="mb-2">Fields</SectionLabel>
 					<ResourceDesigner
 						resources={(body.resources ?? []) as unknown as ResourceEntry[]}
 						onChange={(next) =>

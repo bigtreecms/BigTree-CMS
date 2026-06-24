@@ -1,6 +1,7 @@
 import { Field } from "@/components/ui/Field";
 import { Select } from "@/components/ui/Select";
 import { TextInput } from "@/components/ui/TextInput";
+import { SectionLabel } from "@/components/ui/SectionLabel";
 
 /** The Open Graph value carried by pages and module entries. */
 export interface OpenGraphValue {
@@ -28,9 +29,9 @@ export const OpenGraphSection = ({ value, onChange, disabled }: OpenGraphSection
 
 	return (
 		<div className="mt-5 border-t border-border pt-4">
-			<h3 className="mb-3 text-[12.5px] font-semibold uppercase tracking-[0.06em] text-text-3">
+			<SectionLabel as="h3" className="mb-3">
 				Open Graph
-			</h3>
+			</SectionLabel>
 
 			<div className="flex flex-col gap-[14px]">
 				<Field

@@ -10,6 +10,7 @@ import { TextInput } from "@/components/ui/TextInput";
 import { InlineEmpty } from "@/components/ui/InlineEmpty";
 import { Loading } from "@/components/ui/Loading";
 import { IconButton } from "@/components/ui/IconButton";
+import { SectionLabel } from "@/components/ui/SectionLabel";
 
 /**
  * Column-driven editors for a module report's Filters and Fields, replacing the
@@ -164,9 +165,7 @@ export const ReportFiltersEditor = ({
 
 	return (
 		<div>
-			<div className="mb-2 text-[12px] font-semibold uppercase tracking-[0.06em] text-text-3">
-				Report Filters
-			</div>
+			<SectionLabel className="mb-2">Report Filters</SectionLabel>
 			{rows.length === 0 ? (
 				<InlineEmpty align="center">
 					No filters. Add columns below to let users filter the report.
@@ -263,9 +262,7 @@ export const ReportFieldsEditor = ({
 
 	return (
 		<div>
-			<div className="mb-2 text-[12px] font-semibold uppercase tracking-[0.06em] text-text-3">
-				Fields to Include in CSV
-			</div>
+			<SectionLabel className="mb-2">Fields to Include in CSV</SectionLabel>
 			{rows.length === 0 ? (
 				<InlineEmpty align="center">
 					No fields. Add columns below to include them in the CSV export.
