@@ -1,10 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { Edit, Trash } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 import { DataTable, type DataTableColumn, type DataTableSort } from "@/components/ui/DataTable";
-import { IconButton } from "@/components/ui/IconButton";
 import { SearchInput } from "@/components/ui/SearchInput";
 import { Pager } from "@/components/ui/Pager";
 
@@ -19,7 +17,6 @@ import {
 	columnWidth,
 	formatCellValue,
 	formatSortParam,
-	iconForCustomAction,
 	isPersistedEntryId,
 	parseSortSetting,
 	parseViewActions,
@@ -28,7 +25,7 @@ import {
 	statusRowClass,
 } from "./viewHelpers";
 import { ViewStatusBadge } from "./ViewStatusBadge";
-import { BuiltinToggleButtons } from "./BuiltinToggleButtons";
+import { RowActions } from "./RowActions";
 import { useEntryDelete } from "./useEntryDelete";
 import { useModuleEntryLinks } from "@/pages/ModuleLayout";
 
@@ -151,63 +148,24 @@ export const SearchableView = ({ moduleId, view }: SearchableViewProps) => {
 				align: "right",
 				headerAlign: "right",
 				cell: (row) => {
-					const entryId = Number(row.id);
-					// Custom actions act on a live row (real numeric id); edit and
-					// delete also accept a "p"-prefixed pending id.
+					// Edit and delete also accept a "p"-prefixed pending id; an
+					// unpersisted row hides edit and disables delete.
 					const canEditOrDelete = isPersistedEntryId(row.id);
 					const dim = statusDimClass(statusFromRow(row).key);
 
 					return (
-						<div className={`flex w-full items-center justify-end gap-1 ${dim}`}>
-							{custom.map((action) => {
-								const Icon = iconForCustomAction(action.className);
-
-								return (
-									<IconButton
-										key={action.key}
-										to={actionPath(action.route, entryId)}
-										label={action.name}
-										title={action.name}
-										onClick={(e) => e.stopPropagation()}
-									>
-										<Icon size={15} />
-									</IconButton>
-								);
-							})}
-
-							{builtins.edit && canEditOrDelete && (
-								<IconButton
-									to={editPath(row.id)}
-									label="Edit"
-									title="Edit"
-									onClick={(e) => e.stopPropagation()}
-								>
-									<Edit size={15} />
-								</IconButton>
-							)}
-
-							<BuiltinToggleButtons
-								moduleId={moduleId}
-								viewId={view.id}
-								row={row}
-								builtins={builtins}
-							/>
-
-							{builtins.delete && (
-								<IconButton
-									label="Delete"
-									title="Delete"
-									tone="danger"
-									disabled={!canEditOrDelete}
-									onClick={(e) => {
-										e.stopPropagation();
-										requestDelete(row);
-									}}
-								>
-									<Trash size={15} />
-								</IconButton>
-							)}
-						</div>
+						<RowActions
+							moduleId={moduleId}
+							viewId={view.id}
+							row={row}
+							builtins={builtins}
+							custom={custom}
+							editPath={editPath}
+							actionPath={actionPath}
+							onDelete={requestDelete}
+							canEditOrDelete={canEditOrDelete}
+							className={`w-full ${dim}`}
+						/>
 					);
 				},
 			});

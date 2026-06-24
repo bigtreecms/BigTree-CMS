@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
 
+import { Field } from "@/components/ui/Field";
+
 interface ControlShellProps {
 	label?: string;
 	hint?: string;
@@ -9,19 +11,13 @@ interface ControlShellProps {
 }
 
 /**
- * Shared label / hint / note wrapper so every simple control renders with the
- * same spacing as the rest of the resource designer.
+ * Shared label / hint / note wrapper so every simple resource-designer control
+ * renders with the same spacing as the rest of the designer. A thin adapter over
+ * the shared {@link Field}: the designer uses the denser `sm` label, an inline
+ * `hint` on the label line, and a `note` below the control.
  */
 export const ControlShell = ({ label, hint, note, required, children }: ControlShellProps) => (
-	<label className="block">
-		{label && (
-			<span className="mb-1 block text-[11.5px] font-medium text-text-2">
-				{label}
-				{required && <span className="text-danger"> *</span>}
-				{hint && <span className="ml-1 font-normal text-text-3">{hint}</span>}
-			</span>
-		)}
+	<Field label={label} required={required} size="sm" inlineHint={hint} hint={note}>
 		{children}
-		{note && <p className="mt-1 text-[11px] leading-relaxed text-text-3">{note}</p>}
-	</label>
+	</Field>
 );

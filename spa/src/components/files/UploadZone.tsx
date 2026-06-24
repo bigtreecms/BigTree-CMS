@@ -6,6 +6,7 @@ import { UPLOAD_PATH } from "@/api/endpoints/resources";
 import type { ResourceDetail } from "@/api/endpoints/resources";
 import { formatBytes } from "@/lib/bytes";
 import { IconButton } from "@/components/ui/IconButton";
+import { ProgressBar } from "@/components/ui/ProgressBar";
 
 interface UploadZoneProps {
 	/** Target folder id; sent alongside each upload as `folder=`. 0 = home. */
@@ -170,12 +171,11 @@ const UploadRow = ({ item, onCancel }: UploadRowProps) => {
 			<div className="flex items-center gap-2">
 				{inFlight && (
 					<>
-						<div className="relative h-1.5 flex-1 overflow-hidden rounded-full bg-surface-2">
-							<div
-								className="absolute inset-y-0 left-0 bg-accent transition-[width]"
-								style={{ width: `${item.progress}%` }}
-							/>
-						</div>
+						<ProgressBar
+							value={item.progress}
+							label="Upload progress"
+							className="flex-1"
+						/>
 						<span className="w-9 text-right tabular-nums text-[11px] text-text-3">
 							{item.progress}%
 						</span>

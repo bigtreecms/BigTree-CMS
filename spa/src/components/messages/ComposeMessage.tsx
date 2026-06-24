@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { keepPreviousData } from "@tanstack/react-query";
-import { Search, X } from "lucide-react";
+import { Search } from "lucide-react";
 
 import { Button } from "@/components/ui/Button";
 import { SlideOver } from "@/components/ui/SlideOver";
+import { Field } from "@/components/ui/Field";
+import { RemovableChip } from "@/components/ui/RemovableChip";
 
 import { messagesApi, type Message } from "@/api/endpoints/dashboard";
 import { usersApi } from "@/api/endpoints/users";
@@ -182,20 +184,11 @@ export const ComposeMessage = ({
 					{recipients.length > 0 && (
 						<div className="mb-2 flex flex-wrap gap-1.5">
 							{recipients.map((r) => (
-								<span
+								<RemovableChip
 									key={r.id}
-									className="inline-flex items-center gap-1 rounded-full bg-accent-soft px-2 py-0.5 text-[11.5px] text-accent"
-								>
-									{r.name || `User #${r.id}`}
-									<button
-										type="button"
-										onClick={() => removeRecipient(r.id)}
-										className="rounded-full p-0.5 hover:bg-accent/10"
-										aria-label="Remove recipient"
-									>
-										<X size={10} />
-									</button>
-								</span>
+									label={r.name || `User #${r.id}`}
+									onRemove={() => removeRecipient(r.id)}
+								/>
 							))}
 						</div>
 					)}
@@ -260,8 +253,7 @@ export const ComposeMessage = ({
 					)}
 				</div>
 
-				<label className="block">
-					<span className="mb-1 block text-[12px] font-medium text-text-2">Subject</span>
+				<Field label="Subject">
 					<input
 						type="text"
 						className="w-full rounded-md border border-border bg-surface px-3 py-2 text-[13px] focus:outline-none focus:ring-1 focus:ring-accent-ring"
@@ -269,10 +261,9 @@ export const ComposeMessage = ({
 						onChange={(e) => setSubject(e.target.value)}
 						maxLength={255}
 					/>
-				</label>
+				</Field>
 
-				<label className="block">
-					<span className="mb-1 block text-[12px] font-medium text-text-2">Message</span>
+				<Field label="Message">
 					<textarea
 						rows={10}
 						className="w-full rounded-md border border-border bg-surface px-3 py-2 text-[13px] leading-relaxed focus:outline-none focus:ring-1 focus:ring-accent-ring"
@@ -280,7 +271,7 @@ export const ComposeMessage = ({
 						onChange={(e) => setBody(e.target.value)}
 						placeholder="Plain text. A small set of inline HTML (a, b, em, p) is preserved by the server."
 					/>
-				</label>
+				</Field>
 			</div>
 		</SlideOver>
 	);

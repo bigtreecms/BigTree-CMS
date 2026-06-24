@@ -1,5 +1,6 @@
-import { Archive, Edit, FileText, GripVertical, Move, RotateCcw, Trash2 } from "lucide-react";
+import { Archive, Edit, FileText, Move, RotateCcw, Trash2 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
+import { DragHandle } from "@/components/ui/DragHandle";
 import type { PageListRow } from "@/api/endpoints/pages";
 import { EditableTitle } from "./EditableTitle";
 import { StatusBadge, type PageStatus } from "./StatusBadge";
@@ -70,17 +71,10 @@ export const PageRow = ({
 			onDragEnd={drag.onDragEnd}
 		>
 			{/* Grip */}
-			<span
-				className={`grid size-6  place-items-center rounded text-text-4 ${
-					canReorder
-						? "cursor-grab hover:bg-hover hover:text-text-2 active:cursor-grabbing"
-						: "cursor-default opacity-25 hover:bg-transparent hover:text-text-4"
-				}`}
+			<DragHandle
+				enabled={canReorder}
 				title={canReorder ? "Drag to reorder" : "Reordering disabled for this section"}
-				aria-hidden="true"
-			>
-				<GripVertical size={14} />
-			</span>
+			/>
 
 			{/* Title cell */}
 			<div className="flex min-w-0 items-center gap-2.5">

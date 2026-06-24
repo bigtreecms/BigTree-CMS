@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 
-import { INPUT_CLASS, settingsOf, type FieldComponentProps } from "./types";
+import { Select } from "@/components/ui/Select";
+import { settingsOf, type FieldComponentProps } from "./types";
 import { modulesApi } from "@/api/endpoints/modules";
 import { useFormRenderContext } from "@/renderer/forms/FormContext";
 
@@ -57,25 +58,24 @@ export const SelectField = ({ field, value, onChange, disabled }: FieldComponent
 	// A dynamic list outside a module-form context can't be resolved.
 	if (isDynamic && !canFetch) {
 		return (
-			<select className={INPUT_CLASS} disabled value="">
+			<Select disabled value="">
 				<option value="">— dynamic list unavailable here —</option>
-			</select>
+			</Select>
 		);
 	}
 
 	if (isDynamic && optionsQ.isError) {
 		return (
-			<select className={INPUT_CLASS} disabled value="">
+			<Select disabled value="">
 				<option value="">— couldn't load options —</option>
-			</select>
+			</Select>
 		);
 	}
 
 	const isLoading = isDynamic && optionsQ.isLoading;
 
 	return (
-		<select
-			className={INPUT_CLASS}
+		<Select
 			value={value == null ? "" : String(value)}
 			disabled={disabled || isLoading}
 			onChange={(event) => onChange(event.target.value)}
@@ -92,6 +92,6 @@ export const SelectField = ({ field, value, onChange, disabled }: FieldComponent
 					))}
 				</>
 			)}
-		</select>
+		</Select>
 	);
 };

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronDown, ChevronRight, GripVertical, Plus, Trash } from "lucide-react";
+import { ChevronDown, ChevronRight, Plus, Trash } from "lucide-react";
 
 import { Button } from "@/components/ui/Button";
 import { Checkbox } from "@/components/ui/Checkbox";
@@ -20,6 +20,8 @@ import { Combobox } from "@/components/ui/Combobox";
 import { FieldSettingsEditor } from "./FieldSettingsEditor";
 import { InlineEmpty } from "@/components/ui/InlineEmpty";
 import { IconButton } from "@/components/ui/IconButton";
+import { Field } from "@/components/ui/Field";
+import { DragHandle } from "@/components/ui/DragHandle";
 
 /**
  * Shared editor for an array of `{column|id, type, title, subtitle, settings}`
@@ -262,13 +264,7 @@ export const ResourceDesigner = ({
 									onDragStart={(e) => drag.onDragStart(e, index)}
 									onDragEnd={drag.onDragEnd}
 								>
-									<span
-										className="grid size-6 shrink-0 cursor-grab place-items-center rounded text-text-4 hover:bg-hover hover:text-text-2 active:cursor-grabbing"
-										title="Drag to reorder"
-										aria-hidden="true"
-									>
-										<GripVertical size={14} />
-									</span>
+									<DragHandle />
 
 									<button
 										type="button"
@@ -438,11 +434,9 @@ interface LabelledInputProps {
 }
 
 const LabelledInput = ({ label, value, onChange, hint }: LabelledInputProps) => (
-	<label className="block">
-		<span className="mb-1 block text-[11.5px] font-medium text-text-2">{label}</span>
+	<Field label={label} size="sm" hint={hint}>
 		<TextInput dense value={value} onChange={(e) => onChange(e.target.value)} />
-		{hint && <span className="mt-1 block text-[11px] text-text-3">{hint}</span>}
-	</label>
+	</Field>
 );
 
 interface SelectOption {
@@ -468,8 +462,7 @@ const LabelledSelect = ({ label, value, onChange, groups, loading }: LabelledSel
 	const known = groups.some((g) => g.options.some((o) => o.value === value));
 
 	return (
-		<label className="block">
-			<span className="mb-1 block text-[11.5px] font-medium text-text-2">{label}</span>
+		<Field label={label} size="sm">
 			<Select
 				dense
 				value={value}
@@ -488,7 +481,7 @@ const LabelledSelect = ({ label, value, onChange, groups, loading }: LabelledSel
 					</optgroup>
 				))}
 			</Select>
-		</label>
+		</Field>
 	);
 };
 
@@ -518,8 +511,7 @@ const LabelledCombobox = ({
 	const selected = value ? { value, label: value } : null;
 
 	return (
-		<label className="block">
-			<span className="mb-1 block text-[11.5px] font-medium text-text-2">{label}</span>
+		<Field label={label} size="sm" hint={hint}>
 			<Combobox<string>
 				value={selected}
 				onChange={(option) => onChange(option ? option.value : "")}
@@ -530,8 +522,7 @@ const LabelledCombobox = ({
 				emptyLabel={emptyLabel}
 				ariaLabel={label}
 			/>
-			{hint && <span className="mt-1 block text-[11px] text-text-3">{hint}</span>}
-		</label>
+		</Field>
 	);
 };
 

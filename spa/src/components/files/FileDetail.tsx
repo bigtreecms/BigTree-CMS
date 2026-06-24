@@ -34,6 +34,9 @@ import { expandImageUrl } from "@/lib/imageUrl";
 import { toast } from "@/lib/toast";
 import { InlineEmpty } from "@/components/ui/InlineEmpty";
 import { IconButton } from "@/components/ui/IconButton";
+import { Select } from "@/components/ui/Select";
+import { TextInput } from "@/components/ui/TextInput";
+import { Field } from "@/components/ui/Field";
 
 interface FileDetailProps {
 	/** Resource id to load, or `null` to keep the SlideOver closed. */
@@ -284,36 +287,28 @@ export const FileDetail = ({ resourceId, onOpenChange, folderQueryKey }: FileDet
 							</div>
 						)}
 
-						<label className="block">
-							<span className="mb-1 block text-[12px] font-medium text-text-2">
-								Name
-							</span>
-							<input
-								className="w-full rounded-md border border-border bg-surface px-3 py-2 text-[13.5px] focus:outline-none focus:ring-1 focus:ring-accent-ring"
+						<Field label="Name">
+							<TextInput
 								value={name}
 								onChange={(e) => setName(e.target.value)}
 								maxLength={255}
 							/>
-						</label>
+						</Field>
 
-						<label className="block">
-							<span className="mb-1 block text-[12px] font-medium text-text-2">
-								Folder
-							</span>
-							<select
-								className="w-full rounded-md border border-border bg-surface px-3 py-2 text-[13.5px] focus:outline-none focus:ring-1 focus:ring-accent-ring"
+						<Field label="Folder">
+							<Select
 								value={folder}
 								onChange={(e) => setFolder(Number(e.target.value))}
 							>
 								<option value={0}>Home</option>
 								{(foldersQuery.data ?? []).map((f) => (
 									<option key={f.id} value={f.id}>
-										{" ".repeat((f.depth + 1) * 2)}
+										{" ".repeat((f.depth + 1) * 2)}
 										{f.name}
 									</option>
 								))}
-							</select>
-						</label>
+							</Select>
+						</Field>
 
 						<MetaGrid resource={resource} onCopyUrl={copyUrl} />
 

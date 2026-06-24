@@ -1,9 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Edit, GripVertical, Trash } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-import { IconButton } from "@/components/ui/IconButton";
+import { DragHandle } from "@/components/ui/DragHandle";
 import { SearchInput } from "@/components/ui/SearchInput";
 
 import { autoModulesApi, type ModuleEntryRow } from "@/api/endpoints/auto-modules";
@@ -13,7 +12,6 @@ import { toast } from "@/lib/toast";
 
 import {
 	formatCellValue,
-	iconForCustomAction,
 	isPersistedEntryId,
 	parseViewActions,
 	statusDimClass,
@@ -21,7 +19,7 @@ import {
 	statusRowClass,
 } from "./viewHelpers";
 import { ViewStatusBadge } from "./ViewStatusBadge";
-import { BuiltinToggleButtons } from "./BuiltinToggleButtons";
+import { RowActions } from "./RowActions";
 import { useEntryDelete } from "./useEntryDelete";
 import { useModuleEntryLinks } from "@/pages/ModuleLayout";
 
@@ -167,18 +165,11 @@ export const DraggableView = ({ moduleId, view }: DraggableViewProps) => {
 									onDragEnd={drag.onDragEnd}
 									onClick={() => openEdit(r.row)}
 								>
-									<span
-										className={`grid size-6  place-items-center rounded text-text-4 ${
-											canDrag
-												? "cursor-grab hover:bg-hover hover:text-text-2 active:cursor-grabbing"
-												: "cursor-default opacity-25"
-										}`}
+									<DragHandle
+										enabled={canDrag}
 										title={canDrag ? "Drag to reorder" : "Reordering disabled"}
-										aria-hidden="true"
 										onClick={(e) => e.stopPropagation()}
-									>
-										<GripVertical size={14} />
-									</span>
+									/>
 
 									<div
 										className={`flex min-w-0 flex-1 items-center gap-4 ${dim}`}
@@ -202,52 +193,17 @@ export const DraggableView = ({ moduleId, view }: DraggableViewProps) => {
 
 									<ViewStatusBadge row={r.row} className="shrink-0" />
 
-									<div className={`flex items-center gap-1 ${dim}`}>
-										{custom.map((action) => {
-											const Icon = iconForCustomAction(action.className);
-
-											return (
-												<IconButton
-													key={action.key}
-													to={actionPath(action.route, r.row.id)}
-													label={action.name}
-													title={action.name}
-													onClick={(e) => e.stopPropagation()}
-												>
-													<Icon size={15} />
-												</IconButton>
-											);
-										})}
-										{builtins.edit && (
-											<IconButton
-												to={editPath(r.row.id)}
-												label="Edit"
-												title="Edit"
-												onClick={(e) => e.stopPropagation()}
-											>
-												<Edit size={15} />
-											</IconButton>
-										)}
-										<BuiltinToggleButtons
-											moduleId={moduleId}
-											viewId={view.id}
-											row={r.row}
-											builtins={builtins}
-										/>
-										{builtins.delete && (
-											<IconButton
-												label="Delete"
-												title="Delete"
-												tone="danger"
-												onClick={(e) => {
-													e.stopPropagation();
-													requestDelete(r.row);
-												}}
-											>
-												<Trash size={15} />
-											</IconButton>
-										)}
-									</div>
+									<RowActions
+										moduleId={moduleId}
+										viewId={view.id}
+										row={r.row}
+										builtins={builtins}
+										custom={custom}
+										editPath={editPath}
+										actionPath={actionPath}
+										onDelete={requestDelete}
+										className={dim}
+									/>
 								</li>
 							);
 						})}

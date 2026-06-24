@@ -21,6 +21,7 @@ import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { Button } from "@/components/ui/Button";
 import { Loading } from "@/components/ui/Loading";
 import { Card } from "@/components/ui/Card";
+import { ProgressBar } from "@/components/ui/ProgressBar";
 
 import { integrityApi } from "@/api/endpoints/integrity";
 import { useIntegrityScan, type ScanFinding } from "@/hooks/useIntegrityScan";
@@ -286,14 +287,13 @@ const ScanResults = ({
 						{completed.toLocaleString()} / {total.toLocaleString()} ({percent}%)
 					</span>
 				</div>
-				<div className="h-2 w-full overflow-hidden rounded-full bg-surface-2">
-					<div
-						className={`h-full rounded-full transition-[width] duration-300 ${
-							done ? "bg-success" : "bg-accent"
-						}`}
-						style={{ width: `${percent}%` }}
-					/>
-				</div>
+				<ProgressBar
+					value={percent}
+					size="md"
+					tone={done ? "success" : "accent"}
+					label="Scan progress"
+					className="w-full"
+				/>
 				<div className="mt-2 text-[11.5px] text-text-3">
 					External link checking {external ? "enabled" : "disabled"}.
 				</div>

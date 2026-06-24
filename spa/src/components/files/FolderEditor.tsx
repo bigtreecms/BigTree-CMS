@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { Button } from "@/components/ui/Button";
 import { SlideOver } from "@/components/ui/SlideOver";
+import { Field } from "@/components/ui/Field";
 import { resourceFoldersApi, type ResourceFolderRow } from "@/api/endpoints/resource-folders";
 import { toast } from "@/lib/toast";
 
@@ -114,8 +115,7 @@ export const FolderEditor = ({
 				</div>
 			}
 		>
-			<label className="block">
-				<span className="mb-1 block text-[12px] font-medium text-text-2">Name</span>
+			<Field label="Name">
 				<input
 					autoFocus
 					className="w-full rounded-md border border-border bg-surface px-3 py-2 text-[13.5px] focus:outline-none focus:ring-1 focus:ring-accent-ring"
@@ -130,7 +130,7 @@ export const FolderEditor = ({
 					placeholder="e.g. Press releases"
 					maxLength={255}
 				/>
-			</label>
+			</Field>
 		</SlideOver>
 	);
 };

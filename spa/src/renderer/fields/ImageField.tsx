@@ -3,6 +3,7 @@ import { Crop, ImageIcon, Images, Search, Upload as UploadIcon, X } from "lucide
 
 import { ResourcePicker } from "@/components/files/ResourcePicker";
 import { IconButton } from "@/components/ui/IconButton";
+import { ProgressBar } from "@/components/ui/ProgressBar";
 
 import {
 	IMAGE_PROCESS_PATH,
@@ -220,7 +221,11 @@ export const ImageField = ({ field, value, onChange, disabled }: FieldComponentP
 					<span className="ml-auto inline-flex items-center gap-2 text-[12px] text-text-3">
 						{inFlight ? (
 							<>
-								<UploadProgress percent={inFlight.progress} />
+								<ProgressBar
+									value={inFlight.progress}
+									label="Upload progress"
+									className="w-24"
+								/>
 								{inFlight.progress}%
 							</>
 						) : (
@@ -372,19 +377,6 @@ const PreviewThumb = ({ src, fallback }: PreviewThumbProps) => {
 		/>
 	);
 };
-
-interface UploadProgressProps {
-	percent: number;
-}
-
-const UploadProgress = ({ percent }: UploadProgressProps) => (
-	<span className="relative inline-block h-1.5 w-24 overflow-hidden rounded-full bg-surface-2">
-		<span
-			className="absolute inset-y-0 left-0 bg-accent transition-[width]"
-			style={{ width: `${percent}%` }}
-		/>
-	</span>
-);
 
 const toInt = (raw: unknown): number => {
 	const n = typeof raw === "number" ? raw : Number(raw);

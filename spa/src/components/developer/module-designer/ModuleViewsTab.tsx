@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { GripVertical, Plus, Trash } from "lucide-react";
+import { Plus, Trash } from "lucide-react";
 
 import { Button } from "@/components/ui/Button";
 import { useDragReorder } from "@/hooks/useDragReorder";
@@ -25,6 +25,7 @@ import { AddSubButton, EditorCard, SubList, SubRow } from "./scaffold";
 import { ViewActionsControl } from "./ViewActionsControl";
 import { ViewTypeSettingsControl } from "./ViewTypeSettingsControl";
 import { NEW_ROW, useSubCrud } from "./useSubCrud";
+import { DragHandle } from "@/components/ui/DragHandle";
 import { InlineEmpty } from "@/components/ui/InlineEmpty";
 import { IconButton } from "@/components/ui/IconButton";
 
@@ -362,17 +363,13 @@ export const ModuleViewsTab = ({ moduleId, moduleTable }: ModuleViewsTabProps) =
 											onDragOver={(e) => columnDrag.onDragOver(e, index)}
 											onDrop={columnDrag.onDrop}
 										>
-											<span
-												className="grid size-6 shrink-0 cursor-grab place-items-center rounded text-text-4 hover:bg-hover hover:text-text-2 active:cursor-grabbing"
-												title="Drag to reorder"
+											<DragHandle
 												draggable
 												onDragStart={(e) =>
 													columnDrag.onDragStart(e, index)
 												}
 												onDragEnd={columnDrag.onDragEnd}
-											>
-												<GripVertical size={14} />
-											</span>
+											/>
 											<DataColumnSelect
 												table={draft.table}
 												value={col.key}

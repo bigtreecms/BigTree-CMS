@@ -14,6 +14,7 @@ import { ApiError } from "@/types/api";
 import { toast } from "@/lib/toast";
 
 import { SelectField } from "@/components/ui/SelectField";
+import { Field } from "@/components/ui/Field";
 
 /**
  * /dashboard/404s/301/import — guided CSV import for 301 redirects. Mirrors the
@@ -126,17 +127,14 @@ export const Import301 = () => {
 					/>
 				)}
 
-				<label className="block">
-					<span className="mb-1 block text-[12px] font-medium text-text-2">
-						CSV file<span className="text-danger"> *</span>
-					</span>
+				<Field label="CSV file" required>
 					<input
 						type="file"
 						accept=".csv,text/csv"
 						onChange={(e) => setFile(e.target.files?.[0] ?? null)}
 						className="block w-full text-[12.5px] text-text-2 file:mr-3 file:rounded-md file:border file:border-border file:bg-surface-2 file:px-3 file:py-1.5 file:text-[12.5px] file:text-text hover:file:bg-hover"
 					/>
-				</label>
+				</Field>
 
 				<Checkbox
 					label="First row contains column titles"

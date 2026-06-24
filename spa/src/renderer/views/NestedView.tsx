@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ChevronDown, ChevronRight, Edit, GripVertical, Trash } from "lucide-react";
+import { ChevronDown, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-import { IconButton } from "@/components/ui/IconButton";
+import { DragHandle } from "@/components/ui/DragHandle";
 import { SearchInput } from "@/components/ui/SearchInput";
 
 import { autoModulesApi, type ModuleEntryRow } from "@/api/endpoints/auto-modules";
@@ -12,7 +12,6 @@ import { toast } from "@/lib/toast";
 
 import {
 	formatCellValue,
-	iconForCustomAction,
 	isPersistedEntryId,
 	parseViewActions,
 	statusDimClass,
@@ -22,7 +21,7 @@ import {
 	type CustomViewAction,
 } from "./viewHelpers";
 import { ViewStatusBadge } from "./ViewStatusBadge";
-import { BuiltinToggleButtons } from "./BuiltinToggleButtons";
+import { RowActions } from "./RowActions";
 import { useEntryDelete } from "./useEntryDelete";
 import { useModuleEntryLinks } from "@/pages/ModuleLayout";
 
@@ -396,19 +395,13 @@ const NestedRow = ({
 					style={{ paddingLeft: `${indentPx}px` }}
 					onClick={(e) => e.stopPropagation()}
 				>
-					<span
-						className={`grid size-5  place-items-center rounded text-text-4 ${
-							drag.canDrag
-								? "cursor-grab hover:bg-hover hover:text-text-2 active:cursor-grabbing"
-								: "cursor-default opacity-25"
-						}`}
+					<DragHandle
+						enabled={drag.canDrag}
+						size={13}
 						title={
 							drag.canDrag ? "Drag to reorder within siblings" : "Reordering disabled"
 						}
-						aria-hidden="true"
-					>
-						<GripVertical size={13} />
-					</span>
+					/>
 
 					{hasChildren ? (
 						<button
@@ -445,52 +438,17 @@ const NestedRow = ({
 
 				<ViewStatusBadge row={node.row} className="shrink-0" />
 
-				<div className={`flex items-center gap-1 ${dim}`}>
-					{custom.map((action) => {
-						const Icon = iconForCustomAction(action.className);
-
-						return (
-							<IconButton
-								key={action.key}
-								to={actionPath(action.route, node.row.id)}
-								label={action.name}
-								title={action.name}
-								onClick={(e) => e.stopPropagation()}
-							>
-								<Icon size={15} />
-							</IconButton>
-						);
-					})}
-					{builtins.edit && (
-						<IconButton
-							to={editPath(node.row.id)}
-							label="Edit"
-							title="Edit"
-							onClick={(e) => e.stopPropagation()}
-						>
-							<Edit size={15} />
-						</IconButton>
-					)}
-					<BuiltinToggleButtons
-						moduleId={moduleId}
-						viewId={viewId}
-						row={node.row}
-						builtins={builtins}
-					/>
-					{builtins.delete && (
-						<IconButton
-							label="Delete"
-							title="Delete"
-							tone="danger"
-							onClick={(e) => {
-								e.stopPropagation();
-								onDelete(node.row);
-							}}
-						>
-							<Trash size={15} />
-						</IconButton>
-					)}
-				</div>
+				<RowActions
+					moduleId={moduleId}
+					viewId={viewId}
+					row={node.row}
+					builtins={builtins}
+					custom={custom}
+					editPath={editPath}
+					actionPath={actionPath}
+					onDelete={onDelete}
+					className={dim}
+				/>
 			</li>
 
 			{hasChildren && isOpen && (

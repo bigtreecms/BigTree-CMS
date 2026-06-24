@@ -1,4 +1,5 @@
 import type { TwoFactorSetup } from "@/auth/endpoints";
+import { Field } from "@/components/ui/Field";
 
 interface TwoFactorEnrollFormProps {
 	/** The ceremony payload (secret + QR + otpauth URI) from the server. */
@@ -53,10 +54,7 @@ export const TwoFactorEnrollForm = ({
 					</code>
 				</div>
 
-				<label className="block">
-					<span className="mb-1 block text-[12px] font-medium text-text-2">
-						Verification code
-					</span>
+				<Field label="Verification code">
 					<input
 						type="text"
 						inputMode="numeric"
@@ -67,7 +65,7 @@ export const TwoFactorEnrollForm = ({
 						autoFocus
 						className="w-full rounded-md border border-border bg-surface px-3 py-2 text-[13.5px] tracking-[0.2em] focus:outline-none focus:ring-1 focus:ring-accent-ring"
 					/>
-				</label>
+				</Field>
 
 				<div className="flex justify-end gap-2">
 					<button

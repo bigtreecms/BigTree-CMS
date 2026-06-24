@@ -1,5 +1,7 @@
 import { useMemo } from "react";
 
+import { Select } from "@/components/ui/Select";
+
 interface TimezoneSelectProps {
 	value: string;
 	onChange: (next: string) => void;
@@ -11,21 +13,19 @@ interface TimezoneSelectProps {
  * <select> of IANA timezones, grouped by continent so the option list is
  * navigable. Mirrors the layout PHP's `DateTimeZone::listIdentifiers()` +
  * optgroup chunking produces. Browsers without `Intl.supportedValuesOf`
- * fall back to a short curated list.
+ * fall back to a short curated list. Renders through the shared {@link Select}
+ * primitive so it lines up with the rest of the admin's form controls.
  */
 export const TimezoneSelect = ({ value, onChange, id, className }: TimezoneSelectProps) => {
 	const grouped = useMemo(() => groupZones(getZones()), []);
 	const browserDefault = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
 	return (
-		<select
+		<Select
 			id={id}
 			value={value}
 			onChange={(e) => onChange(e.target.value)}
-			className={
-				className ??
-				"w-full rounded-md border border-border bg-surface px-3 py-2 text-[13.5px] focus:outline-none focus:ring-1 focus:ring-accent-ring"
-			}
+			className={className}
 		>
 			<option value="">Default ({browserDefault})</option>
 
@@ -38,7 +38,7 @@ export const TimezoneSelect = ({ value, onChange, id, className }: TimezoneSelec
 					))}
 				</optgroup>
 			))}
-		</select>
+		</Select>
 	);
 };
 

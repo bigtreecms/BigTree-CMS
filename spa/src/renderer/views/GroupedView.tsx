@@ -1,9 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronDown, ChevronRight, Edit, Trash } from "lucide-react";
+import { ChevronDown, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-import { IconButton } from "@/components/ui/IconButton";
 import { SearchInput } from "@/components/ui/SearchInput";
 import { autoModulesApi, type ModuleEntryRow } from "@/api/endpoints/auto-modules";
 import type { ModuleView } from "@/api/endpoints/modules";
@@ -11,7 +10,6 @@ import type { ModuleView } from "@/api/endpoints/modules";
 import {
 	decodeHTMLEntities,
 	formatCellValue,
-	iconForCustomAction,
 	isPersistedEntryId,
 	parseViewActions,
 	statusDimClass,
@@ -19,7 +17,7 @@ import {
 	statusRowClass,
 } from "./viewHelpers";
 import { ViewStatusBadge } from "./ViewStatusBadge";
-import { BuiltinToggleButtons } from "./BuiltinToggleButtons";
+import { RowActions } from "./RowActions";
 import { useEntryDelete } from "./useEntryDelete";
 import { useModuleEntryLinks } from "@/pages/ModuleLayout";
 
@@ -238,61 +236,17 @@ export const GroupedView = ({ moduleId, view }: GroupedViewProps) => {
 														className="shrink-0"
 													/>
 
-													<div
-														className={`flex items-center gap-1 ${dim}`}
-													>
-														{custom.map((action) => {
-															const Icon = iconForCustomAction(
-																action.className
-															);
-
-															return (
-																<IconButton
-																	key={action.key}
-																	to={actionPath(
-																		action.route,
-																		row.id
-																	)}
-																	label={action.name}
-																	title={action.name}
-																	onClick={(e) =>
-																		e.stopPropagation()
-																	}
-																>
-																	<Icon size={15} />
-																</IconButton>
-															);
-														})}
-														{builtins.edit && (
-															<IconButton
-																to={editPath(row.id)}
-																label="Edit"
-																title="Edit"
-																onClick={(e) => e.stopPropagation()}
-															>
-																<Edit size={15} />
-															</IconButton>
-														)}
-														<BuiltinToggleButtons
-															moduleId={moduleId}
-															viewId={view.id}
-															row={row}
-															builtins={builtins}
-														/>
-														{builtins.delete && (
-															<IconButton
-																label="Delete"
-																title="Delete"
-																tone="danger"
-																onClick={(e) => {
-																	e.stopPropagation();
-																	requestDelete(row);
-																}}
-															>
-																<Trash size={15} />
-															</IconButton>
-														)}
-													</div>
+													<RowActions
+														moduleId={moduleId}
+														viewId={view.id}
+														row={row}
+														builtins={builtins}
+														custom={custom}
+														editPath={editPath}
+														actionPath={actionPath}
+														onDelete={requestDelete}
+														className={dim}
+													/>
 												</li>
 											);
 										})}

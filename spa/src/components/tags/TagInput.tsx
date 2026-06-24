@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { X } from "lucide-react";
 
+import { RemovableChip } from "@/components/ui/RemovableChip";
 import { tagsApi, type Tag } from "@/api/endpoints/tags";
 
 /**
@@ -196,7 +196,7 @@ export const TagInput = (props: TagInputProps) => {
 			>
 				{props.multiple &&
 					props.value.map((tag) => (
-						<Chip
+						<RemovableChip
 							key={tag.id}
 							label={tag.tag}
 							onRemove={() => removeTag(tag.id)}
@@ -209,7 +209,7 @@ export const TagInput = (props: TagInputProps) => {
 							const single = props.value;
 
 							return (
-								<Chip
+								<RemovableChip
 									label={single.tag}
 									onRemove={() => removeTag(single.id)}
 									disabled={props.disabled}
@@ -296,28 +296,5 @@ export const TagInput = (props: TagInputProps) => {
 				</div>
 			)}
 		</div>
-	);
-};
-
-interface ChipProps {
-	label: string;
-	onRemove: () => void;
-	disabled?: boolean;
-}
-
-const Chip = ({ label, onRemove, disabled }: ChipProps) => {
-	return (
-		<span className="inline-flex items-center gap-1 rounded-md bg-accent-soft px-1.5 py-0.5 text-[12px] text-accent">
-			{label}
-			<button
-				type="button"
-				className="rounded p-0.5 text-accent hover:bg-accent/15 disabled:opacity-40"
-				onClick={onRemove}
-				disabled={disabled}
-				aria-label={`Remove ${label}`}
-			>
-				<X size={11} />
-			</button>
-		</span>
 	);
 };

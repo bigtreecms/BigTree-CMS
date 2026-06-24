@@ -22,6 +22,7 @@ import {
 } from "@/api/endpoints/images";
 import { ResourcePicker } from "@/components/files/ResourcePicker";
 import { IconButton } from "@/components/ui/IconButton";
+import { Field } from "@/components/ui/Field";
 import { useUploads, type UploadItem } from "@/hooks/useUploads";
 import { ApiError } from "@/types/api";
 import { expandImageUrl } from "@/lib/imageUrl";
@@ -834,8 +835,7 @@ const VideoUrlPrompt = ({ allowYoutube, allowVimeo, onClose, onCreated }: VideoU
 
 	return (
 		<div className="rounded-md border border-border bg-surface-2 p-3">
-			<label className="block">
-				<span className="mb-1 block text-[12px] font-medium text-text-2">{hint} URL</span>
+			<Field label={`${hint} URL`}>
 				<input
 					autoFocus
 					type="url"
@@ -851,7 +851,7 @@ const VideoUrlPrompt = ({ allowYoutube, allowVimeo, onClose, onCreated }: VideoU
 					}}
 					placeholder="https://youtube.com/watch?v=… or https://vimeo.com/…"
 				/>
-			</label>
+			</Field>
 			<div className="mt-2 flex justify-end gap-2">
 				<button
 					type="button"

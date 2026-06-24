@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { GripVertical } from "lucide-react";
+import { DragHandle } from "@/components/ui/DragHandle";
 
 import { modulesApi, type ModuleSummary } from "@/api/endpoints/modules";
 
@@ -103,13 +103,7 @@ export const ModuleGroupModulesList = ({ groupId }: ModuleGroupModulesListProps)
 							onDrop={drag.onDrop}
 							onDragEnd={drag.onDragEnd}
 						>
-							<span
-								className="grid size-6 shrink-0 cursor-grab place-items-center rounded text-text-4 hover:bg-hover hover:text-text-2 active:cursor-grabbing"
-								title="Drag to reorder"
-								aria-hidden="true"
-							>
-								<GripVertical size={14} />
-							</span>
+							<DragHandle />
 							<span className="grid size-[26px] shrink-0 place-items-center rounded-md bg-accent-soft text-accent">
 								<Icon size={15} />
 							</span>

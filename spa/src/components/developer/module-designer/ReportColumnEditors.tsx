@@ -1,9 +1,10 @@
-import { GripVertical, Plus, Trash } from "lucide-react";
+import { Plus, Trash } from "lucide-react";
 
 import type { DbOption } from "@/api/endpoints/db";
 import type { ModuleReportFilter, ModuleReportFilterType } from "@/api/endpoints/modules";
 
 import { useDragReorder } from "@/hooks/useDragReorder";
+import { DragHandle } from "@/components/ui/DragHandle";
 import { InlineEmpty } from "@/components/ui/InlineEmpty";
 import { Loading } from "@/components/ui/Loading";
 import { IconButton } from "@/components/ui/IconButton";
@@ -108,23 +109,6 @@ const rowClasses = (isDragging: boolean, isDropTarget: boolean) =>
 		isDragging ? "bg-accent-soft shadow-md" : ""
 	} ${isDropTarget ? "shadow-[inset_0_2px_0_0_var(--color-accent)]" : ""}`;
 
-interface DragHandleProps {
-	onDragStart: (e: React.DragEvent) => void;
-	onDragEnd: () => void;
-}
-
-const DragHandle = ({ onDragStart, onDragEnd }: DragHandleProps) => (
-	<span
-		className="grid size-6 shrink-0 cursor-grab place-items-center rounded text-text-4 hover:bg-hover hover:text-text-2 active:cursor-grabbing"
-		title="Drag to reorder"
-		draggable
-		onDragStart={onDragStart}
-		onDragEnd={onDragEnd}
-	>
-		<GripVertical size={14} />
-	</span>
-);
-
 interface DeleteButtonProps {
 	onClick: () => void;
 }
@@ -199,6 +183,7 @@ export const ReportFiltersEditor = ({
 								onDrop={drag.onDrop}
 							>
 								<DragHandle
+									draggable
 									onDragStart={(e) => drag.onDragStart(e, index)}
 									onDragEnd={drag.onDragEnd}
 								/>
@@ -296,6 +281,7 @@ export const ReportFieldsEditor = ({
 								onDrop={drag.onDrop}
 							>
 								<DragHandle
+									draggable
 									onDragStart={(e) => drag.onDragStart(e, index)}
 									onDragEnd={drag.onDragEnd}
 								/>

@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { File as FileIcon, Upload as UploadIcon, X } from "lucide-react";
 
 import { IconButton } from "@/components/ui/IconButton";
+import { ProgressBar } from "@/components/ui/ProgressBar";
 import { UPLOAD_PATH, type ResourceDetail } from "@/api/endpoints/resources";
 import { useUploads } from "@/hooks/useUploads";
 
@@ -79,7 +80,11 @@ export const UploadField = ({ field, value, onChange, disabled }: FieldComponent
 				</button>
 				{inFlight && (
 					<span className="inline-flex items-center gap-2 text-[12px] text-text-3">
-						<UploadProgress percent={inFlight.progress} />
+						<ProgressBar
+							value={inFlight.progress}
+							label="Upload progress"
+							className="w-24"
+						/>
 						{inFlight.progress}%
 					</span>
 				)}
@@ -123,19 +128,6 @@ export const UploadField = ({ field, value, onChange, disabled }: FieldComponent
 		</div>
 	);
 };
-
-interface UploadProgressProps {
-	percent: number;
-}
-
-const UploadProgress = ({ percent }: UploadProgressProps) => (
-	<span className="relative inline-block h-1.5 w-24 overflow-hidden rounded-full bg-surface-2">
-		<span
-			className="absolute inset-y-0 left-0 bg-accent transition-[width]"
-			style={{ width: `${percent}%` }}
-		/>
-	</span>
-);
 
 const filenameFromPath = (path: string): string => {
 	const withoutQuery = path.split("?")[0] ?? path;

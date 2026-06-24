@@ -43,3 +43,21 @@ export const Required: Story = {
 export const WithError: Story = {
 	args: { error: "Enter a valid email address." },
 };
+
+/** A short hint can sit inline on the label line (the resource-designer treatment). */
+export const InlineHint: Story = {
+	args: { label: "Slug", inlineHint: "lowercase, no spaces" },
+};
+
+/**
+ * `size="sm"` is the denser label used by the resource designer (`ControlShell`
+ * composes this). Pair with an `inlineHint` and a below `hint`.
+ */
+export const Small: Story = {
+	args: {
+		label: "Column",
+		size: "sm",
+		inlineHint: "optional",
+		hint: "Leave blank to use the field key.",
+	},
+};

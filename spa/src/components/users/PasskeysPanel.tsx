@@ -14,6 +14,7 @@ import { ApiError } from "@/types/api";
 import { toast } from "@/lib/toast";
 import { InlineEmpty } from "@/components/ui/InlineEmpty";
 import { IconButton } from "@/components/ui/IconButton";
+import { Field } from "@/components/ui/Field";
 
 /**
  * Profile → Security passkey manager.
@@ -105,10 +106,7 @@ export const PasskeysPanel = () => {
 
 				{supported && showAddPrompt && (
 					<div className="mb-4 rounded-md border border-border bg-surface-2 p-3">
-						<label className="block">
-							<span className="mb-1 block text-[12px] font-medium text-text-2">
-								Passkey name
-							</span>
+						<Field label="Passkey name">
 							<input
 								type="text"
 								className="w-full rounded-md border border-border bg-surface px-3 py-2 text-[13px] focus:outline-none focus:ring-1 focus:ring-accent-ring"
@@ -121,7 +119,7 @@ export const PasskeysPanel = () => {
 							<span className="mt-1 block text-[11.5px] text-text-3">
 								Just for your reference — pick a name you'll recognise later.
 							</span>
-						</label>
+						</Field>
 						<div className="mt-3 flex justify-end gap-2">
 							<Button
 								variant="secondary"

@@ -1,10 +1,11 @@
 import type { DragEvent, ReactNode } from "react";
-import { GripVertical, Pencil, Plus, Trash, X } from "lucide-react";
+import { Pencil, Plus, Trash, X } from "lucide-react";
 
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { InlineEmpty } from "@/components/ui/InlineEmpty";
 import { IconButton } from "@/components/ui/IconButton";
+import { DragHandle } from "@/components/ui/DragHandle";
 
 /**
  * Presentational chrome shared by every sub-resource tab (actions, forms,
@@ -86,15 +87,7 @@ export const SubRow = ({
 		onDrop={onDrop}
 		onDragEnd={onDragEnd}
 	>
-		{reorderable && (
-			<span
-				className="grid size-6 shrink-0 cursor-grab place-items-center rounded text-text-4 hover:bg-hover hover:text-text-2 active:cursor-grabbing"
-				title="Drag to reorder"
-				aria-hidden="true"
-			>
-				<GripVertical size={14} />
-			</span>
-		)}
+		{reorderable && <DragHandle />}
 		<button
 			type="button"
 			className="flex min-w-0 flex-1 items-center gap-2 text-left"

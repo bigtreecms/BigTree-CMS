@@ -4,6 +4,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ApiError } from "@/types/api";
 import { Button } from "@/components/ui/Button";
 import { SlideOver } from "@/components/ui/SlideOver";
+import { Field } from "@/components/ui/Field";
 import { resourcesApi, type ResourceDetail } from "@/api/endpoints/resources";
 import { toast } from "@/lib/toast";
 
@@ -98,8 +99,7 @@ export const VideoCreator = ({
 				</div>
 			}
 		>
-			<label className="block">
-				<span className="mb-1 block text-[12px] font-medium text-text-2">Video URL</span>
+			<Field label="Video URL">
 				<input
 					autoFocus
 					type="url"
@@ -118,7 +118,7 @@ export const VideoCreator = ({
 				<p className="mt-1.5 text-[11.5px] text-text-3">
 					Supported services: YouTube, Vimeo.
 				</p>
-			</label>
+			</Field>
 		</SlideOver>
 	);
 };
