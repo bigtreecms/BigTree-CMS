@@ -328,15 +328,11 @@ export const FileDetail = ({ resourceId, onOpenChange, folderQueryKey }: FileDet
 										};
 
 										return (
-											<label key={def.id} className="block">
-												<span className="mb-1 block text-[12px] font-medium text-text-2">
-													{def.title}
-													{def.subtitle && (
-														<span className="ml-1 font-normal text-text-3">
-															{def.subtitle}
-														</span>
-													)}
-												</span>
+											<Field
+												key={def.id}
+												label={def.title}
+												inlineHint={def.subtitle}
+											>
 												<FieldRenderer
 													field={field}
 													value={metadata[def.id]}
@@ -348,7 +344,7 @@ export const FileDetail = ({ resourceId, onOpenChange, folderQueryKey }: FileDet
 													}
 													disabled={pending}
 												/>
-											</label>
+											</Field>
 										);
 									})}
 								</div>

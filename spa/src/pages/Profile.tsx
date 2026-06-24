@@ -22,6 +22,7 @@ import { ApiError } from "@/types/api";
 import { useDirtyTracker } from "@/hooks/useDirtyTracker";
 import { UnsavedChangesGuard } from "@/components/ui/UnsavedChangesGuard";
 import { Card } from "@/components/ui/Card";
+import { Field } from "@/components/ui/Field";
 
 /**
  * Self-service profile editor — Account + Security tabs.
@@ -247,19 +248,12 @@ const AccountTab = ({ me, form, onChange, onSubmit }: AccountTabProps) => (
 				onChange={(company) => onChange({ ...form, company })}
 			/>
 
-			<div className="block">
-				<label
-					htmlFor="profile-timezone"
-					className="mb-1 block text-[12px] font-medium text-text-2"
-				>
-					Timezone
-				</label>
+			<Field label="Timezone">
 				<TimezoneSelect
-					id="profile-timezone"
 					value={form.timezone ?? ""}
 					onChange={(tz) => onChange({ ...form, timezone: tz })}
 				/>
-			</div>
+			</Field>
 
 			<Checkbox
 				label="Send me a daily digest email"

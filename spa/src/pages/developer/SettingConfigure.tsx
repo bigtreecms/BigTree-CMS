@@ -29,6 +29,7 @@ import { validateRequired } from "@/lib/formValidation";
 import { TextField } from "@/components/ui/TextField";
 import { Select } from "@/components/ui/Select";
 import { Loading } from "@/components/ui/Loading";
+import { Field } from "@/components/ui/Field";
 
 /**
  * Descriptions are WYSIWYG HTML. We reuse the renderer's HTMLField in its
@@ -282,10 +283,7 @@ export const SettingConfigure = () => {
 				</div>
 
 				<div>
-					<label className="block max-w-sm">
-						<span className="mb-1 block text-[12px] font-medium text-text-2">
-							Field type
-						</span>
+					<Field className="max-w-sm" label="Field type">
 						<Select
 							value={body.type ?? "text"}
 							onChange={(e) => changeType(e.target.value)}
@@ -311,7 +309,7 @@ export const SettingConfigure = () => {
 							Determines the editor shown when setting this value, and the options
 							below.
 						</span>
-					</label>
+					</Field>
 
 					<div className="mt-3">
 						<span className="mb-1 block text-[12px] font-medium text-text-2">

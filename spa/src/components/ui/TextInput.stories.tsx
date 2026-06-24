@@ -58,8 +58,17 @@ export const Variants: Story = {
 		<div className="flex flex-col gap-3">
 			<TextInput {...args} defaultValue="Default" />
 			<TextInput {...args} defaultValue="Dense" dense />
+			<TextInput {...args} defaultValue="Compact" compact className="w-full" />
 			<TextInput {...args} defaultValue="module_route" mono />
 			<TextInput {...args} defaultValue="module_route" dense mono />
 		</div>
 	),
+};
+
+/**
+ * `compact` is the tightest tier (`px-2 py-1 text-[12.5px]`) for inline grid /
+ * toolbar controls — it carries no width, so pass one via `className`.
+ */
+export const Compact: Story = {
+	args: { compact: true, className: "w-full", defaultValue: "Compact field" },
 };

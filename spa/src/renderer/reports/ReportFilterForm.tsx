@@ -1,5 +1,7 @@
 import { useMemo, useState, type FormEvent } from "react";
 
+import { Select } from "@/components/ui/Select";
+import { TextInput } from "@/components/ui/TextInput";
 import type { ModuleReportFilter, ModuleReportFilterOption } from "@/api/endpoints/modules";
 
 /**
@@ -120,9 +122,9 @@ export const ReportFilterForm = ({
 					>
 						Sort By
 					</label>
-					<select
+					<Select
 						id="report-sort-field"
-						className="rounded-md border border-border bg-surface px-2 py-1.5 text-[12.5px] focus:outline-none focus:ring-1 focus:ring-accent-ring"
+						compact
 						value={sortField}
 						onChange={(e) => setSortField(e.target.value)}
 					>
@@ -131,7 +133,7 @@ export const ReportFilterForm = ({
 								{f.label}
 							</option>
 						))}
-					</select>
+					</Select>
 				</div>
 
 				<div className="flex flex-col gap-1.5">
@@ -141,15 +143,15 @@ export const ReportFilterForm = ({
 					>
 						Sort Order
 					</label>
-					<select
+					<Select
 						id="report-sort-order"
-						className="rounded-md border border-border bg-surface px-2 py-1.5 text-[12.5px] focus:outline-none focus:ring-1 focus:ring-accent-ring"
+						compact
 						value={sortOrder}
 						onChange={(e) => setSortOrder(e.target.value as "ASC" | "DESC")}
 					>
 						<option value="ASC">Ascending</option>
 						<option value="DESC">Descending</option>
-					</select>
+					</Select>
 				</div>
 			</div>
 
@@ -183,15 +185,11 @@ const FilterInput = ({
 	onChange,
 	onRangeChange,
 }: FilterInputProps) => {
-	const inputClass =
-		"rounded-md border border-border bg-surface px-2 py-1.5 text-[12.5px] focus:outline-none focus:ring-1 focus:ring-accent-ring";
-
 	if (filter.type === "search") {
 		return (
-			<input
-				type="text"
+			<TextInput
+				compact
 				aria-label={`${column} search query`}
-				className={inputClass}
 				placeholder="Search query"
 				value={typeof value === "string" ? value : ""}
 				onChange={(e) => onChange(e.target.value)}
@@ -201,8 +199,8 @@ const FilterInput = ({
 
 	if (filter.type === "dropdown") {
 		return (
-			<select
-				className={inputClass}
+			<Select
+				compact
 				value={typeof value === "string" ? value : ""}
 				onChange={(e) => onChange(e.target.value)}
 			>
@@ -212,21 +210,21 @@ const FilterInput = ({
 						{opt.label}
 					</option>
 				))}
-			</select>
+			</Select>
 		);
 	}
 
 	if (filter.type === "boolean") {
 		return (
-			<select
-				className={inputClass}
+			<Select
+				compact
 				value={typeof value === "string" ? value : "Both"}
 				onChange={(e) => onChange(e.target.value)}
 			>
 				<option value="Both">Both</option>
 				<option value="Yes">Yes</option>
 				<option value="No">No</option>
-			</select>
+			</Select>
 		);
 	}
 
@@ -239,20 +237,20 @@ const FilterInput = ({
 		return (
 			<div className="grid grid-cols-2 gap-2">
 				<div className="flex flex-col gap-1">
-					<input
+					<TextInput
+						compact
 						type="date"
 						aria-label={`${column} start date`}
-						className={inputClass}
 						value={range.start ?? ""}
 						onChange={(e) => onRangeChange("start", e.target.value)}
 					/>
 					<span className="text-[11px] text-text-3">Start</span>
 				</div>
 				<div className="flex flex-col gap-1">
-					<input
+					<TextInput
+						compact
 						type="date"
 						aria-label={`${column} end date`}
-						className={inputClass}
 						value={range.end ?? ""}
 						onChange={(e) => onRangeChange("end", e.target.value)}
 					/>

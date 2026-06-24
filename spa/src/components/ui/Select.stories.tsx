@@ -40,3 +40,11 @@ export const WithValue: Story = {
 export const Disabled: Story = {
 	args: { defaultValue: "published", disabled: true },
 };
+
+/**
+ * `compact` is the tightest tier for inline grid / toolbar selects
+ * (`px-2 py-1 text-[12.5px]`, no baked width) — pass a width via `className`.
+ */
+export const Compact: Story = {
+	args: { defaultValue: "published", compact: true, className: "w-44" },
+};

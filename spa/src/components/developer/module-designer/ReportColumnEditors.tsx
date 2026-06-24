@@ -5,6 +5,8 @@ import type { ModuleReportFilter, ModuleReportFilterType } from "@/api/endpoints
 
 import { useDragReorder } from "@/hooks/useDragReorder";
 import { DragHandle } from "@/components/ui/DragHandle";
+import { Select } from "@/components/ui/Select";
+import { TextInput } from "@/components/ui/TextInput";
 import { InlineEmpty } from "@/components/ui/InlineEmpty";
 import { Loading } from "@/components/ui/Loading";
 import { IconButton } from "@/components/ui/IconButton";
@@ -82,7 +84,8 @@ const AddColumnPicker = ({ label, columns, usedColumns, onAdd }: AddColumnPicker
 	return (
 		<div className="mt-2 inline-flex items-center gap-1.5">
 			<Plus size={13} className="text-text-3" />
-			<select
+			<Select
+				compact
 				value=""
 				onChange={(e) => {
 					const column = unused.find((c) => c.value === e.target.value);
@@ -91,7 +94,6 @@ const AddColumnPicker = ({ label, columns, usedColumns, onAdd }: AddColumnPicker
 						onAdd(column);
 					}
 				}}
-				className="rounded-md border border-border bg-surface px-2.5 py-1.5 text-[12.5px] focus:outline-none focus:ring-1 focus:ring-accent-ring"
 			>
 				<option value="">{label}</option>
 				{unused.map((c) => (
@@ -99,7 +101,7 @@ const AddColumnPicker = ({ label, columns, usedColumns, onAdd }: AddColumnPicker
 						{humanizeColumn(c.value)}
 					</option>
 				))}
-			</select>
+			</Select>
 		</div>
 	);
 };
@@ -188,29 +190,30 @@ export const ReportFiltersEditor = ({
 									onDragEnd={drag.onDragEnd}
 								/>
 								<ColumnTag column={row.column} />
-								<input
-									type="text"
+								<TextInput
+									compact
+									className="min-w-0 flex-1"
 									value={row.title}
 									aria-label="Filter label"
 									onChange={(e) => setRow(index, { title: e.target.value })}
 									placeholder="Filter label"
-									className="min-w-0 flex-1 rounded-md border border-border bg-surface px-2 py-1 text-[12.5px] focus:outline-none focus:ring-1 focus:ring-accent-ring"
 								/>
-								<select
+								<Select
+									compact
+									className="w-44 shrink-0"
 									value={row.type}
 									onChange={(e) =>
 										setRow(index, {
 											type: e.target.value as ModuleReportFilterType,
 										})
 									}
-									className="w-44 shrink-0 rounded-md border border-border bg-surface px-2 py-1 text-[12.5px] focus:outline-none focus:ring-1 focus:ring-accent-ring"
 								>
 									{FILTER_TYPE_OPTIONS.map((o) => (
 										<option key={o.value} value={o.value}>
 											{o.label}
 										</option>
 									))}
-								</select>
+								</Select>
 								<DeleteButton onClick={() => removeRow(index)} />
 							</li>
 						);
@@ -286,13 +289,13 @@ export const ReportFieldsEditor = ({
 									onDragEnd={drag.onDragEnd}
 								/>
 								<ColumnTag column={row.column} />
-								<input
-									type="text"
+								<TextInput
+									compact
+									className="min-w-0 flex-1"
 									value={row.title}
 									aria-label="CSV heading"
 									onChange={(e) => setRow(index, { title: e.target.value })}
 									placeholder="CSV heading"
-									className="min-w-0 flex-1 rounded-md border border-border bg-surface px-2 py-1 text-[12.5px] focus:outline-none focus:ring-1 focus:ring-accent-ring"
 								/>
 								<DeleteButton onClick={() => removeRow(index)} />
 							</li>

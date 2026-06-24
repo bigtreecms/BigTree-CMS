@@ -1,8 +1,9 @@
 import type { CSSProperties, ReactNode } from "react";
-import { ChevronDown, ChevronUp, GripVertical } from "lucide-react";
+import { ChevronDown, ChevronUp } from "lucide-react";
 
 import { useDragReorder } from "@/hooks/useDragReorder";
 import { Card } from "@/components/ui/Card";
+import { DragHandle } from "@/components/ui/DragHandle";
 import { Loading } from "@/components/ui/Loading";
 
 export interface DataTableColumn<Row> {
@@ -160,15 +161,16 @@ export const DataTable = <Row,>({
 							onDrop={reorderable ? drag.onDrop : undefined}
 						>
 							{reorderable && (
-								<span
-									className="hidden size-6 cursor-grab place-items-center rounded text-text-4 hover:bg-hover hover:text-text-2 active:cursor-grabbing md:grid"
-									title="Drag to reorder"
-									draggable
-									onClick={(e) => e.stopPropagation()}
-									onDragStart={(e) => drag.onDragStart(e, key)}
-									onDragEnd={drag.onDragEnd}
-								>
-									<GripVertical size={14} />
+								// Hidden on mobile (drag-reorder is a pointer affordance); the
+								// wrapper carries the responsive display so the shared DragHandle
+								// keeps its own `grid` layout.
+								<span className="hidden md:block">
+									<DragHandle
+										draggable
+										onClick={(e) => e.stopPropagation()}
+										onDragStart={(e) => drag.onDragStart(e, key)}
+										onDragEnd={drag.onDragEnd}
+									/>
 								</span>
 							)}
 							{columns.map((col) => {

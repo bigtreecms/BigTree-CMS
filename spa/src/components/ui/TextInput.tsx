@@ -7,22 +7,36 @@ import { forwardRef, type InputHTMLAttributes } from "react";
  * utility through source order — see the note on {@link inputClass}.
  */
 export interface InputClassOptions {
-	/** Compact vertical padding for space-constrained sections (e.g. the module designer). */
+	/** Compact vertical padding (`py-1.5`) for space-constrained sections. */
 	dense?: boolean;
+	/**
+	 * The tightest tier — `px-2 py-1 text-[12.5px]`, and **no width** (callers
+	 * supply `w-44` / `flex-1` / auto via `className`). For the dense grid/toolbar
+	 * controls in the module designer and report-filter editors, where inputs and
+	 * selects sit inline at a smaller size than a normal form field.
+	 */
+	compact?: boolean;
 	/** Monospace + slightly smaller text for code/identifier entry. */
 	mono?: boolean;
 }
 
 const INPUT_BASE =
-	"w-full rounded-md border border-border bg-surface px-3 placeholder:text-text-3 focus:outline-none focus:ring-1 focus:ring-accent-ring disabled:cursor-not-allowed disabled:opacity-60";
+	"rounded-md border border-border bg-surface placeholder:text-text-3 focus:outline-none focus:ring-1 focus:ring-accent-ring disabled:cursor-not-allowed disabled:opacity-60";
 
 /**
  * Builds the canonical class string for a text-style control at the requested
- * density/style. Prefer the {@link dense}/{@link mono} props on the primitives
- * over calling this directly.
+ * density/style. Prefer the {@link dense}/{@link compact}/{@link mono} props on
+ * the primitives over calling this directly.
  */
-export const inputClassFor = ({ dense, mono }: InputClassOptions = {}): string =>
-	`${INPUT_BASE} ${dense ? "py-1.5" : "py-2"} ${mono ? "font-mono text-[12px]" : "text-[13px]"}`;
+export const inputClassFor = ({ dense, compact, mono }: InputClassOptions = {}): string => {
+	if (compact) {
+		return `${INPUT_BASE} px-2 py-1 text-[12.5px]`;
+	}
+
+	return `w-full ${INPUT_BASE} px-3 ${dense ? "py-1.5" : "py-2"} ${
+		mono ? "font-mono text-[12px]" : "text-[13px]"
+	}`;
+};
 
 /**
  * Canonical class string for text-style form controls (`<input>`, `<select>`,
@@ -45,8 +59,8 @@ type TextInputProps = InputHTMLAttributes<HTMLInputElement> & InputClassOptions;
  * {@link TextField} when you want the label wrapper too.
  */
 export const TextInput = forwardRef<HTMLInputElement, TextInputProps>(
-	({ type = "text", dense, mono, className, ...rest }, ref) => {
-		const base = inputClassFor({ dense, mono });
+	({ type = "text", dense, compact, mono, className, ...rest }, ref) => {
+		const base = inputClassFor({ dense, compact, mono });
 
 		return (
 			<input

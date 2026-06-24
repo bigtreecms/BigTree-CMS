@@ -5,6 +5,7 @@ import { ChevronDown, ChevronRight, GripVertical, Plus, Trash } from "lucide-rea
 import { useAuthStore } from "@/auth/store";
 
 import { IconButton } from "@/components/ui/IconButton";
+import { Select } from "@/components/ui/Select";
 import { calloutsApi, type CalloutSummary } from "@/api/endpoints/callouts";
 import { resourceToFormField } from "@/api/endpoints/templates";
 
@@ -487,8 +488,8 @@ const AddRow = ({
 	return (
 		<div className="flex flex-wrap items-center justify-between gap-2">
 			<div className="flex flex-wrap items-center gap-2">
-				<select
-					className="rounded-md border border-border bg-surface px-2 py-1.5 text-[12.5px] focus:outline-none focus:ring-1 focus:ring-accent-ring disabled:opacity-50"
+				<Select
+					compact
 					value={value}
 					onChange={(e) => onChange(e.target.value)}
 					disabled={disabled}
@@ -498,7 +499,7 @@ const AddRow = ({
 							{type.name}
 						</option>
 					))}
-				</select>
+				</Select>
 
 				<button
 					type="button"

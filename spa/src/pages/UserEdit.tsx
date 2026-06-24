@@ -37,6 +37,7 @@ import { useReturnTo } from "@/hooks/useReturnTo";
 import { useDirtyTracker } from "@/hooks/useDirtyTracker";
 import { UnsavedChangesGuard } from "@/components/ui/UnsavedChangesGuard";
 import { Card } from "@/components/ui/Card";
+import { Field } from "@/components/ui/Field";
 
 type PermsTab = "pages" | "modules" | "files";
 
@@ -357,19 +358,12 @@ export const UserEdit = () => {
 								onChange={(company) => setForm({ ...form, company })}
 							/>
 
-							<div className="block">
-								<label
-									htmlFor="user-edit-timezone"
-									className="mb-1 block text-[12px] font-medium text-text-2"
-								>
-									Timezone
-								</label>
+							<Field label="Timezone">
 								<TimezoneSelect
-									id="user-edit-timezone"
 									value={form.timezone ?? ""}
 									onChange={(tz) => setForm({ ...form, timezone: tz })}
 								/>
-							</div>
+							</Field>
 						</div>
 					</Card>
 				</div>

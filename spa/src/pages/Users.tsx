@@ -526,19 +526,9 @@ export const Users = () => {
 							}
 						/>
 
-						<div>
-							<label
-								htmlFor="user-timezone"
-								className="mb-1 block text-[12px] font-medium text-text-2"
-							>
-								Timezone
-							</label>
-							<TimezoneSelect
-								id="user-timezone"
-								value={timezone}
-								onChange={setTimezone}
-							/>
-						</div>
+						<Field label="Timezone">
+							<TimezoneSelect value={timezone} onChange={setTimezone} />
+						</Field>
 
 						<div className="md:col-span-2">
 							<Checkbox

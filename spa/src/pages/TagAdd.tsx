@@ -17,6 +17,7 @@ import { isAdmin } from "@/lib/permissions";
 import { toast } from "@/lib/toast";
 import { useDirtyTracker } from "@/hooks/useDirtyTracker";
 import { UnsavedChangesGuard } from "@/components/ui/UnsavedChangesGuard";
+import { Field } from "@/components/ui/Field";
 
 /**
  * Tag add page (`/tags/add`). Mirrors the legacy admin's tags/add form: a
@@ -154,15 +155,16 @@ export const TagAdd = () => {
 				onSubmit={submit}
 				className="space-y-4 rounded-xl border border-border bg-surface p-4"
 			>
-				<div>
-					<label
-						htmlFor="tag-name"
-						className="mb-1 block text-[12.5px] font-medium text-text-2"
-					>
-						Tag name
-					</label>
+				<Field
+					label="Tag name"
+					error={duplicate ? `A tag named “${normalized}” already exists.` : undefined}
+					hint={
+						duplicate
+							? undefined
+							: "Only letters and numbers are kept — the name is normalized on save."
+					}
+				>
 					<TextInput
-						id="tag-name"
 						className={duplicate ? "border-danger focus:ring-danger/40" : undefined}
 						placeholder="e.g. announcements"
 						value={name}
@@ -173,16 +175,7 @@ export const TagAdd = () => {
 						aria-invalid={duplicate}
 						autoFocus
 					/>
-					{duplicate ? (
-						<p className="mt-1.5 text-[11.5px] text-danger">
-							A tag named “{normalized}” already exists.
-						</p>
-					) : (
-						<p className="mt-1.5 text-[11.5px] text-text-3">
-							Only letters and numbers are kept — the name is normalized on save.
-						</p>
-					)}
-				</div>
+				</Field>
 
 				<div>
 					<label className="mb-1 block text-[12.5px] font-medium text-text-2">

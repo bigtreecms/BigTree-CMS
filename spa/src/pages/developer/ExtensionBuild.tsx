@@ -9,6 +9,7 @@ import { DescriptionList } from "@/components/ui/DescriptionList";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { Card } from "@/components/ui/Card";
 import { TextArea } from "@/components/ui/TextArea";
+import { Field } from "@/components/ui/Field";
 import { DeveloperSectionNav } from "@/components/developer/DeveloperSectionNav";
 
 import {
@@ -304,20 +305,13 @@ export const ExtensionBuild = () => {
 									hint="e.g. 4.5+"
 								/>
 							</div>
-							<div className="block">
-								<label
-									htmlFor="extension-description"
-									className="mb-1 block text-[12px] font-medium text-text-2"
-								>
-									Description
-								</label>
+							<Field label="Description">
 								<TextArea
-									id="extension-description"
 									value={description}
 									onChange={(e) => setDescription(e.target.value)}
 									rows={2}
 								/>
-							</div>
+							</Field>
 							<TextInput
 								label="Keywords"
 								value={keywords}

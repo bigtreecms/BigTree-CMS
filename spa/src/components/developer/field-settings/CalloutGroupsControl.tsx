@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Plus, Trash } from "lucide-react";
 
+import { Select } from "@/components/ui/Select";
 import { calloutsApi } from "@/api/endpoints/callouts";
 
 import { ControlShell } from "./ControlShell";
@@ -66,8 +67,9 @@ export const CalloutGroupsControl = ({ descriptor, settings, onPatch }: ControlP
 					</ul>
 				)}
 				<div className="flex items-center gap-2">
-					<select
-						className="min-w-0 flex-1 rounded border border-border bg-surface px-2 py-1 text-[12.5px] focus:outline-none focus:ring-1 focus:ring-accent-ring disabled:opacity-50"
+					<Select
+						compact
+						className="min-w-0 flex-1"
 						value={toAdd}
 						disabled={groupsQ.isLoading || available.length === 0}
 						onChange={(e) => setToAdd(e.target.value)}
@@ -78,7 +80,7 @@ export const CalloutGroupsControl = ({ descriptor, settings, onPatch }: ControlP
 								{g.name}
 							</option>
 						))}
-					</select>
+					</Select>
 					<button
 						type="button"
 						className="inline-flex items-center gap-1 rounded border border-border bg-surface px-2 py-1 text-[12px] hover:bg-hover disabled:opacity-50"

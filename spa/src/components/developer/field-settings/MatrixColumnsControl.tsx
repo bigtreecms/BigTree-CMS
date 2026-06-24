@@ -8,6 +8,8 @@ import { FieldSettingsEditor } from "../FieldSettingsEditor";
 import { ControlShell } from "./ControlShell";
 import type { ControlProps } from "./types";
 import { IconButton } from "@/components/ui/IconButton";
+import { Select } from "@/components/ui/Select";
+import { TextInput } from "@/components/ui/TextInput";
 
 interface Column {
 	id?: string;
@@ -17,9 +19,6 @@ interface Column {
 	display_title?: string;
 	settings?: Record<string, unknown>;
 }
-
-const inputClass =
-	"min-w-0 flex-1 rounded border border-border bg-surface px-2 py-1 text-[12.5px] focus:outline-none focus:ring-1 focus:ring-accent-ring";
 
 /**
  * Sub-field column editor for matrix and media-gallery. Each column is itself a
@@ -89,8 +88,8 @@ export const MatrixColumnsControl = ({ descriptor, settings, onPatch }: ControlP
 										<ChevronRight size={13} />
 									)}
 								</button>
-								<select
-									className="rounded border border-border bg-surface px-2 py-1 text-[12.5px] focus:outline-none focus:ring-1 focus:ring-accent-ring"
+								<Select
+									compact
 									value={column.type ?? "text"}
 									onChange={(e) => update(index, { type: e.target.value })}
 								>
@@ -99,23 +98,26 @@ export const MatrixColumnsControl = ({ descriptor, settings, onPatch }: ControlP
 											{t.name}
 										</option>
 									))}
-								</select>
-								<input
-									className={inputClass}
+								</Select>
+								<TextInput
+									compact
+									className="min-w-0 flex-1"
 									placeholder="ID"
 									aria-label="Column ID"
 									value={column.id ?? ""}
 									onChange={(e) => update(index, { id: e.target.value })}
 								/>
-								<input
-									className={inputClass}
+								<TextInput
+									compact
+									className="min-w-0 flex-1"
 									placeholder="Title"
 									aria-label="Column title"
 									value={column.title ?? ""}
 									onChange={(e) => update(index, { title: e.target.value })}
 								/>
-								<input
-									className={inputClass}
+								<TextInput
+									compact
+									className="min-w-0 flex-1"
 									placeholder="Subtitle"
 									aria-label="Column subtitle"
 									value={column.subtitle ?? ""}

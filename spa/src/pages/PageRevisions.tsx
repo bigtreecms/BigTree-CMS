@@ -18,6 +18,7 @@ import { ApiError } from "@/types/api";
 import { toast } from "@/lib/toast";
 import { InlineEmpty } from "@/components/ui/InlineEmpty";
 import { IconButton } from "@/components/ui/IconButton";
+import { Field } from "@/components/ui/Field";
 
 /**
  * Revisions list for a single page.
@@ -148,19 +149,17 @@ export const PageRevisions = () => {
 					Save current version as revision
 				</h2>
 				<div className="flex flex-wrap items-end gap-2">
-					<label className="block min-w-[280px] flex-1">
-						<span className="mb-1 block text-[12px] font-medium text-text-2">
-							Short description{" "}
-							<span className="text-text-3">
-								(what's special about this version?)
-							</span>
-						</span>
+					<Field
+						className="min-w-[280px] flex-1"
+						label="Short description"
+						inlineHint="(what's special about this version?)"
+					>
 						<TextInput
 							value={description}
 							onChange={(e) => setDescription(e.target.value)}
 							placeholder="Optional"
 						/>
-					</label>
+					</Field>
 					<Button
 						variant="primary"
 						icon={<Save size={13} />}

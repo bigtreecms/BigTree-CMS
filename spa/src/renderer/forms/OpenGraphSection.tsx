@@ -1,3 +1,7 @@
+import { Field } from "@/components/ui/Field";
+import { Select } from "@/components/ui/Select";
+import { TextInput } from "@/components/ui/TextInput";
+
 /** The Open Graph value carried by pages and module entries. */
 export interface OpenGraphValue {
 	title?: string;
@@ -11,11 +15,6 @@ interface OpenGraphSectionProps {
 	onChange: (next: OpenGraphValue) => void;
 	disabled?: boolean;
 }
-
-const INPUT =
-	"w-full rounded-md border border-border bg-surface px-2.5 py-1.5 text-[13px] outline-none transition-colors focus:border-accent";
-
-const LABEL = "mb-1.5 block text-[11.5px] font-medium text-text-2";
 
 /**
  * Open Graph metadata inputs for module forms with `open_graph` enabled —
@@ -34,38 +33,34 @@ export const OpenGraphSection = ({ value, onChange, disabled }: OpenGraphSection
 			</h3>
 
 			<div className="flex flex-col gap-[14px]">
-				<div>
-					<span className={LABEL}>
-						Title{" "}
-						<span className="font-normal text-text-3">
-							(defaults to the entry's title if left empty)
-						</span>
-					</span>
-					<input
+				<Field
+					label="Title"
+					size="sm"
+					inlineHint="(defaults to the entry's title if left empty)"
+				>
+					<TextInput
+						dense
 						aria-label="Open Graph title"
-						className={INPUT}
 						value={value.title ?? ""}
 						onChange={(e) => patch({ title: e.target.value })}
 						disabled={disabled}
 					/>
-				</div>
+				</Field>
 
-				<div>
-					<span className={LABEL}>Description</span>
-					<input
+				<Field label="Description" size="sm">
+					<TextInput
+						dense
 						aria-label="Open Graph description"
-						className={INPUT}
 						value={value.description ?? ""}
 						onChange={(e) => patch({ description: e.target.value })}
 						disabled={disabled}
 					/>
-				</div>
+				</Field>
 
 				<div className="grid grid-cols-1 gap-[14px] md:grid-cols-2 md:gap-x-[22px]">
-					<div>
-						<span className={LABEL}>Type</span>
-						<select
-							className={INPUT}
+					<Field label="Type" size="sm">
+						<Select
+							dense
 							value={value.type ?? ""}
 							onChange={(e) => patch({ type: e.target.value })}
 							disabled={disabled}
@@ -75,21 +70,18 @@ export const OpenGraphSection = ({ value, onChange, disabled }: OpenGraphSection
 							<option value="article">article</option>
 							<option value="profile">profile</option>
 							<option value="video.movie">video.movie</option>
-						</select>
-					</div>
-					<div>
-						<span className={LABEL}>
-							Image <span className="font-normal text-text-3">(min 1200×630)</span>
-						</span>
-						<input
+						</Select>
+					</Field>
+					<Field label="Image" size="sm" inlineHint="(min 1200×630)">
+						<TextInput
+							dense
 							aria-label="Open Graph image URL"
-							className={INPUT}
 							value={value.image ?? ""}
 							onChange={(e) => patch({ image: e.target.value })}
 							placeholder="https://"
 							disabled={disabled}
 						/>
-					</div>
+					</Field>
 				</div>
 			</div>
 		</div>
