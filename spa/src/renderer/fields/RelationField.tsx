@@ -5,6 +5,8 @@ import { ArrowDown, ArrowUp, Plus, RotateCcw, Search, Trash, X } from "lucide-re
 import { EmptyState } from "@/components/ui/EmptyState";
 import { IconButton } from "@/components/ui/IconButton";
 import { LoadingText } from "@/components/ui/LoadingText";
+import { PopoverPanel } from "@/components/ui/Popover";
+import { useOnClickOutside } from "@/hooks/useOnClickOutside";
 import {
 	modulesApi,
 	type RelationOption,
@@ -411,21 +413,7 @@ const Picker = ({
 	const containerRef = useRef<HTMLDivElement>(null);
 
 	// Close the dropdown on outside click.
-	useEffect(() => {
-		if (!open) {
-			return;
-		}
-
-		const handler = (event: MouseEvent) => {
-			if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-				setOpen(false);
-			}
-		};
-
-		window.addEventListener("mousedown", handler);
-
-		return () => window.removeEventListener("mousedown", handler);
-	}, [open]);
+	useOnClickOutside(containerRef, () => setOpen(false), open);
 
 	const placeholder = atLimit ? "Limit reached" : "Search items…";
 
@@ -464,7 +452,7 @@ const Picker = ({
 			</div>
 
 			{open && (
-				<div className="absolute z-10 mt-1 max-h-64 w-full overflow-y-auto rounded-md border border-border bg-surface shadow-lg">
+				<PopoverPanel className="max-h-64 w-full overflow-y-auto">
 					{isLoading ? (
 						<LoadingText className="block px-3 py-2" />
 					) : items.length === 0 ? (
@@ -493,7 +481,7 @@ const Picker = ({
 							))}
 						</ul>
 					)}
-				</div>
+				</PopoverPanel>
 			)}
 		</div>
 	);

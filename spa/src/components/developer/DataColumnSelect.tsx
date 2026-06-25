@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 
 import { Combobox } from "@/components/ui/Combobox";
-import { FieldLabel } from "@/components/ui/Field";
+import { Field } from "@/components/ui/Field";
 import { dbApi } from "@/api/endpoints/db";
 
 interface DataColumnSelectProps {
@@ -56,8 +56,14 @@ export const DataColumnSelect = ({
 	const selected = value ? { value, label: value } : null;
 
 	return (
-		<div className={className}>
-			{label && <FieldLabel required={required}>{label}</FieldLabel>}
+		<Field
+			as="div"
+			label={label}
+			hint={hint}
+			error={error}
+			required={required}
+			className={className}
+		>
 			<Combobox<string>
 				value={selected}
 				onChange={(option) => onChange(option ? option.value : "")}
@@ -70,12 +76,6 @@ export const DataColumnSelect = ({
 				id={id}
 				ariaLabel={ariaLabel ?? label}
 			/>
-			{hint && <span className="mt-1 block text-[11px] text-text-3">{hint}</span>}
-			{error && (
-				<span data-field-error className="mt-1 block text-[11.5px] text-danger">
-					{error}
-				</span>
-			)}
-		</div>
+		</Field>
 	);
 };

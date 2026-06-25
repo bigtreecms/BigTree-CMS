@@ -8,6 +8,7 @@ import { PageHead } from "@/components/shell/PageHead";
 import { PageContainer } from "@/components/shell/PageContainer";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { Button } from "@/components/ui/Button";
+import { Checkbox } from "@/components/ui/Checkbox";
 import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
 import { Pager } from "@/components/ui/Pager";
 import { SearchInput } from "@/components/ui/SearchInput";
@@ -228,26 +229,22 @@ export const FourOhFours = ({ type }: FourOhFoursProps) => {
 		{
 			key: "select",
 			header: (
-				<input
-					type="checkbox"
+				<Checkbox
+					size="sm"
+					label="Select all"
+					labelClassName="sr-only"
 					checked={rows.length > 0 && selected.size === rows.length}
 					onChange={toggleAll}
-					aria-label="Select all"
-					className="size-3.5 accent-accent"
 				/>
 			),
 			width: "32px",
 			cell: (row) => (
-				<input
-					type="checkbox"
+				<Checkbox
+					size="sm"
+					label="Select row"
+					labelClassName="sr-only"
 					checked={selected.has(row.id)}
-					onChange={(e) => {
-						e.stopPropagation();
-						toggleRow(row.id);
-					}}
-					onClick={(e) => e.stopPropagation()}
-					aria-label="Select row"
-					className="size-3.5 accent-accent"
+					onChange={() => toggleRow(row.id)}
 				/>
 			),
 		},

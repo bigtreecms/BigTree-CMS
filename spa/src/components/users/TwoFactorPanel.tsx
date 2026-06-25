@@ -7,6 +7,7 @@ import { authApi, type TwoFactorSetup } from "@/auth/endpoints";
 import { ApiError } from "@/types/api";
 import { toast } from "@/lib/toast";
 import { TwoFactorEnrollForm } from "./TwoFactorEnrollForm";
+import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Field } from "@/components/ui/Field";
@@ -105,14 +106,15 @@ export const TwoFactorPanel = ({ enabled }: TwoFactorPanelProps) => {
 					)}
 
 					{!enabled && !setup && (
-						<button
-							type="button"
+						<Button
+							variant="primary"
+							className="shrink-0"
 							onClick={() => setupMutation.mutate()}
-							disabled={setupMutation.isPending}
-							className="inline-flex shrink-0 items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 font-medium text-accent-fg disabled:opacity-60 hover:bg-accent-hover"
+							loading={setupMutation.isPending}
+							loadingLabel="Starting…"
 						>
-							{setupMutation.isPending ? "Starting…" : "Enable"}
-						</button>
+							Enable
+						</Button>
 					)}
 				</div>
 
@@ -160,27 +162,25 @@ export const TwoFactorPanel = ({ enabled }: TwoFactorPanelProps) => {
 						</Field>
 
 						<div className="mt-3 flex justify-end gap-2">
-							<button
-								type="button"
+							<Button
+								variant="secondary"
 								onClick={() => {
 									setDisabling(false);
 									setDisableCode("");
 								}}
 								disabled={disableMutation.isPending}
-								className="rounded-md border border-border bg-surface px-3 py-1.5 hover:bg-hover"
 							>
 								Cancel
-							</button>
-							<button
-								type="button"
+							</Button>
+							<Button
+								variant="danger"
 								onClick={() => disableMutation.mutate()}
-								disabled={
-									disableMutation.isPending || disableCode.trim().length === 0
-								}
-								className="rounded-md bg-danger px-3 py-1.5 font-medium text-white disabled:opacity-50"
+								disabled={disableCode.trim().length === 0}
+								loading={disableMutation.isPending}
+								loadingLabel="Disabling…"
 							>
-								{disableMutation.isPending ? "Disabling…" : "Disable 2FA"}
-							</button>
+								Disable 2FA
+							</Button>
 						</div>
 					</div>
 				)}

@@ -8,6 +8,7 @@ import { PageContainer } from "@/components/shell/PageContainer";
 import { Alert } from "@/components/ui/Alert";
 import { FieldGrid } from "@/components/ui/FieldGrid";
 import { Button } from "@/components/ui/Button";
+import { Radio } from "@/components/ui/Radio";
 import { DescriptionList } from "@/components/ui/DescriptionList";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { Card } from "@/components/ui/Card";
@@ -373,19 +374,13 @@ export const ExtensionBuild = () => {
 										<div className="space-y-1">
 											{Object.keys(licensesQ.data["Closed Source"]).map(
 												(name) => (
-													<label
+													<Radio
 														key={name}
-														className="flex items-center gap-2 text-[12.5px] text-text-2"
-													>
-														<input
-															type="radio"
-															name="closed-license"
-															className="size-4 accent-accent"
-															checked={closedLicense === name}
-															onChange={() => setClosedLicense(name)}
-														/>
-														{name}
-													</label>
+														name="closed-license"
+														label={name}
+														checked={closedLicense === name}
+														onChange={() => setClosedLicense(name)}
+													/>
 												)
 											)}
 										</div>

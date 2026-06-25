@@ -21,6 +21,13 @@ interface FieldProps {
 	required?: boolean;
 	/** Label text size: `md` (default, `text-[12px]`) or `sm` (`text-[11.5px]`, the denser designer controls). */
 	size?: FieldSize;
+	/**
+	 * Wrapper element. `label` (default) wraps the control in a `<label>` so it is
+	 * associated automatically; `div` renders a `<div>` + a `FieldLabel as="span"`
+	 * for custom controls (Combobox / icon pickers / schema rows) that must not be
+	 * nested inside a `<label>`.
+	 */
+	as?: "label" | "div";
 	children: ReactNode;
 	className?: string;
 }
@@ -107,11 +114,14 @@ export const Field = ({
 	inlineHint,
 	required,
 	size = "md",
+	as = "label",
 	children,
 	className,
 }: FieldProps) => {
-	return (
-		<label className={className ? `block ${className}` : "block"}>
+	const wrapperClassName = className ? `block ${className}` : "block";
+
+	const body = (
+		<>
 			{label && (
 				<FieldLabel size={size} required={required} inlineHint={inlineHint}>
 					{label}
@@ -128,6 +138,12 @@ export const Field = ({
 					{error}
 				</span>
 			)}
-		</label>
+		</>
 	);
+
+	if (as === "div") {
+		return <div className={wrapperClassName}>{body}</div>;
+	}
+
+	return <label className={wrapperClassName}>{body}</label>;
 };

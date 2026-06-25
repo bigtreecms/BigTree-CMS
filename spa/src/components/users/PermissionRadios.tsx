@@ -1,3 +1,5 @@
+import { Radio } from "@/components/ui/Radio";
+
 import type { PermissionCode } from "@/api/endpoints/users";
 import type { PermissionOption } from "./permissionOptions";
 
@@ -32,22 +34,18 @@ export const PermissionRadios = ({
 				const checked = current === opt.value || (opt.value === "i" && current === "");
 
 				return (
-					<label
+					<Radio
 						key={opt.value}
-						className="flex items-center justify-center"
+						name={name}
+						value={opt.value}
+						size="sm"
+						className="justify-center"
 						title={opt.label}
-					>
-						<input
-							type="radio"
-							name={name}
-							value={opt.value}
-							checked={checked}
-							disabled={disabled}
-							aria-label={opt.label}
-							onChange={() => onChange(opt.value)}
-							className="size-3.5 cursor-pointer accent-accent disabled:cursor-not-allowed disabled:opacity-50"
-						/>
-					</label>
+						ariaLabel={opt.label}
+						checked={checked}
+						disabled={disabled}
+						onChange={() => onChange(opt.value)}
+					/>
 				);
 			})}
 		</>

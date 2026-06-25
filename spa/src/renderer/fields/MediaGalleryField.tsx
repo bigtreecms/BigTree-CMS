@@ -795,22 +795,18 @@ const VideoUrlPrompt = ({ allowYoutube, allowVimeo, onClose, onCreated }: VideoU
 				/>
 			</Field>
 			<div className="mt-2 flex justify-end gap-2">
-				<button
-					type="button"
-					className="rounded-md border border-border px-3 py-1 text-[12px] hover:bg-hover"
-					onClick={onClose}
-					disabled={createMutation.isPending}
-				>
+				<Button variant="secondary" onClick={onClose} disabled={createMutation.isPending}>
 					Cancel
-				</button>
-				<button
-					type="button"
-					className="rounded-md bg-accent px-3 py-1 text-[12px] font-medium text-accent-fg disabled:opacity-60 hover:bg-accent-hover"
+				</Button>
+				<Button
+					variant="primary"
 					onClick={submit}
-					disabled={!looksValid || createMutation.isPending}
+					disabled={!looksValid}
+					loading={createMutation.isPending}
+					loadingLabel="Adding…"
 				>
-					{createMutation.isPending ? "Adding…" : "Add"}
-				</button>
+					Add
+				</Button>
 			</div>
 		</div>
 	);

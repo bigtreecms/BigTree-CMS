@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 
 import { fieldTypesApi, type FieldUseCase } from "@/api/endpoints/field-types";
+import { Field } from "@/components/ui/Field";
 import { Loading } from "@/components/ui/Loading";
 
 import { isVisible } from "./field-settings/evaluate";
@@ -125,19 +126,14 @@ export const FieldSettingsEditor = ({
 					const error = errors?.[descriptor.id];
 
 					return (
-						<div key={descriptor.id}>
+						<Field as="div" key={descriptor.id} error={error}>
 							<Control
 								descriptor={descriptor}
 								settings={settings}
 								onPatch={onPatch}
 								useCase={useCase}
 							/>
-							{error && (
-								<p data-field-error className="mt-1 text-[11.5px] text-danger">
-									{error}
-								</p>
-							)}
-						</div>
+						</Field>
 					);
 				})}
 			<button

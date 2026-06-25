@@ -247,24 +247,24 @@ export const ModuleShellTab = ({ moduleId, module }: ModuleShellTabProps) => {
 									onChange={setNewGroupName}
 								/>
 							</div>
-							<button
-								type="button"
-								disabled={!newGroupName.trim() || createGroupMutation.isPending}
+							<Button
+								variant="primary"
+								disabled={!newGroupName.trim()}
 								onClick={() => createGroupMutation.mutate(newGroupName.trim())}
-								className="inline-flex items-center rounded-md bg-accent px-3 py-2 text-[12.5px] font-medium text-accent-fg hover:bg-accent-hover disabled:opacity-50"
+								loading={createGroupMutation.isPending}
+								loadingLabel="Creating…"
 							>
-								{createGroupMutation.isPending ? "Creating…" : "Create group"}
-							</button>
-							<button
-								type="button"
+								Create group
+							</Button>
+							<Button
+								variant="secondary"
 								onClick={() => {
 									setCreatingGroup(false);
 									setNewGroupName("");
 								}}
-								className="inline-flex items-center rounded-md border border-border bg-surface px-3 py-2 text-[12.5px] text-text-2 hover:bg-hover"
 							>
 								Cancel
-							</button>
+							</Button>
 						</div>
 					)}
 

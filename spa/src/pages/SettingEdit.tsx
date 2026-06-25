@@ -8,6 +8,7 @@ import { PageHead } from "@/components/shell/PageHead";
 import { PageContainer } from "@/components/shell/PageContainer";
 import { Alert } from "@/components/ui/Alert";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
+import { Field } from "@/components/ui/Field";
 import { FormFooter } from "@/components/ui/FormFooter";
 import { FormShell } from "@/components/ui/FormShell";
 import { LockBanner } from "@/components/ui/LockBanner";
@@ -234,19 +235,14 @@ export const SettingEdit = () => {
 					// Single-field page — the PageHead title already names the
 					// setting, so we render the control without FieldRow's
 					// duplicate label and keep only its error markup.
-					<>
+					<Field as="div" error={fieldError ?? undefined}>
 						<FieldRenderer
 							field={formField}
 							value={value}
 							onChange={setValue}
 							disabled={readOnly}
 						/>
-						{fieldError && (
-							<div data-field-error className="mt-1 text-[11.5px] text-danger">
-								{fieldError}
-							</div>
-						)}
-					</>
+					</Field>
 				)}
 			</FormShell>
 

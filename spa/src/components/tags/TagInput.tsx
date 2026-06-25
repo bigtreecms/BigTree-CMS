@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+import { PopoverPanel } from "@/components/ui/Popover";
 import { RemovableChip } from "@/components/ui/RemovableChip";
+import { useOnClickOutside } from "@/hooks/useOnClickOutside";
 import { tagsApi, type Tag } from "@/api/endpoints/tags";
 
 /**
@@ -87,17 +89,7 @@ export const TagInput = (props: TagInputProps) => {
 		setActiveIndex(0);
 	}, [suggestions.length, canCreate]);
 
-	useEffect(() => {
-		const handler = (event: MouseEvent) => {
-			if (!wrapperRef.current?.contains(event.target as Node)) {
-				setOpen(false);
-			}
-		};
-
-		document.addEventListener("mousedown", handler);
-
-		return () => document.removeEventListener("mousedown", handler);
-	}, []);
+	useOnClickOutside(wrapperRef, () => setOpen(false));
 
 	const pickTag = (tag: Tag) => {
 		if (props.multiple) {
@@ -239,7 +231,7 @@ export const TagInput = (props: TagInputProps) => {
 			</div>
 
 			{open && trimmed.length > 0 && (
-				<div className="absolute inset-x-0 top-full z-10 mt-1 max-h-64 overflow-y-auto rounded-md border border-border bg-surface shadow-md">
+				<PopoverPanel className="inset-x-0 top-full max-h-64 overflow-y-auto">
 					{searchQuery.isLoading ? (
 						<div className="px-3 py-2 text-[12.5px] text-text-3">Searching…</div>
 					) : (
@@ -293,7 +285,7 @@ export const TagInput = (props: TagInputProps) => {
 							)}
 						</>
 					)}
-				</div>
+				</PopoverPanel>
 			)}
 		</div>
 	);

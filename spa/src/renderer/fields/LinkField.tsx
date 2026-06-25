@@ -3,6 +3,8 @@ import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { ExternalLink, File as FileIcon, Newspaper, Search, X } from "lucide-react";
 
 import { IconButton } from "@/components/ui/IconButton";
+import { PopoverPanel } from "@/components/ui/Popover";
+import { useOnClickOutside } from "@/hooks/useOnClickOutside";
 import { searchApi, type SearchPage } from "@/api/endpoints/search";
 import { resourcesApi } from "@/api/endpoints/resources";
 import type { ResourceSummary } from "@/api/endpoints/resource-folders";
@@ -54,21 +56,7 @@ export const LinkField = ({ field, value, onChange, disabled }: FieldComponentPr
 	}, [search]);
 
 	// Close dropdown on outside click.
-	useEffect(() => {
-		if (!open) {
-			return;
-		}
-
-		const handler = (event: MouseEvent) => {
-			if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-				setOpen(false);
-			}
-		};
-
-		window.addEventListener("mousedown", handler);
-
-		return () => window.removeEventListener("mousedown", handler);
-	}, [open]);
+	useOnClickOutside(containerRef, () => setOpen(false), open);
 
 	const shouldSearch = open && showSearch && debouncedSearch.length >= 2;
 
@@ -169,7 +157,7 @@ export const LinkField = ({ field, value, onChange, disabled }: FieldComponentPr
 			</div>
 
 			{open && showSearch && shouldSearch && (
-				<div className="absolute z-10 mt-1 max-h-72 w-full overflow-y-auto rounded-md border border-border bg-surface shadow-lg">
+				<PopoverPanel className="max-h-72 w-full overflow-y-auto">
 					{pagesQuery.isFetching &&
 					resourcesQuery.isFetching &&
 					!pagesQuery.data &&
@@ -248,7 +236,7 @@ export const LinkField = ({ field, value, onChange, disabled }: FieldComponentPr
 							)}
 						</>
 					)}
-				</div>
+				</PopoverPanel>
 			)}
 		</div>
 	);

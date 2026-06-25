@@ -9,6 +9,7 @@ import { PageContainer } from "@/components/shell/PageContainer";
 import { Alert } from "@/components/ui/Alert";
 import { FieldGrid } from "@/components/ui/FieldGrid";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
+import { Radio } from "@/components/ui/Radio";
 import { Button } from "@/components/ui/Button";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { FormFooter } from "@/components/ui/FormFooter";
@@ -317,48 +318,46 @@ export const FieldTypeEdit = () => {
 					<div>
 						<SectionLabel className="mb-2">Rendering</SectionLabel>
 						<div className="flex flex-col gap-2 rounded-md border border-border bg-surface-2 p-3">
-							<label className="flex items-start gap-2 text-[12.5px] text-text-2">
-								<input
-									type="radio"
-									name="render-mode"
-									className="mt-0.5 size-4 accent-accent"
-									checked={mode === "declarative"}
-									onChange={() => setMode("declarative")}
-								/>
-								<span>
-									<span className="font-medium">Declarative</span> — compose this
-									field from built-in primitives. No code; renders natively in the
-									SPA.
-								</span>
-							</label>
-							<label className="flex items-start gap-2 text-[12.5px] text-text-2">
-								<input
-									type="radio"
-									name="render-mode"
-									className="mt-0.5 size-4 accent-accent"
-									checked={mode === "module"}
-									onChange={() => {
-										setMode("module");
+							<Radio
+								name="render-mode"
+								align="start"
+								checked={mode === "declarative"}
+								onChange={() => setMode("declarative")}
+								label={
+									<>
+										<span className="font-medium">Declarative</span> — compose
+										this field from built-in primitives. No code; renders
+										natively in the SPA.
+									</>
+								}
+							/>
+							<Radio
+								name="render-mode"
+								align="start"
+								checked={mode === "module"}
+								onChange={() => {
+									setMode("module");
 
-										if (!(body.module_source ?? "").trim()) {
-											set({
-												module_source: MODULE_STARTER,
-												settings_schema:
-													body.settings_schema &&
-													body.settings_schema.length > 0
-														? body.settings_schema
-														: MODULE_STARTER_SETTINGS,
-											});
-										}
-									}}
-								/>
-								<span>
-									<span className="font-medium">JavaScript module</span> — write
-									code that draws the field. Runs locally in the SPA; you
-									implicitly trust your own code (distribution trust is handled
-									when packaging an extension).
-								</span>
-							</label>
+									if (!(body.module_source ?? "").trim()) {
+										set({
+											module_source: MODULE_STARTER,
+											settings_schema:
+												body.settings_schema &&
+												body.settings_schema.length > 0
+													? body.settings_schema
+													: MODULE_STARTER_SETTINGS,
+										});
+									}
+								}}
+								label={
+									<>
+										<span className="font-medium">JavaScript module</span> —
+										write code that draws the field. Runs locally in the SPA;
+										you implicitly trust your own code (distribution trust is
+										handled when packaging an extension).
+									</>
+								}
+							/>
 						</div>
 					</div>
 

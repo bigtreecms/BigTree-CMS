@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CheckCircle2, Unplug } from "lucide-react";
 
 import { ConfigureLayout } from "@/components/developer/ConfigureLayout";
+import { Button } from "@/components/ui/Button";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { TextInput } from "@/components/ui/TextInput";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
@@ -159,18 +160,16 @@ export const ConfigureAnalytics = () => {
 											/>
 										</Field>
 
-										<button
-											type="button"
-											disabled={
-												!hasCredentials ||
-												!propertyId.trim() ||
-												verifyMutation.isPending
-											}
+										<Button
+											variant="primary"
+											className="mb-px"
+											disabled={!hasCredentials || !propertyId.trim()}
 											onClick={() => verifyMutation.mutate()}
-											className="mb-px inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-2 text-[12.5px] font-medium text-accent-fg hover:bg-accent-hover disabled:opacity-60"
+											loading={verifyMutation.isPending}
+											loadingLabel="Verifying…"
 										>
-											{verifyMutation.isPending ? "Verifying…" : "Verify"}
-										</button>
+											Verify
+										</Button>
 									</div>
 								</li>
 							</ol>

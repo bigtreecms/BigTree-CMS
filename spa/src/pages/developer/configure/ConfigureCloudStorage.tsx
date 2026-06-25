@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { RefreshCw, Save } from "lucide-react";
 
 import { ConfigureLayout } from "@/components/developer/ConfigureLayout";
+import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
 import { LoadingText } from "@/components/ui/LoadingText";
 import { Select } from "@/components/ui/Select";
@@ -268,15 +269,16 @@ export const ConfigureCloudStorage = () => {
 								</Field>
 							</div>
 
-							<button
-								type="button"
+							<Button
+								variant="primary"
+								className="w-full justify-center sm:w-auto sm:justify-start"
+								icon={<Save size={13} />}
 								onClick={() => saveDefaultMutation.mutate()}
-								disabled={saveDefaultMutation.isPending}
-								className="inline-flex w-full items-center justify-center gap-1.5 rounded-md bg-accent px-3 py-2 text-[12.5px] font-medium text-accent-fg hover:bg-accent-hover disabled:opacity-60 sm:w-auto sm:justify-start sm:py-1.5"
+								loading={saveDefaultMutation.isPending}
+								loadingLabel="Saving…"
 							>
-								<Save size={13} />
-								{saveDefaultMutation.isPending ? "Saving…" : "Update default"}
-							</button>
+								Update default
+							</Button>
 						</div>
 
 						{defaultService === "amazon" && (

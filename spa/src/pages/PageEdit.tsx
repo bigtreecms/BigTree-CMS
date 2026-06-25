@@ -1099,17 +1099,17 @@ const Check = ({ label, checked, onChange, disabled, column, pending }: CheckPro
 	const showPending = Boolean(column && pending?.isPending(column));
 
 	return (
-		<label className="inline-flex cursor-pointer items-center gap-2 text-[12.5px] text-text-2 has-[input:disabled]:cursor-not-allowed has-[input:disabled]:opacity-60">
-			<input
-				type="checkbox"
-				className="size-4 rounded border-border accent-accent"
-				checked={checked}
-				onChange={(e) => onChange(e.target.checked)}
-				disabled={disabled}
-			/>
-			{label}
-			{showPending && <PendingBadge />}
-		</label>
+		<Checkbox
+			checked={checked}
+			onChange={onChange}
+			disabled={disabled}
+			label={
+				<>
+					{label}
+					{showPending && <PendingBadge />}
+				</>
+			}
+		/>
 	);
 };
 

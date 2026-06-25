@@ -1,3 +1,5 @@
+import { Radio } from "@/components/ui/Radio";
+
 import { settingsOf, type FieldComponentProps } from "./types";
 
 interface RadioItem {
@@ -21,26 +23,17 @@ export const RadioField = ({ field, value, onChange, disabled }: FieldComponentP
 			{items.map((item, index) => {
 				const optValue = item.key ?? item.value ?? "";
 				const optLabel = item.description ?? item.label ?? optValue;
-				const id = `${field.column}-${index}`;
 
 				return (
-					<label
-						key={id}
-						htmlFor={id}
-						className="inline-flex cursor-pointer items-center gap-2 text-[13px] text-text-2"
-					>
-						<input
-							id={id}
-							type="radio"
-							name={field.column}
-							value={optValue}
-							checked={selected === optValue}
-							disabled={disabled}
-							onChange={() => onChange(optValue)}
-							className="size-3.5 accent-accent disabled:cursor-not-allowed"
-						/>
-						<span>{optLabel}</span>
-					</label>
+					<Radio
+						key={`${field.column}-${index}`}
+						name={field.column}
+						value={optValue}
+						label={optLabel}
+						checked={selected === optValue}
+						disabled={disabled}
+						onChange={() => onChange(optValue)}
+					/>
 				);
 			})}
 		</div>

@@ -11,6 +11,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Fingerprint } from "lucide-react";
 import { Alert } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
+import { Checkbox } from "@/components/ui/Checkbox";
 import { Field } from "@/components/ui/Field";
 import { TextInput } from "@/components/ui/TextInput";
 import { TwoFactorEnrollForm } from "@/components/users/TwoFactorEnrollForm";
@@ -256,10 +257,11 @@ export const Login = () => {
 						</Link>
 
 						{!rememberDisabled && (
-							<label className="flex cursor-pointer items-center gap-2 text-[12.5px] text-text-2">
-								<input type="checkbox" {...form.register("remember")} />
-								Remember me
-							</label>
+							<Checkbox
+								label="Remember me"
+								checked={form.watch("remember") ?? false}
+								onChange={(checked) => form.setValue("remember", checked)}
+							/>
 						)}
 
 						<Button

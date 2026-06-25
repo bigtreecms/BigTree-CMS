@@ -63,6 +63,27 @@ export const Small: Story = {
 };
 
 /**
+ * `as="div"` renders the same label/hint/error chrome around a custom control
+ * (Combobox / icon picker / schema row) that must not be nested in a `<label>`.
+ * The label becomes a `FieldLabel as="span"` instead of wrapping the control.
+ */
+export const CustomControl: StoryObj = {
+	render: () => (
+		<Field
+			as="div"
+			label="Icon"
+			required
+			hint="Choose an icon for this field."
+			error="An icon is required."
+		>
+			<div className="rounded-md border border-border bg-surface-2 p-2 text-[12px] text-text-3">
+				custom control
+			</div>
+		</Field>
+	),
+};
+
+/**
  * `FieldLabel` is the same label typography on its own — for a label above a
  * custom control where `Field`'s wrapping `<label>` is wrong. Default
  * `as="span"`; pass `tone="muted"` for the de-emphasized filter-label tier.

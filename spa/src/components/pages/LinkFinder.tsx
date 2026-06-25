@@ -5,6 +5,9 @@ import { File as FileIcon, Newspaper, Package, Search } from "lucide-react";
 import { searchApi } from "@/api/endpoints/search";
 import { resourcesApi } from "@/api/endpoints/resources";
 
+import { PopoverPanel } from "@/components/ui/Popover";
+
+import { useOnClickOutside } from "@/hooks/useOnClickOutside";
 import { toast } from "@/lib/toast";
 
 /**
@@ -38,21 +41,7 @@ export const LinkFinder = () => {
 		return () => clearTimeout(handle);
 	}, [q]);
 
-	useEffect(() => {
-		if (!open) {
-			return;
-		}
-
-		const handler = (event: MouseEvent) => {
-			if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-				setOpen(false);
-			}
-		};
-
-		window.addEventListener("mousedown", handler);
-
-		return () => window.removeEventListener("mousedown", handler);
-	}, [open]);
+	useOnClickOutside(containerRef, () => setOpen(false), open);
 
 	const enabled = open && debounced.length >= 2;
 
@@ -127,7 +116,7 @@ export const LinkFinder = () => {
 			</div>
 
 			{open && debounced.length >= 2 && (
-				<div className="absolute right-0 top-full z-20 mt-1 w-[min(420px,90vw)] overflow-hidden rounded-md border border-border bg-surface shadow-lg">
+				<PopoverPanel className="right-0 top-full w-[min(420px,90vw)] overflow-hidden">
 					<div className="border-b border-border bg-surface-2 px-3 py-1 text-[10.5px] uppercase tracking-wider text-text-3">
 						Pick an item to copy its reference
 					</div>
@@ -157,7 +146,7 @@ export const LinkFinder = () => {
 							))}
 						</ul>
 					)}
-				</div>
+				</PopoverPanel>
 			)}
 		</div>
 	);
