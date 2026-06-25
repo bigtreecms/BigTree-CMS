@@ -4,6 +4,7 @@ import type { ModuleForm, ModuleFormField } from "@/api/endpoints/modules";
 import type { Tag } from "@/api/endpoints/tags";
 import { TagInput } from "@/components/tags/TagInput";
 import { Alert } from "@/components/ui/Alert";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { UnsavedChangesGuard } from "@/components/ui/UnsavedChangesGuard";
 import { useScrollToFirstError } from "@/hooks/useScrollToFirstError";
 import { ApiError } from "@/types/api";
@@ -289,9 +290,9 @@ export const FormRenderer = ({
 				)}
 
 				{form.fields.length === 0 ? (
-					<div className="rounded-md border border-dashed border-border bg-surface-2 p-6 text-center text-[12.5px] text-text-3">
+					<EmptyState dashed size="sm">
 						This form has no fields configured.
-					</div>
+					</EmptyState>
 				) : (
 					form.fields.map((field) => (
 						<FieldRowItem

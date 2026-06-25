@@ -8,6 +8,7 @@ import { TextInput } from "@/components/ui/TextInput";
 import { Button } from "@/components/ui/Button";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { Card } from "@/components/ui/Card";
+import { LoadingText } from "@/components/ui/LoadingText";
 import { MediaPresetEditor } from "@/components/developer/MediaPresetEditor";
 
 import { configureApi, type MediaPreset } from "@/api/endpoints/configure";
@@ -93,7 +94,7 @@ export const ConfigureMediaPresets = () => {
 				</Button>
 			}
 		>
-			{detailQ.isLoading && <p className="text-[12.5px] text-text-3">Loading…</p>}
+			{detailQ.isLoading && <LoadingText />}
 
 			{detailQ.error && <ErrorPanel error={detailQ.error} />}
 

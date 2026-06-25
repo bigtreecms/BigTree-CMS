@@ -2,6 +2,9 @@ import type { ReactNode } from "react";
 
 export type FieldSize = "sm" | "md";
 
+/** The danger-colored required-field asterisk, shared by every label that marks a field required. */
+export const RequiredMarker = () => <span className="text-danger"> *</span>;
+
 interface FieldProps {
 	/** Visible label. Optional — omit for an unlabeled wrapper (e.g. a control that only needs a hint). */
 	label?: ReactNode;
@@ -50,7 +53,7 @@ export const Field = ({
 			{label && (
 				<span className={`mb-1 block font-medium text-text-2 ${labelSizeClass[size]}`}>
 					{label}
-					{required && <span className="text-danger"> *</span>}
+					{required && <RequiredMarker />}
 					{inlineHint && (
 						<span className="ml-1 font-normal text-text-3">{inlineHint}</span>
 					)}

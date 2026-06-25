@@ -4,6 +4,7 @@ import { ArrowDown, ArrowUp, Plus, RotateCcw, Search, Trash, X } from "lucide-re
 
 import { EmptyState } from "@/components/ui/EmptyState";
 import { IconButton } from "@/components/ui/IconButton";
+import { LoadingText } from "@/components/ui/LoadingText";
 import {
 	modulesApi,
 	type RelationOption,
@@ -12,6 +13,7 @@ import {
 
 import { useFormRenderContext } from "@/renderer/forms/FormContext";
 
+import { isTruthyFlag, toInt } from "./fieldHelpers";
 import { settingsOf, type FieldComponentProps } from "./types";
 
 export type RelationKind = "one-to-many" | "many-to-many";
@@ -25,12 +27,6 @@ interface RelationFieldSettings {
 	show_add_all?: boolean | string | number;
 	show_reset?: boolean | string | number;
 }
-
-const toInt = (raw: unknown): number => {
-	const n = typeof raw === "number" ? raw : Number(raw);
-
-	return Number.isFinite(n) && n > 0 ? Math.floor(n) : 0;
-};
 
 const toIds = (raw: unknown): number[] => {
 	if (!Array.isArray(raw)) {
@@ -48,24 +44,6 @@ const toIds = (raw: unknown): number[] => {
 	}
 
 	return out;
-};
-
-const isTruthyFlag = (raw: unknown): boolean => {
-	if (typeof raw === "boolean") {
-		return raw;
-	}
-
-	if (typeof raw === "number") {
-		return raw !== 0;
-	}
-
-	if (typeof raw === "string") {
-		const lower = raw.toLowerCase();
-
-		return lower !== "" && lower !== "0" && lower !== "false" && lower !== "off";
-	}
-
-	return false;
 };
 
 const OPTIONS_KEY = (
@@ -276,9 +254,7 @@ export const RelationField = ({ field, value, onChange, disabled, kind }: Relati
 	return (
 		<div className="space-y-2">
 			{isMtm && entryId !== null && initialMtmQuery.isLoading && (
-				<div className="rounded-md border border-dashed border-border bg-surface-2 px-3 py-2 text-[12px] text-text-3">
-					Loading current selections…
-				</div>
+				<LoadingText boxed label="Loading current selections…" />
 			)}
 
 			{selectedIds.length > 0 ? (
@@ -492,7 +468,7 @@ const Picker = ({
 			{open && (
 				<div className="absolute z-10 mt-1 max-h-64 w-full overflow-y-auto rounded-md border border-border bg-surface shadow-lg">
 					{isLoading ? (
-						<div className="px-3 py-2 text-[12px] text-text-3">Loading…</div>
+						<LoadingText className="block px-3 py-2" />
 					) : items.length === 0 ? (
 						<div className="px-3 py-2 text-[12px] text-text-3">
 							{search ? `No items match “${search}”.` : "No items available."}

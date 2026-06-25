@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 
+import { LoadingText } from "@/components/ui/LoadingText";
 import { StubField } from "@/renderer/fields/StubField";
 import type { FieldComponentProps } from "@/renderer/fields/types";
 
@@ -125,11 +126,7 @@ export const ModuleField = ({ assetUrl, source, onError, ...props }: ModuleField
 	return (
 		<div>
 			<div ref={containerRef} />
-			{status === "loading" && (
-				<div className="rounded-md border border-dashed border-border bg-surface-2 p-3 text-[12px] text-text-3">
-					Loading field…
-				</div>
-			)}
+			{status === "loading" && <LoadingText boxed label="Loading field…" />}
 		</div>
 	);
 };

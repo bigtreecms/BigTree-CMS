@@ -10,6 +10,7 @@ import { TextInput } from "@/components/ui/TextInput";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { Field } from "@/components/ui/Field";
+import { LoadingText } from "@/components/ui/LoadingText";
 import { Card } from "@/components/ui/Card";
 
 import { configureApi, type ServiceCredentials } from "@/api/endpoints/configure";
@@ -165,7 +166,7 @@ export const ConfigureServices = () => {
 			title="Services"
 			sub="Third-party social / business integrations. Enter each provider's credentials and connect — the OAuth handshake returns you here."
 		>
-			{detailQ.isLoading && <p className="text-[12.5px] text-text-3">Loading…</p>}
+			{detailQ.isLoading && <LoadingText />}
 
 			{detailQ.error && <ErrorPanel error={detailQ.error} />}
 

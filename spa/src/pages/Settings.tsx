@@ -12,6 +12,7 @@ import { SearchInput } from "@/components/ui/SearchInput";
 import { settingsApi, type SettingDetail } from "@/api/endpoints/settings";
 
 import { stripHtml } from "@/lib/html";
+import { formatNumber } from "@/lib/number";
 
 /**
  * /settings — global settings list.
@@ -123,7 +124,7 @@ export const Settings = () => {
 
 			<PageHead
 				title="Settings"
-				sub={total === 1 ? "1 setting" : `${total.toLocaleString()} settings`}
+				sub={total === 1 ? "1 setting" : `${formatNumber(total)} settings`}
 			/>
 
 			<div className="mb-3 flex flex-wrap items-center gap-3">

@@ -4,6 +4,7 @@ import { Save } from "lucide-react";
 
 import { ConfigureLayout } from "@/components/developer/ConfigureLayout";
 import { Button } from "@/components/ui/Button";
+import { LoadingText } from "@/components/ui/LoadingText";
 import { Select } from "@/components/ui/Select";
 import { TextInput } from "@/components/ui/TextInput";
 import { Field } from "@/components/ui/Field";
@@ -101,7 +102,7 @@ export const ConfigureEmail = () => {
 			title="Email"
 			sub="Picks the delivery service BigTree uses for password resets, daily digests, and EmailService::sendEmail() calls."
 		>
-			{detailQ.isLoading && <p className="text-[12.5px] text-text-3">Loading…</p>}
+			{detailQ.isLoading && <LoadingText />}
 
 			{detailQ.error && <ErrorPanel error={detailQ.error} />}
 

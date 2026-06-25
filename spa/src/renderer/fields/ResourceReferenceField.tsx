@@ -5,8 +5,10 @@ import { File as FileIcon, Image as ImageIcon, Search, Video as VideoIcon, X } f
 import { ResourcePicker, type ResourcePickerType } from "@/components/files/ResourcePicker";
 import { Button } from "@/components/ui/Button";
 import { IconButton } from "@/components/ui/IconButton";
+import { LoadingText } from "@/components/ui/LoadingText";
 import { resourcesApi, type ResourceDetail } from "@/api/endpoints/resources";
 
+import { toInt } from "./fieldHelpers";
 import { settingsOf, type FieldComponentProps } from "./types";
 
 /**
@@ -133,7 +135,7 @@ const ReferencePreview = ({
 				</div>
 
 				{loading ? (
-					<div className="text-text-3">Loading…</div>
+					<LoadingText />
 				) : missing || !resource ? (
 					<div className="text-danger">
 						Resource not found — it may have been deleted.
@@ -217,10 +219,4 @@ const PlaceholderTile = ({ pickerType }: { pickerType: ResourcePickerType }) => 
 			<Icon size={22} />
 		</div>
 	);
-};
-
-const toInt = (raw: unknown): number => {
-	const n = typeof raw === "number" ? raw : Number(raw);
-
-	return Number.isFinite(n) && n > 0 ? Math.floor(n) : 0;
 };

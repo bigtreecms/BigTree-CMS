@@ -21,6 +21,7 @@ import {
 
 import { ApiError } from "@/types/api";
 import { downloadCsv } from "@/lib/csv";
+import { formatNumber } from "@/lib/number";
 import { toast } from "@/lib/toast";
 
 /**
@@ -187,7 +188,7 @@ export const FourOhFours = ({ type }: FourOhFoursProps) => {
 
 			if (meta?.capped) {
 				toast.warning(
-					`Export capped at the ${Number(meta.max).toLocaleString()} most-requested entries.`
+					`Export capped at the ${formatNumber(Number(meta.max))} most-requested entries.`
 				);
 
 				return;
@@ -396,7 +397,7 @@ export const FourOhFours = ({ type }: FourOhFoursProps) => {
 
 			<PageHead
 				title={TYPE_LABEL[type]}
-				sub={total === 1 ? "1 entry" : `${total.toLocaleString()} entries`}
+				sub={total === 1 ? "1 entry" : `${formatNumber(total)} entries`}
 				actions={
 					<>
 						<Button

@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import {
-	ChevronDown,
 	ChevronRight,
 	GripVertical,
 	Image as ImageIcon,
@@ -33,7 +32,9 @@ import { toast } from "@/lib/toast";
 import { FieldRenderer } from "@/renderer/forms/FieldRenderer";
 import { FieldRow } from "@/renderer/forms/FieldRow";
 
+import { CollapsibleRowHeader } from "./CollapsibleRowHeader";
 import { FieldCropModal } from "./FieldCropModal";
+import { isRecord, isTruthyFlag, normalizeColumnSettings, toInt } from "./fieldHelpers";
 import { settingsOf, type FieldComponentProps } from "./types";
 
 /**
@@ -116,9 +117,6 @@ const nextUid = (): string => `g${++uidCounter}-${Date.now().toString(36)}`;
 const TITLE_KEY = "__internal-title";
 const SUBTITLE_KEY = "__internal-subtitle";
 
-const isRecord = (raw: unknown): raw is Record<string, unknown> =>
-	Boolean(raw) && typeof raw === "object" && !Array.isArray(raw);
-
 const seedItems = (raw: unknown): MediaItem[] => {
 	if (!Array.isArray(raw)) {
 		return [];
@@ -147,48 +145,6 @@ const itemsDataEqual = (a: MediaItem[], b: MediaItem[]): boolean => {
 	}
 
 	return true;
-};
-
-const toInt = (raw: unknown): number => {
-	const n = typeof raw === "number" ? raw : Number(raw);
-
-	return Number.isFinite(n) && n > 0 ? Math.floor(n) : 0;
-};
-
-const isTruthyFlag = (raw: unknown): boolean => {
-	if (typeof raw === "boolean") {
-		return raw;
-	}
-
-	if (typeof raw === "number") {
-		return raw !== 0;
-	}
-
-	if (typeof raw === "string") {
-		const lower = raw.toLowerCase();
-
-		return lower !== "" && lower !== "0" && lower !== "false" && lower !== "off";
-	}
-
-	return false;
-};
-
-const normalizeColumnSettings = (raw: unknown): Record<string, unknown> => {
-	if (typeof raw === "string" && raw.trim().length > 0) {
-		try {
-			const parsed = JSON.parse(raw);
-
-			return isRecord(parsed) ? parsed : {};
-		} catch {
-			return {};
-		}
-	}
-
-	if (isRecord(raw)) {
-		return raw;
-	}
-
-	return {};
 };
 
 const buildPreviewUrl = (
@@ -482,29 +438,18 @@ const MediaItemRow = ({
 					)}
 				</div>
 
-				<button
-					type="button"
-					className="flex min-w-0 flex-1 items-center gap-1.5 rounded px-1.5 py-1 text-left hover:bg-hover"
-					onClick={onToggle}
-					aria-expanded={expanded}
-					aria-controls={`${idPrefix}-row-${item.uid}`}
-				>
-					{expanded ? (
-						<ChevronDown size={13} className="text-text-3" />
-					) : (
-						<ChevronRight size={13} className="text-text-3" />
-					)}
-					<span className="min-w-0">
-						<span className="block truncate text-[12.5px] text-text-2">
-							{titleText}
-						</span>
-						{(summary.subtitle || data.video?.service) && (
-							<span className="block truncate text-[11px] text-text-3">
-								{summary.subtitle || String(data.video?.service ?? "")}
-							</span>
-						)}
-					</span>
-				</button>
+				<CollapsibleRowHeader
+					open={expanded}
+					onToggle={onToggle}
+					controls={`${idPrefix}-row-${item.uid}`}
+					stacked
+					title={titleText}
+					subtitle={
+						summary.subtitle || data.video?.service
+							? summary.subtitle || String(data.video?.service ?? "")
+							: undefined
+					}
+				/>
 
 				<IconButton
 					label="Delete item"

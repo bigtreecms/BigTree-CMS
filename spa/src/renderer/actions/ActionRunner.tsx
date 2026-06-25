@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { Alert } from "@/components/ui/Alert";
 import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
+import { LoadingText } from "@/components/ui/LoadingText";
 
 import type { ActionHost, ActionModule } from "./actionModuleContract";
 import { loadActionModule, loadActionModuleFromSource } from "./actionModuleLoader";
@@ -91,11 +92,7 @@ export const ActionRunner = ({ host, assetUrl, source, onError }: ActionRunnerPr
 	}
 
 	if (!mod) {
-		return (
-			<div className="rounded-md border border-dashed border-border bg-surface-2 p-3 text-[12px] text-text-3">
-				Loading action…
-			</div>
-		);
+		return <LoadingText boxed label="Loading action…" />;
 	}
 
 	const Component = mod.Component;

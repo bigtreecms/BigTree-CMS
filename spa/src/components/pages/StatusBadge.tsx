@@ -1,8 +1,10 @@
-import { Badge, type BadgeTone } from "@/components/ui/Badge";
+import type { BadgeTone } from "@/components/ui/Badge";
+import { StatusBadge as UIStatusBadge } from "@/components/ui/StatusBadge";
 
 /**
- * Pill-shaped status badge matching the prototype's `.badge--{success|warn|info|...}`
- * styling. The colored dot + label combo signals state at a glance.
+ * Page-domain status pill. Maps the page lifecycle states onto the shared
+ * `ui/StatusBadge` tone + label, rendered as the dotted pill matching the
+ * prototype's `.badge--{success|warn|info|...}` styling.
  */
 export type PageStatus = "published" | "draft" | "scheduled" | "archived" | "changed" | "pending";
 
@@ -40,9 +42,5 @@ interface StatusBadgeProps {
 export const StatusBadge = ({ status }: StatusBadgeProps) => {
 	const v = VARIANTS[status];
 
-	return (
-		<Badge tone={v.tone} dot>
-			{v.label}
-		</Badge>
-	);
+	return <UIStatusBadge tone={v.tone} label={v.label} dot />;
 };

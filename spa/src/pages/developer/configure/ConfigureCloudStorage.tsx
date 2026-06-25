@@ -5,6 +5,7 @@ import { RefreshCw, Save } from "lucide-react";
 
 import { ConfigureLayout } from "@/components/developer/ConfigureLayout";
 import { Field } from "@/components/ui/Field";
+import { LoadingText } from "@/components/ui/LoadingText";
 import { Select } from "@/components/ui/Select";
 import { TextInput } from "@/components/ui/TextInput";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
@@ -224,7 +225,7 @@ export const ConfigureCloudStorage = () => {
 			title="Cloud storage"
 			sub="Credentials for the storage backend BigTree uploads files to, plus default-service selection and bucket / CloudFront wiring."
 		>
-			{detailQ.isLoading && <p className="text-[12.5px] text-text-3">Loading…</p>}
+			{detailQ.isLoading && <LoadingText />}
 
 			{detailQ.error && <ErrorPanel error={detailQ.error} />}
 

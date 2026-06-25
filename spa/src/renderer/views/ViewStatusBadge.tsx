@@ -1,15 +1,28 @@
 import type { ModuleEntryRow } from "@/api/endpoints/auto-modules";
+import type { BadgeTone } from "@/components/ui/Badge";
+import { StatusBadge } from "@/components/ui/StatusBadge";
 
-import { statusFromRow, statusTextClass } from "./viewHelpers";
+import { statusFromRow, type StatusKey } from "./viewHelpers";
 
 /**
  * The "Status" cell shared by every list-based view (draggable, searchable,
- * nested, grouped). Renders the entry's Published / Pending / Changed / Inactive
- * state as an uppercase label, color-coded to match the legacy admin.
+ * nested, grouped). Maps the entry's Published / Pending / Changed / Inactive
+ * state onto the shared `ui/StatusBadge` text variant (an uppercase color-coded
+ * label, matching the legacy admin).
  *
- * Kept deliberately full-opacity: the surrounding view dims the rest of a
- * muted (pending/changed) row, but the status label always stays legible.
+ * Kept deliberately full-opacity: the surrounding view dims the rest of a muted
+ * (pending/changed) row, but the status label always stays legible.
  */
+
+// Entry status → badge tone. Published reads as "live" (green); pending/changed
+// need attention (warn); inactive is muted. Folds the old `statusTextClass` color
+// map into the shared StatusBadge's tone → color mapping.
+const STATUS_TONE: Record<StatusKey, BadgeTone> = {
+	published: "success",
+	pending: "warn",
+	changed: "warn",
+	inactive: "neutral",
+};
 
 interface ViewStatusBadgeProps {
 	row: ModuleEntryRow;
@@ -32,15 +45,13 @@ export const ViewStatusBadge = ({
 }: ViewStatusBadgeProps) => {
 	const status = statusFromRow(row);
 
-	const styleClasses = plainOnMobile
-		? "text-[13px] md:text-[11px] md:font-semibold md:uppercase md:tracking-[0.06em]"
-		: "text-[11px] font-semibold uppercase tracking-[0.06em]";
-
 	return (
-		<span
-			className={`whitespace-nowrap ${styleClasses} ${statusTextClass[status.key]} ${className}`}
-		>
-			{status.label}
-		</span>
+		<StatusBadge
+			variant="text"
+			tone={STATUS_TONE[status.key]}
+			label={status.label}
+			plainOnMobile={plainOnMobile}
+			className={className}
+		/>
 	);
 };

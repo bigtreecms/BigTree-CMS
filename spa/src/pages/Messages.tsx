@@ -14,6 +14,7 @@ import { ComposeMessage } from "@/components/messages/ComposeMessage";
 
 import { messagesApi, type Message } from "@/api/endpoints/dashboard";
 import { useAuthStore } from "@/auth/store";
+import { formatNumber } from "@/lib/number";
 
 /**
  * /messages and /messages/sent — paginated inbox / sent list with a Compose
@@ -86,7 +87,7 @@ export const Messages = () => {
 
 			<PageHead
 				title="Messages"
-				sub={total === 1 ? "1 message" : `${total.toLocaleString()} messages`}
+				sub={total === 1 ? "1 message" : `${formatNumber(total)} messages`}
 				actions={
 					<Button
 						variant="primary"

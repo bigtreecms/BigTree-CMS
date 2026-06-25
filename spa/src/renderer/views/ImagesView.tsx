@@ -4,6 +4,7 @@ import { Edit, Image as ImageIcon, Trash } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 import { IconButton } from "@/components/ui/IconButton";
+import { Loading } from "@/components/ui/Loading";
 import { SearchInput } from "@/components/ui/SearchInput";
 
 import { autoModulesApi, type ModuleEntryRow } from "@/api/endpoints/auto-modules";
@@ -86,9 +87,7 @@ export const ImagesView = ({ moduleId, view }: ImagesViewProps) => {
 			</div>
 
 			{listQuery.isLoading && !listQuery.data ? (
-				<div className="rounded-xl border border-border bg-surface p-9 text-center text-[13px] text-text-3">
-					Loading entries…
-				</div>
+				<Loading variant="card" label="Loading entries…" />
 			) : rows.length === 0 ? (
 				<div className="rounded-xl border border-border bg-surface p-9 text-center text-[13px] text-text-3">
 					{debouncedQuery ? `No entries match “${debouncedQuery}”.` : "No entries yet."}

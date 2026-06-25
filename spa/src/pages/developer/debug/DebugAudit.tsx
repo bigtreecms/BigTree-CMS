@@ -13,27 +13,12 @@ import { SlideOver } from "@/components/ui/SlideOver";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 
 import { auditApi, type AuditEntry } from "@/api/endpoints/audit";
+import { formatDateTime } from "@/lib/time";
 
 const PER_PAGE = 50;
 
 const humanizeType = (type: string): string =>
 	type.replace(/[-_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
-
-const formatDate = (input: string): string => {
-	const d = new Date(input.replace(" ", "T"));
-
-	if (Number.isNaN(d.getTime())) {
-		return input;
-	}
-
-	return d.toLocaleString(undefined, {
-		year: "numeric",
-		month: "short",
-		day: "numeric",
-		hour: "numeric",
-		minute: "2-digit",
-	});
-};
 
 /**
  * Developer → Debug → Audit trail. Read-only, server-paginated log of mutating
@@ -83,7 +68,7 @@ export const DebugAudit = () => {
 			key: "date",
 			header: "Date",
 			width: "190px",
-			cell: (row) => <span className="text-text-2">{formatDate(row.date)}</span>,
+			cell: (row) => <span className="text-text-2">{formatDateTime(row.date)}</span>,
 		},
 		{
 			key: "user",
@@ -231,7 +216,7 @@ export const DebugAudit = () => {
 				{detail && (
 					<DescriptionList
 						items={[
-							{ label: "Date", value: formatDate(detail.date) },
+							{ label: "Date", value: formatDateTime(detail.date) },
 							{
 								label: "User",
 								value: `${detail.user_name ?? `User #${detail.user}`}${detail.user_email ? ` (${detail.user_email})` : ""}`,

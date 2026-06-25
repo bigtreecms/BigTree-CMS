@@ -8,6 +8,7 @@ import { Select } from "@/components/ui/Select";
 import { TextInput } from "@/components/ui/TextInput";
 import { Field } from "@/components/ui/Field";
 import { FormShell } from "@/components/ui/FormShell";
+import { LoadingText } from "@/components/ui/LoadingText";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { UploadButton } from "@/components/ui/UploadButton";
 
@@ -195,7 +196,7 @@ export const ConfigurePaymentGateway = () => {
 			title="Payment gateway"
 			sub="Credentials for the payment provider that module forms (and BigTreePaymentGateway) charge through."
 		>
-			{detailQ.isLoading && <p className="text-[12.5px] text-text-3">Loading…</p>}
+			{detailQ.isLoading && <LoadingText />}
 
 			{detailQ.error && <ErrorPanel error={detailQ.error} />}
 

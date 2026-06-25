@@ -7,6 +7,7 @@ import { ConfigureLayout } from "@/components/developer/ConfigureLayout";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { LoadingText } from "@/components/ui/LoadingText";
 import { ResourceDesigner, type ResourceEntry } from "@/components/developer/ResourceDesigner";
 import { useResourceSettingsValidation } from "@/components/developer/field-settings/useResourceSettingsValidation";
 
@@ -158,7 +159,7 @@ export const ConfigureFileMetadata = () => {
 				</Button>
 			}
 		>
-			{detailQ.isLoading && <p className="text-[12.5px] text-text-3">Loading…</p>}
+			{detailQ.isLoading && <LoadingText />}
 
 			{detailQ.error && <ErrorPanel error={detailQ.error} />}
 

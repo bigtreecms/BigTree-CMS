@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 
+import { Loading } from "@/components/ui/Loading";
 import { embedFormsApi, type EmbedFormConfig } from "@/api/endpoints/embed-forms";
 import type { ModuleForm } from "@/api/endpoints/modules";
 import { FormRenderer } from "@/renderer/forms/FormRenderer";
@@ -71,9 +72,11 @@ export const EmbedFormRenderer = ({ hash }: EmbedFormRendererProps) => {
 
 	if (configQuery.isLoading) {
 		return (
-			<div className="mx-auto max-w-2xl px-6 py-12 text-center text-[13px] text-text-3">
-				Loading form…
-			</div>
+			<Loading
+				variant="block"
+				className="mx-auto max-w-2xl px-6 py-12"
+				label="Loading form…"
+			/>
 		);
 	}
 

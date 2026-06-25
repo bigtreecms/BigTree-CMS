@@ -3,6 +3,7 @@ import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tansta
 import { useNavigate } from "react-router-dom";
 
 import { DragHandle } from "@/components/ui/DragHandle";
+import { Loading } from "@/components/ui/Loading";
 import { SearchInput } from "@/components/ui/SearchInput";
 
 import { autoModulesApi, type ModuleEntryRow } from "@/api/endpoints/auto-modules";
@@ -135,7 +136,7 @@ export const DraggableView = ({ moduleId, view }: DraggableViewProps) => {
 
 			<div className="overflow-hidden rounded-xl border border-border bg-surface">
 				{listQuery.isLoading && !listQuery.data ? (
-					<div className="p-9 text-center text-[13px] text-text-3">Loading entries…</div>
+					<Loading variant="block" label="Loading entries…" />
 				) : rows.length === 0 ? (
 					<div className="p-9 text-center text-[13px] text-text-3">
 						{debouncedQuery

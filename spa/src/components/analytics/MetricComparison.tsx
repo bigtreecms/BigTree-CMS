@@ -9,6 +9,7 @@ import {
 	percentGrowth,
 	type GrowthResult,
 } from "@/lib/analytics";
+import { formatNumber } from "@/lib/number";
 
 interface MetricComparisonProps {
 	title: string;
@@ -47,14 +48,14 @@ export const MetricComparison = ({
 	const metrics: Metric[] = [
 		{
 			label: "Views",
-			present: c.views.toLocaleString(),
-			past: p.views.toLocaleString(),
+			present: formatNumber(c.views),
+			past: formatNumber(p.views),
 			growth: percentGrowth(c.views, p.views),
 		},
 		{
 			label: "Visits",
-			present: c.visits.toLocaleString(),
-			past: p.visits.toLocaleString(),
+			present: formatNumber(c.visits),
+			past: formatNumber(p.visits),
 			growth: percentGrowth(c.visits, p.visits),
 		},
 		{

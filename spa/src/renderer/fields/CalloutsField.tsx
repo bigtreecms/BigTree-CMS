@@ -1,12 +1,13 @@
 import { useEffect, useId, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronDown, ChevronRight, GripVertical, Plus, Trash } from "lucide-react";
+import { GripVertical, Plus, Trash } from "lucide-react";
 
 import { useAuthStore } from "@/auth/store";
 
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { IconButton } from "@/components/ui/IconButton";
+import { LoadingText } from "@/components/ui/LoadingText";
 import { Select } from "@/components/ui/Select";
 import { calloutsApi, type CalloutSummary } from "@/api/endpoints/callouts";
 import { resourceToFormField } from "@/api/endpoints/templates";
@@ -14,6 +15,8 @@ import { resourceToFormField } from "@/api/endpoints/templates";
 import { FieldRenderer } from "@/renderer/forms/FieldRenderer";
 import { FieldRow } from "@/renderer/forms/FieldRow";
 
+import { CollapsibleRowHeader } from "./CollapsibleRowHeader";
+import { toInt } from "./fieldHelpers";
 import { settingsOf, type FieldComponentProps } from "./types";
 
 /**
@@ -88,12 +91,6 @@ const rowsDataEqual = (a: CalloutRow[], b: CalloutRow[]): boolean => {
 	}
 
 	return true;
-};
-
-const toInt = (raw: unknown): number => {
-	const n = typeof raw === "number" ? raw : Number(raw);
-
-	return Number.isFinite(n) && n > 0 ? Math.floor(n) : 0;
 };
 
 const normalizeGroups = (settings: CalloutsFieldSettings): string[] => {
@@ -272,11 +269,7 @@ export const CalloutsField = ({ field, value, onChange, disabled }: FieldCompone
 	};
 
 	if (calloutsQuery.isLoading) {
-		return (
-			<div className="rounded-md border border-dashed border-border bg-surface-2 p-3 text-[12px] text-text-3">
-				Loading callouts…
-			</div>
-		);
+		return <LoadingText boxed label="Loading callouts…" />;
 	}
 
 	return (
@@ -369,36 +362,28 @@ const CalloutRowItem = ({
 					<GripVertical size={13} />
 				</IconButton>
 
-				<button
-					type="button"
-					className="flex min-w-0 flex-1 items-center gap-2 rounded px-1.5 py-1 text-left hover:bg-hover disabled:cursor-not-allowed disabled:opacity-60"
-					onClick={onToggle}
+				<CollapsibleRowHeader
+					open={expanded}
+					onToggle={onToggle}
+					controls={`${idPrefix}-row-${row.uid}`}
 					disabled={typeMissing}
-					aria-expanded={expanded}
-					aria-controls={`${idPrefix}-row-${row.uid}`}
-				>
-					{expanded ? (
-						<ChevronDown size={13} className="text-text-3" />
-					) : (
-						<ChevronRight size={13} className="text-text-3" />
-					)}
-					<span className="truncate text-[12.5px] text-text-2">
-						{displayTitle || typeName}
-					</span>
-					{displayTitle && (
-						<span className="truncate text-[11.5px] text-text-3">{typeName}</span>
-					)}
-					{tooLowLevel && (
-						<span className="ml-1 rounded bg-surface-2 px-1.5 py-0.5 text-[10.5px] font-medium uppercase tracking-wider text-text-3">
-							Locked
-						</span>
-					)}
-					{typeMissing && (
-						<span className="ml-1 rounded bg-danger/10 px-1.5 py-0.5 text-[10.5px] font-medium uppercase tracking-wider text-danger">
-							Missing type
-						</span>
-					)}
-				</button>
+					title={displayTitle || typeName}
+					subtitle={displayTitle ? typeName : undefined}
+					trailing={
+						<>
+							{tooLowLevel && (
+								<span className="ml-1 rounded bg-surface-2 px-1.5 py-0.5 text-[10.5px] font-medium uppercase tracking-wider text-text-3">
+									Locked
+								</span>
+							)}
+							{typeMissing && (
+								<span className="ml-1 rounded bg-danger/10 px-1.5 py-0.5 text-[10.5px] font-medium uppercase tracking-wider text-danger">
+									Missing type
+								</span>
+							)}
+						</>
+					}
+				/>
 
 				<IconButton
 					label="Delete item"

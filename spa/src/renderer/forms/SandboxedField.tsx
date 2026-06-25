@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 
+import { LoadingText } from "@/components/ui/LoadingText";
 import { StubField } from "@/renderer/fields/StubField";
 import type { FieldComponentProps } from "@/renderer/fields/types";
 
@@ -129,7 +130,7 @@ export const SandboxedField = ({
 				style={{ height }}
 			/>
 			{status === "loading" && (
-				<div className="mt-1 text-[11.5px] text-text-3">Loading field…</div>
+				<LoadingText size="sm" className="mt-1 block" label="Loading field…" />
 			)}
 		</div>
 	);

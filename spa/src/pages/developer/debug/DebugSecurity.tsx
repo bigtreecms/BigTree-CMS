@@ -5,6 +5,7 @@ import { Save, ShieldOff } from "lucide-react";
 import { DebugLayout } from "@/components/developer/DebugLayout";
 import { Button } from "@/components/ui/Button";
 import { Card, CardHeader } from "@/components/ui/Card";
+import { LoadingText } from "@/components/ui/LoadingText";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { TextArea } from "@/components/ui/TextArea";
 import { TextInput } from "@/components/ui/TextInput";
@@ -107,7 +108,7 @@ export const DebugSecurity = () => {
 			title="Security policy"
 			sub="Brute-force protection, password requirements, and login IP restrictions."
 		>
-			{policyQ.isLoading && <p className="text-[12.5px] text-text-3">Loading…</p>}
+			{policyQ.isLoading && <LoadingText />}
 
 			{policyQ.error && <ErrorPanel error={policyQ.error} />}
 

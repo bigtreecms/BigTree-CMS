@@ -1,3 +1,5 @@
+import { formatNumber } from "@/lib/number";
+
 interface TrafficBarsProps {
 	series: Array<{ date: string; visits: number }>;
 }
@@ -19,7 +21,7 @@ export const TrafficBars = ({ series }: TrafficBarsProps) => {
 					<div
 						key={d.date}
 						className="group flex min-w-0 flex-col"
-						title={`${d.visits.toLocaleString()} visits on ${d.date}`}
+						title={`${formatNumber(d.visits)} visits on ${d.date}`}
 					>
 						<div className="relative flex flex-1 items-end">
 							<div
@@ -27,7 +29,7 @@ export const TrafficBars = ({ series }: TrafficBarsProps) => {
 								style={{ height: `${pct}%`, minHeight: "22px" }}
 							>
 								<span className="whitespace-nowrap text-[10.5px] font-semibold text-accent-fg tabular-nums">
-									{d.visits.toLocaleString()}
+									{formatNumber(d.visits)}
 								</span>
 							</div>
 						</div>

@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 
 import { PageHead } from "@/components/shell/PageHead";
 import { Card } from "@/components/ui/Card";
+import { LoadingText } from "@/components/ui/LoadingText";
 
 import { modulesApi } from "@/api/endpoints/modules";
 import { useAuthStore } from "@/auth/store";
@@ -80,7 +81,7 @@ export const ModuleAction = ({ actionId }: ModuleActionProps) => {
 			<PageHead title={title} />
 
 			{schemaQuery.isLoading || !host ? (
-				card(<span className="text-text-3">Loading action…</span>)
+				card(<LoadingText label="Loading action…" />)
 			) : schemaQuery.isError || !schema ? (
 				card(<span className="text-text-3">That action doesn't exist on this module.</span>)
 			) : schema.render !== "module" ? (

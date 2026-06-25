@@ -1,5 +1,6 @@
 import { lazy, Suspense } from "react";
 
+import { LoadingText } from "@/components/ui/LoadingText";
 import type { FieldComponentProps } from "@/renderer/fields/types";
 
 /**
@@ -12,7 +13,7 @@ const HTMLField = lazy(() => import("@/renderer/fields/HTMLField"));
 
 export const HTMLFieldLazy = (props: FieldComponentProps) => {
 	return (
-		<Suspense fallback={<div className="text-text-3 text-[13.5px]">Loading editor…</div>}>
+		<Suspense fallback={<LoadingText label="Loading editor…" />}>
 			<HTMLField {...props} />
 		</Suspense>
 	);

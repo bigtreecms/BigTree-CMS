@@ -7,6 +7,7 @@ import { DebugLayout } from "@/components/developer/DebugLayout";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { Button } from "@/components/ui/Button";
 import { Card, CardHeader } from "@/components/ui/Card";
+import { LoadingText } from "@/components/ui/LoadingText";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 
 import { systemApi } from "@/api/endpoints/system";
@@ -84,7 +85,7 @@ export const DebugStatus = () => {
 				successes appear in <span className="font-semibold text-success">green</span>.
 			</p>
 
-			{statusQ.isLoading && <p className="text-[12.5px] text-text-3">Loading…</p>}
+			{statusQ.isLoading && <LoadingText />}
 
 			{statusQ.error && <ErrorPanel error={statusQ.error} />}
 

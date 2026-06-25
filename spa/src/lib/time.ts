@@ -27,3 +27,46 @@ export function relativeTime(input: string | Date | null | undefined): string {
 		: { month: "short", day: "numeric", year: "numeric" };
 	return d.toLocaleDateString(undefined, opts);
 }
+
+/** Parse the app's ISO-ish date strings (`"2026-06-24 15:45:00"`) into a Date. */
+function parseDate(input: string | Date | null | undefined): Date | null {
+	if (!input) return null;
+	const d = typeof input === "string" ? new Date(input.replace(" ", "T")) : input;
+
+	return Number.isNaN(d.getTime()) ? null : d;
+}
+
+const DATE_OPTS: Intl.DateTimeFormatOptions = {
+	year: "numeric",
+	month: "short",
+	day: "numeric",
+};
+
+const TIME_OPTS: Intl.DateTimeFormatOptions = {
+	hour: "numeric",
+	minute: "2-digit",
+};
+
+/**
+ * Canonical absolute date formatter — "Jun 24, 2026". Pass `opts` to override
+ * the option set for a one-off; falls back to the empty string on bad input.
+ */
+export function formatDate(
+	input: string | Date | null | undefined,
+	opts: Intl.DateTimeFormatOptions = DATE_OPTS
+): string {
+	const d = parseDate(input);
+
+	if (!d) return "";
+
+	return d.toLocaleDateString(undefined, opts);
+}
+
+/** Canonical date + time formatter — "Jun 24, 2026, 3:45 PM". */
+export function formatDateTime(input: string | Date | null | undefined): string {
+	const d = parseDate(input);
+
+	if (!d) return "";
+
+	return d.toLocaleString(undefined, { ...DATE_OPTS, ...TIME_OPTS });
+}

@@ -3,6 +3,8 @@ import { ChevronsUpDown, X } from "lucide-react";
 
 import { iconFor, MODULE_ICON_SLUGS } from "@/lib/legacyIcons";
 
+import { IconGridButton } from "./IconGridButton";
+
 interface IconSelectProps {
 	/** Selected icon slug (empty string when none). */
 	value: string;
@@ -89,28 +91,19 @@ export const IconSelect = ({
 					<div className="absolute z-20 mt-1 w-full overflow-hidden rounded-md border border-border bg-surface shadow-lg">
 						<div className="flex max-h-56 flex-wrap gap-1.5 overflow-y-auto p-2">
 							{MODULE_ICON_SLUGS.map((slug) => {
-								const Glyph = iconFor(slug);
 								const isActive = slug === value;
 
 								return (
-									<button
+									<IconGridButton
 										key={slug}
-										type="button"
-										onClick={() => {
+										icon={iconFor(slug)}
+										selected={isActive}
+										onSelect={() => {
 											onChange(isActive ? "" : slug);
 											setOpen(false);
 										}}
-										title={slug}
-										aria-label={slug}
-										aria-pressed={isActive}
-										className={`grid size-8  place-items-center rounded-md border transition-colors ${
-											isActive
-												? "border-accent bg-accent-soft text-accent"
-												: "border-transparent text-text-2 hover:bg-hover hover:text-text"
-										}`}
-									>
-										<Glyph size={15} />
-									</button>
+										label={slug}
+									/>
 								);
 							})}
 						</div>

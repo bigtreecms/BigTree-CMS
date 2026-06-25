@@ -3,6 +3,7 @@ import { memo, type ReactNode } from "react";
 import type { ModuleFormField } from "@/api/endpoints/modules";
 import { PendingBadge } from "@/components/pending-changes/PendingBadge";
 import { PendingFieldCompare } from "@/components/pending-changes/PendingFieldCompare";
+import { RequiredMarker } from "@/components/ui/Field";
 
 import { isFieldRequired } from "./validation";
 
@@ -48,7 +49,7 @@ const FieldRowComponent = ({
 			<div className="mb-1.5 flex items-baseline gap-1.5">
 				<span className="text-[12.5px] font-medium text-text-2">
 					{field.title}
-					{isFieldRequired(field) && <span className="text-danger"> *</span>}
+					{isFieldRequired(field) && <RequiredMarker />}
 				</span>
 				{field.subtitle && (
 					<span className="text-[11.5px] text-text-3">({field.subtitle})</span>

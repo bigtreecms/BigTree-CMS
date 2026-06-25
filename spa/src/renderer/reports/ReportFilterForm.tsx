@@ -1,5 +1,6 @@
 import { useMemo, useState, type FormEvent } from "react";
 
+import { EmptyState } from "@/components/ui/EmptyState";
 import { Select } from "@/components/ui/Select";
 import { TextInput } from "@/components/ui/TextInput";
 import type { ModuleReportFilter, ModuleReportFilterOption } from "@/api/endpoints/modules";
@@ -261,8 +262,8 @@ const FilterInput = ({
 	}
 
 	return (
-		<div className="rounded-md border border-dashed border-border bg-surface-2 px-2 py-1.5 text-[12px] text-text-3">
+		<EmptyState dashed size="sm">
 			Unsupported filter type: {filter.type}
-		</div>
+		</EmptyState>
 	);
 };

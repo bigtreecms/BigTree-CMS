@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 
+import { LoadingText } from "@/components/ui/LoadingText";
 import { applySettingDefaults, fieldTypesApi } from "@/api/endpoints/field-types";
 import { StubField } from "@/renderer/fields/StubField";
 import { settingsOf, type FieldComponentProps } from "@/renderer/fields/types";
@@ -40,11 +41,7 @@ export const CustomField = (props: FieldComponentProps) => {
 	});
 
 	if (schemaQ.isLoading) {
-		return (
-			<div className="rounded-md border border-dashed border-border bg-surface-2 p-3 text-[12px] text-text-3">
-				Loading field…
-			</div>
-		);
+		return <LoadingText boxed label="Loading field…" />;
 	}
 
 	const schema = schemaQ.data;

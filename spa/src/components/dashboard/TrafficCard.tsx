@@ -11,6 +11,7 @@ import type { AnalyticsResponse } from "@/api/endpoints/dashboard";
 import { buildTwoWeekSeries } from "@/lib/analytics";
 import { useAuthStore } from "@/auth/store";
 import { isAdmin } from "@/lib/permissions";
+import { formatNumber } from "@/lib/number";
 
 interface TrafficCardProps {
 	data: AnalyticsResponse | undefined;
@@ -39,7 +40,7 @@ export const TrafficCard = ({ data, loading, error }: TrafficCardProps) => {
 				series && (
 					<div className="flex items-center gap-3">
 						<span className="text-[12px] text-text-3 tabular-nums">
-							<b className="font-semibold text-text">{total14d.toLocaleString()}</b>{" "}
+							<b className="font-semibold text-text">{formatNumber(total14d)}</b>{" "}
 							total
 						</span>
 						{admin && (

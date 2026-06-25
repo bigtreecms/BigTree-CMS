@@ -5,6 +5,7 @@ import { ConfigureLayout } from "@/components/developer/ConfigureLayout";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { TextInput } from "@/components/ui/TextInput";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
+import { LoadingText } from "@/components/ui/LoadingText";
 import { Field } from "@/components/ui/Field";
 import { UploadButton } from "@/components/ui/UploadButton";
 import { Card } from "@/components/ui/Card";
@@ -70,7 +71,7 @@ export const ConfigureAnalytics = () => {
 			title="Analytics"
 			sub="Google Analytics 4 service-account hookup that powers the dashboard's traffic chart."
 		>
-			{detailQ.isLoading && <p className="text-[12.5px] text-text-3">Loading…</p>}
+			{detailQ.isLoading && <LoadingText />}
 
 			{detailQ.error && <ErrorPanel error={detailQ.error} />}
 

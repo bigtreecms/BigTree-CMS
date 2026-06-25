@@ -26,6 +26,7 @@ import { ProgressBar } from "@/components/ui/ProgressBar";
 import { integrityApi } from "@/api/endpoints/integrity";
 import { useIntegrityScan, type ScanFinding } from "@/hooks/useIntegrityScan";
 import { downloadCsv } from "@/lib/csv";
+import { formatNumber } from "@/lib/number";
 import { toast } from "@/lib/toast";
 
 /**
@@ -284,7 +285,7 @@ const ScanResults = ({
 								: currentLabel || "Scanning…"}
 					</span>
 					<span className="tabular-nums text-text-3">
-						{completed.toLocaleString()} / {total.toLocaleString()} ({percent}%)
+						{formatNumber(completed)} / {formatNumber(total)} ({percent}%)
 					</span>
 				</div>
 				<ProgressBar

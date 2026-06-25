@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 
 import { Combobox } from "@/components/ui/Combobox";
+import { RequiredMarker } from "@/components/ui/Field";
 import { dbApi } from "@/api/endpoints/db";
 
 interface DataColumnSelectProps {
@@ -59,7 +60,7 @@ export const DataColumnSelect = ({
 			{label && (
 				<span className="mb-1 block text-[12px] font-medium text-text-2">
 					{label}
-					{required && <span className="text-danger"> *</span>}
+					{required && <RequiredMarker />}
 				</span>
 			)}
 			<Combobox<string>

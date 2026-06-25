@@ -3,6 +3,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { Download, Pencil } from "lucide-react";
 import { Link } from "react-router-dom";
 
+import { Loading } from "@/components/ui/Loading";
 import { modulesApi } from "@/api/endpoints/modules";
 import type {
 	ModuleReport,
@@ -85,11 +86,7 @@ export const ReportRenderer = ({ moduleId, reportId }: ReportRendererProps) => {
 	const sortFields = useMemo(() => collectSortFields(prepareQuery.data), [prepareQuery.data]);
 
 	if (prepareQuery.isLoading) {
-		return (
-			<div className="rounded-xl border border-border bg-surface p-9 text-center text-[13px] text-text-3">
-				Loading report…
-			</div>
-		);
+		return <Loading variant="card" label="Loading report…" />;
 	}
 
 	if (prepareQuery.isError || !report) {

@@ -18,6 +18,7 @@ import { useUploads } from "@/hooks/useUploads";
 import { expandImageUrl } from "@/lib/imageUrl";
 
 import { FieldCropModal } from "./FieldCropModal";
+import { toInt } from "./fieldHelpers";
 import { settingsOf, type FieldComponentProps } from "./types";
 
 /**
@@ -371,12 +372,6 @@ const PreviewThumb = ({ src, fallback }: PreviewThumbProps) => {
 			onError={() => setStage((s) => (s === 0 && src && src !== fallback ? 1 : 2))}
 		/>
 	);
-};
-
-const toInt = (raw: unknown): number => {
-	const n = typeof raw === "number" ? raw : Number(raw);
-
-	return Number.isFinite(n) && n > 0 ? Math.floor(n) : 0;
 };
 
 /**

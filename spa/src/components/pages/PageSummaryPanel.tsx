@@ -4,6 +4,7 @@ import { ChevronRight, ExternalLink, HelpCircle } from "lucide-react";
 
 import { pagesApi, type PageDetail, type PageSeoRating } from "@/api/endpoints/pages";
 import { Badge, type BadgeTone } from "@/components/ui/Badge";
+import { formatNumber } from "@/lib/number";
 
 /**
  * Collapsible "Properties" summary panel that sits above every page-section
@@ -173,7 +174,7 @@ export const PageSummaryPanel = ({ page, liveUrl, defaultOpen = false }: PageSum
 						>
 							{ageDays !== null ? (
 								<>
-									{ageDays.toLocaleString()}
+									{formatNumber(ageDays)}
 									<span className="ml-1 text-[12px] font-normal text-text-3">
 										Days
 									</span>
@@ -187,7 +188,7 @@ export const PageSummaryPanel = ({ page, liveUrl, defaultOpen = false }: PageSum
 					<Prop label="30 Day Views">
 						{typeof page.ga_page_views === "number" ? (
 							<span className="text-[14px] font-medium text-text-2 tabular-nums">
-								{page.ga_page_views.toLocaleString()}
+								{formatNumber(page.ga_page_views)}
 							</span>
 						) : (
 							<UnknownValue title="Connect Google Analytics to track page views — updates on the next sync." />

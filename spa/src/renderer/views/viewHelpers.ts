@@ -127,15 +127,6 @@ export const statusFromRow = (row: Record<string, unknown>): ViewStatus => {
 	return { label: "Published", key: "published" };
 };
 
-// Color of the status label. Mirrors the legacy admin's intent: published reads
-// as "live" (green), pending/changed need attention (warn), inactive is muted.
-export const statusTextClass: Record<StatusKey, string> = {
-	published: "text-success",
-	pending: "text-warn",
-	changed: "text-warn",
-	inactive: "text-text-3",
-};
-
 // The legacy admin tints pending/changed rows and dims their non-status content
 // to 50% opacity — the version shown in the list isn't the live one. Inactive
 // and published rows render normally. We honor only these two states (matching

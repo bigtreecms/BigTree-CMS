@@ -1,5 +1,5 @@
 import { useEffect, useId, useMemo, useState } from "react";
-import { ChevronDown, ChevronRight, GripVertical, Plus, Trash } from "lucide-react";
+import { GripVertical, Plus, Trash } from "lucide-react";
 
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -9,6 +9,8 @@ import type { ModuleFormField } from "@/api/endpoints/modules";
 import { FieldRenderer } from "@/renderer/forms/FieldRenderer";
 import { FieldRow } from "@/renderer/forms/FieldRow";
 
+import { CollapsibleRowHeader } from "./CollapsibleRowHeader";
+import { isRecord, isTruthyFlag, normalizeColumnSettings, toInt } from "./fieldHelpers";
 import { settingsOf, type FieldComponentProps } from "./types";
 
 /**
@@ -60,9 +62,6 @@ const SUBTITLE_KEY = "__internal-subtitle";
 let uidCounter = 0;
 const nextUid = (): string => `m${++uidCounter}-${Date.now().toString(36)}`;
 
-const isRecord = (raw: unknown): raw is RowData =>
-	Boolean(raw) && typeof raw === "object" && !Array.isArray(raw);
-
 const seedRows = (raw: unknown): MatrixRow[] => {
 	if (!Array.isArray(raw)) {
 		return [];
@@ -89,48 +88,6 @@ const rowsDataEqual = (a: MatrixRow[], b: MatrixRow[]): boolean => {
 	}
 
 	return true;
-};
-
-const normalizeColumnSettings = (raw: unknown): Record<string, unknown> => {
-	if (typeof raw === "string" && raw.trim().length > 0) {
-		try {
-			const parsed = JSON.parse(raw);
-
-			return isRecord(parsed) ? parsed : {};
-		} catch {
-			return {};
-		}
-	}
-
-	if (isRecord(raw)) {
-		return raw;
-	}
-
-	return {};
-};
-
-const toInt = (raw: unknown): number => {
-	const n = typeof raw === "number" ? raw : Number(raw);
-
-	return Number.isFinite(n) && n > 0 ? Math.floor(n) : 0;
-};
-
-const isTruthyFlag = (raw: unknown): boolean => {
-	if (typeof raw === "boolean") {
-		return raw;
-	}
-
-	if (typeof raw === "number") {
-		return raw !== 0;
-	}
-
-	if (typeof raw === "string") {
-		const lower = raw.toLowerCase();
-
-		return lower !== "" && lower !== "0" && lower !== "false" && lower !== "off";
-	}
-
-	return false;
 };
 
 /**
@@ -390,25 +347,13 @@ const MatrixRowItem = ({
 					<GripVertical size={13} />
 				</IconButton>
 
-				<button
-					type="button"
-					className="flex min-w-0 flex-1 items-center gap-2 rounded px-1.5 py-1 text-left hover:bg-hover"
-					onClick={onToggle}
-					aria-expanded={expanded}
-					aria-controls={`${idPrefix}-row-${row.uid}`}
-				>
-					{expanded ? (
-						<ChevronDown size={13} className="text-text-3" />
-					) : (
-						<ChevronRight size={13} className="text-text-3" />
-					)}
-					<span className="truncate text-[12.5px] text-text-2">{titleText}</span>
-					{summary.subtitle && (
-						<span className="truncate text-[11.5px] text-text-3">
-							{summary.subtitle}
-						</span>
-					)}
-				</button>
+				<CollapsibleRowHeader
+					open={expanded}
+					onToggle={onToggle}
+					controls={`${idPrefix}-row-${row.uid}`}
+					title={titleText}
+					subtitle={summary.subtitle || undefined}
+				/>
 
 				<IconButton
 					label="Delete item"

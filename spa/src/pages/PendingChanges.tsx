@@ -12,6 +12,7 @@ import { PendingChangeGroup } from "@/components/pending-changes/PendingChangeGr
 
 import { pendingChangesApi, type PendingChange } from "@/api/endpoints/dashboard";
 import { ApiError } from "@/types/api";
+import { formatNumber } from "@/lib/number";
 import { toast } from "@/lib/toast";
 import { groupPendingByCategory, isPageChange } from "@/lib/pendingChanges";
 
@@ -121,7 +122,7 @@ export const PendingChanges = () => {
 						? "Loading…"
 						: total === 0
 							? "Nothing awaiting review"
-							: `${total.toLocaleString()} awaiting review across ${groups.length} categor${
+							: `${formatNumber(total)} awaiting review across ${groups.length} categor${
 									groups.length === 1 ? "y" : "ies"
 								}`
 				}

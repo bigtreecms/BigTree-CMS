@@ -7,6 +7,7 @@ import { searchApi, type SearchPage } from "@/api/endpoints/search";
 import { resourcesApi } from "@/api/endpoints/resources";
 import type { ResourceSummary } from "@/api/endpoints/resource-folders";
 
+import { isTruthyFlag } from "./fieldHelpers";
 import { INPUT_CLASS, settingsOf, type FieldComponentProps } from "./types";
 
 /**
@@ -34,24 +35,6 @@ interface LinkFieldSettings {
 	/** When truthy the search dropdown is suppressed entirely (URL-only entry). */
 	disable_search?: boolean | string | number;
 }
-
-const isTruthyFlag = (raw: unknown): boolean => {
-	if (typeof raw === "boolean") {
-		return raw;
-	}
-
-	if (typeof raw === "number") {
-		return raw !== 0;
-	}
-
-	if (typeof raw === "string") {
-		const lower = raw.toLowerCase();
-
-		return lower !== "" && lower !== "0" && lower !== "false" && lower !== "off";
-	}
-
-	return false;
-};
 
 export const LinkField = ({ field, value, onChange, disabled }: FieldComponentProps) => {
 	const settings = settingsOf(field) as LinkFieldSettings;

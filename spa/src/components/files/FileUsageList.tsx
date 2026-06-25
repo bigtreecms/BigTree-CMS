@@ -5,10 +5,11 @@ import type {
 	ResourceUsageLink,
 	ResourceUsageStatus,
 } from "@/api/endpoints/resources";
-import { Badge, type BadgeTone } from "@/components/ui/Badge";
+import type { BadgeTone } from "@/components/ui/Badge";
 import { Loading } from "@/components/ui/Loading";
 import { InlineEmpty } from "@/components/ui/InlineEmpty";
 import { SectionLabel } from "@/components/ui/SectionLabel";
+import { StatusBadge } from "@/components/ui/StatusBadge";
 
 interface FileUsageListProps {
 	isLoading: boolean;
@@ -59,14 +60,6 @@ const usageLinkPath = (link: ResourceUsageLink | null): string | null => {
 	return `/${segments.join("/")}`;
 };
 
-interface StatusBadgeProps {
-	status: ResourceUsageStatus;
-}
-
-const StatusBadge = ({ status }: StatusBadgeProps) => {
-	return <Badge tone={STATUS_TONE[status]}>{STATUS_LABEL[status]}</Badge>;
-};
-
 /**
  * "Used by" panel for the file detail slide-over. Replaces the raw allocations
  * dump with resolved location / entry / status rows, dimming archived usages and
@@ -112,7 +105,10 @@ export const FileUsageList = ({ isLoading, usages }: FileUsageListProps) => {
 									)}
 								</span>
 								<span className="text-right">
-									<StatusBadge status={usage.status} />
+									<StatusBadge
+										tone={STATUS_TONE[usage.status]}
+										label={STATUS_LABEL[usage.status]}
+									/>
 								</span>
 							</li>
 						);

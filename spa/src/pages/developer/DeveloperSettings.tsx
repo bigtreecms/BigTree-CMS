@@ -17,6 +17,7 @@ import { DeveloperSectionNav } from "@/components/developer/DeveloperSectionNav"
 import { settingsApi, type SettingDetail } from "@/api/endpoints/settings";
 
 import { ApiError } from "@/types/api";
+import { formatNumber } from "@/lib/number";
 import { toast } from "@/lib/toast";
 
 /**
@@ -161,7 +162,7 @@ export const DeveloperSettings = () => {
 
 			<PageHead
 				title="Settings (admin)"
-				sub={total === 1 ? "1 setting" : `${total.toLocaleString()} settings`}
+				sub={total === 1 ? "1 setting" : `${formatNumber(total)} settings`}
 				actions={
 					<Button
 						variant="primary"

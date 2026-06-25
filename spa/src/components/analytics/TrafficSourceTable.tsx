@@ -1,4 +1,5 @@
 import { Card, CardHeader } from "@/components/ui/Card";
+import { formatNumber } from "@/lib/number";
 
 interface TrafficSourceTableProps {
 	title: string;
@@ -46,10 +47,10 @@ export const TrafficSourceTable = ({
 								{name || "(direct)"}
 							</span>
 							<span className="text-right tabular-nums text-text-2">
-								{counts.sessions.toLocaleString()}
+								{formatNumber(counts.sessions)}
 							</span>
 							<span className="text-right tabular-nums text-text-2">
-								{counts.screenPageViews.toLocaleString()}
+								{formatNumber(counts.screenPageViews)}
 							</span>
 						</li>
 					))}

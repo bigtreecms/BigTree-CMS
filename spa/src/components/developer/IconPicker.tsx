@@ -1,5 +1,7 @@
 import { iconFor, MODULE_ICON_SLUGS } from "@/lib/legacyIcons";
 
+import { IconGridButton } from "./IconGridButton";
+
 interface IconPickerProps {
 	/** Selected icon slug (empty string when none). */
 	value: string;
@@ -20,25 +22,16 @@ export const IconPicker = ({ value, onChange, label = "Icon", hint }: IconPicker
 		<span className="mb-1 block text-[12px] font-medium text-text-2">{label}</span>
 		<div className="flex flex-wrap gap-1.5 rounded-md border border-border bg-surface-2 p-2">
 			{MODULE_ICON_SLUGS.map((slug) => {
-				const Glyph = iconFor(slug);
 				const isActive = slug === value;
 
 				return (
-					<button
+					<IconGridButton
 						key={slug}
-						type="button"
-						onClick={() => onChange(isActive ? "" : slug)}
-						title={slug}
-						aria-label={slug}
-						aria-pressed={isActive}
-						className={`grid size-8  place-items-center rounded-md border transition-colors ${
-							isActive
-								? "border-accent bg-accent-soft text-accent"
-								: "border-transparent text-text-2 hover:bg-hover hover:text-text"
-						}`}
-					>
-						<Glyph size={15} />
-					</button>
+						icon={iconFor(slug)}
+						selected={isActive}
+						onSelect={() => onChange(isActive ? "" : slug)}
+						label={slug}
+					/>
 				);
 			})}
 		</div>
