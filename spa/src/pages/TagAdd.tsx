@@ -10,6 +10,7 @@ import { PageContainer } from "@/components/shell/PageContainer";
 import { Alert } from "@/components/ui/Alert";
 import { AccessDenied } from "@/components/ui/AccessDenied";
 import { Button } from "@/components/ui/Button";
+import { FormFooter } from "@/components/ui/FormFooter";
 import { FormShell } from "@/components/ui/FormShell";
 import { SubNav } from "@/components/ui/SubNav";
 import { TextInput } from "@/components/ui/TextInput";
@@ -157,26 +158,14 @@ export const TagAdd = () => {
 			<FormShell
 				onSubmit={submit}
 				footer={
-					<>
-						<Button to="/tags">Cancel</Button>
-						<Button
-							variant="primary"
-							type="submit"
-							icon={<Plus size={13} />}
-							disabled={
-								normalized === "" ||
-								duplicate ||
-								checking ||
-								createMutation.isPending
-							}
-						>
-							{createMutation.isPending
-								? "Creating…"
-								: checking
-									? "Checking…"
-									: "Create tag"}
-						</Button>
-					</>
+					<FormFooter
+						cancelTo="/tags"
+						submitIcon={<Plus size={13} />}
+						submitLabel={checking ? "Checking…" : "Create tag"}
+						disabled={normalized === "" || duplicate || checking}
+						loading={createMutation.isPending}
+						loadingLabel="Creating…"
+					/>
 				}
 			>
 				<div className="space-y-4">

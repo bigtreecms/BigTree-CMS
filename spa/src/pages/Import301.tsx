@@ -9,6 +9,7 @@ import { PageContainer } from "@/components/shell/PageContainer";
 import { Alert } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
 import { Checkbox } from "@/components/ui/Checkbox";
+import { FormFooter } from "@/components/ui/FormFooter";
 import { FormShell } from "@/components/ui/FormShell";
 
 import { fourOhFoursApi } from "@/api/endpoints/four-oh-fours";
@@ -117,17 +118,14 @@ export const Import301 = () => {
 					importMutation.mutate();
 				}}
 				footer={
-					<>
-						<Button to="/dashboard/404s/301">Cancel</Button>
-						<Button
-							variant="primary"
-							type="submit"
-							icon={<Upload size={13} />}
-							disabled={importMutation.isPending || !file}
-						>
-							{importMutation.isPending ? "Importing…" : "Import"}
-						</Button>
-					</>
+					<FormFooter
+						cancelTo="/dashboard/404s/301"
+						submitIcon={<Upload size={13} />}
+						submitLabel="Import"
+						disabled={!file}
+						loading={importMutation.isPending}
+						loadingLabel="Importing…"
+					/>
 				}
 			>
 				<div className="space-y-4">

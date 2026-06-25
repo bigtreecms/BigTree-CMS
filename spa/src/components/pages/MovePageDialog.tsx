@@ -156,9 +156,11 @@ export const MovePageDialog = ({
 						<Button
 							variant="primary"
 							onClick={() => target && moveMutation.mutate({ parent: target.id })}
-							disabled={!target || moveMutation.isPending}
+							disabled={!target}
+							loading={moveMutation.isPending}
+							loadingLabel="Moving…"
 						>
-							{moveMutation.isPending ? "Moving…" : "Move page"}
+							Move page
 						</Button>
 					</div>
 				</div>

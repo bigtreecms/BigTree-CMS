@@ -163,9 +163,10 @@ export const ConfigureMediaPresets = () => {
 						variant="primary"
 						icon={<Save size={13} />}
 						onClick={() => saveMutation.mutate(presets)}
-						disabled={saveMutation.isPending}
+						loading={saveMutation.isPending}
+						loadingLabel="Saving…"
 					>
-						{saveMutation.isPending ? "Saving…" : "Save all"}
+						Save all
 					</Button>
 				</div>
 			)}

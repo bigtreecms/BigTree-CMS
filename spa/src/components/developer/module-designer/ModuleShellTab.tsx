@@ -318,13 +318,10 @@ export const ModuleShellTab = ({ moduleId, module }: ModuleShellTabProps) => {
 						variant="primary"
 						type="submit"
 						icon={<Save size={13} />}
-						disabled={saveMutation.isPending}
+						loading={saveMutation.isPending}
+						loadingLabel="Saving…"
 					>
-						{saveMutation.isPending
-							? "Saving…"
-							: isAdd
-								? "Create module"
-								: "Save module"}
+						{isAdd ? "Create module" : "Save module"}
 					</Button>
 				</div>
 			</form>

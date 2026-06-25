@@ -240,9 +240,11 @@ export const FileDetail = ({ resourceId, onOpenChange, folderQueryKey }: FileDet
 							<Button
 								variant="primary"
 								disabled={!dirty || pending}
+								loading={updateMutation.isPending}
+								loadingLabel="Saving…"
 								onClick={() => updateMutation.mutate()}
 							>
-								{updateMutation.isPending ? "Saving…" : "Save changes"}
+								Save changes
 							</Button>
 						</div>
 					</div>
@@ -266,18 +268,13 @@ export const FileDetail = ({ resourceId, onOpenChange, folderQueryKey }: FileDet
 								/>
 								<Button
 									variant="secondary"
-									icon={
-										<RefreshCw
-											size={13}
-											className={
-												replaceMutation.isPending ? "animate-spin" : ""
-											}
-										/>
-									}
+									icon={<RefreshCw size={13} />}
 									onClick={() => replaceInputRef.current?.click()}
 									disabled={pending}
+									loading={replaceMutation.isPending}
+									loadingLabel="Replacing…"
 								>
-									{replaceMutation.isPending ? "Replacing…" : "Replace file"}
+									Replace file
 								</Button>
 								<span className="text-[11.5px] text-text-3">
 									Keeps the URL and references.

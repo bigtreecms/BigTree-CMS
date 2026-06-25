@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ChevronLeft, Save } from "lucide-react";
+import { ChevronLeft } from "lucide-react";
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
@@ -10,6 +10,7 @@ import { Alert } from "@/components/ui/Alert";
 import { FieldGrid } from "@/components/ui/FieldGrid";
 import { Button } from "@/components/ui/Button";
 import { Checkbox } from "@/components/ui/Checkbox";
+import { FormFooter } from "@/components/ui/FormFooter";
 import { FormShell } from "@/components/ui/FormShell";
 
 import { DeveloperSectionNav } from "@/components/developer/DeveloperSectionNav";
@@ -252,23 +253,12 @@ export const SettingConfigure = () => {
 					submit();
 				}}
 				footer={
-					<>
-						<Button to="/developer/settings">Cancel</Button>
-						<Button
-							variant="primary"
-							type="submit"
-							icon={<Save size={13} />}
-							disabled={isPending}
-						>
-							{isEdit
-								? isPending
-									? "Saving…"
-									: "Save setting"
-								: isPending
-									? "Creating…"
-									: "Create setting"}
-						</Button>
-					</>
+					<FormFooter
+						cancelTo="/developer/settings"
+						submitLabel={isEdit ? "Save setting" : "Create setting"}
+						loading={isPending}
+						loadingLabel={isEdit ? "Saving…" : "Creating…"}
+					/>
 				}
 			>
 				<div className="space-y-4">

@@ -251,9 +251,10 @@ export const UserEdit = () => {
 							type="submit"
 							form="user-edit-form"
 							icon={<Save size={13} />}
-							disabled={updateMutation.isPending}
+							loading={updateMutation.isPending}
+							loadingLabel="Saving…"
 						>
-							{updateMutation.isPending ? "Saving…" : "Save changes"}
+							Save changes
 						</Button>
 					</>
 				}

@@ -208,9 +208,10 @@ export const ConfigurePaymentGateway = () => {
 							variant="primary"
 							type="submit"
 							icon={<Save size={13} />}
-							disabled={saveMutation.isPending}
+							loading={saveMutation.isPending}
+							loadingLabel="Saving…"
 						>
-							{saveMutation.isPending ? "Saving…" : "Save"}
+							Save
 						</Button>
 					}
 				>

@@ -337,9 +337,10 @@ export const ModuleBuilderWizard = () => {
 					variant="primary"
 					type="submit"
 					icon={<Save size={13} />}
-					disabled={scaffoldMutation.isPending}
+					loading={scaffoldMutation.isPending}
+					loadingLabel="Building…"
 				>
-					{scaffoldMutation.isPending ? "Building…" : "Build module"}
+					Build module
 				</Button>
 			</div>
 		</form>

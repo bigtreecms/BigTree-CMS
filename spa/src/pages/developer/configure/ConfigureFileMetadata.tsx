@@ -153,9 +153,10 @@ export const ConfigureFileMetadata = () => {
 					variant="primary"
 					icon={<Save size={13} />}
 					onClick={handleSave}
-					disabled={saveMutation.isPending}
+					loading={saveMutation.isPending}
+					loadingLabel="Saving…"
 				>
-					{saveMutation.isPending ? "Saving…" : "Save"}
+					Save
 				</Button>
 			}
 		>

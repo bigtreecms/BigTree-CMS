@@ -220,9 +220,10 @@ export const Extensions = () => {
 						<Button
 							icon={<RefreshCw size={13} />}
 							onClick={() => recacheMutation.mutate()}
-							disabled={recacheMutation.isPending}
+							loading={recacheMutation.isPending}
+							loadingLabel="Refreshing…"
 						>
-							{recacheMutation.isPending ? "Refreshing…" : "Refresh hooks cache"}
+							Refresh hooks cache
 						</Button>
 						<Button icon={<Hammer size={13} />} to="/developer/extensions/build">
 							Build extension

@@ -5,9 +5,9 @@ import { FileText, Search, Share2 } from "lucide-react";
 import { TabbedEditor } from "./TabbedEditor";
 
 /**
- * Radix Tabs scaffold for multi-tab edit screens (Page edit, Module designer).
- * The host controls the active tab so it can be mirrored in the URL. Overflowing
- * tabs scroll horizontally.
+ * Tab scaffold for multi-tab edit screens (Page edit, Module designer). Built on
+ * the shared `TabStrip`; the host controls the active tab so it can be mirrored
+ * in the URL. Overflowing tabs scroll horizontally.
  */
 const tabs = [
 	{

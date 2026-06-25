@@ -1,12 +1,10 @@
-import * as Tabs from "@radix-ui/react-tabs";
+import { useId } from "react";
 import type { ReactNode } from "react";
 
-export interface TabbedEditorTab {
-	value: string;
-	label: ReactNode;
-	icon?: ReactNode;
+import { TabStrip, type TabStripItem } from "./TabStrip";
+
+export interface TabbedEditorTab extends TabStripItem {
 	content: ReactNode;
-	disabled?: boolean;
 }
 
 interface TabbedEditorProps {
@@ -17,36 +15,27 @@ interface TabbedEditorProps {
 }
 
 /**
- * Radix Tabs scaffold for multi-tab edit screens (Page edit, Module designer,
- * Settings edit). The host page controls the active tab so it can be reflected
- * in the URL / breadcrumb when desired.
+ * Tab scaffold for multi-tab edit screens (Page edit, Module designer, Settings
+ * edit). Builds on the shared `TabStrip` for the header and renders the active
+ * tab's panel itself. The host controls the active tab so it can be reflected in
+ * the URL / breadcrumb when desired.
  */
 export const TabbedEditor = ({ tabs, value, onChange, className }: TabbedEditorProps) => {
-	return (
-		<Tabs.Root
-			value={value}
-			onValueChange={onChange}
-			className={`flex flex-col ${className ?? ""}`}
-		>
-			<Tabs.List className="flex min-w-0 items-center gap-1 overflow-x-auto border-b border-border bg-surface px-1 [-ms-overflow-style:none] scrollbar-none [&::-webkit-scrollbar]:hidden">
-				{tabs.map((tab) => (
-					<Tabs.Trigger
-						key={tab.value}
-						value={tab.value}
-						disabled={tab.disabled}
-						className="-mb-px flex shrink-0 items-center gap-1.5 whitespace-nowrap border-b-2 border-transparent px-3 py-2 text-[13px] font-medium text-text-3 transition-colors hover:text-text disabled:cursor-not-allowed disabled:opacity-40 data-[state=active]:border-accent data-[state=active]:text-accent"
-					>
-						{tab.icon}
-						<span>{tab.label}</span>
-					</Tabs.Trigger>
-				))}
-			</Tabs.List>
+	const baseId = useId();
+	const active = tabs.find((tab) => tab.value === value);
 
-			{tabs.map((tab) => (
-				<Tabs.Content key={tab.value} value={tab.value} className="pt-4 focus:outline-none">
-					{tab.content}
-				</Tabs.Content>
-			))}
-		</Tabs.Root>
+	return (
+		<div className={`flex flex-col ${className ?? ""}`}>
+			<TabStrip tabs={tabs} value={value} onChange={onChange} idBase={baseId} />
+
+			<div
+				role="tabpanel"
+				id={`${baseId}-panel-${value}`}
+				aria-labelledby={`${baseId}-tab-${value}`}
+				className="pt-4 focus:outline-none"
+			>
+				{active?.content}
+			</div>
+		</div>
 	);
 };

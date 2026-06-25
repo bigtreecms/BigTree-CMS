@@ -73,9 +73,10 @@ export const DebugStatus = () => {
 				<Button
 					icon={<Trash2 size={13} />}
 					onClick={() => setConfirmClear(true)}
-					disabled={clearCache.isPending}
+					loading={clearCache.isPending}
+					loadingLabel="Clearing…"
 				>
-					{clearCache.isPending ? "Clearing…" : "Clear cache"}
+					Clear cache
 				</Button>
 			}
 		>

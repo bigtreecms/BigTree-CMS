@@ -1,13 +1,14 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ChevronLeft, Save } from "lucide-react";
+import { ChevronLeft } from "lucide-react";
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
 import { PageContainer } from "@/components/shell/PageContainer";
 import { Alert } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
+import { FormFooter } from "@/components/ui/FormFooter";
 import { FormShell } from "@/components/ui/FormShell";
 
 import { fourOhFoursApi } from "@/api/endpoints/four-oh-fours";
@@ -117,17 +118,12 @@ export const Create301 = () => {
 					createMutation.mutate();
 				}}
 				footer={
-					<>
-						<Button to="/dashboard/404s/301">Cancel</Button>
-						<Button
-							variant="primary"
-							type="submit"
-							icon={<Save size={13} />}
-							disabled={createMutation.isPending}
-						>
-							{createMutation.isPending ? "Creating…" : "Create redirect"}
-						</Button>
-					</>
+					<FormFooter
+						cancelTo="/dashboard/404s/301"
+						submitLabel="Create redirect"
+						loading={createMutation.isPending}
+						loadingLabel="Creating…"
+					/>
 				}
 			>
 				<div className="space-y-4">

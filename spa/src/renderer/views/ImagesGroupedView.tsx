@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronDown, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
+import { DisclosureToggle } from "@/components/ui/DisclosureToggle";
 import { Loading } from "@/components/ui/Loading";
 import { SearchInput } from "@/components/ui/SearchInput";
 import { Toolbar } from "@/components/ui/Toolbar";
@@ -123,23 +123,20 @@ export const ImagesGroupedView = ({ moduleId, view }: ImagesGroupedViewProps) =>
 								key={groupKey}
 								className="overflow-hidden rounded-xl border border-border bg-surface"
 							>
-								<button
-									type="button"
-									className="flex w-full items-center gap-2 border-b border-border bg-surface-2 px-3.5 py-2 text-left"
-									onClick={() => toggle(groupKey)}
+								<DisclosureToggle
+									open={!isCollapsed}
+									onToggle={() => toggle(groupKey)}
+									className="w-full gap-2 border-b border-border bg-surface-2 px-3.5 py-2"
+									label={
+										<h3 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-text">
+											{groupKey}
+										</h3>
+									}
 								>
-									{isCollapsed ? (
-										<ChevronRight size={13} className="text-text-3" />
-									) : (
-										<ChevronDown size={13} className="text-text-3" />
-									)}
-									<h3 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-text">
-										{groupKey}
-									</h3>
 									<span className="text-[11px] tabular-nums text-text-3">
 										{items.length}
 									</span>
-								</button>
+								</DisclosureToggle>
 
 								{!isCollapsed && (
 									<div className="p-3">

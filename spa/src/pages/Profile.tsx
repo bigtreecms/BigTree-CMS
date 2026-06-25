@@ -179,9 +179,10 @@ export const Profile = () => {
 							type="submit"
 							form="profile-form"
 							icon={<Save size={13} />}
-							disabled={updateMutation.isPending}
+							loading={updateMutation.isPending}
+							loadingLabel="Saving…"
 						>
-							{updateMutation.isPending ? "Saving…" : "Save"}
+							Save
 						</Button>
 					) : (
 						<Button icon={<Key size={13} />} onClick={() => setPasswordOpen(true)}>

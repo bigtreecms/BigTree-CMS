@@ -1,14 +1,14 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Eye, EyeOff, Lock, Save, ShieldAlert } from "lucide-react";
+import { Eye, EyeOff, Lock, ShieldAlert } from "lucide-react";
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
 import { PageContainer } from "@/components/shell/PageContainer";
 import { Alert } from "@/components/ui/Alert";
-import { Button } from "@/components/ui/Button";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
+import { FormFooter } from "@/components/ui/FormFooter";
 import { FormShell } from "@/components/ui/FormShell";
 import { LockBanner } from "@/components/ui/LockBanner";
 
@@ -214,17 +214,13 @@ export const SettingEdit = () => {
 					handleSave();
 				}}
 				footer={
-					<>
-						<Button onClick={() => navigate("/settings")}>Cancel</Button>
-						<Button
-							variant="primary"
-							type="submit"
-							icon={<Save size={13} />}
-							disabled={readOnly || saveMutation.isPending || valueWithheld}
-						>
-							{saveMutation.isPending ? "Saving…" : "Save"}
-						</Button>
-					</>
+					<FormFooter
+						onCancel={() => navigate("/settings")}
+						submitLabel="Save"
+						disabled={readOnly || valueWithheld}
+						loading={saveMutation.isPending}
+						loadingLabel="Saving…"
+					/>
 				}
 			>
 				{valueWithheld ? (

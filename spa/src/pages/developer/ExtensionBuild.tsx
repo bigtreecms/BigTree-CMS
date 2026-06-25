@@ -524,10 +524,11 @@ export const ExtensionBuild = () => {
 								</Button>
 								<Button
 									variant="primary"
-									disabled={buildMutation.isPending}
+									loading={buildMutation.isPending}
+									loadingLabel="Building…"
 									onClick={doBuild}
 								>
-									{buildMutation.isPending ? "Building…" : "Build extension"}
+									Build extension
 								</Button>
 							</div>
 						</div>

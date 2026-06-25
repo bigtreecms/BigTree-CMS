@@ -166,10 +166,12 @@ export const TagMerge = () => {
 					<Button
 						variant="primary"
 						icon={<ArrowRight size={13} />}
-						disabled={!valid || mergeMutation.isPending}
+						disabled={!valid}
+						loading={mergeMutation.isPending}
+						loadingLabel="Merging…"
 						onClick={() => mergeMutation.mutate()}
 					>
-						{mergeMutation.isPending ? "Merging…" : "Merge tags"}
+						Merge tags
 					</Button>
 				</div>
 			</section>

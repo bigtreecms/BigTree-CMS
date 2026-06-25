@@ -1,6 +1,6 @@
 import { useState, type KeyboardEvent } from "react";
+import { DisclosureToggle } from "@/components/ui/DisclosureToggle";
 import { SectionLabel } from "@/components/ui/SectionLabel";
-import { ChevronDown, ChevronRight } from "lucide-react";
 
 import { ActionModulePreview } from "./ActionModulePreview";
 import { ACTION_HOST_API_REFERENCE } from "./starterTemplate";
@@ -59,14 +59,13 @@ export const ActionModuleEditor = ({ value, onChange, name, route }: ActionModul
 			</div>
 
 			<div className="rounded-md border border-border bg-surface">
-				<button
-					type="button"
-					onClick={() => setShowApi((v) => !v)}
-					className="flex w-full items-center gap-1.5 px-3 py-2 text-[12px] font-medium text-text-2"
-				>
-					{showApi ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-					Host API reference
-				</button>
+				<DisclosureToggle
+					open={showApi}
+					onToggle={() => setShowApi((v) => !v)}
+					size={14}
+					className="w-full gap-1.5 px-3 py-2 text-[12px] font-medium text-text-2"
+					label="Host API reference"
+				/>
 				{showApi && (
 					<dl className="grid grid-cols-1 gap-x-4 gap-y-1.5 border-t border-border p-3 sm:grid-cols-[auto_1fr]">
 						{ACTION_HOST_API_REFERENCE.map((row) => (

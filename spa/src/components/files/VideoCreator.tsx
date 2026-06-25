@@ -91,10 +91,12 @@ export const VideoCreator = ({
 					</button>
 					<Button
 						variant="primary"
-						disabled={!looksValid || createMutation.isPending}
+						disabled={!looksValid}
+						loading={createMutation.isPending}
+						loadingLabel="Adding…"
 						onClick={submit}
 					>
-						{createMutation.isPending ? "Adding…" : "Add video"}
+						Add video
 					</Button>
 				</div>
 			}

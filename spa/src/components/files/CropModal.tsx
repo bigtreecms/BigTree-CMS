@@ -95,10 +95,12 @@ export const CropModal = ({ open, onOpenChange, resource }: CropModalProps) => {
 					</Button>
 					<Button
 						variant="primary"
-						disabled={!validCrop || cropMutation.isPending}
+						disabled={!validCrop}
+						loading={cropMutation.isPending}
+						loadingLabel="Saving…"
 						onClick={() => cropMutation.mutate()}
 					>
-						{cropMutation.isPending ? "Saving…" : "Save crop"}
+						Save crop
 					</Button>
 				</div>
 			}

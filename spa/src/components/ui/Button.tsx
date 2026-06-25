@@ -1,3 +1,4 @@
+import { Loader2 } from "lucide-react";
 import type { MouseEventHandler, ReactNode } from "react";
 import { Link } from "react-router-dom";
 
@@ -26,6 +27,14 @@ interface ButtonProps {
 	target?: string;
 	/** Disables the control. A disabled button never renders as a link/anchor. */
 	disabled?: boolean;
+	/**
+	 * Busy state: disables the control (OR-ed with `disabled`), swaps the icon
+	 * for an inline spinner, and renders `loadingLabel` in place of `children`.
+	 * Use for mutation-driven submits — `loading={mutation.isPending}`.
+	 */
+	loading?: boolean;
+	/** Label rendered while `loading` (defaults to `children`). e.g. "Saving…". */
+	loadingLabel?: ReactNode;
 	/** Native button type — defaults to `button`. */
 	type?: "button" | "submit";
 	/** Associates a `submit` button with a form by id (button rendered outside it). */
@@ -76,6 +85,8 @@ export const Button = ({
 	href,
 	target,
 	disabled,
+	loading,
+	loadingLabel,
 	type = "button",
 	form,
 	title,
@@ -85,7 +96,11 @@ export const Button = ({
 		extra ? ` ${extra}` : ""
 	}`;
 
-	if (!disabled && to) {
+	const isDisabled = disabled || loading;
+	const renderedIcon = loading ? <Loader2 size={13} className="animate-spin" /> : icon;
+	const renderedChildren = loading ? (loadingLabel ?? children) : children;
+
+	if (!isDisabled && to) {
 		return (
 			<Link to={to} onClick={onClick} className={className} title={title}>
 				{icon}
@@ -94,7 +109,7 @@ export const Button = ({
 		);
 	}
 
-	if (!disabled && href) {
+	if (!isDisabled && href) {
 		return (
 			<a
 				href={href}
@@ -115,12 +130,12 @@ export const Button = ({
 			type={type}
 			form={form}
 			onClick={onClick}
-			disabled={disabled}
+			disabled={isDisabled}
 			className={className}
 			title={title}
 		>
-			{icon}
-			{children}
+			{renderedIcon}
+			{renderedChildren}
 		</button>
 	);
 };

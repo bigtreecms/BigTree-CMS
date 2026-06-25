@@ -154,8 +154,13 @@ export const PasswordChangeDialog = ({
 					<Button variant="secondary" onClick={() => onOpenChange(false)}>
 						Cancel
 					</Button>
-					<Button variant="primary" type="submit" disabled={mutation.isPending}>
-						{mutation.isPending ? "Saving…" : "Change password"}
+					<Button
+						variant="primary"
+						type="submit"
+						loading={mutation.isPending}
+						loadingLabel="Saving…"
+					>
+						Change password
 					</Button>
 				</div>
 			</form>

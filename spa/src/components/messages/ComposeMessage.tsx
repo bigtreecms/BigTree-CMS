@@ -160,9 +160,11 @@ export const ComposeMessage = ({
 					<Button
 						variant="primary"
 						onClick={() => sendMutation.mutate()}
-						disabled={!canSend || sendMutation.isPending}
+						disabled={!canSend}
+						loading={sendMutation.isPending}
+						loadingLabel="Sending…"
 					>
-						{sendMutation.isPending ? "Sending…" : "Send message"}
+						Send message
 					</Button>
 				</div>
 			}

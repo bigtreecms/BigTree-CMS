@@ -403,10 +403,11 @@ export const FourOhFours = ({ type }: FourOhFoursProps) => {
 					<>
 						<Button
 							icon={<Download size={13} />}
-							disabled={exportMutation.isPending}
+							loading={exportMutation.isPending}
+							loadingLabel="Exporting…"
 							onClick={() => exportMutation.mutate()}
 						>
-							{exportMutation.isPending ? "Exporting…" : "Export CSV"}
+							Export CSV
 						</Button>
 
 						{type === "301" && (

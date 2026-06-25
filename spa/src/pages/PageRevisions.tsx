@@ -165,9 +165,10 @@ export const PageRevisions = () => {
 						variant="primary"
 						icon={<Save size={13} />}
 						onClick={() => saveMutation.mutate()}
-						disabled={saveMutation.isPending}
+						loading={saveMutation.isPending}
+						loadingLabel="Saving…"
 					>
-						{saveMutation.isPending ? "Saving…" : "Save revision"}
+						Save revision
 					</Button>
 				</div>
 			</Card>

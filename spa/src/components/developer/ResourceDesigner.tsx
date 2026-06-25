@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronDown, ChevronRight, Plus, Trash } from "lucide-react";
+import { Plus, Trash } from "lucide-react";
 
 import { Button } from "@/components/ui/Button";
 import { Checkbox } from "@/components/ui/Checkbox";
+import { DisclosureToggle } from "@/components/ui/DisclosureToggle";
 import { Select } from "@/components/ui/Select";
 import { TextInput } from "@/components/ui/TextInput";
 import type { ModuleFormField } from "@/api/endpoints/modules";
@@ -266,20 +267,16 @@ export const ResourceDesigner = ({
 								>
 									<DragHandle />
 
-									<button
-										type="button"
-										className="flex min-w-0 flex-1 items-center gap-2 rounded px-1.5 py-1 text-left hover:bg-hover"
-										onClick={() => toggle(index)}
-										aria-expanded={isOpen}
+									<DisclosureToggle
+										open={isOpen}
+										onToggle={() => toggle(index)}
+										className="min-w-0 flex-1 gap-2 rounded px-1.5 py-1 hover:bg-hover"
+										label={
+											<span className="truncate text-[12.5px] text-text-2">
+												{entry.title || id || `Field ${index + 1}`}
+											</span>
+										}
 									>
-										{isOpen ? (
-											<ChevronDown size={13} className="text-text-3" />
-										) : (
-											<ChevronRight size={13} className="text-text-3" />
-										)}
-										<span className="truncate text-[12.5px] text-text-2">
-											{entry.title || id || `Field ${index + 1}`}
-										</span>
 										<span className="rounded bg-surface-2 px-1.5 py-0.5 text-[10.5px] text-text-3">
 											{fieldTypeName(
 												fieldTypesQ.data,
@@ -292,7 +289,7 @@ export const ResourceDesigner = ({
 												Title
 											</span>
 										)}
-									</button>
+									</DisclosureToggle>
 
 									<IconButton
 										tone="danger"

@@ -136,9 +136,10 @@ export const Backups = () => {
 						variant="primary"
 						icon={<Plus size={13} />}
 						onClick={() => createMutation.mutate()}
-						disabled={createMutation.isPending}
+						loading={createMutation.isPending}
+						loadingLabel="Backing up…"
 					>
-						{createMutation.isPending ? "Backing up…" : "New backup"}
+						New backup
 					</Button>
 				}
 			/>

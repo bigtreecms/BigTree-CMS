@@ -578,16 +578,12 @@ export const Users = () => {
 						<Button
 							variant="primary"
 							type="submit"
-							disabled={!validAdd || createUserMutation.isPending}
+							disabled={!validAdd}
+							loading={createUserMutation.isPending}
+							loadingLabel="Creating…"
+							icon={<Plus size={14} />}
 						>
-							{createUserMutation.isPending ? (
-								"Creating..."
-							) : (
-								<>
-									<Plus size={14} />
-									Create user
-								</>
-							)}
+							Create user
 						</Button>
 					</div>
 				</form>

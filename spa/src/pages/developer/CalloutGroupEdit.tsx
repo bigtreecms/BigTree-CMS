@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
 import { useMutation, useQueries, useQueryClient } from "@tanstack/react-query";
-import { ChevronLeft, Save, Trash } from "lucide-react";
+import { ChevronLeft, Trash } from "lucide-react";
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
@@ -12,6 +12,7 @@ import { MonoText } from "@/components/ui/MonoText";
 import { Combobox, type ComboboxOption } from "@/components/ui/Combobox";
 import { Button } from "@/components/ui/Button";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
+import { FormFooter } from "@/components/ui/FormFooter";
 import { FormShell } from "@/components/ui/FormShell";
 import { UnsavedChangesGuard } from "@/components/ui/UnsavedChangesGuard";
 import { useDirtyTracker } from "@/hooks/useDirtyTracker";
@@ -201,21 +202,12 @@ export const CalloutGroupEdit = () => {
 					saveMutation.mutate(body);
 				}}
 				footer={
-					<>
-						<Button to="/developer/callout-groups">Cancel</Button>
-						<Button
-							variant="primary"
-							type="submit"
-							icon={<Save size={13} />}
-							disabled={saveMutation.isPending}
-						>
-							{saveMutation.isPending
-								? "Saving…"
-								: isAdd
-									? "Create group"
-									: "Save group"}
-						</Button>
-					</>
+					<FormFooter
+						cancelTo="/developer/callout-groups"
+						submitLabel={isAdd ? "Create group" : "Save group"}
+						loading={saveMutation.isPending}
+						loadingLabel="Saving…"
+					/>
 				}
 			>
 				<div className="space-y-4">

@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { CheckCircle2, ChevronDown, ChevronRight, Unplug } from "lucide-react";
+import { CheckCircle2, Unplug } from "lucide-react";
 
 import { ConfigureLayout } from "@/components/developer/ConfigureLayout";
 import { Button } from "@/components/ui/Button";
 import { Checkbox } from "@/components/ui/Checkbox";
+import { DisclosureToggle } from "@/components/ui/DisclosureToggle";
 import { TextInput } from "@/components/ui/TextInput";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
@@ -206,19 +207,12 @@ export const ConfigureServices = () => {
 									</div>
 
 									<div className="flex items-center gap-2">
-										<button
-											type="button"
-											onClick={() => setExpanded(isOpen ? null : s.id)}
-											className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface-2 px-3 py-1.5 text-[12.5px] font-medium text-text hover:bg-hover"
-											aria-expanded={isOpen}
-										>
-											{isOpen ? (
-												<ChevronDown size={13} />
-											) : (
-												<ChevronRight size={13} />
-											)}
-											{entry.connected ? "Reconnect" : "Connect"}
-										</button>
+										<DisclosureToggle
+											open={isOpen}
+											onToggle={() => setExpanded(isOpen ? null : s.id)}
+											className="gap-1.5 rounded-md border border-border bg-surface-2 px-3 py-1.5 text-[12.5px] font-medium text-text hover:bg-hover"
+											label={entry.connected ? "Reconnect" : "Connect"}
+										/>
 
 										{entry.connected && (
 											<button

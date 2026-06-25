@@ -26,7 +26,9 @@ import { useScrollToFirstError } from "@/hooks/useScrollToFirstError";
 import { useDirtyTracker } from "@/hooks/useDirtyTracker";
 import { UnsavedChangesGuard } from "@/components/ui/UnsavedChangesGuard";
 
-import { ContentTab, PropertiesTab, SeoTab, SharingTab, TabBar } from "./PageEdit";
+import { PageTabStrip } from "@/components/pages/PageTabStrip";
+
+import { ContentTab, PropertiesTab, SeoTab, SharingTab } from "./PageEdit";
 
 /**
  * Add subpage screen — same four-tab structure as PageEdit, but powered by a
@@ -257,7 +259,7 @@ export const PageAdd = () => {
 				}}
 				className="mb-6 overflow-hidden rounded-lg border border-border bg-surface"
 			>
-				<TabBar value={activeTab} onChange={setActiveTab} />
+				<PageTabStrip value={activeTab} onChange={setActiveTab} />
 
 				<div className="flex flex-col gap-[18px] p-[22px]">
 					{activeTab === "properties" && (
@@ -327,18 +329,22 @@ export const PageAdd = () => {
 						<Button
 							variant={canPublish ? "secondary" : "primary"}
 							onClick={() => handleSubmit(false)}
-							disabled={!canCreate || createMutation.isPending}
+							disabled={!canCreate}
+							loading={createMutation.isPending}
+							loadingLabel="Saving…"
 						>
-							{createMutation.isPending ? "Saving…" : "Create"}
+							Create
 						</Button>
 
 						{canPublish && (
 							<Button
 								variant="primary"
 								onClick={() => handleSubmit(true)}
-								disabled={!canCreate || createMutation.isPending}
+								disabled={!canCreate}
+								loading={createMutation.isPending}
+								loadingLabel="Saving…"
 							>
-								{createMutation.isPending ? "Saving…" : "Create & Publish"}
+								Create & Publish
 							</Button>
 						)}
 					</div>

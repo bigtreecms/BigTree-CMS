@@ -108,6 +108,29 @@ export const Disabled: Story = {
 	args: { variant: "primary", disabled: true, children: "Disabled" },
 };
 
+/**
+ * `loading` disables the button, swaps the icon for a spinner, and shows
+ * `loadingLabel` in place of the children — the standard mutation-pending state.
+ */
+export const Loading: Story = {
+	render: (args) => (
+		<div className="flex flex-wrap items-center gap-3">
+			<Button
+				{...args}
+				variant="primary"
+				icon={<Save size={13} />}
+				loading
+				loadingLabel="Saving…"
+			>
+				Save
+			</Button>
+			<Button {...args} variant="secondary" loading>
+				No label swap
+			</Button>
+		</div>
+	),
+};
+
 /** The full matrix — every variant × every size. */
 export const Matrix: Story = {
 	render: () => {

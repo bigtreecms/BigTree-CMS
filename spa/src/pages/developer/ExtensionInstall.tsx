@@ -175,10 +175,12 @@ export const ExtensionInstall = () => {
 					<div className="flex gap-2">
 						<Button
 							variant="primary"
-							disabled={!preview.ready || processMutation.isPending}
+							disabled={!preview.ready}
+							loading={processMutation.isPending}
+							loadingLabel="Installing…"
 							onClick={() => processMutation.mutate()}
 						>
-							{processMutation.isPending ? "Installing…" : "Install"}
+							Install
 						</Button>
 						<Button variant="secondary" onClick={reset}>
 							Choose a different file
@@ -214,10 +216,12 @@ export const ExtensionInstall = () => {
 
 					<Button
 						variant="primary"
-						disabled={!file || unpackMutation.isPending}
+						disabled={!file}
+						loading={unpackMutation.isPending}
+						loadingLabel="Uploading…"
 						onClick={() => file && unpackMutation.mutate(file)}
 					>
-						{unpackMutation.isPending ? "Uploading…" : "Upload & review"}
+						Upload & review
 					</Button>
 				</Card>
 			)}

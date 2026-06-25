@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { ChevronDown, ChevronRight } from "lucide-react";
 
+import { DisclosureToggle } from "@/components/ui/DisclosureToggle";
 import { FieldComparison } from "./FieldComparison";
 
 /**
@@ -31,15 +31,15 @@ export const PendingFieldCompare = ({
 
 	return (
 		<div className="mt-1">
-			<button
-				type="button"
-				className="inline-flex items-center gap-1 text-[11.5px] text-text-3 hover:text-text-2"
-				onClick={() => setOpen((v) => !v)}
-				aria-expanded={open}
-			>
-				{open ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
-				{open ? "Hide comparison" : isNew ? "View new content" : "Compare with published"}
-			</button>
+			<DisclosureToggle
+				open={open}
+				onToggle={() => setOpen((v) => !v)}
+				size={12}
+				className="gap-1 text-[11.5px] text-text-3 hover:text-text-2"
+				label={
+					open ? "Hide comparison" : isNew ? "View new content" : "Compare with published"
+				}
+			/>
 
 			{open && (
 				<FieldComparison

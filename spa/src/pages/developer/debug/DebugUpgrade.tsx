@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { AlertTriangle, CheckCircle2, Download, Loader2 } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Download } from "lucide-react";
 
 import { DebugLayout } from "@/components/developer/DebugLayout";
 import { Alert } from "@/components/ui/Alert";
@@ -9,6 +9,7 @@ import { Card, CardHeader } from "@/components/ui/Card";
 import { TextInput } from "@/components/ui/TextInput";
 import { Field } from "@/components/ui/Field";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
+import { Loading } from "@/components/ui/Loading";
 
 import {
 	systemApi,
@@ -237,11 +238,16 @@ export const DebugUpgrade = () => {
 					{stage === "idle" && <UpdateList data={data} onInstall={start} />}
 
 					{busy && (
-						<div className="flex items-center gap-2 rounded-lg border border-border bg-surface p-4 text-[12.5px] text-text-2">
-							<Loader2 size={15} className="animate-spin text-accent" />
-							{stage === "downloading" && "Downloading the update…"}
-							{stage === "installing" && "Backing up and installing the new core…"}
-							{stage === "migrating" && "Running database migrations…"}
+						<div className="rounded-lg border border-border bg-surface p-4">
+							<Loading
+								label={
+									stage === "downloading"
+										? "Downloading the update…"
+										: stage === "installing"
+											? "Backing up and installing the new core…"
+											: "Running database migrations…"
+								}
+							/>
 						</div>
 					)}
 

@@ -18,8 +18,8 @@ import { TextArea } from "@/components/ui/TextArea";
 import { TextInput } from "@/components/ui/TextInput";
 
 import { AccessLevelsDialog } from "@/components/pages/AccessLevelsDialog";
-import { LinkFinder } from "@/components/pages/LinkFinder";
 import { MovePageDialog } from "@/components/pages/MovePageDialog";
+import { PageTabStrip } from "@/components/pages/PageTabStrip";
 import { PageSectionToolbar } from "@/components/pages/PageSectionToolbar";
 import { PageSummaryPanel } from "@/components/pages/PageSummaryPanel";
 
@@ -442,7 +442,7 @@ export const PageEdit = () => {
 				}}
 				className="mb-6 overflow-hidden rounded-lg border border-border bg-surface"
 			>
-				<TabBar value={activeTab} onChange={setActiveTab} />
+				<PageTabStrip value={activeTab} onChange={setActiveTab} />
 
 				<div className="flex flex-col gap-[18px] p-[22px]">
 					{activeTab === "properties" && (
@@ -559,44 +559,6 @@ export const PageEdit = () => {
 };
 
 // — Shared sub-blocks (also consumed from PageAdd) —
-
-interface TabBarProps {
-	value: TabValue;
-	onChange: (next: TabValue) => void;
-}
-
-const TAB_LABELS: Record<TabValue, string> = {
-	properties: "Properties",
-	content: "Content",
-	seo: "SEO",
-	sharing: "Sharing",
-};
-
-export const TabBar = ({ value, onChange }: TabBarProps) => (
-	<div className="flex items-stretch gap-0 border-b border-border bg-surface-2 px-4">
-		{PAGE_TABS.map((tab) => {
-			const active = value === tab;
-
-			return (
-				<button
-					key={tab}
-					type="button"
-					onClick={() => onChange(tab)}
-					className={`relative whitespace-nowrap px-4 py-3 text-[13px] font-medium transition-colors ${
-						active
-							? "bg-surface text-text after:absolute after:inset-x-3 after:-bottom-px after:h-0.5 after:rounded after:bg-accent"
-							: "text-text-3 hover:text-text"
-					}`}
-					data-active={active}
-				>
-					{TAB_LABELS[tab]}
-				</button>
-			);
-		})}
-		<div className="flex-1" />
-		<LinkFinder />
-	</div>
-);
 
 interface PropertiesTabProps {
 	body: PageEditBody;

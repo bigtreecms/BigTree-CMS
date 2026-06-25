@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ChevronLeft, Save } from "lucide-react";
+import { ChevronLeft } from "lucide-react";
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
@@ -11,6 +11,7 @@ import { FieldGrid } from "@/components/ui/FieldGrid";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { Button } from "@/components/ui/Button";
 import { Checkbox } from "@/components/ui/Checkbox";
+import { FormFooter } from "@/components/ui/FormFooter";
 import { FormShell } from "@/components/ui/FormShell";
 import { SelectField } from "@/components/ui/SelectField";
 import { TextField } from "@/components/ui/TextField";
@@ -204,21 +205,12 @@ export const TemplateEdit = () => {
 				bounded={false}
 				onSubmit={handleSubmit}
 				footer={
-					<>
-						<Button to="/developer/templates">Cancel</Button>
-						<Button
-							variant="primary"
-							type="submit"
-							icon={<Save size={13} />}
-							disabled={saveMutation.isPending}
-						>
-							{saveMutation.isPending
-								? "Saving…"
-								: isAdd
-									? "Create template"
-									: "Save template"}
-						</Button>
-					</>
+					<FormFooter
+						cancelTo="/developer/templates"
+						submitLabel={isAdd ? "Create template" : "Save template"}
+						loading={saveMutation.isPending}
+						loadingLabel="Saving…"
+					/>
 				}
 			>
 				<div className="space-y-4">
