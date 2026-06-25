@@ -6,6 +6,7 @@ import { modulesApi, type ModuleAction, type ModuleActionBody } from "@/api/endp
 import { ApiError } from "@/types/api";
 import { toast } from "@/lib/toast";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+import { FieldGrid } from "@/components/ui/FieldGrid";
 
 import { useDragReorder } from "@/hooks/useDragReorder";
 
@@ -254,7 +255,7 @@ export const ModuleActionsTab = ({ moduleId }: ModuleActionsTabProps) => {
 					saving={crud.saving}
 					saveLabel={crud.editingId === NEW_ROW ? "Create action" : "Save action"}
 				>
-					<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+					<FieldGrid>
 						<TextInput
 							label="Name"
 							value={draft.name}
@@ -292,7 +293,7 @@ export const ModuleActionsTab = ({ moduleId }: ModuleActionsTabProps) => {
 								{ value: "2", label: "Developer (2)" },
 							]}
 						/>
-					</div>
+					</FieldGrid>
 
 					<CheckboxInput
 						label="Show in module navigation"

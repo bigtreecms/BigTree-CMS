@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Plus, Save, Trash } from "lucide-react";
 
 import { Alert } from "@/components/ui/Alert";
+import { FieldGrid } from "@/components/ui/FieldGrid";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import {
@@ -174,7 +175,7 @@ export const ModuleBuilderWizard = () => {
 			{generalError && <Alert tone="danger">{generalError}</Alert>}
 
 			<Card className="space-y-4 p-4">
-				<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+				<FieldGrid>
 					<TextInput
 						label="Name"
 						value={name}
@@ -214,7 +215,7 @@ export const ModuleBuilderWizard = () => {
 						error={fieldErrors.route}
 						mono
 					/>
-				</div>
+				</FieldGrid>
 
 				<IconPicker
 					value={icon}
@@ -285,7 +286,7 @@ export const ModuleBuilderWizard = () => {
 			</Card>
 
 			<Card className="space-y-4 p-4">
-				<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+				<FieldGrid>
 					<SelectInput
 						label="Landing view type"
 						value={viewType}
@@ -306,7 +307,7 @@ export const ModuleBuilderWizard = () => {
 						onChange={setViewTitle}
 						hint="Plural, e.g. Articles. Derived from the name when blank."
 					/>
-				</div>
+				</FieldGrid>
 
 				<div className="space-y-2">
 					<span className="text-[12px] font-medium text-text-2">Extra actions</span>

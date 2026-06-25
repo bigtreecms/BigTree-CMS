@@ -2,6 +2,7 @@ import { Fragment, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronDown, ChevronRight } from "lucide-react";
 
+import { IconButton } from "@/components/ui/IconButton";
 import { pagesApi, type PageListRow } from "@/api/endpoints/pages";
 import type { PermissionCode, UserAlerts, UserPermissions } from "@/api/endpoints/users";
 
@@ -153,14 +154,14 @@ const TreeRow = ({
 			>
 				<div className="flex items-center gap-1.5 min-w-0">
 					{hasChildren ? (
-						<button
-							type="button"
+						<IconButton
+							label={expanded ? "Collapse" : "Expand"}
+							size="sm"
 							onClick={() => setExpanded((e) => !e)}
-							className="rounded p-0.5 text-text-3 hover:bg-hover hover:text-text"
-							aria-label={expanded ? "Collapse" : "Expand"}
+							ariaExpanded={expanded}
 						>
 							{expanded ? <ChevronDown size={13} /> : <ChevronRight size={13} />}
-						</button>
+						</IconButton>
 					) : (
 						<span className="inline-block w-[18px]" aria-hidden="true" />
 					)}

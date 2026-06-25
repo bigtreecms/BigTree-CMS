@@ -1,6 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { ChevronsUpDown, X } from "lucide-react";
 
+import { FieldLabel } from "@/components/ui/Field";
+import { IconButton } from "@/components/ui/IconButton";
+
 import { iconFor, MODULE_ICON_SLUGS } from "@/lib/legacyIcons";
 
 import { IconGridButton } from "./IconGridButton";
@@ -57,14 +60,14 @@ export const IconSelect = ({
 
 	return (
 		<div>
-			<span className="mb-1 block text-[12px] font-medium text-text-2">{label}</span>
+			<FieldLabel>{label}</FieldLabel>
 			<div ref={containerRef} className="relative">
 				<button
 					type="button"
 					aria-haspopup="listbox"
 					aria-expanded={open}
 					onClick={() => setOpen((prev) => !prev)}
-					className="flex w-full items-center gap-2 rounded-md border border-border bg-surface px-3 py-1.5 text-left text-[13px] focus:outline-none focus:ring-1 focus:ring-accent-ring"
+					className="flex w-full items-center gap-2 rounded-md border border-border bg-surface py-1.5 pl-3 pr-9 text-left text-[13px] focus:outline-none focus:ring-1 focus:ring-accent-ring"
 				>
 					{Selected ? <Selected size={15} className="shrink-0 text-text-2" /> : null}
 					<span
@@ -72,20 +75,25 @@ export const IconSelect = ({
 					>
 						{value || placeholder}
 					</span>
-					{value ? (
-						<span
-							role="button"
-							tabIndex={-1}
-							onClick={clear}
-							aria-label="Clear icon"
-							className="rounded p-0.5 text-text-3 hover:bg-hover hover:text-text"
-						>
-							<X size={13} />
-						</span>
-					) : (
-						<ChevronsUpDown size={13} className="shrink-0 text-text-3" />
-					)}
 				</button>
+
+				{/* Trailing control sits as a sibling, not nested inside the trigger
+				    button — interactive controls must not be nested (a11y). */}
+				{value ? (
+					<IconButton
+						label="Clear icon"
+						size="sm"
+						onClick={clear}
+						className="absolute right-1.5 top-1/2 -translate-y-1/2"
+					>
+						<X size={13} />
+					</IconButton>
+				) : (
+					<ChevronsUpDown
+						size={13}
+						className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-text-3"
+					/>
+				)}
 
 				{open && (
 					<div className="absolute z-20 mt-1 w-full overflow-hidden rounded-md border border-border bg-surface shadow-lg">

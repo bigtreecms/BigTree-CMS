@@ -4,6 +4,7 @@ import { ChevronRight, ExternalLink, HelpCircle } from "lucide-react";
 
 import { pagesApi, type PageDetail, type PageSeoRating } from "@/api/endpoints/pages";
 import { Badge, type BadgeTone } from "@/components/ui/Badge";
+import { IconButton } from "@/components/ui/IconButton";
 import { formatNumber } from "@/lib/number";
 
 /**
@@ -260,14 +261,9 @@ const SeoRatingValue = ({ query }: { query: UseQueryResult<PageSeoRating> }) => 
 			style={{ color: data.color ?? undefined }}
 		>
 			{data.score}%
-			<button
-				type="button"
-				className="rounded p-0.5 text-text-3 hover:bg-hover hover:text-text"
-				title={tip}
-				aria-label={tip}
-			>
+			<IconButton label={tip} size="sm" title={tip}>
 				<HelpCircle size={11} />
-			</button>
+			</IconButton>
 		</span>
 	);
 };
@@ -275,13 +271,8 @@ const SeoRatingValue = ({ query }: { query: UseQueryResult<PageSeoRating> }) => 
 const UnknownValue = ({ title }: { title: string }) => (
 	<span className="inline-flex items-center gap-1.5 text-[14px] font-medium text-text-3">
 		—
-		<button
-			type="button"
-			className="rounded p-0.5 text-text-3 hover:bg-hover hover:text-text"
-			title={title}
-			aria-label={title}
-		>
+		<IconButton label={title} size="sm" title={title}>
 			<HelpCircle size={11} />
-		</button>
+		</IconButton>
 	</span>
 );

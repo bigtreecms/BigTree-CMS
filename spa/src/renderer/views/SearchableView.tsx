@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 
 import { DataTable, type DataTableColumn, type DataTableSort } from "@/components/ui/DataTable";
 import { SearchInput } from "@/components/ui/SearchInput";
+import { Toolbar } from "@/components/ui/Toolbar";
 import { Pager } from "@/components/ui/Pager";
 
 import {
@@ -205,19 +206,18 @@ export const SearchableView = ({ moduleId, view }: SearchableViewProps) => {
 
 	return (
 		<>
-			<div className="mb-3 flex flex-wrap items-center gap-3">
-				<SearchInput
-					className="w-full sm:w-auto sm:max-w-md sm:flex-1"
-					value={query}
-					onChange={setQuery}
-					placeholder={`Search ${view.title.toLowerCase()}…`}
-					aria-label={`Search ${view.title.toLowerCase()}`}
-				/>
-
-				<div className="flex-1" />
-
+			<Toolbar
+				search={
+					<SearchInput
+						value={query}
+						onChange={setQuery}
+						placeholder={`Search ${view.title.toLowerCase()}…`}
+						aria-label={`Search ${view.title.toLowerCase()}`}
+					/>
+				}
+			>
 				<Pager page={safePage} totalPages={totalPages} onChange={setPage} />
-			</div>
+			</Toolbar>
 
 			<DataTable<ModuleEntryRow>
 				columns={columns}

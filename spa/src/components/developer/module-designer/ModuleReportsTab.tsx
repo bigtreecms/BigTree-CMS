@@ -11,6 +11,7 @@ import {
 import { dbApi } from "@/api/endpoints/db";
 
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+import { FieldGrid } from "@/components/ui/FieldGrid";
 
 import { DataTableSelect } from "@/components/developer/DataTableSelect";
 
@@ -247,7 +248,7 @@ export const ModuleReportsTab = ({ moduleId, moduleTable }: ModuleReportsTabProp
 					saving={crud.saving}
 					saveLabel={crud.editingId === NEW_ROW ? "Create report" : "Save report"}
 				>
-					<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+					<FieldGrid>
 						<TextInput
 							label="Title"
 							value={draft.title}
@@ -280,7 +281,7 @@ export const ModuleReportsTab = ({ moduleId, moduleTable }: ModuleReportsTabProp
 								hint="Supplies the row template for results."
 							/>
 						)}
-					</div>
+					</FieldGrid>
 
 					<TextInput
 						label="Parser"

@@ -16,6 +16,7 @@ import { useState } from "react";
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
+import { PageContainer } from "@/components/shell/PageContainer";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { Button } from "@/components/ui/Button";
@@ -101,7 +102,7 @@ export const SiteIntegrity = () => {
 	const showResults = scan.phase !== "idle";
 
 	return (
-		<div className="mx-auto max-w-5xl px-6 py-4">
+		<PageContainer width="medium">
 			<Breadcrumb
 				items={[{ label: "Dashboard", to: "/dashboard" }, { label: "Site Integrity" }]}
 			/>
@@ -167,7 +168,7 @@ export const SiteIntegrity = () => {
 				variant="danger"
 				onConfirm={handleReset}
 			/>
-		</div>
+		</PageContainer>
 	);
 };
 

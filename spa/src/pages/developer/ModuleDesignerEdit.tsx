@@ -15,6 +15,7 @@ import {
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
+import { PageContainer } from "@/components/shell/PageContainer";
 import { Button } from "@/components/ui/Button";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { IconTile } from "@/components/ui/IconTile";
@@ -74,17 +75,17 @@ export const ModuleDesignerEdit = () => {
 
 	if (!isAdd && detailQ.isLoading) {
 		return (
-			<div className="mx-auto max-w-5xl px-6 py-4">
+			<PageContainer width="medium">
 				<Loading variant="card" />
-			</div>
+			</PageContainer>
 		);
 	}
 
 	if (!isAdd && detailQ.error) {
 		return (
-			<div className="mx-auto max-w-5xl px-6 py-4">
+			<PageContainer width="medium">
 				<ErrorPanel error={detailQ.error} />
-			</div>
+			</PageContainer>
 		);
 	}
 
@@ -143,7 +144,7 @@ export const ModuleDesignerEdit = () => {
 	const activeTab = tabs.some((t) => t.value === tab) ? tab : "shell";
 
 	return (
-		<div className="mx-auto max-w-5xl px-6 py-4">
+		<PageContainer width="medium">
 			<Breadcrumb
 				items={[
 					{ label: "Developer", to: "/developer" },
@@ -227,6 +228,6 @@ export const ModuleDesignerEdit = () => {
 			) : (
 				<TabbedEditor tabs={tabs} value={activeTab} onChange={setTab} />
 			)}
-		</div>
+		</PageContainer>
 	);
 };

@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 
 import { Loading } from "@/components/ui/Loading";
 import { SearchInput } from "@/components/ui/SearchInput";
+import { Toolbar } from "@/components/ui/Toolbar";
 import { autoModulesApi, type ModuleEntryRow } from "@/api/endpoints/auto-modules";
 import type { ModuleView } from "@/api/endpoints/modules";
 
@@ -95,15 +96,16 @@ export const ImagesGroupedView = ({ moduleId, view }: ImagesGroupedViewProps) =>
 
 	return (
 		<>
-			<div className="mb-3 flex flex-wrap items-center gap-3">
-				<SearchInput
-					className="w-full sm:w-auto sm:max-w-md sm:flex-1"
-					value={query}
-					onChange={setQuery}
-					placeholder={`Search ${view.title.toLowerCase()}…`}
-					aria-label={`Search ${view.title.toLowerCase()}`}
-				/>
-			</div>
+			<Toolbar
+				search={
+					<SearchInput
+						value={query}
+						onChange={setQuery}
+						placeholder={`Search ${view.title.toLowerCase()}…`}
+						aria-label={`Search ${view.title.toLowerCase()}`}
+					/>
+				}
+			/>
 
 			{listQuery.isLoading && !listQuery.data ? (
 				<Loading variant="card" label="Loading entries…" />

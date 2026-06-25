@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Zap } from "lucide-react";
 
 import { Button } from "@/components/ui/Button";
+import { FieldLabel } from "@/components/ui/Field";
 import { SlideOver } from "@/components/ui/SlideOver";
 
 import { TextInput } from "./inputs";
@@ -84,7 +85,7 @@ export const FormHooksEditor = ({ value, onChange }: FormHooksEditorProps) => {
 
 	return (
 		<div>
-			<span className="mb-1 block text-[12px] font-medium text-text-2">Hooks</span>
+			<FieldLabel>Hooks</FieldLabel>
 			<Button variant="secondary" icon={<Zap size={13} />} onClick={() => setOpen(true)}>
 				Manage Hooks
 				{activeCount > 0 && (

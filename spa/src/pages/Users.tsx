@@ -6,6 +6,7 @@ import { ChevronDown, ChevronLeft, ChevronUp, Edit, Key, Plus, Trash } from "luc
 import { useAuthStore } from "@/auth/store";
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
+import { PageContainer } from "@/components/shell/PageContainer";
 import { Avatar } from "@/components/ui/Avatar";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { Loading } from "@/components/ui/Loading";
@@ -15,6 +16,7 @@ import { Checkbox } from "@/components/ui/Checkbox";
 import { Field } from "@/components/ui/Field";
 import { Pager } from "@/components/ui/Pager";
 import { SearchInput } from "@/components/ui/SearchInput";
+import { Toolbar } from "@/components/ui/Toolbar";
 import { SelectField } from "@/components/ui/SelectField";
 import { SubNav } from "@/components/ui/SubNav";
 import { Switch } from "@/components/ui/Switch";
@@ -271,7 +273,7 @@ export const Users = () => {
 	const validAdd = first.trim() && last.trim() && /.+@.+\..+/.test(email);
 
 	return (
-		<div className="mx-auto max-w-screen-2xl px-6 py-4">
+		<PageContainer width="wide">
 			<Breadcrumb
 				items={[{ label: "Users" }, { label: view === "add" ? "Add User" : "View Users" }]}
 			/>
@@ -312,17 +314,15 @@ export const Users = () => {
 
 			{view === "list" && (
 				<>
-					{/* Toolbar */}
-					<div className="mb-3 flex flex-wrap items-center gap-3">
-						<SearchInput
-							value={query}
-							onChange={setQuery}
-							placeholder="Search by name, email, company…"
-							className="flex-1 max-w-md"
-						/>
-
-						<div className="flex-1" />
-
+					<Toolbar
+						search={
+							<SearchInput
+								value={query}
+								onChange={setQuery}
+								placeholder="Search by name, email, company…"
+							/>
+						}
+					>
 						<span className="text-[12px] text-text-3 tabular-nums">
 							{query
 								? `${rows.length} of ${totalFromServer}`
@@ -330,7 +330,7 @@ export const Users = () => {
 						</span>
 
 						<Pager page={safePage} totalPages={totalPages} onChange={setPage} />
-					</div>
+					</Toolbar>
 
 					{/* Users Table (CSS grid to match prototype responsive behavior) */}
 					<Card className="overflow-hidden">
@@ -609,6 +609,6 @@ export const Users = () => {
 					onConfirm={() => handleDelete(confirmDelete)}
 				/>
 			)}
-		</div>
+		</PageContainer>
 	);
 };

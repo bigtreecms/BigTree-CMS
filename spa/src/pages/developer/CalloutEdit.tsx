@@ -5,7 +5,9 @@ import { ChevronLeft, Save } from "lucide-react";
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
+import { PageContainer } from "@/components/shell/PageContainer";
 import { Alert } from "@/components/ui/Alert";
+import { FieldGrid } from "@/components/ui/FieldGrid";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { Button } from "@/components/ui/Button";
 import { FormShell } from "@/components/ui/FormShell";
@@ -123,17 +125,17 @@ export const CalloutEdit = () => {
 
 	if (!isAdd && detailQ.isLoading) {
 		return (
-			<div className="mx-auto max-w-5xl px-6 py-4">
+			<PageContainer width="medium">
 				<Loading variant="card" />
-			</div>
+			</PageContainer>
 		);
 	}
 
 	if (!isAdd && detailQ.error) {
 		return (
-			<div className="mx-auto max-w-5xl px-6 py-4">
+			<PageContainer width="medium">
 				<ErrorPanel error={detailQ.error} />
-			</div>
+			</PageContainer>
 		);
 	}
 
@@ -142,7 +144,7 @@ export const CalloutEdit = () => {
 	const title = isAdd ? "Add callout" : body.name || idParam || "Edit callout";
 
 	return (
-		<div className="mx-auto max-w-5xl px-6 py-4">
+		<PageContainer width="medium">
 			<Breadcrumb
 				items={[
 					{ label: "Developer", to: "/developer" },
@@ -212,7 +214,7 @@ export const CalloutEdit = () => {
 				}
 			>
 				<div className="space-y-4">
-					<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+					<FieldGrid>
 						<TextField
 							label="ID"
 							value={body.id ?? ""}
@@ -229,7 +231,7 @@ export const CalloutEdit = () => {
 							error={fieldErrors.name}
 							required
 						/>
-					</div>
+					</FieldGrid>
 
 					<TextField
 						label="Description"
@@ -237,7 +239,7 @@ export const CalloutEdit = () => {
 						onChange={(v) => set({ description: v })}
 					/>
 
-					<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+					<FieldGrid>
 						<SelectField
 							label="Minimum user level"
 							value={String(body.level ?? 0)}
@@ -254,7 +256,7 @@ export const CalloutEdit = () => {
 							onChange={(v) => set({ display_default: v })}
 							hint="Fallback shown when display_field is empty."
 						/>
-					</div>
+					</FieldGrid>
 
 					<div>
 						<SectionLabel className="mb-2">Fields</SectionLabel>
@@ -276,6 +278,6 @@ export const CalloutEdit = () => {
 			</FormShell>
 
 			<UnsavedChangesGuard isDirty={isDirty} />
-		</div>
+		</PageContainer>
 	);
 };

@@ -1,6 +1,9 @@
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { Check, ChevronsUpDown, Search, X } from "lucide-react";
 
+import { IconButton } from "./IconButton";
+import { MonoText } from "./MonoText";
+
 export interface ComboboxOption<V extends string | number> {
 	value: V;
 	label: string;
@@ -176,14 +179,14 @@ export const Combobox = <V extends string | number>({
 			{/* Trailing control sits as a sibling, not nested inside the trigger
 			    button — interactive controls must not be nested (a11y). */}
 			{clearable && value && !disabled ? (
-				<button
-					type="button"
-					className="absolute right-1.5 top-1/2 -translate-y-1/2 rounded p-0.5 text-text-3 hover:bg-hover hover:text-text"
+				<IconButton
+					label="Clear selection"
+					size="sm"
 					onClick={clear}
-					aria-label="Clear selection"
+					className="absolute right-1.5 top-1/2 -translate-y-1/2"
 				>
 					<X size={13} />
-				</button>
+				</IconButton>
 			) : (
 				<ChevronsUpDown
 					size={13}
@@ -244,9 +247,9 @@ export const Combobox = <V extends string | number>({
 													{option.label}
 												</span>
 												{option.sublabel && (
-													<span className="block truncate font-mono text-[11px] text-text-3">
+													<MonoText className="block">
 														{option.sublabel}
-													</span>
+													</MonoText>
 												)}
 											</span>
 										</button>

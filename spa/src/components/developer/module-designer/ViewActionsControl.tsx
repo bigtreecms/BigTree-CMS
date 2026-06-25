@@ -1,4 +1,5 @@
 import type { DbOption } from "@/api/endpoints/db";
+import { Checkbox } from "@/components/ui/Checkbox";
 import { InlineEmpty } from "@/components/ui/InlineEmpty";
 import { Loading } from "@/components/ui/Loading";
 import { SectionLabel } from "@/components/ui/SectionLabel";
@@ -114,24 +115,24 @@ export const ViewActionsControl = ({
 						return (
 							<li
 								key={action.route}
-								className="flex items-center gap-3 rounded-md border border-border bg-surface px-3 py-2"
+								className="rounded-md border border-border bg-surface px-3 py-2"
 							>
-								<input
-									type="checkbox"
-									id={`view-action-${action.route}`}
+								<Checkbox
+									className="w-full"
+									labelClassName="flex min-w-0 flex-1 flex-col"
+									label={
+										<>
+											<span className="text-[13px] text-text">
+												{action.label}
+											</span>
+											<span className="text-[11.5px] text-text-3">
+												{action.description}
+											</span>
+										</>
+									}
 									checked={on}
-									onChange={(e) => toggle(action.route, e.target.checked)}
-									className="size-4 shrink-0 accent-accent"
+									onChange={(checked) => toggle(action.route, checked)}
 								/>
-								<label
-									htmlFor={`view-action-${action.route}`}
-									className="flex min-w-0 flex-1 flex-col"
-								>
-									<span className="text-[13px] text-text">{action.label}</span>
-									<span className="text-[11.5px] text-text-3">
-										{action.description}
-									</span>
-								</label>
 							</li>
 						);
 					})}

@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Plus, Trash } from "lucide-react";
 
 import { Button } from "@/components/ui/Button";
+import { FieldGrid } from "@/components/ui/FieldGrid";
 import { useDragReorder } from "@/hooks/useDragReorder";
 
 import {
@@ -267,7 +268,7 @@ export const ModuleViewsTab = ({ moduleId, moduleTable }: ModuleViewsTabProps) =
 					saving={crud.saving}
 					saveLabel={crud.editingId === NEW_ROW ? "Create view" : "Save view"}
 				>
-					<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+					<FieldGrid>
 						<TextInput
 							label="Title"
 							value={draft.title}
@@ -295,7 +296,7 @@ export const ModuleViewsTab = ({ moduleId, moduleTable }: ModuleViewsTabProps) =
 							options={formOptions}
 							hint="The form opened when editing a row."
 						/>
-					</div>
+					</FieldGrid>
 
 					<TextInput
 						label="Description"

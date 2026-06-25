@@ -6,6 +6,7 @@ import { InlineEmpty } from "@/components/ui/InlineEmpty";
 import { Loading } from "@/components/ui/Loading";
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
+import { PageContainer } from "@/components/shell/PageContainer";
 import { PageTable } from "@/components/pages/PageTable";
 import { MovePageDialog } from "@/components/pages/MovePageDialog";
 import { Button } from "@/components/ui/Button";
@@ -224,7 +225,7 @@ export const Pages = () => {
 			];
 
 	return (
-		<div className="mx-auto max-w-screen-2xl px-6 py-4">
+		<PageContainer width="wide">
 			<Breadcrumb items={breadcrumbItems} />
 			<PageHead
 				title={folderTitle}
@@ -473,6 +474,6 @@ export const Pages = () => {
 				page={movingPage}
 				invalidateKey={["pages", "list", parent]}
 			/>
-		</div>
+		</PageContainer>
 	);
 };

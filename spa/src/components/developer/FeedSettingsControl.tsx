@@ -1,6 +1,7 @@
 import { DataColumnSelect } from "./DataColumnSelect";
 
 import { TextField } from "@/components/ui/TextField";
+import { FieldGrid } from "@/components/ui/FieldGrid";
 import { SectionLabel } from "@/components/ui/SectionLabel";
 
 /**
@@ -53,7 +54,7 @@ export const FeedSettingsControl = ({
 
 	if (type === "custom") {
 		return (
-			<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+			<FieldGrid>
 				{column("sort", "Order by")}
 				{text("limit", "Limit", "Defaults to 15.")}
 				{text(
@@ -61,7 +62,7 @@ export const FeedSettingsControl = ({
 					"Parser function",
 					"Receives the table rows, returns a filtered array."
 				)}
-			</div>
+			</FieldGrid>
 		);
 	}
 
@@ -69,7 +70,7 @@ export const FeedSettingsControl = ({
 
 	return (
 		<div className="space-y-4">
-			<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+			<FieldGrid>
 				{text("feed_title", "Feed title")}
 				{text("feed_link", "Original content link", "e.g. a link back to the news page.")}
 				{text("limit", "Limit", "Defaults to 15.")}
@@ -78,10 +79,10 @@ export const FeedSettingsControl = ({
 					"Parser function",
 					"Receives the table rows, returns a filtered array."
 				)}
-			</div>
+			</FieldGrid>
 
 			<SectionLabel>Field mapping</SectionLabel>
-			<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+			<FieldGrid>
 				{column("title", "Title field")}
 				{column("description", "Description field")}
 				{text("content_limit", "Description content limit", "Default is 500 characters.")}
@@ -90,7 +91,7 @@ export const FeedSettingsControl = ({
 				{isRss2 && column("date", "Date field")}
 				{isRss2 && column("creator", "Creator field")}
 				{column("sort", "Order by")}
-			</div>
+			</FieldGrid>
 		</div>
 	);
 };

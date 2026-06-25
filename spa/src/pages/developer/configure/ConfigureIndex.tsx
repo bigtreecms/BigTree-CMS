@@ -12,6 +12,7 @@ import {
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
+import { PageContainer } from "@/components/shell/PageContainer";
 import { IconTile } from "@/components/ui/IconTile";
 
 import { DeveloperSectionNav } from "@/components/developer/DeveloperSectionNav";
@@ -78,7 +79,7 @@ const CARDS: ConfigureCard[] = [
 ];
 
 export const ConfigureIndex = () => (
-	<div className="mx-auto max-w-screen-2xl px-6 py-4">
+	<PageContainer width="wide">
 		<Breadcrumb items={[{ label: "Developer", to: "/developer" }, { label: "Configure" }]} />
 
 		<PageHead
@@ -105,5 +106,5 @@ export const ConfigureIndex = () => (
 				</Link>
 			))}
 		</div>
-	</div>
+	</PageContainer>
 );

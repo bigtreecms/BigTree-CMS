@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { InlineEmpty } from "@/components/ui/InlineEmpty";
 import { IconButton } from "@/components/ui/IconButton";
+import { MonoText } from "@/components/ui/MonoText";
 import { DragHandle } from "@/components/ui/DragHandle";
 
 /**
@@ -99,9 +100,7 @@ export const SubRow = ({
 					{badge}
 				</span>
 			)}
-			{subtitle && (
-				<span className="truncate font-mono text-[11px] text-text-3">{subtitle}</span>
-			)}
+			{subtitle && <MonoText>{subtitle}</MonoText>}
 		</button>
 		<IconButton onClick={onEdit} title="Edit" label="Edit">
 			<Pencil size={13} />

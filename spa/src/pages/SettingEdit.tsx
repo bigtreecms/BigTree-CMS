@@ -5,6 +5,7 @@ import { Eye, EyeOff, Lock, Save, ShieldAlert } from "lucide-react";
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
+import { PageContainer } from "@/components/shell/PageContainer";
 import { Alert } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
@@ -115,17 +116,17 @@ export const SettingEdit = () => {
 
 	if (settingQuery.isLoading || !settingQuery.data) {
 		return (
-			<div className="mx-auto max-w-3xl px-6 py-4">
+			<PageContainer width="narrow">
 				<Loading variant="card" />
-			</div>
+			</PageContainer>
 		);
 	}
 
 	if (settingQuery.error) {
 		return (
-			<div className="mx-auto max-w-3xl px-6 py-4">
+			<PageContainer width="narrow">
 				<ErrorPanel error={settingQuery.error} />
-			</div>
+			</PageContainer>
 		);
 	}
 
@@ -168,7 +169,7 @@ export const SettingEdit = () => {
 	};
 
 	return (
-		<div className="mx-auto max-w-3xl px-6 py-4">
+		<PageContainer width="narrow">
 			<Breadcrumb items={breadcrumbs} />
 
 			<PageHead
@@ -254,7 +255,7 @@ export const SettingEdit = () => {
 			</FormShell>
 
 			<UnsavedChangesGuard isDirty={isDirty} />
-		</div>
+		</PageContainer>
 	);
 };
 

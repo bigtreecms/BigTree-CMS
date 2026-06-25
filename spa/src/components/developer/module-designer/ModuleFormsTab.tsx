@@ -11,6 +11,7 @@ import {
 } from "@/api/endpoints/modules";
 
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+import { FieldGrid } from "@/components/ui/FieldGrid";
 import { SectionLabel } from "@/components/ui/SectionLabel";
 import {
 	ResourceDesigner,
@@ -181,7 +182,7 @@ export const ModuleFormsTab = ({ moduleId, moduleTable }: ModuleFormsTabProps) =
 					saving={crud.saving}
 					saveLabel={crud.editingId === NEW_ROW ? "Create form" : "Save form"}
 				>
-					<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+					<FieldGrid>
 						<TextInput
 							label="Title"
 							value={draft.title}
@@ -216,7 +217,7 @@ export const ModuleFormsTab = ({ moduleId, moduleTable }: ModuleFormsTabProps) =
 							onChange={(v) => setDraft((p) => ({ ...p, default_position: v }))}
 							hint="Default value for a positioned table's sort column."
 						/>
-					</div>
+					</FieldGrid>
 
 					<div className="flex flex-wrap gap-5">
 						<CheckboxInput

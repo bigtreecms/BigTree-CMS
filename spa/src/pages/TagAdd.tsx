@@ -6,6 +6,7 @@ import { ChevronLeft, Plus } from "lucide-react";
 import { useAuthStore } from "@/auth/store";
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
+import { PageContainer } from "@/components/shell/PageContainer";
 import { Alert } from "@/components/ui/Alert";
 import { AccessDenied } from "@/components/ui/AccessDenied";
 import { Button } from "@/components/ui/Button";
@@ -124,7 +125,7 @@ export const TagAdd = () => {
 	};
 
 	return (
-		<div className="mx-auto max-w-3xl px-6 py-4">
+		<PageContainer width="narrow">
 			<Breadcrumb items={[{ label: "Tags", to: "/tags" }, { label: "Add Tag" }]} />
 
 			<PageHead
@@ -223,6 +224,6 @@ export const TagAdd = () => {
 			</FormShell>
 
 			<UnsavedChangesGuard isDirty={isDirty && !createMutation.isPending} />
-		</div>
+		</PageContainer>
 	);
 };

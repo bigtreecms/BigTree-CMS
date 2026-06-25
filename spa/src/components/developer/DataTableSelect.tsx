@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 
 import { Combobox } from "@/components/ui/Combobox";
-import { RequiredMarker } from "@/components/ui/Field";
+import { FieldLabel } from "@/components/ui/Field";
 import { dbApi } from "@/api/endpoints/db";
 
 interface DataTableSelectProps {
@@ -53,12 +53,7 @@ export const DataTableSelect = ({
 
 	return (
 		<div className={className}>
-			{label && (
-				<span className="mb-1 block text-[12px] font-medium text-text-2">
-					{label}
-					{required && <RequiredMarker />}
-				</span>
-			)}
+			{label && <FieldLabel required={required}>{label}</FieldLabel>}
 			<Combobox<string>
 				value={selected}
 				onChange={(option) => onChange(option ? option.value : "")}

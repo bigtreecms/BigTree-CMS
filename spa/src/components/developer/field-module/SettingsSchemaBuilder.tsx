@@ -2,6 +2,7 @@ import { ChevronDown, ChevronUp, Plus, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/Button";
 import { Checkbox } from "@/components/ui/Checkbox";
+import { FieldLabel } from "@/components/ui/Field";
 import { Select } from "@/components/ui/Select";
 import { TextInput } from "@/components/ui/TextInput";
 import type { SettingControl, SettingDescriptor } from "@/api/endpoints/field-types";
@@ -28,7 +29,9 @@ const optionsOf = (descriptor: SettingDescriptor): EnumOption[] =>
 
 const Labeled = ({ label, children }: { label: string; children: React.ReactNode }) => (
 	<label className="block">
-		<span className="mb-1 block text-[11px] font-medium text-text-3">{label}</span>
+		<FieldLabel size="sm" tone="muted">
+			{label}
+		</FieldLabel>
 		{children}
 	</label>
 );

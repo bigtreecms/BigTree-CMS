@@ -10,6 +10,7 @@ import {
 } from "@/api/endpoints/modules";
 
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+import { FieldGrid } from "@/components/ui/FieldGrid";
 import { SectionLabel } from "@/components/ui/SectionLabel";
 import {
 	ResourceDesigner,
@@ -172,7 +173,7 @@ export const ModuleEmbedFormsTab = ({ moduleId, moduleTable }: ModuleEmbedFormsT
 					saving={crud.saving}
 					saveLabel={crud.editingId === NEW_ROW ? "Create embed form" : "Save embed form"}
 				>
-					<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+					<FieldGrid>
 						<TextInput
 							label="Title"
 							value={draft.title}
@@ -199,7 +200,7 @@ export const ModuleEmbedFormsTab = ({ moduleId, moduleTable }: ModuleEmbedFormsT
 							value={draft.default_position}
 							onChange={(v) => setDraft((p) => ({ ...p, default_position: v }))}
 						/>
-					</div>
+					</FieldGrid>
 
 					<CheckboxInput
 						label="Submissions start as pending changes"

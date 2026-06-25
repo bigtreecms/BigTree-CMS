@@ -5,6 +5,7 @@ import { Check, Download, EyeOff, Link2, Plus, Trash, Upload, X } from "lucide-r
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
+import { PageContainer } from "@/components/shell/PageContainer";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { Button } from "@/components/ui/Button";
 import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
@@ -386,7 +387,7 @@ export const FourOhFours = ({ type }: FourOhFoursProps) => {
 	const selectedCount = selected.size;
 
 	return (
-		<div className="mx-auto max-w-screen-2xl px-6 py-4">
+		<PageContainer width="wide">
 			<Breadcrumb
 				items={[
 					{ label: "Dashboard", to: "/dashboard" },
@@ -519,7 +520,7 @@ export const FourOhFours = ({ type }: FourOhFoursProps) => {
 					onConfirm={() => clearDeadMutation.mutate()}
 				/>
 			)}
-		</div>
+		</PageContainer>
 	);
 };
 

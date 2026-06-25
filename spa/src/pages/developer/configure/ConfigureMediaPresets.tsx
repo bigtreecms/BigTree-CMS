@@ -4,6 +4,7 @@ import { ChevronDown, ChevronRight, Plus, Save, Trash } from "lucide-react";
 
 import { ConfigureLayout } from "@/components/developer/ConfigureLayout";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
+import { IconButton } from "@/components/ui/IconButton";
 import { TextInput } from "@/components/ui/TextInput";
 import { Button } from "@/components/ui/Button";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
@@ -113,19 +114,18 @@ export const ConfigureMediaPresets = () => {
 					return (
 						<Card key={p.id}>
 							<div className="flex items-center gap-2 p-3">
-								<button
-									type="button"
+								<IconButton
+									label={isOpen ? "Collapse" : "Expand"}
+									size="sm"
 									onClick={() => setExpanded(isOpen ? null : p.id)}
-									className="rounded p-0.5 text-text-3 hover:bg-hover hover:text-text"
-									aria-label={isOpen ? "Collapse" : "Expand"}
-									aria-expanded={isOpen}
+									ariaExpanded={isOpen}
 								>
 									{isOpen ? (
 										<ChevronDown size={15} />
 									) : (
 										<ChevronRight size={15} />
 									)}
-								</button>
+								</IconButton>
 
 								<TextInput
 									value={(p.name as string) ?? ""}

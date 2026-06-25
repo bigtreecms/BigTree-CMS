@@ -1,6 +1,7 @@
 import { useQueries } from "@tanstack/react-query";
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
+import { PageContainer } from "@/components/shell/PageContainer";
 import { ContentAlertsCard } from "@/components/dashboard/ContentAlertsCard";
 import { TrafficCard } from "@/components/dashboard/TrafficCard";
 import { PendingChangesCard } from "@/components/dashboard/PendingChangesCard";
@@ -61,7 +62,7 @@ export const Dashboard = () => {
 	});
 
 	return (
-		<div className="mx-auto max-w-7xl px-6 py-4">
+		<PageContainer width="xwide">
 			<Breadcrumb items={[{ label: "Dashboard" }]} />
 			<PageHead title="Dashboard" sub={`Welcome back, ${firstName}.`} />
 
@@ -92,6 +93,6 @@ export const Dashboard = () => {
 					error={messagesQ.error}
 				/>
 			</div>
-		</div>
+		</PageContainer>
 	);
 };

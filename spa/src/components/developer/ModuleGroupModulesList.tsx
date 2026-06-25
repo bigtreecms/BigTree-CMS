@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { DragHandle } from "@/components/ui/DragHandle";
+import { MonoText } from "@/components/ui/MonoText";
 
 import { modulesApi, type ModuleSummary } from "@/api/endpoints/modules";
 
@@ -113,9 +114,7 @@ export const ModuleGroupModulesList = ({ groupId }: ModuleGroupModulesListProps)
 							>
 								{module.name}
 							</Link>
-							<span className="truncate font-mono text-[11px] text-text-3">
-								{module.id}
-							</span>
+							<MonoText>{module.id}</MonoText>
 						</li>
 					);
 				})}

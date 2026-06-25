@@ -5,6 +5,7 @@ import { ChevronLeft, Upload } from "lucide-react";
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
+import { PageContainer } from "@/components/shell/PageContainer";
 import { Alert } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
 import { Checkbox } from "@/components/ui/Checkbox";
@@ -62,7 +63,7 @@ export const Import301 = () => {
 	});
 
 	return (
-		<div className="mx-auto max-w-3xl px-6 py-4">
+		<PageContainer width="narrow">
 			<Breadcrumb
 				items={[
 					{ label: "Dashboard", to: "/dashboard" },
@@ -158,6 +159,6 @@ export const Import301 = () => {
 					/>
 				</div>
 			</FormShell>
-		</div>
+		</PageContainer>
 	);
 };

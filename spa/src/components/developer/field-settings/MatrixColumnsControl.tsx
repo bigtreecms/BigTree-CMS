@@ -7,6 +7,7 @@ import { fieldTypesApi, fieldTypesForUseCase } from "@/api/endpoints/field-types
 import { FieldSettingsEditor } from "../FieldSettingsEditor";
 import { ControlShell } from "./ControlShell";
 import type { ControlProps } from "./types";
+import { Checkbox } from "@/components/ui/Checkbox";
 import { IconButton } from "@/components/ui/IconButton";
 import { Select } from "@/components/ui/Select";
 import { TextInput } from "@/components/ui/TextInput";
@@ -75,19 +76,18 @@ export const MatrixColumnsControl = ({ descriptor, settings, onPatch }: ControlP
 					return (
 						<div key={index} className="rounded-md border border-border bg-surface">
 							<div className="flex flex-wrap items-center gap-2 p-2">
-								<button
-									type="button"
-									className="rounded p-0.5 text-text-3 hover:bg-hover"
+								<IconButton
+									label="Toggle column settings"
+									size="sm"
 									onClick={() => toggle(index)}
-									aria-expanded={isOpen}
-									aria-label="Toggle column settings"
+									ariaExpanded={isOpen}
 								>
 									{isOpen ? (
 										<ChevronDown size={13} />
 									) : (
 										<ChevronRight size={13} />
 									)}
-								</button>
+								</IconButton>
 								<Select
 									compact
 									value={column.type ?? "text"}
@@ -123,19 +123,17 @@ export const MatrixColumnsControl = ({ descriptor, settings, onPatch }: ControlP
 									value={column.subtitle ?? ""}
 									onChange={(e) => update(index, { subtitle: e.target.value })}
 								/>
-								<label className="flex items-center gap-1 whitespace-nowrap text-[11px] text-text-3">
-									<input
-										type="checkbox"
-										className="size-3.5 accent-accent"
-										checked={Boolean(column.display_title)}
-										onChange={(e) =>
-											update(index, {
-												display_title: e.target.checked ? "on" : "",
-											})
-										}
-									/>
-									Title
-								</label>
+								<Checkbox
+									size="sm"
+									className="whitespace-nowrap"
+									label="Title"
+									checked={Boolean(column.display_title)}
+									onChange={(checked) =>
+										update(index, {
+											display_title: checked ? "on" : "",
+										})
+									}
+								/>
 								<IconButton
 									tone="danger"
 									onClick={() => remove(index)}

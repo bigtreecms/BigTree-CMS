@@ -6,7 +6,7 @@ import { Search } from "lucide-react";
 import { Alert } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
 import { SlideOver } from "@/components/ui/SlideOver";
-import { Field } from "@/components/ui/Field";
+import { Field, FieldLabel } from "@/components/ui/Field";
 import { RemovableChip } from "@/components/ui/RemovableChip";
 
 import { messagesApi, type Message } from "@/api/endpoints/dashboard";
@@ -171,12 +171,9 @@ export const ComposeMessage = ({
 				{generalError && <Alert tone="danger">{generalError}</Alert>}
 
 				<div>
-					<label
-						htmlFor="compose-recipient-search"
-						className="mb-1 block text-[12px] font-medium text-text-2"
-					>
+					<FieldLabel as="label" htmlFor="compose-recipient-search">
 						Recipients
-					</label>
+					</FieldLabel>
 
 					{recipients.length > 0 && (
 						<div className="mb-2 flex flex-wrap gap-1.5">

@@ -5,7 +5,9 @@ import { ChevronLeft, Save } from "lucide-react";
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
+import { PageContainer } from "@/components/shell/PageContainer";
 import { Alert } from "@/components/ui/Alert";
+import { FieldGrid } from "@/components/ui/FieldGrid";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { Button } from "@/components/ui/Button";
 import { FormShell } from "@/components/ui/FormShell";
@@ -137,17 +139,17 @@ export const FeedEdit = () => {
 
 	if (!isAdd && detailQ.isLoading) {
 		return (
-			<div className="mx-auto max-w-5xl px-6 py-4">
+			<PageContainer width="medium">
 				<Loading variant="card" />
-			</div>
+			</PageContainer>
 		);
 	}
 
 	if (!isAdd && detailQ.error) {
 		return (
-			<div className="mx-auto max-w-5xl px-6 py-4">
+			<PageContainer width="medium">
 				<ErrorPanel error={detailQ.error} />
-			</div>
+			</PageContainer>
 		);
 	}
 
@@ -157,7 +159,7 @@ export const FeedEdit = () => {
 	const title = isAdd ? "Add feed" : body.name || idParam || "Edit feed";
 
 	return (
-		<div className="mx-auto max-w-5xl px-6 py-4">
+		<PageContainer width="medium">
 			<Breadcrumb
 				items={[
 					{ label: "Developer", to: "/developer" },
@@ -226,7 +228,7 @@ export const FeedEdit = () => {
 				}
 			>
 				<div className="space-y-4">
-					<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+					<FieldGrid>
 						<TextField
 							label="ID / route"
 							value={body.id ?? ""}
@@ -255,7 +257,7 @@ export const FeedEdit = () => {
 							onChange={(v) => set({ type: v })}
 							options={FEED_TYPES}
 						/>
-					</div>
+					</FieldGrid>
 
 					<TextField
 						label="Description"
@@ -291,6 +293,6 @@ export const FeedEdit = () => {
 			</FormShell>
 
 			<UnsavedChangesGuard isDirty={isDirty} />
-		</div>
+		</PageContainer>
 	);
 };

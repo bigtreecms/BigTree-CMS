@@ -5,6 +5,7 @@ import { ChevronLeft, RotateCcw, Save, Trash } from "lucide-react";
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
+import { PageContainer } from "@/components/shell/PageContainer";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { Button } from "@/components/ui/Button";
@@ -103,17 +104,17 @@ export const PageRevisions = () => {
 
 	if (pageQuery.isLoading || !pageQuery.data) {
 		return (
-			<div className="mx-auto max-w-screen-2xl px-6 py-4">
+			<PageContainer width="wide">
 				<Loading variant="card" />
-			</div>
+			</PageContainer>
 		);
 	}
 
 	if (pageQuery.error) {
 		return (
-			<div className="mx-auto max-w-screen-2xl px-6 py-4">
+			<PageContainer width="wide">
 				<ErrorPanel error={pageQuery.error} />
-			</div>
+			</PageContainer>
 		);
 	}
 
@@ -131,7 +132,7 @@ export const PageRevisions = () => {
 	];
 
 	return (
-		<div className="mx-auto max-w-screen-2xl px-6 py-4">
+		<PageContainer width="wide">
 			<Breadcrumb items={breadcrumbs} />
 
 			<PageHead
@@ -218,7 +219,7 @@ export const PageRevisions = () => {
 					onConfirm={() => restoreMutation.mutate(confirmRestore)}
 				/>
 			)}
-		</div>
+		</PageContainer>
 	);
 };
 

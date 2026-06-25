@@ -6,11 +6,13 @@ import { GitMerge, Plus, Trash } from "lucide-react";
 import { useAuthStore } from "@/auth/store";
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
+import { PageContainer } from "@/components/shell/PageContainer";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
 import { Button } from "@/components/ui/Button";
 import { Pager } from "@/components/ui/Pager";
 import { SearchInput } from "@/components/ui/SearchInput";
+import { Toolbar } from "@/components/ui/Toolbar";
 import { SubNav } from "@/components/ui/SubNav";
 import { IconButton } from "@/components/ui/IconButton";
 
@@ -138,7 +140,7 @@ export const Tags = () => {
 	];
 
 	return (
-		<div className="mx-auto max-w-screen-2xl px-6 py-4">
+		<PageContainer width="wide">
 			<Breadcrumb items={[{ label: "Tags" }, { label: "View Tags" }]} />
 
 			<PageHead
@@ -165,18 +167,13 @@ export const Tags = () => {
 				/>
 			)}
 
-			<div className="mb-3 flex flex-wrap items-center gap-3">
-				<SearchInput
-					value={query}
-					onChange={setQuery}
-					placeholder="Search tags…"
-					className="w-full sm:w-auto sm:max-w-md sm:flex-1"
-				/>
-
-				<div className="flex-1" />
-
+			<Toolbar
+				search={
+					<SearchInput value={query} onChange={setQuery} placeholder="Search tags…" />
+				}
+			>
 				<Pager page={safePage} totalPages={totalPages} onChange={setPage} />
-			</div>
+			</Toolbar>
 
 			<DataTable<Tag>
 				columns={columns}
@@ -208,6 +205,6 @@ export const Tags = () => {
 					onConfirm={() => deleteMutation.mutate(confirmDelete.id)}
 				/>
 			)}
-		</div>
+		</PageContainer>
 	);
 };

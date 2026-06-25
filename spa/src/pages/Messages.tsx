@@ -5,6 +5,7 @@ import { Inbox, Plus, Send } from "lucide-react";
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
+import { PageContainer } from "@/components/shell/PageContainer";
 import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
 import { Button } from "@/components/ui/Button";
 import { Pager } from "@/components/ui/Pager";
@@ -82,7 +83,7 @@ export const Messages = () => {
 	];
 
 	return (
-		<div className="mx-auto max-w-7xl px-6 py-4">
+		<PageContainer width="xwide">
 			<Breadcrumb items={[{ label: "Messages" }]} />
 
 			<PageHead
@@ -131,6 +132,6 @@ export const Messages = () => {
 				onOpenChange={setComposeOpen}
 				currentUserId={currentUserId}
 			/>
-		</div>
+		</PageContainer>
 	);
 };

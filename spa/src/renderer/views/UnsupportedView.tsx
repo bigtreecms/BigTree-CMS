@@ -1,4 +1,5 @@
 import type { ModuleView } from "@/api/endpoints/modules";
+import { MonoText } from "@/components/ui/MonoText";
 import { SectionLabel } from "@/components/ui/SectionLabel";
 
 interface UnsupportedViewProps {
@@ -33,9 +34,9 @@ export const UnsupportedView = ({ view }: UnsupportedViewProps) => {
 						{columns.map(([key, field]) => (
 							<li key={key} className="truncate">
 								<span className="font-medium">{field.title}</span>
-								<span className="ml-1 font-mono text-[11px] text-text-3">
+								<MonoText truncate={false} className="ml-1">
 									{key}
-								</span>
+								</MonoText>
 							</li>
 						))}
 					</ul>

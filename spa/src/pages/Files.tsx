@@ -14,11 +14,13 @@ import {
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
+import { PageContainer } from "@/components/shell/PageContainer";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { Button } from "@/components/ui/Button";
 import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
 import { IconTile } from "@/components/ui/IconTile";
 import { SearchInput } from "@/components/ui/SearchInput";
+import { Toolbar } from "@/components/ui/Toolbar";
 import { IconButton } from "@/components/ui/IconButton";
 import { FileDetail } from "@/components/files/FileDetail";
 import { FolderEditor } from "@/components/files/FolderEditor";
@@ -334,7 +336,7 @@ export const Files = () => {
 			: "Loading…";
 
 	return (
-		<div className="mx-auto max-w-screen-2xl px-6 py-4">
+		<PageContainer width="wide">
 			<Breadcrumb items={breadcrumbItems} />
 
 			<PageHead
@@ -364,16 +366,15 @@ export const Files = () => {
 				<UploadZone folderId={folderId} onUploaded={handleUploaded} />
 			)}
 
-			<div className="mb-3 flex flex-wrap items-center gap-3">
-				<SearchInput
-					value={query}
-					onChange={setQuery}
-					placeholder="Search files by name…"
-					className="w-full sm:w-auto sm:max-w-md sm:flex-1"
-				/>
-
-				<div className="flex-1" />
-			</div>
+			<Toolbar
+				search={
+					<SearchInput
+						value={query}
+						onChange={setQuery}
+						placeholder="Search files by name…"
+					/>
+				}
+			/>
 
 			<DataTable<Row>
 				columns={columns}
@@ -432,6 +433,6 @@ export const Files = () => {
 				invalidateKey={FOLDER_CONTENTS_KEY(folderId)}
 				onCreated={(resource) => setDetailResourceId(resource.id)}
 			/>
-		</div>
+		</PageContainer>
 	);
 };

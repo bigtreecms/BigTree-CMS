@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Save } from "lucide-react";
 
 import { Alert } from "@/components/ui/Alert";
+import { FieldGrid } from "@/components/ui/FieldGrid";
 import { Button } from "@/components/ui/Button";
 import {
 	modulesApi,
@@ -201,7 +202,7 @@ export const ModuleShellTab = ({ moduleId, module }: ModuleShellTabProps) => {
 				{generalError && <Alert tone="danger">{generalError}</Alert>}
 
 				<Card className="space-y-4 p-4">
-					<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+					<FieldGrid>
 						<TextInput
 							label="Name"
 							value={state.name}
@@ -236,7 +237,7 @@ export const ModuleShellTab = ({ moduleId, module }: ModuleShellTabProps) => {
 							hint="Optional custom module class."
 							mono
 						/>
-					</div>
+					</FieldGrid>
 					{creatingGroup && (
 						<div className="flex flex-wrap items-end gap-2 rounded-md border border-border bg-surface-2 p-3">
 							<div className="min-w-[200px] flex-1">
@@ -281,7 +282,7 @@ export const ModuleShellTab = ({ moduleId, module }: ModuleShellTabProps) => {
 						onChange={(v) => setGbp({ enabled: v })}
 					/>
 					{state.gbp.enabled && (
-						<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+						<FieldGrid>
 							<DataTableSelect
 								label="Category table"
 								value={state.gbp.other_table ?? ""}
@@ -308,7 +309,7 @@ export const ModuleShellTab = ({ moduleId, module }: ModuleShellTabProps) => {
 								hint="Optional PHP parser for category labels."
 								mono
 							/>
-						</div>
+						</FieldGrid>
 					)}
 				</Card>
 

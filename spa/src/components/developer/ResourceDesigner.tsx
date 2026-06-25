@@ -20,7 +20,7 @@ import { Combobox } from "@/components/ui/Combobox";
 import { FieldSettingsEditor } from "./FieldSettingsEditor";
 import { InlineEmpty } from "@/components/ui/InlineEmpty";
 import { IconButton } from "@/components/ui/IconButton";
-import { Field } from "@/components/ui/Field";
+import { Field, FieldLabel } from "@/components/ui/Field";
 import { DragHandle } from "@/components/ui/DragHandle";
 
 /**
@@ -369,9 +369,7 @@ export const ResourceDesigner = ({
 										/>
 
 										<div className="mt-3">
-											<span className="mb-1 block text-[12px] font-medium text-text-2">
-												Field settings
-											</span>
+											<FieldLabel>Field settings</FieldLabel>
 											<div className="rounded-md border border-border bg-surface-2 p-3">
 												<FieldSettingsEditor
 													hideLabel

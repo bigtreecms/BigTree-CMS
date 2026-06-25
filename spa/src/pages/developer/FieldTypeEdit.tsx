@@ -5,7 +5,9 @@ import { ChevronLeft, Save } from "lucide-react";
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
+import { PageContainer } from "@/components/shell/PageContainer";
 import { Alert } from "@/components/ui/Alert";
+import { FieldGrid } from "@/components/ui/FieldGrid";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { Button } from "@/components/ui/Button";
 import { Checkbox } from "@/components/ui/Checkbox";
@@ -156,17 +158,17 @@ export const FieldTypeEdit = () => {
 
 	if (!isAdd && detailQ.isLoading) {
 		return (
-			<div className="mx-auto max-w-3xl px-6 py-4">
+			<PageContainer width="narrow">
 				<Loading variant="card" />
-			</div>
+			</PageContainer>
 		);
 	}
 
 	if (!isAdd && detailQ.error) {
 		return (
-			<div className="mx-auto max-w-3xl px-6 py-4">
+			<PageContainer width="narrow">
 				<ErrorPanel error={detailQ.error} />
-			</div>
+			</PageContainer>
 		);
 	}
 
@@ -188,7 +190,7 @@ export const FieldTypeEdit = () => {
 	const title = isAdd ? "Add custom field type" : body.name || idParam || "Edit field type";
 
 	return (
-		<div className="mx-auto max-w-3xl px-6 py-4">
+		<PageContainer width="narrow">
 			<Breadcrumb
 				items={[
 					{ label: "Developer", to: "/developer" },
@@ -279,7 +281,7 @@ export const FieldTypeEdit = () => {
 				}
 			>
 				<div className="space-y-4">
-					<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+					<FieldGrid>
 						<TextField
 							label="ID"
 							value={body.id ?? ""}
@@ -296,7 +298,7 @@ export const FieldTypeEdit = () => {
 							error={fieldErrors.name}
 							required
 						/>
-					</div>
+					</FieldGrid>
 
 					<div>
 						<SectionLabel className="mb-2">Use cases</SectionLabel>
@@ -394,6 +396,6 @@ export const FieldTypeEdit = () => {
 			</FormShell>
 
 			<UnsavedChangesGuard isDirty={isDirty} />
-		</div>
+		</PageContainer>
 	);
 };

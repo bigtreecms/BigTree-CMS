@@ -1,5 +1,6 @@
 import { DataColumnSelect } from "@/components/developer/DataColumnSelect";
 import { SectionLabel } from "@/components/ui/SectionLabel";
+import { FieldGrid } from "@/components/ui/FieldGrid";
 import { DataTableSelect } from "@/components/developer/DataTableSelect";
 
 import { CheckboxInput, SelectInput, TextInput } from "./inputs";
@@ -73,7 +74,7 @@ export const ViewTypeSettingsControl = ({
 	const groupingParams = (withSortField: boolean) => (
 		<div className="space-y-4 border-t border-border pt-4">
 			<SectionLabel>Grouping parameters</SectionLabel>
-			<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+			<FieldGrid>
 				<DataTableSelect
 					label="Other table"
 					value={otherTable}
@@ -103,7 +104,7 @@ export const ViewTypeSettingsControl = ({
 						/>
 					</>
 				)}
-			</div>
+			</FieldGrid>
 			<TextInput
 				label="Group name parser"
 				value={str(settings.group_parser)}
@@ -130,7 +131,7 @@ export const ViewTypeSettingsControl = ({
 		return (
 			<div className="space-y-4">
 				{draggable()}
-				<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+				<FieldGrid>
 					<DataColumnSelect
 						label="Group field"
 						table={table}
@@ -144,7 +145,7 @@ export const ViewTypeSettingsControl = ({
 						onChange={(v) => setKey("sort", v)}
 						hint="Used when the view is not draggable."
 					/>
-				</div>
+				</FieldGrid>
 				{groupingParams(true)}
 			</div>
 		);
@@ -156,7 +157,7 @@ export const ViewTypeSettingsControl = ({
 		return (
 			<div className="space-y-4">
 				{draggable()}
-				<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+				<FieldGrid>
 					<DataColumnSelect
 						label="Image field"
 						table={table}
@@ -183,7 +184,7 @@ export const ViewTypeSettingsControl = ({
 						onChange={(v) => setKey("sort", v)}
 						options={IMAGE_SORT}
 					/>
-				</div>
+				</FieldGrid>
 				{grouped && groupingParams(false)}
 			</div>
 		);

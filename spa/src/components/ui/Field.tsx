@@ -38,6 +38,68 @@ const labelSizeClass: Record<FieldSize, string> = {
 	md: "text-[12px]",
 };
 
+const labelToneClass = {
+	default: "text-text-2",
+	muted: "text-text-3",
+} as const;
+
+interface FieldLabelProps {
+	children: ReactNode;
+	/** Label text size: `md` (default, `text-[12px]`) or `sm` (`text-[11.5px]`). */
+	size?: FieldSize;
+	/** Color tier: `default` (`text-text-2`) or `muted` (`text-text-3`, de-emphasized filter labels). */
+	tone?: keyof typeof labelToneClass;
+	/** Appends a danger-colored asterisk. */
+	required?: boolean;
+	/** Subtle helper rendered inline after the label (`font-normal text-text-3`). */
+	inlineHint?: ReactNode;
+	/** Render as a `<span>` (default, for a label above a custom control) or a `<label htmlFor>`. */
+	as?: "label" | "span";
+	htmlFor?: string;
+	className?: string;
+}
+
+/**
+ * The standalone field-label span/`<label>` — the same typography `Field` bakes
+ * internally, reachable on its own for the many places that need a label above a
+ * custom control where `Field`'s wrapping `<label>` is wrong (icon pickers,
+ * schema builders, the resource designer). Default `as="span"`; pass
+ * `as="label"` + `htmlFor` when it labels a real input. The single source of
+ * truth for label typography — `Field` renders its own label through this.
+ */
+export const FieldLabel = ({
+	children,
+	size = "md",
+	tone = "default",
+	required,
+	inlineHint,
+	as = "span",
+	htmlFor,
+	className,
+}: FieldLabelProps) => {
+	const classes = `mb-1 block font-medium ${labelSizeClass[size]} ${labelToneClass[tone]}${
+		className ? ` ${className}` : ""
+	}`;
+
+	const content = (
+		<>
+			{children}
+			{required && <RequiredMarker />}
+			{inlineHint && <span className="ml-1 font-normal text-text-3">{inlineHint}</span>}
+		</>
+	);
+
+	if (as === "label") {
+		return (
+			<label htmlFor={htmlFor} className={classes}>
+				{content}
+			</label>
+		);
+	}
+
+	return <span className={classes}>{content}</span>;
+};
+
 export const Field = ({
 	label,
 	error,
@@ -51,13 +113,9 @@ export const Field = ({
 	return (
 		<label className={className ? `block ${className}` : "block"}>
 			{label && (
-				<span className={`mb-1 block font-medium text-text-2 ${labelSizeClass[size]}`}>
+				<FieldLabel size={size} required={required} inlineHint={inlineHint}>
 					{label}
-					{required && <RequiredMarker />}
-					{inlineHint && (
-						<span className="ml-1 font-normal text-text-3">{inlineHint}</span>
-					)}
-				</span>
+				</FieldLabel>
 			)}
 			{children}
 

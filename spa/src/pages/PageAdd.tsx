@@ -5,6 +5,7 @@ import { ChevronLeft, ChevronRight, X } from "lucide-react";
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
+import { PageContainer } from "@/components/shell/PageContainer";
 import { Alert } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
 
@@ -226,7 +227,7 @@ export const PageAdd = () => {
 	const canPublish = parent > 0 ? canPublishPage(parentQuery.data?.access) : isAdmin(user);
 
 	return (
-		<div className="mx-auto max-w-screen-2xl px-6 py-4">
+		<PageContainer width="wide">
 			<Breadcrumb items={breadcrumbs} />
 
 			<PageHead
@@ -345,6 +346,6 @@ export const PageAdd = () => {
 			</form>
 
 			<UnsavedChangesGuard isDirty={isDirty} />
-		</div>
+		</PageContainer>
 	);
 };

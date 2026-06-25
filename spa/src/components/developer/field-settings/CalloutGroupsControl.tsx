@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Plus, Trash } from "lucide-react";
 
+import { IconButton } from "@/components/ui/IconButton";
 import { Select } from "@/components/ui/Select";
 import { calloutsApi } from "@/api/endpoints/callouts";
 
@@ -54,14 +55,14 @@ export const CalloutGroupsControl = ({ descriptor, settings, onPatch }: ControlP
 								className="flex items-center justify-between rounded border border-border bg-surface px-2 py-1 text-[12.5px]"
 							>
 								<span>{labelFor(id)}</span>
-								<button
-									type="button"
-									className="rounded p-0.5 text-text-3 hover:bg-hover hover:text-danger"
+								<IconButton
+									label="Remove group"
+									size="sm"
+									tone="danger"
 									onClick={() => remove(id)}
-									aria-label="Remove group"
 								>
 									<Trash size={12} />
-								</button>
+								</IconButton>
 							</li>
 						))}
 					</ul>

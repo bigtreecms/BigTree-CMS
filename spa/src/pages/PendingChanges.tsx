@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
+import { PageContainer } from "@/components/shell/PageContainer";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -110,7 +111,7 @@ export const PendingChanges = () => {
 	const total = changes.length;
 
 	return (
-		<div className="mx-auto max-w-7xl px-6 py-4">
+		<PageContainer width="xwide">
 			<Breadcrumb
 				items={[{ label: "Dashboard", to: "/dashboard" }, { label: "Pending changes" }]}
 			/>
@@ -174,6 +175,6 @@ export const PendingChanges = () => {
 					onConfirm={confirmAction}
 				/>
 			)}
-		</div>
+		</PageContainer>
 	);
 };

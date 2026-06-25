@@ -5,9 +5,12 @@ import { Calendar, ChevronLeft, Save } from "lucide-react";
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
+import { PageContainer } from "@/components/shell/PageContainer";
 import { Alert } from "@/components/ui/Alert";
+import { Checkbox } from "@/components/ui/Checkbox";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
+import { FieldLabel } from "@/components/ui/Field";
 import { Button } from "@/components/ui/Button";
 import { LockBanner } from "@/components/ui/LockBanner";
 import { Select } from "@/components/ui/Select";
@@ -340,17 +343,17 @@ export const PageEdit = () => {
 
 	if (pageQuery.isLoading || !pageQuery.data || !body) {
 		return (
-			<div className="mx-auto max-w-screen-2xl px-6 py-4">
+			<PageContainer width="wide">
 				<Loading variant="card" label="Loading page…" />
-			</div>
+			</PageContainer>
 		);
 	}
 
 	if (pageQuery.error) {
 		return (
-			<div className="mx-auto max-w-screen-2xl px-6 py-4">
+			<PageContainer width="wide">
 				<ErrorPanel error={pageQuery.error} />
-			</div>
+			</PageContainer>
 		);
 	}
 
@@ -368,7 +371,7 @@ export const PageEdit = () => {
 	const templateDisabled = Boolean(body.external && body.external.trim().length > 0);
 
 	return (
-		<div className="mx-auto max-w-screen-2xl px-6 py-4">
+		<PageContainer width="wide">
 			<Breadcrumb items={breadcrumbs} />
 
 			<PageHead
@@ -551,7 +554,7 @@ export const PageEdit = () => {
 			)}
 
 			<UnsavedChangesGuard isDirty={isDirty} />
-		</div>
+		</PageContainer>
 	);
 };
 
@@ -772,16 +775,13 @@ export const PropertiesTab = ({
 						placeholder="https://"
 						disabled={disabled}
 					/>
-					<label className="mt-2 flex items-center gap-2 text-[12.5px] text-text-2">
-						<input
-							type="checkbox"
-							className="size-4 rounded border-border accent-accent"
-							checked={Boolean(body.new_window)}
-							onChange={(e) => onPatch({ new_window: e.target.checked })}
-							disabled={disabled || !body.external}
-						/>
-						Open in New Window
-					</label>
+					<Checkbox
+						className="mt-2"
+						label="Open in New Window"
+						checked={Boolean(body.new_window)}
+						onChange={(checked) => onPatch({ new_window: checked })}
+						disabled={disabled || !body.external}
+					/>
 				</Field>
 			</div>
 		</>
@@ -834,7 +834,7 @@ export const ContentTab = ({
 	// content tab's always-present tag sidebar.
 	const tagsSection = onTagsChange ? (
 		<div className="mt-5 border-t border-border pt-4">
-			<span className="mb-1.5 block text-[12px] font-medium text-text-2">Tags</span>
+			<FieldLabel>Tags</FieldLabel>
 			<TagInput
 				multiple
 				value={tags ?? []}

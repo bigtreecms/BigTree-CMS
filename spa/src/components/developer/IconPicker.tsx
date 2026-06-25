@@ -1,3 +1,4 @@
+import { FieldLabel } from "@/components/ui/Field";
 import { iconFor, MODULE_ICON_SLUGS } from "@/lib/legacyIcons";
 
 import { IconGridButton } from "./IconGridButton";
@@ -19,7 +20,7 @@ interface IconPickerProps {
  */
 export const IconPicker = ({ value, onChange, label = "Icon", hint }: IconPickerProps) => (
 	<div>
-		<span className="mb-1 block text-[12px] font-medium text-text-2">{label}</span>
+		<FieldLabel>{label}</FieldLabel>
 		<div className="flex flex-wrap gap-1.5 rounded-md border border-border bg-surface-2 p-2">
 			{MODULE_ICON_SLUGS.map((slug) => {
 				const isActive = slug === value;

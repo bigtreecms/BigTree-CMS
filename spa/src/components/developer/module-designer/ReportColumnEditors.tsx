@@ -10,6 +10,7 @@ import { TextInput } from "@/components/ui/TextInput";
 import { InlineEmpty } from "@/components/ui/InlineEmpty";
 import { Loading } from "@/components/ui/Loading";
 import { IconButton } from "@/components/ui/IconButton";
+import { MonoText } from "@/components/ui/MonoText";
 import { SectionLabel } from "@/components/ui/SectionLabel";
 
 /**
@@ -123,9 +124,9 @@ const DeleteButton = ({ onClick }: DeleteButtonProps) => (
 );
 
 const ColumnTag = ({ column }: { column: string }) => (
-	<span className="w-32 shrink-0 truncate font-mono text-[11px] text-text-3" title={column}>
+	<MonoText className="w-32 shrink-0" title={column}>
 		{column}
-	</span>
+	</MonoText>
 );
 
 interface ReportFiltersEditorProps {

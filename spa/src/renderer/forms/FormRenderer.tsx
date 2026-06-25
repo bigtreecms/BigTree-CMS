@@ -5,6 +5,7 @@ import type { Tag } from "@/api/endpoints/tags";
 import { TagInput } from "@/components/tags/TagInput";
 import { Alert } from "@/components/ui/Alert";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { FieldLabel } from "@/components/ui/Field";
 import { UnsavedChangesGuard } from "@/components/ui/UnsavedChangesGuard";
 import { useScrollToFirstError } from "@/hooks/useScrollToFirstError";
 import { ApiError } from "@/types/api";
@@ -312,9 +313,7 @@ export const FormRenderer = ({
 
 				{showTagging && (
 					<div className="mt-5 border-t border-border pt-4">
-						<span className="mb-1.5 block text-[12px] font-medium text-text-2">
-							Tags
-						</span>
+						<FieldLabel>Tags</FieldLabel>
 						<TagInput
 							multiple
 							value={tags}

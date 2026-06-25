@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext } from "react";
+import { PageContainer } from "@/components/shell/PageContainer";
 import { Navigate, Outlet, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 
@@ -117,7 +118,7 @@ export const ModuleLayout = () => {
 	};
 
 	return (
-		<div className="mx-auto max-w-screen-2xl px-6 py-4">
+		<PageContainer width="wide">
 			<Breadcrumb
 				items={[
 					{ label: "Modules", to: "/modules" },
@@ -133,6 +134,6 @@ export const ModuleLayout = () => {
 			<ModuleContext.Provider value={value}>
 				<Outlet />
 			</ModuleContext.Provider>
-		</div>
+		</PageContainer>
 	);
 };

@@ -7,6 +7,8 @@ import { TableSelect } from "@/components/developer/TableSelect";
 import { UserSelect } from "@/components/users/UserSelect";
 import { Badge } from "@/components/ui/Badge";
 import { DescriptionList } from "@/components/ui/DescriptionList";
+import { MonoText } from "@/components/ui/MonoText";
+import { FieldLabel } from "@/components/ui/Field";
 import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
 import { Pager } from "@/components/ui/Pager";
 import { SlideOver } from "@/components/ui/SlideOver";
@@ -77,11 +79,7 @@ export const DebugAudit = () => {
 			cell: (row) => (
 				<div className="min-w-0">
 					<div className="truncate text-text">{row.user_name ?? `User #${row.user}`}</div>
-					{row.user_email && (
-						<div className="truncate font-mono text-[11px] text-text-3">
-							{row.user_email}
-						</div>
-					)}
+					{row.user_email && <MonoText as="div">{row.user_email}</MonoText>}
 				</div>
 			),
 		},
@@ -114,12 +112,9 @@ export const DebugAudit = () => {
 		>
 			<div className="mb-3 flex flex-wrap items-end gap-3">
 				<div>
-					<label
-						htmlFor="audit-user"
-						className="mb-1 block text-[11px] font-medium text-text-3"
-					>
+					<FieldLabel as="label" htmlFor="audit-user" size="sm" tone="muted">
 						User
-					</label>
+					</FieldLabel>
 					<UserSelect
 						id="audit-user"
 						value={userFilter}
@@ -130,12 +125,9 @@ export const DebugAudit = () => {
 				</div>
 
 				<div>
-					<label
-						htmlFor="audit-table"
-						className="mb-1 block text-[11px] font-medium text-text-3"
-					>
+					<FieldLabel as="label" htmlFor="audit-table" size="sm" tone="muted">
 						Table
-					</label>
+					</FieldLabel>
 					<TableSelect
 						id="audit-table"
 						value={tableFilter}
@@ -146,12 +138,9 @@ export const DebugAudit = () => {
 				</div>
 
 				<div>
-					<label
-						htmlFor="audit-start"
-						className="mb-1 block text-[11px] font-medium text-text-3"
-					>
+					<FieldLabel as="label" htmlFor="audit-start" size="sm" tone="muted">
 						From
-					</label>
+					</FieldLabel>
 					<input
 						id="audit-start"
 						type="date"
@@ -162,12 +151,9 @@ export const DebugAudit = () => {
 				</div>
 
 				<div>
-					<label
-						htmlFor="audit-end"
-						className="mb-1 block text-[11px] font-medium text-text-3"
-					>
+					<FieldLabel as="label" htmlFor="audit-end" size="sm" tone="muted">
 						To
-					</label>
+					</FieldLabel>
 					<input
 						id="audit-end"
 						type="date"

@@ -6,6 +6,7 @@ import { Plus } from "lucide-react";
 import { useAuthStore } from "@/auth/store";
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
+import { PageContainer } from "@/components/shell/PageContainer";
 import { Button } from "@/components/ui/Button";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { SearchInput } from "@/components/ui/SearchInput";
@@ -132,7 +133,7 @@ export const Modules = () => {
 			: `${grouped.length} group${grouped.length === 1 ? "" : "s"} · ${totalModules} module${totalModules === 1 ? "" : "s"}`;
 
 	return (
-		<div className="mx-auto max-w-screen-2xl px-6 py-4">
+		<PageContainer width="wide">
 			<Breadcrumb items={[{ label: "Modules" }]} />
 
 			<PageHead
@@ -175,7 +176,7 @@ export const Modules = () => {
 					))}
 				</div>
 			)}
-		</div>
+		</PageContainer>
 	);
 };
 

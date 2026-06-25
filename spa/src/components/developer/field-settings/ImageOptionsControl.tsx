@@ -66,15 +66,13 @@ const DimFields = ({ row, onChange, onRemove }: DimFieldsProps) => (
 			value={row.height ?? ""}
 			onChange={(e) => onChange({ height: e.target.value.replace(/[^0-9]/g, "") })}
 		/>
-		<label className="flex items-center gap-1 whitespace-nowrap text-[11px] text-text-3">
-			<input
-				type="checkbox"
-				className="size-3.5 accent-accent"
-				checked={Boolean(row.grayscale)}
-				onChange={(e) => onChange({ grayscale: e.target.checked ? "on" : "" })}
-			/>
-			Grey
-		</label>
+		<Checkbox
+			size="sm"
+			className="whitespace-nowrap"
+			label="Grey"
+			checked={Boolean(row.grayscale)}
+			onChange={(checked) => onChange({ grayscale: checked ? "on" : "" })}
+		/>
 		<IconButton tone="danger" onClick={onRemove} label="Remove">
 			<Trash size={13} />
 		</IconButton>

@@ -353,26 +353,24 @@ const SelectedList = ({ ids, titles, sortable, onRemove, onMove, disabled }: Sel
 					>
 						{sortable && (
 							<div className="flex flex-col">
-								<button
-									type="button"
-									className="rounded p-0.5 text-text-3 hover:bg-hover hover:text-text disabled:opacity-30"
+								<IconButton
+									label="Move up"
+									size="sm"
 									onClick={() => onMove(id, "up")}
 									disabled={disabled || index === 0}
 									title="Move up"
-									aria-label="Move up"
 								>
 									<ArrowUp size={11} />
-								</button>
-								<button
-									type="button"
-									className="rounded p-0.5 text-text-3 hover:bg-hover hover:text-text disabled:opacity-30"
+								</IconButton>
+								<IconButton
+									label="Move down"
+									size="sm"
 									onClick={() => onMove(id, "down")}
 									disabled={disabled || index === ids.length - 1}
 									title="Move down"
-									aria-label="Move down"
 								>
 									<ArrowDown size={11} />
-								</button>
+								</IconButton>
 							</div>
 						)}
 						<span className="min-w-0 flex-1 truncate text-[12.5px] text-text-2">

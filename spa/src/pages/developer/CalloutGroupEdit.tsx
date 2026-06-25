@@ -5,7 +5,10 @@ import { ChevronLeft, Save, Trash } from "lucide-react";
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
+import { PageContainer } from "@/components/shell/PageContainer";
 import { Alert } from "@/components/ui/Alert";
+import { FieldGrid } from "@/components/ui/FieldGrid";
+import { MonoText } from "@/components/ui/MonoText";
 import { Combobox, type ComboboxOption } from "@/components/ui/Combobox";
 import { Button } from "@/components/ui/Button";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
@@ -110,17 +113,17 @@ export const CalloutGroupEdit = () => {
 
 	if (!isAdd && groupQ.isLoading) {
 		return (
-			<div className="mx-auto max-w-3xl px-6 py-4">
+			<PageContainer width="narrow">
 				<Loading variant="card" />
-			</div>
+			</PageContainer>
 		);
 	}
 
 	if (!isAdd && groupQ.error) {
 		return (
-			<div className="mx-auto max-w-3xl px-6 py-4">
+			<PageContainer width="narrow">
 				<ErrorPanel error={groupQ.error} />
-			</div>
+			</PageContainer>
 		);
 	}
 
@@ -151,7 +154,7 @@ export const CalloutGroupEdit = () => {
 	const title = isAdd ? "Add callout group" : body.name || idParam || "Edit callout group";
 
 	return (
-		<div className="mx-auto max-w-3xl px-6 py-4">
+		<PageContainer width="narrow">
 			<Breadcrumb
 				items={[
 					{ label: "Developer", to: "/developer" },
@@ -216,7 +219,7 @@ export const CalloutGroupEdit = () => {
 				}
 			>
 				<div className="space-y-4">
-					<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+					<FieldGrid>
 						<TextField
 							label="ID"
 							value={body.id ?? ""}
@@ -233,7 +236,7 @@ export const CalloutGroupEdit = () => {
 							error={fieldErrors.name}
 							required
 						/>
-					</div>
+					</FieldGrid>
 
 					<div>
 						<div className="mb-2 flex items-center justify-between gap-2">
@@ -267,9 +270,7 @@ export const CalloutGroupEdit = () => {
 														<div className="truncate text-text-2">
 															{callout?.name ?? id}
 														</div>
-														<div className="truncate font-mono text-[11px] text-text-3">
-															{id}
-														</div>
+														<MonoText as="div">{id}</MonoText>
 													</span>
 													<IconButton
 														tone="danger"
@@ -314,6 +315,6 @@ export const CalloutGroupEdit = () => {
 			</FormShell>
 
 			<UnsavedChangesGuard isDirty={isDirty} />
-		</div>
+		</PageContainer>
 	);
 };

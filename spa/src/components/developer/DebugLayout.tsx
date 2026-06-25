@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
+import { PageContainer } from "@/components/shell/PageContainer";
 
 import { DeveloperSectionNav } from "@/components/developer/DeveloperSectionNav";
 
@@ -18,7 +19,7 @@ interface DebugLayoutProps {
  * landing page.
  */
 export const DebugLayout = ({ title, sub, actions, children }: DebugLayoutProps) => (
-	<div className="mx-auto max-w-screen-2xl px-6 py-4">
+	<PageContainer width="wide">
 		<Breadcrumb
 			items={[
 				{ label: "Developer", to: "/developer" },
@@ -32,5 +33,5 @@ export const DebugLayout = ({ title, sub, actions, children }: DebugLayoutProps)
 		<DeveloperSectionNav />
 
 		{children}
-	</div>
+	</PageContainer>
 );

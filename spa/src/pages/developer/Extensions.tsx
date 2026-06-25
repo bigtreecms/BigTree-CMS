@@ -4,9 +4,11 @@ import { Hammer, Package, RefreshCw, Trash2, Upload } from "lucide-react";
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
+import { PageContainer } from "@/components/shell/PageContainer";
 import { DeveloperSectionNav } from "@/components/developer/DeveloperSectionNav";
 import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
 import { DescriptionList } from "@/components/ui/DescriptionList";
+import { MonoText } from "@/components/ui/MonoText";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { SlideOver } from "@/components/ui/SlideOver";
@@ -130,9 +132,7 @@ export const Extensions = () => {
 									</Badge>
 								)}
 							</div>
-							<div className="truncate font-mono text-[11px] text-text-3">
-								{row.id}
-							</div>
+							<MonoText as="div">{row.id}</MonoText>
 						</div>
 					</div>
 				);
@@ -207,7 +207,7 @@ export const Extensions = () => {
 	];
 
 	return (
-		<div className="mx-auto max-w-screen-2xl px-6 py-4">
+		<PageContainer width="wide">
 			<Breadcrumb
 				items={[{ label: "Developer", to: "/developer" }, { label: "Extensions" }]}
 			/>
@@ -309,6 +309,6 @@ export const Extensions = () => {
 					}
 				}}
 			/>
-		</div>
+		</PageContainer>
 	);
 };

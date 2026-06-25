@@ -5,8 +5,10 @@ import { Plus, Trash } from "lucide-react";
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
+import { PageContainer } from "@/components/shell/PageContainer";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
+import { MonoText } from "@/components/ui/MonoText";
 import { Button } from "@/components/ui/Button";
 import { Pager } from "@/components/ui/Pager";
 import { SearchInput } from "@/components/ui/SearchInput";
@@ -87,7 +89,7 @@ export const DeveloperSettings = () => {
 			cell: (row) => (
 				<div className="min-w-0">
 					<div className="truncate font-medium text-text">{row.name}</div>
-					<div className="truncate font-mono text-[11px] text-text-3">{row.id}</div>
+					<MonoText as="div">{row.id}</MonoText>
 				</div>
 			),
 		},
@@ -157,7 +159,7 @@ export const DeveloperSettings = () => {
 	];
 
 	return (
-		<div className="mx-auto max-w-screen-2xl px-6 py-4">
+		<PageContainer width="wide">
 			<Breadcrumb items={[{ label: "Developer", to: "/developer" }, { label: "Settings" }]} />
 
 			<PageHead
@@ -213,6 +215,6 @@ export const DeveloperSettings = () => {
 					onConfirm={() => deleteMutation.mutate(confirmDelete.id)}
 				/>
 			)}
-		</div>
+		</PageContainer>
 	);
 };

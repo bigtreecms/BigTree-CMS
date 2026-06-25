@@ -6,8 +6,10 @@ import { ArrowRight, X } from "lucide-react";
 import { useAuthStore } from "@/auth/store";
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
+import { PageContainer } from "@/components/shell/PageContainer";
 import { AccessDenied } from "@/components/ui/AccessDenied";
 import { Button } from "@/components/ui/Button";
+import { IconButton } from "@/components/ui/IconButton";
 import { Loading } from "@/components/ui/Loading";
 import { CardHeader } from "@/components/ui/Card";
 import { TagInput } from "@/components/tags/TagInput";
@@ -87,7 +89,7 @@ export const TagMerge = () => {
 	const valid = target !== null && sourceIds.length > 0 && !sourceIds.includes(target.id);
 
 	return (
-		<div className="mx-auto max-w-3xl px-6 py-4">
+		<PageContainer width="narrow">
 			<Breadcrumb items={[{ label: "Tags", to: "/tags" }, { label: "Merge tags" }]} />
 
 			<PageHead
@@ -123,14 +125,14 @@ export const TagMerge = () => {
 									<span className="tabular-nums text-text-3">
 										{tag.usage_count}
 									</span>
-									<button
-										type="button"
-										className="rounded p-0.5 text-text-3 hover:bg-hover hover:text-danger"
-										aria-label={`Remove ${tag.tag}`}
+									<IconButton
+										label={`Remove ${tag.tag}`}
+										size="sm"
+										tone="danger"
 										onClick={() => removeSource(tag.id)}
 									>
 										<X size={11} />
-									</button>
+									</IconButton>
 								</li>
 							))}
 						</ul>
@@ -171,6 +173,6 @@ export const TagMerge = () => {
 					</Button>
 				</div>
 			</section>
-		</div>
+		</PageContainer>
 	);
 };

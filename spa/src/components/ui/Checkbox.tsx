@@ -6,10 +6,18 @@ interface CheckboxProps {
 	checked: boolean;
 	onChange: (checked: boolean) => void;
 	disabled?: boolean;
+	/**
+	 * Box + text scale. `md` (default) is the standard form-toggle size; `sm` is
+	 * the compact box/text for dense editor rows (size-row tables, inline option
+	 * toggles).
+	 */
+	size?: "sm" | "md";
 	/** Top-align the box for labels that wrap to multiple lines. Default `center`. */
 	align?: "center" | "start";
 	/** Layout-only classes appended to the wrapping `<label>` (e.g. grid spans). */
 	className?: string;
+	/** Layout-only classes for the label text span (e.g. `min-w-0 truncate`). */
+	labelClassName?: string;
 }
 
 /**
@@ -24,21 +32,25 @@ export const Checkbox = ({
 	checked,
 	onChange,
 	disabled,
+	size = "md",
 	align = "center",
 	className,
+	labelClassName,
 }: CheckboxProps) => (
 	<label
-		className={`flex cursor-pointer gap-2 text-[12.5px] text-text-2 has-[input:disabled]:cursor-not-allowed has-[input:disabled]:opacity-60 ${
-			align === "start" ? "items-start" : "items-center"
-		}${className ? ` ${className}` : ""}`}
+		className={`flex cursor-pointer text-text-2 has-[input:disabled]:cursor-not-allowed has-[input:disabled]:opacity-60 ${
+			size === "sm" ? "gap-1.5 text-[11.5px]" : "gap-2 text-[12.5px]"
+		} ${align === "start" ? "items-start" : "items-center"}${className ? ` ${className}` : ""}`}
 	>
 		<input
 			type="checkbox"
-			className={align === "start" ? "mt-0.5 size-4  accent-accent" : "size-4  accent-accent"}
+			className={`${size === "sm" ? "size-3.5" : "size-4"} accent-accent${
+				align === "start" ? " mt-0.5" : ""
+			}`}
 			checked={checked}
 			onChange={(e) => onChange(e.target.checked)}
 			disabled={disabled}
 		/>
-		<span>{label}</span>
+		<span className={labelClassName}>{label}</span>
 	</label>
 );

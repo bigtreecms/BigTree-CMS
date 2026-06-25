@@ -5,7 +5,9 @@ import { ChevronLeft, Save } from "lucide-react";
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
+import { PageContainer } from "@/components/shell/PageContainer";
 import { Alert } from "@/components/ui/Alert";
+import { FieldGrid } from "@/components/ui/FieldGrid";
 import { Button } from "@/components/ui/Button";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { FormShell } from "@/components/ui/FormShell";
@@ -31,7 +33,7 @@ import { validateRequired } from "@/lib/formValidation";
 import { TextField } from "@/components/ui/TextField";
 import { Select } from "@/components/ui/Select";
 import { Loading } from "@/components/ui/Loading";
-import { Field } from "@/components/ui/Field";
+import { Field, FieldLabel } from "@/components/ui/Field";
 
 /**
  * Descriptions are WYSIWYG HTML. We reuse the renderer's HTMLField in its
@@ -206,14 +208,14 @@ export const SettingConfigure = () => {
 
 	if (isEdit && (existingQ.isLoading || !existingQ.data)) {
 		return (
-			<div className="mx-auto max-w-3xl px-6 py-4">
+			<PageContainer width="narrow">
 				<Loading variant="card" />
-			</div>
+			</PageContainer>
 		);
 	}
 
 	return (
-		<div className="mx-auto max-w-3xl px-6 py-4">
+		<PageContainer width="narrow">
 			<Breadcrumb
 				items={[
 					{ label: "Developer", to: "/developer" },
@@ -270,7 +272,7 @@ export const SettingConfigure = () => {
 				}
 			>
 				<div className="space-y-4">
-					<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+					<FieldGrid>
 						<TextField
 							label="ID"
 							value={body.id}
@@ -290,12 +292,10 @@ export const SettingConfigure = () => {
 							onChange={(v) => set({ name: v })}
 							error={fieldErrors.name}
 						/>
-					</div>
+					</FieldGrid>
 
 					<div>
-						<span className="mb-1 block text-[12px] font-medium text-text-2">
-							Description
-						</span>
+						<FieldLabel>Description</FieldLabel>
 						<HTMLFieldLazy
 							field={DESCRIPTION_FIELD}
 							value={body.description ?? ""}
@@ -335,9 +335,7 @@ export const SettingConfigure = () => {
 						</Field>
 
 						<div className="mt-3">
-							<span className="mb-1 block text-[12px] font-medium text-text-2">
-								Field settings
-							</span>
+							<FieldLabel>Field settings</FieldLabel>
 							<div className="rounded-md border border-border bg-surface-2 p-3">
 								<FieldSettingsEditor
 									type={body.type ?? "text"}
@@ -372,6 +370,6 @@ export const SettingConfigure = () => {
 			</FormShell>
 
 			<UnsavedChangesGuard isDirty={isDirty} />
-		</div>
+		</PageContainer>
 	);
 };

@@ -53,6 +53,26 @@ export const Tones: Story = {
 };
 
 /**
+ * `size="sm"` (`p-0.5`) is the denser hit target for tree expand/collapse
+ * chevrons and inline clear toggles; `md` (default `p-1`) is the toolbar/row size.
+ */
+export const Small: Story = {
+	render: () => (
+		<div className="flex items-center gap-2">
+			<IconButton label="Expand" size="sm" tone="default" title="Expand">
+				<ChevronDown size={13} />
+			</IconButton>
+			<IconButton label="Clear" size="sm" tone="default" title="Clear">
+				<X size={13} />
+			</IconButton>
+			<IconButton label="Remove" size="sm" tone="danger" title="Remove">
+				<Trash size={13} />
+			</IconButton>
+		</div>
+	),
+};
+
+/**
  * `to` renders a router `<Link>` and `href` renders an `<a>` — useful for
  * icon-only row actions that navigate (e.g. an Edit pencil linking to a form).
  * Both keep the same look and the required accessible `label`.

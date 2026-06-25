@@ -5,6 +5,7 @@ import { ChevronLeft, Save } from "lucide-react";
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
+import { PageContainer } from "@/components/shell/PageContainer";
 import { Alert } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
 import { FormShell } from "@/components/ui/FormShell";
@@ -69,7 +70,7 @@ export const Create301 = () => {
 	const isDirty = useDirtyTracker({ from, to, siteKey }) && !createMutation.isPending;
 
 	return (
-		<div className="mx-auto max-w-3xl px-6 py-4">
+		<PageContainer width="narrow">
 			<Breadcrumb
 				items={[
 					{ label: "Dashboard", to: "/dashboard" },
@@ -163,6 +164,6 @@ export const Create301 = () => {
 			</FormShell>
 
 			<UnsavedChangesGuard isDirty={isDirty} />
-		</div>
+		</PageContainer>
 	);
 };

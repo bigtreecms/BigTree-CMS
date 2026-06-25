@@ -4,6 +4,7 @@ import { Archive, Download, Plus, Trash2 } from "lucide-react";
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
+import { PageContainer } from "@/components/shell/PageContainer";
 import { DeveloperSectionNav } from "@/components/developer/DeveloperSectionNav";
 import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
@@ -118,7 +119,7 @@ export const Backups = () => {
 	];
 
 	return (
-		<div className="mx-auto max-w-screen-2xl px-6 py-4">
+		<PageContainer width="wide">
 			<Breadcrumb
 				items={[
 					{ label: "Developer", to: "/developer" },
@@ -180,6 +181,6 @@ export const Backups = () => {
 					}
 				}}
 			/>
-		</div>
+		</PageContainer>
 	);
 };

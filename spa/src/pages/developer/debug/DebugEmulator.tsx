@@ -6,8 +6,10 @@ import { useAuthStore } from "@/auth/store";
 import { authApi } from "@/auth/endpoints";
 import { DebugLayout } from "@/components/developer/DebugLayout";
 import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
+import { MonoText } from "@/components/ui/MonoText";
 import { Pager } from "@/components/ui/Pager";
 import { SearchInput } from "@/components/ui/SearchInput";
+import { Toolbar } from "@/components/ui/Toolbar";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { usersApi, type UserListItem, levelToLabel } from "@/api/endpoints/users";
@@ -67,7 +69,7 @@ export const DebugEmulator = () => {
 			cell: (row) => (
 				<div className="min-w-0">
 					<div className="truncate font-medium text-text">{row.name || "—"}</div>
-					<div className="truncate font-mono text-[11px] text-text-3">{row.email}</div>
+					<MonoText as="div">{row.email}</MonoText>
 				</div>
 			),
 		},
@@ -117,18 +119,17 @@ export const DebugEmulator = () => {
 			title="User emulator"
 			sub="Assume another user's identity to debug permissions. You drop to their access level until you stop."
 		>
-			<div className="mb-3 flex flex-wrap items-center gap-3">
-				<SearchInput
-					value={query}
-					onChange={setQuery}
-					placeholder="Search by name, email, company…"
-					className="w-full sm:w-auto sm:max-w-md sm:flex-1"
-				/>
-
-				<div className="flex-1" />
-
+			<Toolbar
+				search={
+					<SearchInput
+						value={query}
+						onChange={setQuery}
+						placeholder="Search by name, email, company…"
+					/>
+				}
+			>
 				<span className="text-[12px] text-text-3 tabular-nums">{total} users</span>
-			</div>
+			</Toolbar>
 
 			{listQ.error ? (
 				<ErrorPanel error={listQ.error} />

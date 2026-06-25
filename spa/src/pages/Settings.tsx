@@ -5,9 +5,11 @@ import { Pencil } from "lucide-react";
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
+import { PageContainer } from "@/components/shell/PageContainer";
 import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
 import { Pager } from "@/components/ui/Pager";
 import { SearchInput } from "@/components/ui/SearchInput";
+import { Toolbar } from "@/components/ui/Toolbar";
 
 import { settingsApi, type SettingDetail } from "@/api/endpoints/settings";
 
@@ -119,7 +121,7 @@ export const Settings = () => {
 	];
 
 	return (
-		<div className="mx-auto max-w-screen-2xl px-6 py-4">
+		<PageContainer width="wide">
 			<Breadcrumb items={[{ label: "Settings" }]} />
 
 			<PageHead
@@ -127,15 +129,15 @@ export const Settings = () => {
 				sub={total === 1 ? "1 setting" : `${formatNumber(total)} settings`}
 			/>
 
-			<div className="mb-3 flex flex-wrap items-center gap-3">
-				<SearchInput
-					value={search}
-					onChange={setSearch}
-					placeholder="Search settings by name, id, or description…"
-					className="w-full sm:w-auto sm:max-w-md sm:flex-1"
-				/>
-				<div className="flex-1" />
-			</div>
+			<Toolbar
+				search={
+					<SearchInput
+						value={search}
+						onChange={setSearch}
+						placeholder="Search settings by name, id, or description…"
+					/>
+				}
+			/>
 
 			<DataTable<SettingDetail>
 				columns={columns}
@@ -156,7 +158,7 @@ export const Settings = () => {
 					<Pager page={page} totalPages={totalPages} onChange={setPage} />
 				</div>
 			)}
-		</div>
+		</PageContainer>
 	);
 };
 

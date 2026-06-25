@@ -5,6 +5,7 @@ import { ChevronLeft, Reply } from "lucide-react";
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
+import { PageContainer } from "@/components/shell/PageContainer";
 import { DescriptionList } from "@/components/ui/DescriptionList";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { Loading } from "@/components/ui/Loading";
@@ -69,17 +70,17 @@ export const MessageThread = () => {
 
 	if (messageQ.isLoading || !messageQ.data) {
 		return (
-			<div className="mx-auto max-w-3xl px-6 py-4">
+			<PageContainer width="narrow">
 				<Loading variant="card" />
-			</div>
+			</PageContainer>
 		);
 	}
 
 	if (messageQ.error) {
 		return (
-			<div className="mx-auto max-w-3xl px-6 py-4">
+			<PageContainer width="narrow">
 				<ErrorPanel error={messageQ.error} />
-			</div>
+			</PageContainer>
 		);
 	}
 
@@ -90,7 +91,7 @@ export const MessageThread = () => {
 	const html = message.message;
 
 	return (
-		<div className="mx-auto max-w-3xl px-6 py-4">
+		<PageContainer width="narrow">
 			<Breadcrumb
 				items={[
 					{ label: "Messages", to: "/messages" },
@@ -162,6 +163,6 @@ export const MessageThread = () => {
 				currentUserId={currentUserId}
 				replyTo={message}
 			/>
-		</div>
+		</PageContainer>
 	);
 };

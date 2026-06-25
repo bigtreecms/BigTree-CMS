@@ -15,6 +15,7 @@ import {
 import { useAuthStore } from "@/auth/store";
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
+import { PageContainer } from "@/components/shell/PageContainer";
 import { AccessDenied } from "@/components/ui/AccessDenied";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { Loading } from "@/components/ui/Loading";
@@ -172,17 +173,17 @@ export const UserEdit = () => {
 
 	if (userQ.isLoading) {
 		return (
-			<div className="mx-auto max-w-screen-2xl px-6 py-4">
+			<PageContainer width="wide">
 				<Loading label="Loading user…" />
-			</div>
+			</PageContainer>
 		);
 	}
 
 	if (userQ.error) {
 		return (
-			<div className="mx-auto max-w-screen-2xl px-6 py-4">
+			<PageContainer width="wide">
 				<ErrorPanel error={userQ.error} />
-			</div>
+			</PageContainer>
 		);
 	}
 
@@ -227,7 +228,7 @@ export const UserEdit = () => {
 	const displayName = targetUser.name?.trim() || targetUser.email;
 
 	return (
-		<div className="mx-auto max-w-screen-2xl px-6 py-4">
+		<PageContainer width="wide">
 			<Breadcrumb items={[{ label: "Users", to: "/users" }, { label: displayName }]} />
 
 			<PageHead
@@ -486,6 +487,6 @@ export const UserEdit = () => {
 			/>
 
 			<UnsavedChangesGuard isDirty={isDirty} />
-		</div>
+		</PageContainer>
 	);
 };

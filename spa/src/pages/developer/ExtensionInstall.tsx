@@ -5,6 +5,7 @@ import { AlertTriangle, CheckCircle2, ChevronLeft, Package, Upload } from "lucid
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
+import { PageContainer } from "@/components/shell/PageContainer";
 import { Alert } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -69,7 +70,7 @@ export const ExtensionInstall = () => {
 	};
 
 	return (
-		<div className="mx-auto max-w-3xl px-6 py-4">
+		<PageContainer width="narrow">
 			<Breadcrumb
 				items={[
 					{ label: "Developer", to: "/developer" },
@@ -220,6 +221,6 @@ export const ExtensionInstall = () => {
 					</Button>
 				</Card>
 			)}
-		</div>
+		</PageContainer>
 	);
 };

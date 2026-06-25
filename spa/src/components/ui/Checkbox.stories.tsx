@@ -35,6 +35,11 @@ export const Disabled: Story = {
 	args: { label: "Locked setting", checked: true, disabled: true },
 };
 
+/** `size="sm"` is the compact box/text for dense editor rows. */
+export const Small: Story = {
+	args: { size: "sm", label: "Grayscale", checked: true },
+};
+
 /** `align="start"` keeps the box at the top when the label wraps. */
 export const MultiLineLabel: Story = {
 	args: {

@@ -4,6 +4,7 @@ import { Check, ChevronLeft, X } from "lucide-react";
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
+import { PageContainer } from "@/components/shell/PageContainer";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { Button } from "@/components/ui/Button";
@@ -73,17 +74,17 @@ export const PendingChangeDetail = () => {
 
 	if (detailQ.isLoading || !detailQ.data) {
 		return (
-			<div className="mx-auto max-w-5xl px-6 py-4">
+			<PageContainer width="medium">
 				<Loading variant="card" />
-			</div>
+			</PageContainer>
 		);
 	}
 
 	if (detailQ.error) {
 		return (
-			<div className="mx-auto max-w-5xl px-6 py-4">
+			<PageContainer width="medium">
 				<ErrorPanel error={detailQ.error} />
-			</div>
+			</PageContainer>
 		);
 	}
 
@@ -91,7 +92,7 @@ export const PendingChangeDetail = () => {
 	const busy = approveMutation.isPending || rejectMutation.isPending;
 
 	return (
-		<div className="mx-auto max-w-5xl px-6 py-4">
+		<PageContainer width="medium">
 			<Breadcrumb
 				items={[{ label: "Dashboard", to: "/dashboard" }, { label: "Pending changes" }]}
 			/>
@@ -163,7 +164,7 @@ export const PendingChangeDetail = () => {
 					onConfirm={() => rejectMutation.mutate()}
 				/>
 			)}
-		</div>
+		</PageContainer>
 	);
 };
 

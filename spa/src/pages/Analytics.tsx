@@ -5,6 +5,7 @@ import { Settings as SettingsIcon } from "lucide-react";
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
+import { PageContainer } from "@/components/shell/PageContainer";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { Button } from "@/components/ui/Button";
 import { Card, CardHeader } from "@/components/ui/Card";
@@ -82,7 +83,7 @@ export const Analytics = () => {
 		: "Visits, views and engagement from Google Analytics";
 
 	return (
-		<div className="mx-auto max-w-7xl px-6 py-4">
+		<PageContainer width="xwide">
 			<Breadcrumb
 				items={[{ label: "Dashboard", to: "/dashboard" }, { label: "Analytics" }]}
 			/>
@@ -166,6 +167,6 @@ export const Analytics = () => {
 					</div>
 				</div>
 			)}
-		</div>
+		</PageContainer>
 	);
 };

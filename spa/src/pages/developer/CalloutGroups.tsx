@@ -5,6 +5,7 @@ import { Plus, Trash } from "lucide-react";
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
+import { PageContainer } from "@/components/shell/PageContainer";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
 import { Button } from "@/components/ui/Button";
@@ -86,7 +87,7 @@ export const CalloutGroups = () => {
 	];
 
 	return (
-		<div className="mx-auto max-w-screen-2xl px-6 py-4">
+		<PageContainer width="wide">
 			<Breadcrumb
 				items={[{ label: "Developer", to: "/developer" }, { label: "Callout groups" }]}
 			/>
@@ -134,6 +135,6 @@ export const CalloutGroups = () => {
 					onConfirm={() => deleteMutation.mutate(confirmDelete.id)}
 				/>
 			)}
-		</div>
+		</PageContainer>
 	);
 };

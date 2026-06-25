@@ -14,6 +14,7 @@ import {
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
+import { PageContainer } from "@/components/shell/PageContainer";
 import { IconTile } from "@/components/ui/IconTile";
 
 import { DeveloperSectionNav } from "@/components/developer/DeveloperSectionNav";
@@ -90,7 +91,7 @@ const SUBJECTS: SubjectCard[] = [
 ];
 
 export const Developer = () => (
-	<div className="mx-auto max-w-screen-2xl px-6 py-4">
+	<PageContainer width="wide">
 		<Breadcrumb items={[{ label: "Developer" }]} />
 
 		<PageHead
@@ -123,5 +124,5 @@ export const Developer = () => (
 			Configure third-party integrations and inspect system health from the Configure and
 			Debug tabs above.
 		</p>
-	</div>
+	</PageContainer>
 );

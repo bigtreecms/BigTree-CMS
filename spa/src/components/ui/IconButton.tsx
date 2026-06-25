@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 
 export type IconButtonTone = "default" | "danger" | "accent" | "success";
 
+export type IconButtonSize = "sm" | "md";
+
 interface IconButtonProps {
 	/** The icon to render — e.g. a lucide `<Trash size={13} />`. */
 	children: ReactNode;
@@ -21,6 +23,13 @@ interface IconButtonProps {
 	 * `success` (an approve/confirm action, e.g. paired with a `danger` reject).
 	 */
 	tone?: IconButtonTone;
+	/**
+	 * Hit-target density: `md` (default `p-1` — table rows, toolbars) or `sm`
+	 * (`p-0.5` — dense tree expand/collapse chevrons and inline clear toggles).
+	 */
+	size?: IconButtonSize;
+	/** Expanded state for a disclosure toggle — sets `aria-expanded` (button mode only). */
+	ariaExpanded?: boolean;
 	disabled?: boolean;
 	/** Native tooltip; pass when the action benefits from a hover label. */
 	title?: string;
@@ -48,7 +57,12 @@ interface IconButtonProps {
  */
 
 const baseClassName =
-	"inline-flex cursor-pointer items-center justify-center rounded p-1 text-text-3 transition hover:bg-hover disabled:cursor-default disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-text-3";
+	"inline-flex cursor-pointer items-center justify-center rounded text-text-3 transition hover:bg-hover disabled:cursor-default disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-text-3";
+
+const sizeClassName: Record<IconButtonSize, string> = {
+	md: "p-1",
+	sm: "p-0.5",
+};
 
 const toneClassName: Record<IconButtonTone, string> = {
 	default: "hover:text-text",
@@ -65,12 +79,14 @@ export const IconButton = ({
 	href,
 	target,
 	tone = "default",
+	size = "md",
+	ariaExpanded,
 	disabled,
 	title,
 	type = "button",
 	className: extra,
 }: IconButtonProps) => {
-	const className = `${baseClassName} ${toneClassName[tone]}${extra ? ` ${extra}` : ""}`;
+	const className = `${baseClassName} ${sizeClassName[size]} ${toneClassName[tone]}${extra ? ` ${extra}` : ""}`;
 
 	if (!disabled && to) {
 		return (
@@ -102,6 +118,7 @@ export const IconButton = ({
 			onClick={onClick}
 			disabled={disabled}
 			aria-label={label}
+			aria-expanded={ariaExpanded}
 			title={title}
 			className={className}
 		>

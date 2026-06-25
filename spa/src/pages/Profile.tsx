@@ -6,6 +6,7 @@ import { usersApi, type UpdateUserPayload, type UserDetail } from "@/api/endpoin
 import { useAuthStore } from "@/auth/store";
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
+import { PageContainer } from "@/components/shell/PageContainer";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { Button } from "@/components/ui/Button";
 import { Checkbox } from "@/components/ui/Checkbox";
@@ -116,17 +117,17 @@ export const Profile = () => {
 
 	if (meQ.isLoading) {
 		return (
-			<div className="mx-auto max-w-3xl px-6 py-4">
+			<PageContainer width="narrow">
 				<Loading label="Loading profile…" />
-			</div>
+			</PageContainer>
 		);
 	}
 
 	if (meQ.error) {
 		return (
-			<div className="mx-auto max-w-3xl px-6 py-4">
+			<PageContainer width="narrow">
 				<ErrorPanel error={meQ.error} />
-			</div>
+			</PageContainer>
 		);
 	}
 
@@ -165,7 +166,7 @@ export const Profile = () => {
 	];
 
 	return (
-		<div className="mx-auto max-w-3xl px-6 py-4">
+		<PageContainer width="narrow">
 			<Breadcrumb items={[{ label: "Profile" }]} />
 
 			<PageHead
@@ -200,7 +201,7 @@ export const Profile = () => {
 			/>
 
 			<UnsavedChangesGuard isDirty={isDirty} />
-		</div>
+		</PageContainer>
 	);
 };
 

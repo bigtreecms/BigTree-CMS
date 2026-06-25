@@ -1,5 +1,6 @@
 import { Plus, Trash } from "lucide-react";
 
+import { Checkbox } from "@/components/ui/Checkbox";
 import { Field } from "@/components/ui/Field";
 import { IconButton } from "@/components/ui/IconButton";
 import type { MediaPreset } from "@/api/endpoints/configure";
@@ -107,20 +108,15 @@ const SizeRowsEditor = ({ label, rows, onChange }: SizeRowsEditorProps) => {
 								value={row.height ?? ""}
 								onChange={(e) => update(i, { height: e.target.value })}
 							/>
-							<label
-								className="flex items-center gap-1 whitespace-nowrap text-[11.5px] text-text-2"
-								title="Grayscale"
-							>
-								<input
-									type="checkbox"
-									className="size-3.5 accent-accent"
-									checked={row.grayscale === "on"}
-									onChange={(e) =>
-										update(i, { grayscale: e.target.checked ? "on" : "" })
-									}
-								/>
-								Gray
-							</label>
+							<Checkbox
+								size="sm"
+								className="whitespace-nowrap"
+								label="Gray"
+								checked={row.grayscale === "on"}
+								onChange={(checked) =>
+									update(i, { grayscale: checked ? "on" : "" })
+								}
+							/>
 							<IconButton
 								tone="danger"
 								onClick={() => remove(i)}
@@ -200,20 +196,15 @@ const CropsEditor = ({ crops, onChange }: CropsEditorProps) => {
 									value={crop.height ?? ""}
 									onChange={(e) => update(i, { height: e.target.value })}
 								/>
-								<label
-									className="flex items-center gap-1 whitespace-nowrap text-[11.5px] text-text-2"
-									title="Grayscale"
-								>
-									<input
-										type="checkbox"
-										className="size-3.5 accent-accent"
-										checked={crop.grayscale === "on"}
-										onChange={(e) =>
-											update(i, { grayscale: e.target.checked ? "on" : "" })
-										}
-									/>
-									Gray
-								</label>
+								<Checkbox
+									size="sm"
+									className="whitespace-nowrap"
+									label="Gray"
+									checked={crop.grayscale === "on"}
+									onChange={(checked) =>
+										update(i, { grayscale: checked ? "on" : "" })
+									}
+								/>
 								<IconButton
 									tone="danger"
 									onClick={() => remove(i)}
@@ -282,15 +273,11 @@ export const MediaPresetEditor = ({ preset, onChange }: MediaPresetEditorProps) 
 				</Field>
 			</div>
 
-			<label className="flex items-center gap-2 text-[12.5px] text-text-2">
-				<input
-					type="checkbox"
-					className="size-4 accent-accent"
-					checked={preset.retina === "on"}
-					onChange={(e) => onChange({ retina: e.target.checked ? "on" : "" })}
-				/>
-				Create hi-resolution (retina) images when available
-			</label>
+			<Checkbox
+				label="Create hi-resolution (retina) images when available"
+				checked={preset.retina === "on"}
+				onChange={(checked) => onChange({ retina: checked ? "on" : "" })}
+			/>
 
 			<CropsEditor
 				crops={asRows<CropRow>(preset.crops)}

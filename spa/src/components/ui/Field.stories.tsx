@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
-import { Field } from "./Field";
+import { Field, FieldLabel } from "./Field";
 import { TextInput } from "./TextInput";
 
 /**
@@ -60,4 +60,30 @@ export const Small: Story = {
 		inlineHint: "optional",
 		hint: "Leave blank to use the field key.",
 	},
+};
+
+/**
+ * `FieldLabel` is the same label typography on its own — for a label above a
+ * custom control where `Field`'s wrapping `<label>` is wrong. Default
+ * `as="span"`; pass `tone="muted"` for the de-emphasized filter-label tier.
+ */
+export const StandaloneLabel: StoryObj = {
+	render: () => (
+		<div className="space-y-3">
+			<div>
+				<FieldLabel required>Icon</FieldLabel>
+				<div className="rounded-md border border-border bg-surface-2 p-2 text-[12px] text-text-3">
+					custom control
+				</div>
+			</div>
+			<div>
+				<FieldLabel size="sm" tone="muted">
+					Table
+				</FieldLabel>
+				<div className="rounded-md border border-border bg-surface-2 p-2 text-[12px] text-text-3">
+					filter control
+				</div>
+			</div>
+		</div>
+	),
 };

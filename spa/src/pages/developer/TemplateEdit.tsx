@@ -5,7 +5,9 @@ import { ChevronLeft, Save } from "lucide-react";
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
+import { PageContainer } from "@/components/shell/PageContainer";
 import { Alert } from "@/components/ui/Alert";
+import { FieldGrid } from "@/components/ui/FieldGrid";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { Button } from "@/components/ui/Button";
 import { Checkbox } from "@/components/ui/Checkbox";
@@ -125,17 +127,17 @@ export const TemplateEdit = () => {
 
 	if (!isAdd && detailQ.isLoading) {
 		return (
-			<div className="mx-auto max-w-5xl px-6 py-4">
+			<PageContainer width="medium">
 				<Loading variant="card" />
-			</div>
+			</PageContainer>
 		);
 	}
 
 	if (!isAdd && detailQ.error) {
 		return (
-			<div className="mx-auto max-w-5xl px-6 py-4">
+			<PageContainer width="medium">
 				<ErrorPanel error={detailQ.error} />
-			</div>
+			</PageContainer>
 		);
 	}
 
@@ -171,7 +173,7 @@ export const TemplateEdit = () => {
 	const title = isAdd ? "Add template" : body.name || idParam || "Edit template";
 
 	return (
-		<div className="mx-auto max-w-5xl px-6 py-4">
+		<PageContainer width="medium">
 			<Breadcrumb
 				items={[
 					{ label: "Developer", to: "/developer" },
@@ -220,7 +222,7 @@ export const TemplateEdit = () => {
 				}
 			>
 				<div className="space-y-4">
-					<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+					<FieldGrid>
 						<TextField
 							label="ID"
 							value={body.id ?? ""}
@@ -255,7 +257,7 @@ export const TemplateEdit = () => {
 								{ value: "2", label: "Developer (2)" },
 							]}
 						/>
-					</div>
+					</FieldGrid>
 
 					<Checkbox
 						label="Routed template (template handler can capture URL segments)"
@@ -286,6 +288,6 @@ export const TemplateEdit = () => {
 			</FormShell>
 
 			<UnsavedChangesGuard isDirty={isDirty} />
-		</div>
+		</PageContainer>
 	);
 };

@@ -5,7 +5,9 @@ import { ChevronLeft, Save } from "lucide-react";
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
+import { PageContainer } from "@/components/shell/PageContainer";
 import { Alert } from "@/components/ui/Alert";
+import { FieldGrid } from "@/components/ui/FieldGrid";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { Button } from "@/components/ui/Button";
 import { FormShell } from "@/components/ui/FormShell";
@@ -107,24 +109,24 @@ export const ModuleGroupEdit = () => {
 
 	if (!isAdd && detailQ.isLoading) {
 		return (
-			<div className="mx-auto max-w-3xl px-6 py-4">
+			<PageContainer width="narrow">
 				<Loading variant="card" />
-			</div>
+			</PageContainer>
 		);
 	}
 
 	if (!isAdd && detailQ.error) {
 		return (
-			<div className="mx-auto max-w-3xl px-6 py-4">
+			<PageContainer width="narrow">
 				<ErrorPanel error={detailQ.error} />
-			</div>
+			</PageContainer>
 		);
 	}
 
 	const set = (patch: Partial<Body>) => setBody((prev) => ({ ...prev, ...patch }));
 
 	return (
-		<div className="mx-auto max-w-3xl px-6 py-4">
+		<PageContainer width="narrow">
 			<Breadcrumb
 				items={[
 					{ label: "Developer", to: "/developer" },
@@ -195,7 +197,7 @@ export const ModuleGroupEdit = () => {
 						error={fieldErrors.name}
 						required
 					/>
-					<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+					<FieldGrid>
 						<TextField
 							label="Route"
 							value={body.route}
@@ -209,7 +211,7 @@ export const ModuleGroupEdit = () => {
 							value={String(body.position)}
 							onChange={(v) => set({ position: Number(v) || 0 })}
 						/>
-					</div>
+					</FieldGrid>
 				</div>
 			</FormShell>
 
@@ -220,6 +222,6 @@ export const ModuleGroupEdit = () => {
 			)}
 
 			<UnsavedChangesGuard isDirty={isDirty} />
-		</div>
+		</PageContainer>
 	);
 };

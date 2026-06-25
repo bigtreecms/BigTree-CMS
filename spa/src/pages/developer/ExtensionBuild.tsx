@@ -4,13 +4,15 @@ import { ChevronLeft, Download, Package } from "lucide-react";
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
+import { PageContainer } from "@/components/shell/PageContainer";
 import { Alert } from "@/components/ui/Alert";
+import { FieldGrid } from "@/components/ui/FieldGrid";
 import { Button } from "@/components/ui/Button";
 import { DescriptionList } from "@/components/ui/DescriptionList";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { Card } from "@/components/ui/Card";
 import { TextArea } from "@/components/ui/TextArea";
-import { Field } from "@/components/ui/Field";
+import { Field, FieldLabel } from "@/components/ui/Field";
 import { DeveloperSectionNav } from "@/components/developer/DeveloperSectionNav";
 
 import {
@@ -212,7 +214,7 @@ export const ExtensionBuild = () => {
 	);
 
 	return (
-		<div className="mx-auto max-w-3xl px-6 py-4">
+		<PageContainer width="narrow">
 			<Breadcrumb
 				items={[
 					{ label: "Developer", to: "/developer" },
@@ -281,7 +283,7 @@ export const ExtensionBuild = () => {
 				<Card className="p-5">
 					{step === "details" && (
 						<div className="space-y-4">
-							<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+							<FieldGrid>
 								<TextInput
 									label="Extension ID"
 									value={id}
@@ -305,7 +307,7 @@ export const ExtensionBuild = () => {
 									onChange={setCompatibility}
 									hint="e.g. 4.5+"
 								/>
-							</div>
+							</FieldGrid>
 							<Field label="Description">
 								<TextArea
 									value={description}
@@ -338,11 +340,9 @@ export const ExtensionBuild = () => {
 							</div>
 
 							{licensesQ.data && (
-								<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+								<FieldGrid>
 									<div>
-										<span className="mb-1 block text-[12px] font-medium text-text-2">
-											Open-source licenses
-										</span>
+										<FieldLabel>Open-source licenses</FieldLabel>
 										<div className="space-y-1">
 											{Object.keys(licensesQ.data["Open Source"]).map(
 												(name) => (
@@ -369,9 +369,7 @@ export const ExtensionBuild = () => {
 										</div>
 									</div>
 									<div>
-										<span className="mb-1 block text-[12px] font-medium text-text-2">
-											Closed-source license
-										</span>
+										<FieldLabel>Closed-source license</FieldLabel>
 										<div className="space-y-1">
 											{Object.keys(licensesQ.data["Closed Source"]).map(
 												(name) => (
@@ -392,7 +390,7 @@ export const ExtensionBuild = () => {
 											)}
 										</div>
 									</div>
-								</div>
+								</FieldGrid>
 							)}
 
 							<div className="flex justify-end">
@@ -536,7 +534,7 @@ export const ExtensionBuild = () => {
 					)}
 				</Card>
 			)}
-		</div>
+		</PageContainer>
 	);
 };
 
@@ -563,18 +561,14 @@ const ComponentChecklist = ({
 		) : (
 			<div className="grid grid-cols-1 gap-1 sm:grid-cols-2">
 				{items.map((it) => (
-					<label
+					<Checkbox
 						key={it.id}
-						className="flex items-center gap-2 text-[12.5px] text-text-2"
-					>
-						<input
-							type="checkbox"
-							className="size-4 accent-accent"
-							checked={picked.has(it.id)}
-							onChange={() => onToggle(it.id)}
-						/>
-						<span className="truncate">{it.name}</span>
-					</label>
+						className="min-w-0"
+						labelClassName="min-w-0 truncate"
+						label={it.name}
+						checked={picked.has(it.id)}
+						onChange={() => onToggle(it.id)}
+					/>
 				))}
 			</div>
 		)}
@@ -605,11 +599,10 @@ const TrimList = ({
 		) : (
 			<ul className="max-h-48 space-y-1 overflow-auto rounded-md border border-border bg-surface-2 p-2">
 				{all.map((item) => (
-					<li key={item} className="flex items-center gap-2">
-						<input
-							type="checkbox"
-							aria-label={item}
-							className="size-4 accent-accent"
+					<li key={item}>
+						<Checkbox
+							labelClassName={`min-w-0 truncate text-[12px]${mono ? " font-mono" : ""}`}
+							label={item}
 							checked={kept.has(item)}
 							onChange={() => {
 								const next = new Set(kept);
@@ -623,11 +616,6 @@ const TrimList = ({
 								setKept(next);
 							}}
 						/>
-						<span
-							className={`truncate text-[12px] text-text-2 ${mono ? "font-mono" : ""}`}
-						>
-							{item}
-						</span>
 					</li>
 				))}
 			</ul>
