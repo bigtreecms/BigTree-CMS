@@ -12,6 +12,7 @@ import {
 	type ModuleEntriesListParams,
 	type ModuleEntryRow,
 } from "@/api/endpoints/auto-modules";
+import { queryKeys } from "@/lib/queryKeys";
 import type { ModuleView } from "@/api/endpoints/modules";
 
 import {
@@ -81,7 +82,7 @@ export const SearchableView = ({ moduleId, view }: SearchableViewProps) => {
 	};
 
 	const listQuery = useQuery({
-		queryKey: ["module-entries", moduleId, view.id, params] as const,
+		queryKey: queryKeys.moduleEntries.viewQuery(moduleId, view.id, params),
 		queryFn: () => autoModulesApi.list(moduleId, params),
 		placeholderData: keepPreviousData,
 	});

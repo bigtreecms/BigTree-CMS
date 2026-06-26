@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 
 import { modulesApi, type ModuleAction, type ModuleActionBody } from "@/api/endpoints/modules";
 
 import { ApiError } from "@/types/api";
 import { toast } from "@/lib/toast";
+import { queryKeys } from "@/lib/queryKeys";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { FieldGrid } from "@/components/ui/FieldGrid";
 
@@ -123,18 +125,18 @@ export const ModuleActionsTab = ({ moduleId }: ModuleActionsTabProps) => {
 	});
 
 	const [draft, setDraft] = useState<Draft>(emptyDraft);
-	const [pendingDelete, setPendingDelete] = useState<ModuleAction | null>(null);
+	const deleteDialog = useConfirmDialog<ModuleAction>();
 
 	const formsQ = useQuery({
-		queryKey: ["modules", moduleId, "forms"],
+		queryKey: queryKeys.modules.moduleForms(moduleId),
 		queryFn: () => modulesApi.forms(moduleId),
 	});
 	const viewsQ = useQuery({
-		queryKey: ["modules", moduleId, "views"],
+		queryKey: queryKeys.modules.moduleViews(moduleId),
 		queryFn: () => modulesApi.views(moduleId),
 	});
 	const reportsQ = useQuery({
-		queryKey: ["modules", moduleId, "reports"],
+		queryKey: queryKeys.modules.moduleReports(moduleId),
 		queryFn: () => modulesApi.reports(moduleId),
 	});
 
@@ -143,7 +145,7 @@ export const ModuleActionsTab = ({ moduleId }: ModuleActionsTabProps) => {
 	// A module action's source lives on disk, not on the list record — load it from
 	// the schema endpoint when editing one, and seed the draft once it arrives.
 	const schemaQ = useQuery({
-		queryKey: ["modules", moduleId, "actions", editingExisting, "schema"],
+		queryKey: queryKeys.modules.moduleActionSchema(moduleId, editingExisting),
 		queryFn: () => modulesApi.actionSchema(moduleId, editingExisting as string),
 		enabled: !!editingExisting && draft.target === TARGET_MODULE,
 	});
@@ -179,16 +181,16 @@ export const ModuleActionsTab = ({ moduleId }: ModuleActionsTabProps) => {
 	const reorderMutation = useMutation({
 		mutationFn: (ids: string[]) => modulesApi.reorderActions(moduleId, ids),
 		onSuccess: () =>
-			queryClient.invalidateQueries({ queryKey: ["modules", moduleId, "actions"] }),
+			queryClient.invalidateQueries({ queryKey: queryKeys.modules.moduleActions(moduleId) }),
 		onError: (err) => {
 			toast.error(err instanceof ApiError && err.message ? err.message : "Reorder failed");
-			queryClient.invalidateQueries({ queryKey: ["modules", moduleId, "actions"] });
+			queryClient.invalidateQueries({ queryKey: queryKeys.modules.moduleActions(moduleId) });
 		},
 	});
 
 	const drag = useDragReorder<ModuleAction, string>(
 		crud.items,
-		(next) => queryClient.setQueryData(["modules", moduleId, "actions"], next),
+		(next) => queryClient.setQueryData(queryKeys.modules.moduleActions(moduleId), next),
 		(ids) => reorderMutation.mutate(ids)
 	);
 
@@ -233,7 +235,7 @@ export const ModuleActionsTab = ({ moduleId }: ModuleActionsTabProps) => {
 						subtitle={a.route ?? undefined}
 						badge={a.in_nav === true || a.in_nav === "on" ? "in nav" : undefined}
 						onEdit={() => crud.startEdit(a.id)}
-						onDelete={() => setPendingDelete(a)}
+						onDelete={() => deleteDialog.open(a)}
 						reorderable
 						isDragging={drag.dragId === a.id}
 						isDropTarget={drag.overId === a.id && drag.dragId !== a.id}
@@ -321,21 +323,17 @@ export const ModuleActionsTab = ({ moduleId }: ModuleActionsTabProps) => {
 				</EditorCard>
 			)}
 
-			{pendingDelete && (
+			{deleteDialog.item && (
 				<ConfirmDialog
-					open
-					onOpenChange={(open) => {
-						if (!open) {
-							setPendingDelete(null);
-						}
-					}}
-					title={`Delete action "${pendingDelete.name}"?`}
+					open={deleteDialog.isOpen}
+					onOpenChange={(v) => { if (!v) deleteDialog.close(); }}
+					title={`Delete action "${deleteDialog.item.name}"?`}
 					description="This removes the action from the module's navigation. The form/view it points to is left intact."
 					confirmLabel="Delete action"
 					variant="danger"
 					onConfirm={() => {
-						crud.remove(pendingDelete.id);
-						setPendingDelete(null);
+						crud.remove(deleteDialog.item!.id);
+						deleteDialog.close();
 					}}
 				/>
 			)}

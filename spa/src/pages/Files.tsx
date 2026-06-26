@@ -36,7 +36,10 @@ import { resourcesApi } from "@/api/endpoints/resources";
 
 import { formatBytes } from "@/lib/bytes";
 import { expandImageUrl } from "@/lib/imageUrl";
+import { queryKeys } from "@/lib/queryKeys";
 import { toast } from "@/lib/toast";
+import { useConfirmDialog } from "@/hooks/useConfirmDialog";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { useToastMutation } from "@/hooks/useToastMutation";
 
 /**
@@ -55,9 +58,6 @@ import { useToastMutation } from "@/hooks/useToastMutation";
 type Row =
 	| { kind: "folder"; folder: ResourceFolderRow }
 	| { kind: "file"; resource: ResourceSummary };
-
-const FOLDER_CONTENTS_KEY = (id: number) => ["resource-folders", "contents", id] as const;
-const RESOURCE_SEARCH_KEY = (q: string) => ["resources", "search", q] as const;
 
 const rowKey = (row: Row): string =>
 	row.kind === "folder" ? `f-${row.folder.id}` : `r-${row.resource.id}`;
@@ -100,11 +100,11 @@ export const Files = () => {
 	const queryClient = useQueryClient();
 
 	const [query, setQuery] = useState("");
-	const [debounced, setDebounced] = useState("");
+	const debounced = useDebouncedValue(query.trim());
 
 	// Folder editor SlideOver — `null` closed, `"new"` for create, or a folder row for rename.
 	const [folderEditor, setFolderEditor] = useState<"new" | ResourceFolderRow | null>(null);
-	const [confirmDeleteFolder, setConfirmDeleteFolder] = useState<ResourceFolderRow | null>(null);
+	const deleteFolderDialog = useConfirmDialog<ResourceFolderRow>();
 	// File detail SlideOver — null closed, otherwise the resource id to load.
 	const [detailResourceId, setDetailResourceId] = useState<number | null>(null);
 	const [videoCreatorOpen, setVideoCreatorOpen] = useState(false);
@@ -112,26 +112,18 @@ export const Files = () => {
 	// Reset the search box when the folder changes.
 	useEffect(() => {
 		setQuery("");
-		setDebounced("");
 	}, [folderId]);
-
-	// Debounce the query so we don't fire a request on every keystroke.
-	useEffect(() => {
-		const h = setTimeout(() => setDebounced(query.trim()), 200);
-
-		return () => clearTimeout(h);
-	}, [query]);
 
 	const isSearching = debounced.length >= 2;
 
 	const contentsQuery = useQuery({
-		queryKey: FOLDER_CONTENTS_KEY(folderId),
+		queryKey: queryKeys.resourceFolders.contents(folderId),
 		queryFn: () => resourceFoldersApi.listContents(folderId),
 		placeholderData: keepPreviousData,
 	});
 
 	const searchQuery = useQuery({
-		queryKey: RESOURCE_SEARCH_KEY(debounced),
+		queryKey: queryKeys.resources.search(debounced),
 		queryFn: () => resourcesApi.search(debounced),
 		enabled: isSearching,
 		placeholderData: keepPreviousData,
@@ -143,13 +135,13 @@ export const Files = () => {
 	const canCreateFolder = access === "p";
 
 	const handleUploaded = useCallback(() => {
-		queryClient.invalidateQueries({ queryKey: FOLDER_CONTENTS_KEY(folderId) });
+		queryClient.invalidateQueries({ queryKey: queryKeys.resourceFolders.contents(folderId) });
 		toast.success("File uploaded");
 	}, [queryClient, folderId]);
 
 	const deleteFolderMutation = useToastMutation({
 		mutationFn: (folder: ResourceFolderRow) => resourceFoldersApi.delete(folder.id),
-		invalidate: [FOLDER_CONTENTS_KEY(folderId)],
+		invalidate: [queryKeys.resourceFolders.contents(folderId)],
 		errorMessage: "Could not delete folder",
 		onSuccess: (_, folder) => {
 			toast.success(`Deleted "${folder.name}"`);
@@ -295,7 +287,7 @@ export const Files = () => {
 								disabled={!canEdit}
 								onClick={(e) => {
 									e.stopPropagation();
-									setConfirmDeleteFolder(row.folder);
+									deleteFolderDialog.open(row.folder);
 								}}
 							>
 								<Trash size={15} />
@@ -396,22 +388,22 @@ export const Files = () => {
 				}}
 				parentId={folderId}
 				folder={folderEditor && folderEditor !== "new" ? folderEditor : null}
-				invalidateKey={FOLDER_CONTENTS_KEY(folderId)}
+				invalidateKey={queryKeys.resourceFolders.contents(folderId)}
 			/>
 
-			{confirmDeleteFolder && (
+			{deleteFolderDialog.item && (
 				<ConfirmDialog
-					open={true}
+					open={deleteFolderDialog.isOpen}
 					onOpenChange={(open) => {
 						if (!open) {
-							setConfirmDeleteFolder(null);
+							deleteFolderDialog.close();
 						}
 					}}
-					title={`Delete "${confirmDeleteFolder.name}"?`}
+					title={`Delete "${deleteFolderDialog.item.name}"?`}
 					description="Subfolders and files inside this folder will be moved up one level — they won't be deleted. This action cannot be undone."
 					confirmLabel="Delete folder"
 					variant="danger"
-					onConfirm={() => deleteFolderMutation.mutate(confirmDeleteFolder)}
+					onConfirm={() => deleteFolderMutation.mutate(deleteFolderDialog.item!)}
 				/>
 			)}
 
@@ -422,14 +414,14 @@ export const Files = () => {
 						setDetailResourceId(null);
 					}
 				}}
-				folderQueryKey={FOLDER_CONTENTS_KEY(folderId)}
+				folderQueryKey={queryKeys.resourceFolders.contents(folderId)}
 			/>
 
 			<VideoCreator
 				open={videoCreatorOpen}
 				onOpenChange={setVideoCreatorOpen}
 				folderId={folderId}
-				invalidateKey={FOLDER_CONTENTS_KEY(folderId)}
+				invalidateKey={queryKeys.resourceFolders.contents(folderId)}
 				onCreated={(resource) => setDetailResourceId(resource.id)}
 			/>
 		</PageContainer>

@@ -31,7 +31,9 @@ import { FieldRenderer } from "@/renderer/forms/FieldRenderer";
 import { ApiError } from "@/types/api";
 import { formatBytes } from "@/lib/bytes";
 import { expandImageUrl } from "@/lib/imageUrl";
+import { queryKeys } from "@/lib/queryKeys";
 import { toast } from "@/lib/toast";
+import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 import { InlineEmpty } from "@/components/ui/InlineEmpty";
 import { IconButton } from "@/components/ui/IconButton";
 import { SelectField } from "@/components/ui/SelectField";
@@ -47,9 +49,6 @@ interface FileDetailProps {
 	folderQueryKey: readonly unknown[];
 }
 
-const RESOURCE_DETAIL_KEY = (id: number) => ["resources", "detail", id] as const;
-const RESOURCE_USAGE_KEY = (id: number) => ["resources", "usage", id] as const;
-
 /**
  * Slide-over detail panel for a single resource. Loads `/resources/{id}` and
  * `/resources/{id}/usage` and exposes rename, folder move, metadata
@@ -62,30 +61,30 @@ export const FileDetail = ({ resourceId, onOpenChange, folderQueryKey }: FileDet
 	const [name, setName] = useState("");
 	const [folder, setFolder] = useState(0);
 	const [metadata, setMetadata] = useState<Record<string, unknown>>({});
-	const [confirmDelete, setConfirmDelete] = useState(false);
+	const deleteDialog = useConfirmDialog<true>();
 	const [cropOpen, setCropOpen] = useState(false);
 	const replaceInputRef = useRef<HTMLInputElement>(null);
 
 	const detailQuery = useQuery({
-		queryKey: resourceId ? RESOURCE_DETAIL_KEY(resourceId) : ["resources", "detail", "noop"],
+		queryKey: resourceId ? queryKeys.resources.detail(resourceId) : ["resources", "detail", "noop"],
 		queryFn: () => resourcesApi.get(resourceId as number),
 		enabled: resourceId !== null,
 	});
 
 	const usageQuery = useQuery({
-		queryKey: resourceId ? RESOURCE_USAGE_KEY(resourceId) : ["resources", "usage", "noop"],
+		queryKey: resourceId ? queryKeys.resources.usage(resourceId) : ["resources", "usage", "noop"],
 		queryFn: () => resourcesApi.usage(resourceId as number),
 		enabled: resourceId !== null,
 	});
 
 	const foldersQuery = useQuery({
-		queryKey: ["resource-folders", "flat"],
+		queryKey: queryKeys.resourceFolders.flat(),
 		queryFn: () => resourceFoldersApi.listFlat(),
 		enabled: open,
 	});
 
 	const metadataFieldsQuery = useQuery({
-		queryKey: ["resources", "metadata-fields"],
+		queryKey: queryKeys.resources.metadataFields(),
 		queryFn: () => resourcesApi.metadataFields(),
 		enabled: open,
 		staleTime: 5 * 60 * 1000,
@@ -122,7 +121,7 @@ export const FileDetail = ({ resourceId, onOpenChange, folderQueryKey }: FileDet
 		},
 		onSuccess: (updated) => {
 			queryClient.invalidateQueries({ queryKey: folderQueryKey });
-			queryClient.setQueryData(RESOURCE_DETAIL_KEY(updated.id), updated);
+			queryClient.setQueryData(queryKeys.resources.detail(updated.id), updated);
 			toast.success("File saved");
 			onOpenChange(false);
 		},
@@ -140,7 +139,7 @@ export const FileDetail = ({ resourceId, onOpenChange, folderQueryKey }: FileDet
 			return resourcesApi.replace(resource.id, file);
 		},
 		onSuccess: (updated) => {
-			queryClient.setQueryData(RESOURCE_DETAIL_KEY(updated.id), updated);
+			queryClient.setQueryData(queryKeys.resources.detail(updated.id), updated);
 			queryClient.invalidateQueries({ queryKey: folderQueryKey });
 			toast.success("File replaced", {
 				description: "The URL is unchanged — existing references keep working.",
@@ -164,7 +163,7 @@ export const FileDetail = ({ resourceId, onOpenChange, folderQueryKey }: FileDet
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: folderQueryKey });
 			toast.success("File deleted");
-			setConfirmDelete(false);
+			deleteDialog.close();
 			onOpenChange(false);
 		},
 		onError: () => {
@@ -222,7 +221,7 @@ export const FileDetail = ({ resourceId, onOpenChange, folderQueryKey }: FileDet
 						<button
 							type="button"
 							className="inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-[12.5px] text-danger hover:bg-danger-bg disabled:opacity-50"
-							onClick={() => setConfirmDelete(true)}
+							onClick={() => deleteDialog.open(true)}
 							disabled={!resource || pending}
 						>
 							<Trash size={13} />
@@ -366,18 +365,18 @@ export const FileDetail = ({ resourceId, onOpenChange, folderQueryKey }: FileDet
 				<CropModal open={cropOpen} onOpenChange={setCropOpen} resource={resource} />
 			)}
 
-			{confirmDelete && resource && (
+			{deleteDialog.isOpen && resource && (
 				<ConfirmDialog
-					open={true}
-					onOpenChange={setConfirmDelete}
+					open={deleteDialog.isOpen}
+					onOpenChange={(v) => { if (!v) deleteDialog.close(); }}
 					title={`Delete “${resource.name}”?`}
 					description={`This permanently removes the file and all of its crops. ${
 						(usageQuery.data?.length ?? 0) > 0
-							? "It's currently used by other content — those references will break."
-							: "It does not appear to be in use."
+							? “It's currently used by other content — those references will break.”
+							: “It does not appear to be in use.”
 					}`}
-					confirmLabel="Delete file"
-					variant="danger"
+					confirmLabel=”Delete file”
+					variant=”danger”
 					onConfirm={() => deleteMutation.mutate()}
 				/>
 			)}

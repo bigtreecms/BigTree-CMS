@@ -16,6 +16,8 @@ import { configureApi, type MediaPreset } from "@/api/endpoints/configure";
 
 import { ApiError } from "@/types/api";
 import { toast } from "@/lib/toast";
+import { useConfirmDialog } from "@/hooks/useConfirmDialog";
+import { queryKeys } from "@/lib/queryKeys";
 
 /**
  * Media presets — reusable image-field configurations.
@@ -28,13 +30,13 @@ import { toast } from "@/lib/toast";
 export const ConfigureMediaPresets = () => {
 	const queryClient = useQueryClient();
 	const detailQ = useQuery({
-		queryKey: ["configure", "media-presets"],
+		queryKey: queryKeys.configure.mediaPresets(),
 		queryFn: () => configureApi.mediaPresets.get(),
 	});
 
 	const [presets, setPresets] = useState<MediaPreset[]>([]);
 	const [expanded, setExpanded] = useState<string | null>(null);
-	const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
+	const deleteDialog = useConfirmDialog<string>();
 	const [generalError, setGeneralError] = useState<string | null>(null);
 
 	useEffect(() => {
@@ -46,7 +48,7 @@ export const ConfigureMediaPresets = () => {
 	const saveMutation = useMutation({
 		mutationFn: (next: MediaPreset[]) => configureApi.mediaPresets.update({ presets: next }),
 		onSuccess: (fresh) => {
-			queryClient.setQueryData(["configure", "media-presets"], fresh);
+			queryClient.setQueryData(queryKeys.configure.mediaPresets(), fresh);
 			setPresets(fresh.presets.map((p) => ({ ...p })));
 			toast.success("Media presets saved");
 			setGeneralError(null);
@@ -82,7 +84,7 @@ export const ConfigureMediaPresets = () => {
 		const next = presets.filter((p) => p.id !== id);
 		setPresets(next);
 		saveMutation.mutate(next);
-		setConfirmDelete(null);
+		deleteDialog.close();
 	};
 
 	return (
@@ -135,7 +137,7 @@ export const ConfigureMediaPresets = () => {
 
 								<button
 									type="button"
-									onClick={() => setConfirmDelete(p.id)}
+									onClick={() => deleteDialog.open(p.id)}
 									className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface-2 p-2 text-text-3 hover:bg-hover hover:text-danger"
 									title="Delete preset"
 									aria-label="Delete preset"
@@ -171,19 +173,19 @@ export const ConfigureMediaPresets = () => {
 				</div>
 			)}
 
-			{confirmDelete && (
+			{deleteDialog.item && (
 				<ConfirmDialog
-					open
+					open={deleteDialog.isOpen}
 					onOpenChange={(open) => {
 						if (!open) {
-							setConfirmDelete(null);
+							deleteDialog.close();
 						}
 					}}
 					title="Delete this preset?"
 					description="Image fields referencing it will fall back to their inline settings."
 					confirmLabel="Delete"
 					variant="danger"
-					onConfirm={() => remove(confirmDelete)}
+					onConfirm={() => remove(deleteDialog.item!)}
 				/>
 			)}
 		</ConfigureLayout>

@@ -9,6 +9,7 @@ import { UnreadMessagesCard } from "@/components/dashboard/UnreadMessagesCard";
 import { dashboardApi, messagesApi, pendingChangesApi } from "@/api/endpoints/dashboard";
 import { useAuthStore } from "@/auth/store";
 import { isAdmin } from "@/lib/permissions";
+import { queryKeys } from "@/lib/queryKeys";
 
 /**
  * Dashboard — pixel port of the prototype's `dashboard-screen.jsx`.
@@ -36,26 +37,26 @@ export const Dashboard = () => {
 	const [summaryQ, analyticsQ, pendingQ, messagesQ, alertsQ] = useQueries({
 		queries: [
 			{
-				queryKey: ["dashboard", "summary"],
+				queryKey: queryKeys.dashboard.summary(),
 				queryFn: dashboardApi.summary,
 			},
 			{
-				queryKey: ["dashboard", "analytics"],
+				queryKey: queryKeys.dashboard.analytics(),
 				queryFn: dashboardApi.analytics,
 				// /dashboard/analytics is Administrator-only (server returns 403 for
 				// level 0); don't fire it — and don't render the card — for non-admins.
 				enabled: admin,
 			},
 			{
-				queryKey: ["pending-changes", "list", { mine: false }],
+				queryKey: queryKeys.pendingChanges.list({ mine: false }),
 				queryFn: () => pendingChangesApi.list(),
 			},
 			{
-				queryKey: ["messages", "list", { folder: "in" }],
+				queryKey: queryKeys.messages.list({ folder: "in" }),
 				queryFn: () => messagesApi.list({ folder: "in", per_page: 10 }),
 			},
 			{
-				queryKey: ["dashboard", "content-alerts"],
+				queryKey: queryKeys.dashboard.contentAlerts(),
 				queryFn: () => dashboardApi.contentAlerts(),
 			},
 		],

@@ -11,6 +11,7 @@ import { FormRenderer } from "@/renderer/forms/FormRenderer";
 import { modulePath, moduleActionPath } from "@/lib/moduleActions";
 import { useModuleContext } from "@/pages/ModuleLayout";
 import { toast } from "@/lib/toast";
+import { queryKeys } from "@/lib/queryKeys";
 
 interface ModuleEntryAddProps {
 	formId: string;
@@ -32,13 +33,13 @@ export const ModuleEntryAdd = ({ formId }: ModuleEntryAddProps) => {
 	const queryClient = useQueryClient();
 
 	const formsQuery = useQuery({
-		queryKey: ["modules", "forms", moduleId],
+		queryKey: queryKeys.modules.forms(moduleId),
 		queryFn: () => modulesApi.forms(moduleId),
 		enabled: moduleId !== "",
 	});
 
 	const moduleQuery = useQuery({
-		queryKey: ["modules", "detail", moduleId],
+		queryKey: queryKeys.modules.detail(moduleId),
 		queryFn: () => modulesApi.get(moduleId),
 		enabled: moduleId !== "",
 	});
@@ -61,7 +62,7 @@ export const ModuleEntryAdd = ({ formId }: ModuleEntryAddProps) => {
 		mutationFn: ({ values, publish }: { values: Record<string, unknown>; publish: boolean }) =>
 			autoModulesApi.create(moduleId, values, { form: formId }, publish),
 		onSuccess: (result) => {
-			queryClient.invalidateQueries({ queryKey: ["module-entries", moduleId] });
+			queryClient.invalidateQueries({ queryKey: queryKeys.moduleEntries.root(moduleId) });
 
 			if (result && typeof result === "object" && "pending" in result) {
 				toast.success("Draft created", {

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 import { useQuery } from "@tanstack/react-query";
 
 import {
@@ -9,6 +10,7 @@ import {
 } from "@/api/endpoints/modules";
 
 import { dbApi } from "@/api/endpoints/db";
+import { queryKeys } from "@/lib/queryKeys";
 
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { FieldGrid } from "@/components/ui/FieldGrid";
@@ -141,7 +143,7 @@ export const ModuleReportsTab = ({ moduleId, moduleTable }: ModuleReportsTabProp
 	});
 
 	const [draft, setDraft] = useState<Draft>(() => emptyDraft(moduleTable));
-	const [pendingDelete, setPendingDelete] = useState<ModuleReport | null>(null);
+	const deleteDialog = useConfirmDialog<ModuleReport>();
 
 	// Tracks the table whose columns were last auto-populated into the draft so
 	// we regenerate defaults when (and only when) the table actually changes —
@@ -149,12 +151,12 @@ export const ModuleReportsTab = ({ moduleId, moduleTable }: ModuleReportsTabProp
 	const builtForTable = useRef<string | null>(null);
 
 	const viewsQ = useQuery({
-		queryKey: ["modules", moduleId, "views"],
+		queryKey: queryKeys.modules.moduleViews(moduleId),
 		queryFn: () => modulesApi.views(moduleId),
 	});
 
 	const columnsQ = useQuery({
-		queryKey: ["db", "columns", draft.table],
+		queryKey: queryKeys.db.columns(draft.table),
 		queryFn: () => dbApi.columns(draft.table),
 		enabled: crud.editingId !== null && draft.table !== "",
 		staleTime: 5 * 60 * 1000,
@@ -228,7 +230,7 @@ export const ModuleReportsTab = ({ moduleId, moduleTable }: ModuleReportsTabProp
 						subtitle={r.table}
 						badge={r.type}
 						onEdit={() => crud.startEdit(r.id)}
-						onDelete={() => setPendingDelete(r)}
+						onDelete={() => deleteDialog.open(r)}
 					/>
 				))}
 			</SubList>
@@ -323,21 +325,17 @@ export const ModuleReportsTab = ({ moduleId, moduleTable }: ModuleReportsTabProp
 				</EditorCard>
 			)}
 
-			{pendingDelete && (
+			{deleteDialog.item && (
 				<ConfirmDialog
-					open
-					onOpenChange={(open) => {
-						if (!open) {
-							setPendingDelete(null);
-						}
-					}}
-					title={`Delete report "${pendingDelete.title}"?`}
+					open={deleteDialog.isOpen}
+					onOpenChange={(v) => { if (!v) deleteDialog.close(); }}
+					title={`Delete report "${deleteDialog.item.title}"?`}
 					description="Actions that open this report will need to be repointed. Entry data is left intact."
 					confirmLabel="Delete report"
 					variant="danger"
 					onConfirm={() => {
-						crud.remove(pendingDelete.id);
-						setPendingDelete(null);
+						crud.remove(deleteDialog.item!.id);
+						deleteDialog.close();
 					}}
 				/>
 			)}

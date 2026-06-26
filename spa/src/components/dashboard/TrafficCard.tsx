@@ -2,9 +2,8 @@ import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Activity, ExternalLink } from "lucide-react";
 import { DashCard } from "./DashCard";
-import { CardError } from "./CardError";
+import { QueryRenderer } from "@/components/ui/QueryRenderer";
 import { InlineEmpty } from "@/components/ui/InlineEmpty";
-import { Loading } from "@/components/ui/Loading";
 import { Button } from "@/components/ui/Button";
 import { TrafficBars } from "./TrafficBars";
 import type { AnalyticsResponse } from "@/api/endpoints/dashboard";
@@ -57,17 +56,18 @@ export const TrafficCard = ({ data, loading, error }: TrafficCardProps) => {
 				)
 			}
 		>
-			{loading ? (
-				<Loading />
-			) : error ? (
-				<CardError error={error} />
-			) : !series || series.length === 0 ? (
-				<InlineEmpty icon={Activity}>
-					No traffic data yet — check back after the next cache refresh.
-				</InlineEmpty>
-			) : (
-				<TrafficBars series={series} />
-			)}
+			<QueryRenderer
+				isLoading={loading}
+				error={error}
+				isEmpty={!series || series.length === 0}
+				empty={
+					<InlineEmpty icon={Activity}>
+						No traffic data yet — check back after the next cache refresh.
+					</InlineEmpty>
+				}
+			>
+				<TrafficBars series={series!} />
+			</QueryRenderer>
 		</DashCard>
 	);
 };

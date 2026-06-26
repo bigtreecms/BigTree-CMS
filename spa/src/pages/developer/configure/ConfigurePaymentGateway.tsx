@@ -20,6 +20,7 @@ import {
 
 import { ApiError } from "@/types/api";
 import { toast } from "@/lib/toast";
+import { queryKeys } from "@/lib/queryKeys";
 
 const GATEWAYS: Array<{ id: PaymentGatewayId; label: string }> = [
 	{ id: "", label: "Disabled" },
@@ -116,7 +117,7 @@ const isMaskedKey = (key: string) => /secret|key|password|token|signature/i.test
 export const ConfigurePaymentGateway = () => {
 	const queryClient = useQueryClient();
 	const detailQ = useQuery({
-		queryKey: ["configure", "payment-gateway"],
+		queryKey: queryKeys.configure.paymentGateway(),
 		queryFn: () => configureApi.paymentGateway.get(),
 	});
 
@@ -135,7 +136,7 @@ export const ConfigurePaymentGateway = () => {
 	const saveMutation = useMutation({
 		mutationFn: (next: PaymentGatewayConfig) => configureApi.paymentGateway.update(next),
 		onSuccess: (fresh) => {
-			queryClient.setQueryData(["configure", "payment-gateway"], fresh);
+			queryClient.setQueryData(queryKeys.configure.paymentGateway(), fresh);
 			setDraft({
 				service: fresh.service,
 				settings: { ...(fresh.settings ?? {}) },
@@ -156,7 +157,7 @@ export const ConfigurePaymentGateway = () => {
 	const certMutation = useMutation({
 		mutationFn: (file: File) => configureApi.paymentGateway.uploadLinkpointCertificate(file),
 		onSuccess: (fresh) => {
-			queryClient.setQueryData(["configure", "payment-gateway"], fresh);
+			queryClient.setQueryData(queryKeys.configure.paymentGateway(), fresh);
 			setDraft({ service: fresh.service, settings: { ...(fresh.settings ?? {}) } });
 			toast.success("LinkPoint certificate uploaded");
 			setGeneralError(null);

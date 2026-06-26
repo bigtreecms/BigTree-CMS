@@ -33,9 +33,11 @@ import { ResourcePermissionsTree } from "@/components/users/ResourcePermissionsT
 import { TimezoneSelect } from "@/components/users/TimezoneSelect";
 import { isAdmin, isDeveloper } from "@/lib/permissions";
 import { toast } from "@/lib/toast";
+import { queryKeys } from "@/lib/queryKeys";
 import { ApiError } from "@/types/api";
 import { useReturnTo } from "@/hooks/useReturnTo";
 import { useDirtyTracker } from "@/hooks/useDirtyTracker";
+import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 import { UnsavedChangesGuard } from "@/components/ui/UnsavedChangesGuard";
 import { Card } from "@/components/ui/Card";
 import { Field } from "@/components/ui/Field";
@@ -62,7 +64,7 @@ export const UserEdit = () => {
 	const canManageUsers = isAdmin(currentUser);
 
 	const userQ = useQuery({
-		queryKey: ["users", "detail", id],
+		queryKey: queryKeys.users.detail(id),
 		queryFn: () => usersApi.get(id),
 		enabled: Number.isFinite(id) && id > 0,
 	});
@@ -72,8 +74,8 @@ export const UserEdit = () => {
 	const [alerts, setAlerts] = useState<UserAlerts>({});
 	const [permsTab, setPermsTab] = useState<PermsTab>("pages");
 	const [passwordOpen, setPasswordOpen] = useState(false);
-	const [confirmDelete, setConfirmDelete] = useState(false);
-	const [confirmRemove2fa, setConfirmRemove2fa] = useState(false);
+	const deleteDialog = useConfirmDialog<true>();
+	const remove2faDialog = useConfirmDialog<true>();
 	const [seeded, setSeeded] = useState(false);
 
 	// Seed local state when the fetched user changes.
@@ -99,8 +101,8 @@ export const UserEdit = () => {
 	const updateMutation = useMutation({
 		mutationFn: (payload: UpdateUserPayload) => usersApi.update(id, payload),
 		onSuccess: (fresh: UserDetail) => {
-			queryClient.setQueryData(["users", "detail", id], fresh);
-			queryClient.invalidateQueries({ queryKey: ["users", "list"] });
+			queryClient.setQueryData(queryKeys.users.detail(id), fresh);
+			queryClient.invalidateQueries({ queryKey: queryKeys.users.lists() });
 			toast.success("User updated");
 			navigate(returnTo);
 		},
@@ -118,7 +120,7 @@ export const UserEdit = () => {
 	const deleteMutation = useMutation({
 		mutationFn: () => usersApi.delete(id),
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ["users", "list"] });
+			queryClient.invalidateQueries({ queryKey: queryKeys.users.lists() });
 			toast.success("User deleted");
 			navigate("/users");
 		},
@@ -136,10 +138,10 @@ export const UserEdit = () => {
 	const remove2faMutation = useMutation({
 		mutationFn: () => usersApi.removeTwoFactor(id),
 		onSuccess: (fresh) => {
-			queryClient.setQueryData<UserDetail | undefined>(["users", "detail", id], (prev) =>
+			queryClient.setQueryData<UserDetail | undefined>(queryKeys.users.detail(id), (prev) =>
 				prev ? { ...prev, two_factor_enabled: fresh.two_factor_enabled } : prev
 			);
-			setConfirmRemove2fa(false);
+			remove2faDialog.close();
 			toast.success("Two-factor authentication removed");
 		},
 		onError: (err: unknown) => {
@@ -273,7 +275,7 @@ export const UserEdit = () => {
 					{targetUser.two_factor_enabled && (
 						<button
 							type="button"
-							onClick={() => setConfirmRemove2fa(true)}
+							onClick={() => remove2faDialog.open(true)}
 							disabled={remove2faMutation.isPending}
 							className="inline-flex items-center gap-1.5 text-danger hover:underline disabled:opacity-60"
 						>
@@ -451,7 +453,7 @@ export const UserEdit = () => {
 
 						<button
 							type="button"
-							onClick={() => setConfirmDelete(true)}
+							onClick={() => deleteDialog.open(true)}
 							className="rounded-md bg-danger px-3 py-1.5 text-[12.5px] font-medium text-white hover:bg-danger/90"
 						>
 							Delete user
@@ -468,8 +470,8 @@ export const UserEdit = () => {
 			/>
 
 			<ConfirmDialog
-				open={confirmDelete}
-				onOpenChange={setConfirmDelete}
+				open={deleteDialog.isOpen}
+				onOpenChange={(v) => { if (!v) deleteDialog.close(); }}
 				title="Delete user?"
 				description={`This will permanently delete ${displayName}.`}
 				confirmLabel="Delete"
@@ -478,8 +480,8 @@ export const UserEdit = () => {
 			/>
 
 			<ConfirmDialog
-				open={confirmRemove2fa}
-				onOpenChange={setConfirmRemove2fa}
+				open={remove2faDialog.isOpen}
+				onOpenChange={(v) => { if (!v) remove2faDialog.close(); }}
 				title="Remove two-factor authentication?"
 				description={`${displayName} will be able to sign in with just their password until they re-enrol. Use this when they've lost their authenticator.`}
 				confirmLabel="Remove 2FA"

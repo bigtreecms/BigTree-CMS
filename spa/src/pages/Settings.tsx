@@ -13,7 +13,9 @@ import { Toolbar } from "@/components/ui/Toolbar";
 
 import { settingsApi, type SettingDetail } from "@/api/endpoints/settings";
 
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { stripHtml } from "@/lib/html";
+import { queryKeys } from "@/lib/queryKeys";
 import { formatNumber } from "@/lib/number";
 
 /**
@@ -32,20 +34,15 @@ const PER_PAGE = 25;
 export const Settings = () => {
 	const navigate = useNavigate();
 	const [search, setSearch] = useState("");
-	const [debounced, setDebounced] = useState("");
 	const [page, setPage] = useState(1);
+	const debounced = useDebouncedValue(search.trim());
 
 	useEffect(() => {
-		const handle = setTimeout(() => {
-			setDebounced(search.trim());
-			setPage(1);
-		}, 200);
-
-		return () => clearTimeout(handle);
-	}, [search]);
+		setPage(1);
+	}, [debounced]);
 
 	const query = useQuery({
-		queryKey: ["settings", "list", { page, per_page: PER_PAGE, q: debounced }],
+		queryKey: queryKeys.settings.list({ page, per_page: PER_PAGE, q: debounced }),
 		queryFn: () =>
 			settingsApi.list({
 				page,

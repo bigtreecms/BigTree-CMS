@@ -33,6 +33,7 @@ import {
 
 import { ApiError } from "@/types/api";
 import { toast } from "@/lib/toast";
+import { queryKeys } from "@/lib/queryKeys";
 import { useScrollToFirstError } from "@/hooks/useScrollToFirstError";
 import { useReturnTo } from "@/hooks/useReturnTo";
 import { useDirtyTracker } from "@/hooks/useDirtyTracker";
@@ -77,7 +78,7 @@ export const FieldTypeEdit = () => {
 	const queryClient = useQueryClient();
 
 	const detailQ = useQuery({
-		queryKey: ["field-types", "detail", idParam],
+		queryKey: queryKeys.fieldTypes.detail(idParam),
 		queryFn: () => fieldTypesApi.get(idParam as string),
 		enabled: !isAdd,
 	});
@@ -131,7 +132,7 @@ export const FieldTypeEdit = () => {
 		mutationFn: (next: FieldTypeCreateBody) =>
 			isAdd ? fieldTypesApi.create(next) : fieldTypesApi.update(idParam as string, next),
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ["field-types"] });
+			queryClient.invalidateQueries({ queryKey: queryKeys.fieldTypes.root() });
 			toast.success(isAdd ? "Field type created" : "Field type saved");
 			navigate(returnTo);
 		},

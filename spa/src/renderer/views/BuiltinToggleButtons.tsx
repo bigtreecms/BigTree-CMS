@@ -8,6 +8,7 @@ import {
 } from "@/api/endpoints/auto-modules";
 import { IconButton } from "@/components/ui/IconButton";
 import { toast } from "@/lib/toast";
+import { queryKeys } from "@/lib/queryKeys";
 
 import type { BuiltinViewActionFlags } from "./viewHelpers";
 
@@ -54,7 +55,7 @@ export const BuiltinToggleButtons = ({
 	const canMutate = Number.isFinite(entryId) && entryId > 0;
 
 	const onSuccess = (data: ModuleEntryFlagToggleResponse) => {
-		queryClient.invalidateQueries({ queryKey: ["module-entries", moduleId, viewId] });
+		queryClient.invalidateQueries({ queryKey: queryKeys.moduleEntries.view(moduleId, viewId) });
 
 		const messages = FLAG_TOAST_MESSAGES[data.column];
 

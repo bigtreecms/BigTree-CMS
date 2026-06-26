@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 import { useToastMutation } from "@/hooks/useToastMutation";
 import { CheckCircle2, Unplug } from "lucide-react";
 
@@ -19,6 +20,7 @@ import { configureApi, type ServiceCredentials } from "@/api/endpoints/configure
 
 import { ApiError } from "@/types/api";
 import { toast } from "@/lib/toast";
+import { queryKeys } from "@/lib/queryKeys";
 
 interface ServiceMeta {
 	id: string;
@@ -86,11 +88,11 @@ export const ConfigureServices = () => {
 	const queryClient = useQueryClient();
 	const [searchParams, setSearchParams] = useSearchParams();
 	const detailQ = useQuery({
-		queryKey: ["configure", "services"],
+		queryKey: queryKeys.configure.services(),
 		queryFn: () => configureApi.services.list(),
 	});
 
-	const [confirmDisconnect, setConfirmDisconnect] = useState<string | null>(null);
+	const disconnectDialog = useConfirmDialog<string>();
 	const [expanded, setExpanded] = useState<string | null>(null);
 	const [drafts, setDrafts] = useState<Record<string, Draft>>({});
 
@@ -113,17 +115,17 @@ export const ConfigureServices = () => {
 			searchParams.delete("connected");
 			searchParams.delete("error");
 			setSearchParams(searchParams, { replace: true });
-			queryClient.invalidateQueries({ queryKey: ["configure", "services"] });
+			queryClient.invalidateQueries({ queryKey: queryKeys.configure.services() });
 		}
 	}, [searchParams, setSearchParams, queryClient]);
 
 	const disconnectMutation = useToastMutation({
 		mutationFn: (service: string) => configureApi.services.disconnect(service),
-		invalidate: [["configure", "services"]],
+		invalidate: [queryKeys.configure.services()],
 		successMessage: "Service disconnected",
 		errorMessage: "Disconnect failed",
 		onSuccess: () => {
-			setConfirmDisconnect(null);
+			disconnectDialog.close();
 		},
 	});
 
@@ -216,7 +218,7 @@ export const ConfigureServices = () => {
 										{entry.connected && (
 											<button
 												type="button"
-												onClick={() => setConfirmDisconnect(s.id)}
+												onClick={() => disconnectDialog.open(s.id)}
 												className="inline-flex items-center gap-1.5 rounded-md border border-danger/40 px-3 py-1.5 text-[12.5px] font-medium text-danger hover:bg-danger/10"
 											>
 												<Unplug size={13} />
@@ -302,19 +304,19 @@ export const ConfigureServices = () => {
 				</div>
 			)}
 
-			{confirmDisconnect && (
+			{disconnectDialog.item && (
 				<ConfirmDialog
-					open
+					open={disconnectDialog.isOpen}
 					onOpenChange={(open) => {
 						if (!open) {
-							setConfirmDisconnect(null);
+							disconnectDialog.close();
 						}
 					}}
 					title="Disconnect this service?"
 					description="Any module fields that pull from this service will stop working until reconnected."
 					confirmLabel="Disconnect"
 					variant="danger"
-					onConfirm={() => disconnectMutation.mutate(confirmDisconnect)}
+					onConfirm={() => disconnectMutation.mutate(disconnectDialog.item!)}
 				/>
 			)}
 		</ConfigureLayout>

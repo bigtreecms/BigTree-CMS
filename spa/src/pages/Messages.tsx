@@ -16,6 +16,7 @@ import { ComposeMessage } from "@/components/messages/ComposeMessage";
 import { messagesApi, type Message } from "@/api/endpoints/dashboard";
 import { useAuthStore } from "@/auth/store";
 import { formatNumber } from "@/lib/number";
+import { queryKeys } from "@/lib/queryKeys";
 
 /**
  * /messages and /messages/sent — paginated inbox / sent list with a Compose
@@ -34,7 +35,7 @@ export const Messages = () => {
 	const [composeOpen, setComposeOpen] = useState(false);
 
 	const query = useQuery({
-		queryKey: ["messages", "list", { folder, page, per_page: PER_PAGE }],
+		queryKey: queryKeys.messages.list({ folder, page, per_page: PER_PAGE }),
 		queryFn: () => messagesApi.list({ folder, page, per_page: PER_PAGE }),
 		placeholderData: keepPreviousData,
 	});

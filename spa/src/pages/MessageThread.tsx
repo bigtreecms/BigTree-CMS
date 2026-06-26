@@ -15,6 +15,7 @@ import { ComposeMessage } from "@/components/messages/ComposeMessage";
 import { messagesApi } from "@/api/endpoints/dashboard";
 import { useAuthStore } from "@/auth/store";
 import { sanitizeHtml } from "@/lib/html";
+import { queryKeys } from "@/lib/queryKeys";
 
 /**
  * Single-message view. Marks the message read on mount, refreshes the unread
@@ -35,7 +36,7 @@ export const MessageThread = () => {
 	const [composeOpen, setComposeOpen] = useState(false);
 
 	const messageQ = useQuery({
-		queryKey: ["messages", "detail", id],
+		queryKey: queryKeys.messages.detail(id),
 		queryFn: () => messagesApi.get(id),
 		enabled: valid,
 	});
@@ -43,8 +44,8 @@ export const MessageThread = () => {
 	const markReadMutation = useMutation({
 		mutationFn: () => messagesApi.markRead(id),
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ["messages", "unread-count"] });
-			queryClient.invalidateQueries({ queryKey: ["messages", "list"] });
+			queryClient.invalidateQueries({ queryKey: queryKeys.messages.unreadCount() });
+			queryClient.invalidateQueries({ queryKey: queryKeys.messages.lists() });
 		},
 	});
 

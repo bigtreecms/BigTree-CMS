@@ -12,6 +12,7 @@ import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 
 import { systemApi } from "@/api/endpoints/system";
 import type { StatusLevel } from "@/api/endpoints/system";
+import { queryKeys } from "@/lib/queryKeys";
 import { useToastMutation } from "@/hooks/useToastMutation";
 
 /**
@@ -46,7 +47,7 @@ const StatusBadge = ({ status, value }: { status: StatusLevel; value?: string })
 
 export const DebugStatus = () => {
 	const statusQ = useQuery({
-		queryKey: ["system", "status"],
+		queryKey: queryKeys.system.status(),
 		queryFn: () => systemApi.status(),
 	});
 

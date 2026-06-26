@@ -11,6 +11,7 @@ import { modulesApi } from "@/api/endpoints/modules";
 import { useAuthStore } from "@/auth/store";
 import { LEVEL } from "@/lib/permissions";
 import { toast } from "@/lib/toast";
+import { queryKeys } from "@/lib/queryKeys";
 import { useModuleContext } from "@/pages/ModuleLayout";
 import { ActionRunner } from "@/renderer/actions/ActionRunner";
 import type { ActionHost } from "@/renderer/actions/actionModuleContract";
@@ -39,7 +40,7 @@ export const ModuleAction = ({ actionId }: ModuleActionProps) => {
 	const action = actions.find((a) => a.id === actionId);
 
 	const schemaQuery = useQuery({
-		queryKey: ["modules", moduleId, "actions", actionId, "schema"],
+		queryKey: queryKeys.modules.moduleActionSchema(moduleId, actionId),
 		queryFn: () => modulesApi.actionSchema(moduleId, actionId),
 		enabled: moduleId !== "" && actionId !== "",
 	});

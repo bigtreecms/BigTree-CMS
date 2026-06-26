@@ -14,6 +14,7 @@ import type { OpenGraphValue } from "@/renderer/forms/OpenGraphSection";
 import { useLock } from "@/hooks/useLock";
 import { modulePath, moduleActionPath } from "@/lib/moduleActions";
 import { draftOwnerLabel } from "@/lib/fieldComparison";
+import { queryKeys } from "@/lib/queryKeys";
 import { useAuthStore } from "@/auth/store";
 import { useModuleContext } from "@/pages/ModuleLayout";
 import { isPersistedEntryId, numericEntryId } from "@/renderer/views/viewHelpers";
@@ -49,13 +50,13 @@ export const ModuleEntryEdit = ({ formId, entryId }: ModuleEntryEditProps) => {
 	const liveId = numericEntryId(entryId);
 
 	const formsQuery = useQuery({
-		queryKey: ["modules", "forms", moduleId],
+		queryKey: queryKeys.modules.forms(moduleId),
 		queryFn: () => modulesApi.forms(moduleId),
 		enabled: moduleId !== "",
 	});
 
 	const entryQuery = useQuery({
-		queryKey: ["module-entries", moduleId, "detail", String(entryId), formId],
+		queryKey: queryKeys.moduleEntries.detail(moduleId, String(entryId), formId),
 		queryFn: () => autoModulesApi.get(moduleId, entryId, { form: formId }),
 		enabled: moduleId !== "" && validEntry,
 	});
@@ -67,7 +68,7 @@ export const ModuleEntryEdit = ({ formId, entryId }: ModuleEntryEditProps) => {
 	});
 
 	const moduleQuery = useQuery({
-		queryKey: ["modules", "detail", moduleId],
+		queryKey: queryKeys.modules.detail(moduleId),
 		queryFn: () => modulesApi.get(moduleId),
 		enabled: moduleId !== "",
 	});
@@ -88,7 +89,7 @@ export const ModuleEntryEdit = ({ formId, entryId }: ModuleEntryEditProps) => {
 		mutationFn: ({ values, publish }: { values: Record<string, unknown>; publish: boolean }) =>
 			autoModulesApi.update(moduleId, entryId, values, { form: formId }, publish),
 		onSuccess: (result) => {
-			queryClient.invalidateQueries({ queryKey: ["module-entries", moduleId] });
+			queryClient.invalidateQueries({ queryKey: queryKeys.moduleEntries.root(moduleId) });
 
 			if (result && typeof result === "object" && "pending" in result) {
 				toast.success("Draft saved", {

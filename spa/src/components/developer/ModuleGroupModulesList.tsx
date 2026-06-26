@@ -7,6 +7,7 @@ import { MonoText } from "@/components/ui/MonoText";
 import { modulesApi, type ModuleSummary } from "@/api/endpoints/modules";
 
 import { iconFor } from "@/lib/legacyIcons";
+import { queryKeys } from "@/lib/queryKeys";
 import { ApiError } from "@/types/api";
 import { toast } from "@/lib/toast";
 
@@ -19,8 +20,6 @@ interface ModuleGroupModulesListProps {
 	groupId: string;
 }
 
-const MODULES_LIST_KEY = ["modules", "list"] as const;
-
 /**
  * Sortable list of the modules assigned to a module group, shown on the group
  * editor. Mirrors the legacy admin's per-group sortable list: dragging a row
@@ -32,7 +31,7 @@ export const ModuleGroupModulesList = ({ groupId }: ModuleGroupModulesListProps)
 	const queryClient = useQueryClient();
 
 	const query = useQuery({
-		queryKey: MODULES_LIST_KEY,
+		queryKey: queryKeys.modules.list(),
 		queryFn: () => modulesApi.list(),
 	});
 
@@ -52,10 +51,10 @@ export const ModuleGroupModulesList = ({ groupId }: ModuleGroupModulesListProps)
 
 	const reorderMutation = useMutation({
 		mutationFn: (ids: string[]) => modulesApi.reorder(ids),
-		onSuccess: () => queryClient.invalidateQueries({ queryKey: ["modules"] }),
+		onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.modules.root() }),
 		onError: (err) => {
 			toast.error(err instanceof ApiError && err.message ? err.message : "Reorder failed");
-			queryClient.invalidateQueries({ queryKey: ["modules"] });
+			queryClient.invalidateQueries({ queryKey: queryKeys.modules.root() });
 		},
 	});
 

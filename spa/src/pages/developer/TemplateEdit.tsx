@@ -31,9 +31,9 @@ import {
 	type TemplateResource,
 } from "@/api/endpoints/templates";
 
-import { ApiError } from "@/types/api";
 import { toast } from "@/lib/toast";
-import { useScrollToFirstError } from "@/hooks/useScrollToFirstError";
+import { queryKeys } from "@/lib/queryKeys";
+import { useFormSubmit } from "@/hooks/useFormSubmit";
 import { useReturnTo } from "@/hooks/useReturnTo";
 import { validateRequired } from "@/lib/formValidation";
 
@@ -51,7 +51,7 @@ export const TemplateEdit = () => {
 	const queryClient = useQueryClient();
 
 	const detailQ = useQuery({
-		queryKey: ["templates", "detail", idParam],
+		queryKey: queryKeys.templates.detail(idParam),
 		queryFn: () => templatesApi.get(idParam as string),
 		enabled: !isAdd,
 	});
@@ -61,13 +61,10 @@ export const TemplateEdit = () => {
 			? { id: "", name: "", module: "", level: 0, routed: false, resources: [], hooks: {} }
 			: {}
 	);
-	const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
-
-	useScrollToFirstError(fieldErrors);
+	const { error, setError, fieldErrors, setFieldErrors, onMutationError } = useFormSubmit();
 	const [settingsErrors, setSettingsErrors] = useState<Record<number, Record<string, string>>>(
 		{}
 	);
-	const [generalError, setGeneralError] = useState<string | null>(null);
 	const [seeded, setSeeded] = useState(isAdd);
 
 	const settingsValidation = useResourceSettingsValidation(
@@ -94,7 +91,7 @@ export const TemplateEdit = () => {
 		mutationFn: (next: TemplateEditBody) =>
 			isAdd ? templatesApi.create(next) : templatesApi.update(idParam as string, next),
 		onSuccess: (fresh) => {
-			queryClient.invalidateQueries({ queryKey: ["templates"] });
+			queryClient.invalidateQueries({ queryKey: queryKeys.templates.root() });
 			toast.success(isAdd ? "Template created" : "Template saved");
 
 			if (isAdd) {
@@ -105,19 +102,7 @@ export const TemplateEdit = () => {
 				navigate(returnTo);
 			}
 		},
-		onError: (err) => {
-			if (err instanceof ApiError) {
-				const fe = err.fieldErrors();
-
-				if (Object.keys(fe).length > 0) {
-					setFieldErrors(fe);
-				}
-
-				setGeneralError(err.message);
-			} else {
-				setGeneralError(err instanceof Error ? err.message : "Save failed");
-			}
-		},
+		onError: (err) => onMutationError(err, "Save failed"),
 	});
 
 	const isDirty = useDirtyTracker(body, seeded) && !saveMutation.isPending;
@@ -160,12 +145,12 @@ export const TemplateEdit = () => {
 		if (Object.keys(errors).length > 0 || Object.keys(sErrors).length > 0) {
 			setFieldErrors(errors);
 			setSettingsErrors(sErrors);
-			setGeneralError("Please fill in the required fields.");
+			setError("Please fill in the required fields.");
 
 			return;
 		}
 
-		setGeneralError(null);
+		setError(null);
 		setFieldErrors({});
 		setSettingsErrors({});
 		saveMutation.mutate(body);
@@ -195,9 +180,9 @@ export const TemplateEdit = () => {
 
 			<DeveloperSectionNav />
 
-			{generalError && (
+			{error && (
 				<Alert tone="danger" className="mb-3">
-					{generalError}
+					{error}
 				</Alert>
 			)}
 

@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 
 import { Combobox, type ComboboxOption } from "@/components/ui/Combobox";
 import { auditApi } from "@/api/endpoints/audit";
+import { queryKeys } from "@/lib/queryKeys";
 
 interface TableSelectProps {
 	/** Selected table name, or null when nothing is chosen. */
@@ -30,7 +31,7 @@ export const TableSelect = ({
 	className,
 }: TableSelectProps) => {
 	const tablesQ = useQuery({
-		queryKey: ["audit-tables"],
+		queryKey: queryKeys.audit.tables(),
 		queryFn: () => auditApi.tables(),
 		staleTime: 5 * 60 * 1000,
 	});

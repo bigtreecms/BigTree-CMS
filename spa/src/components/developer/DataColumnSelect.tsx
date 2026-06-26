@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Combobox } from "@/components/ui/Combobox";
 import { Field } from "@/components/ui/Field";
 import { dbApi } from "@/api/endpoints/db";
+import { queryKeys } from "@/lib/queryKeys";
 
 interface DataColumnSelectProps {
 	/** Table whose columns are offered; when empty the picker is disabled. */
@@ -46,7 +47,7 @@ export const DataColumnSelect = ({
 	className,
 }: DataColumnSelectProps) => {
 	const columnsQ = useQuery({
-		queryKey: ["db", "columns", table],
+		queryKey: queryKeys.db.columns(table),
 		queryFn: () => dbApi.columns(table),
 		enabled: table !== "",
 		staleTime: 5 * 60 * 1000,

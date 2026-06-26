@@ -10,6 +10,7 @@ import {
 import type { ResourceEntry } from "@/components/developer/ResourceDesigner";
 
 import { validateFieldSettings } from "./validate";
+import { queryKeys } from "@/lib/queryKeys";
 
 const toObject = (value: unknown): Record<string, unknown> =>
 	value && typeof value === "object" && !Array.isArray(value)
@@ -42,7 +43,7 @@ export const useResourceSettingsValidation = (
 
 	const queries = useQueries({
 		queries: types.map((type) => ({
-			queryKey: ["field-types", "schema", type],
+			queryKey: queryKeys.fieldTypes.schema(type),
 			queryFn: () => fieldTypesApi.getSchema(type),
 			staleTime: 5 * 60 * 1000,
 		})),

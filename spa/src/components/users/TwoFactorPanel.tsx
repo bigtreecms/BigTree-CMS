@@ -6,6 +6,7 @@ import { authApi, type TwoFactorSetup } from "@/auth/endpoints";
 
 import { ApiError } from "@/types/api";
 import { toast } from "@/lib/toast";
+import { queryKeys } from "@/lib/queryKeys";
 import { TwoFactorEnrollForm } from "./TwoFactorEnrollForm";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -39,7 +40,7 @@ export const TwoFactorPanel = ({ enabled }: TwoFactorPanelProps) => {
 	const [disableCode, setDisableCode] = useState("");
 
 	const invalidate = () => {
-		queryClient.invalidateQueries({ queryKey: ["users", "me"] });
+		queryClient.invalidateQueries({ queryKey: queryKeys.users.me() });
 	};
 
 	const setupMutation = useMutation({

@@ -5,6 +5,7 @@ import { PopoverPanel } from "@/components/ui/Popover";
 import { RemovableChip } from "@/components/ui/RemovableChip";
 import { useOnClickOutside } from "@/hooks/useOnClickOutside";
 import { tagsApi, type Tag } from "@/api/endpoints/tags";
+import { queryKeys } from "@/lib/queryKeys";
 
 /**
  * Tag combobox with create-on-blur. Single-select returns `Tag | null`;
@@ -61,7 +62,7 @@ export const TagInput = (props: TagInputProps) => {
 	}, [trimmed]);
 
 	const searchQuery = useQuery({
-		queryKey: ["tags", "search", debounced],
+		queryKey: queryKeys.tags.search(debounced),
 		queryFn: () => tagsApi.search(debounced),
 		enabled: open && debounced.length > 0,
 	});
@@ -69,7 +70,7 @@ export const TagInput = (props: TagInputProps) => {
 	const createMutation = useMutation({
 		mutationFn: (tag: string) => tagsApi.create(tag),
 		onSuccess: (created) => {
-			queryClient.invalidateQueries({ queryKey: ["tags"] });
+			queryClient.invalidateQueries({ queryKey: queryKeys.tags.root() });
 			pickTag(created);
 		},
 	});

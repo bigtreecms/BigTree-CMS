@@ -13,6 +13,8 @@ import { Toolbar } from "@/components/ui/Toolbar";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { usersApi, type UserListItem, levelToLabel } from "@/api/endpoints/users";
+import { queryKeys } from "@/lib/queryKeys";
+import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 import { useToastMutation } from "@/hooks/useToastMutation";
 
 const PER_PAGE = 15;
@@ -29,14 +31,14 @@ export const DebugEmulator = () => {
 
 	const [query, setQuery] = useState("");
 	const [page, setPage] = useState(1);
-	const [pendingEmulate, setPendingEmulate] = useState<UserListItem | null>(null);
+	const emulateDialog = useConfirmDialog<UserListItem>();
 
 	useEffect(() => {
 		setPage(1);
 	}, [query]);
 
 	const listQ = useQuery({
-		queryKey: ["users", "list", { page, q: query }],
+		queryKey: queryKeys.users.list({ page, q: query }),
 		queryFn: () => usersApi.list({ q: query || undefined, page, per_page: PER_PAGE }),
 		placeholderData: keepPreviousData,
 	});
@@ -97,7 +99,7 @@ export const DebugEmulator = () => {
 						disabled={isSelf || emulateMutation.isPending}
 						onClick={(e) => {
 							e.stopPropagation();
-							setPendingEmulate(row);
+							emulateDialog.open(row);
 						}}
 						className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-2.5 py-1 text-[12px] font-medium text-text-2 hover:border-border-strong hover:bg-hover disabled:opacity-50"
 					>
@@ -146,19 +148,19 @@ export const DebugEmulator = () => {
 			)}
 
 			<ConfirmDialog
-				open={pendingEmulate !== null}
+				open={emulateDialog.isOpen}
 				onOpenChange={(open) => {
 					if (!open) {
-						setPendingEmulate(null);
+						emulateDialog.close();
 					}
 				}}
-				title={`Emulate ${pendingEmulate?.name || pendingEmulate?.email}?`}
+				title={`Emulate ${emulateDialog.item?.name || emulateDialog.item?.email}?`}
 				description="You'll be signed in as this user with their exact permissions. A banner stays on screen so you can return to your own account at any time."
 				confirmLabel="Emulate user"
 				onConfirm={() => {
-					if (pendingEmulate) {
-						emulateMutation.mutate(pendingEmulate.id);
-						setPendingEmulate(null);
+					if (emulateDialog.item) {
+						emulateMutation.mutate(emulateDialog.item.id);
+						emulateDialog.close();
 					}
 				}}
 			/>

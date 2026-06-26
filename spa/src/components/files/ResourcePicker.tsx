@@ -17,6 +17,7 @@ import { resourceFoldersApi, type ResourceSummary } from "@/api/endpoints/resour
 import { resourcesApi } from "@/api/endpoints/resources";
 
 import { expandImageUrl } from "@/lib/imageUrl";
+import { queryKeys } from "@/lib/queryKeys";
 import { InlineEmpty } from "@/components/ui/InlineEmpty";
 import { IconButton } from "@/components/ui/IconButton";
 
@@ -31,10 +32,6 @@ interface ResourcePickerProps {
 	minHeight?: number;
 	onSelect: (resource: ResourceSummary) => void;
 }
-
-const FOLDER_CONTENTS_KEY = (id: number) => ["resource-folders", "contents", id] as const;
-const RESOURCE_SEARCH_KEY = (q: string, type: ResourcePickerType) =>
-	["resources", "search", q, type] as const;
 
 /**
  * Slide-over picker for choosing an existing resource from the media library.
@@ -75,14 +72,14 @@ export const ResourcePicker = ({
 	const isSearching = debounced.length >= 2;
 
 	const contentsQuery = useQuery({
-		queryKey: FOLDER_CONTENTS_KEY(folderId),
+		queryKey: queryKeys.resourceFolders.contents(folderId),
 		queryFn: () => resourceFoldersApi.listContents(folderId),
 		enabled: open && !isSearching,
 		placeholderData: keepPreviousData,
 	});
 
 	const searchQuery = useQuery({
-		queryKey: RESOURCE_SEARCH_KEY(debounced, type),
+		queryKey: queryKeys.resources.search(debounced, type),
 		queryFn: () => resourcesApi.search(debounced),
 		enabled: open && isSearching,
 		placeholderData: keepPreviousData,

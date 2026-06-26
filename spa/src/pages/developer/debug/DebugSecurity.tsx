@@ -16,6 +16,7 @@ import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { systemApi, type SecurityPolicy } from "@/api/endpoints/system";
 import { ApiError } from "@/types/api";
 import { toast } from "@/lib/toast";
+import { queryKeys } from "@/lib/queryKeys";
 import { useToastMutation } from "@/hooks/useToastMutation";
 
 const narrowInputClass =
@@ -51,7 +52,7 @@ export const DebugSecurity = () => {
 	const queryClient = useQueryClient();
 
 	const policyQ = useQuery({
-		queryKey: ["system", "security-policy"],
+		queryKey: queryKeys.system.securityPolicy(),
 		queryFn: () => systemApi.securityPolicy.get(),
 	});
 
@@ -66,7 +67,7 @@ export const DebugSecurity = () => {
 	const saveMutation = useMutation({
 		mutationFn: (next: SecurityPolicy) => systemApi.securityPolicy.update(next),
 		onSuccess: (fresh) => {
-			queryClient.setQueryData(["system", "security-policy"], fresh);
+			queryClient.setQueryData(queryKeys.system.securityPolicy(), fresh);
 			toast.success("Security policy updated");
 		},
 		onError: (err) => {

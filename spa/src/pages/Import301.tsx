@@ -16,6 +16,7 @@ import { fourOhFoursApi } from "@/api/endpoints/four-oh-fours";
 
 import { ApiError } from "@/types/api";
 import { toast } from "@/lib/toast";
+import { queryKeys } from "@/lib/queryKeys";
 
 import { SelectField } from "@/components/ui/SelectField";
 import { Field } from "@/components/ui/Field";
@@ -36,7 +37,7 @@ export const Import301 = () => {
 	const [error, setError] = useState<string | null>(null);
 
 	const sitesQ = useQuery({
-		queryKey: ["404s", "sites"],
+		queryKey: queryKeys.redirects.sites(),
 		queryFn: () => fourOhFoursApi.sites(),
 	});
 
@@ -50,8 +51,8 @@ export const Import301 = () => {
 				firstRowTitles,
 			}),
 		onSuccess: (result) => {
-			queryClient.invalidateQueries({ queryKey: ["404s"] });
-			queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+			queryClient.invalidateQueries({ queryKey: queryKeys.redirects.root() });
+			queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.root() });
 			toast.success(
 				`Imported ${result.imported} redirect${result.imported === 1 ? "" : "s"}` +
 					(result.skipped ? ` (${result.skipped} skipped)` : "")

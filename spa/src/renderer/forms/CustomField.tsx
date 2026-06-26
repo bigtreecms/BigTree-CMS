@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 
 import { LoadingText } from "@/components/ui/LoadingText";
 import { applySettingDefaults, fieldTypesApi } from "@/api/endpoints/field-types";
+import { queryKeys } from "@/lib/queryKeys";
 import { StubField } from "@/renderer/fields/StubField";
 import { settingsOf, type FieldComponentProps } from "@/renderer/fields/types";
 
@@ -34,7 +35,7 @@ export const CustomField = (props: FieldComponentProps) => {
 	const type = props.field.type;
 
 	const schemaQ = useQuery({
-		queryKey: ["field-types", "schema", type],
+		queryKey: queryKeys.fieldTypes.schema(type),
 		queryFn: () => fieldTypesApi.getSchema(type),
 		enabled: type !== "",
 		staleTime: 5 * 60 * 1000,

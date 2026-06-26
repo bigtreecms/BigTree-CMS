@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Plus, Trash } from "lucide-react";
@@ -6,6 +5,7 @@ import { Plus, Trash } from "lucide-react";
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
 import { PageContainer } from "@/components/shell/PageContainer";
+import { Badge } from "@/components/ui/Badge";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
 import { MonoText } from "@/components/ui/MonoText";
@@ -17,6 +17,8 @@ import { DeveloperSectionNav } from "@/components/developer/DeveloperSectionNav"
 import { templatesApi, type TemplateSummary } from "@/api/endpoints/templates";
 
 import { toast } from "@/lib/toast";
+import { queryKeys } from "@/lib/queryKeys";
+import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 import { useToastMutation } from "@/hooks/useToastMutation";
 
 const LEVEL_LABEL = ["Editor", "Admin", "Developer"];
@@ -24,20 +26,20 @@ const LEVEL_LABEL = ["Editor", "Admin", "Developer"];
 export const Templates = () => {
 	const navigate = useNavigate();
 	const queryClient = useQueryClient();
-	const [confirmDelete, setConfirmDelete] = useState<TemplateSummary | null>(null);
+	const deleteDialog = useConfirmDialog<TemplateSummary>();
 
 	const query = useQuery({
-		queryKey: ["templates", "list"],
+		queryKey: queryKeys.templates.list(),
 		queryFn: () => templatesApi.list(),
 	});
 
 	const deleteMutation = useToastMutation({
 		mutationFn: (id: string) => templatesApi.delete(id),
-		invalidate: [["templates"]],
+		invalidate: [queryKeys.templates.root()],
 		successMessage: "Template deleted",
 		errorMessage: "Delete failed",
 		onSuccess: () => {
-			setConfirmDelete(null);
+			deleteDialog.close();
 		},
 	});
 
@@ -45,7 +47,7 @@ export const Templates = () => {
 		mutationFn: (ids: string[]) => templatesApi.reorder(ids),
 		onError: () => {
 			toast.error("Could not save the new order");
-			queryClient.invalidateQueries({ queryKey: ["templates"] });
+			queryClient.invalidateQueries({ queryKey: queryKeys.templates.root() });
 		},
 	});
 
@@ -53,7 +55,7 @@ export const Templates = () => {
 		const ids = orderedKeys.map(String);
 
 		// Optimistic: reorder the cached list immediately, then persist.
-		queryClient.setQueryData<TemplateSummary[]>(["templates", "list"], (prev) => {
+		queryClient.setQueryData<TemplateSummary[]>(queryKeys.templates.list(), (prev) => {
 			if (!prev) {
 				return prev;
 			}
@@ -110,9 +112,9 @@ export const Templates = () => {
 			hideOnMobile: true,
 			cell: (row) =>
 				row.routed ? (
-					<span className="rounded bg-info-bg px-1.5 py-0.5 text-[11px] font-medium text-info">
+					<Badge size="sm" tone="info">
 						Routed
-					</span>
+					</Badge>
 				) : (
 					<span className="text-text-3">—</span>
 				),
@@ -127,7 +129,7 @@ export const Templates = () => {
 					tone="danger"
 					onClick={(e) => {
 						e.stopPropagation();
-						setConfirmDelete(row);
+						deleteDialog.open(row);
 					}}
 					title="Delete template"
 					label="Delete template"
@@ -173,19 +175,19 @@ export const Templates = () => {
 				onReorder={handleReorder}
 			/>
 
-			{confirmDelete && (
+			{deleteDialog.item && (
 				<ConfirmDialog
-					open
+					open={deleteDialog.isOpen}
 					onOpenChange={(open) => {
 						if (!open) {
-							setConfirmDelete(null);
+							deleteDialog.close();
 						}
 					}}
-					title={`Delete "${confirmDelete.name}"?`}
+					title={`Delete "${deleteDialog.item.name}"?`}
 					description="Pages using this template will lose their content schema. This cannot be undone."
 					confirmLabel="Delete template"
 					variant="danger"
-					onConfirm={() => deleteMutation.mutate(confirmDelete.id)}
+					onConfirm={() => deleteMutation.mutate(deleteDialog.item!.id)}
 				/>
 			)}
 		</PageContainer>

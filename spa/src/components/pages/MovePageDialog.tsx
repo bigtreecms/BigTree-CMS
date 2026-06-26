@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { SlideOver } from "@/components/ui/SlideOver";
 
 import { pagesApi, type PageListRow, type PageSearchHit } from "@/api/endpoints/pages";
+import { queryKeys } from "@/lib/queryKeys";
 import { useToastMutation } from "@/hooks/useToastMutation";
 import { InlineEmpty } from "@/components/ui/InlineEmpty";
 import { IconButton } from "@/components/ui/IconButton";
@@ -61,13 +62,13 @@ export const MovePageDialog = ({
 	}, [search]);
 
 	const listQuery = useQuery({
-		queryKey: ["pages", "list", browseParent],
+		queryKey: queryKeys.pages.list(browseParent),
 		queryFn: () => pagesApi.list(browseParent),
 		enabled: open && page !== null && debounced.length < 2,
 	});
 
 	const searchQuery = useQuery({
-		queryKey: ["pages", "search", debounced],
+		queryKey: queryKeys.pages.search(debounced),
 		queryFn: () => pagesApi.search(debounced),
 		enabled: open && page !== null && debounced.length >= 2,
 	});

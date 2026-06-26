@@ -45,11 +45,13 @@ import { useAuthStore } from "@/auth/store";
 import { useLock } from "@/hooks/useLock";
 import { useScrollToFirstError } from "@/hooks/useScrollToFirstError";
 import { useDirtyTracker } from "@/hooks/useDirtyTracker";
+import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 import { UnsavedChangesGuard } from "@/components/ui/UnsavedChangesGuard";
 import { Loading } from "@/components/ui/Loading";
 import { ApiError } from "@/types/api";
 import { canPublishPage } from "@/lib/permissions";
 import { toast } from "@/lib/toast";
+import { queryKeys } from "@/lib/queryKeys";
 import { InlineEmpty } from "@/components/ui/InlineEmpty";
 
 /**
@@ -129,8 +131,8 @@ export const PageEdit = () => {
 
 	const pageQuery = useQuery({
 		queryKey: draft
-			? ["pages", "draft", pcid]
-			: ["pages", "detail", id, { lineage: true, pending: true }],
+			? queryKeys.pages.draft(pcid)
+			: queryKeys.pages.detail(id, { lineage: true, pending: true }),
 		queryFn: () =>
 			draft
 				? pagesApi.getPending(pcid, { lineage: true })
@@ -139,13 +141,13 @@ export const PageEdit = () => {
 	});
 
 	const templatesQuery = useQuery({
-		queryKey: ["templates", "list"],
+		queryKey: queryKeys.templates.list(),
 		queryFn: () => templatesApi.list(),
 	});
 
 	const templateId = pageQuery.data?.template;
 	const templateQuery = useQuery({
-		queryKey: ["templates", "detail", templateId],
+		queryKey: queryKeys.templates.detail(templateId),
 		queryFn: () => templatesApi.get(templateId as string),
 		enabled: Boolean(templateId),
 	});
@@ -164,7 +166,7 @@ export const PageEdit = () => {
 	const [activeTab, setActiveTab] = useState<TabValue>("content");
 	const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 	const [generalError, setGeneralError] = useState<string | null>(null);
-	const [confirmDelete, setConfirmDelete] = useState(false);
+	const deleteDialog = useConfirmDialog<true>();
 	const [movingOpen, setMovingOpen] = useState(false);
 	const [accessOpen, setAccessOpen] = useState(false);
 
@@ -183,13 +185,13 @@ export const PageEdit = () => {
 		mutationFn: (next: PageEditBody) =>
 			draft ? pagesApi.patchPending(pcid, next) : pagesApi.patch(id, next),
 		onSuccess: (updated) => {
-			queryClient.invalidateQueries({ queryKey: ["pages", "list"] });
+			queryClient.invalidateQueries({ queryKey: queryKeys.pages.lists() });
 			// The live-publish response omits `access`/lineage, so invalidate rather
 			// than seeding the cache with a partial detail.
-			queryClient.invalidateQueries({ queryKey: ["pages", "detail", id] });
+			queryClient.invalidateQueries({ queryKey: queryKeys.pages.detail(id) });
 
 			if (draft) {
-				queryClient.invalidateQueries({ queryKey: ["pages", "draft", pcid] });
+				queryClient.invalidateQueries({ queryKey: queryKeys.pages.draft(pcid) });
 			}
 
 			if (isPendingResult(updated)) {
@@ -220,7 +222,7 @@ export const PageEdit = () => {
 	const duplicateMutation = useMutation({
 		mutationFn: () => pagesApi.duplicate(id),
 		onSuccess: (result) => {
-			queryClient.invalidateQueries({ queryKey: ["pages", "list"] });
+			queryClient.invalidateQueries({ queryKey: queryKeys.pages.lists() });
 			toast.success("Page duplicated", {
 				description: "The copy was created as an unpublished draft.",
 			});
@@ -238,7 +240,7 @@ export const PageEdit = () => {
 		// rejecting the pending change (mirrors the tree's draft-delete action).
 		mutationFn: () => (draft ? pendingChangesApi.reject(pcid) : pagesApi.delete(id)),
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ["pages", "list"] });
+			queryClient.invalidateQueries({ queryKey: queryKeys.pages.lists() });
 			toast.success(draft ? "Draft deleted" : "Page deleted");
 			navigate(returnTo(pageQuery.data?.parent));
 		},
@@ -380,7 +382,7 @@ export const PageEdit = () => {
 				actions={
 					<Button
 						variant="dangerGhost"
-						onClick={() => setConfirmDelete(true)}
+						onClick={() => deleteDialog.open(true)}
 						disabled={readOnly}
 					>
 						Delete
@@ -516,32 +518,30 @@ export const PageEdit = () => {
 				/>
 			</form>
 
-			{confirmDelete && (
-				<ConfirmDialog
-					open={true}
-					onOpenChange={setConfirmDelete}
-					title={
-						draft
-							? `Discard draft “${page.nav_title || "Untitled"}”?`
-							: `Delete “${page.nav_title}”?`
-					}
-					description={
-						draft
-							? "This permanently discards the unpublished draft. The page was never published, so nothing else is affected."
-							: "This removes the page and all of its descendants. The action cannot be undone."
-					}
-					confirmLabel={draft ? "Discard draft" : "Delete page"}
-					variant="danger"
-					onConfirm={() => deleteMutation.mutate()}
-				/>
-			)}
+			<ConfirmDialog
+				open={deleteDialog.isOpen}
+				onOpenChange={(v) => { if (!v) deleteDialog.close(); }}
+				title={
+					draft
+						? `Discard draft “${page.nav_title || “Untitled”}”?`
+						: `Delete “${page.nav_title}”?`
+				}
+				description={
+					draft
+						? “This permanently discards the unpublished draft. The page was never published, so nothing else is affected.”
+						: “This removes the page and all of its descendants. The action cannot be undone.”
+				}
+				confirmLabel={draft ? “Discard draft” : “Delete page”}
+				variant=”danger”
+				onConfirm={() => deleteMutation.mutate()}
+			/>
 
 			{!draft && (
 				<MovePageDialog
 					open={movingOpen}
 					onOpenChange={setMovingOpen}
 					page={{ id: page.id, nav_title: page.nav_title, parent: page.parent }}
-					invalidateKey={["pages", "list", page.parent]}
+					invalidateKey={queryKeys.pages.list(page.parent)}
 				/>
 			)}
 

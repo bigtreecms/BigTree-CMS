@@ -26,6 +26,7 @@ import { HTMLFieldLazy } from "@/renderer/fields/HTMLFieldLazy";
 
 import { ApiError } from "@/types/api";
 import { toast } from "@/lib/toast";
+import { queryKeys } from "@/lib/queryKeys";
 import { useScrollToFirstError } from "@/hooks/useScrollToFirstError";
 import { useDirtyTracker } from "@/hooks/useDirtyTracker";
 import { UnsavedChangesGuard } from "@/components/ui/UnsavedChangesGuard";
@@ -95,7 +96,7 @@ export const SettingConfigure = () => {
 
 	// In edit mode, load the existing definition and seed the form once.
 	const existingQ = useQuery({
-		queryKey: ["settings", "detail", settingId],
+		queryKey: queryKeys.settings.detail(settingId),
 		queryFn: () => settingsApi.get(settingId),
 		enabled: isEdit,
 	});
@@ -138,7 +139,7 @@ export const SettingConfigure = () => {
 	const createMutation = useMutation({
 		mutationFn: () => settingsApi.create(body),
 		onSuccess: (fresh) => {
-			queryClient.invalidateQueries({ queryKey: ["settings"] });
+			queryClient.invalidateQueries({ queryKey: queryKeys.settings.root() });
 			toast.success("Setting created");
 			navigate(`/settings/${encodeURIComponent(fresh.id)}/edit`);
 		},
@@ -148,7 +149,7 @@ export const SettingConfigure = () => {
 	const updateMutation = useMutation({
 		mutationFn: () => settingsApi.updateDefinition(settingId, body),
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ["settings"] });
+			queryClient.invalidateQueries({ queryKey: queryKeys.settings.root() });
 			toast.success("Setting saved");
 			navigate("/developer/settings");
 		},
@@ -161,7 +162,7 @@ export const SettingConfigure = () => {
 	const changeType = (type: string) => set({ type, settings: {} });
 
 	const fieldTypesQ = useQuery({
-		queryKey: ["field-types", "list"],
+		queryKey: queryKeys.fieldTypes.list(),
 		queryFn: () => fieldTypesApi.list(),
 	});
 

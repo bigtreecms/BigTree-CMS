@@ -19,6 +19,7 @@ import {
 
 import { ApiError } from "@/types/api";
 import { toast } from "@/lib/toast";
+import { queryKeys } from "@/lib/queryKeys";
 
 const BUCKETS: Array<{ id: keyof FileMetadataConfig; label: string; hint: string }> = [
 	{ id: "file", label: "Generic files", hint: "Asked on every non-image, non-video upload." },
@@ -50,7 +51,7 @@ const toField = (entry: ResourceEntry): FileMetadataField => ({
 export const ConfigureFileMetadata = () => {
 	const queryClient = useQueryClient();
 	const detailQ = useQuery({
-		queryKey: ["configure", "file-metadata"],
+		queryKey: queryKeys.configure.fileMetadata(),
 		queryFn: () => configureApi.fileMetadata.get(),
 	});
 
@@ -107,7 +108,7 @@ export const ConfigureFileMetadata = () => {
 	const saveMutation = useMutation({
 		mutationFn: (next: FileMetadataConfig) => configureApi.fileMetadata.update(next),
 		onSuccess: (fresh) => {
-			queryClient.setQueryData(["configure", "file-metadata"], fresh);
+			queryClient.setQueryData(queryKeys.configure.fileMetadata(), fresh);
 			toast.success("File metadata saved");
 			setGeneralError(null);
 		},

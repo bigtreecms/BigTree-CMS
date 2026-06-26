@@ -19,6 +19,7 @@ import { useDragReorder } from "@/hooks/useDragReorder";
 import { Combobox } from "@/components/ui/Combobox";
 
 import { FieldSettingsEditor } from "./FieldSettingsEditor";
+import { queryKeys } from "@/lib/queryKeys";
 import { InlineEmpty } from "@/components/ui/InlineEmpty";
 import { IconButton } from "@/components/ui/IconButton";
 import { Field, FieldLabel } from "@/components/ui/Field";
@@ -113,7 +114,7 @@ export const ResourceDesigner = ({
 	}, [settingsErrors]);
 
 	const fieldTypesQ = useQuery({
-		queryKey: ["field-types", "list"],
+		queryKey: queryKeys.fieldTypes.list(),
 		queryFn: () => fieldTypesApi.list(),
 	});
 
@@ -124,7 +125,7 @@ export const ResourceDesigner = ({
 	const addDisabled = columnBound && !columnsTable;
 
 	const columnsQ = useQuery({
-		queryKey: ["db", "columns", columnsTable],
+		queryKey: queryKeys.db.columns(columnsTable),
 		queryFn: () => dbApi.columns(columnsTable as string),
 		enabled: useColumnSelect,
 		staleTime: 5 * 60 * 1000,

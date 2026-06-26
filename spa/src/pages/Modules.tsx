@@ -17,6 +17,7 @@ import { modulePath } from "@/lib/moduleActions";
 import { isDeveloper } from "@/lib/permissions";
 
 import { modulesApi, type ModuleGroup, type ModuleSummary } from "@/api/endpoints/modules";
+import { queryKeys } from "@/lib/queryKeys";
 
 /**
  * Modules landing — modelled on bigtree-redesign/project/modules-screen.jsx.
@@ -34,9 +35,6 @@ import { modulesApi, type ModuleGroup, type ModuleSummary } from "@/api/endpoint
  * module creation lives under the Developer section (Phase 8).
  */
 
-const MODULES_LIST_KEY = ["modules", "list"] as const;
-const MODULE_GROUPS_KEY = ["module-groups", "list"] as const;
-
 interface GroupedModules {
 	group: ModuleGroup | null;
 	modules: ModuleSummary[];
@@ -52,12 +50,12 @@ export const Modules = () => {
 	const [query, setQuery] = useState("");
 
 	const modulesQuery = useQuery({
-		queryKey: MODULES_LIST_KEY,
+		queryKey: queryKeys.modules.list(),
 		queryFn: modulesApi.list,
 	});
 
 	const groupsQuery = useQuery({
-		queryKey: MODULE_GROUPS_KEY,
+		queryKey: queryKeys.moduleGroups.list(),
 		queryFn: modulesApi.listGroups,
 	});
 

@@ -14,10 +14,12 @@ import { Button } from "@/components/ui/Button";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { toast } from "@/lib/toast";
+import { queryKeys } from "@/lib/queryKeys";
 import { pagesApi, type PageListRow } from "@/api/endpoints/pages";
 import { pendingChangesApi } from "@/api/endpoints/dashboard";
 import { relativeTime } from "@/lib/time";
 import { expandImageUrl } from "@/lib/imageUrl";
+import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 
 /**
  * Pages screen — table view for a page's direct children (supports drilling
@@ -42,7 +44,7 @@ export const Pages = () => {
 
 	// Current folder info (for dynamic title + breadcrumb lineage) when viewing children of a page
 	const { data: currentPage } = useQuery({
-		queryKey: ["pages", "detail", parent],
+		queryKey: queryKeys.pages.detail(parent),
 		queryFn: () => pagesApi.get(parent, { lineage: true }),
 		enabled: !isRoot,
 	});
@@ -52,7 +54,7 @@ export const Pages = () => {
 		isLoading,
 		error,
 	} = useQuery({
-		queryKey: ["pages", "list", parent],
+		queryKey: queryKeys.pages.list(parent),
 		queryFn: () => pagesApi.list(parent, true),
 	});
 
@@ -72,7 +74,7 @@ export const Pages = () => {
 		pendingChangeId?: number;
 	}
 
-	const [pendingConfirm, setPendingConfirm] = useState<PendingConfirm | null>(null);
+	const confirmDialog = useConfirmDialog<PendingConfirm>();
 	const [movingPage, setMovingPage] = useState<PageListRow | null>(null);
 
 	const renameMutation = useMutation({
@@ -81,21 +83,21 @@ export const Pages = () => {
 		// Optimistic update — show the new title immediately, roll back on error.
 		onMutate: async ({ id, nav_title }) => {
 			await queryClient.cancelQueries({
-				queryKey: ["pages", "list", parent],
+				queryKey: queryKeys.pages.list(parent),
 			});
-			const previous = queryClient.getQueryData<PageListRow[]>(["pages", "list", parent]);
+			const previous = queryClient.getQueryData<PageListRow[]>(queryKeys.pages.list(parent));
 			queryClient.setQueryData<PageListRow[]>(
-				["pages", "list", parent],
+				queryKeys.pages.list(parent),
 				(old) => old?.map((r) => (r.id === id ? { ...r, nav_title } : r)) ?? []
 			);
 			return { previous };
 		},
 		onError: (_err, _vars, ctx) => {
-			if (ctx?.previous) queryClient.setQueryData(["pages", "list", parent], ctx.previous);
+			if (ctx?.previous) queryClient.setQueryData(queryKeys.pages.list(parent), ctx.previous);
 		},
 		onSettled: () => {
 			queryClient.invalidateQueries({
-				queryKey: ["pages", "list", parent],
+				queryKey: queryKeys.pages.list(parent),
 			});
 		},
 	});
@@ -106,12 +108,12 @@ export const Pages = () => {
 		// re-fetch on settled to make sure server position values are reflected.
 		onError: () => {
 			queryClient.invalidateQueries({
-				queryKey: ["pages", "list", parent],
+				queryKey: queryKeys.pages.list(parent),
 			});
 		},
 		onSettled: () => {
 			queryClient.invalidateQueries({
-				queryKey: ["pages", "list", parent],
+				queryKey: queryKeys.pages.list(parent),
 			});
 		},
 	});
@@ -121,21 +123,21 @@ export const Pages = () => {
 			archived ? pagesApi.unarchive(id) : pagesApi.archive(id),
 		onMutate: async ({ id, archived }) => {
 			await queryClient.cancelQueries({
-				queryKey: ["pages", "list", parent],
+				queryKey: queryKeys.pages.list(parent),
 			});
-			const previous = queryClient.getQueryData<PageListRow[]>(["pages", "list", parent]);
+			const previous = queryClient.getQueryData<PageListRow[]>(queryKeys.pages.list(parent));
 			queryClient.setQueryData<PageListRow[]>(
-				["pages", "list", parent],
+				queryKeys.pages.list(parent),
 				(old) => old?.map((r) => (r.id === id ? { ...r, archived: !archived } : r)) ?? []
 			);
 			return { previous };
 		},
 		onError: (_err, _vars, ctx) => {
-			if (ctx?.previous) queryClient.setQueryData(["pages", "list", parent], ctx.previous);
+			if (ctx?.previous) queryClient.setQueryData(queryKeys.pages.list(parent), ctx.previous);
 		},
 		onSettled: () => {
 			queryClient.invalidateQueries({
-				queryKey: ["pages", "list", parent],
+				queryKey: queryKeys.pages.list(parent),
 			});
 		},
 		onSuccess: (_data, variables) => {
@@ -149,21 +151,21 @@ export const Pages = () => {
 			pendingChangeId ? pendingChangesApi.reject(pendingChangeId) : pagesApi.delete(id),
 		onMutate: async ({ id }) => {
 			await queryClient.cancelQueries({
-				queryKey: ["pages", "list", parent],
+				queryKey: queryKeys.pages.list(parent),
 			});
-			const previous = queryClient.getQueryData<PageListRow[]>(["pages", "list", parent]);
+			const previous = queryClient.getQueryData<PageListRow[]>(queryKeys.pages.list(parent));
 			queryClient.setQueryData<PageListRow[]>(
-				["pages", "list", parent],
+				queryKeys.pages.list(parent),
 				(old) => old?.filter((r) => r.id !== id) ?? []
 			);
 			return { previous };
 		},
 		onError: (_err, _vars, ctx) => {
-			if (ctx?.previous) queryClient.setQueryData(["pages", "list", parent], ctx.previous);
+			if (ctx?.previous) queryClient.setQueryData(queryKeys.pages.list(parent), ctx.previous);
 		},
 		onSettled: () => {
 			queryClient.invalidateQueries({
-				queryKey: ["pages", "list", parent],
+				queryKey: queryKeys.pages.list(parent),
 			});
 		},
 		onSuccess: () => {
@@ -291,7 +293,7 @@ export const Pages = () => {
 									onToggleArchive={(id) => {
 										const r = visible.find((x) => x.id === id);
 										if (r) {
-											setPendingConfirm({
+											confirmDialog.open({
 												type: r.archived ? "restore" : "archive",
 												id,
 												title: r.nav_title,
@@ -303,7 +305,7 @@ export const Pages = () => {
 										const r = visible.find((x) => x.id === id);
 
 										if (r) {
-											setPendingConfirm({
+											confirmDialog.open({
 												type: "delete",
 												id,
 												title: r.nav_title,
@@ -333,7 +335,7 @@ export const Pages = () => {
 									onToggleArchive={(id) => {
 										const r = hidden.find((x) => x.id === id);
 										if (r) {
-											setPendingConfirm({
+											confirmDialog.open({
 												type: r.archived ? "restore" : "archive",
 												id,
 												title: r.nav_title,
@@ -346,7 +348,7 @@ export const Pages = () => {
 										const r = hidden.find((x) => x.id === id);
 
 										if (r) {
-											setPendingConfirm({
+											confirmDialog.open({
 												type: "delete",
 												id,
 												title: r.nav_title,
@@ -376,7 +378,7 @@ export const Pages = () => {
 									onToggleArchive={(id) => {
 										const r = archived.find((x) => x.id === id);
 										if (r) {
-											setPendingConfirm({
+											confirmDialog.open({
 												type: "restore",
 												id,
 												title: r.nav_title,
@@ -388,7 +390,7 @@ export const Pages = () => {
 									onDelete={(id) => {
 										const r = archived.find((x) => x.id === id);
 										if (r) {
-											setPendingConfirm({
+											confirmDialog.open({
 												type: "delete",
 												id,
 												title: r.nav_title,
@@ -412,53 +414,53 @@ export const Pages = () => {
 			)}
 
 			<ConfirmDialog
-				open={!!pendingConfirm}
+				open={confirmDialog.isOpen}
 				onOpenChange={(open) => {
 					if (!open) {
-						setPendingConfirm(null);
+						confirmDialog.close();
 					}
 				}}
 				title={
-					pendingConfirm
-						? pendingConfirm.type === "delete"
+					confirmDialog.item
+						? confirmDialog.item.type === "delete"
 							? "Delete page"
-							: pendingConfirm.type === "restore"
+							: confirmDialog.item.type === "restore"
 								? "Restore page"
 								: "Archive page"
 						: ""
 				}
 				description={
-					pendingConfirm
-						? `Are you sure you want to ${pendingConfirm.type} "${pendingConfirm.title}"?`
+					confirmDialog.item
+						? `Are you sure you want to ${confirmDialog.item.type} "${confirmDialog.item.title}"?`
 						: ""
 				}
 				confirmLabel={
-					pendingConfirm
-						? pendingConfirm.type === "delete"
+					confirmDialog.item
+						? confirmDialog.item.type === "delete"
 							? "Delete"
-							: pendingConfirm.type === "restore"
+							: confirmDialog.item.type === "restore"
 								? "Restore"
 								: "Archive"
 						: ""
 				}
-				variant={pendingConfirm?.type === "delete" ? "danger" : "default"}
+				variant={confirmDialog.item?.type === "delete" ? "danger" : "default"}
 				onConfirm={() => {
-					if (pendingConfirm) {
-						if (pendingConfirm.type === "delete") {
+					if (confirmDialog.item) {
+						if (confirmDialog.item.type === "delete") {
 							deleteMutation.mutate({
-								id: pendingConfirm.id,
-								pendingChangeId: pendingConfirm.pendingChangeId,
+								id: confirmDialog.item.id,
+								pendingChangeId: confirmDialog.item.pendingChangeId,
 							});
 						} else {
-							const isRestoring = pendingConfirm.type === "restore";
+							const isRestoring = confirmDialog.item.type === "restore";
 
 							archiveMutation.mutate({
-								id: pendingConfirm.id,
+								id: confirmDialog.item.id,
 								archived: isRestoring,
 							});
 						}
 
-						setPendingConfirm(null);
+						confirmDialog.close();
 					}
 				}}
 			/>
@@ -471,7 +473,7 @@ export const Pages = () => {
 					}
 				}}
 				page={movingPage}
-				invalidateKey={["pages", "list", parent]}
+				invalidateKey={queryKeys.pages.list(parent)}
 			/>
 		</PageContainer>
 	);

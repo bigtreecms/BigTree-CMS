@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Plus, Trash } from "lucide-react";
@@ -16,16 +15,18 @@ import { DeveloperSectionNav } from "@/components/developer/DeveloperSectionNav"
 
 import { calloutsApi, type CalloutSummary } from "@/api/endpoints/callouts";
 
+import { queryKeys } from "@/lib/queryKeys";
+import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 import { useToastMutation } from "@/hooks/useToastMutation";
 
 const LEVEL_LABEL = ["Editor", "Admin", "Developer"];
 
 export const Callouts = () => {
 	const navigate = useNavigate();
-	const [confirmDelete, setConfirmDelete] = useState<CalloutSummary | null>(null);
+	const deleteDialog = useConfirmDialog<CalloutSummary>();
 
 	const query = useQuery({
-		queryKey: ["callouts", "list"],
+		queryKey: queryKeys.callouts.list(),
 		queryFn: () => calloutsApi.list(),
 	});
 
@@ -35,7 +36,7 @@ export const Callouts = () => {
 		successMessage: "Callout deleted",
 		errorMessage: "Delete failed",
 		onSuccess: () => {
-			setConfirmDelete(null);
+			deleteDialog.close();
 		},
 	});
 
@@ -93,7 +94,7 @@ export const Callouts = () => {
 					tone="danger"
 					onClick={(e) => {
 						e.stopPropagation();
-						setConfirmDelete(row);
+						deleteDialog.open(row);
 					}}
 					title="Delete callout"
 					label="Delete callout"
@@ -136,19 +137,19 @@ export const Callouts = () => {
 				}
 			/>
 
-			{confirmDelete && (
+			{deleteDialog.item && (
 				<ConfirmDialog
-					open
+					open={deleteDialog.isOpen}
 					onOpenChange={(open) => {
 						if (!open) {
-							setConfirmDelete(null);
+							deleteDialog.close();
 						}
 					}}
-					title={`Delete "${confirmDelete.name}"?`}
+					title={`Delete "${deleteDialog.item.name}"?`}
 					description="Removing a callout type can break existing Callouts-field entries that reference it."
 					confirmLabel="Delete callout"
 					variant="danger"
-					onConfirm={() => deleteMutation.mutate(confirmDelete.id)}
+					onConfirm={() => deleteMutation.mutate(deleteDialog.item!.id)}
 				/>
 			)}
 		</PageContainer>

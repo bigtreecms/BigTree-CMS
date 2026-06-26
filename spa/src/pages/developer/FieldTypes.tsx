@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Plus, Trash } from "lucide-react";
@@ -6,6 +6,7 @@ import { Plus, Trash } from "lucide-react";
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
 import { PageContainer } from "@/components/shell/PageContainer";
+import { Badge } from "@/components/ui/Badge";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
 import { MonoText } from "@/components/ui/MonoText";
@@ -16,7 +17,9 @@ import { DeveloperSectionNav } from "@/components/developer/DeveloperSectionNav"
 
 import { fieldTypesApi, type FieldType } from "@/api/endpoints/field-types";
 
+import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 import { useToastMutation } from "@/hooks/useToastMutation";
+import { queryKeys } from "@/lib/queryKeys";
 
 /**
  * /developer/field-types — list the custom (user-defined) field types.
@@ -30,20 +33,20 @@ type Row = FieldType;
 
 export const FieldTypes = () => {
 	const navigate = useNavigate();
-	const [confirmDelete, setConfirmDelete] = useState<Row | null>(null);
+	const deleteDialog = useConfirmDialog<Row>();
 
 	const query = useQuery({
-		queryKey: ["field-types", "split"],
+		queryKey: queryKeys.fieldTypes.split(),
 		queryFn: () => fieldTypesApi.listSplit(),
 	});
 
 	const deleteMutation = useToastMutation({
 		mutationFn: (id: string) => fieldTypesApi.delete(id),
-		invalidate: [["field-types"]],
+		invalidate: [queryKeys.fieldTypes.root()],
 		successMessage: "Field type deleted",
 		errorMessage: "Delete failed",
 		onSuccess: () => {
-			setConfirmDelete(null);
+			deleteDialog.close();
 		},
 	});
 
@@ -77,12 +80,9 @@ export const FieldTypes = () => {
 				) : (
 					<div className="flex flex-wrap gap-1">
 						{uses.map((u) => (
-							<span
-								key={u}
-								className="rounded bg-surface-2 px-1.5 py-0.5 text-[10.5px] text-text-3"
-							>
+							<Badge key={u} size="sm">
 								{u}
-							</span>
+							</Badge>
 						))}
 					</div>
 				);
@@ -110,7 +110,7 @@ export const FieldTypes = () => {
 					tone="danger"
 					onClick={(e) => {
 						e.stopPropagation();
-						setConfirmDelete(row);
+						deleteDialog.open(row);
 					}}
 					title="Delete field type"
 					label="Delete field type"
@@ -155,19 +155,19 @@ export const FieldTypes = () => {
 				}}
 			/>
 
-			{confirmDelete && (
+			{deleteDialog.item && (
 				<ConfirmDialog
-					open
+					open={deleteDialog.isOpen}
 					onOpenChange={(open) => {
 						if (!open) {
-							setConfirmDelete(null);
+							deleteDialog.close();
 						}
 					}}
-					title={`Delete "${confirmDelete.name || confirmDelete.id}"?`}
+					title={`Delete "${deleteDialog.item.name || deleteDialog.item.id}"?`}
 					description="Any field already using this type will fall through to the StubField renderer until it's reassigned."
 					confirmLabel="Delete"
 					variant="danger"
-					onConfirm={() => deleteMutation.mutate(confirmDelete.id)}
+					onConfirm={() => deleteMutation.mutate(deleteDialog.item!.id)}
 				/>
 			)}
 		</PageContainer>

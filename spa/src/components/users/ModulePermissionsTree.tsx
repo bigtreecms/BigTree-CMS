@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 
 import { modulesApi, type ModuleGroup, type ModuleSummary } from "@/api/endpoints/modules";
+import { queryKeys } from "@/lib/queryKeys";
 import type { PermissionCode, UserPermissions } from "@/api/endpoints/users";
 
 import { SectionLabel } from "@/components/ui/SectionLabel";
@@ -33,7 +34,7 @@ interface GbpCategoryRowsProps {
  */
 const GbpCategoryRows = ({ module, value, onChange }: GbpCategoryRowsProps) => {
 	const categoriesQ = useQuery({
-		queryKey: ["modules", module.id, "gbp-categories"],
+		queryKey: queryKeys.modules.gbpCategories(module.id),
 		queryFn: () => modulesApi.gbpCategories(module.id),
 	});
 
@@ -101,9 +102,9 @@ export const ModulePermissionsTree = ({
 	gbpValue,
 	onGbpChange,
 }: ModulePermissionsTreeProps) => {
-	const modulesQ = useQuery({ queryKey: ["modules", "list"], queryFn: modulesApi.list });
+	const modulesQ = useQuery({ queryKey: queryKeys.modules.list(), queryFn: modulesApi.list });
 	const groupsQ = useQuery({
-		queryKey: ["module-groups", "list"],
+		queryKey: queryKeys.moduleGroups.list(),
 		queryFn: modulesApi.listGroups,
 	});
 

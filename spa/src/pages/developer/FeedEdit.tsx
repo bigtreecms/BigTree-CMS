@@ -24,9 +24,9 @@ import { useResourceSettingsValidation } from "@/components/developer/field-sett
 import { feedsApi, type FeedEditBody } from "@/api/endpoints/feeds";
 import type { ModuleFormField } from "@/api/endpoints/modules";
 
-import { ApiError } from "@/types/api";
 import { toast } from "@/lib/toast";
-import { useScrollToFirstError } from "@/hooks/useScrollToFirstError";
+import { queryKeys } from "@/lib/queryKeys";
+import { useFormSubmit } from "@/hooks/useFormSubmit";
 import { useReturnTo } from "@/hooks/useReturnTo";
 import { validateRequired } from "@/lib/formValidation";
 
@@ -54,7 +54,7 @@ export const FeedEdit = () => {
 	const queryClient = useQueryClient();
 
 	const detailQ = useQuery({
-		queryKey: ["feeds", "detail", idParam],
+		queryKey: queryKeys.feeds.detail(idParam),
 		queryFn: () => feedsApi.get(idParam as string),
 		enabled: !isAdd,
 	});
@@ -72,13 +72,10 @@ export const FeedEdit = () => {
 				}
 			: {}
 	);
-	const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
-
-	useScrollToFirstError(fieldErrors);
+	const { error, setError, fieldErrors, setFieldErrors, onMutationError } = useFormSubmit();
 	const [settingsErrors, setSettingsErrors] = useState<Record<number, Record<string, string>>>(
 		{}
 	);
-	const [generalError, setGeneralError] = useState<string | null>(null);
 	const [seeded, setSeeded] = useState(isAdd);
 
 	const settingsValidation = useResourceSettingsValidation(
@@ -106,7 +103,7 @@ export const FeedEdit = () => {
 		mutationFn: (next: FeedEditBody) =>
 			isAdd ? feedsApi.create(next) : feedsApi.update(idParam as string, next),
 		onSuccess: (fresh) => {
-			queryClient.invalidateQueries({ queryKey: ["feeds"] });
+			queryClient.invalidateQueries({ queryKey: queryKeys.feeds.root() });
 			toast.success(isAdd ? "Feed created" : "Feed saved");
 
 			if (isAdd) {
@@ -117,19 +114,7 @@ export const FeedEdit = () => {
 				navigate(returnTo);
 			}
 		},
-		onError: (err) => {
-			if (err instanceof ApiError) {
-				const fe = err.fieldErrors();
-
-				if (Object.keys(fe).length > 0) {
-					setFieldErrors(fe);
-				}
-
-				setGeneralError(err.message);
-			} else {
-				setGeneralError(err instanceof Error ? err.message : "Save failed");
-			}
-		},
+		onError: (err) => onMutationError(err, "Save failed"),
 	});
 
 	const isDirty = useDirtyTracker(body, seeded) && !saveMutation.isPending;
@@ -180,9 +165,9 @@ export const FeedEdit = () => {
 
 			<DeveloperSectionNav />
 
-			{generalError && (
+			{error && (
 				<Alert tone="danger" className="mb-3">
-					{generalError}
+					{error}
 				</Alert>
 			)}
 
@@ -200,14 +185,14 @@ export const FeedEdit = () => {
 					if (Object.keys(errors).length > 0 || Object.keys(sErrors).length > 0) {
 						setFieldErrors(errors);
 						setSettingsErrors(sErrors);
-						setGeneralError("Please fill in the required fields.");
+						setError("Please fill in the required fields.");
 
 						return;
 					}
 
 					setFieldErrors({});
 					setSettingsErrors({});
-					setGeneralError(null);
+					setError(null);
 					saveMutation.mutate(body);
 				}}
 				footer={

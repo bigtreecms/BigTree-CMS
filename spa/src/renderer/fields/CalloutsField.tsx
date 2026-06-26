@@ -10,6 +10,7 @@ import { IconButton } from "@/components/ui/IconButton";
 import { LoadingText } from "@/components/ui/LoadingText";
 import { Select } from "@/components/ui/Select";
 import { calloutsApi, type CalloutSummary } from "@/api/endpoints/callouts";
+import { queryKeys } from "@/lib/queryKeys";
 import { resourceToFormField } from "@/api/endpoints/templates";
 
 import { FieldRenderer } from "@/renderer/forms/FieldRenderer";
@@ -117,9 +118,6 @@ const normalizeGroups = (settings: CalloutsFieldSettings): string[] => {
 	return groups;
 };
 
-const CALLOUTS_KEY = ["callouts", "list"] as const;
-const CALLOUT_GROUPS_KEY = ["callout-groups", "list"] as const;
-
 export const CalloutsField = ({ field, value, onChange, disabled }: FieldComponentProps) => {
 	const settings = settingsOf(field) as CalloutsFieldSettings;
 	const noun =
@@ -131,12 +129,12 @@ export const CalloutsField = ({ field, value, onChange, disabled }: FieldCompone
 	const userLevel = useAuthStore((state) => state.user?.level ?? 0);
 
 	const calloutsQuery = useQuery({
-		queryKey: CALLOUTS_KEY,
+		queryKey: queryKeys.callouts.list(),
 		queryFn: () => calloutsApi.list(),
 	});
 
 	const groupsQuery = useQuery({
-		queryKey: CALLOUT_GROUPS_KEY,
+		queryKey: queryKeys.calloutGroups.list(),
 		queryFn: () => calloutsApi.listGroups(),
 		enabled: groupIds.length > 0,
 	});

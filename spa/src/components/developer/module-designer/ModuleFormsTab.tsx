@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
+import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 import { useQuery } from "@tanstack/react-query";
 
 import { useScrollToFirstError } from "@/hooks/useScrollToFirstError";
+import { queryKeys } from "@/lib/queryKeys";
 
 import {
 	modulesApi,
@@ -92,7 +94,7 @@ export const ModuleFormsTab = ({ moduleId, moduleTable }: ModuleFormsTabProps) =
 	});
 
 	const [draft, setDraft] = useState<Draft>(() => emptyDraft(moduleTable));
-	const [pendingDelete, setPendingDelete] = useState<ModuleForm | null>(null);
+	const deleteDialog = useConfirmDialog<ModuleForm>();
 	const [settingsErrors, setSettingsErrors] = useState<Record<number, Record<string, string>>>(
 		{}
 	);
@@ -117,7 +119,7 @@ export const ModuleFormsTab = ({ moduleId, moduleTable }: ModuleFormsTabProps) =
 	}, [crud.editingId]);
 
 	const viewsQ = useQuery({
-		queryKey: ["modules", moduleId, "views"],
+		queryKey: queryKeys.modules.moduleViews(moduleId),
 		queryFn: () => modulesApi.views(moduleId),
 	});
 
@@ -155,7 +157,7 @@ export const ModuleFormsTab = ({ moduleId, moduleTable }: ModuleFormsTabProps) =
 						subtitle={f.table}
 						badge={`${Array.isArray(f.fields) ? f.fields.length : 0} fields`}
 						onEdit={() => crud.startEdit(f.id)}
-						onDelete={() => setPendingDelete(f)}
+						onDelete={() => deleteDialog.open(f)}
 					/>
 				))}
 			</SubList>
@@ -253,21 +255,17 @@ export const ModuleFormsTab = ({ moduleId, moduleTable }: ModuleFormsTabProps) =
 				</EditorCard>
 			)}
 
-			{pendingDelete && (
+			{deleteDialog.item && (
 				<ConfirmDialog
-					open
-					onOpenChange={(open) => {
-						if (!open) {
-							setPendingDelete(null);
-						}
-					}}
-					title={`Delete form "${pendingDelete.title}"?`}
+					open={deleteDialog.isOpen}
+					onOpenChange={(v) => { if (!v) deleteDialog.close(); }}
+					title={`Delete form "${deleteDialog.item.title}"?`}
 					description="Actions that open this form will need to be repointed. Entry data in the module's table is left intact."
 					confirmLabel="Delete form"
 					variant="danger"
 					onConfirm={() => {
-						crud.remove(pendingDelete.id);
-						setPendingDelete(null);
+						crud.remove(deleteDialog.item!.id);
+						deleteDialog.close();
 					}}
 				/>
 			)}

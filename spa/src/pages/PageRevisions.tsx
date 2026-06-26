@@ -15,7 +15,9 @@ import { Card } from "@/components/ui/Card";
 
 import { pagesApi, type PageRevision } from "@/api/endpoints/pages";
 
+import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 import { useToastMutation } from "@/hooks/useToastMutation";
+import { queryKeys } from "@/lib/queryKeys";
 import { InlineEmpty } from "@/components/ui/InlineEmpty";
 import { IconButton } from "@/components/ui/IconButton";
 import { SectionLabel } from "@/components/ui/SectionLabel";
@@ -39,24 +41,24 @@ export const PageRevisions = () => {
 	const valid = Number.isFinite(id) && id > 0;
 
 	const pageQuery = useQuery({
-		queryKey: ["pages", "detail", id, { lineage: true }],
+		queryKey: queryKeys.pages.detail(id, { lineage: true }),
 		queryFn: () => pagesApi.get(id, { lineage: true }),
 		enabled: valid,
 	});
 
 	const revisionsQuery = useQuery({
-		queryKey: ["pages", "revisions", id],
+		queryKey: queryKeys.pages.revisions(id),
 		queryFn: () => pagesApi.revisions.list(id),
 		enabled: valid,
 	});
 
 	const [description, setDescription] = useState("");
-	const [confirmDelete, setConfirmDelete] = useState<PageRevision | null>(null);
-	const [confirmRestore, setConfirmRestore] = useState<PageRevision | null>(null);
+	const deleteDialog = useConfirmDialog<PageRevision>();
+	const restoreDialog = useConfirmDialog<PageRevision>();
 
 	const saveMutation = useToastMutation({
 		mutationFn: () => pagesApi.revisions.save(id, description.trim()),
-		invalidate: [["pages", "revisions", id]],
+		invalidate: [queryKeys.pages.revisions(id)],
 		successMessage: "Revision saved",
 		errorMessage: "Could not save revision",
 		onSuccess: () => {
@@ -66,22 +68,22 @@ export const PageRevisions = () => {
 
 	const deleteMutation = useToastMutation({
 		mutationFn: (rev: PageRevision) => pagesApi.revisions.delete(id, rev.id),
-		invalidate: [["pages", "revisions", id]],
+		invalidate: [queryKeys.pages.revisions(id)],
 		successMessage: "Revision deleted",
 		errorMessage: "Could not delete revision",
 		onSuccess: () => {
-			setConfirmDelete(null);
+			deleteDialog.close();
 		},
 	});
 
 	const restoreMutation = useToastMutation({
 		mutationFn: (rev: PageRevision) => pagesApi.revisions.restore(id, rev.id),
 		// Restore rewrites the live page and adds an auto-snapshot revision.
-		invalidate: [["pages", "revisions", id], ["pages", "detail", id]],
+		invalidate: [queryKeys.pages.revisions(id), queryKeys.pages.detail(id)],
 		successMessage: "Revision restored to the live page",
 		errorMessage: "Could not restore revision",
 		onSuccess: () => {
-			setConfirmRestore(null);
+			restoreDialog.close();
 		},
 	});
 
@@ -165,46 +167,46 @@ export const PageRevisions = () => {
 				empty="No saved revisions yet. Use the form above to create one."
 				revisions={saved}
 				showDescription
-				onDelete={setConfirmDelete}
-				onRestore={setConfirmRestore}
+				onDelete={deleteDialog.open}
+				onRestore={restoreDialog.open}
 			/>
 
 			<RevisionSection
 				title="Auto-saved revisions"
 				empty="No auto-saved revisions on file."
 				revisions={unsaved}
-				onDelete={setConfirmDelete}
-				onRestore={setConfirmRestore}
+				onDelete={deleteDialog.open}
+				onRestore={restoreDialog.open}
 			/>
 
-			{confirmDelete && (
+			{deleteDialog.item && (
 				<ConfirmDialog
-					open={true}
+					open={deleteDialog.isOpen}
 					onOpenChange={(open) => {
 						if (!open) {
-							setConfirmDelete(null);
+							deleteDialog.close();
 						}
 					}}
 					title="Delete revision?"
-					description={`This will permanently remove the snapshot from ${confirmDelete.updated_at}.`}
+					description={`This will permanently remove the snapshot from ${deleteDialog.item.updated_at}.`}
 					confirmLabel="Delete revision"
 					variant="danger"
-					onConfirm={() => deleteMutation.mutate(confirmDelete)}
+					onConfirm={() => deleteMutation.mutate(deleteDialog.item!)}
 				/>
 			)}
 
-			{confirmRestore && (
+			{restoreDialog.item && (
 				<ConfirmDialog
-					open={true}
+					open={restoreDialog.isOpen}
 					onOpenChange={(open) => {
 						if (!open) {
-							setConfirmRestore(null);
+							restoreDialog.close();
 						}
 					}}
 					title="Restore this revision?"
-					description={`The live page will be overwritten with the version from ${confirmRestore.updated_at}. The current version is snapshotted first, so you can undo this.`}
+					description={`The live page will be overwritten with the version from ${restoreDialog.item.updated_at}. The current version is snapshotted first, so you can undo this.`}
 					confirmLabel="Restore revision"
-					onConfirm={() => restoreMutation.mutate(confirmRestore)}
+					onConfirm={() => restoreMutation.mutate(restoreDialog.item!)}
 				/>
 			)}
 		</PageContainer>

@@ -18,6 +18,7 @@ import {
 	type UpgradeMethod,
 } from "@/api/endpoints/system";
 import { ApiError } from "@/types/api";
+import { queryKeys } from "@/lib/queryKeys";
 
 type Stage =
 	| "idle"
@@ -43,7 +44,7 @@ const errMessage = (err: unknown, fallback: string): string => {
 
 export const DebugUpgrade = () => {
 	const checkQ = useQuery({
-		queryKey: ["system", "upgrade", "check"],
+		queryKey: queryKeys.system.upgradeCheck(),
 		queryFn: () => systemApi.upgrade.check(),
 	});
 

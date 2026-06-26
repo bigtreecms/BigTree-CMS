@@ -20,9 +20,9 @@ import { ModuleGroupModulesList } from "@/components/developer/ModuleGroupModule
 
 import { modulesApi, type ModuleGroup } from "@/api/endpoints/modules";
 
-import { ApiError } from "@/types/api";
 import { toast } from "@/lib/toast";
-import { useScrollToFirstError } from "@/hooks/useScrollToFirstError";
+import { queryKeys } from "@/lib/queryKeys";
+import { useFormSubmit } from "@/hooks/useFormSubmit";
 import { useReturnTo } from "@/hooks/useReturnTo";
 import { validateRequired } from "@/lib/formValidation";
 
@@ -43,16 +43,13 @@ export const ModuleGroupEdit = () => {
 	const queryClient = useQueryClient();
 
 	const detailQ = useQuery({
-		queryKey: ["module-groups", "list"],
+		queryKey: queryKeys.moduleGroups.list(),
 		queryFn: () => modulesApi.listGroups(),
 		enabled: !isAdd,
 	});
 
 	const [body, setBody] = useState<Body>({ name: "", route: "", position: 0 });
-	const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
-
-	useScrollToFirstError(fieldErrors);
-	const [generalError, setGeneralError] = useState<string | null>(null);
+	const { error, fieldErrors, handleSubmit, onMutationError } = useFormSubmit();
 	const [seeded, setSeeded] = useState(isAdd);
 
 	useEffect(() => {
@@ -76,7 +73,7 @@ export const ModuleGroupEdit = () => {
 				? modulesApi.createGroup({ name: body.name, route: body.route || undefined })
 				: modulesApi.updateGroup(idParam as string, body),
 		onSuccess: (fresh) => {
-			queryClient.invalidateQueries({ queryKey: ["module-groups"] });
+			queryClient.invalidateQueries({ queryKey: queryKeys.moduleGroups.root() });
 			toast.success(isAdd ? "Group created" : "Group saved");
 
 			if (isAdd) {
@@ -87,19 +84,7 @@ export const ModuleGroupEdit = () => {
 				navigate(returnTo);
 			}
 		},
-		onError: (err) => {
-			if (err instanceof ApiError) {
-				const fe = err.fieldErrors();
-
-				if (Object.keys(fe).length > 0) {
-					setFieldErrors(fe);
-				}
-
-				setGeneralError(err.message);
-			} else {
-				setGeneralError(err instanceof Error ? err.message : "Save failed");
-			}
-		},
+		onError: (err) => onMutationError(err, "Save failed"),
 	});
 
 	const isDirty = useDirtyTracker(body, seeded) && !saveMutation.isPending;
@@ -147,31 +132,20 @@ export const ModuleGroupEdit = () => {
 
 			<DeveloperSectionNav />
 
-			{generalError && (
+			{error && (
 				<Alert tone="danger" className="mb-3">
-					{generalError}
+					{error}
 				</Alert>
 			)}
 
 			<FormShell
-				onSubmit={(e) => {
-					e.preventDefault();
-
-					const errors = validateRequired([
-						{ field: "name", label: "Name", value: body.name },
-					]);
-
-					if (Object.keys(errors).length > 0) {
-						setFieldErrors(errors);
-						setGeneralError("Please fill in the required fields.");
-
-						return;
-					}
-
-					setFieldErrors({});
-					setGeneralError(null);
-					saveMutation.mutate();
-				}}
+				onSubmit={(e) =>
+					handleSubmit(
+						e,
+						() => validateRequired([{ field: "name", label: "Name", value: body.name }]),
+						() => saveMutation.mutate()
+					)
+				}
 				footer={
 					<FormFooter
 						cancelTo="/developer/module-groups"

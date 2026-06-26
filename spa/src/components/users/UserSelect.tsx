@@ -3,6 +3,7 @@ import { keepPreviousData, useQuery } from "@tanstack/react-query";
 
 import { Combobox, type ComboboxOption } from "@/components/ui/Combobox";
 import { usersApi, type UserListItem } from "@/api/endpoints/users";
+import { queryKeys } from "@/lib/queryKeys";
 
 interface UserSelectProps {
 	/** Selected user id, or null when nothing is chosen. */
@@ -50,7 +51,7 @@ export const UserSelect = ({
 	}, [query]);
 
 	const listQ = useQuery({
-		queryKey: ["user-select", debounced],
+		queryKey: queryKeys.userSelect.search(debounced),
 		queryFn: () => usersApi.list({ q: debounced || undefined, per_page: 25 }),
 		placeholderData: keepPreviousData,
 	});
@@ -58,7 +59,7 @@ export const UserSelect = ({
 	// Resolve the label for a pre-set value we don't have an option for yet
 	// (deep links, restored filters). Skipped once we hold the matching option.
 	const resolveQ = useQuery({
-		queryKey: ["user-select", "resolve", value],
+		queryKey: queryKeys.userSelect.resolve(value),
 		queryFn: () => usersApi.get(value as number),
 		enabled: value !== null && selected?.value !== value,
 	});

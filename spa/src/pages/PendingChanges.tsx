@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 
@@ -13,7 +13,9 @@ import { PendingChangeGroup } from "@/components/pending-changes/PendingChangeGr
 
 import { pendingChangesApi, type PendingChange } from "@/api/endpoints/dashboard";
 import { formatNumber } from "@/lib/number";
+import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 import { useToastMutation } from "@/hooks/useToastMutation";
+import { queryKeys } from "@/lib/queryKeys";
 import { groupPendingByCategory, isPageChange } from "@/lib/pendingChanges";
 
 /**
@@ -32,10 +34,10 @@ type PendingAction = { kind: "approve" | "reject"; change: PendingChange };
 export const PendingChanges = () => {
 	const navigate = useNavigate();
 
-	const [pendingAction, setPendingAction] = useState<PendingAction | null>(null);
+	const actionDialog = useConfirmDialog<PendingAction>();
 
 	const listQ = useQuery({
-		queryKey: ["pending-changes", "list", { mine: false }],
+		queryKey: queryKeys.pendingChanges.list({ mine: false }),
 		queryFn: () => pendingChangesApi.list(),
 	});
 
@@ -74,22 +76,22 @@ export const PendingChanges = () => {
 			return;
 		}
 
-		setPendingAction({ kind: "approve", change });
+		actionDialog.open({ kind: "approve", change });
 	};
 
 	const handleReject = (change: PendingChange) => {
-		setPendingAction({ kind: "reject", change });
+		actionDialog.open({ kind: "reject", change });
 	};
 
 	const confirmAction = () => {
-		if (!pendingAction) {
+		if (!actionDialog.item) {
 			return;
 		}
 
-		if (pendingAction.kind === "approve") {
-			approveMutation.mutate(pendingAction.change.id);
+		if (actionDialog.item.kind === "approve") {
+			approveMutation.mutate(actionDialog.item.change.id);
 		} else {
-			rejectMutation.mutate(pendingAction.change.id);
+			rejectMutation.mutate(actionDialog.item.change.id);
 		}
 	};
 
@@ -137,26 +139,26 @@ export const PendingChanges = () => {
 				</div>
 			)}
 
-			{pendingAction && (
+			{actionDialog.item && (
 				<ConfirmDialog
-					open
+					open={actionDialog.isOpen}
 					onOpenChange={(open) => {
 						if (!open) {
-							setPendingAction(null);
+							actionDialog.close();
 						}
 					}}
 					title={
-						pendingAction.kind === "approve"
+						actionDialog.item.kind === "approve"
 							? "Approve this change?"
 							: "Reject this change?"
 					}
 					description={
-						pendingAction.kind === "approve"
+						actionDialog.item.kind === "approve"
 							? "The pending change will be merged into the live record."
 							: "The pending change will be discarded. The submitting user will need to redo their edits."
 					}
-					confirmLabel={pendingAction.kind === "approve" ? "Approve & publish" : "Reject"}
-					variant={pendingAction.kind === "reject" ? "danger" : "default"}
+					confirmLabel={actionDialog.item.kind === "approve" ? "Approve & publish" : "Reject"}
+					variant={actionDialog.item.kind === "reject" ? "danger" : "default"}
 					onConfirm={confirmAction}
 				/>
 			)}

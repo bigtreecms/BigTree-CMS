@@ -15,6 +15,7 @@ import { configureApi, type EmailConfig, type EmailServiceId } from "@/api/endpo
 
 import { ApiError } from "@/types/api";
 import { toast } from "@/lib/toast";
+import { queryKeys } from "@/lib/queryKeys";
 
 const SERVICES: Array<{ id: EmailServiceId; label: string; blurb: string }> = [
 	{
@@ -33,7 +34,7 @@ export const ConfigureEmail = () => {
 	const queryClient = useQueryClient();
 
 	const detailQ = useQuery({
-		queryKey: ["configure", "email"],
+		queryKey: queryKeys.configure.email(),
 		queryFn: () => configureApi.email.get(),
 	});
 
@@ -52,7 +53,7 @@ export const ConfigureEmail = () => {
 	const saveMutation = useMutation({
 		mutationFn: (next: EmailConfig) => configureApi.email.update(next),
 		onSuccess: (fresh) => {
-			queryClient.setQueryData(["configure", "email"], fresh);
+			queryClient.setQueryData(queryKeys.configure.email(), fresh);
 			toast.success("Email service updated");
 			setGeneralError(null);
 		},

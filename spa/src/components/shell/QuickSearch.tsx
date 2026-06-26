@@ -6,6 +6,7 @@ import { FileText, LayoutGrid, Search, Tag, Users, X } from "lucide-react";
 
 import { IconButton } from "@/components/ui/IconButton";
 import { searchApi, type SearchResultGroups } from "@/api/endpoints/search";
+import { queryKeys } from "@/lib/queryKeys";
 import { useAuthStore } from "@/auth/store";
 import { isAdmin } from "@/lib/permissions";
 
@@ -82,7 +83,7 @@ export const QuickSearch = ({ open, onClose }: QuickSearchProps) => {
 	}
 
 	const { data: groups, isLoading } = useQuery({
-		queryKey: ["search", debouncedQuery],
+		queryKey: queryKeys.search.results(debouncedQuery),
 		queryFn: () => searchApi.search(debouncedQuery, { limit: 8 }),
 		enabled: open && debouncedQuery.length >= 2,
 	});

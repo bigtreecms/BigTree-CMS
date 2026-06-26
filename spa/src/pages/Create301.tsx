@@ -13,9 +13,9 @@ import { FormShell } from "@/components/ui/FormShell";
 
 import { fourOhFoursApi } from "@/api/endpoints/four-oh-fours";
 
-import { ApiError } from "@/types/api";
 import { toast } from "@/lib/toast";
-import { useScrollToFirstError } from "@/hooks/useScrollToFirstError";
+import { queryKeys } from "@/lib/queryKeys";
+import { useFormSubmit } from "@/hooks/useFormSubmit";
 import { useDirtyTracker } from "@/hooks/useDirtyTracker";
 import { UnsavedChangesGuard } from "@/components/ui/UnsavedChangesGuard";
 import { validateRequired } from "@/lib/formValidation";
@@ -35,13 +35,10 @@ export const Create301 = () => {
 	const [from, setFrom] = useState("");
 	const [to, setTo] = useState("");
 	const [siteKey, setSiteKey] = useState("");
-	const [error, setError] = useState<string | null>(null);
-	const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
-
-	useScrollToFirstError(fieldErrors);
+	const { error, fieldErrors, handleSubmit, onMutationError } = useFormSubmit();
 
 	const sitesQ = useQuery({
-		queryKey: ["404s", "sites"],
+		queryKey: queryKeys.redirects.sites(),
 		queryFn: () => fourOhFoursApi.sites(),
 	});
 
@@ -56,16 +53,12 @@ export const Create301 = () => {
 				site_key: multisite && siteKey ? siteKey : undefined,
 			}),
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ["404s"] });
-			queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+			queryClient.invalidateQueries({ queryKey: queryKeys.redirects.root() });
+			queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.root() });
 			toast.success("Redirect created");
 			navigate("/dashboard/404s/301");
 		},
-		onError: (err) => {
-			setError(
-				err instanceof ApiError && err.message ? err.message : "Could not create redirect"
-			);
-		},
+		onError: (err) => onMutationError(err, "Could not create redirect"),
 	});
 
 	const isDirty = useDirtyTracker({ from, to, siteKey }) && !createMutation.isPending;
@@ -98,25 +91,17 @@ export const Create301 = () => {
 			)}
 
 			<FormShell
-				onSubmit={(e) => {
-					e.preventDefault();
-
-					const errors = validateRequired([
-						{ field: "from", label: "From", value: from },
-						{ field: "to", label: "To", value: to },
-					]);
-
-					if (Object.keys(errors).length > 0) {
-						setFieldErrors(errors);
-						setError("Please fill in the required fields.");
-
-						return;
-					}
-
-					setFieldErrors({});
-					setError(null);
-					createMutation.mutate();
-				}}
+				onSubmit={(e) =>
+					handleSubmit(
+						e,
+						() =>
+							validateRequired([
+								{ field: "from", label: "From", value: from },
+								{ field: "to", label: "To", value: to },
+							]),
+						() => createMutation.mutate()
+					)
+				}
 				footer={
 					<FormFooter
 						cancelTo="/dashboard/404s/301"

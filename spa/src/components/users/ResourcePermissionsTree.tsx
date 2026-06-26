@@ -4,6 +4,7 @@ import { ChevronDown, ChevronRight } from "lucide-react";
 
 import { IconButton } from "@/components/ui/IconButton";
 import { resourceFoldersApi, type ResourceFolderRow } from "@/api/endpoints/resource-folders";
+import { queryKeys } from "@/lib/queryKeys";
 import type { PermissionCode, UserPermissions } from "@/api/endpoints/users";
 
 import { PermissionRadios } from "./PermissionRadios";
@@ -147,7 +148,7 @@ interface FolderChildrenProps {
 
 const FolderChildren = ({ parent, depth, value, setPerm }: FolderChildrenProps) => {
 	const { data, isLoading } = useQuery({
-		queryKey: ["resource-folders", "subfolders", parent],
+		queryKey: queryKeys.resourceFolders.subfolders(parent),
 		queryFn: () => resourceFoldersApi.listSubfolders(parent),
 	});
 

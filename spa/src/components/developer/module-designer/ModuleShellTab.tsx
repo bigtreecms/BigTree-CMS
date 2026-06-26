@@ -20,6 +20,7 @@ import { UnsavedChangesGuard } from "@/components/ui/UnsavedChangesGuard";
 import { Card } from "@/components/ui/Card";
 import { toast } from "@/lib/toast";
 import { validateRequired } from "@/lib/formValidation";
+import { queryKeys } from "@/lib/queryKeys";
 
 import { DataTableSelect } from "@/components/developer/DataTableSelect";
 import { IconPicker } from "@/components/developer/IconPicker";
@@ -105,14 +106,14 @@ export const ModuleShellTab = ({ moduleId, module }: ModuleShellTabProps) => {
 	}, [module]);
 
 	const groupsQ = useQuery({
-		queryKey: ["module-groups", "list"],
+		queryKey: queryKeys.moduleGroups.list(),
 		queryFn: () => modulesApi.listGroups(),
 	});
 
 	const createGroupMutation = useMutation({
 		mutationFn: (name: string) => modulesApi.createGroup({ name }),
 		onSuccess: (group) => {
-			queryClient.invalidateQueries({ queryKey: ["module-groups"] });
+			queryClient.invalidateQueries({ queryKey: queryKeys.moduleGroups.root() });
 			setState((prev) => ({ ...prev, group: group.id }));
 			setCreatingGroup(false);
 			setNewGroupName("");
@@ -139,7 +140,7 @@ export const ModuleShellTab = ({ moduleId, module }: ModuleShellTabProps) => {
 		mutationFn: (s: ShellState) =>
 			isAdd ? modulesApi.create(toBody(s)) : modulesApi.update(moduleId as string, toBody(s)),
 		onSuccess: (fresh) => {
-			queryClient.invalidateQueries({ queryKey: ["modules"] });
+			queryClient.invalidateQueries({ queryKey: queryKeys.modules.root() });
 			toast.success(isAdd ? "Module created" : "Module saved");
 
 			if (isAdd) {

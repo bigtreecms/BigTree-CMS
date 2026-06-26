@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 import { Plus, Trash } from "lucide-react";
 
 import { Button } from "@/components/ui/Button";
@@ -15,6 +16,7 @@ import {
 } from "@/api/endpoints/modules";
 
 import { dbApi } from "@/api/endpoints/db";
+import { queryKeys } from "@/lib/queryKeys";
 
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 
@@ -175,17 +177,17 @@ export const ModuleViewsTab = ({ moduleId, moduleTable }: ModuleViewsTabProps) =
 	});
 
 	const [draft, setDraft] = useState<Draft>(() => emptyDraft(moduleTable));
-	const [pendingDelete, setPendingDelete] = useState<ModuleView | null>(null);
+	const deleteDialog = useConfirmDialog<ModuleView>();
 
 	const formsQ = useQuery({
-		queryKey: ["modules", moduleId, "forms"],
+		queryKey: queryKeys.modules.moduleForms(moduleId),
 		queryFn: () => modulesApi.forms(moduleId),
 	});
 
 	// Columns of the chosen table drive the column picker and which row-action
 	// toggles are offered. Only fetched once a table is selected.
 	const columnsQ = useQuery({
-		queryKey: ["db", "columns", draft.table],
+		queryKey: queryKeys.db.columns(draft.table),
 		queryFn: () => dbApi.columns(draft.table),
 		enabled: draft.table !== "",
 		staleTime: 5 * 60 * 1000,
@@ -248,7 +250,7 @@ export const ModuleViewsTab = ({ moduleId, moduleTable }: ModuleViewsTabProps) =
 						subtitle={v.table}
 						badge={v.type}
 						onEdit={() => crud.startEdit(v.id)}
-						onDelete={() => setPendingDelete(v)}
+						onDelete={() => deleteDialog.open(v)}
 					/>
 				))}
 			</SubList>
@@ -451,21 +453,17 @@ export const ModuleViewsTab = ({ moduleId, moduleTable }: ModuleViewsTabProps) =
 				</EditorCard>
 			)}
 
-			{pendingDelete && (
+			{deleteDialog.item && (
 				<ConfirmDialog
-					open
-					onOpenChange={(open) => {
-						if (!open) {
-							setPendingDelete(null);
-						}
-					}}
-					title={`Delete view "${pendingDelete.title}"?`}
+					open={deleteDialog.isOpen}
+					onOpenChange={(v) => { if (!v) deleteDialog.close(); }}
+					title={`Delete view "${deleteDialog.item.title}"?`}
 					description="Actions and reports that reference this view will need to be repointed. Entry data is left intact."
 					confirmLabel="Delete view"
 					variant="danger"
 					onConfirm={() => {
-						crud.remove(pendingDelete.id);
-						setPendingDelete(null);
+						crud.remove(deleteDialog.item!.id);
+						deleteDialog.close();
 					}}
 				/>
 			)}

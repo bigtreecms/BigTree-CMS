@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 
 import { fieldTypesApi, type FieldUseCase } from "@/api/endpoints/field-types";
+import { queryKeys } from "@/lib/queryKeys";
 import { Field } from "@/components/ui/Field";
 import { Loading } from "@/components/ui/Loading";
 
@@ -53,7 +54,7 @@ export const FieldSettingsEditor = ({
 	const [showJson, setShowJson] = useState(false);
 
 	const schemaQ = useQuery({
-		queryKey: ["field-types", "schema", type],
+		queryKey: queryKeys.fieldTypes.schema(type),
 		queryFn: () => fieldTypesApi.getSchema(type),
 		enabled: type !== "",
 	});

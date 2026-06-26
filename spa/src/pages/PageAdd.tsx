@@ -18,11 +18,11 @@ import type { Tag } from "@/api/endpoints/tags";
 
 import { isFieldRequired, isFieldValueEmpty } from "@/renderer/forms/validation";
 
-import { ApiError } from "@/types/api";
 import { useAuthStore } from "@/auth/store";
 import { canPublishPage, isAdmin } from "@/lib/permissions";
 import { toast } from "@/lib/toast";
-import { useScrollToFirstError } from "@/hooks/useScrollToFirstError";
+import { queryKeys } from "@/lib/queryKeys";
+import { useFormSubmit } from "@/hooks/useFormSubmit";
 import { useDirtyTracker } from "@/hooks/useDirtyTracker";
 import { UnsavedChangesGuard } from "@/components/ui/UnsavedChangesGuard";
 
@@ -83,17 +83,14 @@ export const PageAdd = () => {
 	// Full Tag objects for the browser chips; body.tags carries just the ids.
 	const [tagObjects, setTagObjects] = useState<Tag[]>([]);
 	const [activeTab, setActiveTab] = useState<TabValue>("properties");
-	const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
-
-	useScrollToFirstError(fieldErrors);
-	const [generalError, setGeneralError] = useState<string | null>(null);
+	const { error, setError, fieldErrors, setFieldErrors, onMutationError } = useFormSubmit();
 
 	useEffect(() => {
 		setBody((prev) => ({ ...prev, parent }));
 	}, [parent]);
 
 	const templatesQuery = useQuery({
-		queryKey: ["templates", "list"],
+		queryKey: queryKeys.templates.list(),
 		queryFn: () => templatesApi.list(),
 	});
 
@@ -115,13 +112,13 @@ export const PageAdd = () => {
 	}, [templatesQuery.data, body.template]);
 
 	const templateQuery = useQuery({
-		queryKey: ["templates", "detail", body.template],
+		queryKey: queryKeys.templates.detail(body.template),
 		queryFn: () => templatesApi.get(body.template as string),
 		enabled: Boolean(body.template),
 	});
 
 	const parentQuery = useQuery({
-		queryKey: ["pages", "detail", parent, { lineage: true }],
+		queryKey: queryKeys.pages.detail(parent, { lineage: true }),
 		queryFn: () => pagesApi.get(parent, { lineage: true }),
 		enabled: parent > 0,
 	});
@@ -129,7 +126,7 @@ export const PageAdd = () => {
 	const createMutation = useMutation({
 		mutationFn: (publish: boolean) => pagesApi.create({ ...body, publish }),
 		onSuccess: (page) => {
-			queryClient.invalidateQueries({ queryKey: ["pages", "list"] });
+			queryClient.invalidateQueries({ queryKey: queryKeys.pages.lists() });
 
 			const name = body.nav_title?.trim() || "Page";
 
@@ -148,19 +145,7 @@ export const PageAdd = () => {
 
 			navigate(from ?? (parent > 0 ? `/pages/${parent}` : "/pages"));
 		},
-		onError: (err) => {
-			if (err instanceof ApiError) {
-				const fe = err.fieldErrors();
-
-				if (Object.keys(fe).length > 0) {
-					setFieldErrors(fe);
-				}
-
-				setGeneralError(err.message);
-			} else {
-				setGeneralError(err instanceof Error ? err.message : "Create failed");
-			}
-		},
+		onError: (err) => onMutationError(err, "Create failed"),
 	});
 
 	const setBodyPatch = (patch: Partial<PageEditBody>) => {
@@ -190,13 +175,13 @@ export const PageAdd = () => {
 
 		if (Object.keys(resourceErrors).length > 0) {
 			setFieldErrors(resourceErrors);
-			setGeneralError("Please fill in the required fields.");
+			setError("Please fill in the required fields.");
 			setActiveTab("content");
 
 			return;
 		}
 
-		setGeneralError(null);
+		setError(null);
 		setFieldErrors({});
 		createMutation.mutate(publish);
 	};
@@ -246,9 +231,9 @@ export const PageAdd = () => {
 
 			<PageSectionToolbar active="add" pageId={parent > 0 ? parent : 0} parentId={parent} />
 
-			{generalError && (
+			{error && (
 				<Alert tone="danger" className="mb-3">
-					{generalError}
+					{error}
 				</Alert>
 			)}
 

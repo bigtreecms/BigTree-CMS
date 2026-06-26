@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 
 import { dbApi } from "@/api/endpoints/db";
+import { queryKeys } from "@/lib/queryKeys";
 
 import { Select } from "../../ui/Select";
 
@@ -18,7 +19,7 @@ export const ColumnSelectControl = ({ descriptor, settings, onPatch }: ControlPr
 	const sort = descriptor.control === "db_column_sort";
 
 	const columnsQ = useQuery({
-		queryKey: ["db", "columns", table, sort],
+		queryKey: queryKeys.db.columns(table, sort),
 		queryFn: () => dbApi.columns(table, sort),
 		enabled: table !== "",
 	});

@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Plus, Trash } from "lucide-react";
 
 import { systemApi } from "@/api/endpoints/system";
+import { queryKeys } from "@/lib/queryKeys";
 
 import { Checkbox } from "../../ui/Checkbox";
 import { Select } from "../../ui/Select";
@@ -119,7 +120,7 @@ const DimList = ({ label, rows, onChange }: DimListProps) => {
 
 export const ImageOptionsControl = ({ settings, onPatch }: ControlProps) => {
 	const presetsQ = useQuery({
-		queryKey: ["media-presets"],
+		queryKey: queryKeys.mediaPresets.root(),
 		queryFn: () => systemApi.mediaPresets(),
 	});
 

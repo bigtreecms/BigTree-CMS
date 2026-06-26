@@ -7,6 +7,7 @@ import { Loading } from "@/components/ui/Loading";
 import { GravatarAvatar } from "@/components/users/GravatarAvatar";
 
 import { pagesApi, type PageAccessUser } from "@/api/endpoints/pages";
+import { queryKeys } from "@/lib/queryKeys";
 import { InlineEmpty } from "@/components/ui/InlineEmpty";
 import { SectionLabel } from "@/components/ui/SectionLabel";
 
@@ -24,7 +25,7 @@ interface AccessLevelsDialogProps {
  */
 export const AccessLevelsDialog = ({ open, onOpenChange, pageId }: AccessLevelsDialogProps) => {
 	const query = useQuery({
-		queryKey: ["pages", "access-levels", pageId],
+		queryKey: queryKeys.pages.accessLevels(pageId),
 		queryFn: () => pagesApi.accessLevels(pageId as number),
 		enabled: open && pageId !== null,
 	});

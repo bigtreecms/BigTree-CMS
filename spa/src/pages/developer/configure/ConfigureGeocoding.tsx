@@ -19,6 +19,7 @@ import {
 
 import { ApiError } from "@/types/api";
 import { toast } from "@/lib/toast";
+import { queryKeys } from "@/lib/queryKeys";
 
 const SERVICES: Array<{ id: GeocodingServiceId; label: string; help: React.ReactNode }> = [
 	{
@@ -59,7 +60,7 @@ const SERVICES: Array<{ id: GeocodingServiceId; label: string; help: React.React
 export const ConfigureGeocoding = () => {
 	const queryClient = useQueryClient();
 	const detailQ = useQuery({
-		queryKey: ["configure", "geocoding"],
+		queryKey: queryKeys.configure.geocoding(),
 		queryFn: () => configureApi.geocoding.get(),
 	});
 
@@ -75,7 +76,7 @@ export const ConfigureGeocoding = () => {
 	const saveMutation = useMutation({
 		mutationFn: (next: GeocodingConfig) => configureApi.geocoding.update(next),
 		onSuccess: (fresh) => {
-			queryClient.setQueryData(["configure", "geocoding"], fresh);
+			queryClient.setQueryData(queryKeys.configure.geocoding(), fresh);
 			toast.success("Geocoding service updated");
 			setGeneralError(null);
 		},

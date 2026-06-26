@@ -28,6 +28,7 @@ import { calloutsApi } from "@/api/endpoints/callouts";
 import { feedsApi } from "@/api/endpoints/feeds";
 import { settingsApi } from "@/api/endpoints/settings";
 import { ApiError } from "@/types/api";
+import { queryKeys } from "@/lib/queryKeys";
 import { TextInput } from "@/components/developer/module-designer/inputs";
 
 type Step = "details" | "components" | "files" | "review";
@@ -89,21 +90,21 @@ export const ExtensionBuild = () => {
 	const [detailsError, setDetailsError] = useState<Record<string, string>>({});
 
 	const licensesQ = useQuery({
-		queryKey: ["extensions", "build", "licenses"],
+		queryKey: queryKeys.extensions.buildLicenses(),
 		queryFn: () => extensionsApi.buildLicenses(),
 	});
-	const modulesQ = useQuery({ queryKey: ["modules", "list"], queryFn: () => modulesApi.list() });
+	const modulesQ = useQuery({ queryKey: queryKeys.modules.list(), queryFn: () => modulesApi.list() });
 	const templatesQ = useQuery({
-		queryKey: ["templates", "list"],
+		queryKey: queryKeys.templates.list(),
 		queryFn: () => templatesApi.list(),
 	});
 	const calloutsQ = useQuery({
-		queryKey: ["callouts", "list"],
+		queryKey: queryKeys.callouts.list(),
 		queryFn: () => calloutsApi.list(),
 	});
-	const feedsQ = useQuery({ queryKey: ["feeds", "list"], queryFn: () => feedsApi.list() });
+	const feedsQ = useQuery({ queryKey: queryKeys.feeds.list(), queryFn: () => feedsApi.list() });
 	const settingsQ = useQuery({
-		queryKey: ["settings", "list"],
+		queryKey: queryKeys.settings.lists(),
 		queryFn: () => settingsApi.list(),
 	});
 
@@ -132,7 +133,7 @@ export const ExtensionBuild = () => {
 		mutationFn: (body: ExtensionBuildBody) => extensionsApi.build(body),
 		onSuccess: (r) => {
 			setResult(r);
-			queryClient.invalidateQueries({ queryKey: ["extensions"] });
+			queryClient.invalidateQueries({ queryKey: queryKeys.extensions.root() });
 		},
 		onError: (err) =>
 			setError(err instanceof ApiError && err.message ? err.message : "Build failed"),

@@ -11,6 +11,7 @@ import { RemovableChip } from "@/components/ui/RemovableChip";
 
 import { messagesApi, type Message } from "@/api/endpoints/dashboard";
 import { usersApi } from "@/api/endpoints/users";
+import { queryKeys } from "@/lib/queryKeys";
 
 import { ApiError } from "@/types/api";
 import { toast } from "@/lib/toast";
@@ -91,7 +92,7 @@ export const ComposeMessage = ({
 	const searchEnabled = open && debounced.length >= 2;
 
 	const usersQuery = useQuery({
-		queryKey: ["users", "list", { q: debounced }],
+		queryKey: queryKeys.users.list({ q: debounced }),
 		queryFn: () => usersApi.list({ q: debounced, per_page: 12 }),
 		enabled: searchEnabled,
 		placeholderData: keepPreviousData,
@@ -108,7 +109,7 @@ export const ComposeMessage = ({
 				in_response_to: replyTo?.id,
 			}),
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ["messages"] });
+			queryClient.invalidateQueries({ queryKey: queryKeys.messages.root() });
 			toast.success("Message sent");
 			onOpenChange(false);
 		},

@@ -19,6 +19,7 @@ import { PasswordChangeDialog } from "@/components/users/PasswordChangeDialog";
 import { TimezoneSelect } from "@/components/users/TimezoneSelect";
 import { TwoFactorPanel } from "@/components/users/TwoFactorPanel";
 import { toast } from "@/lib/toast";
+import { queryKeys } from "@/lib/queryKeys";
 import { ApiError } from "@/types/api";
 import { useDirtyTracker } from "@/hooks/useDirtyTracker";
 import { UnsavedChangesGuard } from "@/components/ui/UnsavedChangesGuard";
@@ -43,7 +44,7 @@ export const Profile = () => {
 	const setSession = useAuthStore((s) => s.setSession);
 
 	const meQ = useQuery({
-		queryKey: ["users", "me"],
+		queryKey: queryKeys.users.me(),
 		queryFn: usersApi.me,
 	});
 
@@ -76,8 +77,8 @@ export const Profile = () => {
 			return usersApi.update(meQ.data.id, payload);
 		},
 		onSuccess: (fresh: UserDetail) => {
-			queryClient.setQueryData(["users", "me"], fresh);
-			queryClient.invalidateQueries({ queryKey: ["users", "detail", fresh.id] });
+			queryClient.setQueryData(queryKeys.users.me(), fresh);
+			queryClient.invalidateQueries({ queryKey: queryKeys.users.detail(fresh.id) });
 
 			// Keep the auth store in sync so the topbar shows the latest name.
 			const auth = useAuthStore.getState();

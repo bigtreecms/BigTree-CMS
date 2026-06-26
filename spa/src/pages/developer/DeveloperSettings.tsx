@@ -6,6 +6,7 @@ import { Plus, Trash } from "lucide-react";
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
 import { PageContainer } from "@/components/shell/PageContainer";
+import { Badge } from "@/components/ui/Badge";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
 import { MonoText } from "@/components/ui/MonoText";
@@ -19,6 +20,9 @@ import { DeveloperSectionNav } from "@/components/developer/DeveloperSectionNav"
 import { settingsApi, type SettingDetail } from "@/api/endpoints/settings";
 
 import { formatNumber } from "@/lib/number";
+import { queryKeys } from "@/lib/queryKeys";
+import { useConfirmDialog } from "@/hooks/useConfirmDialog";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { useToastMutation } from "@/hooks/useToastMutation";
 
 /**
@@ -34,25 +38,16 @@ const PER_PAGE = 25;
 export const DeveloperSettings = () => {
 	const navigate = useNavigate();
 	const [search, setSearch] = useState("");
-	const [debounced, setDebounced] = useState("");
 	const [page, setPage] = useState(1);
-	const [confirmDelete, setConfirmDelete] = useState<SettingDetail | null>(null);
+	const deleteDialog = useConfirmDialog<SettingDetail>();
+	const debounced = useDebouncedValue(search.trim());
 
 	useEffect(() => {
-		const handle = setTimeout(() => {
-			setDebounced(search.trim());
-			setPage(1);
-		}, 200);
-
-		return () => clearTimeout(handle);
-	}, [search]);
+		setPage(1);
+	}, [debounced]);
 
 	const query = useQuery({
-		queryKey: [
-			"settings",
-			"list",
-			{ page, per_page: PER_PAGE, q: debounced, include_system: true },
-		],
+		queryKey: queryKeys.settings.list({ page, per_page: PER_PAGE, q: debounced, include_system: true }),
 		queryFn: () =>
 			settingsApi.list({
 				page,
@@ -69,7 +64,7 @@ export const DeveloperSettings = () => {
 		successMessage: "Setting deleted",
 		errorMessage: "Delete failed",
 		onSuccess: () => {
-			setConfirmDelete(null);
+			deleteDialog.close();
 		},
 	});
 
@@ -95,9 +90,7 @@ export const DeveloperSettings = () => {
 			width: "120px",
 			hideOnMobile: true,
 			cell: (row) => (
-				<span className="rounded bg-surface-2 px-1.5 py-0.5 text-[11px] font-medium text-text-3">
-					{row.type || "text"}
-				</span>
+				<Badge size="sm">{row.type || "text"}</Badge>
 			),
 		},
 		{
@@ -108,20 +101,16 @@ export const DeveloperSettings = () => {
 			cell: (row) => (
 				<div className="flex flex-wrap gap-1">
 					{row.encrypted && (
-						<span className="rounded bg-info-bg px-1.5 py-0.5 text-[10.5px] font-medium text-info">
+						<Badge size="sm" tone="info">
 							Encrypted
-						</span>
+						</Badge>
 					)}
 					{row.locked && (
-						<span className="rounded bg-warn-bg px-1.5 py-0.5 text-[10.5px] font-medium text-warn">
+						<Badge size="sm" tone="warn">
 							Locked
-						</span>
+						</Badge>
 					)}
-					{row.system && (
-						<span className="rounded bg-surface-2 px-1.5 py-0.5 text-[10.5px] font-medium text-text-3">
-							System
-						</span>
-					)}
+					{row.system && <Badge size="sm">System</Badge>}
 				</div>
 			),
 		},
@@ -143,7 +132,7 @@ export const DeveloperSettings = () => {
 						tone="danger"
 						onClick={(e) => {
 							e.stopPropagation();
-							setConfirmDelete(row);
+							deleteDialog.open(row);
 						}}
 						title="Delete setting"
 						label="Delete setting"
@@ -196,19 +185,19 @@ export const DeveloperSettings = () => {
 				</div>
 			)}
 
-			{confirmDelete && (
+			{deleteDialog.item && (
 				<ConfirmDialog
-					open
+					open={deleteDialog.isOpen}
 					onOpenChange={(open) => {
 						if (!open) {
-							setConfirmDelete(null);
+							deleteDialog.close();
 						}
 					}}
-					title={`Delete "${confirmDelete.name}"?`}
+					title={`Delete "${deleteDialog.item.name}"?`}
 					description="Both the definition and the stored value will be removed."
 					confirmLabel="Delete setting"
 					variant="danger"
-					onConfirm={() => deleteMutation.mutate(confirmDelete.id)}
+					onConfirm={() => deleteMutation.mutate(deleteDialog.item!.id)}
 				/>
 			)}
 		</PageContainer>

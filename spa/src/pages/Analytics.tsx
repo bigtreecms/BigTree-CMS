@@ -18,6 +18,7 @@ import { TrafficSourceTable } from "@/components/analytics/TrafficSourceTable";
 import { dashboardApi } from "@/api/endpoints/dashboard";
 import { buildTwoWeekSeries } from "@/lib/analytics";
 import { relativeTime } from "@/lib/time";
+import { queryKeys } from "@/lib/queryKeys";
 
 /**
  * /analytics — the full traffic dashboard, a port of the legacy
@@ -69,7 +70,7 @@ const ConfigLink = () => (
 
 export const Analytics = () => {
 	const analyticsQ = useQuery({
-		queryKey: ["dashboard", "analytics"],
+		queryKey: queryKeys.dashboard.analytics(),
 		queryFn: dashboardApi.analytics,
 	});
 

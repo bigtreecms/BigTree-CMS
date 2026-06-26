@@ -29,6 +29,7 @@ import { useIntegrityScan, type ScanFinding } from "@/hooks/useIntegrityScan";
 import { downloadCsv } from "@/lib/csv";
 import { formatNumber } from "@/lib/number";
 import { toast } from "@/lib/toast";
+import { queryKeys } from "@/lib/queryKeys";
 
 /**
  * /dashboard/integrity — Site Integrity (broken link/image checker).
@@ -45,7 +46,7 @@ export const SiteIntegrity = () => {
 	const [exporting, setExporting] = useState(false);
 
 	const stateQuery = useQuery({
-		queryKey: ["dashboard", "integrity", "state"],
+		queryKey: queryKeys.dashboard.integrity(),
 		queryFn: () => integrityApi.state(),
 		// While a scan is running the server state is mid-flight; don't refetch.
 		enabled: scan.phase === "idle",

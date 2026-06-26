@@ -26,6 +26,7 @@ import { toast } from "@/lib/toast";
 import { useScrollToFirstError } from "@/hooks/useScrollToFirstError";
 import { useReturnTo } from "@/hooks/useReturnTo";
 import { validateRequired } from "@/lib/formValidation";
+import { queryKeys } from "@/lib/queryKeys";
 
 import { TextField } from "@/components/ui/TextField";
 import { Loading } from "@/components/ui/Loading";
@@ -43,12 +44,12 @@ export const CalloutGroupEdit = () => {
 	const [groupQ, calloutsQ] = useQueries({
 		queries: [
 			{
-				queryKey: ["callout-groups", "detail", idParam],
+				queryKey: queryKeys.calloutGroups.detail(idParam),
 				queryFn: () => calloutsApi.getGroup(idParam as string),
 				enabled: !isAdd,
 			},
 			{
-				queryKey: ["callouts", "list"],
+				queryKey: queryKeys.callouts.list(),
 				queryFn: () => calloutsApi.list(),
 			},
 		],
@@ -80,7 +81,7 @@ export const CalloutGroupEdit = () => {
 				? calloutsApi.createGroup(next)
 				: calloutsApi.updateGroup(idParam as string, next),
 		onSuccess: (fresh) => {
-			queryClient.invalidateQueries({ queryKey: ["callout-groups"] });
+			queryClient.invalidateQueries({ queryKey: queryKeys.calloutGroups.root() });
 			toast.success(isAdd ? "Group created" : "Group saved");
 
 			if (isAdd) {

@@ -20,6 +20,7 @@ import {
 import { ApiError } from "@/types/api";
 import { toast } from "@/lib/toast";
 import { sanitizeHtml } from "@/lib/html";
+import { queryKeys } from "@/lib/queryKeys";
 
 /**
  * Two-step extension installer (legacy install/{unpack,process}.php):
@@ -54,7 +55,7 @@ export const ExtensionInstall = () => {
 		mutationFn: () => extensionsApi.installProcess(),
 		onSuccess: (r) => {
 			setResult(r);
-			queryClient.invalidateQueries({ queryKey: ["extensions"] });
+			queryClient.invalidateQueries({ queryKey: queryKeys.extensions.root() });
 			toast.success("Extension installed");
 		},
 		onError: (err) => {

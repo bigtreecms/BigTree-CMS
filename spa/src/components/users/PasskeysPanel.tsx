@@ -1,9 +1,11 @@
 import { useState } from "react";
+import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Fingerprint, Key, Plus, Trash } from "lucide-react";
 
 import { passkeysApi, type PasskeyRecord } from "@/auth/endpoints";
 import { isWebAuthnSupported } from "@/lib/webauthn";
+import { queryKeys } from "@/lib/queryKeys";
 
 import { Button } from "@/components/ui/Button";
 import { Loading } from "@/components/ui/Loading";
@@ -30,24 +32,22 @@ import { SectionLabel } from "@/components/ui/SectionLabel";
  * user doesn't get a generic "something went wrong".
  */
 
-const PASSKEYS_QUERY_KEY = ["auth", "passkeys"] as const;
-
 export const PasskeysPanel = () => {
 	const queryClient = useQueryClient();
 	const supported = isWebAuthnSupported();
-	const [pendingDelete, setPendingDelete] = useState<PasskeyRecord | null>(null);
+	const deleteDialog = useConfirmDialog<PasskeyRecord>();
 	const [showAddPrompt, setShowAddPrompt] = useState(false);
 	const [draftName, setDraftName] = useState("");
 
 	const passkeysQuery = useQuery({
-		queryKey: PASSKEYS_QUERY_KEY,
+		queryKey: queryKeys.auth.passkeys(),
 		queryFn: () => passkeysApi.list(),
 	});
 
 	const registerMutation = useMutation({
 		mutationFn: (name: string) => passkeysApi.register(name),
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: PASSKEYS_QUERY_KEY });
+			queryClient.invalidateQueries({ queryKey: queryKeys.auth.passkeys() });
 			toast.success("Passkey registered");
 			setShowAddPrompt(false);
 			setDraftName("");
@@ -60,8 +60,8 @@ export const PasskeysPanel = () => {
 	const deleteMutation = useMutation({
 		mutationFn: (passkey: PasskeyRecord) => passkeysApi.delete(passkey.id),
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: PASSKEYS_QUERY_KEY });
-			setPendingDelete(null);
+			queryClient.invalidateQueries({ queryKey: queryKeys.auth.passkeys() });
+			deleteDialog.close();
 			toast.success("Passkey removed");
 		},
 		onError: () => {
@@ -168,7 +168,7 @@ export const PasskeysPanel = () => {
 								</div>
 								<IconButton
 									tone="danger"
-									onClick={() => setPendingDelete(p)}
+									onClick={() => deleteDialog.open(p)}
 									label="Remove passkey"
 									title="Remove passkey"
 								>
@@ -180,19 +180,15 @@ export const PasskeysPanel = () => {
 				)}
 			</div>
 
-			{pendingDelete && (
+			{deleteDialog.item && (
 				<ConfirmDialog
-					open={true}
-					onOpenChange={(open) => {
-						if (!open) {
-							setPendingDelete(null);
-						}
-					}}
-					title={`Remove “${pendingDelete.name}”?`}
-					description="You won't be able to sign in with this passkey anymore. Other sign-in methods continue to work."
-					confirmLabel="Remove passkey"
-					variant="danger"
-					onConfirm={() => deleteMutation.mutate(pendingDelete)}
+					open={deleteDialog.isOpen}
+					onOpenChange={(v) => { if (!v) deleteDialog.close(); }}
+					title={`Remove “${deleteDialog.item.name}”?`}
+					description=”You won't be able to sign in with this passkey anymore. Other sign-in methods continue to work.”
+					confirmLabel=”Remove passkey”
+					variant=”danger”
+					onConfirm={() => deleteMutation.mutate(deleteDialog.item!)}
 				/>
 			)}
 		</Card>

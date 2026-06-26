@@ -16,6 +16,7 @@ import { Field } from "@/components/ui/Field";
 import { TextInput } from "@/components/ui/TextInput";
 import { TwoFactorEnrollForm } from "@/components/users/TwoFactorEnrollForm";
 import { isWebAuthnSupported } from "@/lib/webauthn";
+import { queryKeys } from "@/lib/queryKeys";
 
 const schema = z.object({
 	email: z.string().email("Enter a valid email"),
@@ -54,7 +55,7 @@ export const Login = () => {
 	// Cosmetic only — the server clamps the remember flag regardless. If the
 	// policy fetch fails we show the checkbox; worst case it's a no-op.
 	const policyQuery = useQuery({
-		queryKey: ["auth", "login-policy"],
+		queryKey: queryKeys.auth.loginPolicy(),
 		queryFn: () => authApi.loginPolicy(),
 		staleTime: 5 * 60 * 1000,
 		retry: false,

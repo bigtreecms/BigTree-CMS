@@ -2,7 +2,7 @@ import { AlertTriangle, ChevronRight, Clock } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import { DashCard } from "./DashCard";
-import { CardError } from "./CardError";
+import { QueryRenderer } from "@/components/ui/QueryRenderer";
 import { InlineEmpty } from "@/components/ui/InlineEmpty";
 import type { ContentAlert } from "@/api/endpoints/dashboard";
 
@@ -30,13 +30,15 @@ export const ContentAlertsCard = ({ alerts, loading, error }: ContentAlertsCardP
 						: `${alerts.length} page${alerts.length === 1 ? "" : "s"} need attention`
 			}
 		>
-			{error ? (
-				<CardError error={error} />
-			) : alerts.length === 0 ? (
-				<InlineEmpty align="center">
-					You haven't flagged any pages, or all flagged pages are up to date.
-				</InlineEmpty>
-			) : (
+			<QueryRenderer
+				error={error}
+				isEmpty={alerts.length === 0}
+				empty={
+					<InlineEmpty align="center">
+						You haven't flagged any pages, or all flagged pages are up to date.
+					</InlineEmpty>
+				}
+			>
 				<ul className="m-0 flex list-none flex-col gap-0.5 p-0">
 					{alerts.map((alert) => (
 						<li
@@ -61,7 +63,7 @@ export const ContentAlertsCard = ({ alerts, loading, error }: ContentAlertsCardP
 						</li>
 					))}
 				</ul>
-			)}
+			</QueryRenderer>
 		</DashCard>
 	);
 };

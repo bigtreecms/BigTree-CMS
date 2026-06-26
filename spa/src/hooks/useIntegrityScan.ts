@@ -8,6 +8,7 @@ import {
 	type IntegritySession,
 } from "@/api/endpoints/integrity";
 import { modulesApi } from "@/api/endpoints/modules";
+import { queryKeys } from "@/lib/queryKeys";
 
 /** A single broken link/image, resolved with where it lives and how to fix it. */
 export interface ScanFinding {
@@ -127,7 +128,7 @@ export const useIntegrityScan = () => {
 			// Module findings link to the module by its route, so resolve module
 			// id → route from the (cached) module list once up front.
 			const modules = await queryClient.fetchQuery({
-				queryKey: ["modules", "list"],
+				queryKey: queryKeys.modules.list(),
 				queryFn: () => modulesApi.list(),
 			});
 			const routeById = new Map(modules.map((m) => [String(m.id), m.route]));

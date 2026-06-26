@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { api } from "@/api/client";
 import { authApi } from "@/auth/endpoints";
 import { messagesApi } from "@/api/endpoints/dashboard";
+import { queryKeys } from "@/lib/queryKeys";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { Bell, ChevronDown, ExternalLink, LogOut, Moon, Search, Sun, User } from "lucide-react";
 import { useAuthStore } from "@/auth/store";
@@ -31,7 +32,7 @@ export const TopBar = ({ dark, onToggleDark, onOpenSearch }: TopBarProps) => {
 	// initial fetch dance on focus loss to avoid stacking refetches when the
 	// user tabs back into a long-running session.
 	const unreadQ = useQuery({
-		queryKey: ["messages", "unread-count"],
+		queryKey: queryKeys.messages.unreadCount(),
 		queryFn: () => messagesApi.unreadCount(),
 		refetchInterval: 60_000,
 		refetchOnWindowFocus: false,
@@ -39,7 +40,7 @@ export const TopBar = ({ dark, onToggleDark, onOpenSearch }: TopBarProps) => {
 	const unread = unreadQ.data?.unread ?? 0;
 
 	const siteQ = useQuery({
-		queryKey: ["system", "site"],
+		queryKey: queryKeys.system.site(),
 		queryFn: () => api.get<{ nav_title: string; www_root: string }>("/system/site"),
 		staleTime: Infinity,
 	});

@@ -14,8 +14,9 @@ import { SectionLabel } from "@/components/ui/SectionLabel";
 
 import { pendingChangesApi } from "@/api/endpoints/dashboard";
 
+import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 import { useToastMutation } from "@/hooks/useToastMutation";
-import { useState } from "react";
+import { queryKeys } from "@/lib/queryKeys";
 
 /**
  * /pending-changes/:id — view a single pending change with Approve / Reject.
@@ -33,10 +34,10 @@ export const PendingChangeDetail = () => {
 	const valid = Number.isFinite(id) && id > 0;
 	const navigate = useNavigate();
 
-	const [confirm, setConfirm] = useState<"approve" | "reject" | null>(null);
+	const confirmDialog = useConfirmDialog<"approve" | "reject">();
 
 	const detailQ = useQuery({
-		queryKey: ["pending-changes", "detail", id],
+		queryKey: queryKeys.pendingChanges.detail(id),
 		queryFn: () => pendingChangesApi.get(id),
 		enabled: valid,
 	});
@@ -97,7 +98,7 @@ export const PendingChangeDetail = () => {
 						<Button
 							variant="dangerGhost"
 							icon={<X size={13} />}
-							onClick={() => setConfirm("reject")}
+							onClick={() => confirmDialog.open("reject")}
 							disabled={busy}
 						>
 							Reject
@@ -105,7 +106,7 @@ export const PendingChangeDetail = () => {
 						<Button
 							variant="primary"
 							icon={<Check size={13} />}
-							onClick={() => setConfirm("approve")}
+							onClick={() => confirmDialog.open("approve")}
 							disabled={busy}
 						>
 							Approve & publish
@@ -123,12 +124,12 @@ export const PendingChangeDetail = () => {
 				<DiffSection title="Open Graph changes" payload={change.open_graph_changes} />
 			</div>
 
-			{confirm === "approve" && (
+			{confirmDialog.item === "approve" && (
 				<ConfirmDialog
-					open
+					open={confirmDialog.isOpen}
 					onOpenChange={(open) => {
 						if (!open) {
-							setConfirm(null);
+							confirmDialog.close();
 						}
 					}}
 					title="Approve this change?"
@@ -138,12 +139,12 @@ export const PendingChangeDetail = () => {
 				/>
 			)}
 
-			{confirm === "reject" && (
+			{confirmDialog.item === "reject" && (
 				<ConfirmDialog
-					open
+					open={confirmDialog.isOpen}
 					onOpenChange={(open) => {
 						if (!open) {
-							setConfirm(null);
+							confirmDialog.close();
 						}
 					}}
 					title="Reject this change?"

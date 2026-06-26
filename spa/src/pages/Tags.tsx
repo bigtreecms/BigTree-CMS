@@ -18,6 +18,8 @@ import { IconButton } from "@/components/ui/IconButton";
 
 import { tagsApi, type Tag } from "@/api/endpoints/tags";
 import { isAdmin } from "@/lib/permissions";
+import { queryKeys } from "@/lib/queryKeys";
+import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 import { useToastMutation } from "@/hooks/useToastMutation";
 
 /**
@@ -33,8 +35,6 @@ import { useToastMutation } from "@/hooks/useToastMutation";
 
 const PER_PAGE = 25;
 
-const TAGS_LIST_KEY = (page: number, q: string) => ["tags", "list", { page, q }] as const;
-
 export const Tags = () => {
 	const navigate = useNavigate();
 	const user = useAuthStore((s) => s.user);
@@ -42,14 +42,14 @@ export const Tags = () => {
 
 	const [query, setQuery] = useState("");
 	const [page, setPage] = useState(1);
-	const [confirmDelete, setConfirmDelete] = useState<Tag | null>(null);
+	const deleteDialog = useConfirmDialog<Tag>();
 
 	useEffect(() => {
 		setPage(1);
 	}, [query]);
 
 	const listQuery = useQuery({
-		queryKey: TAGS_LIST_KEY(page, query),
+		queryKey: queryKeys.tags.list(page, query),
 		queryFn: () =>
 			tagsApi.list({
 				page,
@@ -124,7 +124,7 @@ export const Tags = () => {
 						disabled={!canEdit}
 						onClick={(e) => {
 							e.stopPropagation();
-							setConfirmDelete(tag);
+							deleteDialog.open(tag);
 						}}
 					>
 						<Trash size={15} />
@@ -179,25 +179,25 @@ export const Tags = () => {
 				emptyLabel={query ? `No tags match “${query}”.` : "No tags yet."}
 			/>
 
-			{confirmDelete && (
+			{deleteDialog.item && (
 				<ConfirmDialog
-					open={true}
+					open={deleteDialog.isOpen}
 					onOpenChange={(open) => {
 						if (!open) {
-							setConfirmDelete(null);
+							deleteDialog.close();
 						}
 					}}
-					title={`Delete “${confirmDelete.tag}”?`}
+					title={`Delete “${deleteDialog.item.tag}”?`}
 					description={
-						confirmDelete.usage_count > 0
-							? `This tag is currently used by ${confirmDelete.usage_count} item${
-									confirmDelete.usage_count === 1 ? "" : "s"
+						deleteDialog.item.usage_count > 0
+							? `This tag is currently used by ${deleteDialog.item.usage_count} item${
+									deleteDialog.item.usage_count === 1 ? “” : “s”
 								}. Those associations will be removed.`
-							: "This tag isn't currently used by any content."
+							: “This tag isn't currently used by any content.”
 					}
-					confirmLabel="Delete tag"
-					variant="danger"
-					onConfirm={() => deleteMutation.mutate(confirmDelete.id)}
+					confirmLabel=”Delete tag”
+					variant=”danger”
+					onConfirm={() => deleteMutation.mutate(deleteDialog.item!.id)}
 				/>
 			)}
 		</PageContainer>

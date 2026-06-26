@@ -31,6 +31,11 @@ interface BadgeProps {
 	bordered?: boolean;
 	/** Uppercase + slight tracking (e.g. the "Pending" field badge). */
 	uppercase?: boolean;
+	/**
+	 * `md` (default) — pill shape (`rounded-full`, `px-2`).
+	 * `sm` — tighter square-ish chip (`rounded`, `px-1.5`) for table cells and inline type labels.
+	 */
+	size?: "md" | "sm";
 	/** Layout-only classes (e.g. `shrink-0`, `ml-auto`, `tabular-nums`). */
 	className?: string;
 	title?: string;
@@ -43,13 +48,19 @@ export const Badge = ({
 	icon,
 	bordered = false,
 	uppercase = false,
+	size = "md",
 	className = "",
 	title,
 }: BadgeProps) => {
+	const sizeClass =
+		size === "sm"
+			? "rounded px-1.5 py-0.5 gap-1"
+			: "rounded-full px-2 py-0.5 gap-1.5";
+
 	return (
 		<span
 			title={title}
-			className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] font-medium ${
+			className={`inline-flex items-center text-[11px] font-medium ${sizeClass} ${
 				bordered ? "border border-border " : ""
 			}${uppercase ? "uppercase tracking-[0.04em] " : ""}${TONE_CLASS[tone]} ${className}`}
 		>

@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 
 import { dbApi } from "@/api/endpoints/db";
+import { queryKeys } from "@/lib/queryKeys";
 
 import { Select } from "../../ui/Select";
 
@@ -9,7 +10,7 @@ import type { ControlProps } from "./types";
 
 /** Database table picker (list "db" source, one-to-many, many-to-many). */
 export const TableSelectControl = ({ descriptor, settings, onPatch }: ControlProps) => {
-	const tablesQ = useQuery({ queryKey: ["db", "tables"], queryFn: () => dbApi.tables() });
+	const tablesQ = useQuery({ queryKey: queryKeys.db.tables(), queryFn: () => dbApi.tables() });
 	const value = String(settings[descriptor.id] ?? "");
 	const options = tablesQ.data ?? [];
 	const missing = value !== "" && !options.some((o) => o.value === value);

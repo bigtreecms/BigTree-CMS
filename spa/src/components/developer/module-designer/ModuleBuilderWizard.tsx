@@ -18,6 +18,7 @@ import { ApiError } from "@/types/api";
 import { useScrollToFirstError } from "@/hooks/useScrollToFirstError";
 import { toast } from "@/lib/toast";
 import { validateRequired } from "@/lib/formValidation";
+import { queryKeys } from "@/lib/queryKeys";
 
 import { IconPicker } from "@/components/developer/IconPicker";
 
@@ -67,12 +68,12 @@ export const ModuleBuilderWizard = () => {
 	const [generalError, setGeneralError] = useState<string | null>(null);
 
 	const groupsQ = useQuery({
-		queryKey: ["module-groups", "list"],
+		queryKey: queryKeys.moduleGroups.list(),
 		queryFn: () => modulesApi.listGroups(),
 	});
 
 	const typesQ = useQuery({
-		queryKey: ["field-types", "list"],
+		queryKey: queryKeys.fieldTypes.list(),
 		queryFn: () => fieldTypesApi.list(),
 	});
 
@@ -84,9 +85,9 @@ export const ModuleBuilderWizard = () => {
 	const scaffoldMutation = useMutation({
 		mutationFn: (body: ModuleScaffoldBody) => modulesApi.scaffold(body),
 		onSuccess: (mod) => {
-			queryClient.invalidateQueries({ queryKey: ["modules"] });
+			queryClient.invalidateQueries({ queryKey: queryKeys.modules.root() });
 			// A new table now exists — refresh the table pickers that cache /db/tables.
-			queryClient.invalidateQueries({ queryKey: ["db", "tables"] });
+			queryClient.invalidateQueries({ queryKey: queryKeys.db.tables() });
 			toast.success("Module built", {
 				description: `Created the “${mod.table}” table, form, and view.`,
 			});

@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Mail, ChevronRight } from "lucide-react";
 import { DashCard } from "./DashCard";
-import { CardError } from "./CardError";
+import { QueryRenderer } from "@/components/ui/QueryRenderer";
 import { InlineEmpty } from "@/components/ui/InlineEmpty";
 import { Button } from "@/components/ui/Button";
 import { MessagesTable } from "./MessagesTable";
@@ -50,13 +50,13 @@ export const UnreadMessagesCard = ({
 				</Button>
 			}
 		>
-			{error ? (
-				<CardError error={error} />
-			) : unread.length === 0 ? (
-				<InlineEmpty icon={Mail}>No unread messages</InlineEmpty>
-			) : (
+			<QueryRenderer
+				error={error}
+				isEmpty={unread.length === 0}
+				empty={<InlineEmpty icon={Mail}>No unread messages</InlineEmpty>}
+			>
 				<MessagesTable messages={unread} />
-			)}
+			</QueryRenderer>
 		</DashCard>
 	);
 };

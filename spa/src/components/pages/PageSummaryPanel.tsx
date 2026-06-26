@@ -3,6 +3,7 @@ import { useQuery, type UseQueryResult } from "@tanstack/react-query";
 import { ChevronRight, ExternalLink, HelpCircle } from "lucide-react";
 
 import { pagesApi, type PageDetail, type PageSeoRating } from "@/api/endpoints/pages";
+import { queryKeys } from "@/lib/queryKeys";
 import { Badge, type BadgeTone } from "@/components/ui/Badge";
 import { IconButton } from "@/components/ui/IconButton";
 import { SectionLabel } from "@/components/ui/SectionLabel";
@@ -98,7 +99,7 @@ export const PageSummaryPanel = ({ page, liveUrl, defaultOpen = false }: PageSum
 	// Score is computed server-side; only fetch once the panel is open and we have
 	// a saved page (id > 0) to rate.
 	const seoQuery = useQuery({
-		queryKey: ["pages", "seo-rating", page?.id],
+		queryKey: queryKeys.pages.seoRating(page?.id),
 		queryFn: () => pagesApi.seoRating(page!.id),
 		enabled: open && Boolean(page?.id),
 		staleTime: 60_000,

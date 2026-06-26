@@ -20,18 +20,20 @@ import { extensionsApi, type Extension } from "@/api/endpoints/extensions";
 import { useIgnoredExtensionUpdates } from "@/hooks/useIgnoredExtensionUpdates";
 import { relativeTime } from "@/lib/time";
 import { toast } from "@/lib/toast";
+import { queryKeys } from "@/lib/queryKeys";
+import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 import { useToastMutation } from "@/hooks/useToastMutation";
 
 export const Extensions = () => {
 	const listQ = useQuery({
-		queryKey: ["extensions"],
+		queryKey: queryKeys.extensions.root(),
 		queryFn: () => extensionsApi.list(),
 	});
 
 	// Update detection is a best-effort, read-only call to the official registry;
 	// keep it out of the critical path so the list still renders if it fails.
 	const updatesQ = useQuery({
-		queryKey: ["extensions", "updates"],
+		queryKey: queryKeys.extensions.updates(),
 		queryFn: () => extensionsApi.updates(),
 		staleTime: 5 * 60_000,
 		retry: false,
@@ -60,7 +62,7 @@ export const Extensions = () => {
 	}, [updatesQ.data]);
 
 	const [detail, setDetail] = useState<Extension | null>(null);
-	const [pendingDelete, setPendingDelete] = useState<Extension | null>(null);
+	const deleteDialog = useConfirmDialog<Extension>();
 
 	const deleteMutation = useToastMutation({
 		mutationFn: (id: string) => extensionsApi.remove(id),
@@ -178,7 +180,7 @@ export const Extensions = () => {
 						type="button"
 						onClick={(e) => {
 							e.stopPropagation();
-							setPendingDelete(row);
+							deleteDialog.open(row);
 						}}
 						className="inline-flex items-center rounded-md border border-border bg-surface p-1.5 text-text-3 hover:border-danger/40 hover:text-danger"
 						aria-label="Uninstall extension"
@@ -277,10 +279,10 @@ export const Extensions = () => {
 			</SlideOver>
 
 			<ConfirmDialog
-				open={pendingDelete !== null}
+				open={deleteDialog.isOpen}
 				onOpenChange={(open) => {
 					if (!open) {
-						setPendingDelete(null);
+						deleteDialog.close();
 					}
 				}}
 				title="Uninstall extension?"
@@ -288,9 +290,9 @@ export const Extensions = () => {
 				confirmLabel="Uninstall"
 				variant="danger"
 				onConfirm={() => {
-					if (pendingDelete) {
-						deleteMutation.mutate(pendingDelete.id);
-						setPendingDelete(null);
+					if (deleteDialog.item) {
+						deleteMutation.mutate(deleteDialog.item.id);
+						deleteDialog.close();
 					}
 				}}
 			/>

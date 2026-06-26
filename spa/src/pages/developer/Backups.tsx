@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Archive, Download, Plus, Trash2 } from "lucide-react";
 
@@ -14,26 +13,28 @@ import { Button } from "@/components/ui/Button";
 import { systemApi, type Backup } from "@/api/endpoints/system";
 import { formatBytes } from "@/lib/bytes";
 import { relativeTime } from "@/lib/time";
+import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 import { useToastMutation } from "@/hooks/useToastMutation";
+import { queryKeys } from "@/lib/queryKeys";
 
 export const Backups = () => {
 	const listQ = useQuery({
-		queryKey: ["system", "backups"],
+		queryKey: queryKeys.system.backups(),
 		queryFn: () => systemApi.backups.list(),
 	});
 
-	const [pendingDelete, setPendingDelete] = useState<Backup | null>(null);
+	const deleteDialog = useConfirmDialog<Backup>();
 
 	const createMutation = useToastMutation({
 		mutationFn: () => systemApi.backups.create(),
-		invalidate: [["system", "backups"]],
+		invalidate: [queryKeys.system.backups()],
 		successMessage: "Backup created",
 		errorMessage: "Backup failed",
 	});
 
 	const deleteMutation = useToastMutation({
 		mutationFn: (id: string) => systemApi.backups.remove(id),
-		invalidate: [["system", "backups"]],
+		invalidate: [queryKeys.system.backups()],
 		successMessage: "Backup deleted",
 		errorMessage: "Could not delete backup",
 	});
@@ -93,7 +94,7 @@ export const Backups = () => {
 					</a>
 					<button
 						type="button"
-						onClick={() => setPendingDelete(row)}
+						onClick={() => deleteDialog.open(row)}
 						className="inline-flex items-center rounded-md border border-border bg-surface p-1.5 text-text-3 hover:border-danger/40 hover:text-danger"
 						aria-label="Delete backup"
 					>
@@ -151,10 +152,10 @@ export const Backups = () => {
 			</p>
 
 			<ConfirmDialog
-				open={pendingDelete !== null}
+				open={deleteDialog.isOpen}
 				onOpenChange={(open) => {
 					if (!open) {
-						setPendingDelete(null);
+						deleteDialog.close();
 					}
 				}}
 				title="Delete backup?"
@@ -162,9 +163,9 @@ export const Backups = () => {
 				confirmLabel="Delete"
 				variant="danger"
 				onConfirm={() => {
-					if (pendingDelete) {
-						deleteMutation.mutate(pendingDelete.backup_id);
-						setPendingDelete(null);
+					if (deleteDialog.item) {
+						deleteMutation.mutate(deleteDialog.item.backup_id);
+						deleteDialog.close();
 					}
 				}}
 			/>

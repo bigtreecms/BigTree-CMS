@@ -16,6 +16,7 @@ import { type AnalyticsStatus, configureApi } from "@/api/endpoints/configure";
 
 import { ApiError } from "@/types/api";
 import { toast } from "@/lib/toast";
+import { queryKeys } from "@/lib/queryKeys";
 import { useState } from "react";
 
 const failed = (fallback: string) => (err: unknown) =>
@@ -24,7 +25,7 @@ const failed = (fallback: string) => (err: unknown) =>
 export const ConfigureAnalytics = () => {
 	const queryClient = useQueryClient();
 	const detailQ = useQuery({
-		queryKey: ["configure", "analytics"],
+		queryKey: queryKeys.configure.analytics(),
 		queryFn: () => configureApi.analytics.get(),
 	});
 
@@ -32,12 +33,12 @@ export const ConfigureAnalytics = () => {
 	const [propertyId, setPropertyId] = useState("");
 
 	const onStatus = (fresh: AnalyticsStatus) => {
-		queryClient.setQueryData(["configure", "analytics"], fresh);
+		queryClient.setQueryData(queryKeys.configure.analytics(), fresh);
 	};
 
 	const disconnectMutation = useToastMutation({
 		mutationFn: () => configureApi.analytics.disconnect(),
-		invalidate: [["configure", "analytics"]],
+		invalidate: [queryKeys.configure.analytics()],
 		successMessage: "Disconnected from Google Analytics",
 		errorMessage: "Disconnect failed",
 		onSuccess: () => {

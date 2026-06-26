@@ -4,6 +4,7 @@ import { ChevronDown, ChevronRight } from "lucide-react";
 
 import { IconButton } from "@/components/ui/IconButton";
 import { pagesApi, type PageListRow } from "@/api/endpoints/pages";
+import { queryKeys } from "@/lib/queryKeys";
 import type { PermissionCode, UserAlerts, UserPermissions } from "@/api/endpoints/users";
 
 import { PermissionRadios } from "./PermissionRadios";
@@ -235,7 +236,7 @@ const PageChildren = ({
 	alertInheritedFromAbove,
 }: PageChildrenProps) => {
 	const { data, isLoading } = useQuery({
-		queryKey: ["pages", "list", parent],
+		queryKey: queryKeys.pages.list(parent),
 		queryFn: () => pagesApi.list(parent, false),
 	});
 

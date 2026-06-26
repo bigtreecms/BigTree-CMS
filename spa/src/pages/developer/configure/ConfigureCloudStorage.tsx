@@ -11,12 +11,14 @@ import { SelectField } from "@/components/ui/SelectField";
 import { TextInput } from "@/components/ui/TextInput";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { UploadButton } from "@/components/ui/UploadButton";
+import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
 
 import { configureApi, type CloudProvider } from "@/api/endpoints/configure";
 
 import { ApiError } from "@/types/api";
 import { toast } from "@/lib/toast";
+import { queryKeys } from "@/lib/queryKeys";
 
 const AWS_REGIONS = [
 	{ value: "us-east-1", label: "US East (N. Virginia)" },
@@ -48,7 +50,7 @@ export const ConfigureCloudStorage = () => {
 	const queryClient = useQueryClient();
 	const [searchParams, setSearchParams] = useSearchParams();
 	const detailQ = useQuery({
-		queryKey: ["configure", "cloud-storage"],
+		queryKey: queryKeys.configure.cloudStorage(),
 		queryFn: () => configureApi.cloudStorage.get(),
 	});
 
@@ -67,7 +69,7 @@ export const ConfigureCloudStorage = () => {
 			searchParams.delete("connected");
 			searchParams.delete("error");
 			setSearchParams(searchParams, { replace: true });
-			queryClient.invalidateQueries({ queryKey: ["configure", "cloud-storage"] });
+			queryClient.invalidateQueries({ queryKey: queryKeys.configure.cloudStorage() });
 		}
 	}, [searchParams, setSearchParams, queryClient]);
 
@@ -105,7 +107,7 @@ export const ConfigureCloudStorage = () => {
 		mutationFn: ({ provider, body }: { provider: CloudProvider; body: ProviderDraft }) =>
 			configureApi.cloudStorage.updateProvider(provider, body),
 		onSuccess: (_fresh, { provider }) => {
-			queryClient.invalidateQueries({ queryKey: ["configure", "cloud-storage"] });
+			queryClient.invalidateQueries({ queryKey: queryKeys.configure.cloudStorage() });
 			toast.success(`${labelFor(provider)} credentials saved`);
 			setGeneralError(null);
 		},
@@ -131,7 +133,7 @@ export const ConfigureCloudStorage = () => {
 					: {}),
 			}),
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ["configure", "cloud-storage"] });
+			queryClient.invalidateQueries({ queryKey: queryKeys.configure.cloudStorage() });
 			toast.success("Default storage updated");
 			setGeneralError(null);
 		},
@@ -146,7 +148,7 @@ export const ConfigureCloudStorage = () => {
 	const googleKeyMutation = useMutation({
 		mutationFn: (file: File) => configureApi.cloudStorage.uploadGoogleKey(file),
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ["configure", "cloud-storage"] });
+			queryClient.invalidateQueries({ queryKey: queryKeys.configure.cloudStorage() });
 			toast.success("Private key uploaded");
 			setGeneralError(null);
 		},
@@ -511,9 +513,9 @@ const ProviderCard = ({ title, active, saving, onSave, footnote, children }: Pro
 		<div className="mb-3 flex items-center justify-between">
 			<div className="text-[12.5px] font-semibold text-text">{title}</div>
 			{active && (
-				<span className="rounded bg-accent-soft px-1.5 py-0.5 text-[11px] font-medium text-accent">
+				<Badge size="sm" tone="accent">
 					Connected
-				</span>
+				</Badge>
 			)}
 		</div>
 

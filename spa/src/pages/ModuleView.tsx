@@ -6,6 +6,7 @@ import { Loading } from "@/components/ui/Loading";
 
 import { modulesApi } from "@/api/endpoints/modules";
 import { useModuleContext } from "@/pages/ModuleLayout";
+import { queryKeys } from "@/lib/queryKeys";
 import { ViewRenderer } from "@/renderer/views/ViewRenderer";
 
 interface ModuleViewProps {
@@ -25,7 +26,7 @@ export const ModuleView = ({ viewId }: ModuleViewProps) => {
 	const { moduleId, module } = useModuleContext();
 
 	const viewsQuery = useQuery({
-		queryKey: ["modules", "views", moduleId],
+		queryKey: queryKeys.modules.views(moduleId),
 		queryFn: () => modulesApi.views(moduleId),
 		enabled: moduleId !== "",
 	});

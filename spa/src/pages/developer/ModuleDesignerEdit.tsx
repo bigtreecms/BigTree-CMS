@@ -32,6 +32,7 @@ import { ModuleViewsTab } from "@/components/developer/module-designer/ModuleVie
 import { ModuleBuilderWizard } from "@/components/developer/module-designer/ModuleBuilderWizard";
 
 import { modulesApi } from "@/api/endpoints/modules";
+import { queryKeys } from "@/lib/queryKeys";
 
 /**
  * Combined add / edit module designer.
@@ -68,7 +69,7 @@ export const ModuleDesignerEdit = () => {
 	};
 
 	const detailQ = useQuery({
-		queryKey: ["modules", "detail", idParam],
+		queryKey: queryKeys.modules.detail(idParam),
 		queryFn: () => modulesApi.get(idParam as string),
 		enabled: !isAdd,
 	});

@@ -5,6 +5,7 @@ import { Plus, Trash } from "lucide-react";
 import { IconButton } from "@/components/ui/IconButton";
 import { Select } from "@/components/ui/Select";
 import { calloutsApi } from "@/api/endpoints/callouts";
+import { queryKeys } from "@/lib/queryKeys";
 
 import { ControlShell } from "./ControlShell";
 import type { ControlProps } from "./types";
@@ -15,7 +16,7 @@ import type { ControlProps } from "./types";
  */
 export const CalloutGroupsControl = ({ descriptor, settings, onPatch }: ControlProps) => {
 	const groupsQ = useQuery({
-		queryKey: ["callout-groups"],
+		queryKey: queryKeys.calloutGroups.root(),
 		queryFn: () => calloutsApi.listGroups(),
 	});
 

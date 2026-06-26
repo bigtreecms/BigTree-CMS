@@ -16,6 +16,7 @@ import { ErrorPanel } from "@/components/ui/ErrorPanel";
 
 import { auditApi, type AuditEntry } from "@/api/endpoints/audit";
 import { formatDateTime } from "@/lib/time";
+import { queryKeys } from "@/lib/queryKeys";
 
 const PER_PAGE = 50;
 
@@ -46,7 +47,7 @@ export const DebugAudit = () => {
 	}, [userFilter, tableFilter, start, end]);
 
 	const listQ = useQuery({
-		queryKey: ["audit", { userFilter, tableFilter, start, end, page }],
+		queryKey: queryKeys.audit.list({ userFilter, tableFilter, start, end, page }),
 		queryFn: () =>
 			auditApi.list({
 				user: userFilter ?? undefined,

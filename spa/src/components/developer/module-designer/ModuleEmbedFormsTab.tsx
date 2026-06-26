@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 
 import { useScrollToFirstError } from "@/hooks/useScrollToFirstError";
 
@@ -91,7 +92,7 @@ export const ModuleEmbedFormsTab = ({ moduleId, moduleTable }: ModuleEmbedFormsT
 	});
 
 	const [draft, setDraft] = useState<Draft>(() => emptyDraft(moduleTable));
-	const [pendingDelete, setPendingDelete] = useState<ModuleEmbedForm | null>(null);
+	const deleteDialog = useConfirmDialog<ModuleEmbedForm>();
 	const [settingsErrors, setSettingsErrors] = useState<Record<number, Record<string, string>>>(
 		{}
 	);
@@ -144,7 +145,7 @@ export const ModuleEmbedFormsTab = ({ moduleId, moduleTable }: ModuleEmbedFormsT
 						subtitle={f.table}
 						badge={`${Array.isArray(f.fields) ? f.fields.length : 0} fields`}
 						onEdit={() => crud.startEdit(f.id)}
-						onDelete={() => setPendingDelete(f)}
+						onDelete={() => deleteDialog.open(f)}
 					/>
 				))}
 			</SubList>
@@ -245,21 +246,17 @@ export const ModuleEmbedFormsTab = ({ moduleId, moduleTable }: ModuleEmbedFormsT
 				</EditorCard>
 			)}
 
-			{pendingDelete && (
+			{deleteDialog.item && (
 				<ConfirmDialog
-					open
-					onOpenChange={(open) => {
-						if (!open) {
-							setPendingDelete(null);
-						}
-					}}
-					title={`Delete embed form "${pendingDelete.title}"?`}
+					open={deleteDialog.isOpen}
+					onOpenChange={(v) => { if (!v) deleteDialog.close(); }}
+					title={`Delete embed form "${deleteDialog.item.title}"?`}
 					description="Any third-party page embedding this form will stop working. Submitted entries are left intact."
 					confirmLabel="Delete embed form"
 					variant="danger"
 					onConfirm={() => {
-						crud.remove(pendingDelete.id);
-						setPendingDelete(null);
+						crud.remove(deleteDialog.item!.id);
+						deleteDialog.close();
 					}}
 				/>
 			)}

@@ -7,6 +7,7 @@ import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
 import { PageContainer } from "@/components/shell/PageContainer";
 import { Alert } from "@/components/ui/Alert";
+import { Badge } from "@/components/ui/Badge";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { Field } from "@/components/ui/Field";
 import { FormFooter } from "@/components/ui/FormFooter";
@@ -28,6 +29,7 @@ import { Loading } from "@/components/ui/Loading";
 import { ApiError } from "@/types/api";
 import { toast } from "@/lib/toast";
 import { sanitizeHtml } from "@/lib/html";
+import { queryKeys } from "@/lib/queryKeys";
 import { InlineEmpty } from "@/components/ui/InlineEmpty";
 
 /**
@@ -58,7 +60,7 @@ export const SettingEdit = () => {
 	const [fieldError, setFieldError] = useState<string | null>(null);
 
 	const settingQuery = useQuery({
-		queryKey: ["settings", "detail", settingId, { includeEncrypted: revealEncrypted }],
+		queryKey: queryKeys.settings.detail(settingId, { includeEncrypted: revealEncrypted }),
 		queryFn: () => settingsApi.get(settingId, { includeEncrypted: revealEncrypted }),
 		enabled: settingId !== "",
 	});
@@ -87,9 +89,9 @@ export const SettingEdit = () => {
 	const saveMutation = useMutation({
 		mutationFn: () => settingsApi.updateValue(settingId, value),
 		onSuccess: (fresh) => {
-			queryClient.invalidateQueries({ queryKey: ["settings", "list"] });
+			queryClient.invalidateQueries({ queryKey: queryKeys.settings.lists() });
 			queryClient.setQueryData(
-				["settings", "detail", settingId, { includeEncrypted: revealEncrypted }],
+				queryKeys.settings.detail(settingId, { includeEncrypted: revealEncrypted }),
 				fresh
 			);
 			toast.success("Setting saved");
@@ -263,36 +265,25 @@ const FlagBar = ({ setting, revealEncrypted, canReveal, onReveal }: FlagBarProps
 
 	if (setting.encrypted) {
 		flags.push(
-			<span
-				key="enc"
-				className="inline-flex items-center gap-1 rounded bg-info-bg px-1.5 py-0.5 text-[11px] font-medium text-info"
-			>
-				<ShieldAlert size={11} />
+			<Badge key="enc" size="sm" tone="info" icon={<ShieldAlert size={11} />}>
 				Encrypted
-			</span>
+			</Badge>
 		);
 	}
 
 	if (setting.locked) {
 		flags.push(
-			<span
-				key="locked"
-				className="inline-flex items-center gap-1 rounded bg-warn-bg px-1.5 py-0.5 text-[11px] font-medium text-warn"
-			>
-				<Lock size={11} />
+			<Badge key="locked" size="sm" tone="warn" icon={<Lock size={11} />}>
 				Locked
-			</span>
+			</Badge>
 		);
 	}
 
 	if (setting.system) {
 		flags.push(
-			<span
-				key="sys"
-				className="rounded bg-surface-2 px-1.5 py-0.5 text-[11px] font-medium text-text-3"
-			>
+			<Badge key="sys" size="sm">
 				System
-			</span>
+			</Badge>
 		);
 	}
 

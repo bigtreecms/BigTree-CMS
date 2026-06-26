@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Plus, Trash } from "lucide-react";
@@ -16,6 +15,8 @@ import { DeveloperSectionNav } from "@/components/developer/DeveloperSectionNav"
 
 import { modulesApi, type ModuleSummary } from "@/api/endpoints/modules";
 
+import { queryKeys } from "@/lib/queryKeys";
+import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 import { useToastMutation } from "@/hooks/useToastMutation";
 
 /**
@@ -28,10 +29,10 @@ import { useToastMutation } from "@/hooks/useToastMutation";
  */
 export const ModuleDesigner = () => {
 	const navigate = useNavigate();
-	const [confirmDelete, setConfirmDelete] = useState<ModuleSummary | null>(null);
+	const deleteDialog = useConfirmDialog<ModuleSummary>();
 
 	const query = useQuery({
-		queryKey: ["modules", "list"],
+		queryKey: queryKeys.modules.list(),
 		queryFn: () => modulesApi.list(),
 	});
 
@@ -45,7 +46,7 @@ export const ModuleDesigner = () => {
 		successMessage: "Module deleted",
 		errorMessage: "Delete failed",
 		onSuccess: () => {
-			setConfirmDelete(null);
+			deleteDialog.close();
 		},
 	});
 
@@ -95,7 +96,7 @@ export const ModuleDesigner = () => {
 					tone="danger"
 					onClick={(e) => {
 						e.stopPropagation();
-						setConfirmDelete(row);
+						deleteDialog.open(row);
 					}}
 					title="Delete module"
 					label="Delete module"
@@ -132,19 +133,19 @@ export const ModuleDesigner = () => {
 				onRowClick={(row) => navigate(`/developer/modules/${encodeURIComponent(row.id)}`)}
 			/>
 
-			{confirmDelete && (
+			{deleteDialog.item && (
 				<ConfirmDialog
-					open
+					open={deleteDialog.isOpen}
 					onOpenChange={(open) => {
 						if (!open) {
-							setConfirmDelete(null);
+							deleteDialog.close();
 						}
 					}}
-					title={`Delete "${confirmDelete.name}"?`}
+					title={`Delete "${deleteDialog.item.name}"?`}
 					description="This removes the module and all of its actions, forms, views, reports and embed forms. Content rows in the module's table are left intact."
 					confirmLabel="Delete module"
 					variant="danger"
-					onConfirm={() => deleteMutation.mutate(confirmDelete.id)}
+					onConfirm={() => deleteMutation.mutate(deleteDialog.item!.id)}
 				/>
 			)}
 		</PageContainer>

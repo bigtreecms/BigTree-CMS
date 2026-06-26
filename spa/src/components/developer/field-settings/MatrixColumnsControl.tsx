@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { ChevronDown, ChevronRight, Plus, Trash } from "lucide-react";
 
 import { fieldTypesApi, fieldTypesForUseCase } from "@/api/endpoints/field-types";
+import { queryKeys } from "@/lib/queryKeys";
 
 import { FieldSettingsEditor } from "../FieldSettingsEditor";
 import { ControlShell } from "./ControlShell";
@@ -32,7 +33,7 @@ export const MatrixColumnsControl = ({ descriptor, settings, onPatch }: ControlP
 	const [expanded, setExpanded] = useState<Set<number>>(new Set());
 
 	const typesQ = useQuery({
-		queryKey: ["field-types", "list"],
+		queryKey: queryKeys.fieldTypes.list(),
 		queryFn: () => fieldTypesApi.list(),
 	});
 

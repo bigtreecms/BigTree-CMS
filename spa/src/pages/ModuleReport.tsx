@@ -6,6 +6,7 @@ import { Loading } from "@/components/ui/Loading";
 
 import { modulesApi } from "@/api/endpoints/modules";
 import { useModuleContext } from "@/pages/ModuleLayout";
+import { queryKeys } from "@/lib/queryKeys";
 import { ReportRenderer } from "@/renderer/reports/ReportRenderer";
 
 interface ModuleReportProps {
@@ -23,7 +24,7 @@ export const ModuleReport = ({ reportId }: ModuleReportProps) => {
 	const { moduleId, module } = useModuleContext();
 
 	const reportsQuery = useQuery({
-		queryKey: ["modules", "reports", moduleId],
+		queryKey: queryKeys.modules.reports(moduleId),
 		queryFn: () => modulesApi.reports(moduleId),
 		enabled: moduleId !== "",
 	});

@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Plus, Trash } from "lucide-react";
@@ -15,24 +14,26 @@ import { DeveloperSectionNav } from "@/components/developer/DeveloperSectionNav"
 
 import { calloutsApi, type CalloutGroup } from "@/api/endpoints/callouts";
 
+import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 import { useToastMutation } from "@/hooks/useToastMutation";
+import { queryKeys } from "@/lib/queryKeys";
 
 export const CalloutGroups = () => {
 	const navigate = useNavigate();
-	const [confirmDelete, setConfirmDelete] = useState<CalloutGroup | null>(null);
+	const deleteDialog = useConfirmDialog<CalloutGroup>();
 
 	const query = useQuery({
-		queryKey: ["callout-groups", "list"],
+		queryKey: queryKeys.calloutGroups.list(),
 		queryFn: () => calloutsApi.listGroups(),
 	});
 
 	const deleteMutation = useToastMutation({
 		mutationFn: (id: string) => calloutsApi.deleteGroup(id),
-		invalidate: [["callout-groups"]],
+		invalidate: [queryKeys.calloutGroups.root()],
 		successMessage: "Group deleted",
 		errorMessage: "Delete failed",
 		onSuccess: () => {
-			setConfirmDelete(null);
+			deleteDialog.close();
 		},
 	});
 
@@ -71,7 +72,7 @@ export const CalloutGroups = () => {
 					tone="danger"
 					onClick={(e) => {
 						e.stopPropagation();
-						setConfirmDelete(row);
+						deleteDialog.open(row);
 					}}
 					title="Delete group"
 					label="Delete group"
@@ -116,19 +117,19 @@ export const CalloutGroups = () => {
 				}
 			/>
 
-			{confirmDelete && (
+			{deleteDialog.item && (
 				<ConfirmDialog
-					open
+					open={deleteDialog.isOpen}
 					onOpenChange={(open) => {
 						if (!open) {
-							setConfirmDelete(null);
+							deleteDialog.close();
 						}
 					}}
-					title={`Delete "${confirmDelete.name}"?`}
+					title={`Delete "${deleteDialog.item.name}"?`}
 					description="Callouts in this group will continue to exist; only the grouping is removed."
 					confirmLabel="Delete group"
 					variant="danger"
-					onConfirm={() => deleteMutation.mutate(confirmDelete.id)}
+					onConfirm={() => deleteMutation.mutate(deleteDialog.item!.id)}
 				/>
 			)}
 		</PageContainer>

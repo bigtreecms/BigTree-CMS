@@ -8,6 +8,7 @@ import { IconButton } from "@/components/ui/IconButton";
 import { LoadingText } from "@/components/ui/LoadingText";
 import { SectionLabel } from "@/components/ui/SectionLabel";
 import { resourcesApi, type ResourceDetail } from "@/api/endpoints/resources";
+import { queryKeys } from "@/lib/queryKeys";
 
 import { toInt } from "./fieldHelpers";
 import { settingsOf, type FieldComponentProps } from "./types";
@@ -30,7 +31,7 @@ interface ResourceReferenceFieldProps extends FieldComponentProps {
 	pickerType: ResourcePickerType;
 }
 
-const RESOURCE_QUERY = (id: number) => ["resources", "detail", id] as const;
+const RESOURCE_QUERY = (id: number) => queryKeys.resources.detail(id);
 
 const toResourceId = (value: unknown): number | null => {
 	if (typeof value === "number" && Number.isFinite(value) && value > 0) {

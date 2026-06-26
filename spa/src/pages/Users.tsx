@@ -27,6 +27,8 @@ import { IconButton } from "@/components/ui/IconButton";
 import { TimezoneSelect } from "@/components/users/TimezoneSelect";
 import { isDeveloper } from "@/lib/permissions";
 import { toast } from "@/lib/toast";
+import { queryKeys } from "@/lib/queryKeys";
+import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 import { useToastMutation } from "@/hooks/useToastMutation";
 import {
 	usersApi,
@@ -103,7 +105,7 @@ export const Users = () => {
 	const [query, setQuery] = useState("");
 	const [page, setPage] = useState(1);
 	const [sort, setSort] = useState<{ key: SortKey; dir: SortDir }>({ key: "name", dir: "asc" });
-	const [confirmDelete, setConfirmDelete] = useState<User | null>(null);
+	const deleteDialog = useConfirmDialog<User>();
 
 	// Add User form state
 	const [first, setFirst] = useState("");
@@ -126,7 +128,7 @@ export const Users = () => {
 		isLoading,
 		isPlaceholderData,
 	} = useQuery({
-		queryKey: ["users", "list", { page, q: query }],
+		queryKey: queryKeys.users.list({ page, q: query }),
 		queryFn: () =>
 			usersApi.list({
 				q: query || undefined,
@@ -435,7 +437,7 @@ export const Users = () => {
 												label="Delete"
 												onClick={(e) => {
 													e.stopPropagation();
-													setConfirmDelete(u);
+													deleteDialog.open(u);
 												}}
 											>
 												<Trash size={15} />
@@ -589,19 +591,19 @@ export const Users = () => {
 			)}
 
 			{/* Delete confirmation */}
-			{confirmDelete && (
+			{deleteDialog.item && (
 				<ConfirmDialog
-					open={true}
+					open={deleteDialog.isOpen}
 					onOpenChange={(open) => {
 						if (!open) {
-							setConfirmDelete(null);
+							deleteDialog.close();
 						}
 					}}
 					title="Delete user?"
 					description="This will revoke admin access immediately. Page revisions authored by this user remain attributed to them."
 					confirmLabel="Delete user"
 					variant="danger"
-					onConfirm={() => handleDelete(confirmDelete)}
+					onConfirm={() => handleDelete(deleteDialog.item!)}
 				/>
 			)}
 		</PageContainer>

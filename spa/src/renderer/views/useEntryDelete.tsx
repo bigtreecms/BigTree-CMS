@@ -1,6 +1,7 @@
-import { useCallback, useState } from "react";
+import { useCallback } from "react";
 
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 
 import { autoModulesApi, type ModuleEntryRow } from "@/api/endpoints/auto-modules";
 import { toast } from "@/lib/toast";
@@ -19,7 +20,7 @@ import { isPersistedEntryId, statusFromRow } from "./viewHelpers";
  * dead) Trash buttons to the same flow.
  */
 export const useEntryDelete = (moduleId: string, viewId: string) => {
-	const [confirmDelete, setConfirmDelete] = useState<ModuleEntryRow | null>(null);
+	const deleteDialog = useConfirmDialog<ModuleEntryRow>();
 
 	const deleteMutation = useToastMutation({
 		mutationFn: (entryId: number | string) =>
@@ -34,24 +35,20 @@ export const useEntryDelete = (moduleId: string, viewId: string) => {
 			);
 		},
 		onSettled: () => {
-			setConfirmDelete(null);
+			deleteDialog.close();
 		},
 	});
 
 	const requestDelete = useCallback((row: ModuleEntryRow) => {
-		setConfirmDelete(row);
-	}, []);
+		deleteDialog.open(row);
+	}, [deleteDialog]);
 
-	const isPending = confirmDelete ? statusFromRow(confirmDelete).key === "pending" : false;
+	const isPending = deleteDialog.item ? statusFromRow(deleteDialog.item).key === "pending" : false;
 
-	const dialog = confirmDelete ? (
+	const dialog = deleteDialog.item ? (
 		<ConfirmDialog
-			open={true}
-			onOpenChange={(open) => {
-				if (!open) {
-					setConfirmDelete(null);
-				}
-			}}
+			open={deleteDialog.isOpen}
+			onOpenChange={(v) => { if (!v) deleteDialog.close(); }}
 			title={isPending ? "Delete pending entry?" : "Delete entry?"}
 			description={
 				isPending
@@ -61,8 +58,8 @@ export const useEntryDelete = (moduleId: string, viewId: string) => {
 			confirmLabel="Delete"
 			variant="danger"
 			onConfirm={() => {
-				if (isPersistedEntryId(confirmDelete.id)) {
-					deleteMutation.mutate(confirmDelete.id);
+				if (isPersistedEntryId(deleteDialog.item!.id)) {
+					deleteMutation.mutate(deleteDialog.item!.id);
 				}
 			}}
 		/>

@@ -9,6 +9,7 @@ import { SearchInput } from "@/components/ui/SearchInput";
 import { Toolbar } from "@/components/ui/Toolbar";
 
 import { autoModulesApi, type ModuleEntryRow } from "@/api/endpoints/auto-modules";
+import { queryKeys } from "@/lib/queryKeys";
 import type { ModuleView } from "@/api/endpoints/modules";
 import { toast } from "@/lib/toast";
 
@@ -120,12 +121,7 @@ export const NestedView = ({ moduleId, view }: NestedViewProps) => {
 	// ordering, id ASC is the stable tiebreak. getSearchResults special-cases
 	// this exact string (see auto-modules.php:1482).
 	const listQuery = useQuery({
-		queryKey: [
-			"module-entries",
-			moduleId,
-			view.id,
-			{ q: debouncedQuery || undefined, view: view.id },
-		] as const,
+		queryKey: queryKeys.moduleEntries.viewQuery(moduleId, view.id, { q: debouncedQuery || undefined, view: view.id }),
 		queryFn: () =>
 			autoModulesApi.list(moduleId, {
 				view: view.id,
@@ -145,7 +141,7 @@ export const NestedView = ({ moduleId, view }: NestedViewProps) => {
 		onError: () => {
 			toast.error("Couldn't save the new order");
 			queryClient.invalidateQueries({
-				queryKey: ["module-entries", moduleId, view.id],
+				queryKey: queryKeys.moduleEntries.view(moduleId, view.id),
 			});
 		},
 	});

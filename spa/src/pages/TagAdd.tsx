@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ChevronLeft, Plus } from "lucide-react";
@@ -19,6 +19,8 @@ import { TagInput } from "@/components/tags/TagInput";
 import { tagsApi, type Tag } from "@/api/endpoints/tags";
 import { isAdmin } from "@/lib/permissions";
 import { toast } from "@/lib/toast";
+import { queryKeys } from "@/lib/queryKeys";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { useDirtyTracker } from "@/hooks/useDirtyTracker";
 import { UnsavedChangesGuard } from "@/components/ui/UnsavedChangesGuard";
 import { Field } from "@/components/ui/Field";
@@ -52,16 +54,10 @@ export const TagAdd = () => {
 	const normalized = normalizeTag(name);
 
 	// Debounce the normalized name so we don't hit /tags/search on every keystroke.
-	const [debounced, setDebounced] = useState("");
-
-	useEffect(() => {
-		const handle = setTimeout(() => setDebounced(normalized), 250);
-
-		return () => clearTimeout(handle);
-	}, [normalized]);
+	const debounced = useDebouncedValue(normalized, 250);
 
 	const duplicateQuery = useQuery({
-		queryKey: ["tags", "exists", debounced],
+		queryKey: queryKeys.tags.exists(debounced),
 		queryFn: () => tagsApi.search(debounced),
 		enabled: debounced.length > 0,
 	});
@@ -92,7 +88,7 @@ export const TagAdd = () => {
 			return created;
 		},
 		onSuccess: (tag) => {
-			queryClient.invalidateQueries({ queryKey: ["tags"] });
+			queryClient.invalidateQueries({ queryKey: queryKeys.tags.root() });
 			toast.success(`Tag “${tag.tag}” created`);
 			navigate("/tags");
 		},

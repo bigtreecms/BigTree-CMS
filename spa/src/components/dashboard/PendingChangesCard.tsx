@@ -1,9 +1,10 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
+import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 import { Link, useNavigate } from "react-router-dom";
 import { useToastMutation } from "@/hooks/useToastMutation";
 import { Bell, Check, ChevronRight, FileText, X } from "lucide-react";
 import { DashCard } from "./DashCard";
-import { CardError } from "./CardError";
+import { QueryRenderer } from "@/components/ui/QueryRenderer";
 import { InlineEmpty } from "@/components/ui/InlineEmpty";
 import { Button } from "@/components/ui/Button";
 import { SectionLabel } from "@/components/ui/SectionLabel";
@@ -30,8 +31,8 @@ export const PendingChangesCard = ({
 	error,
 }: PendingChangesCardProps) => {
 	const navigate = useNavigate();
-	const [rejectId, setRejectId] = useState<number | null>(null);
-	const [approveId, setApproveId] = useState<number | null>(null);
+	const rejectDialog = useConfirmDialog<number>();
+	const approveDialog = useConfirmDialog<number>();
 	const groups = useMemo(() => groupPendingByCategory(pending), [pending]);
 	const totalPending =
 		summary?.pending_changes.publishable ?? groups.reduce((s, g) => s + g.changes.length, 0);
@@ -57,6 +58,7 @@ export const PendingChangesCard = ({
 		(rejectMutation.isPending && rejectMutation.variables) ||
 		null;
 
+
 	return (
 		<DashCard
 			icon={Bell}
@@ -75,9 +77,7 @@ export const PendingChangesCard = ({
 				) : null
 			}
 		>
-			{error ? (
-				<CardError error={error} />
-			) : (
+			<QueryRenderer error={error}>
 				<div className="grid grid-cols-1 gap-6 md:grid-cols-2">
 					<div className="flex min-w-0 flex-col gap-2">
 						<SectionLabel size="xs" className="mb-0.5 border-b border-border pb-1.5">
@@ -117,7 +117,7 @@ export const PendingChangesCard = ({
 												className="disabled:opacity-40"
 												onClick={(e) => {
 													e.stopPropagation();
-													setRejectId(p.id);
+													rejectDialog.open(p.id);
 												}}
 												disabled={busy}
 												title="Reject"
@@ -139,7 +139,7 @@ export const PendingChangesCard = ({
 														return;
 													}
 
-													setApproveId(p.id);
+													approveDialog.open(p.id);
 												}}
 												disabled={busy}
 												title={isPage ? "Open to approve" : "Approve"}
@@ -171,38 +171,26 @@ export const PendingChangesCard = ({
 						)}
 					</div>
 				</div>
-			)}
+			</QueryRenderer>
 
-			{approveId !== null && (
-				<ConfirmDialog
-					open
-					onOpenChange={(open) => {
-						if (!open) {
-							setApproveId(null);
-						}
-					}}
-					title="Approve this change?"
-					description="The pending change will be published and made live on the site."
-					confirmLabel="Approve"
-					onConfirm={() => approveMutation.mutate(approveId)}
-				/>
-			)}
+			<ConfirmDialog
+				open={approveDialog.isOpen}
+				onOpenChange={(v) => { if (!v) approveDialog.close(); }}
+				title="Approve this change?"
+				description="The pending change will be published and made live on the site."
+				confirmLabel="Approve"
+				onConfirm={() => approveMutation.mutate(approveDialog.item!)}
+			/>
 
-			{rejectId !== null && (
-				<ConfirmDialog
-					open
-					onOpenChange={(open) => {
-						if (!open) {
-							setRejectId(null);
-						}
-					}}
-					title="Reject this change?"
-					description="The pending change will be discarded. The submitting user will need to redo their edits."
-					confirmLabel="Reject"
-					variant="danger"
-					onConfirm={() => rejectMutation.mutate(rejectId)}
-				/>
-			)}
+			<ConfirmDialog
+				open={rejectDialog.isOpen}
+				onOpenChange={(v) => { if (!v) rejectDialog.close(); }}
+				title="Reject this change?"
+				description="The pending change will be discarded. The submitting user will need to redo their edits."
+				confirmLabel="Reject"
+				variant="danger"
+				onConfirm={() => rejectMutation.mutate(rejectDialog.item!)}
+			/>
 		</DashCard>
 	);
 };

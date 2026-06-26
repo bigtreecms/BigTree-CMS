@@ -16,6 +16,7 @@ import { TagInput } from "@/components/tags/TagInput";
 
 import { tagsApi, type Tag } from "@/api/endpoints/tags";
 import { isAdmin } from "@/lib/permissions";
+import { queryKeys } from "@/lib/queryKeys";
 import { toast } from "@/lib/toast";
 import { useToastMutation } from "@/hooks/useToastMutation";
 
@@ -27,8 +28,6 @@ import { useToastMutation } from "@/hooks/useToastMutation";
  * usage_count. On success the cache is invalidated and we navigate back
  * to /tags.
  */
-
-const TAG_DETAIL_KEY = (id: number) => ["tags", "detail", id] as const;
 
 const parseFromParam = (raw: string | null): number[] => {
 	if (!raw) {
@@ -52,7 +51,7 @@ export const TagMerge = () => {
 
 	const sourceQueries = useQueries({
 		queries: sourceIds.map((id) => ({
-			queryKey: TAG_DETAIL_KEY(id),
+			queryKey: queryKeys.tags.detail(id),
 			queryFn: () => tagsApi.get(id),
 		})),
 	});

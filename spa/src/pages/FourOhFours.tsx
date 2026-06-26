@@ -25,7 +25,10 @@ import { ApiError } from "@/types/api";
 import { downloadCsv } from "@/lib/csv";
 import { formatNumber } from "@/lib/number";
 import { toast } from "@/lib/toast";
+import { queryKeys } from "@/lib/queryKeys";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { useToastMutation } from "@/hooks/useToastMutation";
+import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 
 /**
  * /dashboard/404s — the 404 Report.
@@ -64,13 +67,12 @@ const TYPE_ROUTE: Record<FourOhFourType, string> = {
 export const FourOhFours = ({ type }: FourOhFoursProps) => {
 	const navigate = useNavigate();
 	const [search, setSearch] = useState("");
-	const [debounced, setDebounced] = useState("");
 	const [page, setPage] = useState(1);
 	const [selected, setSelected] = useState<Set<number>>(new Set());
 	const [editingRedirectId, setEditingRedirectId] = useState<number | null>(null);
 	const [redirectDraft, setRedirectDraft] = useState("");
-	const [confirmBulkDelete, setConfirmBulkDelete] = useState(false);
-	const [confirmClearDead, setConfirmClearDead] = useState(false);
+	const bulkDeleteDialog = useConfirmDialog<true>();
+	const clearDeadDialog = useConfirmDialog<true>();
 
 	// Clears the multi-select + inline redirect editor — run from every handler
 	// that changes which rows are on screen, instead of chaining off page/search.
@@ -90,18 +92,17 @@ export const FourOhFours = ({ type }: FourOhFoursProps) => {
 		resetRowState();
 	}
 
-	useEffect(() => {
-		const handle = setTimeout(() => {
-			setDebounced(search.trim());
-			setPage(1);
-			resetRowState();
-		}, 200);
+	const debounced = useDebouncedValue(search.trim());
 
-		return () => clearTimeout(handle);
-	}, [search]);
+	useEffect(() => {
+		setPage(1);
+		setSelected(new Set());
+		setEditingRedirectId(null);
+		setRedirectDraft("");
+	}, [debounced]);
 
 	const listQ = useQuery({
-		queryKey: ["404s", "list", { type, page, per_page: PER_PAGE, q: debounced }],
+		queryKey: queryKeys.redirects.list({ type, page, per_page: PER_PAGE, q: debounced }),
 		queryFn: () =>
 			fourOhFoursApi.list({ type, page, per_page: PER_PAGE, q: debounced || undefined }),
 		placeholderData: keepPreviousData,
@@ -144,7 +145,7 @@ export const FourOhFours = ({ type }: FourOhFoursProps) => {
 		errorMessage: "Bulk delete failed",
 		onSuccess: () => {
 			setSelected(new Set());
-			setConfirmBulkDelete(false);
+			bulkDeleteDialog.close();
 		},
 	});
 
@@ -153,7 +154,7 @@ export const FourOhFours = ({ type }: FourOhFoursProps) => {
 		invalidate: [["404s"], ["dashboard"]],
 		errorMessage: "Could not clear dead 404s",
 		onSuccess: (result) => {
-			setConfirmClearDead(false);
+			clearDeadDialog.close();
 			toast.success(`Cleared ${result.deleted} dead 404${result.deleted === 1 ? "" : "s"}`);
 		},
 	});
@@ -420,7 +421,7 @@ export const FourOhFours = ({ type }: FourOhFoursProps) => {
 						{type === "404" && (
 							<Button
 								icon={<Trash size={13} />}
-								onClick={() => setConfirmClearDead(true)}
+								onClick={() => clearDeadDialog.open(true)}
 							>
 								Clear dead
 							</Button>
@@ -453,7 +454,7 @@ export const FourOhFours = ({ type }: FourOhFoursProps) => {
 					<Button
 						variant="dangerGhost"
 						icon={<Trash size={13} />}
-						onClick={() => setConfirmBulkDelete(true)}
+						onClick={() => bulkDeleteDialog.open(true)}
 					>
 						Delete {selectedCount}
 					</Button>
@@ -486,29 +487,25 @@ export const FourOhFours = ({ type }: FourOhFoursProps) => {
 				</div>
 			)}
 
-			{confirmBulkDelete && (
-				<ConfirmDialog
-					open
-					onOpenChange={setConfirmBulkDelete}
-					title={`Delete ${selectedCount} entries?`}
-					description="They can be re-captured the next time the broken URL is requested, but any redirects you'd set up on them will be lost."
-					confirmLabel="Delete"
-					variant="danger"
-					onConfirm={() => bulkDeleteMutation.mutate(Array.from(selected))}
-				/>
-			)}
+			<ConfirmDialog
+				open={bulkDeleteDialog.isOpen}
+				onOpenChange={(v) => { if (!v) bulkDeleteDialog.close(); }}
+				title={`Delete ${selectedCount} entries?`}
+				description="They can be re-captured the next time the broken URL is requested, but any redirects you'd set up on them will be lost."
+				confirmLabel="Delete"
+				variant="danger"
+				onConfirm={() => bulkDeleteMutation.mutate(Array.from(selected))}
+			/>
 
-			{confirmClearDead && (
-				<ConfirmDialog
-					open
-					onOpenChange={setConfirmClearDead}
-					title="Clear dead 404s?"
-					description="Deletes unredirected 404 entries with fewer than 5 recorded hits — usually one-off typos and crawler noise."
-					confirmLabel="Clear"
-					variant="danger"
-					onConfirm={() => clearDeadMutation.mutate()}
-				/>
-			)}
+			<ConfirmDialog
+				open={clearDeadDialog.isOpen}
+				onOpenChange={(v) => { if (!v) clearDeadDialog.close(); }}
+				title="Clear dead 404s?"
+				description="Deletes unredirected 404 entries with fewer than 5 recorded hits — usually one-off typos and crawler noise."
+				confirmLabel="Clear"
+				variant="danger"
+				onConfirm={() => clearDeadMutation.mutate()}
+			/>
 		</PageContainer>
 	);
 };

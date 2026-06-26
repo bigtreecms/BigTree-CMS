@@ -9,6 +9,7 @@ import { useAuthStore } from "@/auth/store";
 import { useSiteInfo } from "@/hooks/useSiteInfo";
 import { LEVEL } from "@/lib/permissions";
 import { moduleActionPath, modulePath, visibleModuleActions } from "@/lib/moduleActions";
+import { queryKeys } from "@/lib/queryKeys";
 import { modulesApi, type ModuleAction, type ModuleSummary } from "@/api/endpoints/modules";
 
 interface ModuleContextValue {
@@ -76,7 +77,7 @@ export const ModuleLayout = () => {
 	const site = useSiteInfo();
 
 	const listQuery = useQuery({
-		queryKey: ["modules", "list"],
+		queryKey: queryKeys.modules.list(),
 		queryFn: () => modulesApi.list(),
 	});
 
@@ -84,13 +85,13 @@ export const ModuleLayout = () => {
 	const moduleId = resolved?.id ?? "";
 
 	const moduleQuery = useQuery({
-		queryKey: ["modules", "detail", moduleId],
+		queryKey: queryKeys.modules.detail(moduleId),
 		queryFn: () => modulesApi.get(moduleId),
 		enabled: moduleId !== "",
 	});
 
 	const actionsQuery = useQuery({
-		queryKey: ["modules", "actions", moduleId],
+		queryKey: queryKeys.modules.actions(moduleId),
 		queryFn: () => modulesApi.actions(moduleId),
 		enabled: moduleId !== "",
 	});
