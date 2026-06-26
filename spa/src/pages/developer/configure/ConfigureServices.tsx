@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useToastMutation } from "@/hooks/useToastMutation";
 import { CheckCircle2, Unplug } from "lucide-react";
 
 import { ConfigureLayout } from "@/components/developer/ConfigureLayout";
@@ -116,15 +117,13 @@ export const ConfigureServices = () => {
 		}
 	}, [searchParams, setSearchParams, queryClient]);
 
-	const disconnectMutation = useMutation({
+	const disconnectMutation = useToastMutation({
 		mutationFn: (service: string) => configureApi.services.disconnect(service),
+		invalidate: [["configure", "services"]],
+		successMessage: "Service disconnected",
+		errorMessage: "Disconnect failed",
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ["configure", "services"] });
-			toast.success("Service disconnected");
 			setConfirmDisconnect(null);
-		},
-		onError: (err) => {
-			toast.error(err instanceof ApiError && err.message ? err.message : "Disconnect failed");
 		},
 	});
 

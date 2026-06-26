@@ -5,6 +5,8 @@ import { ResourcePicker } from "@/components/files/ResourcePicker";
 import { Button } from "@/components/ui/Button";
 import { IconButton } from "@/components/ui/IconButton";
 
+import { SectionLabel } from "@/components/ui/SectionLabel";
+
 import { INPUT_CLASS, settingsOf, type FieldComponentProps } from "./types";
 
 /**
@@ -136,7 +138,7 @@ const PendingRow = ({ label, text, onClear, disabled }: PendingRowProps) => (
 	<div className="flex items-center gap-2 rounded-md border border-border bg-surface-2 px-3 py-2 text-[12.5px]">
 		<VideoIcon size={14} className="text-text-3" />
 		<div className="min-w-0 flex-1">
-			<div className="text-[11px] uppercase tracking-[0.06em] text-text-3">{label}</div>
+			<SectionLabel size="sm">{label}</SectionLabel>
 			<div className="truncate text-text-2" title={text}>
 				{text}
 			</div>
@@ -189,7 +191,7 @@ const CurrentPreview = ({ value, onClear, disabled }: CurrentPreviewProps) => {
 				)}
 			</div>
 			<div className="min-w-0 flex-1 text-[12px]">
-				<div className="text-[11px] uppercase tracking-[0.06em] text-text-3">Current</div>
+				<SectionLabel size="sm">Current</SectionLabel>
 				<div className="truncate text-text-2">
 					{value.service} · {id}
 				</div>

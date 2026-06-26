@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { GitMerge, Plus, Trash } from "lucide-react";
 
 import { useAuthStore } from "@/auth/store";
@@ -18,7 +18,7 @@ import { IconButton } from "@/components/ui/IconButton";
 
 import { tagsApi, type Tag } from "@/api/endpoints/tags";
 import { isAdmin } from "@/lib/permissions";
-import { toast } from "@/lib/toast";
+import { useToastMutation } from "@/hooks/useToastMutation";
 
 /**
  * Tags list page. Mirrors the conventions used by Users.tsx — server-side
@@ -36,7 +36,6 @@ const PER_PAGE = 25;
 const TAGS_LIST_KEY = (page: number, q: string) => ["tags", "list", { page, q }] as const;
 
 export const Tags = () => {
-	const queryClient = useQueryClient();
 	const navigate = useNavigate();
 	const user = useAuthStore((s) => s.user);
 	const canEdit = isAdmin(user);
@@ -65,15 +64,11 @@ export const Tags = () => {
 	const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
 	const safePage = Math.min(page, totalPages);
 
-	const deleteMutation = useMutation({
+	const deleteMutation = useToastMutation({
 		mutationFn: (id: number) => tagsApi.delete(id),
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ["tags"] });
-			toast.success("Tag deleted");
-		},
-		onError: () => {
-			toast.error("Could not delete tag");
-		},
+		invalidate: [["tags"]],
+		successMessage: "Tag deleted",
+		errorMessage: "Could not delete tag",
 	});
 
 	const columns: DataTableColumn<Tag>[] = [

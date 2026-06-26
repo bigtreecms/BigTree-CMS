@@ -5,6 +5,7 @@ import { ChevronRight, ExternalLink, HelpCircle } from "lucide-react";
 import { pagesApi, type PageDetail, type PageSeoRating } from "@/api/endpoints/pages";
 import { Badge, type BadgeTone } from "@/components/ui/Badge";
 import { IconButton } from "@/components/ui/IconButton";
+import { SectionLabel } from "@/components/ui/SectionLabel";
 import { formatNumber } from "@/lib/number";
 
 /**
@@ -230,9 +231,7 @@ interface PropProps {
 
 const Prop = ({ label, children, span = 1 }: PropProps) => (
 	<div className={`flex min-w-0 flex-col gap-1 ${span === 2 ? "md:col-span-2" : ""}`}>
-		<span className="text-[10.5px] font-semibold uppercase tracking-[0.08em] text-text-3">
-			{label}
-		</span>
+		<SectionLabel size="xs">{label}</SectionLabel>
 		{children}
 	</div>
 );

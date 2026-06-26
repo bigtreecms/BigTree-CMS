@@ -5,6 +5,7 @@ import { ResourcePicker } from "@/components/files/ResourcePicker";
 import { Alert } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
 import { IconButton } from "@/components/ui/IconButton";
+import { SectionLabel } from "@/components/ui/SectionLabel";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 
 import {
@@ -260,9 +261,7 @@ export const ImageField = ({ field, value, onChange, disabled }: FieldComponentP
 						</a>
 					</div>
 					<div className="min-w-0 flex-1 text-[12px]">
-						<div className="text-[11px] uppercase tracking-[0.06em] text-text-3">
-							Current
-						</div>
+						<SectionLabel size="sm">Current</SectionLabel>
 						<a
 							href={fullUrl ?? "#"}
 							target="_blank"

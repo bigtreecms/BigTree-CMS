@@ -1,10 +1,10 @@
 import { useCallback, useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 
 import { autoModulesApi, type ModuleEntryRow } from "@/api/endpoints/auto-modules";
 import { toast } from "@/lib/toast";
+import { useToastMutation } from "@/hooks/useToastMutation";
 
 import { isPersistedEntryId, statusFromRow } from "./viewHelpers";
 
@@ -19,22 +19,19 @@ import { isPersistedEntryId, statusFromRow } from "./viewHelpers";
  * dead) Trash buttons to the same flow.
  */
 export const useEntryDelete = (moduleId: string, viewId: string) => {
-	const queryClient = useQueryClient();
 	const [confirmDelete, setConfirmDelete] = useState<ModuleEntryRow | null>(null);
 
-	const deleteMutation = useMutation({
+	const deleteMutation = useToastMutation({
 		mutationFn: (entryId: number | string) =>
 			autoModulesApi.delete(moduleId, entryId, { view: viewId }),
+		invalidate: [["module-entries", moduleId, viewId]],
+		errorMessage: "Could not delete entry",
 		onSuccess: (_data, entryId) => {
-			queryClient.invalidateQueries({ queryKey: ["module-entries", moduleId, viewId] });
 			toast.success(
 				typeof entryId === "string" && entryId.startsWith("p")
 					? "Pending entry deleted"
 					: "Entry deleted"
 			);
-		},
-		onError: () => {
-			toast.error("Could not delete entry");
 		},
 		onSettled: () => {
 			setConfirmDelete(null);

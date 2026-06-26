@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { useMutation, useQueries, useQueryClient } from "@tanstack/react-query";
+import { useQueries } from "@tanstack/react-query";
 import { ArrowRight, X } from "lucide-react";
 
 import { useAuthStore } from "@/auth/store";
@@ -17,6 +17,7 @@ import { TagInput } from "@/components/tags/TagInput";
 import { tagsApi, type Tag } from "@/api/endpoints/tags";
 import { isAdmin } from "@/lib/permissions";
 import { toast } from "@/lib/toast";
+import { useToastMutation } from "@/hooks/useToastMutation";
 
 /**
  * Tag merge page. The source IDs come in via ?from=1,2,3 (set by Tags.tsx
@@ -42,7 +43,6 @@ const parseFromParam = (raw: string | null): number[] => {
 
 export const TagMerge = () => {
 	const navigate = useNavigate();
-	const queryClient = useQueryClient();
 	const user = useAuthStore((s) => s.user);
 
 	const [searchParams] = useSearchParams();
@@ -60,7 +60,7 @@ export const TagMerge = () => {
 	const sourceTags: Tag[] = sourceQueries.map((q) => q.data).filter((t): t is Tag => !!t);
 	const sourceLoading = sourceQueries.some((q) => q.isLoading);
 
-	const mergeMutation = useMutation({
+	const mergeMutation = useToastMutation({
 		mutationFn: () => {
 			if (!target) {
 				throw new Error("merge: no target");
@@ -68,13 +68,11 @@ export const TagMerge = () => {
 
 			return tagsApi.merge({ into: target.id, from: sourceIds });
 		},
+		invalidate: [["tags"]],
+		errorMessage: "Could not merge tags",
 		onSuccess: (resulting) => {
-			queryClient.invalidateQueries({ queryKey: ["tags"] });
-			toast.success(`Merged into “${resulting.tag}”`);
+			toast.success(`Merged into "${resulting.tag}"`);
 			navigate("/tags");
-		},
-		onError: () => {
-			toast.error("Could not merge tags");
 		},
 	});
 

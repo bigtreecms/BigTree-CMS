@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
 import { Check, ChevronLeft, X } from "lucide-react";
 
@@ -10,11 +10,11 @@ import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { Button } from "@/components/ui/Button";
 import { DescriptionList } from "@/components/ui/DescriptionList";
 import { Loading } from "@/components/ui/Loading";
+import { SectionLabel } from "@/components/ui/SectionLabel";
 
 import { pendingChangesApi } from "@/api/endpoints/dashboard";
 
-import { ApiError } from "@/types/api";
-import { toast } from "@/lib/toast";
+import { useToastMutation } from "@/hooks/useToastMutation";
 import { useState } from "react";
 
 /**
@@ -32,7 +32,6 @@ export const PendingChangeDetail = () => {
 	const id = Number(idParam);
 	const valid = Number.isFinite(id) && id > 0;
 	const navigate = useNavigate();
-	const queryClient = useQueryClient();
 
 	const [confirm, setConfirm] = useState<"approve" | "reject" | null>(null);
 
@@ -42,30 +41,20 @@ export const PendingChangeDetail = () => {
 		enabled: valid,
 	});
 
-	const approveMutation = useMutation({
+	const approveMutation = useToastMutation({
 		mutationFn: () => pendingChangesApi.approve(id),
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ["pending-changes"] });
-			queryClient.invalidateQueries({ queryKey: ["dashboard"] });
-			toast.success("Change approved");
-			navigate("/dashboard");
-		},
-		onError: (err) => {
-			toast.error(err instanceof ApiError && err.message ? err.message : "Could not approve");
-		},
+		invalidate: [["pending-changes"], ["dashboard"]],
+		successMessage: "Change approved",
+		errorMessage: "Could not approve",
+		onSuccess: () => navigate("/dashboard"),
 	});
 
-	const rejectMutation = useMutation({
+	const rejectMutation = useToastMutation({
 		mutationFn: () => pendingChangesApi.reject(id),
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ["pending-changes"] });
-			queryClient.invalidateQueries({ queryKey: ["dashboard"] });
-			toast.success("Change rejected");
-			navigate("/dashboard");
-		},
-		onError: (err) => {
-			toast.error(err instanceof ApiError && err.message ? err.message : "Could not reject");
-		},
+		invalidate: [["pending-changes"], ["dashboard"]],
+		successMessage: "Change rejected",
+		errorMessage: "Could not reject",
+		onSuccess: () => navigate("/dashboard"),
 	});
 
 	if (!valid) {
@@ -217,9 +206,13 @@ const DiffSection = ({ title, payload }: DiffSectionProps) => {
 
 	return (
 		<section className="overflow-hidden rounded-lg border border-border bg-surface">
-			<header className="border-b border-border bg-surface-2 px-3 py-2 text-[11.5px] font-semibold uppercase tracking-[0.06em] text-text-3">
+			<SectionLabel
+				as="header"
+				size="sm"
+				className="border-b border-border bg-surface-2 px-3 py-2"
+			>
 				{title}
-			</header>
+			</SectionLabel>
 			<div className="p-3">
 				{isEmpty ? (
 					<div className="text-[12px] text-text-3">No changes recorded.</div>

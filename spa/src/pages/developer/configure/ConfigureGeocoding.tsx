@@ -4,9 +4,9 @@ import { Save } from "lucide-react";
 
 import { ConfigureLayout } from "@/components/developer/ConfigureLayout";
 import { Button } from "@/components/ui/Button";
-import { Select } from "@/components/ui/Select";
 import { TextInput } from "@/components/ui/TextInput";
 import { Field } from "@/components/ui/Field";
+import { SelectField } from "@/components/ui/SelectField";
 import { FormShell } from "@/components/ui/FormShell";
 import { LoadingText } from "@/components/ui/LoadingText";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
@@ -127,24 +127,13 @@ export const ConfigureGeocoding = () => {
 				>
 					{generalError && <ErrorPanel error={new Error(generalError)} />}
 
-					<Field label="Service">
-						<Select
-							value={draft.service}
-							onChange={(e) =>
-								setDraft({
-									...draft,
-									service: e.target.value as GeocodingServiceId,
-								})
-							}
-						>
-							{SERVICES.map((s) => (
-								<option key={s.id} value={s.id}>
-									{s.label}
-								</option>
-							))}
-						</Select>
-						<p className="mt-1 text-[11.5px] text-text-3">{active.help}</p>
-					</Field>
+					<SelectField
+						label="Service"
+						value={draft.service}
+						onChange={(v) => setDraft({ ...draft, service: v as GeocodingServiceId })}
+						options={SERVICES.map((s) => ({ value: s.id, label: s.label }))}
+						hint={active.help}
+					/>
 
 					<div className="mt-4 space-y-3">
 						{draft.service === "google" && (

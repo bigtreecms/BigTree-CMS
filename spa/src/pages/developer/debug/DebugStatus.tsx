@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { Trash2 } from "lucide-react";
 
 import { DebugLayout } from "@/components/developer/DebugLayout";
@@ -12,8 +12,7 @@ import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 
 import { systemApi } from "@/api/endpoints/system";
 import type { StatusLevel } from "@/api/endpoints/system";
-import { ApiError } from "@/types/api";
-import { toast } from "@/lib/toast";
+import { useToastMutation } from "@/hooks/useToastMutation";
 
 /**
  * Developer → Debug → Site Status.
@@ -53,14 +52,10 @@ export const DebugStatus = () => {
 
 	const [confirmClear, setConfirmClear] = useState(false);
 
-	const clearCache = useMutation({
+	const clearCache = useToastMutation({
 		mutationFn: () => systemApi.clearCache(),
-		onSuccess: () => toast.success("Cache cleared"),
-		onError: (err) => {
-			const msg =
-				err instanceof ApiError && err.message ? err.message : "Could not clear cache";
-			toast.error(msg);
-		},
+		successMessage: "Cache cleared",
+		errorMessage: "Could not clear cache",
 	});
 
 	const data = statusQ.data;

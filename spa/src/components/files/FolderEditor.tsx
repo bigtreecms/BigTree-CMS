@@ -1,11 +1,10 @@
 import { useEffect, useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useToastMutation } from "@/hooks/useToastMutation";
 
 import { Button } from "@/components/ui/Button";
 import { SlideOver } from "@/components/ui/SlideOver";
 import { Field } from "@/components/ui/Field";
 import { resourceFoldersApi, type ResourceFolderRow } from "@/api/endpoints/resource-folders";
-import { toast } from "@/lib/toast";
 
 interface FolderEditorProps {
 	open: boolean;
@@ -29,7 +28,6 @@ export const FolderEditor = ({
 	folder,
 	invalidateKey,
 }: FolderEditorProps) => {
-	const queryClient = useQueryClient();
 	const isRename = !!folder;
 	const [name, setName] = useState(folder?.name ?? "");
 
@@ -41,19 +39,17 @@ export const FolderEditor = ({
 		}
 	}, [open, folder?.name]);
 
-	const createMutation = useMutation({
+	const createMutation = useToastMutation({
 		mutationFn: () => resourceFoldersApi.create({ parent: parentId, name: name.trim() }),
+		invalidate: [[...invalidateKey]],
+		successMessage: "Folder created",
+		errorMessage: "Could not create folder",
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: invalidateKey });
-			toast.success("Folder created");
 			onOpenChange(false);
-		},
-		onError: () => {
-			toast.error("Could not create folder");
 		},
 	});
 
-	const renameMutation = useMutation({
+	const renameMutation = useToastMutation({
 		mutationFn: () => {
 			if (!folder) {
 				throw new Error("rename: no folder");
@@ -61,13 +57,11 @@ export const FolderEditor = ({
 
 			return resourceFoldersApi.update(folder.id, { name: name.trim() });
 		},
+		invalidate: [[...invalidateKey]],
+		successMessage: "Folder renamed",
+		errorMessage: "Could not rename folder",
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: invalidateKey });
-			toast.success("Folder renamed");
 			onOpenChange(false);
-		},
-		onError: () => {
-			toast.error("Could not rename folder");
 		},
 	});
 

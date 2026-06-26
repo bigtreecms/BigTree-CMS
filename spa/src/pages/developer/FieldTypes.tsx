@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { Plus, Trash } from "lucide-react";
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
@@ -16,8 +16,7 @@ import { DeveloperSectionNav } from "@/components/developer/DeveloperSectionNav"
 
 import { fieldTypesApi, type FieldType } from "@/api/endpoints/field-types";
 
-import { ApiError } from "@/types/api";
-import { toast } from "@/lib/toast";
+import { useToastMutation } from "@/hooks/useToastMutation";
 
 /**
  * /developer/field-types — list the custom (user-defined) field types.
@@ -31,7 +30,6 @@ type Row = FieldType;
 
 export const FieldTypes = () => {
 	const navigate = useNavigate();
-	const queryClient = useQueryClient();
 	const [confirmDelete, setConfirmDelete] = useState<Row | null>(null);
 
 	const query = useQuery({
@@ -39,15 +37,13 @@ export const FieldTypes = () => {
 		queryFn: () => fieldTypesApi.listSplit(),
 	});
 
-	const deleteMutation = useMutation({
+	const deleteMutation = useToastMutation({
 		mutationFn: (id: string) => fieldTypesApi.delete(id),
+		invalidate: [["field-types"]],
+		successMessage: "Field type deleted",
+		errorMessage: "Delete failed",
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ["field-types"] });
 			setConfirmDelete(null);
-			toast.success("Field type deleted");
-		},
-		onError: (err) => {
-			toast.error(err instanceof ApiError && err.message ? err.message : "Delete failed");
 		},
 	});
 

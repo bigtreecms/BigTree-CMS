@@ -1,4 +1,6 @@
-import { Field } from "./Field";
+import type { ReactNode } from "react";
+
+import { Field, type FieldSize } from "./Field";
 import { Select } from "./Select";
 
 /**
@@ -17,10 +19,12 @@ interface SelectFieldProps {
 	value: string;
 	onChange: (next: string) => void;
 	options: SelectOption[];
-	hint?: string;
+	hint?: ReactNode;
 	error?: string;
 	disabled?: boolean;
 	required?: boolean;
+	/** Label text size forwarded to {@link Field}: `"md"` (default) or `"sm"`. */
+	size?: FieldSize;
 	/** Compact vertical padding for space-constrained sections. */
 	dense?: boolean;
 	/** Layout-only classes forwarded to the wrapping {@link Field} (e.g. grid spans). */
@@ -36,10 +40,18 @@ export const SelectField = ({
 	error,
 	disabled,
 	required,
+	size,
 	dense,
 	className,
 }: SelectFieldProps) => (
-	<Field label={label} hint={hint} error={error} required={required} className={className}>
+	<Field
+		label={label}
+		hint={hint}
+		error={error}
+		required={required}
+		size={size}
+		className={className}
+	>
 		<Select
 			value={value}
 			onChange={(e) => onChange(e.target.value)}

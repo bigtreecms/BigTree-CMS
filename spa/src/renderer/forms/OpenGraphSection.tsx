@@ -1,5 +1,5 @@
 import { Field } from "@/components/ui/Field";
-import { Select } from "@/components/ui/Select";
+import { SelectField } from "@/components/ui/SelectField";
 import { TextInput } from "@/components/ui/TextInput";
 import { SectionLabel } from "@/components/ui/SectionLabel";
 
@@ -59,20 +59,21 @@ export const OpenGraphSection = ({ value, onChange, disabled }: OpenGraphSection
 				</Field>
 
 				<div className="grid grid-cols-1 gap-[14px] md:grid-cols-2 md:gap-x-[22px]">
-					<Field label="Type" size="sm">
-						<Select
-							dense
-							value={value.type ?? ""}
-							onChange={(e) => patch({ type: e.target.value })}
-							disabled={disabled}
-						>
-							<option value="">—</option>
-							<option value="website">website</option>
-							<option value="article">article</option>
-							<option value="profile">profile</option>
-							<option value="video.movie">video.movie</option>
-						</Select>
-					</Field>
+					<SelectField
+						label="Type"
+						size="sm"
+						dense
+						value={value.type ?? ""}
+						onChange={(v) => patch({ type: v })}
+						disabled={disabled}
+						options={[
+							{ value: "", label: "—" },
+							{ value: "website", label: "website" },
+							{ value: "article", label: "article" },
+							{ value: "profile", label: "profile" },
+							{ value: "video.movie", label: "video.movie" },
+						]}
+					/>
 					<Field label="Image" size="sm" inlineHint="(min 1200×630)">
 						<TextInput
 							dense

@@ -4,9 +4,9 @@ import { Save } from "lucide-react";
 
 import { ConfigureLayout } from "@/components/developer/ConfigureLayout";
 import { Button } from "@/components/ui/Button";
-import { Select } from "@/components/ui/Select";
 import { TextInput } from "@/components/ui/TextInput";
 import { Field } from "@/components/ui/Field";
+import { SelectField } from "@/components/ui/SelectField";
 import { FormShell } from "@/components/ui/FormShell";
 import { LoadingText } from "@/components/ui/LoadingText";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
@@ -217,20 +217,12 @@ export const ConfigurePaymentGateway = () => {
 				>
 					{generalError && <ErrorPanel error={new Error(generalError)} />}
 
-					<Field label="Gateway">
-						<Select
-							value={draft.service}
-							onChange={(e) =>
-								setDraft({ ...draft, service: e.target.value as PaymentGatewayId })
-							}
-						>
-							{GATEWAYS.map((g) => (
-								<option key={g.id} value={g.id}>
-									{g.label}
-								</option>
-							))}
-						</Select>
-					</Field>
+					<SelectField
+						label="Gateway"
+						value={draft.service}
+						onChange={(v) => setDraft({ ...draft, service: v as PaymentGatewayId })}
+						options={GATEWAYS.map((g) => ({ value: g.id, label: g.label }))}
+					/>
 
 					{fields.length > 0 && (
 						<div className="mt-4 space-y-3">
@@ -241,18 +233,13 @@ export const ConfigurePaymentGateway = () => {
 
 								if (f.type === "select" && f.options) {
 									return (
-										<Field key={f.key} label={f.label}>
-											<Select
-												value={value}
-												onChange={(e) => onChange(f.key, e.target.value)}
-											>
-												{f.options.map((o) => (
-													<option key={o.value} value={o.value}>
-														{o.label}
-													</option>
-												))}
-											</Select>
-										</Field>
+										<SelectField
+											key={f.key}
+											label={f.label}
+											value={value}
+											onChange={(v) => onChange(f.key, v)}
+											options={f.options}
+										/>
 									);
 								}
 

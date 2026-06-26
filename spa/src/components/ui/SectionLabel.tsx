@@ -1,10 +1,12 @@
-import type { ElementType, ReactNode } from "react";
+import type { ElementType, HTMLAttributes, ReactNode } from "react";
 
-export type SectionLabelSize = "sm" | "md";
+export type SectionLabelSize = "xs" | "sm" | "md";
 
-interface SectionLabelProps {
+interface SectionLabelProps extends HTMLAttributes<HTMLElement> {
+	/** Forward `for` attribute when rendered as a `<label>`. */
+	htmlFor?: string;
 	children: ReactNode;
-	/** Text size: `sm` (text-[11px]) or `md` (text-[12px], default). */
+	/** Text size: `xs` (text-[10.5px]), `sm` (text-[11px]), or `md` (text-[12px], default). */
 	size?: SectionLabelSize;
 	/**
 	 * Element to render. Defaults to `div`; pass a heading (`h3`/`h4`) when the
@@ -15,12 +17,6 @@ interface SectionLabelProps {
 	icon?: ReactNode;
 	/** Trailing content (a count, an action) pushed to the right edge of the row. */
 	actions?: ReactNode;
-	/**
-	 * Layout-only classes the caller still owns — the spacing (`mb-2`, `mb-0.5`),
-	 * padding (`px-3`), or `block` that varies per context. The base carries none.
-	 */
-	className?: string;
-	title?: string;
 }
 
 /**
@@ -32,6 +28,7 @@ interface SectionLabelProps {
  */
 
 const sizeClassName: Record<SectionLabelSize, string> = {
+	xs: "text-[10.5px]",
 	sm: "text-[11px]",
 	md: "text-[12px]",
 };
@@ -43,17 +40,14 @@ export const SectionLabel = ({
 	icon,
 	actions,
 	className,
-	title,
+	...rest
 }: SectionLabelProps) => {
 	const base = `font-semibold uppercase tracking-[0.06em] text-text-3 ${sizeClassName[size]}`;
 	const extra = className ? ` ${className}` : "";
 
 	if (actions) {
 		return (
-			<Tag
-				title={title}
-				className={`flex items-center justify-between gap-2 ${base}${extra}`}
-			>
+			<Tag {...rest} className={`flex items-center justify-between gap-2 ${base}${extra}`}>
 				<span className="flex items-center gap-1.5">
 					{icon}
 					{children}
@@ -65,7 +59,7 @@ export const SectionLabel = ({
 
 	if (icon) {
 		return (
-			<Tag title={title} className={`flex items-center gap-1.5 ${base}${extra}`}>
+			<Tag {...rest} className={`flex items-center gap-1.5 ${base}${extra}`}>
 				{icon}
 				{children}
 			</Tag>
@@ -73,7 +67,7 @@ export const SectionLabel = ({
 	}
 
 	return (
-		<Tag title={title} className={`${base}${extra}`}>
+		<Tag {...rest} className={`${base}${extra}`}>
 			{children}
 		</Tag>
 	);

@@ -16,7 +16,7 @@ const meta = {
 	tags: ["autodocs"],
 	args: { children: "Permissions", size: "md" },
 	argTypes: {
-		size: { control: "inline-radio", options: ["sm", "md"] },
+		size: { control: "inline-radio", options: ["xs", "sm", "md"] },
 	},
 } satisfies Meta<typeof SectionLabel>;
 
@@ -25,12 +25,13 @@ type Story = StoryObj<typeof meta>;
 
 export const Playground: Story = {};
 
-/** The two sizes — `md` (12px, default) and `sm` (11px, denser panels). */
+/** The three sizes — `md` (12px, default), `sm` (11px, denser panels), `xs` (10.5px, compact rows). */
 export const Sizes: Story = {
 	render: () => (
 		<div className="flex flex-col gap-3">
 			<SectionLabel size="md">Details</SectionLabel>
 			<SectionLabel size="sm">Details</SectionLabel>
+			<SectionLabel size="xs">Details</SectionLabel>
 		</div>
 	),
 };

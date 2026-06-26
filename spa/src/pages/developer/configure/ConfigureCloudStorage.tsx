@@ -7,7 +7,7 @@ import { ConfigureLayout } from "@/components/developer/ConfigureLayout";
 import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
 import { LoadingText } from "@/components/ui/LoadingText";
-import { Select } from "@/components/ui/Select";
+import { SelectField } from "@/components/ui/SelectField";
 import { TextInput } from "@/components/ui/TextInput";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { UploadButton } from "@/components/ui/UploadButton";
@@ -240,23 +240,28 @@ export const ConfigureCloudStorage = () => {
 						</div>
 						<div className="flex flex-col gap-3 sm:flex-row sm:items-end">
 							<div className="sm:flex-1">
-								<Field label="Service">
-									<Select
-										value={defaultService}
-										onChange={(e) => setDefaultService(e.target.value)}
-									>
-										<option value="local">Local storage</option>
-										{detailQ.data.providers.amazon.active && (
-											<option value="amazon">Amazon S3</option>
-										)}
-										{detailQ.data.providers.rackspace.active && (
-											<option value="rackspace">Rackspace Cloud Files</option>
-										)}
-										{detailQ.data.providers.google.active && (
-											<option value="google">Google Cloud Storage</option>
-										)}
-									</Select>
-								</Field>
+								<SelectField
+									label="Service"
+									value={defaultService}
+									onChange={setDefaultService}
+									options={[
+										{ value: "local", label: "Local storage" },
+										...(detailQ.data.providers.amazon.active
+											? [{ value: "amazon", label: "Amazon S3" }]
+											: []),
+										...(detailQ.data.providers.rackspace.active
+											? [
+													{
+														value: "rackspace",
+														label: "Rackspace Cloud Files",
+													},
+												]
+											: []),
+										...(detailQ.data.providers.google.active
+											? [{ value: "google", label: "Google Cloud Storage" }]
+											: []),
+									]}
+								/>
 							</div>
 
 							<div className="sm:flex-1">
@@ -303,17 +308,15 @@ export const ConfigureCloudStorage = () => {
 										}
 									/>
 								</Field>
-								<Field label="Serve CloudFront over SSL">
-									<Select
-										value={cloudfront.ssl}
-										onChange={(e) =>
-											setCloudfront((c) => ({ ...c, ssl: e.target.value }))
-										}
-									>
-										<option value="">No</option>
-										<option value="on">Yes</option>
-									</Select>
-								</Field>
+								<SelectField
+									label="Serve CloudFront over SSL"
+									value={cloudfront.ssl}
+									onChange={(v) => setCloudfront((c) => ({ ...c, ssl: v }))}
+									options={[
+										{ value: "", label: "No" },
+										{ value: "on", label: "Yes" },
+									]}
+								/>
 							</div>
 						)}
 
@@ -351,18 +354,12 @@ export const ConfigureCloudStorage = () => {
 							) : undefined
 						}
 					>
-						<Field label="AWS region">
-							<Select
-								value={(drafts.amazon.region as string) ?? "us-east-1"}
-								onChange={(e) => update("amazon", "region", e.target.value)}
-							>
-								{AWS_REGIONS.map((r) => (
-									<option key={r.value} value={r.value}>
-										{r.label}
-									</option>
-								))}
-							</Select>
-						</Field>
+						<SelectField
+							label="AWS region"
+							value={(drafts.amazon.region as string) ?? "us-east-1"}
+							onChange={(v) => update("amazon", "region", v)}
+							options={AWS_REGIONS}
+						/>
 
 						<Field label="Access key ID">
 							<TextInput
@@ -414,18 +411,12 @@ export const ConfigureCloudStorage = () => {
 								onChange={(e) => update("rackspace", "username", e.target.value)}
 							/>
 						</Field>
-						<Field label="Region">
-							<Select
-								value={(drafts.rackspace.region as string) ?? "ORD"}
-								onChange={(e) => update("rackspace", "region", e.target.value)}
-							>
-								{RACKSPACE_REGIONS.map((r) => (
-									<option key={r.value} value={r.value}>
-										{r.label}
-									</option>
-								))}
-							</Select>
-						</Field>
+						<SelectField
+							label="Region"
+							value={(drafts.rackspace.region as string) ?? "ORD"}
+							onChange={(v) => update("rackspace", "region", v)}
+							options={RACKSPACE_REGIONS}
+						/>
 					</ProviderCard>
 
 					<ProviderCard

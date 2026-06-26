@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useToastMutation } from "@/hooks/useToastMutation";
 import {
 	ChevronRight,
 	GripVertical,
@@ -25,7 +25,6 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { IconButton } from "@/components/ui/IconButton";
 import { Field } from "@/components/ui/Field";
 import { useUploads, type UploadItem } from "@/hooks/useUploads";
-import { ApiError } from "@/types/api";
 import { expandImageUrl } from "@/lib/imageUrl";
 import { toast } from "@/lib/toast";
 
@@ -746,17 +745,11 @@ const URL_HOST_HINT = /(youtu\.be|youtube\.com|vimeo\.com)/i;
 const VideoUrlPrompt = ({ allowYoutube, allowVimeo, onClose, onCreated }: VideoUrlPromptProps) => {
 	const [url, setUrl] = useState("");
 
-	const createMutation = useMutation({
+	const createMutation = useToastMutation({
 		mutationFn: () => resourcesApi.createVideo({ url: url.trim() }),
-		onSuccess: (resource) => onCreated(resource),
-		onError: (err) => {
-			let message = "Could not add video";
-
-			if (err instanceof ApiError) {
-				message = err.message || message;
-			}
-
-			toast.error(message);
+		errorMessage: "Could not add video",
+		onSuccess: (resource) => {
+			onCreated(resource);
 		},
 	});
 

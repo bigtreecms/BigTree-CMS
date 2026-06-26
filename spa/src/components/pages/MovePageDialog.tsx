@@ -1,13 +1,12 @@
 import { useEffect, useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, type QueryKey } from "@tanstack/react-query";
 import { ChevronRight, Folder, Home, Search, X } from "lucide-react";
 
 import { Button } from "@/components/ui/Button";
 import { SlideOver } from "@/components/ui/SlideOver";
 
 import { pagesApi, type PageListRow, type PageSearchHit } from "@/api/endpoints/pages";
-import { ApiError } from "@/types/api";
-import { toast } from "@/lib/toast";
+import { useToastMutation } from "@/hooks/useToastMutation";
 import { InlineEmpty } from "@/components/ui/InlineEmpty";
 import { IconButton } from "@/components/ui/IconButton";
 
@@ -38,8 +37,6 @@ export const MovePageDialog = ({
 	page,
 	invalidateKey,
 }: MovePageDialogProps) => {
-	const queryClient = useQueryClient();
-
 	const [browseParent, setBrowseParent] = useState(0);
 	const [crumbs, setCrumbs] = useState<Array<{ id: number; nav_title: string }>>([]);
 	const [search, setSearch] = useState("");
@@ -75,7 +72,11 @@ export const MovePageDialog = ({
 		enabled: open && page !== null && debounced.length >= 2,
 	});
 
-	const moveMutation = useMutation({
+	const pageInvalidateKeys: QueryKey[] = page
+		? [[...invalidateKey], ["pages", "detail", page.id]]
+		: [[...invalidateKey]];
+
+	const moveMutation = useToastMutation({
 		mutationFn: ({ parent }: { parent: number }) => {
 			if (!page) {
 				throw new Error("No page selected");
@@ -83,20 +84,11 @@ export const MovePageDialog = ({
 
 			return pagesApi.move(page.id, parent);
 		},
+		invalidate: pageInvalidateKeys,
+		successMessage: "Page moved",
+		errorMessage: "Could not move page",
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: invalidateKey });
-
-			if (page) {
-				queryClient.invalidateQueries({ queryKey: ["pages", "detail", page.id] });
-			}
-
-			toast.success("Page moved");
 			onOpenChange(false);
-		},
-		onError: (err) => {
-			const message =
-				err instanceof ApiError && err.message ? err.message : "Could not move page";
-			toast.error(message);
 		},
 	});
 

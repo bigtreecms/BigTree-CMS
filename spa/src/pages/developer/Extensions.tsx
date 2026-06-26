@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { Hammer, Package, RefreshCw, Trash2, Upload } from "lucide-react";
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
@@ -19,12 +19,10 @@ import { SectionLabel } from "@/components/ui/SectionLabel";
 import { extensionsApi, type Extension } from "@/api/endpoints/extensions";
 import { useIgnoredExtensionUpdates } from "@/hooks/useIgnoredExtensionUpdates";
 import { relativeTime } from "@/lib/time";
-import { ApiError } from "@/types/api";
 import { toast } from "@/lib/toast";
+import { useToastMutation } from "@/hooks/useToastMutation";
 
 export const Extensions = () => {
-	const queryClient = useQueryClient();
-
 	const listQ = useQuery({
 		queryKey: ["extensions"],
 		queryFn: () => extensionsApi.list(),
@@ -64,39 +62,25 @@ export const Extensions = () => {
 	const [detail, setDetail] = useState<Extension | null>(null);
 	const [pendingDelete, setPendingDelete] = useState<Extension | null>(null);
 
-	const deleteMutation = useMutation({
+	const deleteMutation = useToastMutation({
 		mutationFn: (id: string) => extensionsApi.remove(id),
-		onSuccess: () => {
-			toast.success("Extension uninstalled");
-			queryClient.invalidateQueries({ queryKey: ["extensions"] });
-		},
-		onError: (err) => {
-			const msg =
-				err instanceof ApiError && err.message
-					? err.message
-					: "Could not uninstall extension";
-			toast.error(msg);
-		},
+		invalidate: [["extensions"]],
+		successMessage: "Extension uninstalled",
+		errorMessage: "Could not uninstall extension",
 	});
 
-	const recacheMutation = useMutation({
+	const recacheMutation = useToastMutation({
 		mutationFn: () => extensionsApi.recacheHooks(),
-		onSuccess: () => toast.success("Refreshed hooks cache"),
-		onError: (err) => {
-			toast.error(
-				err instanceof ApiError && err.message ? err.message : "Could not refresh hooks"
-			);
-		},
+		successMessage: "Refreshed hooks cache",
+		errorMessage: "Could not refresh hooks",
 	});
 
-	const upgradeMutation = useMutation({
+	const upgradeMutation = useToastMutation({
 		mutationFn: (id: string) => extensionsApi.upgrade(id),
+		invalidate: [["extensions"]],
+		errorMessage: "Upgrade failed",
 		onSuccess: (r) => {
 			toast.success(`Upgraded to ${r.version || "the latest version"}`);
-			queryClient.invalidateQueries({ queryKey: ["extensions"] });
-		},
-		onError: (err) => {
-			toast.error(err instanceof ApiError && err.message ? err.message : "Upgrade failed");
 		},
 	});
 

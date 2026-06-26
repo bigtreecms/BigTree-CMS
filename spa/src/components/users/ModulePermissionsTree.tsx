@@ -4,6 +4,8 @@ import { useQuery } from "@tanstack/react-query";
 import { modulesApi, type ModuleGroup, type ModuleSummary } from "@/api/endpoints/modules";
 import type { PermissionCode, UserPermissions } from "@/api/endpoints/users";
 
+import { SectionLabel } from "@/components/ui/SectionLabel";
+
 import { PermissionRadios } from "./PermissionRadios";
 import { PermissionTreeHeader } from "./PermissionTreeHeader";
 import { MODULE_PERMISSION_OPTIONS } from "./permissionOptions";
@@ -196,9 +198,12 @@ export const ModulePermissionsTree = ({
 			<div className="border-x border-b border-border">
 				{grouped.map(({ group, modules }) => (
 					<div key={group.id}>
-						<div className="border-t border-border bg-surface-2 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.06em] text-text-3 first:border-t-0">
+						<SectionLabel
+							size="sm"
+							className="border-t border-border bg-surface-2 px-3 py-1.5 first:border-t-0"
+						>
 							{group.name}
-						</div>
+						</SectionLabel>
 
 						{modules.map((m) => {
 							const current = value?.[m.id] ?? "";

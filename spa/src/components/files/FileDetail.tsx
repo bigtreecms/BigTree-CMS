@@ -34,7 +34,7 @@ import { expandImageUrl } from "@/lib/imageUrl";
 import { toast } from "@/lib/toast";
 import { InlineEmpty } from "@/components/ui/InlineEmpty";
 import { IconButton } from "@/components/ui/IconButton";
-import { Select } from "@/components/ui/Select";
+import { SelectField } from "@/components/ui/SelectField";
 import { TextInput } from "@/components/ui/TextInput";
 import { Field } from "@/components/ui/Field";
 import { SectionLabel } from "@/components/ui/SectionLabel";
@@ -293,20 +293,18 @@ export const FileDetail = ({ resourceId, onOpenChange, folderQueryKey }: FileDet
 							/>
 						</Field>
 
-						<Field label="Folder">
-							<Select
-								value={folder}
-								onChange={(e) => setFolder(Number(e.target.value))}
-							>
-								<option value={0}>Home</option>
-								{(foldersQuery.data ?? []).map((f) => (
-									<option key={f.id} value={f.id}>
-										{" ".repeat((f.depth + 1) * 2)}
-										{f.name}
-									</option>
-								))}
-							</Select>
-						</Field>
+						<SelectField
+							label="Folder"
+							value={String(folder)}
+							onChange={(v) => setFolder(Number(v))}
+							options={[
+								{ value: "0", label: "Home" },
+								...(foldersQuery.data ?? []).map((f) => ({
+									value: String(f.id),
+									label: " ".repeat((f.depth + 1) * 2) + f.name,
+								})),
+							]}
+						/>
 
 						<MetaGrid resource={resource} onCopyUrl={copyUrl} />
 

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { keepPreviousData, useMutation, useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { Eye } from "lucide-react";
 
 import { useAuthStore } from "@/auth/store";
@@ -13,8 +13,7 @@ import { Toolbar } from "@/components/ui/Toolbar";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { usersApi, type UserListItem, levelToLabel } from "@/api/endpoints/users";
-import { ApiError } from "@/types/api";
-import { toast } from "@/lib/toast";
+import { useToastMutation } from "@/hooks/useToastMutation";
 
 const PER_PAGE = 15;
 
@@ -47,17 +46,13 @@ export const DebugEmulator = () => {
 	const total = meta.total ?? rows.length;
 	const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
 
-	const emulateMutation = useMutation({
+	const emulateMutation = useToastMutation({
 		mutationFn: (userId: number) => authApi.emulate(userId),
+		errorMessage: "Could not emulate user",
 		onSuccess: () => {
 			// Full reload under the emulated session — resets all query caches.
 			const base = import.meta.env.PROD ? "/admin/spa/dashboard" : "/dashboard";
 			window.location.assign(base);
-		},
-		onError: (err) => {
-			const msg =
-				err instanceof ApiError && err.message ? err.message : "Could not emulate user";
-			toast.error(msg);
 		},
 	});
 

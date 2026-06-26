@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { Plus, Trash } from "lucide-react";
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
@@ -16,14 +16,12 @@ import { DeveloperSectionNav } from "@/components/developer/DeveloperSectionNav"
 
 import { calloutsApi, type CalloutSummary } from "@/api/endpoints/callouts";
 
-import { ApiError } from "@/types/api";
-import { toast } from "@/lib/toast";
+import { useToastMutation } from "@/hooks/useToastMutation";
 
 const LEVEL_LABEL = ["Editor", "Admin", "Developer"];
 
 export const Callouts = () => {
 	const navigate = useNavigate();
-	const queryClient = useQueryClient();
 	const [confirmDelete, setConfirmDelete] = useState<CalloutSummary | null>(null);
 
 	const query = useQuery({
@@ -31,15 +29,13 @@ export const Callouts = () => {
 		queryFn: () => calloutsApi.list(),
 	});
 
-	const deleteMutation = useMutation({
+	const deleteMutation = useToastMutation({
 		mutationFn: (id: string) => calloutsApi.delete(id),
+		invalidate: [["callouts"]],
+		successMessage: "Callout deleted",
+		errorMessage: "Delete failed",
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ["callouts"] });
 			setConfirmDelete(null);
-			toast.success("Callout deleted");
-		},
-		onError: (err) => {
-			toast.error(err instanceof ApiError && err.message ? err.message : "Delete failed");
 		},
 	});
 

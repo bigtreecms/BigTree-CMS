@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { keepPreviousData, useMutation, useQuery } from "@tanstack/react-query";
 import { Check, Download, EyeOff, Link2, Plus, Trash, Upload, X } from "lucide-react";
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
@@ -25,6 +25,7 @@ import { ApiError } from "@/types/api";
 import { downloadCsv } from "@/lib/csv";
 import { formatNumber } from "@/lib/number";
 import { toast } from "@/lib/toast";
+import { useToastMutation } from "@/hooks/useToastMutation";
 
 /**
  * /dashboard/404s — the 404 Report.
@@ -61,7 +62,6 @@ const TYPE_ROUTE: Record<FourOhFourType, string> = {
 };
 
 export const FourOhFours = ({ type }: FourOhFoursProps) => {
-	const queryClient = useQueryClient();
 	const navigate = useNavigate();
 	const [search, setSearch] = useState("");
 	const [debounced, setDebounced] = useState("");
@@ -111,60 +111,51 @@ export const FourOhFours = ({ type }: FourOhFoursProps) => {
 	const total = (listQ.data?.meta?.total as number | undefined) ?? rows.length;
 	const totalPages = (listQ.data?.meta?.pages as number | undefined) ?? 1;
 
-	const invalidate = () => {
-		queryClient.invalidateQueries({ queryKey: ["404s"] });
-		queryClient.invalidateQueries({ queryKey: ["dashboard"] });
-	};
-
-	const deleteMutation = useMutation({
+	const deleteMutation = useToastMutation({
 		mutationFn: (id: number) => fourOhFoursApi.delete(id),
-		onSuccess: () => {
-			invalidate();
-			toast.success("Entry deleted");
-		},
-		onError: (err) => apiToast(err, "Could not delete entry"),
+		invalidate: [["404s"], ["dashboard"]],
+		successMessage: "Entry deleted",
+		errorMessage: "Could not delete entry",
 	});
 
-	const ignoreMutation = useMutation({
+	const ignoreMutation = useToastMutation({
 		mutationFn: (id: number) => fourOhFoursApi.ignore(id),
-		onSuccess: () => {
-			invalidate();
-			toast.success("Entry ignored");
-		},
-		onError: (err) => apiToast(err, "Could not ignore entry"),
+		invalidate: [["404s"], ["dashboard"]],
+		successMessage: "Entry ignored",
+		errorMessage: "Could not ignore entry",
 	});
 
-	const setRedirectMutation = useMutation({
+	const setRedirectMutation = useToastMutation({
 		mutationFn: ({ id, url }: { id: number; url: string }) =>
 			fourOhFoursApi.setRedirect(id, url),
+		invalidate: [["404s"], ["dashboard"]],
+		successMessage: "Redirect saved",
+		errorMessage: "Could not save redirect",
 		onSuccess: () => {
 			setEditingRedirectId(null);
 			setRedirectDraft("");
-			invalidate();
-			toast.success("Redirect saved");
 		},
-		onError: (err) => apiToast(err, "Could not save redirect"),
 	});
 
-	const bulkDeleteMutation = useMutation({
+	const bulkDeleteMutation = useToastMutation({
 		mutationFn: (ids: number[]) => fourOhFoursApi.bulkDelete(ids),
+		invalidate: [["404s"], ["dashboard"]],
+		successMessage: "Selected entries deleted",
+		errorMessage: "Bulk delete failed",
 		onSuccess: () => {
 			setSelected(new Set());
 			setConfirmBulkDelete(false);
-			invalidate();
-			toast.success("Selected entries deleted");
 		},
-		onError: (err) => apiToast(err, "Bulk delete failed"),
 	});
 
-	const clearDeadMutation = useMutation({
+	const clearDeadMutation = useToastMutation({
 		mutationFn: () => fourOhFoursApi.clearDead(),
+		invalidate: [["404s"], ["dashboard"]],
+		errorMessage: "Could not clear dead 404s",
 		onSuccess: (result) => {
 			setConfirmClearDead(false);
-			invalidate();
 			toast.success(`Cleared ${result.deleted} dead 404${result.deleted === 1 ? "" : "s"}`);
 		},
-		onError: (err) => apiToast(err, "Could not clear dead 404s"),
 	});
 
 	const exportMutation = useMutation({

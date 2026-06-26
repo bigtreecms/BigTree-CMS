@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useToastMutation } from "@/hooks/useToastMutation";
 import { CheckCircle2, Unplug } from "lucide-react";
 
 import { ConfigureLayout } from "@/components/developer/ConfigureLayout";
@@ -34,14 +35,14 @@ export const ConfigureAnalytics = () => {
 		queryClient.setQueryData(["configure", "analytics"], fresh);
 	};
 
-	const disconnectMutation = useMutation({
+	const disconnectMutation = useToastMutation({
 		mutationFn: () => configureApi.analytics.disconnect(),
+		invalidate: [["configure", "analytics"]],
+		successMessage: "Disconnected from Google Analytics",
+		errorMessage: "Disconnect failed",
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ["configure", "analytics"] });
-			toast.success("Disconnected from Google Analytics");
 			setConfirmDisconnect(false);
 		},
-		onError: failed("Disconnect failed"),
 	});
 
 	const uploadMutation = useMutation({

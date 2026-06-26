@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { Plus, Trash } from "lucide-react";
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
@@ -16,12 +16,10 @@ import { DeveloperSectionNav } from "@/components/developer/DeveloperSectionNav"
 
 import { modulesApi, type ModuleGroup } from "@/api/endpoints/modules";
 
-import { ApiError } from "@/types/api";
-import { toast } from "@/lib/toast";
+import { useToastMutation } from "@/hooks/useToastMutation";
 
 export const ModuleGroups = () => {
 	const navigate = useNavigate();
-	const queryClient = useQueryClient();
 	const [confirmDelete, setConfirmDelete] = useState<ModuleGroup | null>(null);
 
 	const query = useQuery({
@@ -29,15 +27,13 @@ export const ModuleGroups = () => {
 		queryFn: () => modulesApi.listGroups(),
 	});
 
-	const deleteMutation = useMutation({
+	const deleteMutation = useToastMutation({
 		mutationFn: (id: string) => modulesApi.deleteGroup(id),
+		invalidate: [["module-groups"]],
+		successMessage: "Module group deleted",
+		errorMessage: "Delete failed",
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ["module-groups"] });
 			setConfirmDelete(null);
-			toast.success("Module group deleted");
-		},
-		onError: (err) => {
-			toast.error(err instanceof ApiError && err.message ? err.message : "Delete failed");
 		},
 	});
 

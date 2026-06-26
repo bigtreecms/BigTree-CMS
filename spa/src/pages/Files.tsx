@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { keepPreviousData, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
 	Edit,
 	File as FileIcon,
@@ -37,6 +37,7 @@ import { resourcesApi } from "@/api/endpoints/resources";
 import { formatBytes } from "@/lib/bytes";
 import { expandImageUrl } from "@/lib/imageUrl";
 import { toast } from "@/lib/toast";
+import { useToastMutation } from "@/hooks/useToastMutation";
 
 /**
  * Files / Resource Manager.
@@ -146,14 +147,12 @@ export const Files = () => {
 		toast.success("File uploaded");
 	}, [queryClient, folderId]);
 
-	const deleteFolderMutation = useMutation({
+	const deleteFolderMutation = useToastMutation({
 		mutationFn: (folder: ResourceFolderRow) => resourceFoldersApi.delete(folder.id),
+		invalidate: [FOLDER_CONTENTS_KEY(folderId)],
+		errorMessage: "Could not delete folder",
 		onSuccess: (_, folder) => {
-			queryClient.invalidateQueries({ queryKey: FOLDER_CONTENTS_KEY(folderId) });
-			toast.success(`Deleted “${folder.name}”`);
-		},
-		onError: () => {
-			toast.error("Could not delete folder");
+			toast.success(`Deleted "${folder.name}"`);
 		},
 	});
 
@@ -330,7 +329,7 @@ export const Files = () => {
 	const totalCount = isSearching ? (searchQuery.data?.length ?? 0) : rows.length;
 
 	const sub = isSearching
-		? `${totalCount} result${totalCount === 1 ? "" : "s"} for “${debounced}”`
+		? `${totalCount} result${totalCount === 1 ? "" : "s"} for "${debounced}"`
 		: contents
 			? `${contents.folders.length} folder${contents.folders.length === 1 ? "" : "s"}, ${contents.resources.length} file${contents.resources.length === 1 ? "" : "s"}`
 			: "Loading…";
@@ -383,7 +382,7 @@ export const Files = () => {
 				isLoading={loading}
 				loadingLabel={isSearching ? "Searching…" : "Loading files…"}
 				emptyLabel={
-					isSearching ? `No files match “${debounced}”.` : "This folder is empty."
+					isSearching ? `No files match "${debounced}".` : "This folder is empty."
 				}
 				onRowClick={handleRowClick}
 			/>
@@ -408,7 +407,7 @@ export const Files = () => {
 							setConfirmDeleteFolder(null);
 						}
 					}}
-					title={`Delete “${confirmDeleteFolder.name}”?`}
+					title={`Delete "${confirmDeleteFolder.name}"?`}
 					description="Subfolders and files inside this folder will be moved up one level — they won't be deleted. This action cannot be undone."
 					confirmLabel="Delete folder"
 					variant="danger"

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { ChevronDown, ChevronLeft, ChevronUp, Edit, Key, Plus, Trash } from "lucide-react";
 
 import { useAuthStore } from "@/auth/store";
@@ -27,6 +27,7 @@ import { IconButton } from "@/components/ui/IconButton";
 import { TimezoneSelect } from "@/components/users/TimezoneSelect";
 import { isDeveloper } from "@/lib/permissions";
 import { toast } from "@/lib/toast";
+import { useToastMutation } from "@/hooks/useToastMutation";
 import {
 	usersApi,
 	type UserListItem,
@@ -95,7 +96,6 @@ const LevelBadge = ({ level }: LevelBadgeProps) => {
 
 // Main component
 export const Users = () => {
-	const queryClient = useQueryClient();
 	const currentUser = useAuthStore((s) => s.user);
 	const navigate = useNavigate();
 
@@ -202,21 +202,22 @@ export const Users = () => {
 		return <ChevronDown size={10} />;
 	};
 
-	const deleteUserMutation = useMutation({
+	const deleteUserMutation = useToastMutation({
 		mutationFn: (user: User) => {
 			// We need the real ID. Since our local User doesn't carry id,
 			// we look it up from the last API response by email.
 			const apiUser = apiUsers.find((u) => u.email === user.email);
-			if (!apiUser) throw new Error("User not found");
+
+			if (!apiUser) {
+				throw new Error("User not found");
+			}
 
 			return usersApi.delete(apiUser.id);
 		},
+		invalidate: [["users"]],
+		errorMessage: "Failed to delete user",
 		onSuccess: (_, user) => {
-			queryClient.invalidateQueries({ queryKey: ["users"] });
 			toast.success(`Deleted ${user.first} ${user.last}`);
-		},
-		onError: () => {
-			toast.error("Failed to delete user");
 		},
 	});
 
@@ -224,7 +225,7 @@ export const Users = () => {
 		deleteUserMutation.mutate(user);
 	};
 
-	const createUserMutation = useMutation({
+	const createUserMutation = useToastMutation({
 		mutationFn: () => {
 			const name = `${first.trim()} ${last.trim()}`.trim();
 
@@ -238,8 +239,9 @@ export const Users = () => {
 				password: !sendInvite && password ? password : undefined,
 			});
 		},
+		invalidate: [["users"]],
+		errorMessage: "Failed to create user",
 		onSuccess: (created) => {
-			queryClient.invalidateQueries({ queryKey: ["users"] });
 			toast.success("User created" + (sendInvite ? " — invitation sent" : ""));
 
 			// Reset form
@@ -254,9 +256,6 @@ export const Users = () => {
 			setPassword("");
 
 			navigate(`/users/${created.id}/edit`);
-		},
-		onError: () => {
-			toast.error("Failed to create user");
 		},
 	});
 

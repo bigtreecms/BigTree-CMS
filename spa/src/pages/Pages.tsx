@@ -4,6 +4,7 @@ import { useParams } from "react-router-dom";
 import { Archive, Edit, Eye, EyeOff, FileText, Plus } from "lucide-react";
 import { InlineEmpty } from "@/components/ui/InlineEmpty";
 import { Loading } from "@/components/ui/Loading";
+import { SectionLabel } from "@/components/ui/SectionLabel";
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
 import { PageContainer } from "@/components/shell/PageContainer";
@@ -275,9 +276,7 @@ export const Pages = () => {
 					{(visible.length > 0 || hidden.length > 0 || archived.length > 0) && (
 						<>
 							<div className="mt-1 flex items-center gap-2.5">
-								<span className="text-[12px] font-semibold uppercase tracking-[0.08em] text-text-3">
-									Subpages
-								</span>
+								<SectionLabel size="md">Subpages</SectionLabel>
 							</div>
 
 							{visible.length > 0 && (

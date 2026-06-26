@@ -1,12 +1,10 @@
 import { useEffect, useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-
-import { ApiError } from "@/types/api";
 import { Button } from "@/components/ui/Button";
 import { SlideOver } from "@/components/ui/SlideOver";
 import { Field } from "@/components/ui/Field";
 import { resourcesApi, type ResourceDetail } from "@/api/endpoints/resources";
 import { toast } from "@/lib/toast";
+import { useToastMutation } from "@/hooks/useToastMutation";
 
 interface VideoCreatorProps {
 	open: boolean;
@@ -33,7 +31,6 @@ export const VideoCreator = ({
 	invalidateKey,
 	onCreated,
 }: VideoCreatorProps) => {
-	const queryClient = useQueryClient();
 	const [url, setUrl] = useState("");
 
 	useEffect(() => {
@@ -42,23 +39,15 @@ export const VideoCreator = ({
 		}
 	}, [open]);
 
-	const createMutation = useMutation({
+	const createMutation = useToastMutation({
 		mutationFn: () =>
 			resourcesApi.createVideo({ url: url.trim(), folder: folderId || undefined }),
+		invalidate: [[...invalidateKey]],
+		errorMessage: "Could not add video",
 		onSuccess: (resource) => {
-			queryClient.invalidateQueries({ queryKey: invalidateKey });
 			toast.success("Video added", { description: resource.name });
 			onOpenChange(false);
 			onCreated?.(resource);
-		},
-		onError: (err) => {
-			let message = "Could not add video";
-
-			if (err instanceof ApiError) {
-				message = err.message || message;
-			}
-
-			toast.error(message);
 		},
 	});
 

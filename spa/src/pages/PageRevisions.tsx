@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { Navigate, useParams } from "react-router-dom";
 import { ChevronLeft, RotateCcw, Save, Trash } from "lucide-react";
 
@@ -15,10 +15,10 @@ import { Card } from "@/components/ui/Card";
 
 import { pagesApi, type PageRevision } from "@/api/endpoints/pages";
 
-import { ApiError } from "@/types/api";
-import { toast } from "@/lib/toast";
+import { useToastMutation } from "@/hooks/useToastMutation";
 import { InlineEmpty } from "@/components/ui/InlineEmpty";
 import { IconButton } from "@/components/ui/IconButton";
+import { SectionLabel } from "@/components/ui/SectionLabel";
 import { Field } from "@/components/ui/Field";
 
 /**
@@ -36,8 +36,6 @@ import { Field } from "@/components/ui/Field";
 export const PageRevisions = () => {
 	const { id: idParam } = useParams<{ id: string }>();
 	const id = Number(idParam);
-	const queryClient = useQueryClient();
-
 	const valid = Number.isFinite(id) && id > 0;
 
 	const pageQuery = useQuery({
@@ -56,45 +54,34 @@ export const PageRevisions = () => {
 	const [confirmDelete, setConfirmDelete] = useState<PageRevision | null>(null);
 	const [confirmRestore, setConfirmRestore] = useState<PageRevision | null>(null);
 
-	const saveMutation = useMutation({
+	const saveMutation = useToastMutation({
 		mutationFn: () => pagesApi.revisions.save(id, description.trim()),
+		invalidate: [["pages", "revisions", id]],
+		successMessage: "Revision saved",
+		errorMessage: "Could not save revision",
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ["pages", "revisions", id] });
 			setDescription("");
-			toast.success("Revision saved");
-		},
-		onError: (err) => {
-			const message =
-				err instanceof ApiError && err.message ? err.message : "Could not save revision";
-			toast.error(message);
 		},
 	});
 
-	const deleteMutation = useMutation({
+	const deleteMutation = useToastMutation({
 		mutationFn: (rev: PageRevision) => pagesApi.revisions.delete(id, rev.id),
+		invalidate: [["pages", "revisions", id]],
+		successMessage: "Revision deleted",
+		errorMessage: "Could not delete revision",
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ["pages", "revisions", id] });
 			setConfirmDelete(null);
-			toast.success("Revision deleted");
-		},
-		onError: () => {
-			toast.error("Could not delete revision");
 		},
 	});
 
-	const restoreMutation = useMutation({
+	const restoreMutation = useToastMutation({
 		mutationFn: (rev: PageRevision) => pagesApi.revisions.restore(id, rev.id),
+		// Restore rewrites the live page and adds an auto-snapshot revision.
+		invalidate: [["pages", "revisions", id], ["pages", "detail", id]],
+		successMessage: "Revision restored to the live page",
+		errorMessage: "Could not restore revision",
 		onSuccess: () => {
-			// Restore rewrites the live page and adds an auto-snapshot revision.
-			queryClient.invalidateQueries({ queryKey: ["pages", "revisions", id] });
-			queryClient.invalidateQueries({ queryKey: ["pages", "detail", id] });
 			setConfirmRestore(null);
-			toast.success("Revision restored to the live page");
-		},
-		onError: (err) => {
-			const message =
-				err instanceof ApiError && err.message ? err.message : "Could not restore revision";
-			toast.error(message);
 		},
 	});
 
@@ -146,9 +133,9 @@ export const PageRevisions = () => {
 			/>
 
 			<Card className="mb-4 p-4">
-				<h2 className="mb-2 text-[12px] font-semibold uppercase tracking-wider text-text-3">
+				<SectionLabel as="h2" size="md" className="mb-2">
 					Save current version as revision
-				</h2>
+				</SectionLabel>
 				<div className="flex flex-wrap items-end gap-2">
 					<Field
 						className="min-w-[280px] flex-1"
@@ -242,9 +229,9 @@ const RevisionSection = ({
 	onRestore,
 }: RevisionSectionProps) => (
 	<section className="mb-4">
-		<h2 className="mb-2 text-[12px] font-semibold uppercase tracking-wider text-text-3">
+		<SectionLabel as="h2" size="md" className="mb-2">
 			{title}
-		</h2>
+		</SectionLabel>
 		{revisions.length === 0 ? (
 			<InlineEmpty align="center">{empty}</InlineEmpty>
 		) : (

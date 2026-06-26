@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { Archive, Download, Plus, Trash2 } from "lucide-react";
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
@@ -14,12 +14,9 @@ import { Button } from "@/components/ui/Button";
 import { systemApi, type Backup } from "@/api/endpoints/system";
 import { formatBytes } from "@/lib/bytes";
 import { relativeTime } from "@/lib/time";
-import { ApiError } from "@/types/api";
-import { toast } from "@/lib/toast";
+import { useToastMutation } from "@/hooks/useToastMutation";
 
 export const Backups = () => {
-	const queryClient = useQueryClient();
-
 	const listQ = useQuery({
 		queryKey: ["system", "backups"],
 		queryFn: () => systemApi.backups.list(),
@@ -27,29 +24,18 @@ export const Backups = () => {
 
 	const [pendingDelete, setPendingDelete] = useState<Backup | null>(null);
 
-	const createMutation = useMutation({
+	const createMutation = useToastMutation({
 		mutationFn: () => systemApi.backups.create(),
-		onSuccess: () => {
-			toast.success("Backup created");
-			queryClient.invalidateQueries({ queryKey: ["system", "backups"] });
-		},
-		onError: (err) => {
-			const msg = err instanceof ApiError && err.message ? err.message : "Backup failed";
-			toast.error(msg);
-		},
+		invalidate: [["system", "backups"]],
+		successMessage: "Backup created",
+		errorMessage: "Backup failed",
 	});
 
-	const deleteMutation = useMutation({
+	const deleteMutation = useToastMutation({
 		mutationFn: (id: string) => systemApi.backups.remove(id),
-		onSuccess: () => {
-			toast.success("Backup deleted");
-			queryClient.invalidateQueries({ queryKey: ["system", "backups"] });
-		},
-		onError: (err) => {
-			const msg =
-				err instanceof ApiError && err.message ? err.message : "Could not delete backup";
-			toast.error(msg);
-		},
+		invalidate: [["system", "backups"]],
+		successMessage: "Backup deleted",
+		errorMessage: "Could not delete backup",
 	});
 
 	const columns: DataTableColumn<Backup>[] = [

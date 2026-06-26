@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
@@ -12,9 +12,8 @@ import { Loading } from "@/components/ui/Loading";
 import { PendingChangeGroup } from "@/components/pending-changes/PendingChangeGroup";
 
 import { pendingChangesApi, type PendingChange } from "@/api/endpoints/dashboard";
-import { ApiError } from "@/types/api";
 import { formatNumber } from "@/lib/number";
-import { toast } from "@/lib/toast";
+import { useToastMutation } from "@/hooks/useToastMutation";
 import { groupPendingByCategory, isPageChange } from "@/lib/pendingChanges";
 
 /**
@@ -32,7 +31,6 @@ type PendingAction = { kind: "approve" | "reject"; change: PendingChange };
 
 export const PendingChanges = () => {
 	const navigate = useNavigate();
-	const queryClient = useQueryClient();
 
 	const [pendingAction, setPendingAction] = useState<PendingAction | null>(null);
 
@@ -44,31 +42,18 @@ export const PendingChanges = () => {
 	const changes = useMemo(() => listQ.data ?? [], [listQ.data]);
 	const groups = useMemo(() => groupPendingByCategory(changes), [changes]);
 
-	const invalidate = () => {
-		queryClient.invalidateQueries({ queryKey: ["pending-changes"] });
-		queryClient.invalidateQueries({ queryKey: ["dashboard"] });
-	};
-
-	const approveMutation = useMutation({
+	const approveMutation = useToastMutation({
 		mutationFn: (id: number) => pendingChangesApi.approve(id),
-		onSuccess: () => {
-			invalidate();
-			toast.success("Change approved");
-		},
-		onError: (err) => {
-			toast.error(err instanceof ApiError && err.message ? err.message : "Could not approve");
-		},
+		invalidate: [["pending-changes"], ["dashboard"]],
+		successMessage: "Change approved",
+		errorMessage: "Could not approve",
 	});
 
-	const rejectMutation = useMutation({
+	const rejectMutation = useToastMutation({
 		mutationFn: (id: number) => pendingChangesApi.reject(id),
-		onSuccess: () => {
-			invalidate();
-			toast.success("Change rejected");
-		},
-		onError: (err) => {
-			toast.error(err instanceof ApiError && err.message ? err.message : "Could not reject");
-		},
+		invalidate: [["pending-changes"], ["dashboard"]],
+		successMessage: "Change rejected",
+		errorMessage: "Could not reject",
 	});
 
 	const busyId =

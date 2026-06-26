@@ -1,10 +1,9 @@
-import { useMemo, useState } from "react";
-
 import { Checkbox } from "../../ui/Checkbox";
 import { Field } from "../../ui/Field";
-import { Select } from "../../ui/Select";
+import { JsonField } from "../../ui/JsonField";
+import { SelectField } from "../../ui/SelectField";
 import { TextArea } from "../../ui/TextArea";
-import { TextInput as BaseTextInput } from "../../ui/TextInput";
+import { TextField } from "../../ui/TextField";
 
 /**
  * Thin, designer-flavored wrappers over the shared `ui/*` form primitives. The
@@ -27,28 +26,7 @@ interface TextInputProps {
 	mono?: boolean;
 }
 
-export const TextInput = ({
-	label,
-	value,
-	onChange,
-	hint,
-	error,
-	disabled,
-	required,
-	placeholder,
-	mono,
-}: TextInputProps) => (
-	<Field label={label} hint={hint} error={error} required={required}>
-		<BaseTextInput
-			dense
-			mono={mono}
-			value={value}
-			onChange={(e) => onChange(e.target.value)}
-			disabled={disabled}
-			placeholder={placeholder}
-		/>
-	</Field>
-);
+export const TextInput = (props: TextInputProps) => <TextField dense {...props} />;
 
 interface SelectInputProps {
 	label: string;
@@ -60,25 +38,7 @@ interface SelectInputProps {
 	disabled?: boolean;
 }
 
-export const SelectInput = ({
-	label,
-	value,
-	onChange,
-	options,
-	hint,
-	error,
-	disabled,
-}: SelectInputProps) => (
-	<Field label={label} hint={hint} error={error}>
-		<Select dense value={value} onChange={(e) => onChange(e.target.value)} disabled={disabled}>
-			{options.map((o) => (
-				<option key={o.value} value={o.value}>
-					{o.label}
-				</option>
-			))}
-		</Select>
-	</Field>
-);
+export const SelectInput = (props: SelectInputProps) => <SelectField dense {...props} />;
 
 interface CheckboxInputProps {
 	label: string;
@@ -133,66 +93,16 @@ interface JsonInputProps {
  * (view actions, report filters, form hooks). Commits on blur and surfaces
  * a parse error inline; honest about what's stored in the legacy JSONDB.
  */
-export const JsonInput = ({ label, value, onChange, hint, rows = 5 }: JsonInputProps) => {
-	const initial = useMemo(() => safeStringify(value), [value]);
-	const [draft, setDraft] = useState(initial);
-	const [error, setError] = useState<string | null>(null);
-
-	useMemo(() => {
-		setDraft(initial);
-		setError(null);
-	}, [initial]);
-
-	const commit = () => {
-		try {
-			const parsed = draft.trim() === "" ? {} : JSON.parse(draft);
-
-			if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
-				setError(null);
-				onChange(parsed as Record<string, unknown>);
-			} else {
-				setError("Must be a JSON object.");
-			}
-		} catch (err) {
-			setError(err instanceof Error ? err.message : "Invalid JSON");
+export const JsonInput = ({ label, value, onChange, hint, rows = 5 }: JsonInputProps) => (
+	<JsonField
+		label={
+			<>
+				{label} <span className="text-text-3">(JSON)</span>
+			</>
 		}
-	};
-
-	return (
-		<Field
-			label={
-				<>
-					{label} <span className="text-text-3">(JSON)</span>
-				</>
-			}
-			hint={hint}
-			error={error ?? undefined}
-		>
-			<TextArea
-				mono
-				rows={rows}
-				value={draft}
-				onChange={(e) => setDraft(e.target.value)}
-				onBlur={commit}
-				spellCheck={false}
-				className="leading-relaxed"
-			/>
-		</Field>
-	);
-};
-
-const safeStringify = (value: unknown): string => {
-	if (value === undefined || value === null) {
-		return "{}";
-	}
-
-	if (Array.isArray(value) && value.length === 0) {
-		return "{}";
-	}
-
-	try {
-		return JSON.stringify(value, null, 2);
-	} catch {
-		return "{}";
-	}
-};
+		value={value}
+		onChange={onChange}
+		hint={hint}
+		rows={rows}
+	/>
+);

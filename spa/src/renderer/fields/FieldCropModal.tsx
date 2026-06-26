@@ -1,9 +1,10 @@
-import { useCallback, useEffect, useState } from "react";
-import Cropper, { type Area } from "react-easy-crop";
+import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/Button";
+import { ImageCropStage } from "@/components/ui/ImageCropStage";
 import { Modal } from "@/components/ui/Modal";
 import { imagesApi, type PendingCrop } from "@/api/endpoints/images";
+import { useImageCrop } from "@/hooks/useImageCrop";
 import { expandImageUrl } from "@/lib/imageUrl";
 import { toast } from "@/lib/toast";
 
@@ -34,10 +35,9 @@ export const FieldCropModal = ({
 	onCancel,
 }: FieldCropModalProps) => {
 	const [index, setIndex] = useState(0);
-	const [crop, setCrop] = useState({ x: 0, y: 0 });
-	const [zoom, setZoom] = useState(1);
-	const [areaPixels, setAreaPixels] = useState<Area | null>(null);
 	const [busy, setBusy] = useState(false);
+	const imageCrop = useImageCrop();
+	const { reset: resetCrop } = imageCrop;
 
 	const imageSrc = expandImageUrl(file);
 	const current: PendingCrop | undefined = crops[index];
@@ -48,21 +48,9 @@ export const FieldCropModal = ({
 	useEffect(() => {
 		if (open) {
 			setIndex(0);
-			setCrop({ x: 0, y: 0 });
-			setZoom(1);
-			setAreaPixels(null);
+			resetCrop();
 		}
-	}, [open, file]);
-
-	const onCropComplete = useCallback((_: Area, areaPx: Area) => {
-		setAreaPixels(areaPx);
-	}, []);
-
-	const resetTransform = () => {
-		setCrop({ x: 0, y: 0 });
-		setZoom(1);
-		setAreaPixels(null);
-	};
+	}, [open, file, resetCrop]);
 
 	if (!current) {
 		return null;
@@ -72,23 +60,30 @@ export const FieldCropModal = ({
 	const requiredFactor = current.retina ? 2 : 1;
 	const minWidth = current.width * requiredFactor;
 	const minHeight = current.height * requiredFactor;
-	const tooSmall = !!areaPixels && (areaPixels.width < minWidth || areaPixels.height < minHeight);
-	const validCrop = !!areaPixels && areaPixels.width > 0 && areaPixels.height > 0 && !tooSmall;
+	const tooSmall =
+		!!imageCrop.areaPixels &&
+		(imageCrop.areaPixels.width < minWidth || imageCrop.areaPixels.height < minHeight);
+	const validCrop =
+		!!imageCrop.areaPixels &&
+		imageCrop.areaPixels.width > 0 &&
+		imageCrop.areaPixels.height > 0 &&
+		!tooSmall;
 	const isLast = index === crops.length - 1;
 
 	const finalizeCurrent = async () => {
-		if (!areaPixels || !validCrop || busy) {
+		if (!imageCrop.areaPixels || !validCrop || busy) {
 			return;
 		}
+
 		setBusy(true);
 
 		try {
 			await imagesApi.crop({
 				file,
-				x: Math.round(areaPixels.x),
-				y: Math.round(areaPixels.y),
-				width: Math.round(areaPixels.width),
-				height: Math.round(areaPixels.height),
+				x: Math.round(imageCrop.areaPixels.x),
+				y: Math.round(imageCrop.areaPixels.y),
+				width: Math.round(imageCrop.areaPixels.width),
+				height: Math.round(imageCrop.areaPixels.height),
 				target_width: current.width,
 				target_height: current.height,
 				prefix: current.prefix,
@@ -104,7 +99,7 @@ export const FieldCropModal = ({
 				onComplete();
 			} else {
 				setIndex((i) => i + 1);
-				resetTransform();
+				resetCrop();
 			}
 		} catch {
 			toast.error("Could not generate the crop. Please try again.");
@@ -137,8 +132,8 @@ export const FieldCropModal = ({
 						min={1}
 						max={4}
 						step={0.05}
-						value={zoom}
-						onChange={(e) => setZoom(parseFloat(e.target.value))}
+						value={imageCrop.zoom}
+						onChange={(e) => imageCrop.setZoom(parseFloat(e.target.value))}
 						className="w-32 max-w-full accent-accent sm:w-40"
 					/>
 
@@ -155,26 +150,22 @@ export const FieldCropModal = ({
 						<Button
 							variant="primary"
 							onClick={finalizeCurrent}
-							disabled={!validCrop || busy}
+							disabled={!validCrop}
+							loading={busy}
+							loadingLabel="Cropping…"
 						>
-							{busy ? "Cropping…" : isLast ? "Finish" : "Crop & continue"}
+							{isLast ? "Finish" : "Crop & continue"}
 						</Button>
 					</div>
 				</div>
 			}
 		>
-			<div className="relative h-[460px] bg-black">
-				<Cropper
-					image={imageSrc}
-					crop={crop}
-					zoom={zoom}
-					aspect={aspect}
-					onCropChange={setCrop}
-					onZoomChange={setZoom}
-					onCropComplete={onCropComplete}
-					objectFit="contain"
-				/>
-			</div>
+			<ImageCropStage
+				image={imageSrc}
+				aspect={aspect}
+				objectFit="contain"
+				controller={imageCrop}
+			/>
 		</Modal>
 	);
 };

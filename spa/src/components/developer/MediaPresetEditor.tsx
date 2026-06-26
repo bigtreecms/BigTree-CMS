@@ -3,6 +3,7 @@ import { Plus, Trash } from "lucide-react";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { Field } from "@/components/ui/Field";
 import { IconButton } from "@/components/ui/IconButton";
+import { SectionLabel } from "@/components/ui/SectionLabel";
 import type { MediaPreset } from "@/api/endpoints/configure";
 
 /**
@@ -66,9 +67,7 @@ const SizeRowsEditor = ({ label, rows, onChange }: SizeRowsEditorProps) => {
 	return (
 		<div>
 			<div className="mb-1.5 flex items-center justify-between">
-				<span className="text-[11.5px] font-semibold uppercase tracking-wider text-text-3">
-					{label}
-				</span>
+				<SectionLabel size="sm">{label}</SectionLabel>
 				<button
 					type="button"
 					onClick={add}
@@ -153,9 +152,7 @@ const CropsEditor = ({ crops, onChange }: CropsEditorProps) => {
 	return (
 		<div>
 			<div className="mb-1.5 flex items-center justify-between">
-				<span className="text-[11.5px] font-semibold uppercase tracking-wider text-text-3">
-					Crops
-				</span>
+				<SectionLabel size="sm">Crops</SectionLabel>
 				<button
 					type="button"
 					onClick={add}

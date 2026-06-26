@@ -5,6 +5,7 @@ import { systemApi } from "@/api/endpoints/system";
 
 import { Checkbox } from "../../ui/Checkbox";
 import { Select } from "../../ui/Select";
+import { SectionLabel } from "../../ui/SectionLabel";
 
 import { ControlShell } from "./ControlShell";
 import type { ControlProps } from "./types";
@@ -192,9 +193,7 @@ export const ImageOptionsControl = ({ settings, onPatch }: ControlProps) => {
 
 					<div className="space-y-2 border-t border-border pt-2">
 						<div className="flex items-center justify-between">
-							<span className="text-[11.5px] font-semibold uppercase tracking-wide text-text-3">
-								Crops
-							</span>
+							<SectionLabel size="sm">Crops</SectionLabel>
 							<button
 								type="button"
 								className="inline-flex items-center gap-1 rounded border border-border bg-surface px-2 py-0.5 text-[11.5px] hover:bg-hover"

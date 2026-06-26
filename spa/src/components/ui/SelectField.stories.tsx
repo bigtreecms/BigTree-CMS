@@ -54,3 +54,11 @@ export const WithError: Story = {
 export const Disabled: Story = {
 	args: { disabled: true },
 };
+
+export const Dense: Story = {
+	args: { dense: true },
+};
+
+export const SizeSmall: Story = {
+	args: { size: "sm" },
+};

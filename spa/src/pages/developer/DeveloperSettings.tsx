@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { Plus, Trash } from "lucide-react";
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
@@ -18,9 +18,8 @@ import { DeveloperSectionNav } from "@/components/developer/DeveloperSectionNav"
 
 import { settingsApi, type SettingDetail } from "@/api/endpoints/settings";
 
-import { ApiError } from "@/types/api";
 import { formatNumber } from "@/lib/number";
-import { toast } from "@/lib/toast";
+import { useToastMutation } from "@/hooks/useToastMutation";
 
 /**
  * /developer/settings — admin CRUD for settings definitions.
@@ -34,7 +33,6 @@ const PER_PAGE = 25;
 
 export const DeveloperSettings = () => {
 	const navigate = useNavigate();
-	const queryClient = useQueryClient();
 	const [search, setSearch] = useState("");
 	const [debounced, setDebounced] = useState("");
 	const [page, setPage] = useState(1);
@@ -65,15 +63,13 @@ export const DeveloperSettings = () => {
 		placeholderData: keepPreviousData,
 	});
 
-	const deleteMutation = useMutation({
+	const deleteMutation = useToastMutation({
 		mutationFn: (id: string) => settingsApi.delete(id),
+		invalidate: [["settings"]],
+		successMessage: "Setting deleted",
+		errorMessage: "Delete failed",
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ["settings"] });
 			setConfirmDelete(null);
-			toast.success("Setting deleted");
-		},
-		onError: (err) => {
-			toast.error(err instanceof ApiError && err.message ? err.message : "Delete failed");
 		},
 	});
 

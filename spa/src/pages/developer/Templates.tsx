@@ -16,8 +16,8 @@ import { DeveloperSectionNav } from "@/components/developer/DeveloperSectionNav"
 
 import { templatesApi, type TemplateSummary } from "@/api/endpoints/templates";
 
-import { ApiError } from "@/types/api";
 import { toast } from "@/lib/toast";
+import { useToastMutation } from "@/hooks/useToastMutation";
 
 const LEVEL_LABEL = ["Editor", "Admin", "Developer"];
 
@@ -31,15 +31,13 @@ export const Templates = () => {
 		queryFn: () => templatesApi.list(),
 	});
 
-	const deleteMutation = useMutation({
+	const deleteMutation = useToastMutation({
 		mutationFn: (id: string) => templatesApi.delete(id),
+		invalidate: [["templates"]],
+		successMessage: "Template deleted",
+		errorMessage: "Delete failed",
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ["templates"] });
 			setConfirmDelete(null);
-			toast.success("Template deleted");
-		},
-		onError: (err) => {
-			toast.error(err instanceof ApiError && err.message ? err.message : "Delete failed");
 		},
 	});
 

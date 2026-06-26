@@ -1,11 +1,12 @@
 import { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useToastMutation } from "@/hooks/useToastMutation";
 import { Bell, Check, ChevronRight, FileText, X } from "lucide-react";
 import { DashCard } from "./DashCard";
 import { CardError } from "./CardError";
 import { InlineEmpty } from "@/components/ui/InlineEmpty";
 import { Button } from "@/components/ui/Button";
+import { SectionLabel } from "@/components/ui/SectionLabel";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { IconButton } from "@/components/ui/IconButton";
 import {
@@ -13,8 +14,6 @@ import {
 	type DashboardSummary,
 	type PendingChange,
 } from "@/api/endpoints/dashboard";
-import { ApiError } from "@/types/api";
-import { toast } from "@/lib/toast";
 import { groupPendingByCategory, humanizeTable } from "@/lib/pendingChanges";
 
 interface PendingChangesCardProps {
@@ -31,7 +30,6 @@ export const PendingChangesCard = ({
 	error,
 }: PendingChangesCardProps) => {
 	const navigate = useNavigate();
-	const queryClient = useQueryClient();
 	const [rejectId, setRejectId] = useState<number | null>(null);
 	const [approveId, setApproveId] = useState<number | null>(null);
 	const groups = useMemo(() => groupPendingByCategory(pending), [pending]);
@@ -40,35 +38,18 @@ export const PendingChangesCard = ({
 	const myPending = summary?.pending_changes.mine ?? 0;
 	const recent = pending.slice(0, 5);
 
-	const invalidate = () => {
-		queryClient.invalidateQueries({ queryKey: ["pending-changes"] });
-		queryClient.invalidateQueries({ queryKey: ["dashboard"] });
-	};
-
-	const approveMutation = useMutation({
+	const approveMutation = useToastMutation({
 		mutationFn: (id: number) => pendingChangesApi.approve(id),
-		onSuccess: () => {
-			invalidate();
-			toast.success("Change approved");
-		},
-		onError: (err) => {
-			const message =
-				err instanceof ApiError && err.message ? err.message : "Could not approve";
-			toast.error(message);
-		},
+		invalidate: [["pending-changes"], ["dashboard"]],
+		successMessage: "Change approved",
+		errorMessage: "Could not approve",
 	});
 
-	const rejectMutation = useMutation({
+	const rejectMutation = useToastMutation({
 		mutationFn: (id: number) => pendingChangesApi.reject(id),
-		onSuccess: () => {
-			invalidate();
-			toast.success("Change rejected");
-		},
-		onError: (err) => {
-			const message =
-				err instanceof ApiError && err.message ? err.message : "Could not reject";
-			toast.error(message);
-		},
+		invalidate: [["pending-changes"], ["dashboard"]],
+		successMessage: "Change rejected",
+		errorMessage: "Could not reject",
 	});
 
 	const busyId =
@@ -99,9 +80,9 @@ export const PendingChangesCard = ({
 			) : (
 				<div className="grid grid-cols-1 gap-6 md:grid-cols-2">
 					<div className="flex min-w-0 flex-col gap-2">
-						<div className="mb-0.5 border-b border-border pb-1.5 text-[10.5px] font-semibold uppercase tracking-[0.07em] text-text-3">
+						<SectionLabel size="xs" className="mb-0.5 border-b border-border pb-1.5">
 							Recent pending changes
-						</div>
+						</SectionLabel>
 						{recent.length === 0 ? (
 							<InlineEmpty fill pad="md" className="leading-[1.55]">
 								No pending changes to review right now.
@@ -174,9 +155,9 @@ export const PendingChangesCard = ({
 					</div>
 
 					<div className="flex min-w-0 flex-col gap-2">
-						<div className="mb-0.5 border-b border-border pb-1.5 text-[10.5px] font-semibold uppercase tracking-[0.07em] text-text-3">
+						<SectionLabel size="xs" className="mb-0.5 border-b border-border pb-1.5">
 							Awaiting publisher approval
-						</div>
+						</SectionLabel>
 						{myPending === 0 ? (
 							<InlineEmpty fill pad="md" className="leading-[1.55]">
 								You have no changes awaiting a publisher's approval.

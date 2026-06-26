@@ -5,9 +5,9 @@ import { Save } from "lucide-react";
 import { ConfigureLayout } from "@/components/developer/ConfigureLayout";
 import { Button } from "@/components/ui/Button";
 import { LoadingText } from "@/components/ui/LoadingText";
-import { Select } from "@/components/ui/Select";
 import { TextInput } from "@/components/ui/TextInput";
 import { Field } from "@/components/ui/Field";
+import { SelectField } from "@/components/ui/SelectField";
 import { FormShell } from "@/components/ui/FormShell";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 
@@ -123,19 +123,13 @@ export const ConfigureEmail = () => {
 				>
 					{generalError && <ErrorPanel error={new Error(generalError)} />}
 
-					<Field label="Service">
-						<Select
-							value={draft.service}
-							onChange={(e) => onChangeService(e.target.value as EmailServiceId)}
-						>
-							{SERVICES.map((s) => (
-								<option key={s.id} value={s.id}>
-									{s.label}
-								</option>
-							))}
-						</Select>
-						<p className="mt-1 text-[11.5px] text-text-3">{active.blurb}</p>
-					</Field>
+					<SelectField
+						label="Service"
+						value={draft.service}
+						onChange={(v) => onChangeService(v as EmailServiceId)}
+						options={SERVICES.map((s) => ({ value: s.id, label: s.label }))}
+						hint={active.blurb}
+					/>
 
 					<div className="mt-4 space-y-3">
 						{draft.service === "smtp" && (
@@ -166,16 +160,16 @@ export const ConfigureEmail = () => {
 										onChange={(e) => onChange("smtp_password", e.target.value)}
 									/>
 								</Field>
-								<Field label="Security">
-									<Select
-										value={draft.settings.smtp_security ?? ""}
-										onChange={(e) => onChange("smtp_security", e.target.value)}
-									>
-										<option value="">Plain text</option>
-										<option value="ssl">SSL</option>
-										<option value="tls">TLS</option>
-									</Select>
-								</Field>
+								<SelectField
+									label="Security"
+									value={draft.settings.smtp_security ?? ""}
+									onChange={(v) => onChange("smtp_security", v)}
+									options={[
+										{ value: "", label: "Plain text" },
+										{ value: "ssl", label: "SSL" },
+										{ value: "tls", label: "TLS" },
+									]}
+								/>
 							</>
 						)}
 

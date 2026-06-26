@@ -6,6 +6,7 @@ import { ResourcePicker, type ResourcePickerType } from "@/components/files/Reso
 import { Button } from "@/components/ui/Button";
 import { IconButton } from "@/components/ui/IconButton";
 import { LoadingText } from "@/components/ui/LoadingText";
+import { SectionLabel } from "@/components/ui/SectionLabel";
 import { resourcesApi, type ResourceDetail } from "@/api/endpoints/resources";
 
 import { toInt } from "./fieldHelpers";
@@ -130,9 +131,7 @@ const ReferencePreview = ({
 				<PreviewTile pickerType={pickerType} resource={resource} loading={loading} />
 			</div>
 			<div className="min-w-0 flex-1 text-[12px]">
-				<div className="text-[11px] uppercase tracking-[0.06em] text-text-3">
-					Current · #{resourceId}
-				</div>
+				<SectionLabel size="sm">Current · #{resourceId}</SectionLabel>
 
 				{loading ? (
 					<LoadingText />

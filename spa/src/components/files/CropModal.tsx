@@ -1,11 +1,12 @@
-import { useCallback, useEffect, useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import Cropper, { type Area } from "react-easy-crop";
+import { useEffect, useState } from "react";
+import { useToastMutation } from "@/hooks/useToastMutation";
 
 import { Button } from "@/components/ui/Button";
+import { ImageCropStage } from "@/components/ui/ImageCropStage";
 import { Modal } from "@/components/ui/Modal";
+import { SectionLabel } from "@/components/ui/SectionLabel";
 import { resourcesApi, type ResourceDetail } from "@/api/endpoints/resources";
-import { toast } from "@/lib/toast";
+import { useImageCrop } from "@/hooks/useImageCrop";
 
 interface CropModalProps {
 	open: boolean;
@@ -21,12 +22,10 @@ interface CropModalProps {
  * query is invalidated so they show up in the SlideOver's Crops list.
  */
 export const CropModal = ({ open, onOpenChange, resource }: CropModalProps) => {
-	const queryClient = useQueryClient();
+	const imageCrop = useImageCrop();
+	const { reset: resetCrop } = imageCrop;
 
-	const [crop, setCrop] = useState({ x: 0, y: 0 });
-	const [zoom, setZoom] = useState(1);
 	const [aspect, setAspect] = useState<number | undefined>(undefined);
-	const [areaPixels, setAreaPixels] = useState<Area | null>(null);
 	const [targetWidth, setTargetWidth] = useState<string>("");
 	const [targetHeight, setTargetHeight] = useState<string>("");
 	const [prefix, setPrefix] = useState("crop-");
@@ -34,55 +33,46 @@ export const CropModal = ({ open, onOpenChange, resource }: CropModalProps) => {
 	// Reset state every time the dialog opens so each crop session starts fresh.
 	useEffect(() => {
 		if (open) {
-			setCrop({ x: 0, y: 0 });
-			setZoom(1);
+			resetCrop();
 			setAspect(undefined);
-			setAreaPixels(null);
 			setTargetWidth("");
 			setTargetHeight("");
 			setPrefix("crop-");
 		}
-	}, [open]);
+	}, [open, resetCrop]);
 
-	const onCropComplete = useCallback((_: Area, areaPx: Area) => {
-		setAreaPixels(areaPx);
-	}, []);
-
-	const cropMutation = useMutation({
+	const cropMutation = useToastMutation({
 		mutationFn: () => {
-			if (!areaPixels) {
+			if (!imageCrop.areaPixels) {
 				throw new Error("no crop area");
 			}
 
 			return resourcesApi.crop(resource.id, {
-				x: Math.round(areaPixels.x),
-				y: Math.round(areaPixels.y),
-				width: Math.round(areaPixels.width),
-				height: Math.round(areaPixels.height),
+				x: Math.round(imageCrop.areaPixels.x),
+				y: Math.round(imageCrop.areaPixels.y),
+				width: Math.round(imageCrop.areaPixels.width),
+				height: Math.round(imageCrop.areaPixels.height),
 				target_width: targetWidth ? parseInt(targetWidth, 10) : undefined,
 				target_height: targetHeight ? parseInt(targetHeight, 10) : undefined,
 				prefix: prefix.trim() || undefined,
 			});
 		},
+		invalidate: [["resources", "detail", resource.id]],
+		successMessage: "Crop saved",
+		errorMessage: "Could not crop image",
 		onSuccess: () => {
-			queryClient.invalidateQueries({
-				queryKey: ["resources", "detail", resource.id],
-			});
-			toast.success("Crop saved");
 			onOpenChange(false);
-		},
-		onError: () => {
-			toast.error("Could not crop image");
 		},
 	});
 
-	const validCrop = !!areaPixels && areaPixels.width > 0 && areaPixels.height > 0;
+	const validCrop =
+		!!imageCrop.areaPixels && imageCrop.areaPixels.width > 0 && imageCrop.areaPixels.height > 0;
 
 	return (
 		<Modal
 			open={open}
 			onOpenChange={onOpenChange}
-			title={`Crop “${resource.name}”`}
+			title={`Crop "${resource.name}"`}
 			description="Drag inside the image to position the crop. Scroll or use the slider to zoom."
 			size="xl"
 			layout="bars"
@@ -106,23 +96,13 @@ export const CropModal = ({ open, onOpenChange, resource }: CropModalProps) => {
 			}
 		>
 			<div className="grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_260px]">
-				<div className="relative h-[460px] bg-black">
-					<Cropper
-						image={resource.file}
-						crop={crop}
-						zoom={zoom}
-						aspect={aspect}
-						onCropChange={setCrop}
-						onZoomChange={setZoom}
-						onCropComplete={onCropComplete}
-					/>
-				</div>
+				<ImageCropStage image={resource.file} aspect={aspect} controller={imageCrop} />
 
 				<aside className="space-y-4 border-t border-border bg-surface-2 p-4 md:border-l md:border-t-0">
 					<div role="group" aria-label="Aspect ratio">
-						<span className="mb-1 block text-[11.5px] font-semibold uppercase tracking-[0.06em] text-text-3">
+						<SectionLabel size="sm" className="mb-1 block">
 							Aspect ratio
-						</span>
+						</SectionLabel>
 						<div className="flex flex-wrap gap-1">
 							{(
 								[
@@ -150,29 +130,31 @@ export const CropModal = ({ open, onOpenChange, resource }: CropModalProps) => {
 					</div>
 
 					<div>
-						<label
+						<SectionLabel
+							as="label"
 							htmlFor="crop-zoom"
-							className="mb-1 block text-[11.5px] font-semibold uppercase tracking-[0.06em] text-text-3"
+							size="sm"
+							className="mb-1 block"
 						>
 							Zoom
-						</label>
+						</SectionLabel>
 						<input
 							id="crop-zoom"
 							type="range"
 							min={1}
 							max={4}
 							step={0.05}
-							value={zoom}
-							onChange={(e) => setZoom(parseFloat(e.target.value))}
+							value={imageCrop.zoom}
+							onChange={(e) => imageCrop.setZoom(parseFloat(e.target.value))}
 							className="w-full accent-accent"
 						/>
 					</div>
 
 					<div className="grid grid-cols-2 gap-2">
 						<label className="block">
-							<span className="mb-1 block text-[11.5px] font-semibold uppercase tracking-[0.06em] text-text-3">
+							<SectionLabel size="sm" className="mb-1 block">
 								Width
-							</span>
+							</SectionLabel>
 							<input
 								type="number"
 								min={1}
@@ -180,13 +162,17 @@ export const CropModal = ({ open, onOpenChange, resource }: CropModalProps) => {
 								className="w-full rounded-md border border-border bg-surface px-2 py-1 text-[12.5px] focus:outline-none focus:ring-1 focus:ring-accent-ring"
 								value={targetWidth}
 								onChange={(e) => setTargetWidth(e.target.value)}
-								placeholder={areaPixels ? String(Math.round(areaPixels.width)) : ""}
+								placeholder={
+									imageCrop.areaPixels
+										? String(Math.round(imageCrop.areaPixels.width))
+										: ""
+								}
 							/>
 						</label>
 						<label className="block">
-							<span className="mb-1 block text-[11.5px] font-semibold uppercase tracking-[0.06em] text-text-3">
+							<SectionLabel size="sm" className="mb-1 block">
 								Height
-							</span>
+							</SectionLabel>
 							<input
 								type="number"
 								min={1}
@@ -195,7 +181,9 @@ export const CropModal = ({ open, onOpenChange, resource }: CropModalProps) => {
 								value={targetHeight}
 								onChange={(e) => setTargetHeight(e.target.value)}
 								placeholder={
-									areaPixels ? String(Math.round(areaPixels.height)) : ""
+									imageCrop.areaPixels
+										? String(Math.round(imageCrop.areaPixels.height))
+										: ""
 								}
 							/>
 						</label>
@@ -205,9 +193,9 @@ export const CropModal = ({ open, onOpenChange, resource }: CropModalProps) => {
 					</p>
 
 					<label className="block">
-						<span className="mb-1 block text-[11.5px] font-semibold uppercase tracking-[0.06em] text-text-3">
+						<SectionLabel size="sm" className="mb-1 block">
 							Filename prefix
-						</span>
+						</SectionLabel>
 						<input
 							className="w-full rounded-md border border-border bg-surface px-2 py-1 text-[12.5px] focus:outline-none focus:ring-1 focus:ring-accent-ring"
 							value={prefix}

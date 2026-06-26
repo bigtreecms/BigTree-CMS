@@ -16,6 +16,7 @@ import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { systemApi, type SecurityPolicy } from "@/api/endpoints/system";
 import { ApiError } from "@/types/api";
 import { toast } from "@/lib/toast";
+import { useToastMutation } from "@/hooks/useToastMutation";
 
 const narrowInputClass =
 	"w-16 rounded-md border border-border bg-surface px-2 py-1 text-center text-[13px] tabular-nums outline-none focus:border-accent focus:ring-2 focus:ring-accent-ring";
@@ -306,28 +307,21 @@ const UnbanPanel = () => {
 	const [ip, setIp] = useState("");
 	const [userId, setUserId] = useState("");
 
-	const unbanIP = useMutation({
+	const unbanIP = useToastMutation({
 		mutationFn: (value: string) => systemApi.bans.unbanIP(value),
+		successMessage: "IP unbanned",
+		errorMessage: "Could not unban IP",
 		onSuccess: () => {
-			toast.success("IP unbanned");
 			setIp("");
-		},
-		onError: (err) => {
-			const msg = err instanceof ApiError && err.message ? err.message : "Could not unban IP";
-			toast.error(msg);
 		},
 	});
 
-	const unbanUser = useMutation({
+	const unbanUser = useToastMutation({
 		mutationFn: (value: number) => systemApi.bans.unbanUser(value),
+		successMessage: "User unbanned",
+		errorMessage: "Could not unban user",
 		onSuccess: () => {
-			toast.success("User unbanned");
 			setUserId("");
-		},
-		onError: (err) => {
-			const msg =
-				err instanceof ApiError && err.message ? err.message : "Could not unban user";
-			toast.error(msg);
 		},
 	});
 
