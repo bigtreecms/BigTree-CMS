@@ -26,7 +26,7 @@ import { downloadCsv } from "@/lib/csv";
 import { formatNumber } from "@/lib/number";
 import { toast } from "@/lib/toast";
 import { queryKeys } from "@/lib/queryKeys";
-import { useDebouncedValue } from "@/hooks/useDebouncedValue";
+import { usePaginatedSearch } from "@/hooks/usePaginatedSearch";
 import { useToastMutation } from "@/hooks/useToastMutation";
 import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 
@@ -66,8 +66,8 @@ const TYPE_ROUTE: Record<FourOhFourType, string> = {
 
 export const FourOhFours = ({ type }: FourOhFoursProps) => {
 	const navigate = useNavigate();
-	const [search, setSearch] = useState("");
-	const [page, setPage] = useState(1);
+	const { query: search, setQuery: setSearch, page, setPage, debouncedQuery } = usePaginatedSearch();
+	const debounced = debouncedQuery.trim();
 	const [selected, setSelected] = useState<Set<number>>(new Set());
 	const [editingRedirectId, setEditingRedirectId] = useState<number | null>(null);
 	const [redirectDraft, setRedirectDraft] = useState("");
@@ -92,10 +92,7 @@ export const FourOhFours = ({ type }: FourOhFoursProps) => {
 		resetRowState();
 	}
 
-	const debounced = useDebouncedValue(search.trim());
-
 	useEffect(() => {
-		setPage(1);
 		setSelected(new Set());
 		setEditingRedirectId(null);
 		setRedirectDraft("");

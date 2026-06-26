@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Edit, Image as ImageIcon, Trash } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 import { IconButton } from "@/components/ui/IconButton";
 import { Loading } from "@/components/ui/Loading";
+import { QueryRenderer } from "@/components/ui/QueryRenderer";
 import { SearchInput } from "@/components/ui/SearchInput";
 import { Toolbar } from "@/components/ui/Toolbar";
 
@@ -17,6 +18,7 @@ import { expandImageUrl } from "@/lib/imageUrl";
 import { type CustomViewAction, isPersistedEntryId, parseViewActions } from "./viewHelpers";
 import { useEntryDelete } from "./useEntryDelete";
 import { useModuleEntryLinks } from "@/pages/ModuleLayout";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 
 /**
  * Runtime for the `images` view type — a grid of thumbnail cards.
@@ -42,13 +44,7 @@ export const ImagesView = ({ moduleId, view }: ImagesViewProps) => {
 	const navigate = useNavigate();
 	const { editPath } = useModuleEntryLinks();
 	const [query, setQuery] = useState("");
-	const [debouncedQuery, setDebouncedQuery] = useState("");
-
-	useEffect(() => {
-		const handle = window.setTimeout(() => setDebouncedQuery(query), 200);
-
-		return () => window.clearTimeout(handle);
-	}, [query]);
+	const debouncedQuery = useDebouncedValue(query, 200);
 
 	const listQuery = useQuery({
 		queryKey: queryKeys.moduleEntries.viewQuery(moduleId, view.id, { q: debouncedQuery || undefined, view: view.id }),
@@ -84,13 +80,17 @@ export const ImagesView = ({ moduleId, view }: ImagesViewProps) => {
 				}
 			/>
 
-			{listQuery.isLoading && !listQuery.data ? (
-				<Loading variant="card" label="Loading entries…" />
-			) : rows.length === 0 ? (
-				<div className="rounded-xl border border-border bg-surface p-9 text-center text-[13px] text-text-3">
-					{debouncedQuery ? `No entries match “${debouncedQuery}”.` : "No entries yet."}
-				</div>
-			) : (
+			<QueryRenderer
+				isLoading={listQuery.isLoading && !listQuery.data}
+				error={listQuery.error}
+				isEmpty={rows.length === 0}
+				loading={<Loading variant=”card” label=”Loading entries…” />}
+				empty={
+					<div className=”rounded-xl border border-border bg-surface p-9 text-center text-[13px] text-text-3”>
+						{debouncedQuery ? `No entries match “${debouncedQuery}”.` : “No entries yet.”}
+					</div>
+				}
+			>
 				<ImagesGrid
 					rows={rows}
 					moduleId={moduleId}
@@ -101,7 +101,7 @@ export const ImagesView = ({ moduleId, view }: ImagesViewProps) => {
 					canDelete={builtins.delete}
 					customActions={custom}
 				/>
-			)}
+			</QueryRenderer>
 		</>
 	);
 };

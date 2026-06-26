@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { Pencil } from "lucide-react";
@@ -13,7 +12,7 @@ import { Toolbar } from "@/components/ui/Toolbar";
 
 import { settingsApi, type SettingDetail } from "@/api/endpoints/settings";
 
-import { useDebouncedValue } from "@/hooks/useDebouncedValue";
+import { usePaginatedSearch } from "@/hooks/usePaginatedSearch";
 import { stripHtml } from "@/lib/html";
 import { queryKeys } from "@/lib/queryKeys";
 import { formatNumber } from "@/lib/number";
@@ -33,21 +32,15 @@ const PER_PAGE = 25;
 
 export const Settings = () => {
 	const navigate = useNavigate();
-	const [search, setSearch] = useState("");
-	const [page, setPage] = useState(1);
-	const debounced = useDebouncedValue(search.trim());
-
-	useEffect(() => {
-		setPage(1);
-	}, [debounced]);
+	const { query: search, setQuery: setSearch, page, setPage, debouncedQuery: debounced } = usePaginatedSearch();
 
 	const query = useQuery({
-		queryKey: queryKeys.settings.list({ page, per_page: PER_PAGE, q: debounced }),
+		queryKey: queryKeys.settings.list({ page, per_page: PER_PAGE, q: debounced.trim() }),
 		queryFn: () =>
 			settingsApi.list({
 				page,
 				per_page: PER_PAGE,
-				q: debounced || undefined,
+				q: debounced.trim() || undefined,
 			}),
 		placeholderData: keepPreviousData,
 	});

@@ -8,7 +8,7 @@ import { resourcesApi } from "@/api/endpoints/resources";
 import { PopoverPanel } from "@/components/ui/Popover";
 
 import { useOnClickOutside } from "@/hooks/useOnClickOutside";
-import { toast } from "@/lib/toast";
+import { useCopyToClipboard } from "@/hooks/useCopyToClipboard";
 
 /**
  * Typeahead lifted from the design's `.link-finder` block. Sits in the upper-
@@ -34,6 +34,7 @@ export const LinkFinder = () => {
 	const [debounced, setDebounced] = useState("");
 	const [open, setOpen] = useState(false);
 	const containerRef = useRef<HTMLDivElement>(null);
+	const copyToClipboard = useCopyToClipboard();
 
 	useEffect(() => {
 		const handle = setTimeout(() => setDebounced(q.trim()), 200);
@@ -87,13 +88,7 @@ export const LinkFinder = () => {
 	];
 
 	const pick = async (hit: Hit) => {
-		try {
-			await navigator.clipboard.writeText(hit.value);
-			toast.success("Reference copied", { description: hit.value });
-		} catch {
-			toast.error("Could not copy to clipboard");
-		}
-
+		await copyToClipboard(hit.value, "Reference copied");
 		setOpen(false);
 		setQ("");
 	};

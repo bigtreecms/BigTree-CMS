@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 
 import { DragHandle } from "@/components/ui/DragHandle";
 import { Loading } from "@/components/ui/Loading";
+import { QueryRenderer } from "@/components/ui/QueryRenderer";
 import { SearchInput } from "@/components/ui/SearchInput";
 import { Toolbar } from "@/components/ui/Toolbar";
 
@@ -27,6 +28,7 @@ import { ViewStatusBadge } from "./ViewStatusBadge";
 import { RowActions } from "./RowActions";
 import { useEntryDelete } from "./useEntryDelete";
 import { useModuleEntryLinks } from "@/pages/ModuleLayout";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 
 /**
  * Runtime for the `nested` view type.
@@ -104,18 +106,12 @@ export const NestedView = ({ moduleId, view }: NestedViewProps) => {
 	const { editPath } = useModuleEntryLinks();
 	const queryClient = useQueryClient();
 	const [query, setQuery] = useState("");
-	const [debouncedQuery, setDebouncedQuery] = useState("");
+	const debouncedQuery = useDebouncedValue(query, 200);
 	const [expanded, setExpanded] = useState<Set<string>>(() => new Set());
 	const [localRows, setLocalRows] = useState<ModuleEntryRow[] | null>(null);
 	const [dragId, setDragId] = useState<string | null>(null);
 	const [overId, setOverId] = useState<string | null>(null);
 	const { requestDelete, dialog: deleteDialog } = useEntryDelete(moduleId, view.id);
-
-	useEffect(() => {
-		const handle = window.setTimeout(() => setDebouncedQuery(query), 200);
-
-		return () => window.clearTimeout(handle);
-	}, [query]);
 
 	// Match the legacy nested view's sort: position DESC keeps drag-assigned
 	// ordering, id ASC is the stable tiebreak. getSearchResults special-cases
@@ -279,55 +275,61 @@ export const NestedView = ({ moduleId, view }: NestedViewProps) => {
 			)}
 
 			<div className="overflow-hidden rounded-xl border border-border bg-surface">
-				{listQuery.isLoading && !listQuery.data ? (
-					<Loading variant="block" label="Loading entries…" />
-				) : rows.length === 0 ? (
-					<div className="p-9 text-center text-[13px] text-text-3">
-						{debouncedQuery
-							? `No entries match “${debouncedQuery}”.`
-							: "No entries yet."}
-					</div>
-				) : tree ? (
-					<ul className="divide-y divide-border">
-						{tree.map((node) => (
-							<NestedRow
-								key={String(node.row.id)}
-								node={node}
-								depth={0}
-								expanded={expanded}
-								onToggle={toggle}
-								onEdit={openEdit}
-								onDelete={requestDelete}
-								fieldColumns={fieldColumns}
-								builtins={builtins}
-								custom={custom}
-								moduleId={moduleId}
-								viewId={view.id}
-								drag={drag}
-							/>
-						))}
-					</ul>
-				) : (
-					<ul className="divide-y divide-border">
-						{rows.map((row) => (
-							<NestedRow
-								key={String(row.id)}
-								node={{ row, children: [] }}
-								depth={0}
-								expanded={expanded}
-								onToggle={toggle}
-								onEdit={openEdit}
-								onDelete={requestDelete}
-								fieldColumns={fieldColumns}
-								builtins={builtins}
-								custom={custom}
-								moduleId={moduleId}
-								viewId={view.id}
-								drag={drag}
-							/>
-						))}
-					</ul>
-				)}
+				<QueryRenderer
+					isLoading={listQuery.isLoading && !listQuery.data}
+					error={listQuery.error}
+					isEmpty={rows.length === 0}
+					loading={<Loading variant=”block” label=”Loading entries…” />}
+					empty={
+						<div className=”p-9 text-center text-[13px] text-text-3”>
+							{debouncedQuery
+								? `No entries match “${debouncedQuery}”.`
+								: “No entries yet.”}
+						</div>
+					}
+				>
+					{tree ? (
+						<ul className=”divide-y divide-border”>
+							{tree.map((node) => (
+								<NestedRow
+									key={String(node.row.id)}
+									node={node}
+									depth={0}
+									expanded={expanded}
+									onToggle={toggle}
+									onEdit={openEdit}
+									onDelete={requestDelete}
+									fieldColumns={fieldColumns}
+									builtins={builtins}
+									custom={custom}
+									moduleId={moduleId}
+									viewId={view.id}
+									drag={drag}
+								/>
+							))}
+						</ul>
+					) : (
+						<ul className=”divide-y divide-border”>
+							{rows.map((row) => (
+								<NestedRow
+									key={String(row.id)}
+									node={{ row, children: [] }}
+									depth={0}
+									expanded={expanded}
+									onToggle={toggle}
+									onEdit={openEdit}
+									onDelete={requestDelete}
+									fieldColumns={fieldColumns}
+									builtins={builtins}
+									custom={custom}
+									moduleId={moduleId}
+									viewId={view.id}
+									drag={drag}
+								/>
+							))}
+						</ul>
+					)}
+				</QueryRenderer>
 			</div>
 
 			{deleteDialog}

@@ -30,6 +30,7 @@ import { ViewStatusBadge } from "./ViewStatusBadge";
 import { RowActions } from "./RowActions";
 import { useEntryDelete } from "./useEntryDelete";
 import { useModuleEntryLinks } from "@/pages/ModuleLayout";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 
 /**
  * Runtime for the `searchable` view type — the most common module view. Reads
@@ -60,15 +61,9 @@ export const SearchableView = ({ moduleId, view }: SearchableViewProps) => {
 	const { editPath, actionPath } = useModuleEntryLinks();
 	const [page, setPage] = useState(1);
 	const [query, setQuery] = useState("");
-	const [debouncedQuery, setDebouncedQuery] = useState("");
+	const debouncedQuery = useDebouncedValue(query, 200);
 	const [sort, setSort] = useState<DataTableSort | undefined>(() => parseSortSetting(view));
 	const { requestDelete, dialog: deleteDialog } = useEntryDelete(moduleId, view.id);
-
-	useEffect(() => {
-		const handle = window.setTimeout(() => setDebouncedQuery(query), 200);
-
-		return () => window.clearTimeout(handle);
-	}, [query]);
 
 	useEffect(() => {
 		setPage(1);

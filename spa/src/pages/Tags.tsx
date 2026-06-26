@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { GitMerge, Plus, Trash } from "lucide-react";
@@ -20,6 +19,7 @@ import { tagsApi, type Tag } from "@/api/endpoints/tags";
 import { isAdmin } from "@/lib/permissions";
 import { queryKeys } from "@/lib/queryKeys";
 import { useConfirmDialog } from "@/hooks/useConfirmDialog";
+import { usePaginatedSearch } from "@/hooks/usePaginatedSearch";
 import { useToastMutation } from "@/hooks/useToastMutation";
 
 /**
@@ -40,21 +40,16 @@ export const Tags = () => {
 	const user = useAuthStore((s) => s.user);
 	const canEdit = isAdmin(user);
 
-	const [query, setQuery] = useState("");
-	const [page, setPage] = useState(1);
+	const { query, setQuery, page, setPage, debouncedQuery } = usePaginatedSearch();
 	const deleteDialog = useConfirmDialog<Tag>();
 
-	useEffect(() => {
-		setPage(1);
-	}, [query]);
-
 	const listQuery = useQuery({
-		queryKey: queryKeys.tags.list(page, query),
+		queryKey: queryKeys.tags.list(page, debouncedQuery),
 		queryFn: () =>
 			tagsApi.list({
 				page,
 				per_page: PER_PAGE,
-				q: query || undefined,
+				q: debouncedQuery || undefined,
 			}),
 		placeholderData: keepPreviousData,
 	});

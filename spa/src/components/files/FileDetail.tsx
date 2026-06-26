@@ -34,6 +34,7 @@ import { expandImageUrl } from "@/lib/imageUrl";
 import { queryKeys } from "@/lib/queryKeys";
 import { toast } from "@/lib/toast";
 import { useConfirmDialog } from "@/hooks/useConfirmDialog";
+import { useCopyToClipboard } from "@/hooks/useCopyToClipboard";
 import { InlineEmpty } from "@/components/ui/InlineEmpty";
 import { IconButton } from "@/components/ui/IconButton";
 import { SelectField } from "@/components/ui/SelectField";
@@ -62,6 +63,7 @@ export const FileDetail = ({ resourceId, onOpenChange, folderQueryKey }: FileDet
 	const [folder, setFolder] = useState(0);
 	const [metadata, setMetadata] = useState<Record<string, unknown>>({});
 	const deleteDialog = useConfirmDialog<true>();
+	const copyToClipboard = useCopyToClipboard();
 	const [cropOpen, setCropOpen] = useState(false);
 	const replaceInputRef = useRef<HTMLInputElement>(null);
 
@@ -200,12 +202,7 @@ export const FileDetail = ({ resourceId, onOpenChange, folderQueryKey }: FileDet
 			return;
 		}
 
-		try {
-			await navigator.clipboard.writeText(expandImageUrl(resource.file));
-			toast.success("URL copied");
-		} catch {
-			toast.error("Could not copy URL");
-		}
+		await copyToClipboard(expandImageUrl(resource.file), "URL copied");
 	};
 
 	return (

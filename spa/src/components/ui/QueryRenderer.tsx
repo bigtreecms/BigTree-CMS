@@ -6,6 +6,7 @@ interface QueryRendererProps {
 	error?: unknown;
 	isEmpty?: boolean;
 	empty?: React.ReactNode;
+	loading?: React.ReactNode;
 	children: React.ReactNode;
 }
 
@@ -14,10 +15,11 @@ export const QueryRenderer = ({
 	error,
 	isEmpty,
 	empty,
+	loading,
 	children,
 }: QueryRendererProps) => {
 	if (isLoading) {
-		return <Loading />;
+		return loading != null ? <>{loading}</> : <Loading />;
 	}
 
 	if (error) {

@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 
 import { DisclosureToggle } from "@/components/ui/DisclosureToggle";
 import { Loading } from "@/components/ui/Loading";
+import { QueryRenderer } from "@/components/ui/QueryRenderer";
 import { SearchInput } from "@/components/ui/SearchInput";
 import { Toolbar } from "@/components/ui/Toolbar";
 import { autoModulesApi, type ModuleEntryRow } from "@/api/endpoints/auto-modules";
@@ -23,6 +24,7 @@ import { ViewStatusBadge } from "./ViewStatusBadge";
 import { RowActions } from "./RowActions";
 import { useEntryDelete } from "./useEntryDelete";
 import { useModuleEntryLinks } from "@/pages/ModuleLayout";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 
 /**
  * Runtime for the `grouped` view type. Rows are bucketed by their cached
@@ -54,15 +56,9 @@ export const GroupedView = ({ moduleId, view }: GroupedViewProps) => {
 	const navigate = useNavigate();
 	const { editPath, actionPath } = useModuleEntryLinks();
 	const [query, setQuery] = useState("");
-	const [debouncedQuery, setDebouncedQuery] = useState("");
+	const debouncedQuery = useDebouncedValue(query, 200);
 	const [collapsed, setCollapsed] = useState<Set<string>>(() => new Set());
 	const { requestDelete, dialog: deleteDialog } = useEntryDelete(moduleId, view.id);
-
-	useEffect(() => {
-		const handle = window.setTimeout(() => setDebouncedQuery(query), 200);
-
-		return () => window.clearTimeout(handle);
-	}, [query]);
 
 	const listQuery = useQuery({
 		queryKey: queryKeys.moduleEntries.viewQuery(moduleId, view.id, { q: debouncedQuery || undefined, view: view.id }),
@@ -158,14 +154,18 @@ export const GroupedView = ({ moduleId, view }: GroupedViewProps) => {
 				</div>
 			)}
 
-			{listQuery.isLoading && !listQuery.data ? (
-				<Loading variant="card" label="Loading entries…" />
-			) : rows.length === 0 ? (
-				<div className="rounded-xl border border-border bg-surface p-9 text-center text-[13px] text-text-3">
-					{debouncedQuery ? `No entries match “${debouncedQuery}”.` : "No entries yet."}
-				</div>
-			) : (
-				<div className="flex flex-col gap-4">
+			<QueryRenderer
+				isLoading={listQuery.isLoading && !listQuery.data}
+				error={listQuery.error}
+				isEmpty={rows.length === 0}
+				loading={<Loading variant=”card” label=”Loading entries…” />}
+				empty={
+					<div className=”rounded-xl border border-border bg-surface p-9 text-center text-[13px] text-text-3”>
+						{debouncedQuery ? `No entries match “${debouncedQuery}”.` : “No entries yet.”}
+					</div>
+				}
+			>
+				<div className=”flex flex-col gap-4”>
 					{groups.map(([groupKey, { title, items }]) => {
 						const isCollapsed = collapsed.has(groupKey);
 
@@ -250,7 +250,7 @@ export const GroupedView = ({ moduleId, view }: GroupedViewProps) => {
 						);
 					})}
 				</div>
-			)}
+			</QueryRenderer>
 
 			{deleteDialog}
 		</>

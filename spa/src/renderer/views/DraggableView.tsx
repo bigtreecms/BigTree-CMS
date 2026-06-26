@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 
 import { DragHandle } from "@/components/ui/DragHandle";
 import { Loading } from "@/components/ui/Loading";
+import { QueryRenderer } from "@/components/ui/QueryRenderer";
 import { SearchInput } from "@/components/ui/SearchInput";
 import { Toolbar } from "@/components/ui/Toolbar";
 
@@ -25,6 +26,7 @@ import { ViewStatusBadge } from "./ViewStatusBadge";
 import { RowActions } from "./RowActions";
 import { useEntryDelete } from "./useEntryDelete";
 import { useModuleEntryLinks } from "@/pages/ModuleLayout";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 
 /**
  * Runtime for the `draggable` view type. Flat list ordered by position; the
@@ -54,15 +56,9 @@ export const DraggableView = ({ moduleId, view }: DraggableViewProps) => {
 	const { editPath, actionPath } = useModuleEntryLinks();
 	const queryClient = useQueryClient();
 	const [query, setQuery] = useState("");
-	const [debouncedQuery, setDebouncedQuery] = useState("");
+	const debouncedQuery = useDebouncedValue(query, 200);
 	const [localRows, setLocalRows] = useState<DraggableRow[] | null>(null);
 	const { requestDelete, dialog: deleteDialog } = useEntryDelete(moduleId, view.id);
-
-	useEffect(() => {
-		const handle = window.setTimeout(() => setDebouncedQuery(query), 200);
-
-		return () => window.clearTimeout(handle);
-	}, [query]);
 
 	const listQuery = useQuery({
 		queryKey: queryKeys.moduleEntries.viewQuery(moduleId, view.id, { q: debouncedQuery || undefined, view: view.id }),
@@ -133,15 +129,19 @@ export const DraggableView = ({ moduleId, view }: DraggableViewProps) => {
 			)}
 
 			<div className="overflow-hidden rounded-xl border border-border bg-surface">
-				{listQuery.isLoading && !listQuery.data ? (
-					<Loading variant="block" label="Loading entries…" />
-				) : rows.length === 0 ? (
-					<div className="p-9 text-center text-[13px] text-text-3">
-						{debouncedQuery
-							? `No entries match “${debouncedQuery}”.`
-							: "No entries yet."}
-					</div>
-				) : (
+				<QueryRenderer
+					isLoading={listQuery.isLoading && !listQuery.data}
+					error={listQuery.error}
+					isEmpty={rows.length === 0}
+					loading={<Loading variant=”block” label=”Loading entries…” />}
+					empty={
+						<div className=”p-9 text-center text-[13px] text-text-3”>
+							{debouncedQuery
+								? `No entries match “${debouncedQuery}”.`
+								: “No entries yet.”}
+						</div>
+					}
+				>
 					<ul>
 						{rows.map((r) => {
 							const isDragging = drag.dragId === r.id;
@@ -207,7 +207,7 @@ export const DraggableView = ({ moduleId, view }: DraggableViewProps) => {
 							);
 						})}
 					</ul>
-				)}
+				</QueryRenderer>
 			</div>
 
 			{deleteDialog}
