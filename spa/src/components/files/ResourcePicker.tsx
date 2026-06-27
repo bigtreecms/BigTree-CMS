@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import {
 	ChevronRight,
@@ -53,21 +54,14 @@ export const ResourcePicker = ({
 }: ResourcePickerProps) => {
 	const [folderId, setFolderId] = useState(0);
 	const [query, setQuery] = useState("");
-	const [debounced, setDebounced] = useState("");
+	const debounced = useDebouncedValue(query.trim(), 200);
 
 	useEffect(() => {
 		if (open) {
 			setFolderId(0);
 			setQuery("");
-			setDebounced("");
 		}
 	}, [open]);
-
-	useEffect(() => {
-		const handle = setTimeout(() => setDebounced(query.trim()), 200);
-
-		return () => clearTimeout(handle);
-	}, [query]);
 
 	const isSearching = debounced.length >= 2;
 

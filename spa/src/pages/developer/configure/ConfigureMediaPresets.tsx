@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ChevronDown, ChevronRight, Plus, Save, Trash } from "lucide-react";
 
 import { ConfigureLayout } from "@/components/developer/ConfigureLayout";
@@ -15,9 +15,9 @@ import { MediaPresetEditor } from "@/components/developer/MediaPresetEditor";
 import { configureApi, type MediaPreset } from "@/api/endpoints/configure";
 
 import { ApiError } from "@/types/api";
-import { toast } from "@/lib/toast";
 import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 import { queryKeys } from "@/lib/queryKeys";
+import { useToastMutation } from "@/hooks/useToastMutation";
 
 /**
  * Media presets — reusable image-field configurations.
@@ -45,19 +45,19 @@ export const ConfigureMediaPresets = () => {
 		}
 	}, [detailQ.data]);
 
-	const saveMutation = useMutation({
+	const saveMutation = useToastMutation({
 		mutationFn: (next: MediaPreset[]) => configureApi.mediaPresets.update({ presets: next }),
+		successMessage: "Media presets saved",
+		errorMessage: "Could not save presets",
 		onSuccess: (fresh) => {
 			queryClient.setQueryData(queryKeys.configure.mediaPresets(), fresh);
 			setPresets(fresh.presets.map((p) => ({ ...p })));
-			toast.success("Media presets saved");
 			setGeneralError(null);
 		},
 		onError: (err) => {
-			const msg =
-				err instanceof ApiError && err.message ? err.message : "Could not save presets";
-			setGeneralError(msg);
-			toast.error(msg);
+			setGeneralError(
+				err instanceof ApiError && err.message ? err.message : "Could not save presets"
+			);
 		},
 	});
 

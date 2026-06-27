@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useConfirmDialog } from "@/hooks/useConfirmDialog";
+import { useInlineForm } from "@/hooks/useInlineForm";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useToastMutation } from "@/hooks/useToastMutation";
 import { Fingerprint, Key, Plus, Trash } from "lucide-react";
 
 import { passkeysApi, type PasskeyRecord } from "@/auth/endpoints";
@@ -12,7 +14,7 @@ import { Loading } from "@/components/ui/Loading";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { Card } from "@/components/ui/Card";
 
-import { ApiError } from "@/types/api";
+import { describeWebAuthnError } from "@/lib/errorHandling";
 import { toast } from "@/lib/toast";
 import { InlineEmpty } from "@/components/ui/InlineEmpty";
 import { IconButton } from "@/components/ui/IconButton";
@@ -36,7 +38,7 @@ export const PasskeysPanel = () => {
 	const queryClient = useQueryClient();
 	const supported = isWebAuthnSupported();
 	const deleteDialog = useConfirmDialog<PasskeyRecord>();
-	const [showAddPrompt, setShowAddPrompt] = useState(false);
+	const addPrompt = useInlineForm();
 	const [draftName, setDraftName] = useState("");
 
 	const passkeysQuery = useQuery({
@@ -49,24 +51,20 @@ export const PasskeysPanel = () => {
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: queryKeys.auth.passkeys() });
 			toast.success("Passkey registered");
-			setShowAddPrompt(false);
+			addPrompt.hide();
 			setDraftName("");
 		},
 		onError: (err: unknown) => {
-			toast.error(describePasskeyError(err, "Could not register passkey"));
+			toast.error(describeWebAuthnError(err, "Could not register passkey"));
 		},
 	});
 
-	const deleteMutation = useMutation({
+	const deleteMutation = useToastMutation({
 		mutationFn: (passkey: PasskeyRecord) => passkeysApi.delete(passkey.id),
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: queryKeys.auth.passkeys() });
-			deleteDialog.close();
-			toast.success("Passkey removed");
-		},
-		onError: () => {
-			toast.error("Could not remove passkey");
-		},
+		invalidate: [queryKeys.auth.passkeys()],
+		successMessage: "Passkey removed",
+		errorMessage: "Could not remove passkey",
+		onSuccess: () => deleteDialog.close(),
 	});
 
 	const handleRegister = () => {
@@ -81,12 +79,12 @@ export const PasskeysPanel = () => {
 					<Key size={14} className="text-text-3" />
 					<SectionLabel as="h3">Passkeys</SectionLabel>
 				</div>
-				{supported && !showAddPrompt && (
+				{supported && !addPrompt.open && (
 					<Button
 						variant="secondary"
 						icon={<Plus size={13} />}
 						onClick={() => {
-							setShowAddPrompt(true);
+							addPrompt.show();
 							setDraftName(guessDefaultName());
 						}}
 						disabled={registerMutation.isPending}
@@ -103,7 +101,7 @@ export const PasskeysPanel = () => {
 					</InlineEmpty>
 				)}
 
-				{supported && showAddPrompt && (
+				{supported && addPrompt.open && (
 					<div className="mb-4 rounded-md border border-border bg-surface-2 p-3">
 						<Field label="Passkey name">
 							<input
@@ -123,7 +121,7 @@ export const PasskeysPanel = () => {
 							<Button
 								variant="secondary"
 								onClick={() => {
-									setShowAddPrompt(false);
+									addPrompt.hide();
 									setDraftName("");
 								}}
 								disabled={registerMutation.isPending}
@@ -225,28 +223,3 @@ const guessDefaultName = (): string => {
 	return "New passkey";
 };
 
-const describePasskeyError = (err: unknown, fallback: string): string => {
-	if (err instanceof DOMException) {
-		if (err.name === "NotAllowedError") {
-			return "Cancelled — no passkey was registered.";
-		}
-
-		if (err.name === "InvalidStateError") {
-			return "This authenticator already has a passkey for this account.";
-		}
-
-		if (err.name === "NotSupportedError") {
-			return "Your authenticator doesn't support the required passkey settings.";
-		}
-	}
-
-	if (err instanceof ApiError) {
-		return err.message || fallback;
-	}
-
-	if (err instanceof Error) {
-		return err.message || fallback;
-	}
-
-	return fallback;
-};

@@ -4,8 +4,8 @@ import { ShieldCheck } from "lucide-react";
 
 import { authApi, type TwoFactorSetup } from "@/auth/endpoints";
 
-import { ApiError } from "@/types/api";
 import { toast } from "@/lib/toast";
+import { describeApiError } from "@/lib/errorHandling";
 import { queryKeys } from "@/lib/queryKeys";
 import { TwoFactorEnrollForm } from "./TwoFactorEnrollForm";
 import { Button } from "@/components/ui/Button";
@@ -50,7 +50,7 @@ export const TwoFactorPanel = ({ enabled }: TwoFactorPanelProps) => {
 			setEnableCode("");
 		},
 		onError: (err: unknown) => {
-			toast.error(describeError(err, "Could not start 2FA setup"));
+			toast.error(describeApiError(err, "Could not start 2FA setup"));
 		},
 	});
 
@@ -63,7 +63,7 @@ export const TwoFactorPanel = ({ enabled }: TwoFactorPanelProps) => {
 			toast.success("Two-factor authentication enabled");
 		},
 		onError: (err: unknown) => {
-			toast.error(describeError(err, "Could not enable two-factor authentication"));
+			toast.error(describeApiError(err, "Could not enable two-factor authentication"));
 		},
 	});
 
@@ -76,7 +76,7 @@ export const TwoFactorPanel = ({ enabled }: TwoFactorPanelProps) => {
 			toast.success("Two-factor authentication disabled");
 		},
 		onError: (err: unknown) => {
-			toast.error(describeError(err, "Could not disable two-factor authentication"));
+			toast.error(describeApiError(err, "Could not disable two-factor authentication"));
 		},
 	});
 
@@ -190,14 +190,3 @@ export const TwoFactorPanel = ({ enabled }: TwoFactorPanelProps) => {
 	);
 };
 
-const describeError = (err: unknown, fallback: string): string => {
-	if (err instanceof ApiError) {
-		return err.message || fallback;
-	}
-
-	if (err instanceof Error) {
-		return err.message || fallback;
-	}
-
-	return fallback;
-};

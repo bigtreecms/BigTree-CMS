@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { keepPreviousData, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useToastMutation } from "@/hooks/useToastMutation";
 import { useNavigate } from "react-router-dom";
 
 import { DragHandle } from "@/components/ui/DragHandle";
@@ -12,7 +13,6 @@ import { autoModulesApi, type ModuleEntryRow } from "@/api/endpoints/auto-module
 import { queryKeys } from "@/lib/queryKeys";
 import type { ModuleView } from "@/api/endpoints/modules";
 import { useDragReorder } from "@/hooks/useDragReorder";
-import { toast } from "@/lib/toast";
 
 import {
 	formatCellValue,
@@ -77,15 +77,14 @@ export const DraggableView = ({ moduleId, view }: DraggableViewProps) => {
 
 	const rows = localRows ?? [];
 
-	const reorderMutation = useMutation({
+	const reorderMutation = useToastMutation({
 		mutationFn: (ids: Array<string | number>) => autoModulesApi.reorder(moduleId, ids, view.id),
-		onError: () => {
-			toast.error("Couldn't save the new order");
+		errorMessage: "Couldn't save the new order",
+		onError: () =>
 			// Refetch to restore the server's truth.
 			queryClient.invalidateQueries({
 				queryKey: queryKeys.moduleEntries.view(moduleId, view.id),
-			});
-		},
+			}),
 	});
 
 	const drag = useDragReorder<DraggableRow, string | number>(

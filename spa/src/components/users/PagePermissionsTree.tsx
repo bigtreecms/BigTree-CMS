@@ -8,6 +8,7 @@ import { queryKeys } from "@/lib/queryKeys";
 import type { PermissionCode, UserAlerts, UserPermissions } from "@/api/endpoints/users";
 
 import { PermissionRadios } from "./PermissionRadios";
+import { PermissionRow } from "./PermissionRow";
 import { PermissionTreeHeader } from "./PermissionTreeHeader";
 import { PAGE_PERMISSION_OPTIONS } from "./permissionOptions";
 
@@ -144,14 +145,9 @@ const TreeRow = ({
 
 	return (
 		<div>
-			<div
-				className="grid items-center gap-2 border-t border-border bg-surface px-3 py-1.5 text-[12.5px] first:border-t-0"
-				style={{
-					gridTemplateColumns: isAdminUser
-						? "minmax(0,1fr) 120px"
-						: "minmax(0,1fr) 120px repeat(4, 80px)",
-					paddingLeft: `${12 + depth * 16}px`,
-				}}
+			<PermissionRow
+				columns={isAdminUser ? "minmax(0,1fr) 120px" : "minmax(0,1fr) 120px repeat(4, 80px)"}
+				depth={depth}
 			>
 				<div className="flex items-center gap-1.5 min-w-0">
 					{hasChildren ? (
@@ -196,7 +192,7 @@ const TreeRow = ({
 
 				{/* Spacer so the row still has the inherit column when it's hidden on the root. */}
 				{!isAdminUser && hideInheritForRoot && <span aria-hidden="true" />}
-			</div>
+			</PermissionRow>
 
 			{expanded && hasChildren && (
 				<PageChildren

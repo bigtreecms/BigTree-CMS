@@ -8,6 +8,7 @@ import { queryKeys } from "@/lib/queryKeys";
 import type { PermissionCode, UserPermissions } from "@/api/endpoints/users";
 
 import { PermissionRadios } from "./PermissionRadios";
+import { PermissionRow } from "./PermissionRow";
 import { PermissionTreeHeader } from "./PermissionTreeHeader";
 import { RESOURCE_PERMISSION_OPTIONS } from "./permissionOptions";
 
@@ -94,13 +95,7 @@ const FolderRow = ({
 
 	return (
 		<div>
-			<div
-				className="grid items-center gap-2 border-t border-border bg-surface px-3 py-1.5 text-[12.5px] first:border-t-0"
-				style={{
-					gridTemplateColumns: "minmax(0,1fr) repeat(4, 80px)",
-					paddingLeft: `${12 + depth * 16}px`,
-				}}
-			>
+			<PermissionRow columns="minmax(0,1fr) repeat(4, 80px)" depth={depth}>
 				<div className="flex items-center gap-1.5 min-w-0">
 					{showExpander ? (
 						<IconButton
@@ -130,7 +125,7 @@ const FolderRow = ({
 				/>
 
 				{hideInheritForRoot && <span aria-hidden="true" />}
-			</div>
+			</PermissionRow>
 
 			{showExpander && expanded && (
 				<FolderChildren parent={id} depth={depth + 1} value={value} setPerm={setPerm} />

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useToastMutation } from "@/hooks/useToastMutation";
 import { RefreshCw, Save } from "lucide-react";
 
 import { ConfigureLayout } from "@/components/developer/ConfigureLayout";
@@ -119,7 +120,7 @@ export const ConfigureCloudStorage = () => {
 		},
 	});
 
-	const saveDefaultMutation = useMutation({
+	const saveDefaultMutation = useToastMutation({
 		mutationFn: () =>
 			configureApi.cloudStorage.updateDefault({
 				service: defaultService,
@@ -132,33 +133,27 @@ export const ConfigureCloudStorage = () => {
 						}
 					: {}),
 			}),
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: queryKeys.configure.cloudStorage() });
-			toast.success("Default storage updated");
-			setGeneralError(null);
-		},
+		invalidate: [queryKeys.configure.cloudStorage()],
+		successMessage: "Default storage updated",
+		errorMessage: "Could not save default",
+		onSuccess: () => setGeneralError(null),
 		onError: (err) => {
-			const msg =
-				err instanceof ApiError && err.message ? err.message : "Could not save default";
-			setGeneralError(msg);
-			toast.error(msg);
+			setGeneralError(
+				err instanceof ApiError && err.message ? err.message : "Could not save default"
+			);
 		},
 	});
 
-	const googleKeyMutation = useMutation({
+	const googleKeyMutation = useToastMutation({
 		mutationFn: (file: File) => configureApi.cloudStorage.uploadGoogleKey(file),
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: queryKeys.configure.cloudStorage() });
-			toast.success("Private key uploaded");
-			setGeneralError(null);
-		},
+		invalidate: [queryKeys.configure.cloudStorage()],
+		successMessage: "Private key uploaded",
+		errorMessage: "Could not upload private key",
+		onSuccess: () => setGeneralError(null),
 		onError: (err) => {
-			const msg =
-				err instanceof ApiError && err.message
-					? err.message
-					: "Could not upload private key";
-			setGeneralError(msg);
-			toast.error(msg);
+			setGeneralError(
+				err instanceof ApiError && err.message ? err.message : "Could not upload private key"
+			);
 		},
 	});
 

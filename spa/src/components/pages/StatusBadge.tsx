@@ -1,5 +1,5 @@
-import type { BadgeTone } from "@/components/ui/Badge";
 import { StatusBadge as UIStatusBadge } from "@/components/ui/StatusBadge";
+import { PAGE_STATUS_VARIANTS } from "@/lib/statusMapping";
 
 /**
  * Page-domain status pill. Maps the page lifecycle states onto the shared
@@ -8,39 +8,12 @@ import { StatusBadge as UIStatusBadge } from "@/components/ui/StatusBadge";
  */
 export type PageStatus = "published" | "draft" | "scheduled" | "archived" | "changed" | "pending";
 
-const VARIANTS: Record<PageStatus, { label: string; tone: BadgeTone }> = {
-	published: {
-		label: "Published",
-		tone: "success",
-	},
-	draft: {
-		label: "Draft",
-		tone: "warn",
-	},
-	changed: {
-		label: "Changed",
-		tone: "warn",
-	},
-	pending: {
-		label: "Draft",
-		tone: "warn",
-	},
-	scheduled: {
-		label: "Scheduled",
-		tone: "info",
-	},
-	archived: {
-		label: "Archived",
-		tone: "neutral",
-	},
-};
-
 interface StatusBadgeProps {
 	status: PageStatus;
 }
 
 export const StatusBadge = ({ status }: StatusBadgeProps) => {
-	const v = VARIANTS[status];
+	const v = PAGE_STATUS_VARIANTS[status];
 
 	return <UIStatusBadge tone={v.tone} label={v.label} dot />;
 };

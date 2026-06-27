@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 
 import { Combobox, type ComboboxOption } from "@/components/ui/Combobox";
@@ -41,14 +42,8 @@ export const UserSelect = ({
 	className,
 }: UserSelectProps) => {
 	const [query, setQuery] = useState("");
-	const [debounced, setDebounced] = useState("");
+	const debounced = useDebouncedValue(query.trim(), 200);
 	const [selected, setSelected] = useState<ComboboxOption<number> | null>(null);
-
-	useEffect(() => {
-		const handle = setTimeout(() => setDebounced(query.trim()), 200);
-
-		return () => clearTimeout(handle);
-	}, [query]);
 
 	const listQ = useQuery({
 		queryKey: queryKeys.userSelect.search(debounced),

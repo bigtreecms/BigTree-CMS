@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useToastMutation } from "@/hooks/useToastMutation";
 import { Save } from "lucide-react";
 
 import { Alert } from "@/components/ui/Alert";
@@ -16,6 +17,7 @@ import {
 import { ApiError } from "@/types/api";
 import { useScrollToFirstError } from "@/hooks/useScrollToFirstError";
 import { useDirtyTracker } from "@/hooks/useDirtyTracker";
+import { useInlineForm } from "@/hooks/useInlineForm";
 import { UnsavedChangesGuard } from "@/components/ui/UnsavedChangesGuard";
 import { Card } from "@/components/ui/Card";
 import { toast } from "@/lib/toast";
@@ -96,7 +98,7 @@ export const ModuleShellTab = ({ moduleId, module }: ModuleShellTabProps) => {
 
 	useScrollToFirstError(fieldErrors);
 	const [generalError, setGeneralError] = useState<string | null>(null);
-	const [creatingGroup, setCreatingGroup] = useState(false);
+	const newGroup = useInlineForm();
 	const [newGroupName, setNewGroupName] = useState("");
 
 	useEffect(() => {
@@ -110,29 +112,25 @@ export const ModuleShellTab = ({ moduleId, module }: ModuleShellTabProps) => {
 		queryFn: () => modulesApi.listGroups(),
 	});
 
-	const createGroupMutation = useMutation({
+	const createGroupMutation = useToastMutation({
 		mutationFn: (name: string) => modulesApi.createGroup({ name }),
+		invalidate: [queryKeys.moduleGroups.root()],
+		errorMessage: "Could not create group",
 		onSuccess: (group) => {
-			queryClient.invalidateQueries({ queryKey: queryKeys.moduleGroups.root() });
 			setState((prev) => ({ ...prev, group: group.id }));
-			setCreatingGroup(false);
+			newGroup.hide();
 			setNewGroupName("");
-		},
-		onError: (err) => {
-			toast.error(
-				err instanceof ApiError && err.message ? err.message : "Could not create group"
-			);
 		},
 	});
 
 	const onGroupChange = (value: string) => {
 		if (value === NEW_GROUP_OPTION) {
-			setCreatingGroup(true);
+			newGroup.show();
 
 			return;
 		}
 
-		setCreatingGroup(false);
+		newGroup.hide();
 		setState((prev) => ({ ...prev, group: value }));
 	};
 
@@ -213,7 +211,7 @@ export const ModuleShellTab = ({ moduleId, module }: ModuleShellTabProps) => {
 						/>
 						<SelectInput
 							label="Group"
-							value={creatingGroup ? NEW_GROUP_OPTION : state.group}
+							value={newGroup.open ? NEW_GROUP_OPTION : state.group}
 							onChange={onGroupChange}
 							options={groupOptions}
 						/>
@@ -239,7 +237,7 @@ export const ModuleShellTab = ({ moduleId, module }: ModuleShellTabProps) => {
 							mono
 						/>
 					</FieldGrid>
-					{creatingGroup && (
+					{newGroup.open && (
 						<div className="flex flex-wrap items-end gap-2 rounded-md border border-border bg-surface-2 p-3">
 							<div className="min-w-[200px] flex-1">
 								<TextInput
@@ -260,7 +258,7 @@ export const ModuleShellTab = ({ moduleId, module }: ModuleShellTabProps) => {
 							<Button
 								variant="secondary"
 								onClick={() => {
-									setCreatingGroup(false);
+									newGroup.hide();
 									setNewGroupName("");
 								}}
 							>

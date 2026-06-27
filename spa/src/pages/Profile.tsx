@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Key, Save, ShieldCheck, User } from "lucide-react";
 
 import { usersApi, type UpdateUserPayload, type UserDetail } from "@/api/endpoints/users";
@@ -18,10 +18,9 @@ import { PasskeysPanel } from "@/components/users/PasskeysPanel";
 import { PasswordChangeDialog } from "@/components/users/PasswordChangeDialog";
 import { TimezoneSelect } from "@/components/users/TimezoneSelect";
 import { TwoFactorPanel } from "@/components/users/TwoFactorPanel";
-import { toast } from "@/lib/toast";
 import { queryKeys } from "@/lib/queryKeys";
-import { ApiError } from "@/types/api";
 import { useDirtyTracker } from "@/hooks/useDirtyTracker";
+import { useToastMutation } from "@/hooks/useToastMutation";
 import { UnsavedChangesGuard } from "@/components/ui/UnsavedChangesGuard";
 import { Card } from "@/components/ui/Card";
 import { Field } from "@/components/ui/Field";
@@ -68,7 +67,7 @@ export const Profile = () => {
 		setSeeded(true);
 	}, [meQ.data]);
 
-	const updateMutation = useMutation({
+	const updateMutation = useToastMutation({
 		mutationFn: (payload: UpdateUserPayload) => {
 			if (!meQ.data) {
 				return Promise.reject(new Error("Profile not loaded"));
@@ -76,9 +75,11 @@ export const Profile = () => {
 
 			return usersApi.update(meQ.data.id, payload);
 		},
+		invalidate: [queryKeys.users.detail(meQ.data?.id ?? 0)],
+		successMessage: "Profile saved",
+		errorMessage: "Failed to save profile",
 		onSuccess: (fresh: UserDetail) => {
 			queryClient.setQueryData(queryKeys.users.me(), fresh);
-			queryClient.invalidateQueries({ queryKey: queryKeys.users.detail(fresh.id) });
 
 			// Keep the auth store in sync so the topbar shows the latest name.
 			const auth = useAuthStore.getState();
@@ -96,17 +97,6 @@ export const Profile = () => {
 					timezone: fresh.timezone,
 				});
 			}
-
-			toast.success("Profile saved");
-		},
-		onError: (err: unknown) => {
-			if (err instanceof ApiError) {
-				toast.error(err.message);
-
-				return;
-			}
-
-			toast.error("Failed to save profile");
 		},
 	});
 

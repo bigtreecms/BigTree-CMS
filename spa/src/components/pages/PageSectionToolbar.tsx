@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { pageEditPath, pageRevisionsPath } from "@/lib/routes";
 import { Copy, Edit, FileText, List as PagesIcon, Move, Plus, ShieldCheck } from "lucide-react";
 
 /**
@@ -57,14 +58,14 @@ export const PageSectionToolbar = ({
 			id: "edit",
 			label: "Edit Page",
 			icon: <Edit size={13} />,
-			to: pageId ? `/pages/${pageId}/edit` : undefined,
+			to: pageId ? pageEditPath(pageId) : undefined,
 			disabled: !pageId,
 		},
 		{
 			id: "revisions",
 			label: "Revisions",
 			icon: <FileText size={13} />,
-			to: pageId ? `/pages/${pageId}/edit/revisions` : undefined,
+			to: pageId ? pageRevisionsPath(pageId) : undefined,
 			disabled: !pageId,
 		},
 		{

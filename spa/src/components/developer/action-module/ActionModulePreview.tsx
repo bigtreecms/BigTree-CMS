@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import type { ModuleAction } from "@/api/endpoints/modules";
 import { toast } from "@/lib/toast";
 import { ActionRunner } from "@/renderer/actions/ActionRunner";
@@ -28,15 +29,9 @@ interface RecordedCall {
  * it. Compile/runtime errors surface inline.
  */
 export const ActionModulePreview = ({ source, name, route }: ActionModulePreviewProps) => {
-	const [debounced, setDebounced] = useState(source);
+	const debounced = useDebouncedValue(source, 400);
 	const [error, setError] = useState<string | null>(null);
 	const [lastCall, setLastCall] = useState<RecordedCall | null>(null);
-
-	useEffect(() => {
-		const timer = setTimeout(() => setDebounced(source), 400);
-
-		return () => clearTimeout(timer);
-	}, [source]);
 
 	const host = useMemo<ActionHost>(() => {
 		const action = {

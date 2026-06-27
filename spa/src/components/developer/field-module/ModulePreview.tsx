@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { applySettingDefaults, type SettingDescriptor } from "@/api/endpoints/field-types";
 import type { ModuleFormField } from "@/api/endpoints/modules";
 import { ModuleField } from "@/renderer/forms/ModuleField";
@@ -29,17 +30,11 @@ interface ModulePreviewProps {
 export const ModulePreview = ({ source, settingsSchema, typeId, name }: ModulePreviewProps) => {
 	const [value, setValue] = useState<unknown>(undefined);
 	const [error, setError] = useState<string | null>(null);
-	const [debounced, setDebounced] = useState(source);
+	const debounced = useDebouncedValue(source, 400);
 	// Values the author overrides in the preview; defaults come from the schema.
 	const [overrides, setOverrides] = useState<Record<string, unknown>>({});
 
 	const descriptors = settingsSchema;
-
-	useEffect(() => {
-		const timer = setTimeout(() => setDebounced(source), 400);
-
-		return () => clearTimeout(timer);
-	}, [source]);
 
 	// Effective settings the previewed field sees: schema defaults under overrides.
 	const settings = useMemo(

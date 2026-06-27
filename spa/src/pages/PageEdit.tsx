@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useToastMutation } from "@/hooks/useToastMutation";
 import { Navigate, useLocation, useNavigate, useParams } from "react-router-dom";
 import { Calendar, ChevronLeft, Save } from "lucide-react";
 
@@ -219,19 +220,15 @@ export const PageEdit = () => {
 		},
 	});
 
-	const duplicateMutation = useMutation({
+	const duplicateMutation = useToastMutation({
 		mutationFn: () => pagesApi.duplicate(id),
+		invalidate: [queryKeys.pages.lists()],
+		errorMessage: "Could not duplicate page",
 		onSuccess: (result) => {
-			queryClient.invalidateQueries({ queryKey: queryKeys.pages.lists() });
 			toast.success("Page duplicated", {
 				description: "The copy was created as an unpublished draft.",
 			});
 			navigate(`/pages/draft/${result.pending_change_id}/edit`);
-		},
-		onError: (err) => {
-			toast.error(
-				err instanceof ApiError && err.message ? err.message : "Could not duplicate page"
-			);
 		},
 	});
 

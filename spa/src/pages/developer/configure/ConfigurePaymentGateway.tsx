@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Save } from "lucide-react";
 
 import { ConfigureLayout } from "@/components/developer/ConfigureLayout";
@@ -19,8 +19,8 @@ import {
 } from "@/api/endpoints/configure";
 
 import { ApiError } from "@/types/api";
-import { toast } from "@/lib/toast";
 import { queryKeys } from "@/lib/queryKeys";
+import { useToastMutation } from "@/hooks/useToastMutation";
 
 const GATEWAYS: Array<{ id: PaymentGatewayId; label: string }> = [
 	{ id: "", label: "Disabled" },
@@ -133,42 +133,38 @@ export const ConfigurePaymentGateway = () => {
 		}
 	}, [detailQ.data]);
 
-	const saveMutation = useMutation({
+	const saveMutation = useToastMutation({
 		mutationFn: (next: PaymentGatewayConfig) => configureApi.paymentGateway.update(next),
+		successMessage: "Payment gateway updated",
+		errorMessage: "Could not save payment gateway",
 		onSuccess: (fresh) => {
 			queryClient.setQueryData(queryKeys.configure.paymentGateway(), fresh);
 			setDraft({
 				service: fresh.service,
 				settings: { ...(fresh.settings ?? {}) },
 			});
-			toast.success("Payment gateway updated");
 			setGeneralError(null);
 		},
 		onError: (err) => {
-			const msg =
-				err instanceof ApiError && err.message
-					? err.message
-					: "Could not save payment gateway";
-			setGeneralError(msg);
-			toast.error(msg);
+			setGeneralError(
+				err instanceof ApiError && err.message ? err.message : "Could not save payment gateway"
+			);
 		},
 	});
 
-	const certMutation = useMutation({
+	const certMutation = useToastMutation({
 		mutationFn: (file: File) => configureApi.paymentGateway.uploadLinkpointCertificate(file),
+		successMessage: "LinkPoint certificate uploaded",
+		errorMessage: "Could not upload certificate",
 		onSuccess: (fresh) => {
 			queryClient.setQueryData(queryKeys.configure.paymentGateway(), fresh);
 			setDraft({ service: fresh.service, settings: { ...(fresh.settings ?? {}) } });
-			toast.success("LinkPoint certificate uploaded");
 			setGeneralError(null);
 		},
 		onError: (err) => {
-			const msg =
-				err instanceof ApiError && err.message
-					? err.message
-					: "Could not upload certificate";
-			setGeneralError(msg);
-			toast.error(msg);
+			setGeneralError(
+				err instanceof ApiError && err.message ? err.message : "Could not upload certificate"
+			);
 		},
 	});
 

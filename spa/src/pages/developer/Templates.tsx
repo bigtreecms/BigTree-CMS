@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Plus, Trash } from "lucide-react";
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
@@ -16,7 +16,6 @@ import { DeveloperSectionNav } from "@/components/developer/DeveloperSectionNav"
 
 import { templatesApi, type TemplateSummary } from "@/api/endpoints/templates";
 
-import { toast } from "@/lib/toast";
 import { queryKeys } from "@/lib/queryKeys";
 import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 import { useToastMutation } from "@/hooks/useToastMutation";
@@ -43,12 +42,10 @@ export const Templates = () => {
 		},
 	});
 
-	const reorderMutation = useMutation({
+	const reorderMutation = useToastMutation({
 		mutationFn: (ids: string[]) => templatesApi.reorder(ids),
-		onError: () => {
-			toast.error("Could not save the new order");
-			queryClient.invalidateQueries({ queryKey: queryKeys.templates.root() });
-		},
+		errorMessage: "Could not save the new order",
+		onError: () => queryClient.invalidateQueries({ queryKey: queryKeys.templates.root() }),
 	});
 
 	const handleReorder = (orderedKeys: Array<string | number>) => {

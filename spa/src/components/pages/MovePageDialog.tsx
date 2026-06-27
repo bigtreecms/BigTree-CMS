@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { useQuery, type QueryKey } from "@tanstack/react-query";
 import { ChevronRight, Folder, Home, Search, X } from "lucide-react";
 
@@ -41,7 +42,7 @@ export const MovePageDialog = ({
 	const [browseParent, setBrowseParent] = useState(0);
 	const [crumbs, setCrumbs] = useState<Array<{ id: number; nav_title: string }>>([]);
 	const [search, setSearch] = useState("");
-	const [debounced, setDebounced] = useState("");
+	const debounced = useDebouncedValue(search.trim(), 200);
 	const [target, setTarget] = useState<{ id: number; nav_title: string } | null>(null);
 
 	// Reset state when the dialog opens for a new page.
@@ -50,16 +51,9 @@ export const MovePageDialog = ({
 			setBrowseParent(page.parent ?? 0);
 			setCrumbs([]);
 			setSearch("");
-			setDebounced("");
 			setTarget(null);
 		}
 	}, [open, page]);
-
-	useEffect(() => {
-		const handle = setTimeout(() => setDebounced(search.trim()), 200);
-
-		return () => clearTimeout(handle);
-	}, [search]);
 
 	const listQuery = useQuery({
 		queryKey: queryKeys.pages.list(browseParent),

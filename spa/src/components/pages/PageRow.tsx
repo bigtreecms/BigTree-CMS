@@ -5,6 +5,7 @@ import type { PageListRow } from "@/api/endpoints/pages";
 import { EditableTitle } from "./EditableTitle";
 import { StatusBadge, type PageStatus } from "./StatusBadge";
 import { relativeTime } from "@/lib/time";
+import { pageDraftEditPath, pageEditPath } from "@/lib/routes";
 import type { DragReorderApi } from "@/hooks/useDragReorder";
 
 /**
@@ -168,8 +169,8 @@ export const PageRow = ({
 				<Link
 					to={
 						isDraft
-							? `/pages/draft/${row.pending_change_id}/edit`
-							: `/pages/${row.id}/edit`
+							? pageDraftEditPath(row.pending_change_id)
+							: pageEditPath(row.id)
 					}
 					state={{ from: location.pathname + location.search }}
 					className="grid size-7 place-items-center rounded-md border-0 bg-transparent text-text-3 transition-colors hover:bg-hover hover:text-text"

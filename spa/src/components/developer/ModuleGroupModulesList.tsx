@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { DragHandle } from "@/components/ui/DragHandle";
 import { MonoText } from "@/components/ui/MonoText";
 
@@ -8,9 +8,7 @@ import { modulesApi, type ModuleSummary } from "@/api/endpoints/modules";
 
 import { iconFor } from "@/lib/legacyIcons";
 import { queryKeys } from "@/lib/queryKeys";
-import { ApiError } from "@/types/api";
-import { toast } from "@/lib/toast";
-
+import { useToastMutation } from "@/hooks/useToastMutation";
 import { useDragReorder } from "@/hooks/useDragReorder";
 import { Card } from "@/components/ui/Card";
 import { Loading } from "@/components/ui/Loading";
@@ -49,13 +47,11 @@ export const ModuleGroupModulesList = ({ groupId }: ModuleGroupModulesListProps)
 		setOrdered(inGroup);
 	}, [query.data, groupId]);
 
-	const reorderMutation = useMutation({
+	const reorderMutation = useToastMutation({
 		mutationFn: (ids: string[]) => modulesApi.reorder(ids),
+		errorMessage: "Reorder failed",
 		onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.modules.root() }),
-		onError: (err) => {
-			toast.error(err instanceof ApiError && err.message ? err.message : "Reorder failed");
-			queryClient.invalidateQueries({ queryKey: queryKeys.modules.root() });
-		},
+		onError: () => queryClient.invalidateQueries({ queryKey: queryKeys.modules.root() }),
 	});
 
 	const drag = useDragReorder<ModuleSummary, string>(ordered, setOrdered, (ids) =>

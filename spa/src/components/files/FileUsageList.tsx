@@ -1,64 +1,17 @@
 import { Link } from "react-router-dom";
 
-import type {
-	ResourceUsage,
-	ResourceUsageLink,
-	ResourceUsageStatus,
-} from "@/api/endpoints/resources";
-import type { BadgeTone } from "@/components/ui/Badge";
+import type { ResourceUsage } from "@/api/endpoints/resources";
 import { Loading } from "@/components/ui/Loading";
 import { InlineEmpty } from "@/components/ui/InlineEmpty";
 import { SectionLabel } from "@/components/ui/SectionLabel";
 import { StatusBadge } from "@/components/ui/StatusBadge";
+import { RESOURCE_USAGE_STATUS_VARIANTS } from "@/lib/statusMapping";
+import { resourceUsagePath } from "@/lib/routes";
 
 interface FileUsageListProps {
 	isLoading: boolean;
 	usages: ResourceUsage[];
 }
-
-const STATUS_LABEL: Record<ResourceUsageStatus, string> = {
-	published: "Published",
-	archived: "Archived",
-	pending: "Pending Draft",
-	none: "—",
-};
-
-const STATUS_TONE: Record<ResourceUsageStatus, BadgeTone> = {
-	published: "success",
-	archived: "warn",
-	pending: "info",
-	none: "neutral",
-};
-
-/**
- * Resolve a usage link descriptor into an in-app route. Pages distinguish live
- * (`/pages/{id}/edit`) from pending drafts (`/pages/draft/{id}/edit`); module
- * entries follow `/modules/{route}/{edit_route}/{entry}` (mirroring how
- * moduleActions builds entry URLs). Returns null when there's nowhere to go.
- */
-const usageLinkPath = (link: ResourceUsageLink | null): string | null => {
-	if (!link) {
-		return null;
-	}
-
-	if (link.kind === "page") {
-		if (link.entry.startsWith("p")) {
-			return `/pages/draft/${link.entry.slice(1)}/edit`;
-		}
-
-		return `/pages/${link.entry}/edit`;
-	}
-
-	if (link.kind === "setting") {
-		return `/settings/${link.entry}/edit`;
-	}
-
-	const segments = ["modules", link.route, link.edit_route ?? "", link.entry].filter(
-		(segment) => segment !== "" && segment !== null
-	);
-
-	return `/${segments.join("/")}`;
-};
 
 /**
  * "Used by" panel for the file detail slide-over. Replaces the raw allocations
@@ -80,7 +33,7 @@ export const FileUsageList = ({ isLoading, usages }: FileUsageListProps) => {
 			) : (
 				<ul className="divide-y divide-border rounded-md border border-border bg-surface">
 					{usages.map((usage, index) => {
-						const path = usageLinkPath(usage.link);
+						const path = resourceUsagePath(usage.link);
 						const dimmed = usage.status === "archived" || usage.status === "none";
 
 						return (
@@ -106,8 +59,8 @@ export const FileUsageList = ({ isLoading, usages }: FileUsageListProps) => {
 								</span>
 								<span className="text-right">
 									<StatusBadge
-										tone={STATUS_TONE[usage.status]}
-										label={STATUS_LABEL[usage.status]}
+										tone={RESOURCE_USAGE_STATUS_VARIANTS[usage.status].tone}
+										label={RESOURCE_USAGE_STATUS_VARIANTS[usage.status].label}
 									/>
 								</span>
 							</li>

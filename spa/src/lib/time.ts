@@ -70,3 +70,33 @@ export function formatDateTime(input: string | Date | null | undefined): string 
 
 	return d.toLocaleString(undefined, { ...DATE_OPTS, ...TIME_OPTS });
 }
+
+/** Compact date — "6/24/26". Intended for dense table cells. */
+export function formatShortDate(input: string | Date | null | undefined): string {
+	const d = parseDate(input);
+
+	if (!d) return "";
+
+	return `${d.getMonth() + 1}/${d.getDate()}/${String(d.getFullYear()).slice(-2)}`;
+}
+
+/** Time-only formatter — "3:45 PM". */
+export function formatTime(input: string | Date | null | undefined): string {
+	const d = parseDate(input);
+
+	if (!d) return "";
+
+	return d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+}
+
+/**
+ * Split a datetime into separate date ("6/24/26") and time ("3:45 PM") strings
+ * for tables that render them in distinct columns.
+ */
+export function splitDateTime(input: string | Date | null | undefined): { date: string; time: string } {
+	const d = parseDate(input);
+
+	if (!d) return { date: typeof input === "string" ? input : "", time: "" };
+
+	return { date: formatShortDate(d), time: formatTime(d) };
+}

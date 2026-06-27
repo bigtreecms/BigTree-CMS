@@ -4,6 +4,7 @@ import { Navigate, useParams } from "react-router-dom";
 import { ChevronLeft, RotateCcw, Save, Trash } from "lucide-react";
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
+import { pageEditPath } from "@/lib/routes";
 import { PageHead } from "@/components/shell/PageHead";
 import { PageContainer } from "@/components/shell/PageContainer";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
@@ -116,7 +117,7 @@ export const PageRevisions = () => {
 	const breadcrumbs = [
 		{ label: "Pages", to: "/pages" },
 		...lineage.map((p) => ({ label: p.nav_title, to: `/pages/${p.id}` })),
-		{ label: page.nav_title || "Page", to: `/pages/${page.id}/edit` },
+		{ label: page.nav_title || "Page", to: pageEditPath(page.id) },
 		{ label: "Revisions" },
 	];
 
@@ -128,7 +129,7 @@ export const PageRevisions = () => {
 				title={`Revisions for ${page.nav_title || "page"}`}
 				sub={page.path}
 				actions={
-					<Button icon={<ChevronLeft size={13} />} to={`/pages/${page.id}/edit`}>
+					<Button icon={<ChevronLeft size={13} />} to={pageEditPath(page.id)}>
 						Back to editor
 					</Button>
 				}

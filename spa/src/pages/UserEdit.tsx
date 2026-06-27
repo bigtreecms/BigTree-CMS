@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { ChevronLeft, History, Key, Save, ShieldCheck } from "lucide-react";
 
@@ -32,10 +32,9 @@ import { PasswordChangeDialog } from "@/components/users/PasswordChangeDialog";
 import { ResourcePermissionsTree } from "@/components/users/ResourcePermissionsTree";
 import { TimezoneSelect } from "@/components/users/TimezoneSelect";
 import { isAdmin, isDeveloper } from "@/lib/permissions";
-import { toast } from "@/lib/toast";
 import { queryKeys } from "@/lib/queryKeys";
-import { ApiError } from "@/types/api";
 import { useReturnTo } from "@/hooks/useReturnTo";
+import { useToastMutation } from "@/hooks/useToastMutation";
 import { useDirtyTracker } from "@/hooks/useDirtyTracker";
 import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 import { UnsavedChangesGuard } from "@/components/ui/UnsavedChangesGuard";
@@ -98,60 +97,34 @@ export const UserEdit = () => {
 		setSeeded(true);
 	}, [userQ.data]);
 
-	const updateMutation = useMutation({
+	const updateMutation = useToastMutation({
 		mutationFn: (payload: UpdateUserPayload) => usersApi.update(id, payload),
+		invalidate: [queryKeys.users.lists()],
+		successMessage: "User updated",
+		errorMessage: "Failed to update user",
 		onSuccess: (fresh: UserDetail) => {
 			queryClient.setQueryData(queryKeys.users.detail(id), fresh);
-			queryClient.invalidateQueries({ queryKey: queryKeys.users.lists() });
-			toast.success("User updated");
 			navigate(returnTo);
 		},
-		onError: (err: unknown) => {
-			if (err instanceof ApiError) {
-				toast.error(err.message);
-
-				return;
-			}
-
-			toast.error("Failed to update user");
-		},
 	});
 
-	const deleteMutation = useMutation({
+	const deleteMutation = useToastMutation({
 		mutationFn: () => usersApi.delete(id),
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: queryKeys.users.lists() });
-			toast.success("User deleted");
-			navigate("/users");
-		},
-		onError: (err: unknown) => {
-			if (err instanceof ApiError) {
-				toast.error(err.message);
-
-				return;
-			}
-
-			toast.error("Failed to delete user");
-		},
+		invalidate: [queryKeys.users.lists()],
+		successMessage: "User deleted",
+		errorMessage: "Failed to delete user",
+		onSuccess: () => navigate("/users"),
 	});
 
-	const remove2faMutation = useMutation({
+	const remove2faMutation = useToastMutation({
 		mutationFn: () => usersApi.removeTwoFactor(id),
+		successMessage: "Two-factor authentication removed",
+		errorMessage: "Failed to remove two-factor authentication",
 		onSuccess: (fresh) => {
 			queryClient.setQueryData<UserDetail | undefined>(queryKeys.users.detail(id), (prev) =>
 				prev ? { ...prev, two_factor_enabled: fresh.two_factor_enabled } : prev
 			);
 			remove2faDialog.close();
-			toast.success("Two-factor authentication removed");
-		},
-		onError: (err: unknown) => {
-			if (err instanceof ApiError) {
-				toast.error(err.message);
-
-				return;
-			}
-
-			toast.error("Failed to remove two-factor authentication");
 		},
 	});
 

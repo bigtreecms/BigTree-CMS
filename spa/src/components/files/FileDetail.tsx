@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useToastMutation } from "@/hooks/useToastMutation";
 import {
 	Copy,
 	Crop as CropIcon,
@@ -28,7 +29,6 @@ import {
 import { resourceFoldersApi } from "@/api/endpoints/resource-folders";
 import type { ModuleFormField } from "@/api/endpoints/modules";
 import { FieldRenderer } from "@/renderer/forms/FieldRenderer";
-import { ApiError } from "@/types/api";
 import { formatBytes } from "@/lib/bytes";
 import { expandImageUrl } from "@/lib/imageUrl";
 import { queryKeys } from "@/lib/queryKeys";
@@ -113,7 +113,7 @@ export const FileDetail = ({ resourceId, onOpenChange, folderQueryKey }: FileDet
 				? (metadataFieldsQuery.data?.image ?? [])
 				: (metadataFieldsQuery.data?.file ?? []);
 
-	const updateMutation = useMutation({
+	const updateMutation = useToastMutation({
 		mutationFn: () => {
 			if (!resource) {
 				throw new Error("no resource loaded");
@@ -121,18 +121,16 @@ export const FileDetail = ({ resourceId, onOpenChange, folderQueryKey }: FileDet
 
 			return resourcesApi.update(resource.id, { name: name.trim(), folder, metadata });
 		},
+		invalidate: [folderQueryKey as import("@tanstack/react-query").QueryKey],
+		successMessage: "File saved",
+		errorMessage: "Could not save changes",
 		onSuccess: (updated) => {
-			queryClient.invalidateQueries({ queryKey: folderQueryKey });
 			queryClient.setQueryData(queryKeys.resources.detail(updated.id), updated);
-			toast.success("File saved");
 			onOpenChange(false);
-		},
-		onError: () => {
-			toast.error("Could not save changes");
 		},
 	});
 
-	const replaceMutation = useMutation({
+	const replaceMutation = useToastMutation({
 		mutationFn: (file: File) => {
 			if (!resource) {
 				throw new Error("no resource loaded");
@@ -140,6 +138,7 @@ export const FileDetail = ({ resourceId, onOpenChange, folderQueryKey }: FileDet
 
 			return resourcesApi.replace(resource.id, file);
 		},
+		errorMessage: "Could not replace the file",
 		onSuccess: (updated) => {
 			queryClient.setQueryData(queryKeys.resources.detail(updated.id), updated);
 			queryClient.invalidateQueries({ queryKey: folderQueryKey });
@@ -147,14 +146,9 @@ export const FileDetail = ({ resourceId, onOpenChange, folderQueryKey }: FileDet
 				description: "The URL is unchanged — existing references keep working.",
 			});
 		},
-		onError: (err) => {
-			toast.error(
-				err instanceof ApiError && err.message ? err.message : "Could not replace the file"
-			);
-		},
 	});
 
-	const deleteMutation = useMutation({
+	const deleteMutation = useToastMutation({
 		mutationFn: () => {
 			if (!resource) {
 				throw new Error("no resource loaded");
@@ -162,14 +156,12 @@ export const FileDetail = ({ resourceId, onOpenChange, folderQueryKey }: FileDet
 
 			return resourcesApi.delete(resource.id);
 		},
+		invalidate: [folderQueryKey as import("@tanstack/react-query").QueryKey],
+		successMessage: "File deleted",
+		errorMessage: "Could not delete file",
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: folderQueryKey });
-			toast.success("File deleted");
 			deleteDialog.close();
 			onOpenChange(false);
-		},
-		onError: () => {
-			toast.error("Could not delete file");
 		},
 	});
 

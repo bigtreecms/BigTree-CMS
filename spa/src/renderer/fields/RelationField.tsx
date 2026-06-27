@@ -7,6 +7,7 @@ import { IconButton } from "@/components/ui/IconButton";
 import { LoadingText } from "@/components/ui/LoadingText";
 import { PopoverPanel } from "@/components/ui/Popover";
 import { useOnClickOutside } from "@/hooks/useOnClickOutside";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import {
 	modulesApi,
 	type RelationOption,
@@ -153,13 +154,7 @@ export const RelationField = ({ field, value, onChange, disabled, kind }: Relati
 
 	// — Picker (search) —
 	const [search, setSearch] = useState("");
-	const [debouncedSearch, setDebouncedSearch] = useState("");
-
-	useEffect(() => {
-		const handle = setTimeout(() => setDebouncedSearch(search.trim()), 200);
-
-		return () => clearTimeout(handle);
-	}, [search]);
+	const debouncedSearch = useDebouncedValue(search.trim(), 200);
 
 	const pickerQuery = useQuery({
 		queryKey: OPTIONS_KEY(moduleId, formId, column, "options", debouncedSearch),

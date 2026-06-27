@@ -1,4 +1,5 @@
 import { useCallback, useRef, useState } from "react";
+import { pageEditPath, moduleEntryEditPath } from "@/lib/routes";
 import { useQueryClient } from "@tanstack/react-query";
 
 import {
@@ -44,7 +45,7 @@ const moduleEditLink = (
 	// The module is reached by route; editing goes through its conventional
 	// "edit" action route (the legacy admin's `/<route>/edit/<id>`).
 	if (mod.edit_view_id !== null && mod.edit_view_id !== undefined) {
-		return `/modules/${route}/edit/${itemId}`;
+		return moduleEntryEditPath(route, "edit", itemId);
 	}
 
 	return `/modules/${route}`;
@@ -65,7 +66,7 @@ const toPageFinding = (
 	type: error.type,
 	field: error.field,
 	url: error.url,
-	editTo: `/pages/${id}/edit`,
+	editTo: pageEditPath(id),
 });
 
 const toModuleFinding = (

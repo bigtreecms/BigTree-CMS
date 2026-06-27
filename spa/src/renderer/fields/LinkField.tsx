@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { ExternalLink, File as FileIcon, Newspaper, Search, X } from "lucide-react";
 
 import { IconButton } from "@/components/ui/IconButton";
 import { PopoverPanel } from "@/components/ui/Popover";
 import { useOnClickOutside } from "@/hooks/useOnClickOutside";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { searchApi, type SearchPage } from "@/api/endpoints/search";
 import { resourcesApi } from "@/api/endpoints/resources";
 import type { ResourceSummary } from "@/api/endpoints/resource-folders";
@@ -45,15 +46,9 @@ export const LinkField = ({ field, value, onChange, disabled }: FieldComponentPr
 	const stored = typeof value === "string" ? value : value == null ? "" : String(value);
 
 	const [search, setSearch] = useState("");
-	const [debouncedSearch, setDebouncedSearch] = useState("");
 	const [open, setOpen] = useState(false);
 	const containerRef = useRef<HTMLDivElement>(null);
-
-	useEffect(() => {
-		const handle = setTimeout(() => setDebouncedSearch(search.trim()), 200);
-
-		return () => clearTimeout(handle);
-	}, [search]);
+	const debouncedSearch = useDebouncedValue(search.trim(), 200);
 
 	// Close dropdown on outside click.
 	useOnClickOutside(containerRef, () => setOpen(false), open);

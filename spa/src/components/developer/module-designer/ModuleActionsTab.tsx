@@ -1,12 +1,11 @@
 import { useEffect, useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 
 import { modulesApi, type ModuleAction, type ModuleActionBody } from "@/api/endpoints/modules";
 
-import { ApiError } from "@/types/api";
-import { toast } from "@/lib/toast";
 import { queryKeys } from "@/lib/queryKeys";
+import { useToastMutation } from "@/hooks/useToastMutation";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { FieldGrid } from "@/components/ui/FieldGrid";
 
@@ -178,14 +177,13 @@ export const ModuleActionsTab = ({ moduleId }: ModuleActionsTabProps) => {
 		}
 	}, [schemaQ.data]);
 
-	const reorderMutation = useMutation({
+	const reorderMutation = useToastMutation({
 		mutationFn: (ids: string[]) => modulesApi.reorderActions(moduleId, ids),
+		errorMessage: "Reorder failed",
 		onSuccess: () =>
 			queryClient.invalidateQueries({ queryKey: queryKeys.modules.moduleActions(moduleId) }),
-		onError: (err) => {
-			toast.error(err instanceof ApiError && err.message ? err.message : "Reorder failed");
-			queryClient.invalidateQueries({ queryKey: queryKeys.modules.moduleActions(moduleId) });
-		},
+		onError: () =>
+			queryClient.invalidateQueries({ queryKey: queryKeys.modules.moduleActions(moduleId) }),
 	});
 
 	const drag = useDragReorder<ModuleAction, string>(

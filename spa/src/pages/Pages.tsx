@@ -18,6 +18,7 @@ import { queryKeys } from "@/lib/queryKeys";
 import { pagesApi, type PageListRow } from "@/api/endpoints/pages";
 import { pendingChangesApi } from "@/api/endpoints/dashboard";
 import { relativeTime } from "@/lib/time";
+import { pageEditPath, pageRevisionsPath } from "@/lib/routes";
 import { expandImageUrl } from "@/lib/imageUrl";
 import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 
@@ -247,13 +248,13 @@ export const Pages = () => {
 						{!isRoot && (
 							<Button
 								icon={<FileText size={13} />}
-								to={`/pages/${parent}/edit/revisions`}
+								to={pageRevisionsPath(parent)}
 							>
 								Revisions
 							</Button>
 						)}
 						{!isRoot && (
-							<Button icon={<Edit size={13} />} to={`/pages/${parent}/edit`}>
+							<Button icon={<Edit size={13} />} to={pageEditPath(parent)}>
 								Edit page
 							</Button>
 						)}

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useToastMutation } from "@/hooks/useToastMutation";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -12,7 +13,6 @@ import { Toolbar } from "@/components/ui/Toolbar";
 import { autoModulesApi, type ModuleEntryRow } from "@/api/endpoints/auto-modules";
 import { queryKeys } from "@/lib/queryKeys";
 import type { ModuleView } from "@/api/endpoints/modules";
-import { toast } from "@/lib/toast";
 
 import {
 	formatCellValue,
@@ -132,14 +132,13 @@ export const NestedView = ({ moduleId, view }: NestedViewProps) => {
 		}
 	}, [listQuery.data]);
 
-	const reorderMutation = useMutation({
+	const reorderMutation = useToastMutation({
 		mutationFn: (ids: Array<string | number>) => autoModulesApi.reorder(moduleId, ids, view.id),
-		onError: () => {
-			toast.error("Couldn't save the new order");
+		errorMessage: "Couldn't save the new order",
+		onError: () =>
 			queryClient.invalidateQueries({
 				queryKey: queryKeys.moduleEntries.view(moduleId, view.id),
-			});
-		},
+			}),
 	});
 
 	const { builtins, custom } = useMemo(() => parseViewActions(view.actions), [view.actions]);

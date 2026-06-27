@@ -2,6 +2,7 @@ import { AlertTriangle, ChevronRight, Clock } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import { DashCard } from "./DashCard";
+import { pageEditPath } from "@/lib/routes";
 import { QueryRenderer } from "@/components/ui/QueryRenderer";
 import { InlineEmpty } from "@/components/ui/InlineEmpty";
 import type { ContentAlert } from "@/api/endpoints/dashboard";
@@ -49,7 +50,7 @@ export const ContentAlertsCard = ({ alerts, loading, error }: ContentAlertsCardP
 								<Clock size={14} />
 							</span>
 							<Link
-								to={`/pages/${alert.page_id}/edit`}
+								to={pageEditPath(alert.page_id)}
 								className="block min-w-0 flex-1 text-[12.5px] text-text hover:text-accent"
 							>
 								<div className="truncate font-medium">{alert.nav_title}</div>

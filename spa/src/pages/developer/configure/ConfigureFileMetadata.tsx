@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Save } from "lucide-react";
 
 import { useScrollToFirstError } from "@/hooks/useScrollToFirstError";
@@ -18,8 +18,8 @@ import {
 } from "@/api/endpoints/configure";
 
 import { ApiError } from "@/types/api";
-import { toast } from "@/lib/toast";
 import { queryKeys } from "@/lib/queryKeys";
+import { useToastMutation } from "@/hooks/useToastMutation";
 
 const BUCKETS: Array<{ id: keyof FileMetadataConfig; label: string; hint: string }> = [
 	{ id: "file", label: "Generic files", hint: "Asked on every non-image, non-video upload." },
@@ -105,20 +105,18 @@ export const ConfigureFileMetadata = () => {
 		}
 	}, [detailQ.data]);
 
-	const saveMutation = useMutation({
+	const saveMutation = useToastMutation({
 		mutationFn: (next: FileMetadataConfig) => configureApi.fileMetadata.update(next),
+		successMessage: "File metadata saved",
+		errorMessage: "Could not save file metadata",
 		onSuccess: (fresh) => {
 			queryClient.setQueryData(queryKeys.configure.fileMetadata(), fresh);
-			toast.success("File metadata saved");
 			setGeneralError(null);
 		},
 		onError: (err) => {
-			const msg =
-				err instanceof ApiError && err.message
-					? err.message
-					: "Could not save file metadata";
-			setGeneralError(msg);
-			toast.error(msg);
+			setGeneralError(
+				err instanceof ApiError && err.message ? err.message : "Could not save file metadata"
+			);
 		},
 	});
 

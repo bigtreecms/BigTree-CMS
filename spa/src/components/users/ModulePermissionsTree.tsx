@@ -8,6 +8,7 @@ import type { PermissionCode, UserPermissions } from "@/api/endpoints/users";
 import { SectionLabel } from "@/components/ui/SectionLabel";
 
 import { PermissionRadios } from "./PermissionRadios";
+import { PermissionRow } from "./PermissionRow";
 import { PermissionTreeHeader } from "./PermissionTreeHeader";
 import { MODULE_PERMISSION_OPTIONS } from "./permissionOptions";
 
@@ -64,11 +65,7 @@ const GbpCategoryRows = ({ module, value, onChange }: GbpCategoryRowsProps) => {
 				const current = value?.[category.id] ?? "";
 
 				return (
-					<div
-						key={category.id}
-						className="grid items-center gap-2 border-t border-border bg-surface-2/40 py-1.5 pl-8 pr-3 text-[12px]"
-						style={{ gridTemplateColumns: GRID_COLUMNS }}
-					>
+					<PermissionRow key={category.id} columns={GRID_COLUMNS} nested>
 						<span className="truncate text-text-2">
 							<span className="text-text-3">{label}:</span> {category.title}
 						</span>
@@ -78,7 +75,7 @@ const GbpCategoryRows = ({ module, value, onChange }: GbpCategoryRowsProps) => {
 							onChange={(next) => onChange(category.id, next)}
 							options={MODULE_PERMISSION_OPTIONS}
 						/>
-					</div>
+					</PermissionRow>
 				);
 			})}
 		</>
@@ -212,10 +209,7 @@ export const ModulePermissionsTree = ({
 
 							return (
 								<div key={m.id}>
-									<div
-										className="grid items-center gap-2 border-t border-border bg-surface px-3 py-1.5 text-[12.5px]"
-										style={{ gridTemplateColumns: GRID_COLUMNS }}
-									>
+									<PermissionRow columns={GRID_COLUMNS}>
 										<span className="truncate text-text">{m.name}</span>
 										<PermissionRadios
 											name={`module-perm-${m.id}`}
@@ -223,7 +217,7 @@ export const ModulePermissionsTree = ({
 											onChange={(next) => setPerm(m.id, next)}
 											options={MODULE_PERMISSION_OPTIONS}
 										/>
-									</div>
+									</PermissionRow>
 
 									{gbpEnabled && (
 										<GbpCategoryRows

@@ -3,6 +3,7 @@ import { ChevronRight } from "lucide-react";
 import { Avatar } from "@/components/ui/Avatar";
 import { Button } from "@/components/ui/Button";
 import type { Message } from "@/api/endpoints/dashboard";
+import { splitDateTime } from "@/lib/time";
 
 interface MessagesTableProps {
 	messages: Message[];
@@ -50,22 +51,3 @@ export const MessagesTable = ({ messages }: MessagesTableProps) => {
 	);
 };
 
-const splitDateTime = (iso: string): { date: string; time: string } => {
-	try {
-		const d = new Date(iso.replace(" ", "T"));
-
-		if (Number.isNaN(d.getTime())) {
-			return { date: iso, time: "" };
-		}
-
-		const date = `${d.getMonth() + 1}/${d.getDate()}/${String(d.getFullYear()).slice(-2)}`;
-		const time = d.toLocaleTimeString([], {
-			hour: "numeric",
-			minute: "2-digit",
-		});
-
-		return { date, time };
-	} catch {
-		return { date: iso, time: "" };
-	}
-};

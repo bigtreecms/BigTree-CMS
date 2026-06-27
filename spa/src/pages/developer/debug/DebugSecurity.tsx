@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Save, ShieldOff } from "lucide-react";
 
 import { DebugLayout } from "@/components/developer/DebugLayout";
@@ -14,8 +14,6 @@ import { FormShell } from "@/components/ui/FormShell";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 
 import { systemApi, type SecurityPolicy } from "@/api/endpoints/system";
-import { ApiError } from "@/types/api";
-import { toast } from "@/lib/toast";
 import { queryKeys } from "@/lib/queryKeys";
 import { useToastMutation } from "@/hooks/useToastMutation";
 
@@ -64,16 +62,12 @@ export const DebugSecurity = () => {
 		}
 	}, [policyQ.data]);
 
-	const saveMutation = useMutation({
+	const saveMutation = useToastMutation({
 		mutationFn: (next: SecurityPolicy) => systemApi.securityPolicy.update(next),
+		successMessage: "Security policy updated",
+		errorMessage: "Could not save policy",
 		onSuccess: (fresh) => {
 			queryClient.setQueryData(queryKeys.system.securityPolicy(), fresh);
-			toast.success("Security policy updated");
-		},
-		onError: (err) => {
-			const msg =
-				err instanceof ApiError && err.message ? err.message : "Could not save policy";
-			toast.error(msg);
 		},
 	});
 

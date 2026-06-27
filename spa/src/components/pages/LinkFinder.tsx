@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { File as FileIcon, Newspaper, Package, Search } from "lucide-react";
 
@@ -9,6 +9,7 @@ import { PopoverPanel } from "@/components/ui/Popover";
 
 import { useOnClickOutside } from "@/hooks/useOnClickOutside";
 import { useCopyToClipboard } from "@/hooks/useCopyToClipboard";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 
 /**
  * Typeahead lifted from the design's `.link-finder` block. Sits in the upper-
@@ -31,16 +32,10 @@ interface Hit {
 
 export const LinkFinder = () => {
 	const [q, setQ] = useState("");
-	const [debounced, setDebounced] = useState("");
 	const [open, setOpen] = useState(false);
 	const containerRef = useRef<HTMLDivElement>(null);
 	const copyToClipboard = useCopyToClipboard();
-
-	useEffect(() => {
-		const handle = setTimeout(() => setDebounced(q.trim()), 200);
-
-		return () => clearTimeout(handle);
-	}, [q]);
+	const debounced = useDebouncedValue(q.trim(), 200);
 
 	useOnClickOutside(containerRef, () => setOpen(false), open);
 

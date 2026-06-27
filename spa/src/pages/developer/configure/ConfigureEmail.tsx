@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Save } from "lucide-react";
 
 import { ConfigureLayout } from "@/components/developer/ConfigureLayout";
@@ -14,8 +14,8 @@ import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { configureApi, type EmailConfig, type EmailServiceId } from "@/api/endpoints/configure";
 
 import { ApiError } from "@/types/api";
-import { toast } from "@/lib/toast";
 import { queryKeys } from "@/lib/queryKeys";
+import { useToastMutation } from "@/hooks/useToastMutation";
 
 const SERVICES: Array<{ id: EmailServiceId; label: string; blurb: string }> = [
 	{
@@ -50,20 +50,18 @@ export const ConfigureEmail = () => {
 		}
 	}, [detailQ.data]);
 
-	const saveMutation = useMutation({
+	const saveMutation = useToastMutation({
 		mutationFn: (next: EmailConfig) => configureApi.email.update(next),
+		successMessage: "Email service updated",
+		errorMessage: "Could not save email config",
 		onSuccess: (fresh) => {
 			queryClient.setQueryData(queryKeys.configure.email(), fresh);
-			toast.success("Email service updated");
 			setGeneralError(null);
 		},
 		onError: (err) => {
-			const msg =
-				err instanceof ApiError && err.message
-					? err.message
-					: "Could not save email config";
-			setGeneralError(msg);
-			toast.error(msg);
+			setGeneralError(
+				err instanceof ApiError && err.message ? err.message : "Could not save email config"
+			);
 		},
 	});
 
