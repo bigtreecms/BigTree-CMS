@@ -33,12 +33,12 @@
 				$ip = ip2long($request->ip);
 
 				if (\BigTreeAdmin::isIPBannedByPolicy($ip) || !\BigTreeAdmin::isIPAllowedByPolicy($ip)) {
-					throw new Exceptions\AuthorizationException("Access from this IP address is restricted", "ip_restricted", 403);
+					throw new Exceptions\AuthorizationException("Access from this IP address is restricted", "ip_restricted");
 				}
 
 				// Reject malformed JSON early.
 				if (isset($request->body["__json_error__"])) {
-					throw new BadRequestException("Malformed JSON body: " . $request->body["__json_error__"], "malformed_json", 400);
+					throw new BadRequestException("Malformed JSON body: " . $request->body["__json_error__"], "malformed_json");
 				}
 
 				$routes = Manifest::load();

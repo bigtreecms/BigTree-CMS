@@ -1,5 +1,39 @@
 <?php
 	use BigTree\Services\PermissionService;
+	use BigTree\Api\Exceptions\AuthorizationException;
+
+	function test_permission_level_extraction() {
+		T::equals(PermissionService::level((object)["level" => 2]), 2, "object level read");
+		T::equals(PermissionService::level(["level" => 3]), 3, "array level read");
+		T::equals(PermissionService::level((object)[]), 0, "missing level → 0");
+		T::equals(PermissionService::level("nonsense"), 0, "non-user input → 0");
+	}
+
+	function test_permission_is_publisher() {
+		$editor = (object)["id" => 1, "level" => 0];
+		$admin = (object)["id" => 2, "level" => 1];
+
+		T::ok(PermissionService::isPublisher($editor, "p"), "publisher rank can publish");
+		T::ok(!PermissionService::isPublisher($editor, "e"), "editor rank cannot publish");
+		T::ok(!PermissionService::isPublisher($editor, "n"), "no-access rank cannot publish");
+		T::ok(PermissionService::isPublisher($admin, "n"), "global admin can publish regardless of rank");
+	}
+
+	function test_permission_assert_can_edit_row() {
+		$user = (object)["id" => 1, "level" => 0, "permissions" => [
+			"module" => [5 => "n"],
+			"module_gbp" => [5 => [10 => "e", 30 => "n"]],
+		]];
+		$module = ["id" => 5, "gbp" => ["enabled" => true, "group_field" => "category"]];
+
+		// Has access → returns void without throwing.
+		PermissionService::assertCanEditRow($user, $module, ["category" => 10]);
+		T::ok(true, "assertCanEditRow passes when the user has row access");
+
+		T::throws(function () use ($user, $module) {
+			PermissionService::assertCanEditRow($user, $module, ["category" => 30]);
+		}, AuthorizationException::class, "assertCanEditRow throws when the user has no row access");
+	}
 
 	function test_permission_admin_level_bypass() {
 		$user = (object)["id" => 1, "level" => 1, "permissions" => []];

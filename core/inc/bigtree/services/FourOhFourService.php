@@ -2,6 +2,7 @@
 	namespace BigTree\Services;
 
 	use BigTree\Api\Pagination;
+	use BigTree\Api\Sanitize;
 	use BigTree\Api\Request;
 	use BigTree\Api\Response;
 	use BigTree\Api\Exceptions\BadRequestException;
@@ -15,19 +16,20 @@
 	 */
 	class FourOhFourService {
 		public function list(Request $request) {
-			$p = Pagination::offset($request, 100);
 			$type = $request->query["type"] ?? "404";
 			$site_key = $request->query["site_key"] ?? null;
 			$q = trim((string)($request->query["q"] ?? ""));
 
 			[$where, $args] = $this->buildConditions($type, $site_key, $q);
 
-			$total = (int)SQL::fetchSingle(...array_merge(["SELECT COUNT(*) FROM bigtree_404s" . $where], $args));
-			$rows = SQL::fetchAll(...array_merge([
-				"SELECT * FROM bigtree_404s" . $where . " ORDER BY requests DESC, id DESC LIMIT " . (int)$p["limit"] . " OFFSET " . (int)$p["offset"],
-			], $args));
-
-			return Response::ok(array_map([$this, "present"], $rows), Pagination::offsetMeta($p["page"], $p["per_page"], $total));
+			return Pagination::paginate(
+				$request,
+				"SELECT COUNT(*) FROM bigtree_404s" . $where,
+				"SELECT * FROM bigtree_404s" . $where . " ORDER BY requests DESC, id DESC",
+				$args,
+				[$this, "present"],
+				100
+			);
 		}
 
 		/**
@@ -98,7 +100,7 @@
 					break;
 
 				default:
-					throw new BadRequestException("type must be 404, 301 or ignored", "bad_type", 400);
+					throw new BadRequestException("type must be 404, 301 or ignored", "bad_type");
 			}
 
 			if ($site_key !== null) {
@@ -108,7 +110,7 @@
 
 			if ($q !== "") {
 				$conds[] = "(broken_url LIKE ? OR redirect_url LIKE ?)";
-				$like = "%" . str_replace("%", "\\%", $q) . "%";
+				$like = Sanitize::likeTerm($q);
 				$args[] = $like;
 				$args[] = $like;
 			}
@@ -141,10 +143,10 @@
 		}
 
 		public function delete(Request $request) {
-			$id = (int)$request->route_params["id"];
+			$id = $request->id();
 
 			if (!SQL::exists("bigtree_404s", $id)) {
-				throw new NotFoundException("404 $id not found", "resource_not_found", 404);
+				throw new NotFoundException("404 $id not found");
 			}
 
 			SQL::delete("bigtree_404s", $id);
@@ -153,10 +155,10 @@
 		}
 
 		public function setRedirect(Request $request) {
-			$id = (int)$request->route_params["id"];
+			$id = $request->id();
 
 			if (!SQL::exists("bigtree_404s", $id)) {
-				throw new NotFoundException("404 $id not found", "resource_not_found", 404);
+				throw new NotFoundException("404 $id not found");
 			}
 
 			SQL::update("bigtree_404s", $id, ["redirect_url" => (string)$request->body["url"], "ignored" => ""]);
@@ -165,10 +167,10 @@
 		}
 
 		public function ignore(Request $request) {
-			$id = (int)$request->route_params["id"];
+			$id = $request->id();
 
 			if (!SQL::exists("bigtree_404s", $id)) {
-				throw new NotFoundException("404 $id not found", "resource_not_found", 404);
+				throw new NotFoundException("404 $id not found");
 			}
 
 			SQL::update("bigtree_404s", $id, ["ignored" => "on"]);
@@ -215,13 +217,13 @@
 				|| ($file["error"] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK
 				|| empty($file["tmp_name"])
 			) {
-				throw new BadRequestException("No CSV file was uploaded.", "missing_file", 400);
+				throw new BadRequestException("No CSV file was uploaded.", "missing_file");
 			}
 
 			$handle = fopen($file["tmp_name"], "r");
 
 			if ($handle === false) {
-				throw new BadRequestException("Could not read the uploaded file.", "unreadable_file", 400);
+				throw new BadRequestException("Could not read the uploaded file.", "unreadable_file");
 			}
 
 			$site_key = trim((string)($request->body["site_key"] ?? "")) ?: null;

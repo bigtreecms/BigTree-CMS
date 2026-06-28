@@ -61,10 +61,10 @@
 		 * launch URL that begins the handshake.
 		 */
 		public function startService(Request $request) {
-			$service = (string)$request->route_params["service"];
+			$service = $request->routeParam("service");
 
 			if (!isset(self::SERVICES[$service])) {
-				throw new NotFoundException("Unknown service", "unknown_service", 404);
+				throw new NotFoundException("Unknown service", "unknown_service");
 			}
 
 			$def = self::SERVICES[$service];
@@ -72,7 +72,7 @@
 			$secret = trim((string)($request->body["secret"] ?? ""));
 
 			if ($key === "" || $secret === "") {
-				throw new BadRequestException("A key and secret are required to connect.", "missing_credentials", 400);
+				throw new BadRequestException("A key and secret are required to connect.", "missing_credentials");
 			}
 
 			$settings = BigTreeCMS::getSetting($def["setting"]) ?: [];
@@ -102,7 +102,7 @@
 			$secret = trim((string)($google["secret"] ?? ($cloud["secret"] ?? "")));
 
 			if ($key === "" || $secret === "") {
-				throw new BadRequestException("Enter the Google client ID and secret before connecting.", "missing_credentials", 400);
+				throw new BadRequestException("Enter the Google client ID and secret before connecting.", "missing_credentials");
 			}
 
 			// The OAuth base reads top-level key/secret/project.
@@ -131,7 +131,7 @@
 			$def = self::SERVICES[$claims["svc"]] ?? null;
 
 			if (!$def) {
-				throw new NotFoundException("Unknown service", "unknown_service", 404);
+				throw new NotFoundException("Unknown service", "unknown_service");
 			}
 
 			$class = $def["class"];
@@ -249,7 +249,7 @@
 		/** Verify a launch/state token; returns its claims plus the raw token. */
 		private function readToken($token) {
 			if ($token === "") {
-				throw new BadRequestException("Missing OAuth token", "missing_token", 400);
+				throw new BadRequestException("Missing OAuth token", "missing_token");
 			}
 
 			$claims = Jwt::decode($token, Jwt::secrets(), self::TOKEN_ISS, self::TOKEN_AUD);

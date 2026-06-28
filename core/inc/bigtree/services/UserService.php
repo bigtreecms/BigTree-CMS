@@ -1,12 +1,13 @@
 <?php
 	namespace BigTree\Services;
 
+	use BigTree\Api\Entity;
+	use BigTree\Api\Sanitize;
 	use BigTree\Api\Pagination;
 	use BigTree\Api\Request;
 	use BigTree\Api\Response;
 	use BigTree\Api\Exceptions\BadRequestException;
 	use BigTree\Api\Exceptions\ConflictException;
-	use BigTree\Api\Exceptions\NotFoundException;
 	use BigTree\Api\Exceptions\AuthorizationException;
 	use BigTreeAdmin;
 	use BigTree;
@@ -23,7 +24,6 @@
 	 */
 	class UserService {
 		public function list(Request $request) {
-			$p = Pagination::offset($request, 100);
 			$q = trim((string)($request->query["q"] ?? ""));
 
 			$where = [];
@@ -31,27 +31,24 @@
 
 			if ($q !== "") {
 				$where[] = "(email LIKE ? OR name LIKE ? OR company LIKE ?)";
-				$like = "%" . str_replace("%", "\\%", $q) . "%";
+				$like = Sanitize::likeTerm($q);
 				$params[] = $like; $params[] = $like; $params[] = $like;
 			}
 
 			$sql_where = $where ? " WHERE " . implode(" AND ", $where) : "";
 
-			$count_args = array_merge(["SELECT COUNT(*) FROM bigtree_users" . $sql_where], $params);
-			$total = (int)SQL::fetchSingle(...$count_args);
-
-			$list_args = array_merge([
-				"SELECT id, email, name, company, level, daily_digest, timezone FROM bigtree_users" . $sql_where . " ORDER BY name LIMIT " . (int)$p["limit"] . " OFFSET " . (int)$p["offset"],
-			], $params);
-			$rows = SQL::fetchAll(...$list_args);
-
-			$items = array_map([$this, "presentList"], $rows);
-
-			return Response::ok($items, Pagination::offsetMeta($p["page"], $p["per_page"], $total));
+			return Pagination::paginate(
+				$request,
+				"SELECT COUNT(*) FROM bigtree_users" . $sql_where,
+				"SELECT id, email, name, company, level, daily_digest, timezone FROM bigtree_users" . $sql_where . " ORDER BY name",
+				$params,
+				[$this, "presentList"],
+				100
+			);
 		}
 
 		public function get(Request $request) {
-			$id = (int)$request->route_params["id"];
+			$id = $request->id();
 			$user = $this->loadOrFail($id);
 
 			return Response::ok($this->presentFull($user, $request));
@@ -67,7 +64,7 @@
 			$d = $request->body;
 
 			if (SQL::exists("bigtree_users", ["email" => $d["email"]])) {
-				throw new ConflictException("A user with this email already exists", "duplicate_email", 409);
+				throw new ConflictException("A user with this email already exists", "duplicate_email");
 			}
 
 			$level = max(0, min((int)$request->user->level, (int)($d["level"] ?? 0)));
@@ -95,12 +92,12 @@
 		}
 
 		public function update(Request $request) {
-			$id = (int)$request->route_params["id"];
+			$id = $request->id();
 			$user = $this->loadOrFail($id);
 			$d = $request->body;
 
 			if ((int)$user["level"] > (int)$request->user->level) {
-				throw new AuthorizationException("Cannot modify a user with a higher level", "permission_denied", 403);
+				throw new AuthorizationException("Cannot modify a user with a higher level");
 			}
 
 			$is_self = ($id === (int)$request->user->id);
@@ -109,7 +106,7 @@
 
 			if (isset($d["email"])) {
 				if (SQL::exists("bigtree_users", "email = ? AND id != ?", $d["email"], $id)) {
-					throw new ConflictException("Email already in use", "duplicate_email", 409);
+					throw new ConflictException("Email already in use", "duplicate_email");
 				}
 
 				$update["email"] = BigTree::safeEncode($d["email"]);
@@ -163,16 +160,16 @@
 		}
 
 		public function delete(Request $request) {
-			$id = (int)$request->route_params["id"];
+			$id = $request->id();
 
 			if ($id === (int)$request->user->id) {
-				throw new BadRequestException("Cannot delete your own account", "cannot_delete_self", 400);
+				throw new BadRequestException("Cannot delete your own account", "cannot_delete_self");
 			}
 
 			$target = $this->loadOrFail($id);
 
 			if ((int)$target["level"] > (int)$request->user->level) {
-				throw new AuthorizationException("Cannot delete a user with a higher level", "permission_denied", 403);
+				throw new AuthorizationException("Cannot delete a user with a higher level");
 			}
 
 			SQL::delete("bigtree_users", $id);
@@ -181,28 +178,28 @@
 		}
 
 		public function password(Request $request) {
-			$id = (int)$request->route_params["id"];
+			$id = $request->id();
 			$is_self = ($id === (int)$request->user->id);
 			$target = $this->loadOrFail($id);
 
 			if (!$is_self && (int)$target["level"] > (int)$request->user->level) {
-				throw new AuthorizationException("Cannot change password for a higher-level user", "permission_denied", 403);
+				throw new AuthorizationException("Cannot change password for a higher-level user");
 			}
 
 			$new = trim((string)($request->body["new_password"] ?? ""));
 			$current = (string)($request->body["current_password"] ?? "");
 
 			if ($new === "") {
-				throw new BadRequestException("new_password required", "missing_password", 400);
+				throw new BadRequestException("new_password required", "missing_password");
 			}
 
 			if (!BigTreeAdmin::validatePassword($new)) {
-				throw new BadRequestException("Password does not meet policy requirements", "weak_password", 400);
+				throw new BadRequestException("Password does not meet policy requirements", "weak_password");
 			}
 
 			if ($is_self) {
 				if ($current === "" || !password_verify($current, $target["password"])) {
-					throw new AuthorizationException("Current password is incorrect", "wrong_password", 403);
+					throw new AuthorizationException("Current password is incorrect", "wrong_password");
 				}
 			}
 
@@ -224,11 +221,11 @@
 		 * Refuses to act on a higher-level user.
 		 */
 		public function removeTwoFactor(Request $request) {
-			$id = (int)$request->route_params["id"];
+			$id = $request->id();
 			$target = $this->loadOrFail($id);
 
 			if ((int)$target["level"] > (int)$request->user->level) {
-				throw new AuthorizationException("Cannot modify a higher-level user", "permission_denied", 403);
+				throw new AuthorizationException("Cannot modify a higher-level user");
 			}
 
 			SQL::update("bigtree_users", $id, ["2fa_secret" => ""]);
@@ -239,11 +236,7 @@
 		// — internals —
 
 		private function loadOrFail($id) {
-			$user = SQL::fetch("SELECT * FROM bigtree_users WHERE id = ?", $id);
-
-			if (!$user) {
-				throw new NotFoundException("User $id not found", "resource_not_found", 404);
-			}
+			$user = Entity::findOrFail("bigtree_users", $id, "User");
 
 			return $user;
 		}

@@ -264,11 +264,7 @@
 			$sentinel = SERVER_ROOT . "cache/analytics-building.flag";
 			if (file_exists($sentinel) && (time() - @filemtime($sentinel)) < 600) {
 				$age = time() - @filemtime($sentinel);
-				$conflict = new \BigTree\Api\Exceptions\ConflictException(
-					"Analytics cache rebuild already in progress (started {$age}s ago)",
-					"analytics_rebuild_in_progress",
-					409
-				);
+				$conflict = new \BigTree\Api\Exceptions\ConflictException("Analytics cache rebuild already in progress (started {$age}s ago)", "analytics_rebuild_in_progress");
 				throw $conflict;
 			}
 

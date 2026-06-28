@@ -131,6 +131,24 @@
 			return $remote;
 		}
 
+		/**
+		 * Integer "id" route param (the dominant case). Missing/blank → 0.
+		 */
+		public function id(): int {
+
+			return (int)($this->route_params["id"] ?? 0);
+		}
+
+		/**
+		 * Fetch a route param by name with an explicit cast ("string" or "int").
+		 * Missing params return "" / 0 rather than emitting an undefined-key warning.
+		 */
+		public function routeParam(string $name, string $cast = "string") {
+			$value = $this->route_params[$name] ?? null;
+
+			return $cast === "int" ? (int)$value : (string)$value;
+		}
+
 		public function header($name) {
 
 			return $this->headers[strtolower($name)] ?? null;

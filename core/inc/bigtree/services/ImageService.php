@@ -1,10 +1,10 @@
 <?php
 	namespace BigTree\Services;
 
+	use BigTree\Api\Entity;
 	use BigTree\Api\Request;
 	use BigTree\Api\Response;
 	use BigTree\Api\Exceptions\BadRequestException;
-	use BigTree\Api\Exceptions\NotFoundException;
 	use BigTree;
 	use BigTreeImage;
 	use BigTreeJSONDB;
@@ -35,7 +35,7 @@
 			$file_set = $request->file("file");
 
 			if (!$file_set) {
-				throw new BadRequestException("Missing 'file' upload", "missing_file", 400);
+				throw new BadRequestException("Missing 'file' upload", "missing_file");
 			}
 			$file = $file_set[0];
 			$this->assertUploadOk($file);
@@ -65,14 +65,14 @@
 			}
 
 			if (!empty($source["resource_id"])) {
-				$resource = SQL::fetch("SELECT * FROM bigtree_resources WHERE id = ?", (int)$source["resource_id"]);
-
-				if (!$resource) {
-					throw new NotFoundException("Resource not found", "resource_not_found", 404);
-				}
+				$resource = Entity::fetchOrFail(
+					"SELECT * FROM bigtree_resources WHERE id = ?",
+					[(int)$source["resource_id"]],
+					"Resource not found"
+				);
 
 				if ($resource["is_image"] !== "on") {
-					throw new BadRequestException("Resource is not an image", "not_an_image", 400);
+					throw new BadRequestException("Resource is not an image", "not_an_image");
 				}
 				$original = $resource["file"];
 				$name = basename($resource["file"]);
@@ -80,7 +80,7 @@
 				$original = (string)$source["file"];
 				$name = basename(parse_url($original, PHP_URL_PATH) ?: $original);
 			} else {
-				throw new BadRequestException("source.resource_id or source.file is required", "missing_source", 400);
+				throw new BadRequestException("source.resource_id or source.file is required", "missing_source");
 			}
 
 			// Copy the source original to a temp file so the pipeline can store a
@@ -117,14 +117,14 @@
 			$center_crops = is_array($request->body["center_crops"] ?? null) ? $request->body["center_crops"] : [];
 
 			if ($w <= 0 || $h <= 0 || $target_w <= 0 || $target_h <= 0) {
-				throw new BadRequestException("width/height/target_width/target_height must be > 0", "bad_dimensions", 400);
+				throw new BadRequestException("width/height/target_width/target_height must be > 0", "bad_dimensions");
 			}
 
 			$source = $this->resolveReadableImage($file);
 			$image = new BigTreeImage($source);
 
 			if ($image->Error) {
-				throw new BadRequestException("Image processing failed: " . $image->Error, "image_invalid", 400);
+				throw new BadRequestException("Image processing failed: " . $image->Error, "image_invalid");
 			}
 			$storage = new BigTreeStorage();
 
@@ -153,7 +153,7 @@
 			@unlink($temp_crop);
 
 			if (!$stored) {
-				throw new BadRequestException("Storage refused crop", "storage_failed", 400);
+				throw new BadRequestException("Storage refused crop", "storage_failed");
 			}
 
 			return Response::created([
@@ -185,7 +185,7 @@
 			$image = new BigTreeImage($source, $settings);
 
 			if ($image->Error) {
-				throw new BadRequestException($image->Error, "image_invalid", 400);
+				throw new BadRequestException($image->Error, "image_invalid");
 			}
 
 			// Sub-crop any crops that don't meet the required image size.
@@ -201,7 +201,7 @@
 					$image->destroy();
 				}
 
-				throw new BadRequestException("The image uploaded is too large for the server to manipulate. Please upload a smaller version of this image.", "image_too_large", 400);
+				throw new BadRequestException("The image uploaded is too large for the server to manipulate. Please upload a smaller version of this image.", "image_too_large");
 			}
 
 			if ($in_place) {
@@ -214,7 +214,7 @@
 				if (!$stored) {
 					$image->destroy();
 
-					throw new BadRequestException($image->Error ?: "Could not store the image.", "storage_failed", 400);
+					throw new BadRequestException($image->Error ?: "Could not store the image.", "storage_failed");
 				}
 			}
 
@@ -308,7 +308,7 @@
 			$root = realpath(SITE_ROOT);
 
 			if ($real === false || $root === false || strpos($real, $root . DIRECTORY_SEPARATOR) !== 0) {
-				throw new BadRequestException("Image path is not accessible", "bad_path", 400);
+				throw new BadRequestException("Image path is not accessible", "bad_path");
 			}
 
 			return $real;
@@ -332,7 +332,7 @@
 			$host = parse_url($url, PHP_URL_HOST);
 
 			if (!is_string($host) || $host === "") {
-				throw new BadRequestException("Image URL host is invalid", "bad_remote_host", 400);
+				throw new BadRequestException("Image URL host is invalid", "bad_remote_host");
 			}
 
 			$host = strtolower($host);
@@ -371,12 +371,12 @@
 			}
 
 			if (empty($ips)) {
-				throw new BadRequestException("Image URL host could not be resolved", "bad_remote_host", 400);
+				throw new BadRequestException("Image URL host could not be resolved", "bad_remote_host");
 			}
 
 			foreach ($ips as $ip) {
 				if (!filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
-					throw new BadRequestException("Image URL resolves to a disallowed address", "blocked_remote_host", 400);
+					throw new BadRequestException("Image URL resolves to a disallowed address", "blocked_remote_host");
 				}
 			}
 		}
@@ -393,7 +393,7 @@
 			// carries unexpected characters — silent rewriting of ".." is exactly what
 			// makes such filters bypassable.
 			if (strpbrk($dir, "\\\0") !== false) {
-				throw new BadRequestException("Invalid storage directory", "bad_directory", 400);
+				throw new BadRequestException("Invalid storage directory", "bad_directory");
 			}
 
 			$segments = [];
@@ -404,7 +404,7 @@
 				}
 
 				if ($segment === ".." || !preg_match('/^[A-Za-z0-9_.\- ]+$/', $segment)) {
-					throw new BadRequestException("Invalid storage directory", "bad_directory", 400);
+					throw new BadRequestException("Invalid storage directory", "bad_directory");
 				}
 
 				$segments[] = $segment;
@@ -435,19 +435,19 @@
 
 		private function assertUploadOk(array $file) {
 			if (($file["error"] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
-				throw new BadRequestException("Upload error: " . $this->uploadErrorMessage((int)$file["error"]), "upload_error", 400);
+				throw new BadRequestException("Upload error: " . $this->uploadErrorMessage((int)$file["error"]), "upload_error");
 			}
 
 			if (!is_uploaded_file($file["tmp_name"]) && !file_exists($file["tmp_name"])) {
-				throw new BadRequestException("Upload tmp file missing", "upload_error", 400);
+				throw new BadRequestException("Upload tmp file missing", "upload_error");
 			}
 
 			if (($file["size"] ?? 0) <= 0) {
-				throw new BadRequestException("Empty upload", "empty_upload", 400);
+				throw new BadRequestException("Empty upload", "empty_upload");
 			}
 
 			if (($file["size"] ?? 0) > self::UPLOAD_MAX_BYTES) {
-				throw new BadRequestException("File too large", "file_too_large", 400);
+				throw new BadRequestException("File too large", "file_too_large");
 			}
 		}
 

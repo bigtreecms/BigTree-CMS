@@ -1,6 +1,7 @@
 <?php
 	namespace BigTree\Services;
 
+	use BigTree\Api\Entity;
 	use BigTree\Api\Request;
 	use BigTree\Api\Response;
 	use BigTree\Api\Exceptions\BadRequestException;
@@ -16,12 +17,9 @@
 		}
 
 		public function get(Request $request) {
-			$id = (string)$request->route_params["id"];
-			$f = BigTreeJSONDB::get("feeds", $id);
+			$id = $request->routeParam("id");
+			$f = Entity::findOrFailJson("feeds", $id, "Feed");
 
-			if (!$f) {
-				throw new NotFoundException("Feed $id not found", "resource_not_found", 404);
-			}
 			return Response::ok($f);
 		}
 
@@ -30,11 +28,11 @@
 			$id = (string)($d["id"] ?? "");
 
 			if ($id === "" || !ctype_alnum(str_replace(["-", "_"], "", $id))) {
-				throw new BadRequestException("id must be alphanumeric (with - or _)", "invalid_id", 400);
+				throw new BadRequestException("id must be alphanumeric (with - or _)", "invalid_id");
 			}
 
 			if (BigTreeJSONDB::exists("feeds", $id)) {
-				throw new ConflictException("Feed $id already exists", "duplicate_id", 409);
+				throw new ConflictException("Feed $id already exists", "duplicate_id");
 			}
 
 			BigTreeJSONDB::insert("feeds", [
@@ -51,12 +49,8 @@
 		}
 
 		public function update(Request $request) {
-			$id = (string)$request->route_params["id"];
-			$existing = BigTreeJSONDB::get("feeds", $id);
-
-			if (!$existing) {
-				throw new NotFoundException("Feed $id not found", "resource_not_found", 404);
-			}
+			$id = $request->routeParam("id");
+			$existing = Entity::findOrFailJson("feeds", $id, "Feed");
 			$d = $request->body;
 			$next = array_merge($existing, array_filter([
 				"name" => isset($d["name"]) ? BigTree::safeEncode($d["name"]) : null,
@@ -72,10 +66,10 @@
 		}
 
 		public function delete(Request $request) {
-			$id = (string)$request->route_params["id"];
+			$id = $request->routeParam("id");
 
 			if (!BigTreeJSONDB::exists("feeds", $id)) {
-				throw new NotFoundException("Feed $id not found", "resource_not_found", 404);
+				throw new NotFoundException("Feed $id not found");
 			}
 
 			BigTreeJSONDB::delete("feeds", $id);

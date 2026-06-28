@@ -25,6 +25,15 @@
 		T::equals(Sanitize::columnName("!!!"), "", "all-punctuation → empty string");
 	}
 
+	function test_sanitize_like_term() {
+		T::equals(Sanitize::likeTerm("foo"), "%foo%", "plain term wrapped in wildcards");
+		T::equals(Sanitize::likeTerm("50%"), "%50\\%%", "percent escaped as a literal");
+		T::equals(Sanitize::likeTerm("a_b"), "%a\\_b%", "underscore escaped as a literal");
+		T::equals(Sanitize::likeTerm("a\\b"), "%a\\\\b%", "backslash doubled before other escaping");
+		T::equals(Sanitize::likeTerm("Foo"), "%Foo%", "case preserved by default");
+		T::equals(Sanitize::likeTerm("Foo", true), "%foo%", "lowercase option applied");
+	}
+
 	function test_sanitize_order_clause_allowed() {
 		$columns = ["id" => true, "title" => true, "position" => true];
 

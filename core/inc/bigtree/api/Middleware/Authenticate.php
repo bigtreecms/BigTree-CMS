@@ -35,7 +35,7 @@
 			$token = $request->bearer();
 
 			if (!$token) {
-				throw new AuthenticationException("Missing Bearer token", "missing_token", 401);
+				throw new AuthenticationException("Missing Bearer token", "missing_token");
 			}
 
 			$claims = Jwt::decode($token, Jwt::secrets(), self::ISS, self::AUD);
@@ -48,12 +48,12 @@
 			);
 
 			if (!$row) {
-				throw new AuthenticationException("User no longer exists", "invalid_token", 401);
+				throw new AuthenticationException("User no longer exists", "invalid_token");
 			}
 
 			// Stateless revocation check.
 			if ((int)($claims["tv"] ?? -1) !== (int)$row["token_version"]) {
-				throw new AuthenticationException("Token version mismatch", "token_revoked", 401);
+				throw new AuthenticationException("Token version mismatch", "token_revoked");
 			}
 
 			// Defense-in-depth: permissions hash must match the live row.
@@ -61,7 +61,7 @@
 			$live_phash = Jwt::permissionsHash($permissions);
 
 			if (($claims["phash"] ?? "") !== $live_phash) {
-				throw new AuthenticationException("Permission state changed; please re-login", "phash_mismatch", 401);
+				throw new AuthenticationException("Permission state changed; please re-login", "phash_mismatch");
 			}
 
 			$user = new stdClass();

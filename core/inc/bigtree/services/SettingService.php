@@ -1,6 +1,7 @@
 <?php
 	namespace BigTree\Services;
 
+	use BigTree\Api\Entity;
 	use BigTree\Api\Pagination;
 	use BigTree\Api\Request;
 	use BigTree\Api\Response;
@@ -68,18 +69,15 @@
 		}
 
 		public function get(Request $request) {
-			$id = (string)$request->route_params["id"];
+			$id = $request->routeParam("id");
 
 			if (strpos($id, "bigtree-internal-") === 0) {
-				throw new AuthorizationException("Internal settings are not exposed via this API", "permission_denied", 403);
+				throw new AuthorizationException("Internal settings are not exposed via this API");
 			}
 
 			$include_encrypted = !empty($request->query["include_encrypted"]) && (int)$request->user->level >= 2;
-			$def = BigTreeJSONDB::get("settings", $id);
+			$def = Entity::findOrFailJson("settings", $id, "Setting");
 
-			if (!$def) {
-				throw new NotFoundException("Setting $id not found", "resource_not_found", 404);
-			}
 			return Response::ok($this->present($def, $include_encrypted));
 		}
 
@@ -88,11 +86,11 @@
 			$id = (string)$d["id"];
 
 			if (strpos($id, "bigtree-internal-") === 0) {
-				throw new BadRequestException("Cannot create bigtree-internal- settings via API", "reserved_id", 400);
+				throw new BadRequestException("Cannot create bigtree-internal- settings via API", "reserved_id");
 			}
 
 			if (SQL::exists("bigtree_settings", $id) || BigTreeJSONDB::exists("settings", $id)) {
-				throw new ConflictException("Setting $id already exists", "duplicate_id", 409);
+				throw new ConflictException("Setting $id already exists", "duplicate_id");
 			}
 
 			$encrypted = !empty($d["encrypted"]) ? "on" : "";
@@ -115,30 +113,26 @@
 		}
 
 		public function update(Request $request) {
-			$id = (string)$request->route_params["id"];
+			$id = $request->routeParam("id");
 
 			if (strpos($id, "bigtree-internal-") === 0) {
-				throw new AuthorizationException("Internal settings cannot be modified via API", "permission_denied", 403);
+				throw new AuthorizationException("Internal settings cannot be modified via API");
 			}
 
-			$def = BigTreeJSONDB::get("settings", $id);
-
-			if (!$def) {
-				throw new NotFoundException("Setting $id not found", "resource_not_found", 404);
-			}
+			$def = Entity::findOrFailJson("settings", $id, "Setting");
 
 			$d = $request->body;
 			$value_only = isset($d["value"]) && count(array_diff(array_keys($d), ["value"])) === 0;
 
 			if ($value_only) {
 				if ((int)$request->user->level < 1) {
-					throw new AuthorizationException("Updating a value requires level:1", "permission_denied", 403);
+					throw new AuthorizationException("Updating a value requires level:1");
 				}
 
 				$this->setValue($id, $def, $d["value"]);
 			} else {
 				if ((int)$request->user->level < 2) {
-					throw new AuthorizationException("Updating a setting definition requires level:2", "permission_denied", 403);
+					throw new AuthorizationException("Updating a setting definition requires level:2");
 				}
 
 				$this->updateDefinition($id, $def, $d);
@@ -154,14 +148,14 @@
 		}
 
 		public function delete(Request $request) {
-			$id = (string)$request->route_params["id"];
+			$id = $request->routeParam("id");
 
 			if (strpos($id, "bigtree-internal-") === 0) {
-				throw new AuthorizationException("Internal settings cannot be deleted via API", "permission_denied", 403);
+				throw new AuthorizationException("Internal settings cannot be deleted via API");
 			}
 
 			if (!BigTreeJSONDB::exists("settings", $id)) {
-				throw new NotFoundException("Setting $id not found", "resource_not_found", 404);
+				throw new NotFoundException("Setting $id not found");
 			}
 
 			BigTreeJSONDB::delete("settings", $id);
@@ -201,7 +195,7 @@
 			$new_id = $d["id"] ?? $old_id;
 
 			if ($new_id !== $old_id && BigTreeJSONDB::exists("settings", $new_id)) {
-				throw new ConflictException("Setting $new_id already exists", "duplicate_id", 409);
+				throw new ConflictException("Setting $new_id already exists", "duplicate_id");
 			}
 
 			$next = [

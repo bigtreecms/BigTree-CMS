@@ -1,6 +1,7 @@
 <?php
 	namespace BigTree\Services;
 
+	use BigTree\Api\Entity;
 	use BigTree\Api\Exceptions\NotFoundException;
 	use BigTreeJSONDB;
 
@@ -18,11 +19,8 @@
 	 */
 	trait ModuleSubResourceSupport {
 		private function loadModule($id) {
-			$m = BigTreeJSONDB::get("modules", $id);
+			$m = Entity::findOrFailJson("modules", $id, "Module");
 
-			if (!$m) {
-				throw new NotFoundException("Module $id not found", "resource_not_found", 404);
-			}
 			return $m;
 		}
 
@@ -31,7 +29,7 @@
 			$found = $this->findSub($module[$bucket] ?? [], $sub_id);
 
 			if (!$found) {
-				throw new NotFoundException("Sub-resource $sub_id not found", "resource_not_found", 404);
+				throw new NotFoundException("Sub-resource $sub_id not found");
 			}
 			return $found;
 		}

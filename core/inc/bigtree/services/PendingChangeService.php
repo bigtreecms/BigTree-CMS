@@ -1,10 +1,10 @@
 <?php
 	namespace BigTree\Services;
 
+	use BigTree\Api\Entity;
 	use BigTree\Api\Pagination;
 	use BigTree\Api\Request;
 	use BigTree\Api\Response;
-	use BigTree\Api\Exceptions\NotFoundException;
 	use BigTree\Api\Exceptions\AuthorizationException;
 	use BigTree\Api\Exceptions\BadRequestException;
 	use BigTreeAdmin;
@@ -23,44 +23,39 @@
 	 */
 	class PendingChangeService {
 		public function list(Request $request) {
-			$p = Pagination::offset($request, 100);
 			$mine_only = !empty($request->query["mine"]);
 			$me = (int)$request->user->id;
 
 			$where = $mine_only ? " WHERE user = ?" : "";
 			$args = $mine_only ? [$me] : [];
 
-			$total = (int)SQL::fetchSingle(...array_merge(["SELECT COUNT(*) FROM bigtree_pending_changes" . $where], $args));
-			$rows = SQL::fetchAll(...array_merge([
+			return Pagination::paginate(
+				$request,
+				"SELECT COUNT(*) FROM bigtree_pending_changes" . $where,
 				"SELECT id, user, date, title, `table`, item_id, type, module, pending_page_parent
-				 FROM bigtree_pending_changes" . $where . " ORDER BY date DESC, id DESC LIMIT " . (int)$p["limit"] . " OFFSET " . (int)$p["offset"],
-			], $args));
+				 FROM bigtree_pending_changes" . $where . " ORDER BY date DESC, id DESC",
+				$args,
+				function ($r) {
 
-			$items = array_map(function ($r) {
-
-				return [
-					"id" => (int)$r["id"],
-					"user" => (int)$r["user"],
-					"date" => $r["date"],
-					"title" => $r["title"],
-					"table" => $r["table"],
-					"item_id" => $r["item_id"] !== null ? (int)$r["item_id"] : null,
-					"type" => $r["type"],
-					"module" => $r["module"],
-					"pending_page_parent" => (int)$r["pending_page_parent"],
-				];
-			}, $rows);
-
-			return Response::ok($items, Pagination::offsetMeta($p["page"], $p["per_page"], $total));
+					return [
+						"id" => (int)$r["id"],
+						"user" => (int)$r["user"],
+						"date" => $r["date"],
+						"title" => $r["title"],
+						"table" => $r["table"],
+						"item_id" => $r["item_id"] !== null ? (int)$r["item_id"] : null,
+						"type" => $r["type"],
+						"module" => $r["module"],
+						"pending_page_parent" => (int)$r["pending_page_parent"],
+					];
+				},
+				100
+			);
 		}
 
 		public function get(Request $request) {
-			$id = (int)$request->route_params["id"];
-			$row = SQL::fetch("SELECT * FROM bigtree_pending_changes WHERE id = ?", $id);
-
-			if (!$row) {
-				throw new NotFoundException("Pending change $id not found", "resource_not_found", 404);
-			}
+			$id = $request->id();
+			$row = Entity::findOrFail("bigtree_pending_changes", $id, "Pending change");
 			$this->enforceVisibility($request->user, $row);
 
 			$row["changes"] = json_decode($row["changes"] ?: "[]", true);
@@ -74,12 +69,8 @@
 		}
 
 		public function approve(Request $request) {
-			$id = (int)$request->route_params["id"];
-			$row = SQL::fetch("SELECT * FROM bigtree_pending_changes WHERE id = ?", $id);
-
-			if (!$row) {
-				throw new NotFoundException("Pending change $id not found", "resource_not_found", 404);
-			}
+			$id = $request->id();
+			$row = Entity::findOrFail("bigtree_pending_changes", $id, "Pending change");
 			$this->enforcePublisher($request->user, $row);
 
 			// Pages: apply the queued change live and drop the queue row.
@@ -93,7 +84,7 @@
 			$module = $row["module"] ? BigTreeJSONDB::get("modules", $row["module"]) : null;
 
 			if (!$module) {
-				throw new BadRequestException("Cannot resolve module for this change", "module_unresolved", 400);
+				throw new BadRequestException("Cannot resolve module for this change", "module_unresolved");
 			}
 
 			$changes = BigTreeAutoModule::sanitizeData($row["table"], json_decode($row["changes"], true) ?: []);
@@ -126,12 +117,8 @@
 		}
 
 		public function reject(Request $request) {
-			$id = (int)$request->route_params["id"];
-			$row = SQL::fetch("SELECT * FROM bigtree_pending_changes WHERE id = ?", $id);
-
-			if (!$row) {
-				throw new NotFoundException("Pending change $id not found", "resource_not_found", 404);
-			}
+			$id = $request->id();
+			$row = Entity::findOrFail("bigtree_pending_changes", $id, "Pending change");
 			$this->enforcePublisher($request->user, $row);
 
 			SQL::delete("bigtree_pending_changes", $id);
@@ -171,7 +158,7 @@
 			if ($row["module"] && PermissionService::userHasModuleAccess($user, $row["module"], "v")) {
 				return;
 			}
-			throw new AuthorizationException("Not your pending change", "permission_denied", 403);
+			throw new AuthorizationException("Not your pending change");
 		}
 
 		private function enforcePublisher($user, array $row) {
@@ -188,7 +175,7 @@
 					return;
 				}
 
-				throw new AuthorizationException("Publisher access required", "permission_denied", 403);
+				throw new AuthorizationException("Publisher access required");
 			}
 
 			$module = $row["module"];
@@ -196,6 +183,6 @@
 			if ($module && PermissionService::userHasModuleAccess($user, $module, "p")) {
 				return;
 			}
-			throw new AuthorizationException("Publisher access required", "permission_denied", 403);
+			throw new AuthorizationException("Publisher access required");
 		}
 	}

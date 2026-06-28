@@ -78,7 +78,7 @@
 			$service = (string)($body["service"] ?? "");
 
 			if (!in_array($service, ["", "google", "bing", "mapquest"], true)) {
-				throw new BadRequestException("Unknown geocoding service", "invalid_service", 400);
+				throw new BadRequestException("Unknown geocoding service", "invalid_service");
 			}
 
 			$next = [
@@ -118,10 +118,10 @@
 		}
 
 		public function updateCloudStorageProvider(Request $request) {
-			$provider = (string)$request->route_params["provider"];
+			$provider = $request->routeParam("provider");
 
 			if (!in_array($provider, ["amazon", "rackspace", "google"], true)) {
-				throw new NotFoundException("Unknown cloud provider", "unknown_provider", 404);
+				throw new NotFoundException("Unknown cloud provider", "unknown_provider");
 			}
 
 			$cloud = BigTreeCMS::getSetting("bigtree-internal-cloud-storage") ?: [];
@@ -193,7 +193,7 @@
 			$container = trim((string)($request->body["container"] ?? ""));
 
 			if (!in_array($service, ["local", "amazon", "rackspace", "google"], true)) {
-				throw new BadRequestException("Unknown storage service", "invalid_service", 400);
+				throw new BadRequestException("Unknown storage service", "invalid_service");
 			}
 
 			$storage = new \BigTreeStorage();
@@ -219,7 +219,7 @@
 				if ($created === null) {
 					$error = !empty($cloud->Errors) ? end($cloud->Errors) : "Failed to create container.";
 
-					throw new BadRequestException(is_string($error) ? $error : "Failed to create container.", "container_create_failed", 400);
+					throw new BadRequestException(is_string($error) ? $error : "Failed to create container.", "container_create_failed");
 				}
 
 				$storage->Settings->Container = $created;
@@ -302,13 +302,13 @@
 			$storage = new \BigTreeStorage();
 
 			if (($storage->Settings->Service ?? "") !== "amazon") {
-				throw new BadRequestException("Amazon S3 is not the active storage service.", "amazon_not_active", 400);
+				throw new BadRequestException("Amazon S3 is not the active storage service.", "amazon_not_active");
 			}
 
 			$bucket = (string)($storage->Settings->Container ?? "");
 
 			if ($bucket === "") {
-				throw new BadRequestException("No Amazon S3 bucket is configured.", "no_bucket", 400);
+				throw new BadRequestException("No Amazon S3 bucket is configured.", "no_bucket");
 			}
 
 			$marker = trim((string)($request->body["marker"] ?? ""));
@@ -323,7 +323,7 @@
 			if ($page === false) {
 				$error = !empty($cloud->Errors) ? end($cloud->Errors) : "Failed to read the S3 bucket.";
 
-				throw new BadRequestException(is_string($error) ? $error : "Failed to read the S3 bucket.", "recache_failed", 400);
+				throw new BadRequestException(is_string($error) ? $error : "Failed to read the S3 bucket.", "recache_failed");
 			}
 
 			$cached = 0;
@@ -369,7 +369,7 @@
 			$incoming = is_array($request->body["settings"] ?? null) ? $request->body["settings"] : [];
 
 			if (!in_array($service, ["", "authorize.net", "paypal", "paypal-rest", "payflow", "linkpoint"], true)) {
-				throw new BadRequestException("Unknown payment gateway", "invalid_service", 400);
+				throw new BadRequestException("Unknown payment gateway", "invalid_service");
 			}
 
 			$existing = BigTreeCMS::getSetting("bigtree-internal-payment-gateway") ?: [];
@@ -465,7 +465,7 @@
 			$json = json_decode((string)@file_get_contents($file["tmp_name"]), true);
 
 			if (!is_array($json) || empty($json["private_key"]) || empty($json["client_email"]) || empty($json["client_id"])) {
-				throw new BadRequestException("That file is not a valid Google service-account key.", "invalid_credentials", 400);
+				throw new BadRequestException("That file is not a valid Google service-account key.", "invalid_credentials");
 			}
 
 			$analytics = new \BigTreeGoogleAnalytics4();
@@ -483,20 +483,20 @@
 			$property_id = trim((string)($request->body["property_id"] ?? ""));
 
 			if ($property_id === "") {
-				throw new BadRequestException("A property ID is required.", "missing_property_id", 400);
+				throw new BadRequestException("A property ID is required.", "missing_property_id");
 			}
 
 			$settings = BigTreeCMS::getSetting("bigtree-internal-google-analytics-4") ?: [];
 
 			if (empty($settings["credentials"])) {
-				throw new BadRequestException("Upload a service-account key before setting a property ID.", "missing_credentials", 400);
+				throw new BadRequestException("Upload a service-account key before setting a property ID.", "missing_credentials");
 			}
 
 			$analytics = new \BigTreeGoogleAnalytics4();
 			$analytics->setPropertyID($property_id);
 
 			if (!$analytics->testCredentials()) {
-				throw new BadRequestException("That property ID could not be verified with the uploaded credentials.", "verification_failed", 400);
+				throw new BadRequestException("That property ID could not be verified with the uploaded credentials.", "verification_failed");
 			}
 
 			$analytics->setVerified();
@@ -529,10 +529,10 @@
 		}
 
 		public function disconnectService(Request $request) {
-			$service = (string)$request->route_params["service"];
+			$service = $request->routeParam("service");
 
 			if (!isset(OAuthBrokerService::SERVICES[$service])) {
-				throw new NotFoundException("Unknown service", "unknown_service", 404);
+				throw new NotFoundException("Unknown service", "unknown_service");
 			}
 
 			BigTreeAdmin::updateInternalSettingValue(OAuthBrokerService::SERVICES[$service]["setting"], [], true);
@@ -637,7 +637,7 @@
 				|| ($file["error"] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK
 				|| empty($file["tmp_name"])
 			) {
-				throw new BadRequestException("No file was uploaded.", "missing_file", 400);
+				throw new BadRequestException("No file was uploaded.", "missing_file");
 			}
 
 			return $file;

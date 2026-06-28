@@ -1,6 +1,7 @@
 <?php
 	namespace BigTree\Services;
 
+	use BigTree\Api\Entity;
 	use BigTree\Api\Request;
 	use BigTree\Api\Response;
 	use BigTree\Api\ETag;
@@ -121,12 +122,8 @@
 		}
 
 		public function get(Request $request) {
-			$id = (string)$request->route_params["id"];
-			$ft = BigTreeJSONDB::get("field-types", $id);
-
-			if (!$ft) {
-				throw new NotFoundException("Field type $id not found", "resource_not_found", 404);
-			}
+			$id = $request->routeParam("id");
+			$ft = Entity::findOrFailJson("field-types", $id, "Field type");
 
 			// Local module types keep their source + settings on disk; surface both so
 			// the editor can load them (falling back to any record-stored source
@@ -146,11 +143,11 @@
 			$id = (string)$d["id"];
 
 			if (!ctype_alnum(str_replace(["-", "_"], "", $id)) || strlen($id) > 127) {
-				throw new BadRequestException("id must be alphanumeric (with - or _)", "invalid_id", 400);
+				throw new BadRequestException("id must be alphanumeric (with - or _)", "invalid_id");
 			}
 
 			if (BigTreeJSONDB::exists("field-types", $id)) {
-				throw new ConflictException("Field type $id already exists", "duplicate_id", 409);
+				throw new ConflictException("Field type $id already exists", "duplicate_id");
 			}
 
 			$record = [
@@ -166,12 +163,8 @@
 		}
 
 		public function update(Request $request) {
-			$id = (string)$request->route_params["id"];
-			$existing = BigTreeJSONDB::get("field-types", $id);
-
-			if (!$existing) {
-				throw new NotFoundException("Field type $id not found", "resource_not_found", 404);
-			}
+			$id = $request->routeParam("id");
+			$existing = Entity::findOrFailJson("field-types", $id, "Field type");
 			$d = $request->body;
 			$next = array_merge($existing, [
 				"name" => isset($d["name"]) ? BigTree::safeEncode($d["name"]) : $existing["name"],
@@ -186,10 +179,10 @@
 		public function delete(Request $request) {
 			global $admin;
 
-			$id = (string)$request->route_params["id"];
+			$id = $request->routeParam("id");
 
 			if (!BigTreeJSONDB::exists("field-types", $id)) {
-				throw new NotFoundException("Field type $id not found", "resource_not_found", 404);
+				throw new NotFoundException("Field type $id not found");
 			}
 
 			// Delegate to the admin method so the SPA and legacy developer UI share
@@ -209,7 +202,7 @@
 		 * SPA falls back to POST /field-types/{id}/render.
 		 */
 		public function schema(Request $request) {
-			$id = (string)$request->route_params["id"];
+			$id = $request->routeParam("id");
 			$schemas = $this->loadSchemas();
 
 			if (isset($schemas[$id]) && is_array($schemas[$id])) {
@@ -233,11 +226,7 @@
 			// Fall back: custom or extension field type — registered in JSONDB. A
 			// declarative type carries an input_schema (composed from the primitive
 			// controls); everything else gets the server-render bridge stub.
-			$ft = BigTreeJSONDB::get("field-types", $id);
-
-			if (!$ft) {
-				throw new NotFoundException("Field type $id not found", "resource_not_found", 404);
-			}
+			$ft = Entity::findOrFailJson("field-types", $id, "Field type");
 
 			$render = $this->renderKind($ft, "custom");
 
@@ -328,11 +317,11 @@
 		public function render(Request $request) {
 			global $bigtree, $admin, $cms;
 
-			$id = (string)$request->route_params["id"];
+			$id = $request->routeParam("id");
 			$path = $this->resolveDrawPath($id);
 
 			if (!$path) {
-				throw new NotFoundException("Field type $id has no draw template", "render_unavailable", 404);
+				throw new NotFoundException("Field type $id has no draw template", "render_unavailable");
 			}
 
 			$incoming = is_array($request->body["field"] ?? null) ? $request->body["field"] : [];
@@ -373,7 +362,7 @@
 			} catch (\Throwable $e) {
 				ob_end_clean();
 				$bigtree["extension_context"] = $saved_context;
-				throw new BadRequestException("Render failed: " . $e->getMessage(), "render_error", 400);
+				throw new BadRequestException("Render failed: " . $e->getMessage(), "render_error");
 			}
 
 			$html = (string)ob_get_clean();
@@ -457,11 +446,7 @@
 			$source = isset($body["module_source"]) ? (string)$body["module_source"] : "";
 
 			if (trim($source) === "") {
-				throw new BadRequestException(
-					"A module field type needs its source code.",
-					"missing_module_source",
-					400
-				);
+				throw new BadRequestException("A module field type needs its source code.", "missing_module_source");
 			}
 
 			$id = (string)($record["id"] ?? "");
@@ -618,19 +603,19 @@
 				$type = isset($descriptor["type"]) ? trim((string)$descriptor["type"]) : "";
 
 				if ($id === "" || $type === "") {
-					throw new BadRequestException("Each input field needs an id and a type", "invalid_input_schema", 400);
+					throw new BadRequestException("Each input field needs an id and a type", "invalid_input_schema");
 				}
 
 				if (!preg_match('/^[a-z0-9_-]+$/i', $id)) {
-					throw new BadRequestException("Input field id \"$id\" must be alphanumeric (with - or _)", "invalid_input_schema", 400);
+					throw new BadRequestException("Input field id \"$id\" must be alphanumeric (with - or _)", "invalid_input_schema");
 				}
 
 				if (!preg_match('/^[a-z0-9_-]+$/i', $type)) {
-					throw new BadRequestException("Input field type \"$type\" is invalid", "invalid_input_schema", 400);
+					throw new BadRequestException("Input field type \"$type\" is invalid", "invalid_input_schema");
 				}
 
 				if (isset($seen[$id])) {
-					throw new BadRequestException("Duplicate input field id \"$id\"", "invalid_input_schema", 400);
+					throw new BadRequestException("Duplicate input field id \"$id\"", "invalid_input_schema");
 				}
 
 				$seen[$id] = true;
@@ -691,15 +676,11 @@
 		/** Write a local module type's source to disk, creating the directory. */
 		private function writeModuleSource($id, $source) {
 			if (!$this->safeSegment($id)) {
-				throw new BadRequestException("Invalid field type id.", "invalid_id", 400);
+				throw new BadRequestException("Invalid field type id.", "invalid_id");
 			}
 
 			if (!BigTree::putFile($this->moduleSourcePath($id), $source)) {
-				throw new BadRequestException(
-					"Could not write the module file — check that custom/admin/field-types/ is writable.",
-					"module_write_failed",
-					400
-				);
+				throw new BadRequestException("Could not write the module file — check that custom/admin/field-types/ is writable.", "module_write_failed");
 			}
 		}
 
@@ -726,7 +707,7 @@
 		 */
 		private function writeSettingsSchema($id, array $descriptors) {
 			if (!$this->safeSegment($id)) {
-				throw new BadRequestException("Invalid field type id.", "invalid_id", 400);
+				throw new BadRequestException("Invalid field type id.", "invalid_id");
 			}
 
 			$json = json_encode(
@@ -736,11 +717,7 @@
 			$contents = "export default " . $json . ";\n";
 
 			if (!BigTree::putFile($this->settingsSchemaPath($id), $contents)) {
-				throw new BadRequestException(
-					"Could not write the settings file — check that custom/admin/field-types/ is writable.",
-					"settings_write_failed",
-					400
-				);
+				throw new BadRequestException("Could not write the settings file — check that custom/admin/field-types/ is writable.", "settings_write_failed");
 			}
 		}
 

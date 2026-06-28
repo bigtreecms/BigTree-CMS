@@ -1,6 +1,7 @@
 <?php
 	namespace BigTree\Services;
 
+	use BigTree\Api\Entity;
 	use BigTree\Api\Hooks;
 	use BigTree\Api\Pagination;
 	use BigTree\Api\Request;
@@ -36,11 +37,7 @@
 				// read or mutate a table they have no rights to. getView() stamps the
 				// owning module id onto the result — require it to match this module.
 				if ($view && (string)($view["module"] ?? "") !== (string)($module["id"] ?? "")) {
-					throw new AuthorizationException(
-						"View does not belong to this module",
-						"permission_denied",
-						403
-					);
+					throw new AuthorizationException("View does not belong to this module");
 				}
 			} elseif (!empty($module["table"])) {
 				$view = BigTreeAutoModule::getViewForTable($module["table"]);
@@ -51,7 +48,7 @@
 			}
 
 			if (!$view) {
-				throw new NotFoundException("No view defined for module $module_id", "no_view", 404);
+				throw new NotFoundException("No view defined for module $module_id", "no_view");
 			}
 
 			$page = max(1, (int)($request->query["page"] ?? 1));
@@ -81,7 +78,7 @@
 			// it. Grouped views are intentionally kept on the full-set path to avoid
 			// any change to how grouping interacts with pagination.
 			$gbp_enabled = !empty($module["gbp"]["enabled"]);
-			$user_level = $this->userLevel($request->user);
+			$user_level = PermissionService::level($request->user);
 			$grouped = in_array($view["type"] ?? "", ["grouped", "images-grouped"], true);
 			$needs_full_set = ($gbp_enabled && $user_level === 0) || $grouped;
 
@@ -142,7 +139,7 @@
 
 		public function get(Request $request) {
 			$module_id = $request->route_params["id"];
-			$raw_id = (string)$request->route_params["eid"];
+			$raw_id = $request->routeParam("eid");
 			$module = $this->loadModule($module_id);
 			$table = $this->resolveTable($module, $request);
 
@@ -150,12 +147,10 @@
 			$pending = BigTreeAutoModule::getPendingItem($table, $lookup_id);
 
 			if (!$pending) {
-				throw new NotFoundException("Entry $raw_id not found", "resource_not_found", 404);
+				throw new NotFoundException("Entry $raw_id not found");
 			}
 
-			if (PermissionService::userRowLevel($request->user, $module, $pending["item"] ?? []) === "n") {
-				throw new AuthorizationException("Row access denied by group permissions", "permission_denied", 403);
-			}
+			PermissionService::assertCanEditRow($request->user, $module, $pending["item"] ?? []);
 
 			// Resolve the draft's owner so the SPA can attribute the pending change
 			// ("Your draft" vs "Draft by …") instead of assuming the current user.
@@ -189,7 +184,7 @@
 			$this->applyRoute($module, $table, $data, 0);
 
 			$user_level = PermissionService::userModuleLevel($request->user, $module_id);
-			$can_publish = $user_level === "p" || ((int)$request->user->level) > 0;
+			$can_publish = PermissionService::isPublisher($request->user, $user_level);
 
 			// Publishers/admins write live only when they explicitly publish; without
 			// the flag they (like editors) save a pending draft.
@@ -205,7 +200,7 @@
 			}
 
 			if ($user_level !== "e" && !$can_publish) {
-				throw new AuthorizationException("Editor or publisher access required", "permission_denied", 403);
+				throw new AuthorizationException("Editor or publisher access required");
 			}
 
 			// createPendingItem reads $admin->ID and tracks the audit entry against
@@ -225,7 +220,7 @@
 
 		public function update(Request $request) {
 			$module_id = $request->route_params["id"];
-			$raw_id = (string)$request->route_params["eid"];
+			$raw_id = $request->routeParam("eid");
 			$module = $this->loadModule($module_id);
 			$table = $this->resolveTable($module, $request);
 
@@ -235,12 +230,10 @@
 			$existing = BigTreeAutoModule::getPendingItem($table, $lookup_id);
 
 			if (!$existing) {
-				throw new NotFoundException("Entry $raw_id not found", "resource_not_found", 404);
+				throw new NotFoundException("Entry $raw_id not found");
 			}
 
-			if (PermissionService::userRowLevel($request->user, $module, $existing["item"] ?? []) === "n") {
-				throw new AuthorizationException("Row access denied by group permissions", "permission_denied", 403);
-			}
+			PermissionService::assertCanEditRow($request->user, $module, $existing["item"] ?? []);
 
 			$data = $request->body;
 			$mtm = $this->validateMtm($module, $table, (array)($data["__mtm__"] ?? []));
@@ -260,7 +253,7 @@
 			$this->applyRoute($module, $table, $data, $is_pending ? 0 : (int)$lookup_id);
 
 			$user_level = PermissionService::userModuleLevel($request->user, $module_id);
-			$can_publish = $user_level === "p" || ((int)$request->user->level) > 0;
+			$can_publish = PermissionService::isPublisher($request->user, $user_level);
 
 			// Publishers/admins write live only when they explicitly publish; without
 			// the flag they (like editors) submit a pending change.
@@ -322,7 +315,7 @@
 
 		public function delete(Request $request) {
 			$module_id = $request->route_params["id"];
-			$raw_id = (string)$request->route_params["eid"];
+			$raw_id = $request->routeParam("eid");
 			$module = $this->loadModule($module_id);
 			$table = $this->resolveTable($module, $request);
 
@@ -333,12 +326,10 @@
 			$existing = BigTreeAutoModule::getPendingItem($table, $lookup_id);
 
 			if (!$existing) {
-				throw new NotFoundException("Entry $raw_id not found", "resource_not_found", 404);
+				throw new NotFoundException("Entry $raw_id not found");
 			}
 
-			if (PermissionService::userRowLevel($request->user, $module, $existing["item"] ?? []) === "n") {
-				throw new AuthorizationException("Row access denied by group permissions", "permission_denied", 403);
-			}
+			PermissionService::assertCanEditRow($request->user, $module, $existing["item"] ?? []);
 
 			if ($is_pending) {
 				BigTreeAutoModule::deletePendingItem($table, $pending_change_id);
@@ -460,17 +451,17 @@
 		// gated by gbp row-level access, recaches the view-cache row on flip.
 		private function toggleFlag(Request $request, string $column) {
 			$module_id = $request->route_params["id"];
-			$entry_id = (int)$request->route_params["eid"];
+			$entry_id = $request->routeParam("eid", "int");
 			$module = $this->loadModule($module_id);
 			$table = $this->resolveTable($module, $request);
 			$existing = BigTreeAutoModule::getPendingItem($table, $entry_id);
 
 			if (!$existing) {
-				throw new NotFoundException("Entry $entry_id not found", "resource_not_found", 404);
+				throw new NotFoundException("Entry $entry_id not found");
 			}
 
 			if (PermissionService::userRowLevel($request->user, $module, $existing["item"] ?? []) !== "p") {
-				throw new AuthorizationException("Publisher access required", "permission_denied", 403);
+				throw new AuthorizationException("Publisher access required");
 			}
 
 			$current = (string)($existing["item"][$column] ?? "");
@@ -493,32 +484,9 @@
 		// — helpers —
 
 		private function loadModule($id) {
-			$m = BigTreeJSONDB::get("modules", $id);
-
-			if (!$m) {
-				throw new NotFoundException("Module $id not found", "resource_not_found", 404);
-			}
+			$m = Entity::findOrFailJson("modules", $id, "Module");
 
 			return $m;
-		}
-
-		/**
-		 * The authenticated user's admin level, mirroring
-		 * PermissionService::extractLevel (which is private). Handles both the
-		 * object form set by the Authenticate middleware and an array form.
-		 * Used by list() to decide whether per-row gbp filtering can change the
-		 * page slice — keep this in sync with PermissionService::extractLevel.
-		 */
-		private function userLevel($user): int {
-			if (is_object($user)) {
-				return (int)($user->level ?? 0);
-			}
-
-			if (is_array($user)) {
-				return (int)($user["level"] ?? 0);
-			}
-
-			return 0;
 		}
 
 		/**
@@ -587,7 +555,7 @@
 				return [false, (string)(int)$raw, (int)$raw];
 			}
 
-			throw new NotFoundException("Entry $raw not found", "resource_not_found", 404);
+			throw new NotFoundException("Entry $raw not found");
 		}
 
 		/**
@@ -696,11 +664,7 @@
 					. ($entry["other-id"] ?? "");
 
 				if (!isset($allowed[$key])) {
-					throw new BadRequestException(
-						"Many-to-many relationship is not declared by this module form",
-						"invalid_mtm",
-						400
-					);
+					throw new BadRequestException("Many-to-many relationship is not declared by this module form", "invalid_mtm");
 				}
 
 				$clean[] = $entry;
@@ -902,22 +866,14 @@
 				// only authorized the module in the URL, so a client-supplied form
 				// must belong to it. getForm() stamps the owning module id.
 				if ($form && (string)($form["module"] ?? "") !== (string)($module["id"] ?? "")) {
-					throw new AuthorizationException(
-						"Form does not belong to this module",
-						"permission_denied",
-						403
-					);
+					throw new AuthorizationException("Form does not belong to this module");
 				}
 
 				if ($form && !empty($form["table"])) {
 					return (string)$form["table"];
 				}
 
-				throw new NotFoundException(
-					"No table resolvable for form $form_id",
-					"no_form",
-					404
-				);
+				throw new NotFoundException("No table resolvable for form $form_id", "no_form");
 			}
 
 			$view_id = (string)($request->query["view"] ?? $request->body["view"] ?? "");
@@ -931,11 +887,7 @@
 				// read or mutate a table they have no rights to. getView() stamps the
 				// owning module id onto the result — require it to match this module.
 				if ($view && (string)($view["module"] ?? "") !== (string)($module["id"] ?? "")) {
-					throw new AuthorizationException(
-						"View does not belong to this module",
-						"permission_denied",
-						403
-					);
+					throw new AuthorizationException("View does not belong to this module");
 				}
 			} elseif (!empty($module["table"])) {
 				$view = BigTreeAutoModule::getViewForTable($module["table"]);
@@ -953,10 +905,6 @@
 				return (string)$module["table"];
 			}
 
-			throw new NotFoundException(
-				"No view/table resolvable for module {$module["id"]}",
-				"no_view",
-				404
-			);
+			throw new NotFoundException("No view/table resolvable for module {$module["id"]}", "no_view");
 		}
 	}

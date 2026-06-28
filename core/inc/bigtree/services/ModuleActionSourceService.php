@@ -49,15 +49,11 @@
 			$path = $this->actionSourcePath($module, $action_route);
 
 			if ($path === "") {
-				throw new BadRequestException("Invalid module or action route.", "invalid_route", 400);
+				throw new BadRequestException("Invalid module or action route.", "invalid_route");
 			}
 
 			if (!BigTree::putFile($path, $source)) {
-				throw new BadRequestException(
-					"Could not write the action file — check that its modules directory is writable.",
-					"module_write_failed",
-					400
-				);
+				throw new BadRequestException("Could not write the action file — check that its modules directory is writable.", "module_write_failed");
 			}
 		}
 

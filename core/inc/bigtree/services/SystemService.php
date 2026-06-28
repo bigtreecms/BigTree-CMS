@@ -338,11 +338,7 @@
 			$sentinel = $dir . ".building.flag";
 			if (file_exists($sentinel) && (time() - @filemtime($sentinel)) < 1800) {
 				$age = time() - @filemtime($sentinel);
-				throw new ConflictException(
-					"Backup already in progress (started {$age}s ago)",
-					"backup_in_progress",
-					409
-				);
+				throw new ConflictException("Backup already in progress (started {$age}s ago)", "backup_in_progress");
 			}
 			@file_put_contents($sentinel, (string)time());
 
@@ -426,7 +422,7 @@
 			$backup_id = $this->sanitizeBackupId($request->route_params["id"] ?? "");
 			$path = SERVER_ROOT . self::BACKUP_DIR . $backup_id . ".sql";
 			if (!file_exists($path)) {
-				throw new NotFoundException("Backup not found", "backup_not_found", 404);
+				throw new NotFoundException("Backup not found", "backup_not_found");
 			}
 			@unlink($path);
 			return Response::noContent();
@@ -456,28 +452,28 @@
 			$backup_id = $this->sanitizeBackupId($request->route_params["id"] ?? "");
 			$raw_token = (string)($request->query["token"] ?? "");
 			if ($raw_token === "") {
-				throw new AuthenticationException("Missing download token", "missing_token", 401);
+				throw new AuthenticationException("Missing download token", "missing_token");
 			}
 
 			try {
 				$payload = Pagination::decodeCursor($raw_token, Jwt::currentSecret());
 			} catch (\Throwable $e) {
-				throw new AuthenticationException("Invalid download token", "invalid_token", 401);
+				throw new AuthenticationException("Invalid download token", "invalid_token");
 			}
 
 			// Enforce the claims minted in buildDownloadUrl. The uid claim is
 			// deliberately NOT checked: this is a public route, so there is no
 			// authenticated user to compare it against (see method docblock).
 			if (($payload["bid"] ?? "") !== $backup_id) {
-				throw new AuthenticationException("Token does not match this backup", "token_backup_mismatch", 401);
+				throw new AuthenticationException("Token does not match this backup", "token_backup_mismatch");
 			}
 			if (((int)($payload["exp"] ?? 0)) < time()) {
-				throw new AuthenticationException("Download token expired", "token_expired", 401);
+				throw new AuthenticationException("Download token expired", "token_expired");
 			}
 
 			$path = SERVER_ROOT . self::BACKUP_DIR . $backup_id . ".sql";
 			if (!file_exists($path)) {
-				throw new NotFoundException("Backup file not found or expired", "backup_not_found", 404);
+				throw new NotFoundException("Backup file not found or expired", "backup_not_found");
 			}
 
 			// We bypass the JSON envelope and stream the file directly. Setting
@@ -575,17 +571,13 @@
 			$updater = new BigTreeUpdater();
 
 			if ($updater->Method === false) {
-				throw new ConflictException(
-					"This server can't write to /core/ via local, FTP, or SFTP — upgrade manually.",
-					"upgrade_method_unavailable",
-					409
-				);
+				throw new ConflictException("This server can't write to /core/ via local, FTP, or SFTP — upgrade manually.", "upgrade_method_unavailable");
 			}
 
 			$updates = $this->fetchVersionCheck();
 
 			if (empty($updates[$type]) || empty($updates[$type]["file"])) {
-				throw new NotFoundException("No $type update is currently available", "upgrade_not_available", 404);
+				throw new NotFoundException("No $type update is currently available", "upgrade_not_available");
 			}
 
 			$url = (string)$updates[$type]["file"];
@@ -596,7 +588,7 @@
 			// on the bigtreecms.org domain so a poisoned feed can't redirect us into
 			// fetching an attacker-controlled (or internal) URL.
 			if ($scheme !== "https" || !preg_match('/(^|\.)bigtreecms\.org$/i', $host)) {
-				throw new BadRequestException("Refusing to download from an unexpected source", "upgrade_bad_source", 400);
+				throw new BadRequestException("Refusing to download from an unexpected source", "upgrade_bad_source");
 			}
 
 			$zip_path = SERVER_ROOT . "cache/update.zip";
@@ -636,17 +628,13 @@
 			$zip_path = SERVER_ROOT . "cache/update.zip";
 
 			if (!file_exists($zip_path)) {
-				throw new ConflictException("No downloaded update found — run download first", "upgrade_no_archive", 409);
+				throw new ConflictException("No downloaded update found — run download first", "upgrade_no_archive");
 			}
 
 			$updater = new BigTreeUpdater();
 
 			if ($updater->Method === false) {
-				throw new ConflictException(
-					"This server can't write to /core/ via local, FTP, or SFTP — upgrade manually.",
-					"upgrade_method_unavailable",
-					409
-				);
+				throw new ConflictException("This server can't write to /core/ via local, FTP, or SFTP — upgrade manually.", "upgrade_method_unavailable");
 			}
 
 			if (!$updater->extract()) {
@@ -669,7 +657,7 @@
 			}
 
 			if (!$updater->ftpLogin($username, $password)) {
-				throw new AuthenticationException("{$updater->Method} login failed", "upgrade_ftp_login_failed", 401);
+				throw new AuthenticationException("{$updater->Method} login failed", "upgrade_ftp_login_failed");
 			}
 
 			$ftp_root = trim((string)($request->body["ftp_root"] ?? ""));
@@ -727,13 +715,13 @@
 			$script = (string)$request->body["script"];
 
 			if (!in_array($script, $this->buildMigrationQueue(), true)) {
-				throw new BadRequestException("Unknown or out-of-order migration script", "upgrade_bad_script", 400);
+				throw new BadRequestException("Unknown or out-of-order migration script", "upgrade_bad_script");
 			}
 
 			$file = SERVER_ROOT . "core/admin/ajax/developer/upgrade/" . $script . ".php";
 
 			if (!file_exists($file)) {
-				throw new NotFoundException("Migration script is missing", "upgrade_script_missing", 404);
+				throw new NotFoundException("Migration script is missing", "upgrade_script_missing");
 			}
 
 			$page = isset($request->body["page"]) ? (int)$request->body["page"] : 0;
@@ -898,7 +886,7 @@
 		private function sanitizeBackupId($id) {
 			$id = (string)$id;
 			if (!preg_match('/^[a-f0-9]{32}$/', $id)) {
-				throw new BadRequestException("Invalid backup id", "invalid_backup_id", 400);
+				throw new BadRequestException("Invalid backup id", "invalid_backup_id");
 			}
 			return $id;
 		}

@@ -1,6 +1,7 @@
 <?php
 	namespace BigTree\Services;
 
+	use BigTree\Api\Entity;
 	use BigTree\Api\Request;
 	use BigTree\Api\Response;
 	use BigTree\Api\ETag;
@@ -35,12 +36,9 @@
 		}
 
 		public function get(Request $request) {
-			$id = (string)$request->route_params["id"];
-			$t = BigTreeJSONDB::get("templates", $id);
+			$id = $request->routeParam("id");
+			$t = Entity::findOrFailJson("templates", $id, "Template");
 
-			if (!$t) {
-				throw new NotFoundException("Template $id not found", "resource_not_found", 404);
-			}
 			return Response::ok($this->present($t));
 		}
 
@@ -49,11 +47,11 @@
 			$id = (string)$d["id"];
 
 			if (!ctype_alnum(str_replace(["-", "_"], "", $id)) || strlen($id) > 127) {
-				throw new BadRequestException("Template id must be alphanumeric (with - or _) and ≤ 127 chars", "invalid_id", 400);
+				throw new BadRequestException("Template id must be alphanumeric (with - or _) and ≤ 127 chars", "invalid_id");
 			}
 
 			if (BigTreeJSONDB::exists("templates", $id)) {
-				throw new ConflictException("Template $id already exists", "duplicate_id", 409);
+				throw new ConflictException("Template $id already exists", "duplicate_id");
 			}
 
 			$resources = $this->cleanResources($d["resources"] ?? []);
@@ -73,12 +71,8 @@
 		}
 
 		public function update(Request $request) {
-			$id = (string)$request->route_params["id"];
-			$existing = BigTreeJSONDB::get("templates", $id);
-
-			if (!$existing) {
-				throw new NotFoundException("Template $id not found", "resource_not_found", 404);
-			}
+			$id = $request->routeParam("id");
+			$existing = Entity::findOrFailJson("templates", $id, "Template");
 
 			$d = $request->body;
 			$next = array_merge($existing, [
@@ -94,10 +88,10 @@
 		}
 
 		public function delete(Request $request) {
-			$id = (string)$request->route_params["id"];
+			$id = $request->routeParam("id");
 
 			if (!BigTreeJSONDB::exists("templates", $id)) {
-				throw new NotFoundException("Template $id not found", "resource_not_found", 404);
+				throw new NotFoundException("Template $id not found");
 			}
 
 			BigTreeJSONDB::delete("templates", $id);

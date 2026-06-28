@@ -1,6 +1,7 @@
 <?php
 	namespace BigTree\Services;
 
+	use BigTree\Api\Exceptions\AuthorizationException;
 	use BigTreeJSONDB;
 	use SQL;
 
@@ -29,7 +30,7 @@
 		}
 
 		public static function userModuleLevel($user, $module_id_or_route) {
-			$level = self::extractLevel($user);
+			$level = self::level($user);
 
 			if ($level > 0) {
 				return "p";
@@ -69,7 +70,7 @@
 		 * Caller has already loaded the row. Returns the effective rank.
 		 */
 		public static function userRowLevel($user, array $module, array $row) {
-			$level = self::extractLevel($user);
+			$level = self::level($user);
 
 			if ($level > 0) {
 				return "p";
@@ -108,7 +109,7 @@
 		}
 
 		public static function userPageLevel($user, $page_id) {
-			$level = self::extractLevel($user);
+			$level = self::level($user);
 
 			if ($level > 0) {
 				return "p";
@@ -187,7 +188,7 @@
 		 * Values: "p" (publisher; can create), "e" (editor; can use), "n" (no access), "i" (inherit).
 		 */
 		public static function userFolderLevel($user, $folder_id) {
-			$level = self::extractLevel($user);
+			$level = self::level($user);
 
 			if ($level > 0) {
 				return "p";
@@ -224,7 +225,7 @@
 		}
 
 		public static function canModifyChildren($user, array $page) {
-			$level = self::extractLevel($user);
+			$level = self::level($user);
 
 			if ($level > 0) {
 				return true;
@@ -289,7 +290,12 @@
 			return $parent;
 		}
 
-		private static function extractLevel($user) {
+		/**
+		 * The user's global admin level (0 for a normal CMS user, > 0 for
+		 * developers/admins who bypass per-object permission checks). Accepts the
+		 * object form set by Authenticate middleware or a legacy array.
+		 */
+		public static function level($user): int {
 			if (is_object($user)) {
 				return (int)($user->level ?? 0);
 			}
@@ -297,7 +303,30 @@
 			if (is_array($user)) {
 				return (int)($user["level"] ?? 0);
 			}
+
 			return 0;
+		}
+
+		/**
+		 * Publish-rights formula shared by the page and auto-module write paths: a
+		 * caller may publish when their resolved permission on the object is "p"
+		 * (publisher) or they are a global admin/developer (level > 0). $level is the
+		 * already-resolved rank from userPageLevel/userModuleLevel.
+		 */
+		public static function isPublisher($user, string $level): bool {
+
+			return $level === "p" || self::level($user) > 0;
+		}
+
+		/**
+		 * Guard for group-based-permissions modules: throw when the user has no
+		 * access to this specific row (rank "n"). Callers have already loaded the
+		 * row via the module's gbp group field.
+		 */
+		public static function assertCanEditRow($user, array $module, array $row): void {
+			if (self::userRowLevel($user, $module, $row) === "n") {
+				throw new AuthorizationException("Row access denied by group permissions");
+			}
 		}
 
 		private static function extractPermissions($user) {

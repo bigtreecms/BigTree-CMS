@@ -56,7 +56,6 @@
 		}
 
 		public function list(Request $request) {
-			$p = Pagination::offset($request, 100);
 			$include_context = !empty($request->query["include"]) && strpos((string)$request->query["include"], "context") !== false;
 
 			$where = [];
@@ -74,52 +73,52 @@
 
 			$sql_where = $where ? " WHERE " . implode(" AND ", $where) : "";
 
-			$total = (int)SQL::fetchSingle(...array_merge(["SELECT COUNT(*) FROM bigtree_audit_trail a" . $sql_where], $args));
-
 			$select = $include_context
 				? "SELECT a.*, u.name AS user_name, u.email AS user_email, c.ip, c.user_agent, c.request_id, c.method, c.path FROM bigtree_audit_trail a LEFT JOIN bigtree_users u ON u.id = a.user LEFT JOIN bigtree_audit_trail_context c ON c.audit_id = a.id"
 				: "SELECT a.*, u.name AS user_name, u.email AS user_email FROM bigtree_audit_trail a LEFT JOIN bigtree_users u ON u.id = a.user";
-
-			$query = $select . $sql_where . " ORDER BY a.date DESC, a.id DESC LIMIT " . (int)$p["limit"] . " OFFSET " . (int)$p["offset"];
-			$rows = SQL::fetchAll(...array_merge([$query], $args));
 
 			// Actors whose account was deleted no longer join to bigtree_users;
 			// fall back to the cached name/email captured at deletion time.
 			$deleted_users = BigTreeCMS::getSetting("bigtree-internal-deleted-users") ?: [];
 
-			$items = array_map(function ($r) use ($include_context, $deleted_users) {
-				$user_name = $r["user_name"];
-				$user_email = $r["user_email"];
+			return Pagination::paginate(
+				$request,
+				"SELECT COUNT(*) FROM bigtree_audit_trail a" . $sql_where,
+				$select . $sql_where . " ORDER BY a.date DESC, a.id DESC",
+				$args,
+				function ($r) use ($include_context, $deleted_users) {
+					$user_name = $r["user_name"];
+					$user_email = $r["user_email"];
 
-				if ($user_name === null && isset($deleted_users[$r["user"]])) {
-					$user_name = ($deleted_users[$r["user"]]["name"] ?? "") . " (deleted)";
-					$user_email = $deleted_users[$r["user"]]["email"] ?? null;
-				}
+					if ($user_name === null && isset($deleted_users[$r["user"]])) {
+						$user_name = ($deleted_users[$r["user"]]["name"] ?? "") . " (deleted)";
+						$user_email = $deleted_users[$r["user"]]["email"] ?? null;
+					}
 
-				$out = [
-					"id" => (int)$r["id"],
-					"user" => (int)$r["user"],
-					"user_name" => $user_name,
-					"user_email" => $user_email,
-					"table" => $r["table"],
-					"entry" => $r["entry"],
-					"type" => $r["type"],
-					"date" => $r["date"],
-				];
-
-				if ($include_context) {
-					$out["context"] = [
-						"ip" => $r["ip"] ?? null,
-						"user_agent" => $r["user_agent"] ?? null,
-						"request_id" => $r["request_id"] ?? null,
-						"method" => $r["method"] ?? null,
-						"path" => $r["path"] ?? null,
+					$out = [
+						"id" => (int)$r["id"],
+						"user" => (int)$r["user"],
+						"user_name" => $user_name,
+						"user_email" => $user_email,
+						"table" => $r["table"],
+						"entry" => $r["entry"],
+						"type" => $r["type"],
+						"date" => $r["date"],
 					];
-				}
 
-				return $out;
-			}, $rows);
+					if ($include_context) {
+						$out["context"] = [
+							"ip" => $r["ip"] ?? null,
+							"user_agent" => $r["user_agent"] ?? null,
+							"request_id" => $r["request_id"] ?? null,
+							"method" => $r["method"] ?? null,
+							"path" => $r["path"] ?? null,
+						];
+					}
 
-			return Response::ok($items, Pagination::offsetMeta($p["page"], $p["per_page"], $total));
+					return $out;
+				},
+				100
+			);
 		}
 	}

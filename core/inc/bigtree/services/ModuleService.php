@@ -1,6 +1,7 @@
 <?php
 	namespace BigTree\Services;
 
+	use BigTree\Api\Entity;
 	use BigTree\Api\Request;
 	use BigTree\Api\Response;
 	use BigTree\Api\ETag;
@@ -51,14 +52,10 @@
 
 		public function get(Request $request) {
 			$id = $request->route_params["id"];
-			$m = BigTreeJSONDB::get("modules", $id);
-
-			if (!$m) {
-				throw new NotFoundException("Module $id not found", "resource_not_found", 404);
-			}
+			$m = Entity::findOrFailJson("modules", $id, "Module");
 
 			if (!PermissionService::userHasModuleAccess($request->user, $id, "v")) {
-				throw new \BigTree\Api\Exceptions\AuthorizationException("Module access denied", "permission_denied", 403);
+				throw new \BigTree\Api\Exceptions\AuthorizationException("Module access denied");
 			}
 
 			$group_name = "";
@@ -85,7 +82,7 @@
 			$route = $d["route"] ?? BigTreeCMS::urlify($d["name"]);
 
 			if (!ctype_alnum(str_replace("-", "", $route)) || strlen($route) > 127) {
-				throw new BadRequestException("Module route must be alphanumeric (with -) and ≤ 127 chars", "invalid_route", 400);
+				throw new BadRequestException("Module route must be alphanumeric (with -) and ≤ 127 chars", "invalid_route");
 			}
 
 			$route = $this->uniqueModuleRoute($route);
@@ -119,24 +116,24 @@
 			$fields_in = is_array($d["fields"] ?? null) ? $d["fields"] : [];
 
 			if ($name === "") {
-				throw new BadRequestException("Module name is required", "invalid_name", 400);
+				throw new BadRequestException("Module name is required", "invalid_name");
 			}
 
 			// The table name flows into raw DDL, so it must be a bare identifier.
 			if (!preg_match('/^[A-Za-z0-9_]+$/', $table)) {
-				throw new BadRequestException("Table name must contain only letters, numbers, and underscores", "invalid_table", 400);
+				throw new BadRequestException("Table name must contain only letters, numbers, and underscores", "invalid_table");
 			}
 
 			if (strlen($table) > 64) {
-				throw new BadRequestException("Table name must be 64 characters or fewer", "invalid_table", 400);
+				throw new BadRequestException("Table name must be 64 characters or fewer", "invalid_table");
 			}
 
 			if (BigTree::tableExists($table)) {
-				throw new ConflictException("A table named \"$table\" already exists", "table_exists", 409);
+				throw new ConflictException("A table named \"$table\" already exists", "table_exists");
 			}
 
 			if ($class !== "" && class_exists($class)) {
-				throw new ConflictException("A class named \"$class\" already exists", "class_exists", 409);
+				throw new ConflictException("A class named \"$class\" already exists", "class_exists");
 			}
 
 			// Resolve fields → form-field defs + column DDL, skipping untitled rows and
@@ -185,13 +182,13 @@
 			}
 
 			if (count($form_fields) === 0) {
-				throw new BadRequestException("Add at least one field with a title", "no_fields", 400);
+				throw new BadRequestException("Add at least one field with a title", "no_fields");
 			}
 
 			$route = $d["route"] ?? BigTreeCMS::urlify($name);
 
 			if (!ctype_alnum(str_replace("-", "", (string)$route)) || strlen((string)$route) > 127) {
-				throw new BadRequestException("Module route must be alphanumeric (with -) and ≤ 127 chars", "invalid_route", 400);
+				throw new BadRequestException("Module route must be alphanumeric (with -) and ≤ 127 chars", "invalid_route");
 			}
 
 			$route = $this->uniqueModuleRoute($route);
@@ -363,11 +360,7 @@
 
 		public function update(Request $request) {
 			$id = $request->route_params["id"];
-			$existing = BigTreeJSONDB::get("modules", $id);
-
-			if (!$existing) {
-				throw new NotFoundException("Module $id not found", "resource_not_found", 404);
-			}
+			$existing = Entity::findOrFailJson("modules", $id, "Module");
 			$d = $request->body;
 
 			$next = array_merge($existing, array_filter([
@@ -387,7 +380,7 @@
 			$id = $request->route_params["id"];
 
 			if (!BigTreeJSONDB::exists("modules", $id)) {
-				throw new NotFoundException("Module $id not found", "resource_not_found", 404);
+				throw new NotFoundException("Module $id not found");
 			}
 
 			BigTreeJSONDB::delete("modules", $id);
@@ -440,11 +433,11 @@
 		 */
 		public function actionSchema(Request $request) {
 			$module = $this->loadModule($request->route_params["id"]);
-			$action_id = (string)$request->route_params["sid"];
+			$action_id = $request->routeParam("sid");
 			$action = $this->findSub($module["actions"] ?? [], $action_id);
 
 			if (!$action) {
-				throw new NotFoundException("Action $action_id not found", "resource_not_found", 404);
+				throw new NotFoundException("Action $action_id not found");
 			}
 
 			$render = $this->actionRenderKind($action);
@@ -517,7 +510,7 @@
 			$route_raw = (string)($d["route"] ?? "");
 
 			if ($route_raw !== "" && (!ctype_alnum(str_replace("-", "", $route_raw)) || strlen($route_raw) > 127)) {
-				throw new BadRequestException("Action route must be alphanumeric (with -) and ≤ 127 chars", "invalid_route", 400);
+				throw new BadRequestException("Action route must be alphanumeric (with -) and ≤ 127 chars", "invalid_route");
 			}
 
 			// Auto-generate the route from the name when blank (as the UI promises).
@@ -575,7 +568,7 @@
 			$existing = $this->findSub($module["actions"] ?? [], $action_id);
 
 			if (!$existing) {
-				throw new NotFoundException("Action $action_id not found", "resource_not_found", 404);
+				throw new NotFoundException("Action $action_id not found");
 			}
 
 			$d = $request->body;
@@ -623,7 +616,7 @@
 				$route_raw = (string)$d["route"];
 
 				if ($route_raw !== "" && (!ctype_alnum(str_replace("-", "", $route_raw)) || strlen($route_raw) > 127)) {
-					throw new BadRequestException("Action route must be alphanumeric (with -) and ≤ 127 chars", "invalid_route", 400);
+					throw new BadRequestException("Action route must be alphanumeric (with -) and ≤ 127 chars", "invalid_route");
 				}
 
 				// Auto-generate from the name when explicitly cleared.
@@ -698,7 +691,7 @@
 			$existing = $this->findSub($module["actions"] ?? [], $action_id);
 
 			if (!$existing) {
-				throw new NotFoundException("Action $action_id not found", "resource_not_found", 404);
+				throw new NotFoundException("Action $action_id not found");
 			}
 
 			$context = BigTreeJSONDB::getSubset("modules", $module_id);
@@ -769,19 +762,19 @@
 			$action = $this->findSub($module["actions"] ?? [], $action_id);
 
 			if (!$action) {
-				throw new NotFoundException("Action $action_id not found", "resource_not_found", 404);
+				throw new NotFoundException("Action $action_id not found");
 			}
 
 			$handler = $this->validateActionHandler($action["handler"] ?? "");
 
 			if ($handler === "") {
-				throw new BadRequestException("This action has no server handler to run.", "no_handler", 400);
+				throw new BadRequestException("This action has no server handler to run.", "no_handler");
 			}
 
 			$class = (string)($module["class"] ?? "");
 
 			if ($class === "" || !class_exists($class)) {
-				throw new BadRequestException("This module has no class to run the action on.", "missing_module_class", 400);
+				throw new BadRequestException("This module has no class to run the action on.", "missing_module_class");
 			}
 
 			$instance = new $class();
@@ -791,7 +784,7 @@
 			$allowed = $this->declaredActionHandlers($instance);
 
 			if (!array_key_exists($handler, $allowed)) {
-				throw new AuthorizationException("This action's handler is not enabled on the module.", "forbidden_handler", 403);
+				throw new AuthorizationException("This action's handler is not enabled on the module.", "forbidden_handler");
 			}
 
 			// Level gate: the action's own level plus any per-handler minimum.
@@ -799,11 +792,11 @@
 			$user_level = (int)($request->user->level ?? 0);
 
 			if ($user_level < $required) {
-				throw new AuthorizationException("You don't have access to run this action.", "permission_denied", 403);
+				throw new AuthorizationException("You don't have access to run this action.");
 			}
 
 			if (!method_exists($instance, $handler)) {
-				throw new BadRequestException("The action handler \"$handler\" is declared but missing on the module class.", "handler_missing", 400);
+				throw new BadRequestException("The action handler \"$handler\" is declared but missing on the module class.", "handler_missing");
 			}
 
 			$body = is_array($request->body) ? $request->body : [];
@@ -902,7 +895,7 @@
 			$existing = $this->findSub($module["embed-forms"] ?? [], $ef_id);
 
 			if (!$existing) {
-				throw new NotFoundException("Embed form $ef_id not found", "resource_not_found", 404);
+				throw new NotFoundException("Embed form $ef_id not found");
 			}
 
 			$d = $request->body;
@@ -959,7 +952,7 @@
 			$existing = $this->findSub($module["embed-forms"] ?? [], $ef_id);
 
 			if (!$existing) {
-				throw new NotFoundException("Embed form $ef_id not found", "resource_not_found", 404);
+				throw new NotFoundException("Embed form $ef_id not found");
 			}
 			$context = BigTreeJSONDB::getSubset("modules", $module_id);
 			$context->delete("embed-forms", $ef_id);
@@ -981,13 +974,13 @@
 			$hash = (string)($request->route_params["hash"] ?? "");
 
 			if ($hash === "") {
-				throw new NotFoundException("Embed form not found", "resource_not_found", 404);
+				throw new NotFoundException("Embed form not found");
 			}
 
 			$form = \BigTreeAutoModule::getEmbedFormByHash($hash);
 
 			if (!$form) {
-				throw new NotFoundException("Embed form not found", "resource_not_found", 404);
+				throw new NotFoundException("Embed form not found");
 			}
 
 			return Response::ok([
@@ -1026,13 +1019,13 @@
 			$hash = (string)($request->route_params["hash"] ?? "");
 
 			if ($hash === "") {
-				throw new NotFoundException("Embed form not found", "resource_not_found", 404);
+				throw new NotFoundException("Embed form not found");
 			}
 
 			$form = \BigTreeAutoModule::getEmbedFormByHash($hash);
 
 			if (!$form) {
-				throw new NotFoundException("Embed form not found", "resource_not_found", 404);
+				throw new NotFoundException("Embed form not found");
 			}
 
 			$body = $request->body ?? [];
@@ -1166,11 +1159,7 @@
 			}
 
 			if (!preg_match('/^[A-Za-z_][A-Za-z0-9_]*$/', $handler)) {
-				throw new BadRequestException(
-					"Action handler must be a valid method name.",
-					"invalid_handler",
-					400
-				);
+				throw new BadRequestException("Action handler must be a valid method name.", "invalid_handler");
 			}
 
 			return $handler;
@@ -1181,11 +1170,7 @@
 			$source = isset($body["module_source"]) ? (string)$body["module_source"] : "";
 
 			if (trim($source) === "") {
-				throw new BadRequestException(
-					"A custom (module) action needs its drawing source code.",
-					"missing_module_source",
-					400
-				);
+				throw new BadRequestException("A custom (module) action needs its drawing source code.", "missing_module_source");
 			}
 
 			return $source;
@@ -1258,11 +1243,8 @@
 
 		public function getGroup(Request $request) {
 			$id = $request->route_params["id"];
-			$g = BigTreeJSONDB::get("module-groups", $id);
+			$g = Entity::findOrFailJson("module-groups", $id, "Module group");
 
-			if (!$g) {
-				throw new NotFoundException("Module group $id not found", "resource_not_found", 404);
-			}
 			return Response::ok($g);
 		}
 
@@ -1279,11 +1261,7 @@
 
 		public function updateGroup(Request $request) {
 			$id = $request->route_params["id"];
-			$existing = BigTreeJSONDB::get("module-groups", $id);
-
-			if (!$existing) {
-				throw new NotFoundException("Module group $id not found", "resource_not_found", 404);
-			}
+			$existing = Entity::findOrFailJson("module-groups", $id, "Module group");
 			$d = $request->body;
 			BigTreeJSONDB::update("module-groups", $id, array_merge($existing, array_filter([
 				"name" => isset($d["name"]) ? BigTree::safeEncode($d["name"]) : null,
@@ -1297,7 +1275,7 @@
 			$id = $request->route_params["id"];
 
 			if (!BigTreeJSONDB::exists("module-groups", $id)) {
-				throw new NotFoundException("Module group $id not found", "resource_not_found", 404);
+				throw new NotFoundException("Module group $id not found");
 			}
 
 			BigTreeJSONDB::delete("module-groups", $id);

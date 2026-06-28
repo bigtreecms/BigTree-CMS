@@ -1,6 +1,8 @@
 <?php
 	namespace BigTree\Services;
 
+	use BigTree\Api\Entity;
+	use BigTree\Api\Sanitize;
 	use BigTree\Api\Hooks;
 	use BigTree\Api\Pagination;
 	use BigTree\Api\Request;
@@ -116,7 +118,7 @@
 			$name = trim((string)$d["name"]);
 
 			if ($name === "") {
-				throw new BadRequestException("name required", "missing_name", 400);
+				throw new BadRequestException("name required", "missing_name");
 			}
 
 			$id = (int)SQL::insert("bigtree_resource_folders", [
@@ -134,12 +136,8 @@
 		}
 
 		public function updateFolder(Request $request) {
-			$id = (int)$request->route_params["id"];
-			$existing = SQL::fetch("SELECT * FROM bigtree_resource_folders WHERE id = ?", $id);
-
-			if (!$existing) {
-				throw new NotFoundException("Folder $id not found", "resource_not_found", 404);
-			}
+			$id = $request->id();
+			$existing = Entity::findOrFail("bigtree_resource_folders", $id, "Folder");
 			$this->enforceFolder($request->user, $id, "p", "modify");
 
 			$update = [];
@@ -153,7 +151,7 @@
 				$this->enforceFolder($request->user, $new_parent, "p", "move folder into");
 
 				if ($this->isAncestor($id, $new_parent)) {
-					throw new BadRequestException("Cannot move a folder into its own descendant", "cyclic_move", 400);
+					throw new BadRequestException("Cannot move a folder into its own descendant", "cyclic_move");
 				}
 
 				$update["parent"] = $new_parent;
@@ -173,10 +171,10 @@
 		}
 
 		public function deleteFolder(Request $request) {
-			$id = (int)$request->route_params["id"];
+			$id = $request->id();
 
 			if (!SQL::exists("bigtree_resource_folders", $id)) {
-				throw new NotFoundException("Folder $id not found", "resource_not_found", 404);
+				throw new NotFoundException("Folder $id not found");
 			}
 
 			$this->enforceFolder($request->user, $id, "p", "delete");
@@ -193,24 +191,16 @@
 		// — Resources —
 
 		public function getResource(Request $request) {
-			$id = (int)$request->route_params["id"];
-			$r = SQL::fetch("SELECT * FROM bigtree_resources WHERE id = ?", $id);
-
-			if (!$r) {
-				throw new NotFoundException("Resource $id not found", "resource_not_found", 404);
-			}
+			$id = $request->id();
+			$r = Entity::findOrFail("bigtree_resources", $id, "Resource");
 			$this->enforceFolder($request->user, (int)$r["folder"], "e", "view resource in folder");
 
 			return Response::ok($this->presentResource($r, true));
 		}
 
 		public function updateResource(Request $request) {
-			$id = (int)$request->route_params["id"];
-			$existing = SQL::fetch("SELECT * FROM bigtree_resources WHERE id = ?", $id);
-
-			if (!$existing) {
-				throw new NotFoundException("Resource $id not found", "resource_not_found", 404);
-			}
+			$id = $request->id();
+			$existing = Entity::findOrFail("bigtree_resources", $id, "Resource");
 			$this->enforceFolder($request->user, (int)$existing["folder"], "e", "edit resource in folder");
 
 			$update = [];
@@ -254,22 +244,18 @@
 		 *  - Managed videos have no replaceable file and are rejected.
 		 */
 		public function replaceResource(Request $request) {
-			$id = (int)$request->route_params["id"];
-			$existing = SQL::fetch("SELECT * FROM bigtree_resources WHERE id = ?", $id);
-
-			if (!$existing) {
-				throw new NotFoundException("Resource $id not found", "resource_not_found", 404);
-			}
+			$id = $request->id();
+			$existing = Entity::findOrFail("bigtree_resources", $id, "Resource");
 			$this->enforceFolder($request->user, (int)$existing["folder"], "p", "replace resource in folder");
 
 			if (!empty($existing["is_video"])) {
-				throw new BadRequestException("Managed videos have no replaceable file", "not_replaceable", 400);
+				throw new BadRequestException("Managed videos have no replaceable file", "not_replaceable");
 			}
 
 			$file_set = $request->file("file");
 
 			if (!$file_set) {
-				throw new BadRequestException("Missing 'file' upload", "missing_file", 400);
+				throw new BadRequestException("Missing 'file' upload", "missing_file");
 			}
 			$file = $file_set[0];
 
@@ -281,7 +267,7 @@
 
 			if (!empty($existing["is_image"])) {
 				if (strpos($mime, "image/") !== 0) {
-					throw new BadRequestException("The replacement for an image must be an image", "type_mismatch", 400);
+					throw new BadRequestException("The replacement for an image must be an image", "type_mismatch");
 				}
 
 				// Legacy min-size rule: the replacement must cover the largest
@@ -297,17 +283,13 @@
 				[$new_width, $new_height] = @getimagesize($file["tmp_name"]) ?: [0, 0];
 
 				if ($new_width < $min_width || $new_height < $min_height) {
-					throw new BadRequestException(
-						"Replacing this file requires a minimum image size of {$min_width}x{$min_height}",
-						"image_too_small",
-						400
-					);
+					throw new BadRequestException("Replacing this file requires a minimum image size of {$min_width}x{$min_height}", "image_too_small");
 				}
 
 				$image = new BigTreeImage($file["tmp_name"], $this->buildImageUploadSettings([]));
 
 				if ($image->Error) {
-					throw new BadRequestException("Image processing failed: " . $image->Error, "image_invalid", 400);
+					throw new BadRequestException("Image processing failed: " . $image->Error, "image_invalid");
 				}
 
 				// Store over the existing path; thumbs/crops then regenerate
@@ -315,7 +297,7 @@
 				$force_local = ($existing["location"] ?? "") === "local";
 
 				if (!$image->replace($file_name, $force_local)) {
-					throw new BadRequestException("Storage refused image: " . ($image->Error ?: "unknown"), "storage_failed", 400);
+					throw new BadRequestException("Storage refused image: " . ($image->Error ?: "unknown"), "storage_failed");
 				}
 
 				$image->filterGeneratableCrops();
@@ -363,7 +345,7 @@
 				self::sanitizeSvgUpload($file["tmp_name"], $file_name, $mime);
 
 				if (!$storage->replace($file["tmp_name"], $file_name, "files/resources/")) {
-					throw new BadRequestException("Storage refused upload", "storage_failed", 400);
+					throw new BadRequestException("Storage refused upload", "storage_failed");
 				}
 
 				SQL::update("bigtree_resources", $id, [
@@ -382,12 +364,8 @@
 		}
 
 		public function deleteResource(Request $request) {
-			$id = (int)$request->route_params["id"];
-			$existing = SQL::fetch("SELECT * FROM bigtree_resources WHERE id = ?", $id);
-
-			if (!$existing) {
-				throw new NotFoundException("Resource $id not found", "resource_not_found", 404);
-			}
+			$id = $request->id();
+			$existing = Entity::findOrFail("bigtree_resources", $id, "Resource");
 			$this->enforceFolder($request->user, (int)$existing["folder"], "p", "delete resource in folder");
 
 			// Best-effort delete of the stored bytes; allocations and the row itself follow.
@@ -413,7 +391,7 @@
 			if ($q === "") {
 				return Response::ok([]);
 			}
-			$like = "%" . str_replace("%", "\\%", $q) . "%";
+			$like = Sanitize::likeTerm($q);
 			$rows = SQL::fetchAll(
 				"SELECT id, folder, file, name, type, mimetype, is_image, is_video, height, width, size, date
 				 FROM bigtree_resources WHERE name LIKE ? OR file LIKE ? ORDER BY date DESC LIMIT 50",
@@ -438,7 +416,7 @@
 			$file_set = $request->file("file");
 
 			if (!$file_set) {
-				throw new BadRequestException("Missing 'file' upload", "missing_file", 400);
+				throw new BadRequestException("Missing 'file' upload", "missing_file");
 			}
 			$file = $file_set[0]; // single-file upload semantics for v1
 
@@ -463,13 +441,13 @@
 				$image = new BigTreeImage($file["tmp_name"], $image_settings);
 
 				if ($image->Error) {
-					throw new BadRequestException("Image processing failed: " . $image->Error, "image_invalid", 400);
+					throw new BadRequestException("Image processing failed: " . $image->Error, "image_invalid");
 				}
 
 				$stored_path = $image->store($file["name"]);
 
 				if (!$stored_path) {
-					throw new BadRequestException("Storage refused image: " . ($image->Error ?: "unknown"), "storage_failed", 400);
+					throw new BadRequestException("Storage refused image: " . ($image->Error ?: "unknown"), "storage_failed");
 				}
 
 				$image->filterGeneratableCrops();
@@ -522,7 +500,7 @@
 			$stored_path = $storage->store($file["tmp_name"], $file["name"], "files/resources/");
 
 			if (!$stored_path) {
-				throw new BadRequestException("Storage refused upload", "storage_failed", 400);
+				throw new BadRequestException("Storage refused upload", "storage_failed");
 			}
 
 			[$width, $height] = $is_image ? (@getimagesize($file["tmp_name"]) ?: [null, null]) : [null, null];
@@ -562,18 +540,14 @@
 			$this->enforceFolder($request->user, $folder, "p", "create video in");
 
 			if ($url === "") {
-				throw new BadRequestException("url required", "missing_url", 400);
+				throw new BadRequestException("url required", "missing_url");
 			}
 
 			$video = $this->extractVideoMetadata($url);
 
 			// Pull the thumbnail down so we have a local preview asset.
 			if (empty($video["image"])) {
-				throw new BadRequestException(
-					"Could not retrieve a thumbnail for that video",
-					"video_thumbnail_unavailable",
-					400
-				);
+				throw new BadRequestException("Could not retrieve a thumbnail for that video", "video_thumbnail_unavailable");
 			}
 
 			$extension = strtolower(pathinfo(parse_url($video["image"], PHP_URL_PATH) ?: "", PATHINFO_EXTENSION)) ?: "jpg";
@@ -585,11 +559,7 @@
 			$tmp_path = $tmp_dir . "video-" . $video["id"] . "-" . uniqid() . "." . $extension;
 
 			if (!BigTree::copyFile($video["image"], $tmp_path) || !file_exists($tmp_path)) {
-				throw new BadRequestException(
-					"Could not download the video thumbnail",
-					"video_thumbnail_download_failed",
-					400
-				);
+				throw new BadRequestException("Could not download the video thumbnail", "video_thumbnail_download_failed");
 			}
 
 			[$thumb_width, $thumb_height] = @getimagesize($tmp_path) ?: [null, null];
@@ -599,7 +569,7 @@
 			@unlink($tmp_path);
 
 			if (!$stored_thumb) {
-				throw new BadRequestException("Storage refused video thumbnail", "storage_failed", 400);
+				throw new BadRequestException("Storage refused video thumbnail", "storage_failed");
 			}
 
 			// Update the metadata blob with the locally stored image URL so the
@@ -634,16 +604,12 @@
 		// Generate a new crop from an existing image resource. Returns the crop file URL.
 
 		public function crop(Request $request) {
-			$id = (int)$request->route_params["id"];
-			$existing = SQL::fetch("SELECT * FROM bigtree_resources WHERE id = ?", $id);
-
-			if (!$existing) {
-				throw new NotFoundException("Resource $id not found", "resource_not_found", 404);
-			}
+			$id = $request->id();
+			$existing = Entity::findOrFail("bigtree_resources", $id, "Resource");
 			$this->enforceFolder($request->user, (int)$existing["folder"], "e", "crop resource in folder");
 
 			if ($existing["is_image"] !== "on") {
-				throw new BadRequestException("Resource is not an image", "not_an_image", 400);
+				throw new BadRequestException("Resource is not an image", "not_an_image");
 			}
 
 			$x = (int)$request->body["x"];
@@ -656,13 +622,13 @@
 			$directory = self::safeStorageDirectory($request->body["directory"] ?? null, "files/resources/crops/");
 
 			if ($w <= 0 || $h <= 0 || $target_w <= 0 || $target_h <= 0) {
-				throw new BadRequestException("width/height/target_width/target_height must be > 0", "bad_dimensions", 400);
+				throw new BadRequestException("width/height/target_width/target_height must be > 0", "bad_dimensions");
 			}
 
 			$image = new BigTreeImage($existing["file"]);
 
 			if ($image->Error) {
-				throw new BadRequestException("Image processing failed: " . $image->Error, "image_invalid", 400);
+				throw new BadRequestException("Image processing failed: " . $image->Error, "image_invalid");
 			}
 
 			$temp = $image->getTempFileName();
@@ -673,7 +639,7 @@
 			$stored_path = $storage->replace($temp, $crop_name, $directory);
 
 			if (!$stored_path) {
-				throw new BadRequestException("Storage refused crop", "storage_failed", 400);
+				throw new BadRequestException("Storage refused crop", "storage_failed");
 			}
 
 			// crops is stored as a prefix → { width, height, ... } map to match the
@@ -703,7 +669,7 @@
 		// — Allocations —
 
 		public function allocations(Request $request) {
-			$id = (int)$request->route_params["id"];
+			$id = $request->id();
 			$rows = SQL::fetchAll(
 				"SELECT `table`, entry, updated_at FROM bigtree_resource_allocation WHERE resource = ? ORDER BY updated_at DESC",
 				$id
@@ -725,10 +691,10 @@
 		public function usage(Request $request) {
 			global $cms;
 
-			$id = (int)$request->route_params["id"];
+			$id = $request->id();
 
 			if (!SQL::exists("bigtree_resources", $id)) {
-				throw new NotFoundException("Resource $id not found", "resource_not_found", 404);
+				throw new NotFoundException("Resource $id not found");
 			}
 
 			$allocations = BigTreeAdmin::getResourceAllocation($id);
@@ -988,17 +954,17 @@
 		}
 
 		public function allocate(Request $request) {
-			$id = (int)$request->route_params["id"];
+			$id = $request->id();
 
 			if (!SQL::exists("bigtree_resources", $id)) {
-				throw new NotFoundException("Resource $id not found", "resource_not_found", 404);
+				throw new NotFoundException("Resource $id not found");
 			}
 
 			$table = (string)$request->body["table"];
 			$entry = (string)$request->body["entry"];
 
 			if ($table === "" || $entry === "") {
-				throw new BadRequestException("table and entry required", "missing_fields", 400);
+				throw new BadRequestException("table and entry required", "missing_fields");
 			}
 
 			// Upsert: if the pair already exists, just refresh updated_at.
@@ -1022,7 +988,7 @@
 		}
 
 		public function deallocate(Request $request) {
-			$id = (int)$request->route_params["id"];
+			$id = $request->id();
 			$table = (string)$request->body["table"];
 			$entry = (string)$request->body["entry"];
 			SQL::query(
@@ -1037,25 +1003,25 @@
 
 		private function enforceFolder($user, $folder_id, $min, $action) {
 			if (!PermissionService::userHasFolderAccess($user, $folder_id, $min)) {
-				throw new AuthorizationException("Insufficient folder permission to $action ($min required)", "permission_denied", 403);
+				throw new AuthorizationException("Insufficient folder permission to $action ($min required)");
 			}
 		}
 
 		private function assertUploadOk(array $file) {
 			if (($file["error"] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
-				throw new BadRequestException("Upload error: " . $this->uploadErrorMessage((int)$file["error"]), "upload_error", 400);
+				throw new BadRequestException("Upload error: " . $this->uploadErrorMessage((int)$file["error"]), "upload_error");
 			}
 
 			if (!is_uploaded_file($file["tmp_name"]) && !file_exists($file["tmp_name"])) {
-				throw new BadRequestException("Upload tmp file missing", "upload_error", 400);
+				throw new BadRequestException("Upload tmp file missing", "upload_error");
 			}
 
 			if (($file["size"] ?? 0) <= 0) {
-				throw new BadRequestException("Empty upload", "empty_upload", 400);
+				throw new BadRequestException("Empty upload", "empty_upload");
 			}
 
 			if (($file["size"] ?? 0) > self::UPLOAD_MAX_BYTES) {
-				throw new BadRequestException("File too large", "file_too_large", 400);
+				throw new BadRequestException("File too large", "file_too_large");
 			}
 		}
 
@@ -1139,13 +1105,13 @@
 				strpos($dir, "\\") !== false ||
 				preg_match('/^[A-Za-z]:/', $dir)
 			) {
-				throw new BadRequestException("Invalid storage directory", "bad_directory", 400);
+				throw new BadRequestException("Invalid storage directory", "bad_directory");
 			}
 
 			// Reject any traversal segment.
 			foreach (explode("/", $dir) as $segment) {
 				if ($segment === "..") {
-					throw new BadRequestException("Invalid storage directory", "bad_directory", 400);
+					throw new BadRequestException("Invalid storage directory", "bad_directory");
 				}
 			}
 
@@ -1618,11 +1584,7 @@
 				return $this->extractVimeoMetadata($url);
 			}
 
-			throw new BadRequestException(
-				"URL is not a recognized YouTube or Vimeo URL",
-				"invalid_video_url",
-				400
-			);
+			throw new BadRequestException("URL is not a recognized YouTube or Vimeo URL", "invalid_video_url");
 		}
 
 		private function extractYouTubeMetadata($url) {
@@ -1641,11 +1603,7 @@
 			$pattern = '%(?:youtu\.be/|youtube\.com/(?:embed/|v/|.*v=))([\w-]{10,12})%';
 
 			if (!preg_match($pattern, $url, $matches)) {
-				throw new BadRequestException(
-					"Could not find a video id in the YouTube URL",
-					"invalid_video_url",
-					400
-				);
+				throw new BadRequestException("Could not find a video id in the YouTube URL", "invalid_video_url");
 			}
 
 			$video_id = $matches[1];
@@ -1653,11 +1611,7 @@
 			$oembed = json_decode($oembed_raw, true);
 
 			if (empty($oembed["title"])) {
-				throw new BadRequestException(
-					"YouTube did not return metadata for that video",
-					"video_metadata_unavailable",
-					400
-				);
+				throw new BadRequestException("YouTube did not return metadata for that video", "video_metadata_unavailable");
 			}
 
 			return [
@@ -1683,18 +1637,14 @@
 			$video_id = end($pieces);
 
 			if (!ctype_digit((string)$video_id)) {
-				throw new BadRequestException("Could not find a video id in the Vimeo URL", "invalid_video_url", 400);
+				throw new BadRequestException("Could not find a video id in the Vimeo URL", "invalid_video_url");
 			}
 
 			$raw = BigTree::cURL("https://vimeo.com/api/v2/video/" . $video_id . ".json");
 			$data = json_decode($raw, true);
 
 			if (!is_array($data) || empty($data[0]["title"])) {
-				throw new BadRequestException(
-					"Vimeo did not return metadata for that video",
-					"video_metadata_unavailable",
-					400
-				);
+				throw new BadRequestException("Vimeo did not return metadata for that video", "video_metadata_unavailable");
 			}
 			$v = $data[0];
 			$image = $v["thumbnail_large"] ?: ($v["thumbnail_medium"] ?: ($v["thumbnail_small"] ?? null));

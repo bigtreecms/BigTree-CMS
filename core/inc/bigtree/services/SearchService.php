@@ -2,6 +2,7 @@
 	namespace BigTree\Services;
 
 	use BigTree\Api\Request;
+	use BigTree\Api\Sanitize;
 	use BigTree\Api\Response;
 	use BigTree\Api\Exceptions\BadRequestException;
 	use BigTreeJSONDB;
@@ -33,7 +34,7 @@
 			$q = trim((string)($request->query["q"] ?? ""));
 
 			if ($q === "") {
-				throw new BadRequestException("q required", "missing_query", 400);
+				throw new BadRequestException("q required", "missing_query");
 			}
 			$limit = max(1, min(50, (int)($request->query["limit"] ?? self::DEFAULT_PER_DOMAIN)));
 
@@ -84,7 +85,7 @@
 		// — per-domain searchers —
 
 		private function searchPages($q, $limit, $user) {
-			$like = "%" . str_replace("%", "\\%", $q) . "%";
+			$like = Sanitize::likeTerm($q);
 			// LIMIT needs an integer literal; ? substitution would quote it.
 			$overfetch = max(1, (int)$limit) * 3;
 			$rows = SQL::fetchAll(
@@ -117,7 +118,7 @@
 		}
 
 		private function searchTags($q, $limit) {
-			$like = "%" . str_replace("%", "\\%", strtolower($q)) . "%";
+			$like = Sanitize::likeTerm($q, true);
 			$limit = max(1, (int)$limit);
 			$rows = SQL::fetchAll(
 				"SELECT id, tag, route, usage_count FROM bigtree_tags
@@ -138,7 +139,7 @@
 		}
 
 		private function searchUsers($q, $limit) {
-			$like = "%" . str_replace("%", "\\%", $q) . "%";
+			$like = Sanitize::likeTerm($q);
 			$limit = max(1, (int)$limit);
 			$rows = SQL::fetchAll(
 				"SELECT id, name, email, level FROM bigtree_users

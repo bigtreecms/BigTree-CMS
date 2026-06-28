@@ -1,11 +1,11 @@
 <?php
 	namespace BigTree\Services;
 
+	use BigTree\Api\Entity;
 	use BigTree\Api\Pagination;
 	use BigTree\Api\Request;
 	use BigTree\Api\Response;
 	use BigTree\Api\Exceptions\BadRequestException;
-	use BigTree\Api\Exceptions\NotFoundException;
 	use BigTree\Api\Exceptions\AuthorizationException;
 	use BigTree;
 	use SQL;
@@ -30,7 +30,7 @@
 				$where = "recipients LIKE ?";
 				$args = ["%|$me|%"];
 			} else {
-				throw new BadRequestException("folder must be in or sent", "bad_folder", 400);
+				throw new BadRequestException("folder must be in or sent", "bad_folder");
 			}
 
 			$total = (int)SQL::fetchSingle(...array_merge(["SELECT COUNT(*) FROM bigtree_messages WHERE " . $where], $args));
@@ -60,7 +60,7 @@
 		}
 
 		public function get(Request $request) {
-			$id = (int)$request->route_params["id"];
+			$id = $request->id();
 			$message = $this->loadAccessible($id, $request->user);
 
 			return Response::ok($this->present($message, $this->nameMap([$message])));
@@ -110,7 +110,7 @@
 			$recipients = array_map("intval", (array)($d["recipients"] ?? []));
 
 			if (!$recipients) {
-				throw new BadRequestException("recipients required", "missing_recipients", 400);
+				throw new BadRequestException("recipients required", "missing_recipients");
 			}
 
 			$send_to = "|" . implode("|", array_filter($recipients)) . "|";
@@ -131,7 +131,7 @@
 		}
 
 		public function markRead(Request $request) {
-			$id = (int)$request->route_params["id"];
+			$id = $request->id();
 			$message = $this->loadAccessible($id, $request->user);
 			$me = (int)$request->user->id;
 			$read_by = $message["read_by"] ?? "";
@@ -147,15 +147,11 @@
 		// — helpers —
 
 		private function loadAccessible($id, $user) {
-			$row = SQL::fetch("SELECT * FROM bigtree_messages WHERE id = ?", $id);
-
-			if (!$row) {
-				throw new NotFoundException("Message $id not found", "resource_not_found", 404);
-			}
+			$row = Entity::findOrFail("bigtree_messages", $id, "Message");
 			$me = (int)$user->id;
 
 			if ((int)$row["sender"] !== $me && strpos($row["recipients"] ?? "", "|$me|") === false) {
-				throw new AuthorizationException("Not your message", "permission_denied", 403);
+				throw new AuthorizationException("Not your message");
 			}
 
 			return $row;

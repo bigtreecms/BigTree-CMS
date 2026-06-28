@@ -60,7 +60,7 @@
 				}
 			}
 
-			throw new NotFoundException("No route matches " . $method . " " . $path, "route_not_found", 404);
+			throw new NotFoundException("No route matches " . $method . " " . $path, "route_not_found");
 		}
 
 		private static function matchType($value, $type) {

@@ -27,7 +27,7 @@
 
 			if (!$request->user) {
 				// Should never happen — Authenticate runs first and would have thrown 401.
-				throw new AuthorizationException("No authenticated user", "permission_denied", 403);
+				throw new AuthorizationException("No authenticated user");
 			}
 
 			// Developer mode locks everyone below developer level out of the
@@ -36,11 +36,7 @@
 			global $bigtree;
 
 			if (!empty($bigtree["config"]["developer_mode"]) && $request->user->level < 2) {
-				throw new AuthorizationException(
-					"The admin is currently undergoing maintenance and is limited to developer access",
-					"developer_mode",
-					403
-				);
+				throw new AuthorizationException("The admin is currently undergoing maintenance and is limited to developer access", "developer_mode");
 			}
 
 			$this->enforce($decl, $request);
@@ -55,12 +51,12 @@
 					catch (AuthorizationException $e) { /* try next */ }
 				}
 
-				throw new AuthorizationException("None of the alternative permissions matched", "permission_denied", 403);
+				throw new AuthorizationException("None of the alternative permissions matched");
 			}
 
 			if (isset($decl["level"])) {
 				if ($request->user->level < (int)$decl["level"]) {
-					throw new AuthorizationException("Requires level " . (int)$decl["level"], "permission_denied", 403);
+					throw new AuthorizationException("Requires level " . (int)$decl["level"]);
 				}
 
 				return;
@@ -77,7 +73,7 @@
 				if ($request->user->level >= 1) {
 					return;
 				}
-				throw new AuthorizationException("Must be the same user or an admin", "permission_denied", 403);
+				throw new AuthorizationException("Must be the same user or an admin");
 			}
 
 			if (isset($decl["module"])) {
@@ -85,7 +81,7 @@
 				$min = $decl["min"] ?? "v";
 
 				if (!PermissionService::userHasModuleAccess($request->user, $module, $min)) {
-					throw new AuthorizationException("Module access insufficient", "permission_denied", 403);
+					throw new AuthorizationException("Module access insufficient");
 				}
 
 				return;
@@ -96,7 +92,7 @@
 				$min = $decl["min"] ?? "v";
 
 				if (!PermissionService::userHasPageAccess($request->user, $page_id, $min)) {
-					throw new AuthorizationException("Page access insufficient", "permission_denied", 403);
+					throw new AuthorizationException("Page access insufficient");
 				}
 
 				return;
@@ -106,17 +102,17 @@
 				[$class, $method] = $decl["callback"];
 
 				if (!class_exists($class) || !method_exists($class, $method)) {
-					throw new AuthorizationException("Permission callback missing", "permission_denied", 403);
+					throw new AuthorizationException("Permission callback missing");
 				}
 
 				if (!call_user_func([$class, $method], $request)) {
-					throw new AuthorizationException("Callback denied access", "permission_denied", 403);
+					throw new AuthorizationException("Callback denied access");
 				}
 
 				return;
 			}
 
-			throw new AuthorizationException("Unknown permission declaration", "permission_denied", 403);
+			throw new AuthorizationException("Unknown permission declaration");
 		}
 
 		private function resolveParam($value, Request $request) {

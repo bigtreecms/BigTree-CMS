@@ -13,7 +13,7 @@
 				$expects_multipart = !empty($request->route["multipart"]);
 
 				if ($expects_multipart && !$is_multipart) {
-					throw new BadRequestException("Expected multipart/form-data", "expected_multipart", 400);
+					throw new BadRequestException("Expected multipart/form-data", "expected_multipart");
 				}
 
 				$declares_body = isset($request->route["body"])
@@ -24,7 +24,7 @@
 				// Pure action endpoints (e.g. /archive, /unarchive) may be called
 				// with no body at all.
 				if (!$expects_multipart && $declares_body && !$is_json) {
-					throw new BadRequestException("Expected Content-Type: application/json", "expected_json", 400);
+					throw new BadRequestException("Expected Content-Type: application/json", "expected_json");
 				}
 			}
 

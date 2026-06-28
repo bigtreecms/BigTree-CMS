@@ -1,6 +1,8 @@
 <?php
 	namespace BigTree\Services;
 
+	use BigTree\Api\Entity;
+	use BigTree\Api\Sanitize;
 	use BigTree\Api\Pagination;
 	use BigTree\Api\Request;
 	use BigTree\Api\Response;
@@ -13,7 +15,6 @@
 
 	class TagService {
 		public function list(Request $request) {
-			$p = Pagination::offset($request, 100);
 			$q = trim((string)($request->query["q"] ?? ""));
 
 			$where = "";
@@ -21,17 +22,17 @@
 
 			if ($q !== "") {
 				$where = " WHERE tag LIKE ?";
-				$args[] = "%" . str_replace("%", "\\%", strtolower($q)) . "%";
+				$args[] = Sanitize::likeTerm($q, true);
 			}
 
-			$total = (int)SQL::fetchSingle(...array_merge(["SELECT COUNT(*) FROM bigtree_tags" . $where], $args));
-			$rows = SQL::fetchAll(...array_merge([
-				"SELECT id, tag, route, usage_count FROM bigtree_tags" . $where . " ORDER BY tag ASC LIMIT " . (int)$p["limit"] . " OFFSET " . (int)$p["offset"],
-			], $args));
-
-			$items = array_map([$this, "present"], $rows);
-
-			return Response::ok($items, Pagination::offsetMeta($p["page"], $p["per_page"], $total));
+			return Pagination::paginate(
+				$request,
+				"SELECT COUNT(*) FROM bigtree_tags" . $where,
+				"SELECT id, tag, route, usage_count FROM bigtree_tags" . $where . " ORDER BY tag ASC",
+				$args,
+				[$this, "present"],
+				100
+			);
 		}
 
 		public function search(Request $request) {
@@ -42,19 +43,16 @@
 			}
 			$rows = SQL::fetchAll(
 				"SELECT id, tag, route, usage_count FROM bigtree_tags WHERE tag LIKE ? ORDER BY usage_count DESC LIMIT 25",
-				"%" . str_replace("%", "\\%", strtolower($q)) . "%"
+				Sanitize::likeTerm($q, true)
 			);
 
 			return Response::ok(array_map([$this, "present"], $rows));
 		}
 
 		public function get(Request $request) {
-			$id = (int)$request->route_params["id"];
-			$row = SQL::fetch("SELECT id, tag, route, usage_count FROM bigtree_tags WHERE id = ?", $id);
+			$id = $request->id();
+			$row = Entity::findOrFail("bigtree_tags", $id, "Tag", "id, tag, route, usage_count");
 
-			if (!$row) {
-				throw new NotFoundException("Tag $id not found", "resource_not_found", 404);
-			}
 			return Response::ok($this->present($row));
 		}
 
@@ -62,7 +60,7 @@
 			$tag = $this->normalize((string)$request->body["tag"]);
 
 			if ($tag === "") {
-				throw new BadRequestException("Empty tag after normalization", "empty_tag", 400);
+				throw new BadRequestException("Empty tag after normalization", "empty_tag");
 			}
 
 			$existing = SQL::fetch("SELECT id, tag, route, usage_count FROM bigtree_tags WHERE tag = ?", $tag);
@@ -84,10 +82,10 @@
 		}
 
 		public function delete(Request $request) {
-			$id = (int)$request->route_params["id"];
+			$id = $request->id();
 
 			if (!SQL::exists("bigtree_tags", $id)) {
-				throw new NotFoundException("Tag $id not found", "resource_not_found", 404);
+				throw new NotFoundException("Tag $id not found");
 			}
 
 			SQL::delete("bigtree_tags", $id);
@@ -101,15 +99,15 @@
 			$from = array_map("intval", (array)$request->body["from"]);
 
 			if (!$into || !$from) {
-				throw new BadRequestException("into and from required", "missing_fields", 400);
+				throw new BadRequestException("into and from required", "missing_fields");
 			}
 
 			if (in_array($into, $from, true)) {
-				throw new BadRequestException("into cannot be in from list", "invalid_merge", 400);
+				throw new BadRequestException("into cannot be in from list", "invalid_merge");
 			}
 
 			if (!SQL::exists("bigtree_tags", $into)) {
-				throw new NotFoundException("Target tag $into not found", "resource_not_found", 404);
+				throw new NotFoundException("Target tag $into not found");
 			}
 
 			foreach ($from as $tag_id) {

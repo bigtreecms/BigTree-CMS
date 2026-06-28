@@ -30,6 +30,26 @@
 			return preg_replace('/[^A-Za-z0-9_]/', "", $name);
 		}
 
+		/**
+		 * Build a `LIKE` search term: escape the wildcard metacharacters in the
+		 * user's query and wrap it in `%…%` for a "contains" match. The escape
+		 * char itself (`\`) is doubled first, then `%` and `_` are neutralized so
+		 * they match literally rather than as wildcards — callers rely on MySQL's
+		 * default backslash escaping (no explicit `ESCAPE` clause needed).
+		 *
+		 * Pass $lowercase = true when matching against a column whose values are
+		 * stored lowercased (e.g. tags) so case-sensitive collations still match.
+		 */
+		public static function likeTerm(string $q, bool $lowercase = false): string {
+			$escaped = str_replace(["\\", "%", "_"], ["\\\\", "\\%", "\\_"], $q);
+
+			if ($lowercase) {
+				$escaped = strtolower($escaped);
+			}
+
+			return "%" . $escaped . "%";
+		}
+
 		// Validate a sort clause against an allow-list of known columns so we never
 		// concatenate user-controlled text into SQL. Returns a backticked
 		// ``\`col\` DIR`` for an allowed column, otherwise ``\`fallback\` ASC``.

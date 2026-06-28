@@ -1,6 +1,7 @@
 <?php
 	namespace BigTree\Services;
 
+	use BigTree\Api\Entity;
 	use BigTree\Api\Jwt;
 	use BigTree\Api\Request;
 	use BigTree\Api\Response;
@@ -8,7 +9,6 @@
 	use BigTree\Api\Exceptions\AuthenticationException;
 	use BigTree\Api\Exceptions\BadRequestException;
 	use BigTree\Api\Exceptions\ConflictException;
-	use BigTree\Api\Exceptions\NotFoundException;
 	use BigTree\Api\Exceptions\AuthorizationException;
 	use BigTree\WebAuthn;
 	use BigTreeAdmin;
@@ -64,19 +64,19 @@
 			$remember = $this->rememberRequested($request);
 
 			if ($email === "" || $password === "") {
-				throw new BadRequestException("Email and password required", "missing_credentials", 400);
+				throw new BadRequestException("Email and password required", "missing_credentials");
 			}
 
 			$ip = ip2long($request->ip) ?: null;
 
 			if (BigTreeAdmin::isIPBanned($ip)) {
-				throw new AuthorizationException("IP is temporarily banned", "ip_banned", 403);
+				throw new AuthorizationException("IP is temporarily banned", "ip_banned");
 			}
 
 			$user = SQL::fetch("SELECT * FROM bigtree_users WHERE LOWER(email) = ?", $email);
 
 			if ($user && BigTreeAdmin::isUserBanned($user["id"])) {
-				throw new AuthorizationException("User is temporarily banned", "user_banned", 403);
+				throw new AuthorizationException("User is temporarily banned", "user_banned");
 			}
 
 			$ok = false;
@@ -87,7 +87,7 @@
 
 			if (!$ok) {
 				$this->recordFailedAttempt($ip, $user ? (int)$user["id"] : null);
-				throw new AuthenticationException("Invalid credentials", "invalid_credentials", 401);
+				throw new AuthenticationException("Invalid credentials", "invalid_credentials");
 			}
 
 			// 2FA gate: any user who has enrolled a TOTP secret (self-service or
@@ -117,7 +117,7 @@
 			$code = (string)($request->body["code"] ?? "");
 
 			if ($mfa_token === "" || $code === "") {
-				throw new BadRequestException("mfa_token and code required", "missing_fields", 400);
+				throw new BadRequestException("mfa_token and code required", "missing_fields");
 			}
 
 			$user = SQL::fetch("SELECT * FROM bigtree_users WHERE 2fa_login_token = ?", $mfa_token);
@@ -125,7 +125,7 @@
 			// Setup tokens (forced-enrollment flow) authorize only the enrollment
 			// endpoints — they can't complete a code-verification login.
 			if (!$user || $this->tokenIsSetup($mfa_token)) {
-				throw new AuthenticationException("Invalid or expired MFA token", "invalid_mfa_token", 401);
+				throw new AuthenticationException("Invalid or expired MFA token", "invalid_mfa_token");
 			}
 
 			// The partial token carries its own expiry (see issueMfaPartial). Enforce
@@ -135,13 +135,13 @@
 
 			if ($expiry === null || $expiry < time()) {
 				SQL::update("bigtree_users", $user["id"], ["2fa_login_token" => ""]);
-				throw new AuthenticationException("Invalid or expired MFA token", "invalid_mfa_token", 401);
+				throw new AuthenticationException("Invalid or expired MFA token", "invalid_mfa_token");
 			}
 
 			include_once BigTree::path("inc/lib/GoogleAuthenticator.php");
 
 			if (!GoogleAuthenticator::verifyCode($user["2fa_secret"], $code)) {
-				throw new AuthenticationException("Invalid 2FA code", "invalid_2fa_code", 401);
+				throw new AuthenticationException("Invalid 2FA code", "invalid_2fa_code");
 			}
 
 			// The partial token carries the original "remember me" choice; read it
@@ -199,11 +199,11 @@
 			$code = trim((string)($request->body["code"] ?? ""));
 
 			if ($secret === "" || $code === "") {
-				throw new BadRequestException("secret and code required", "missing_fields", 400);
+				throw new BadRequestException("secret and code required", "missing_fields");
 			}
 
 			if (!GoogleAuthenticator::verifyCode($secret, $code)) {
-				throw new BadRequestException("That code is incorrect or expired", "invalid_2fa_code", 400);
+				throw new BadRequestException("That code is incorrect or expired", "invalid_2fa_code");
 			}
 
 			$user_id = (int)$request->user->id;
@@ -239,11 +239,11 @@
 			$code = trim((string)($request->body["code"] ?? ""));
 
 			if ($secret === "" || $code === "") {
-				throw new BadRequestException("secret and code required", "missing_fields", 400);
+				throw new BadRequestException("secret and code required", "missing_fields");
 			}
 
 			if (!GoogleAuthenticator::verifyCode($secret, $code)) {
-				throw new BadRequestException("That code is incorrect or expired", "invalid_2fa_code", 400);
+				throw new BadRequestException("That code is incorrect or expired", "invalid_2fa_code");
 			}
 
 			// The setup token carries the original "remember me" choice; read it
@@ -267,20 +267,20 @@
 		 */
 		private function userBySetupToken($setup_token) {
 			if ($setup_token === "") {
-				throw new BadRequestException("setup_token required", "missing_fields", 400);
+				throw new BadRequestException("setup_token required", "missing_fields");
 			}
 
 			$user = SQL::fetch("SELECT * FROM bigtree_users WHERE 2fa_login_token = ?", $setup_token);
 
 			if (!$user || !$this->tokenIsSetup($setup_token) || !empty($user["2fa_secret"])) {
-				throw new AuthenticationException("Invalid or expired setup token", "invalid_setup_token", 401);
+				throw new AuthenticationException("Invalid or expired setup token", "invalid_setup_token");
 			}
 
 			$expiry = $this->tokenExpiry($setup_token);
 
 			if ($expiry === null || $expiry < time()) {
 				SQL::update("bigtree_users", $user["id"], ["2fa_login_token" => ""]);
-				throw new AuthenticationException("Invalid or expired setup token", "invalid_setup_token", 401);
+				throw new AuthenticationException("Invalid or expired setup token", "invalid_setup_token");
 			}
 
 			return $user;
@@ -305,7 +305,7 @@
 			$code = trim((string)($request->body["code"] ?? ""));
 
 			if ($code === "" || !GoogleAuthenticator::verifyCode($user["2fa_secret"], $code)) {
-				throw new BadRequestException("That code is incorrect or expired", "invalid_2fa_code", 400);
+				throw new BadRequestException("That code is incorrect or expired", "invalid_2fa_code");
 			}
 
 			SQL::update("bigtree_users", $user_id, ["2fa_secret" => ""]);
@@ -324,14 +324,14 @@
 			$raw = (string)($request->body["refresh_token"] ?? "");
 
 			if ($raw === "") {
-				throw new AuthenticationException("Missing refresh_token", "no_refresh_token", 401);
+				throw new AuthenticationException("Missing refresh_token", "no_refresh_token");
 			}
 
 			$rotation = TokenStore::rotate($raw, $request->ip, $request->user_agent);
 			$user = SQL::fetch("SELECT * FROM bigtree_users WHERE id = ?", $rotation["user_id"]);
 
 			if (!$user) {
-				throw new AuthenticationException("User no longer exists", "invalid_refresh_token", 401);
+				throw new AuthenticationException("User no longer exists", "invalid_refresh_token");
 			}
 
 			$access = $this->issueAccessToken($user);
@@ -382,7 +382,7 @@
 			$user = SQL::fetch("SELECT * FROM bigtree_users WHERE id = ?", (int)$request->user->id);
 
 			if (!$user) {
-				throw new AuthenticationException("User no longer exists", "unknown_user", 401);
+				throw new AuthenticationException("User no longer exists", "unknown_user");
 			}
 
 			$remember = $this->rememberRequested($request);
@@ -547,18 +547,19 @@
 			$actor = $request->user;
 
 			if (!$target_id) {
-				throw new BadRequestException("user_id required", "missing_user_id", 400);
+				throw new BadRequestException("user_id required", "missing_user_id");
 			}
 
 			if ($target_id === (int)$actor->id) {
-				throw new BadRequestException("You cannot emulate yourself", "self_emulation", 400);
+				throw new BadRequestException("You cannot emulate yourself", "self_emulation");
 			}
 
-			$target = SQL::fetch("SELECT * FROM bigtree_users WHERE id = ?", $target_id);
-
-			if (!$target) {
-				throw new NotFoundException("User not found", "user_not_found", 404);
-			}
+			$target = Entity::fetchOrFail(
+				"SELECT * FROM bigtree_users WHERE id = ?",
+				[$target_id],
+				"User not found",
+				"user_not_found"
+			);
 
 			$access = $this->issueAccessToken($target);
 			$refresh = TokenStore::issueFamily((int)$target["id"], $request->ip, $request->user_agent);
@@ -606,7 +607,7 @@
 			$ip = ip2long($request->ip) ?: null;
 
 			if (BigTreeAdmin::isIPBanned($ip)) {
-				throw new AuthorizationException("IP is temporarily banned", "ip_banned", 403);
+				throw new AuthorizationException("IP is temporarily banned", "ip_banned");
 			}
 
 			$challenge_id = (string)($request->body["challenge_id"] ?? "");
@@ -616,7 +617,7 @@
 			$signature = (string)($request->body["signature"] ?? "");
 
 			if ($challenge_id === "" || $credential_id === "" || $client_data_json === "" || $auth_data === "" || $signature === "") {
-				throw new BadRequestException("Missing passkey verification fields", "missing_fields", 400);
+				throw new BadRequestException("Missing passkey verification fields", "missing_fields");
 			}
 
 			// INTERVAL needs an integer literal; ? would inject a quoted string.
@@ -627,25 +628,25 @@
 			);
 
 			if (!$challenge_row) {
-				throw new AuthenticationException("Passkey challenge invalid or expired", "invalid_challenge", 401);
+				throw new AuthenticationException("Passkey challenge invalid or expired", "invalid_challenge");
 			}
 
 			$passkey = BigTreeAdmin::getPasskeyByCredentialId($credential_id);
 
 			if (!$passkey) {
 				$this->recordFailedAttempt($ip, null);
-				throw new AuthenticationException("Unknown credential", "unknown_credential", 401);
+				throw new AuthenticationException("Unknown credential", "unknown_credential");
 			}
 
 			$user = SQL::fetch("SELECT * FROM bigtree_users WHERE id = ?", $passkey["user"]);
 
 			if (!$user) {
 				$this->recordFailedAttempt($ip, (int)$passkey["user"]);
-				throw new AuthenticationException("Credential's user no longer exists", "unknown_user", 401);
+				throw new AuthenticationException("Credential's user no longer exists", "unknown_user");
 			}
 
 			if (BigTreeAdmin::isUserBanned($user["id"])) {
-				throw new AuthorizationException("User is temporarily banned", "user_banned", 403);
+				throw new AuthorizationException("User is temporarily banned", "user_banned");
 			}
 
 			// Install the stored challenge into the WebAuthn library's expected location so its check passes.
@@ -665,7 +666,7 @@
 				// CRITICAL: record the failed attempt — the legacy loginPasskey forgot to.
 				$this->recordFailedAttempt($ip, (int)$user["id"]);
 				BigTree::log("Passkey authentication failed for credential $credential_id: " . $e->getMessage());
-				throw new AuthenticationException("Passkey verification failed", "passkey_failed", 401);
+				throw new AuthenticationException("Passkey verification failed", "passkey_failed");
 			} finally {
 				unset($_SESSION["bigtree_passkey_challenge"]);
 			}
@@ -690,7 +691,7 @@
 			$email = strtolower(trim((string)($request->body["email"] ?? "")));
 
 			if ($email === "") {
-				throw new BadRequestException("email required", "missing_email", 400);
+				throw new BadRequestException("email required", "missing_email");
 			}
 
 			$user = SQL::fetch("SELECT id, email, password FROM bigtree_users WHERE LOWER(email) = ?", $email);
@@ -721,17 +722,17 @@
 			$password = trim((string)($request->body["password"] ?? ""));
 
 			if ($token === "" || $password === "") {
-				throw new BadRequestException("token and password required", "missing_fields", 400);
+				throw new BadRequestException("token and password required", "missing_fields");
 			}
 
 			if (!BigTreeAdmin::validatePassword($password)) {
-				throw new BadRequestException("Password does not meet policy requirements", "weak_password", 400);
+				throw new BadRequestException("Password does not meet policy requirements", "weak_password");
 			}
 
 			$user = SQL::fetch("SELECT * FROM bigtree_users WHERE change_password_hash = ?", $token);
 
 			if (!$user) {
-				throw new AuthenticationException("Invalid or expired reset token", "invalid_token", 401);
+				throw new AuthenticationException("Invalid or expired reset token", "invalid_token");
 			}
 
 			// Enforce the embedded expiry (see forgotPassword). Tokens without a valid
@@ -741,7 +742,7 @@
 
 			if ($expiry === null || $expiry < time()) {
 				SQL::update("bigtree_users", $user["id"], ["change_password_hash" => ""]);
-				throw new AuthenticationException("Invalid or expired reset token", "invalid_token", 401);
+				throw new AuthenticationException("Invalid or expired reset token", "invalid_token");
 			}
 
 			SQL::update("bigtree_users", $user["id"], [
@@ -814,7 +815,7 @@
 			$name = trim((string)($request->body["name"] ?? "")) ?: "Passkey";
 
 			if ($challenge_id === "" || $client_data_json === "" || $attestation_object === "") {
-				throw new BadRequestException("Missing passkey registration fields", "missing_fields", 400);
+				throw new BadRequestException("Missing passkey registration fields", "missing_fields");
 			}
 
 			$ttl = (int)self::PASSKEY_CHALLENGE_TTL;
@@ -824,7 +825,7 @@
 			);
 
 			if (!$challenge_row) {
-				throw new AuthenticationException("Registration challenge invalid or expired", "invalid_challenge", 401);
+				throw new AuthenticationException("Registration challenge invalid or expired", "invalid_challenge");
 			}
 
 			$parsed = parse_url(ADMIN_ROOT);
@@ -841,7 +842,7 @@
 				], $origin, $rp_id);
 			} catch (Exception $e) {
 				BigTree::log("Passkey registration failed for user $user_id: " . $e->getMessage());
-				throw new BadRequestException("Passkey verification failed", "passkey_invalid", 400);
+				throw new BadRequestException("Passkey verification failed", "passkey_invalid");
 			} finally {
 				unset($_SESSION["bigtree_passkey_challenge"]);
 			}
@@ -889,7 +890,7 @@
 		 * DELETE /auth/passkeys/{id} — remove a passkey owned by the current user.
 		 */
 		public function deletePasskey(Request $request) {
-			$passkey_id = (int)$request->route_params["id"];
+			$passkey_id = $request->id();
 			BigTreeAdmin::deletePasskey($passkey_id, (int)$request->user->id);
 
 			return Response::noContent();

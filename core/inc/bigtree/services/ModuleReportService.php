@@ -52,7 +52,7 @@
 			$existing = $this->findSub($module["reports"] ?? [], $report_id);
 
 			if (!$existing) {
-				throw new NotFoundException("Report $report_id not found", "resource_not_found", 404);
+				throw new NotFoundException("Report $report_id not found");
 			}
 
 			$d = $request->body;
@@ -105,7 +105,7 @@
 			$existing = $this->findSub($module["reports"] ?? [], $report_id);
 
 			if (!$existing) {
-				throw new NotFoundException("Report $report_id not found", "resource_not_found", 404);
+				throw new NotFoundException("Report $report_id not found");
 			}
 
 			$context = BigTreeJSONDB::getSubset("modules", $module_id);
@@ -141,7 +141,7 @@
 			$report = \BigTreeAutoModule::getReport($report_id);
 
 			if (!$report) {
-				throw new NotFoundException("Report $report_id not found", "resource_not_found", 404);
+				throw new NotFoundException("Report $report_id not found");
 			}
 
 			$form = \BigTreeAutoModule::getRelatedFormForReport($report);
@@ -204,13 +204,13 @@
 			$existing = $this->findSub($module["reports"] ?? [], $report_id);
 
 			if (!$existing) {
-				throw new NotFoundException("Report $report_id not found", "resource_not_found", 404);
+				throw new NotFoundException("Report $report_id not found");
 			}
 
 			$report = \BigTreeAutoModule::getReport($report_id);
 
 			if (!$report) {
-				throw new NotFoundException("Report $report_id not found", "resource_not_found", 404);
+				throw new NotFoundException("Report $report_id not found");
 			}
 
 			$form = \BigTreeAutoModule::getRelatedFormForReport($report);

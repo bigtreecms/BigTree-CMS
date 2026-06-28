@@ -2,10 +2,38 @@
 	namespace BigTree\Api;
 
 	use BigTree\Api\Exceptions\BadRequestException;
+	use SQL;
 
 	class Pagination {
 		const DEFAULT_PER_PAGE = 25;
 		const MAX_PER_PAGE = 100;
+
+		/**
+		 * Run the offset-pagination spine shared by the list endpoints: resolve the
+		 * page window, COUNT the total, fetch the page slice, map rows through
+		 * $present, and wrap it in Response::ok with offset meta.
+		 *
+		 * Callers pass the two fully-formed queries (so joins, aliases, and custom
+		 * WHERE clauses stay under their control and the SQL is unchanged); the
+		 * shared $args bind both, and LIMIT/OFFSET is appended to $rows_query here.
+		 *
+		 * @param string   $count_query "SELECT COUNT(*) FROM …" with "?" placeholders.
+		 * @param string   $rows_query  "SELECT … FROM … ORDER BY …" WITHOUT LIMIT/OFFSET.
+		 * @param array    $args        Values bound to both queries' placeholders.
+		 * @param callable $present     Row mapper applied to each fetched row.
+		 */
+		public static function paginate(Request $request, string $count_query, string $rows_query, array $args, callable $present, int $max_per_page = self::MAX_PER_PAGE): Response {
+			$p = self::offset($request, $max_per_page);
+
+			$total = (int)SQL::fetchSingle(...array_merge([$count_query], $args));
+
+			$paged = $rows_query . " LIMIT " . (int)$p["limit"] . " OFFSET " . (int)$p["offset"];
+			$rows = SQL::fetchAll(...array_merge([$paged], $args));
+
+			$items = array_map($present, $rows);
+
+			return Response::ok($items, self::offsetMeta($p["page"], $p["per_page"], $total));
+		}
 
 		public static function offset(Request $request, $max_per_page = self::MAX_PER_PAGE) {
 			$page = max(1, (int)($request->query["page"] ?? 1));
@@ -39,20 +67,20 @@
 
 		public static function decodeCursor($cursor, $secret) {
 			if (!is_string($cursor) || strpos($cursor, ".") === false) {
-				throw new BadRequestException("Invalid cursor", "invalid_cursor", 400);
+				throw new BadRequestException("Invalid cursor", "invalid_cursor");
 			}
 
 			[$body, $sig] = explode(".", $cursor, 2);
 			$expected = self::base64url(substr(hash_hmac("sha256", $body, $secret, true), 0, 16));
 
 			if (!hash_equals($expected, $sig)) {
-				throw new BadRequestException("Cursor signature invalid", "invalid_cursor", 400);
+				throw new BadRequestException("Cursor signature invalid", "invalid_cursor");
 			}
 
 			$payload = json_decode(self::base64urlDecode($body), true);
 
 			if (!is_array($payload)) {
-				throw new BadRequestException("Cursor payload invalid", "invalid_cursor", 400);
+				throw new BadRequestException("Cursor payload invalid", "invalid_cursor");
 			}
 
 			return $payload;

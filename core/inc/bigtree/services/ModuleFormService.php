@@ -64,7 +64,7 @@
 			$existing = $this->findSub($module["forms"] ?? [], $form_id);
 
 			if (!$existing) {
-				throw new NotFoundException("Form $form_id not found", "resource_not_found", 404);
+				throw new NotFoundException("Form $form_id not found");
 			}
 
 			$d = $request->body;
@@ -145,7 +145,7 @@
 			$existing = $this->findSub($module["forms"] ?? [], $form_id);
 
 			if (!$existing) {
-				throw new NotFoundException("Form $form_id not found", "resource_not_found", 404);
+				throw new NotFoundException("Form $form_id not found");
 			}
 
 			$context = BigTreeJSONDB::getSubset("modules", $module_id);
@@ -166,14 +166,14 @@
 			$column = (string)($request->query["column"] ?? "");
 
 			if ($column === "") {
-				throw new BadRequestException("`column` query param is required", "missing_column", 400);
+				throw new BadRequestException("`column` query param is required", "missing_column");
 			}
 
 			$module = $this->loadModule($module_id);
 			$form = $this->findSub($module["forms"] ?? [], $form_id);
 
 			if (!$form) {
-				throw new NotFoundException("Form $form_id not found", "resource_not_found", 404);
+				throw new NotFoundException("Form $form_id not found");
 			}
 
 			$field = null;
@@ -187,17 +187,13 @@
 			}
 
 			if (!$field) {
-				throw new NotFoundException("Field `$column` not found in form $form_id", "resource_not_found", 404);
+				throw new NotFoundException("Field `$column` not found in form $form_id");
 			}
 
 			$type = (string)($field["type"] ?? "");
 
 			if ($type !== "one-to-many" && $type !== "many-to-many") {
-				throw new BadRequestException(
-					"Field `$column` is type `$type`, not a relation field",
-					"invalid_field_type",
-					400
-				);
+				throw new BadRequestException("Field `$column` is type `$type`, not a relation field", "invalid_field_type");
 			}
 
 			$settings = is_array($field["settings"] ?? null) ? $field["settings"] : [];
@@ -226,25 +222,17 @@
 			}
 
 			if ($table === "" || $descriptor === "") {
-				throw new BadRequestException(
-					"Field `$column` is missing table/descriptor settings",
-					"invalid_field_settings",
-					400
-				);
+				throw new BadRequestException("Field `$column` is missing table/descriptor settings", "invalid_field_settings");
 			}
 
 			$schema = BigTree::describeTable($table);
 
 			if (!$schema || empty($schema["columns"])) {
-				throw new NotFoundException("Table `$table` not found", "resource_not_found", 404);
+				throw new NotFoundException("Table `$table` not found");
 			}
 
 			if (empty($schema["columns"][$descriptor])) {
-				throw new BadRequestException(
-					"Descriptor column `$descriptor` does not exist on `$table`",
-					"invalid_field_settings",
-					400
-				);
+				throw new BadRequestException("Descriptor column `$descriptor` does not exist on `$table`", "invalid_field_settings");
 			}
 
 			// Sort clause — validate against the column list so we never
@@ -259,15 +247,11 @@
 			// stored position when the connecting table is sortable.
 			if ($entry_raw !== "") {
 				if ($type !== "many-to-many") {
-					throw new BadRequestException(
-						"`?entry=` is only valid for many-to-many fields",
-						"invalid_request",
-						400
-					);
+					throw new BadRequestException("`?entry=` is only valid for many-to-many fields", "invalid_request");
 				}
 
 				if (!ctype_digit($entry_raw)) {
-					throw new BadRequestException("`entry` must be a positive integer", "invalid_request", 400);
+					throw new BadRequestException("`entry` must be a positive integer", "invalid_request");
 				}
 
 				$entry_id = (int)$entry_raw;
@@ -275,21 +259,13 @@
 				$other_id_col = (string)($settings["mtm-other-id"] ?? "");
 
 				if ($my_id_col === "" || $other_id_col === "" || $conn_table === "") {
-					throw new BadRequestException(
-						"Field `$column` is missing connecting-table settings",
-						"invalid_field_settings",
-						400
-					);
+					throw new BadRequestException("Field `$column` is missing connecting-table settings", "invalid_field_settings");
 				}
 
 				$conn_schema = BigTree::describeTable($conn_table);
 
 				if (!$conn_schema || empty($conn_schema["columns"][$my_id_col]) || empty($conn_schema["columns"][$other_id_col])) {
-					throw new BadRequestException(
-						"Connecting-table columns missing for field `$column`",
-						"invalid_field_settings",
-						400
-					);
+					throw new BadRequestException("Connecting-table columns missing for field `$column`", "invalid_field_settings");
 				}
 
 				$conn_order = $sortable ? "`position` DESC" : "`id` ASC";
@@ -417,14 +393,14 @@
 			$column = (string)($request->query["column"] ?? "");
 
 			if ($column === "") {
-				throw new BadRequestException("`column` query param is required", "missing_column", 400);
+				throw new BadRequestException("`column` query param is required", "missing_column");
 			}
 
 			$module = $this->loadModule($module_id);
 			$form = $this->findSub($module["forms"] ?? [], $form_id);
 
 			if (!$form) {
-				throw new NotFoundException("Form $form_id not found", "resource_not_found", 404);
+				throw new NotFoundException("Form $form_id not found");
 			}
 
 			$field = null;
@@ -438,11 +414,11 @@
 			}
 
 			if (!$field) {
-				throw new NotFoundException("Field `$column` not found in form $form_id", "resource_not_found", 404);
+				throw new NotFoundException("Field `$column` not found in form $form_id");
 			}
 
 			if ((string)($field["type"] ?? "") !== "list") {
-				throw new BadRequestException("Field `$column` is not a list field", "invalid_field_type", 400);
+				throw new BadRequestException("Field `$column` is not a list field", "invalid_field_type");
 			}
 
 			$settings = is_array($field["settings"] ?? null) ? $field["settings"] : [];
@@ -482,17 +458,17 @@
 			$sort = (string)($settings["pop-sort"] ?? "");
 
 			if ($table === "" || $descriptor === "") {
-				throw new BadRequestException("Field `$column` is missing table/descriptor settings", "invalid_field_settings", 400);
+				throw new BadRequestException("Field `$column` is missing table/descriptor settings", "invalid_field_settings");
 			}
 
 			$schema = BigTree::describeTable($table);
 
 			if (!$schema || empty($schema["columns"])) {
-				throw new NotFoundException("Table `$table` not found", "resource_not_found", 404);
+				throw new NotFoundException("Table `$table` not found");
 			}
 
 			if (empty($schema["columns"][$descriptor]) || empty($schema["columns"]["id"])) {
-				throw new BadRequestException("Field `$column` references columns that don't exist on `$table`", "invalid_field_settings", 400);
+				throw new BadRequestException("Field `$column` references columns that don't exist on `$table`", "invalid_field_settings");
 			}
 
 			$order_by = \BigTree\Api\Sanitize::orderClause($sort, $schema["columns"], $descriptor);

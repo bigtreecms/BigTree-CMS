@@ -48,28 +48,28 @@
 		 */
 		public static function rotate($raw, $ip, $user_agent) {
 			if (!is_string($raw) || $raw === "") {
-				throw new AuthenticationException("Missing refresh token", "no_refresh_token", 401);
+				throw new AuthenticationException("Missing refresh token", "no_refresh_token");
 			}
 
 			$hash = hash("sha256", $raw);
 			$row = SQL::fetch("SELECT * FROM bigtree_refresh_tokens WHERE token_hash = ?", $hash);
 
 			if (!$row) {
-				throw new AuthenticationException("Refresh token invalid", "invalid_refresh_token", 401);
+				throw new AuthenticationException("Refresh token invalid", "invalid_refresh_token");
 			}
 
 			if ((int)$row["revoked"] === 1) {
-				throw new AuthenticationException("Refresh token revoked", "revoked_refresh_token", 401);
+				throw new AuthenticationException("Refresh token revoked", "revoked_refresh_token");
 			}
 
 			if (!empty($row["rotated_to"])) {
 				// Reuse detected — revoke entire family and force re-login.
 				self::revokeFamily($row["family_id"]);
-				throw new AuthenticationException("Refresh token reuse detected; family revoked", "token_reuse", 401);
+				throw new AuthenticationException("Refresh token reuse detected; family revoked", "token_reuse");
 			}
 
 			if (strtotime($row["expires_at"]) < time()) {
-				throw new AuthenticationException("Refresh token expired", "refresh_token_expired", 401);
+				throw new AuthenticationException("Refresh token expired", "refresh_token_expired");
 			}
 
 			// Preserve the session class across rotation: a family minted without

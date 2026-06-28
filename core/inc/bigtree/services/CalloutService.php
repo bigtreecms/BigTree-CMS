@@ -1,6 +1,7 @@
 <?php
 	namespace BigTree\Services;
 
+	use BigTree\Api\Entity;
 	use BigTree\Api\Request;
 	use BigTree\Api\Response;
 	use BigTree\Api\ETag;
@@ -18,12 +19,9 @@
 		}
 
 		public function get(Request $request) {
-			$id = (string)$request->route_params["id"];
-			$c = BigTreeJSONDB::get("callouts", $id);
+			$id = $request->routeParam("id");
+			$c = Entity::findOrFailJson("callouts", $id, "Callout");
 
-			if (!$c) {
-				throw new NotFoundException("Callout $id not found", "resource_not_found", 404);
-			}
 			return Response::ok($this->present($c));
 		}
 
@@ -32,11 +30,11 @@
 			$id = (string)$d["id"];
 
 			if (!ctype_alnum(str_replace(["-", "_"], "", $id)) || strlen($id) > 127) {
-				throw new BadRequestException("Callout id must be alphanumeric (with - or _) and ≤ 127 chars", "invalid_id", 400);
+				throw new BadRequestException("Callout id must be alphanumeric (with - or _) and ≤ 127 chars", "invalid_id");
 			}
 
 			if (BigTreeJSONDB::exists("callouts", $id)) {
-				throw new ConflictException("Callout $id already exists", "duplicate_id", 409);
+				throw new ConflictException("Callout $id already exists", "duplicate_id");
 			}
 
 			BigTreeJSONDB::incrementPosition("callouts");
@@ -55,12 +53,8 @@
 		}
 
 		public function update(Request $request) {
-			$id = (string)$request->route_params["id"];
-			$existing = BigTreeJSONDB::get("callouts", $id);
-
-			if (!$existing) {
-				throw new NotFoundException("Callout $id not found", "resource_not_found", 404);
-			}
+			$id = $request->routeParam("id");
+			$existing = Entity::findOrFailJson("callouts", $id, "Callout");
 
 			$d = $request->body;
 			$next = array_merge($existing, [
@@ -77,10 +71,10 @@
 		}
 
 		public function delete(Request $request) {
-			$id = (string)$request->route_params["id"];
+			$id = $request->routeParam("id");
 
 			if (!BigTreeJSONDB::exists("callouts", $id)) {
-				throw new NotFoundException("Callout $id not found", "resource_not_found", 404);
+				throw new NotFoundException("Callout $id not found");
 			}
 
 			BigTreeJSONDB::delete("callouts", $id);
@@ -109,12 +103,9 @@
 		}
 
 		public function getGroup(Request $request) {
-			$id = (string)$request->route_params["id"];
-			$g = BigTreeJSONDB::get("callout-groups", $id);
+			$id = $request->routeParam("id");
+			$g = Entity::findOrFailJson("callout-groups", $id, "Callout group");
 
-			if (!$g) {
-				throw new NotFoundException("Callout group $id not found", "resource_not_found", 404);
-			}
 			return Response::ok($g);
 		}
 
@@ -123,7 +114,7 @@
 			$id = (string)$d["id"];
 
 			if (BigTreeJSONDB::exists("callout-groups", $id)) {
-				throw new ConflictException("Callout group $id already exists", "duplicate_id", 409);
+				throw new ConflictException("Callout group $id already exists", "duplicate_id");
 			}
 
 			BigTreeJSONDB::insert("callout-groups", [
@@ -136,12 +127,8 @@
 		}
 
 		public function updateGroup(Request $request) {
-			$id = (string)$request->route_params["id"];
-			$existing = BigTreeJSONDB::get("callout-groups", $id);
-
-			if (!$existing) {
-				throw new NotFoundException("Callout group $id not found", "resource_not_found", 404);
-			}
+			$id = $request->routeParam("id");
+			$existing = Entity::findOrFailJson("callout-groups", $id, "Callout group");
 			$d = $request->body;
 			$next = array_merge($existing, [
 				"name" => isset($d["name"]) ? BigTree::safeEncode($d["name"]) : $existing["name"],
@@ -153,10 +140,10 @@
 		}
 
 		public function deleteGroup(Request $request) {
-			$id = (string)$request->route_params["id"];
+			$id = $request->routeParam("id");
 
 			if (!BigTreeJSONDB::exists("callout-groups", $id)) {
-				throw new NotFoundException("Callout group $id not found", "resource_not_found", 404);
+				throw new NotFoundException("Callout group $id not found");
 			}
 
 			BigTreeJSONDB::delete("callout-groups", $id);

@@ -108,7 +108,7 @@
 			$existing = $this->findSub($module["views"] ?? [], $view_id);
 
 			if (!$existing) {
-				throw new NotFoundException("View $view_id not found", "resource_not_found", 404);
+				throw new NotFoundException("View $view_id not found");
 			}
 
 			$d = $request->body;
@@ -175,7 +175,7 @@
 			$existing = $this->findSub($module["views"] ?? [], $view_id);
 
 			if (!$existing) {
-				throw new NotFoundException("View $view_id not found", "resource_not_found", 404);
+				throw new NotFoundException("View $view_id not found");
 			}
 
 			$context = BigTreeJSONDB::getSubset("modules", $module_id);

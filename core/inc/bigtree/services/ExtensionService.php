@@ -36,21 +36,21 @@
 		}
 
 		public function get(Request $request) {
-			$id = (string)$request->route_params["id"];
+			$id = $request->routeParam("id");
 			$ext = BigTreeAdmin::getExtension($id);
 
 			if (!$ext) {
-				throw new NotFoundException("Extension $id not found", "resource_not_found", 404);
+				throw new NotFoundException("Extension $id not found");
 			}
 			return Response::ok($this->present($ext));
 		}
 
 		public function delete(Request $request) {
-			$id = (string)$request->route_params["id"];
+			$id = $request->routeParam("id");
 			$ext = BigTreeAdmin::getExtension($id);
 
 			if (!$ext) {
-				throw new NotFoundException("Extension $id not found", "resource_not_found", 404);
+				throw new NotFoundException("Extension $id not found");
 			}
 
 			$manifest = $ext["manifest"] ?? [];
@@ -145,20 +145,20 @@
 		public function installUnpack(Request $request) {
 			foreach (["cache/", "extensions/", "site/extensions/"] as $dir) {
 				if (!is_writable(SERVER_ROOT . $dir)) {
-					throw new BadRequestException("The /$dir directory must be writable to install extensions.", "not_writable", 400);
+					throw new BadRequestException("The /$dir directory must be writable to install extensions.", "not_writable");
 				}
 			}
 
 			$file_set = $request->file("file");
 
 			if (!$file_set) {
-				throw new BadRequestException("Missing 'file' upload", "missing_file", 400);
+				throw new BadRequestException("Missing 'file' upload", "missing_file");
 			}
 
 			$file = $file_set[0];
 
 			if (!empty($file["error"]) || empty($file["tmp_name"])) {
-				throw new BadRequestException("File upload failed.", "upload_failed", 400);
+				throw new BadRequestException("File upload failed.", "upload_failed");
 			}
 
 			// Clean + recreate the staging area, then unzip into it.
@@ -181,7 +181,7 @@
 			if (!$files) {
 				BigTree::deleteDirectory($cache_root);
 
-				throw new BadRequestException("The file uploaded is either not a zip file or is corrupt.", "bad_zip", 400);
+				throw new BadRequestException("The file uploaded is either not a zip file or is corrupt.", "bad_zip");
 			}
 
 			$manifest = json_decode((string)@file_get_contents($cache_root . "manifest.json"), true);
@@ -197,13 +197,13 @@
 			) {
 				BigTree::deleteDirectory($cache_root);
 
-				throw new BadRequestException("The zip file uploaded does not appear to be a BigTree extension.", "not_extension", 400);
+				throw new BadRequestException("The zip file uploaded does not appear to be a BigTree extension.", "not_extension");
 			}
 
 			if (BigTreeJSONDB::exists("extensions", $manifest["id"])) {
 				BigTree::deleteDirectory($cache_root);
 
-				throw new ConflictException("An extension with the id " . $manifest["id"] . " is already installed.", "already_installed", 409);
+				throw new ConflictException("An extension with the id " . $manifest["id"] . " is already installed.", "already_installed");
 			}
 
 			$warnings = [];
@@ -248,11 +248,11 @@
 			$manifest = json_decode((string)@file_get_contents($cache_root . "manifest.json"), true);
 
 			if (!is_array($manifest) || empty($manifest["id"])) {
-				throw new BadRequestException("No staged extension to install — upload a package first.", "no_staged_package", 400);
+				throw new BadRequestException("No staged extension to install — upload a package first.", "no_staged_package");
 			}
 
 			if (BigTreeJSONDB::exists("extensions", $manifest["id"])) {
-				throw new ConflictException("An extension with the id " . $manifest["id"] . " is already installed.", "already_installed", 409);
+				throw new ConflictException("An extension with the id " . $manifest["id"] . " is already installed.", "already_installed");
 			}
 
 			$admin = new BigTreeAdmin();
@@ -285,17 +285,17 @@
 		// writable extensions/{id}/ (the same requirement as Install). Installs that need
 		// FTP should upload the new version via the installer instead.
 		public function upgrade(Request $request) {
-			$id = (string)$request->route_params["id"];
+			$id = $request->routeParam("id");
 			$ext = BigTreeAdmin::getExtension($id);
 
 			if (!$ext) {
-				throw new NotFoundException("Extension $id not found", "resource_not_found", 404);
+				throw new NotFoundException("Extension $id not found");
 			}
 
 			$ext_dir = SERVER_ROOT . "extensions/" . str_replace(["/", "\\", ".."], "", $id) . "/";
 
 			if (!is_writable($ext_dir)) {
-				throw new BadRequestException("The extensions/$id directory isn't writable — upload the new version via the installer instead.", "not_writable", 400);
+				throw new BadRequestException("The extensions/$id directory isn't writable — upload the new version via the installer instead.", "not_writable");
 			}
 
 			$old_manifest = $this->localManifest($id) ?: (array)($ext["manifest"] ?? []);
@@ -310,7 +310,7 @@
 			$download_url = $info[$id]["github_url"] ?? "";
 
 			if ($download_url === "") {
-				throw new BadRequestException("No download is available for this extension from the registry.", "no_download", 400);
+				throw new BadRequestException("No download is available for this extension from the registry.", "no_download");
 			}
 
 			// Download the package to a temp zip.
@@ -349,7 +349,7 @@
 				BigTree::deleteDirectory($stage);
 				@unlink($zip_path);
 
-				throw new BadRequestException("The downloaded update is not a valid zip.", "bad_zip", 400);
+				throw new BadRequestException("The downloaded update is not a valid zip.", "bad_zip");
 			}
 
 			$new_manifest = json_decode((string)@file_get_contents($stage . "manifest.json"), true);
@@ -358,7 +358,7 @@
 				BigTree::deleteDirectory($stage);
 				@unlink($zip_path);
 
-				throw new BadRequestException("The downloaded package does not match this extension.", "manifest_mismatch", 400);
+				throw new BadRequestException("The downloaded package does not match this extension.", "manifest_mismatch");
 			}
 
 			// Replace the extension's files (extensions are self-contained under
@@ -636,7 +636,7 @@
 			$id = trim((string)($d["id"] ?? ""));
 
 			if (!ctype_alnum(str_replace([".", "-", "_"], "", $id)) || $id === "") {
-				throw new BadRequestException("Extension ID may only contain letters, numbers, '.', '-', and '_'.", "invalid_id", 400);
+				throw new BadRequestException("Extension ID may only contain letters, numbers, '.', '-', and '_'.", "invalid_id");
 			}
 
 			$title = (string)($d["title"] ?? "");
@@ -908,27 +908,27 @@
 			$raw_token = (string)($request->query["token"] ?? "");
 
 			if ($raw_token === "") {
-				throw new AuthenticationException("Missing download token", "missing_token", 401);
+				throw new AuthenticationException("Missing download token", "missing_token");
 			}
 
 			try {
 				$payload = Pagination::decodeCursor($raw_token, Jwt::currentSecret());
 			} catch (\Throwable $e) {
-				throw new AuthenticationException("Invalid download token", "invalid_token", 401);
+				throw new AuthenticationException("Invalid download token", "invalid_token");
 			}
 
 			if (($payload["eid"] ?? "") !== $id) {
-				throw new AuthenticationException("Token does not match this package", "token_mismatch", 401);
+				throw new AuthenticationException("Token does not match this package", "token_mismatch");
 			}
 
 			if (((int)($payload["exp"] ?? 0)) < time()) {
-				throw new AuthenticationException("Download token expired", "token_expired", 401);
+				throw new AuthenticationException("Download token expired", "token_expired");
 			}
 
 			$path = SERVER_ROOT . "cache/extension-build-" . preg_replace('/[^a-zA-Z0-9._-]/', "", $id) . ".zip";
 
 			if (!file_exists($path)) {
-				throw new NotFoundException("Package not found — rebuild the extension.", "package_not_found", 404);
+				throw new NotFoundException("Package not found — rebuild the extension.", "package_not_found");
 			}
 
 			$response = Response::raw(200, []);

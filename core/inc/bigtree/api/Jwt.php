@@ -36,7 +36,7 @@
 		 */
 		public static function decode($token, $secret, $expected_iss, $expected_aud) {
 			if (!is_string($token) || substr_count($token, ".") !== 2) {
-				throw new AuthenticationException("Malformed token", "invalid_token", 401);
+				throw new AuthenticationException("Malformed token", "invalid_token");
 			}
 
 			[$h64, $p64, $s64] = explode(".", $token, 3);
@@ -58,7 +58,7 @@
 			}
 
 			if (!$verified) {
-				throw new AuthenticationException("Signature mismatch", "invalid_token", 401);
+				throw new AuthenticationException("Signature mismatch", "invalid_token");
 			}
 
 			// Decode header and payload AFTER signature verification — never trust pre-verified input.
@@ -66,35 +66,35 @@
 			$claims = json_decode(self::base64urlDecode($p64), true);
 
 			if (!is_array($header) || !is_array($claims)) {
-				throw new AuthenticationException("Malformed token payload", "invalid_token", 401);
+				throw new AuthenticationException("Malformed token payload", "invalid_token");
 			}
 
 			// The header alg is ignored for verification (we hardcode HS256 above),
 			// but we still sanity-check it so misconfigured clients fail clearly.
 			if (($header["alg"] ?? "") !== self::ALG) {
-				throw new AuthenticationException("Unsupported algorithm", "invalid_token", 401);
+				throw new AuthenticationException("Unsupported algorithm", "invalid_token");
 			}
 
 			$now = time();
 
 			if (!isset($claims["exp"]) || ($claims["exp"] + self::LEEWAY_SECONDS) < $now) {
-				throw new AuthenticationException("Token expired", "token_expired", 401);
+				throw new AuthenticationException("Token expired", "token_expired");
 			}
 
 			if (isset($claims["nbf"]) && ($claims["nbf"] - self::LEEWAY_SECONDS) > $now) {
-				throw new AuthenticationException("Token not yet valid", "invalid_token", 401);
+				throw new AuthenticationException("Token not yet valid", "invalid_token");
 			}
 
 			if (($claims["iss"] ?? null) !== $expected_iss) {
-				throw new AuthenticationException("Wrong issuer", "invalid_token", 401);
+				throw new AuthenticationException("Wrong issuer", "invalid_token");
 			}
 
 			if (($claims["aud"] ?? null) !== $expected_aud) {
-				throw new AuthenticationException("Wrong audience", "invalid_token", 401);
+				throw new AuthenticationException("Wrong audience", "invalid_token");
 			}
 
 			if (!isset($claims["sub"])) {
-				throw new AuthenticationException("Missing subject", "invalid_token", 401);
+				throw new AuthenticationException("Missing subject", "invalid_token");
 			}
 
 			return $claims;

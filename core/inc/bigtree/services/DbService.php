@@ -40,12 +40,12 @@
 		}
 
 		public function columns(Request $request) {
-			$table = (string)$request->route_params["table"];
+			$table = $request->routeParam("table");
 			$sort = !empty($request->query["sort"]);
 			$description = BigTree::describeTable($table);
 
 			if (!$description) {
-				throw new NotFoundException("Table $table not found", "resource_not_found", 404);
+				throw new NotFoundException("Table $table not found");
 			}
 			$options = [];
 

@@ -1,6 +1,8 @@
 <?php
 	namespace BigTree\Services;
 
+	use BigTree\Api\Entity;
+	use BigTree\Api\Sanitize;
 	use BigTree\Api\Hooks;
 	use BigTree\Api\Pagination;
 	use BigTree\Api\Request;
@@ -136,14 +138,10 @@
 		}
 
 		public function get(Request $request) {
-			$id = (int)$request->route_params["id"];
+			$id = $request->id();
 			$this->enforce($request->user, $id, "v");
 
-			$page = SQL::fetch("SELECT * FROM bigtree_pages WHERE id = ?", $id);
-
-			if (!$page) {
-				throw new NotFoundException("Page $id not found", "resource_not_found", 404);
-			}
+			$page = Entity::findOrFail("bigtree_pages", $id, "Page");
 
 			$out = $this->present($page, true);
 
@@ -170,14 +168,10 @@
 		// 0-100 score, the human recommendations, and the legacy gradient color so
 		// the SPA can render the rating verbatim.
 		public function seoRating(Request $request) {
-			$id = (int)$request->route_params["id"];
+			$id = $request->id();
 			$this->enforce($request->user, $id, "v");
 
-			$page = SQL::fetch("SELECT * FROM bigtree_pages WHERE id = ?", $id);
-
-			if (!$page) {
-				throw new NotFoundException("Page $id not found", "resource_not_found", 404);
-			}
+			$page = Entity::findOrFail("bigtree_pages", $id, "Page");
 
 			$content = json_decode($page["resources"] ?: "{}", true) ?: [];
 			$seo = BigTreeAdmin::getPageSEORating($page, $content);
@@ -209,7 +203,7 @@
 			// Publishers (and global admins/devs) may write live by passing publish=true;
 			// everyone else — and publishers who leave it off — creates a NEW pending draft.
 			$access = PermissionService::userPageLevel($request->user, $parent);
-			$can_publish = ($access === "p") || ((int)$request->user->level > 0);
+			$can_publish = PermissionService::isPublisher($request->user, $access);
 
 			if (empty($d["publish"]) || !$can_publish) {
 				$pending_id = $this->writePendingPageChange($request->user, "NEW", $parent, $d);
@@ -305,10 +299,10 @@
 		 * publishers) and bucketed by the resulting rank.
 		 */
 		public function accessLevels(Request $request) {
-			$id = (int)$request->route_params["id"];
+			$id = $request->id();
 
 			if (!SQL::exists("bigtree_pages", $id)) {
-				throw new NotFoundException("Page $id not found", "resource_not_found", 404);
+				throw new NotFoundException("Page $id not found");
 			}
 
 			$publishers = [];
@@ -348,17 +342,13 @@
 		 * Open Graph are carried into the copy too.
 		 */
 		public function duplicate(Request $request) {
-			$id = (int)$request->route_params["id"];
-			$page = SQL::fetch("SELECT * FROM bigtree_pages WHERE id = ?", $id);
-
-			if (!$page) {
-				throw new NotFoundException("Page $id not found", "resource_not_found", 404);
-			}
+			$id = $request->id();
+			$page = Entity::findOrFail("bigtree_pages", $id, "Page");
 
 			$parent = (int)$page["parent"];
 
 			if ($parent < 1) {
-				throw new BadRequestException("Top-level pages can't be duplicated", "not_duplicatable", 400);
+				throw new BadRequestException("Top-level pages can't be duplicated", "not_duplicatable");
 			}
 
 			$this->enforce($request->user, $id, "p", "duplicate");
@@ -402,21 +392,17 @@
 		}
 
 		public function update(Request $request) {
-			$id = (int)$request->route_params["id"];
+			$id = $request->id();
 			$this->enforce($request->user, $id, "e");
 
-			$page = SQL::fetch("SELECT * FROM bigtree_pages WHERE id = ?", $id);
-
-			if (!$page) {
-				throw new NotFoundException("Page $id not found", "resource_not_found", 404);
-			}
+			$page = Entity::findOrFail("bigtree_pages", $id, "Page");
 
 			$d = $request->body;
 
 			// Publishers (and global admins/devs) may write live by passing publish=true;
 			// everyone else — and publishers who leave it off — queues an EDIT draft.
 			$access = PermissionService::userPageLevel($request->user, $id);
-			$can_publish = ($access === "p") || ((int)$request->user->level > 0);
+			$can_publish = PermissionService::isPublisher($request->user, $access);
 
 			if (empty($d["publish"]) || !$can_publish) {
 				$pending_id = $this->writePendingPageChange($request->user, "EDIT", $id, $d);
@@ -664,11 +650,7 @@
 				$result = $this->performCreate($d, $user);
 			} else {
 				$id = (int)$row["item_id"];
-				$page = SQL::fetch("SELECT * FROM bigtree_pages WHERE id = ?", $id);
-
-				if (!$page) {
-					throw new NotFoundException("Page $id not found", "resource_not_found", 404);
-				}
+				$page = Entity::findOrFail("bigtree_pages", $id, "Page");
 
 				$result = $this->performUpdate($id, $page, $d, $user);
 			}
@@ -751,7 +733,7 @@
 		 * the draft's intended parent.
 		 */
 		public function getPending(Request $request) {
-			$pcid = (int)$request->route_params["pcid"];
+			$pcid = $request->routeParam("pcid", "int");
 			$change = $this->loadPendingNew($pcid);
 			$parent = (int)$change["pending_page_parent"];
 			$this->enforce($request->user, $parent, "e", "edit draft");
@@ -771,14 +753,14 @@
 		 * payload on publish, or a pending marker on draft save.
 		 */
 		public function updatePending(Request $request) {
-			$pcid = (int)$request->route_params["pcid"];
+			$pcid = $request->routeParam("pcid", "int");
 			$change = $this->loadPendingNew($pcid);
 			$parent = (int)$change["pending_page_parent"];
 			$this->enforce($request->user, $parent, "e", "edit draft");
 
 			$d = $request->body;
 			$access = PermissionService::userPageLevel($request->user, $parent);
-			$can_publish = ($access === "p") || ((int)$request->user->level > 0);
+			$can_publish = PermissionService::isPublisher($request->user, $access);
 
 			if (!empty($d["publish"]) && $can_publish) {
 				// Replay the latest form data into the change before promoting it, so
@@ -808,7 +790,7 @@
 			);
 
 			if (!$change) {
-				throw new NotFoundException("Page draft $pcid not found", "resource_not_found", 404);
+				throw new NotFoundException("Page draft $pcid not found");
 			}
 
 			return $change;
@@ -874,11 +856,11 @@
 		}
 
 		public function delete(Request $request) {
-			$id = (int)$request->route_params["id"];
+			$id = $request->id();
 			$this->enforce($request->user, $id, "p");
 
 			if (!SQL::exists("bigtree_pages", $id)) {
-				throw new NotFoundException("Page $id not found", "resource_not_found", 404);
+				throw new NotFoundException("Page $id not found");
 			}
 
 			$page = SQL::fetch("SELECT * FROM bigtree_pages WHERE id = ?", $id);
@@ -896,7 +878,7 @@
 		}
 
 		public function archive(Request $request) {
-			$id = (int)$request->route_params["id"];
+			$id = $request->id();
 			$this->enforce($request->user, $id, "p");
 			SQL::update("bigtree_pages", $id, ["archived" => "on", "updated_at" => "NOW()"]);
 			$this->setArchivedInherited($id, "on");
@@ -905,7 +887,7 @@
 		}
 
 		public function unarchive(Request $request) {
-			$id = (int)$request->route_params["id"];
+			$id = $request->id();
 			$this->enforce($request->user, $id, "p");
 			SQL::update("bigtree_pages", $id, ["archived" => "", "updated_at" => "NOW()"]);
 			$this->setArchivedInherited($id, "");
@@ -914,16 +896,12 @@
 		}
 
 		public function move(Request $request) {
-			$id = (int)$request->route_params["id"];
+			$id = $request->id();
 			$new_parent = (int)$request->body["parent"];
 			$this->enforce($request->user, $id, "p");
 			$this->enforce($request->user, $new_parent, "e", "move into parent");
 
-			$page = SQL::fetch("SELECT * FROM bigtree_pages WHERE id = ?", $id);
-
-			if (!$page) {
-				throw new NotFoundException("Page $id not found", "resource_not_found", 404);
-			}
+			$page = Entity::findOrFail("bigtree_pages", $id, "Page");
 
 			$parent_path = $new_parent ? SQL::fetchSingle("SELECT path FROM bigtree_pages WHERE id = ?", $new_parent) : "";
 			$new_path = ($parent_path ? $parent_path . "/" : "") . $page["route"];
@@ -999,7 +977,7 @@
 		}
 
 		public function reorder(Request $request) {
-			$parent = (int)$request->route_params["parent"];
+			$parent = $request->routeParam("parent", "int");
 			$this->enforce($request->user, $parent, "e", "reorder children of");
 			$ids = array_map("intval", (array)$request->body["ids"]);
 
@@ -1034,7 +1012,7 @@
 		}
 
 		public function listRevisions(Request $request) {
-			$id = (int)$request->route_params["id"];
+			$id = $request->id();
 			$this->enforce($request->user, $id, "v");
 			$rows = SQL::fetchAll(
 				"SELECT id, page, title, author, saved, saved_description, updated_at FROM bigtree_page_revisions WHERE page = ? ORDER BY updated_at DESC, id DESC",
@@ -1056,14 +1034,10 @@
 		}
 
 		public function saveRevision(Request $request) {
-			$id = (int)$request->route_params["id"];
+			$id = $request->id();
 			$this->enforce($request->user, $id, "p");
 			$desc = (string)($request->body["description"] ?? "");
-			$page = SQL::fetch("SELECT * FROM bigtree_pages WHERE id = ?", $id);
-
-			if (!$page) {
-				throw new NotFoundException("Page $id not found", "resource_not_found", 404);
-			}
+			$page = Entity::findOrFail("bigtree_pages", $id, "Page");
 
 			$rev_id = (int)SQL::insert("bigtree_page_revisions", [
 				"page" => $id,
@@ -1084,8 +1058,8 @@
 		}
 
 		public function deleteRevision(Request $request) {
-			$id = (int)$request->route_params["id"];
-			$rev_id = (int)$request->route_params["rev_id"];
+			$id = $request->id();
+			$rev_id = $request->routeParam("rev_id", "int");
 			$this->enforce($request->user, $id, "p");
 			SQL::delete("bigtree_page_revisions", $rev_id);
 
@@ -1100,21 +1074,17 @@
 		 * reversible. Publisher access required.
 		 */
 		public function restoreRevision(Request $request) {
-			$id = (int)$request->route_params["id"];
-			$rev_id = (int)$request->route_params["rev_id"];
+			$id = $request->id();
+			$rev_id = $request->routeParam("rev_id", "int");
 			$this->enforce($request->user, $id, "p");
 
-			$page = SQL::fetch("SELECT * FROM bigtree_pages WHERE id = ?", $id);
+			$page = Entity::findOrFail("bigtree_pages", $id, "Page");
 
-			if (!$page) {
-				throw new NotFoundException("Page $id not found", "resource_not_found", 404);
-			}
-
-			$revision = SQL::fetch("SELECT * FROM bigtree_page_revisions WHERE id = ? AND page = ?", $rev_id, $id);
-
-			if (!$revision) {
-				throw new NotFoundException("Revision $rev_id not found for page $id", "resource_not_found", 404);
-			}
+			$revision = Entity::fetchOrFail(
+				"SELECT * FROM bigtree_page_revisions WHERE id = ? AND page = ?",
+				[$rev_id, $id],
+				"Revision $rev_id not found for page $id"
+			);
 
 			// Snapshot the current published state so the restore can be undone.
 			SQL::insert("bigtree_page_revisions", [
@@ -1163,7 +1133,7 @@
 			if ($q === "") {
 				return Response::ok([]);
 			}
-			$like = "%" . str_replace("%", "\\%", $q) . "%";
+			$like = Sanitize::likeTerm($q);
 			$rows = SQL::fetchAll(
 				"SELECT id, nav_title, path, archived FROM bigtree_pages WHERE nav_title LIKE ? OR title LIKE ? ORDER BY archived ASC, nav_title ASC LIMIT 25",
 				$like, $like
@@ -1190,7 +1160,7 @@
 
 		private function enforce($user, $page_id, $min, $action = "access") {
 			if (!PermissionService::userHasPageAccess($user, $page_id, $min)) {
-				throw new AuthorizationException("Insufficient page permission to $action ($min required)", "permission_denied", 403);
+				throw new AuthorizationException("Insufficient page permission to $action ($min required)");
 			}
 		}
 
