@@ -4,6 +4,7 @@
 	use BigTree\Api\Request;
 	use BigTree\Api\Response;
 	use BigTree\Api\Jwt;
+	use BigTree\Api\Sanitize;
 	use BigTree\Api\Pagination;
 	use BigTree\Api\Exceptions\AuthenticationException;
 	use BigTree\Api\Exceptions\BadRequestException;
@@ -193,7 +194,7 @@
 				|| ($manifest["type"] ?? "") !== "extension"
 				|| empty($manifest["id"])
 				|| empty($manifest["title"])
-				|| !ctype_alnum(str_replace([".", "_", "-"], "", (string)$manifest["id"]))
+				|| !Sanitize::isValidId((string)$manifest["id"], 127, ".-_")
 			) {
 				BigTree::deleteDirectory($cache_root);
 
@@ -635,7 +636,7 @@
 
 			$id = trim((string)($d["id"] ?? ""));
 
-			if (!ctype_alnum(str_replace([".", "-", "_"], "", $id)) || $id === "") {
+			if (!Sanitize::isValidId($id, 127, ".-_")) {
 				throw new BadRequestException("Extension ID may only contain letters, numbers, '.', '-', and '_'.", "invalid_id");
 			}
 

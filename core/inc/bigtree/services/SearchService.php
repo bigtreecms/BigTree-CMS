@@ -1,6 +1,7 @@
 <?php
 	namespace BigTree\Services;
 
+	use BigTree\Api\Flag;
 	use BigTree\Api\Request;
 	use BigTree\Api\Sanitize;
 	use BigTree\Api\Response;
@@ -106,7 +107,7 @@
 					"id" => (int)$r["id"],
 					"nav_title" => html_entity_decode((string)$r["nav_title"], ENT_QUOTES | ENT_HTML5, 'UTF-8'),
 					"path" => $r["path"],
-					"archived" => $r["archived"] === "on",
+					"archived" => Flag::isOn($r["archived"]),
 				];
 
 				if (count($kept) >= $limit) {

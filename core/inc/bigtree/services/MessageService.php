@@ -18,10 +18,6 @@
 		public function list(Request $request) {
 			$folder = $request->query["folder"] ?? "in";
 			$me = (int)$request->user->id;
-			$p = Pagination::offset($request, 100);
-
-			$where = "";
-			$args = [];
 
 			if ($folder === "sent") {
 				$where = "sender = ?";
@@ -33,19 +29,20 @@
 				throw new BadRequestException("folder must be in or sent", "bad_folder");
 			}
 
-			$total = (int)SQL::fetchSingle(...array_merge(["SELECT COUNT(*) FROM bigtree_messages WHERE " . $where], $args));
-			$rows = SQL::fetchAll(...array_merge([
-				"SELECT * FROM bigtree_messages WHERE " . $where . " ORDER BY date DESC LIMIT " . (int)$p["limit"] . " OFFSET " . (int)$p["offset"],
-			], $args));
-
-			$names = $this->nameMap($rows);
-
-			return Response::ok(
-				array_map(function ($r) use ($names) {
+			return Pagination::paginate(
+				$request,
+				"SELECT COUNT(*) FROM bigtree_messages WHERE " . $where,
+				"SELECT * FROM bigtree_messages WHERE " . $where . " ORDER BY date DESC",
+				$args,
+				function ($r, $names) {
 
 					return $this->present($r, $names);
-				}, $rows),
-				Pagination::offsetMeta($p["page"], $p["per_page"], $total)
+				},
+				100,
+				function ($rows) {
+
+					return $this->nameMap($rows);
+				}
 			);
 		}
 

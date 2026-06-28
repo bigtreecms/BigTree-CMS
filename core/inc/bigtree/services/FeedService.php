@@ -2,11 +2,11 @@
 	namespace BigTree\Services;
 
 	use BigTree\Api\Entity;
+	use BigTree\Api\JsonStore;
 	use BigTree\Api\Request;
 	use BigTree\Api\Response;
+	use BigTree\Api\Sanitize;
 	use BigTree\Api\Exceptions\BadRequestException;
-	use BigTree\Api\Exceptions\ConflictException;
-	use BigTree\Api\Exceptions\NotFoundException;
 	use BigTreeJSONDB;
 	use BigTree;
 
@@ -27,13 +27,11 @@
 			$d = $request->body;
 			$id = (string)($d["id"] ?? "");
 
-			if ($id === "" || !ctype_alnum(str_replace(["-", "_"], "", $id))) {
+			if (!Sanitize::isValidId($id)) {
 				throw new BadRequestException("id must be alphanumeric (with - or _)", "invalid_id");
 			}
 
-			if (BigTreeJSONDB::exists("feeds", $id)) {
-				throw new ConflictException("Feed $id already exists", "duplicate_id");
-			}
+			(new JsonStore("feeds", "Feed"))->assertAbsent($id);
 
 			BigTreeJSONDB::insert("feeds", [
 				"id" => $id,
@@ -67,12 +65,7 @@
 
 		public function delete(Request $request) {
 			$id = $request->routeParam("id");
-
-			if (!BigTreeJSONDB::exists("feeds", $id)) {
-				throw new NotFoundException("Feed $id not found");
-			}
-
-			BigTreeJSONDB::delete("feeds", $id);
+			(new JsonStore("feeds", "Feed"))->deleteOrFail($id);
 
 			return Response::noContent();
 		}

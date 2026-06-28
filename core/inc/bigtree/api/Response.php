@@ -37,6 +37,16 @@
 			return $r;
 		}
 
+		public static function notModified(string $etag): self {
+			$r = new self();
+			$r->status = 304;
+			$r->is_envelope = false;
+			$r->body = null;
+			$r->header("ETag", $etag);
+
+			return $r;
+		}
+
 		public static function raw($status, array $payload) {
 			$r = new self();
 			$r->status = $status;

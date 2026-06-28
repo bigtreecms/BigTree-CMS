@@ -1,6 +1,7 @@
 <?php
 	namespace BigTree\Services;
 
+	use BigTree\Api\Json;
 	use BigTree\Api\Request;
 	use BigTree\Api\Response;
 	use BigTree\Api\Exceptions\BadRequestException;
@@ -52,7 +53,7 @@
 		public function contentAlerts(Request $request) {
 			$me_id = (int)$request->user->id;
 			$alerts_json = SQL::fetchSingle("SELECT alerts FROM bigtree_users WHERE id = ?", $me_id);
-			$alerts = json_decode($alerts_json ?: "[]", true) ?: [];
+			$alerts = Json::decode($alerts_json);
 			$out = [];
 
 			foreach ($alerts as $page_id => $days_threshold) {

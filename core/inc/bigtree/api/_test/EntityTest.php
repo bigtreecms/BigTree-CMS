@@ -116,6 +116,70 @@
 		T::equals($threw->getMessage(), "Tag missing", "fetchOrFail forwards the custom message");
 	}
 
+	function test_entity_assert_exists_passes_and_throws() {
+		if (!_entity_sql_ready()) {
+			return;
+		}
+
+		$tag = "zz_entity_" . uniqid();
+		$id = null;
+
+		try {
+			$id = (int)SQL::insert("bigtree_tags", [
+				"tag" => $tag,
+				"metaphone" => metaphone($tag),
+				"route" => $tag,
+				"usage_count" => 0,
+			]);
+
+			// Present row: returns void without throwing.
+			Entity::assertExists("bigtree_tags", $id, "Tag");
+			T::ok(true, "assertExists is a no-op when the row exists");
+		} finally {
+			if ($id !== null) {
+				SQL::delete("bigtree_tags", $id);
+			}
+		}
+
+		$threw = null;
+
+		try {
+			Entity::assertExists("bigtree_tags", 0, "Tag");
+		} catch (NotFoundException $e) {
+			$threw = $e;
+		}
+
+		T::ok($threw instanceof NotFoundException, "assertExists throws NotFound for an id that does not exist");
+		T::equals($threw->getMessage(), "Tag 0 not found", "assertExists builds the '<label> <id> not found' message");
+	}
+
+	function test_entity_assert_exists_json_passes_and_throws() {
+		if (!_entity_json_ready()) {
+			return;
+		}
+
+		$module_id = null;
+
+		try {
+			$module_id = BigTreeJSONDB::insert("modules", [
+				"name" => "ZZ_entity_" . uniqid(),
+				"route" => "zz-entity-" . uniqid(),
+			]);
+
+			// Present record: returns void without throwing.
+			Entity::assertExistsJson("modules", $module_id, "Module");
+			T::ok(true, "assertExistsJson is a no-op when the record exists");
+		} finally {
+			if ($module_id !== null) {
+				BigTreeJSONDB::delete("modules", $module_id);
+			}
+		}
+
+		T::throws(function () {
+			Entity::assertExistsJson("modules", "entity-zzz-" . uniqid(), "Module");
+		}, NotFoundException::class, "assertExistsJson throws NotFound for an id that does not exist");
+	}
+
 	function test_entity_find_or_fail_json_returns_record_and_throws() {
 		if (!_entity_json_ready()) {
 			return;

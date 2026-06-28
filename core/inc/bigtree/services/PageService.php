@@ -2,6 +2,8 @@
 	namespace BigTree\Services;
 
 	use BigTree\Api\Entity;
+	use BigTree\Api\Flag;
+	use BigTree\Api\Json;
 	use BigTree\Api\Sanitize;
 	use BigTree\Api\Hooks;
 	use BigTree\Api\Pagination;
@@ -53,9 +55,9 @@
 					"parent" => (int)$r["parent"],
 					"nav_title" => html_entity_decode((string)$r["nav_title"], ENT_QUOTES | ENT_HTML5, 'UTF-8'),
 					"route" => $r["route"],
-					"in_nav" => $r["in_nav"] === "on",
-					"archived" => $r["archived"] === "on",
-					"trunk" => $r["trunk"] === "on",
+					"in_nav" => Flag::isOn($r["in_nav"]),
+					"archived" => Flag::isOn($r["archived"]),
+					"trunk" => Flag::isOn($r["trunk"]),
 					"position" => (int)$r["position"],
 					"template" => $r["template"],
 					"external" => html_entity_decode((string)$r["external"], ENT_QUOTES | ENT_HTML5, 'UTF-8'),
@@ -95,7 +97,7 @@
 			);
 
 			foreach ($pendingNew as $pc) {
-				$changes = json_decode($pc["changes"] ?: "{}", true) ?: [];
+				$changes = Json::decode($pc["changes"]);
 
 				$isArchived = !empty($changes["archived"]);
 				if (!$include_archived && $isArchived) {
@@ -173,7 +175,7 @@
 
 			$page = Entity::findOrFail("bigtree_pages", $id, "Page");
 
-			$content = json_decode($page["resources"] ?: "{}", true) ?: [];
+			$content = Json::decode($page["resources"]);
 			$seo = BigTreeAdmin::getPageSEORating($page, $content);
 
 			// getPageSEORating returns null when the template can't be resolved (e.g.
@@ -232,22 +234,22 @@
 			// Only developers can flag a page as a site trunk. Silently strip the flag
 			// for non-dev callers so the request still succeeds (matches legacy createPage).
 			$trunk_requested = !empty($d["trunk"]);
-			$trunk_value = ($trunk_requested && (int)$user->level >= 2) ? "on" : "";
+			$trunk_value = Flag::checkbox($trunk_requested && (int)$user->level >= 2);
 
 			$insert = [
 				"trunk" => $trunk_value,
 				"parent" => $parent,
-				"in_nav" => !empty($d["in_nav"]) ? "on" : "",
+				"in_nav" => Flag::checkbox($d["in_nav"] ?? null),
 				"nav_title" => BigTree::safeEncode($nav_title),
 				"route" => $route,
 				"path" => $path,
 				"title" => BigTree::safeEncode($title),
 				"meta_keywords" => $d["meta_keywords"] ?? "",
 				"meta_description" => $d["meta_description"] ?? "",
-				"seo_invisible" => !empty($d["seo_invisible"]) ? "on" : "",
+				"seo_invisible" => Flag::checkbox($d["seo_invisible"] ?? null),
 				"template" => $d["template"] ?? "",
 				"external" => $d["external"] ?? "",
-				"new_window" => !empty($d["new_window"]) ? "on" : "",
+				"new_window" => Flag::checkbox($d["new_window"] ?? null),
 				"resources" => json_encode($d["resources"] ?? new \stdClass()),
 				"archived" => "",
 				"archived_inherited" => "",
@@ -271,12 +273,12 @@
 			$this->syncOpenGraph($id, $d["open_graph"] ?? null);
 
 			// Trunk page added → multi-site path cache becomes stale.
-			if ($trunk_value === "on") $this->invalidateMultiSiteCache();
+			if (Flag::isOn($trunk_value)) $this->invalidateMultiSiteCache();
 
 			$page = SQL::fetch("SELECT * FROM bigtree_pages WHERE id = ?", $id);
 
 			$this->allocatePageResources((int)$id, $page["template"], [
-				"resources" => json_decode($page["resources"] ?: "{}", true) ?: [],
+				"resources" => Json::decode($page["resources"]),
 				"external" => $page["external"],
 			]);
 
@@ -300,10 +302,7 @@
 		 */
 		public function accessLevels(Request $request) {
 			$id = $request->id();
-
-			if (!SQL::exists("bigtree_pages", $id)) {
-				throw new NotFoundException("Page $id not found");
-			}
+			Entity::assertExists("bigtree_pages", $id, "Page");
 
 			$publishers = [];
 			$editors = [];
@@ -366,7 +365,7 @@
 				"template" => $page["template"],
 				"external" => $page["external"],
 				"new_window" => !empty($page["new_window"]),
-				"resources" => json_decode($page["resources"] ?: "{}", true) ?: [],
+				"resources" => Json::decode($page["resources"]),
 				"publish_at" => $page["publish_at"],
 				"expire_at" => $page["expire_at"],
 				"max_age" => (int)$page["max_age"],
@@ -439,11 +438,11 @@
 			}
 
 			if (isset($d["seo_invisible"])) {
-				$update["seo_invisible"] = !empty($d["seo_invisible"]) ? "on" : "";
+				$update["seo_invisible"] = Flag::checkbox($d["seo_invisible"]);
 			}
 
 			if (isset($d["in_nav"])) {
-				$update["in_nav"] = !empty($d["in_nav"]) ? "on" : "";
+				$update["in_nav"] = Flag::checkbox($d["in_nav"]);
 			}
 
 			if (isset($d["template"])) {
@@ -455,7 +454,7 @@
 			}
 
 			if (isset($d["new_window"])) {
-				$update["new_window"] = !empty($d["new_window"]) ? "on" : "";
+				$update["new_window"] = Flag::checkbox($d["new_window"]);
 			}
 
 			if (isset($d["resources"])) {
@@ -477,7 +476,7 @@
 			// Trunk flag is developer-only; non-devs silently can't change it.
 			$trunk_changed = false;
 			if (array_key_exists("trunk", $d) && (int)$user->level >= 2) {
-				$new_trunk = !empty($d["trunk"]) ? "on" : "";
+				$new_trunk = Flag::checkbox($d["trunk"]);
 				if ($new_trunk !== $page["trunk"]) {
 					$update["trunk"] = $new_trunk;
 					$trunk_changed = true;
@@ -506,7 +505,7 @@
 
 			// Multi-site cache must be invalidated if the trunk flag changed, OR if the
 			// route changed on a page that already IS a trunk (path map is keyed by path).
-			if ($trunk_changed || (isset($update["path"]) && $page["trunk"] === "on")) {
+			if ($trunk_changed || (isset($update["path"]) && Flag::isOn($page["trunk"]))) {
 				$this->invalidateMultiSiteCache();
 			}
 
@@ -535,7 +534,7 @@
 			$fresh = SQL::fetch("SELECT * FROM bigtree_pages WHERE id = ?", $id);
 
 			$this->allocatePageResources($id, $fresh["template"], [
-				"resources" => json_decode($fresh["resources"] ?: "{}", true) ?: [],
+				"resources" => Json::decode($fresh["resources"]),
 				"external" => $fresh["external"],
 			]);
 
@@ -643,7 +642,7 @@
 		public function publishPendingChange(array $row, $user): array {
 			// tags/open_graph (when submitted) live inside the changes blob, so the
 			// performCreate/performUpdate paths see them exactly as a live save would.
-			$d = is_array($row["changes"]) ? $row["changes"] : (json_decode($row["changes"] ?: "[]", true) ?: []);
+			$d = Json::decode($row["changes"]);
 
 			if ($row["type"] === "NEW") {
 				$d["parent"] = (int)($d["parent"] ?? $row["pending_page_parent"] ?? 0);
@@ -679,7 +678,7 @@
 				return;
 			}
 
-			$changes = json_decode($change["changes"] ?: "{}", true) ?: [];
+			$changes = Json::decode($change["changes"]);
 
 			// The change blob stores values in the same shape the SPA submits (and
 			// present() emits), so a direct overlay is safe for each known field.
@@ -816,7 +815,7 @@
 
 		/** Shape a NEW draft change row into the same payload as a live PageDetail. */
 		private function presentPending(array $change, $user): array {
-			$changes = is_array($change["changes"]) ? $change["changes"] : (json_decode($change["changes"] ?: "{}", true) ?: []);
+			$changes = Json::decode($change["changes"]);
 			$parent = (int)$change["pending_page_parent"];
 
 			return [
@@ -858,10 +857,7 @@
 		public function delete(Request $request) {
 			$id = $request->id();
 			$this->enforce($request->user, $id, "p");
-
-			if (!SQL::exists("bigtree_pages", $id)) {
-				throw new NotFoundException("Page $id not found");
-			}
+			Entity::assertExists("bigtree_pages", $id, "Page");
 
 			$page = SQL::fetch("SELECT * FROM bigtree_pages WHERE id = ?", $id);
 			// Clean up rel rows; FK ON DELETE CASCADE handles open_graph + revisions etc.
@@ -870,7 +866,7 @@
 			$this->cascadeDelete($id, $page["path"]);
 
 			// Deleting a trunk page changes the multi-site routing map.
-			if ($page["trunk"] === "on") $this->invalidateMultiSiteCache();
+			if (Flag::isOn($page["trunk"])) $this->invalidateMultiSiteCache();
 
 			Hooks::fire("page.deleted", $page, ["user_id" => $request->user->id]);
 
@@ -910,7 +906,7 @@
 			$this->repathChildren($page["path"], $new_path);
 
 			// Moving a trunk page changes the multi-site routing map (path-keyed).
-			if ($page["trunk"] === "on") $this->invalidateMultiSiteCache();
+			if (Flag::isOn($page["trunk"])) $this->invalidateMultiSiteCache();
 
 			return Response::noContent();
 		}
@@ -1026,7 +1022,7 @@
 					"page" => (int)$r["page"],
 					"title" => $r["title"],
 					"author" => (int)$r["author"],
-					"saved" => $r["saved"] === "on",
+					"saved" => Flag::isOn($r["saved"]),
 					"saved_description" => $r["saved_description"],
 					"updated_at" => $r["updated_at"],
 				];
@@ -1048,7 +1044,7 @@
 				"new_window" => $page["new_window"],
 				"resources" => $page["resources"],
 				"author" => $request->user->id,
-				"saved" => $desc !== "" ? "on" : "",
+				"saved" => Flag::checkbox($desc !== ""),
 				"saved_description" => $desc,
 				"resource_allocation" => "",
 				"has_deleted_resources" => "",
@@ -1117,7 +1113,7 @@
 			$fresh = SQL::fetch("SELECT * FROM bigtree_pages WHERE id = ?", $id);
 
 			$this->allocatePageResources($id, $fresh["template"], [
-				"resources" => json_decode($fresh["resources"] ?: "{}", true) ?: [],
+				"resources" => Json::decode($fresh["resources"]),
 				"external" => $fresh["external"],
 			]);
 
@@ -1149,7 +1145,7 @@
 					"id" => (int)$r["id"],
 					"nav_title" => html_entity_decode((string)$r["nav_title"], ENT_QUOTES | ENT_HTML5, 'UTF-8'),
 					"path" => $r["path"],
-					"archived" => $r["archived"] === "on",
+					"archived" => Flag::isOn($r["archived"]),
 				];
 			}, $rows));
 
@@ -1455,22 +1451,22 @@
 		private function present(array $p, $include_associations = false) {
 			$out = [
 				"id" => (int)$p["id"],
-				"trunk" => $p["trunk"] === "on",
+				"trunk" => Flag::isOn($p["trunk"]),
 				"parent" => (int)$p["parent"],
-				"in_nav" => $p["in_nav"] === "on",
+				"in_nav" => Flag::isOn($p["in_nav"]),
 				"nav_title" => html_entity_decode((string)$p["nav_title"], ENT_QUOTES | ENT_HTML5, 'UTF-8'),
 				"route" => $p["route"],
 				"path" => $p["path"],
 				"title" => html_entity_decode((string)$p["title"], ENT_QUOTES | ENT_HTML5, 'UTF-8'),
 				"meta_keywords" => html_entity_decode((string)$p["meta_keywords"], ENT_QUOTES | ENT_HTML5, 'UTF-8'),
 				"meta_description" => html_entity_decode((string)$p["meta_description"], ENT_QUOTES | ENT_HTML5, 'UTF-8'),
-				"seo_invisible" => $p["seo_invisible"] === "on",
+				"seo_invisible" => Flag::isOn($p["seo_invisible"]),
 				"template" => $p["template"],
 				"external" => html_entity_decode((string)$p["external"], ENT_QUOTES | ENT_HTML5, 'UTF-8'),
-				"new_window" => $p["new_window"] === "on",
+				"new_window" => Flag::isOn($p["new_window"]),
 				"resources" => json_decode($p["resources"] ?: "{}", true) ?: new \stdClass(),
-				"archived" => $p["archived"] === "on",
-				"archived_inherited" => $p["archived_inherited"] === "on",
+				"archived" => Flag::isOn($p["archived"]),
+				"archived_inherited" => Flag::isOn($p["archived_inherited"]),
 				"publish_at" => $p["publish_at"],
 				"expire_at" => $p["expire_at"],
 				"max_age" => (int)$p["max_age"],

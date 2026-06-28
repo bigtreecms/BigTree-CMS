@@ -2,13 +2,14 @@
 	namespace BigTree\Services;
 
 	use BigTree\Api\Entity;
+	use BigTree\Api\Flag;
+	use BigTree\Api\Json;
 	use BigTree\Api\Sanitize;
 	use BigTree\Api\Hooks;
 	use BigTree\Api\Pagination;
 	use BigTree\Api\Request;
 	use BigTree\Api\Response;
 	use BigTree\Api\Exceptions\BadRequestException;
-	use BigTree\Api\Exceptions\NotFoundException;
 	use BigTree\Api\Exceptions\AuthorizationException;
 	use BigTree;
 	use BigTreeAdmin;
@@ -172,10 +173,7 @@
 
 		public function deleteFolder(Request $request) {
 			$id = $request->id();
-
-			if (!SQL::exists("bigtree_resource_folders", $id)) {
-				throw new NotFoundException("Folder $id not found");
-			}
+			Entity::assertExists("bigtree_resource_folders", $id, "Folder");
 
 			$this->enforceFolder($request->user, $id, "p", "delete");
 
@@ -272,7 +270,7 @@
 
 				// Legacy min-size rule: the replacement must cover the largest
 				// existing crop so regenerated crops don't upscale.
-				$existing_crops = json_decode($existing["crops"] ?: "[]", true) ?: [];
+				$existing_crops = Json::decode($existing["crops"]);
 				$min_width = $min_height = 0;
 
 				foreach ($existing_crops as $crop) {
@@ -312,7 +310,7 @@
 
 				// Drop derived files whose prefix didn't regenerate (preset changed
 				// since the original upload) so stale crops don't linger in storage.
-				$existing_thumbs = json_decode($existing["thumbs"] ?: "[]", true) ?: [];
+				$existing_thumbs = Json::decode($existing["thumbs"]);
 				$stale = array_diff(
 					array_merge(array_keys($existing_crops), array_keys($existing_thumbs)),
 					array_merge(array_keys($crop_prefixes), array_keys($thumb_prefixes))
@@ -510,8 +508,8 @@
 				"name" => $display_name,
 				"type" => pathinfo($file["name"], PATHINFO_EXTENSION),
 				"mimetype" => $mime,
-				"is_image" => $is_image ? "on" : "",
-				"is_video" => $is_video ? "on" : "",
+				"is_image" => Flag::checkbox($is_image),
+				"is_video" => Flag::checkbox($is_video),
 				"md5" => @md5_file($file["tmp_name"]),
 				"size" => (int)$file["size"],
 				"width" => $width,
@@ -646,7 +644,7 @@
 			// legacy admin's shape, so user-added crops key by prefix too. Re-cropping
 			// with the same prefix replaces the previous entry — that's intentional;
 			// it mirrors how the storage layer would overwrite the file anyway.
-			$crops = json_decode($existing["crops"] ?: "{}", true) ?: [];
+			$crops = Json::decode($existing["crops"]);
 			$crops[$name_prefix] = [
 				"name" => $crop_name,
 				"prefix" => $name_prefix,
@@ -692,10 +690,7 @@
 			global $cms;
 
 			$id = $request->id();
-
-			if (!SQL::exists("bigtree_resources", $id)) {
-				throw new NotFoundException("Resource $id not found");
-			}
+			Entity::assertExists("bigtree_resources", $id, "Resource");
 
 			$allocations = BigTreeAdmin::getResourceAllocation($id);
 			$usages = [];
@@ -955,10 +950,7 @@
 
 		public function allocate(Request $request) {
 			$id = $request->id();
-
-			if (!SQL::exists("bigtree_resources", $id)) {
-				throw new NotFoundException("Resource $id not found");
-			}
+			Entity::assertExists("bigtree_resources", $id, "Resource");
 
 			$table = (string)$request->body["table"];
 			$entry = (string)$request->body["entry"];
@@ -1692,8 +1684,8 @@
 				"name" => $r["name"],
 				"type" => $r["type"],
 				"mimetype" => $r["mimetype"],
-				"is_image" => $r["is_image"] === "on",
-				"is_video" => $r["is_video"] === "on",
+				"is_image" => Flag::isOn($r["is_image"]),
+				"is_video" => Flag::isOn($r["is_video"]),
 				"height" => $r["height"] !== null ? (int)$r["height"] : null,
 				"width" => $r["width"] !== null ? (int)$r["width"] : null,
 				"size" => $r["size"] !== null ? (int)$r["size"] : null,

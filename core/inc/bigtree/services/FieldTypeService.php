@@ -2,11 +2,13 @@
 	namespace BigTree\Services;
 
 	use BigTree\Api\Entity;
+	use BigTree\Api\JsonStore;
 	use BigTree\Api\Request;
 	use BigTree\Api\Response;
 	use BigTree\Api\ETag;
+	use BigTree\Api\Flag;
+	use BigTree\Api\Sanitize;
 	use BigTree\Api\Exceptions\BadRequestException;
-	use BigTree\Api\Exceptions\ConflictException;
 	use BigTree\Api\Exceptions\NotFoundException;
 	use BigTreeAdmin;
 	use BigTreeJSONDB;
@@ -30,8 +32,7 @@
 			$etag = ETag::fromMtimes($paths);
 
 			if (ETag::check($request, $etag)) {
-				$r = Response::raw(304, []); $r->is_envelope = false; $r->body = null;
-				$r->header("ETag", $etag);
+				$r = Response::notModified($etag);
 				$r->header("Cache-Control", "private, no-cache");
 
 				return $r;
@@ -142,19 +143,17 @@
 			$d = $request->body;
 			$id = (string)$d["id"];
 
-			if (!ctype_alnum(str_replace(["-", "_"], "", $id)) || strlen($id) > 127) {
+			if (!Sanitize::isValidId($id)) {
 				throw new BadRequestException("id must be alphanumeric (with - or _)", "invalid_id");
 			}
 
-			if (BigTreeJSONDB::exists("field-types", $id)) {
-				throw new ConflictException("Field type $id already exists", "duplicate_id");
-			}
+			(new JsonStore("field-types", "Field type"))->assertAbsent($id);
 
 			$record = [
 				"id" => $id,
 				"name" => BigTree::safeEncode($d["name"] ?? $id),
 				"use_cases" => $this->normalizeUseCases($d["use_cases"] ?? null),
-				"self_draw" => !empty($d["self_draw"]) ? "on" : "",
+				"self_draw" => Flag::checkbox($d["self_draw"] ?? null),
 			];
 
 			BigTreeJSONDB::insert("field-types", $this->applyRenderFields($record, $d));
@@ -169,7 +168,7 @@
 			$next = array_merge($existing, [
 				"name" => isset($d["name"]) ? BigTree::safeEncode($d["name"]) : $existing["name"],
 				"use_cases" => isset($d["use_cases"]) && is_array($d["use_cases"]) ? $this->normalizeUseCases($d["use_cases"]) : $existing["use_cases"],
-				"self_draw" => isset($d["self_draw"]) ? (!empty($d["self_draw"]) ? "on" : "") : ($existing["self_draw"] ?? ""),
+				"self_draw" => isset($d["self_draw"]) ? Flag::checkbox($d["self_draw"]) : ($existing["self_draw"] ?? ""),
 			]);
 			BigTreeJSONDB::update("field-types", $id, $this->applyRenderFields($next, $d));
 
@@ -180,10 +179,7 @@
 			global $admin;
 
 			$id = $request->routeParam("id");
-
-			if (!BigTreeJSONDB::exists("field-types", $id)) {
-				throw new NotFoundException("Field type $id not found");
-			}
+			(new JsonStore("field-types", "Field type"))->assertExists($id);
 
 			// Delegate to the admin method so the SPA and legacy developer UI share
 			// one complete cascade (cache, source files, extension dir + manifest).

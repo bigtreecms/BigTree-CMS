@@ -70,4 +70,33 @@
 
 			return $record;
 		}
+
+		/**
+		 * Assert that a SQL row exists, or throw a 404 — the write-path mirror of
+		 * findOrFail() for delete/mutation guards that only need existence, not the
+		 * row itself.
+		 *
+		 * @param string $table Table name (literal).
+		 * @param mixed  $id    Primary key value (bound as a parameter).
+		 * @param string $label Human label for the not-found message, e.g. "Tag".
+		 */
+		public static function assertExists(string $table, $id, string $label): void {
+			if (!SQL::exists($table, $id)) {
+				throw new NotFoundException("$label $id not found");
+			}
+		}
+
+		/**
+		 * Assert that a JSONDB record exists, or throw a 404 — the write-path mirror
+		 * of findOrFailJson().
+		 *
+		 * @param string $store JSONDB store name (literal), e.g. "templates".
+		 * @param mixed  $id    Record id.
+		 * @param string $label Human label for the not-found message, e.g. "Template".
+		 */
+		public static function assertExistsJson(string $store, $id, string $label): void {
+			if (!BigTreeJSONDB::exists($store, $id)) {
+				throw new NotFoundException("$label $id not found");
+			}
+		}
 	}

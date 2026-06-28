@@ -1,6 +1,7 @@
 <?php
 	namespace BigTree\Services;
 
+	use BigTree\Api\Json;
 	use BigTree\Api\Exceptions\AuthorizationException;
 	use BigTreeJSONDB;
 	use SQL;
@@ -125,7 +126,7 @@
 				if (!$row) {
 					return "n";
 				}
-				$changes = json_decode($row["changes"], true) ?: [];
+				$changes = Json::decode($row["changes"]);
 
 				if (!empty($changes["parent"])) {
 					return self::userPageLevel($user, (int)$changes["parent"]);
@@ -331,18 +332,11 @@
 
 		private static function extractPermissions($user) {
 			if (is_object($user)) {
-				$p = $user->permissions ?? [];
-
-				return is_array($p) ? $p : (json_decode($p, true) ?: []);
+				return Json::decode($user->permissions ?? []);
 			}
 
 			if (is_array($user)) {
-				$p = $user["permissions"] ?? [];
-
-				if (is_string($p)) {
-					return json_decode($p, true) ?: [];
-				}
-				return is_array($p) ? $p : [];
+				return Json::decode($user["permissions"] ?? []);
 			}
 
 			return [];

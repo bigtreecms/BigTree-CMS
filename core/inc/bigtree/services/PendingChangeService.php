@@ -2,6 +2,7 @@
 	namespace BigTree\Services;
 
 	use BigTree\Api\Entity;
+	use BigTree\Api\Json;
 	use BigTree\Api\Pagination;
 	use BigTree\Api\Request;
 	use BigTree\Api\Response;
@@ -58,10 +59,10 @@
 			$row = Entity::findOrFail("bigtree_pending_changes", $id, "Pending change");
 			$this->enforceVisibility($request->user, $row);
 
-			$row["changes"] = json_decode($row["changes"] ?: "[]", true);
-			$row["mtm_changes"] = json_decode($row["mtm_changes"] ?: "[]", true);
-			$row["tags_changes"] = json_decode($row["tags_changes"] ?: "[]", true);
-			$row["open_graph_changes"] = json_decode($row["open_graph_changes"] ?: "[]", true);
+			$row["changes"] = Json::decode($row["changes"]);
+			$row["mtm_changes"] = Json::decode($row["mtm_changes"]);
+			$row["tags_changes"] = Json::decode($row["tags_changes"]);
+			$row["open_graph_changes"] = Json::decode($row["open_graph_changes"]);
 			$row["id"] = (int)$row["id"];
 			$row["user"] = (int)$row["user"];
 
@@ -87,10 +88,10 @@
 				throw new BadRequestException("Cannot resolve module for this change", "module_unresolved");
 			}
 
-			$changes = BigTreeAutoModule::sanitizeData($row["table"], json_decode($row["changes"], true) ?: []);
-			$mtm_changes = json_decode($row["mtm_changes"], true) ?: [];
-			$tags_changes = json_decode($row["tags_changes"], true) ?: [];
-			$open_graph_changes = json_decode($row["open_graph_changes"], true) ?: [];
+			$changes = BigTreeAutoModule::sanitizeData($row["table"], Json::decode($row["changes"]));
+			$mtm_changes = Json::decode($row["mtm_changes"]);
+			$tags_changes = Json::decode($row["tags_changes"]);
+			$open_graph_changes = Json::decode($row["open_graph_changes"]);
 
 			// Branch on item_id, not type: a re-edited NEW draft keeps item_id = null
 			// while submitChange flips its type to "EDIT", so type is unreliable here.

@@ -34,6 +34,23 @@
 		T::equals(Sanitize::likeTerm("Foo", true), "%foo%", "lowercase option applied");
 	}
 
+	function test_sanitize_is_valid_id_accepts() {
+		T::equals(Sanitize::isValidId("contact-form"), true, "alnum with dash passes");
+		T::equals(Sanitize::isValidId("my_field_2"), true, "alnum with underscore/digits passes");
+		T::equals(Sanitize::isValidId("Abc123"), true, "mixed-case alnum passes");
+		T::equals(Sanitize::isValidId(str_repeat("a", 127)), true, "exactly 127 chars passes");
+		T::equals(Sanitize::isValidId("com.fastspot.feed", 127, "-_."), true, "reverse-DNS passes when dot allowed");
+	}
+
+	function test_sanitize_is_valid_id_rejects() {
+		T::equals(Sanitize::isValidId(""), false, "empty id rejected");
+		T::equals(Sanitize::isValidId("has space"), false, "space rejected");
+		T::equals(Sanitize::isValidId("slash/id"), false, "slash rejected");
+		T::equals(Sanitize::isValidId("--"), false, "all-extra-chars id rejected");
+		T::equals(Sanitize::isValidId(str_repeat("a", 128)), false, "128 chars exceeds default cap");
+		T::equals(Sanitize::isValidId("com.fastspot"), false, "dot rejected by default charset");
+	}
+
 	function test_sanitize_order_clause_allowed() {
 		$columns = ["id" => true, "title" => true, "position" => true];
 

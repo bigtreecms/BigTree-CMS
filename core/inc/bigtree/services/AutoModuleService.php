@@ -3,6 +3,7 @@
 
 	use BigTree\Api\Entity;
 	use BigTree\Api\Hooks;
+	use BigTree\Api\Json;
 	use BigTree\Api\Pagination;
 	use BigTree\Api\Request;
 	use BigTree\Api\Response;
@@ -437,6 +438,9 @@
 					continue;
 				}
 
+				// Not the isPublisher() formula: userRowLevel already returns "p" for
+				// admins (level > 0), so this strict "p" test is the complete
+				// publisher check for a row — no separate admin bypass needed.
 				if (PermissionService::userRowLevel($user, $module, $rows[$id]) === "p") {
 					$reorderable[$id] = true;
 				}
@@ -460,6 +464,10 @@
 				throw new NotFoundException("Entry $entry_id not found");
 			}
 
+			// userRowLevel already folds in the admin bypass (returns "p" for level
+			// > 0), so the strict "p" comparison is the full publisher check here —
+			// intentionally not PermissionService::isPublisher(), which is for
+			// userPageLevel/userModuleLevel results.
 			if (PermissionService::userRowLevel($request->user, $module, $existing["item"] ?? []) !== "p") {
 				throw new AuthorizationException("Publisher access required");
 			}
@@ -579,7 +587,7 @@
 				$row = SQL::fetch("SELECT permissions, timezone FROM bigtree_users WHERE id = ?", (int)$user->id);
 
 				if ($row) {
-					$admin->Permissions = json_decode($row["permissions"], true) ?: [];
+					$admin->Permissions = Json::decode($row["permissions"]);
 					$admin->Timezone = $row["timezone"];
 				}
 			}

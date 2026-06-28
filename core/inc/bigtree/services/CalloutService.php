@@ -2,12 +2,12 @@
 	namespace BigTree\Services;
 
 	use BigTree\Api\Entity;
+	use BigTree\Api\JsonStore;
 	use BigTree\Api\Request;
 	use BigTree\Api\Response;
-	use BigTree\Api\ETag;
+	use BigTree\Api\Resources;
+	use BigTree\Api\Sanitize;
 	use BigTree\Api\Exceptions\BadRequestException;
-	use BigTree\Api\Exceptions\ConflictException;
-	use BigTree\Api\Exceptions\NotFoundException;
 	use BigTreeJSONDB;
 	use BigTree;
 
@@ -29,13 +29,11 @@
 			$d = $request->body;
 			$id = (string)$d["id"];
 
-			if (!ctype_alnum(str_replace(["-", "_"], "", $id)) || strlen($id) > 127) {
+			if (!Sanitize::isValidId($id)) {
 				throw new BadRequestException("Callout id must be alphanumeric (with - or _) and ≤ 127 chars", "invalid_id");
 			}
 
-			if (BigTreeJSONDB::exists("callouts", $id)) {
-				throw new ConflictException("Callout $id already exists", "duplicate_id");
-			}
+			(new JsonStore("callouts", "Callout"))->assertAbsent($id);
 
 			BigTreeJSONDB::incrementPosition("callouts");
 			BigTreeJSONDB::insert("callouts", [
@@ -43,7 +41,7 @@
 				"name" => BigTree::safeEncode($d["name"] ?? $id),
 				"description" => BigTree::safeEncode($d["description"] ?? ""),
 				"level" => (int)($d["level"] ?? 0),
-				"resources" => $this->cleanResources($d["resources"] ?? []),
+				"resources" => Resources::clean($d["resources"] ?? []),
 				"display_field" => $d["display_field"] ?? "",
 				"display_default" => $d["display_default"] ?? "",
 				"position" => 0,
@@ -61,7 +59,7 @@
 				"name" => isset($d["name"]) ? BigTree::safeEncode($d["name"]) : $existing["name"],
 				"description" => isset($d["description"]) ? BigTree::safeEncode($d["description"]) : ($existing["description"] ?? ""),
 				"level" => isset($d["level"]) ? (int)$d["level"] : (int)($existing["level"] ?? 0),
-				"resources" => isset($d["resources"]) ? $this->cleanResources($d["resources"]) : ($existing["resources"] ?? []),
+				"resources" => isset($d["resources"]) ? Resources::clean($d["resources"]) : ($existing["resources"] ?? []),
 				"display_field" => $d["display_field"] ?? ($existing["display_field"] ?? ""),
 				"display_default" => $d["display_default"] ?? ($existing["display_default"] ?? ""),
 			]);
@@ -72,25 +70,13 @@
 
 		public function delete(Request $request) {
 			$id = $request->routeParam("id");
-
-			if (!BigTreeJSONDB::exists("callouts", $id)) {
-				throw new NotFoundException("Callout $id not found");
-			}
-
-			BigTreeJSONDB::delete("callouts", $id);
+			(new JsonStore("callouts", "Callout"))->deleteOrFail($id);
 
 			return Response::noContent();
 		}
 
 		public function reorder(Request $request) {
-			$ids = (array)$request->body["ids"];
-			$position = count($ids);
-
-			foreach ($ids as $id) {
-				if (BigTreeJSONDB::exists("callouts", $id)) {
-					BigTreeJSONDB::update("callouts", $id, ["position" => $position--]);
-				}
-			}
+			(new JsonStore("callouts", "Callout"))->reorder((array)$request->body["ids"]);
 
 			return Response::noContent();
 		}
@@ -113,9 +99,7 @@
 			$d = $request->body;
 			$id = (string)$d["id"];
 
-			if (BigTreeJSONDB::exists("callout-groups", $id)) {
-				throw new ConflictException("Callout group $id already exists", "duplicate_id");
-			}
+			(new JsonStore("callout-groups", "Callout group"))->assertAbsent($id);
 
 			BigTreeJSONDB::insert("callout-groups", [
 				"id" => $id,
@@ -141,41 +125,12 @@
 
 		public function deleteGroup(Request $request) {
 			$id = $request->routeParam("id");
-
-			if (!BigTreeJSONDB::exists("callout-groups", $id)) {
-				throw new NotFoundException("Callout group $id not found");
-			}
-
-			BigTreeJSONDB::delete("callout-groups", $id);
+			(new JsonStore("callout-groups", "Callout group"))->deleteOrFail($id);
 
 			return Response::noContent();
 		}
 
 		// — helpers —
-
-		private function cleanResources($resources) {
-			$out = [];
-
-			foreach ((array)$resources as $r) {
-				if (empty($r["id"])) {
-					continue;
-				}
-				$settings = $r["settings"] ?? ($r["options"] ?? []);
-
-				if (is_string($settings)) {
-					$settings = json_decode($settings, true) ?: [];
-				}
-				$out[] = [
-					"id" => BigTree::safeEncode($r["id"]),
-					"type" => BigTree::safeEncode($r["type"] ?? "text"),
-					"title" => BigTree::safeEncode($r["title"] ?? ""),
-					"subtitle" => BigTree::safeEncode($r["subtitle"] ?? ""),
-					"settings" => BigTree::arrayFilterRecursive($settings ?: []),
-				];
-			}
-
-			return $out;
-		}
 
 		private function present(array $c) {
 

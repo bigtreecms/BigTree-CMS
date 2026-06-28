@@ -50,6 +50,24 @@
 			return "%" . $escaped . "%";
 		}
 
+		/**
+		 * Validate a record id supplied as request input: non-empty, no longer than
+		 * $max characters, and composed only of alphanumerics plus the $extra
+		 * characters (dash + underscore by default; pass "." too for reverse-DNS
+		 * extension ids). Folds the hand-rolled
+		 * `ctype_alnum(str_replace([...], "", $id))` checks the JSONDB resource
+		 * services otherwise repeat with subtly inconsistent caps.
+		 */
+		public static function isValidId(string $id, int $max = 127, string $extra = "-_"): bool {
+			if ($id === "" || strlen($id) > $max) {
+				return false;
+			}
+
+			$stripped = $extra === "" ? $id : str_replace(str_split($extra), "", $id);
+
+			return $stripped !== "" && ctype_alnum($stripped);
+		}
+
 		// Validate a sort clause against an allow-list of known columns so we never
 		// concatenate user-controlled text into SQL. Returns a backticked
 		// ``\`col\` DIR`` for an allowed column, otherwise ``\`fallback\` ASC``.

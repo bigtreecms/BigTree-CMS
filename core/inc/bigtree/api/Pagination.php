@@ -17,12 +17,19 @@
 		 * WHERE clauses stay under their control and the SQL is unchanged); the
 		 * shared $args bind both, and LIMIT/OFFSET is appended to $rows_query here.
 		 *
-		 * @param string   $count_query "SELECT COUNT(*) FROM …" with "?" placeholders.
-		 * @param string   $rows_query  "SELECT … FROM … ORDER BY …" WITHOUT LIMIT/OFFSET.
-		 * @param array    $args        Values bound to both queries' placeholders.
-		 * @param callable $present     Row mapper applied to each fetched row.
+		 * $prepare lets a caller run one batched step over the page rows before they
+		 * are mapped (e.g. a single name lookup keyed by id); its return value is
+		 * passed to $present as a second argument. Present callbacks that only take
+		 * one parameter simply ignore it, so existing callers are unaffected.
+		 *
+		 * @param string        $count_query "SELECT COUNT(*) FROM …" with "?" placeholders.
+		 * @param string        $rows_query  "SELECT … FROM … ORDER BY …" WITHOUT LIMIT/OFFSET.
+		 * @param array         $args        Values bound to both queries' placeholders.
+		 * @param callable      $present     Row mapper: present($row, $context).
+		 * @param callable|null $prepare     Optional one-shot over the page rows; its
+		 *                                   result becomes $present's $context.
 		 */
-		public static function paginate(Request $request, string $count_query, string $rows_query, array $args, callable $present, int $max_per_page = self::MAX_PER_PAGE): Response {
+		public static function paginate(Request $request, string $count_query, string $rows_query, array $args, callable $present, int $max_per_page = self::MAX_PER_PAGE, ?callable $prepare = null): Response {
 			$p = self::offset($request, $max_per_page);
 
 			$total = (int)SQL::fetchSingle(...array_merge([$count_query], $args));
@@ -30,7 +37,28 @@
 			$paged = $rows_query . " LIMIT " . (int)$p["limit"] . " OFFSET " . (int)$p["offset"];
 			$rows = SQL::fetchAll(...array_merge([$paged], $args));
 
-			$items = array_map($present, $rows);
+			$context = $prepare !== null ? $prepare($rows) : null;
+			$items = array_map(fn ($row) => $present($row, $context), $rows);
+
+			return Response::ok($items, self::offsetMeta($p["page"], $p["per_page"], $total));
+		}
+
+		/**
+		 * In-memory sibling of paginate() for endpoints whose full result set is
+		 * already assembled in PHP (e.g. JSONDB definitions filtered/sorted in code):
+		 * resolve the page window, slice $rows, map the slice through $present, and
+		 * wrap it in Response::ok with offset meta. The total reflects the whole
+		 * passed-in set, not the slice.
+		 *
+		 * @param array    $rows    The complete, already-ordered result set.
+		 * @param callable $present Row mapper applied to each row in the page slice.
+		 */
+		public static function paginateRows(Request $request, array $rows, callable $present, int $max_per_page = self::MAX_PER_PAGE): Response {
+			$p = self::offset($request, $max_per_page);
+
+			$total = count($rows);
+			$slice = array_slice($rows, $p["offset"], $p["limit"]);
+			$items = array_map($present, $slice);
 
 			return Response::ok($items, self::offsetMeta($p["page"], $p["per_page"], $total));
 		}

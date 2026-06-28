@@ -2,12 +2,14 @@
 	namespace BigTree\Services;
 
 	use BigTree\Api\Entity;
+	use BigTree\Api\JsonStore;
 	use BigTree\Api\Request;
 	use BigTree\Api\Response;
 	use BigTree\Api\ETag;
+	use BigTree\Api\Flag;
+	use BigTree\Api\Resources;
+	use BigTree\Api\Sanitize;
 	use BigTree\Api\Exceptions\BadRequestException;
-	use BigTree\Api\Exceptions\ConflictException;
-	use BigTree\Api\Exceptions\NotFoundException;
 	use BigTreeJSONDB;
 	use BigTree;
 
@@ -18,11 +20,7 @@
 			$etag = ETag::fromMtimes(array_filter([$mtime_path, file_exists($custom_mtime_path) ? $custom_mtime_path : null]));
 
 			if (ETag::check($request, $etag)) {
-				$r = Response::raw(304, []);
-				$r->is_envelope = false; $r->body = null;
-				$r->header("ETag", $etag);
-
-				return $r;
+				return Response::notModified($etag);
 			}
 
 			$rows = BigTreeJSONDB::getAll("templates", "position", "DESC");
@@ -46,15 +44,13 @@
 			$d = $request->body;
 			$id = (string)$d["id"];
 
-			if (!ctype_alnum(str_replace(["-", "_"], "", $id)) || strlen($id) > 127) {
+			if (!Sanitize::isValidId($id)) {
 				throw new BadRequestException("Template id must be alphanumeric (with - or _) and ≤ 127 chars", "invalid_id");
 			}
 
-			if (BigTreeJSONDB::exists("templates", $id)) {
-				throw new ConflictException("Template $id already exists", "duplicate_id");
-			}
+			(new JsonStore("templates", "Template"))->assertAbsent($id);
 
-			$resources = $this->cleanResources($d["resources"] ?? []);
+			$resources = Resources::clean($d["resources"] ?? []);
 			BigTreeJSONDB::incrementPosition("templates");
 			BigTreeJSONDB::insert("templates", [
 				"id" => $id,
@@ -62,7 +58,7 @@
 				"module" => $d["module"] ?? "",
 				"resources" => $resources,
 				"level" => (int)($d["level"] ?? 0),
-				"routed" => !empty($d["routed"]) ? "on" : "",
+				"routed" => Flag::checkbox($d["routed"] ?? null),
 				"position" => 0,
 				"hooks" => is_array($d["hooks"] ?? null) ? $d["hooks"] : [],
 			]);
@@ -79,7 +75,7 @@
 				"name" => isset($d["name"]) ? BigTree::safeEncode($d["name"]) : $existing["name"],
 				"module" => $d["module"] ?? ($existing["module"] ?? ""),
 				"level" => isset($d["level"]) ? (int)$d["level"] : (int)($existing["level"] ?? 0),
-				"resources" => isset($d["resources"]) ? $this->cleanResources($d["resources"]) : ($existing["resources"] ?? []),
+				"resources" => isset($d["resources"]) ? Resources::clean($d["resources"]) : ($existing["resources"] ?? []),
 				"hooks" => isset($d["hooks"]) && is_array($d["hooks"]) ? $d["hooks"] : ($existing["hooks"] ?? []),
 			]);
 			BigTreeJSONDB::update("templates", $id, $next);
@@ -89,54 +85,18 @@
 
 		public function delete(Request $request) {
 			$id = $request->routeParam("id");
-
-			if (!BigTreeJSONDB::exists("templates", $id)) {
-				throw new NotFoundException("Template $id not found");
-			}
-
-			BigTreeJSONDB::delete("templates", $id);
+			(new JsonStore("templates", "Template"))->deleteOrFail($id);
 
 			return Response::noContent();
 		}
 
 		public function reorder(Request $request) {
-			$ids = (array)$request->body["ids"];
-			$position = count($ids);
-
-			foreach ($ids as $id) {
-				if (BigTreeJSONDB::exists("templates", $id)) {
-					BigTreeJSONDB::update("templates", $id, ["position" => $position--]);
-				}
-			}
+			(new JsonStore("templates", "Template"))->reorder((array)$request->body["ids"]);
 
 			return Response::noContent();
 		}
 
 		// — helpers —
-
-		private function cleanResources($resources) {
-			$out = [];
-
-			foreach ((array)$resources as $r) {
-				if (empty($r["id"])) {
-					continue;
-				}
-				$settings = $r["settings"] ?? ($r["options"] ?? []);
-
-				if (is_string($settings)) {
-					$settings = json_decode($settings, true) ?: [];
-				}
-				$out[] = [
-					"id" => BigTree::safeEncode($r["id"]),
-					"type" => BigTree::safeEncode($r["type"] ?? "text"),
-					"title" => BigTree::safeEncode($r["title"] ?? ""),
-					"subtitle" => BigTree::safeEncode($r["subtitle"] ?? ""),
-					"settings" => BigTree::arrayFilterRecursive($settings ?: []),
-				];
-			}
-
-			return $out;
-		}
 
 		private function present(array $t) {
 

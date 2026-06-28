@@ -2,12 +2,12 @@
 	namespace BigTree\Services;
 
 	use BigTree\Api\Entity;
+	use BigTree\Api\Flag;
 	use BigTree\Api\Pagination;
 	use BigTree\Api\Request;
 	use BigTree\Api\Response;
 	use BigTree\Api\Exceptions\BadRequestException;
 	use BigTree\Api\Exceptions\ConflictException;
-	use BigTree\Api\Exceptions\NotFoundException;
 	use BigTree\Api\Exceptions\AuthorizationException;
 	use BigTreeAdmin;
 	use BigTreeCMS;
@@ -28,7 +28,6 @@
 	 */
 	class SettingService {
 		public function list(Request $request) {
-			$p = Pagination::offset($request, 100);
 			$q = trim((string)($request->query["q"] ?? ""));
 			$include_encrypted = !empty($request->query["include_encrypted"]) && (int)$request->user->level >= 2;
 			$include_system = !empty($request->query["include_system"]);
@@ -57,15 +56,11 @@
 			}
 
 			usort($filtered, function ($a, $b) { return strcasecmp($a["name"] ?? $a["id"], $b["name"] ?? $b["id"]); });
-			$total = count($filtered);
-			$slice = array_slice($filtered, $p["offset"], $p["limit"]);
 
-			$items = array_map(function ($d) use ($include_encrypted) {
+			return Pagination::paginateRows($request, $filtered, function ($d) use ($include_encrypted) {
 
 				return $this->present($d, $include_encrypted);
-			}, $slice);
-
-			return Response::ok($items, Pagination::offsetMeta($p["page"], $p["per_page"], $total));
+			}, 100);
 		}
 
 		public function get(Request $request) {
@@ -93,15 +88,15 @@
 				throw new ConflictException("Setting $id already exists", "duplicate_id");
 			}
 
-			$encrypted = !empty($d["encrypted"]) ? "on" : "";
+			$encrypted = Flag::checkbox($d["encrypted"] ?? null);
 			BigTreeJSONDB::insert("settings", [
 				"id" => $id,
 				"name" => BigTree::safeEncode($d["name"] ?? $id),
 				"description" => $d["description"] ?? "",
 				"type" => $d["type"] ?? "text",
 				"settings" => is_array($d["settings"] ?? null) ? $d["settings"] : [],
-				"locked" => !empty($d["locked"]) ? "on" : "",
-				"system" => !empty($d["system"]) ? "on" : "",
+				"locked" => Flag::checkbox($d["locked"] ?? null),
+				"system" => Flag::checkbox($d["system"] ?? null),
 				"encrypted" => $encrypted,
 				"extension" => $d["extension"] ?? null,
 			]);
@@ -154,9 +149,7 @@
 				throw new AuthorizationException("Internal settings cannot be deleted via API");
 			}
 
-			if (!BigTreeJSONDB::exists("settings", $id)) {
-				throw new NotFoundException("Setting $id not found");
-			}
+			Entity::assertExistsJson("settings", $id, "Setting");
 
 			BigTreeJSONDB::delete("settings", $id);
 			SQL::delete("bigtree_settings", $id);
@@ -204,9 +197,9 @@
 				"description" => $d["description"] ?? ($existing["description"] ?? ""),
 				"type" => $d["type"] ?? ($existing["type"] ?? "text"),
 				"settings" => is_array($d["settings"] ?? null) ? $d["settings"] : ($existing["settings"] ?? []),
-				"locked" => !empty($d["locked"]) ? "on" : "",
-				"system" => !empty($d["system"]) ? "on" : "",
-				"encrypted" => !empty($d["encrypted"]) ? "on" : "",
+				"locked" => Flag::checkbox($d["locked"] ?? null),
+				"system" => Flag::checkbox($d["system"] ?? null),
+				"encrypted" => Flag::checkbox($d["encrypted"] ?? null),
 				"extension" => $d["extension"] ?? ($existing["extension"] ?? null),
 			];
 			BigTreeJSONDB::update("settings", $old_id, $next);

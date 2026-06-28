@@ -1,6 +1,7 @@
 <?php
 	namespace BigTree\Services;
 
+	use BigTree\Api\Flag;
 	use BigTree\Api\Request;
 	use BigTree\Api\Response;
 	use BigTree\Api\Jwt;
@@ -83,7 +84,7 @@
 				$settings["scope"] = (string)($request->body["scope"] ?? ($settings["scope"] ?? ""));
 			}
 
-			$settings["test_environment"] = !empty($request->body["test_environment"]) ? "on" : "";
+			$settings["test_environment"] = Flag::checkbox($request->body["test_environment"] ?? null);
 
 			BigTreeAdmin::updateInternalSettingValue($def["setting"], $settings, true);
 

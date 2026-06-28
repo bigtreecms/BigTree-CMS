@@ -2,6 +2,8 @@
 	namespace BigTree\Services;
 
 	use BigTree\Api\Entity;
+	use BigTree\Api\Flag;
+	use BigTree\Api\Sanitize;
 	use BigTree\Api\Request;
 	use BigTree\Api\Response;
 	use BigTree\Api\ETag;
@@ -81,7 +83,7 @@
 			$d = $request->body;
 			$route = $d["route"] ?? BigTreeCMS::urlify($d["name"]);
 
-			if (!ctype_alnum(str_replace("-", "", $route)) || strlen($route) > 127) {
+			if (!Sanitize::isValidId((string)$route, 127, "-")) {
 				throw new BadRequestException("Module route must be alphanumeric (with -) and ≤ 127 chars", "invalid_route");
 			}
 
@@ -187,7 +189,7 @@
 
 			$route = $d["route"] ?? BigTreeCMS::urlify($name);
 
-			if (!ctype_alnum(str_replace("-", "", (string)$route)) || strlen((string)$route) > 127) {
+			if (!Sanitize::isValidId((string)$route, 127, "-")) {
 				throw new BadRequestException("Module route must be alphanumeric (with -) and ≤ 127 chars", "invalid_route");
 			}
 
@@ -302,7 +304,7 @@
 
 			return $context->insert("actions", [
 				"route" => $route,
-				"in_nav" => $in_nav ? "on" : "",
+				"in_nav" => Flag::checkbox($in_nav),
 				"class" => (string)$icon,
 				"name" => BigTree::safeEncode((string)$name),
 				"form" => $form ?: null,
@@ -378,10 +380,7 @@
 
 		public function delete(Request $request) {
 			$id = $request->route_params["id"];
-
-			if (!BigTreeJSONDB::exists("modules", $id)) {
-				throw new NotFoundException("Module $id not found");
-			}
+			Entity::assertExistsJson("modules", $id, "Module");
 
 			BigTreeJSONDB::delete("modules", $id);
 
@@ -509,7 +508,7 @@
 
 			$route_raw = (string)($d["route"] ?? "");
 
-			if ($route_raw !== "" && (!ctype_alnum(str_replace("-", "", $route_raw)) || strlen($route_raw) > 127)) {
+			if ($route_raw !== "" && !Sanitize::isValidId($route_raw, 127, "-")) {
 				throw new BadRequestException("Action route must be alphanumeric (with -) and ≤ 127 chars", "invalid_route");
 			}
 
@@ -528,7 +527,7 @@
 
 			$record = [
 				"route" => $route,
-				"in_nav" => !empty($d["in_nav"]) ? "on" : "",
+				"in_nav" => Flag::checkbox($d["in_nav"] ?? null),
 				"class" => (string)($d["icon"] ?? ($d["class"] ?? "")),
 				"name" => BigTree::safeEncode((string)$d["name"]),
 				"form" => !empty($d["form"]) ? $d["form"] : null,
@@ -581,7 +580,7 @@
 			}
 
 			if (array_key_exists("in_nav", $d)) {
-				$update["in_nav"] = !empty($d["in_nav"]) ? "on" : "";
+				$update["in_nav"] = Flag::checkbox($d["in_nav"]);
 			}
 
 			if (isset($d["icon"])) {
@@ -615,7 +614,7 @@
 			if (isset($d["route"])) {
 				$route_raw = (string)$d["route"];
 
-				if ($route_raw !== "" && (!ctype_alnum(str_replace("-", "", $route_raw)) || strlen($route_raw) > 127)) {
+				if ($route_raw !== "" && !Sanitize::isValidId($route_raw, 127, "-")) {
 					throw new BadRequestException("Action route must be alphanumeric (with -) and ≤ 127 chars", "invalid_route");
 				}
 
@@ -878,7 +877,7 @@
 				"fields" => $this->cleanFormFields($d["fields"] ?? []),
 				"hooks" => is_array($d["hooks"] ?? null) ? $d["hooks"] : [],
 				"default_position" => (string)($d["default_position"] ?? ""),
-				"default_pending" => !empty($d["default_pending"]) ? "on" : "",
+				"default_pending" => Flag::checkbox($d["default_pending"] ?? null),
 				"css" => (string)($d["css"] ?? ""),
 				"redirect_url" => BigTree::safeEncode((string)($d["redirect_url"] ?? "")),
 				"thank_you_message" => (string)($d["thank_you_message"] ?? ""),
@@ -924,7 +923,7 @@
 			}
 
 			if (array_key_exists("default_pending", $d)) {
-				$update["default_pending"] = !empty($d["default_pending"]) ? "on" : "";
+				$update["default_pending"] = Flag::checkbox($d["default_pending"]);
 			}
 
 			if (isset($d["css"])) {
@@ -1273,10 +1272,7 @@
 
 		public function deleteGroup(Request $request) {
 			$id = $request->route_params["id"];
-
-			if (!BigTreeJSONDB::exists("module-groups", $id)) {
-				throw new NotFoundException("Module group $id not found");
-			}
+			Entity::assertExistsJson("module-groups", $id, "Module group");
 
 			BigTreeJSONDB::delete("module-groups", $id);
 			// Detach modules from this group

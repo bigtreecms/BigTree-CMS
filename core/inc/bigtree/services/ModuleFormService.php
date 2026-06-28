@@ -1,6 +1,7 @@
 <?php
 	namespace BigTree\Services;
 
+	use BigTree\Api\Flag;
 	use BigTree\Api\Request;
 	use BigTree\Api\Response;
 	use BigTree\Api\Exceptions\BadRequestException;
@@ -45,8 +46,8 @@
 				"default_position" => (string)($d["default_position"] ?? ""),
 				"return_view" => !empty($d["return_view"]) ? $d["return_view"] : null,
 				"return_url" => BigTree::safeEncode((string)($d["return_url"] ?? "")),
-				"tagging" => !empty($d["tagging"]) ? "on" : "",
-				"open_graph" => !empty($d["open_graph"]) ? "on" : "",
+				"tagging" => Flag::checkbox($d["tagging"] ?? null),
+				"open_graph" => Flag::checkbox($d["open_graph"] ?? null),
 				"hooks" => is_array($d["hooks"] ?? null) ? $d["hooks"] : [],
 			]);
 
@@ -97,11 +98,11 @@
 			}
 
 			if (array_key_exists("tagging", $d)) {
-				$update["tagging"] = !empty($d["tagging"]) ? "on" : "";
+				$update["tagging"] = Flag::checkbox($d["tagging"]);
 			}
 
 			if (array_key_exists("open_graph", $d)) {
-				$update["open_graph"] = !empty($d["open_graph"]) ? "on" : "";
+				$update["open_graph"] = Flag::checkbox($d["open_graph"]);
 			}
 
 			if (isset($d["hooks"]) && is_array($d["hooks"])) {

@@ -2,6 +2,8 @@
 	namespace BigTree\Services;
 
 	use BigTree\Api\Entity;
+	use BigTree\Api\Flag;
+	use BigTree\Api\Json;
 	use BigTree\Api\Sanitize;
 	use BigTree\Api\Pagination;
 	use BigTree\Api\Request;
@@ -74,7 +76,7 @@
 				"level" => $level,
 				"name" => BigTree::safeEncode($d["name"] ?? ""),
 				"company" => BigTree::safeEncode($d["company"] ?? ""),
-				"daily_digest" => !empty($d["daily_digest"]) ? "on" : "",
+				"daily_digest" => Flag::checkbox($d["daily_digest"] ?? null),
 				"alerts" => is_array($d["alerts"] ?? null) ? $d["alerts"] : [],
 				"permissions" => is_array($d["permissions"] ?? null) ? $d["permissions"] : [],
 				"timezone" => $d["timezone"] ?? "",
@@ -125,7 +127,7 @@
 			}
 
 			if (isset($d["daily_digest"])) {
-				$update["daily_digest"] = !empty($d["daily_digest"]) ? "on" : "";
+				$update["daily_digest"] = Flag::checkbox($d["daily_digest"]);
 			}
 
 			if (isset($d["alerts"]) && is_array($d["alerts"])) {
@@ -249,7 +251,7 @@
 				"name" => $row["name"],
 				"company" => $row["company"],
 				"level" => (int)$row["level"],
-				"daily_digest" => $row["daily_digest"] === "on",
+				"daily_digest" => Flag::isOn($row["daily_digest"]),
 				"timezone" => $row["timezone"],
 			];
 		}
@@ -262,14 +264,14 @@
 				"name" => $row["name"],
 				"company" => $row["company"],
 				"level" => (int)$row["level"],
-				"daily_digest" => $row["daily_digest"] === "on",
+				"daily_digest" => Flag::isOn($row["daily_digest"]),
 				"timezone" => $row["timezone"],
 				"two_factor_enabled" => !empty($row["2fa_secret"]),
 			];
 
 			if ($is_self_or_admin) {
-				$result["permissions"] = json_decode($row["permissions"] ?: "[]", true) ?: [];
-				$result["alerts"] = json_decode($row["alerts"] ?: "[]", true) ?: [];
+				$result["permissions"] = Json::decode($row["permissions"]);
+				$result["alerts"] = Json::decode($row["alerts"]);
 			}
 
 			return $result;

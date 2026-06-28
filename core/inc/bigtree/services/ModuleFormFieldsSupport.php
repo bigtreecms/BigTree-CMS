@@ -2,6 +2,7 @@
 	namespace BigTree\Services;
 
 	use BigTree;
+	use BigTree\Api\Json;
 
 	/**
 	 * Shared form-field normalization for module collaborators. Both
@@ -30,12 +31,8 @@
 				if ($column === "") {
 					continue;
 				}
-				$settings = $data["settings"] ?? ($data["options"] ?? []);
-
-				if (is_string($settings)) {
-					$settings = json_decode($settings, true) ?: [];
-				}
-				$settings = BigTree::arrayFilterRecursive(is_array($settings) ? $settings : []);
+				$settings = Json::decode($data["settings"] ?? ($data["options"] ?? []));
+				$settings = BigTree::arrayFilterRecursive($settings);
 				$out[] = [
 					"column" => $column,
 					"type" => BigTree::safeEncode((string)($data["type"] ?? "text")),

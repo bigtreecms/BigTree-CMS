@@ -87,6 +87,87 @@
 		}
 	}
 
+	function test_pagination_paginate_rows_slices_in_memory() {
+		$rows = [];
+
+		for ($i = 1; $i <= 5; $i++) {
+			$rows[] = ["id" => "row-" . $i];
+		}
+
+		$req = new Request();
+		$req->query = ["page" => 2, "per_page" => 2];
+
+		$response = Pagination::paginateRows($req, $rows, function ($r) {
+
+			return $r["id"];
+		}, 100);
+
+		T::equals($response->status, 200, "paginateRows returns a 200 response");
+		T::equals(count($response->body["data"]), 2, "page slice honors per_page");
+		T::equals($response->body["data"][0], "row-3", "second page offset is correct");
+		T::equals($response->body["meta"]["total"], 5, "meta total counts the full passed-in set");
+		T::equals($response->body["meta"]["pages"], 3, "meta pages = ceil(total / per_page)");
+
+		$last = new Request();
+		$last->query = ["page" => 3, "per_page" => 2];
+		$response3 = Pagination::paginateRows($last, $rows, fn ($r) => $r["id"], 100);
+
+		T::equals(count($response3->body["data"]), 1, "final page returns the remainder");
+		T::equals($response3->body["data"][0], "row-5", "final page slice offset is correct");
+	}
+
+	function test_pagination_paginate_threads_prepare_context() {
+		if (!_pagination_db_ready()) {
+			return;
+		}
+
+		$prefix = "zzpag_" . substr(uniqid(), -8) . "_";
+		$ids = [];
+
+		try {
+			for ($i = 1; $i <= 3; $i++) {
+				$tag = $prefix . $i;
+				$ids[] = (int)SQL::insert("bigtree_tags", [
+					"tag" => $tag,
+					"metaphone" => metaphone($tag),
+					"route" => $tag,
+					"usage_count" => 0,
+				]);
+			}
+
+			$where = " WHERE tag LIKE ?";
+			$args = [$prefix . "%"];
+
+			$req = new Request();
+			$req->query = ["page" => 1, "per_page" => 10];
+
+			// prepare() runs once over the page rows; its result is threaded into
+			// present() as the second argument.
+			$response = Pagination::paginate(
+				$req,
+				"SELECT COUNT(*) FROM bigtree_tags" . $where,
+				"SELECT tag FROM bigtree_tags" . $where . " ORDER BY tag ASC",
+				$args,
+				function ($r, $context) {
+
+					return $r["tag"] . ":" . $context["total"];
+				},
+				100,
+				function ($rows) {
+
+					return ["total" => count($rows)];
+				}
+			);
+
+			T::equals($response->body["data"][0], $prefix . "1:3", "prepare context is passed to present");
+			T::equals(count($response->body["data"]), 3, "all matching rows returned on one page");
+		} finally {
+			foreach ($ids as $id) {
+				SQL::delete("bigtree_tags", $id);
+			}
+		}
+	}
+
 	function test_cursor_roundtrip() {
 		$secret = "test-secret-at-least-32-bytes-long-string";
 		$payload = ["id" => 12345];

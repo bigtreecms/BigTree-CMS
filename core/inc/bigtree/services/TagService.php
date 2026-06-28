@@ -7,7 +7,6 @@
 	use BigTree\Api\Request;
 	use BigTree\Api\Response;
 	use BigTree\Api\Exceptions\BadRequestException;
-	use BigTree\Api\Exceptions\NotFoundException;
 	use BigTreeAdmin;
 	use BigTreeCMS;
 	use BigTree;
@@ -83,10 +82,7 @@
 
 		public function delete(Request $request) {
 			$id = $request->id();
-
-			if (!SQL::exists("bigtree_tags", $id)) {
-				throw new NotFoundException("Tag $id not found");
-			}
+			Entity::assertExists("bigtree_tags", $id, "Tag");
 
 			SQL::delete("bigtree_tags", $id);
 			SQL::query("DELETE FROM bigtree_tags_rel WHERE tag = ?", $id);
@@ -106,9 +102,7 @@
 				throw new BadRequestException("into cannot be in from list", "invalid_merge");
 			}
 
-			if (!SQL::exists("bigtree_tags", $into)) {
-				throw new NotFoundException("Target tag $into not found");
-			}
+			Entity::assertExists("bigtree_tags", $into, "Target tag");
 
 			foreach ($from as $tag_id) {
 				SQL::query("UPDATE bigtree_tags_rel SET tag = ? WHERE tag = ?", $into, $tag_id);

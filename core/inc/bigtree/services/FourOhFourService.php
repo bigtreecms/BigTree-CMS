@@ -1,12 +1,13 @@
 <?php
 	namespace BigTree\Services;
 
+	use BigTree\Api\Entity;
+	use BigTree\Api\Flag;
 	use BigTree\Api\Pagination;
 	use BigTree\Api\Sanitize;
 	use BigTree\Api\Request;
 	use BigTree\Api\Response;
 	use BigTree\Api\Exceptions\BadRequestException;
-	use BigTree\Api\Exceptions\NotFoundException;
 	use BigTree;
 	use SQL;
 
@@ -144,10 +145,7 @@
 
 		public function delete(Request $request) {
 			$id = $request->id();
-
-			if (!SQL::exists("bigtree_404s", $id)) {
-				throw new NotFoundException("404 $id not found");
-			}
+			Entity::assertExists("bigtree_404s", $id, "404");
 
 			SQL::delete("bigtree_404s", $id);
 
@@ -156,10 +154,7 @@
 
 		public function setRedirect(Request $request) {
 			$id = $request->id();
-
-			if (!SQL::exists("bigtree_404s", $id)) {
-				throw new NotFoundException("404 $id not found");
-			}
+			Entity::assertExists("bigtree_404s", $id, "404");
 
 			SQL::update("bigtree_404s", $id, ["redirect_url" => (string)$request->body["url"], "ignored" => ""]);
 
@@ -168,10 +163,7 @@
 
 		public function ignore(Request $request) {
 			$id = $request->id();
-
-			if (!SQL::exists("bigtree_404s", $id)) {
-				throw new NotFoundException("404 $id not found");
-			}
+			Entity::assertExists("bigtree_404s", $id, "404");
 
 			SQL::update("bigtree_404s", $id, ["ignored" => "on"]);
 
@@ -275,9 +267,9 @@
 				"get_vars" => $r["get_vars"],
 				"redirect_url" => $r["redirect_url"],
 				"requests" => (int)$r["requests"],
-				"ignored" => $r["ignored"] === "on",
+				"ignored" => Flag::isOn($r["ignored"]),
 				"site_key" => $r["site_key"],
-				"type" => $r["ignored"] === "on" ? "ignored" : ($r["redirect_url"] !== "" ? "301" : "404"),
+				"type" => Flag::isOn($r["ignored"]) ? "ignored" : ($r["redirect_url"] !== "" ? "301" : "404"),
 			];
 		}
 	}

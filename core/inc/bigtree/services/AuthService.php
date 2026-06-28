@@ -2,6 +2,7 @@
 	namespace BigTree\Services;
 
 	use BigTree\Api\Entity;
+	use BigTree\Api\Json;
 	use BigTree\Api\Jwt;
 	use BigTree\Api\Request;
 	use BigTree\Api\Response;
@@ -1081,7 +1082,7 @@
 		}
 
 		private function issueAccessToken(array $user) {
-			$permissions = json_decode($user["permissions"] ?? "[]", true) ?: [];
+			$permissions = Json::decode($user["permissions"] ?? "[]");
 			$now = time();
 			$claims = [
 				"iss" => "bigtree",
