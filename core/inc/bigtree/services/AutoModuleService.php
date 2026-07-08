@@ -52,9 +52,9 @@
 				throw new NotFoundException("No view defined for module $module_id", "no_view");
 			}
 
-			$page = max(1, (int)($request->query["page"] ?? 1));
-			$query = (string)($request->query["q"] ?? "");
-			$sort = $this->safeSort((string)($request->query["sort"] ?? "id DESC"), $view);
+			$page = max(1, $request->queryInt("page", 1));
+			$query = $request->queryString("q", "", false);
+			$sort = $this->safeSort($request->queryString("sort", "id DESC", false), $view);
 
 			// per_page mirrors getSearchResults' own derivation (legacy reads the
 			// view's setting, falling back to the admin default) — the legacy
@@ -372,7 +372,7 @@
 			$module_id = $request->route_params["id"];
 			$module = $this->loadModule($module_id);
 			$table = $this->resolveTable($module, $request);
-			$ids = array_map("intval", (array)$request->body["ids"]);
+			$ids = $request->bodyList("ids", "int");
 
 			// Only rows that (a) are genuine members of $table and (b) the user has
 			// publisher ("p") row-level access to may be repositioned. Without this a

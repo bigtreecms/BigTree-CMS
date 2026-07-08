@@ -26,7 +26,7 @@
 	 */
 	class UserService {
 		public function list(Request $request) {
-			$q = trim((string)($request->query["q"] ?? ""));
+			$q = $request->queryString("q");
 
 			$where = [];
 			$params = [];
@@ -188,8 +188,8 @@
 				throw new AuthorizationException("Cannot change password for a higher-level user");
 			}
 
-			$new = trim((string)($request->body["new_password"] ?? ""));
-			$current = (string)($request->body["current_password"] ?? "");
+			$new = $request->bodyString("new_password");
+			$current = $request->bodyString("current_password", "", false);
 
 			if ($new === "") {
 				throw new BadRequestException("new_password required", "missing_password");

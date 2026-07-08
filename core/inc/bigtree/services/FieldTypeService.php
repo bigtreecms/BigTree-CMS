@@ -38,7 +38,7 @@
 				return $r;
 			}
 
-			$split = !empty($request->query["split"]);
+			$split = $request->queryBool("split");
 
 			// getCachedFieldTypes() returns data nested by use_case for the legacy
 			// admin. Flatten into the SPA-friendly shape: Record<typeId, FieldType>

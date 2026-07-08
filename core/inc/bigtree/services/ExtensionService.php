@@ -28,7 +28,7 @@
 	 */
 	class ExtensionService {
 		public function list(Request $request) {
-			$sort = (string)($request->query["sort"] ?? "name");
+			$sort = $request->queryString("sort", "name", false);
 			$dir = $sort[0] === "-" ? "DESC" : "ASC";
 			$col = ltrim($sort, "-");
 			$rows = BigTreeJSONDB::getAll("extensions", $col, $dir);
@@ -905,8 +905,8 @@
 		// GET /extensions/build/download?id=&token= — stream the built zip. Public +
 		// token-gated so the SPA can use a browser-native download link.
 		public function downloadPackage(Request $request) {
-			$id = (string)($request->query["id"] ?? "");
-			$raw_token = (string)($request->query["token"] ?? "");
+			$id = $request->queryString("id", "", false);
+			$raw_token = $request->queryString("token", "", false);
 
 			if ($raw_token === "") {
 				throw new AuthenticationException("Missing download token", "missing_token");

@@ -91,7 +91,7 @@
 		}
 
 		public function reorder(Request $request) {
-			(new JsonStore("templates", "Template"))->reorder((array)$request->body["ids"]);
+			(new JsonStore("templates", "Template"))->reorder($request->bodyArray("ids"));
 
 			return Response::noContent();
 		}

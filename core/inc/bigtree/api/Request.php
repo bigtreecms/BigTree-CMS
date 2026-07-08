@@ -149,6 +149,83 @@
 			return $cast === "int" ? (int)$value : (string)$value;
 		}
 
+		/**
+		 * Typed body/query accessors.
+		 *
+		 * Scalar extraction from $request->body / $request->query was hand-written
+		 * across the service layer in several drifting shapes — trimmed strings with
+		 * a default, bare int casts, !empty() booleans, and array_map()'d id lists.
+		 * These fold each shape onto one definition so call sites collapse to e.g.
+		 * `$q = $request->queryString("q")` or `$ids = $request->bodyList("ids", "int")`.
+		 *
+		 * They deliberately do NOT replace isset()-guarded reads (partial-update
+		 * assembly) — those need to distinguish "absent" from "present but empty",
+		 * which a defaulting accessor cannot express.
+		 */
+		public function bodyString(string $key, string $default = "", bool $trim = true): string {
+
+			return self::scalarString($this->body, $key, $default, $trim);
+		}
+
+		public function bodyInt(string $key, int $default = 0): int {
+
+			return isset($this->body[$key]) ? (int)$this->body[$key] : $default;
+		}
+
+		/**
+		 * Boolean via PHP's !empty() semantics: missing, "", "0", 0, false, and []
+		 * all read false; any other value reads true.
+		 */
+		public function bodyBool(string $key): bool {
+
+			return !empty($this->body[$key]);
+		}
+
+		public function bodyArray(string $key): array {
+
+			return (array)($this->body[$key] ?? []);
+		}
+
+		/**
+		 * A list of ids/values cast element-wise. $cast is "int" (intval) or
+		 * "string" (strval), matching routeParam()'s cast vocabulary.
+		 */
+		public function bodyList(string $key, string $cast = "int"): array {
+
+			return array_map($cast === "int" ? "intval" : "strval", $this->bodyArray($key));
+		}
+
+		public function queryString(string $key, string $default = "", bool $trim = true): string {
+
+			return self::scalarString($this->query, $key, $default, $trim);
+		}
+
+		public function queryInt(string $key, int $default = 0): int {
+
+			return isset($this->query[$key]) ? (int)$this->query[$key] : $default;
+		}
+
+		public function queryBool(string $key): bool {
+
+			return !empty($this->query[$key]);
+		}
+
+		public function queryArray(string $key): array {
+
+			return (array)($this->query[$key] ?? []);
+		}
+
+		public function queryList(string $key, string $cast = "int"): array {
+
+			return array_map($cast === "int" ? "intval" : "strval", $this->queryArray($key));
+		}
+
+		private static function scalarString(array $source, string $key, string $default, bool $trim): string {
+			$value = (string)($source[$key] ?? $default);
+
+			return $trim ? trim($value) : $value;
+		}
+
 		public function header($name) {
 
 			return $this->headers[strtolower($name)] ?? null;

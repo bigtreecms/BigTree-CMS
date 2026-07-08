@@ -76,7 +76,7 @@
 		}
 
 		public function reorder(Request $request) {
-			(new JsonStore("callouts", "Callout"))->reorder((array)$request->body["ids"]);
+			(new JsonStore("callouts", "Callout"))->reorder($request->bodyArray("ids"));
 
 			return Response::noContent();
 		}

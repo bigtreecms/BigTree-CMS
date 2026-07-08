@@ -28,8 +28,8 @@
 	 */
 	class PageService {
 		public function list(Request $request) {
-			$parent = (int)($request->query["parent"] ?? 0);
-			$include_archived = !empty($request->query["include_archived"]);
+			$parent = $request->queryInt("parent");
+			$include_archived = $request->queryBool("include_archived");
 
 			$where = "parent = ?";
 			$args = [$parent];
@@ -975,7 +975,7 @@
 		public function reorder(Request $request) {
 			$parent = $request->routeParam("parent", "int");
 			$this->enforce($request->user, $parent, "e", "reorder children of");
-			$ids = array_map("intval", (array)$request->body["ids"]);
+			$ids = $request->bodyList("ids", "int");
 
 			// Only real pages that are actually children of $parent may be repositioned.
 			// This rejects pending-change ids (which live in a different table) and ids
@@ -1032,7 +1032,7 @@
 		public function saveRevision(Request $request) {
 			$id = $request->id();
 			$this->enforce($request->user, $id, "p");
-			$desc = (string)($request->body["description"] ?? "");
+			$desc = $request->bodyString("description", "", false);
 			$page = Entity::findOrFail("bigtree_pages", $id, "Page");
 
 			$rev_id = (int)SQL::insert("bigtree_page_revisions", [
@@ -1124,7 +1124,7 @@
 		}
 
 		public function search(Request $request) {
-			$q = trim((string)($request->query["q"] ?? ""));
+			$q = $request->queryString("q");
 
 			if ($q === "") {
 				return Response::ok([]);

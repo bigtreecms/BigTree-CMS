@@ -101,18 +101,18 @@
 		// crop spec carried over from a pending_crops entry.
 
 		public function crop(Request $request) {
-			$file = (string)($request->body["file"] ?? "");
+			$file = $request->bodyString("file", "", false);
 			$x = (int)$request->body["x"];
 			$y = (int)$request->body["y"];
 			$w = (int)$request->body["width"];
 			$h = (int)$request->body["height"];
-			$target_w = (int)($request->body["target_width"] ?? 0);
-			$target_h = (int)($request->body["target_height"] ?? 0);
-			$prefix = (string)($request->body["prefix"] ?? "");
-			$name = BigTree::cleanFile((string)($request->body["name"] ?? basename($file)));
+			$target_w = $request->bodyInt("target_width");
+			$target_h = $request->bodyInt("target_height");
+			$prefix = $request->bodyString("prefix", "", false);
+			$name = BigTree::cleanFile($request->bodyString("name", basename($file), false));
 			$directory = $this->cleanDirectory($request->body["directory"] ?? "files/");
-			$retina = !empty($request->body["retina"]);
-			$grayscale = !empty($request->body["grayscale"]);
+			$retina = $request->bodyBool("retina");
+			$grayscale = $request->bodyBool("grayscale");
 			$thumbs = is_array($request->body["thumbs"] ?? null) ? $request->body["thumbs"] : [];
 			$center_crops = is_array($request->body["center_crops"] ?? null) ? $request->body["center_crops"] : [];
 

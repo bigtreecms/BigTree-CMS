@@ -28,9 +28,9 @@
 	 */
 	class SettingService {
 		public function list(Request $request) {
-			$q = trim((string)($request->query["q"] ?? ""));
+			$q = $request->queryString("q");
 			$include_encrypted = !empty($request->query["include_encrypted"]) && (int)$request->user->level >= 2;
-			$include_system = !empty($request->query["include_system"]);
+			$include_system = $request->queryBool("include_system");
 
 			$defs = BigTreeJSONDB::getAll("settings");
 			$filtered = [];

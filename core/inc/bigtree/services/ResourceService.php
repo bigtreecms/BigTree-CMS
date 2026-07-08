@@ -38,7 +38,7 @@
 		// — Folders —
 
 		public function listFolders(Request $request) {
-			$parent = (int)($request->query["parent"] ?? 0);
+			$parent = $request->queryInt("parent");
 			$this->enforceFolder($request->user, $parent, "e", "view");
 
 			$folders = SQL::fetchAll("SELECT id, parent, name, EXISTS (SELECT 1 FROM bigtree_resource_folders c WHERE c.parent = bigtree_resource_folders.id) AS has_children FROM bigtree_resource_folders WHERE parent = ? ORDER BY name", $parent);
@@ -384,7 +384,7 @@
 		}
 
 		public function search(Request $request) {
-			$q = trim((string)($request->query["q"] ?? ""));
+			$q = $request->queryString("q");
 
 			if ($q === "") {
 				return Response::ok([]);
@@ -408,7 +408,7 @@
 		// — Upload (multipart) —
 
 		public function upload(Request $request) {
-			$folder = (int)($request->body["folder"] ?? 0);
+			$folder = $request->bodyInt("folder");
 			$this->enforceFolder($request->user, $folder, "p", "upload to");
 
 			$file_set = $request->file("file");
@@ -420,7 +420,7 @@
 
 			$this->assertUploadOk($file);
 
-			$display_name = trim((string)($request->body["name"] ?? $file["name"]));
+			$display_name = $request->bodyString("name", $file["name"]);
 			$settings = $this->decodeSettings($request->body["settings"] ?? null);
 
 			$mime = $this->detectMime($file["tmp_name"], $file["type"], $file["name"]);
@@ -533,8 +533,8 @@
 		// resource asset, insert a is_video=on resource row.
 
 		public function createManagedVideo(Request $request) {
-			$url = trim((string)($request->body["url"] ?? ""));
-			$folder = (int)($request->body["folder"] ?? 0);
+			$url = $request->bodyString("url");
+			$folder = $request->bodyInt("folder");
 			$this->enforceFolder($request->user, $folder, "p", "create video in");
 
 			if ($url === "") {
@@ -614,9 +614,9 @@
 			$y = (int)$request->body["y"];
 			$w = (int)$request->body["width"];
 			$h = (int)$request->body["height"];
-			$target_w = (int)($request->body["target_width"] ?? $w);
-			$target_h = (int)($request->body["target_height"] ?? $h);
-			$name_prefix = trim((string)($request->body["prefix"] ?? "crop-")) ?: "crop-";
+			$target_w = $request->bodyInt("target_width", $w);
+			$target_h = $request->bodyInt("target_height", $h);
+			$name_prefix = $request->bodyString("prefix", "crop-") ?: "crop-";
 			$directory = self::safeStorageDirectory($request->body["directory"] ?? null, "files/resources/crops/");
 
 			if ($w <= 0 || $h <= 0 || $target_w <= 0 || $target_h <= 0) {

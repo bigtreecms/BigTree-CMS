@@ -24,7 +24,7 @@
 	 */
 	class PendingChangeService {
 		public function list(Request $request) {
-			$mine_only = !empty($request->query["mine"]);
+			$mine_only = $request->queryBool("mine");
 			$me = (int)$request->user->id;
 
 			$where = $mine_only ? " WHERE user = ?" : "";

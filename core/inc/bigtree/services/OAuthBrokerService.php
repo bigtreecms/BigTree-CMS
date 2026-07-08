@@ -69,8 +69,8 @@
 			}
 
 			$def = self::SERVICES[$service];
-			$key = trim((string)($request->body["key"] ?? ""));
-			$secret = trim((string)($request->body["secret"] ?? ""));
+			$key = $request->bodyString("key");
+			$secret = $request->bodyString("secret");
 
 			if ($key === "" || $secret === "") {
 				throw new BadRequestException("A key and secret are required to connect.", "missing_credentials");
@@ -81,7 +81,7 @@
 			$settings["secret"] = $secret;
 
 			if (!empty($def["scope"])) {
-				$settings["scope"] = (string)($request->body["scope"] ?? ($settings["scope"] ?? ""));
+				$settings["scope"] = $request->bodyString("scope", $settings["scope"] ?? "", false);
 			}
 
 			$settings["test_environment"] = Flag::checkbox($request->body["test_environment"] ?? null);
@@ -120,7 +120,7 @@
 
 		/** Validate the launch token and redirect the browser to the provider. */
 		public function launch(Request $request) {
-			$claims = $this->readToken((string)($request->query["token"] ?? ""));
+			$claims = $this->readToken($request->queryString("token", "", false));
 			$callback = $this->callbackUrl();
 
 			if ($claims["kind"] === "gcs") {
@@ -152,7 +152,7 @@
 
 		/** Provider redirect target: validate state, exchange the token, return to the SPA. */
 		public function callback(Request $request) {
-			$state = (string)($request->query["state"] ?? "");
+			$state = $request->queryString("state", "", false);
 
 			try {
 				$claims = $this->readToken($state);

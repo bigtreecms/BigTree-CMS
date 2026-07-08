@@ -14,7 +14,7 @@
 
 	class TagService {
 		public function list(Request $request) {
-			$q = trim((string)($request->query["q"] ?? ""));
+			$q = $request->queryString("q");
 
 			$where = "";
 			$args = [];
@@ -35,7 +35,7 @@
 		}
 
 		public function search(Request $request) {
-			$q = trim((string)($request->query["q"] ?? ""));
+			$q = $request->queryString("q");
 
 			if ($q === "") {
 				return Response::ok([]);
@@ -92,7 +92,7 @@
 
 		public function merge(Request $request) {
 			$into = (int)$request->body["into"];
-			$from = array_map("intval", (array)$request->body["from"]);
+			$from = $request->bodyList("from", "int");
 
 			if (!$into || !$from) {
 				throw new BadRequestException("into and from required", "missing_fields");

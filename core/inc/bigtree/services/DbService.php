@@ -41,7 +41,7 @@
 
 		public function columns(Request $request) {
 			$table = $request->routeParam("table");
-			$sort = !empty($request->query["sort"]);
+			$sort = $request->queryBool("sort");
 			$description = BigTree::describeTable($table);
 
 			if (!$description) {

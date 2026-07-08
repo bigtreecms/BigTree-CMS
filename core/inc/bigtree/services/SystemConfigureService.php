@@ -189,8 +189,8 @@
 		 * bucket creation, and file-cache population match the canonical CMS code.
 		 */
 		public function updateCloudStorageDefault(Request $request) {
-			$service = (string)($request->body["service"] ?? "local");
-			$container = trim((string)($request->body["container"] ?? ""));
+			$service = $request->bodyString("service", "local", false);
+			$container = $request->bodyString("container");
 
 			if (!in_array($service, ["local", "amazon", "rackspace", "google"], true)) {
 				throw new BadRequestException("Unknown storage service", "invalid_service");
@@ -259,9 +259,9 @@
 			}
 
 			if ($service === "amazon") {
-				$cloud->Settings["amazon"]["cloudfront_distribution"] = (string)($request->body["cloudfront_distribution"] ?? "");
-				$cloud->Settings["amazon"]["cloudfront_domain"] = (string)($request->body["cloudfront_domain"] ?? "");
-				$cloud->Settings["amazon"]["cloudfront_ssl"] = (string)($request->body["cloudfront_ssl"] ?? "");
+				$cloud->Settings["amazon"]["cloudfront_distribution"] = $request->bodyString("cloudfront_distribution", "", false);
+				$cloud->Settings["amazon"]["cloudfront_domain"] = $request->bodyString("cloudfront_domain", "", false);
+				$cloud->Settings["amazon"]["cloudfront_ssl"] = $request->bodyString("cloudfront_ssl", "", false);
 				$cloud->Settings["amazon"]["region"] = $cloud->getS3BucketRegion($container);
 			}
 		}
@@ -311,7 +311,7 @@
 				throw new BadRequestException("No Amazon S3 bucket is configured.", "no_bucket");
 			}
 
-			$marker = trim((string)($request->body["marker"] ?? ""));
+			$marker = $request->bodyString("marker");
 
 			if ($marker === "") {
 				\SQL::delete("bigtree_caches", ["identifier" => "org.bigtreecms.cloudfiles"]);
@@ -365,7 +365,7 @@
 		}
 
 		public function updatePaymentGateway(Request $request) {
-			$service = (string)($request->body["service"] ?? "");
+			$service = $request->bodyString("service", "", false);
 			$incoming = is_array($request->body["settings"] ?? null) ? $request->body["settings"] : [];
 
 			if (!in_array($service, ["", "authorize.net", "paypal", "paypal-rest", "payflow", "linkpoint"], true)) {
@@ -480,7 +480,7 @@
 		 * resolve is rejected so the SPA can keep the user on the form.
 		 */
 		public function updateAnalytics(Request $request) {
-			$property_id = trim((string)($request->body["property_id"] ?? ""));
+			$property_id = $request->bodyString("property_id");
 
 			if ($property_id === "") {
 				throw new BadRequestException("A property ID is required.", "missing_property_id");

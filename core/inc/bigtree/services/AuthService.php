@@ -56,12 +56,12 @@
 				return false;
 			}
 
-			return !empty($request->body["remember"]);
+			return $request->bodyBool("remember");
 		}
 
 		public function login(Request $request) {
-			$email = strtolower(trim((string)($request->body["email"] ?? "")));
-			$password = (string)($request->body["password"] ?? "");
+			$email = strtolower($request->bodyString("email"));
+			$password = $request->bodyString("password", "", false);
 			$remember = $this->rememberRequested($request);
 
 			if ($email === "" || $password === "") {
@@ -114,8 +114,8 @@
 		}
 
 		public function twoFactor(Request $request) {
-			$mfa_token = (string)($request->body["mfa_token"] ?? "");
-			$code = (string)($request->body["code"] ?? "");
+			$mfa_token = $request->bodyString("mfa_token", "", false);
+			$code = $request->bodyString("code", "", false);
 
 			if ($mfa_token === "" || $code === "") {
 				throw new BadRequestException("mfa_token and code required", "missing_fields");
@@ -196,8 +196,8 @@
 		public function twoFactorEnable(Request $request) {
 			include_once BigTree::path("inc/lib/GoogleAuthenticator.php");
 
-			$secret = trim((string)($request->body["secret"] ?? ""));
-			$code = trim((string)($request->body["code"] ?? ""));
+			$secret = $request->bodyString("secret");
+			$code = $request->bodyString("code");
 
 			if ($secret === "" || $code === "") {
 				throw new BadRequestException("secret and code required", "missing_fields");
@@ -221,7 +221,7 @@
 		 * pre-auth: the secret is held client-side until enable-required verifies it.
 		 */
 		public function twoFactorSetupRequired(Request $request) {
-			$user = $this->userBySetupToken((string)($request->body["setup_token"] ?? ""));
+			$user = $this->userBySetupToken($request->bodyString("setup_token", "", false));
 
 			return Response::ok($this->totpCeremony($user["email"]));
 		}
@@ -234,10 +234,10 @@
 		public function twoFactorEnableRequired(Request $request) {
 			include_once BigTree::path("inc/lib/GoogleAuthenticator.php");
 
-			$setup_token = (string)($request->body["setup_token"] ?? "");
+			$setup_token = $request->bodyString("setup_token", "", false);
 			$user = $this->userBySetupToken($setup_token);
-			$secret = trim((string)($request->body["secret"] ?? ""));
-			$code = trim((string)($request->body["code"] ?? ""));
+			$secret = $request->bodyString("secret");
+			$code = $request->bodyString("code");
 
 			if ($secret === "" || $code === "") {
 				throw new BadRequestException("secret and code required", "missing_fields");
@@ -303,7 +303,7 @@
 				return Response::ok(["id" => $user_id, "two_factor_enabled" => false]);
 			}
 
-			$code = trim((string)($request->body["code"] ?? ""));
+			$code = $request->bodyString("code");
 
 			if ($code === "" || !GoogleAuthenticator::verifyCode($user["2fa_secret"], $code)) {
 				throw new BadRequestException("That code is incorrect or expired", "invalid_2fa_code");
@@ -322,7 +322,7 @@
 			// path matching across install prefixes, dev proxy gymnastics, etc.
 			// Bearer-in-Authorization + body-refresh-token is the standard SPA
 			// pattern; we lose CSRF concerns entirely along with the cookie.
-			$raw = (string)($request->body["refresh_token"] ?? "");
+			$raw = $request->bodyString("refresh_token", "", false);
 
 			if ($raw === "") {
 				throw new AuthenticationException("Missing refresh_token", "no_refresh_token");
@@ -347,7 +347,7 @@
 		}
 
 		public function logout(Request $request) {
-			$raw = (string)($request->body["refresh_token"] ?? "");
+			$raw = $request->bodyString("refresh_token", "", false);
 
 			if ($raw !== "") {
 				TokenStore::revokeByRaw($raw);
@@ -544,7 +544,7 @@
 		 * temporarily drops to that user's permissions.
 		 */
 		public function emulate(Request $request) {
-			$target_id = (int)($request->body["user_id"] ?? 0);
+			$target_id = $request->bodyInt("user_id");
 			$actor = $request->user;
 
 			if (!$target_id) {
@@ -611,11 +611,11 @@
 				throw new AuthorizationException("IP is temporarily banned", "ip_banned");
 			}
 
-			$challenge_id = (string)($request->body["challenge_id"] ?? "");
-			$credential_id = (string)($request->body["credential_id"] ?? "");
-			$client_data_json = (string)($request->body["client_data_json"] ?? "");
-			$auth_data = (string)($request->body["authenticator_data"] ?? "");
-			$signature = (string)($request->body["signature"] ?? "");
+			$challenge_id = $request->bodyString("challenge_id", "", false);
+			$credential_id = $request->bodyString("credential_id", "", false);
+			$client_data_json = $request->bodyString("client_data_json", "", false);
+			$auth_data = $request->bodyString("authenticator_data", "", false);
+			$signature = $request->bodyString("signature", "", false);
 
 			if ($challenge_id === "" || $credential_id === "" || $client_data_json === "" || $auth_data === "" || $signature === "") {
 				throw new BadRequestException("Missing passkey verification fields", "missing_fields");
@@ -689,7 +689,7 @@
 		public function forgotPassword(Request $request) {
 			global $bigtree;
 
-			$email = strtolower(trim((string)($request->body["email"] ?? "")));
+			$email = strtolower($request->bodyString("email"));
 
 			if ($email === "") {
 				throw new BadRequestException("email required", "missing_email");
@@ -719,8 +719,8 @@
 		 * sessions + refresh tokens (token_version bump).
 		 */
 		public function resetPassword(Request $request) {
-			$token = (string)($request->body["token"] ?? "");
-			$password = trim((string)($request->body["password"] ?? ""));
+			$token = $request->bodyString("token", "", false);
+			$password = $request->bodyString("password");
 
 			if ($token === "" || $password === "") {
 				throw new BadRequestException("token and password required", "missing_fields");
@@ -810,10 +810,10 @@
 		 */
 		public function passkeyRegisterVerify(Request $request) {
 			$user_id = (int)$request->user->id;
-			$challenge_id = (string)($request->body["challenge_id"] ?? "");
-			$client_data_json = (string)($request->body["client_data_json"] ?? "");
-			$attestation_object = (string)($request->body["attestation_object"] ?? "");
-			$name = trim((string)($request->body["name"] ?? "")) ?: "Passkey";
+			$challenge_id = $request->bodyString("challenge_id", "", false);
+			$client_data_json = $request->bodyString("client_data_json", "", false);
+			$attestation_object = $request->bodyString("attestation_object", "", false);
+			$name = $request->bodyString("name") ?: "Passkey";
 
 			if ($challenge_id === "" || $client_data_json === "" || $attestation_object === "") {
 				throw new BadRequestException("Missing passkey registration fields", "missing_fields");

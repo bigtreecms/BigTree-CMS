@@ -19,7 +19,7 @@
 		public function list(Request $request) {
 			$type = $request->query["type"] ?? "404";
 			$site_key = $request->query["site_key"] ?? null;
-			$q = trim((string)($request->query["q"] ?? ""));
+			$q = $request->queryString("q");
 
 			[$where, $args] = $this->buildConditions($type, $site_key, $q);
 
@@ -181,7 +181,7 @@
 		}
 
 		public function bulkDelete(Request $request) {
-			$ids = array_map("intval", (array)$request->body["ids"]);
+			$ids = $request->bodyList("ids", "int");
 
 			if (!$ids) {
 				return Response::noContent();
@@ -218,8 +218,8 @@
 				throw new BadRequestException("Could not read the uploaded file.", "unreadable_file");
 			}
 
-			$site_key = trim((string)($request->body["site_key"] ?? "")) ?: null;
-			$first_row_titles = !empty($request->body["first_row_titles"]);
+			$site_key = $request->bodyString("site_key") ?: null;
+			$first_row_titles = $request->bodyBool("first_row_titles");
 			$admin = new \BigTreeAdmin();
 
 			$imported = 0;

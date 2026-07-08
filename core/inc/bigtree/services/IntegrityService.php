@@ -120,7 +120,7 @@
 			$external = !empty($request->body["external"]) && $request->body["external"] !== "false";
 			$key = $external ? "external" : "internal";
 			$id = (int)$request->body["id"];
-			$index = (int)($request->body["index"] ?? 0);
+			$index = $request->bodyInt("index");
 
 			$cms = new BigTreeCMS();
 			$page = $cms->getPage($id);
@@ -162,8 +162,8 @@
 			$key = $external ? "external" : "internal";
 			$form_id = (string)$request->body["form"];
 			$id = $request->body["id"];
-			$module_index = (int)($request->body["module"] ?? 0);
-			$index = (int)($request->body["index"] ?? 0);
+			$module_index = $request->bodyInt("module");
+			$index = $request->bodyInt("index");
 
 			$form = BigTreeAutoModule::getForm($form_id);
 			$errors = [];

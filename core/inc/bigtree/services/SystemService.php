@@ -450,7 +450,7 @@
 		 */
 		public function downloadBackup(Request $request) {
 			$backup_id = $this->sanitizeBackupId($request->route_params["id"] ?? "");
-			$raw_token = (string)($request->query["token"] ?? "");
+			$raw_token = $request->queryString("token", "", false);
 			if ($raw_token === "") {
 				throw new AuthenticationException("Missing download token", "missing_token");
 			}
@@ -649,8 +649,8 @@
 			}
 
 			// FTP / SFTP path — credentials arrive in the body.
-			$username = (string)($request->body["ftp_username"] ?? "");
-			$password = (string)($request->body["ftp_password"] ?? "");
+			$username = $request->bodyString("ftp_username", "", false);
+			$password = $request->bodyString("ftp_password", "", false);
 
 			if ($username === "") {
 				return Response::ok(["ok" => false, "needs_credentials" => true, "method" => $updater->Method]);
@@ -660,7 +660,7 @@
 				throw new AuthenticationException("{$updater->Method} login failed", "upgrade_ftp_login_failed");
 			}
 
-			$ftp_root = trim((string)($request->body["ftp_root"] ?? ""));
+			$ftp_root = $request->bodyString("ftp_root");
 
 			if ($ftp_root === "") {
 				$detected = $updater->getFTPRoot();

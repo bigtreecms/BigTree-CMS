@@ -42,7 +42,7 @@
 					"table" => $table,
 					"item_id" => $item_id,
 					"user" => $me,
-					"title" => (string)($request->body["title"] ?? ""),
+					"title" => $request->bodyString("title", "", false),
 				]);
 			}
 

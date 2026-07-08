@@ -164,7 +164,7 @@
 		public function relationOptions(Request $request) {
 			$module_id = $request->route_params["id"];
 			$form_id = $request->route_params["sid"];
-			$column = (string)($request->query["column"] ?? "");
+			$column = $request->queryString("column", "", false);
 
 			if ($column === "") {
 				throw new BadRequestException("`column` query param is required", "missing_column");
@@ -241,7 +241,7 @@
 			// descriptor when the configured sort references a missing column.
 			$order_by = \BigTree\Api\Sanitize::orderClause($sort, $schema["columns"], $descriptor);
 
-			$entry_raw = trim((string)($request->query["entry"] ?? ""));
+			$entry_raw = $request->queryString("entry");
 
 			// "Currently linked" mode (MTM only). Query the connecting table to
 			// discover which `other-id`s the entry already has — preserves the
@@ -314,14 +314,14 @@
 			$where = [];
 			$params = [];
 
-			$q = trim((string)($request->query["q"] ?? ""));
+			$q = $request->queryString("q");
 
 			if ($q !== "") {
 				$where[] = "`$descriptor` LIKE ?";
 				$params[] = "%" . $q . "%";
 			}
 
-			$ids_raw = (string)($request->query["ids"] ?? "");
+			$ids_raw = $request->queryString("ids", "", false);
 
 			if ($ids_raw !== "") {
 				$ids = [];
@@ -391,7 +391,7 @@
 		public function listOptions(Request $request) {
 			$module_id = $request->route_params["id"];
 			$form_id = $request->route_params["sid"];
-			$column = (string)($request->query["column"] ?? "");
+			$column = $request->queryString("column", "", false);
 
 			if ($column === "") {
 				throw new BadRequestException("`column` query param is required", "missing_column");

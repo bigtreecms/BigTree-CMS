@@ -32,12 +32,12 @@
 		const MODULE_ENTRY_CAP = 5;
 
 		public function search(Request $request) {
-			$q = trim((string)($request->query["q"] ?? ""));
+			$q = $request->queryString("q");
 
 			if ($q === "") {
 				throw new BadRequestException("q required", "missing_query");
 			}
-			$limit = max(1, min(50, (int)($request->query["limit"] ?? self::DEFAULT_PER_DOMAIN)));
+			$limit = max(1, min(50, $request->queryInt("limit", self::DEFAULT_PER_DOMAIN)));
 
 			$only = isset($request->query["types"])
 				? array_filter(array_map("trim", explode(",", (string)$request->query["types"])))
