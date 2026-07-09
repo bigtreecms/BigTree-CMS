@@ -7,7 +7,8 @@ import { ErrorPanel } from "./ErrorPanel";
 /**
  * Inline error surface for failed loads. When handed an `ApiError` it also
  * renders the status / code / request_id triplet for debugging; any other
- * thrown value falls back to just its message.
+ * thrown value falls back to just its message. Pass a `message` string directly
+ * for server-supplied general errors instead of wrapping them in `new Error()`.
  */
 const meta = {
 	title: "UI/ErrorPanel",
@@ -44,4 +45,9 @@ export const FromApiError: Story = {
 /** A plain `Error` shows just the message. */
 export const FromPlainError: Story = {
 	args: { error: new Error("Network request failed — please retry.") },
+};
+
+/** A server-supplied general error passed straight through as a string. */
+export const FromMessage: Story = {
+	args: { message: "The payment gateway rejected those credentials." },
 };

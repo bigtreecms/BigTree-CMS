@@ -1,5 +1,3 @@
-import { useEffect, useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Save } from "lucide-react";
 
 import { ConfigureLayout } from "@/components/developer/ConfigureLayout";
@@ -17,9 +15,8 @@ import {
 	type GeocodingServiceId,
 } from "@/api/endpoints/configure";
 
-import { describeApiError } from "@/lib/errorHandling";
 import { queryKeys } from "@/lib/queryKeys";
-import { useToastMutation } from "@/hooks/useToastMutation";
+import { useConfigDraft } from "@/hooks/useConfigDraft";
 
 const SERVICES: Array<{ id: GeocodingServiceId; label: string; help: React.ReactNode }> = [
 	{
@@ -58,32 +55,13 @@ const SERVICES: Array<{ id: GeocodingServiceId; label: string; help: React.React
 ];
 
 export const ConfigureGeocoding = () => {
-	const queryClient = useQueryClient();
-	const detailQ = useQuery({
+	const { detailQ, draft, setDraft, generalError, saveMutation } = useConfigDraft({
 		queryKey: queryKeys.configure.geocoding(),
 		queryFn: () => configureApi.geocoding.get(),
-	});
-
-	const [draft, setDraft] = useState<GeocodingConfig | null>(null);
-	const [generalError, setGeneralError] = useState<string | null>(null);
-
-	useEffect(() => {
-		if (detailQ.data) {
-			setDraft({ ...detailQ.data });
-		}
-	}, [detailQ.data]);
-
-	const saveMutation = useToastMutation({
-		mutationFn: (next: GeocodingConfig) => configureApi.geocoding.update(next),
+		seed: (data: GeocodingConfig) => ({ ...data }),
+		save: (next: GeocodingConfig) => configureApi.geocoding.update(next),
 		successMessage: "Geocoding service updated",
 		errorMessage: "Could not save geocoding config",
-		onSuccess: (fresh) => {
-			queryClient.setQueryData(queryKeys.configure.geocoding(), fresh);
-			setGeneralError(null);
-		},
-		onError: (err) => {
-			setGeneralError(describeApiError(err, "Could not save geocoding config"));
-		},
 	});
 
 	const onSubmit = (e: React.FormEvent) => {
@@ -122,7 +100,7 @@ export const ConfigureGeocoding = () => {
 						</Button>
 					}
 				>
-					{generalError && <ErrorPanel error={new Error(generalError)} />}
+					{generalError && <ErrorPanel message={generalError} />}
 
 					<SelectField
 						label="Service"

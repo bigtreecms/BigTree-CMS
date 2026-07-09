@@ -1,10 +1,11 @@
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 import { File as FileIcon, Upload as UploadIcon, X } from "lucide-react";
 
 import { Button } from "@/components/ui/Button";
 import { IconButton } from "@/components/ui/IconButton";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import { UPLOAD_PATH, type ResourceDetail } from "@/api/endpoints/resources";
+import { useLatestUpload } from "@/hooks/useLatestUpload";
 import { useUploads } from "@/hooks/useUploads";
 
 import { settingsOf, type FieldComponentProps } from "./types";
@@ -29,30 +30,17 @@ export const UploadField = ({ field, value, onChange, disabled }: FieldComponent
 	const settings = settingsOf(field) as UploadFieldSettings;
 	const inputRef = useRef<HTMLInputElement>(null);
 	const { items, enqueue } = useUploads();
-	const lastHandled = useRef<number>(0);
 
 	// Watch the upload queue for our newest completed item and surface its URL.
-	useEffect(() => {
-		const done = items.filter((it) => it.status === "done" && it.id > lastHandled.current);
-		const newest = done[done.length - 1];
+	const { inFlight } = useLatestUpload(items, {
+		onDone: (item) => {
+			const result = item.result as ResourceDetail | undefined;
 
-		if (!newest) {
-			return;
-		}
-
-		lastHandled.current = newest.id;
-
-		const result = newest.result as ResourceDetail | undefined;
-
-		if (result?.file) {
-			onChange(result.file);
-		}
-	}, [items, onChange]);
-
-	const inFlight = items.find(
-		(it) =>
-			(it.status === "pending" || it.status === "uploading") && it.id > lastHandled.current
-	);
+			if (result?.file) {
+				onChange(result.file);
+			}
+		},
+	});
 
 	const handlePick = (files: FileList | null) => {
 		const first = files?.[0];

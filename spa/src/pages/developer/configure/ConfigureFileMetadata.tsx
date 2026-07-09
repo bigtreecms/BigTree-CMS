@@ -161,7 +161,7 @@ export const ConfigureFileMetadata = () => {
 
 			{detailQ.error && <ErrorPanel error={detailQ.error} />}
 
-			{generalError && <ErrorPanel error={new Error(generalError)} />}
+			{generalError && <ErrorPanel message={generalError} />}
 
 			<div className="space-y-4">
 				{BUCKETS.map((b) => (

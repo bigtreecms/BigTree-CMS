@@ -221,7 +221,7 @@ export const ConfigureCloudStorage = () => {
 
 			{detailQ.data && (
 				<>
-					{generalError && <ErrorPanel error={new Error(generalError)} />}
+					{generalError && <ErrorPanel message={generalError} />}
 
 					<Card className="mb-4 p-4">
 						<div className="mb-3 text-[12.5px] font-semibold text-text">

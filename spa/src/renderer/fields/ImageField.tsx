@@ -15,6 +15,7 @@ import {
 	type ProcessImageResult,
 	type ReprocessSource,
 } from "@/api/endpoints/images";
+import { useLatestUpload } from "@/hooks/useLatestUpload";
 import { useUploads } from "@/hooks/useUploads";
 import { describeApiError } from "@/lib/errorHandling";
 import { expandImageUrl } from "@/lib/imageUrl";
@@ -61,7 +62,6 @@ export const ImageField = ({ field, value, onChange, disabled }: FieldComponentP
 	const minHeight = toInt(settings.min_height);
 
 	const inputRef = useRef<HTMLInputElement>(null);
-	const lastHandled = useRef(0);
 	const [pickerOpen, setPickerOpen] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	const [reprocessing, setReprocessing] = useState(false);
@@ -97,33 +97,10 @@ export const ImageField = ({ field, value, onChange, disabled }: FieldComponentP
 	);
 
 	// Drain finished uploads (done → set value + maybe open cropper; error → surface).
-	useEffect(() => {
-		const newest = items
-			.filter(
-				(it) =>
-					it.id > lastHandled.current && (it.status === "done" || it.status === "error")
-			)
-			.pop();
-
-		if (!newest) {
-			return;
-		}
-
-		lastHandled.current = newest.id;
-
-		if (newest.status === "error") {
-			setError(newest.error ?? "Upload failed.");
-
-			return;
-		}
-
-		applyResult(newest.result as ProcessImageResult | undefined);
-	}, [items, applyResult]);
-
-	const inFlight = items.find(
-		(it) =>
-			(it.status === "pending" || it.status === "uploading") && it.id > lastHandled.current
-	);
+	const { inFlight } = useLatestUpload(items, {
+		onDone: (item) => applyResult(item.result as ProcessImageResult | undefined),
+		onError: (item) => setError(item.error ?? "Upload failed."),
+	});
 
 	const busy = disabled || Boolean(inFlight) || reprocessing;
 

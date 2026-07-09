@@ -1,5 +1,4 @@
-import { useEffect, useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
 import { ChevronDown, ChevronRight, Plus, Save, Trash } from "lucide-react";
 
 import { ConfigureLayout } from "@/components/developer/ConfigureLayout";
@@ -14,10 +13,9 @@ import { MediaPresetEditor } from "@/components/developer/MediaPresetEditor";
 
 import { configureApi, type MediaPreset } from "@/api/endpoints/configure";
 
-import { describeApiError } from "@/lib/errorHandling";
 import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 import { queryKeys } from "@/lib/queryKeys";
-import { useToastMutation } from "@/hooks/useToastMutation";
+import { useConfigDraft } from "@/hooks/useConfigDraft";
 
 /**
  * Media presets — reusable image-field configurations.
@@ -28,41 +26,29 @@ import { useToastMutation } from "@/hooks/useToastMutation";
  * editable only on the legacy admin's crop modal.
  */
 export const ConfigureMediaPresets = () => {
-	const queryClient = useQueryClient();
-	const detailQ = useQuery({
+	const {
+		detailQ,
+		draft,
+		setDraft: setPresets,
+		generalError,
+		saveMutation,
+	} = useConfigDraft({
 		queryKey: queryKeys.configure.mediaPresets(),
 		queryFn: () => configureApi.mediaPresets.get(),
-	});
-
-	const [presets, setPresets] = useState<MediaPreset[]>([]);
-	const [expanded, setExpanded] = useState<string | null>(null);
-	const deleteDialog = useConfirmDialog<string>();
-	const [generalError, setGeneralError] = useState<string | null>(null);
-
-	useEffect(() => {
-		if (detailQ.data) {
-			setPresets(detailQ.data.presets.map((p) => ({ ...p })));
-		}
-	}, [detailQ.data]);
-
-	const saveMutation = useToastMutation({
-		mutationFn: (next: MediaPreset[]) => configureApi.mediaPresets.update({ presets: next }),
+		seed: (data) => data.presets.map((p) => ({ ...p })),
+		save: (next: MediaPreset[]) => configureApi.mediaPresets.update({ presets: next }),
 		successMessage: "Media presets saved",
 		errorMessage: "Could not save presets",
-		onSuccess: (fresh) => {
-			queryClient.setQueryData(queryKeys.configure.mediaPresets(), fresh);
-			setPresets(fresh.presets.map((p) => ({ ...p })));
-			setGeneralError(null);
-		},
-		onError: (err) => {
-			setGeneralError(describeApiError(err, "Could not save presets"));
-		},
 	});
+
+	const presets = draft ?? [];
+	const [expanded, setExpanded] = useState<string | null>(null);
+	const deleteDialog = useConfirmDialog<string>();
 
 	const addPreset = () => {
 		const id = `tmp-${Date.now()}`;
 		setPresets((prev) => [
-			...prev,
+			...(prev ?? []),
 			{
 				id,
 				name: "New preset",
@@ -75,7 +61,7 @@ export const ConfigureMediaPresets = () => {
 	};
 
 	const update = (id: string, patch: Partial<MediaPreset>) => {
-		setPresets((prev) => prev.map((p) => (p.id === id ? { ...p, ...patch } : p)));
+		setPresets((prev) => (prev ?? []).map((p) => (p.id === id ? { ...p, ...patch } : p)));
 	};
 
 	const remove = (id: string) => {
@@ -99,7 +85,7 @@ export const ConfigureMediaPresets = () => {
 
 			{detailQ.error && <ErrorPanel error={detailQ.error} />}
 
-			{generalError && <ErrorPanel error={new Error(generalError)} />}
+			{generalError && <ErrorPanel message={generalError} />}
 
 			{detailQ.data && presets.length === 0 && (
 				<p className="rounded-xl border border-dashed border-border bg-surface p-6 text-center text-[12.5px] text-text-3">

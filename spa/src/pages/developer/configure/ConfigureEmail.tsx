@@ -1,5 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMemo } from "react";
 import { Save } from "lucide-react";
 
 import { ConfigureLayout } from "@/components/developer/ConfigureLayout";
@@ -13,9 +12,8 @@ import { ErrorPanel } from "@/components/ui/ErrorPanel";
 
 import { configureApi, type EmailConfig, type EmailServiceId } from "@/api/endpoints/configure";
 
-import { describeApiError } from "@/lib/errorHandling";
 import { queryKeys } from "@/lib/queryKeys";
-import { useToastMutation } from "@/hooks/useToastMutation";
+import { useConfigDraft } from "@/hooks/useConfigDraft";
 
 const SERVICES: Array<{ id: EmailServiceId; label: string; blurb: string }> = [
 	{
@@ -31,36 +29,16 @@ const SERVICES: Array<{ id: EmailServiceId; label: string; blurb: string }> = [
 ];
 
 export const ConfigureEmail = () => {
-	const queryClient = useQueryClient();
-
-	const detailQ = useQuery({
+	const { detailQ, draft, setDraft, generalError, saveMutation } = useConfigDraft({
 		queryKey: queryKeys.configure.email(),
 		queryFn: () => configureApi.email.get(),
-	});
-
-	const [draft, setDraft] = useState<EmailConfig | null>(null);
-	const [generalError, setGeneralError] = useState<string | null>(null);
-
-	useEffect(() => {
-		if (detailQ.data) {
-			setDraft({
-				service: detailQ.data.service ?? "local",
-				settings: { ...(detailQ.data.settings ?? {}) },
-			});
-		}
-	}, [detailQ.data]);
-
-	const saveMutation = useToastMutation({
-		mutationFn: (next: EmailConfig) => configureApi.email.update(next),
+		seed: (data: EmailConfig) => ({
+			service: data.service ?? "local",
+			settings: { ...(data.settings ?? {}) },
+		}),
+		save: (next: EmailConfig) => configureApi.email.update(next),
 		successMessage: "Email service updated",
 		errorMessage: "Could not save email config",
-		onSuccess: (fresh) => {
-			queryClient.setQueryData(queryKeys.configure.email(), fresh);
-			setGeneralError(null);
-		},
-		onError: (err) => {
-			setGeneralError(describeApiError(err, "Could not save email config"));
-		},
 	});
 
 	const onChange = (key: string, value: string) => {
@@ -118,7 +96,7 @@ export const ConfigureEmail = () => {
 						</Button>
 					}
 				>
-					{generalError && <ErrorPanel error={new Error(generalError)} />}
+					{generalError && <ErrorPanel message={generalError} />}
 
 					<SelectField
 						label="Service"

@@ -1,5 +1,3 @@
-import { useEffect, useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Save } from "lucide-react";
 
 import { ConfigureLayout } from "@/components/developer/ConfigureLayout";
@@ -21,6 +19,7 @@ import {
 import { describeApiError } from "@/lib/errorHandling";
 import { queryKeys } from "@/lib/queryKeys";
 import { useToastMutation } from "@/hooks/useToastMutation";
+import { useConfigDraft } from "@/hooks/useConfigDraft";
 
 const GATEWAYS: Array<{ id: PaymentGatewayId; label: string }> = [
 	{ id: "", label: "Disabled" },
@@ -115,48 +114,26 @@ const FIELDS: Record<
 const isMaskedKey = (key: string) => /secret|key|password|token|signature/i.test(key);
 
 export const ConfigurePaymentGateway = () => {
-	const queryClient = useQueryClient();
-	const detailQ = useQuery({
-		queryKey: queryKeys.configure.paymentGateway(),
-		queryFn: () => configureApi.paymentGateway.get(),
-	});
+	const { detailQ, draft, setDraft, generalError, setGeneralError, saveMutation, writeCache } =
+		useConfigDraft({
+			queryKey: queryKeys.configure.paymentGateway(),
+			queryFn: () => configureApi.paymentGateway.get(),
+			seed: (data: PaymentGatewayConfig) => ({
+				service: data.service,
+				settings: { ...(data.settings ?? {}) },
+			}),
+			save: (next: PaymentGatewayConfig) => configureApi.paymentGateway.update(next),
+			successMessage: "Payment gateway updated",
+			errorMessage: "Could not save payment gateway",
+		});
 
-	const [draft, setDraft] = useState<PaymentGatewayConfig | null>(null);
-	const [generalError, setGeneralError] = useState<string | null>(null);
-
-	useEffect(() => {
-		if (detailQ.data) {
-			setDraft({
-				service: detailQ.data.service,
-				settings: { ...(detailQ.data.settings ?? {}) },
-			});
-		}
-	}, [detailQ.data]);
-
-	const saveMutation = useToastMutation({
-		mutationFn: (next: PaymentGatewayConfig) => configureApi.paymentGateway.update(next),
-		successMessage: "Payment gateway updated",
-		errorMessage: "Could not save payment gateway",
-		onSuccess: (fresh) => {
-			queryClient.setQueryData(queryKeys.configure.paymentGateway(), fresh);
-			setDraft({
-				service: fresh.service,
-				settings: { ...(fresh.settings ?? {}) },
-			});
-			setGeneralError(null);
-		},
-		onError: (err) => {
-			setGeneralError(describeApiError(err, "Could not save payment gateway"));
-		},
-	});
-
+	// Certificate upload writes a fresh config back through the same re-seed.
 	const certMutation = useToastMutation({
 		mutationFn: (file: File) => configureApi.paymentGateway.uploadLinkpointCertificate(file),
 		successMessage: "LinkPoint certificate uploaded",
 		errorMessage: "Could not upload certificate",
 		onSuccess: (fresh) => {
-			queryClient.setQueryData(queryKeys.configure.paymentGateway(), fresh);
-			setDraft({ service: fresh.service, settings: { ...(fresh.settings ?? {}) } });
+			writeCache(fresh);
 			setGeneralError(null);
 		},
 		onError: (err) => {
@@ -208,7 +185,7 @@ export const ConfigurePaymentGateway = () => {
 						</Button>
 					}
 				>
-					{generalError && <ErrorPanel error={new Error(generalError)} />}
+					{generalError && <ErrorPanel message={generalError} />}
 
 					<SelectField
 						label="Gateway"

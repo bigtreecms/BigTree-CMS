@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
+import { useCallback, useId, useMemo, useRef, useState } from "react";
 import { useToastMutation } from "@/hooks/useToastMutation";
 import {
 	ChevronRight,
@@ -24,8 +24,9 @@ import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { IconButton } from "@/components/ui/IconButton";
 import { Field } from "@/components/ui/Field";
+import { useLatestUpload } from "@/hooks/useLatestUpload";
 import { useRepeaterRows, type RepeaterRow } from "@/hooks/useRepeaterRows";
-import { useUploads, type UploadItem } from "@/hooks/useUploads";
+import { useUploads } from "@/hooks/useUploads";
 import { describeApiError } from "@/lib/errorHandling";
 import { expandImageUrl } from "@/lib/imageUrl";
 import { toast } from "@/lib/toast";
@@ -444,7 +445,6 @@ const AddBar = ({
 	const [reprocessing, setReprocessing] = useState(false);
 	const [cropState, setCropState] = useState<{ file: string; crops: PendingCrop[] } | null>(null);
 	const { items, enqueue } = useUploads();
-	const lastHandled = useRef(0);
 
 	// Apply the gallery field's own crop settings (stored under its directory,
 	// not the media library) so photos get the same treatment as the image field.
@@ -471,33 +471,10 @@ const AddBar = ({
 	);
 
 	// Drain finished uploads (done → add item + maybe crop; error → toast).
-	useEffect(() => {
-		const newest = items
-			.filter(
-				(it: UploadItem) =>
-					it.id > lastHandled.current && (it.status === "done" || it.status === "error")
-			)
-			.pop();
-
-		if (!newest) {
-			return;
-		}
-
-		lastHandled.current = newest.id;
-
-		if (newest.status === "error") {
-			toast.error(newest.error ?? "Upload failed.");
-
-			return;
-		}
-
-		applyResult(newest.result as ProcessImageResult | undefined);
-	}, [items, applyResult]);
-
-	const inFlight = items.find(
-		(it) =>
-			(it.status === "pending" || it.status === "uploading") && it.id > lastHandled.current
-	);
+	const { inFlight } = useLatestUpload(items, {
+		onDone: (item) => applyResult(item.result as ProcessImageResult | undefined),
+		onError: (item) => toast.error(item.error ?? "Upload failed."),
+	});
 	const busy = Boolean(disabled) || Boolean(inFlight) || reprocessing;
 
 	const handlePick = (files: FileList | null) => {
@@ -717,7 +694,6 @@ const LocalVideoPrompt = ({ settings, onClose, onCreated }: LocalVideoPromptProp
 	const videoInputRef = useRef<HTMLInputElement>(null);
 	const coverInputRef = useRef<HTMLInputElement>(null);
 	const { items, enqueue } = useUploads();
-	const lastHandled = useRef(0);
 
 	const [step, setStep] = useState<"video" | "cover">("video");
 	const [videoUrl, setVideoUrl] = useState<string | null>(null);
@@ -725,63 +701,42 @@ const LocalVideoPrompt = ({ settings, onClose, onCreated }: LocalVideoPromptProp
 
 	const processSettings = useMemo(() => JSON.stringify(settings), [settings]);
 
-	useEffect(() => {
-		const newest = items
-			.filter(
-				(it: UploadItem) =>
-					it.id > lastHandled.current && (it.status === "done" || it.status === "error")
-			)
-			.pop();
+	const { inFlight } = useLatestUpload(items, {
+		onDone: (item) => {
+			if (step === "video") {
+				const result = item.result as ResourceDetail | undefined;
 
-		if (!newest) {
-			return;
-		}
+				if (!result?.file) {
+					toast.error("The server did not return the uploaded video.");
 
-		lastHandled.current = newest.id;
+					return;
+				}
 
-		if (newest.status === "error") {
-			toast.error(newest.error ?? "Upload failed.");
-
-			return;
-		}
-
-		if (step === "video") {
-			const result = newest.result as ResourceDetail | undefined;
-
-			if (!result?.file) {
-				toast.error("The server did not return the uploaded video.");
+				setVideoUrl(result.file);
+				setStep("cover");
 
 				return;
 			}
 
-			setVideoUrl(result.file);
-			setStep("cover");
+			const result = item.result as ProcessImageResult | undefined;
 
-			return;
-		}
+			if (!result?.file) {
+				toast.error("The server did not return a processed cover image.");
 
-		const result = newest.result as ProcessImageResult | undefined;
+				return;
+			}
 
-		if (!result?.file) {
-			toast.error("The server did not return a processed cover image.");
-
-			return;
-		}
-
-		// Defer adding the video item until any manual cover crops are finalized,
-		// so cancelling the cropper does not create an item with an uncropped cover.
-		if (result.pending_crops.length > 0) {
-			setCropState({ file: result.file, crops: result.pending_crops });
-		} else {
-			onCreated(result.file, videoUrl as string);
-			onClose();
-		}
-	}, [items, step, videoUrl, processSettings, onCreated, onClose]);
-
-	const inFlight = items.find(
-		(it) =>
-			(it.status === "pending" || it.status === "uploading") && it.id > lastHandled.current
-	);
+			// Defer adding the video item until any manual cover crops are finalized,
+			// so cancelling the cropper does not create an item with an uncropped cover.
+			if (result.pending_crops.length > 0) {
+				setCropState({ file: result.file, crops: result.pending_crops });
+			} else {
+				onCreated(result.file, videoUrl as string);
+				onClose();
+			}
+		},
+		onError: (item) => toast.error(item.error ?? "Upload failed."),
+	});
 
 	const pickVideo = (files: FileList | null) => {
 		const first = files?.[0];
