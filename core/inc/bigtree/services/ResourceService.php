@@ -9,6 +9,7 @@
 	use BigTree\Api\Pagination;
 	use BigTree\Api\Request;
 	use BigTree\Api\Response;
+	use BigTree\Api\Upload;
 	use BigTree\Api\Exceptions\BadRequestException;
 	use BigTree\Api\Exceptions\AuthorizationException;
 	use BigTree;
@@ -33,8 +34,6 @@
 	 * cleanly find orphans and tell editors what would break if they delete a resource).
 	 */
 	class ResourceService {
-		const UPLOAD_MAX_BYTES = 268435456; // 256MB hard cap (in addition to PHP ini limit)
-
 		// — Folders —
 
 		public function listFolders(Request $request) {
@@ -250,14 +249,7 @@
 				throw new BadRequestException("Managed videos have no replaceable file", "not_replaceable");
 			}
 
-			$file_set = $request->file("file");
-
-			if (!$file_set) {
-				throw new BadRequestException("Missing 'file' upload", "missing_file");
-			}
-			$file = $file_set[0];
-
-			$this->assertUploadOk($file);
+			$file = Upload::requireSingle($request);
 
 			$mime = $this->detectMime($file["tmp_name"], $file["type"], $file["name"]);
 			$file_name = pathinfo($existing["file"], PATHINFO_BASENAME);
@@ -411,17 +403,10 @@
 			$folder = $request->bodyInt("folder");
 			$this->enforceFolder($request->user, $folder, "p", "upload to");
 
-			$file_set = $request->file("file");
-
-			if (!$file_set) {
-				throw new BadRequestException("Missing 'file' upload", "missing_file");
-			}
-			$file = $file_set[0]; // single-file upload semantics for v1
-
-			$this->assertUploadOk($file);
+			$file = Upload::requireSingle($request); // single-file upload semantics for v1
 
 			$display_name = $request->bodyString("name", $file["name"]);
-			$settings = $this->decodeSettings($request->body["settings"] ?? null);
+			$settings = Json::decode($request->body["settings"] ?? null);
 
 			$mime = $this->detectMime($file["tmp_name"], $file["type"], $file["name"]);
 			$is_image = strpos($mime, "image/") === 0;
@@ -999,43 +984,6 @@
 			}
 		}
 
-		private function assertUploadOk(array $file) {
-			if (($file["error"] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
-				throw new BadRequestException("Upload error: " . $this->uploadErrorMessage((int)$file["error"]), "upload_error");
-			}
-
-			if (!is_uploaded_file($file["tmp_name"]) && !file_exists($file["tmp_name"])) {
-				throw new BadRequestException("Upload tmp file missing", "upload_error");
-			}
-
-			if (($file["size"] ?? 0) <= 0) {
-				throw new BadRequestException("Empty upload", "empty_upload");
-			}
-
-			if (($file["size"] ?? 0) > self::UPLOAD_MAX_BYTES) {
-				throw new BadRequestException("File too large", "file_too_large");
-			}
-		}
-
-		private function uploadErrorMessage($code) {
-			switch ($code) {
-				case UPLOAD_ERR_INI_SIZE:
-				case UPLOAD_ERR_FORM_SIZE: return "File exceeds size limit (" . ini_get("upload_max_filesize") . ")";
-
-				case UPLOAD_ERR_PARTIAL: return "Upload was interrupted";
-
-				case UPLOAD_ERR_NO_FILE: return "No file sent";
-
-				case UPLOAD_ERR_NO_TMP_DIR: return "Server is missing tmp dir";
-
-				case UPLOAD_ERR_CANT_WRITE: return "Server could not write the upload";
-
-				case UPLOAD_ERR_EXTENSION: return "Upload blocked by a PHP extension";
-
-				default: return "Unknown upload error ($code)";
-			}
-		}
-
 		private function detectMime($tmp_path, $declared, $name) {
 			if (function_exists("mime_content_type")) {
 				$m = @mime_content_type($tmp_path);
@@ -1056,22 +1004,6 @@
 			];
 
 			return $map[$ext] ?? "application/octet-stream";
-		}
-
-		private function decodeSettings($raw) {
-			if (is_array($raw)) {
-				return $raw;
-			}
-
-			if (is_string($raw) && $raw !== "") {
-				$d = json_decode($raw, true);
-
-				if (is_array($d)) {
-					return $d;
-				}
-			}
-
-			return [];
 		}
 
 		/**

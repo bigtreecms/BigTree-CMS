@@ -6,6 +6,7 @@
 	use BigTree\Api\Jwt;
 	use BigTree\Api\Sanitize;
 	use BigTree\Api\Pagination;
+	use BigTree\Api\Upload;
 	use BigTree\Api\Exceptions\AuthenticationException;
 	use BigTree\Api\Exceptions\BadRequestException;
 	use BigTree\Api\Exceptions\ConflictException;
@@ -150,17 +151,7 @@
 				}
 			}
 
-			$file_set = $request->file("file");
-
-			if (!$file_set) {
-				throw new BadRequestException("Missing 'file' upload", "missing_file");
-			}
-
-			$file = $file_set[0];
-
-			if (!empty($file["error"]) || empty($file["tmp_name"])) {
-				throw new BadRequestException("File upload failed.", "upload_failed");
-			}
+			$file = Upload::requireSingle($request);
 
 			// Clean + recreate the staging area, then unzip into it.
 			$cache_root = SERVER_ROOT . "cache/package/";

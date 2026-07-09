@@ -2,8 +2,10 @@
 	namespace BigTree\Services;
 
 	use BigTree\Api\Entity;
+	use BigTree\Api\Json;
 	use BigTree\Api\Request;
 	use BigTree\Api\Response;
+	use BigTree\Api\Upload;
 	use BigTree\Api\Exceptions\BadRequestException;
 	use BigTree;
 	use BigTreeImage;
@@ -27,20 +29,11 @@
 	 * string, so nothing downstream needs to know cropping happened.
 	 */
 	class ImageService {
-		const UPLOAD_MAX_BYTES = 268435456; // 256MB hard cap (matches ResourceService)
-
 		// — Direct upload (multipart) —
 
 		public function process(Request $request) {
-			$file_set = $request->file("file");
-
-			if (!$file_set) {
-				throw new BadRequestException("Missing 'file' upload", "missing_file");
-			}
-			$file = $file_set[0];
-			$this->assertUploadOk($file);
-
-			$settings = $this->decodeSettings($request->body["settings"] ?? null);
+			$file = Upload::requireSingle($request);
+			$settings = Json::decode($request->body["settings"] ?? null);
 			$result = $this->runPipeline($file["tmp_name"], $file["name"], $settings);
 
 			return Response::created($result, null);
@@ -51,7 +44,7 @@
 
 		public function reprocess(Request $request) {
 			$source = is_array($request->body["source"] ?? null) ? $request->body["source"] : [];
-			$settings = $this->decodeSettings($request->body["settings"] ?? null);
+			$settings = Json::decode($request->body["settings"] ?? null);
 
 			// In-place recrop ("Choose New Crops"): regenerate crops against the
 			// field's existing original without re-storing it (matches the legacy
@@ -415,58 +408,5 @@
 			}
 
 			return implode("/", $segments) . "/";
-		}
-
-		private function decodeSettings($raw): array {
-			if (is_array($raw)) {
-				return $raw;
-			}
-
-			if (is_string($raw) && $raw !== "") {
-				$decoded = json_decode($raw, true);
-
-				if (is_array($decoded)) {
-					return $decoded;
-				}
-			}
-
-			return [];
-		}
-
-		private function assertUploadOk(array $file) {
-			if (($file["error"] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
-				throw new BadRequestException("Upload error: " . $this->uploadErrorMessage((int)$file["error"]), "upload_error");
-			}
-
-			if (!is_uploaded_file($file["tmp_name"]) && !file_exists($file["tmp_name"])) {
-				throw new BadRequestException("Upload tmp file missing", "upload_error");
-			}
-
-			if (($file["size"] ?? 0) <= 0) {
-				throw new BadRequestException("Empty upload", "empty_upload");
-			}
-
-			if (($file["size"] ?? 0) > self::UPLOAD_MAX_BYTES) {
-				throw new BadRequestException("File too large", "file_too_large");
-			}
-		}
-
-		private function uploadErrorMessage($code): string {
-			switch ($code) {
-				case UPLOAD_ERR_INI_SIZE:
-				case UPLOAD_ERR_FORM_SIZE: return "File exceeds size limit (" . ini_get("upload_max_filesize") . ")";
-
-				case UPLOAD_ERR_PARTIAL: return "Upload was interrupted";
-
-				case UPLOAD_ERR_NO_FILE: return "No file sent";
-
-				case UPLOAD_ERR_NO_TMP_DIR: return "Server is missing tmp dir";
-
-				case UPLOAD_ERR_CANT_WRITE: return "Server could not write the upload";
-
-				case UPLOAD_ERR_EXTENSION: return "Upload blocked by a PHP extension";
-
-				default: return "Unknown upload error ($code)";
-			}
 		}
 	}
