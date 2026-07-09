@@ -6,6 +6,7 @@ import { Plus, Trash } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { FieldGrid } from "@/components/ui/FieldGrid";
 import { useDragReorder } from "@/hooks/useDragReorder";
+import { useListEditor } from "@/hooks/useListEditor";
 
 import {
 	modulesApi,
@@ -210,17 +211,13 @@ export const ModuleViewsTab = ({ moduleId, moduleTable }: ModuleViewsTabProps) =
 		...(formsQ.data ?? []).map((f) => ({ value: f.id, label: f.title })),
 	];
 
-	const setColumn = (index: number, patch: Partial<ColumnRow>) =>
-		setDraft((p) => ({
-			...p,
-			columns: p.columns.map((c, i) => (i === index ? { ...c, ...patch } : c)),
-		}));
+	const columnEditor = useListEditor<ColumnRow>(draft.columns, (columns) =>
+		setDraft((p) => ({ ...p, columns }))
+	);
+	const setColumn = columnEditor.update;
+	const removeColumn = columnEditor.remove;
 
-	const addColumn = () =>
-		setDraft((p) => ({ ...p, columns: [...p.columns, { key: "", title: "" }] }));
-
-	const removeColumn = (index: number) =>
-		setDraft((p) => ({ ...p, columns: p.columns.filter((_, i) => i !== index) }));
+	const addColumn = () => columnEditor.add({ key: "", title: "" });
 
 	// Columns have no stable id, so drag-reorder runs on array index: `reorder`
 	// receives the new order of original indices and rebuilds the list.

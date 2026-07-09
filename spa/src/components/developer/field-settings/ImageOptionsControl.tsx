@@ -11,6 +11,7 @@ import { SectionLabel } from "../../ui/SectionLabel";
 import { ControlShell } from "./ControlShell";
 import type { ControlProps } from "./types";
 import { IconButton } from "@/components/ui/IconButton";
+import { useListEditor } from "@/hooks/useListEditor";
 
 /**
  * Image processing options shared by the image / video / media-gallery field
@@ -88,10 +89,7 @@ interface DimListProps {
 }
 
 const DimList = ({ label, rows, onChange }: DimListProps) => {
-	const update = (index: number, patch: Partial<DimRow>) =>
-		onChange(rows.map((r, i) => (i === index ? { ...r, ...patch } : r)));
-
-	const remove = (index: number) => onChange(rows.filter((_, i) => i !== index));
+	const { update, remove, add } = useListEditor<DimRow>(rows, onChange);
 
 	return (
 		<div className="space-y-1.5">
@@ -100,7 +98,7 @@ const DimList = ({ label, rows, onChange }: DimListProps) => {
 				<button
 					type="button"
 					className="inline-flex items-center gap-1 rounded border border-border bg-surface px-2 py-0.5 text-[11.5px] hover:bg-hover"
-					onClick={() => onChange([...rows, {}])}
+					onClick={() => add({})}
 				>
 					<Plus size={11} />
 					Add
@@ -128,8 +126,8 @@ export const ImageOptionsControl = ({ settings, onPatch }: ControlProps) => {
 	const presets = presetsQ.data?.presets ?? [];
 	const crops = asRows(settings.crops);
 
-	const updateCrop = (index: number, patch: Partial<DimRow>) =>
-		onPatch({ crops: crops.map((c, i) => (i === index ? { ...c, ...patch } : c)) });
+	const cropEditor = useListEditor<DimRow>(crops, (next) => onPatch({ crops: next }));
+	const updateCrop = cropEditor.update;
 
 	return (
 		<div className="space-y-3 rounded-md border border-border bg-surface-2 p-3">
@@ -198,7 +196,7 @@ export const ImageOptionsControl = ({ settings, onPatch }: ControlProps) => {
 							<button
 								type="button"
 								className="inline-flex items-center gap-1 rounded border border-border bg-surface px-2 py-0.5 text-[11.5px] hover:bg-hover"
-								onClick={() => onPatch({ crops: [...crops, {}] })}
+								onClick={() => cropEditor.add({})}
 							>
 								<Plus size={11} />
 								Add crop
@@ -212,9 +210,7 @@ export const ImageOptionsControl = ({ settings, onPatch }: ControlProps) => {
 								<DimFields
 									row={crop}
 									onChange={(patch) => updateCrop(index, patch)}
-									onRemove={() =>
-										onPatch({ crops: crops.filter((_, i) => i !== index) })
-									}
+									onRemove={() => cropEditor.remove(index)}
 								/>
 								<div className="ml-4 space-y-2 border-l border-border pl-3">
 									<DimList

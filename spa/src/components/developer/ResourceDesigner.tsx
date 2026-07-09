@@ -16,6 +16,7 @@ import {
 } from "@/api/endpoints/field-types";
 import { dbApi } from "@/api/endpoints/db";
 import { useDragReorder } from "@/hooks/useDragReorder";
+import { useListEditor } from "@/hooks/useListEditor";
 import { Combobox } from "@/components/ui/Combobox";
 
 import { FieldSettingsEditor } from "./FieldSettingsEditor";
@@ -157,10 +158,9 @@ export const ResourceDesigner = ({
 		].filter((g) => g.options.length > 0);
 	}, [fieldTypesQ.data, useCase]);
 
-	const updateEntry = (index: number, patch: Partial<ResourceEntry>) => {
-		const next = resources.map((r, i) => (i === index ? { ...r, ...patch } : r));
-		onChange(next);
-	};
+	// add/remove also remap the `expanded` set, so only `update` comes from the
+	// shared editor; the rest stay bespoke.
+	const { update: updateEntry } = useListEditor<ResourceEntry>(resources, onChange);
 
 	const addEntry = () => {
 		const fresh: ResourceEntry = {

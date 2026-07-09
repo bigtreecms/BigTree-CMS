@@ -4,6 +4,7 @@ import { Checkbox } from "@/components/ui/Checkbox";
 import { Field } from "@/components/ui/Field";
 import { IconButton } from "@/components/ui/IconButton";
 import { SectionLabel } from "@/components/ui/SectionLabel";
+import { useListEditor } from "@/hooks/useListEditor";
 import type { MediaPreset } from "@/api/endpoints/configure";
 
 /**
@@ -57,12 +58,7 @@ interface SizeRowsEditorProps {
 }
 
 const SizeRowsEditor = ({ label, rows, onChange }: SizeRowsEditorProps) => {
-	const update = (index: number, patch: Partial<SizeRow>) =>
-		onChange(rows.map((r, i) => (i === index ? { ...r, ...patch } : r)));
-
-	const remove = (index: number) => onChange(rows.filter((_, i) => i !== index));
-
-	const add = () => onChange([...rows, { prefix: "", width: "", height: "", grayscale: "" }]);
+	const { update, remove, add } = useListEditor<SizeRow>(rows, onChange);
 
 	return (
 		<div>
@@ -70,7 +66,7 @@ const SizeRowsEditor = ({ label, rows, onChange }: SizeRowsEditorProps) => {
 				<SectionLabel size="sm">{label}</SectionLabel>
 				<button
 					type="button"
-					onClick={add}
+					onClick={() => add({ prefix: "", width: "", height: "", grayscale: "" })}
 					className="inline-flex items-center gap-1 rounded-md border border-border bg-surface px-2 py-0.5 text-[11.5px] text-text hover:bg-hover"
 				>
 					<Plus size={11} />
@@ -138,16 +134,7 @@ interface CropsEditorProps {
 }
 
 const CropsEditor = ({ crops, onChange }: CropsEditorProps) => {
-	const update = (index: number, patch: Partial<CropRow>) =>
-		onChange(crops.map((c, i) => (i === index ? { ...c, ...patch } : c)));
-
-	const remove = (index: number) => onChange(crops.filter((_, i) => i !== index));
-
-	const add = () =>
-		onChange([
-			...crops,
-			{ prefix: "", width: "", height: "", grayscale: "", thumbs: [], center_crops: [] },
-		]);
+	const { update, remove, add } = useListEditor<CropRow>(crops, onChange);
 
 	return (
 		<div>
@@ -155,7 +142,16 @@ const CropsEditor = ({ crops, onChange }: CropsEditorProps) => {
 				<SectionLabel size="sm">Crops</SectionLabel>
 				<button
 					type="button"
-					onClick={add}
+					onClick={() =>
+						add({
+							prefix: "",
+							width: "",
+							height: "",
+							grayscale: "",
+							thumbs: [],
+							center_crops: [],
+						})
+					}
 					className="inline-flex items-center gap-1 rounded-md border border-border bg-surface px-2 py-0.5 text-[11.5px] text-text hover:bg-hover"
 				>
 					<Plus size={11} />

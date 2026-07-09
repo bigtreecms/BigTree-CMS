@@ -12,6 +12,7 @@ import { Checkbox } from "@/components/ui/Checkbox";
 import { IconButton } from "@/components/ui/IconButton";
 import { Select } from "@/components/ui/Select";
 import { TextInput } from "@/components/ui/TextInput";
+import { useListEditor } from "@/hooks/useListEditor";
 
 interface Column {
 	id?: string;
@@ -45,15 +46,12 @@ export const MatrixColumnsControl = ({ descriptor, settings, onPatch }: ControlP
 
 	const commit = (next: Column[]) => onPatch({ [descriptor.id]: next });
 
-	const update = (index: number, patch: Partial<Column>) =>
-		commit(columns.map((c, i) => (i === index ? { ...c, ...patch } : c)));
+	const { update, remove, add: addColumn } = useListEditor<Column>(columns, commit);
 
 	const add = () => {
-		commit([...columns, { id: "", title: "", subtitle: "", type: "text", settings: {} }]);
+		addColumn({ id: "", title: "", subtitle: "", type: "text", settings: {} });
 		setExpanded((prev) => new Set(prev).add(columns.length));
 	};
-
-	const remove = (index: number) => commit(columns.filter((_, i) => i !== index));
 
 	const toggle = (index: number) =>
 		setExpanded((prev) => {

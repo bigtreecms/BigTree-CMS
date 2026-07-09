@@ -4,6 +4,7 @@ import type { DbOption } from "@/api/endpoints/db";
 import type { ModuleReportFilter, ModuleReportFilterType } from "@/api/endpoints/modules";
 
 import { useDragReorder } from "@/hooks/useDragReorder";
+import { useListEditor } from "@/hooks/useListEditor";
 import { DragHandle } from "@/components/ui/DragHandle";
 import { Select } from "@/components/ui/Select";
 import { TextInput } from "@/components/ui/TextInput";
@@ -148,21 +149,15 @@ export const ReportFiltersEditor = ({
 		(orderedIds) => onChange(orderedIds.map((i) => rows[i]!))
 	);
 
-	const setRow = (index: number, patch: Partial<FilterRow>) =>
-		onChange(rows.map((r, i) => (i === index ? { ...r, ...patch } : r)));
-
-	const removeRow = (index: number) => onChange(rows.filter((_, i) => i !== index));
+	const { update: setRow, remove: removeRow, add } = useListEditor<FilterRow>(rows, onChange);
 
 	const addColumn = (column: DbOption) =>
-		onChange([
-			...rows,
-			{
-				column: column.value,
-				title: humanizeColumn(column.value),
-				type: defaultFilterType(column),
-				rest: {},
-			},
-		]);
+		add({
+			column: column.value,
+			title: humanizeColumn(column.value),
+			type: defaultFilterType(column),
+			rest: {},
+		});
 
 	return (
 		<div>
@@ -253,13 +248,10 @@ export const ReportFieldsEditor = ({
 		(orderedIds) => onChange(orderedIds.map((i) => rows[i]!))
 	);
 
-	const setRow = (index: number, patch: Partial<FieldRow>) =>
-		onChange(rows.map((r, i) => (i === index ? { ...r, ...patch } : r)));
-
-	const removeRow = (index: number) => onChange(rows.filter((_, i) => i !== index));
+	const { update: setRow, remove: removeRow, add } = useListEditor<FieldRow>(rows, onChange);
 
 	const addColumn = (column: DbOption) =>
-		onChange([...rows, { column: column.value, title: humanizeColumn(column.value) }]);
+		add({ column: column.value, title: humanizeColumn(column.value) });
 
 	return (
 		<div>

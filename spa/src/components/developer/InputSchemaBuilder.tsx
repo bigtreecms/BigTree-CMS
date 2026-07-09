@@ -9,6 +9,7 @@ import { Select } from "@/components/ui/Select";
 import { TextInput } from "@/components/ui/TextInput";
 import { FieldSettingsEditor } from "@/components/developer/FieldSettingsEditor";
 import { InlineEmpty } from "@/components/ui/InlineEmpty";
+import { useListEditor } from "@/hooks/useListEditor";
 
 interface InputSchemaBuilderProps {
 	value: InputDescriptor[];
@@ -53,32 +54,19 @@ const Labeled = ({ label, children }: { label: string; children: React.ReactNode
 export const InputSchemaBuilder = ({ value, onChange }: InputSchemaBuilderProps) => {
 	const [openSettings, setOpenSettings] = useState<number | null>(null);
 
-	const patch = (index: number, next: Partial<InputDescriptor>) =>
-		onChange(value.map((d, i) => (i === index ? { ...d, ...next } : d)));
+	const list = useListEditor<InputDescriptor>(value, onChange);
+	const patch = list.update;
+	const move = list.move;
 
 	const remove = (index: number) => {
-		onChange(value.filter((_, i) => i !== index));
+		list.remove(index);
 
 		if (openSettings === index) {
 			setOpenSettings(null);
 		}
 	};
 
-	const move = (index: number, dir: -1 | 1) => {
-		const target = index + dir;
-
-		if (target < 0 || target >= value.length) {
-			return;
-		}
-
-		const copy = [...value];
-		const moved = copy[index]!;
-		copy[index] = copy[target]!;
-		copy[target] = moved;
-		onChange(copy);
-	};
-
-	const add = () => onChange([...value, { id: "", type: "text", title: "" }]);
+	const add = () => list.add({ id: "", type: "text", title: "" });
 
 	return (
 		<div className="space-y-2">
@@ -146,7 +134,7 @@ export const InputSchemaBuilder = ({ value, onChange }: InputSchemaBuilderProps)
 							</button>
 							<button
 								type="button"
-								onClick={() => move(index, -1)}
+								onClick={() => move(index, index - 1)}
 								disabled={index === 0}
 								className="rounded-md border border-border bg-surface p-1.5 text-text-2 disabled:opacity-40 hover:bg-hover"
 								title="Move up"
@@ -155,7 +143,7 @@ export const InputSchemaBuilder = ({ value, onChange }: InputSchemaBuilderProps)
 							</button>
 							<button
 								type="button"
-								onClick={() => move(index, 1)}
+								onClick={() => move(index, index + 1)}
 								disabled={index === value.length - 1}
 								className="rounded-md border border-border bg-surface p-1.5 text-text-2 disabled:opacity-40 hover:bg-hover"
 								title="Move down"

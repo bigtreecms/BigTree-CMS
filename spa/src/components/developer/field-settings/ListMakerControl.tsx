@@ -3,6 +3,7 @@ import { Plus, Trash } from "lucide-react";
 import { ControlShell } from "./ControlShell";
 import type { ControlProps } from "./types";
 import { IconButton } from "@/components/ui/IconButton";
+import { useListEditor } from "@/hooks/useListEditor";
 
 type Row = Record<string, string>;
 
@@ -19,13 +20,14 @@ export const ListMakerControl = ({ descriptor, settings, onPatch }: ControlProps
 
 	const commit = (next: Row[]) => onPatch({ [descriptor.id]: next });
 
-	const update = (index: number, key: string, value: string) => {
-		commit(rows.map((row, i) => (i === index ? { ...row, [key]: value } : row)));
-	};
+	const list = useListEditor<Row>(rows, commit);
 
-	const add = () => commit([...rows, Object.fromEntries(keys.map((k) => [k, ""]))]);
+	const update = (index: number, key: string, value: string) =>
+		list.update(index, { [key]: value });
 
-	const remove = (index: number) => commit(rows.filter((_, i) => i !== index));
+	const add = () => list.add(Object.fromEntries(keys.map((k) => [k, ""])));
+
+	const remove = list.remove;
 
 	return (
 		<ControlShell label={descriptor.label} hint={descriptor.hint} note={descriptor.note}>

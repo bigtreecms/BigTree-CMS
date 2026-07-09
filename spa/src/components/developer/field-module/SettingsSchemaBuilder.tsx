@@ -7,6 +7,7 @@ import { Select } from "@/components/ui/Select";
 import { TextInput } from "@/components/ui/TextInput";
 import type { SettingControl, SettingDescriptor } from "@/api/endpoints/field-types";
 import { InlineEmpty } from "@/components/ui/InlineEmpty";
+import { useListEditor } from "@/hooks/useListEditor";
 
 interface SettingsSchemaBuilderProps {
 	value: SettingDescriptor[];
@@ -43,24 +44,7 @@ const Labeled = ({ label, children }: { label: string; children: React.ReactNode
  * by the module as host.field.settings.
  */
 export const SettingsSchemaBuilder = ({ value, onChange }: SettingsSchemaBuilderProps) => {
-	const patch = (index: number, next: Partial<SettingDescriptor>) =>
-		onChange(value.map((d, i) => (i === index ? { ...d, ...next } : d)));
-
-	const remove = (index: number) => onChange(value.filter((_, i) => i !== index));
-
-	const move = (index: number, dir: -1 | 1) => {
-		const target = index + dir;
-
-		if (target < 0 || target >= value.length) {
-			return;
-		}
-
-		const copy = [...value];
-		const moved = copy[index]!;
-		copy[index] = copy[target]!;
-		copy[target] = moved;
-		onChange(copy);
-	};
+	const { update: patch, remove, move } = useListEditor<SettingDescriptor>(value, onChange);
 
 	const add = () => onChange([...value, { id: "", control: "string", label: "" }]);
 
@@ -156,7 +140,7 @@ export const SettingsSchemaBuilder = ({ value, onChange }: SettingsSchemaBuilder
 								<div className="flex items-end gap-1">
 									<button
 										type="button"
-										onClick={() => move(index, -1)}
+										onClick={() => move(index, index - 1)}
 										disabled={index === 0}
 										className="rounded-md border border-border bg-surface p-1.5 text-text-2 disabled:opacity-40 hover:bg-hover"
 										title="Move up"
@@ -165,7 +149,7 @@ export const SettingsSchemaBuilder = ({ value, onChange }: SettingsSchemaBuilder
 									</button>
 									<button
 										type="button"
-										onClick={() => move(index, 1)}
+										onClick={() => move(index, index + 1)}
 										disabled={index === value.length - 1}
 										className="rounded-md border border-border bg-surface p-1.5 text-text-2 disabled:opacity-40 hover:bg-hover"
 										title="Move down"

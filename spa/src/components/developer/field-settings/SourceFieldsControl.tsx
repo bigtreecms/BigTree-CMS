@@ -3,6 +3,7 @@ import { Plus, Trash } from "lucide-react";
 import { ControlShell } from "./ControlShell";
 import type { ControlProps } from "./types";
 import { IconButton } from "@/components/ui/IconButton";
+import { useListEditor } from "@/hooks/useListEditor";
 
 /**
  * Repeatable list of source column names (route generation, geocoding address).
@@ -21,11 +22,12 @@ export const SourceFieldsControl = ({ descriptor, settings, onPatch }: ControlPr
 
 	const commit = (next: string[]) => onPatch({ [descriptor.id]: next });
 
-	const update = (index: number, value: string) =>
-		commit(rows.map((row, i) => (i === index ? value : row)));
+	const list = useListEditor<string>(rows, commit);
+	const update = list.replace;
 
-	const add = () => commit([...rows, ""]);
+	const add = () => list.add("");
 
+	// Never collapse to an empty list — the control always shows one blank row.
 	const remove = (index: number) => {
 		const next = rows.filter((_, i) => i !== index);
 		commit(next.length > 0 ? next : [""]);
