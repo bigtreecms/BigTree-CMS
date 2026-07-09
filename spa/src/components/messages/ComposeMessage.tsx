@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/Button";
 import { SlideOver } from "@/components/ui/SlideOver";
 import { Field, FieldLabel } from "@/components/ui/Field";
 import { RemovableChip } from "@/components/ui/RemovableChip";
+import { TextArea } from "@/components/ui/TextArea";
+import { TextInput } from "@/components/ui/TextInput";
 
 import { messagesApi, type Message } from "@/api/endpoints/dashboard";
 import { usersApi } from "@/api/endpoints/users";
@@ -247,9 +249,7 @@ export const ComposeMessage = ({
 				</div>
 
 				<Field label="Subject">
-					<input
-						type="text"
-						className="w-full rounded-md border border-border bg-surface px-3 py-2 text-[13px] focus:outline-none focus:ring-1 focus:ring-accent-ring"
+					<TextInput
 						value={subject}
 						onChange={(e) => setSubject(e.target.value)}
 						maxLength={255}
@@ -257,9 +257,9 @@ export const ComposeMessage = ({
 				</Field>
 
 				<Field label="Message">
-					<textarea
+					<TextArea
 						rows={10}
-						className="w-full rounded-md border border-border bg-surface px-3 py-2 text-[13px] leading-relaxed focus:outline-none focus:ring-1 focus:ring-accent-ring"
+						className="leading-relaxed"
 						value={body}
 						onChange={(e) => setBody(e.target.value)}
 						placeholder="Plain text. A small set of inline HTML (a, b, em, p) is preserved by the server."

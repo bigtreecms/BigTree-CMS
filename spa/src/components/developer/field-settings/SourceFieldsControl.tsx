@@ -3,6 +3,7 @@ import { Plus, Trash } from "lucide-react";
 import { ControlShell } from "./ControlShell";
 import type { ControlProps } from "./types";
 import { IconButton } from "@/components/ui/IconButton";
+import { TextInput } from "@/components/ui/TextInput";
 import { useListEditor } from "@/hooks/useListEditor";
 
 /**
@@ -38,10 +39,10 @@ export const SourceFieldsControl = ({ descriptor, settings, onPatch }: ControlPr
 			<div className="space-y-1.5">
 				{rows.map((row, index) => (
 					<div key={index} className="flex items-center gap-2">
-						<input
-							type="text"
+						<TextInput
+							compact
+							className="min-w-0 flex-1"
 							aria-label="Column name"
-							className="min-w-0 flex-1 rounded border border-border bg-surface px-2 py-1 text-[12.5px] focus:outline-none focus:ring-1 focus:ring-accent-ring"
 							placeholder="Column name"
 							value={row}
 							onChange={(e) => update(index, e.target.value)}

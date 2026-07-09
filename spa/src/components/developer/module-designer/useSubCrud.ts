@@ -1,9 +1,8 @@
 import { useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 
 import { useScrollToFirstError } from "@/hooks/useScrollToFirstError";
-import { describeApiError } from "@/lib/errorHandling";
-import { toast } from "@/lib/toast";
+import { useToastMutation } from "@/hooks/useToastMutation";
 import { validateRequired, type RequiredRule } from "@/lib/formValidation";
 
 /**
@@ -37,7 +36,6 @@ export const useSubCrud = <T, Body>({
 	updateFn,
 	deleteFn,
 }: UseSubCrudArgs<T, Body>) => {
-	const queryClient = useQueryClient();
 	const queryKey = ["modules", moduleId, resource];
 	const [editingId, setEditingId] = useState<string | null>(null);
 	const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
@@ -49,32 +47,24 @@ export const useSubCrud = <T, Body>({
 		queryFn: () => listFn(moduleId),
 	});
 
-	const invalidate = () => queryClient.invalidateQueries({ queryKey });
-
-	const saveMutation = useMutation({
+	const saveMutation = useToastMutation({
 		mutationFn: ({ sid, body }: { sid: string | null; body: Body }) =>
 			sid && sid !== NEW_ROW
 				? updateFn(moduleId, sid, body as Partial<Body>)
 				: createFn(moduleId, body),
+		invalidate: [queryKey],
+		successMessage: `${label} saved`,
+		errorMessage: "Save failed",
 		onSuccess: () => {
-			invalidate();
 			setEditingId(null);
-			toast.success(`${label} saved`);
-		},
-		onError: (err) => {
-			toast.error(describeApiError(err, "Save failed"));
 		},
 	});
 
-	const deleteMutation = useMutation({
+	const deleteMutation = useToastMutation({
 		mutationFn: (sid: string) => deleteFn(moduleId, sid),
-		onSuccess: () => {
-			invalidate();
-			toast.success(`${label} deleted`);
-		},
-		onError: (err) => {
-			toast.error(describeApiError(err, "Delete failed"));
-		},
+		invalidate: [queryKey],
+		successMessage: `${label} deleted`,
+		errorMessage: "Delete failed",
 	});
 
 	const open = (id: string) => {

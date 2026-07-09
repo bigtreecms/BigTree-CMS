@@ -4,6 +4,7 @@ import { useToastMutation } from "@/hooks/useToastMutation";
 import { Button } from "@/components/ui/Button";
 import { SlideOver } from "@/components/ui/SlideOver";
 import { Field } from "@/components/ui/Field";
+import { TextInput } from "@/components/ui/TextInput";
 import { resourceFoldersApi, type ResourceFolderRow } from "@/api/endpoints/resource-folders";
 
 interface FolderEditorProps {
@@ -110,9 +111,8 @@ export const FolderEditor = ({
 			}
 		>
 			<Field label="Name">
-				<input
+				<TextInput
 					autoFocus
-					className="w-full rounded-md border border-border bg-surface px-3 py-2 text-[13.5px] focus:outline-none focus:ring-1 focus:ring-accent-ring"
 					value={name}
 					onChange={(e) => setName(e.target.value)}
 					onKeyDown={(e) => {

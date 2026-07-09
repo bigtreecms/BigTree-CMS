@@ -20,6 +20,7 @@ import { InlineEmpty } from "@/components/ui/InlineEmpty";
 import { IconButton } from "@/components/ui/IconButton";
 import { Field } from "@/components/ui/Field";
 import { SectionLabel } from "@/components/ui/SectionLabel";
+import { TextInput } from "@/components/ui/TextInput";
 
 /**
  * Profile → Security passkey manager.
@@ -104,9 +105,7 @@ export const PasskeysPanel = () => {
 				{supported && addPrompt.open && (
 					<div className="mb-4 rounded-md border border-border bg-surface-2 p-3">
 						<Field label="Passkey name">
-							<input
-								type="text"
-								className="w-full rounded-md border border-border bg-surface px-3 py-2 text-[13px] focus:outline-none focus:ring-1 focus:ring-accent-ring"
+							<TextInput
 								value={draftName}
 								onChange={(e) => setDraftName(e.target.value)}
 								placeholder="e.g. MacBook Touch ID, YubiKey 5"

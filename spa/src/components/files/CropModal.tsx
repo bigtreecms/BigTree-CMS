@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/Button";
 import { ImageCropStage } from "@/components/ui/ImageCropStage";
 import { Modal } from "@/components/ui/Modal";
 import { SectionLabel } from "@/components/ui/SectionLabel";
+import { TextInput } from "@/components/ui/TextInput";
 import { resourcesApi, type ResourceDetail } from "@/api/endpoints/resources";
 import { useImageCrop } from "@/hooks/useImageCrop";
 
@@ -155,11 +156,12 @@ export const CropModal = ({ open, onOpenChange, resource }: CropModalProps) => {
 							<SectionLabel size="sm" className="mb-1 block">
 								Width
 							</SectionLabel>
-							<input
+							<TextInput
 								type="number"
 								min={1}
 								inputMode="numeric"
-								className="w-full rounded-md border border-border bg-surface px-2 py-1 text-[12.5px] focus:outline-none focus:ring-1 focus:ring-accent-ring"
+								compact
+								className="w-full"
 								value={targetWidth}
 								onChange={(e) => setTargetWidth(e.target.value)}
 								placeholder={
@@ -173,11 +175,12 @@ export const CropModal = ({ open, onOpenChange, resource }: CropModalProps) => {
 							<SectionLabel size="sm" className="mb-1 block">
 								Height
 							</SectionLabel>
-							<input
+							<TextInput
 								type="number"
 								min={1}
 								inputMode="numeric"
-								className="w-full rounded-md border border-border bg-surface px-2 py-1 text-[12.5px] focus:outline-none focus:ring-1 focus:ring-accent-ring"
+								compact
+								className="w-full"
 								value={targetHeight}
 								onChange={(e) => setTargetHeight(e.target.value)}
 								placeholder={
@@ -196,8 +199,9 @@ export const CropModal = ({ open, onOpenChange, resource }: CropModalProps) => {
 						<SectionLabel size="sm" className="mb-1 block">
 							Filename prefix
 						</SectionLabel>
-						<input
-							className="w-full rounded-md border border-border bg-surface px-2 py-1 text-[12.5px] focus:outline-none focus:ring-1 focus:ring-accent-ring"
+						<TextInput
+							compact
+							className="w-full"
 							value={prefix}
 							onChange={(e) => setPrefix(e.target.value)}
 							maxLength={64}

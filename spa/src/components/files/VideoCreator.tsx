@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { SlideOver } from "@/components/ui/SlideOver";
 import { Field } from "@/components/ui/Field";
+import { TextInput } from "@/components/ui/TextInput";
 import { resourcesApi, type ResourceDetail } from "@/api/endpoints/resources";
 import { toast } from "@/lib/toast";
 import { useToastMutation } from "@/hooks/useToastMutation";
@@ -91,11 +92,10 @@ export const VideoCreator = ({
 			}
 		>
 			<Field label="Video URL">
-				<input
+				<TextInput
 					autoFocus
 					type="url"
 					inputMode="url"
-					className="w-full rounded-md border border-border bg-surface px-3 py-2 text-[13.5px] focus:outline-none focus:ring-1 focus:ring-accent-ring"
 					value={url}
 					onChange={(e) => setUrl(e.target.value)}
 					onKeyDown={(e) => {

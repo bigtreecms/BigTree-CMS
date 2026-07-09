@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
 import { IconButton } from "@/components/ui/IconButton";
 import { Modal } from "@/components/ui/Modal";
+import { TextInput } from "@/components/ui/TextInput";
 import { usersApi } from "@/api/endpoints/users";
 import { ApiError } from "@/types/api";
 import { toast } from "@/lib/toast";
@@ -106,12 +107,11 @@ export const PasswordChangeDialog = ({
 			<form onSubmit={submit} className="space-y-3">
 				{requireCurrent && (
 					<Field label="Current password">
-						<input
+						<TextInput
 							type="password"
 							autoComplete="current-password"
 							value={current}
 							onChange={(e) => setCurrent(e.target.value)}
-							className="w-full rounded-md border border-border bg-surface px-3 py-2 text-[13.5px] focus:outline-none focus:ring-1 focus:ring-accent-ring"
 						/>
 					</Field>
 				)}
@@ -121,12 +121,12 @@ export const PasswordChangeDialog = ({
 					hint="Minimum 8 characters. Site security policy may require more."
 				>
 					<div className="relative">
-						<input
+						<TextInput
 							type={showNext ? "text" : "password"}
 							autoComplete="new-password"
 							value={next}
 							onChange={(e) => setNext(e.target.value)}
-							className="w-full rounded-md border border-border bg-surface px-3 py-2 pr-9 text-[13.5px] focus:outline-none focus:ring-1 focus:ring-accent-ring"
+							className="pr-9"
 						/>
 						<IconButton
 							onClick={() => setShowNext((v) => !v)}
@@ -139,12 +139,11 @@ export const PasswordChangeDialog = ({
 				</Field>
 
 				<Field label="Confirm new password">
-					<input
+					<TextInput
 						type={showNext ? "text" : "password"}
 						autoComplete="new-password"
 						value={confirm}
 						onChange={(e) => setConfirm(e.target.value)}
-						className="w-full rounded-md border border-border bg-surface px-3 py-2 text-[13.5px] focus:outline-none focus:ring-1 focus:ring-accent-ring"
 					/>
 				</Field>
 

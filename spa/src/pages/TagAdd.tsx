@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { ChevronLeft, Plus } from "lucide-react";
 
 import { useAuthStore } from "@/auth/store";
@@ -22,6 +22,7 @@ import { toast } from "@/lib/toast";
 import { queryKeys } from "@/lib/queryKeys";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { useDirtyTracker } from "@/hooks/useDirtyTracker";
+import { useToastMutation } from "@/hooks/useToastMutation";
 import { UnsavedChangesGuard } from "@/components/ui/UnsavedChangesGuard";
 import { Field } from "@/components/ui/Field";
 
@@ -42,7 +43,6 @@ const normalizeTag = (raw: string): string => raw.replace(/[^a-zA-Z0-9]/g, "").t
 
 export const TagAdd = () => {
 	const navigate = useNavigate();
-	const queryClient = useQueryClient();
 	const user = useAuthStore((s) => s.user);
 
 	const [name, setName] = useState("");
@@ -73,7 +73,7 @@ export const TagAdd = () => {
 	// submit can't slip an unchecked name past the guard.
 	const checking = normalized !== "" && (debounced !== normalized || duplicateQuery.isFetching);
 
-	const createMutation = useMutation({
+	const createMutation = useToastMutation({
 		mutationFn: async () => {
 			const created = await tagsApi.create(name.trim());
 
@@ -87,14 +87,14 @@ export const TagAdd = () => {
 
 			return created;
 		},
+		invalidate: [queryKeys.tags.root()],
+		errorMessage: "Could not create tag",
 		onSuccess: (tag) => {
-			queryClient.invalidateQueries({ queryKey: queryKeys.tags.root() });
 			toast.success(`Tag “${tag.tag}” created`);
 			navigate("/tags");
 		},
 		onError: () => {
 			setError("Could not create tag");
-			toast.error("Could not create tag");
 		},
 	});
 

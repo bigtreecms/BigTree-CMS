@@ -1,4 +1,3 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Archive, ArchiveRestore, Check, Star, StarOff, X } from "lucide-react";
 
 import {
@@ -7,6 +6,7 @@ import {
 	type ModuleEntryRow,
 } from "@/api/endpoints/auto-modules";
 import { IconButton } from "@/components/ui/IconButton";
+import { useToastMutation } from "@/hooks/useToastMutation";
 import { toast } from "@/lib/toast";
 import { queryKeys } from "@/lib/queryKeys";
 
@@ -50,13 +50,12 @@ export const BuiltinToggleButtons = ({
 	row,
 	builtins,
 }: BuiltinToggleButtonsProps) => {
-	const queryClient = useQueryClient();
 	const entryId = Number(row.id);
 	const canMutate = Number.isFinite(entryId) && entryId > 0;
 
-	const onSuccess = (data: ModuleEntryFlagToggleResponse) => {
-		queryClient.invalidateQueries({ queryKey: queryKeys.moduleEntries.view(moduleId, viewId) });
+	const invalidate = [queryKeys.moduleEntries.view(moduleId, viewId)];
 
+	const showFlagToast = (data: ModuleEntryFlagToggleResponse) => {
 		const messages = FLAG_TOAST_MESSAGES[data.column];
 
 		if (messages) {
@@ -64,22 +63,25 @@ export const BuiltinToggleButtons = ({
 		}
 	};
 
-	const archiveMutation = useMutation({
+	const archiveMutation = useToastMutation({
 		mutationFn: () => autoModulesApi.archive(moduleId, entryId, viewId),
-		onSuccess,
-		onError: () => toast.error("Couldn't update archive state"),
+		invalidate,
+		errorMessage: "Couldn't update archive state",
+		onSuccess: showFlagToast,
 	});
 
-	const approveMutation = useMutation({
+	const approveMutation = useToastMutation({
 		mutationFn: () => autoModulesApi.approve(moduleId, entryId, viewId),
-		onSuccess,
-		onError: () => toast.error("Couldn't update approval state"),
+		invalidate,
+		errorMessage: "Couldn't update approval state",
+		onSuccess: showFlagToast,
 	});
 
-	const featureMutation = useMutation({
+	const featureMutation = useToastMutation({
 		mutationFn: () => autoModulesApi.feature(moduleId, entryId, viewId),
-		onSuccess,
-		onError: () => toast.error("Couldn't update feature state"),
+		invalidate,
+		errorMessage: "Couldn't update feature state",
+		onSuccess: showFlagToast,
 	});
 
 	const archived = isOn(row.archived);

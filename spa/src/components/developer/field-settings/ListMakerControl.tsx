@@ -3,6 +3,7 @@ import { Plus, Trash } from "lucide-react";
 import { ControlShell } from "./ControlShell";
 import type { ControlProps } from "./types";
 import { IconButton } from "@/components/ui/IconButton";
+import { TextInput } from "@/components/ui/TextInput";
 import { useListEditor } from "@/hooks/useListEditor";
 
 type Row = Record<string, string>;
@@ -45,11 +46,11 @@ export const ListMakerControl = ({ descriptor, settings, onPatch }: ControlProps
 				{rows.map((row, index) => (
 					<div key={index} className="flex items-center gap-2">
 						{keys.map((key) => (
-							<input
+							<TextInput
 								key={key}
-								type="text"
+								compact
+								className="min-w-0 flex-1"
 								aria-label={key}
-								className="min-w-0 flex-1 rounded border border-border bg-surface px-2 py-1 text-[12.5px] focus:outline-none focus:ring-1 focus:ring-accent-ring"
 								value={row[key] ?? ""}
 								onChange={(e) => update(index, key, e.target.value)}
 							/>

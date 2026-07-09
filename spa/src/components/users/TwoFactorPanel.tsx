@@ -13,6 +13,7 @@ import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Field } from "@/components/ui/Field";
 import { SectionLabel } from "@/components/ui/SectionLabel";
+import { TextInput } from "@/components/ui/TextInput";
 
 /**
  * Profile → Security TOTP manager.
@@ -150,15 +151,14 @@ export const TwoFactorPanel = ({ enabled }: TwoFactorPanelProps) => {
 				{enabled && disabling && (
 					<div className="rounded-md border border-border bg-surface-2 p-4">
 						<Field label="Enter a current code to confirm">
-							<input
-								type="text"
+							<TextInput
 								inputMode="numeric"
 								autoComplete="one-time-code"
 								value={disableCode}
 								onChange={(e) => setDisableCode(e.target.value)}
 								placeholder="123456"
 								autoFocus
-								className="w-full rounded-md border border-border bg-surface px-3 py-2 text-[13.5px] tracking-[0.2em] focus:outline-none focus:ring-1 focus:ring-accent-ring"
+								className="tracking-[0.2em]"
 							/>
 						</Field>
 

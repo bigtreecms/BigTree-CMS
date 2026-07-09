@@ -4,6 +4,7 @@ import { Checkbox } from "@/components/ui/Checkbox";
 import { Field } from "@/components/ui/Field";
 import { IconButton } from "@/components/ui/IconButton";
 import { SectionLabel } from "@/components/ui/SectionLabel";
+import { TextInput } from "@/components/ui/TextInput";
 import { useListEditor } from "@/hooks/useListEditor";
 import type { MediaPreset } from "@/api/endpoints/configure";
 
@@ -34,9 +35,6 @@ export interface CropRow extends SizeRow {
 	thumbs?: SizeRow[];
 	center_crops?: SizeRow[];
 }
-
-const inputClass =
-	"w-full rounded-md border border-border bg-surface px-2 py-1.5 text-[12.5px] outline-none focus:border-accent focus:ring-1 focus:ring-accent-ring";
 
 /** Legacy stored these as objects keyed by count; normalize to a dense array. */
 const asRows = <T,>(value: unknown): T[] => {
@@ -82,22 +80,25 @@ const SizeRowsEditor = ({ label, rows, onChange }: SizeRowsEditorProps) => {
 				<div className="space-y-1.5">
 					{rows.map((row, i) => (
 						<div key={i} className="flex items-center gap-1.5">
-							<input
-								className={inputClass}
+							<TextInput
+								compact
+								className="w-full"
 								placeholder="prefix"
 								aria-label="prefix"
 								value={row.prefix ?? ""}
 								onChange={(e) => update(i, { prefix: e.target.value })}
 							/>
-							<input
-								className={inputClass}
+							<TextInput
+								compact
+								className="w-full"
 								placeholder="width"
 								aria-label="width"
 								value={row.width ?? ""}
 								onChange={(e) => update(i, { width: e.target.value })}
 							/>
-							<input
-								className={inputClass}
+							<TextInput
+								compact
+								className="w-full"
 								placeholder="height"
 								aria-label="height"
 								value={row.height ?? ""}
@@ -168,22 +169,25 @@ const CropsEditor = ({ crops, onChange }: CropsEditorProps) => {
 					{crops.map((crop, i) => (
 						<div key={i} className="rounded-md border border-border bg-surface-2 p-2.5">
 							<div className="flex items-center gap-1.5">
-								<input
-									className={inputClass}
+								<TextInput
+									compact
+									className="w-full"
 									placeholder="prefix"
 									aria-label="prefix"
 									value={crop.prefix ?? ""}
 									onChange={(e) => update(i, { prefix: e.target.value })}
 								/>
-								<input
-									className={inputClass}
+								<TextInput
+									compact
+									className="w-full"
 									placeholder="width"
 									aria-label="width"
 									value={crop.width ?? ""}
 									onChange={(e) => update(i, { width: e.target.value })}
 								/>
-								<input
-									className={inputClass}
+								<TextInput
+									compact
+									className="w-full"
 									placeholder="height"
 									aria-label="height"
 									value={crop.height ?? ""}
@@ -240,8 +244,9 @@ export const MediaPresetEditor = ({ preset, onChange }: MediaPresetEditorProps) 
 		<div className="space-y-4">
 			<div className="grid grid-cols-1 gap-3 md:grid-cols-3">
 				<Field label="Min width (px)">
-					<input
-						className={inputClass}
+					<TextInput
+						compact
+						className="w-full"
 						type="number"
 						min={0}
 						value={str("min_width")}
@@ -249,8 +254,9 @@ export const MediaPresetEditor = ({ preset, onChange }: MediaPresetEditorProps) 
 					/>
 				</Field>
 				<Field label="Min height (px)">
-					<input
-						className={inputClass}
+					<TextInput
+						compact
+						className="w-full"
 						type="number"
 						min={0}
 						value={str("min_height")}
@@ -258,8 +264,9 @@ export const MediaPresetEditor = ({ preset, onChange }: MediaPresetEditorProps) 
 					/>
 				</Field>
 				<Field label="Preview prefix">
-					<input
-						className={inputClass}
+					<TextInput
+						compact
+						className="w-full"
 						value={str("preview_prefix")}
 						onChange={(e) => onChange({ preview_prefix: e.target.value })}
 					/>

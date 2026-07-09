@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { useQuery, type QueryKey } from "@tanstack/react-query";
-import { ChevronRight, Folder, Home, Search, X } from "lucide-react";
+import { ChevronRight, Folder, Home } from "lucide-react";
 
 import { Button } from "@/components/ui/Button";
 import { SlideOver } from "@/components/ui/SlideOver";
@@ -11,6 +11,7 @@ import { queryKeys } from "@/lib/queryKeys";
 import { useToastMutation } from "@/hooks/useToastMutation";
 import { InlineEmpty } from "@/components/ui/InlineEmpty";
 import { IconButton } from "@/components/ui/IconButton";
+import { SearchInput } from "@/components/ui/SearchInput";
 
 interface MovePageDialogProps {
 	open: boolean;
@@ -154,28 +155,12 @@ export const MovePageDialog = ({
 			}
 		>
 			<div className="space-y-3">
-				<div className="relative">
-					<Search
-						size={14}
-						className="absolute left-3 top-1/2 -translate-y-1/2 text-text-3"
-					/>
-					<input
-						className="w-full rounded-md border border-border bg-surface py-1.5 px-9 text-[13.5px] placeholder:text-text-3 focus:outline-none focus:ring-1 focus:ring-accent-ring"
-						placeholder="Search pages…"
-						aria-label="Search pages"
-						value={search}
-						onChange={(e) => setSearch(e.target.value)}
-					/>
-					{search && (
-						<IconButton
-							className="absolute right-2 top-1/2 -translate-y-1/2"
-							onClick={() => setSearch("")}
-							label="Clear search"
-						>
-							<X size={14} />
-						</IconButton>
-					)}
-				</div>
+				<SearchInput
+					value={search}
+					onChange={setSearch}
+					placeholder="Search pages…"
+					aria-label="Search pages"
+				/>
 
 				{!isSearching && (
 					<nav className="flex flex-wrap items-center gap-1 text-[12px] text-text-3">

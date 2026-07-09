@@ -11,6 +11,7 @@ import { SectionLabel } from "../../ui/SectionLabel";
 import { ControlShell } from "./ControlShell";
 import type { ControlProps } from "./types";
 import { IconButton } from "@/components/ui/IconButton";
+import { TextInput } from "@/components/ui/TextInput";
 import { useListEditor } from "@/hooks/useListEditor";
 
 /**
@@ -35,9 +36,6 @@ interface DimRow {
 
 const asRows = (value: unknown): DimRow[] => (Array.isArray(value) ? (value as DimRow[]) : []);
 
-const inputClass =
-	"min-w-0 flex-1 rounded border border-border bg-surface px-2 py-1 text-[12.5px] focus:outline-none focus:ring-1 focus:ring-accent-ring";
-
 interface DimFieldsProps {
 	row: DimRow;
 	onChange: (patch: Partial<DimRow>) => void;
@@ -46,23 +44,26 @@ interface DimFieldsProps {
 
 const DimFields = ({ row, onChange, onRemove }: DimFieldsProps) => (
 	<div className="flex items-center gap-2">
-		<input
-			className={inputClass}
+		<TextInput
+			compact
+			className="min-w-0 flex-1"
 			placeholder="Prefix"
 			aria-label="Prefix"
 			value={row.prefix ?? ""}
 			onChange={(e) => onChange({ prefix: e.target.value })}
 		/>
-		<input
-			className={inputClass}
+		<TextInput
+			compact
+			className="min-w-0 flex-1"
 			placeholder="Width"
 			aria-label="Width"
 			inputMode="numeric"
 			value={row.width ?? ""}
 			onChange={(e) => onChange({ width: e.target.value.replace(/[^0-9]/g, "") })}
 		/>
-		<input
-			className={inputClass}
+		<TextInput
+			compact
+			className="min-w-0 flex-1"
 			placeholder="Height"
 			aria-label="Height"
 			inputMode="numeric"
@@ -156,8 +157,9 @@ export const ImageOptionsControl = ({ settings, onPatch }: ControlProps) => {
 				<>
 					<div className="grid grid-cols-1 gap-3 md:grid-cols-3">
 						<ControlShell label="Minimum Width" hint="(px)">
-							<input
-								className={inputClass}
+							<TextInput
+								compact
+								className="min-w-0 flex-1"
 								inputMode="numeric"
 								value={String(settings.min_width ?? "")}
 								onChange={(e) =>
@@ -166,8 +168,9 @@ export const ImageOptionsControl = ({ settings, onPatch }: ControlProps) => {
 							/>
 						</ControlShell>
 						<ControlShell label="Minimum Height" hint="(px)">
-							<input
-								className={inputClass}
+							<TextInput
+								compact
+								className="min-w-0 flex-1"
 								inputMode="numeric"
 								value={String(settings.min_height ?? "")}
 								onChange={(e) =>
@@ -176,8 +179,9 @@ export const ImageOptionsControl = ({ settings, onPatch }: ControlProps) => {
 							/>
 						</ControlShell>
 						<ControlShell label="Preview Prefix" hint="(forms)">
-							<input
-								className={inputClass}
+							<TextInput
+								compact
+								className="min-w-0 flex-1"
 								value={String(settings.preview_prefix ?? "")}
 								onChange={(e) => onPatch({ preview_prefix: e.target.value })}
 							/>
