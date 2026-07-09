@@ -18,7 +18,7 @@ import {
 	type PaymentGatewayId,
 } from "@/api/endpoints/configure";
 
-import { ApiError } from "@/types/api";
+import { describeApiError } from "@/lib/errorHandling";
 import { queryKeys } from "@/lib/queryKeys";
 import { useToastMutation } from "@/hooks/useToastMutation";
 
@@ -146,11 +146,7 @@ export const ConfigurePaymentGateway = () => {
 			setGeneralError(null);
 		},
 		onError: (err) => {
-			setGeneralError(
-				err instanceof ApiError && err.message
-					? err.message
-					: "Could not save payment gateway"
-			);
+			setGeneralError(describeApiError(err, "Could not save payment gateway"));
 		},
 	});
 
@@ -164,11 +160,7 @@ export const ConfigurePaymentGateway = () => {
 			setGeneralError(null);
 		},
 		onError: (err) => {
-			setGeneralError(
-				err instanceof ApiError && err.message
-					? err.message
-					: "Could not upload certificate"
-			);
+			setGeneralError(describeApiError(err, "Could not upload certificate"));
 		},
 	});
 

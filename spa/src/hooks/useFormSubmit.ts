@@ -1,6 +1,7 @@
 import { useState } from "react";
 
 import { ApiError } from "@/types/api";
+import { describeApiError } from "@/lib/errorHandling";
 import { useScrollToFirstError } from "@/hooks/useScrollToFirstError";
 
 export interface UseFormSubmitReturn {
@@ -59,7 +60,7 @@ export const useFormSubmit = (): UseFormSubmitReturn => {
 
 			setError(err.message || fallback);
 		} else {
-			setError(err instanceof Error ? err.message : fallback);
+			setError(describeApiError(err, fallback));
 		}
 	};
 

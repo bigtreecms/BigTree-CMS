@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { locksApi } from "@/api/endpoints/locks";
 import { ApiError } from "@/types/api";
+import { describeApiError } from "@/lib/errorHandling";
 import type { LockConflictDetails } from "@/api/endpoints/locks";
 import type { LockOwner } from "@/types/api-resources";
 
@@ -124,7 +125,7 @@ export const useLock = ({
 					return;
 				}
 
-				setError(err instanceof Error ? err.message : "Failed to acquire lock");
+				setError(describeApiError(err, "Failed to acquire lock"));
 			}
 		};
 

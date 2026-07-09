@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { ApiError } from "@/types/api";
 import { useScrollToFirstError } from "@/hooks/useScrollToFirstError";
+import { describeApiError } from "@/lib/errorHandling";
 import { toast } from "@/lib/toast";
 import { validateRequired, type RequiredRule } from "@/lib/formValidation";
 
@@ -62,7 +62,7 @@ export const useSubCrud = <T, Body>({
 			toast.success(`${label} saved`);
 		},
 		onError: (err) => {
-			toast.error(err instanceof ApiError && err.message ? err.message : "Save failed");
+			toast.error(describeApiError(err, "Save failed"));
 		},
 	});
 
@@ -73,7 +73,7 @@ export const useSubCrud = <T, Body>({
 			toast.success(`${label} deleted`);
 		},
 		onError: (err) => {
-			toast.error(err instanceof ApiError && err.message ? err.message : "Delete failed");
+			toast.error(describeApiError(err, "Delete failed"));
 		},
 	});
 

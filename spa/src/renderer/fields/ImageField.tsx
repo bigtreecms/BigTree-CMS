@@ -16,6 +16,7 @@ import {
 	type ReprocessSource,
 } from "@/api/endpoints/images";
 import { useUploads } from "@/hooks/useUploads";
+import { describeApiError } from "@/lib/errorHandling";
 import { expandImageUrl } from "@/lib/imageUrl";
 
 import { FieldCropModal } from "./FieldCropModal";
@@ -149,7 +150,7 @@ export const ImageField = ({ field, value, onChange, disabled }: FieldComponentP
 			const result = await imagesApi.reprocess(source, settings as Record<string, unknown>);
 			applyResult(result);
 		} catch (err) {
-			setError(err instanceof Error ? err.message : "Could not process the image.");
+			setError(describeApiError(err, "Could not process the image."));
 		} finally {
 			setReprocessing(false);
 		}

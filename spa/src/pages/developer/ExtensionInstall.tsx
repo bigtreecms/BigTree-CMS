@@ -17,7 +17,7 @@ import {
 	type ExtensionInstallPreview,
 	type ExtensionInstallResult,
 } from "@/api/endpoints/extensions";
-import { ApiError } from "@/types/api";
+import { describeApiError } from "@/lib/errorHandling";
 import { toast } from "@/lib/toast";
 import { sanitizeHtml } from "@/lib/html";
 import { queryKeys } from "@/lib/queryKeys";
@@ -45,9 +45,7 @@ export const ExtensionInstall = () => {
 		},
 		onError: (err) => {
 			setPreview(null);
-			setError(
-				err instanceof ApiError && err.message ? err.message : "Could not read the package"
-			);
+			setError(describeApiError(err, "Could not read the package"));
 		},
 	});
 
@@ -59,7 +57,7 @@ export const ExtensionInstall = () => {
 			toast.success("Extension installed");
 		},
 		onError: (err) => {
-			setError(err instanceof ApiError && err.message ? err.message : "Install failed");
+			setError(describeApiError(err, "Install failed"));
 		},
 	});
 

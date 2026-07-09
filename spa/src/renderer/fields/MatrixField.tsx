@@ -1,16 +1,17 @@
-import { useEffect, useId, useMemo, useState } from "react";
+import { useId, useMemo } from "react";
 import { GripVertical, Plus, Trash } from "lucide-react";
 
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { IconButton } from "@/components/ui/IconButton";
+import { useRepeaterRows, type RepeaterRow } from "@/hooks/useRepeaterRows";
 import type { ModuleFormField } from "@/api/endpoints/modules";
 
 import { FieldRenderer } from "@/renderer/forms/FieldRenderer";
 import { FieldRow } from "@/renderer/forms/FieldRow";
 
 import { CollapsibleRowHeader } from "./CollapsibleRowHeader";
-import { isRecord, isTruthyFlag, normalizeColumnSettings, toInt } from "./fieldHelpers";
+import { isTruthyFlag, normalizeColumnSettings, stringifyForTitle, toInt } from "./fieldHelpers";
 import { settingsOf, type FieldComponentProps } from "./types";
 
 /**
@@ -51,44 +52,10 @@ interface MatrixFieldSettings {
 
 type RowData = Record<string, unknown>;
 
-interface MatrixRow {
-	uid: string;
-	data: RowData;
-}
+type MatrixRow = RepeaterRow<RowData>;
 
 const TITLE_KEY = "__internal-title";
 const SUBTITLE_KEY = "__internal-subtitle";
-
-let uidCounter = 0;
-const nextUid = (): string => `m${++uidCounter}-${Date.now().toString(36)}`;
-
-const seedRows = (raw: unknown): MatrixRow[] => {
-	if (!Array.isArray(raw)) {
-		return [];
-	}
-
-	return raw.filter(isRecord).map((data) => ({ uid: nextUid(), data: { ...data } }));
-};
-
-const stripUid = (rows: MatrixRow[]): RowData[] => rows.map((r) => r.data);
-
-/**
- * Structural equality of two row sets by their data payloads (ignoring the
- * ephemeral uids), so we can tell our own edit's echo from an external change.
- */
-const rowsDataEqual = (a: MatrixRow[], b: MatrixRow[]): boolean => {
-	if (a.length !== b.length) {
-		return false;
-	}
-
-	for (let i = 0; i < a.length; i++) {
-		if (JSON.stringify(a[i]?.data) !== JSON.stringify(b[i]?.data)) {
-			return false;
-		}
-	}
-
-	return true;
-};
 
 /**
  * Derive the display title + subtitle for a collapsed row. Any column flagged
@@ -136,27 +103,6 @@ const deriveRowSummary = (
 	return { title, subtitle };
 };
 
-const stringifyForTitle = (raw: unknown): string => {
-	if (typeof raw === "string") {
-		return raw;
-	}
-
-	if (typeof raw === "number" || typeof raw === "boolean") {
-		return String(raw);
-	}
-
-	if (isRecord(raw)) {
-		const candidate =
-			(typeof raw.title === "string" && raw.title) ||
-			(typeof raw.name === "string" && raw.name) ||
-			(typeof raw.id === "string" && raw.id);
-
-		return candidate || "";
-	}
-
-	return "";
-};
-
 export const MatrixField = ({ field, value, onChange, disabled }: FieldComponentProps) => {
 	const settings = settingsOf(field) as MatrixFieldSettings;
 	const columns = useMemo<MatrixColumn[]>(
@@ -167,66 +113,19 @@ export const MatrixField = ({ field, value, onChange, disabled }: FieldComponent
 	const style = settings.style === "callout" ? "callout" : "list";
 	const reactId = useId();
 
-	const [rows, setRows] = useState<MatrixRow[]>(() => seedRows(value));
-	const [expanded, setExpanded] = useState<Set<string>>(new Set());
-
-	// Re-seed only when the incoming value genuinely differs from the rows we
-	// already hold (edit-page mount / record switch / reset). The echo of our own
-	// onChange — and any unrelated re-render passing a structurally-equal value —
-	// is ignored, so row uids (and the expand state keyed on them) survive.
-	useEffect(() => {
-		setRows((prev) => {
-			const incoming = seedRows(value);
-
-			return rowsDataEqual(prev, incoming) ? prev : incoming;
-		});
-	}, [value]);
-
-	const commit = (next: MatrixRow[]) => {
-		setRows(next);
-		onChange(stripUid(next));
-	};
-
-	const atLimit = max > 0 && rows.length >= max;
+	const { rows, isExpanded, toggleExpanded, atLimit, add, remove, move, update } =
+		useRepeaterRows<RowData>({ value, onChange, uidPrefix: "m", max });
 
 	const addRow = () => {
-		if (disabled || atLimit) {
+		if (disabled) {
 			return;
 		}
 
-		const fresh: MatrixRow = { uid: nextUid(), data: {} };
-		commit([...rows, fresh]);
-		setExpanded((prev) => new Set(prev).add(fresh.uid));
-	};
-
-	const deleteRow = (uid: string) => {
-		commit(rows.filter((r) => r.uid !== uid));
-		setExpanded((prev) => {
-			const copy = new Set(prev);
-			copy.delete(uid);
-
-			return copy;
-		});
+		add({});
 	};
 
 	const updateCell = (uid: string, columnId: string, next: unknown) => {
-		commit(
-			rows.map((r) => (r.uid === uid ? { ...r, data: { ...r.data, [columnId]: next } } : r))
-		);
-	};
-
-	const toggleExpanded = (uid: string) => {
-		setExpanded((prev) => {
-			const copy = new Set(prev);
-
-			if (copy.has(uid)) {
-				copy.delete(uid);
-			} else {
-				copy.add(uid);
-			}
-
-			return copy;
-		});
+		update(uid, { [columnId]: next });
 	};
 
 	if (columns.length === 0) {
@@ -251,25 +150,11 @@ export const MatrixField = ({ field, value, onChange, disabled }: FieldComponent
 							row={row}
 							index={index}
 							columns={columns}
-							expanded={expanded.has(row.uid)}
+							expanded={isExpanded(row.uid)}
 							onToggle={() => toggleExpanded(row.uid)}
-							onDelete={() => deleteRow(row.uid)}
+							onDelete={() => remove(row.uid)}
 							onCellChange={(columnId, next) => updateCell(row.uid, columnId, next)}
-							onMove={(direction) => {
-								const swapWith = direction === "up" ? index - 1 : index + 1;
-
-								if (swapWith < 0 || swapWith >= rows.length) {
-									return;
-								}
-
-								const next = [...rows];
-								const removed = next.splice(index, 1)[0];
-
-								if (removed) {
-									next.splice(swapWith, 0, removed);
-									commit(next);
-								}
-							}}
+							onMove={(direction) => move(index, direction)}
 							style={style}
 							disabled={disabled}
 							totalRows={rows.length}

@@ -36,6 +36,33 @@ export const isTruthyFlag = (raw: unknown): boolean => {
 	return false;
 };
 
+/**
+ * Reduce an arbitrary cell value to a short string suitable for a collapsed
+ * row's title/subtitle. Strings pass through; numbers/booleans stringify; a
+ * record contributes its `title`/`name`/`id` (in that order); anything else
+ * yields `""`.
+ */
+export const stringifyForTitle = (raw: unknown): string => {
+	if (typeof raw === "string") {
+		return raw;
+	}
+
+	if (typeof raw === "number" || typeof raw === "boolean") {
+		return String(raw);
+	}
+
+	if (isRecord(raw)) {
+		const candidate =
+			(typeof raw.title === "string" && raw.title) ||
+			(typeof raw.name === "string" && raw.name) ||
+			(typeof raw.id === "string" && raw.id);
+
+		return candidate || "";
+	}
+
+	return "";
+};
+
 /** Parse a column-settings value (a JSON string or an object) into a record. */
 export const normalizeColumnSettings = (raw: unknown): Record<string, unknown> => {
 	if (typeof raw === "string" && raw.trim().length > 0) {

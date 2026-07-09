@@ -13,7 +13,7 @@ import { messagesApi, type Message } from "@/api/endpoints/dashboard";
 import { usersApi } from "@/api/endpoints/users";
 import { queryKeys } from "@/lib/queryKeys";
 
-import { ApiError } from "@/types/api";
+import { describeApiError } from "@/lib/errorHandling";
 import { toast } from "@/lib/toast";
 
 /**
@@ -114,11 +114,7 @@ export const ComposeMessage = ({
 			onOpenChange(false);
 		},
 		onError: (err) => {
-			if (err instanceof ApiError) {
-				setGeneralError(err.message);
-			} else {
-				setGeneralError(err instanceof Error ? err.message : "Could not send");
-			}
+			setGeneralError(describeApiError(err, "Could not send"));
 		},
 	});
 

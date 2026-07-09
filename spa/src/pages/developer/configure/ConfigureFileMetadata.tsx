@@ -17,7 +17,7 @@ import {
 	type FileMetadataField,
 } from "@/api/endpoints/configure";
 
-import { ApiError } from "@/types/api";
+import { describeApiError } from "@/lib/errorHandling";
 import { queryKeys } from "@/lib/queryKeys";
 import { useToastMutation } from "@/hooks/useToastMutation";
 
@@ -114,11 +114,7 @@ export const ConfigureFileMetadata = () => {
 			setGeneralError(null);
 		},
 		onError: (err) => {
-			setGeneralError(
-				err instanceof ApiError && err.message
-					? err.message
-					: "Could not save file metadata"
-			);
+			setGeneralError(describeApiError(err, "Could not save file metadata"));
 		},
 	});
 

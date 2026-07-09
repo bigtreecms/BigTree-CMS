@@ -50,6 +50,7 @@ import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 import { UnsavedChangesGuard } from "@/components/ui/UnsavedChangesGuard";
 import { Loading } from "@/components/ui/Loading";
 import { ApiError } from "@/types/api";
+import { describeApiError } from "@/lib/errorHandling";
 import { canPublishPage } from "@/lib/permissions";
 import { toast } from "@/lib/toast";
 import { queryKeys } from "@/lib/queryKeys";
@@ -215,7 +216,7 @@ export const PageEdit = () => {
 
 				setGeneralError(err.message);
 			} else {
-				setGeneralError(err instanceof Error ? err.message : "Save failed");
+				setGeneralError(describeApiError(err, "Save failed"));
 			}
 		},
 	});

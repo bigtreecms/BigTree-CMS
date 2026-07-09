@@ -14,13 +14,10 @@ import { Card } from "@/components/ui/Card";
 
 import { type AnalyticsStatus, configureApi } from "@/api/endpoints/configure";
 
-import { ApiError } from "@/types/api";
+import { describeApiError } from "@/lib/errorHandling";
 import { toast } from "@/lib/toast";
 import { queryKeys } from "@/lib/queryKeys";
 import { useState } from "react";
-
-const failed = (fallback: string) => (err: unknown) =>
-	toast.error(err instanceof ApiError && err.message ? err.message : fallback);
 
 export const ConfigureAnalytics = () => {
 	const queryClient = useQueryClient();
@@ -53,7 +50,7 @@ export const ConfigureAnalytics = () => {
 			setPropertyId(fresh.property_id || "");
 			toast.success("Service-account key uploaded");
 		},
-		onError: failed("Could not read that key file"),
+		onError: (err) => toast.error(describeApiError(err, "Could not read that key file")),
 	});
 
 	const verifyMutation = useMutation({
@@ -62,7 +59,7 @@ export const ConfigureAnalytics = () => {
 			onStatus(fresh);
 			toast.success("Property ID verified");
 		},
-		onError: failed("Could not verify that property ID"),
+		onError: (err) => toast.error(describeApiError(err, "Could not verify that property ID")),
 	});
 
 	// Credentials are uploaded once the service-account email comes back, even

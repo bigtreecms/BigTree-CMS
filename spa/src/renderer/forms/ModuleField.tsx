@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 
 import { LoadingText } from "@/components/ui/LoadingText";
+import { describeApiError } from "@/lib/errorHandling";
 import { StubField } from "@/renderer/fields/StubField";
 import type { FieldComponentProps } from "@/renderer/fields/types";
 
@@ -81,7 +82,7 @@ export const ModuleField = ({ assetUrl, source, onError, ...props }: ModuleField
 			onErrorRef.current?.(null);
 		}).catch((err: unknown) => {
 			if (!cancelled) {
-				const message = err instanceof Error ? err.message : "Failed to load module.";
+				const message = describeApiError(err, "Failed to load module.");
 				console.error("Field module load failed:", err);
 				setStatus("error");
 				onErrorRef.current?.(message);
@@ -113,7 +114,7 @@ export const ModuleField = ({ assetUrl, source, onError, ...props }: ModuleField
 		} catch (err) {
 			console.error("Field module update failed:", err);
 			setStatus("error");
-			onErrorRef.current?.(err instanceof Error ? err.message : "Module update failed.");
+			onErrorRef.current?.(describeApiError(err, "Module update failed."));
 		}
 	}, [props.value, props.disabled, props.error, status]);
 

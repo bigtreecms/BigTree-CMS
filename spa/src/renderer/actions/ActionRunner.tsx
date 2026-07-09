@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { Alert } from "@/components/ui/Alert";
 import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
 import { LoadingText } from "@/components/ui/LoadingText";
+import { describeApiError } from "@/lib/errorHandling";
 
 import type { ActionHost, ActionModule } from "./actionModuleContract";
 import { loadActionModule, loadActionModuleFromSource } from "./actionModuleLoader";
@@ -59,7 +60,7 @@ export const ActionRunner = ({ host, assetUrl, source, onError }: ActionRunnerPr
 			}
 		}).catch((err: unknown) => {
 			if (!cancelled) {
-				const message = err instanceof Error ? err.message : "Failed to load action.";
+				const message = describeApiError(err, "Failed to load action.");
 				console.error("Action module load failed:", err);
 				setMod(null);
 				setError(message);

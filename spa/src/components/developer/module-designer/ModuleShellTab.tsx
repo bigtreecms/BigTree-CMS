@@ -20,6 +20,7 @@ import { useDirtyTracker } from "@/hooks/useDirtyTracker";
 import { useInlineForm } from "@/hooks/useInlineForm";
 import { UnsavedChangesGuard } from "@/components/ui/UnsavedChangesGuard";
 import { Card } from "@/components/ui/Card";
+import { describeApiError } from "@/lib/errorHandling";
 import { toast } from "@/lib/toast";
 import { validateRequired } from "@/lib/formValidation";
 import { queryKeys } from "@/lib/queryKeys";
@@ -155,7 +156,7 @@ export const ModuleShellTab = ({ moduleId, module }: ModuleShellTabProps) => {
 
 				setGeneralError(err.message);
 			} else {
-				setGeneralError(err instanceof Error ? err.message : "Save failed");
+				setGeneralError(describeApiError(err, "Save failed"));
 			}
 		},
 	});

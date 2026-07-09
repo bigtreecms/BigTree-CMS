@@ -14,7 +14,7 @@ import { FormShell } from "@/components/ui/FormShell";
 
 import { fourOhFoursApi } from "@/api/endpoints/four-oh-fours";
 
-import { ApiError } from "@/types/api";
+import { describeApiError } from "@/lib/errorHandling";
 import { toast } from "@/lib/toast";
 import { queryKeys } from "@/lib/queryKeys";
 
@@ -60,7 +60,7 @@ export const Import301 = () => {
 			navigate("/dashboard/404s/301");
 		},
 		onError: (err) => {
-			setError(err instanceof ApiError && err.message ? err.message : "CSV import failed");
+			setError(describeApiError(err, "CSV import failed"));
 		},
 	});
 

@@ -27,7 +27,7 @@ import { templatesApi } from "@/api/endpoints/templates";
 import { calloutsApi } from "@/api/endpoints/callouts";
 import { feedsApi } from "@/api/endpoints/feeds";
 import { settingsApi } from "@/api/endpoints/settings";
-import { ApiError } from "@/types/api";
+import { describeApiError } from "@/lib/errorHandling";
 import { queryKeys } from "@/lib/queryKeys";
 import { TextInput } from "@/components/developer/module-designer/inputs";
 
@@ -128,8 +128,7 @@ export const ExtensionBuild = () => {
 			setStep("files");
 			setError(null);
 		},
-		onError: (err) =>
-			setError(err instanceof ApiError && err.message ? err.message : "Could not inspect"),
+		onError: (err) => setError(describeApiError(err, "Could not inspect")),
 	});
 
 	const buildMutation = useMutation({
@@ -138,8 +137,7 @@ export const ExtensionBuild = () => {
 			setResult(r);
 			queryClient.invalidateQueries({ queryKey: queryKeys.extensions.root() });
 		},
-		onError: (err) =>
-			setError(err instanceof ApiError && err.message ? err.message : "Build failed"),
+		onError: (err) => setError(describeApiError(err, "Build failed")),
 	});
 
 	const toggle = (key: keyof Picked, value: string) => {

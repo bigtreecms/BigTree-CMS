@@ -32,6 +32,7 @@ import {
 } from "@/api/endpoints/field-types";
 
 import { ApiError } from "@/types/api";
+import { describeApiError } from "@/lib/errorHandling";
 import { toast } from "@/lib/toast";
 import { queryKeys } from "@/lib/queryKeys";
 import { useScrollToFirstError } from "@/hooks/useScrollToFirstError";
@@ -146,7 +147,7 @@ export const FieldTypeEdit = () => {
 
 				setGeneralError(err.message);
 			} else {
-				setGeneralError(err instanceof Error ? err.message : "Save failed");
+				setGeneralError(describeApiError(err, "Save failed"));
 			}
 		},
 	});

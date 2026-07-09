@@ -17,7 +17,7 @@ import {
 	type UpgradeCheck,
 	type UpgradeMethod,
 } from "@/api/endpoints/system";
-import { ApiError } from "@/types/api";
+import { describeApiError } from "@/lib/errorHandling";
 import { queryKeys } from "@/lib/queryKeys";
 
 type Stage =
@@ -29,18 +29,6 @@ type Stage =
 	| "migrating"
 	| "complete"
 	| "error";
-
-const errMessage = (err: unknown, fallback: string): string => {
-	if (err instanceof ApiError && err.message) {
-		return err.message;
-	}
-
-	if (err instanceof Error && err.message) {
-		return err.message;
-	}
-
-	return fallback;
-};
 
 export const DebugUpgrade = () => {
 	const checkQ = useQuery({
@@ -155,7 +143,7 @@ export const DebugUpgrade = () => {
 
 			await install({});
 		} catch (err) {
-			setError(errMessage(err, "Upgrade failed"));
+			setError(describeApiError(err, "Upgrade failed"));
 			setStage("error");
 		}
 	};
@@ -167,7 +155,7 @@ export const DebugUpgrade = () => {
 		try {
 			await install({ ftp_username: username, ftp_password: password });
 		} catch (err) {
-			setError(errMessage(err, "Install failed"));
+			setError(describeApiError(err, "Install failed"));
 			setStage("error");
 		}
 	};
@@ -179,7 +167,7 @@ export const DebugUpgrade = () => {
 		try {
 			await install({ ftp_username: username, ftp_password: password, ftp_root: ftpRoot });
 		} catch (err) {
-			setError(errMessage(err, "Install failed"));
+			setError(describeApiError(err, "Install failed"));
 			setStage("error");
 		}
 	};

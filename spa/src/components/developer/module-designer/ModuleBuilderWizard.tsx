@@ -16,6 +16,7 @@ import { fieldTypesApi, fieldTypesForUseCase } from "@/api/endpoints/field-types
 
 import { ApiError } from "@/types/api";
 import { useScrollToFirstError } from "@/hooks/useScrollToFirstError";
+import { describeApiError } from "@/lib/errorHandling";
 import { toast } from "@/lib/toast";
 import { validateRequired } from "@/lib/formValidation";
 import { queryKeys } from "@/lib/queryKeys";
@@ -103,7 +104,7 @@ export const ModuleBuilderWizard = () => {
 
 				setGeneralError(err.message);
 			} else {
-				setGeneralError(err instanceof Error ? err.message : "Build failed");
+				setGeneralError(describeApiError(err, "Build failed"));
 			}
 		},
 	});

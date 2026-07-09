@@ -26,7 +26,7 @@ import { useReturnTo } from "@/hooks/useReturnTo";
 import { useDirtyTracker } from "@/hooks/useDirtyTracker";
 import { UnsavedChangesGuard } from "@/components/ui/UnsavedChangesGuard";
 import { Loading } from "@/components/ui/Loading";
-import { ApiError } from "@/types/api";
+import { describeApiError } from "@/lib/errorHandling";
 import { toast } from "@/lib/toast";
 import { sanitizeHtml } from "@/lib/html";
 import { queryKeys } from "@/lib/queryKeys";
@@ -98,11 +98,7 @@ export const SettingEdit = () => {
 			navigate(returnTo);
 		},
 		onError: (err) => {
-			if (err instanceof ApiError) {
-				setGeneralError(err.message);
-			} else {
-				setGeneralError(err instanceof Error ? err.message : "Save failed");
-			}
+			setGeneralError(describeApiError(err, "Save failed"));
 		},
 	});
 

@@ -24,7 +24,9 @@ import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { IconButton } from "@/components/ui/IconButton";
 import { Field } from "@/components/ui/Field";
+import { useRepeaterRows, type RepeaterRow } from "@/hooks/useRepeaterRows";
 import { useUploads, type UploadItem } from "@/hooks/useUploads";
+import { describeApiError } from "@/lib/errorHandling";
 import { expandImageUrl } from "@/lib/imageUrl";
 import { toast } from "@/lib/toast";
 
@@ -33,7 +35,7 @@ import { FieldRow } from "@/renderer/forms/FieldRow";
 
 import { CollapsibleRowHeader } from "./CollapsibleRowHeader";
 import { FieldCropModal } from "./FieldCropModal";
-import { isRecord, isTruthyFlag, normalizeColumnSettings, toInt } from "./fieldHelpers";
+import { isTruthyFlag, normalizeColumnSettings, stringifyForTitle, toInt } from "./fieldHelpers";
 import { settingsOf, type FieldComponentProps } from "./types";
 
 /**
@@ -105,46 +107,10 @@ interface MediaItemData {
 	[k: string]: unknown;
 }
 
-interface MediaItem {
-	uid: string;
-	data: MediaItemData;
-}
-
-let uidCounter = 0;
-const nextUid = (): string => `g${++uidCounter}-${Date.now().toString(36)}`;
+type MediaItem = RepeaterRow<MediaItemData>;
 
 const TITLE_KEY = "__internal-title";
 const SUBTITLE_KEY = "__internal-subtitle";
-
-const seedItems = (raw: unknown): MediaItem[] => {
-	if (!Array.isArray(raw)) {
-		return [];
-	}
-
-	return raw
-		.filter(isRecord)
-		.map((data) => ({ uid: nextUid(), data: { ...data } as MediaItemData }));
-};
-
-const stripUid = (items: MediaItem[]): MediaItemData[] => items.map((it) => it.data);
-
-/**
- * Structural equality of two item sets by their data payloads (ignoring the
- * ephemeral uids), so we can tell our own edit's echo from an external change.
- */
-const itemsDataEqual = (a: MediaItem[], b: MediaItem[]): boolean => {
-	if (a.length !== b.length) {
-		return false;
-	}
-
-	for (let i = 0; i < a.length; i++) {
-		if (JSON.stringify(a[i]?.data) !== JSON.stringify(b[i]?.data)) {
-			return false;
-		}
-	}
-
-	return true;
-};
 
 const buildPreviewUrl = (
 	path: string | undefined,
@@ -177,98 +143,26 @@ export const MediaGalleryField = ({ field, value, onChange, disabled }: FieldCom
 
 	const reactId = useId();
 
-	const [items, setItems] = useState<MediaItem[]>(() => seedItems(value));
-	const [expanded, setExpanded] = useState<Set<string>>(new Set());
 	const [videoPromptOpen, setVideoPromptOpen] = useState(false);
 	const [localVideoOpen, setLocalVideoOpen] = useState(false);
 
-	// Re-seed only when the incoming value genuinely differs from the items we
-	// already hold (mount / record switch / reset). The echo of our own onChange
-	// — and any unrelated re-render passing a structurally-equal value — is
-	// ignored, so item uids (and the expand state keyed on them) survive.
-	useEffect(() => {
-		setItems((prev) => {
-			const incoming = seedItems(value);
-
-			return itemsDataEqual(prev, incoming) ? prev : incoming;
-		});
-	}, [value]);
-
-	const commit = (next: MediaItem[]) => {
-		setItems(next);
-		onChange(stripUid(next));
-	};
-
-	const atLimit = max > 0 && items.length >= max;
-
-	const addItem = (data: MediaItemData) => {
-		if (atLimit) {
-			return;
-		}
-
-		const fresh: MediaItem = { uid: nextUid(), data };
-		commit([...items, fresh]);
-		setExpanded((prev) => new Set(prev).add(fresh.uid));
-	};
-
-	const updateItemData = (uid: string, patch: Partial<MediaItemData>) => {
-		commit(
-			items.map((it) => (it.uid === uid ? { ...it, data: { ...it.data, ...patch } } : it))
-		);
-	};
+	const {
+		rows: items,
+		isExpanded,
+		toggleExpanded,
+		atLimit,
+		add: addItem,
+		remove: deleteItem,
+		move: moveItem,
+		update: updateItemData,
+		updateWith,
+	} = useRepeaterRows<MediaItemData>({ value, onChange, uidPrefix: "g", max });
 
 	const updateItemColumn = (uid: string, columnId: string, next: unknown) => {
-		commit(
-			items.map((it) => {
-				if (it.uid !== uid) {
-					return it;
-				}
-
-				const info = { ...(it.data.info ?? {}), [columnId]: next };
-
-				return { ...it, data: { ...it.data, info } };
-			})
-		);
-	};
-
-	const deleteItem = (uid: string) => {
-		commit(items.filter((it) => it.uid !== uid));
-		setExpanded((prev) => {
-			const copy = new Set(prev);
-			copy.delete(uid);
-
-			return copy;
-		});
-	};
-
-	const toggleExpanded = (uid: string) => {
-		setExpanded((prev) => {
-			const copy = new Set(prev);
-
-			if (copy.has(uid)) {
-				copy.delete(uid);
-			} else {
-				copy.add(uid);
-			}
-
-			return copy;
-		});
-	};
-
-	const moveItem = (index: number, direction: "up" | "down") => {
-		const swap = direction === "up" ? index - 1 : index + 1;
-
-		if (swap < 0 || swap >= items.length) {
-			return;
-		}
-
-		const next = [...items];
-		const removed = next.splice(index, 1)[0];
-
-		if (removed) {
-			next.splice(swap, 0, removed);
-			commit(next);
-		}
+		updateWith(uid, (data) => ({
+			...data,
+			info: { ...(data.info ?? {}), [columnId]: next },
+		}));
 	};
 
 	const handlePhotoUploaded = (url: string) => {
@@ -315,7 +209,7 @@ export const MediaGalleryField = ({ field, value, onChange, disabled }: FieldCom
 							total={items.length}
 							columns={columns}
 							previewSettings={settings}
-							expanded={expanded.has(item.uid)}
+							expanded={isExpanded(item.uid)}
 							onToggle={() => toggleExpanded(item.uid)}
 							onDelete={() => deleteItem(item.uid)}
 							onMove={(dir) => moveItem(index, dir)}
@@ -626,7 +520,7 @@ const AddBar = ({
 			);
 			applyResult(result);
 		} catch (err) {
-			toast.error(err instanceof Error ? err.message : "Could not process the image.");
+			toast.error(describeApiError(err, "Could not process the image."));
 		} finally {
 			setReprocessing(false);
 		}
@@ -1052,25 +946,4 @@ const deriveSummary = (data: MediaItemData, columns: MediaColumn[]): ItemSummary
 	}
 
 	return { title, subtitle };
-};
-
-const stringifyForTitle = (raw: unknown): string => {
-	if (typeof raw === "string") {
-		return raw;
-	}
-
-	if (typeof raw === "number" || typeof raw === "boolean") {
-		return String(raw);
-	}
-
-	if (isRecord(raw)) {
-		const candidate =
-			(typeof raw.title === "string" && raw.title) ||
-			(typeof raw.name === "string" && raw.name) ||
-			(typeof raw.id === "string" && raw.id);
-
-		return candidate || "";
-	}
-
-	return "";
 };

@@ -17,7 +17,7 @@ import { Card } from "@/components/ui/Card";
 
 import { configureApi, type CloudProvider } from "@/api/endpoints/configure";
 
-import { ApiError } from "@/types/api";
+import { describeApiError } from "@/lib/errorHandling";
 import { toast } from "@/lib/toast";
 import { queryKeys } from "@/lib/queryKeys";
 
@@ -113,8 +113,7 @@ export const ConfigureCloudStorage = () => {
 			setGeneralError(null);
 		},
 		onError: (err) => {
-			const msg =
-				err instanceof ApiError && err.message ? err.message : "Could not save credentials";
+			const msg = describeApiError(err, "Could not save credentials");
 			setGeneralError(msg);
 			toast.error(msg);
 		},
@@ -138,9 +137,7 @@ export const ConfigureCloudStorage = () => {
 		errorMessage: "Could not save default",
 		onSuccess: () => setGeneralError(null),
 		onError: (err) => {
-			setGeneralError(
-				err instanceof ApiError && err.message ? err.message : "Could not save default"
-			);
+			setGeneralError(describeApiError(err, "Could not save default"));
 		},
 	});
 
@@ -151,11 +148,7 @@ export const ConfigureCloudStorage = () => {
 		errorMessage: "Could not upload private key",
 		onSuccess: () => setGeneralError(null),
 		onError: (err) => {
-			setGeneralError(
-				err instanceof ApiError && err.message
-					? err.message
-					: "Could not upload private key"
-			);
+			setGeneralError(describeApiError(err, "Could not upload private key"));
 		},
 	});
 
@@ -165,10 +158,7 @@ export const ConfigureCloudStorage = () => {
 			window.location.href = launch_url;
 		},
 		onError: (err) => {
-			const msg =
-				err instanceof ApiError && err.message
-					? err.message
-					: "Could not start Google OAuth";
+			const msg = describeApiError(err, "Could not start Google OAuth");
 			setGeneralError(msg);
 			toast.error(msg);
 		},
@@ -207,8 +197,7 @@ export const ConfigureCloudStorage = () => {
 			setGeneralError(null);
 		},
 		onError: (err) => {
-			const msg =
-				err instanceof ApiError && err.message ? err.message : "Could not recache S3 files";
+			const msg = describeApiError(err, "Could not recache S3 files");
 			setGeneralError(msg);
 			toast.error(msg);
 		},

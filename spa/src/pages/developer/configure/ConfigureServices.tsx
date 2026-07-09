@@ -18,7 +18,7 @@ import { Card } from "@/components/ui/Card";
 
 import { configureApi, type ServiceCredentials } from "@/api/endpoints/configure";
 
-import { ApiError } from "@/types/api";
+import { describeApiError } from "@/lib/errorHandling";
 import { toast } from "@/lib/toast";
 import { queryKeys } from "@/lib/queryKeys";
 
@@ -137,11 +137,7 @@ export const ConfigureServices = () => {
 			window.location.href = launch_url;
 		},
 		onError: (err) => {
-			toast.error(
-				err instanceof ApiError && err.message
-					? err.message
-					: "Could not start the connection"
-			);
+			toast.error(describeApiError(err, "Could not start the connection"));
 		},
 	});
 

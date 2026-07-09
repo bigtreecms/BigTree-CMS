@@ -13,7 +13,7 @@ import { ErrorPanel } from "@/components/ui/ErrorPanel";
 
 import { configureApi, type EmailConfig, type EmailServiceId } from "@/api/endpoints/configure";
 
-import { ApiError } from "@/types/api";
+import { describeApiError } from "@/lib/errorHandling";
 import { queryKeys } from "@/lib/queryKeys";
 import { useToastMutation } from "@/hooks/useToastMutation";
 
@@ -59,9 +59,7 @@ export const ConfigureEmail = () => {
 			setGeneralError(null);
 		},
 		onError: (err) => {
-			setGeneralError(
-				err instanceof ApiError && err.message ? err.message : "Could not save email config"
-			);
+			setGeneralError(describeApiError(err, "Could not save email config"));
 		},
 	});
 

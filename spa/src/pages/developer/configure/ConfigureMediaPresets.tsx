@@ -14,7 +14,7 @@ import { MediaPresetEditor } from "@/components/developer/MediaPresetEditor";
 
 import { configureApi, type MediaPreset } from "@/api/endpoints/configure";
 
-import { ApiError } from "@/types/api";
+import { describeApiError } from "@/lib/errorHandling";
 import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 import { queryKeys } from "@/lib/queryKeys";
 import { useToastMutation } from "@/hooks/useToastMutation";
@@ -55,9 +55,7 @@ export const ConfigureMediaPresets = () => {
 			setGeneralError(null);
 		},
 		onError: (err) => {
-			setGeneralError(
-				err instanceof ApiError && err.message ? err.message : "Could not save presets"
-			);
+			setGeneralError(describeApiError(err, "Could not save presets"));
 		},
 	});
 

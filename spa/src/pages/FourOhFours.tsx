@@ -21,8 +21,8 @@ import {
 	type FourOhFourType,
 } from "@/api/endpoints/four-oh-fours";
 
-import { ApiError } from "@/types/api";
 import { downloadCsv } from "@/lib/csv";
+import { describeApiError } from "@/lib/errorHandling";
 import { formatNumber } from "@/lib/number";
 import { toast } from "@/lib/toast";
 import { queryKeys } from "@/lib/queryKeys";
@@ -193,7 +193,7 @@ export const FourOhFours = ({ type }: FourOhFoursProps) => {
 
 			toast.success(`Exported ${rows.length} ${rows.length === 1 ? "entry" : "entries"}`);
 		},
-		onError: (err) => apiToast(err, "CSV export failed"),
+		onError: (err) => toast.error(describeApiError(err, "CSV export failed")),
 	});
 
 	const toggleRow = (id: number) => {
@@ -515,9 +515,4 @@ export const FourOhFours = ({ type }: FourOhFoursProps) => {
 			/>
 		</PageContainer>
 	);
-};
-
-const apiToast = (err: unknown, fallback: string) => {
-	const message = err instanceof ApiError && err.message ? err.message : fallback;
-	toast.error(message);
 };

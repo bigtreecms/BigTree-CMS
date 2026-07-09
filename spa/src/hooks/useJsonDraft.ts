@@ -1,5 +1,7 @@
 import { useMemo, useState } from "react";
 
+import { describeApiError } from "@/lib/errorHandling";
+
 /** Safely serialise an unknown value to a pretty-printed JSON string, falling back to `"{}"`. */
 export const safeStringify = (value: unknown): string => {
 	if (value === undefined || value === null) {
@@ -48,7 +50,7 @@ export const useJsonDraft = (
 				setError(invalidMessage);
 			}
 		} catch (err) {
-			setError(err instanceof Error ? err.message : "Invalid JSON");
+			setError(describeApiError(err, "Invalid JSON"));
 		}
 	};
 

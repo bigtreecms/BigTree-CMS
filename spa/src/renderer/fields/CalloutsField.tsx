@@ -9,6 +9,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { IconButton } from "@/components/ui/IconButton";
 import { LoadingText } from "@/components/ui/LoadingText";
 import { Select } from "@/components/ui/Select";
+import { useRepeaterRows, type RepeaterRow } from "@/hooks/useRepeaterRows";
 import { calloutsApi, type CalloutSummary } from "@/api/endpoints/callouts";
 import { queryKeys } from "@/lib/queryKeys";
 import { resourceToFormField } from "@/api/endpoints/templates";
@@ -17,7 +18,7 @@ import { FieldRenderer } from "@/renderer/forms/FieldRenderer";
 import { FieldRow } from "@/renderer/forms/FieldRow";
 
 import { CollapsibleRowHeader } from "./CollapsibleRowHeader";
-import { toInt } from "./fieldHelpers";
+import { stringifyForTitle, toInt } from "./fieldHelpers";
 import { settingsOf, type FieldComponentProps } from "./types";
 
 /**
@@ -51,48 +52,10 @@ interface CalloutsFieldSettings {
 
 type RowData = Record<string, unknown>;
 
-interface CalloutRow {
-	uid: string;
-	data: RowData;
-}
+type CalloutRow = RepeaterRow<RowData>;
 
 const DISPLAY_TITLE_KEY = "display_title";
 const TYPE_KEY = "type";
-
-let uidCounter = 0;
-const nextUid = (): string => `c${++uidCounter}-${Date.now().toString(36)}`;
-
-const isRecord = (raw: unknown): raw is RowData =>
-	Boolean(raw) && typeof raw === "object" && !Array.isArray(raw);
-
-const seedRows = (raw: unknown): CalloutRow[] => {
-	if (!Array.isArray(raw)) {
-		return [];
-	}
-
-	return raw.filter(isRecord).map((data) => ({ uid: nextUid(), data: { ...data } }));
-};
-
-const stripUid = (rows: CalloutRow[]): RowData[] => rows.map((r) => r.data);
-
-/**
- * Structural equality of two row sets by their data payloads (ignoring the
- * ephemeral uids). Used to decide whether an incoming `value` is a real change
- * or just the echo of our own edit, so we don't needlessly regenerate uids.
- */
-const rowsDataEqual = (a: CalloutRow[], b: CalloutRow[]): boolean => {
-	if (a.length !== b.length) {
-		return false;
-	}
-
-	for (let i = 0; i < a.length; i++) {
-		if (JSON.stringify(a[i]?.data) !== JSON.stringify(b[i]?.data)) {
-			return false;
-		}
-	}
-
-	return true;
-};
 
 const normalizeGroups = (settings: CalloutsFieldSettings): string[] => {
 	const groups: string[] = [];
@@ -178,22 +141,10 @@ export const CalloutsField = ({ field, value, onChange, disabled }: FieldCompone
 			.filter((c) => (allowedIds ? allowedIds.has(c.id) : true));
 	}, [calloutsQuery.data, allowedIds, userLevel]);
 
-	const [rows, setRows] = useState<CalloutRow[]>(() => seedRows(value));
-	const [expanded, setExpanded] = useState<Set<string>>(new Set());
 	const [pendingType, setPendingType] = useState<string>("");
 
-	// Re-seed from the incoming value only when it genuinely differs from the
-	// rows we already hold. The echo of our own onChange (and any unrelated
-	// re-render that passes a structurally-equal value) is ignored, so row uids
-	// — and the expand/collapse state keyed on them — survive. Only an external
-	// change (e.g. switching records) regenerates the rows.
-	useEffect(() => {
-		setRows((prev) => {
-			const incoming = seedRows(value);
-
-			return rowsDataEqual(prev, incoming) ? prev : incoming;
-		});
-	}, [value]);
+	const { rows, isExpanded, toggleExpanded, atLimit, add, remove, move, update } =
+		useRepeaterRows<RowData>({ value, onChange, uidPrefix: "c", max });
 
 	// Pre-select the first available type once the catalog loads so the Add
 	// button isn't disabled-for-no-reason on first paint.
@@ -203,67 +154,16 @@ export const CalloutsField = ({ field, value, onChange, disabled }: FieldCompone
 		}
 	}, [availableTypes, pendingType]);
 
-	const commit = (next: CalloutRow[]) => {
-		setRows(next);
-		onChange(stripUid(next));
-	};
-
-	const atLimit = max > 0 && rows.length >= max;
-
 	const addRow = () => {
-		if (disabled || atLimit || !pendingType) {
+		if (disabled || !pendingType) {
 			return;
 		}
 
-		const fresh: CalloutRow = { uid: nextUid(), data: { [TYPE_KEY]: pendingType } };
-		commit([...rows, fresh]);
-		setExpanded((prev) => new Set(prev).add(fresh.uid));
-	};
-
-	const deleteRow = (uid: string) => {
-		commit(rows.filter((r) => r.uid !== uid));
-		setExpanded((prev) => {
-			const copy = new Set(prev);
-			copy.delete(uid);
-
-			return copy;
-		});
+		add({ [TYPE_KEY]: pendingType });
 	};
 
 	const updateCell = (uid: string, columnId: string, next: unknown) => {
-		commit(
-			rows.map((r) => (r.uid === uid ? { ...r, data: { ...r.data, [columnId]: next } } : r))
-		);
-	};
-
-	const toggleExpanded = (uid: string) => {
-		setExpanded((prev) => {
-			const copy = new Set(prev);
-
-			if (copy.has(uid)) {
-				copy.delete(uid);
-			} else {
-				copy.add(uid);
-			}
-
-			return copy;
-		});
-	};
-
-	const moveRow = (index: number, direction: "up" | "down") => {
-		const swapWith = direction === "up" ? index - 1 : index + 1;
-
-		if (swapWith < 0 || swapWith >= rows.length) {
-			return;
-		}
-
-		const next = [...rows];
-		const removed = next.splice(index, 1)[0];
-
-		if (removed) {
-			next.splice(swapWith, 0, removed);
-			commit(next);
-		}
+		update(uid, { [columnId]: next });
 	};
 
 	if (calloutsQuery.isLoading) {
@@ -286,11 +186,11 @@ export const CalloutsField = ({ field, value, onChange, disabled }: FieldCompone
 							totalRows={rows.length}
 							callout={calloutsById.get(String(row.data[TYPE_KEY] ?? "")) ?? null}
 							userLevel={userLevel}
-							expanded={expanded.has(row.uid)}
+							expanded={isExpanded(row.uid)}
 							onToggle={() => toggleExpanded(row.uid)}
-							onDelete={() => deleteRow(row.uid)}
+							onDelete={() => remove(row.uid)}
 							onCellChange={(columnId, next) => updateCell(row.uid, columnId, next)}
-							onMove={(dir) => moveRow(index, dir)}
+							onMove={(dir) => move(index, dir)}
 							disabled={disabled}
 							idPrefix={reactId}
 						/>
@@ -345,7 +245,7 @@ const CalloutRowItem = ({
 	const typeMissing = !callout;
 	const rowDisabled = disabled || tooLowLevel;
 
-	const displayTitle = stringifyTitle(row.data[DISPLAY_TITLE_KEY]);
+	const displayTitle = stringifyForTitle(row.data[DISPLAY_TITLE_KEY]);
 	const typeName = callout?.name ?? `Unknown type (${row.data[TYPE_KEY] ?? "—"})`;
 
 	return (
@@ -504,16 +404,4 @@ const AddRow = ({
 			)}
 		</div>
 	);
-};
-
-const stringifyTitle = (raw: unknown): string => {
-	if (typeof raw === "string") {
-		return raw;
-	}
-
-	if (typeof raw === "number" || typeof raw === "boolean") {
-		return String(raw);
-	}
-
-	return "";
 };
