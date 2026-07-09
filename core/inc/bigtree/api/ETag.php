@@ -23,8 +23,11 @@
 			if (!$header) {
 				return false;
 			}
+
 			$candidates = array_map("trim", explode(",", $header));
 
-			return in_array($etag, $candidates, true) || in_array($etag, array_map(function ($c) { return trim($c, "W/"); }, $candidates), true);
+			return in_array($etag, $candidates, true) || in_array($etag, array_map(function ($c) {
+				return trim($c, "W/");
+			}, $candidates), true);
 		}
 	}

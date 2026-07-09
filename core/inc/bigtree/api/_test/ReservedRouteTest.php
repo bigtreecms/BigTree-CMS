@@ -12,8 +12,10 @@
 		// Skip if BigTreeAdmin isn't loaded in the standalone test harness.
 		if (!class_exists("BigTreeAdmin", false)) {
 			echo "  (skipped — BigTreeAdmin not loaded in standalone harness)\n";
+
 			return;
 		}
+
 		$reserved = BigTreeAdmin::$ReservedTLRoutes ?? null;
 		T::ok(is_array($reserved), "BigTreeAdmin::\$ReservedTLRoutes is an array");
 		T::ok(in_array("ajax", $reserved, true), "reserved list contains 'ajax'");

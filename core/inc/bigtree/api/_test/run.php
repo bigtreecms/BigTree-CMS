@@ -43,8 +43,9 @@
 			T::$current = $fn;
 			echo "\n— $fn —\n";
 
-			try { $fn(); }
-			catch (Throwable $e) {
+			try {
+				$fn();
+			} catch (Throwable $e) {
 				echo "  ! " . $e->getMessage() . "\n";
 			}
 		}

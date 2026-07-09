@@ -45,6 +45,7 @@
 			if ($entry === "." || $entry === "..") {
 				continue;
 			}
+
 			$path = $dir . "/" . $entry;
 
 			if (is_dir($path)) {
@@ -53,6 +54,7 @@
 				@unlink($path);
 			}
 		}
+
 		@rmdir($dir);
 	}
 

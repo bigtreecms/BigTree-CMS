@@ -21,6 +21,7 @@
 				if (strpos($key, " ") === false) {
 					continue;
 				}
+
 				[$route_method, $route_pattern] = explode(" ", $key, 2);
 
 				if (strtoupper($route_method) !== $method) {
@@ -46,7 +47,10 @@
 						$inner = trim($seg, "{}");
 						[$name, $type] = array_pad(explode(":", $inner, 2), 2, "string");
 
-						if (!self::matchType($path_segments[$i], $type)) { $ok = false; break; }
+						if (!self::matchType($path_segments[$i], $type)) {
+							$ok = false;
+							break;
+						}
 
 						$params[$name] = self::castType($path_segments[$i], $type);
 					} elseif ($seg !== $path_segments[$i]) {
@@ -80,6 +84,7 @@
 			if ($type === "int") {
 				return (int)$value;
 			}
+
 			return $value;
 		}
 	}

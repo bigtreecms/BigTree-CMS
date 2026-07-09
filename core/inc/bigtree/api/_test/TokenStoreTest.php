@@ -15,11 +15,13 @@
 			$id = SQL::fetchSingle("SELECT id FROM bigtree_users ORDER BY id LIMIT 1");
 		} catch (\Throwable $e) {
 			echo "  (skipped — database unavailable in this harness: " . $e->getMessage() . ")\n";
+
 			return null;
 		}
 
 		if (!$id) {
 			echo "  (skipped — no users in bigtree_users)\n";
+
 			return null;
 		}
 

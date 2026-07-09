@@ -70,19 +70,33 @@
 		public static function errorMessage(int $code): string {
 			switch ($code) {
 				case UPLOAD_ERR_INI_SIZE:
-				case UPLOAD_ERR_FORM_SIZE: return "File exceeds size limit (" . ini_get("upload_max_filesize") . ")";
+				case UPLOAD_ERR_FORM_SIZE:
 
-				case UPLOAD_ERR_PARTIAL: return "Upload was interrupted";
+					return "File exceeds size limit (" . ini_get("upload_max_filesize") . ")";
 
-				case UPLOAD_ERR_NO_FILE: return "No file sent";
+				case UPLOAD_ERR_PARTIAL:
 
-				case UPLOAD_ERR_NO_TMP_DIR: return "Server is missing tmp dir";
+					return "Upload was interrupted";
 
-				case UPLOAD_ERR_CANT_WRITE: return "Server could not write the upload";
+				case UPLOAD_ERR_NO_FILE:
 
-				case UPLOAD_ERR_EXTENSION: return "Upload blocked by a PHP extension";
+					return "No file sent";
 
-				default: return "Unknown upload error ($code)";
+				case UPLOAD_ERR_NO_TMP_DIR:
+
+					return "Server is missing tmp dir";
+
+				case UPLOAD_ERR_CANT_WRITE:
+
+					return "Server could not write the upload";
+
+				case UPLOAD_ERR_EXTENSION:
+
+					return "Upload blocked by a PHP extension";
+
+				default:
+
+					return "Unknown upload error ($code)";
 			}
 		}
 	}

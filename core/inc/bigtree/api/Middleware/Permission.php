@@ -47,8 +47,13 @@
 		private function enforce($decl, Request $request) {
 			if (isset($decl["any"]) && is_array($decl["any"])) {
 				foreach ($decl["any"] as $sub) {
-					try { $this->enforce($sub, $request); return; }
-					catch (AuthorizationException $e) { /* try next */ }
+					try {
+						$this->enforce($sub, $request);
+
+						return;
+					} catch (AuthorizationException $e) {
+						// try next
+					}
 				}
 
 				throw new AuthorizationException("None of the alternative permissions matched");
@@ -73,6 +78,7 @@
 				if ($request->user->level >= 1) {
 					return;
 				}
+
 				throw new AuthorizationException("Must be the same user or an admin");
 			}
 

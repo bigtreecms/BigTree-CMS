@@ -104,6 +104,7 @@
 			if (self::$cache !== null) {
 				return self::$cache;
 			}
+
 			$path = SERVER_ROOT . self::CACHE_FILE;
 
 			if (!file_exists($path)) {

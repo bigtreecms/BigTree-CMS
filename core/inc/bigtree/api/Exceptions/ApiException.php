@@ -18,6 +18,7 @@
 			if ($status !== null) {
 				$this->status = $status;
 			}
+
 			$this->details = $details;
 		}
 	}

@@ -54,7 +54,10 @@
 			foreach ($secrets as $candidate_secret) {
 				$computed = self::base64url(hash_hmac("sha256", $signing_input, $candidate_secret, true));
 
-				if (hash_equals($computed, $s64)) { $verified = true; break; }
+				if (hash_equals($computed, $s64)) {
+					$verified = true;
+					break;
+				}
 			}
 
 			if (!$verified) {
@@ -111,6 +114,7 @@
 			if ($pad) {
 				$data .= str_repeat("=", 4 - $pad);
 			}
+
 			return base64_decode(strtr($data, "-_", "+/"));
 		}
 

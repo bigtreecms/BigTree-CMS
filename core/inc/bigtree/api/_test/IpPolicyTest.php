@@ -17,6 +17,7 @@
 	function _ip_policy_skip_if_legacy_unavailable() {
 		if (!class_exists("BigTreeAdmin", false)) {
 			echo "  (skipped — BigTreeAdmin not loaded in standalone harness)\n";
+
 			return true;
 		}
 

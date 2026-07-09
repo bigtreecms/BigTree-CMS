@@ -89,6 +89,7 @@
 			if (!is_string($raw) || $raw === "") {
 				return false;
 			}
+
 			$hash = hash("sha256", $raw);
 			SQL::query("UPDATE bigtree_refresh_tokens SET revoked = 1 WHERE token_hash = ?", $hash);
 

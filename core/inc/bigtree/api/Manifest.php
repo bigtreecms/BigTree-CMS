@@ -64,15 +64,21 @@
 
 			$core_dir = SERVER_ROOT . "core/inc/bigtree/api/routes/";
 
-			foreach (glob($core_dir . "*.php") ?: [] as $f) $files[] = $f;
+			foreach (glob($core_dir . "*.php") ?: [] as $f) {
+				$files[] = $f;
+			}
 
 			$ext_dir = SERVER_ROOT . "extensions/";
 
-			foreach (glob($ext_dir . "*/api/routes/*.php") ?: [] as $f) $files[] = $f;
+			foreach (glob($ext_dir . "*/api/routes/*.php") ?: [] as $f) {
+				$files[] = $f;
+			}
 
 			$custom_dir = SERVER_ROOT . "custom/inc/bigtree/api/routes/";
 
-			foreach (glob($custom_dir . "*.php") ?: [] as $f) $files[] = $f;
+			foreach (glob($custom_dir . "*.php") ?: [] as $f) {
+				$files[] = $f;
+			}
 
 			return $files;
 		}
@@ -80,7 +86,10 @@
 		private static function mtimeSignature(array $files) {
 			$sig = [];
 
-			foreach ($files as $f) $sig[] = $f . ":" . @filemtime($f);
+			foreach ($files as $f) {
+				$sig[] = $f . ":" . @filemtime($f);
+			}
+
 			return md5(implode("|", $sig));
 		}
 	}

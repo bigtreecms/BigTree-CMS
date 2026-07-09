@@ -70,7 +70,10 @@
 
 			$extra = $bigtree["config"]["api"]["cors_origins"] ?? [];
 
-			foreach ($extra as $o) $origins[] = rtrim($o, "/");
+			foreach ($extra as $o) {
+				$origins[] = rtrim($o, "/");
+			}
+
 			return array_values(array_unique($origins));
 		}
 	}

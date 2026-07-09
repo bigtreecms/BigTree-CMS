@@ -26,6 +26,7 @@
 					if ($required) {
 						$errors[] = ["code" => "validation_failed", "field" => $field, "message" => "Field is required."];
 					}
+
 					continue;
 				}
 
@@ -33,12 +34,15 @@
 					if ($rule === "required") {
 						continue;
 					}
+
 					[$name, $arg] = array_pad(explode(":", $rule, 2), 2, null);
 					$err = self::checkRule($name, $arg, $value);
+
 					if ($err !== null) {
 						$errors[] = ["code" => "validation_failed", "field" => $field, "message" => $err];
 						break;
 					}
+
 					$value = self::castRule($name, $arg, $value);
 				}
 
@@ -47,10 +51,12 @@
 
 			if (!$allow_unknown) {
 				$unknown = array_diff(array_keys($input), array_keys($rules));
+
 				foreach ($unknown as $k) {
 					if ($k === "__json_error__") {
 						continue;
 					}
+
 					$errors[] = ["code" => "validation_failed", "field" => $k, "message" => "Unknown field."];
 				}
 			} else {
@@ -86,15 +92,18 @@
 					if (is_numeric($value)) {
 						return ((float)$value >= (float)$arg) ? null : "Must be at least $arg.";
 					}
+
 					return (mb_strlen((string)$value) >= (int)$arg) ? null : "Must be at least $arg characters.";
 				case "max":
 					if (is_numeric($value)) {
 						return ((float)$value <= (float)$arg) ? null : "Must be at most $arg.";
 					}
+
 					return (mb_strlen((string)$value) <= (int)$arg) ? null : "Must be at most $arg characters.";
 				case "in":
 				case "enum":
 					$opts = explode(",", $arg);
+
 					return in_array((string)$value, $opts, true) ? null : "Must be one of: " . $arg;
 				case "regex":
 					return preg_match($arg, (string)$value) ? null : "Does not match required pattern.";
@@ -111,6 +120,7 @@
 					if (is_bool($value)) {
 						return $value;
 					}
+
 					return in_array($value, ["1", 1, "true", true], true);
 				default:
 					return $value;

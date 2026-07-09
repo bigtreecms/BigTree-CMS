@@ -133,6 +133,7 @@
 			if ($pad) {
 				$data .= str_repeat("=", 4 - $pad);
 			}
+
 			return base64_decode(strtr($data, "-_", "+/"));
 		}
 	}

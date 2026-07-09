@@ -37,8 +37,10 @@
 	function _parity_skip_if_legacy_unavailable() {
 		if (!class_exists("BigTreeAdmin", false)) {
 			echo "  (skipped — BigTreeAdmin not loaded in standalone harness)\n";
+
 			return true;
 		}
+
 		return false;
 	}
 
@@ -49,11 +51,14 @@
 		$admin->Permissions = $permissions;
 		// We need an ID so audit-trail-using paths don't NPE; pick anything truthy.
 		$admin->ID = 999;
+
 		return $admin;
 	}
 
 	function test_parity_admin_level_bypass() {
-		if (_parity_skip_if_legacy_unavailable()) return;
+		if (_parity_skip_if_legacy_unavailable()) {
+			return;
+		}
 
 		$user_obj = (object)["id" => 999, "level" => 1, "permissions" => []];
 		$legacy = _parity_legacy_admin(1, []);
@@ -68,7 +73,9 @@
 	}
 
 	function test_parity_explicit_module_publisher() {
-		if (_parity_skip_if_legacy_unavailable()) return;
+		if (_parity_skip_if_legacy_unavailable()) {
+			return;
+		}
 
 		$perms = ["module" => [42 => "p"]];
 		$user_obj = (object)["id" => 999, "level" => 0, "permissions" => $perms];
@@ -84,7 +91,9 @@
 	function test_parity_can_publish_check_consistent() {
 		// The user-visible question is "can this user publish?". Both legacy and
 		// service must agree on this yes/no across a matrix of permission states.
-		if (_parity_skip_if_legacy_unavailable()) return;
+		if (_parity_skip_if_legacy_unavailable()) {
+			return;
+		}
 
 		$cases = [
 			// [user_level, module_perm, expected_can_publish]
@@ -112,7 +121,9 @@
 
 	function test_parity_can_edit_check_consistent() {
 		// "Can this user edit?" — true iff perm rank >= editor.
-		if (_parity_skip_if_legacy_unavailable()) return;
+		if (_parity_skip_if_legacy_unavailable()) {
+			return;
+		}
 
 		$cases = [
 			[2, null, true],
@@ -142,7 +153,9 @@
 		// "Can this user view?" — true iff perm rank >= viewer.
 		// This is where the "" vs "n" return-value drift would have shown up, so
 		// it's the most important parity case.
-		if (_parity_skip_if_legacy_unavailable()) return;
+		if (_parity_skip_if_legacy_unavailable()) {
+			return;
+		}
 
 		$cases = [
 			[2, null, true],
@@ -173,7 +186,9 @@
 	function test_parity_checkAccess_consistent() {
 		// checkAccess is the BigTreeAdmin equivalent of userHasModuleAccess(.., "v")
 		// — returns bool. Verify they line up.
-		if (_parity_skip_if_legacy_unavailable()) return;
+		if (_parity_skip_if_legacy_unavailable()) {
+			return;
+		}
 
 		$cases = [
 			[2, null, true],

@@ -262,17 +262,20 @@
 						if ($arg !== null) {
 							$schema[$is_int ? "maximum" : "maxLength"] = (int)$arg;
 						}
+
 						break;
 					case "min":
 						if ($arg !== null) {
 							$schema[$is_int ? "minimum" : "minLength"] = (int)$arg;
 						}
+
 						break;
 					case "in":
 					case "enum":
 						if ($arg !== null) {
 							$schema["enum"] = explode(",", $arg);
 						}
+
 						break;
 					case "regex":
 						if ($arg !== null) {
@@ -282,6 +285,7 @@
 								$schema["pattern"] = $pattern;
 							}
 						}
+
 						break;
 				}
 			}

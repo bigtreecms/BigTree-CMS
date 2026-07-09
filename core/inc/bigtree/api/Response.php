@@ -16,6 +16,7 @@
 			if ($meta) {
 				$r->body["meta"] = $meta;
 			}
+
 			return $r;
 		}
 
@@ -26,6 +27,7 @@
 			if ($location) {
 				$r->headers["Location"] = $location;
 			}
+
 			return $r;
 		}
 
