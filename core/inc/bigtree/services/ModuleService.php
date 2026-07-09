@@ -53,7 +53,7 @@
 		}
 
 		public function get(Request $request) {
-			$id = $request->route_params["id"];
+			$id = $request->routeParam("id");
 			$m = Entity::findOrFailJson("modules", $id, "Module");
 
 			if (!PermissionService::userHasModuleAccess($request->user, $id, "v")) {
@@ -361,7 +361,7 @@
 		}
 
 		public function update(Request $request) {
-			$id = $request->route_params["id"];
+			$id = $request->routeParam("id");
 			$existing = Entity::findOrFailJson("modules", $id, "Module");
 			$d = $request->body;
 
@@ -379,7 +379,7 @@
 		}
 
 		public function delete(Request $request) {
-			$id = $request->route_params["id"];
+			$id = $request->routeParam("id");
 			Entity::assertExistsJson("modules", $id, "Module");
 
 			BigTreeJSONDB::delete("modules", $id);
@@ -417,7 +417,7 @@
 		// BigTreeJSONDB::getSubset which scopes writes to the module's subtree.
 
 		public function actions(Request $request) {
-			$module = $this->loadModule($request->route_params["id"]);
+			$module = $this->loadModule($request->routeParam("id"));
 
 			return Response::ok($this->sortByPosition($module["actions"] ?? []));
 		}
@@ -431,13 +431,9 @@
 		 * (form/view/report) and legacy custom-PHP actions return their kind only.
 		 */
 		public function actionSchema(Request $request) {
-			$module = $this->loadModule($request->route_params["id"]);
+			$module = $this->loadModule($request->routeParam("id"));
 			$action_id = $request->routeParam("sid");
-			$action = $this->findSub($module["actions"] ?? [], $action_id);
-
-			if (!$action) {
-				throw new NotFoundException("Action $action_id not found");
-			}
+			$action = $this->requireSub($module, "actions", $action_id, "Action");
 
 			$render = $this->actionRenderKind($action);
 			$payload = [
@@ -476,34 +472,29 @@
 		}
 
 		public function forms(Request $request) {
-			$module = $this->loadModule($request->route_params["id"]);
 
-			return Response::ok(array_values($module["forms"] ?? []));
+			return $this->listBucket($request, "forms");
 		}
 
 		public function views(Request $request) {
-			$module = $this->loadModule($request->route_params["id"]);
 
-			return Response::ok(array_values($module["views"] ?? []));
+			return $this->listBucket($request, "views");
 		}
 
 		public function reports(Request $request) {
-			$module = $this->loadModule($request->route_params["id"]);
 
-			return Response::ok(array_values($module["reports"] ?? []));
+			return $this->listBucket($request, "reports");
 		}
 
 		public function embedForms(Request $request) {
-			$module = $this->loadModule($request->route_params["id"]);
 
-			return Response::ok(array_values($module["embed-forms"] ?? []));
+			return $this->listBucket($request, "embed-forms");
 		}
 
 		// — Action CRUD —
 
 		public function createAction(Request $request) {
-			$module_id = $request->route_params["id"];
-			$module = $this->loadModule($module_id);
+			[$module_id, $module, $context] = $this->moduleContext($request);
 			$d = $request->body;
 
 			$route_raw = (string)($d["route"] ?? "");
@@ -519,7 +510,6 @@
 
 			$route = BigTreeAdmin::uniqueModuleActionRoute($module_id, $route_raw);
 			$position = (int)($d["position"] ?? 0);
-			$context = BigTreeJSONDB::getSubset("modules", $module_id);
 
 			if ($position === 0) {
 				$context->incrementPosition("actions");
@@ -560,18 +550,11 @@
 		}
 
 		public function updateAction(Request $request) {
-			$module_id = $request->route_params["id"];
-			$action_id = $request->route_params["sid"];
-			$module = $this->loadModule($module_id);
-
-			$existing = $this->findSub($module["actions"] ?? [], $action_id);
-
-			if (!$existing) {
-				throw new NotFoundException("Action $action_id not found");
-			}
+			$action_id = $request->routeParam("sid");
+			[$module_id, $module, $context] = $this->moduleContext($request);
+			$existing = $this->requireSub($module, "actions", $action_id, "Action");
 
 			$d = $request->body;
-			$context = BigTreeJSONDB::getSubset("modules", $module_id);
 
 			$update = [];
 
@@ -684,16 +667,10 @@
 		}
 
 		public function deleteAction(Request $request) {
-			$module_id = $request->route_params["id"];
-			$action_id = $request->route_params["sid"];
-			$module = $this->loadModule($module_id);
-			$existing = $this->findSub($module["actions"] ?? [], $action_id);
+			$action_id = $request->routeParam("sid");
+			[, $module, $context] = $this->moduleContext($request);
+			$existing = $this->requireSub($module, "actions", $action_id, "Action");
 
-			if (!$existing) {
-				throw new NotFoundException("Action $action_id not found");
-			}
-
-			$context = BigTreeJSONDB::getSubset("modules", $module_id);
 			$context->delete("actions", $action_id);
 
 			// Remove the on-disk drawing source for a custom (module) action.
@@ -732,10 +709,8 @@
 		}
 
 		public function reorderActions(Request $request) {
-			$module_id = $request->route_params["id"];
-			$this->loadModule($module_id);
+			[, , $context] = $this->moduleContext($request);
 			$ids = $request->bodyList("ids", "string");
-			$context = BigTreeJSONDB::getSubset("modules", $module_id);
 			$pos = count($ids);
 
 			foreach ($ids as $aid) {
@@ -755,14 +730,10 @@
 		 * handled by the API layer like every other authenticated route.)
 		 */
 		public function invokeAction(Request $request) {
-			$module_id = $request->route_params["id"];
-			$action_id = $request->route_params["sid"];
+			$module_id = $request->routeParam("id");
+			$action_id = $request->routeParam("sid");
 			$module = $this->loadModule($module_id);
-			$action = $this->findSub($module["actions"] ?? [], $action_id);
-
-			if (!$action) {
-				throw new NotFoundException("Action $action_id not found");
-			}
+			$action = $this->requireSub($module, "actions", $action_id, "Action");
 
 			$handler = $this->validateActionHandler($action["handler"] ?? "");
 
@@ -866,10 +837,8 @@
 		// — Embed-form CRUD —
 
 		public function createEmbedForm(Request $request) {
-			$module_id = $request->route_params["id"];
-			$this->loadModule($module_id);
+			[$module_id, , $context] = $this->moduleContext($request);
 			$d = $request->body;
-			$context = BigTreeJSONDB::getSubset("modules", $module_id);
 
 			$id = $context->insert("embed-forms", [
 				"title" => BigTree::safeEncode((string)$d["title"]),
@@ -888,17 +857,11 @@
 		}
 
 		public function updateEmbedForm(Request $request) {
-			$module_id = $request->route_params["id"];
-			$ef_id = $request->route_params["sid"];
-			$module = $this->loadModule($module_id);
-			$existing = $this->findSub($module["embed-forms"] ?? [], $ef_id);
-
-			if (!$existing) {
-				throw new NotFoundException("Embed form $ef_id not found");
-			}
+			$ef_id = $request->routeParam("sid");
+			[$module_id, $module, $context] = $this->moduleContext($request);
+			$existing = $this->requireSub($module, "embed-forms", $ef_id, "Embed form");
 
 			$d = $request->body;
-			$context = BigTreeJSONDB::getSubset("modules", $module_id);
 
 			$update = [];
 
@@ -945,15 +908,10 @@
 		}
 
 		public function deleteEmbedForm(Request $request) {
-			$module_id = $request->route_params["id"];
-			$ef_id = $request->route_params["sid"];
-			$module = $this->loadModule($module_id);
-			$existing = $this->findSub($module["embed-forms"] ?? [], $ef_id);
+			$ef_id = $request->routeParam("sid");
+			[, $module, $context] = $this->moduleContext($request);
+			$this->requireSub($module, "embed-forms", $ef_id, "Embed form");
 
-			if (!$existing) {
-				throw new NotFoundException("Embed form $ef_id not found");
-			}
-			$context = BigTreeJSONDB::getSubset("modules", $module_id);
 			$context->delete("embed-forms", $ef_id);
 
 			return Response::noContent();
@@ -970,7 +928,7 @@
 		 * server-side during submission.
 		 */
 		public function publicGetEmbedForm(Request $request) {
-			$hash = (string)($request->route_params["hash"] ?? "");
+			$hash = $request->routeParam("hash");
 
 			if ($hash === "") {
 				throw new NotFoundException("Embed form not found");
@@ -1015,7 +973,7 @@
 		 *   { id, status: "published" | "pending", thank_you_message, redirect_url }
 		 */
 		public function publicSubmitEmbedForm(Request $request) {
-			$hash = (string)($request->route_params["hash"] ?? "");
+			$hash = $request->routeParam("hash");
 
 			if ($hash === "") {
 				throw new NotFoundException("Embed form not found");
@@ -1241,7 +1199,7 @@
 		}
 
 		public function getGroup(Request $request) {
-			$id = $request->route_params["id"];
+			$id = $request->routeParam("id");
 			$g = Entity::findOrFailJson("module-groups", $id, "Module group");
 
 			return Response::ok($g);
@@ -1259,7 +1217,7 @@
 		}
 
 		public function updateGroup(Request $request) {
-			$id = $request->route_params["id"];
+			$id = $request->routeParam("id");
 			$existing = Entity::findOrFailJson("module-groups", $id, "Module group");
 			$d = $request->body;
 			BigTreeJSONDB::update("module-groups", $id, array_merge($existing, array_filter([
@@ -1271,7 +1229,7 @@
 		}
 
 		public function deleteGroup(Request $request) {
-			$id = $request->route_params["id"];
+			$id = $request->routeParam("id");
 			Entity::assertExistsJson("module-groups", $id, "Module group");
 
 			BigTreeJSONDB::delete("module-groups", $id);

@@ -4,7 +4,6 @@
 	use BigTree\Api\Request;
 	use BigTree\Api\Response;
 	use BigTree\Api\Exceptions\NotFoundException;
-	use BigTreeJSONDB;
 	use BigTree;
 	use BigTreeAutoModule;
 
@@ -26,10 +25,8 @@
 		// — Report CRUD —
 
 		public function createReport(Request $request) {
-			$module_id = $request->route_params["id"];
-			$this->loadModule($module_id);
+			[$module_id, , $context] = $this->moduleContext($request);
 			$d = $request->body;
-			$context = BigTreeJSONDB::getSubset("modules", $module_id);
 
 			$id = $context->insert("reports", [
 				"title" => BigTree::safeEncode((string)$d["title"]),
@@ -46,17 +43,11 @@
 		}
 
 		public function updateReport(Request $request) {
-			$module_id = $request->route_params["id"];
-			$report_id = $request->route_params["sid"];
-			$module = $this->loadModule($module_id);
-			$existing = $this->findSub($module["reports"] ?? [], $report_id);
-
-			if (!$existing) {
-				throw new NotFoundException("Report $report_id not found");
-			}
+			$report_id = $request->routeParam("sid");
+			[$module_id, $module, $context] = $this->moduleContext($request);
+			$existing = $this->requireSub($module, "reports", $report_id, "Report");
 
 			$d = $request->body;
-			$context = BigTreeJSONDB::getSubset("modules", $module_id);
 
 			$update = [];
 
@@ -99,25 +90,8 @@
 		}
 
 		public function deleteReport(Request $request) {
-			$module_id = $request->route_params["id"];
-			$report_id = $request->route_params["sid"];
-			$module = $this->loadModule($module_id);
-			$existing = $this->findSub($module["reports"] ?? [], $report_id);
 
-			if (!$existing) {
-				throw new NotFoundException("Report $report_id not found");
-			}
-
-			$context = BigTreeJSONDB::getSubset("modules", $module_id);
-			$context->delete("reports", $report_id);
-
-			foreach ($module["actions"] ?? [] as $action) {
-				if (($action["report"] ?? "") == $report_id) {
-					$context->delete("actions", $action["id"]);
-				}
-			}
-
-			return Response::noContent();
+			return $this->deleteSubCascade($request, "reports", "report", "Report");
 		}
 
 		/**
@@ -134,8 +108,8 @@
 		 * so the SPA renders the same option set the PHP admin showed.
 		 */
 		public function prepareReport(Request $request) {
-			$module_id = $request->route_params["id"];
-			$report_id = $request->route_params["sid"];
+			$module_id = $request->routeParam("id");
+			$report_id = $request->routeParam("sid");
 
 			$this->loadModule($module_id);
 			$report = \BigTreeAutoModule::getReport($report_id);
@@ -197,15 +171,11 @@
 		 *   }
 		 */
 		public function runReport(Request $request) {
-			$module_id = $request->route_params["id"];
-			$report_id = $request->route_params["sid"];
+			$module_id = $request->routeParam("id");
+			$report_id = $request->routeParam("sid");
 
 			$module = $this->loadModule($module_id);
-			$existing = $this->findSub($module["reports"] ?? [], $report_id);
-
-			if (!$existing) {
-				throw new NotFoundException("Report $report_id not found");
-			}
+			$this->requireSub($module, "reports", $report_id, "Report");
 
 			$report = \BigTreeAutoModule::getReport($report_id);
 

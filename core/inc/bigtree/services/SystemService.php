@@ -419,7 +419,7 @@
 		 * Removes a backup file explicitly. (TTL-based GC also handles it eventually.)
 		 */
 		public function deleteBackup(Request $request) {
-			$backup_id = $this->sanitizeBackupId($request->route_params["id"] ?? "");
+			$backup_id = $this->sanitizeBackupId($request->routeParam("id"));
 			$path = SERVER_ROOT . self::BACKUP_DIR . $backup_id . ".sql";
 			if (!file_exists($path)) {
 				throw new NotFoundException("Backup not found", "backup_not_found");
@@ -449,7 +449,7 @@
 		 * constant-time comparison.
 		 */
 		public function downloadBackup(Request $request) {
-			$backup_id = $this->sanitizeBackupId($request->route_params["id"] ?? "");
+			$backup_id = $this->sanitizeBackupId($request->routeParam("id"));
 			$raw_token = $request->queryString("token", "", false);
 			if ($raw_token === "") {
 				throw new AuthenticationException("Missing download token", "missing_token");

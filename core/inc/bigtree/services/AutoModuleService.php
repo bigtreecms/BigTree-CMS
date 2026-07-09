@@ -1,7 +1,6 @@
 <?php
 	namespace BigTree\Services;
 
-	use BigTree\Api\Entity;
 	use BigTree\Api\Hooks;
 	use BigTree\Api\Json;
 	use BigTree\Api\Pagination;
@@ -24,8 +23,10 @@
 	 * loaded row. Module-level access is enforced upstream by Permission middleware.
 	 */
 	class AutoModuleService {
+		use ModuleSubResourceSupport;
+
 		public function list(Request $request) {
-			$module_id = $request->route_params["id"];
+			$module_id = $request->routeParam("id");
 			$module = $this->loadModule($module_id);
 			$view_id = $request->query["view"] ?? "";
 
@@ -139,7 +140,7 @@
 		}
 
 		public function get(Request $request) {
-			$module_id = $request->route_params["id"];
+			$module_id = $request->routeParam("id");
 			$raw_id = $request->routeParam("eid");
 			$module = $this->loadModule($module_id);
 			$table = $this->resolveTable($module, $request);
@@ -165,7 +166,7 @@
 		}
 
 		public function create(Request $request) {
-			$module_id = $request->route_params["id"];
+			$module_id = $request->routeParam("id");
 			$module = $this->loadModule($module_id);
 			$table = $this->resolveTable($module, $request);
 
@@ -220,7 +221,7 @@
 		}
 
 		public function update(Request $request) {
-			$module_id = $request->route_params["id"];
+			$module_id = $request->routeParam("id");
 			$raw_id = $request->routeParam("eid");
 			$module = $this->loadModule($module_id);
 			$table = $this->resolveTable($module, $request);
@@ -315,7 +316,7 @@
 		}
 
 		public function delete(Request $request) {
-			$module_id = $request->route_params["id"];
+			$module_id = $request->routeParam("id");
 			$raw_id = $request->routeParam("eid");
 			$module = $this->loadModule($module_id);
 			$table = $this->resolveTable($module, $request);
@@ -369,7 +370,7 @@
 		}
 
 		public function reorder(Request $request) {
-			$module_id = $request->route_params["id"];
+			$module_id = $request->routeParam("id");
 			$module = $this->loadModule($module_id);
 			$table = $this->resolveTable($module, $request);
 			$ids = $request->bodyList("ids", "int");
@@ -454,7 +455,7 @@
 		// ajax/auto-modules/views/{archive,approve,feature}.php — publisher only,
 		// gated by gbp row-level access, recaches the view-cache row on flip.
 		private function toggleFlag(Request $request, string $column) {
-			$module_id = $request->route_params["id"];
+			$module_id = $request->routeParam("id");
 			$entry_id = $request->routeParam("eid", "int");
 			$module = $this->loadModule($module_id);
 			$table = $this->resolveTable($module, $request);
@@ -490,12 +491,6 @@
 		}
 
 		// — helpers —
-
-		private function loadModule($id) {
-			$m = Entity::findOrFailJson("modules", $id, "Module");
-
-			return $m;
-		}
 
 		/**
 		 * Whitelist the client-supplied sort against the columns this view can actually

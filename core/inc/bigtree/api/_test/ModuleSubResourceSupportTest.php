@@ -15,6 +15,8 @@
 	 */
 
 	use BigTree\Services\ModuleReportService;
+	use BigTree\Api\Request;
+	use BigTree\Api\Response;
 	use BigTree\Api\Exceptions\NotFoundException;
 
 	/** Invoke a private trait method on a fresh ModuleReportService instance. */
@@ -24,6 +26,14 @@
 		$ref->setAccessible(true);
 
 		return $ref->invokeArgs($instance, $args);
+	}
+
+	/** Build a Request carrying the given route params. */
+	function _subres_request(array $route_params): Request {
+		$req = new Request();
+		$req->route_params = $route_params;
+
+		return $req;
 	}
 
 	/** True when the modules JSONDB store is reachable in this harness. */
@@ -57,6 +67,156 @@
 
 		$empty = _subres_invoke("findSub", [[], "anything"]);
 		T::equals($empty, null, "findSub returns null on an empty row set");
+	}
+
+	function test_subres_require_sub_returns_match_and_labels_404() {
+		$module = [
+			"forms" => [
+				["id" => "f-1", "title" => "One"],
+				["id" => "f-2", "title" => "Two"],
+			],
+		];
+
+		$found = _subres_invoke("requireSub", [$module, "forms", "f-2", "Form"]);
+		T::equals(is_array($found) ? $found["title"] : null, "Two", "requireSub returns the matching sub-row");
+
+		// The label + id compose the NotFound message ("Form f-9 not found").
+		$message = null;
+
+		try {
+			_subres_invoke("requireSub", [$module, "forms", "f-9", "Form"]);
+		} catch (NotFoundException $e) {
+			$message = $e->getMessage();
+		}
+
+		T::equals($message, "Form f-9 not found", "requireSub throws NotFound with the labelled message");
+	}
+
+	function test_subres_list_bucket_returns_array_values() {
+		if (!_subres_db_ready()) {
+			return;
+		}
+
+		$module_id = null;
+
+		try {
+			$module_id = BigTreeJSONDB::insert("modules", [
+				"name" => "ZZ_subres_" . uniqid(),
+				"route" => "zz-subres-" . uniqid(),
+				"forms" => [
+					"keyed-a" => ["id" => "form-a", "title" => "A"],
+					"keyed-b" => ["id" => "form-b", "title" => "B"],
+				],
+			]);
+
+			$response = _subres_invoke("listBucket", [_subres_request(["id" => $module_id]), "forms"]);
+			T::ok($response instanceof Response, "listBucket returns a Response");
+			T::equals($response->status, 200, "listBucket responds 200 OK");
+
+			$rows = $response->body["data"];
+			T::equals(array_keys($rows), [0, 1], "listBucket re-indexes the bucket with array_values");
+			T::equals($rows[0]["title"], "A", "listBucket preserves the bucket rows");
+		} finally {
+			if ($module_id !== null) {
+				BigTreeJSONDB::delete("modules", $module_id);
+			}
+		}
+	}
+
+	function test_subres_delete_sub_cascade_removes_row_and_actions() {
+		if (!_subres_db_ready()) {
+			return;
+		}
+
+		$module_id = null;
+
+		try {
+			$module_id = BigTreeJSONDB::insert("modules", [
+				"name" => "ZZ_subres_" . uniqid(),
+				"route" => "zz-subres-" . uniqid(),
+				"views" => [
+					["id" => "view-del", "title" => "Doomed"],
+					["id" => "view-keep", "title" => "Survivor"],
+				],
+				"actions" => [
+					["id" => "act-on-doomed", "view" => "view-del", "title" => "On Doomed"],
+					["id" => "act-on-keep", "view" => "view-keep", "title" => "On Survivor"],
+					["id" => "act-no-view", "title" => "Standalone"],
+				],
+			]);
+
+			$request = _subres_request(["id" => $module_id, "sid" => "view-del"]);
+			$response = _subres_invoke("deleteSubCascade", [$request, "views", "view", "View"]);
+			T::equals($response->status, 204, "deleteSubCascade responds 204 No Content");
+
+			BigTreeJSONDB::$Cache = [];
+			$module = BigTreeJSONDB::get("modules", $module_id);
+			$view_ids = array_map(function ($v) { return $v["id"]; }, $module["views"] ?? []);
+			$action_ids = array_map(function ($a) { return $a["id"]; }, $module["actions"] ?? []);
+
+			T::ok(!in_array("view-del", $view_ids, true), "deleteSubCascade removed the sub-row");
+			T::ok(in_array("view-keep", $view_ids, true), "deleteSubCascade left unrelated sub-rows");
+			T::ok(!in_array("act-on-doomed", $action_ids, true), "deleteSubCascade cascaded the bound action away");
+			T::ok(in_array("act-on-keep", $action_ids, true), "deleteSubCascade left actions bound to other rows");
+			T::ok(in_array("act-no-view", $action_ids, true), "deleteSubCascade left unbound actions");
+		} finally {
+			if ($module_id !== null) {
+				BigTreeJSONDB::delete("modules", $module_id);
+			}
+		}
+	}
+
+	function test_subres_delete_sub_cascade_missing_throws_not_found() {
+		if (!_subres_db_ready()) {
+			return;
+		}
+
+		$module_id = null;
+
+		try {
+			$module_id = BigTreeJSONDB::insert("modules", [
+				"name" => "ZZ_subres_" . uniqid(),
+				"route" => "zz-subres-" . uniqid(),
+			]);
+
+			T::throws(function () use ($module_id) {
+				_subres_invoke("deleteSubCascade", [
+					_subres_request(["id" => $module_id, "sid" => "nope"]),
+					"views",
+					"view",
+					"View",
+				]);
+			}, NotFoundException::class, "deleteSubCascade throws NotFound for an absent sub-row");
+		} finally {
+			if ($module_id !== null) {
+				BigTreeJSONDB::delete("modules", $module_id);
+			}
+		}
+	}
+
+	function test_subres_module_context_returns_prologue_triple() {
+		if (!_subres_db_ready()) {
+			return;
+		}
+
+		$module_id = null;
+
+		try {
+			$module_id = BigTreeJSONDB::insert("modules", [
+				"name" => "ZZ_subres_" . uniqid(),
+				"route" => "zz-subres-" . uniqid(),
+			]);
+
+			$triple = _subres_invoke("moduleContext", [_subres_request(["id" => $module_id])]);
+			T::equals(count($triple), 3, "moduleContext returns a [module_id, module, context] triple");
+			T::equals($triple[0], $module_id, "moduleContext returns the route module id");
+			T::equals(is_array($triple[1]) ? $triple[1]["id"] : null, $module_id, "moduleContext returns the loaded module row");
+			T::ok(is_object($triple[2]), "moduleContext returns a JSONDB subset writer");
+		} finally {
+			if ($module_id !== null) {
+				BigTreeJSONDB::delete("modules", $module_id);
+			}
+		}
 	}
 
 	function test_subres_load_module_throws_on_missing_id() {

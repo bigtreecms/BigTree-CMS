@@ -3,9 +3,7 @@
 
 	use BigTree\Api\Request;
 	use BigTree\Api\Response;
-	use BigTree\Api\Exceptions\NotFoundException;
 	use BigTreeAdmin;
-	use BigTreeJSONDB;
 	use BigTree;
 
 	/**
@@ -37,7 +35,7 @@
 		 * config is incomplete, or the other table doesn't exist.
 		 */
 		public function gbpCategories(Request $request) {
-			$module = $this->loadModule($request->route_params["id"]);
+			$module = $this->loadModule($request->routeParam("id"));
 			$gbp = is_array($module["gbp"] ?? null) ? $module["gbp"] : [];
 
 			if (empty($gbp["enabled"])) {
@@ -76,10 +74,8 @@
 		// — View CRUD —
 
 		public function createView(Request $request) {
-			$module_id = $request->route_params["id"];
-			$this->loadModule($module_id);
+			[$module_id, , $context] = $this->moduleContext($request);
 			$d = $request->body;
-			$context = BigTreeJSONDB::getSubset("modules", $module_id);
 
 			$id = $context->insert("views", [
 				"title" => BigTree::safeEncode((string)$d["title"]),
@@ -102,17 +98,11 @@
 		}
 
 		public function updateView(Request $request) {
-			$module_id = $request->route_params["id"];
-			$view_id = $request->route_params["sid"];
-			$module = $this->loadModule($module_id);
-			$existing = $this->findSub($module["views"] ?? [], $view_id);
-
-			if (!$existing) {
-				throw new NotFoundException("View $view_id not found");
-			}
+			$view_id = $request->routeParam("sid");
+			[$module_id, $module, $context] = $this->moduleContext($request);
+			$existing = $this->requireSub($module, "views", $view_id, "View");
 
 			$d = $request->body;
-			$context = BigTreeJSONDB::getSubset("modules", $module_id);
 
 			$update = [];
 
@@ -169,24 +159,7 @@
 		}
 
 		public function deleteView(Request $request) {
-			$module_id = $request->route_params["id"];
-			$view_id = $request->route_params["sid"];
-			$module = $this->loadModule($module_id);
-			$existing = $this->findSub($module["views"] ?? [], $view_id);
 
-			if (!$existing) {
-				throw new NotFoundException("View $view_id not found");
-			}
-
-			$context = BigTreeJSONDB::getSubset("modules", $module_id);
-			$context->delete("views", $view_id);
-
-			foreach ($module["actions"] ?? [] as $action) {
-				if (($action["view"] ?? "") == $view_id) {
-					$context->delete("actions", $action["id"]);
-				}
-			}
-
-			return Response::noContent();
+			return $this->deleteSubCascade($request, "views", "view", "View");
 		}
 	}

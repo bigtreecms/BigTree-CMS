@@ -7,7 +7,6 @@
 	use BigTree\Api\Exceptions\BadRequestException;
 	use BigTree\Api\Exceptions\NotFoundException;
 	use BigTreeAdmin;
-	use BigTreeJSONDB;
 	use BigTree;
 	use SQL;
 
@@ -34,11 +33,9 @@
 		// — Form CRUD —
 
 		public function createForm(Request $request) {
-			$module_id = $request->route_params["id"];
-			$this->loadModule($module_id);
+			[$module_id, , $context] = $this->moduleContext($request);
 			$d = $request->body;
 
-			$context = BigTreeJSONDB::getSubset("modules", $module_id);
 			$id = $context->insert("forms", [
 				"title" => BigTree::safeEncode((string)$d["title"]),
 				"table" => (string)($d["table"] ?? ""),
@@ -59,17 +56,11 @@
 		}
 
 		public function updateForm(Request $request) {
-			$module_id = $request->route_params["id"];
-			$form_id = $request->route_params["sid"];
-			$module = $this->loadModule($module_id);
-			$existing = $this->findSub($module["forms"] ?? [], $form_id);
-
-			if (!$existing) {
-				throw new NotFoundException("Form $form_id not found");
-			}
+			$form_id = $request->routeParam("sid");
+			[$module_id, $module, $context] = $this->moduleContext($request);
+			$existing = $this->requireSub($module, "forms", $form_id, "Form");
 
 			$d = $request->body;
-			$context = BigTreeJSONDB::getSubset("modules", $module_id);
 
 			$update = [];
 
@@ -140,30 +131,13 @@
 		}
 
 		public function deleteForm(Request $request) {
-			$module_id = $request->route_params["id"];
-			$form_id = $request->route_params["sid"];
-			$module = $this->loadModule($module_id);
-			$existing = $this->findSub($module["forms"] ?? [], $form_id);
 
-			if (!$existing) {
-				throw new NotFoundException("Form $form_id not found");
-			}
-
-			$context = BigTreeJSONDB::getSubset("modules", $module_id);
-			$context->delete("forms", $form_id);
-
-			foreach ($module["actions"] ?? [] as $action) {
-				if (($action["form"] ?? "") == $form_id) {
-					$context->delete("actions", $action["id"]);
-				}
-			}
-
-			return Response::noContent();
+			return $this->deleteSubCascade($request, "forms", "form", "Form");
 		}
 
 		public function relationOptions(Request $request) {
-			$module_id = $request->route_params["id"];
-			$form_id = $request->route_params["sid"];
+			$module_id = $request->routeParam("id");
+			$form_id = $request->routeParam("sid");
 			$column = $request->queryString("column", "", false);
 
 			if ($column === "") {
@@ -171,11 +145,7 @@
 			}
 
 			$module = $this->loadModule($module_id);
-			$form = $this->findSub($module["forms"] ?? [], $form_id);
-
-			if (!$form) {
-				throw new NotFoundException("Form $form_id not found");
-			}
+			$form = $this->requireSub($module, "forms", $form_id, "Form");
 
 			$field = null;
 
@@ -389,8 +359,8 @@
 		 * not run.
 		 */
 		public function listOptions(Request $request) {
-			$module_id = $request->route_params["id"];
-			$form_id = $request->route_params["sid"];
+			$module_id = $request->routeParam("id");
+			$form_id = $request->routeParam("sid");
 			$column = $request->queryString("column", "", false);
 
 			if ($column === "") {
@@ -398,11 +368,7 @@
 			}
 
 			$module = $this->loadModule($module_id);
-			$form = $this->findSub($module["forms"] ?? [], $form_id);
-
-			if (!$form) {
-				throw new NotFoundException("Form $form_id not found");
-			}
+			$form = $this->requireSub($module, "forms", $form_id, "Form");
 
 			$field = null;
 
