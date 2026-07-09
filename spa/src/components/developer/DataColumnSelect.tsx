@@ -1,9 +1,6 @@
-import { useQuery } from "@tanstack/react-query";
-
 import { Combobox } from "@/components/ui/Combobox";
 import { Field } from "@/components/ui/Field";
-import { dbApi } from "@/api/endpoints/db";
-import { queryKeys } from "@/lib/queryKeys";
+import { useDbColumns } from "@/hooks/useDbColumns";
 
 interface DataColumnSelectProps {
 	/** Table whose columns are offered; when empty the picker is disabled. */
@@ -46,12 +43,7 @@ export const DataColumnSelect = ({
 	ariaLabel,
 	className,
 }: DataColumnSelectProps) => {
-	const columnsQ = useQuery({
-		queryKey: queryKeys.db.columns(table),
-		queryFn: () => dbApi.columns(table),
-		enabled: table !== "",
-		staleTime: 5 * 60 * 1000,
-	});
+	const columnsQ = useDbColumns(table);
 
 	const options = columnsQ.data ?? [];
 	const selected = value ? { value, label: value } : null;

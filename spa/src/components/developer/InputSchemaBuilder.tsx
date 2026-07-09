@@ -1,13 +1,14 @@
 import { useState } from "react";
-import { ChevronDown, ChevronUp, Plus, Settings2, Trash2 } from "lucide-react";
+import { Plus, Settings2 } from "lucide-react";
 
 import type { InputDescriptor } from "@/api/endpoints/field-types";
 import { Button } from "@/components/ui/Button";
 import { Checkbox } from "@/components/ui/Checkbox";
-import { FieldLabel } from "@/components/ui/Field";
+import { RowReorderControls } from "@/components/ui/RowReorderControls";
 import { Select } from "@/components/ui/Select";
 import { TextInput } from "@/components/ui/TextInput";
 import { FieldSettingsEditor } from "@/components/developer/FieldSettingsEditor";
+import { SchemaFieldLabel } from "@/components/developer/SchemaFieldLabel";
 import { InlineEmpty } from "@/components/ui/InlineEmpty";
 import { useListEditor } from "@/hooks/useListEditor";
 
@@ -34,15 +35,6 @@ const PRIMITIVE_TYPES: Array<{ value: string; label: string }> = [
 	{ value: "image", label: "Image" },
 	{ value: "video", label: "Video" },
 ];
-
-const Labeled = ({ label, children }: { label: string; children: React.ReactNode }) => (
-	<label className="block">
-		<FieldLabel size="sm" tone="muted">
-			{label}
-		</FieldLabel>
-		{children}
-	</label>
-);
 
 /**
  * Authors a declarative field type's `input_schema`: an ordered list of
@@ -79,14 +71,14 @@ export const InputSchemaBuilder = ({ value, onChange }: InputSchemaBuilderProps)
 			{value.map((descriptor, index) => (
 				<div key={index} className="rounded-md border border-border bg-surface-2 p-3">
 					<div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-						<Labeled label="Key">
+						<SchemaFieldLabel label="Key">
 							<TextInput
 								value={descriptor.id}
 								onChange={(e) => patch(index, { id: e.target.value })}
 								placeholder="e.g. first_name"
 							/>
-						</Labeled>
-						<Labeled label="Type">
+						</SchemaFieldLabel>
+						<SchemaFieldLabel label="Type">
 							<Select
 								value={descriptor.type}
 								onChange={(e) => patch(index, { type: e.target.value })}
@@ -97,23 +89,23 @@ export const InputSchemaBuilder = ({ value, onChange }: InputSchemaBuilderProps)
 									</option>
 								))}
 							</Select>
-						</Labeled>
-						<Labeled label="Label">
+						</SchemaFieldLabel>
+						<SchemaFieldLabel label="Label">
 							<TextInput
 								value={descriptor.title ?? ""}
 								onChange={(e) => patch(index, { title: e.target.value })}
 								placeholder="Shown above the field"
 							/>
-						</Labeled>
+						</SchemaFieldLabel>
 					</div>
 
 					<div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-3">
-						<Labeled label="Hint (optional)">
+						<SchemaFieldLabel label="Hint (optional)">
 							<TextInput
 								value={descriptor.subtitle ?? ""}
 								onChange={(e) => patch(index, { subtitle: e.target.value })}
 							/>
-						</Labeled>
+						</SchemaFieldLabel>
 						<Checkbox
 							className="self-end pb-2"
 							label="Required"
@@ -132,32 +124,14 @@ export const InputSchemaBuilder = ({ value, onChange }: InputSchemaBuilderProps)
 								<Settings2 size={13} />
 								Settings
 							</button>
-							<button
-								type="button"
-								onClick={() => move(index, index - 1)}
-								disabled={index === 0}
-								className="rounded-md border border-border bg-surface p-1.5 text-text-2 disabled:opacity-40 hover:bg-hover"
-								title="Move up"
-							>
-								<ChevronUp size={14} />
-							</button>
-							<button
-								type="button"
-								onClick={() => move(index, index + 1)}
-								disabled={index === value.length - 1}
-								className="rounded-md border border-border bg-surface p-1.5 text-text-2 disabled:opacity-40 hover:bg-hover"
-								title="Move down"
-							>
-								<ChevronDown size={14} />
-							</button>
-							<button
-								type="button"
-								onClick={() => remove(index)}
-								className="rounded-md border border-border bg-surface p-1.5 text-danger hover:bg-danger/5"
-								title="Remove"
-							>
-								<Trash2 size={14} />
-							</button>
+							<RowReorderControls
+								onMoveUp={() => move(index, index - 1)}
+								onMoveDown={() => move(index, index + 1)}
+								onRemove={() => remove(index)}
+								isFirst={index === 0}
+								isLast={index === value.length - 1}
+								itemLabel="sub-field"
+							/>
 						</div>
 					</div>
 

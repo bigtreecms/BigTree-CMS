@@ -14,7 +14,7 @@ import {
 	fieldTypeName,
 	type FieldUseCase,
 } from "@/api/endpoints/field-types";
-import { dbApi } from "@/api/endpoints/db";
+import { useDbColumns } from "@/hooks/useDbColumns";
 import { useDragReorder } from "@/hooks/useDragReorder";
 import { useListEditor } from "@/hooks/useListEditor";
 import { Combobox } from "@/components/ui/Combobox";
@@ -125,12 +125,7 @@ export const ResourceDesigner = ({
 	const useColumnSelect = columnBound && !!columnsTable;
 	const addDisabled = columnBound && !columnsTable;
 
-	const columnsQ = useQuery({
-		queryKey: queryKeys.db.columns(columnsTable as string),
-		queryFn: () => dbApi.columns(columnsTable as string),
-		enabled: useColumnSelect,
-		staleTime: 5 * 60 * 1000,
-	});
+	const columnsQ = useDbColumns(columnsTable as string, { enabled: useColumnSelect });
 
 	const columnOptions = useMemo(
 		() => (columnsQ.data ?? []).map((c) => ({ value: c.value, label: c.value })),

@@ -1,11 +1,12 @@
-import { ChevronDown, ChevronUp, Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/Button";
 import { Checkbox } from "@/components/ui/Checkbox";
-import { FieldLabel } from "@/components/ui/Field";
+import { RowReorderControls } from "@/components/ui/RowReorderControls";
 import { Select } from "@/components/ui/Select";
 import { TextInput } from "@/components/ui/TextInput";
 import type { SettingControl, SettingDescriptor } from "@/api/endpoints/field-types";
+import { SchemaFieldLabel } from "@/components/developer/SchemaFieldLabel";
 import { InlineEmpty } from "@/components/ui/InlineEmpty";
 import { useListEditor } from "@/hooks/useListEditor";
 
@@ -27,15 +28,6 @@ type EnumOption = { value: string; label: string };
 
 const optionsOf = (descriptor: SettingDescriptor): EnumOption[] =>
 	Array.isArray(descriptor.options) ? (descriptor.options as EnumOption[]) : [];
-
-const Labeled = ({ label, children }: { label: string; children: React.ReactNode }) => (
-	<label className="block">
-		<FieldLabel size="sm" tone="muted">
-			{label}
-		</FieldLabel>
-		{children}
-	</label>
-);
 
 /**
  * Builds a module field type's settings schema (SettingDescriptor[]) — the
@@ -63,14 +55,14 @@ export const SettingsSchemaBuilder = ({ value, onChange }: SettingsSchemaBuilder
 				return (
 					<div key={index} className="rounded-md border border-border bg-surface-2 p-3">
 						<div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-							<Labeled label="Key">
+							<SchemaFieldLabel label="Key">
 								<TextInput
 									value={descriptor.id}
 									onChange={(e) => patch(index, { id: e.target.value })}
 									placeholder="e.g. placeholder"
 								/>
-							</Labeled>
-							<Labeled label="Control">
+							</SchemaFieldLabel>
+							<SchemaFieldLabel label="Control">
 								<Select
 									value={control}
 									onChange={(e) =>
@@ -83,24 +75,24 @@ export const SettingsSchemaBuilder = ({ value, onChange }: SettingsSchemaBuilder
 										</option>
 									))}
 								</Select>
-							</Labeled>
-							<Labeled label="Label">
+							</SchemaFieldLabel>
+							<SchemaFieldLabel label="Label">
 								<TextInput
 									value={descriptor.label ?? ""}
 									onChange={(e) => patch(index, { label: e.target.value })}
 								/>
-							</Labeled>
+							</SchemaFieldLabel>
 						</div>
 
 						<div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-3">
-							<Labeled label="Hint (optional)">
+							<SchemaFieldLabel label="Hint (optional)">
 								<TextInput
 									value={descriptor.hint ?? ""}
 									onChange={(e) => patch(index, { hint: e.target.value })}
 								/>
-							</Labeled>
+							</SchemaFieldLabel>
 
-							<Labeled label="Default (optional)">
+							<SchemaFieldLabel label="Default (optional)">
 								{control === "bool" ? (
 									<Checkbox
 										className="h-[38px]"
@@ -129,7 +121,7 @@ export const SettingsSchemaBuilder = ({ value, onChange }: SettingsSchemaBuilder
 										}
 									/>
 								)}
-							</Labeled>
+							</SchemaFieldLabel>
 
 							<div className="flex items-end justify-between gap-1 pb-1">
 								<Checkbox
@@ -137,34 +129,14 @@ export const SettingsSchemaBuilder = ({ value, onChange }: SettingsSchemaBuilder
 									checked={!!descriptor.required}
 									onChange={(next) => patch(index, { required: next })}
 								/>
-								<div className="flex items-end gap-1">
-									<button
-										type="button"
-										onClick={() => move(index, index - 1)}
-										disabled={index === 0}
-										className="rounded-md border border-border bg-surface p-1.5 text-text-2 disabled:opacity-40 hover:bg-hover"
-										title="Move up"
-									>
-										<ChevronUp size={14} />
-									</button>
-									<button
-										type="button"
-										onClick={() => move(index, index + 1)}
-										disabled={index === value.length - 1}
-										className="rounded-md border border-border bg-surface p-1.5 text-text-2 disabled:opacity-40 hover:bg-hover"
-										title="Move down"
-									>
-										<ChevronDown size={14} />
-									</button>
-									<button
-										type="button"
-										onClick={() => remove(index)}
-										className="rounded-md border border-border bg-surface p-1.5 text-danger hover:bg-danger/5"
-										title="Remove"
-									>
-										<Trash2 size={14} />
-									</button>
-								</div>
+								<RowReorderControls
+									onMoveUp={() => move(index, index - 1)}
+									onMoveDown={() => move(index, index + 1)}
+									onRemove={() => remove(index)}
+									isFirst={index === 0}
+									isLast={index === value.length - 1}
+									itemLabel="setting"
+								/>
 							</div>
 						</div>
 

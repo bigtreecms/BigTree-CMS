@@ -1,9 +1,6 @@
-import { useQuery } from "@tanstack/react-query";
-
 import { Combobox } from "@/components/ui/Combobox";
 import { Field } from "@/components/ui/Field";
-import { dbApi } from "@/api/endpoints/db";
-import { queryKeys } from "@/lib/queryKeys";
+import { useDbTables } from "@/hooks/useDbTables";
 
 interface DataTableSelectProps {
 	/** Selected table name; empty string when nothing is chosen. */
@@ -43,11 +40,7 @@ export const DataTableSelect = ({
 	ariaLabel,
 	className,
 }: DataTableSelectProps) => {
-	const tablesQ = useQuery({
-		queryKey: queryKeys.db.tables(),
-		queryFn: () => dbApi.tables(),
-		staleTime: 5 * 60 * 1000,
-	});
+	const tablesQ = useDbTables();
 
 	const options = tablesQ.data ?? [];
 	const selected = value ? { value, label: value } : null;

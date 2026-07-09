@@ -9,7 +9,7 @@ import {
 	type ModuleReportFilter,
 } from "@/api/endpoints/modules";
 
-import { dbApi } from "@/api/endpoints/db";
+import { useDbColumns } from "@/hooks/useDbColumns";
 import { queryKeys } from "@/lib/queryKeys";
 
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
@@ -155,11 +155,8 @@ export const ModuleReportsTab = ({ moduleId, moduleTable }: ModuleReportsTabProp
 		queryFn: () => modulesApi.views(moduleId),
 	});
 
-	const columnsQ = useQuery({
-		queryKey: queryKeys.db.columns(draft.table),
-		queryFn: () => dbApi.columns(draft.table),
+	const columnsQ = useDbColumns(draft.table, {
 		enabled: crud.editingId !== null && draft.table !== "",
-		staleTime: 5 * 60 * 1000,
 	});
 
 	useEffect(() => {

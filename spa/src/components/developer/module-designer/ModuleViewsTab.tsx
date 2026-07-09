@@ -16,7 +16,7 @@ import {
 	type ModuleViewType,
 } from "@/api/endpoints/modules";
 
-import { dbApi } from "@/api/endpoints/db";
+import { useDbColumns } from "@/hooks/useDbColumns";
 import { queryKeys } from "@/lib/queryKeys";
 
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
@@ -187,12 +187,7 @@ export const ModuleViewsTab = ({ moduleId, moduleTable }: ModuleViewsTabProps) =
 
 	// Columns of the chosen table drive the column picker and which row-action
 	// toggles are offered. Only fetched once a table is selected.
-	const columnsQ = useQuery({
-		queryKey: queryKeys.db.columns(draft.table),
-		queryFn: () => dbApi.columns(draft.table),
-		enabled: draft.table !== "",
-		staleTime: 5 * 60 * 1000,
-	});
+	const columnsQ = useDbColumns(draft.table);
 
 	useEffect(() => {
 		if (crud.editingId === NEW_ROW) {
