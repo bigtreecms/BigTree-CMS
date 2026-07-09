@@ -1,8 +1,9 @@
 import { useMemo, useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Download, Pencil } from "lucide-react";
-import { Link } from "react-router-dom";
 
+import { Button } from "@/components/ui/Button";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { Loading } from "@/components/ui/Loading";
 import { modulesApi } from "@/api/endpoints/modules";
 import type {
@@ -90,11 +91,7 @@ export const ReportRenderer = ({ moduleId, reportId }: ReportRendererProps) => {
 	}
 
 	if (prepareQuery.isError || !report) {
-		return (
-			<div className="rounded-xl border border-border bg-surface p-9 text-center text-[13px] text-text-3">
-				That report doesn't exist on this module.
-			</div>
-		);
+		return <EmptyState>That report doesn't exist on this module.</EmptyState>;
 	}
 
 	const isDeveloper = (user?.level ?? 0) >= LEVEL.DEVELOPER;
@@ -103,13 +100,12 @@ export const ReportRenderer = ({ moduleId, reportId }: ReportRendererProps) => {
 		<div className="space-y-6">
 			{isDeveloper && (
 				<div className="flex justify-end">
-					<Link
+					<Button
 						to={`/developer/modules/${encodeURIComponent(moduleId)}`}
-						className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] text-text-2 hover:bg-hover"
+						icon={<Pencil size={14} />}
 					>
-						<Pencil size={14} />
 						Edit Report in Developer
-					</Link>
+					</Button>
 				</div>
 			)}
 
@@ -134,14 +130,13 @@ export const ReportRenderer = ({ moduleId, reportId }: ReportRendererProps) => {
 				<div className="rounded-xl border border-border bg-surface p-6 text-center text-[13px] text-text-2">
 					Exported {results.meta.count} row{results.meta.count === 1 ? "" : "s"}.
 					<div className="mt-3">
-						<button
-							type="button"
-							className="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-[12.5px] font-medium text-accent-fg hover:bg-accent-hover"
+						<Button
+							variant="primary"
+							icon={<Download size={14} />}
 							onClick={handleDownloadCsv}
 						>
-							<Download size={14} />
 							Download again
-						</button>
+						</Button>
 					</div>
 				</div>
 			)}

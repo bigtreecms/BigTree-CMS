@@ -3,6 +3,7 @@ import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { ArrowDown, ArrowUp, Plus, RotateCcw, Search, Trash, X } from "lucide-react";
 
 import { EmptyState } from "@/components/ui/EmptyState";
+import { Button } from "@/components/ui/Button";
 import { IconButton } from "@/components/ui/IconButton";
 import { LoadingText } from "@/components/ui/LoadingText";
 import { PopoverPanel } from "@/components/ui/Popover";
@@ -282,26 +283,25 @@ export const RelationField = ({ field, value, onChange, disabled, kind }: Relati
 			<div className="flex flex-wrap items-center justify-between gap-2 text-[11.5px] text-text-3">
 				<div className="flex flex-wrap gap-2">
 					{showAddAll && (
-						<button
-							type="button"
-							className="inline-flex items-center gap-1 rounded-md border border-border bg-surface px-2 py-1 hover:bg-hover disabled:opacity-50"
+						<Button
+							size="sm"
+							icon={<Plus size={11} />}
 							onClick={addAll}
 							disabled={disabled || pickerItems.length === 0}
 						>
-							<Plus size={11} />
 							Add all
-						</button>
+						</Button>
 					)}
 					{showReset && selectedIds.length > 0 && (
-						<button
-							type="button"
-							className="inline-flex items-center gap-1 rounded-md border border-border bg-surface px-2 py-1 text-danger hover:bg-danger/5 disabled:opacity-50"
+						<Button
+							size="sm"
+							variant="dangerGhost"
+							icon={<RotateCcw size={11} />}
 							onClick={reset}
 							disabled={disabled}
 						>
-							<RotateCcw size={11} />
 							Reset
-						</button>
+						</Button>
 					)}
 				</div>
 				{max > 0 && (

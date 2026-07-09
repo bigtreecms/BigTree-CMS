@@ -301,3 +301,11 @@ export const formatCellValue = (value: unknown): string => {
 		return "";
 	}
 };
+
+/**
+ * The empty-list message shared by every module list view (and `DataTable`'s
+ * `emptyLabel`): a "no matches" line while a search is active, otherwise the
+ * "nothing here yet" line. `noun` defaults to "entries".
+ */
+export const viewEmptyLabel = (query: string, noun = "entries"): string =>
+	query ? `No ${noun} match “${query}”.` : `No ${noun} yet.`;

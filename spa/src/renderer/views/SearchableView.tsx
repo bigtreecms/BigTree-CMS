@@ -1,18 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { useNavigate } from "react-router-dom";
 
 import { DataTable, type DataTableColumn, type DataTableSort } from "@/components/ui/DataTable";
 import { SearchInput } from "@/components/ui/SearchInput";
 import { Toolbar } from "@/components/ui/Toolbar";
 import { Pager } from "@/components/ui/Pager";
 
-import {
-	autoModulesApi,
-	type ModuleEntriesListParams,
-	type ModuleEntryRow,
-} from "@/api/endpoints/auto-modules";
-import { queryKeys } from "@/lib/queryKeys";
+import type { ModuleEntryRow } from "@/api/endpoints/auto-modules";
 import type { ModuleView } from "@/api/endpoints/modules";
 
 import {
@@ -21,16 +14,16 @@ import {
 	formatSortParam,
 	isPersistedEntryId,
 	parseSortSetting,
-	parseViewActions,
 	statusDimClass,
 	statusFromRow,
 	statusRowClass,
+	viewEmptyLabel,
 } from "./viewHelpers";
 import { ViewStatusBadge } from "./ViewStatusBadge";
 import { RowActions } from "./RowActions";
 import { useEntryDelete } from "./useEntryDelete";
 import { useModuleEntryLinks } from "@/pages/ModuleLayout";
-import { useDebouncedValue } from "@/hooks/useDebouncedValue";
+import { useModuleEntries } from "./useModuleEntries";
 
 /**
  * Runtime for the `searchable` view type — the most common module view. Reads
@@ -57,33 +50,19 @@ interface SearchableViewProps {
 }
 
 export const SearchableView = ({ moduleId, view }: SearchableViewProps) => {
-	const navigate = useNavigate();
 	const { editPath, actionPath } = useModuleEntryLinks();
 	const [page, setPage] = useState(1);
-	const [query, setQuery] = useState("");
-	const debouncedQuery = useDebouncedValue(query, 200);
 	const [sort, setSort] = useState<DataTableSort | undefined>(() => parseSortSetting(view));
 	const { requestDelete, dialog: deleteDialog } = useEntryDelete(moduleId, view.id);
+
+	const listParams = useMemo(() => ({ page, sort: formatSortParam(sort) }), [page, sort]);
+	const { query, setQuery, debouncedQuery, builtins, custom, fieldColumns, listQuery, openEdit } =
+		useModuleEntries({ moduleId, view, listParams, keepPrevious: true });
 
 	useEffect(() => {
 		setPage(1);
 	}, [debouncedQuery]);
 
-	const params: ModuleEntriesListParams = {
-		page,
-		q: debouncedQuery || undefined,
-		sort: formatSortParam(sort),
-		view: view.id,
-	};
-
-	const listQuery = useQuery({
-		queryKey: queryKeys.moduleEntries.viewQuery(moduleId, view.id, params),
-		queryFn: () => autoModulesApi.list(moduleId, params),
-		placeholderData: keepPreviousData,
-	});
-
-	const { builtins, custom } = useMemo(() => parseViewActions(view.actions), [view.actions]);
-	const fieldColumns = useMemo(() => Object.entries(view.fields ?? {}), [view.fields]);
 	const builtinCount =
 		(builtins.edit ? 1 : 0) +
 		(builtins.delete ? 1 : 0) +
@@ -192,14 +171,6 @@ export const SearchableView = ({ moduleId, view }: SearchableViewProps) => {
 		setPage(1);
 	};
 
-	const onRowClick = (row: ModuleEntryRow) => {
-		if (!builtins.edit || !isPersistedEntryId(row.id)) {
-			return;
-		}
-
-		navigate(editPath(row.id));
-	};
-
 	return (
 		<>
 			<Toolbar
@@ -221,12 +192,10 @@ export const SearchableView = ({ moduleId, view }: SearchableViewProps) => {
 				getRowKey={(row) => row.id as string | number}
 				isLoading={listQuery.isLoading && !listQuery.data}
 				loadingLabel="Loading entries…"
-				emptyLabel={
-					debouncedQuery ? `No entries match “${debouncedQuery}”.` : "No entries yet."
-				}
+				emptyLabel={viewEmptyLabel(debouncedQuery)}
 				sort={sort}
 				onSortChange={onSortChange}
-				onRowClick={builtins.edit ? onRowClick : undefined}
+				onRowClick={builtins.edit ? openEdit : undefined}
 				rowClassName={(row) => statusRowClass(statusFromRow(row).key)}
 			/>
 

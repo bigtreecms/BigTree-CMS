@@ -1,24 +1,21 @@
-import { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { Edit, Image as ImageIcon, Trash } from "lucide-react";
-import { useNavigate } from "react-router-dom";
 
+import { EmptyState } from "@/components/ui/EmptyState";
 import { IconButton } from "@/components/ui/IconButton";
 import { Loading } from "@/components/ui/Loading";
 import { QueryRenderer } from "@/components/ui/QueryRenderer";
 import { SearchInput } from "@/components/ui/SearchInput";
 import { Toolbar } from "@/components/ui/Toolbar";
 
-import { autoModulesApi, type ModuleEntryRow } from "@/api/endpoints/auto-modules";
-import { queryKeys } from "@/lib/queryKeys";
+import type { ModuleEntryRow } from "@/api/endpoints/auto-modules";
 import type { ModuleView } from "@/api/endpoints/modules";
 
 import { expandImageUrl } from "@/lib/imageUrl";
 
-import { type CustomViewAction, isPersistedEntryId, parseViewActions } from "./viewHelpers";
+import { type CustomViewAction, viewEmptyLabel } from "./viewHelpers";
 import { useEntryDelete } from "./useEntryDelete";
 import { useModuleEntryLinks } from "@/pages/ModuleLayout";
-import { useDebouncedValue } from "@/hooks/useDebouncedValue";
+import { useModuleEntries } from "./useModuleEntries";
 
 /**
  * Runtime for the `images` view type — a grid of thumbnail cards.
@@ -41,34 +38,11 @@ interface ImagesViewProps {
 }
 
 export const ImagesView = ({ moduleId, view }: ImagesViewProps) => {
-	const navigate = useNavigate();
-	const { editPath } = useModuleEntryLinks();
-	const [query, setQuery] = useState("");
-	const debouncedQuery = useDebouncedValue(query, 200);
-
-	const listQuery = useQuery({
-		queryKey: queryKeys.moduleEntries.viewQuery(moduleId, view.id, {
-			q: debouncedQuery || undefined,
-			view: view.id,
-		}),
-		queryFn: () =>
-			autoModulesApi.list(moduleId, { view: view.id, q: debouncedQuery || undefined }),
-	});
+	const { query, setQuery, debouncedQuery, builtins, custom, listQuery, rows, openEdit } =
+		useModuleEntries({ moduleId, view });
 
 	const settings = view.settings as Record<string, unknown> | undefined;
 	const prefix = (settings?.prefix as string) || "";
-
-	const { builtins, custom } = useMemo(() => parseViewActions(view.actions), [view.actions]);
-
-	const rows = listQuery.data?.items ?? [];
-
-	const openEdit = (row: ModuleEntryRow) => {
-		if (!builtins.edit || !isPersistedEntryId(row.id)) {
-			return;
-		}
-
-		navigate(editPath(row.id));
-	};
 
 	return (
 		<>
@@ -88,13 +62,7 @@ export const ImagesView = ({ moduleId, view }: ImagesViewProps) => {
 				error={listQuery.error}
 				isEmpty={rows.length === 0}
 				loading={<Loading variant="card" label="Loading entries…" />}
-				empty={
-					<div className="rounded-xl border border-border bg-surface p-9 text-center text-[13px] text-text-3">
-						{debouncedQuery
-							? `No entries match “${debouncedQuery}”.`
-							: "No entries yet."}
-					</div>
-				}
+				empty={<EmptyState>{viewEmptyLabel(debouncedQuery)}</EmptyState>}
 			>
 				<ImagesGrid
 					rows={rows}

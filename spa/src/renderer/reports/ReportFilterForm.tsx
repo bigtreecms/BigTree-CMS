@@ -1,5 +1,6 @@
 import { useMemo, useState, type FormEvent } from "react";
 
+import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Select } from "@/components/ui/Select";
 import { TextInput } from "@/components/ui/TextInput";
@@ -157,13 +158,14 @@ export const ReportFilterForm = ({
 			</div>
 
 			<div className="mt-4 flex items-center justify-end">
-				<button
+				<Button
 					type="submit"
-					className="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-[12.5px] font-medium text-accent-fg disabled:opacity-60 hover:bg-accent-hover"
-					disabled={submitting}
+					variant="primary"
+					loading={submitting}
+					loadingLabel="Running…"
 				>
-					{submitting ? "Running…" : reportType === "csv" ? "Export CSV" : "Run Report"}
-				</button>
+					{reportType === "csv" ? "Export CSV" : "Run Report"}
+				</Button>
 			</div>
 		</form>
 	);

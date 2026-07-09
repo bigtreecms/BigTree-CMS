@@ -1,7 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
-import { keepPreviousData, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useToastMutation } from "@/hooks/useToastMutation";
-import { useNavigate } from "react-router-dom";
 
 import { DragHandle } from "@/components/ui/DragHandle";
 import { Loading } from "@/components/ui/Loading";
@@ -14,19 +13,13 @@ import { queryKeys } from "@/lib/queryKeys";
 import type { ModuleView } from "@/api/endpoints/modules";
 import { useDragReorder } from "@/hooks/useDragReorder";
 
-import {
-	formatCellValue,
-	isPersistedEntryId,
-	parseViewActions,
-	statusDimClass,
-	statusFromRow,
-	statusRowClass,
-} from "./viewHelpers";
+import { statusDimClass, statusFromRow, statusRowClass, viewEmptyLabel } from "./viewHelpers";
 import { ViewStatusBadge } from "./ViewStatusBadge";
+import { ViewRowCells } from "./ViewRowCells";
 import { RowActions } from "./RowActions";
 import { useEntryDelete } from "./useEntryDelete";
 import { useModuleEntryLinks } from "@/pages/ModuleLayout";
-import { useDebouncedValue } from "@/hooks/useDebouncedValue";
+import { useModuleEntries } from "./useModuleEntries";
 
 /**
  * Runtime for the `draggable` view type. Flat list ordered by position; the
@@ -52,23 +45,12 @@ interface DraggableRow {
 }
 
 export const DraggableView = ({ moduleId, view }: DraggableViewProps) => {
-	const navigate = useNavigate();
 	const { editPath, actionPath } = useModuleEntryLinks();
 	const queryClient = useQueryClient();
-	const [query, setQuery] = useState("");
-	const debouncedQuery = useDebouncedValue(query, 200);
 	const [localRows, setLocalRows] = useState<DraggableRow[] | null>(null);
 	const { requestDelete, dialog: deleteDialog } = useEntryDelete(moduleId, view.id);
-
-	const listQuery = useQuery({
-		queryKey: queryKeys.moduleEntries.viewQuery(moduleId, view.id, {
-			q: debouncedQuery || undefined,
-			view: view.id,
-		}),
-		queryFn: () =>
-			autoModulesApi.list(moduleId, { view: view.id, q: debouncedQuery || undefined }),
-		placeholderData: keepPreviousData,
-	});
+	const { query, setQuery, debouncedQuery, builtins, custom, fieldColumns, listQuery, openEdit } =
+		useModuleEntries({ moduleId, view, keepPrevious: true });
 
 	useEffect(() => {
 		if (listQuery.data) {
@@ -100,17 +82,6 @@ export const DraggableView = ({ moduleId, view }: DraggableViewProps) => {
 
 	const canDrag = !debouncedQuery && !listQuery.isLoading;
 
-	const { builtins, custom } = useMemo(() => parseViewActions(view.actions), [view.actions]);
-	const fieldColumns = useMemo(() => Object.entries(view.fields ?? {}), [view.fields]);
-
-	const openEdit = (row: ModuleEntryRow) => {
-		if (!builtins.edit || !isPersistedEntryId(row.id)) {
-			return;
-		}
-
-		navigate(editPath(row.id));
-	};
-
 	return (
 		<>
 			<Toolbar
@@ -138,9 +109,7 @@ export const DraggableView = ({ moduleId, view }: DraggableViewProps) => {
 					loading={<Loading variant="block" label="Loading entries…" />}
 					empty={
 						<div className="p-9 text-center text-[13px] text-text-3">
-							{debouncedQuery
-								? `No entries match “${debouncedQuery}”.`
-								: "No entries yet."}
+							{viewEmptyLabel(debouncedQuery)}
 						</div>
 					}
 				>
@@ -172,25 +141,11 @@ export const DraggableView = ({ moduleId, view }: DraggableViewProps) => {
 										onClick={(e) => e.stopPropagation()}
 									/>
 
-									<div
-										className={`flex min-w-0 flex-1 items-center gap-4 ${dim}`}
-									>
-										{fieldColumns.map(([key], index) => {
-											const valueKey = `column${index + 1}`;
-											const isFirst = index === 0;
-
-											return (
-												<span
-													key={key}
-													className={`truncate text-text-2 ${
-														isFirst ? "font-medium text-text" : "flex-1"
-													}`}
-												>
-													{formatCellValue(r.row[valueKey])}
-												</span>
-											);
-										})}
-									</div>
+									<ViewRowCells
+										fieldColumns={fieldColumns}
+										row={r.row}
+										dim={dim}
+									/>
 
 									<ViewStatusBadge row={r.row} className="shrink-0" />
 

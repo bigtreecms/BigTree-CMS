@@ -4,6 +4,7 @@ import type { ModuleForm, ModuleFormField } from "@/api/endpoints/modules";
 import type { Tag } from "@/api/endpoints/tags";
 import { TagInput } from "@/components/tags/TagInput";
 import { Alert } from "@/components/ui/Alert";
+import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { FieldLabel } from "@/components/ui/Field";
 import { UnsavedChangesGuard } from "@/components/ui/UnsavedChangesGuard";
@@ -335,36 +336,28 @@ export const FormRenderer = ({
 
 			<div className="sticky bottom-0 flex flex-wrap items-center justify-end gap-2 border-t border-border bg-surface-2 px-4 py-3">
 				{onCancel && (
-					<button
-						type="button"
-						className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] text-text-2 hover:bg-hover"
-						onClick={onCancel}
-						disabled={submitting}
-					>
+					<Button onClick={onCancel} disabled={submitting}>
 						Cancel
-					</button>
+					</Button>
 				)}
 				{secondaryAction}
-				<button
+				<Button
 					type="submit"
-					className={
-						canPublish
-							? "inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] font-medium text-text-2 disabled:opacity-60 hover:bg-hover"
-							: "inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-[12.5px] font-medium text-accent-fg disabled:opacity-60 hover:bg-accent-hover"
-					}
-					disabled={submitting || disabled}
+					variant={canPublish ? "secondary" : "primary"}
+					loading={submitting}
+					loadingLabel="Saving…"
+					disabled={disabled}
 				>
-					{submitting ? "Saving…" : submitLabel}
-				</button>
+					{submitLabel}
+				</Button>
 				{canPublish && (
-					<button
-						type="button"
-						className="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-[12.5px] font-medium text-accent-fg disabled:opacity-60 hover:bg-accent-hover"
+					<Button
+						variant="primary"
 						onClick={(e) => handleSubmit(e, true)}
 						disabled={submitting || disabled}
 					>
 						{publishLabel}
-					</button>
+					</Button>
 				)}
 			</div>
 		</form>

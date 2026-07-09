@@ -1,8 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { useToastMutation } from "@/hooks/useToastMutation";
 import { ChevronDown, ChevronRight } from "lucide-react";
-import { useNavigate } from "react-router-dom";
 
 import { DragHandle } from "@/components/ui/DragHandle";
 import { Loading } from "@/components/ui/Loading";
@@ -15,20 +14,19 @@ import { queryKeys } from "@/lib/queryKeys";
 import type { ModuleView } from "@/api/endpoints/modules";
 
 import {
-	formatCellValue,
-	isPersistedEntryId,
-	parseViewActions,
 	statusDimClass,
 	statusFromRow,
 	statusRowClass,
+	viewEmptyLabel,
 	type BuiltinViewActionFlags,
 	type CustomViewAction,
 } from "./viewHelpers";
 import { ViewStatusBadge } from "./ViewStatusBadge";
+import { ViewRowCells } from "./ViewRowCells";
 import { RowActions } from "./RowActions";
 import { useEntryDelete } from "./useEntryDelete";
 import { useModuleEntryLinks } from "@/pages/ModuleLayout";
-import { useDebouncedValue } from "@/hooks/useDebouncedValue";
+import { useModuleEntries } from "./useModuleEntries";
 
 /**
  * Runtime for the `nested` view type.
@@ -102,11 +100,7 @@ interface DragApi {
 }
 
 export const NestedView = ({ moduleId, view }: NestedViewProps) => {
-	const navigate = useNavigate();
-	const { editPath } = useModuleEntryLinks();
 	const queryClient = useQueryClient();
-	const [query, setQuery] = useState("");
-	const debouncedQuery = useDebouncedValue(query, 200);
 	const [expanded, setExpanded] = useState<Set<string>>(() => new Set());
 	const [localRows, setLocalRows] = useState<ModuleEntryRow[] | null>(null);
 	const [dragId, setDragId] = useState<string | null>(null);
@@ -116,18 +110,8 @@ export const NestedView = ({ moduleId, view }: NestedViewProps) => {
 	// Match the legacy nested view's sort: position DESC keeps drag-assigned
 	// ordering, id ASC is the stable tiebreak. getSearchResults special-cases
 	// this exact string (see auto-modules.php:1482).
-	const listQuery = useQuery({
-		queryKey: queryKeys.moduleEntries.viewQuery(moduleId, view.id, {
-			q: debouncedQuery || undefined,
-			view: view.id,
-		}),
-		queryFn: () =>
-			autoModulesApi.list(moduleId, {
-				view: view.id,
-				q: debouncedQuery || undefined,
-				sort: "position DESC, id ASC",
-			}),
-	});
+	const { query, setQuery, debouncedQuery, builtins, custom, fieldColumns, listQuery, openEdit } =
+		useModuleEntries({ moduleId, view, listParams: { sort: "position DESC, id ASC" } });
 
 	useEffect(() => {
 		if (listQuery.data) {
@@ -143,9 +127,6 @@ export const NestedView = ({ moduleId, view }: NestedViewProps) => {
 				queryKey: queryKeys.moduleEntries.view(moduleId, view.id),
 			}),
 	});
-
-	const { builtins, custom } = useMemo(() => parseViewActions(view.actions), [view.actions]);
-	const fieldColumns = useMemo(() => Object.entries(view.fields ?? {}), [view.fields]);
 
 	const rows = useMemo(
 		() => localRows ?? listQuery.data?.items ?? [],
@@ -165,14 +146,6 @@ export const NestedView = ({ moduleId, view }: NestedViewProps) => {
 
 			return next;
 		});
-	};
-
-	const openEdit = (row: ModuleEntryRow) => {
-		if (!builtins.edit || !isPersistedEntryId(row.id)) {
-			return;
-		}
-
-		navigate(editPath(row.id));
 	};
 
 	const canDrag = !debouncedQuery && !listQuery.isLoading;
@@ -284,9 +257,7 @@ export const NestedView = ({ moduleId, view }: NestedViewProps) => {
 					loading={<Loading variant="block" label="Loading entries…" />}
 					empty={
 						<div className="p-9 text-center text-[13px] text-text-3">
-							{debouncedQuery
-								? `No entries match “${debouncedQuery}”.`
-								: "No entries yet."}
+							{viewEmptyLabel(debouncedQuery)}
 						</div>
 					}
 				>
@@ -423,21 +394,7 @@ const NestedRow = ({
 					)}
 				</span>
 
-				<div className={`flex min-w-0 flex-1 items-center gap-4 ${dim}`}>
-					{fieldColumns.map(([key], index) => {
-						const valueKey = `column${index + 1}`;
-						const isFirst = index === 0;
-
-						return (
-							<span
-								key={key}
-								className={`truncate text-text-2 ${isFirst ? "font-medium text-text" : "flex-1"}`}
-							>
-								{formatCellValue(node.row[valueKey])}
-							</span>
-						);
-					})}
-				</div>
+				<ViewRowCells fieldColumns={fieldColumns} row={node.row} dim={dim} />
 
 				<ViewStatusBadge row={node.row} className="shrink-0" />
 

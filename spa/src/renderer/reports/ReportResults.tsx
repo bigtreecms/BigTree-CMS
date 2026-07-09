@@ -1,5 +1,6 @@
 import { useMemo, type ReactNode } from "react";
 
+import { Button } from "@/components/ui/Button";
 import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
 import type { ModuleReportRunResponse } from "@/api/endpoints/modules";
 import { formatCellValue } from "@/renderer/views/viewHelpers";
@@ -60,14 +61,9 @@ export const ReportResults = ({ results, onDownloadCsv, downloadIcon }: ReportRe
 					{meta.count} row{meta.count === 1 ? "" : "s"}
 				</div>
 				{items.length > 0 && (
-					<button
-						type="button"
-						className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] text-text-2 hover:bg-hover"
-						onClick={onDownloadCsv}
-					>
-						{downloadIcon}
+					<Button icon={downloadIcon} onClick={onDownloadCsv}>
 						Export CSV
-					</button>
+					</Button>
 				)}
 			</div>
 
