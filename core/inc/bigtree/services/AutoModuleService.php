@@ -196,7 +196,7 @@
 				$item = BigTreeAutoModule::getItem($table, $id);
 				Hooks::fire("module_entry.created", [
 					"module" => $module_id, "table" => $table, "id" => (int)$id, "item" => $item["item"] ?? $item,
-				], ["user_id" => $request->user->id]);
+				]);
 
 				return Response::created($item["item"] ?? $item, null);
 			}
@@ -215,7 +215,7 @@
 			$this->trackModuleResources($table, "p".$pending_id, $data);
 			Hooks::fire("module_entry.pending_created", [
 				"module" => $module_id, "table" => $table, "pending_id" => (int)$pending_id,
-			], ["user_id" => $request->user->id]);
+			]);
 
 			return Response::created(["pending_id" => $pending_id, "pending" => true], null);
 		}
@@ -274,7 +274,7 @@
 					$fresh = BigTreeAutoModule::getItem($table, $new_id);
 					Hooks::fire("module_entry.updated", [
 						"module" => $module_id, "table" => $table, "id" => $new_id, "item" => $fresh["item"] ?? $fresh,
-					], ["user_id" => $request->user->id]);
+					]);
 
 					return Response::ok($fresh);
 				}
@@ -295,7 +295,7 @@
 				$fresh = BigTreeAutoModule::getItem($table, $entry_id);
 				Hooks::fire("module_entry.updated", [
 					"module" => $module_id, "table" => $table, "id" => $entry_id, "item" => $fresh["item"] ?? $fresh,
-				], ["user_id" => $request->user->id]);
+				]);
 
 				return Response::ok($fresh);
 			}
@@ -310,7 +310,7 @@
 			$this->trackModuleResources($table, "p".$change_allocation_id, $data);
 			Hooks::fire("module_entry.pending_updated", [
 				"module" => $module_id, "table" => $table, "id" => $raw_id,
-			], ["user_id" => $request->user->id]);
+			]);
 
 			return Response::ok(["pending" => true]);
 		}
@@ -352,7 +352,7 @@
 
 			Hooks::fire("module_entry.deleted", [
 				"module" => $module_id, "table" => $table, "id" => $raw_id,
-			], ["user_id" => $request->user->id]);
+			]);
 
 			return Response::noContent();
 		}
@@ -481,7 +481,7 @@
 
 			Hooks::fire("module_entry.{$column}", [
 				"module" => $module_id, "table" => $table, "id" => $entry_id, "value" => $next,
-			], ["user_id" => $request->user->id]);
+			]);
 
 			return Response::ok([
 				"id" => $entry_id,

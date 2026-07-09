@@ -23,6 +23,11 @@
 			$request = Request::fromGlobals($path_segments);
 			$request->request_id = $request_id;
 
+			// Reset ambient hook context per dispatch so a prior request's actor
+			// can't leak into this one (matters when many dispatches share a
+			// process, e.g. the _test harness). Authenticate sets it post-auth.
+			Hooks::clearDefaultContext();
+
 			try {
 				// IP restriction policy (banned / allowed lists) gates every route,
 				// including public ones — the same check the legacy admin runs in

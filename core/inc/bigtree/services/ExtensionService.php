@@ -3,11 +3,9 @@
 
 	use BigTree\Api\Request;
 	use BigTree\Api\Response;
-	use BigTree\Api\Jwt;
+	use BigTree\Api\DownloadToken;
 	use BigTree\Api\Sanitize;
-	use BigTree\Api\Pagination;
 	use BigTree\Api\Upload;
-	use BigTree\Api\Exceptions\AuthenticationException;
 	use BigTree\Api\Exceptions\BadRequestException;
 	use BigTree\Api\Exceptions\ConflictException;
 	use BigTree\Api\Exceptions\NotFoundException;
@@ -899,23 +897,7 @@
 			$id = $request->queryString("id", "", false);
 			$raw_token = $request->queryString("token", "", false);
 
-			if ($raw_token === "") {
-				throw new AuthenticationException("Missing download token", "missing_token");
-			}
-
-			try {
-				$payload = Pagination::decodeCursor($raw_token, Jwt::currentSecret());
-			} catch (\Throwable $e) {
-				throw new AuthenticationException("Invalid download token", "invalid_token");
-			}
-
-			if (($payload["eid"] ?? "") !== $id) {
-				throw new AuthenticationException("Token does not match this package", "token_mismatch");
-			}
-
-			if (((int)($payload["exp"] ?? 0)) < time()) {
-				throw new AuthenticationException("Download token expired", "token_expired");
-			}
+			DownloadToken::validate($raw_token, "eid", $id, "Token does not match this package", "token_mismatch");
 
 			$path = SERVER_ROOT . "cache/extension-build-" . preg_replace('/[^a-zA-Z0-9._-]/', "", $id) . ".zip";
 
@@ -923,26 +905,13 @@
 				throw new NotFoundException("Package not found — rebuild the extension.", "package_not_found");
 			}
 
-			$response = Response::raw(200, []);
-			$response->is_envelope = false;
-			$response->body = null;
-			$response
-				->header("Content-Type", "application/zip")
-				->header("Content-Disposition", 'attachment; filename="' . $id . '.zip"')
-				->header("Content-Length", (string)@filesize($path))
-				->header("Cache-Control", "private, no-store")
-				->header("X-Content-Type-Options", "nosniff");
-			$response->send(null);
-
-			@readfile($path);
-			exit;
+			return Response::download($path, $id . ".zip", "application/zip")->stream($path);
 		}
 
 		// Token scoped to a package id + issuing user, matching the backup download flow.
 		private function buildDownloadUrl(string $id, int $user_id): string
 		{
-			$payload = ["uid" => $user_id, "eid" => $id, "exp" => time() + self::BUILD_DOWNLOAD_TTL];
-			$token = Pagination::encodeCursor($payload, Jwt::currentSecret());
+			$token = DownloadToken::mint(["uid" => $user_id, "eid" => $id], self::BUILD_DOWNLOAD_TTL);
 
 			return rtrim(ADMIN_ROOT, "/") . "/api/v1/extensions/build/download?id=" . urlencode($id) . "&token=" . urlencode($token);
 		}

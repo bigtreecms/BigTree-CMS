@@ -55,6 +55,40 @@
 			return $r;
 		}
 
+		/**
+		 * Build a non-envelope response for streaming a file off disk: no JSON
+		 * body, the download headers set, Content-Length read from $path. The
+		 * caller streams the bytes with stream() once the response is built.
+		 */
+		public static function download(string $path, string $filename, string $mime): self {
+			$r = new self();
+			$r->status = 200;
+			$r->is_envelope = false;
+			$r->body = null;
+			$r
+				->header("Content-Type", $mime)
+				->header("Content-Disposition", 'attachment; filename="' . $filename . '"')
+				->header("Content-Length", (string)@filesize($path))
+				->header("Cache-Control", "private, no-store")
+				->header("X-Content-Type-Options", "nosniff");
+
+			return $r;
+		}
+
+		/**
+		 * Emit the headers, stream $path straight to output via readfile (no
+		 * buffering, no memory pressure regardless of size), and terminate —
+		 * bypassing the Kernel's envelope/audit tail, which is moot for a file
+		 * download. Only valid on a response built by download(). Does not return.
+		 */
+		public function stream(string $path) {
+			$this->send(null);
+
+			// readfile streams to output; no buffering required.
+			@readfile($path);
+			exit;
+		}
+
 		public function header($name, $value) {
 			$this->headers[$name] = $value;
 

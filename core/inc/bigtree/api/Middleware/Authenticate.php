@@ -1,6 +1,7 @@
 <?php
 	namespace BigTree\Api\Middleware;
 
+	use BigTree\Api\Hooks;
 	use BigTree\Api\Jwt;
 	use BigTree\Api\Request;
 	use BigTree\Api\Exceptions\AuthenticationException;
@@ -74,6 +75,10 @@
 			$user->token_version = (int)$row["token_version"];
 
 			$request->user = $user;
+
+			// Ambient actor attribution: every api.* hook fired downstream gets
+			// user_id in its context without each call site passing it.
+			Hooks::setDefaultContext(["user_id" => $user->id]);
 
 			return $next($request);
 		}

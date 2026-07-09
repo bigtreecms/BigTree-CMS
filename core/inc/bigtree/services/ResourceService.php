@@ -123,7 +123,7 @@
 
 			$id = (int)SQL::insert("bigtree_resource_folders", [
 				"parent" => $parent,
-				"name" => htmlspecialchars($name),
+				"name" => BigTree::safeEncode($name),
 			]);
 			$row = SQL::fetch("SELECT id, parent, name FROM bigtree_resource_folders WHERE id = ?", $id);
 
@@ -143,7 +143,7 @@
 			$update = [];
 
 			if (isset($request->body["name"])) {
-				$update["name"] = htmlspecialchars(trim((string)$request->body["name"]));
+				$update["name"] = BigTree::safeEncode(trim((string)$request->body["name"]));
 			}
 
 			if (isset($request->body["parent"])) {
@@ -348,7 +348,7 @@
 			}
 
 			$fresh = SQL::fetch("SELECT * FROM bigtree_resources WHERE id = ?", $id);
-			Hooks::fire("resource.replaced", $fresh, ["user_id" => $request->user->id]);
+			Hooks::fire("resource.replaced", $fresh);
 
 			return Response::ok($this->presentResource($fresh, true));
 		}
@@ -370,7 +370,7 @@
 
 			SQL::query("DELETE FROM bigtree_resource_allocation WHERE resource = ?", $id);
 			SQL::delete("bigtree_resources", $id);
-			Hooks::fire("resource.deleted", $existing, ["user_id" => $request->user->id]);
+			Hooks::fire("resource.deleted", $existing);
 
 			return Response::noContent();
 		}
@@ -469,7 +469,7 @@
 				]);
 
 				$resource = SQL::fetch("SELECT * FROM bigtree_resources WHERE id = ?", $id);
-				Hooks::fire("resource.uploaded", $resource, ["user_id" => $request->user->id]);
+				Hooks::fire("resource.uploaded", $resource);
 
 				return Response::created($this->presentResource($resource, true), null);
 			}
@@ -507,7 +507,7 @@
 			]);
 
 			$resource = SQL::fetch("SELECT * FROM bigtree_resources WHERE id = ?", $id);
-			Hooks::fire("resource.uploaded", $resource, ["user_id" => $request->user->id]);
+			Hooks::fire("resource.uploaded", $resource);
 
 			return Response::created($this->presentResource($resource, true), null);
 		}

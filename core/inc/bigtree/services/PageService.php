@@ -212,7 +212,7 @@
 
 				Hooks::fire("page.pending_created", [
 					"parent" => $parent, "pending_change_id" => (int)$pending_id,
-				], ["user_id" => $request->user->id]);
+				]);
 
 				return Response::created(["pending_change_id" => (int)$pending_id, "pending" => true], null);
 			}
@@ -288,7 +288,7 @@
 				$page["template"], (int)$id, $insert, $d["tags"] ?? [], $d["open_graph"] ?? []
 			);
 
-			Hooks::fire("page.created", $page, ["user_id" => $user->id]);
+			Hooks::fire("page.created", $page);
 
 			return $this->present($page, true);
 		}
@@ -385,7 +385,7 @@
 
 			Hooks::fire("page.pending_created", [
 				"parent" => $parent, "pending_change_id" => (int)$pending_id, "duplicated_from" => $id,
-			], ["user_id" => $request->user->id]);
+			]);
 
 			return Response::created(["pending_change_id" => (int)$pending_id, "pending" => true], null);
 		}
@@ -408,7 +408,7 @@
 
 				Hooks::fire("page.pending_updated", [
 					"id" => $id, "pending_change_id" => (int)$pending_id,
-				], ["user_id" => $request->user->id]);
+				]);
 
 				return Response::ok(["pending" => true, "pending_change_id" => (int)$pending_id]);
 			}
@@ -544,7 +544,7 @@
 				$fresh["template"], $id, $update ?: [], $d["tags"] ?? [], $d["open_graph"] ?? []
 			);
 
-			Hooks::fire("page.updated", $fresh, ["user_id" => $user->id, "previous" => $page]);
+			Hooks::fire("page.updated", $fresh, ["previous" => $page]);
 
 			return $this->present($fresh, true);
 		}
@@ -776,7 +776,7 @@
 
 			Hooks::fire("page.pending_updated", [
 				"pending_change_id" => $pcid, "parent" => $parent,
-			], ["user_id" => $request->user->id]);
+			]);
 
 			return Response::ok(["pending" => true, "pending_change_id" => $pcid]);
 		}
@@ -868,7 +868,7 @@
 			// Deleting a trunk page changes the multi-site routing map.
 			if (Flag::isOn($page["trunk"])) $this->invalidateMultiSiteCache();
 
-			Hooks::fire("page.deleted", $page, ["user_id" => $request->user->id]);
+			Hooks::fire("page.deleted", $page);
 
 			return Response::noContent();
 		}
@@ -1118,7 +1118,7 @@
 			]);
 
 			$this->fireTemplatePublishHook($fresh["template"], $id, $update, [], []);
-			Hooks::fire("page.updated", $fresh, ["user_id" => $request->user->id, "previous" => $page]);
+			Hooks::fire("page.updated", $fresh, ["previous" => $page]);
 
 			return Response::ok($this->present($fresh, true));
 		}

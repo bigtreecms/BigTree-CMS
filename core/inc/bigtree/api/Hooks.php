@@ -28,6 +28,22 @@
 		const CACHE_FILE = "cache/bigtree-hooks.json";
 
 		private static $cache = null;
+		private static $default_context = [];
+
+		/**
+		 * Sets the request-scoped default context merged under every fire() call.
+		 * The Kernel wires this after authentication resolves the actor so hook
+		 * call sites don't each have to remember to pass ["user_id" => ...].
+		 * Per-call context keys win over these defaults.
+		 */
+		public static function setDefaultContext(array $context) {
+			self::$default_context = $context;
+		}
+
+		/** Resets the default context. Called per-dispatch and by the _test harness. */
+		public static function clearDefaultContext() {
+			self::$default_context = [];
+		}
 
 		public static function run($type, $context = "", $data = "", array $data_context = []) {
 			$registry = self::loadRegistry();
@@ -73,6 +89,8 @@
 		 * hooks are registered for the event).
 		 */
 		public static function fire($event, $data = null, array $data_context = []) {
+			// Per-call context wins over the request-scoped defaults (actor id, etc.).
+			$data_context = array_merge(self::$default_context, $data_context);
 
 			return self::run("api." . $event, "", $data, $data_context);
 		}

@@ -1,10 +1,9 @@
 <?php
 	namespace BigTree\Services;
 
-	use BigTree\Api\Jwt;
+	use BigTree\Api\DownloadToken;
 	use BigTree\Api\Manifest;
 	use BigTree\Api\OpenApi;
-	use BigTree\Api\Pagination;
 	use BigTree\Api\Request;
 	use BigTree\Api\Response;
 	use BigTree\Api\Exceptions\AuthenticationException;
@@ -431,74 +430,27 @@
 		/**
 		 * GET /system/backup/{id}/download?token=...
 		 *
-		 * Streams the backup file via PHP's readfile() — no buffering, no memory
-		 * pressure regardless of dump size. Public route (no Bearer required) so
-		 * the SPA can use a regular <a download> link; the URL itself is gated by
-		 * an HMAC-signed token (issued by createBackup/listBackups) bound to a
-		 * specific backup_id with a short TTL.
-		 *
-		 * The token is BEARER-style, not user-scoped: because the route is
-		 * "public" (Authenticate skips it before $request->user is loaded) there
-		 * is no authenticated user to compare against, so anyone holding a valid,
-		 * unexpired token for this backup_id may redeem it. We validate the claims
-		 * we can enforce here — bid (backup id) and exp (expiry). The uid claim is
-		 * minted for audit/correlation only and is intentionally NOT enforced (see
-		 * buildDownloadUrl). Keep these checks in sync with the claims minted there.
-		 *
-		 * The token check uses hash_equals via Pagination::decodeCursor for
-		 * constant-time comparison.
+		 * Public route (no Bearer required) so the SPA can use a regular
+		 * <a download> link; the URL is gated by an HMAC-signed, backup_id-bound
+		 * token issued by createBackup/listBackups. See BigTree\Api\DownloadToken
+		 * for the bearer semantics — in particular why the minted uid claim is not
+		 * enforced here — and Response::download for the streaming path.
 		 */
 		public function downloadBackup(Request $request) {
 			$backup_id = $this->sanitizeBackupId($request->routeParam("id"));
 			$raw_token = $request->queryString("token", "", false);
-			if ($raw_token === "") {
-				throw new AuthenticationException("Missing download token", "missing_token");
-			}
 
-			try {
-				$payload = Pagination::decodeCursor($raw_token, Jwt::currentSecret());
-			} catch (\Throwable $e) {
-				throw new AuthenticationException("Invalid download token", "invalid_token");
-			}
-
-			// Enforce the claims minted in buildDownloadUrl. The uid claim is
-			// deliberately NOT checked: this is a public route, so there is no
-			// authenticated user to compare it against (see method docblock).
-			if (($payload["bid"] ?? "") !== $backup_id) {
-				throw new AuthenticationException("Token does not match this backup", "token_backup_mismatch");
-			}
-			if (((int)($payload["exp"] ?? 0)) < time()) {
-				throw new AuthenticationException("Download token expired", "token_expired");
-			}
+			DownloadToken::validate($raw_token, "bid", $backup_id, "Token does not match this backup", "token_backup_mismatch");
 
 			$path = SERVER_ROOT . self::BACKUP_DIR . $backup_id . ".sql";
+
 			if (!file_exists($path)) {
 				throw new NotFoundException("Backup file not found or expired", "backup_not_found");
 			}
 
-			// We bypass the JSON envelope and stream the file directly. Setting
-			// is_envelope = false on a Response prevents the body from being
-			// json_encoded; body = null prevents anything other than headers being
-			// emitted by Response::send(). We then echo the file contents ourselves.
-			$response = Response::raw(200, []);
-			$response->is_envelope = false;
-			$response->body = null;
 			$filename = "bigtree-backup-" . date("Y-m-d-His", (int)@filemtime($path)) . ".sql";
-			$response
-				->header("Content-Type", "application/sql")
-				->header("Content-Disposition", 'attachment; filename="' . $filename . '"')
-				->header("Content-Length", (string)@filesize($path))
-				->header("Cache-Control", "private, no-store")
-				->header("X-Content-Type-Options", "nosniff");
 
-			// We can't rely on the Kernel to readfile for us — Response::send only
-			// echoes the JSON body. Send headers + stream + die, bypassing the
-			// envelope/audit middleware tail (auditing a 4-second download is moot).
-			$response->send(null);
-
-			// readfile streams to output; no buffering required.
-			@readfile($path);
-			exit;
+			return Response::download($path, $filename, "application/sql")->stream($path);
 		}
 
 		// — Core upgrade —
@@ -893,23 +845,16 @@
 
 		/**
 		 * Build an absolute download URL with an HMAC-signed token that scopes the
-		 * download to a specific backup_id with a short TTL. Reuses the cursor
-		 * encoder so we don't reinvent the HMAC primitive.
-		 *
-		 * The token is BEARER-style: the /download route is public (no Bearer
-		 * required) so a browser <a download> link works, which means downloadBackup
-		 * cannot enforce the issuing user. The uid claim is included for
-		 * audit/correlation only and is NOT validated at redemption — do not rely on
-		 * it for access control. Any claim added here that SHOULD gate access must
-		 * also be checked in downloadBackup.
+		 * download to a specific backup_id with a short TTL. The uid claim is minted
+		 * for audit/correlation only and is NOT enforced at redemption — see
+		 * BigTree\Api\DownloadToken for the bearer semantics.
 		 */
 		private function buildDownloadUrl($backup_id, $user_id) {
-			$payload = [
+			$token = DownloadToken::mint([
 				"uid" => (int)$user_id,
 				"bid" => $backup_id,
-				"exp" => time() + self::DOWNLOAD_TOKEN_TTL_SECONDS,
-			];
-			$token = Pagination::encodeCursor($payload, Jwt::currentSecret());
+			], self::DOWNLOAD_TOKEN_TTL_SECONDS);
+
 			return rtrim(ADMIN_ROOT, "/") . "/api/v1/system/backup/$backup_id/download?token=" . urlencode($token);
 		}
 	}

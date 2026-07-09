@@ -100,7 +100,7 @@
 
 		public function create(Request $request) {
 			$d = $request->body;
-			$subject = htmlspecialchars(strip_tags((string)($d["subject"] ?? "")));
+			$subject = BigTree::safeEncode(strip_tags((string)($d["subject"] ?? "")));
 			$message = strip_tags((string)($d["message"] ?? ""), "<p><b><strong><em><i><a>");
 			$message = preg_replace('/href="javascript:[^"]+"/', '', $message);
 			$message = str_replace(['href=javascript:', 'onclick='], '', $message);
