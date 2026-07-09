@@ -142,7 +142,8 @@ export const ModuleGroupEdit = () => {
 				onSubmit={(e) =>
 					handleSubmit(
 						e,
-						() => validateRequired([{ field: "name", label: "Name", value: body.name }]),
+						() =>
+							validateRequired([{ field: "name", label: "Name", value: body.name }]),
 						() => saveMutation.mutate()
 					)
 				}

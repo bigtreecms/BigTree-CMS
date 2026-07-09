@@ -18,7 +18,7 @@ export const queryKeys = {
 		/** Prefix key for invalidating all page list queries regardless of parent. */
 		lists: () => ["pages", "list"] as const,
 		list: (parent: number) => ["pages", "list", parent] as const,
-		detail: (id: number, opts?: { lineage?: boolean }) =>
+		detail: (id: number, opts?: { lineage?: boolean; pending?: boolean }) =>
 			opts ? (["pages", "detail", id, opts] as const) : (["pages", "detail", id] as const),
 		revisions: (id: number) => ["pages", "revisions", id] as const,
 		draft: (pcid: number) => ["pages", "draft", pcid] as const,
@@ -65,7 +65,7 @@ export const queryKeys = {
 		lists: () => ["settings", "list"] as const,
 		list: (params: { page: number; per_page: number; q: string; include_system?: boolean }) =>
 			["settings", "list", params] as const,
-		detail: (id: number, opts?: { includeEncrypted?: boolean }) =>
+		detail: (id: string, opts?: { includeEncrypted?: boolean }) =>
 			opts
 				? (["settings", "detail", id, opts] as const)
 				: (["settings", "detail", id] as const),
@@ -74,25 +74,25 @@ export const queryKeys = {
 	templates: {
 		root: () => ["templates"] as const,
 		list: () => ["templates", "list"] as const,
-		detail: (id: number) => ["templates", "detail", id] as const,
+		detail: (id: string) => ["templates", "detail", id] as const,
 	},
 
 	feeds: {
 		root: () => ["feeds"] as const,
 		list: () => ["feeds", "list"] as const,
-		detail: (id: number) => ["feeds", "detail", id] as const,
+		detail: (id: string) => ["feeds", "detail", id] as const,
 	},
 
 	callouts: {
 		root: () => ["callouts"] as const,
 		list: () => ["callouts", "list"] as const,
-		detail: (id: number) => ["callouts", "detail", id] as const,
+		detail: (id: string) => ["callouts", "detail", id] as const,
 	},
 
 	calloutGroups: {
 		root: () => ["callout-groups"] as const,
 		list: () => ["callout-groups", "list"] as const,
-		detail: (id: number) => ["callout-groups", "detail", id] as const,
+		detail: (id: string) => ["callout-groups", "detail", id] as const,
 	},
 
 	modules: {
@@ -128,7 +128,7 @@ export const queryKeys = {
 		/** Full query key for a view with fetch params. */
 		viewQuery: (moduleId: string, viewId: string | number, params: unknown) =>
 			["module-entries", moduleId, viewId, params] as const,
-		detail: (moduleId: string, entryId: string, formId: number) =>
+		detail: (moduleId: string, entryId: string, formId: string) =>
 			["module-entries", moduleId, "detail", entryId, formId] as const,
 	},
 
@@ -148,14 +148,16 @@ export const queryKeys = {
 		root: () => ["field-types"] as const,
 		list: () => ["field-types", "list"] as const,
 		split: () => ["field-types", "split"] as const,
-		detail: (id: number) => ["field-types", "detail", id] as const,
+		detail: (id: string) => ["field-types", "detail", id] as const,
 		schema: (type: string) => ["field-types", "schema", type] as const,
 	},
 
 	resources: {
 		root: () => ["resources"] as const,
 		search: (q: string, type?: string) =>
-			type ? (["resources", "search", q, type] as const) : (["resources", "search", q] as const),
+			type
+				? (["resources", "search", q, type] as const)
+				: (["resources", "search", q] as const),
 		detail: (id: number) => ["resources", "detail", id] as const,
 		usage: (id: number) => ["resources", "usage", id] as const,
 		metadataFields: () => ["resources", "metadata-fields"] as const,
@@ -199,7 +201,7 @@ export const queryKeys = {
 	db: {
 		root: () => ["db"] as const,
 		tables: () => ["db", "tables"] as const,
-		columns: (table: string, sort?: string) =>
+		columns: (table: string, sort?: boolean) =>
 			sort ? (["db", "columns", table, sort] as const) : (["db", "columns", table] as const),
 	},
 

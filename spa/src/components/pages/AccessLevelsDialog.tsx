@@ -25,7 +25,7 @@ interface AccessLevelsDialogProps {
  */
 export const AccessLevelsDialog = ({ open, onOpenChange, pageId }: AccessLevelsDialogProps) => {
 	const query = useQuery({
-		queryKey: queryKeys.pages.accessLevels(pageId),
+		queryKey: queryKeys.pages.accessLevels(pageId as number),
 		queryFn: () => pagesApi.accessLevels(pageId as number),
 		enabled: open && pageId !== null,
 	});

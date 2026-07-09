@@ -152,7 +152,9 @@ export const ConfigureCloudStorage = () => {
 		onSuccess: () => setGeneralError(null),
 		onError: (err) => {
 			setGeneralError(
-				err instanceof ApiError && err.message ? err.message : "Could not upload private key"
+				err instanceof ApiError && err.message
+					? err.message
+					: "Could not upload private key"
 			);
 		},
 	});

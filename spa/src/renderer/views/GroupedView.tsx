@@ -61,7 +61,10 @@ export const GroupedView = ({ moduleId, view }: GroupedViewProps) => {
 	const { requestDelete, dialog: deleteDialog } = useEntryDelete(moduleId, view.id);
 
 	const listQuery = useQuery({
-		queryKey: queryKeys.moduleEntries.viewQuery(moduleId, view.id, { q: debouncedQuery || undefined, view: view.id }),
+		queryKey: queryKeys.moduleEntries.viewQuery(moduleId, view.id, {
+			q: debouncedQuery || undefined,
+			view: view.id,
+		}),
 		queryFn: () =>
 			autoModulesApi.list(moduleId, { view: view.id, q: debouncedQuery || undefined }),
 	});
@@ -158,14 +161,16 @@ export const GroupedView = ({ moduleId, view }: GroupedViewProps) => {
 				isLoading={listQuery.isLoading && !listQuery.data}
 				error={listQuery.error}
 				isEmpty={rows.length === 0}
-				loading={<Loading variant=”card” label=”Loading entries…” />}
+				loading={<Loading variant="card" label="Loading entries…" />}
 				empty={
-					<div className=”rounded-xl border border-border bg-surface p-9 text-center text-[13px] text-text-3”>
-						{debouncedQuery ? `No entries match “${debouncedQuery}”.` : “No entries yet.”}
+					<div className="rounded-xl border border-border bg-surface p-9 text-center text-[13px] text-text-3">
+						{debouncedQuery
+							? `No entries match “${debouncedQuery}”.`
+							: "No entries yet."}
 					</div>
 				}
 			>
-				<div className=”flex flex-col gap-4”>
+				<div className="flex flex-col gap-4">
 					{groups.map(([groupKey, { title, items }]) => {
 						const isCollapsed = collapsed.has(groupKey);
 

@@ -47,7 +47,12 @@ export const DeveloperSettings = () => {
 	}, [debounced]);
 
 	const query = useQuery({
-		queryKey: queryKeys.settings.list({ page, per_page: PER_PAGE, q: debounced, include_system: true }),
+		queryKey: queryKeys.settings.list({
+			page,
+			per_page: PER_PAGE,
+			q: debounced,
+			include_system: true,
+		}),
 		queryFn: () =>
 			settingsApi.list({
 				page,
@@ -89,9 +94,7 @@ export const DeveloperSettings = () => {
 			header: "Type",
 			width: "120px",
 			hideOnMobile: true,
-			cell: (row) => (
-				<Badge size="sm">{row.type || "text"}</Badge>
-			),
+			cell: (row) => <Badge size="sm">{row.type || "text"}</Badge>,
 		},
 		{
 			key: "flags",

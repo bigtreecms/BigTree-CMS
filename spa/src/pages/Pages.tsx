@@ -246,10 +246,7 @@ export const Pages = () => {
 							Preview
 						</Button>
 						{!isRoot && (
-							<Button
-								icon={<FileText size={13} />}
-								to={pageRevisionsPath(parent)}
-							>
+							<Button icon={<FileText size={13} />} to={pageRevisionsPath(parent)}>
 								Revisions
 							</Button>
 						)}

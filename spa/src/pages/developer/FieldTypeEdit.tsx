@@ -78,7 +78,7 @@ export const FieldTypeEdit = () => {
 	const queryClient = useQueryClient();
 
 	const detailQ = useQuery({
-		queryKey: queryKeys.fieldTypes.detail(idParam),
+		queryKey: queryKeys.fieldTypes.detail(idParam as string),
 		queryFn: () => fieldTypesApi.get(idParam as string),
 		enabled: !isAdd,
 	});

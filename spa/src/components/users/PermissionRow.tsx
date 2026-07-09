@@ -1,5 +1,4 @@
 import type { ReactNode } from "react";
-import { cn } from "@/lib/utils";
 
 interface PermissionRowProps {
 	/** CSS `grid-template-columns` — must match the parent tree's header. */
@@ -29,12 +28,9 @@ export const PermissionRow = ({ columns, depth, nested, children }: PermissionRo
 
 	return (
 		<div
-			className={cn(
-				"grid items-center gap-2 border-t border-border py-1.5 first:border-t-0",
-				nested
-					? "bg-surface-2/40 pl-8 pr-3 text-[12px]"
-					: "bg-surface px-3 text-[12.5px]"
-			)}
+			className={`grid items-center gap-2 border-t border-border py-1.5 first:border-t-0 ${
+				nested ? "bg-surface-2/40 pl-8 pr-3 text-[12px]" : "bg-surface px-3 text-[12.5px]"
+			}`}
 			style={{
 				gridTemplateColumns: columns,
 				...(paddingLeft ? { paddingLeft } : {}),

@@ -44,7 +44,7 @@ export const CalloutGroupEdit = () => {
 	const [groupQ, calloutsQ] = useQueries({
 		queries: [
 			{
-				queryKey: queryKeys.calloutGroups.detail(idParam),
+				queryKey: queryKeys.calloutGroups.detail(idParam as string),
 				queryFn: () => calloutsApi.getGroup(idParam as string),
 				enabled: !isAdd,
 			},

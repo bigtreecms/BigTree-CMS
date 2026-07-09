@@ -66,7 +66,13 @@ const TYPE_ROUTE: Record<FourOhFourType, string> = {
 
 export const FourOhFours = ({ type }: FourOhFoursProps) => {
 	const navigate = useNavigate();
-	const { query: search, setQuery: setSearch, page, setPage, debouncedQuery } = usePaginatedSearch();
+	const {
+		query: search,
+		setQuery: setSearch,
+		page,
+		setPage,
+		debouncedQuery,
+	} = usePaginatedSearch();
 	const debounced = debouncedQuery.trim();
 	const [selected, setSelected] = useState<Set<number>>(new Set());
 	const [editingRedirectId, setEditingRedirectId] = useState<number | null>(null);
@@ -486,7 +492,9 @@ export const FourOhFours = ({ type }: FourOhFoursProps) => {
 
 			<ConfirmDialog
 				open={bulkDeleteDialog.isOpen}
-				onOpenChange={(v) => { if (!v) bulkDeleteDialog.close(); }}
+				onOpenChange={(v) => {
+					if (!v) bulkDeleteDialog.close();
+				}}
 				title={`Delete ${selectedCount} entries?`}
 				description="They can be re-captured the next time the broken URL is requested, but any redirects you'd set up on them will be lost."
 				confirmLabel="Delete"
@@ -496,7 +504,9 @@ export const FourOhFours = ({ type }: FourOhFoursProps) => {
 
 			<ConfirmDialog
 				open={clearDeadDialog.isOpen}
-				onOpenChange={(v) => { if (!v) clearDeadDialog.close(); }}
+				onOpenChange={(v) => {
+					if (!v) clearDeadDialog.close();
+				}}
 				title="Clear dead 404s?"
 				description="Deletes unredirected 404 entries with fewer than 5 recorded hits — usually one-off typos and crawler noise."
 				confirmLabel="Clear"

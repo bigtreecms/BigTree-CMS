@@ -53,9 +53,7 @@ export const Badge = ({
 	title,
 }: BadgeProps) => {
 	const sizeClass =
-		size === "sm"
-			? "rounded px-1.5 py-0.5 gap-1"
-			: "rounded-full px-2 py-0.5 gap-1.5";
+		size === "sm" ? "rounded px-1.5 py-0.5 gap-1" : "rounded-full px-2 py-0.5 gap-1.5";
 
 	return (
 		<span

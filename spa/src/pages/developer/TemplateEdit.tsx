@@ -51,7 +51,7 @@ export const TemplateEdit = () => {
 	const queryClient = useQueryClient();
 
 	const detailQ = useQuery({
-		queryKey: queryKeys.templates.detail(idParam),
+		queryKey: queryKeys.templates.detail(idParam as string),
 		queryFn: () => templatesApi.get(idParam as string),
 		enabled: !isAdd,
 	});

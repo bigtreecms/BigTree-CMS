@@ -112,7 +112,7 @@ export const PageAdd = () => {
 	}, [templatesQuery.data, body.template]);
 
 	const templateQuery = useQuery({
-		queryKey: queryKeys.templates.detail(body.template),
+		queryKey: queryKeys.templates.detail(body.template as string),
 		queryFn: () => templatesApi.get(body.template as string),
 		enabled: Boolean(body.template),
 	});

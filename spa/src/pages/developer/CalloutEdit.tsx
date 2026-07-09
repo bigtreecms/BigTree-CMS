@@ -41,7 +41,7 @@ export const CalloutEdit = () => {
 	const queryClient = useQueryClient();
 
 	const detailQ = useQuery({
-		queryKey: queryKeys.callouts.detail(idParam),
+		queryKey: queryKeys.callouts.detail(idParam as string),
 		queryFn: () => calloutsApi.get(idParam as string),
 		enabled: !isAdd,
 	});

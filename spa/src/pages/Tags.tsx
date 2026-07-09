@@ -186,12 +186,12 @@ export const Tags = () => {
 					description={
 						deleteDialog.item.usage_count > 0
 							? `This tag is currently used by ${deleteDialog.item.usage_count} item${
-									deleteDialog.item.usage_count === 1 ? “” : “s”
+									deleteDialog.item.usage_count === 1 ? "" : "s"
 								}. Those associations will be removed.`
-							: “This tag isn't currently used by any content.”
+							: "This tag isn't currently used by any content."
 					}
-					confirmLabel=”Delete tag”
-					variant=”danger”
+					confirmLabel="Delete tag"
+					variant="danger"
 					onConfirm={() => deleteMutation.mutate(deleteDialog.item!.id)}
 				/>
 			)}

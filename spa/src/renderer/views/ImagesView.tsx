@@ -47,7 +47,10 @@ export const ImagesView = ({ moduleId, view }: ImagesViewProps) => {
 	const debouncedQuery = useDebouncedValue(query, 200);
 
 	const listQuery = useQuery({
-		queryKey: queryKeys.moduleEntries.viewQuery(moduleId, view.id, { q: debouncedQuery || undefined, view: view.id }),
+		queryKey: queryKeys.moduleEntries.viewQuery(moduleId, view.id, {
+			q: debouncedQuery || undefined,
+			view: view.id,
+		}),
 		queryFn: () =>
 			autoModulesApi.list(moduleId, { view: view.id, q: debouncedQuery || undefined }),
 	});
@@ -84,10 +87,12 @@ export const ImagesView = ({ moduleId, view }: ImagesViewProps) => {
 				isLoading={listQuery.isLoading && !listQuery.data}
 				error={listQuery.error}
 				isEmpty={rows.length === 0}
-				loading={<Loading variant=”card” label=”Loading entries…” />}
+				loading={<Loading variant="card" label="Loading entries…" />}
 				empty={
-					<div className=”rounded-xl border border-border bg-surface p-9 text-center text-[13px] text-text-3”>
-						{debouncedQuery ? `No entries match “${debouncedQuery}”.` : “No entries yet.”}
+					<div className="rounded-xl border border-border bg-surface p-9 text-center text-[13px] text-text-3">
+						{debouncedQuery
+							? `No entries match “${debouncedQuery}”.`
+							: "No entries yet."}
 					</div>
 				}
 			>

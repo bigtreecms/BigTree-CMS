@@ -324,7 +324,9 @@ export const ModuleActionsTab = ({ moduleId }: ModuleActionsTabProps) => {
 			{deleteDialog.item && (
 				<ConfirmDialog
 					open={deleteDialog.isOpen}
-					onOpenChange={(v) => { if (!v) deleteDialog.close(); }}
+					onOpenChange={(v) => {
+						if (!v) deleteDialog.close();
+					}}
 					title={`Delete action "${deleteDialog.item.name}"?`}
 					description="This removes the action from the module's navigation. The form/view it points to is left intact."
 					confirmLabel="Delete action"

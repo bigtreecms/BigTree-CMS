@@ -148,7 +148,7 @@ export const PageEdit = () => {
 
 	const templateId = pageQuery.data?.template;
 	const templateQuery = useQuery({
-		queryKey: queryKeys.templates.detail(templateId),
+		queryKey: queryKeys.templates.detail(templateId as string),
 		queryFn: () => templatesApi.get(templateId as string),
 		enabled: Boolean(templateId),
 	});
@@ -517,19 +517,21 @@ export const PageEdit = () => {
 
 			<ConfirmDialog
 				open={deleteDialog.isOpen}
-				onOpenChange={(v) => { if (!v) deleteDialog.close(); }}
+				onOpenChange={(v) => {
+					if (!v) deleteDialog.close();
+				}}
 				title={
 					draft
-						? `Discard draft “${page.nav_title || “Untitled”}”?`
+						? `Discard draft “${page.nav_title || "Untitled"}”?`
 						: `Delete “${page.nav_title}”?`
 				}
 				description={
 					draft
-						? “This permanently discards the unpublished draft. The page was never published, so nothing else is affected.”
-						: “This removes the page and all of its descendants. The action cannot be undone.”
+						? "This permanently discards the unpublished draft. The page was never published, so nothing else is affected."
+						: "This removes the page and all of its descendants. The action cannot be undone."
 				}
-				confirmLabel={draft ? “Discard draft” : “Delete page”}
-				variant=”danger”
+				confirmLabel={draft ? "Discard draft" : "Delete page"}
+				variant="danger"
 				onConfirm={() => deleteMutation.mutate()}
 			/>
 

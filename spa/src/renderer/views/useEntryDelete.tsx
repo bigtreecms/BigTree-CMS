@@ -39,16 +39,23 @@ export const useEntryDelete = (moduleId: string, viewId: string) => {
 		},
 	});
 
-	const requestDelete = useCallback((row: ModuleEntryRow) => {
-		deleteDialog.open(row);
-	}, [deleteDialog]);
+	const requestDelete = useCallback(
+		(row: ModuleEntryRow) => {
+			deleteDialog.open(row);
+		},
+		[deleteDialog]
+	);
 
-	const isPending = deleteDialog.item ? statusFromRow(deleteDialog.item).key === "pending" : false;
+	const isPending = deleteDialog.item
+		? statusFromRow(deleteDialog.item).key === "pending"
+		: false;
 
 	const dialog = deleteDialog.item ? (
 		<ConfirmDialog
 			open={deleteDialog.isOpen}
-			onOpenChange={(v) => { if (!v) deleteDialog.close(); }}
+			onOpenChange={(v) => {
+				if (!v) deleteDialog.close();
+			}}
 			title={isPending ? "Delete pending entry?" : "Delete entry?"}
 			description={
 				isPending

@@ -68,13 +68,17 @@ export const FileDetail = ({ resourceId, onOpenChange, folderQueryKey }: FileDet
 	const replaceInputRef = useRef<HTMLInputElement>(null);
 
 	const detailQuery = useQuery({
-		queryKey: resourceId ? queryKeys.resources.detail(resourceId) : ["resources", "detail", "noop"],
+		queryKey: resourceId
+			? queryKeys.resources.detail(resourceId)
+			: ["resources", "detail", "noop"],
 		queryFn: () => resourcesApi.get(resourceId as number),
 		enabled: resourceId !== null,
 	});
 
 	const usageQuery = useQuery({
-		queryKey: resourceId ? queryKeys.resources.usage(resourceId) : ["resources", "usage", "noop"],
+		queryKey: resourceId
+			? queryKeys.resources.usage(resourceId)
+			: ["resources", "usage", "noop"],
 		queryFn: () => resourcesApi.usage(resourceId as number),
 		enabled: resourceId !== null,
 	});
@@ -357,15 +361,17 @@ export const FileDetail = ({ resourceId, onOpenChange, folderQueryKey }: FileDet
 			{deleteDialog.isOpen && resource && (
 				<ConfirmDialog
 					open={deleteDialog.isOpen}
-					onOpenChange={(v) => { if (!v) deleteDialog.close(); }}
+					onOpenChange={(v) => {
+						if (!v) deleteDialog.close();
+					}}
 					title={`Delete “${resource.name}”?`}
 					description={`This permanently removes the file and all of its crops. ${
 						(usageQuery.data?.length ?? 0) > 0
-							? “It's currently used by other content — those references will break.”
-							: “It does not appear to be in use.”
+							? "It's currently used by other content — those references will break."
+							: "It does not appear to be in use."
 					}`}
-					confirmLabel=”Delete file”
-					variant=”danger”
+					confirmLabel="Delete file"
+					variant="danger"
 					onConfirm={() => deleteMutation.mutate()}
 				/>
 			)}

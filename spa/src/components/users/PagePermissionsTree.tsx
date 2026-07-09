@@ -146,7 +146,9 @@ const TreeRow = ({
 	return (
 		<div>
 			<PermissionRow
-				columns={isAdminUser ? "minmax(0,1fr) 120px" : "minmax(0,1fr) 120px repeat(4, 80px)"}
+				columns={
+					isAdminUser ? "minmax(0,1fr) 120px" : "minmax(0,1fr) 120px repeat(4, 80px)"
+				}
 				depth={depth}
 			>
 				<div className="flex items-center gap-1.5 min-w-0">

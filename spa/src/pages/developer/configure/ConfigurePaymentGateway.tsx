@@ -147,7 +147,9 @@ export const ConfigurePaymentGateway = () => {
 		},
 		onError: (err) => {
 			setGeneralError(
-				err instanceof ApiError && err.message ? err.message : "Could not save payment gateway"
+				err instanceof ApiError && err.message
+					? err.message
+					: "Could not save payment gateway"
 			);
 		},
 	});
@@ -163,7 +165,9 @@ export const ConfigurePaymentGateway = () => {
 		},
 		onError: (err) => {
 			setGeneralError(
-				err instanceof ApiError && err.message ? err.message : "Could not upload certificate"
+				err instanceof ApiError && err.message
+					? err.message
+					: "Could not upload certificate"
 			);
 		},
 	});

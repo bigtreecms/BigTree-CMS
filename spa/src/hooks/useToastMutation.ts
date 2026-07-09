@@ -9,8 +9,10 @@ import {
 import { toast } from "@/lib/toast";
 import { ApiError } from "@/types/api";
 
-interface ToastMutationOptions<TData, TError, TVariables, TContext>
-	extends Omit<UseMutationOptions<TData, TError, TVariables, TContext>, "onSuccess" | "onError"> {
+interface ToastMutationOptions<TData, TError, TVariables, TContext> extends Omit<
+	UseMutationOptions<TData, TError, TVariables, TContext>,
+	"onSuccess" | "onError"
+> {
 	/** Query keys to invalidate on success. */
 	invalidate?: QueryKey[];
 	/** Toast shown on success. Omit to suppress. */

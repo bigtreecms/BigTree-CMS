@@ -69,7 +69,7 @@ export const ModuleDesignerEdit = () => {
 	};
 
 	const detailQ = useQuery({
-		queryKey: queryKeys.modules.detail(idParam),
+		queryKey: queryKeys.modules.detail(idParam as string),
 		queryFn: () => modulesApi.get(idParam as string),
 		enabled: !isAdd,
 	});

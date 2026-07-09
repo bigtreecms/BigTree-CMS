@@ -115,7 +115,9 @@ export const ConfigureFileMetadata = () => {
 		},
 		onError: (err) => {
 			setGeneralError(
-				err instanceof ApiError && err.message ? err.message : "Could not save file metadata"
+				err instanceof ApiError && err.message
+					? err.message
+					: "Could not save file metadata"
 			);
 		},
 	});

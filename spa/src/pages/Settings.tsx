@@ -32,7 +32,13 @@ const PER_PAGE = 25;
 
 export const Settings = () => {
 	const navigate = useNavigate();
-	const { query: search, setQuery: setSearch, page, setPage, debouncedQuery: debounced } = usePaginatedSearch();
+	const {
+		query: search,
+		setQuery: setSearch,
+		page,
+		setPage,
+		debouncedQuery: debounced,
+	} = usePaginatedSearch();
 
 	const query = useQuery({
 		queryKey: queryKeys.settings.list({ page, per_page: PER_PAGE, q: debounced.trim() }),

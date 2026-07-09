@@ -93,7 +93,10 @@ export const ExtensionBuild = () => {
 		queryKey: queryKeys.extensions.buildLicenses(),
 		queryFn: () => extensionsApi.buildLicenses(),
 	});
-	const modulesQ = useQuery({ queryKey: queryKeys.modules.list(), queryFn: () => modulesApi.list() });
+	const modulesQ = useQuery({
+		queryKey: queryKeys.modules.list(),
+		queryFn: () => modulesApi.list(),
+	});
 	const templatesQ = useQuery({
 		queryKey: queryKeys.templates.list(),
 		queryFn: () => templatesApi.list(),

@@ -249,7 +249,9 @@ export const ModuleEmbedFormsTab = ({ moduleId, moduleTable }: ModuleEmbedFormsT
 			{deleteDialog.item && (
 				<ConfirmDialog
 					open={deleteDialog.isOpen}
-					onOpenChange={(v) => { if (!v) deleteDialog.close(); }}
+					onOpenChange={(v) => {
+						if (!v) deleteDialog.close();
+					}}
 					title={`Delete embed form "${deleteDialog.item.title}"?`}
 					description="Any third-party page embedding this form will stop working. Submitted entries are left intact."
 					confirmLabel="Delete embed form"

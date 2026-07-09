@@ -93,7 +93,10 @@ export function formatTime(input: string | Date | null | undefined): string {
  * Split a datetime into separate date ("6/24/26") and time ("3:45 PM") strings
  * for tables that render them in distinct columns.
  */
-export function splitDateTime(input: string | Date | null | undefined): { date: string; time: string } {
+export function splitDateTime(input: string | Date | null | undefined): {
+	date: string;
+	time: string;
+} {
 	const d = parseDate(input);
 
 	if (!d) return { date: typeof input === "string" ? input : "", time: "" };

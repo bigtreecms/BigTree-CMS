@@ -444,7 +444,9 @@ export const UserEdit = () => {
 
 			<ConfirmDialog
 				open={deleteDialog.isOpen}
-				onOpenChange={(v) => { if (!v) deleteDialog.close(); }}
+				onOpenChange={(v) => {
+					if (!v) deleteDialog.close();
+				}}
 				title="Delete user?"
 				description={`This will permanently delete ${displayName}.`}
 				confirmLabel="Delete"
@@ -454,7 +456,9 @@ export const UserEdit = () => {
 
 			<ConfirmDialog
 				open={remove2faDialog.isOpen}
-				onOpenChange={(v) => { if (!v) remove2faDialog.close(); }}
+				onOpenChange={(v) => {
+					if (!v) remove2faDialog.close();
+				}}
 				title="Remove two-factor authentication?"
 				description={`${displayName} will be able to sign in with just their password until they re-enrol. Use this when they've lost their authenticator.`}
 				confirmLabel="Remove 2FA"

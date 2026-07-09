@@ -181,11 +181,13 @@ export const PasskeysPanel = () => {
 			{deleteDialog.item && (
 				<ConfirmDialog
 					open={deleteDialog.isOpen}
-					onOpenChange={(v) => { if (!v) deleteDialog.close(); }}
+					onOpenChange={(v) => {
+						if (!v) deleteDialog.close();
+					}}
 					title={`Remove “${deleteDialog.item.name}”?`}
-					description=”You won't be able to sign in with this passkey anymore. Other sign-in methods continue to work.”
-					confirmLabel=”Remove passkey”
-					variant=”danger”
+					description="You won't be able to sign in with this passkey anymore. Other sign-in methods continue to work."
+					confirmLabel="Remove passkey"
+					variant="danger"
 					onConfirm={() => deleteMutation.mutate(deleteDialog.item!)}
 				/>
 			)}
@@ -222,4 +224,3 @@ const guessDefaultName = (): string => {
 
 	return "New passkey";
 };
-

@@ -83,7 +83,9 @@ export const ConfigureGeocoding = () => {
 		},
 		onError: (err) => {
 			setGeneralError(
-				err instanceof ApiError && err.message ? err.message : "Could not save geocoding config"
+				err instanceof ApiError && err.message
+					? err.message
+					: "Could not save geocoding config"
 			);
 		},
 	});

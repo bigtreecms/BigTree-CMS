@@ -125,7 +125,7 @@ export const ResourceDesigner = ({
 	const addDisabled = columnBound && !columnsTable;
 
 	const columnsQ = useQuery({
-		queryKey: queryKeys.db.columns(columnsTable),
+		queryKey: queryKeys.db.columns(columnsTable as string),
 		queryFn: () => dbApi.columns(columnsTable as string),
 		enabled: useColumnSelect,
 		staleTime: 5 * 60 * 1000,

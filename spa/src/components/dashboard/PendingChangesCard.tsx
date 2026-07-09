@@ -58,7 +58,6 @@ export const PendingChangesCard = ({
 		(rejectMutation.isPending && rejectMutation.variables) ||
 		null;
 
-
 	return (
 		<DashCard
 			icon={Bell}
@@ -175,7 +174,9 @@ export const PendingChangesCard = ({
 
 			<ConfirmDialog
 				open={approveDialog.isOpen}
-				onOpenChange={(v) => { if (!v) approveDialog.close(); }}
+				onOpenChange={(v) => {
+					if (!v) approveDialog.close();
+				}}
 				title="Approve this change?"
 				description="The pending change will be published and made live on the site."
 				confirmLabel="Approve"
@@ -184,7 +185,9 @@ export const PendingChangesCard = ({
 
 			<ConfirmDialog
 				open={rejectDialog.isOpen}
-				onOpenChange={(v) => { if (!v) rejectDialog.close(); }}
+				onOpenChange={(v) => {
+					if (!v) rejectDialog.close();
+				}}
 				title="Reject this change?"
 				description="The pending change will be discarded. The submitting user will need to redo their edits."
 				confirmLabel="Reject"

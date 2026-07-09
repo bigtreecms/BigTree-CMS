@@ -54,7 +54,7 @@ export const FeedEdit = () => {
 	const queryClient = useQueryClient();
 
 	const detailQ = useQuery({
-		queryKey: queryKeys.feeds.detail(idParam),
+		queryKey: queryKeys.feeds.detail(idParam as string),
 		queryFn: () => feedsApi.get(idParam as string),
 		enabled: !isAdd,
 	});

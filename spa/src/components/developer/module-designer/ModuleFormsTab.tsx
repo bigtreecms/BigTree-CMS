@@ -258,7 +258,9 @@ export const ModuleFormsTab = ({ moduleId, moduleTable }: ModuleFormsTabProps) =
 			{deleteDialog.item && (
 				<ConfirmDialog
 					open={deleteDialog.isOpen}
-					onOpenChange={(v) => { if (!v) deleteDialog.close(); }}
+					onOpenChange={(v) => {
+						if (!v) deleteDialog.close();
+					}}
 					title={`Delete form "${deleteDialog.item.title}"?`}
 					description="Actions that open this form will need to be repointed. Entry data in the module's table is left intact."
 					confirmLabel="Delete form"

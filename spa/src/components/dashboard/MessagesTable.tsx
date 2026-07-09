@@ -50,4 +50,3 @@ export const MessagesTable = ({ messages }: MessagesTableProps) => {
 		</div>
 	);
 };
-

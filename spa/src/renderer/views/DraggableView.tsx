@@ -61,7 +61,10 @@ export const DraggableView = ({ moduleId, view }: DraggableViewProps) => {
 	const { requestDelete, dialog: deleteDialog } = useEntryDelete(moduleId, view.id);
 
 	const listQuery = useQuery({
-		queryKey: queryKeys.moduleEntries.viewQuery(moduleId, view.id, { q: debouncedQuery || undefined, view: view.id }),
+		queryKey: queryKeys.moduleEntries.viewQuery(moduleId, view.id, {
+			q: debouncedQuery || undefined,
+			view: view.id,
+		}),
 		queryFn: () =>
 			autoModulesApi.list(moduleId, { view: view.id, q: debouncedQuery || undefined }),
 		placeholderData: keepPreviousData,
@@ -132,12 +135,12 @@ export const DraggableView = ({ moduleId, view }: DraggableViewProps) => {
 					isLoading={listQuery.isLoading && !listQuery.data}
 					error={listQuery.error}
 					isEmpty={rows.length === 0}
-					loading={<Loading variant=”block” label=”Loading entries…” />}
+					loading={<Loading variant="block" label="Loading entries…" />}
 					empty={
-						<div className=”p-9 text-center text-[13px] text-text-3”>
+						<div className="p-9 text-center text-[13px] text-text-3">
 							{debouncedQuery
 								? `No entries match “${debouncedQuery}”.`
-								: “No entries yet.”}
+								: "No entries yet."}
 						</div>
 					}
 				>

@@ -157,7 +157,9 @@ export const PendingChanges = () => {
 							? "The pending change will be merged into the live record."
 							: "The pending change will be discarded. The submitting user will need to redo their edits."
 					}
-					confirmLabel={actionDialog.item.kind === "approve" ? "Approve & publish" : "Reject"}
+					confirmLabel={
+						actionDialog.item.kind === "approve" ? "Approve & publish" : "Reject"
+					}
 					variant={actionDialog.item.kind === "reject" ? "danger" : "default"}
 					onConfirm={confirmAction}
 				/>

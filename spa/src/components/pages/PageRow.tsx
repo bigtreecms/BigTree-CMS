@@ -169,7 +169,7 @@ export const PageRow = ({
 				<Link
 					to={
 						isDraft
-							? pageDraftEditPath(row.pending_change_id)
+							? pageDraftEditPath(row.pending_change_id as number)
 							: pageEditPath(row.id)
 					}
 					state={{ from: location.pathname + location.search }}

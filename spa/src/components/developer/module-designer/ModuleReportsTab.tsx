@@ -328,7 +328,9 @@ export const ModuleReportsTab = ({ moduleId, moduleTable }: ModuleReportsTabProp
 			{deleteDialog.item && (
 				<ConfirmDialog
 					open={deleteDialog.isOpen}
-					onOpenChange={(v) => { if (!v) deleteDialog.close(); }}
+					onOpenChange={(v) => {
+						if (!v) deleteDialog.close();
+					}}
 					title={`Delete report "${deleteDialog.item.title}"?`}
 					description="Actions that open this report will need to be repointed. Entry data is left intact."
 					confirmLabel="Delete report"

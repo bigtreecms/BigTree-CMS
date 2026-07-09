@@ -36,6 +36,15 @@ const meta = {
 			</div>
 		),
 	],
+	args: {
+		columns: COLUMNS_3,
+		children: (
+			<>
+				<span className="truncate text-text">News Articles</span>
+				<Placeholder n={3} />
+			</>
+		),
+	},
 } satisfies Meta<typeof PermissionRow>;
 
 export default meta;

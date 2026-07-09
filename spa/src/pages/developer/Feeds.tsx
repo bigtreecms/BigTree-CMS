@@ -58,9 +58,7 @@ export const Feeds = () => {
 			header: "Type",
 			width: "120px",
 			hideOnMobile: true,
-			cell: (row) => (
-				<Badge size="sm">{row.type || "?"}</Badge>
-			),
+			cell: (row) => <Badge size="sm">{row.type || "?"}</Badge>,
 		},
 		{
 			key: "table",

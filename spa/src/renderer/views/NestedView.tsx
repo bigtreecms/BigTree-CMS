@@ -117,7 +117,10 @@ export const NestedView = ({ moduleId, view }: NestedViewProps) => {
 	// ordering, id ASC is the stable tiebreak. getSearchResults special-cases
 	// this exact string (see auto-modules.php:1482).
 	const listQuery = useQuery({
-		queryKey: queryKeys.moduleEntries.viewQuery(moduleId, view.id, { q: debouncedQuery || undefined, view: view.id }),
+		queryKey: queryKeys.moduleEntries.viewQuery(moduleId, view.id, {
+			q: debouncedQuery || undefined,
+			view: view.id,
+		}),
 		queryFn: () =>
 			autoModulesApi.list(moduleId, {
 				view: view.id,
@@ -278,17 +281,17 @@ export const NestedView = ({ moduleId, view }: NestedViewProps) => {
 					isLoading={listQuery.isLoading && !listQuery.data}
 					error={listQuery.error}
 					isEmpty={rows.length === 0}
-					loading={<Loading variant=”block” label=”Loading entries…” />}
+					loading={<Loading variant="block" label="Loading entries…" />}
 					empty={
-						<div className=”p-9 text-center text-[13px] text-text-3”>
+						<div className="p-9 text-center text-[13px] text-text-3">
 							{debouncedQuery
 								? `No entries match “${debouncedQuery}”.`
-								: “No entries yet.”}
+								: "No entries yet."}
 						</div>
 					}
 				>
 					{tree ? (
-						<ul className=”divide-y divide-border”>
+						<ul className="divide-y divide-border">
 							{tree.map((node) => (
 								<NestedRow
 									key={String(node.row.id)}
@@ -308,7 +311,7 @@ export const NestedView = ({ moduleId, view }: NestedViewProps) => {
 							))}
 						</ul>
 					) : (
-						<ul className=”divide-y divide-border”>
+						<ul className="divide-y divide-border">
 							{rows.map((row) => (
 								<NestedRow
 									key={String(row.id)}
