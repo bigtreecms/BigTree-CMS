@@ -7,7 +7,7 @@ import { PageHead } from "@/components/shell/PageHead";
 import { PageContainer } from "@/components/shell/PageContainer";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
-import { MonoText } from "@/components/ui/MonoText";
+import { NameIdCell } from "@/components/ui/NameIdCell";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { IconButton } from "@/components/ui/IconButton";
@@ -18,6 +18,7 @@ import { feedsApi, type FeedSummary } from "@/api/endpoints/feeds";
 
 import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 import { useToastMutation } from "@/hooks/useToastMutation";
+import { pluralize } from "@/lib/number";
 import { queryKeys } from "@/lib/queryKeys";
 
 export const Feeds = () => {
@@ -46,12 +47,7 @@ export const Feeds = () => {
 			key: "name",
 			header: "Name",
 			width: "minmax(0,1.5fr)",
-			cell: (row) => (
-				<div className="min-w-0">
-					<div className="truncate font-medium text-text">{row.name}</div>
-					<MonoText as="div">{row.id}</MonoText>
-				</div>
-			),
+			cell: (row) => <NameIdCell name={row.name} id={row.id} />,
 		},
 		{
 			key: "type",
@@ -96,7 +92,7 @@ export const Feeds = () => {
 
 			<PageHead
 				title="Feeds"
-				sub={rows.length === 1 ? "1 feed" : `${rows.length} feeds`}
+				sub={pluralize(rows.length, "feed")}
 				actions={
 					<Button variant="primary" icon={<Plus size={13} />} to="/developer/feeds/add">
 						Add feed

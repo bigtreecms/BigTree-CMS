@@ -5,6 +5,7 @@ import { IconButton } from "@/components/ui/IconButton";
 import type { PendingChange } from "@/api/endpoints/dashboard";
 import type { PendingChangeGroup as Group } from "@/lib/pendingChanges";
 import { isPageChange } from "@/lib/pendingChanges";
+import { pluralize } from "@/lib/number";
 import { relativeTime } from "@/lib/time";
 
 interface PendingChangeGroupProps {
@@ -37,7 +38,7 @@ export const PendingChangeGroup = ({
 					{group.label}
 				</h2>
 				<span className="text-[11.5px] tabular-nums text-text-3">
-					{group.changes.length} change{group.changes.length === 1 ? "" : "s"}
+					{pluralize(group.changes.length, "change")}
 				</span>
 			</CardHeader>
 

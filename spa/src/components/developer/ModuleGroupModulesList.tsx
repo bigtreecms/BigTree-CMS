@@ -7,6 +7,7 @@ import { MonoText } from "@/components/ui/MonoText";
 import { modulesApi, type ModuleSummary } from "@/api/endpoints/modules";
 
 import { iconFor } from "@/lib/legacyIcons";
+import { pluralize } from "@/lib/number";
 import { queryKeys } from "@/lib/queryKeys";
 import { useToastMutation } from "@/hooks/useToastMutation";
 import { useDragReorder } from "@/hooks/useDragReorder";
@@ -122,7 +123,7 @@ export const ModuleGroupModulesList = ({ groupId }: ModuleGroupModulesListProps)
 			<div className="flex items-baseline justify-between">
 				<h2 className="text-[13px] font-semibold text-text">Modules in this group</h2>
 				<span className="text-[11px] tabular-nums text-text-3">
-					{ordered.length} module{ordered.length === 1 ? "" : "s"}
+					{pluralize(ordered.length, "module")}
 				</span>
 			</div>
 			<p className="text-[11.5px] text-text-3">Drag to change the order modules appear in.</p>

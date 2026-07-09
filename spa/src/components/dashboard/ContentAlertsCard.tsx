@@ -2,6 +2,7 @@ import { AlertTriangle, ChevronRight, Clock } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import { DashCard } from "./DashCard";
+import { pluralize } from "@/lib/number";
 import { pageEditPath } from "@/lib/routes";
 import { QueryRenderer } from "@/components/ui/QueryRenderer";
 import { InlineEmpty } from "@/components/ui/InlineEmpty";
@@ -28,7 +29,7 @@ export const ContentAlertsCard = ({ alerts, loading, error }: ContentAlertsCardP
 					? "Loading…"
 					: alerts.length === 0
 						? "All tracked pages are within their freshness thresholds."
-						: `${alerts.length} page${alerts.length === 1 ? "" : "s"} need attention`
+						: `${pluralize(alerts.length, "page")} need attention`
 			}
 		>
 			<QueryRenderer

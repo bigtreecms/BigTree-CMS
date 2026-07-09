@@ -2,6 +2,7 @@ import { Archive, ArrowRight, Check, Download, Eye, Star, type LucideIcon } from
 
 import type { DataTableSort } from "@/components/ui/DataTable";
 import type { ModuleView, ModuleViewFieldConfig } from "@/api/endpoints/modules";
+import { pluralize } from "@/lib/number";
 
 /**
  * Shared utilities used by every view-type subcomponent. Pulled out of
@@ -292,7 +293,7 @@ export const formatCellValue = (value: unknown): string => {
 	}
 
 	if (Array.isArray(value)) {
-		return value.length === 0 ? "" : `${value.length} item${value.length === 1 ? "" : "s"}`;
+		return value.length === 0 ? "" : pluralize(value.length, "item");
 	}
 
 	try {

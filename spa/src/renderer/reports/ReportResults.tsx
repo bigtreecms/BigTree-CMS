@@ -3,6 +3,7 @@ import { useMemo, type ReactNode } from "react";
 import { Button } from "@/components/ui/Button";
 import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
 import type { ModuleReportRunResponse } from "@/api/endpoints/modules";
+import { pluralize } from "@/lib/number";
 import { formatCellValue } from "@/renderer/views/viewHelpers";
 
 /**
@@ -57,9 +58,7 @@ export const ReportResults = ({ results, onDownloadCsv, downloadIcon }: ReportRe
 	return (
 		<div className="space-y-3">
 			<div className="flex items-center justify-between">
-				<div className="text-[12.5px] text-text-3">
-					{meta.count} row{meta.count === 1 ? "" : "s"}
-				</div>
+				<div className="text-[12.5px] text-text-3">{pluralize(meta.count, "row")}</div>
 				{items.length > 0 && (
 					<Button icon={downloadIcon} onClick={onDownloadCsv}>
 						Export CSV

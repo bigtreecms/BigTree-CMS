@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { api } from "@/api/client";
 import { authApi } from "@/auth/endpoints";
 import { messagesApi } from "@/api/endpoints/dashboard";
+import { pluralize } from "@/lib/number";
 import { queryKeys } from "@/lib/queryKeys";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { Bell, ChevronDown, ExternalLink, LogOut, Moon, Search, Sun, User } from "lucide-react";
@@ -114,9 +115,7 @@ export const TopBar = ({ dark, onToggleDark, onOpenSearch }: TopBarProps) => {
 
 			<button
 				type="button"
-				title={
-					unread > 0 ? `${unread} unread message${unread === 1 ? "" : "s"}` : "Messages"
-				}
+				title={unread > 0 ? pluralize(unread, "unread message") : "Messages"}
 				onClick={() => navigate("/messages")}
 				className="relative grid size-[30px] cursor-pointer place-items-center rounded-md bg-transparent text-text-2 transition-colors hover:bg-hover hover:text-text"
 			>

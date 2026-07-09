@@ -9,6 +9,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { FieldLabel } from "@/components/ui/Field";
 import { UnsavedChangesGuard } from "@/components/ui/UnsavedChangesGuard";
 import { useScrollToFirstError } from "@/hooks/useScrollToFirstError";
+import { pluralize } from "@/lib/number";
 import { ApiError } from "@/types/api";
 
 import { FieldRowItem } from "./FieldRowItem";
@@ -284,7 +285,7 @@ export const FormRenderer = ({
 							: "You’re editing unpublished changes — the live entry still shows the previously published content. "}
 						{!isNewDraft &&
 							pendingCount > 0 &&
-							`${pendingCount} field${pendingCount === 1 ? "" : "s"} changed — `}
+							`${pluralize(pendingCount, "field")} changed — `}
 						{canPublish
 							? "“Save” keeps it pending; “Save & Publish” makes it live."
 							: "“Save” updates the draft for a publisher to review."}

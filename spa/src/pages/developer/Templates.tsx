@@ -8,7 +8,7 @@ import { PageContainer } from "@/components/shell/PageContainer";
 import { Badge } from "@/components/ui/Badge";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
-import { MonoText } from "@/components/ui/MonoText";
+import { NameIdCell } from "@/components/ui/NameIdCell";
 import { Button } from "@/components/ui/Button";
 import { IconButton } from "@/components/ui/IconButton";
 
@@ -16,6 +16,7 @@ import { DeveloperSectionNav } from "@/components/developer/DeveloperSectionNav"
 
 import { templatesApi, type TemplateSummary } from "@/api/endpoints/templates";
 
+import { pluralize } from "@/lib/number";
 import { queryKeys } from "@/lib/queryKeys";
 import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 import { useToastMutation } from "@/hooks/useToastMutation";
@@ -72,12 +73,7 @@ export const Templates = () => {
 			key: "name",
 			header: "Name",
 			width: "minmax(0,1.5fr)",
-			cell: (row) => (
-				<div className="min-w-0">
-					<div className="truncate font-medium text-text">{row.name}</div>
-					<MonoText as="div">{row.id}</MonoText>
-				</div>
-			),
+			cell: (row) => <NameIdCell name={row.name} id={row.id} />,
 		},
 		{
 			key: "module",
@@ -145,7 +141,7 @@ export const Templates = () => {
 
 			<PageHead
 				title="Templates"
-				sub={rows.length === 1 ? "1 template" : `${rows.length} templates`}
+				sub={pluralize(rows.length, "template")}
 				actions={
 					<Button
 						variant="primary"

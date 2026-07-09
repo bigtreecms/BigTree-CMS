@@ -27,7 +27,7 @@ import { ProgressBar } from "@/components/ui/ProgressBar";
 import { integrityApi } from "@/api/endpoints/integrity";
 import { useIntegrityScan, type ScanFinding } from "@/hooks/useIntegrityScan";
 import { downloadCsv } from "@/lib/csv";
-import { formatNumber } from "@/lib/number";
+import { formatNumber, pluralize } from "@/lib/number";
 import { toast } from "@/lib/toast";
 import { queryKeys } from "@/lib/queryKeys";
 
@@ -90,7 +90,7 @@ export const SiteIntegrity = () => {
 					r.field,
 				])
 			);
-			toast.success(`Exported ${rows.length} ${rows.length === 1 ? "issue" : "issues"}`);
+			toast.success(`Exported ${pluralize(rows.length, "issue")}`);
 		} catch {
 			toast.error("CSV export failed");
 		} finally {
@@ -316,9 +316,7 @@ const ScanResults = ({
 			) : (
 				<div className="overflow-hidden rounded-lg border border-border bg-surface">
 					<header className="flex items-center justify-between border-b border-border bg-surface-2 px-3 py-2 text-[11.5px] font-semibold uppercase tracking-[0.06em] text-text-3">
-						<span>
-							{findings.length} issue{findings.length === 1 ? "" : "s"} found
-						</span>
+						<span>{pluralize(findings.length, "issue")} found</span>
 					</header>
 					<ul className="divide-y divide-border">
 						{findings.map((finding) => (

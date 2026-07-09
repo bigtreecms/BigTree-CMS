@@ -9,7 +9,7 @@ import { PageContainer } from "@/components/shell/PageContainer";
 import { Badge } from "@/components/ui/Badge";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
-import { MonoText } from "@/components/ui/MonoText";
+import { NameIdCell } from "@/components/ui/NameIdCell";
 import { Button } from "@/components/ui/Button";
 import { Pager } from "@/components/ui/Pager";
 import { SearchInput } from "@/components/ui/SearchInput";
@@ -82,12 +82,7 @@ export const DeveloperSettings = () => {
 			key: "name",
 			header: "Name",
 			width: "minmax(0,1.6fr)",
-			cell: (row) => (
-				<div className="min-w-0">
-					<div className="truncate font-medium text-text">{row.name}</div>
-					<MonoText as="div">{row.id}</MonoText>
-				</div>
-			),
+			cell: (row) => <NameIdCell name={row.name} id={row.id} />,
 		},
 		{
 			key: "type",

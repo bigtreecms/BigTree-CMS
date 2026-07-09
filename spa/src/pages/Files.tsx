@@ -36,6 +36,7 @@ import { resourcesApi } from "@/api/endpoints/resources";
 
 import { formatBytes } from "@/lib/bytes";
 import { expandImageUrl } from "@/lib/imageUrl";
+import { pluralize } from "@/lib/number";
 import { queryKeys } from "@/lib/queryKeys";
 import { toast } from "@/lib/toast";
 import { useConfirmDialog } from "@/hooks/useConfirmDialog";
@@ -321,9 +322,9 @@ export const Files = () => {
 	const totalCount = isSearching ? (searchQuery.data?.length ?? 0) : rows.length;
 
 	const sub = isSearching
-		? `${totalCount} result${totalCount === 1 ? "" : "s"} for "${debounced}"`
+		? `${pluralize(totalCount, "result")} for "${debounced}"`
 		: contents
-			? `${contents.folders.length} folder${contents.folders.length === 1 ? "" : "s"}, ${contents.resources.length} file${contents.resources.length === 1 ? "" : "s"}`
+			? `${pluralize(contents.folders.length, "folder")}, ${pluralize(contents.resources.length, "file")}`
 			: "Loading…";
 
 	return (

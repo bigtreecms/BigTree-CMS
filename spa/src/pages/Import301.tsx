@@ -15,6 +15,7 @@ import { FormShell } from "@/components/ui/FormShell";
 import { fourOhFoursApi } from "@/api/endpoints/four-oh-fours";
 
 import { describeApiError } from "@/lib/errorHandling";
+import { pluralize } from "@/lib/number";
 import { toast } from "@/lib/toast";
 import { queryKeys } from "@/lib/queryKeys";
 
@@ -54,7 +55,7 @@ export const Import301 = () => {
 			queryClient.invalidateQueries({ queryKey: queryKeys.redirects.root() });
 			queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.root() });
 			toast.success(
-				`Imported ${result.imported} redirect${result.imported === 1 ? "" : "s"}` +
+				`Imported ${pluralize(result.imported, "redirect")}` +
 					(result.skipped ? ` (${result.skipped} skipped)` : "")
 			);
 			navigate("/dashboard/404s/301");

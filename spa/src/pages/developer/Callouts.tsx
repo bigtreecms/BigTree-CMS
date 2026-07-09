@@ -7,7 +7,7 @@ import { PageHead } from "@/components/shell/PageHead";
 import { PageContainer } from "@/components/shell/PageContainer";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
-import { MonoText } from "@/components/ui/MonoText";
+import { NameIdCell } from "@/components/ui/NameIdCell";
 import { Button } from "@/components/ui/Button";
 import { IconButton } from "@/components/ui/IconButton";
 
@@ -15,6 +15,7 @@ import { DeveloperSectionNav } from "@/components/developer/DeveloperSectionNav"
 
 import { calloutsApi, type CalloutSummary } from "@/api/endpoints/callouts";
 
+import { pluralize } from "@/lib/number";
 import { queryKeys } from "@/lib/queryKeys";
 import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 import { useToastMutation } from "@/hooks/useToastMutation";
@@ -47,12 +48,7 @@ export const Callouts = () => {
 			key: "name",
 			header: "Name",
 			width: "minmax(0,1.5fr)",
-			cell: (row) => (
-				<div className="min-w-0">
-					<div className="truncate font-medium text-text">{row.name}</div>
-					<MonoText as="div">{row.id}</MonoText>
-				</div>
-			),
+			cell: (row) => <NameIdCell name={row.name} id={row.id} />,
 		},
 		{
 			key: "description",
@@ -111,7 +107,7 @@ export const Callouts = () => {
 
 			<PageHead
 				title="Callouts"
-				sub={rows.length === 1 ? "1 callout" : `${rows.length} callouts`}
+				sub={pluralize(rows.length, "callout")}
 				actions={
 					<Button
 						variant="primary"

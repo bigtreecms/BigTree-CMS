@@ -9,7 +9,7 @@ import { PageContainer } from "@/components/shell/PageContainer";
 import { Badge } from "@/components/ui/Badge";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
-import { MonoText } from "@/components/ui/MonoText";
+import { NameIdCell } from "@/components/ui/NameIdCell";
 import { Button } from "@/components/ui/Button";
 import { IconButton } from "@/components/ui/IconButton";
 
@@ -19,6 +19,7 @@ import { fieldTypesApi, type FieldType } from "@/api/endpoints/field-types";
 
 import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 import { useToastMutation } from "@/hooks/useToastMutation";
+import { pluralize } from "@/lib/number";
 import { queryKeys } from "@/lib/queryKeys";
 
 /**
@@ -60,12 +61,7 @@ export const FieldTypes = () => {
 			key: "name",
 			header: "Name",
 			width: "minmax(0,1.5fr)",
-			cell: (row) => (
-				<div className="min-w-0">
-					<div className="truncate font-medium text-text">{row.name || row.id}</div>
-					<MonoText as="div">{row.id}</MonoText>
-				</div>
-			),
+			cell: (row) => <NameIdCell name={row.name || row.id} id={row.id} />,
 		},
 		{
 			key: "use_cases",
@@ -129,7 +125,7 @@ export const FieldTypes = () => {
 
 			<PageHead
 				title="Field types"
-				sub={`${rows.length} custom field type${rows.length === 1 ? "" : "s"}`}
+				sub={pluralize(rows.length, "custom field type")}
 				actions={
 					<Button
 						variant="primary"

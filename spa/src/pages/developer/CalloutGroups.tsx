@@ -16,6 +16,7 @@ import { calloutsApi, type CalloutGroup } from "@/api/endpoints/callouts";
 
 import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 import { useToastMutation } from "@/hooks/useToastMutation";
+import { pluralize } from "@/lib/number";
 import { queryKeys } from "@/lib/queryKeys";
 
 export const CalloutGroups = () => {
@@ -91,7 +92,7 @@ export const CalloutGroups = () => {
 
 			<PageHead
 				title="Callout groups"
-				sub={rows.length === 1 ? "1 group" : `${rows.length} groups`}
+				sub={pluralize(rows.length, "group")}
 				actions={
 					<Button
 						variant="primary"

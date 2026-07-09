@@ -13,6 +13,7 @@ import type {
 	ModuleReportRunRequest,
 	ModuleReportRunResponse,
 } from "@/api/endpoints/modules";
+import { pluralize } from "@/lib/number";
 import { toast } from "@/lib/toast";
 import { useAuthStore } from "@/auth/store";
 import { LEVEL } from "@/lib/permissions";
@@ -128,7 +129,7 @@ export const ReportRenderer = ({ moduleId, reportId }: ReportRendererProps) => {
 
 			{results && results.report.type === "csv" && (
 				<div className="rounded-xl border border-border bg-surface p-6 text-center text-[13px] text-text-2">
-					Exported {results.meta.count} row{results.meta.count === 1 ? "" : "s"}.
+					Exported {pluralize(results.meta.count, "row")}.
 					<div className="mt-3">
 						<Button
 							variant="primary"

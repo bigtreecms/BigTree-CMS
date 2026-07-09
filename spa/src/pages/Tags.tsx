@@ -16,6 +16,7 @@ import { SubNav } from "@/components/ui/SubNav";
 import { IconButton } from "@/components/ui/IconButton";
 
 import { tagsApi, type Tag } from "@/api/endpoints/tags";
+import { pluralize } from "@/lib/number";
 import { isAdmin } from "@/lib/permissions";
 import { queryKeys } from "@/lib/queryKeys";
 import { useConfirmDialog } from "@/hooks/useConfirmDialog";
@@ -135,7 +136,7 @@ export const Tags = () => {
 
 			<PageHead
 				title="Tags"
-				sub={`${total} tag${total === 1 ? "" : "s"}`}
+				sub={pluralize(total, "tag")}
 				actions={
 					canEdit ? (
 						<Button variant="primary" icon={<Plus size={13} />} to="/tags/add">
@@ -185,9 +186,7 @@ export const Tags = () => {
 					title={`Delete “${deleteDialog.item.tag}”?`}
 					description={
 						deleteDialog.item.usage_count > 0
-							? `This tag is currently used by ${deleteDialog.item.usage_count} item${
-									deleteDialog.item.usage_count === 1 ? "" : "s"
-								}. Those associations will be removed.`
+							? `This tag is currently used by ${pluralize(deleteDialog.item.usage_count, "item")}. Those associations will be removed.`
 							: "This tag isn't currently used by any content."
 					}
 					confirmLabel="Delete tag"

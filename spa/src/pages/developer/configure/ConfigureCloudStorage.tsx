@@ -18,6 +18,7 @@ import { Card } from "@/components/ui/Card";
 import { configureApi, type CloudProvider } from "@/api/endpoints/configure";
 
 import { describeApiError } from "@/lib/errorHandling";
+import { pluralize } from "@/lib/number";
 import { toast } from "@/lib/toast";
 import { queryKeys } from "@/lib/queryKeys";
 
@@ -191,7 +192,7 @@ export const ConfigureCloudStorage = () => {
 		onSuccess: (cached) => {
 			toast.success(
 				cached > 0
-					? `Cached ${cached} S3 file${cached === 1 ? "" : "s"}`
+					? `Cached ${pluralize(cached, "S3 file")}`
 					: "S3 file cache is up to date"
 			);
 			setGeneralError(null);

@@ -14,6 +14,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { Loading } from "@/components/ui/Loading";
 import { iconFor } from "@/lib/legacyIcons";
 import { modulePath } from "@/lib/moduleActions";
+import { pluralize } from "@/lib/number";
 import { isDeveloper } from "@/lib/permissions";
 
 import { modulesApi, type ModuleGroup, type ModuleSummary } from "@/api/endpoints/modules";
@@ -127,8 +128,8 @@ export const Modules = () => {
 	const subText = isLoading
 		? "Loading…"
 		: trimmedQuery
-			? `${matchedModules} match${matchedModules === 1 ? "" : "es"}`
-			: `${grouped.length} group${grouped.length === 1 ? "" : "s"} · ${totalModules} module${totalModules === 1 ? "" : "s"}`;
+			? pluralize(matchedModules, "match", "matches")
+			: `${pluralize(grouped.length, "group")} · ${pluralize(totalModules, "module")}`;
 
 	return (
 		<PageContainer width="wide">

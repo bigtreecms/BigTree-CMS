@@ -23,7 +23,7 @@ import {
 
 import { downloadCsv } from "@/lib/csv";
 import { describeApiError } from "@/lib/errorHandling";
-import { formatNumber } from "@/lib/number";
+import { formatNumber, pluralize } from "@/lib/number";
 import { toast } from "@/lib/toast";
 import { queryKeys } from "@/lib/queryKeys";
 import { usePaginatedSearch } from "@/hooks/usePaginatedSearch";
@@ -158,7 +158,7 @@ export const FourOhFours = ({ type }: FourOhFoursProps) => {
 		errorMessage: "Could not clear dead 404s",
 		onSuccess: (result) => {
 			clearDeadDialog.close();
-			toast.success(`Cleared ${result.deleted} dead 404${result.deleted === 1 ? "" : "s"}`);
+			toast.success(`Cleared ${pluralize(result.deleted, "dead 404")}`);
 		},
 	});
 

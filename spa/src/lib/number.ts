@@ -12,3 +12,16 @@ export const formatNumber = (n?: number | null, opts?: Intl.NumberFormatOptions)
 
 	return n.toLocaleString(undefined, opts);
 };
+
+/**
+ * Count label with a correctly pluralized noun — `pluralize(1, "feed")` →
+ * `"1 feed"`, `pluralize(3, "feed")` → `"3 feeds"`. The plural defaults to
+ * `singular + "s"`; pass an explicit `plural` for irregular nouns
+ * (`pluralize(2, "entry", "entries")`). One shared helper so the
+ * `n === 1 ? "1 x" : \`${n} xs\`` idiom stops drifting across the app.
+ */
+export const pluralize = (count: number, singular: string, plural?: string): string => {
+	const word = count === 1 ? singular : (plural ?? `${singular}s`);
+
+	return `${count} ${word}`;
+};

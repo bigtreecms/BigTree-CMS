@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { formatNumber } from "@/lib/number";
+import { formatNumber, pluralize } from "@/lib/number";
 
 describe("formatNumber", () => {
 	it("returns an em dash for null/undefined/NaN", () => {
@@ -19,5 +19,21 @@ describe("formatNumber", () => {
 
 	it("passes through Intl options", () => {
 		expect(formatNumber(0.5, { style: "percent" })).toBe("50%");
+	});
+});
+
+describe("pluralize", () => {
+	it("uses the singular noun for a count of one", () => {
+		expect(pluralize(1, "feed")).toBe("1 feed");
+	});
+
+	it("appends an 's' for any other count", () => {
+		expect(pluralize(0, "feed")).toBe("0 feeds");
+		expect(pluralize(3, "feed")).toBe("3 feeds");
+	});
+
+	it("honors an explicit plural for irregular nouns", () => {
+		expect(pluralize(1, "entry", "entries")).toBe("1 entry");
+		expect(pluralize(5, "entry", "entries")).toBe("5 entries");
 	});
 });

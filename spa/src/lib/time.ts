@@ -1,3 +1,5 @@
+import { pluralize } from "./number";
+
 /**
  * Relative time formatter — outputs strings like the prototype's "2 hrs ago",
  * "Yesterday", "Apr 11". Mirrors the style used in the design fixtures.
@@ -15,8 +17,8 @@ export function relativeTime(input: string | Date | null | undefined): string {
 	const days = Math.floor(hours / 24);
 
 	if (seconds < 60) return "Just now";
-	if (minutes < 60) return `${minutes} min${minutes === 1 ? "" : "s"} ago`;
-	if (hours < 24) return `${hours} hr${hours === 1 ? "" : "s"} ago`;
+	if (minutes < 60) return `${pluralize(minutes, "min")} ago`;
+	if (hours < 24) return `${pluralize(hours, "hr")} ago`;
 	if (days === 1) return "Yesterday";
 	if (days < 7) return `${days} days ago`;
 

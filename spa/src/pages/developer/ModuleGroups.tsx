@@ -7,7 +7,7 @@ import { PageHead } from "@/components/shell/PageHead";
 import { PageContainer } from "@/components/shell/PageContainer";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
-import { MonoText } from "@/components/ui/MonoText";
+import { NameIdCell } from "@/components/ui/NameIdCell";
 import { Button } from "@/components/ui/Button";
 import { IconButton } from "@/components/ui/IconButton";
 
@@ -17,6 +17,7 @@ import { modulesApi, type ModuleGroup } from "@/api/endpoints/modules";
 
 import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 import { useToastMutation } from "@/hooks/useToastMutation";
+import { pluralize } from "@/lib/number";
 import { queryKeys } from "@/lib/queryKeys";
 
 export const ModuleGroups = () => {
@@ -45,12 +46,7 @@ export const ModuleGroups = () => {
 			key: "name",
 			header: "Name",
 			width: "minmax(0,2fr)",
-			cell: (row) => (
-				<div className="min-w-0">
-					<div className="truncate font-medium text-text">{row.name}</div>
-					<MonoText as="div">{row.id}</MonoText>
-				</div>
-			),
+			cell: (row) => <NameIdCell name={row.name} id={row.id} />,
 		},
 		{
 			key: "route",
@@ -103,7 +99,7 @@ export const ModuleGroups = () => {
 
 			<PageHead
 				title="Module groups"
-				sub={rows.length === 1 ? "1 group" : `${rows.length} groups`}
+				sub={pluralize(rows.length, "group")}
 				actions={
 					<Button
 						variant="primary"
