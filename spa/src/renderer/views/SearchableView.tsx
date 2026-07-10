@@ -7,6 +7,7 @@ import { Pager } from "@/components/ui/Pager";
 
 import type { ModuleEntryRow } from "@/api/endpoints/auto-modules";
 import type { ModuleView } from "@/api/endpoints/modules";
+import { derivePagination } from "@/lib/pagination";
 
 import {
 	columnWidth,
@@ -161,10 +162,11 @@ export const SearchableView = ({ moduleId, view }: SearchableViewProps) => {
 		actionPath,
 	]);
 
-	const rows = listQuery.data?.items ?? [];
-	const meta = listQuery.data?.meta;
-	const totalPages = Math.max(1, meta?.pages ?? 1);
-	const safePage = Math.min(page, totalPages);
+	const { rows, totalPages, safePage } = derivePagination({
+		rows: listQuery.data?.items,
+		meta: listQuery.data?.meta,
+		page,
+	});
 
 	const onSortChange = (next: DataTableSort) => {
 		setSort(next);

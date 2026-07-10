@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 import { Plus, Trash } from "lucide-react";
@@ -19,13 +18,11 @@ import {
 import { useDbColumns } from "@/hooks/useDbColumns";
 import { queryKeys } from "@/lib/queryKeys";
 
-import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
-
 import { DataTableSelect } from "@/components/developer/DataTableSelect";
 import { DataColumnSelect } from "@/components/developer/DataColumnSelect";
 
 import { CheckboxInput, SelectInput, TextInput } from "./inputs";
-import { AddSubButton, EditorCard, SubList, SubRow } from "./scaffold";
+import { AddSubButton, EditorCard, SubDeleteDialog, SubList, SubRow } from "./scaffold";
 import { ViewActionsControl } from "./ViewActionsControl";
 import { ViewTypeSettingsControl } from "./ViewTypeSettingsControl";
 import { NEW_ROW, useSubCrud } from "./useSubCrud";
@@ -169,17 +166,20 @@ const toBody = (d: Draft): ModuleViewBody => ({
 });
 
 export const ModuleViewsTab = ({ moduleId, moduleTable }: ModuleViewsTabProps) => {
-	const crud = useSubCrud<ModuleView, ModuleViewBody>({
+	const crud = useSubCrud<ModuleView, ModuleViewBody, Draft>({
 		moduleId,
 		resource: "views",
 		label: "View",
+		moduleTable,
+		emptyDraft,
+		draftFromItem: draftFromView,
 		listFn: (id) => modulesApi.views(id),
 		createFn: (id, body) => modulesApi.createView(id, body),
 		updateFn: (id, sid, body) => modulesApi.updateView(id, sid, body),
 		deleteFn: (id, sid) => modulesApi.deleteView(id, sid),
 	});
 
-	const [draft, setDraft] = useState<Draft>(() => emptyDraft(moduleTable));
+	const { draft, setDraft } = crud;
 	const deleteDialog = useConfirmDialog<ModuleView>();
 
 	const formsQ = useQuery({
@@ -190,18 +190,6 @@ export const ModuleViewsTab = ({ moduleId, moduleTable }: ModuleViewsTabProps) =
 	// Columns of the chosen table drive the column picker and which row-action
 	// toggles are offered. Only fetched once a table is selected.
 	const columnsQ = useDbColumns(draft.table);
-
-	useEffect(() => {
-		if (crud.editingId === NEW_ROW) {
-			setDraft(emptyDraft(moduleTable));
-		} else if (crud.editingId) {
-			const found = crud.items.find((v) => v.id === crud.editingId);
-
-			if (found) {
-				setDraft(draftFromView(found));
-			}
-		}
-	}, [crud.editingId, crud.items, moduleTable]);
 
 	const formOptions = [
 		{ value: "", label: "— No related form —" },
@@ -448,22 +436,13 @@ export const ModuleViewsTab = ({ moduleId, moduleTable }: ModuleViewsTabProps) =
 				</EditorCard>
 			)}
 
-			{deleteDialog.item && (
-				<ConfirmDialog
-					open={deleteDialog.isOpen}
-					onOpenChange={(v) => {
-						if (!v) deleteDialog.close();
-					}}
-					title={`Delete view "${deleteDialog.item.title}"?`}
-					description="Actions and reports that reference this view will need to be repointed. Entry data is left intact."
-					confirmLabel="Delete view"
-					variant="danger"
-					onConfirm={() => {
-						crud.remove(deleteDialog.item!.id);
-						deleteDialog.close();
-					}}
-				/>
-			)}
+			<SubDeleteDialog
+				dialog={deleteDialog}
+				noun="view"
+				labelFor={(v) => v.title}
+				description="Actions and reports that reference this view will need to be repointed. Entry data is left intact."
+				onConfirm={(id) => crud.remove(id)}
+			/>
 		</div>
 	);
 };

@@ -1,7 +1,6 @@
 import { useState } from "react";
 
-import { ApiError } from "@/types/api";
-import { describeApiError } from "@/lib/errorHandling";
+import { applyApiFieldErrors } from "@/lib/errorHandling";
 import { useScrollToFirstError } from "@/hooks/useScrollToFirstError";
 
 export interface UseFormSubmitReturn {
@@ -51,17 +50,7 @@ export const useFormSubmit = (): UseFormSubmitReturn => {
 	};
 
 	const onMutationError = (err: unknown, fallback = "An error occurred.") => {
-		if (err instanceof ApiError) {
-			const fe = err.fieldErrors();
-
-			if (Object.keys(fe).length > 0) {
-				setFieldErrors(fe);
-			}
-
-			setError(err.message || fallback);
-		} else {
-			setError(describeApiError(err, fallback));
-		}
+		applyApiFieldErrors(err, { setFieldErrors, setError, fallback });
 	};
 
 	return { error, setError, fieldErrors, setFieldErrors, handleSubmit, onMutationError };

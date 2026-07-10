@@ -50,8 +50,7 @@ import { useDirtyTracker } from "@/hooks/useDirtyTracker";
 import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 import { UnsavedChangesGuard } from "@/components/ui/UnsavedChangesGuard";
 import { Loading } from "@/components/ui/Loading";
-import { ApiError } from "@/types/api";
-import { describeApiError } from "@/lib/errorHandling";
+import { applyApiFieldErrors } from "@/lib/errorHandling";
 import { canPublishPage } from "@/lib/permissions";
 import { toast } from "@/lib/toast";
 import { queryKeys } from "@/lib/queryKeys";
@@ -204,17 +203,11 @@ export const PageEdit = () => {
 			navigate(returnTo(pageQuery.data?.parent));
 		},
 		onError: (err) => {
-			if (err instanceof ApiError) {
-				const fe = err.fieldErrors();
-
-				if (Object.keys(fe).length > 0) {
-					setFieldErrors(fe);
-				}
-
-				setGeneralError(err.message);
-			} else {
-				setGeneralError(describeApiError(err, "Save failed"));
-			}
+			applyApiFieldErrors(err, {
+				setFieldErrors,
+				setError: setGeneralError,
+				fallback: "Save failed",
+			});
 		},
 	});
 

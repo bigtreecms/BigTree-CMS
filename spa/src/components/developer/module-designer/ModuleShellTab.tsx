@@ -14,13 +14,12 @@ import {
 	type ModuleSummary,
 } from "@/api/endpoints/modules";
 
-import { ApiError } from "@/types/api";
 import { useScrollToFirstError } from "@/hooks/useScrollToFirstError";
 import { useDirtyTracker } from "@/hooks/useDirtyTracker";
 import { useInlineForm } from "@/hooks/useInlineForm";
 import { UnsavedChangesGuard } from "@/components/ui/UnsavedChangesGuard";
 import { Card } from "@/components/ui/Card";
-import { describeApiError } from "@/lib/errorHandling";
+import { applyApiFieldErrors } from "@/lib/errorHandling";
 import { toast } from "@/lib/toast";
 import { validateRequired } from "@/lib/formValidation";
 import { queryKeys } from "@/lib/queryKeys";
@@ -148,17 +147,11 @@ export const ModuleShellTab = ({ moduleId, module }: ModuleShellTabProps) => {
 			}
 		},
 		onError: (err) => {
-			if (err instanceof ApiError) {
-				const fe = err.fieldErrors();
-
-				if (Object.keys(fe).length > 0) {
-					setFieldErrors(fe);
-				}
-
-				setGeneralError(err.message);
-			} else {
-				setGeneralError(describeApiError(err, "Save failed"));
-			}
+			applyApiFieldErrors(err, {
+				setFieldErrors,
+				setError: setGeneralError,
+				fallback: "Save failed",
+			});
 		},
 	});
 

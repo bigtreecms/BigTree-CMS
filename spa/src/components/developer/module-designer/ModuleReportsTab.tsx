@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 import { useQuery } from "@tanstack/react-query";
 
@@ -12,7 +12,6 @@ import {
 import { useDbColumns } from "@/hooks/useDbColumns";
 import { queryKeys } from "@/lib/queryKeys";
 
-import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { FieldGrid } from "@/components/ui/FieldGrid";
 
 import { DataTableSelect } from "@/components/developer/DataTableSelect";
@@ -26,7 +25,7 @@ import {
 	type FieldRow,
 	type FilterRow,
 } from "./ReportColumnEditors";
-import { AddSubButton, EditorCard, SubList, SubRow } from "./scaffold";
+import { AddSubButton, EditorCard, SubDeleteDialog, SubList, SubRow } from "./scaffold";
 import { NEW_ROW, useSubCrud } from "./useSubCrud";
 import { InlineEmpty } from "@/components/ui/InlineEmpty";
 
@@ -132,23 +131,34 @@ const toBody = (d: Draft): ModuleReportBody => ({
 });
 
 export const ModuleReportsTab = ({ moduleId, moduleTable }: ModuleReportsTabProps) => {
-	const crud = useSubCrud<ModuleReport, ModuleReportBody>({
+	// Tracks the table whose columns were last auto-populated into the draft so
+	// we regenerate defaults when (and only when) the table actually changes —
+	// without clobbering a saved report's own filters/fields on edit.
+	const builtForTable = useRef<string | null>(null);
+
+	// Keep builtForTable aligned with the selection as the shared draft sync runs:
+	// a fresh report auto-populates from its table's columns; a saved report's own
+	// filters/fields are authoritative, so mark its table as already built.
+	const handleSync = useCallback((item: ModuleReport | null) => {
+		builtForTable.current = item ? (item.table ?? "") : null;
+	}, []);
+
+	const crud = useSubCrud<ModuleReport, ModuleReportBody, Draft>({
 		moduleId,
 		resource: "reports",
 		label: "Report",
+		moduleTable,
+		emptyDraft,
+		draftFromItem: draftFromReport,
+		onSync: handleSync,
 		listFn: (id) => modulesApi.reports(id),
 		createFn: (id, body) => modulesApi.createReport(id, body),
 		updateFn: (id, sid, body) => modulesApi.updateReport(id, sid, body),
 		deleteFn: (id, sid) => modulesApi.deleteReport(id, sid),
 	});
 
-	const [draft, setDraft] = useState<Draft>(() => emptyDraft(moduleTable));
+	const { draft, setDraft } = crud;
 	const deleteDialog = useConfirmDialog<ModuleReport>();
-
-	// Tracks the table whose columns were last auto-populated into the draft so
-	// we regenerate defaults when (and only when) the table actually changes —
-	// without clobbering a saved report's own filters/fields on edit.
-	const builtForTable = useRef<string | null>(null);
 
 	const viewsQ = useQuery({
 		queryKey: queryKeys.modules.moduleViews(moduleId),
@@ -158,22 +168,6 @@ export const ModuleReportsTab = ({ moduleId, moduleTable }: ModuleReportsTabProp
 	const columnsQ = useDbColumns(draft.table, {
 		enabled: crud.editingId !== null && draft.table !== "",
 	});
-
-	useEffect(() => {
-		if (crud.editingId === NEW_ROW) {
-			setDraft(emptyDraft(moduleTable));
-			// A fresh report auto-populates from its starting table's columns.
-			builtForTable.current = null;
-		} else if (crud.editingId) {
-			const found = crud.items.find((r) => r.id === crud.editingId);
-
-			if (found) {
-				setDraft(draftFromReport(found));
-				// Saved filters/fields are authoritative; don't regenerate over them.
-				builtForTable.current = found.table ?? "";
-			}
-		}
-	}, [crud.editingId, crud.items, moduleTable]);
 
 	// When a (new or changed) table's columns arrive, seed every column as a
 	// default filter and CSV field — the legacy load-report.php behavior.
@@ -203,7 +197,7 @@ export const ModuleReportsTab = ({ moduleId, moduleTable }: ModuleReportsTabProp
 				title: humanizeColumn(c.value),
 			})),
 		}));
-	}, [columnsQ.data, draft.table]);
+	}, [columnsQ.data, draft.table, setDraft]);
 
 	const viewOptions = [
 		{ value: "", label: "— No view —" },
@@ -322,22 +316,13 @@ export const ModuleReportsTab = ({ moduleId, moduleTable }: ModuleReportsTabProp
 				</EditorCard>
 			)}
 
-			{deleteDialog.item && (
-				<ConfirmDialog
-					open={deleteDialog.isOpen}
-					onOpenChange={(v) => {
-						if (!v) deleteDialog.close();
-					}}
-					title={`Delete report "${deleteDialog.item.title}"?`}
-					description="Actions that open this report will need to be repointed. Entry data is left intact."
-					confirmLabel="Delete report"
-					variant="danger"
-					onConfirm={() => {
-						crud.remove(deleteDialog.item!.id);
-						deleteDialog.close();
-					}}
-				/>
-			)}
+			<SubDeleteDialog
+				dialog={deleteDialog}
+				noun="report"
+				labelFor={(r) => r.title}
+				description="Actions that open this report will need to be repointed. Entry data is left intact."
+				onConfirm={(id) => crud.remove(id)}
+			/>
 		</div>
 	);
 };

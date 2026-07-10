@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 
@@ -6,7 +6,6 @@ import { modulesApi, type ModuleAction, type ModuleActionBody } from "@/api/endp
 
 import { queryKeys } from "@/lib/queryKeys";
 import { useToastMutation } from "@/hooks/useToastMutation";
-import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { FieldGrid } from "@/components/ui/FieldGrid";
 
 import { useDragReorder } from "@/hooks/useDragReorder";
@@ -16,7 +15,7 @@ import { ACTION_STARTER } from "@/components/developer/action-module/starterTemp
 import { IconSelect } from "@/components/developer/IconSelect";
 
 import { CheckboxInput, SelectInput, TextInput } from "./inputs";
-import { AddSubButton, EditorCard, SubList, SubRow } from "./scaffold";
+import { AddSubButton, EditorCard, SubDeleteDialog, SubList, SubRow } from "./scaffold";
 import { NEW_ROW, useSubCrud } from "./useSubCrud";
 
 const TARGET_MODULE = "module";
@@ -113,17 +112,19 @@ const toBody = (d: Draft): ModuleActionBody => {
 
 export const ModuleActionsTab = ({ moduleId }: ModuleActionsTabProps) => {
 	const queryClient = useQueryClient();
-	const crud = useSubCrud<ModuleAction, ModuleActionBody>({
+	const crud = useSubCrud<ModuleAction, ModuleActionBody, Draft>({
 		moduleId,
 		resource: "actions",
 		label: "Action",
+		emptyDraft,
+		draftFromItem: draftFromAction,
 		listFn: (id) => modulesApi.actions(id),
 		createFn: (id, body) => modulesApi.createAction(id, body),
 		updateFn: (id, sid, body) => modulesApi.updateAction(id, sid, body),
 		deleteFn: (id, sid) => modulesApi.deleteAction(id, sid),
 	});
 
-	const [draft, setDraft] = useState<Draft>(emptyDraft);
+	const { draft, setDraft } = crud;
 	const deleteDialog = useConfirmDialog<ModuleAction>();
 
 	const formsQ = useQuery({
@@ -150,18 +151,6 @@ export const ModuleActionsTab = ({ moduleId }: ModuleActionsTabProps) => {
 	});
 
 	useEffect(() => {
-		if (crud.editingId === NEW_ROW) {
-			setDraft(emptyDraft());
-		} else if (crud.editingId) {
-			const found = crud.items.find((a) => a.id === crud.editingId);
-
-			if (found) {
-				setDraft(draftFromAction(found));
-			}
-		}
-	}, [crud.editingId, crud.items]);
-
-	useEffect(() => {
 		const schema = schemaQ.data;
 
 		if (schema?.render === "module" && schema.module_source) {
@@ -175,7 +164,7 @@ export const ModuleActionsTab = ({ moduleId }: ModuleActionsTabProps) => {
 						}
 			);
 		}
-	}, [schemaQ.data]);
+	}, [schemaQ.data, setDraft]);
 
 	const reorderMutation = useToastMutation({
 		mutationFn: (ids: string[]) => modulesApi.reorderActions(moduleId, ids),
@@ -321,22 +310,13 @@ export const ModuleActionsTab = ({ moduleId }: ModuleActionsTabProps) => {
 				</EditorCard>
 			)}
 
-			{deleteDialog.item && (
-				<ConfirmDialog
-					open={deleteDialog.isOpen}
-					onOpenChange={(v) => {
-						if (!v) deleteDialog.close();
-					}}
-					title={`Delete action "${deleteDialog.item.name}"?`}
-					description="This removes the action from the module's navigation. The form/view it points to is left intact."
-					confirmLabel="Delete action"
-					variant="danger"
-					onConfirm={() => {
-						crud.remove(deleteDialog.item!.id);
-						deleteDialog.close();
-					}}
-				/>
-			)}
+			<SubDeleteDialog
+				dialog={deleteDialog}
+				noun="action"
+				labelFor={(a) => a.name}
+				description="This removes the action from the module's navigation. The form/view it points to is left intact."
+				onConfirm={(id) => crud.remove(id)}
+			/>
 		</div>
 	);
 };

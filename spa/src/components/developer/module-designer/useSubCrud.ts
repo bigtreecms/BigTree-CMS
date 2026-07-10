@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
 import { useQuery } from "@tanstack/react-query";
 
 import { useScrollToFirstError } from "@/hooks/useScrollToFirstError";
@@ -17,7 +17,7 @@ import { validateRequired, type RequiredRule } from "@/lib/formValidation";
 
 export const NEW_ROW = "new" as const;
 
-interface UseSubCrudArgs<T, Body> {
+interface UseSubCrudArgs<T, Body, Draft> {
 	moduleId: string;
 	resource: string;
 	label: string;
@@ -25,9 +25,25 @@ interface UseSubCrudArgs<T, Body> {
 	createFn: (moduleId: string, body: Body) => Promise<T>;
 	updateFn: (moduleId: string, sid: string, body: Partial<Body>) => Promise<T>;
 	deleteFn: (moduleId: string, sid: string) => Promise<void>;
+	/**
+	 * Optional draft management. When `emptyDraft` and `draftFromItem` are both
+	 * supplied the hook owns the editor draft state and keeps it in sync with the
+	 * selection: reset to `emptyDraft(moduleTable)` when a new row opens, seeded
+	 * from `draftFromItem(item)` when an existing row opens.
+	 */
+	moduleTable?: string;
+	emptyDraft?: (table: string) => Draft;
+	draftFromItem?: (item: T) => Draft;
+	/**
+	 * Fired alongside each draft sync — receives the item being edited, or `null`
+	 * when a new row opens. Lets a tab track selection-derived state (e.g.
+	 * ModuleReportsTab's `builtForTable` ref) without duplicating the sync effect.
+	 * Must be referentially stable (wrap in `useCallback`).
+	 */
+	onSync?: (item: T | null) => void;
 }
 
-export const useSubCrud = <T, Body>({
+export const useSubCrud = <T extends { id: string }, Body, Draft = unknown>({
 	moduleId,
 	resource,
 	label,
@@ -35,10 +51,17 @@ export const useSubCrud = <T, Body>({
 	createFn,
 	updateFn,
 	deleteFn,
-}: UseSubCrudArgs<T, Body>) => {
+	moduleTable = "",
+	emptyDraft,
+	draftFromItem,
+	onSync,
+}: UseSubCrudArgs<T, Body, Draft>) => {
 	const queryKey = ["modules", moduleId, resource];
 	const [editingId, setEditingId] = useState<string | null>(null);
 	const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+	const [draft, setDraft] = useState<Draft>(() =>
+		emptyDraft ? emptyDraft(moduleTable) : (undefined as Draft)
+	);
 
 	useScrollToFirstError(fieldErrors);
 
@@ -46,6 +69,26 @@ export const useSubCrud = <T, Body>({
 		queryKey,
 		queryFn: () => listFn(moduleId),
 	});
+
+	// Keep the draft in sync with the current selection. No-op unless the caller
+	// opted into draft management by supplying the mapper functions.
+	useEffect(() => {
+		if (!emptyDraft || !draftFromItem) {
+			return;
+		}
+
+		if (editingId === NEW_ROW) {
+			setDraft(emptyDraft(moduleTable));
+			onSync?.(null);
+		} else if (editingId) {
+			const found = (listQ.data ?? []).find((it) => it.id === editingId);
+
+			if (found) {
+				setDraft(draftFromItem(found));
+				onSync?.(found);
+			}
+		}
+	}, [editingId, listQ.data, moduleTable, emptyDraft, draftFromItem, onSync]);
 
 	const saveMutation = useToastMutation({
 		mutationFn: ({ sid, body }: { sid: string | null; body: Body }) =>
@@ -77,6 +120,8 @@ export const useSubCrud = <T, Body>({
 		isLoading: listQ.isLoading,
 		editingId,
 		fieldErrors,
+		draft,
+		setDraft: setDraft as Dispatch<SetStateAction<Draft>>,
 		startAdd: () => open(NEW_ROW),
 		startEdit: (sid: string) => open(sid),
 		cancel: () => {

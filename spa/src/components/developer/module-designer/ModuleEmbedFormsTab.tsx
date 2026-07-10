@@ -10,7 +10,6 @@ import {
 	type ModuleFormField,
 } from "@/api/endpoints/modules";
 
-import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { FieldGrid } from "@/components/ui/FieldGrid";
 import { SectionLabel } from "@/components/ui/SectionLabel";
 import {
@@ -24,7 +23,7 @@ import { useResourceSettingsValidation } from "@/components/developer/field-sett
 
 import { CheckboxInput, TextareaInput, TextInput } from "./inputs";
 import { FormHooksEditor } from "./FormHooksEditor";
-import { AddSubButton, EditorCard, SubList, SubRow } from "./scaffold";
+import { AddSubButton, EditorCard, SubDeleteDialog, SubList, SubRow } from "./scaffold";
 import { NEW_ROW, useSubCrud } from "./useSubCrud";
 
 interface ModuleEmbedFormsTabProps {
@@ -81,17 +80,20 @@ const toBody = (d: Draft): ModuleEmbedFormBody => ({
 });
 
 export const ModuleEmbedFormsTab = ({ moduleId, moduleTable }: ModuleEmbedFormsTabProps) => {
-	const crud = useSubCrud<ModuleEmbedForm, ModuleEmbedFormBody>({
+	const crud = useSubCrud<ModuleEmbedForm, ModuleEmbedFormBody, Draft>({
 		moduleId,
 		resource: "embed-forms",
 		label: "Embed form",
+		moduleTable,
+		emptyDraft,
+		draftFromItem: draftFromForm,
 		listFn: (id) => modulesApi.embedForms(id),
 		createFn: (id, body) => modulesApi.createEmbedForm(id, body),
 		updateFn: (id, sid, body) => modulesApi.updateEmbedForm(id, sid, body),
 		deleteFn: (id, sid) => modulesApi.deleteEmbedForm(id, sid),
 	});
 
-	const [draft, setDraft] = useState<Draft>(() => emptyDraft(moduleTable));
+	const { draft, setDraft } = crud;
 	const deleteDialog = useConfirmDialog<ModuleEmbedForm>();
 	const [settingsErrors, setSettingsErrors] = useState<Record<number, Record<string, string>>>(
 		{}
@@ -115,18 +117,6 @@ export const ModuleEmbedFormsTab = ({ moduleId, moduleTable }: ModuleEmbedFormsT
 	useEffect(() => {
 		setSettingsErrors({});
 	}, [crud.editingId]);
-
-	useEffect(() => {
-		if (crud.editingId === NEW_ROW) {
-			setDraft(emptyDraft(moduleTable));
-		} else if (crud.editingId) {
-			const found = crud.items.find((f) => f.id === crud.editingId);
-
-			if (found) {
-				setDraft(draftFromForm(found));
-			}
-		}
-	}, [crud.editingId, crud.items, moduleTable]);
 
 	const editorTitle = crud.editingId === NEW_ROW ? "New embed form" : "Edit embed form";
 
@@ -246,22 +236,13 @@ export const ModuleEmbedFormsTab = ({ moduleId, moduleTable }: ModuleEmbedFormsT
 				</EditorCard>
 			)}
 
-			{deleteDialog.item && (
-				<ConfirmDialog
-					open={deleteDialog.isOpen}
-					onOpenChange={(v) => {
-						if (!v) deleteDialog.close();
-					}}
-					title={`Delete embed form "${deleteDialog.item.title}"?`}
-					description="Any third-party page embedding this form will stop working. Submitted entries are left intact."
-					confirmLabel="Delete embed form"
-					variant="danger"
-					onConfirm={() => {
-						crud.remove(deleteDialog.item!.id);
-						deleteDialog.close();
-					}}
-				/>
-			)}
+			<SubDeleteDialog
+				dialog={deleteDialog}
+				noun="embed form"
+				labelFor={(f) => f.title}
+				description="Any third-party page embedding this form will stop working. Submitted entries are left intact."
+				onConfirm={(id) => crud.remove(id)}
+			/>
 		</div>
 	);
 };

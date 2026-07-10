@@ -21,8 +21,7 @@ import { DeveloperSectionNav } from "@/components/developer/DeveloperSectionNav"
 
 import { calloutsApi, type CalloutGroupEditBody } from "@/api/endpoints/callouts";
 
-import { ApiError } from "@/types/api";
-import { describeApiError } from "@/lib/errorHandling";
+import { applyApiFieldErrors } from "@/lib/errorHandling";
 import { toast } from "@/lib/toast";
 import { useScrollToFirstError } from "@/hooks/useScrollToFirstError";
 import { useReturnTo } from "@/hooks/useReturnTo";
@@ -94,17 +93,11 @@ export const CalloutGroupEdit = () => {
 			}
 		},
 		onError: (err) => {
-			if (err instanceof ApiError) {
-				const fe = err.fieldErrors();
-
-				if (Object.keys(fe).length > 0) {
-					setFieldErrors(fe);
-				}
-
-				setGeneralError(err.message);
-			} else {
-				setGeneralError(describeApiError(err, "Save failed"));
-			}
+			applyApiFieldErrors(err, {
+				setFieldErrors,
+				setError: setGeneralError,
+				fallback: "Save failed",
+			});
 		},
 	});
 

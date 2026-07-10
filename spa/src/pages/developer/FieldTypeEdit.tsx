@@ -31,8 +31,7 @@ import {
 	type SettingDescriptor,
 } from "@/api/endpoints/field-types";
 
-import { ApiError } from "@/types/api";
-import { describeApiError } from "@/lib/errorHandling";
+import { applyApiFieldErrors } from "@/lib/errorHandling";
 import { toast } from "@/lib/toast";
 import { queryKeys } from "@/lib/queryKeys";
 import { useScrollToFirstError } from "@/hooks/useScrollToFirstError";
@@ -137,17 +136,11 @@ export const FieldTypeEdit = () => {
 			navigate(returnTo);
 		},
 		onError: (err) => {
-			if (err instanceof ApiError) {
-				const fe = err.fieldErrors();
-
-				if (Object.keys(fe).length > 0) {
-					setFieldErrors(fe);
-				}
-
-				setGeneralError(err.message);
-			} else {
-				setGeneralError(describeApiError(err, "Save failed"));
-			}
+			applyApiFieldErrors(err, {
+				setFieldErrors,
+				setError: setGeneralError,
+				fallback: "Save failed",
+			});
 		},
 	});
 

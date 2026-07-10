@@ -3,10 +3,12 @@ import { Pencil, Plus, Trash, X } from "lucide-react";
 
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { InlineEmpty } from "@/components/ui/InlineEmpty";
 import { IconButton } from "@/components/ui/IconButton";
 import { MonoText } from "@/components/ui/MonoText";
 import { DragHandle } from "@/components/ui/DragHandle";
+import type { UseConfirmDialogResult } from "@/hooks/useConfirmDialog";
 
 /**
  * Presentational chrome shared by every sub-resource tab (actions, forms,
@@ -157,3 +159,49 @@ export const EditorCard = ({
 		</div>
 	</Card>
 );
+
+interface SubDeleteDialogProps<T extends { id: string }> {
+	dialog: UseConfirmDialogResult<T>;
+	/** Singular resource noun; drives the title and confirm label (e.g. "form"). */
+	noun: string;
+	/** Human label for the row being deleted (e.g. `(f) => f.title`). */
+	labelFor: (item: T) => string;
+	description: string;
+	onConfirm: (id: string) => void;
+}
+
+/**
+ * The delete-confirmation dialog shared by every sub-resource tab: renders the
+ * `dialog.item &&` guard, the danger `ConfirmDialog`, and the close/remove
+ * wiring. Only the noun and copy differ between tabs.
+ */
+export const SubDeleteDialog = <T extends { id: string }>({
+	dialog,
+	noun,
+	labelFor,
+	description,
+	onConfirm,
+}: SubDeleteDialogProps<T>) => {
+	if (!dialog.item) {
+		return null;
+	}
+
+	return (
+		<ConfirmDialog
+			open={dialog.isOpen}
+			onOpenChange={(v) => {
+				if (!v) {
+					dialog.close();
+				}
+			}}
+			title={`Delete ${noun} "${labelFor(dialog.item)}"?`}
+			description={description}
+			confirmLabel={`Delete ${noun}`}
+			variant="danger"
+			onConfirm={() => {
+				onConfirm(dialog.item!.id);
+				dialog.close();
+			}}
+		/>
+	);
+};

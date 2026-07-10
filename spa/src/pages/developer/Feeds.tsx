@@ -1,134 +1,56 @@
-import { useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
-import { Plus, Trash } from "lucide-react";
-
-import { Breadcrumb } from "@/components/shell/Breadcrumb";
-import { PageHead } from "@/components/shell/PageHead";
-import { PageContainer } from "@/components/shell/PageContainer";
-import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
-import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
+import type { DataTableColumn } from "@/components/ui/DataTable";
 import { NameIdCell } from "@/components/ui/NameIdCell";
 import { Badge } from "@/components/ui/Badge";
-import { Button } from "@/components/ui/Button";
-import { IconButton } from "@/components/ui/IconButton";
 
-import { DeveloperSectionNav } from "@/components/developer/DeveloperSectionNav";
+import { DeveloperListPage } from "@/components/developer/DeveloperListPage";
 
 import { feedsApi, type FeedSummary } from "@/api/endpoints/feeds";
 
-import { useConfirmDialog } from "@/hooks/useConfirmDialog";
-import { useToastMutation } from "@/hooks/useToastMutation";
-import { pluralize } from "@/lib/number";
 import { queryKeys } from "@/lib/queryKeys";
 
-export const Feeds = () => {
-	const navigate = useNavigate();
-	const deleteDialog = useConfirmDialog<FeedSummary>();
+const columns: DataTableColumn<FeedSummary>[] = [
+	{
+		key: "name",
+		header: "Name",
+		width: "minmax(0,1.5fr)",
+		cell: (row) => <NameIdCell name={row.name} id={row.id} />,
+	},
+	{
+		key: "type",
+		header: "Type",
+		width: "120px",
+		hideOnMobile: true,
+		cell: (row) => <Badge size="sm">{row.type || "?"}</Badge>,
+	},
+	{
+		key: "table",
+		header: "Table",
+		width: "minmax(0,1fr)",
+		hideOnMobile: true,
+		cell: (row) => (
+			<span className="font-mono text-[11.5px] text-text-3">{row.table || "—"}</span>
+		),
+	},
+];
 
-	const query = useQuery({
-		queryKey: queryKeys.feeds.list(),
-		queryFn: () => feedsApi.list(),
-	});
-
-	const deleteMutation = useToastMutation({
-		mutationFn: (id: string) => feedsApi.delete(id),
-		invalidate: [queryKeys.feeds.root()],
-		successMessage: "Feed deleted",
-		errorMessage: "Delete failed",
-		onSuccess: () => {
-			deleteDialog.close();
-		},
-	});
-
-	const rows = query.data ?? [];
-
-	const columns: DataTableColumn<FeedSummary>[] = [
-		{
-			key: "name",
-			header: "Name",
-			width: "minmax(0,1.5fr)",
-			cell: (row) => <NameIdCell name={row.name} id={row.id} />,
-		},
-		{
-			key: "type",
-			header: "Type",
-			width: "120px",
-			hideOnMobile: true,
-			cell: (row) => <Badge size="sm">{row.type || "?"}</Badge>,
-		},
-		{
-			key: "table",
-			header: "Table",
-			width: "minmax(0,1fr)",
-			hideOnMobile: true,
-			cell: (row) => (
-				<span className="font-mono text-[11.5px] text-text-3">{row.table || "—"}</span>
-			),
-		},
-		{
-			key: "actions",
-			header: "",
-			width: "56px",
-			align: "right",
-			cell: (row) => (
-				<IconButton
-					tone="danger"
-					onClick={(e) => {
-						e.stopPropagation();
-						deleteDialog.open(row);
-					}}
-					title="Delete feed"
-					label="Delete feed"
-				>
-					<Trash size={13} />
-				</IconButton>
-			),
-		},
-	];
-
-	return (
-		<PageContainer width="wide">
-			<Breadcrumb items={[{ label: "Developer", to: "/developer" }, { label: "Feeds" }]} />
-
-			<PageHead
-				title="Feeds"
-				sub={pluralize(rows.length, "feed")}
-				actions={
-					<Button variant="primary" icon={<Plus size={13} />} to="/developer/feeds/add">
-						Add feed
-					</Button>
-				}
-			/>
-
-			<DeveloperSectionNav />
-
-			<DataTable<FeedSummary>
-				columns={columns}
-				rows={rows}
-				getRowKey={(row) => row.id}
-				isLoading={query.isLoading}
-				loadingLabel="Loading feeds…"
-				emptyLabel="No feeds yet."
-				onRowClick={(row) =>
-					navigate(`/developer/feeds/${encodeURIComponent(row.id)}/edit`)
-				}
-			/>
-
-			{deleteDialog.item && (
-				<ConfirmDialog
-					open={deleteDialog.isOpen}
-					onOpenChange={(open) => {
-						if (!open) {
-							deleteDialog.close();
-						}
-					}}
-					title={`Delete "${deleteDialog.item.name}"?`}
-					description="The public URL backed by this feed will stop responding immediately."
-					confirmLabel="Delete feed"
-					variant="danger"
-					onConfirm={() => deleteMutation.mutate(deleteDialog.item!.id)}
-				/>
-			)}
-		</PageContainer>
-	);
-};
+export const Feeds = () => (
+	<DeveloperListPage<FeedSummary>
+		title="Feeds"
+		countNoun="feed"
+		route="/developer/feeds"
+		addLabel="Add feed"
+		loadingLabel="Loading feeds…"
+		emptyLabel="No feeds yet."
+		queryKey={queryKeys.feeds.list()}
+		invalidateKey={queryKeys.feeds.root()}
+		list={() => feedsApi.list()}
+		remove={(id) => feedsApi.delete(id)}
+		columns={columns}
+		getRowKey={(row) => row.id}
+		deleteButtonLabel="Delete feed"
+		deleteSuccessMessage="Feed deleted"
+		rowLabel={(row) => row.name}
+		confirmLabel="Delete feed"
+		confirmDescription="The public URL backed by this feed will stop responding immediately."
+	/>
+);

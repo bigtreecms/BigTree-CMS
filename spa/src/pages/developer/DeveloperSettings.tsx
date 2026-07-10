@@ -20,6 +20,7 @@ import { DeveloperSectionNav } from "@/components/developer/DeveloperSectionNav"
 import { settingsApi, type SettingDetail } from "@/api/endpoints/settings";
 
 import { formatNumber } from "@/lib/number";
+import { derivePagination } from "@/lib/pagination";
 import { queryKeys } from "@/lib/queryKeys";
 import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
@@ -73,9 +74,11 @@ export const DeveloperSettings = () => {
 		},
 	});
 
-	const rows = query.data?.data ?? [];
-	const total = (query.data?.meta?.total as number | undefined) ?? rows.length;
-	const totalPages = (query.data?.meta?.pages as number | undefined) ?? 1;
+	const { rows, total, totalPages } = derivePagination({
+		rows: query.data?.data,
+		meta: query.data?.meta,
+		page,
+	});
 
 	const columns: DataTableColumn<SettingDetail>[] = [
 		{

@@ -26,6 +26,7 @@ import { Card, CardFooter, CardHeader } from "@/components/ui/Card";
 import { IconButton } from "@/components/ui/IconButton";
 import { TimezoneSelect } from "@/components/users/TimezoneSelect";
 import { toast } from "@/lib/toast";
+import { derivePagination } from "@/lib/pagination";
 import { queryKeys } from "@/lib/queryKeys";
 import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 import { useToastMutation } from "@/hooks/useToastMutation";
@@ -162,9 +163,16 @@ export const Users = () => {
 	});
 
 	// Use server meta for pagination
-	const totalFromServer = meta.total ?? rows.length;
-	const totalPages = Math.max(1, Math.ceil(totalFromServer / USERS_PER_PAGE));
-	const safePage = Math.min(page, totalPages);
+	const {
+		total: totalFromServer,
+		totalPages,
+		safePage,
+	} = derivePagination({
+		rows,
+		meta,
+		page,
+		perPage: USERS_PER_PAGE,
+	});
 	const pageRows = rows; // server already returned the correct page of results
 
 	useEffect(() => {

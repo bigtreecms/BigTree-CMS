@@ -17,6 +17,7 @@ import { IconButton } from "@/components/ui/IconButton";
 
 import { tagsApi, type Tag } from "@/api/endpoints/tags";
 import { pluralize } from "@/lib/number";
+import { derivePagination } from "@/lib/pagination";
 import { isAdmin } from "@/lib/permissions";
 import { queryKeys } from "@/lib/queryKeys";
 import { useConfirmDialog } from "@/hooks/useConfirmDialog";
@@ -55,10 +56,12 @@ export const Tags = () => {
 		placeholderData: keepPreviousData,
 	});
 
-	const rows = listQuery.data?.items ?? [];
-	const total = listQuery.data?.meta?.total ?? rows.length;
-	const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
-	const safePage = Math.min(page, totalPages);
+	const { rows, total, totalPages, safePage } = derivePagination({
+		rows: listQuery.data?.items,
+		meta: listQuery.data?.meta,
+		page,
+		perPage: PER_PAGE,
+	});
 
 	const deleteMutation = useToastMutation({
 		mutationFn: (id: number) => tagsApi.delete(id),

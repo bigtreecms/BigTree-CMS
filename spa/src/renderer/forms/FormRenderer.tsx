@@ -11,7 +11,7 @@ import { FieldLabel } from "@/components/ui/Field";
 import { UnsavedChangesGuard } from "@/components/ui/UnsavedChangesGuard";
 import { useScrollToFirstError } from "@/hooks/useScrollToFirstError";
 import { pluralize } from "@/lib/number";
-import { ApiError } from "@/types/api";
+import { applyApiFieldErrors } from "@/lib/errorHandling";
 
 import { FieldRowItem } from "./FieldRowItem";
 import { FormRenderContextProvider, type FormRenderContextValue } from "./FormContext";
@@ -246,19 +246,11 @@ export const FormRenderer = ({
 
 			await onSubmit(payload, { publish });
 		} catch (err) {
-			if (err instanceof ApiError) {
-				const fe = err.fieldErrors();
-
-				if (Object.keys(fe).length > 0) {
-					setFieldErrors(fe);
-				}
-
-				setGeneralError(err.message);
-			} else if (err instanceof Error) {
-				setGeneralError(err.message);
-			} else {
-				setGeneralError("Save failed");
-			}
+			applyApiFieldErrors(err, {
+				setFieldErrors,
+				setError: setGeneralError,
+				fallback: "Save failed",
+			});
 		} finally {
 			setSubmitting(false);
 		}

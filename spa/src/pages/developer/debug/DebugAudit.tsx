@@ -17,6 +17,7 @@ import { TextInput } from "@/components/ui/TextInput";
 
 import { auditApi, type AuditEntry } from "@/api/endpoints/audit";
 import { formatDateTime } from "@/lib/time";
+import { derivePagination } from "@/lib/pagination";
 import { queryKeys } from "@/lib/queryKeys";
 
 const PER_PAGE = 50;
@@ -62,10 +63,12 @@ export const DebugAudit = () => {
 		placeholderData: keepPreviousData,
 	});
 
-	const rows = listQ.data?.items ?? [];
-	const meta = listQ.data?.meta ?? {};
-	const total = meta.total ?? rows.length;
-	const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
+	const { rows, total, totalPages } = derivePagination({
+		rows: listQ.data?.items,
+		meta: listQ.data?.meta,
+		page,
+		perPage: PER_PAGE,
+	});
 
 	const columns: DataTableColumn<AuditEntry>[] = [
 		{

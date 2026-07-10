@@ -12,7 +12,6 @@ import {
 	type ModuleFormField,
 } from "@/api/endpoints/modules";
 
-import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { FieldGrid } from "@/components/ui/FieldGrid";
 import { SectionLabel } from "@/components/ui/SectionLabel";
 import {
@@ -26,7 +25,7 @@ import { useResourceSettingsValidation } from "@/components/developer/field-sett
 
 import { CheckboxInput, SelectInput, TextInput } from "./inputs";
 import { FormHooksEditor } from "./FormHooksEditor";
-import { AddSubButton, EditorCard, SubList, SubRow } from "./scaffold";
+import { AddSubButton, EditorCard, SubDeleteDialog, SubList, SubRow } from "./scaffold";
 import { NEW_ROW, useSubCrud } from "./useSubCrud";
 
 interface ModuleFormsTabProps {
@@ -83,17 +82,20 @@ const toBody = (d: Draft): ModuleFormBody => ({
 });
 
 export const ModuleFormsTab = ({ moduleId, moduleTable }: ModuleFormsTabProps) => {
-	const crud = useSubCrud<ModuleForm, ModuleFormBody>({
+	const crud = useSubCrud<ModuleForm, ModuleFormBody, Draft>({
 		moduleId,
 		resource: "forms",
 		label: "Form",
+		moduleTable,
+		emptyDraft,
+		draftFromItem: draftFromForm,
 		listFn: (id) => modulesApi.forms(id),
 		createFn: (id, body) => modulesApi.createForm(id, body),
 		updateFn: (id, sid, body) => modulesApi.updateForm(id, sid, body),
 		deleteFn: (id, sid) => modulesApi.deleteForm(id, sid),
 	});
 
-	const [draft, setDraft] = useState<Draft>(() => emptyDraft(moduleTable));
+	const { draft, setDraft } = crud;
 	const deleteDialog = useConfirmDialog<ModuleForm>();
 	const [settingsErrors, setSettingsErrors] = useState<Record<number, Record<string, string>>>(
 		{}
@@ -122,18 +124,6 @@ export const ModuleFormsTab = ({ moduleId, moduleTable }: ModuleFormsTabProps) =
 		queryKey: queryKeys.modules.moduleViews(moduleId),
 		queryFn: () => modulesApi.views(moduleId),
 	});
-
-	useEffect(() => {
-		if (crud.editingId === NEW_ROW) {
-			setDraft(emptyDraft(moduleTable));
-		} else if (crud.editingId) {
-			const found = crud.items.find((f) => f.id === crud.editingId);
-
-			if (found) {
-				setDraft(draftFromForm(found));
-			}
-		}
-	}, [crud.editingId, crud.items, moduleTable]);
 
 	const viewOptions = [
 		{ value: "", label: "— Return to default view —" },
@@ -255,22 +245,13 @@ export const ModuleFormsTab = ({ moduleId, moduleTable }: ModuleFormsTabProps) =
 				</EditorCard>
 			)}
 
-			{deleteDialog.item && (
-				<ConfirmDialog
-					open={deleteDialog.isOpen}
-					onOpenChange={(v) => {
-						if (!v) deleteDialog.close();
-					}}
-					title={`Delete form "${deleteDialog.item.title}"?`}
-					description="Actions that open this form will need to be repointed. Entry data in the module's table is left intact."
-					confirmLabel="Delete form"
-					variant="danger"
-					onConfirm={() => {
-						crud.remove(deleteDialog.item!.id);
-						deleteDialog.close();
-					}}
-				/>
-			)}
+			<SubDeleteDialog
+				dialog={deleteDialog}
+				noun="form"
+				labelFor={(f) => f.title}
+				description="Actions that open this form will need to be repointed. Entry data in the module's table is left intact."
+				onConfirm={(id) => crud.remove(id)}
+			/>
 		</div>
 	);
 };

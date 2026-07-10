@@ -24,6 +24,7 @@ import {
 
 import { downloadCsv } from "@/lib/csv";
 import { describeApiError } from "@/lib/errorHandling";
+import { derivePagination } from "@/lib/pagination";
 import { formatNumber, pluralize } from "@/lib/number";
 import { toast } from "@/lib/toast";
 import { queryKeys } from "@/lib/queryKeys";
@@ -113,9 +114,11 @@ export const FourOhFours = ({ type }: FourOhFoursProps) => {
 		placeholderData: keepPreviousData,
 	});
 
-	const rows = listQ.data?.data ?? [];
-	const total = (listQ.data?.meta?.total as number | undefined) ?? rows.length;
-	const totalPages = (listQ.data?.meta?.pages as number | undefined) ?? 1;
+	const { rows, total, totalPages } = derivePagination({
+		rows: listQ.data?.data,
+		meta: listQ.data?.meta,
+		page,
+	});
 
 	const deleteMutation = useToastMutation({
 		mutationFn: (id: number) => fourOhFoursApi.delete(id),

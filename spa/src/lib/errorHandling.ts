@@ -17,6 +17,34 @@ export function describeApiError(err: unknown, fallback: string): string {
 }
 
 /**
+ * Map a thrown value onto form error state: when it's an `ApiError` carrying
+ * field errors, push those onto `setFieldErrors` and surface its message;
+ * otherwise fall back to `describeApiError(err, fallback)`. This is the
+ * `onError` block shared by every save mutation — `useFormSubmit` and the
+ * hand-rolled editors both delegate here.
+ */
+export function applyApiFieldErrors(
+	err: unknown,
+	opts: {
+		setFieldErrors: (fe: Record<string, string>) => void;
+		setError: (msg: string) => void;
+		fallback: string;
+	}
+): void {
+	if (err instanceof ApiError) {
+		const fe = err.fieldErrors();
+
+		if (Object.keys(fe).length > 0) {
+			opts.setFieldErrors(fe);
+		}
+
+		opts.setError(err.message || opts.fallback);
+	} else {
+		opts.setError(describeApiError(err, opts.fallback));
+	}
+}
+
+/**
  * Like `describeApiError` but also translates the DOMException names thrown
  * by the WebAuthn/credential APIs into plain-English messages.
  */

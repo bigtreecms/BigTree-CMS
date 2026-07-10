@@ -14,10 +14,9 @@ import {
 } from "@/api/endpoints/modules";
 import { fieldTypesApi, fieldTypesForUseCase } from "@/api/endpoints/field-types";
 
-import { ApiError } from "@/types/api";
 import { useScrollToFirstError } from "@/hooks/useScrollToFirstError";
 import { dbTablesQueryKey } from "@/hooks/useDbTables";
-import { describeApiError } from "@/lib/errorHandling";
+import { applyApiFieldErrors } from "@/lib/errorHandling";
 import { toast } from "@/lib/toast";
 import { validateRequired } from "@/lib/formValidation";
 import { queryKeys } from "@/lib/queryKeys";
@@ -97,17 +96,11 @@ export const ModuleBuilderWizard = () => {
 			navigate(moduleDetailPath(mod.id), { replace: true });
 		},
 		onError: (err) => {
-			if (err instanceof ApiError) {
-				const fe = err.fieldErrors();
-
-				if (Object.keys(fe).length > 0) {
-					setFieldErrors(fe);
-				}
-
-				setGeneralError(err.message);
-			} else {
-				setGeneralError(describeApiError(err, "Build failed"));
-			}
+			applyApiFieldErrors(err, {
+				setFieldErrors,
+				setError: setGeneralError,
+				fallback: "Build failed",
+			});
 		},
 	});
 

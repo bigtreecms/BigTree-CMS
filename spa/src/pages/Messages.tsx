@@ -16,6 +16,7 @@ import { ComposeMessage } from "@/components/messages/ComposeMessage";
 import { messagesApi, type Message } from "@/api/endpoints/dashboard";
 import { useAuthStore } from "@/auth/store";
 import { formatNumber } from "@/lib/number";
+import { derivePagination } from "@/lib/pagination";
 import { queryKeys } from "@/lib/queryKeys";
 
 /**
@@ -40,9 +41,11 @@ export const Messages = () => {
 		placeholderData: keepPreviousData,
 	});
 
-	const rows = query.data?.data ?? [];
-	const total = (query.data?.meta?.total as number | undefined) ?? rows.length;
-	const totalPages = (query.data?.meta?.pages as number | undefined) ?? 1;
+	const { rows, total, totalPages } = derivePagination({
+		rows: query.data?.data,
+		meta: query.data?.meta,
+		page,
+	});
 
 	const columns: DataTableColumn<Message>[] = [
 		{

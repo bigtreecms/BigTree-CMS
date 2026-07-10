@@ -13,6 +13,7 @@ import { Toolbar } from "@/components/ui/Toolbar";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { usersApi, type UserListItem, levelToLabel } from "@/api/endpoints/users";
+import { derivePagination } from "@/lib/pagination";
 import { queryKeys } from "@/lib/queryKeys";
 import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 import { useToastMutation } from "@/hooks/useToastMutation";
@@ -43,10 +44,12 @@ export const DebugEmulator = () => {
 		placeholderData: keepPreviousData,
 	});
 
-	const rows = listQ.data?.items ?? [];
-	const meta = listQ.data?.meta ?? {};
-	const total = meta.total ?? rows.length;
-	const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
+	const { rows, total, totalPages } = derivePagination({
+		rows: listQ.data?.items,
+		meta: listQ.data?.meta,
+		page,
+		perPage: PER_PAGE,
+	});
 
 	const emulateMutation = useToastMutation({
 		mutationFn: (userId: number) => authApi.emulate(userId),
