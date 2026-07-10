@@ -11,7 +11,7 @@ import { AccessDenied } from "@/components/ui/AccessDenied";
 import { Button } from "@/components/ui/Button";
 import { IconButton } from "@/components/ui/IconButton";
 import { Loading } from "@/components/ui/Loading";
-import { CardHeader } from "@/components/ui/Card";
+import { CardFooter, CardHeader } from "@/components/ui/Card";
 import { TagInput } from "@/components/tags/TagInput";
 
 import { tagsApi, type Tag } from "@/api/endpoints/tags";
@@ -152,14 +152,10 @@ export const TagMerge = () => {
 					</p>
 				</div>
 
-				<div className="flex justify-end gap-2 border-t border-border bg-surface-2 px-4 py-3">
-					<button
-						type="button"
-						className="rounded-md border border-border px-4 py-1.5 text-[12.5px] hover:bg-hover"
-						onClick={() => navigate("/tags")}
-					>
+				<CardFooter>
+					<Button variant="secondary" onClick={() => navigate("/tags")}>
 						Cancel
-					</button>
+					</Button>
 					<Button
 						variant="primary"
 						icon={<ArrowRight size={13} />}
@@ -170,7 +166,7 @@ export const TagMerge = () => {
 					>
 						Merge tags
 					</Button>
-				</div>
+				</CardFooter>
 			</section>
 		</PageContainer>
 	);

@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
 
+import { CardFooter, CardHeader } from "./Card";
+
 interface FormShellProps {
 	/** Optional header bar above the form body. */
 	header?: ReactNode;
@@ -32,17 +34,17 @@ export const FormShell = ({
 	const Inner = (
 		<>
 			{header && (
-				<div className="flex items-baseline justify-between rounded-t-xl border-b border-border bg-surface-2 px-4 py-3 text-[12.5px]">
+				<CardHeader className="flex items-baseline justify-between rounded-t-xl text-[12.5px]">
 					{header}
-				</div>
+				</CardHeader>
 			)}
 
 			<div className="p-4">{children}</div>
 
 			{footer && (
-				<div className="sticky bottom-0 flex justify-end gap-2 rounded-b-xl border-t border-border bg-surface-2 px-4 py-3">
+				<CardFooter sticky className="rounded-b-xl">
 					{footer}
-				</div>
+				</CardFooter>
 			)}
 		</>
 	);

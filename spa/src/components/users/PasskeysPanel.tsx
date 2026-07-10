@@ -12,7 +12,7 @@ import { queryKeys } from "@/lib/queryKeys";
 import { Button } from "@/components/ui/Button";
 import { Loading } from "@/components/ui/Loading";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
-import { Card } from "@/components/ui/Card";
+import { Card, CardHeader } from "@/components/ui/Card";
 
 import { describeWebAuthnError } from "@/lib/errorHandling";
 import { toast } from "@/lib/toast";
@@ -75,7 +75,7 @@ export const PasskeysPanel = () => {
 
 	return (
 		<Card>
-			<header className="flex items-center justify-between border-b border-border bg-surface-2 px-4 py-3">
+			<CardHeader className="flex items-center justify-between">
 				<div className="flex items-center gap-2">
 					<Key size={14} className="text-text-3" />
 					<SectionLabel as="h3">Passkeys</SectionLabel>
@@ -93,7 +93,7 @@ export const PasskeysPanel = () => {
 						Add passkey
 					</Button>
 				)}
-			</header>
+			</CardHeader>
 
 			<div className="p-4">
 				{!supported && (

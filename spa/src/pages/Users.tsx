@@ -22,10 +22,9 @@ import { SubNav } from "@/components/ui/SubNav";
 import { Switch } from "@/components/ui/Switch";
 import { TextField } from "@/components/ui/TextField";
 import { TextInput } from "@/components/ui/TextInput";
-import { Card } from "@/components/ui/Card";
+import { Card, CardFooter, CardHeader } from "@/components/ui/Card";
 import { IconButton } from "@/components/ui/IconButton";
 import { TimezoneSelect } from "@/components/users/TimezoneSelect";
-import { isDeveloper } from "@/lib/permissions";
 import { toast } from "@/lib/toast";
 import { queryKeys } from "@/lib/queryKeys";
 import { useConfirmDialog } from "@/hooks/useConfirmDialog";
@@ -35,8 +34,8 @@ import {
 	type UserListItem,
 	type UserLevelLabel,
 	levelToLabel,
-	labelToLevel,
 } from "@/api/endpoints/users";
+import { userLevelHint, userLevelOptions } from "@/components/users/userLevels";
 
 // Types
 interface User {
@@ -112,7 +111,7 @@ export const Users = () => {
 	const [last, setLast] = useState("");
 	const [email, setEmail] = useState("");
 	const [company, setCompany] = useState("");
-	const [level, setLevel] = useState<User["level"]>("Normal User");
+	const [level, setLevel] = useState(0);
 	const [timezone, setTimezone] = useState("");
 	const [dailyDigest, setDailyDigest] = useState(true);
 	const [sendInvite, setSendInvite] = useState(true);
@@ -235,7 +234,7 @@ export const Users = () => {
 				email,
 				name,
 				company: company || undefined,
-				level: labelToLevel(level),
+				level,
 				timezone: timezone || undefined,
 				daily_digest: dailyDigest,
 				password: !sendInvite && password ? password : undefined,
@@ -251,7 +250,7 @@ export const Users = () => {
 			setLast("");
 			setEmail("");
 			setCompany("");
-			setLevel("Normal User");
+			setLevel(0);
 			setTimezone("");
 			setDailyDigest(true);
 			setSendInvite(true);
@@ -463,14 +462,11 @@ export const Users = () => {
 			)}
 
 			{view === "add" && (
-				<form
-					onSubmit={submitAddUser}
-					className="max-w-2xl rounded-xl border border-border bg-surface"
-				>
-					<div className="flex items-baseline justify-between border-b border-border bg-surface-2 px-4 py-3 text-[12.5px]">
+				<Card as="form" onSubmit={submitAddUser} className="max-w-2xl">
+					<CardHeader className="flex items-baseline justify-between rounded-t-xl text-[12.5px]">
 						<span className="font-semibold">Account details</span>
 						<span className="text-text-3">Required fields marked with *</span>
-					</div>
+					</CardHeader>
 
 					<div className="grid grid-cols-1 gap-x-6 gap-y-4 p-4 md:grid-cols-2">
 						<Field label="First name" required>
@@ -509,22 +505,10 @@ export const Users = () => {
 
 						<SelectField
 							label="User level"
-							value={level}
-							onChange={(next) => setLevel(next as User["level"])}
-							options={[
-								{ value: "Normal User", label: "Normal User" },
-								{ value: "Administrator", label: "Administrator" },
-								...(isDeveloper(currentUser)
-									? [{ value: "Developer", label: "Developer" }]
-									: []),
-							]}
-							hint={
-								level === "Developer"
-									? "Full access including the Developer section (templates, module designer, configure, debug)."
-									: level === "Administrator"
-										? "Manage pages, modules, files, settings, and other users."
-										: "Per-resource access only — set up grants after creation."
-							}
+							value={String(level)}
+							onChange={(next) => setLevel(Number(next))}
+							options={userLevelOptions(currentUser)}
+							hint={userLevelHint(level)}
 						/>
 
 						<Field label="Timezone">
@@ -572,7 +556,7 @@ export const Users = () => {
 						)}
 					</div>
 
-					<div className="flex justify-end gap-2 border-t border-border bg-surface-2 px-4 py-3">
+					<CardFooter className="rounded-b-xl">
 						<Button variant="secondary" onClick={() => setView("list")}>
 							Cancel
 						</Button>
@@ -586,8 +570,8 @@ export const Users = () => {
 						>
 							Create user
 						</Button>
-					</div>
-				</form>
+					</CardFooter>
+				</Card>
 			)}
 
 			{/* Delete confirmation */}

@@ -133,12 +133,3 @@ export function levelToLabel(level: number): UserLevelLabel {
 	if (level === 1) return "Administrator";
 	return "Normal User";
 }
-
-/**
- * Map UI label back to the numeric level the API expects on create/update.
- */
-export function labelToLevel(label: UserLevelLabel): number {
-	if (label === "Developer") return 2;
-	if (label === "Administrator") return 1;
-	return 0;
-}

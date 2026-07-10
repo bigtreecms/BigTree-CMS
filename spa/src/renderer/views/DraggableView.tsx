@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToastMutation } from "@/hooks/useToastMutation";
 
+import { Card } from "@/components/ui/Card";
 import { DragHandle } from "@/components/ui/DragHandle";
 import { Loading } from "@/components/ui/Loading";
 import { QueryRenderer } from "@/components/ui/QueryRenderer";
@@ -101,7 +102,7 @@ export const DraggableView = ({ moduleId, view }: DraggableViewProps) => {
 				</div>
 			)}
 
-			<div className="overflow-hidden rounded-xl border border-border bg-surface">
+			<Card className="overflow-hidden">
 				<QueryRenderer
 					isLoading={listQuery.isLoading && !listQuery.data}
 					error={listQuery.error}
@@ -165,7 +166,7 @@ export const DraggableView = ({ moduleId, view }: DraggableViewProps) => {
 						})}
 					</ul>
 				</QueryRenderer>
-			</div>
+			</Card>
 
 			{deleteDialog}
 		</>

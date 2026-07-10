@@ -6,6 +6,7 @@ import { ChevronLeft, Reply } from "lucide-react";
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
 import { PageContainer } from "@/components/shell/PageContainer";
+import { Card } from "@/components/ui/Card";
 import { DescriptionList } from "@/components/ui/DescriptionList";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { Loading } from "@/components/ui/Loading";
@@ -152,8 +153,10 @@ export const MessageThread = () => {
 				]}
 			/>
 
-			<article
-				className="rounded-xl border border-border bg-surface p-4 text-[13.5px] leading-relaxed text-text"
+			<Card
+				as="article"
+				padding="sm"
+				className="text-[13.5px] leading-relaxed text-text"
 				/* Sanitised server-side; only inline tags survive. */
 				dangerouslySetInnerHTML={{ __html: sanitizeHtml(html) }}
 			/>

@@ -5,6 +5,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useToastMutation } from "@/hooks/useToastMutation";
 import { ChevronDown, ChevronRight } from "lucide-react";
 
+import { Card } from "@/components/ui/Card";
 import { DragHandle } from "@/components/ui/DragHandle";
 import { Loading } from "@/components/ui/Loading";
 import { QueryRenderer } from "@/components/ui/QueryRenderer";
@@ -237,7 +238,7 @@ export const NestedView = ({ moduleId, view }: NestedViewProps) => {
 				</div>
 			)}
 
-			<div className="overflow-hidden rounded-xl border border-border bg-surface">
+			<Card className="overflow-hidden">
 				<QueryRenderer
 					isLoading={listQuery.isLoading && !listQuery.data}
 					error={listQuery.error}
@@ -291,7 +292,7 @@ export const NestedView = ({ moduleId, view }: NestedViewProps) => {
 						</ul>
 					)}
 				</QueryRenderer>
-			</div>
+			</Card>
 
 			{deleteDialog}
 		</>

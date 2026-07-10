@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useOAuthRedirectResult } from "@/hooks/useOAuthRedirectResult";
 import { useToastMutation } from "@/hooks/useToastMutation";
 import { RefreshCw, Save } from "lucide-react";
 
@@ -50,30 +50,16 @@ interface ProviderDraft {
 
 export const ConfigureCloudStorage = () => {
 	const queryClient = useQueryClient();
-	const [searchParams, setSearchParams] = useSearchParams();
 	const detailQ = useQuery({
 		queryKey: queryKeys.configure.cloudStorage(),
 		queryFn: () => configureApi.cloudStorage.get(),
 	});
 
-	// Surface the OAuth broker's redirect result.
-	useEffect(() => {
-		const connected = searchParams.get("connected");
-		const error = searchParams.get("error");
-
-		if (connected) {
-			toast.success("Google Cloud Storage connected");
-		} else if (error) {
-			toast.error("Google Cloud connection failed.");
-		}
-
-		if (connected || error) {
-			searchParams.delete("connected");
-			searchParams.delete("error");
-			setSearchParams(searchParams, { replace: true });
-			queryClient.invalidateQueries({ queryKey: queryKeys.configure.cloudStorage() });
-		}
-	}, [searchParams, setSearchParams, queryClient]);
+	useOAuthRedirectResult({
+		onConnected: () => toast.success("Google Cloud Storage connected"),
+		onError: () => toast.error("Google Cloud connection failed."),
+		invalidate: queryKeys.configure.cloudStorage(),
+	});
 
 	const [drafts, setDrafts] = useState<Record<CloudProvider, ProviderDraft>>({
 		amazon: {},

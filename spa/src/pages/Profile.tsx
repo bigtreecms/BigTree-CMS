@@ -22,7 +22,7 @@ import { queryKeys } from "@/lib/queryKeys";
 import { useDirtyTracker } from "@/hooks/useDirtyTracker";
 import { useToastMutation } from "@/hooks/useToastMutation";
 import { UnsavedChangesGuard } from "@/components/ui/UnsavedChangesGuard";
-import { Card } from "@/components/ui/Card";
+import { Card, CardHeader } from "@/components/ui/Card";
 import { Field } from "@/components/ui/Field";
 import { SectionLabel } from "@/components/ui/SectionLabel";
 
@@ -206,12 +206,8 @@ interface AccountTabProps {
 }
 
 const AccountTab = ({ me, form, onChange, onSubmit }: AccountTabProps) => (
-	<form
-		id="profile-form"
-		onSubmit={onSubmit}
-		className="rounded-xl border border-border bg-surface"
-	>
-		<div className="flex items-center gap-4 border-b border-border bg-surface-2 px-4 py-3">
+	<Card as="form" id="profile-form" onSubmit={onSubmit}>
+		<CardHeader className="flex items-center gap-4">
 			<GravatarAvatar email={form.email ?? me.email} name={form.name ?? me.name} size={48} />
 			<div className="min-w-0">
 				<div className="text-[13.5px] font-semibold tracking-[-0.01em]">
@@ -219,7 +215,7 @@ const AccountTab = ({ me, form, onChange, onSubmit }: AccountTabProps) => (
 				</div>
 				<div className="truncate text-[11.5px] text-text-3">{me.email}</div>
 			</div>
-		</div>
+		</CardHeader>
 
 		<div className="grid gap-4 p-4 md:grid-cols-2">
 			<TextField
@@ -256,7 +252,7 @@ const AccountTab = ({ me, form, onChange, onSubmit }: AccountTabProps) => (
 				className="md:col-span-2"
 			/>
 		</div>
-	</form>
+	</Card>
 );
 
 interface SecurityTabProps {
@@ -267,10 +263,10 @@ interface SecurityTabProps {
 const SecurityTab = ({ me, onChangePassword }: SecurityTabProps) => (
 	<div className="space-y-4">
 		<Card>
-			<header className="flex items-center gap-2 border-b border-border bg-surface-2 px-4 py-3">
+			<CardHeader className="flex items-center gap-2">
 				<Key size={14} className="text-text-3" />
 				<SectionLabel as="h3">Password</SectionLabel>
-			</header>
+			</CardHeader>
 			<div className="flex items-center justify-between gap-3 p-4 text-[12.5px]">
 				<span className="text-text-3">
 					Change the password you use to sign in with email + password.

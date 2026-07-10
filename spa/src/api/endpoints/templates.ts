@@ -1,4 +1,4 @@
-import { api } from "@/api/client";
+import { api, crudEndpoints } from "@/api/client";
 
 import type { ModuleFormField } from "@/api/endpoints/modules";
 
@@ -55,16 +55,7 @@ export interface TemplateEditBody {
 }
 
 export const templatesApi = {
-	list: () => api.get<TemplateSummary[]>("/templates"),
-
-	get: (id: string) => api.get<TemplateSummary>(`/templates/${encodeURIComponent(id)}`),
-
-	create: (body: TemplateEditBody) => api.post<TemplateSummary>("/templates", body),
-
-	update: (id: string, body: TemplateEditBody) =>
-		api.patch<TemplateSummary>(`/templates/${encodeURIComponent(id)}`, body),
-
-	delete: (id: string) => api.delete<void>(`/templates/${encodeURIComponent(id)}`),
+	...crudEndpoints<TemplateSummary, TemplateEditBody>("/templates"),
 
 	reorder: (ids: string[]) => api.post<void>("/templates/reorder", { ids }),
 };

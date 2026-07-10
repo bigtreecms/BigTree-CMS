@@ -31,6 +31,7 @@ import { PagePermissionsTree } from "@/components/users/PagePermissionsTree";
 import { PasswordChangeDialog } from "@/components/users/PasswordChangeDialog";
 import { ResourcePermissionsTree } from "@/components/users/ResourcePermissionsTree";
 import { TimezoneSelect } from "@/components/users/TimezoneSelect";
+import { userLevelHint, userLevelOptions } from "@/components/users/userLevels";
 import { isAdmin, isDeveloper } from "@/lib/permissions";
 import { queryKeys } from "@/lib/queryKeys";
 import { useReturnTo } from "@/hooks/useReturnTo";
@@ -38,7 +39,7 @@ import { useToastMutation } from "@/hooks/useToastMutation";
 import { useDirtyTracker } from "@/hooks/useDirtyTracker";
 import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 import { UnsavedChangesGuard } from "@/components/ui/UnsavedChangesGuard";
-import { Card } from "@/components/ui/Card";
+import { Card, CardHeader } from "@/components/ui/Card";
 import { Field } from "@/components/ui/Field";
 
 type PermsTab = "pages" | "modules" | "files";
@@ -262,7 +263,7 @@ export const UserEdit = () => {
 			<form id="user-edit-form" onSubmit={submit} className="space-y-6">
 				<div className="grid gap-6 md:grid-cols-2">
 					<Card>
-						<div className="rounded-t-xl flex items-center gap-3 border-b border-border bg-surface-2 px-4 py-3">
+						<CardHeader className="rounded-t-xl flex items-center gap-3">
 							<GravatarAvatar
 								email={form.email ?? targetUser.email}
 								name={form.name ?? targetUser.name}
@@ -276,7 +277,7 @@ export const UserEdit = () => {
 									Avatar from Gravatar
 								</div>
 							</div>
-						</div>
+						</CardHeader>
 
 						<div className="rounded-b-xl space-y-4 p-4">
 							<TextField
@@ -292,20 +293,8 @@ export const UserEdit = () => {
 									label="User level"
 									value={String(form.level ?? 0)}
 									onChange={(level) => setForm({ ...form, level: Number(level) })}
-									options={[
-										{ value: "0", label: "Normal User" },
-										{ value: "1", label: "Administrator" },
-										...(isDeveloper(currentUser)
-											? [{ value: "2", label: "Developer" }]
-											: []),
-									]}
-									hint={
-										editedLevel === 2
-											? "Full access including the Developer section."
-											: editedLevel === 1
-												? "Manage pages, modules, files, settings, and other users."
-												: "Access only to pages, modules, and folders granted below."
-									}
+									options={userLevelOptions(currentUser)}
+									hint={userLevelHint(editedLevel)}
 								/>
 							)}
 
@@ -318,9 +307,9 @@ export const UserEdit = () => {
 					</Card>
 
 					<Card>
-						<div className="rounded-t-xl border-b border-border bg-surface-2 px-4 py-3 text-[13px] font-semibold tracking-[-0.01em]">
+						<CardHeader className="rounded-t-xl text-[13px] font-semibold tracking-[-0.01em]">
 							Personal
-						</div>
+						</CardHeader>
 
 						<div className="rounded-b-xl space-y-4 p-4">
 							<TextField
@@ -347,7 +336,7 @@ export const UserEdit = () => {
 
 				{canEditLevel && (
 					<Card>
-						<div className="rounded-t-xl flex flex-wrap items-center justify-between gap-3 border-b border-border bg-surface-2 px-4 py-3">
+						<CardHeader className="rounded-t-xl flex flex-wrap items-center justify-between gap-3">
 							<div className="min-w-0">
 								<div className="text-[13px] font-semibold tracking-[-0.01em]">
 									Permissions
@@ -370,7 +359,7 @@ export const UserEdit = () => {
 									]}
 								/>
 							)}
-						</div>
+						</CardHeader>
 
 						<div className="p-4">
 							{(editedIsAdmin || permsTab === "pages") && (

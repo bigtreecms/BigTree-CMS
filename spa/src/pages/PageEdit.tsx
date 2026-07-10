@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToastMutation } from "@/hooks/useToastMutation";
 import { Navigate, useLocation, useNavigate, useParams } from "react-router-dom";
-import { Calendar, ChevronLeft, Save } from "lucide-react";
+import { Calendar, Save } from "lucide-react";
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
@@ -20,7 +20,8 @@ import { TextInput } from "@/components/ui/TextInput";
 
 import { AccessLevelsDialog } from "@/components/pages/AccessLevelsDialog";
 import { MovePageDialog } from "@/components/pages/MovePageDialog";
-import { PageTabStrip } from "@/components/pages/PageTabStrip";
+import { PageTabStrip, type PageTabValue } from "@/components/pages/PageTabStrip";
+import { PageWizardFooter } from "@/components/pages/PageWizardFooter";
 import { PageSectionToolbar } from "@/components/pages/PageSectionToolbar";
 import { PageSummaryPanel } from "@/components/pages/PageSummaryPanel";
 
@@ -65,10 +66,6 @@ import { InlineEmpty } from "@/components/ui/InlineEmpty";
  * On submit, a single PATCH bundles every dirty field across all tabs. Field
  * 422 errors are routed by `column` and shown under the corresponding input.
  */
-
-type TabValue = "properties" | "content" | "seo" | "sharing";
-
-const PAGE_TABS: TabValue[] = ["properties", "content", "seo", "sharing"];
 
 /**
  * Resolves per-field pending-change state for the page editor's field wrappers.
@@ -165,7 +162,7 @@ export const PageEdit = () => {
 	const [body, setBody] = useState<PageEditBody | null>(null);
 	// Full Tag objects for the browser chips; body.tags carries just the ids.
 	const [tagObjects, setTagObjects] = useState<Tag[]>([]);
-	const [activeTab, setActiveTab] = useState<TabValue>("content");
+	const [activeTab, setActiveTab] = useState<PageTabValue>("content");
 	const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 	const [generalError, setGeneralError] = useState<string | null>(null);
 	const deleteDialog = useConfirmDialog<true>();
@@ -504,16 +501,27 @@ export const PageEdit = () => {
 					)}
 				</div>
 
-				<WizardFooter
-					activeTab={activeTab}
-					onSelect={setActiveTab}
-					primaryLabel={saveMutation.isPending ? "Saving…" : "Save"}
-					onPrimary={() => handleSave(false)}
-					primaryDisabled={readOnly || saveMutation.isPending}
-					publishLabel={canPublish ? "Save & Publish" : undefined}
-					onPublish={canPublish ? () => handleSave(true) : undefined}
-					publishDisabled={readOnly || saveMutation.isPending}
-				/>
+				<PageWizardFooter activeTab={activeTab} onSelect={setActiveTab}>
+					<Button
+						variant={canPublish ? "secondary" : "primary"}
+						icon={<Save size={13} />}
+						onClick={() => handleSave(false)}
+						disabled={readOnly || saveMutation.isPending}
+					>
+						{saveMutation.isPending ? "Saving…" : "Save"}
+					</Button>
+
+					{canPublish && (
+						<Button
+							variant="primary"
+							icon={<Save size={13} />}
+							onClick={() => handleSave(true)}
+							disabled={readOnly || saveMutation.isPending}
+						>
+							Save & Publish
+						</Button>
+					)}
+				</PageWizardFooter>
 			</form>
 
 			<ConfirmDialog
@@ -1160,104 +1168,6 @@ const NoResources = ({ reason }: { reason: "external" | "empty" | "redirect" }) 
 				There are no resources for the selected template.
 			</div>
 			<div className="max-w-md text-[12px] text-text-3">{message}</div>
-		</div>
-	);
-};
-
-interface WizardFooterProps {
-	activeTab: TabValue;
-	onSelect: (tab: TabValue) => void;
-	primaryLabel: string;
-	onPrimary: () => void;
-	primaryDisabled?: boolean;
-	/** When set (publishers only), renders a second accent "Save & Publish" button. */
-	publishLabel?: string;
-	onPublish?: () => void;
-	publishDisabled?: boolean;
-	secondary?: React.ReactNode;
-	wizardMode?: boolean;
-	onWizardCreate?: () => void;
-	createLabel?: string;
-}
-
-const WizardFooter = ({
-	activeTab,
-	onSelect,
-	primaryLabel,
-	onPrimary,
-	primaryDisabled,
-	publishLabel,
-	onPublish,
-	publishDisabled,
-	secondary,
-	wizardMode = false,
-	onWizardCreate,
-	createLabel,
-}: WizardFooterProps) => {
-	const showPublish = Boolean(publishLabel && onPublish);
-	const index = PAGE_TABS.indexOf(activeTab);
-	const isFirst = index === 0;
-	const isLast = index === PAGE_TABS.length - 1;
-
-	return (
-		<div className="flex flex-wrap items-center gap-2 border-t border-border bg-surface-2 px-4 py-3">
-			{!isFirst && (
-				<Button
-					variant="secondary"
-					icon={<ChevronLeft size={13} />}
-					onClick={() => onSelect(PAGE_TABS[index - 1] ?? PAGE_TABS[0]!)}
-				>
-					Back
-				</Button>
-			)}
-
-			{secondary}
-
-			{/* Desktop-only spacer; on mobile the action group below claims its own row. */}
-			<div className="hidden flex-1 sm:block" />
-
-			{/* On mobile this is a full-width row (so Back sits alone above and the
-			    save actions share a line); on desktop `contents` dissolves the wrapper
-			    so the buttons lay out exactly as before. */}
-			<div className="flex w-full flex-wrap items-center justify-end gap-2 sm:contents">
-				{wizardMode && !isLast && (
-					<Button
-						variant="secondary"
-						onClick={() =>
-							onSelect(PAGE_TABS[index + 1] ?? PAGE_TABS[PAGE_TABS.length - 1]!)
-						}
-					>
-						Next Step
-						<ChevronLeft size={13} className="rotate-180" />
-					</Button>
-				)}
-
-				{wizardMode && onWizardCreate && (
-					<Button variant="secondary" onClick={onWizardCreate} disabled={primaryDisabled}>
-						{createLabel ?? "Create"}
-					</Button>
-				)}
-
-				<Button
-					variant={showPublish ? "secondary" : "primary"}
-					icon={<Save size={13} />}
-					onClick={onPrimary}
-					disabled={primaryDisabled}
-				>
-					{primaryLabel}
-				</Button>
-
-				{showPublish && (
-					<Button
-						variant="primary"
-						icon={<Save size={13} />}
-						onClick={onPublish}
-						disabled={publishDisabled}
-					>
-						{publishLabel}
-					</Button>
-				)}
-			</div>
 		</div>
 	);
 };

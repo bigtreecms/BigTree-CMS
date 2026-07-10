@@ -1,21 +1,13 @@
-import { Link } from "react-router-dom";
 import { Activity, Archive, History, ShieldCheck, UserCog, ArrowUpCircle } from "lucide-react";
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
 import { PageContainer } from "@/components/shell/PageContainer";
-import { IconTile } from "@/components/ui/IconTile";
+import { TileLinkGrid, type TileLink } from "@/components/ui/TileLinkGrid";
 
 import { DeveloperSectionNav } from "@/components/developer/DeveloperSectionNav";
 
-interface DebugCard {
-	to: string;
-	icon: React.ReactNode;
-	title: string;
-	description: string;
-}
-
-const CARDS: DebugCard[] = [
+const CARDS: TileLink[] = [
 	{
 		to: "/developer/debug/status",
 		icon: <Activity size={16} />,
@@ -65,22 +57,6 @@ export const DebugIndex = () => (
 
 		<DeveloperSectionNav />
 
-		<div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
-			{CARDS.map((c) => (
-				<Link
-					key={c.to}
-					to={c.to}
-					className="group flex items-start gap-3 rounded-xl border border-border bg-surface p-4 transition-colors hover:border-accent-ring hover:bg-surface-2"
-				>
-					<IconTile className="shrink-0">{c.icon}</IconTile>
-					<div className="min-w-0">
-						<div className="text-[13.5px] font-semibold text-text group-hover:text-accent">
-							{c.title}
-						</div>
-						<div className="mt-0.5 text-[12px] text-text-3">{c.description}</div>
-					</div>
-				</Link>
-			))}
-		</div>
+		<TileLinkGrid items={CARDS} />
 	</PageContainer>
 );

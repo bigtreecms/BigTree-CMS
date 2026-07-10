@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 
+import { Card } from "@/components/ui/Card";
 import { Loading } from "@/components/ui/Loading";
 import { embedFormsApi, type EmbedFormConfig } from "@/api/endpoints/embed-forms";
 import type { ModuleForm } from "@/api/endpoints/modules";
 import { FormRenderer } from "@/renderer/forms/FormRenderer";
+import { queryKeys } from "@/lib/queryKeys";
 
 /**
  * Standalone embed-form runtime. Used by the public /embed/:hash route.
@@ -32,7 +34,7 @@ export const EmbedFormRenderer = ({ hash }: EmbedFormRendererProps) => {
 	} | null>(null);
 
 	const configQuery = useQuery({
-		queryKey: ["embed-form", hash] as const,
+		queryKey: queryKeys.embedForms.detail(hash),
 		queryFn: () => embedFormsApi.get(hash),
 		retry: false,
 	});
@@ -93,11 +95,11 @@ export const EmbedFormRenderer = ({ hash }: EmbedFormRendererProps) => {
 	if (submitted) {
 		return (
 			<div className="mx-auto max-w-2xl px-6 py-12">
-				<div className="rounded-xl border border-border bg-surface p-8 text-center text-[13.5px] text-text-2">
+				<Card className="p-8 text-center text-[13.5px] text-text-2">
 					{submitted.redirect
 						? "Redirecting…"
 						: submitted.message || "Thanks — your submission has been received."}
-				</div>
+				</Card>
 			</div>
 		);
 	}

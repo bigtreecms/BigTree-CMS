@@ -33,6 +33,8 @@ import { DragHandle } from "@/components/ui/DragHandle";
 import { InlineEmpty } from "@/components/ui/InlineEmpty";
 import { IconButton } from "@/components/ui/IconButton";
 import { SectionLabel } from "@/components/ui/SectionLabel";
+/** The bare `ui` input — `./inputs`' `TextInput` is the labeled `TextField` wrapper. */
+import { TextInput as BareTextInput } from "@/components/ui/TextInput";
 
 interface ModuleViewsTabProps {
 	moduleId: string;
@@ -371,17 +373,18 @@ export const ModuleViewsTab = ({ moduleId, moduleTable }: ModuleViewsTabProps) =
 												ariaLabel="Column"
 												className="w-48 shrink-0"
 											/>
-											<input
-												type="text"
+											<BareTextInput
+												compact
 												value={col.title}
 												aria-label="Column heading"
 												onChange={(e) =>
 													setColumn(index, { title: e.target.value })
 												}
 												placeholder="Heading"
-												className="flex-1 rounded-md border border-border bg-surface px-2 py-1 text-[12.5px] focus:outline-none focus:ring-1 focus:ring-accent-ring"
+												className="flex-1"
 											/>
-											<input
+											<BareTextInput
+												compact
 												type="number"
 												min={0}
 												value={col.width ?? ""}
@@ -391,7 +394,7 @@ export const ModuleViewsTab = ({ moduleId, moduleTable }: ModuleViewsTabProps) =
 												placeholder="auto"
 												title="Column width in px (relative weight; blank = auto)"
 												aria-label="Column width"
-												className="w-20 shrink-0 rounded-md border border-border bg-surface px-2 py-1 text-[12.5px] tabular-nums focus:outline-none focus:ring-1 focus:ring-accent-ring"
+												className="w-20 shrink-0 tabular-nums"
 											/>
 											<IconButton
 												tone="danger"

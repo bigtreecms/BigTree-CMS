@@ -239,3 +239,33 @@ export const api = {
 		return false;
 	},
 };
+
+/**
+ * The string-id CRUD quintet that most Developer-section catalogs expose
+ * verbatim — `GET /base`, `GET /base/{id}`, `POST /base`, `PATCH /base/{id}`,
+ * `DELETE /base/{id}`. Spread it into an endpoint object and add the extras:
+ *
+ *     export const feedsApi = { ...crudEndpoints<FeedSummary, FeedEditBody>("/feeds") };
+ *
+ *     export const templatesApi = {
+ *         ...crudEndpoints<TemplateSummary, TemplateEditBody>("/templates"),
+ *         reorder: (ids: string[]) => api.post<void>("/templates/reorder", { ids }),
+ *     };
+ *
+ * Adopting it also pins the `encodeURIComponent` convention structurally, so an
+ * id with a slash or a space can't slip through unencoded.
+ */
+export const crudEndpoints = <TSummary, TCreate = Partial<TSummary>, TUpdate = TCreate>(
+	base: string
+) => ({
+	list: () => api.get<TSummary[]>(base),
+
+	get: (id: string) => api.get<TSummary>(`${base}/${encodeURIComponent(id)}`),
+
+	create: (body: TCreate) => api.post<TSummary>(base, body),
+
+	update: (id: string, body: TUpdate) =>
+		api.patch<TSummary>(`${base}/${encodeURIComponent(id)}`, body),
+
+	delete: (id: string) => api.delete<void>(`${base}/${encodeURIComponent(id)}`),
+});

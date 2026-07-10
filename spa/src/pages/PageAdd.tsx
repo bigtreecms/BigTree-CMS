@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import { ChevronLeft, ChevronRight, X } from "lucide-react";
+import { X } from "lucide-react";
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
@@ -26,7 +26,8 @@ import { useFormSubmit } from "@/hooks/useFormSubmit";
 import { useDirtyTracker } from "@/hooks/useDirtyTracker";
 import { UnsavedChangesGuard } from "@/components/ui/UnsavedChangesGuard";
 
-import { PageTabStrip } from "@/components/pages/PageTabStrip";
+import { PageTabStrip, type PageTabValue } from "@/components/pages/PageTabStrip";
+import { PageWizardFooter } from "@/components/pages/PageWizardFooter";
 
 import { ContentTab, PropertiesTab, SeoTab, SharingTab } from "./PageEdit";
 
@@ -38,10 +39,6 @@ import { ContentTab, PropertiesTab, SeoTab, SharingTab } from "./PageEdit";
  * "Create" queues a NEW pending change (draft); "Create & Publish" (publishers
  * only) writes the page live. The button choice maps to `publish` on the body.
  */
-
-type TabValue = "properties" | "content" | "seo" | "sharing";
-
-const PAGE_TABS: TabValue[] = ["properties", "content", "seo", "sharing"];
 
 const seedBody = (parent: number): PageEditBody => ({
 	parent,
@@ -82,7 +79,7 @@ export const PageAdd = () => {
 	const [body, setBody] = useState<PageEditBody>(() => seedBody(parent));
 	// Full Tag objects for the browser chips; body.tags carries just the ids.
 	const [tagObjects, setTagObjects] = useState<Tag[]>([]);
-	const [activeTab, setActiveTab] = useState<TabValue>("properties");
+	const [activeTab, setActiveTab] = useState<PageTabValue>("properties");
 	const { error, setError, fieldErrors, setFieldErrors, onMutationError } = useFormSubmit();
 
 	useEffect(() => {
@@ -204,9 +201,6 @@ export const PageAdd = () => {
 		{ label: "Add subpage" },
 	];
 
-	const tabIndex = PAGE_TABS.indexOf(activeTab);
-	const isFirst = tabIndex === 0;
-	const isLast = tabIndex === PAGE_TABS.length - 1;
 	const canCreate = Boolean(body.nav_title && body.nav_title.trim().length > 0);
 
 	// A new page's publish right derives from the parent. Top-level pages (no
@@ -280,60 +274,29 @@ export const PageAdd = () => {
 					{activeTab === "sharing" && <SharingTab body={body} onPatch={setBodyPatch} />}
 				</div>
 
-				<div className="flex flex-wrap items-center gap-2 border-t border-border bg-surface-2 px-4 py-3">
-					{!isFirst && (
-						<Button
-							variant="secondary"
-							icon={<ChevronLeft size={13} />}
-							onClick={() => setActiveTab(PAGE_TABS[tabIndex - 1] ?? PAGE_TABS[0]!)}
-						>
-							Back
-						</Button>
-					)}
+				<PageWizardFooter activeTab={activeTab} onSelect={setActiveTab} showNext>
+					<Button
+						variant={canPublish ? "secondary" : "primary"}
+						onClick={() => handleSubmit(false)}
+						disabled={!canCreate}
+						loading={createMutation.isPending}
+						loadingLabel="Saving…"
+					>
+						Create
+					</Button>
 
-					{/* Desktop-only spacer; on mobile the action group below claims its own row. */}
-					<div className="hidden flex-1 sm:block" />
-
-					{!isLast && (
+					{canPublish && (
 						<Button
-							variant="secondary"
-							onClick={() =>
-								setActiveTab(
-									PAGE_TABS[tabIndex + 1] ?? PAGE_TABS[PAGE_TABS.length - 1]!
-								)
-							}
-						>
-							Next Step
-							<ChevronRight size={13} />
-						</Button>
-					)}
-
-					{/* Commit actions stay grouped: full-width row on mobile so Create and
-						    Create & Publish share a line; `contents` on desktop lays them inline. */}
-					<div className="flex w-full flex-wrap items-center justify-end gap-2 sm:contents">
-						<Button
-							variant={canPublish ? "secondary" : "primary"}
-							onClick={() => handleSubmit(false)}
+							variant="primary"
+							onClick={() => handleSubmit(true)}
 							disabled={!canCreate}
 							loading={createMutation.isPending}
 							loadingLabel="Saving…"
 						>
-							Create
+							Create & Publish
 						</Button>
-
-						{canPublish && (
-							<Button
-								variant="primary"
-								onClick={() => handleSubmit(true)}
-								disabled={!canCreate}
-								loading={createMutation.isPending}
-								loadingLabel="Saving…"
-							>
-								Create & Publish
-							</Button>
-						)}
-					</div>
-				</div>
+					)}
+				</PageWizardFooter>
 			</form>
 
 			<UnsavedChangesGuard isDirty={isDirty} />

@@ -9,7 +9,7 @@ import { describeApiError } from "@/lib/errorHandling";
 import { queryKeys } from "@/lib/queryKeys";
 import { TwoFactorEnrollForm } from "./TwoFactorEnrollForm";
 import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
+import { Card, CardHeader } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Field } from "@/components/ui/Field";
 import { SectionLabel } from "@/components/ui/SectionLabel";
@@ -83,10 +83,10 @@ export const TwoFactorPanel = ({ enabled }: TwoFactorPanelProps) => {
 
 	return (
 		<Card>
-			<header className="flex items-center gap-2 border-b border-border bg-surface-2 px-4 py-3">
+			<CardHeader className="flex items-center gap-2">
 				<ShieldCheck size={14} className="text-text-3" />
 				<SectionLabel as="h3">Two-factor authentication</SectionLabel>
-			</header>
+			</CardHeader>
 
 			<div className="space-y-3 p-4 text-[12.5px]">
 				<div className="flex items-center justify-between gap-3">

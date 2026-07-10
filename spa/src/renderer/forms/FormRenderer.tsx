@@ -5,6 +5,7 @@ import type { Tag } from "@/api/endpoints/tags";
 import { TagInput } from "@/components/tags/TagInput";
 import { Alert } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { FieldLabel } from "@/components/ui/Field";
 import { UnsavedChangesGuard } from "@/components/ui/UnsavedChangesGuard";
@@ -264,7 +265,7 @@ export const FormRenderer = ({
 	};
 
 	const body = (
-		<form onSubmit={handleSubmit} className="rounded-xl border border-border bg-surface">
+		<Card as="form" onSubmit={handleSubmit}>
 			{header && (
 				<div className="flex items-baseline justify-between border-b border-border bg-surface-2 px-4 py-3 text-[12.5px]">
 					{header}
@@ -361,7 +362,7 @@ export const FormRenderer = ({
 					</Button>
 				)}
 			</div>
-		</form>
+		</Card>
 	);
 
 	const leaveGuard = <UnsavedChangesGuard isDirty={isDirty} />;

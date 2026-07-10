@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useConfirmDialog } from "@/hooks/useConfirmDialog";
+import { useOAuthRedirectResult } from "@/hooks/useOAuthRedirectResult";
 import { useToastMutation } from "@/hooks/useToastMutation";
 import { CheckCircle2, Unplug } from "lucide-react";
 
@@ -85,8 +85,6 @@ const SERVICES: ServiceMeta[] = [
 type Draft = ServiceCredentials;
 
 export const ConfigureServices = () => {
-	const queryClient = useQueryClient();
-	const [searchParams, setSearchParams] = useSearchParams();
 	const detailQ = useQuery({
 		queryKey: queryKeys.configure.services(),
 		queryFn: () => configureApi.services.list(),
@@ -96,28 +94,16 @@ export const ConfigureServices = () => {
 	const [expanded, setExpanded] = useState<string | null>(null);
 	const [drafts, setDrafts] = useState<Record<string, Draft>>({});
 
-	// Surface the broker's redirect result (it bounces back here with a query param).
-	useEffect(() => {
-		const connected = searchParams.get("connected");
-		const error = searchParams.get("error");
-
-		if (connected) {
-			toast.success(`Connected ${connected}`);
-		} else if (error) {
+	useOAuthRedirectResult({
+		onConnected: (service) => toast.success(`Connected ${service}`),
+		onError: (code) =>
 			toast.error(
-				error === "oauth_failed"
+				code === "oauth_failed"
 					? "The provider rejected the connection."
 					: "Connection failed."
-			);
-		}
-
-		if (connected || error) {
-			searchParams.delete("connected");
-			searchParams.delete("error");
-			setSearchParams(searchParams, { replace: true });
-			queryClient.invalidateQueries({ queryKey: queryKeys.configure.services() });
-		}
-	}, [searchParams, setSearchParams, queryClient]);
+			),
+		invalidate: queryKeys.configure.services(),
+	});
 
 	const disconnectMutation = useToastMutation({
 		mutationFn: (service: string) => configureApi.services.disconnect(service),

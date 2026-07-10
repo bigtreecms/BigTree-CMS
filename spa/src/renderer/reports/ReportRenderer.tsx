@@ -3,6 +3,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { Download, Pencil } from "lucide-react";
 
 import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Loading } from "@/components/ui/Loading";
 import { modulesApi } from "@/api/endpoints/modules";
@@ -16,6 +17,7 @@ import type {
 import { pluralize } from "@/lib/number";
 import { toast } from "@/lib/toast";
 import { moduleDetailPath } from "@/lib/routes";
+import { queryKeys } from "@/lib/queryKeys";
 import { useAuthStore } from "@/auth/store";
 import { LEVEL } from "@/lib/permissions";
 
@@ -50,7 +52,7 @@ export const ReportRenderer = ({ moduleId, reportId }: ReportRendererProps) => {
 	const [results, setResults] = useState<ModuleReportRunResponse | null>(null);
 
 	const prepareQuery = useQuery({
-		queryKey: ["module-report-prepare", moduleId, reportId] as const,
+		queryKey: queryKeys.modules.reportPrepare(moduleId, reportId),
 		queryFn: () => modulesApi.prepareReport(moduleId, reportId),
 	});
 
@@ -127,7 +129,7 @@ export const ReportRenderer = ({ moduleId, reportId }: ReportRendererProps) => {
 			)}
 
 			{results && results.report.type === "csv" && (
-				<div className="rounded-xl border border-border bg-surface p-6 text-center text-[13px] text-text-2">
+				<Card padding="lg" className="text-center text-[13px] text-text-2">
 					Exported {pluralize(results.meta.count, "row")}.
 					<div className="mt-3">
 						<Button
@@ -138,7 +140,7 @@ export const ReportRenderer = ({ moduleId, reportId }: ReportRendererProps) => {
 							Download again
 						</Button>
 					</div>
-				</div>
+				</Card>
 			)}
 		</div>
 	);

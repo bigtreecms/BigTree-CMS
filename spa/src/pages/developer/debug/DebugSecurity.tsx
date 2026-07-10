@@ -18,9 +18,6 @@ import { systemApi, type SecurityPolicy } from "@/api/endpoints/system";
 import { queryKeys } from "@/lib/queryKeys";
 import { useToastMutation } from "@/hooks/useToastMutation";
 
-const narrowInputClass =
-	"w-16 rounded-md border border-border bg-surface px-2 py-1 text-center text-[13px] tabular-nums outline-none focus:border-accent focus:ring-2 focus:ring-accent-ring";
-
 /** Empty-but-shaped policy so the form binds before the GET resolves. */
 const emptyPolicy = (): SecurityPolicy => ({
 	user_fails: { count: "", time: "", ban: "" },
@@ -137,27 +134,30 @@ export const DebugSecurity = () => {
 
 								<div className="space-y-2 text-[12.5px]/7 text-text-2">
 									<div>
-										<input
+										<TextInput
+											compact
 											aria-label="Failed login attempts per user before ban"
-											className={narrowInputClass}
+											className="w-16 text-center tabular-nums"
 											value={String(draft.user_fails.count)}
 											onChange={(e) =>
 												setFail("user_fails", "count", e.target.value)
 											}
 										/>{" "}
 										failed logins for a given <strong>user</strong> over{" "}
-										<input
+										<TextInput
+											compact
 											aria-label="Time window in minutes for user failed logins"
-											className={narrowInputClass}
+											className="w-16 text-center tabular-nums"
 											value={String(draft.user_fails.time)}
 											onChange={(e) =>
 												setFail("user_fails", "time", e.target.value)
 											}
 										/>{" "}
 										minutes bans the <strong>user</strong> for{" "}
-										<input
+										<TextInput
+											compact
 											aria-label="User ban duration in minutes"
-											className={narrowInputClass}
+											className="w-16 text-center tabular-nums"
 											value={String(draft.user_fails.ban)}
 											onChange={(e) =>
 												setFail("user_fails", "ban", e.target.value)
@@ -166,27 +166,30 @@ export const DebugSecurity = () => {
 										minutes (or until reset).
 									</div>
 									<div>
-										<input
+										<TextInput
+											compact
 											aria-label="Failed login attempts per IP before ban"
-											className={narrowInputClass}
+											className="w-16 text-center tabular-nums"
 											value={String(draft.ip_fails.count)}
 											onChange={(e) =>
 												setFail("ip_fails", "count", e.target.value)
 											}
 										/>{" "}
 										failed logins for a given <strong>IP</strong> over{" "}
-										<input
+										<TextInput
+											compact
 											aria-label="Time window in minutes for IP failed logins"
-											className={narrowInputClass}
+											className="w-16 text-center tabular-nums"
 											value={String(draft.ip_fails.time)}
 											onChange={(e) =>
 												setFail("ip_fails", "time", e.target.value)
 											}
 										/>{" "}
 										minutes bans the <strong>IP</strong> for{" "}
-										<input
+										<TextInput
+											compact
 											aria-label="IP ban duration in minutes"
-											className={narrowInputClass}
+											className="w-16 text-center tabular-nums"
 											value={String(draft.ip_fails.ban)}
 											onChange={(e) =>
 												setFail("ip_fails", "ban", e.target.value)

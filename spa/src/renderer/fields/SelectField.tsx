@@ -5,6 +5,7 @@ import { normalizeStaticOptions, toStringValue, type StaticOption } from "./fiel
 import { settingsOf, type FieldComponentProps } from "./types";
 import { modulesApi } from "@/api/endpoints/modules";
 import { useFormRenderContext } from "@/renderer/forms/FormContext";
+import { queryKeys } from "@/lib/queryKeys";
 
 type Option = StaticOption;
 
@@ -31,7 +32,7 @@ export const SelectField = ({ field, value, onChange, disabled }: FieldComponent
 	const canFetch = isDynamic && !!context?.moduleId && !!context?.formId && !!field.column;
 
 	const optionsQ = useQuery({
-		queryKey: ["list-options", context?.moduleId, context?.formId, field.column],
+		queryKey: queryKeys.modules.listOptions(context?.moduleId, context?.formId, field.column),
 		queryFn: () => modulesApi.listOptions(context!.moduleId, context!.formId, field.column),
 		enabled: canFetch,
 		staleTime: 5 * 60 * 1000,

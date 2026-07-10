@@ -2,6 +2,7 @@ import { useMemo } from "react";
 
 import { useToggleSet } from "@/hooks/useToggleSet";
 
+import { Card } from "@/components/ui/Card";
 import { DisclosureToggle } from "@/components/ui/DisclosureToggle";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Loading } from "@/components/ui/Loading";
@@ -141,10 +142,7 @@ export const GroupedView = ({ moduleId, view }: GroupedViewProps) => {
 						const isCollapsed = collapsed.has(groupKey);
 
 						return (
-							<section
-								key={groupKey}
-								className="overflow-hidden rounded-xl border border-border bg-surface"
-							>
+							<Card as="section" key={groupKey} className="overflow-hidden">
 								<DisclosureToggle
 									open={!isCollapsed}
 									onToggle={() => toggle(groupKey)}
@@ -201,7 +199,7 @@ export const GroupedView = ({ moduleId, view }: GroupedViewProps) => {
 										})}
 									</ul>
 								)}
-							</section>
+							</Card>
 						);
 					})}
 				</div>

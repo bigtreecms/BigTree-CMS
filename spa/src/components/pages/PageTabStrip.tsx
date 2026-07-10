@@ -4,6 +4,9 @@ import { LinkFinder } from "./LinkFinder";
 
 export type PageTabValue = "properties" | "content" | "seo" | "sharing";
 
+/** Tab order, shared with `PageWizardFooter` so Back/Next walk the same sequence. */
+export const PAGE_TABS: PageTabValue[] = ["properties", "content", "seo", "sharing"];
+
 const TAB_ITEMS: TabStripItem[] = [
 	{ value: "properties", label: "Properties" },
 	{ value: "content", label: "Content" },

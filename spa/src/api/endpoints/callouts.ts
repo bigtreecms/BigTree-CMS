@@ -1,4 +1,4 @@
-import { api } from "@/api/client";
+import { api, crudEndpoints } from "@/api/client";
 
 import type { TemplateResource } from "@/api/endpoints/templates";
 
@@ -46,28 +46,21 @@ export interface CalloutGroupEditBody {
 	callouts?: string[];
 }
 
+/** The callout-groups catalog — the same quintet, exposed under `*Group` keys. */
+const groups = crudEndpoints<CalloutGroup, CalloutGroupEditBody>("/callout-groups");
+
 export const calloutsApi = {
-	list: () => api.get<CalloutSummary[]>("/callouts"),
-
-	get: (id: string) => api.get<CalloutSummary>(`/callouts/${encodeURIComponent(id)}`),
-
-	create: (body: CalloutEditBody) => api.post<CalloutSummary>("/callouts", body),
-
-	update: (id: string, body: CalloutEditBody) =>
-		api.patch<CalloutSummary>(`/callouts/${encodeURIComponent(id)}`, body),
-
-	delete: (id: string) => api.delete<void>(`/callouts/${encodeURIComponent(id)}`),
+	...crudEndpoints<CalloutSummary, CalloutEditBody>("/callouts"),
 
 	reorder: (ids: string[]) => api.post<void>("/callouts/reorder", { ids }),
 
-	listGroups: () => api.get<CalloutGroup[]>("/callout-groups"),
+	listGroups: groups.list,
 
-	getGroup: (id: string) => api.get<CalloutGroup>(`/callout-groups/${encodeURIComponent(id)}`),
+	getGroup: groups.get,
 
-	createGroup: (body: CalloutGroupEditBody) => api.post<CalloutGroup>("/callout-groups", body),
+	createGroup: groups.create,
 
-	updateGroup: (id: string, body: CalloutGroupEditBody) =>
-		api.patch<CalloutGroup>(`/callout-groups/${encodeURIComponent(id)}`, body),
+	updateGroup: groups.update,
 
-	deleteGroup: (id: string) => api.delete<void>(`/callout-groups/${encodeURIComponent(id)}`),
+	deleteGroup: groups.delete,
 };

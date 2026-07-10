@@ -16,7 +16,7 @@ export interface InputClassOptions {
 	 * selects sit inline at a smaller size than a normal form field.
 	 */
 	compact?: boolean;
-	/** Monospace + slightly smaller text for code/identifier entry. */
+	/** Monospace + slightly smaller text for code/identifier entry. Combines with `compact`. */
 	mono?: boolean;
 }
 
@@ -30,7 +30,7 @@ const INPUT_BASE =
  */
 export const inputClassFor = ({ dense, compact, mono }: InputClassOptions = {}): string => {
 	if (compact) {
-		return `${INPUT_BASE} px-2 py-1 text-[12.5px]`;
+		return `${INPUT_BASE} px-2 py-1 ${mono ? "font-mono text-[12px]" : "text-[12.5px]"}`;
 	}
 
 	return `w-full ${INPUT_BASE} px-3 ${dense ? "py-1.5" : "py-2"} ${

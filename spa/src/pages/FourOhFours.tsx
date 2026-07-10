@@ -13,6 +13,7 @@ import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
 import { Pager } from "@/components/ui/Pager";
 import { SearchInput } from "@/components/ui/SearchInput";
 import { SubNav } from "@/components/ui/SubNav";
+import { TextInput } from "@/components/ui/TextInput";
 import { IconButton } from "@/components/ui/IconButton";
 
 import {
@@ -256,10 +257,11 @@ export const FourOhFours = ({ type }: FourOhFoursProps) => {
 							className="flex items-center gap-1"
 							onClick={(e) => e.stopPropagation()}
 						>
-							<input
-								type="text"
+							<TextInput
+								compact
+								mono
 								aria-label="Redirect URL"
-								className="flex-1 rounded-md border border-border bg-surface px-2 py-1 font-mono text-[11.5px] focus:outline-none focus:ring-1 focus:ring-accent-ring"
+								className="flex-1"
 								value={redirectDraft}
 								onChange={(e) => setRedirectDraft(e.target.value)}
 								onKeyDown={(e) => {

@@ -1,4 +1,3 @@
-import { Link } from "react-router-dom";
 import {
 	BookTemplate,
 	FileText,
@@ -15,7 +14,7 @@ import {
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
 import { PageContainer } from "@/components/shell/PageContainer";
-import { IconTile } from "@/components/ui/IconTile";
+import { TileLinkGrid, type TileLink } from "@/components/ui/TileLinkGrid";
 
 import { DeveloperSectionNav } from "@/components/developer/DeveloperSectionNav";
 
@@ -26,14 +25,7 @@ import { DeveloperSectionNav } from "@/components/developer/DeveloperSectionNav"
  * routes when those land.
  */
 
-interface SubjectCard {
-	to: string;
-	icon: React.ReactNode;
-	title: string;
-	description: string;
-}
-
-const SUBJECTS: SubjectCard[] = [
+const SUBJECTS: TileLink[] = [
 	{
 		to: "/developer/templates",
 		icon: <Layout size={16} />,
@@ -101,23 +93,7 @@ export const Developer = () => (
 
 		<DeveloperSectionNav />
 
-		<div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
-			{SUBJECTS.map((s) => (
-				<Link
-					key={s.to}
-					to={s.to}
-					className="group flex items-start gap-3 rounded-xl border border-border bg-surface p-4 transition-colors hover:border-accent-ring hover:bg-surface-2"
-				>
-					<IconTile className="shrink-0">{s.icon}</IconTile>
-					<div className="min-w-0">
-						<div className="text-[13.5px] font-semibold text-text group-hover:text-accent">
-							{s.title}
-						</div>
-						<div className="mt-0.5 text-[12px] text-text-3">{s.description}</div>
-					</div>
-				</Link>
-			))}
-		</div>
+		<TileLinkGrid items={SUBJECTS} />
 
 		<p className="mt-6 flex items-center gap-2 text-[12px] text-text-3">
 			<FileText size={12} />

@@ -1,6 +1,7 @@
 import { useMemo, useState, type FormEvent } from "react";
 
 import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Select } from "@/components/ui/Select";
 import { TextInput } from "@/components/ui/TextInput";
@@ -99,7 +100,7 @@ export const ReportFilterForm = ({
 	};
 
 	return (
-		<form onSubmit={handleSubmit} className="rounded-xl border border-border bg-surface p-4">
+		<Card as="form" padding="sm" onSubmit={handleSubmit}>
 			<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
 				{filters.map(({ column, filter }) => (
 					<div key={column} className="flex flex-col gap-1.5">
@@ -167,7 +168,7 @@ export const ReportFilterForm = ({
 					{reportType === "csv" ? "Export CSV" : "Run Report"}
 				</Button>
 			</div>
-		</form>
+		</Card>
 	);
 };
 

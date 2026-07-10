@@ -1,4 +1,4 @@
-import { api } from "@/api/client";
+import { crudEndpoints } from "@/api/client";
 
 import type { ModuleFormField } from "@/api/endpoints/modules";
 
@@ -28,15 +28,4 @@ export interface FeedEditBody {
 	fields?: ModuleFormField[];
 }
 
-export const feedsApi = {
-	list: () => api.get<FeedSummary[]>("/feeds"),
-
-	get: (id: string) => api.get<FeedSummary>(`/feeds/${encodeURIComponent(id)}`),
-
-	create: (body: FeedEditBody) => api.post<FeedSummary>("/feeds", body),
-
-	update: (id: string, body: FeedEditBody) =>
-		api.patch<FeedSummary>(`/feeds/${encodeURIComponent(id)}`, body),
-
-	delete: (id: string) => api.delete<void>(`/feeds/${encodeURIComponent(id)}`),
-};
+export const feedsApi = { ...crudEndpoints<FeedSummary, FeedEditBody>("/feeds") };

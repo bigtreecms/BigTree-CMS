@@ -23,6 +23,7 @@ import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { IconButton } from "@/components/ui/IconButton";
 import { Field } from "@/components/ui/Field";
+import { TextInput } from "@/components/ui/TextInput";
 import { useLatestUpload } from "@/hooks/useLatestUpload";
 import { useRepeaterRows, type RepeaterRow } from "@/hooks/useRepeaterRows";
 import { useUploads } from "@/hooks/useUploads";
@@ -635,11 +636,11 @@ const VideoUrlPrompt = ({ allowYoutube, allowVimeo, onClose, onCreated }: VideoU
 	return (
 		<div className="rounded-md border border-border bg-surface-2 p-3">
 			<Field label={`${hint} URL`}>
-				<input
+				<TextInput
+					dense
 					autoFocus
 					type="url"
 					inputMode="url"
-					className="w-full rounded-md border border-border bg-surface px-3 py-1.5 text-[13px] focus:outline-none focus:ring-1 focus:ring-accent-ring"
 					value={url}
 					onChange={(e) => setUrl(e.target.value)}
 					onKeyDown={(e) => {

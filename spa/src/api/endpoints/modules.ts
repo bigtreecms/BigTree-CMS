@@ -1,4 +1,4 @@
-import { api } from "@/api/client";
+import { api, crudEndpoints } from "@/api/client";
 
 /**
  * Module shapes returned by ModuleService::present and ::listGroups. Enough
@@ -412,18 +412,9 @@ export interface ModuleEmbedFormBody {
 const enc = encodeURIComponent;
 
 export const modulesApi = {
-	list: () => api.get<ModuleSummary[]>("/modules"),
-
-	get: (id: string) => api.get<ModuleSummary>(`/modules/${enc(id)}`),
-
-	create: (body: ModuleCreateBody) => api.post<ModuleSummary>("/modules", body),
+	...crudEndpoints<ModuleSummary, ModuleCreateBody, ModuleUpdateBody>("/modules"),
 
 	scaffold: (body: ModuleScaffoldBody) => api.post<ModuleSummary>("/modules/scaffold", body),
-
-	update: (id: string, body: ModuleUpdateBody) =>
-		api.patch<ModuleSummary>(`/modules/${enc(id)}`, body),
-
-	delete: (id: string) => api.delete<void>(`/modules/${enc(id)}`),
 
 	reorder: (ids: string[]) => api.post<void>("/modules/reorder", { ids }),
 

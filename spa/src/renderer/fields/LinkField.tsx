@@ -1,13 +1,10 @@
-import { useMemo, useRef, useState } from "react";
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { useMemo } from "react";
 import { ExternalLink, File as FileIcon, Newspaper, Search, X } from "lucide-react";
 
 import { IconButton } from "@/components/ui/IconButton";
 import { PopoverPanel } from "@/components/ui/Popover";
-import { useOnClickOutside } from "@/hooks/useOnClickOutside";
-import { useDebouncedValue } from "@/hooks/useDebouncedValue";
-import { searchApi, type SearchPage } from "@/api/endpoints/search";
-import { resourcesApi } from "@/api/endpoints/resources";
+import { useLinkSearch } from "@/hooks/useLinkSearch";
+import type { SearchPage } from "@/api/endpoints/search";
 import type { ResourceSummary } from "@/api/endpoints/resource-folders";
 
 import { isTruthyFlag, toStringValue } from "./fieldHelpers";
@@ -45,32 +42,17 @@ export const LinkField = ({ field, value, onChange, disabled }: FieldComponentPr
 
 	const stored = toStringValue(value);
 
-	const [search, setSearch] = useState("");
-	const [open, setOpen] = useState(false);
-	const containerRef = useRef<HTMLDivElement>(null);
-	const debouncedSearch = useDebouncedValue(search.trim(), 200);
-
-	// Close dropdown on outside click.
-	useOnClickOutside(containerRef, () => setOpen(false), open);
-
-	const shouldSearch = open && showSearch && debouncedSearch.length >= 2;
-
-	const pagesQuery = useQuery({
-		queryKey: ["link-field", "pages", debouncedSearch],
-		queryFn: () => searchApi.search(debouncedSearch, { types: ["pages"], limit: 20 }),
-		enabled: shouldSearch,
-		placeholderData: keepPreviousData,
-	});
-
-	const resourcesQuery = useQuery({
-		queryKey: ["link-field", "resources", debouncedSearch],
-		queryFn: () => resourcesApi.search(debouncedSearch),
-		enabled: shouldSearch,
-		placeholderData: keepPreviousData,
-	});
-
-	const pages = pagesQuery.data?.pages ?? [];
-	const resources = (resourcesQuery.data ?? []).slice(0, 20);
+	const {
+		query: search,
+		setQuery: setSearch,
+		setOpen,
+		containerRef,
+		shouldSearch,
+		pages,
+		files: resources,
+		isFetching,
+		hasData,
+	} = useLinkSearch({ types: ["pages"], limit: 20, enabled: showSearch });
 
 	const pickPage = (page: SearchPage) => {
 		onChange(`${IPL_PREFIX}0/${page.id}`);
@@ -151,12 +133,9 @@ export const LinkField = ({ field, value, onChange, disabled }: FieldComponentPr
 				)}
 			</div>
 
-			{open && showSearch && shouldSearch && (
+			{shouldSearch && (
 				<PopoverPanel className="max-h-72 w-full overflow-y-auto">
-					{pagesQuery.isFetching &&
-					resourcesQuery.isFetching &&
-					!pagesQuery.data &&
-					!resourcesQuery.data ? (
+					{isFetching && !hasData ? (
 						<div className="px-3 py-2 text-[12px] text-text-3">Searching…</div>
 					) : pages.length === 0 && resources.length === 0 ? (
 						<div className="px-3 py-2 text-[12px] text-text-3">

@@ -112,6 +112,19 @@ export const queryKeys = {
 		moduleForms: (moduleId: string) => ["modules", moduleId, "forms"] as const,
 		moduleReports: (moduleId: string) => ["modules", moduleId, "reports"] as const,
 		gbpCategories: (moduleId: string) => ["modules", moduleId, "gbp-categories"] as const,
+		// Runtime keys used by the form/report renderers
+		listOptions: (
+			moduleId: string | undefined,
+			formId: string | undefined,
+			column: string | undefined
+		) => ["list-options", moduleId, formId, column] as const,
+		reportPrepare: (moduleId: string, reportId: string) =>
+			["module-report-prepare", moduleId, reportId] as const,
+	},
+
+	embedForms: {
+		root: () => ["embed-form"] as const,
+		detail: (hash: string) => ["embed-form", hash] as const,
 	},
 
 	moduleGroups: {
@@ -218,7 +231,9 @@ export const queryKeys = {
 	},
 
 	search: {
-		results: (q: string) => ["search", q] as const,
+		/** `opts` distinguishes the federated searches that ask for different types/limits. */
+		results: (q: string, opts?: { types?: string[]; limit?: number }) =>
+			opts ? (["search", q, opts] as const) : (["search", q] as const),
 	},
 
 	mediaPresets: {

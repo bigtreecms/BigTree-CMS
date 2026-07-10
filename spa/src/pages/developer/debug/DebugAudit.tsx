@@ -13,6 +13,7 @@ import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
 import { Pager } from "@/components/ui/Pager";
 import { SlideOver } from "@/components/ui/SlideOver";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
+import { TextInput } from "@/components/ui/TextInput";
 
 import { auditApi, type AuditEntry } from "@/api/endpoints/audit";
 import { formatDateTime } from "@/lib/time";
@@ -142,10 +143,10 @@ export const DebugAudit = () => {
 					<FieldLabel as="label" htmlFor="audit-start" size="sm" tone="muted">
 						From
 					</FieldLabel>
-					<input
+					<TextInput
+						dense
 						id="audit-start"
 						type="date"
-						className="rounded-md border border-border bg-surface px-3 py-1.5 text-[13px] focus:outline-none focus:ring-1 focus:ring-accent-ring"
 						value={start}
 						onChange={(e) => setStart(e.target.value)}
 					/>
@@ -155,10 +156,10 @@ export const DebugAudit = () => {
 					<FieldLabel as="label" htmlFor="audit-end" size="sm" tone="muted">
 						To
 					</FieldLabel>
-					<input
+					<TextInput
+						dense
 						id="audit-end"
 						type="date"
-						className="rounded-md border border-border bg-surface px-3 py-1.5 text-[13px] focus:outline-none focus:ring-1 focus:ring-accent-ring"
 						value={end}
 						onChange={(e) => setEnd(e.target.value)}
 					/>

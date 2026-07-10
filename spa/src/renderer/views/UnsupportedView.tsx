@@ -1,4 +1,5 @@
 import type { ModuleView } from "@/api/endpoints/modules";
+import { Card } from "@/components/ui/Card";
 import { MonoText } from "@/components/ui/MonoText";
 import { SectionLabel } from "@/components/ui/SectionLabel";
 
@@ -17,7 +18,7 @@ export const UnsupportedView = ({ view }: UnsupportedViewProps) => {
 	const columns = Object.entries(view.fields ?? {});
 
 	return (
-		<div className="rounded-xl border border-border bg-surface p-6">
+		<Card padding="lg">
 			<h3 className="text-[14px] font-semibold text-text">
 				“{view.type}” views aren't recognized
 			</h3>
@@ -42,6 +43,6 @@ export const UnsupportedView = ({ view }: UnsupportedViewProps) => {
 					</ul>
 				</div>
 			)}
-		</div>
+		</Card>
 	);
 };

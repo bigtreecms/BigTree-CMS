@@ -1,18 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import {
-	ChevronRight,
-	File as FileIcon,
-	Film,
-	Folder,
-	Image as ImageIcon,
-	Search,
-	X,
-} from "lucide-react";
+import { ChevronRight, File as FileIcon, Film, Folder, Image as ImageIcon } from "lucide-react";
 
 import { SlideOver } from "@/components/ui/SlideOver";
 import { Loading } from "@/components/ui/Loading";
+import { SearchInput } from "@/components/ui/SearchInput";
 
 import { resourceFoldersApi, type ResourceSummary } from "@/api/endpoints/resource-folders";
 import { resourcesApi } from "@/api/endpoints/resources";
@@ -20,7 +13,6 @@ import { resourcesApi } from "@/api/endpoints/resources";
 import { expandImageUrl } from "@/lib/imageUrl";
 import { queryKeys } from "@/lib/queryKeys";
 import { InlineEmpty } from "@/components/ui/InlineEmpty";
-import { IconButton } from "@/components/ui/IconButton";
 
 export type ResourcePickerType = "image" | "file" | "video";
 
@@ -112,28 +104,12 @@ export const ResourcePicker = ({
 			width="lg"
 		>
 			<div className="space-y-3">
-				<div className="relative">
-					<Search
-						size={14}
-						className="absolute left-3 top-1/2 -translate-y-1/2 text-text-3"
-					/>
-					<input
-						className="w-full rounded-md border border-border bg-surface py-1.5 px-9 text-[13.5px] placeholder:text-text-3 focus:outline-none focus:ring-1 focus:ring-accent-ring"
-						placeholder="Search the media library…"
-						aria-label="Search the media library"
-						value={query}
-						onChange={(e) => setQuery(e.target.value)}
-					/>
-					{query && (
-						<IconButton
-							className="absolute right-2 top-1/2 -translate-y-1/2"
-							onClick={() => setQuery("")}
-							label="Clear search"
-						>
-							<X size={14} />
-						</IconButton>
-					)}
-				</div>
+				<SearchInput
+					value={query}
+					onChange={setQuery}
+					placeholder="Search the media library…"
+					aria-label="Search the media library"
+				/>
 
 				{!isSearching && (
 					<FolderBreadcrumb breadcrumb={breadcrumb} onNavigate={setFolderId} />
