@@ -52,6 +52,21 @@
 		T::equals($r->bodyList("missing"), [], "missing → []");
 	}
 
+	function test_request_body_map() {
+		$r = make_request(["obj" => ["a" => 1], "scalar" => "x", "list" => [1, 2]]);
+		T::equals($r->bodyMap("obj"), ["a" => 1], "array passes through");
+		T::equals($r->bodyMap("list"), [1, 2], "list array passes through");
+		T::equals($r->bodyMap("scalar"), [], "scalar rejected → [] (not wrapped like bodyArray)");
+		T::equals($r->bodyMap("missing"), [], "missing → []");
+	}
+
+	function test_request_query_map() {
+		$r = make_request([], ["obj" => ["a" => 1], "scalar" => "x"]);
+		T::equals($r->queryMap("obj"), ["a" => 1], "array passes through");
+		T::equals($r->queryMap("scalar"), [], "scalar rejected → []");
+		T::equals($r->queryMap("missing"), [], "missing → []");
+	}
+
 	function test_request_query_accessors() {
 		$r = make_request([], ["q" => "  term  ", "page" => "3", "flag" => "1"]);
 		T::equals($r->queryString("q"), "term", "queryString trims");

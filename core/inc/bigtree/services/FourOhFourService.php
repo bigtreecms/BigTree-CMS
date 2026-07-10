@@ -157,7 +157,7 @@
 			$id = $request->id();
 			Entity::assertExists("bigtree_404s", $id, "404");
 
-			SQL::update("bigtree_404s", $id, ["redirect_url" => (string)$request->body["url"], "ignored" => ""]);
+			SQL::update("bigtree_404s", $id, ["redirect_url" => $request->bodyString("url", "", false), "ignored" => ""]);
 
 			return Response::ok($this->present(SQL::fetch("SELECT * FROM bigtree_404s WHERE id = ?", $id)));
 		}

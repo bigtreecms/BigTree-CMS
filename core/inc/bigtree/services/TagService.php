@@ -56,7 +56,7 @@
 		}
 
 		public function create(Request $request) {
-			$tag = $this->normalize((string)$request->body["tag"]);
+			$tag = $this->normalize($request->bodyString("tag"));
 
 			if ($tag === "") {
 				throw new BadRequestException("Empty tag after normalization", "empty_tag");
@@ -91,7 +91,7 @@
 		}
 
 		public function merge(Request $request) {
-			$into = (int)$request->body["into"];
+			$into = $request->bodyInt("into");
 			$from = $request->bodyList("from", "int");
 
 			if (!$into || !$from) {

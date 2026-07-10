@@ -258,16 +258,8 @@
 
 		private function presentFull(array $row, Request $request) {
 			$is_self_or_admin = ((int)$request->user->id === (int)$row["id"]) || ($request->user->level >= 1);
-			$result = [
-				"id" => (int)$row["id"],
-				"email" => $row["email"],
-				"name" => $row["name"],
-				"company" => $row["company"],
-				"level" => (int)$row["level"],
-				"daily_digest" => Flag::isOn($row["daily_digest"]),
-				"timezone" => $row["timezone"],
-				"two_factor_enabled" => !empty($row["2fa_secret"]),
-			];
+			$result = $this->presentList($row);
+			$result["two_factor_enabled"] = !empty($row["2fa_secret"]);
 
 			if ($is_self_or_admin) {
 				$result["permissions"] = Json::decode($row["permissions"]);

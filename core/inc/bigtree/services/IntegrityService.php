@@ -54,8 +54,7 @@
 		 * scan client-side from this payload.
 		 */
 		public function start(Request $request) {
-			$external = !empty($request->body["external"]) && $request->body["external"] !== "false";
-			$key = $external ? "external" : "internal";
+			[$external, $key] = $this->scanContext($request);
 			$session_key = "session.".$key;
 			$existing = BigTreeCMS::cacheGet(self::CACHE, $session_key);
 
@@ -118,9 +117,8 @@
 		 * found. Stores them (and the progress pointer) for resume/export.
 		 */
 		public function checkPage(Request $request) {
-			$external = !empty($request->body["external"]) && $request->body["external"] !== "false";
-			$key = $external ? "external" : "internal";
-			$id = (int)$request->body["id"];
+			[$external, $key] = $this->scanContext($request);
+			$id = $request->bodyInt("id");
 			$index = $request->bodyInt("index");
 
 			$cms = new BigTreeCMS();
@@ -159,9 +157,8 @@
 		 * Checks a single auto-module entry's content fields.
 		 */
 		public function checkModuleItem(Request $request) {
-			$external = !empty($request->body["external"]) && $request->body["external"] !== "false";
-			$key = $external ? "external" : "internal";
-			$form_id = (string)$request->body["form"];
+			[$external, $key] = $this->scanContext($request);
+			$form_id = $request->bodyString("form");
 			$id = $request->body["id"];
 			$module_index = $request->bodyInt("module");
 			$index = $request->bodyInt("index");
@@ -259,6 +256,19 @@
 		}
 
 		// — internals —
+
+		/**
+		 * Resolve which link-check pass a request targets. The `external` body flag
+		 * is truthy for the external (offsite link) scan and false for the internal
+		 * one; the string "false" is treated as off. Returns [$external, $key] where
+		 * $key ("external"/"internal") namespaces the cached session and progress.
+		 */
+		private function scanContext(Request $request): array {
+			$external = !empty($request->body["external"]) && $request->body["external"] !== "false";
+			$key = $external ? "external" : "internal";
+
+			return [$external, $key];
+		}
 
 		/**
 		 * Builds the module work list: every module form that has an edit action,

@@ -320,7 +320,7 @@
 				throw new NotFoundException("Field type $id has no draw template", "render_unavailable");
 			}
 
-			$incoming = is_array($request->body["field"] ?? null) ? $request->body["field"] : [];
+			$incoming = $request->bodyMap("field");
 			$settings = is_array($incoming["settings"] ?? null) ? $incoming["settings"] : [];
 			$key = (string)($incoming["key"] ?? "field");
 

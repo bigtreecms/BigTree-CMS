@@ -43,7 +43,7 @@
 		// Body: { source: { resource_id } | { file }, settings }
 
 		public function reprocess(Request $request) {
-			$source = is_array($request->body["source"] ?? null) ? $request->body["source"] : [];
+			$source = $request->bodyMap("source");
 			$settings = Json::decode($request->body["settings"] ?? null);
 
 			// In-place recrop ("Choose New Crops"): regenerate crops against the
@@ -95,19 +95,19 @@
 
 		public function crop(Request $request) {
 			$file = $request->bodyString("file", "", false);
-			$x = (int)$request->body["x"];
-			$y = (int)$request->body["y"];
-			$w = (int)$request->body["width"];
-			$h = (int)$request->body["height"];
+			$x = $request->bodyInt("x");
+			$y = $request->bodyInt("y");
+			$w = $request->bodyInt("width");
+			$h = $request->bodyInt("height");
 			$target_w = $request->bodyInt("target_width");
 			$target_h = $request->bodyInt("target_height");
 			$prefix = $request->bodyString("prefix", "", false);
 			$name = BigTree::cleanFile($request->bodyString("name", basename($file), false));
-			$directory = $this->cleanDirectory($request->body["directory"] ?? "files/");
+			$directory = $this->cleanDirectory($request->bodyString("directory", "files/", false));
 			$retina = $request->bodyBool("retina");
 			$grayscale = $request->bodyBool("grayscale");
-			$thumbs = is_array($request->body["thumbs"] ?? null) ? $request->body["thumbs"] : [];
-			$center_crops = is_array($request->body["center_crops"] ?? null) ? $request->body["center_crops"] : [];
+			$thumbs = $request->bodyMap("thumbs");
+			$center_crops = $request->bodyMap("center_crops");
 
 			if ($w <= 0 || $h <= 0 || $target_w <= 0 || $target_h <= 0) {
 				throw new BadRequestException("width/height/target_width/target_height must be > 0", "bad_dimensions");

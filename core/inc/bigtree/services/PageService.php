@@ -893,7 +893,7 @@
 
 		public function move(Request $request) {
 			$id = $request->id();
-			$new_parent = (int)$request->body["parent"];
+			$new_parent = $request->bodyInt("parent");
 			$this->enforce($request->user, $id, "p");
 			$this->enforce($request->user, $new_parent, "e", "move into parent");
 
@@ -1035,20 +1035,7 @@
 			$desc = $request->bodyString("description", "", false);
 			$page = Entity::findOrFail("bigtree_pages", $id, "Page");
 
-			$rev_id = (int)SQL::insert("bigtree_page_revisions", [
-				"page" => $id,
-				"title" => $page["title"],
-				"meta_description" => $page["meta_description"],
-				"template" => $page["template"],
-				"external" => $page["external"],
-				"new_window" => $page["new_window"],
-				"resources" => $page["resources"],
-				"author" => $request->user->id,
-				"saved" => Flag::checkbox($desc !== ""),
-				"saved_description" => $desc,
-				"resource_allocation" => "",
-				"has_deleted_resources" => "",
-			]);
+			$rev_id = $this->insertRevisionSnapshot($id, $page, (int)$request->user->id, $desc);
 
 			return Response::created(["id" => $rev_id], null);
 		}
@@ -1083,20 +1070,7 @@
 			);
 
 			// Snapshot the current published state so the restore can be undone.
-			SQL::insert("bigtree_page_revisions", [
-				"page" => $id,
-				"title" => $page["title"],
-				"meta_description" => $page["meta_description"],
-				"template" => $page["template"],
-				"external" => $page["external"],
-				"new_window" => $page["new_window"],
-				"resources" => $page["resources"],
-				"author" => $request->user->id,
-				"saved" => "",
-				"saved_description" => "",
-				"resource_allocation" => "",
-				"has_deleted_resources" => "",
-			]);
+			$this->insertRevisionSnapshot($id, $page, (int)$request->user->id);
 
 			$update = [
 				"title" => $revision["title"],
@@ -1158,6 +1132,29 @@
 			if (!PermissionService::userHasPageAccess($user, $page_id, $min)) {
 				throw new AuthorizationException("Insufficient page permission to $action ($min required)");
 			}
+		}
+
+		/**
+		 * Write a snapshot of a page's content columns into bigtree_page_revisions.
+		 * A non-empty description marks it a user-saved revision; the default (empty
+		 * description) produces the auto-revision used to make a restore reversible.
+		 */
+		private function insertRevisionSnapshot(int $id, array $page, int $author, string $desc = ""): int {
+
+			return (int)SQL::insert("bigtree_page_revisions", [
+				"page" => $id,
+				"title" => $page["title"],
+				"meta_description" => $page["meta_description"],
+				"template" => $page["template"],
+				"external" => $page["external"],
+				"new_window" => $page["new_window"],
+				"resources" => $page["resources"],
+				"author" => $author,
+				"saved" => Flag::checkbox($desc !== ""),
+				"saved_description" => $desc,
+				"resource_allocation" => "",
+				"has_deleted_resources" => "",
+			]);
 		}
 
 		/**

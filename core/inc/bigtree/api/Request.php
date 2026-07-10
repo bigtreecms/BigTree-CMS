@@ -195,6 +195,17 @@
 			return array_map($cast === "int" ? "intval" : "strval", $this->bodyArray($key));
 		}
 
+		/**
+		 * A map (JSON object / associative array) value returned only when the
+		 * value is genuinely an array; a scalar reads as []. Stricter than
+		 * bodyArray(), which casts a scalar to [scalar] — map callers reject
+		 * non-arrays rather than wrapping them.
+		 */
+		public function bodyMap(string $key): array {
+
+			return is_array($this->body[$key] ?? null) ? $this->body[$key] : [];
+		}
+
 		public function queryString(string $key, string $default = "", bool $trim = true): string {
 
 			return self::scalarString($this->query, $key, $default, $trim);
@@ -218,6 +229,11 @@
 		public function queryList(string $key, string $cast = "int"): array {
 
 			return array_map($cast === "int" ? "intval" : "strval", $this->queryArray($key));
+		}
+
+		public function queryMap(string $key): array {
+
+			return is_array($this->query[$key] ?? null) ? $this->query[$key] : [];
 		}
 
 		private static function scalarString(array $source, string $key, string $default, bool $trim): string {

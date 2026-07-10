@@ -367,7 +367,7 @@
 
 		public function updatePaymentGateway(Request $request) {
 			$service = $request->bodyString("service", "", false);
-			$incoming = is_array($request->body["settings"] ?? null) ? $request->body["settings"] : [];
+			$incoming = $request->bodyMap("settings");
 
 			if (!in_array($service, ["", "authorize.net", "paypal", "paypal-rest", "payflow", "linkpoint"], true)) {
 				throw new BadRequestException("Unknown payment gateway", "invalid_service");
@@ -553,7 +553,7 @@
 		}
 
 		public function updateMediaPresets(Request $request) {
-			$incoming = is_array($request->body["presets"] ?? null) ? $request->body["presets"] : [];
+			$incoming = $request->bodyMap("presets");
 			$existing = BigTreeJSONDB::get("config", "media-settings") ?: [];
 			$presets = [];
 
@@ -595,7 +595,7 @@
 			$next = ["file" => [], "image" => [], "video" => []];
 
 			foreach (["file", "image", "video"] as $bucket) {
-				$rows = is_array($request->body[$bucket] ?? null) ? $request->body[$bucket] : [];
+				$rows = $request->bodyMap($bucket);
 
 				foreach ($rows as $row) {
 					if (!is_array($row) || empty($row["id"])) {

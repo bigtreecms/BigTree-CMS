@@ -194,18 +194,9 @@
 		 * pending secret from /auth/2fa/setup, then stores it on the account.
 		 */
 		public function twoFactorEnable(Request $request) {
-			include_once BigTree::path("inc/lib/GoogleAuthenticator.php");
-
 			$secret = $request->bodyString("secret");
 			$code = $request->bodyString("code");
-
-			if ($secret === "" || $code === "") {
-				throw new BadRequestException("secret and code required", "missing_fields");
-			}
-
-			if (!GoogleAuthenticator::verifyCode($secret, $code)) {
-				throw new BadRequestException("That code is incorrect or expired", "invalid_2fa_code");
-			}
+			$this->assertValidTotpPair($secret, $code);
 
 			$user_id = (int)$request->user->id;
 			SQL::update("bigtree_users", $user_id, ["2fa_secret" => $secret]);
@@ -232,20 +223,11 @@
 		 * secret, persists it, and finishes the login with a full token bundle.
 		 */
 		public function twoFactorEnableRequired(Request $request) {
-			include_once BigTree::path("inc/lib/GoogleAuthenticator.php");
-
 			$setup_token = $request->bodyString("setup_token", "", false);
 			$user = $this->userBySetupToken($setup_token);
 			$secret = $request->bodyString("secret");
 			$code = $request->bodyString("code");
-
-			if ($secret === "" || $code === "") {
-				throw new BadRequestException("secret and code required", "missing_fields");
-			}
-
-			if (!GoogleAuthenticator::verifyCode($secret, $code)) {
-				throw new BadRequestException("That code is incorrect or expired", "invalid_2fa_code");
-			}
+			$this->assertValidTotpPair($secret, $code);
 
 			// The setup token carries the original "remember me" choice; read it
 			// before the one-shot clear, re-clamped against the current policy.
@@ -587,21 +569,7 @@
 
 			$options = WebAuthn::getAuthenticationOptions($rp_id, []);
 
-			// Replace the $_SESSION-stored challenge with a DB-stored one keyed by an id we hand back.
-			$challenge_id = bin2hex(random_bytes(16));
-			SQL::insert("bigtree_passkey_challenges", [
-				"id" => $challenge_id,
-				"challenge" => $options["challenge"],
-				"purpose" => "auth",
-			]);
-
-			// Strip the session side effect WebAuthn::generateChallenge() created and substitute our id.
-			unset($_SESSION["bigtree_passkey_challenge"]);
-
-			return Response::ok([
-				"challenge_id" => $challenge_id,
-				"options" => $options,
-			]);
+			return $this->mintPasskeyChallenge($options, "auth");
 		}
 
 		public function passkeyVerify(Request $request) {
@@ -787,21 +755,7 @@
 				$rp_id, $rp_name, $user_id, $user["email"], $user["name"] ?: $user["email"], $existing_ids
 			);
 
-			$challenge_id = bin2hex(random_bytes(16));
-			SQL::insert("bigtree_passkey_challenges", [
-				"id" => $challenge_id,
-				"challenge" => $options["challenge"],
-				"user_id" => $user_id,
-				"purpose" => "register",
-			]);
-
-			// Don't leave the legacy session-stored copy lying around.
-			unset($_SESSION["bigtree_passkey_challenge"]);
-
-			return Response::ok([
-				"challenge_id" => $challenge_id,
-				"options" => $options,
-			]);
+			return $this->mintPasskeyChallenge($options, "register", $user_id);
 		}
 
 		/**
@@ -1099,16 +1053,54 @@
 			return Jwt::encode($claims, Jwt::currentSecret());
 		}
 
-		private function publicUser($user) {
-			if (is_array($user)) {
-				return [
-					"id" => (int)$user["id"],
-					"email" => $user["email"],
-					"name" => $user["name"],
-					"level" => (int)$user["level"],
-					"timezone" => $user["timezone"] ?? "",
-				];
+		/**
+		 * Validate a TOTP enrollment pair: both fields present and the code
+		 * verifies against the pending secret. Shared by the enable and forced
+		 * enable-required ceremonies.
+		 */
+		private function assertValidTotpPair(string $secret, string $code): void {
+			include_once BigTree::path("inc/lib/GoogleAuthenticator.php");
+
+			if ($secret === "" || $code === "") {
+				throw new BadRequestException("secret and code required", "missing_fields");
 			}
+
+			if (!GoogleAuthenticator::verifyCode($secret, $code)) {
+				throw new BadRequestException("That code is incorrect or expired", "invalid_2fa_code");
+			}
+		}
+
+		/**
+		 * Replace WebAuthn's $_SESSION-stored challenge with a DB-stored one
+		 * keyed by an id we hand back to the client, then strip the session side
+		 * effect so no legacy copy lingers. Shared by the auth and registration
+		 * ceremonies; a user id ties a registration challenge to its owner.
+		 */
+		private function mintPasskeyChallenge(array $options, string $purpose, ?int $user_id = null): Response {
+			$challenge_id = bin2hex(random_bytes(16));
+			$row = [
+				"id" => $challenge_id,
+				"challenge" => $options["challenge"],
+				"purpose" => $purpose,
+			];
+
+			if ($user_id !== null) {
+				$row["user_id"] = $user_id;
+			}
+
+			SQL::insert("bigtree_passkey_challenges", $row);
+
+			// Strip the session side effect WebAuthn::generateChallenge() created
+			// and substitute our id, so no legacy session-stored copy lingers.
+			unset($_SESSION["bigtree_passkey_challenge"]);
+
+			return Response::ok([
+				"challenge_id" => $challenge_id,
+				"options" => $options,
+			]);
+		}
+
+		private function publicUser(array $user) {
 
 			return [
 				"id" => (int)$user["id"],

@@ -113,14 +113,14 @@
 		}
 
 		public function unbanIP(Request $request) {
-			$ip = (string)$request->body["ip"];
+			$ip = $request->bodyString("ip", "", false);
 			SQL::query("DELETE FROM bigtree_login_bans WHERE ip = ?", ip2long($ip));
 
 			return Response::noContent();
 		}
 
 		public function unbanUser(Request $request) {
-			$user_id = (int)$request->body["user_id"];
+			$user_id = $request->bodyInt("user_id");
 			SQL::query("UPDATE bigtree_login_bans SET expires = DATE_SUB(NOW(), INTERVAL 1 MINUTE) WHERE user = ?", $user_id);
 
 			return Response::noContent();
@@ -519,7 +519,7 @@
 		 * and verifies the archive opens cleanly before reporting success.
 		 */
 		public function downloadUpgrade(Request $request) {
-			$type = (string)$request->body["type"];
+			$type = $request->bodyString("type");
 
 			$updater = new BigTreeUpdater();
 
@@ -665,7 +665,7 @@
 		 * Returns the legacy contract verbatim: { complete, response, pages?, error? }.
 		 */
 		public function runUpgradeMigration(Request $request) {
-			$script = (string)$request->body["script"];
+			$script = $request->bodyString("script");
 
 			if (!in_array($script, $this->buildMigrationQueue(), true)) {
 				throw new BadRequestException("Unknown or out-of-order migration script", "upgrade_bad_script");
@@ -677,8 +677,8 @@
 				throw new NotFoundException("Migration script is missing", "upgrade_script_missing");
 			}
 
-			$page = isset($request->body["page"]) ? (int)$request->body["page"] : 0;
-			$total_pages = isset($request->body["total_pages"]) ? (int)$request->body["total_pages"] : 0;
+			$page = $request->bodyInt("page");
+			$total_pages = $request->bodyInt("total_pages");
 
 			if ($page > 0) {
 				$_GET["page"] = $page;

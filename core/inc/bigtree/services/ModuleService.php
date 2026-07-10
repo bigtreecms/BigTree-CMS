@@ -51,17 +51,8 @@
 			});
 
 			$enriched = array_map(function ($m) {
-				$group_name = "";
 
-				if (!empty($m["group"])) {
-					$g = BigTreeJSONDB::get("module-groups", $m["group"]);
-
-					if ($g) {
-						$group_name = $g["name"];
-					}
-				}
-
-				return $this->present($m, $group_name);
+				return $this->present($m, $this->groupName($m));
 			}, array_values($visible));
 
 			return Response::ok($enriched);
@@ -75,17 +66,7 @@
 				throw new \BigTree\Api\Exceptions\AuthorizationException("Module access denied");
 			}
 
-			$group_name = "";
-
-			if (!empty($m["group"])) {
-				$g = BigTreeJSONDB::get("module-groups", $m["group"]);
-
-				if ($g) {
-					$group_name = $g["name"];
-				}
-			}
-
-			$out = $this->present($m, $group_name);
+			$out = $this->present($m, $this->groupName($m));
 
 			// Caller's access level lets the SPA decide whether to offer
 			// "Save & Publish" (publishers only) on this module's forms.
@@ -904,17 +885,7 @@
 		 * server-side during submission.
 		 */
 		public function publicGetEmbedForm(Request $request) {
-			$hash = $request->routeParam("hash");
-
-			if ($hash === "") {
-				throw new NotFoundException("Embed form not found");
-			}
-
-			$form = \BigTreeAutoModule::getEmbedFormByHash($hash);
-
-			if (!$form) {
-				throw new NotFoundException("Embed form not found");
-			}
+			$form = $this->requireEmbedFormByHash($request);
 
 			return Response::ok([
 				"id" => $form["id"] ?? "",
@@ -949,17 +920,7 @@
 		 *   { id, status: "published" | "pending", thank_you_message, redirect_url }
 		 */
 		public function publicSubmitEmbedForm(Request $request) {
-			$hash = $request->routeParam("hash");
-
-			if ($hash === "") {
-				throw new NotFoundException("Embed form not found");
-			}
-
-			$form = \BigTreeAutoModule::getEmbedFormByHash($hash);
-
-			if (!$form) {
-				throw new NotFoundException("Embed form not found");
-			}
+			$form = $this->requireEmbedFormByHash($request);
 
 			$body = $request->body ?? [];
 			$post_data = is_array($body["values"] ?? null) ? $body["values"] : [];
@@ -1222,6 +1183,32 @@
 		}
 
 		// — helpers —
+
+		private function groupName(array $m): string {
+			if (empty($m["group"])) {
+				return "";
+			}
+
+			$g = BigTreeJSONDB::get("module-groups", $m["group"]);
+
+			return $g ? $g["name"] : "";
+		}
+
+		private function requireEmbedFormByHash(Request $request): array {
+			$hash = $request->routeParam("hash");
+
+			if ($hash === "") {
+				throw new NotFoundException("Embed form not found");
+			}
+
+			$form = \BigTreeAutoModule::getEmbedFormByHash($hash);
+
+			if (!$form) {
+				throw new NotFoundException("Embed form not found");
+			}
+
+			return $form;
+		}
 
 		private function uniqueModuleRoute($base) {
 			$route = $base;

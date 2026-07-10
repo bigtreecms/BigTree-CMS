@@ -290,15 +290,7 @@
 					throw new BadRequestException("Storage refused image: " . ($image->Error ?: "unknown"), "storage_failed");
 				}
 
-				$image->filterGeneratableCrops();
-				$this->ensureListPreviewCrop($image);
-
-				$image->processThumbnails();
-				$pending = $image->processCrops();
-				$this->autoProcessCropRegistry($image, is_array($pending) ? $pending : []);
-
-				[$crop_prefixes, $thumb_prefixes] = $this->buildResourcePrefixes($image);
-				unset($crop_prefixes["list-preview/"]);
+				[$crop_prefixes, $thumb_prefixes] = $this->generateDerivatives($image);
 
 				// Drop derived files whose prefix didn't regenerate (preset changed
 				// since the original upload) so stale crops don't linger in storage.
@@ -433,21 +425,7 @@
 					throw new BadRequestException("Storage refused image: " . ($image->Error ?: "unknown"), "storage_failed");
 				}
 
-				$image->filterGeneratableCrops();
-				$this->ensureListPreviewCrop($image);
-
-				$image->processThumbnails();
-				// processCrops() handles exact-dimension crops + every top-level
-				// center_crop, and returns a registry of crops whose dimensions
-				// didn't match exactly. In the legacy admin the user draws those
-				// manually; for file-manager uploads we auto-center-crop them so
-				// every prefix we record actually has a file on disk.
-				$pending = $image->processCrops();
-				$this->autoProcessCropRegistry($image, is_array($pending) ? $pending : []);
-
-				[$crop_prefixes, $thumb_prefixes] = $this->buildResourcePrefixes($image);
-				// Internal-only crop; consumers shouldn't see it in the resource's crops map.
-				unset($crop_prefixes["list-preview/"]);
+				[$crop_prefixes, $thumb_prefixes] = $this->generateDerivatives($image);
 
 				$id = $this->insertResource([
 					"folder" => $folder ?: null,
@@ -595,14 +573,14 @@
 				throw new BadRequestException("Resource is not an image", "not_an_image");
 			}
 
-			$x = (int)$request->body["x"];
-			$y = (int)$request->body["y"];
-			$w = (int)$request->body["width"];
-			$h = (int)$request->body["height"];
+			$x = $request->bodyInt("x");
+			$y = $request->bodyInt("y");
+			$w = $request->bodyInt("width");
+			$h = $request->bodyInt("height");
 			$target_w = $request->bodyInt("target_width", $w);
 			$target_h = $request->bodyInt("target_height", $h);
 			$name_prefix = $request->bodyString("prefix", "crop-") ?: "crop-";
-			$directory = self::safeStorageDirectory($request->body["directory"] ?? null, "files/resources/crops/");
+			$directory = self::safeStorageDirectory($request->bodyString("directory"), "files/resources/crops/");
 
 			if ($w <= 0 || $h <= 0 || $target_w <= 0 || $target_h <= 0) {
 				throw new BadRequestException("width/height/target_width/target_height must be > 0", "bad_dimensions");
@@ -937,8 +915,8 @@
 			$id = $request->id();
 			Entity::assertExists("bigtree_resources", $id, "Resource");
 
-			$table = (string)$request->body["table"];
-			$entry = (string)$request->body["entry"];
+			$table = $request->bodyString("table", "", false);
+			$entry = $request->bodyString("entry", "", false);
 
 			if ($table === "" || $entry === "") {
 				throw new BadRequestException("table and entry required", "missing_fields");
@@ -966,8 +944,8 @@
 
 		public function deallocate(Request $request) {
 			$id = $request->id();
-			$table = (string)$request->body["table"];
-			$entry = (string)$request->body["entry"];
+			$table = $request->bodyString("table", "", false);
+			$entry = $request->bodyString("entry", "", false);
 			SQL::query(
 				"DELETE FROM bigtree_resource_allocation WHERE `table` = ? AND entry = ? AND resource = ?",
 				$table, $entry, $id
@@ -1294,6 +1272,30 @@
 			}
 
 			return $settings;
+		}
+
+		/**
+		 * Run a stored image through the full derivative pipeline and return its
+		 * [$crop_prefixes, $thumb_prefixes] maps. filterGeneratableCrops drops
+		 * crops larger than the source; processCrops handles exact-dimension crops
+		 * and every top-level center_crop, returning a registry of crops whose
+		 * dimensions didn't match, which we auto-center-crop (the legacy admin made
+		 * the user draw those by hand) so every recorded prefix has a real file.
+		 * The internal-only `list-preview/` crop is stripped from the returned crop
+		 * map — consumers shouldn't see it in the resource's crops.
+		 */
+		private function generateDerivatives(BigTreeImage $image): array {
+			$image->filterGeneratableCrops();
+			$this->ensureListPreviewCrop($image);
+
+			$image->processThumbnails();
+			$pending = $image->processCrops();
+			$this->autoProcessCropRegistry($image, is_array($pending) ? $pending : []);
+
+			[$crop_prefixes, $thumb_prefixes] = $this->buildResourcePrefixes($image);
+			unset($crop_prefixes["list-preview/"]);
+
+			return [$crop_prefixes, $thumb_prefixes];
 		}
 
 		/**
