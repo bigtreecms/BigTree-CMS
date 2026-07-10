@@ -105,7 +105,7 @@
 				}
 				$kept[] = [
 					"id" => (int)$r["id"],
-					"nav_title" => html_entity_decode((string)$r["nav_title"], ENT_QUOTES | ENT_HTML5, 'UTF-8'),
+					"nav_title" => Sanitize::decodeEntities($r["nav_title"]),
 					"path" => $r["path"],
 					"archived" => Flag::isOn($r["archived"]),
 				];

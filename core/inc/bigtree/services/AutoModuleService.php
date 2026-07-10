@@ -29,25 +29,7 @@
 			$module_id = $request->routeParam("id");
 			$module = $this->loadModule($module_id);
 			$view_id = $request->query["view"] ?? "";
-
-			if ($view_id) {
-				$view = BigTreeAutoModule::getView($view_id);
-
-				// The Permission middleware only authorized access to the module in
-				// the URL ({id}). A client-supplied `view` could reference a view that
-				// belongs to a DIFFERENT module, which would let an authorized user
-				// read or mutate a table they have no rights to. getView() stamps the
-				// owning module id onto the result — require it to match this module.
-				if ($view && (string)($view["module"] ?? "") !== (string)($module["id"] ?? "")) {
-					throw new AuthorizationException("View does not belong to this module");
-				}
-			} elseif (!empty($module["table"])) {
-				$view = BigTreeAutoModule::getViewForTable($module["table"]);
-			} else {
-				$views = is_array($module["views"] ?? null) ? $module["views"] : [];
-				$first_id = $views ? ($views[0]["id"] ?? null) : null;
-				$view = $first_id ? BigTreeAutoModule::getView($first_id) : null;
-			}
+			$view = $this->resolveViewForModule($module, $view_id);
 
 			if (!$view) {
 				throw new NotFoundException("No view defined for module $module_id", "no_view");
@@ -170,23 +152,7 @@
 			$module = $this->loadModule($module_id);
 			$table = $this->resolveTable($module, $request);
 
-			$data = $request->body;
-			$mtm = $this->validateMtm($module, $table, (array)($data["__mtm__"] ?? []));
-			$tags = (array)($data["__tags__"] ?? []);
-			$og = (array)($data["__open_graph__"] ?? []);
-			$publish = !empty($data["__publish__"]);
-			unset($data["__mtm__"], $data["__tags__"], $data["__open_graph__"], $data["__publish__"]);
-
-			// The primary key is authoritative from the route / auto-increment — never
-			// from the request body. Allowing it through would let a caller force a
-			// chosen id on create or re-key an existing row on update.
-			unset($data["id"]);
-
-			$this->applyGeocoding($module, $table, $data);
-			$this->applyRoute($module, $table, $data, 0);
-
-			$user_level = PermissionService::userModuleLevel($request->user, $module_id);
-			$can_publish = PermissionService::isPublisher($request->user, $user_level);
+			[$data, $mtm, $tags, $og, $publish, $user_level, $can_publish] = $this->prepareEntryWrite($request, $module, $table, 0);
 
 			// Publishers/admins write live only when they explicitly publish; without
 			// the flag they (like editors) save a pending draft.
@@ -221,41 +187,11 @@
 		}
 
 		public function update(Request $request) {
-			$module_id = $request->routeParam("id");
-			$raw_id = $request->routeParam("eid");
-			$module = $this->loadModule($module_id);
-			$table = $this->resolveTable($module, $request);
+			[$module_id, $raw_id, $module, $table, $is_pending, $lookup_id, $pending_change_id] = $this->requireEditableEntry($request);
 
-			// A pending ("p"-prefixed) entry edits its bigtree_pending_changes row;
-			// a numeric id edits a live row (directly on publish, or as a draft).
-			[$is_pending, $lookup_id, $pending_change_id] = $this->parseEntryId($raw_id);
-			$existing = BigTreeAutoModule::getPendingItem($table, $lookup_id);
-
-			if (!$existing) {
-				throw new NotFoundException("Entry $raw_id not found");
-			}
-
-			PermissionService::assertCanEditRow($request->user, $module, $existing["item"] ?? []);
-
-			$data = $request->body;
-			$mtm = $this->validateMtm($module, $table, (array)($data["__mtm__"] ?? []));
-			$tags = (array)($data["__tags__"] ?? []);
-			$og = (array)($data["__open_graph__"] ?? []);
-			$publish = !empty($data["__publish__"]);
-			unset($data["__mtm__"], $data["__tags__"], $data["__open_graph__"], $data["__publish__"]);
-
-			// The primary key is authoritative from the route / auto-increment — never
-			// from the request body. Allowing it through would let a caller force a
-			// chosen id on create or re-key an existing row on update.
-			unset($data["id"]);
-
-			$this->applyGeocoding($module, $table, $data);
 			// A pending entry has no live row yet, so there is nothing to exclude from
 			// the uniqueness check; a numeric id excludes its own live row.
-			$this->applyRoute($module, $table, $data, $is_pending ? 0 : (int)$lookup_id);
-
-			$user_level = PermissionService::userModuleLevel($request->user, $module_id);
-			$can_publish = PermissionService::isPublisher($request->user, $user_level);
+			[$data, $mtm, $tags, $og, $publish, $user_level, $can_publish] = $this->prepareEntryWrite($request, $module, $table, $is_pending ? 0 : (int)$lookup_id);
 
 			// Publishers/admins write live only when they explicitly publish; without
 			// the flag they (like editors) submit a pending change.
@@ -316,22 +252,7 @@
 		}
 
 		public function delete(Request $request) {
-			$module_id = $request->routeParam("id");
-			$raw_id = $request->routeParam("eid");
-			$module = $this->loadModule($module_id);
-			$table = $this->resolveTable($module, $request);
-
-			// Pending (never-published) entries carry a "p" prefix in the view
-			// cache, e.g. "p5". Deleting one rejects the pending change rather than
-			// touching a published row — mirroring the legacy admin's delete action.
-			[$is_pending, $lookup_id, $pending_change_id] = $this->parseEntryId($raw_id);
-			$existing = BigTreeAutoModule::getPendingItem($table, $lookup_id);
-
-			if (!$existing) {
-				throw new NotFoundException("Entry $raw_id not found");
-			}
-
-			PermissionService::assertCanEditRow($request->user, $module, $existing["item"] ?? []);
+			[$module_id, $raw_id, , $table, $is_pending, $lookup_id, $pending_change_id] = $this->requireEditableEntry($request);
 
 			if ($is_pending) {
 				BigTreeAutoModule::deletePendingItem($table, $pending_change_id);
@@ -677,6 +598,76 @@
 		}
 
 		/**
+		 * Resolve the entry an update/delete targets and assert the caller may edit
+		 * it. Shared by update() and delete(): load the module + table, parse the
+		 * "eid" route param (a "p"-prefixed id addresses a pending change, a numeric
+		 * id a live row), fetch the pending item (404 on miss), then run the
+		 * row-level edit guard. Returns
+		 * [$module_id, $raw_id, $module, $table, $is_pending, $lookup_id, $pending_change_id].
+		 */
+		private function requireEditableEntry(Request $request): array {
+			$module_id = $request->routeParam("id");
+			$raw_id = $request->routeParam("eid");
+			$module = $this->loadModule($module_id);
+			$table = $this->resolveTable($module, $request);
+
+			[$is_pending, $lookup_id, $pending_change_id] = $this->parseEntryId($raw_id);
+			$existing = BigTreeAutoModule::getPendingItem($table, $lookup_id);
+
+			if (!$existing) {
+				throw new NotFoundException("Entry $raw_id not found");
+			}
+
+			PermissionService::assertCanEditRow($request->user, $module, $existing["item"] ?? []);
+
+			return [$module_id, $raw_id, $module, $table, $is_pending, $lookup_id, $pending_change_id];
+		}
+
+		/**
+		 * The shared entry-write payload prep for create() and update(): pull the
+		 * body, split the special `__mtm__`/`__tags__`/`__open_graph__`/`__publish__`
+		 * keys out, validate the MTM set, run the geocoding/route field processors,
+		 * and resolve the caller's module level + publish capability.
+		 * $route_exclude_id is the live row id to exclude from the route-uniqueness
+		 * check (0 on create or when editing a pending entry that has no live row).
+		 * Returns [$data, $mtm, $tags, $og, $publish, $user_level, $can_publish].
+		 */
+		private function prepareEntryWrite(Request $request, array $module, string $table, int $route_exclude_id): array {
+			$module_id = $request->routeParam("id");
+			$data = $request->body;
+			$mtm = $this->validateMtm($module, $table, (array)($data["__mtm__"] ?? []));
+			$tags = (array)($data["__tags__"] ?? []);
+			$og = (array)($data["__open_graph__"] ?? []);
+			$publish = !empty($data["__publish__"]);
+			unset($data["__mtm__"], $data["__tags__"], $data["__open_graph__"], $data["__publish__"]);
+
+			// The primary key is authoritative from the route / auto-increment — never
+			// from the request body. Allowing it through would let a caller force a
+			// chosen id on create or re-key an existing row on update.
+			unset($data["id"]);
+
+			$this->applyGeocoding($module, $table, $data);
+			$this->applyRoute($module, $table, $data, $route_exclude_id);
+
+			$user_level = PermissionService::userModuleLevel($request->user, $module_id);
+			$can_publish = PermissionService::isPublisher($request->user, $user_level);
+
+			return [$data, $mtm, $tags, $og, $publish, $user_level, $can_publish];
+		}
+
+		/** The module form whose `table` matches $table, or null — the find-form-by-table scan the field processors share. */
+		private function formForTable(array $module, string $table): ?array {
+			foreach ((array)($module["forms"] ?? []) as $candidate) {
+				if (($candidate["table"] ?? "") === $table) {
+
+					return $candidate;
+				}
+			}
+
+			return null;
+		}
+
+		/**
 		 * Run server-side field processors over the submitted entry data before it
 		 * is persisted. Currently this covers the "geocoding" field, which has no
 		 * value of its own: it concatenates its configured source columns into an
@@ -689,15 +680,7 @@
 		 * successful lookup.
 		 */
 		private function applyGeocoding(array $module, string $table, array &$data): void {
-			$form = null;
-
-			foreach ((array)($module["forms"] ?? []) as $candidate) {
-				if (($candidate["table"] ?? "") === $table) {
-					$form = $candidate;
-
-					break;
-				}
-			}
+			$form = $this->formForTable($module, $table);
 
 			if (!$form) {
 				return;
@@ -760,15 +743,7 @@
 		 * stored value matches the legacy behavior regardless of client.
 		 */
 		private function applyRoute(array $module, string $table, array &$data, int $edit_id = 0): void {
-			$form = null;
-
-			foreach ((array)($module["forms"] ?? []) as $candidate) {
-				if (($candidate["table"] ?? "") === $table) {
-					$form = $candidate;
-
-					break;
-				}
-			}
+			$form = $this->formForTable($module, $table);
 
 			if (!$form) {
 				return;
@@ -852,6 +827,37 @@
 			}
 		}
 
+		// Resolve which view applies to a module request, enforcing the
+		// cross-module ownership guard once for both `list()` and `resolveTable()`.
+		// Fallback chain: an explicit (client-supplied) view id, else a view whose
+		// table matches `module["table"]`, else the module's first listed view.
+		// Returns null when no view resolves; callers decide how to react.
+		private function resolveViewForModule(array $module, string $view_id): ?array {
+			if ($view_id) {
+				$view = BigTreeAutoModule::getView($view_id);
+
+				// The Permission middleware only authorized access to the module in
+				// the URL ({id}). A client-supplied `view` could reference a view that
+				// belongs to a DIFFERENT module, which would let an authorized user
+				// read or mutate a table they have no rights to. getView() stamps the
+				// owning module id onto the result — require it to match this module.
+				if ($view && (string)($view["module"] ?? "") !== (string)($module["id"] ?? "")) {
+					throw new AuthorizationException("View does not belong to this module");
+				}
+
+				return $view ?: null;
+			}
+
+			if (!empty($module["table"])) {
+				return BigTreeAutoModule::getViewForTable($module["table"]) ?: null;
+			}
+
+			$views = is_array($module["views"] ?? null) ? $module["views"] : [];
+			$first_id = $views ? ($views[0]["id"] ?? null) : null;
+
+			return $first_id ? (BigTreeAutoModule::getView($first_id) ?: null) : null;
+		}
+
 		// Resolve the source table for an entry-level operation. Views own the
 		// `table` correlation in the current data model — the module-level
 		// `table` field is often empty. Callers should pass `view` in either
@@ -880,25 +886,7 @@
 			}
 
 			$view_id = (string)($request->query["view"] ?? $request->body["view"] ?? "");
-
-			if ($view_id) {
-				$view = BigTreeAutoModule::getView($view_id);
-
-				// The Permission middleware only authorized access to the module in
-				// the URL ({id}). A client-supplied `view` could reference a view that
-				// belongs to a DIFFERENT module, which would let an authorized user
-				// read or mutate a table they have no rights to. getView() stamps the
-				// owning module id onto the result — require it to match this module.
-				if ($view && (string)($view["module"] ?? "") !== (string)($module["id"] ?? "")) {
-					throw new AuthorizationException("View does not belong to this module");
-				}
-			} elseif (!empty($module["table"])) {
-				$view = BigTreeAutoModule::getViewForTable($module["table"]);
-			} else {
-				$views = is_array($module["views"] ?? null) ? $module["views"] : [];
-				$first_id = $views ? ($views[0]["id"] ?? null) : null;
-				$view = $first_id ? BigTreeAutoModule::getView($first_id) : null;
-			}
+			$view = $this->resolveViewForModule($module, $view_id);
 
 			if ($view && !empty($view["table"])) {
 				return (string)$view["table"];

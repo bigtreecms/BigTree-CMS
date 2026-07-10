@@ -1217,7 +1217,7 @@
 			// Decode entities (DOM gives us text already decoded, but be defensive)
 			// and strip ASCII whitespace/control characters used to obfuscate schemes
 			// e.g. "java\nscript:" or "  javascript:".
-			$value = html_entity_decode($url, ENT_QUOTES | ENT_HTML5, "UTF-8");
+			$value = Sanitize::decodeEntities($url);
 			$value = preg_replace('/[\x00-\x20]+/', "", $value);
 
 			if ($value === "" || $value === null) {

@@ -1,12 +1,10 @@
 <?php
 	namespace BigTree\Services;
 
-	use BigTree\Api\Flag;
 	use BigTree\Api\Request;
 	use BigTree\Api\Response;
 	use BigTree\Api\Exceptions\BadRequestException;
 	use BigTree\Api\Exceptions\NotFoundException;
-	use BigTreeAdmin;
 	use BigTree;
 	use SQL;
 
@@ -30,27 +28,31 @@
 		use ModuleSubResourceSupport;
 		use ModuleFormFieldsSupport;
 
+		// The form sub-resource write shape: column => transform verb (see
+		// ModuleSubResourceSupport::buildInsert). `fields` is the per-entity
+		// special (cleanFormFields) and is set by hand in each method below.
+		private const FIELDS = [
+			"title" => "encode",
+			"table" => "string",
+			"default_position" => "string",
+			"return_view" => "nullable",
+			"return_url" => "encode",
+			"tagging" => "checkbox",
+			"open_graph" => "checkbox",
+			"hooks" => "array",
+		];
+
 		// — Form CRUD —
 
 		public function createForm(Request $request) {
 			[$module_id, , $context] = $this->moduleContext($request);
 			$d = $request->body;
 
-			$id = $context->insert("forms", [
-				"title" => BigTree::safeEncode((string)$d["title"]),
-				"table" => (string)($d["table"] ?? ""),
-				"fields" => $this->cleanFormFields($d["fields"] ?? []),
-				"default_position" => (string)($d["default_position"] ?? ""),
-				"return_view" => !empty($d["return_view"]) ? $d["return_view"] : null,
-				"return_url" => BigTree::safeEncode((string)($d["return_url"] ?? "")),
-				"tagging" => Flag::checkbox($d["tagging"] ?? null),
-				"open_graph" => Flag::checkbox($d["open_graph"] ?? null),
-				"hooks" => is_array($d["hooks"] ?? null) ? $d["hooks"] : [],
-			]);
+			$insert = $this->buildInsert($d, self::FIELDS);
+			$insert["fields"] = $this->cleanFormFields($d["fields"] ?? []);
 
-			if (!empty($d["table"])) {
-				BigTreeAdmin::updateModuleViewColumnNumericStatusForTable($d["table"]);
-			}
+			$id = $context->insert("forms", $insert);
+			$this->syncNumericStatus((string)($d["table"] ?? ""));
 
 			return Response::created($this->getSubResource($module_id, "forms", $id), null);
 		}
@@ -61,52 +63,15 @@
 			$existing = $this->requireSub($module, "forms", $form_id, "Form");
 
 			$d = $request->body;
-
-			$update = [];
-
-			if (isset($d["title"])) {
-				$update["title"] = BigTree::safeEncode((string)$d["title"]);
-			}
-
-			if (isset($d["table"])) {
-				$update["table"] = (string)$d["table"];
-			}
+			$update = $this->buildUpdate($d, self::FIELDS);
 
 			if (isset($d["fields"])) {
 				$update["fields"] = $this->cleanFormFields($d["fields"]);
 			}
 
-			if (isset($d["default_position"])) {
-				$update["default_position"] = (string)$d["default_position"];
-			}
-
-			if (array_key_exists("return_view", $d)) {
-				$update["return_view"] = $d["return_view"] ? $d["return_view"] : null;
-			}
-
-			if (isset($d["return_url"])) {
-				$update["return_url"] = BigTree::safeEncode((string)$d["return_url"]);
-			}
-
-			if (array_key_exists("tagging", $d)) {
-				$update["tagging"] = Flag::checkbox($d["tagging"]);
-			}
-
-			if (array_key_exists("open_graph", $d)) {
-				$update["open_graph"] = Flag::checkbox($d["open_graph"]);
-			}
-
-			if (isset($d["hooks"]) && is_array($d["hooks"])) {
-				$update["hooks"] = $d["hooks"];
-			}
-
 			if ($update) {
 				$context->update("forms", $form_id, $update);
-				$new_table = $update["table"] ?? ($existing["table"] ?? "");
-
-				if ($new_table !== "") {
-					BigTreeAdmin::updateModuleViewColumnNumericStatusForTable($new_table);
-				}
+				$this->syncNumericStatus((string)($update["table"] ?? ($existing["table"] ?? "")));
 			}
 
 			// If the title changed and this form is referenced by an add/edit action,
@@ -135,7 +100,15 @@
 			return $this->deleteSubCascade($request, "forms", "form", "Form");
 		}
 
-		public function relationOptions(Request $request) {
+		/**
+		 * The shared prologue for relationOptions and listOptions: require the
+		 * `column` query param, load the module + its form (sub-resource
+		 * ownership), then locate the matching field in the form. Returns
+		 * [$module, $form, $field, $column]; each caller applies its own type
+		 * check (relation vs list). Preserves the SPA-matched error contract
+		 * (missing_column / the "Field … not found" 404).
+		 */
+		private function requireFormField(Request $request): array {
 			$module_id = $request->routeParam("id");
 			$form_id = $request->routeParam("sid");
 			$column = $request->queryString("column", "", false);
@@ -160,6 +133,12 @@
 			if (!$field) {
 				throw new NotFoundException("Field `$column` not found in form $form_id");
 			}
+
+			return [$module, $form, $field, $column];
+		}
+
+		public function relationOptions(Request $request) {
+			[, , $field, $column] = $this->requireFormField($request);
 
 			$type = (string)($field["type"] ?? "");
 
@@ -359,30 +338,7 @@
 		 * not run.
 		 */
 		public function listOptions(Request $request) {
-			$module_id = $request->routeParam("id");
-			$form_id = $request->routeParam("sid");
-			$column = $request->queryString("column", "", false);
-
-			if ($column === "") {
-				throw new BadRequestException("`column` query param is required", "missing_column");
-			}
-
-			$module = $this->loadModule($module_id);
-			$form = $this->requireSub($module, "forms", $form_id, "Form");
-
-			$field = null;
-
-			foreach ((array)($form["fields"] ?? []) as $candidate) {
-				if (($candidate["column"] ?? "") === $column) {
-					$field = $candidate;
-
-					break;
-				}
-			}
-
-			if (!$field) {
-				throw new NotFoundException("Field `$column` not found in form $form_id");
-			}
+			[, , $field, $column] = $this->requireFormField($request);
 
 			if ((string)($field["type"] ?? "") !== "list") {
 				throw new BadRequestException("Field `$column` is not a list field", "invalid_field_type");

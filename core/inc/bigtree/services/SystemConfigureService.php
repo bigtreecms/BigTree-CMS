@@ -3,6 +3,7 @@
 
 	use BigTree\Api\Request;
 	use BigTree\Api\Response;
+	use BigTree\Api\Upload;
 	use BigTree\Api\Exceptions\BadRequestException;
 	use BigTree\Api\Exceptions\NotFoundException;
 	use BigTreeAdmin;
@@ -155,7 +156,7 @@
 		 * handshake that follows is handled separately (Workstream B).
 		 */
 		public function uploadGoogleStorageKey(Request $request) {
-			$file = $this->requireUpload($request, "file");
+			$file = Upload::requireSingle($request, "file");
 
 			$directory = SERVER_ROOT . "custom/";
 			$extension = strtolower(pathinfo($file["name"], PATHINFO_EXTENSION));
@@ -405,7 +406,7 @@
 		 * resulting filename is recorded on the gateway settings.
 		 */
 		public function uploadLinkpointCertificate(Request $request) {
-			$file = $this->requireUpload($request, "file");
+			$file = Upload::requireSingle($request, "file");
 
 			$directory = SERVER_ROOT . "custom/certificates/";
 
@@ -461,7 +462,7 @@
 		 * property ID — see updateAnalytics().
 		 */
 		public function uploadAnalyticsCredentials(Request $request) {
-			$file = $this->requireUpload($request, "file");
+			$file = Upload::requireSingle($request, "file");
 			$json = json_decode((string)@file_get_contents($file["tmp_name"]), true);
 
 			if (!is_array($json) || empty($json["private_key"]) || empty($json["client_email"]) || empty($json["client_id"])) {
@@ -622,26 +623,6 @@
 		}
 
 		// — helpers —
-
-		/**
-		 * Pull the single uploaded file for a multipart route, normalized by
-		 * Request::normalizeFiles into a one-element list. Throws a 400 when
-		 * nothing usable was uploaded.
-		 */
-		private function requireUpload(Request $request, $field) {
-			$files = $request->file($field);
-			$file = is_array($files) ? ($files[0] ?? null) : null;
-
-			if (
-				!is_array($file)
-				|| ($file["error"] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK
-				|| empty($file["tmp_name"])
-			) {
-				throw new BadRequestException("No file was uploaded.", "missing_file");
-			}
-
-			return $file;
-		}
 
 		private function maskCloudSecrets($provider, array $settings) {
 			$secret_keys = [

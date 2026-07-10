@@ -53,14 +53,14 @@
 				return [
 					"id" => (int)$r["id"],
 					"parent" => (int)$r["parent"],
-					"nav_title" => html_entity_decode((string)$r["nav_title"], ENT_QUOTES | ENT_HTML5, 'UTF-8'),
+					"nav_title" => Sanitize::decodeEntities($r["nav_title"]),
 					"route" => $r["route"],
 					"in_nav" => Flag::isOn($r["in_nav"]),
 					"archived" => Flag::isOn($r["archived"]),
 					"trunk" => Flag::isOn($r["trunk"]),
 					"position" => (int)$r["position"],
 					"template" => $r["template"],
-					"external" => html_entity_decode((string)$r["external"], ENT_QUOTES | ENT_HTML5, 'UTF-8'),
+					"external" => Sanitize::decodeEntities($r["external"]),
 					"updated_at" => $r["updated_at"],
 					"publish_at" => $r["publish_at"],
 					"expire_at" => $r["expire_at"],
@@ -118,14 +118,14 @@
 				$items[] = [
 					"id" => (int)$pc["id"],
 					"parent" => $parent,
-					"nav_title" => html_entity_decode((string)($changes["nav_title"] ?? ""), ENT_QUOTES | ENT_HTML5, 'UTF-8'),
+					"nav_title" => Sanitize::decodeEntities(($changes["nav_title"] ?? "")),
 					"route" => (string)($changes["route"] ?? ""),
 					"in_nav" => $inNav,
 					"archived" => $isArchived,
 					"trunk" => !empty($changes["trunk"]),
 					"position" => 999999, // New pending pages sort at the end for now
 					"template" => (string)($changes["template"] ?? ""),
-					"external" => html_entity_decode((string)($changes["external"] ?? ""), ENT_QUOTES | ENT_HTML5, 'UTF-8'),
+					"external" => Sanitize::decodeEntities(($changes["external"] ?? "")),
 					"updated_at" => $pc["date"],
 					"publish_at" => $publishAt,
 					"scheduled" => $isScheduled,
@@ -934,7 +934,7 @@
 					"static_root" => $site["static_root"] ?? ($site["www_root"] ?? ""),
 					"trunk_id" => $trunk_id,
 					"trunk_path" => $trunk_row["path"] ?? null,
-					"trunk_nav_title" => $trunk_row ? html_entity_decode((string)$trunk_row["nav_title"], ENT_QUOTES | ENT_HTML5, 'UTF-8') : null,
+					"trunk_nav_title" => $trunk_row ? Sanitize::decodeEntities($trunk_row["nav_title"]) : null,
 				];
 			}
 			return Response::ok($out);
@@ -1143,7 +1143,7 @@
 				}
 				return [
 					"id" => (int)$r["id"],
-					"nav_title" => html_entity_decode((string)$r["nav_title"], ENT_QUOTES | ENT_HTML5, 'UTF-8'),
+					"nav_title" => Sanitize::decodeEntities($r["nav_title"]),
 					"path" => $r["path"],
 					"archived" => Flag::isOn($r["archived"]),
 				];
@@ -1328,7 +1328,7 @@
 				}
 				array_unshift($out, [
 					"id" => (int)$row["id"],
-					"nav_title" => html_entity_decode((string)$row["nav_title"], ENT_QUOTES | ENT_HTML5, 'UTF-8'),
+					"nav_title" => Sanitize::decodeEntities($row["nav_title"]),
 					"route" => $row["route"],
 				]);
 				$current = (int)$row["parent"];
@@ -1454,15 +1454,15 @@
 				"trunk" => Flag::isOn($p["trunk"]),
 				"parent" => (int)$p["parent"],
 				"in_nav" => Flag::isOn($p["in_nav"]),
-				"nav_title" => html_entity_decode((string)$p["nav_title"], ENT_QUOTES | ENT_HTML5, 'UTF-8'),
+				"nav_title" => Sanitize::decodeEntities($p["nav_title"]),
 				"route" => $p["route"],
 				"path" => $p["path"],
-				"title" => html_entity_decode((string)$p["title"], ENT_QUOTES | ENT_HTML5, 'UTF-8'),
-				"meta_keywords" => html_entity_decode((string)$p["meta_keywords"], ENT_QUOTES | ENT_HTML5, 'UTF-8'),
-				"meta_description" => html_entity_decode((string)$p["meta_description"], ENT_QUOTES | ENT_HTML5, 'UTF-8'),
+				"title" => Sanitize::decodeEntities($p["title"]),
+				"meta_keywords" => Sanitize::decodeEntities($p["meta_keywords"]),
+				"meta_description" => Sanitize::decodeEntities($p["meta_description"]),
 				"seo_invisible" => Flag::isOn($p["seo_invisible"]),
 				"template" => $p["template"],
-				"external" => html_entity_decode((string)$p["external"], ENT_QUOTES | ENT_HTML5, 'UTF-8'),
+				"external" => Sanitize::decodeEntities($p["external"]),
 				"new_window" => Flag::isOn($p["new_window"]),
 				"resources" => json_decode($p["resources"] ?: "{}", true) ?: new \stdClass(),
 				"archived" => Flag::isOn($p["archived"]),

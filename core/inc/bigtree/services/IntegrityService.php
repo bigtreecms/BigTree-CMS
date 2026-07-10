@@ -3,6 +3,7 @@
 
 	use BigTree\Api\Request;
 	use BigTree\Api\Response;
+	use BigTree\Api\Sanitize;
 	use BigTree;
 	use BigTreeAdmin;
 	use BigTreeAutoModule;
@@ -74,7 +75,7 @@
 				foreach ($page_errors_raw as $id => $errs) {
 					$nav_title = SQL::fetchSingle("SELECT nav_title FROM bigtree_pages WHERE id = ?", $id);
 					$page_errors[$id] = [
-						"nav_title" => html_entity_decode((string)$nav_title, ENT_QUOTES | ENT_HTML5, "UTF-8"),
+						"nav_title" => Sanitize::decodeEntities($nav_title),
 						"errors" => $errs,
 					];
 				}
@@ -146,7 +147,7 @@
 
 			return Response::ok([
 				"id" => $id,
-				"nav_title" => $page ? html_entity_decode((string)$page["nav_title"], ENT_QUOTES | ENT_HTML5, "UTF-8") : "",
+				"nav_title" => $page ? Sanitize::decodeEntities($page["nav_title"]) : "",
 				"errors" => $flat,
 			]);
 		}
@@ -224,10 +225,10 @@
 				foreach ($errors as $error) {
 					$rows[] = [
 						"location" => "Page",
-						"title" => html_entity_decode((string)$nav_title, ENT_QUOTES | ENT_HTML5, "UTF-8"),
+						"title" => Sanitize::decodeEntities($nav_title),
 						"type" => $error["type"],
 						"url" => $error["url"],
-						"field" => html_entity_decode((string)$error["field"], ENT_QUOTES | ENT_HTML5, "UTF-8"),
+						"field" => Sanitize::decodeEntities($error["field"]),
 					];
 				}
 			}
@@ -245,10 +246,10 @@
 					foreach ($errors as $error) {
 						$rows[] = [
 							"location" => "Module",
-							"title" => html_entity_decode((string)($module_lookup[$form_id] ?? ""), ENT_QUOTES | ENT_HTML5, "UTF-8"),
+							"title" => Sanitize::decodeEntities(($module_lookup[$form_id] ?? "")),
 							"type" => $error["type"],
 							"url" => $error["url"],
-							"field" => html_entity_decode((string)$error["field"], ENT_QUOTES | ENT_HTML5, "UTF-8"),
+							"field" => Sanitize::decodeEntities($error["field"]),
 						];
 					}
 				}
@@ -332,7 +333,7 @@
 
 				$list[] = [
 					"id" => $form["id"],
-					"name" => html_entity_decode($name, ENT_QUOTES | ENT_HTML5, "UTF-8"),
+					"name" => Sanitize::decodeEntities($name),
 					"module_id" => $module["id"],
 					"edit_view_id" => $edit_view_id,
 					"items" => array_values($items),

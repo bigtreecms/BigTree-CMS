@@ -4,6 +4,7 @@
 	use BigTree\Api\Json;
 	use BigTree\Api\Request;
 	use BigTree\Api\Response;
+	use BigTree\Api\Sanitize;
 	use BigTree\Api\Exceptions\BadRequestException;
 	use BigTreeGoogleAnalytics4;
 	use BigTreeJSONDB;
@@ -73,7 +74,7 @@
 				if ($row) {
 					$out[] = [
 						"page_id" => (int)$row["id"],
-						"nav_title" => html_entity_decode((string)$row["nav_title"], ENT_QUOTES | ENT_HTML5, 'UTF-8'),
+						"nav_title" => Sanitize::decodeEntities($row["nav_title"]),
 						"path" => $row["path"],
 						"updated_at" => $row["updated_at"],
 						"age_days" => (int)$row["age_days"],

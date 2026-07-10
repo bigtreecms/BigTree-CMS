@@ -3,7 +3,6 @@
 
 	use BigTree\Api\Request;
 	use BigTree\Api\Response;
-	use BigTreeAdmin;
 	use BigTree;
 
 	/**
@@ -21,6 +20,22 @@
 	 */
 	class ModuleViewService {
 		use ModuleSubResourceSupport;
+
+		// The view sub-resource write shape: column => transform verb (see
+		// ModuleSubResourceSupport::buildInsert). Views have no per-entity
+		// specials, so this drives both create and update wholesale.
+		private const FIELDS = [
+			"title" => "encode",
+			"description" => "encode",
+			"table" => "string",
+			"type" => "string",
+			"settings" => "array",
+			"fields" => "array",
+			"actions" => "array",
+			"related_form" => "nullable",
+			"preview_url" => "encode",
+			"exclude_from_search" => "bool",
+		];
 
 		/**
 		 * Categories for a group-based-permissions module. These are rows from
@@ -77,22 +92,8 @@
 			[$module_id, , $context] = $this->moduleContext($request);
 			$d = $request->body;
 
-			$id = $context->insert("views", [
-				"title" => BigTree::safeEncode((string)$d["title"]),
-				"description" => BigTree::safeEncode((string)($d["description"] ?? "")),
-				"table" => (string)($d["table"] ?? ""),
-				"type" => (string)($d["type"] ?? ""),
-				"settings" => is_array($d["settings"] ?? null) ? $d["settings"] : [],
-				"fields" => is_array($d["fields"] ?? null) ? $d["fields"] : [],
-				"actions" => is_array($d["actions"] ?? null) ? $d["actions"] : [],
-				"related_form" => !empty($d["related_form"]) ? $d["related_form"] : null,
-				"preview_url" => BigTree::safeEncode((string)($d["preview_url"] ?? "")),
-				"exclude_from_search" => !empty($d["exclude_from_search"]),
-			]);
-
-			if (!empty($d["table"])) {
-				BigTreeAdmin::updateModuleViewColumnNumericStatusForTable($d["table"]);
-			}
+			$id = $context->insert("views", $this->buildInsert($d, self::FIELDS));
+			$this->syncNumericStatus((string)($d["table"] ?? ""));
 
 			return Response::created($this->getSubResource($module_id, "views", $id), null);
 		}
@@ -103,56 +104,11 @@
 			$existing = $this->requireSub($module, "views", $view_id, "View");
 
 			$d = $request->body;
-
-			$update = [];
-
-			if (isset($d["title"])) {
-				$update["title"] = BigTree::safeEncode((string)$d["title"]);
-			}
-
-			if (isset($d["description"])) {
-				$update["description"] = BigTree::safeEncode((string)$d["description"]);
-			}
-
-			if (isset($d["table"])) {
-				$update["table"] = (string)$d["table"];
-			}
-
-			if (isset($d["type"])) {
-				$update["type"] = (string)$d["type"];
-			}
-
-			if (isset($d["settings"]) && is_array($d["settings"])) {
-				$update["settings"] = $d["settings"];
-			}
-
-			if (isset($d["fields"]) && is_array($d["fields"])) {
-				$update["fields"] = $d["fields"];
-			}
-
-			if (isset($d["actions"]) && is_array($d["actions"])) {
-				$update["actions"] = $d["actions"];
-			}
-
-			if (array_key_exists("related_form", $d)) {
-				$update["related_form"] = $d["related_form"] ? $d["related_form"] : null;
-			}
-
-			if (isset($d["preview_url"])) {
-				$update["preview_url"] = BigTree::safeEncode((string)$d["preview_url"]);
-			}
-
-			if (array_key_exists("exclude_from_search", $d)) {
-				$update["exclude_from_search"] = !empty($d["exclude_from_search"]);
-			}
+			$update = $this->buildUpdate($d, self::FIELDS);
 
 			if ($update) {
 				$context->update("views", $view_id, $update);
-				$new_table = $update["table"] ?? ($existing["table"] ?? "");
-
-				if ($new_table !== "") {
-					BigTreeAdmin::updateModuleViewColumnNumericStatusForTable($new_table);
-				}
+				$this->syncNumericStatus((string)($update["table"] ?? ($existing["table"] ?? "")));
 			}
 
 			return Response::ok($this->getSubResource($module_id, "views", $view_id));

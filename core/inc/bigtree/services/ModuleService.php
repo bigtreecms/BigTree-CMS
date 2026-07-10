@@ -26,6 +26,21 @@
 		use ModuleSubResourceSupport;
 		use ModuleFormFieldsSupport;
 
+		// The embed-form sub-resource write shape: column => transform verb (see
+		// ModuleSubResourceSupport::buildInsert). `fields` (cleanFormFields) and
+		// `hash` (minted on create) are the per-entity specials and are set by
+		// hand in the embed-form methods below.
+		private const EMBED_FORM_FIELDS = [
+			"title" => "encode",
+			"table" => "string",
+			"hooks" => "array",
+			"default_position" => "string",
+			"default_pending" => "checkbox",
+			"css" => "string",
+			"redirect_url" => "encode",
+			"thank_you_message" => "string",
+		];
+
 		public function list(Request $request) {
 			$rows = BigTreeJSONDB::getAll("modules", "position", "DESC");
 
@@ -840,18 +855,11 @@
 			[$module_id, , $context] = $this->moduleContext($request);
 			$d = $request->body;
 
-			$id = $context->insert("embed-forms", [
-				"title" => BigTree::safeEncode((string)$d["title"]),
-				"table" => (string)($d["table"] ?? ""),
-				"fields" => $this->cleanFormFields($d["fields"] ?? []),
-				"hooks" => is_array($d["hooks"] ?? null) ? $d["hooks"] : [],
-				"default_position" => (string)($d["default_position"] ?? ""),
-				"default_pending" => Flag::checkbox($d["default_pending"] ?? null),
-				"css" => (string)($d["css"] ?? ""),
-				"redirect_url" => BigTree::safeEncode((string)($d["redirect_url"] ?? "")),
-				"thank_you_message" => (string)($d["thank_you_message"] ?? ""),
-				"hash" => bin2hex(random_bytes(16)),
-			]);
+			$insert = $this->buildInsert($d, self::EMBED_FORM_FIELDS);
+			$insert["fields"] = $this->cleanFormFields($d["fields"] ?? []);
+			$insert["hash"] = bin2hex(random_bytes(16));
+
+			$id = $context->insert("embed-forms", $insert);
 
 			return Response::created($this->getSubResource($module_id, "embed-forms", $id), null);
 		}
@@ -859,51 +867,19 @@
 		public function updateEmbedForm(Request $request) {
 			$ef_id = $request->routeParam("sid");
 			[$module_id, $module, $context] = $this->moduleContext($request);
-			$existing = $this->requireSub($module, "embed-forms", $ef_id, "Embed form");
+			$this->requireSub($module, "embed-forms", $ef_id, "Embed form");
 
 			$d = $request->body;
-
-			$update = [];
-
-			if (isset($d["title"])) {
-				$update["title"] = BigTree::safeEncode((string)$d["title"]);
-			}
-
-			if (isset($d["table"])) {
-				$update["table"] = (string)$d["table"];
-			}
+			$update = $this->buildUpdate($d, self::EMBED_FORM_FIELDS);
 
 			if (isset($d["fields"])) {
 				$update["fields"] = $this->cleanFormFields($d["fields"]);
 			}
 
-			if (isset($d["hooks"]) && is_array($d["hooks"])) {
-				$update["hooks"] = $d["hooks"];
-			}
-
-			if (isset($d["default_position"])) {
-				$update["default_position"] = (string)$d["default_position"];
-			}
-
-			if (array_key_exists("default_pending", $d)) {
-				$update["default_pending"] = Flag::checkbox($d["default_pending"]);
-			}
-
-			if (isset($d["css"])) {
-				$update["css"] = (string)$d["css"];
-			}
-
-			if (isset($d["redirect_url"])) {
-				$update["redirect_url"] = BigTree::safeEncode((string)$d["redirect_url"]);
-			}
-
-			if (isset($d["thank_you_message"])) {
-				$update["thank_you_message"] = (string)$d["thank_you_message"];
-			}
-
 			if ($update) {
 				$context->update("embed-forms", $ef_id, $update);
 			}
+
 			return Response::ok($this->getSubResource($module_id, "embed-forms", $ef_id));
 		}
 

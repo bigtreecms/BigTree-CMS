@@ -6,6 +6,7 @@
 	use BigTree\Api\OpenApi;
 	use BigTree\Api\Request;
 	use BigTree\Api\Response;
+	use BigTree\Api\Sanitize;
 	use BigTree\Api\Exceptions\AuthenticationException;
 	use BigTree\Api\Exceptions\BadRequestException;
 	use BigTree\Api\Exceptions\ConflictException;
@@ -138,7 +139,7 @@
 			$root = SQL::fetch("SELECT nav_title FROM bigtree_pages WHERE id = 0");
 
 			return Response::ok([
-				"nav_title" => html_entity_decode((string)($root["nav_title"] ?? "BigTree"), ENT_QUOTES | ENT_HTML5, 'UTF-8'),
+				"nav_title" => Sanitize::decodeEntities(($root["nav_title"] ?? "BigTree")),
 				"www_root" => $bigtree["config"]["www_root"] ?? "",
 				// The classic admin's root — the SPA links here for legacy-only
 				// surfaces (custom-PHP module actions, front-end preview, etc.).
@@ -241,7 +242,7 @@
 					"rec" => "Remove links to the admin in this page's content.",
 					"status" => "ok",
 					"page_id" => (int)$page["id"],
-					"nav_title" => html_entity_decode((string)$page["nav_title"], ENT_QUOTES | ENT_HTML5, 'UTF-8'),
+					"nav_title" => Sanitize::decodeEntities($page["nav_title"]),
 				];
 			}
 

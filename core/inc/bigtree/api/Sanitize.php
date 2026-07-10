@@ -87,4 +87,15 @@
 
 			return "`$fallback` ASC";
 		}
+
+		/**
+		 * Presentation-side inverse of BigTree::safeEncode: decode HTML entities
+		 * back to their characters for API output. Uses the same flag set the
+		 * services previously hand-wrote 24× (ENT_QUOTES | ENT_HTML5, UTF-8) and
+		 * casts null to "" so callers can drop the `(string)` wrappers.
+		 */
+		public static function decodeEntities(?string $value): string {
+
+			return html_entity_decode((string)$value, ENT_QUOTES | ENT_HTML5, "UTF-8");
+		}
 	}

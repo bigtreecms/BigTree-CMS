@@ -7,6 +7,7 @@
 	use BigTree\Api\Sanitize;
 	use BigTree\Api\Request;
 	use BigTree\Api\Response;
+	use BigTree\Api\Upload;
 	use BigTree\Api\Exceptions\BadRequestException;
 	use BigTree;
 	use SQL;
@@ -201,17 +202,7 @@
 		 * first cell looks like a label ("from"/"source"/"url") is skipped.
 		 */
 		public function importCsv(Request $request) {
-			$files = $request->file("file");
-			$file = is_array($files) ? ($files[0] ?? null) : null;
-
-			if (
-				!is_array($file)
-				|| ($file["error"] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK
-				|| empty($file["tmp_name"])
-			) {
-				throw new BadRequestException("No CSV file was uploaded.", "missing_file");
-			}
-
+			$file = Upload::requireSingle($request, "file");
 			$handle = fopen($file["tmp_name"], "r");
 
 			if ($handle === false) {

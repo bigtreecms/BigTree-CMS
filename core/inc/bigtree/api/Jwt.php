@@ -105,17 +105,12 @@
 
 		public static function base64url($data) {
 
-			return rtrim(strtr(base64_encode($data), "+/", "-_"), "=");
+			return Base64Url::encode((string)$data);
 		}
 
 		public static function base64urlDecode($data) {
-			$pad = strlen($data) % 4;
 
-			if ($pad) {
-				$data .= str_repeat("=", 4 - $pad);
-			}
-
-			return base64_decode(strtr($data, "-_", "+/"));
+			return Base64Url::decode((string)$data);
 		}
 
 		/** Returns [current, previous] for the verifier, or [current] if no previous configured. */

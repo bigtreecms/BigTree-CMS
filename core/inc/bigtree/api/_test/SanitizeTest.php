@@ -75,3 +75,17 @@
 		T::equals(Sanitize::orderClause("id`; DROP", $columns, "title"), "`title` ASC", "backtick break-out rejected");
 		T::equals(Sanitize::orderClause("(SELECT 1)", $columns, "title"), "`title` ASC", "subquery rejected");
 	}
+
+	function test_sanitize_decode_entities() {
+		T::equals(Sanitize::decodeEntities("Tom &amp; Jerry"), "Tom & Jerry", "named entity decoded");
+		T::equals(Sanitize::decodeEntities("&quot;quoted&quot;"), '"quoted"', "double quotes decoded (ENT_QUOTES)");
+		T::equals(Sanitize::decodeEntities("it&#039;s"), "it's", "single quote decoded (ENT_QUOTES)");
+		T::equals(Sanitize::decodeEntities("&apos;"), "'", "HTML5 apostrophe entity decoded");
+		T::equals(Sanitize::decodeEntities("plain text"), "plain text", "text without entities unchanged");
+		T::equals(Sanitize::decodeEntities(null), "", "null cast to empty string");
+	}
+
+	function test_sanitize_decode_entities_inverts_safe_encode() {
+		$raw = 'A "risky" <title> & more';
+		T::equals(Sanitize::decodeEntities(\BigTree::safeEncode($raw)), $raw, "decodeEntities inverts safeEncode");
+	}

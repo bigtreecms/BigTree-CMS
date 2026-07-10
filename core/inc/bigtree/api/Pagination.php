@@ -87,8 +87,8 @@
 
 		public static function encodeCursor(array $payload, $secret) {
 			$json = json_encode($payload);
-			$body = self::base64url($json);
-			$sig = self::base64url(substr(hash_hmac("sha256", $body, $secret, true), 0, 16));
+			$body = Base64Url::encode($json);
+			$sig = Base64Url::encode(substr(hash_hmac("sha256", $body, $secret, true), 0, 16));
 
 			return $body . "." . $sig;
 		}
@@ -99,13 +99,13 @@
 			}
 
 			[$body, $sig] = explode(".", $cursor, 2);
-			$expected = self::base64url(substr(hash_hmac("sha256", $body, $secret, true), 0, 16));
+			$expected = Base64Url::encode(substr(hash_hmac("sha256", $body, $secret, true), 0, 16));
 
 			if (!hash_equals($expected, $sig)) {
 				throw new BadRequestException("Cursor signature invalid", "invalid_cursor");
 			}
 
-			$payload = json_decode(self::base64urlDecode($body), true);
+			$payload = json_decode(Base64Url::decode($body), true);
 
 			if (!is_array($payload)) {
 				throw new BadRequestException("Cursor payload invalid", "invalid_cursor");
@@ -120,20 +120,5 @@
 			$cursor_data = $cursor_param ? self::decodeCursor($cursor_param, $secret) : null;
 
 			return ["per_page" => $per_page, "cursor" => $cursor_data];
-		}
-
-		private static function base64url($data) {
-
-			return rtrim(strtr(base64_encode($data), "+/", "-_"), "=");
-		}
-
-		private static function base64urlDecode($data) {
-			$pad = strlen($data) % 4;
-
-			if ($pad) {
-				$data .= str_repeat("=", 4 - $pad);
-			}
-
-			return base64_decode(strtr($data, "-_", "+/"));
 		}
 	}

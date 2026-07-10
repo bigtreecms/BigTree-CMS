@@ -4,7 +4,6 @@
 	use BigTree\Api\Request;
 	use BigTree\Api\Response;
 	use BigTree\Api\Exceptions\NotFoundException;
-	use BigTree;
 	use BigTreeAutoModule;
 
 	/**
@@ -22,22 +21,31 @@
 	class ModuleReportService {
 		use ModuleSubResourceSupport;
 
+		// The report sub-resource write shape: column => transform verb (see
+		// ModuleSubResourceSupport::buildInsert). `type` (a "csv" default on
+		// create) and `fields` (a raw passthrough, not cleanFormFields) are the
+		// per-entity specials and are set by hand in each method below.
+		private const FIELDS = [
+			"title" => "encode",
+			"table" => "string",
+			"type" => "string",
+			"filters" => "array",
+			"parser" => "string",
+			"view" => "nullable",
+			"streaming" => "bool",
+		];
+
 		// — Report CRUD —
 
 		public function createReport(Request $request) {
 			[$module_id, , $context] = $this->moduleContext($request);
 			$d = $request->body;
 
-			$id = $context->insert("reports", [
-				"title" => BigTree::safeEncode((string)$d["title"]),
-				"table" => (string)($d["table"] ?? ""),
-				"type" => (string)($d["type"] ?? "csv"),
-				"filters" => is_array($d["filters"] ?? null) ? $d["filters"] : [],
-				"fields" => $d["fields"] ?? "",
-				"parser" => (string)($d["parser"] ?? ""),
-				"view" => !empty($d["view"]) ? $d["view"] : null,
-				"streaming" => !empty($d["streaming"]),
-			]);
+			$insert = $this->buildInsert($d, self::FIELDS);
+			$insert["type"] = (string)($d["type"] ?? "csv");
+			$insert["fields"] = $d["fields"] ?? "";
+
+			$id = $context->insert("reports", $insert);
 
 			return Response::created($this->getSubResource($module_id, "reports", $id), null);
 		}
@@ -45,47 +53,19 @@
 		public function updateReport(Request $request) {
 			$report_id = $request->routeParam("sid");
 			[$module_id, $module, $context] = $this->moduleContext($request);
-			$existing = $this->requireSub($module, "reports", $report_id, "Report");
+			$this->requireSub($module, "reports", $report_id, "Report");
 
 			$d = $request->body;
-
-			$update = [];
-
-			if (isset($d["title"])) {
-				$update["title"] = BigTree::safeEncode((string)$d["title"]);
-			}
-
-			if (isset($d["table"])) {
-				$update["table"] = (string)$d["table"];
-			}
-
-			if (isset($d["type"])) {
-				$update["type"] = (string)$d["type"];
-			}
-
-			if (isset($d["filters"]) && is_array($d["filters"])) {
-				$update["filters"] = $d["filters"];
-			}
+			$update = $this->buildUpdate($d, self::FIELDS);
 
 			if (array_key_exists("fields", $d)) {
 				$update["fields"] = $d["fields"];
 			}
 
-			if (isset($d["parser"])) {
-				$update["parser"] = (string)$d["parser"];
-			}
-
-			if (array_key_exists("view", $d)) {
-				$update["view"] = $d["view"] ? $d["view"] : null;
-			}
-
-			if (array_key_exists("streaming", $d)) {
-				$update["streaming"] = !empty($d["streaming"]);
-			}
-
 			if ($update) {
 				$context->update("reports", $report_id, $update);
 			}
+
 			return Response::ok($this->getSubResource($module_id, "reports", $report_id));
 		}
 
@@ -108,20 +88,7 @@
 		 * so the SPA renders the same option set the PHP admin showed.
 		 */
 		public function prepareReport(Request $request) {
-			$module_id = $request->routeParam("id");
-			$report_id = $request->routeParam("sid");
-
-			$this->loadModule($module_id);
-			$report = \BigTreeAutoModule::getReport($report_id);
-
-			if (!$report) {
-				throw new NotFoundException("Report $report_id not found");
-			}
-
-			$form = \BigTreeAutoModule::getRelatedFormForReport($report);
-			$view = !empty($report["view"])
-				? \BigTreeAutoModule::getView($report["view"])
-				: \BigTreeAutoModule::getRelatedViewForReport($report);
+			[$report, $form, $view] = $this->resolveReportBundle($request);
 
 			$filter_options = [];
 
@@ -171,22 +138,7 @@
 		 *   }
 		 */
 		public function runReport(Request $request) {
-			$module_id = $request->routeParam("id");
-			$report_id = $request->routeParam("sid");
-
-			$module = $this->loadModule($module_id);
-			$this->requireSub($module, "reports", $report_id, "Report");
-
-			$report = \BigTreeAutoModule::getReport($report_id);
-
-			if (!$report) {
-				throw new NotFoundException("Report $report_id not found");
-			}
-
-			$form = \BigTreeAutoModule::getRelatedFormForReport($report);
-			$view = !empty($report["view"])
-				? \BigTreeAutoModule::getView($report["view"])
-				: \BigTreeAutoModule::getRelatedViewForReport($report);
+			[$report, $form, $view] = $this->resolveReportBundle($request);
 
 			$body = $request->body ?? [];
 			$filters = is_array($body["filters"] ?? null) ? $body["filters"] : [];
@@ -211,6 +163,34 @@
 				"items" => $items,
 				"meta" => ["count" => count($items)],
 			]);
+		}
+
+		/**
+		 * Resolve the [report, form, view] bundle both prepare and run need:
+		 * load the module, assert the report belongs to it (the sub-resource
+		 * ownership check — a user authorized for module A must not reach module
+		 * B's report through this module's route), fetch the report (404 on
+		 * miss), then its related form and view (honoring an explicit view id).
+		 */
+		private function resolveReportBundle(Request $request): array {
+			$module_id = $request->routeParam("id");
+			$report_id = $request->routeParam("sid");
+
+			$module = $this->loadModule($module_id);
+			$this->requireSub($module, "reports", $report_id, "Report");
+
+			$report = \BigTreeAutoModule::getReport($report_id);
+
+			if (!$report) {
+				throw new NotFoundException("Report $report_id not found");
+			}
+
+			$form = \BigTreeAutoModule::getRelatedFormForReport($report);
+			$view = !empty($report["view"])
+				? \BigTreeAutoModule::getView($report["view"])
+				: \BigTreeAutoModule::getRelatedViewForReport($report);
+
+			return [$report, $form, $view];
 		}
 
 		/**
