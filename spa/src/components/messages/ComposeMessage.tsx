@@ -13,6 +13,7 @@ import { TextInput } from "@/components/ui/TextInput";
 
 import { messagesApi, type Message } from "@/api/endpoints/dashboard";
 import { usersApi } from "@/api/endpoints/users";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { queryKeys } from "@/lib/queryKeys";
 
 import { describeApiError } from "@/lib/errorHandling";
@@ -54,7 +55,7 @@ export const ComposeMessage = ({
 	const [body, setBody] = useState("");
 	const [recipients, setRecipients] = useState<UserChip[]>([]);
 	const [search, setSearch] = useState("");
-	const [debounced, setDebounced] = useState("");
+	const debounced = useDebouncedValue(search, 200).trim();
 	const [generalError, setGeneralError] = useState<string | null>(null);
 
 	// Seed from replyTo whenever the dialog opens for a new message.
@@ -81,15 +82,8 @@ export const ComposeMessage = ({
 		}
 
 		setSearch("");
-		setDebounced("");
 		setGeneralError(null);
 	}, [open, replyTo, currentUserId]);
-
-	useEffect(() => {
-		const handle = setTimeout(() => setDebounced(search.trim()), 200);
-
-		return () => clearTimeout(handle);
-	}, [search]);
 
 	const searchEnabled = open && debounced.length >= 2;
 
@@ -129,7 +123,6 @@ export const ComposeMessage = ({
 
 		setRecipients((prev) => [...prev, { id: user.id, name: user.name, email: user.email }]);
 		setSearch("");
-		setDebounced("");
 	};
 
 	const removeRecipient = (id: number) => {

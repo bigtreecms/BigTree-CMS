@@ -1,4 +1,6 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
+
+import { useToggleSet } from "@/hooks/useToggleSet";
 
 import { DisclosureToggle } from "@/components/ui/DisclosureToggle";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -24,7 +26,7 @@ interface ImagesGroupedViewProps {
 }
 
 export const ImagesGroupedView = ({ moduleId, view }: ImagesGroupedViewProps) => {
-	const [collapsed, setCollapsed] = useState<Set<string>>(() => new Set());
+	const { set: collapsed, toggle } = useToggleSet<string>();
 	const { query, setQuery, debouncedQuery, builtins, custom, listQuery, rows, openEdit } =
 		useModuleEntries({ moduleId, view });
 
@@ -48,20 +50,6 @@ export const ImagesGroupedView = ({ moduleId, view }: ImagesGroupedViewProps) =>
 
 		return Array.from(byGroup.entries()).sort(([a], [b]) => a.localeCompare(b));
 	}, [rows]);
-
-	const toggle = (key: string) => {
-		setCollapsed((prev) => {
-			const next = new Set(prev);
-
-			if (next.has(key)) {
-				next.delete(key);
-			} else {
-				next.add(key);
-			}
-
-			return next;
-		});
-	};
 
 	return (
 		<>

@@ -43,6 +43,46 @@ export const decodeHtmlEntities = (value: string): string => {
 };
 
 /**
+ * DOM-based entity decoder: round-trips the value through a detached
+ * `<textarea>`, which the browser decodes against the *full* HTML named-entity
+ * table (broader than {@link decodeHtmlEntities}' hand-rolled set — it also
+ * covers `&copy;`, `&mdash;`, accented entities, …). The module-level element is
+ * created once and reused across calls.
+ *
+ * BigTree's view cache can double-encode (`&` written back as `&amp;amp;` after a
+ * second htmlspecialchars pass), so `passes` repeats the round-trip until the
+ * string stops changing, capped by `passes` to avoid pathological input. The cap
+ * is well above the 2 passes the cache actually produces. Returns the input
+ * unchanged when there is no DOM (SSR/tests) or no `&` to decode.
+ */
+let decodeEl: HTMLTextAreaElement | null = null;
+
+export const decodeHtmlEntitiesDom = (value: string, passes = 1): string => {
+	if (!value || value.indexOf("&") === -1 || typeof document === "undefined") {
+		return value;
+	}
+
+	if (!decodeEl) {
+		decodeEl = document.createElement("textarea");
+	}
+
+	let current = value;
+
+	for (let i = 0; i < passes; i++) {
+		decodeEl.innerHTML = current;
+		const next = decodeEl.value;
+
+		if (next === current) {
+			break;
+		}
+
+		current = next;
+	}
+
+	return current;
+};
+
+/**
  * Reduce a WYSIWYG HTML value to a single line of plain text — for places that
  * can only show text (table cells, `title` tooltips, search summaries) and
  * would otherwise leak raw markup like "<p>…</p>". Tags become spaces, runs of

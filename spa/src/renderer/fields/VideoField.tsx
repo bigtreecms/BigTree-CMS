@@ -7,6 +7,7 @@ import { IconButton } from "@/components/ui/IconButton";
 
 import { SectionLabel } from "@/components/ui/SectionLabel";
 
+import { isRecord } from "./fieldHelpers";
 import { INPUT_CLASS, settingsOf, type FieldComponentProps } from "./types";
 
 /**
@@ -36,17 +37,13 @@ interface VideoValue {
 	[key: string]: unknown;
 }
 
-const isVideoObject = (raw: unknown): raw is VideoValue => {
-	return Boolean(raw) && typeof raw === "object" && !Array.isArray(raw);
-};
-
 export const VideoField = ({ field, value, onChange, disabled }: FieldComponentProps) => {
 	const settings = settingsOf(field);
 	const showBrowse = !settings.disable_browse;
 
 	const [pickerOpen, setPickerOpen] = useState(false);
 
-	const current: VideoValue = isVideoObject(value) ? (value as VideoValue) : {};
+	const current: VideoValue = isRecord(value) ? (value as VideoValue) : {};
 	const hasPersisted = Boolean(current.service && current.id);
 	const pendingUrl = typeof current.new === "string" ? current.new : null;
 	const pendingManaged = current.managed != null ? String(current.managed) : null;

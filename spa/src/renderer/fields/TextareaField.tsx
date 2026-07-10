@@ -1,3 +1,4 @@
+import { toStringValue } from "./fieldHelpers";
 import { INPUT_CLASS, settingsOf, type FieldComponentProps } from "./types";
 
 /**
@@ -15,7 +16,7 @@ export const TextareaField = ({ field, value, onChange, disabled }: FieldCompone
 			className={`${INPUT_CLASS} font-mono text-[12.5px] leading-relaxed`}
 			rows={rows}
 			maxLength={maxLength}
-			value={typeof value === "string" ? value : value == null ? "" : String(value)}
+			value={toStringValue(value)}
 			disabled={disabled}
 			onChange={(event) => onChange(event.target.value)}
 		/>

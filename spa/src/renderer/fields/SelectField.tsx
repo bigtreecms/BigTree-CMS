@@ -1,21 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 
 import { Select } from "@/components/ui/Select";
+import { normalizeStaticOptions, toStringValue, type StaticOption } from "./fieldHelpers";
 import { settingsOf, type FieldComponentProps } from "./types";
 import { modulesApi } from "@/api/endpoints/modules";
 import { useFormRenderContext } from "@/renderer/forms/FormContext";
 
-interface StaticListItem {
-	key?: string;
-	description?: string;
-	value?: string;
-	label?: string;
-}
-
-interface Option {
-	value: string;
-	label: string;
-}
+type Option = StaticOption;
 
 /**
  * BigTree "list" field.
@@ -46,12 +37,7 @@ export const SelectField = ({ field, value, onChange, disabled }: FieldComponent
 		staleTime: 5 * 60 * 1000,
 	});
 
-	const staticItems: Option[] = (
-		Array.isArray(settings.list) ? (settings.list as StaticListItem[]) : []
-	).map((item) => ({
-		value: String(item.key ?? item.value ?? ""),
-		label: String(item.description ?? item.label ?? item.key ?? item.value ?? ""),
-	}));
+	const staticItems: Option[] = normalizeStaticOptions(settings.list);
 
 	const items: Option[] = isDynamic ? (optionsQ.data?.options ?? []) : staticItems;
 
@@ -76,7 +62,7 @@ export const SelectField = ({ field, value, onChange, disabled }: FieldComponent
 
 	return (
 		<Select
-			value={value == null ? "" : String(value)}
+			value={toStringValue(value)}
 			disabled={disabled || isLoading}
 			onChange={(event) => onChange(event.target.value)}
 		>

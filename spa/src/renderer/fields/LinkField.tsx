@@ -10,7 +10,7 @@ import { searchApi, type SearchPage } from "@/api/endpoints/search";
 import { resourcesApi } from "@/api/endpoints/resources";
 import type { ResourceSummary } from "@/api/endpoints/resource-folders";
 
-import { isTruthyFlag } from "./fieldHelpers";
+import { isTruthyFlag, toStringValue } from "./fieldHelpers";
 import { INPUT_CLASS, settingsOf, type FieldComponentProps } from "./types";
 
 /**
@@ -43,7 +43,7 @@ export const LinkField = ({ field, value, onChange, disabled }: FieldComponentPr
 	const settings = settingsOf(field) as LinkFieldSettings;
 	const showSearch = !isTruthyFlag(settings.disable_search);
 
-	const stored = typeof value === "string" ? value : value == null ? "" : String(value);
+	const stored = toStringValue(value);
 
 	const [search, setSearch] = useState("");
 	const [open, setOpen] = useState(false);

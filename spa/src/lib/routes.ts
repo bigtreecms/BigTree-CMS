@@ -9,8 +9,12 @@ export const pageDraftEditPath = (pcid: number | string) => `/pages/draft/${pcid
 /** /pages/:id/edit/revisions */
 export const pageRevisionsPath = (id: number | string) => `/pages/${id}/edit/revisions`;
 
-/** /settings/:id/edit */
-export const settingEditPath = (id: number | string) => `/settings/${id}/edit`;
+/** /settings/:id/edit — the id is URL-encoded (setting ids can contain `.`/`/`). */
+export const settingEditPath = (id: number | string) => `/settings/${encodeURIComponent(id)}/edit`;
+
+/** /developer/modules/:id — the module designer's detail/edit route. */
+export const moduleDetailPath = (id: number | string) =>
+	`/developer/modules/${encodeURIComponent(id)}`;
 
 /**
  * Build the edit path for a module entry.

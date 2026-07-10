@@ -53,10 +53,7 @@ export const auditApi = {
 			per_page: params.per_page,
 		};
 
-		return api.getWithMeta<AuditEntry[]>("/audit", { query }).then((res) => ({
-			items: res.data,
-			meta: res.meta ?? {},
-		}));
+		return api.listWithMeta<AuditEntry>("/audit", { query });
 	},
 
 	/** Every database table name, sorted — feeds the table filter's searchable select. */

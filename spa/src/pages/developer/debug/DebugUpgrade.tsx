@@ -6,6 +6,7 @@ import { DebugLayout } from "@/components/developer/DebugLayout";
 import { Alert } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
 import { Card, CardHeader } from "@/components/ui/Card";
+import { SectionLabel } from "@/components/ui/SectionLabel";
 import { TextInput } from "@/components/ui/TextInput";
 import { Field } from "@/components/ui/Field";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
@@ -187,8 +188,8 @@ export const DebugUpgrade = () => {
 			{data && (
 				<>
 					<Card className="mb-5 overflow-hidden">
-						<CardHeader className="text-[11.5px] font-semibold uppercase tracking-[0.06em] text-text-3">
-							Current install
+						<CardHeader>
+							<SectionLabel size="sm">Current install</SectionLabel>
 						</CardHeader>
 
 						<dl className="divide-y divide-border">
@@ -242,8 +243,8 @@ export const DebugUpgrade = () => {
 
 					{(stage === "credentials" || stage === "ftp_root") && (
 						<Card className="overflow-hidden">
-							<CardHeader className="text-[11.5px] font-semibold uppercase tracking-[0.06em] text-text-3">
-								{method} credentials
+							<CardHeader>
+								<SectionLabel size="sm">{method} credentials</SectionLabel>
 							</CardHeader>
 
 							<div className="p-4">

@@ -29,6 +29,7 @@ import { queryKeys } from "@/lib/queryKeys";
 import { usePaginatedSearch } from "@/hooks/usePaginatedSearch";
 import { useToastMutation } from "@/hooks/useToastMutation";
 import { useConfirmDialog } from "@/hooks/useConfirmDialog";
+import { useToggleSet } from "@/hooks/useToggleSet";
 
 /**
  * /dashboard/404s — the 404 Report.
@@ -74,7 +75,7 @@ export const FourOhFours = ({ type }: FourOhFoursProps) => {
 		debouncedQuery,
 	} = usePaginatedSearch();
 	const debounced = debouncedQuery.trim();
-	const [selected, setSelected] = useState<Set<number>>(new Set());
+	const { set: selected, toggle: toggleRow, setSet: setSelected } = useToggleSet<number>();
 	const [editingRedirectId, setEditingRedirectId] = useState<number | null>(null);
 	const [redirectDraft, setRedirectDraft] = useState("");
 	const bulkDeleteDialog = useConfirmDialog<true>();
@@ -102,7 +103,7 @@ export const FourOhFours = ({ type }: FourOhFoursProps) => {
 		setSelected(new Set());
 		setEditingRedirectId(null);
 		setRedirectDraft("");
-	}, [debounced]);
+	}, [debounced, setSelected]);
 
 	const listQ = useQuery({
 		queryKey: queryKeys.redirects.list({ type, page, per_page: PER_PAGE, q: debounced }),
@@ -195,20 +196,6 @@ export const FourOhFours = ({ type }: FourOhFoursProps) => {
 		},
 		onError: (err) => toast.error(describeApiError(err, "CSV export failed")),
 	});
-
-	const toggleRow = (id: number) => {
-		setSelected((prev) => {
-			const next = new Set(prev);
-
-			if (next.has(id)) {
-				next.delete(id);
-			} else {
-				next.add(id);
-			}
-
-			return next;
-		});
-	};
 
 	const toggleAll = () => {
 		setSelected((prev) => {

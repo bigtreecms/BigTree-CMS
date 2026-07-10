@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
+
+import { useToggleSet } from "@/hooks/useToggleSet";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToastMutation } from "@/hooks/useToastMutation";
 import { ChevronDown, ChevronRight } from "lucide-react";
@@ -101,7 +103,7 @@ interface DragApi {
 
 export const NestedView = ({ moduleId, view }: NestedViewProps) => {
 	const queryClient = useQueryClient();
-	const [expanded, setExpanded] = useState<Set<string>>(() => new Set());
+	const { set: expanded, toggle } = useToggleSet<string>();
 	const [localRows, setLocalRows] = useState<ModuleEntryRow[] | null>(null);
 	const [dragId, setDragId] = useState<string | null>(null);
 	const [overId, setOverId] = useState<string | null>(null);
@@ -133,20 +135,6 @@ export const NestedView = ({ moduleId, view }: NestedViewProps) => {
 		[localRows, listQuery.data?.items]
 	);
 	const tree = useMemo(() => (debouncedQuery ? null : buildTree(rows)), [rows, debouncedQuery]);
-
-	const toggle = (id: string) => {
-		setExpanded((prev) => {
-			const next = new Set(prev);
-
-			if (next.has(id)) {
-				next.delete(id);
-			} else {
-				next.add(id);
-			}
-
-			return next;
-		});
-	};
 
 	const canDrag = !debouncedQuery && !listQuery.isLoading;
 

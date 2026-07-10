@@ -97,10 +97,7 @@ export interface UsersListResponse {
 
 export const usersApi = {
 	list: (params: { q?: string; page?: number; per_page?: number } = {}) =>
-		api.getWithMeta<UserListItem[]>("/users", { query: params }).then((res) => ({
-			items: res.data,
-			meta: res.meta ?? {},
-		})),
+		api.listWithMeta<UserListItem>("/users", { query: params }),
 
 	get: (id: number) => api.get<UserDetail>(`/users/${id}`),
 

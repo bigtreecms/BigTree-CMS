@@ -6,13 +6,6 @@
  * stays in that module's own file.
  */
 
-export interface Tag {
-	id: number;
-	tag: string;
-	route: string;
-	usage_count?: number;
-}
-
 export interface ResourceFolder {
 	id: number;
 	parent: number;

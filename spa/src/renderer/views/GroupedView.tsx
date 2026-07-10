@@ -1,4 +1,6 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
+
+import { useToggleSet } from "@/hooks/useToggleSet";
 
 import { DisclosureToggle } from "@/components/ui/DisclosureToggle";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -51,7 +53,7 @@ const specialGroupTitles: Record<string, Record<string, string>> = {
 
 export const GroupedView = ({ moduleId, view }: GroupedViewProps) => {
 	const { editPath, actionPath } = useModuleEntryLinks();
-	const [collapsed, setCollapsed] = useState<Set<string>>(() => new Set());
+	const { set: collapsed, toggle } = useToggleSet<string>();
 	const { requestDelete, dialog: deleteDialog } = useEntryDelete(moduleId, view.id);
 	const {
 		query,
@@ -106,20 +108,6 @@ export const GroupedView = ({ moduleId, view }: GroupedViewProps) => {
 
 		return Array.from(byGroup.entries()).filter(([, { items }]) => items.length > 0);
 	}, [rows, groupTitles, titleOverrides]);
-
-	const toggle = (key: string) => {
-		setCollapsed((prev) => {
-			const next = new Set(prev);
-
-			if (next.has(key)) {
-				next.delete(key);
-			} else {
-				next.add(key);
-			}
-
-			return next;
-		});
-	};
 
 	return (
 		<>

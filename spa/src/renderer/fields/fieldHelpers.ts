@@ -1,3 +1,5 @@
+import type { ModuleFormField } from "@/api/endpoints/modules";
+
 /**
  * Shared value-coercion helpers for the repeater/media field renderers
  * (`MatrixField`, `MediaGalleryField`, `RelationField`, `CalloutsField`, …).
@@ -9,6 +11,16 @@
 /** Narrow an unknown to a plain object (not null, not an array). */
 export const isRecord = (raw: unknown): raw is Record<string, unknown> =>
 	Boolean(raw) && typeof raw === "object" && !Array.isArray(raw);
+
+/**
+ * Coerce a field value to a string for a controlled text input: strings pass
+ * through, `null`/`undefined` become `""`, everything else stringifies. The
+ * idiom every text-like field renderer (`TextField`, `TextareaField`,
+ * `RouteField`, `ColorField`, `LinkField`, `HTMLField`, `SelectField`,
+ * `RadioField`) hand-rolled inline.
+ */
+export const toStringValue = (value: unknown): string =>
+	typeof value === "string" ? value : value == null ? "" : String(value);
 
 /** Coerce a value to a positive integer, or `0` when it isn't one. */
 export const toInt = (raw: unknown): number => {
@@ -81,3 +93,55 @@ export const normalizeColumnSettings = (raw: unknown): Record<string, unknown> =
 
 	return {};
 };
+
+/**
+ * The per-column config a repeater/gallery field stores for each sub-field.
+ * Structurally matches both `MatrixField`'s and `MediaGalleryField`'s column
+ * shapes, so either can feed {@link columnToFormField}.
+ */
+export interface RepeaterColumn {
+	id: string;
+	title: string;
+	subtitle?: string;
+	type: string;
+	settings?: unknown;
+	display_title?: boolean | string | number;
+}
+
+/**
+ * Build the synthetic `ModuleFormField` a repeater sub-field renders from — the
+ * identical mapping `MatrixField` and `MediaGalleryField` each inlined. Falls
+ * back to the column id for a missing title and parses its settings.
+ */
+export const columnToFormField = (column: RepeaterColumn): ModuleFormField => ({
+	column: column.id,
+	title: column.title || column.id,
+	subtitle: column.subtitle,
+	type: column.type,
+	settings: normalizeColumnSettings(column.settings),
+});
+
+/** A single entry of a static `settings.list` (BigTree's legacy list shape). */
+export interface StaticListItem {
+	key?: string;
+	value?: string;
+	description?: string;
+	label?: string;
+}
+
+/** A resolved `{ value, label }` option, as `SelectField`/`RadioField` render. */
+export interface StaticOption {
+	value: string;
+	label: string;
+}
+
+/**
+ * Parse a static `settings.list` into `{ value, label }` options, applying
+ * BigTree's `key ?? value` / `description ?? label` coalescing (label finally
+ * falls back to the value). Shared by `SelectField` and `RadioField`.
+ */
+export const normalizeStaticOptions = (raw: unknown): StaticOption[] =>
+	(Array.isArray(raw) ? (raw as StaticListItem[]) : []).map((item) => ({
+		value: String(item.key ?? item.value ?? ""),
+		label: String(item.description ?? item.label ?? item.key ?? item.value ?? ""),
+	}));

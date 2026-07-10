@@ -21,6 +21,7 @@ import { describeApiError } from "@/lib/errorHandling";
 import { toast } from "@/lib/toast";
 import { validateRequired } from "@/lib/formValidation";
 import { queryKeys } from "@/lib/queryKeys";
+import { moduleDetailPath } from "@/lib/routes";
 
 import { IconPicker } from "@/components/developer/IconPicker";
 
@@ -93,7 +94,7 @@ export const ModuleBuilderWizard = () => {
 			toast.success("Module built", {
 				description: `Created the “${mod.table}” table, form, and view.`,
 			});
-			navigate(`/developer/modules/${encodeURIComponent(mod.id)}`, { replace: true });
+			navigate(moduleDetailPath(mod.id), { replace: true });
 		},
 		onError: (err) => {
 			if (err instanceof ApiError) {

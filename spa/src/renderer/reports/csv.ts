@@ -1,6 +1,8 @@
 import type { ModuleReport, ModuleReportRunResponse } from "@/api/endpoints/modules";
 
 import { csvCell as encodeCsvCell } from "@/lib/csv";
+import { decodeHtmlEntitiesDom } from "@/lib/html";
+import { parseReportFields, viewFieldColumns, type ReportColumn } from "./reportColumns";
 
 /**
  * Convert a report's run-response into a CSV file and trigger a browser
@@ -23,11 +25,8 @@ export const downloadCsv = (response: ModuleReportRunResponse) => {
 		return;
 	}
 
-	const decoder = createDecoder();
-	const header = columns.map((c) => csvCell(c.label, decoder));
-	const body = response.items.map((row) =>
-		columns.map((c) => csvCell(row[c.key], decoder)).join(",")
-	);
+	const header = columns.map((c) => csvCell(c.label));
+	const body = response.items.map((row) => columns.map((c) => csvCell(row[c.key])).join(","));
 
 	const csv = [header.join(","), ...body].join("\n");
 	const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8" });
@@ -41,16 +40,13 @@ export const downloadCsv = (response: ModuleReportRunResponse) => {
 	URL.revokeObjectURL(url);
 };
 
-interface CsvColumn {
-	key: string;
-	label: string;
-}
+type CsvColumn = ReportColumn;
 
 const collectColumns = (response: ModuleReportRunResponse): CsvColumn[] => {
 	const { report, view, items } = response;
 
 	if (report.fields) {
-		const out = readReportFields(report.fields);
+		const out = parseReportFields(report.fields);
 
 		if (out.length > 0) {
 			return out;
@@ -58,10 +54,7 @@ const collectColumns = (response: ModuleReportRunResponse): CsvColumn[] => {
 	}
 
 	if (view && view.fields) {
-		return Object.entries(view.fields).map(([key, field]) => ({
-			key,
-			label: field?.title ?? key,
-		}));
+		return viewFieldColumns(view);
 	}
 
 	const first = items[0];
@@ -73,23 +66,7 @@ const collectColumns = (response: ModuleReportRunResponse): CsvColumn[] => {
 	return [];
 };
 
-const readReportFields = (fields: ModuleReport["fields"]): CsvColumn[] => {
-	if (!fields) {
-		return [];
-	}
-
-	if (Array.isArray(fields)) {
-		return fields.map((label) => ({ key: String(label), label: String(label) }));
-	}
-
-	if (typeof fields === "string") {
-		return [{ key: fields, label: fields }];
-	}
-
-	return Object.entries(fields).map(([key, label]) => ({ key, label: String(label) }));
-};
-
-const csvCell = (value: unknown, decoder: HTMLTextAreaElement | null): string => {
+const csvCell = (value: unknown): string => {
 	if (value === null || value === undefined) {
 		return '""';
 	}
@@ -97,7 +74,7 @@ const csvCell = (value: unknown, decoder: HTMLTextAreaElement | null): string =>
 	let raw: string;
 
 	if (typeof value === "string") {
-		raw = decodeOnce(value, decoder);
+		raw = decodeHtmlEntitiesDom(value);
 	} else if (typeof value === "number" || typeof value === "boolean") {
 		raw = String(value);
 	} else {
@@ -109,24 +86,6 @@ const csvCell = (value: unknown, decoder: HTMLTextAreaElement | null): string =>
 	}
 
 	return encodeCsvCell(raw);
-};
-
-const createDecoder = (): HTMLTextAreaElement | null => {
-	if (typeof document === "undefined") {
-		return null;
-	}
-
-	return document.createElement("textarea");
-};
-
-const decodeOnce = (value: string, el: HTMLTextAreaElement | null): string => {
-	if (!el || value.indexOf("&") === -1) {
-		return value;
-	}
-
-	el.innerHTML = value;
-
-	return el.value;
 };
 
 const csvFilename = (report: ModuleReport): string => {

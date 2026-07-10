@@ -5,6 +5,7 @@ import { ChevronDown, ChevronRight } from "lucide-react";
 import { IconButton } from "@/components/ui/IconButton";
 import { resourceFoldersApi, type ResourceFolderRow } from "@/api/endpoints/resource-folders";
 import { queryKeys } from "@/lib/queryKeys";
+import { applyPermission } from "@/lib/permissions";
 import type { PermissionCode, UserPermissions } from "@/api/endpoints/users";
 
 import { PermissionRadios } from "./PermissionRadios";
@@ -24,15 +25,7 @@ interface ResourcePermissionsTreeProps {
  */
 export const ResourcePermissionsTree = ({ value, onChange }: ResourcePermissionsTreeProps) => {
 	const setPerm = (id: string, perm: PermissionCode) => {
-		const next = { ...(value ?? {}) };
-
-		if (perm === "" || perm === "i") {
-			delete next[id];
-		} else {
-			next[id] = perm;
-		}
-
-		onChange(next);
+		onChange(applyPermission(value, id, perm));
 	};
 
 	return (

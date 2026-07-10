@@ -37,15 +37,13 @@ export interface MergePayload {
 
 export const tagsApi = {
 	list: (params: TagListParams = {}) =>
-		api
-			.getWithMeta<Tag[]>("/tags", {
-				query: {
-					page: params.page,
-					per_page: params.per_page,
-					q: params.q,
-				},
-			})
-			.then((res) => ({ items: res.data ?? [], meta: res.meta ?? {} })),
+		api.listWithMeta<Tag>("/tags", {
+			query: {
+				page: params.page,
+				per_page: params.per_page,
+				q: params.q,
+			},
+		}),
 
 	get: (id: number) => api.get<Tag>(`/tags/${id}`),
 

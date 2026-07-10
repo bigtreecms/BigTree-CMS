@@ -1,4 +1,5 @@
 import { api } from "@/api/client";
+import type { MediaPreset } from "./configure";
 
 /**
  * Developer → Debug section.
@@ -8,12 +9,12 @@ import { api } from "@/api/client";
  *   cache flush, and the on-demand database backup lifecycle.
  */
 
-/** Image preset from Configure → Media Settings; consumed by the image_options control. */
-export interface MediaPreset {
-	id: string;
-	name: string;
-	[key: string]: unknown;
-}
+/**
+ * Image preset from Configure → Media Settings; consumed by the image_options
+ * control. Canonically defined in `./configure`; re-exported here for the
+ * `/system/configure/media-presets` accessor below and legacy import sites.
+ */
+export type { MediaPreset };
 
 export interface SystemVersion {
 	version: string;

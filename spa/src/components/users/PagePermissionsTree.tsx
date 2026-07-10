@@ -5,6 +5,7 @@ import { ChevronDown, ChevronRight } from "lucide-react";
 import { IconButton } from "@/components/ui/IconButton";
 import { pagesApi, type PageListRow } from "@/api/endpoints/pages";
 import { queryKeys } from "@/lib/queryKeys";
+import { applyPermission, toggleFlag } from "@/lib/permissions";
 import type { PermissionCode, UserAlerts, UserPermissions } from "@/api/endpoints/users";
 
 import { PermissionRadios } from "./PermissionRadios";
@@ -36,27 +37,11 @@ export const PagePermissionsTree = ({
 	isAdminUser,
 }: PagePermissionsTreeProps) => {
 	const setPagePerm = (id: string, perm: PermissionCode) => {
-		const next = { ...(value ?? {}) };
-
-		if (perm === "" || perm === "i") {
-			delete next[id];
-		} else {
-			next[id] = perm;
-		}
-
-		onChange(next);
+		onChange(applyPermission(value, id, perm));
 	};
 
 	const setAlert = (id: string, on: boolean) => {
-		const next = { ...alerts };
-
-		if (on) {
-			next[id] = "on";
-		} else {
-			delete next[id];
-		}
-
-		onAlertsChange(next);
+		onAlertsChange(toggleFlag(alerts, id, on));
 	};
 
 	return (

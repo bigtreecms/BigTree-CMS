@@ -24,6 +24,7 @@ import { describeApiError } from "@/lib/errorHandling";
 import { toast } from "@/lib/toast";
 import { validateRequired } from "@/lib/formValidation";
 import { queryKeys } from "@/lib/queryKeys";
+import { moduleDetailPath } from "@/lib/routes";
 
 import { DataTableSelect } from "@/components/developer/DataTableSelect";
 import { IconPicker } from "@/components/developer/IconPicker";
@@ -143,7 +144,7 @@ export const ModuleShellTab = ({ moduleId, module }: ModuleShellTabProps) => {
 			toast.success(isAdd ? "Module created" : "Module saved");
 
 			if (isAdd) {
-				navigate(`/developer/modules/${encodeURIComponent(fresh.id)}`, { replace: true });
+				navigate(moduleDetailPath(fresh.id), { replace: true });
 			}
 		},
 		onError: (err) => {

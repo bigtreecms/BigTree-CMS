@@ -1,5 +1,6 @@
 import type { AuthUser } from "@/auth/store";
 import type { PageAccess } from "@/api/endpoints/pages";
+import type { PermissionCode, UserAlerts } from "@/api/endpoints/users";
 
 /**
  * Numeric level conventions used throughout the BigTree admin:
@@ -48,4 +49,42 @@ export const canEditPage = (access: PageAccess | undefined): boolean => {
 
 export const canPublishPage = (access: PageAccess | undefined): boolean => {
 	return access === "p";
+};
+
+/**
+ * Apply a per-resource permission choice to a permission map, returning a new
+ * map. Selecting "no access" ("") or "inherit" ("i") removes the entry (so the
+ * row falls back to inherited access); any other code assigns it. Shared by the
+ * page / module / resource-folder permission trees.
+ */
+export const applyPermission = (
+	map: Record<string, PermissionCode> | undefined,
+	id: string,
+	perm: PermissionCode
+): Record<string, PermissionCode> => {
+	const next = { ...(map ?? {}) };
+
+	if (perm === "" || perm === "i") {
+		delete next[id];
+	} else {
+		next[id] = perm;
+	}
+
+	return next;
+};
+
+/**
+ * Toggle a per-page change-alert flag on/off, returning a new alerts map. "On"
+ * stores "on"; "off" removes the entry entirely (the PHP admin's convention).
+ */
+export const toggleFlag = (map: UserAlerts, id: string, on: boolean): UserAlerts => {
+	const next = { ...map };
+
+	if (on) {
+		next[id] = "on";
+	} else {
+		delete next[id];
+	}
+
+	return next;
 };

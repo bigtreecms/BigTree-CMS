@@ -22,6 +22,7 @@ import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { Button } from "@/components/ui/Button";
 import { Loading } from "@/components/ui/Loading";
 import { Card } from "@/components/ui/Card";
+import { SectionLabel } from "@/components/ui/SectionLabel";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 
 import { integrityApi } from "@/api/endpoints/integrity";
@@ -315,9 +316,13 @@ const ScanResults = ({
 				)
 			) : (
 				<div className="overflow-hidden rounded-lg border border-border bg-surface">
-					<header className="flex items-center justify-between border-b border-border bg-surface-2 px-3 py-2 text-[11.5px] font-semibold uppercase tracking-[0.06em] text-text-3">
-						<span>{pluralize(findings.length, "issue")} found</span>
-					</header>
+					<SectionLabel
+						as="header"
+						size="sm"
+						className="border-b border-border bg-surface-2 px-3 py-2"
+					>
+						{pluralize(findings.length, "issue")} found
+					</SectionLabel>
 					<ul className="divide-y divide-border">
 						{findings.map((finding) => (
 							<FindingRow key={finding.key} finding={finding} />

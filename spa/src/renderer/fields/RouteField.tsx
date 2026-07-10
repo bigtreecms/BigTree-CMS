@@ -1,3 +1,4 @@
+import { toStringValue } from "./fieldHelpers";
 import { INPUT_CLASS, settingsOf, type FieldComponentProps } from "./types";
 
 /**
@@ -23,7 +24,7 @@ export const RouteField = ({ field, value, onChange, disabled }: FieldComponentP
 				type="text"
 				aria-label={field.title}
 				className={`${INPUT_CLASS} flex-1 rounded-none border-0 font-mono text-[12.5px] focus:ring-0`}
-				value={typeof value === "string" ? value : value == null ? "" : String(value)}
+				value={toStringValue(value)}
 				placeholder={source ? `generate automatically from "${source}"` : "url-slug"}
 				disabled={disabled}
 				onChange={(event) => onChange(event.target.value)}

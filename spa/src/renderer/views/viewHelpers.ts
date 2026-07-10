@@ -3,6 +3,7 @@ import { Archive, ArrowRight, Check, Download, Eye, Star, type LucideIcon } from
 import type { DataTableSort } from "@/components/ui/DataTable";
 import type { ModuleView, ModuleViewFieldConfig } from "@/api/endpoints/modules";
 import { pluralize } from "@/lib/number";
+import { decodeHtmlEntitiesDom } from "@/lib/html";
 
 /**
  * Shared utilities used by every view-type subcomponent. Pulled out of
@@ -248,36 +249,10 @@ export const columnWidth = (field: ModuleViewFieldConfig): string => {
 
 // Legacy admin double-encodes by design: BigTree::safeEncode runs once at form
 // save (source table) and again when the view cache is rebuilt, so a literal
-// `Tom & Jerry` lands in the cache as `Tom &amp;amp; Jerry`. We unwind in a
-// loop until the textarea round-trip stops changing the string (capped to
-// avoid pathological input). The 5-iteration cap is well above the 2 passes
-// the codebase actually produces.
-let decodeEl: HTMLTextAreaElement | null = null;
-
-export const decodeHTMLEntities = (value: string): string => {
-	if (!value || value.indexOf("&") === -1) {
-		return value;
-	}
-
-	if (!decodeEl) {
-		decodeEl = document.createElement("textarea");
-	}
-
-	let current = value;
-
-	for (let i = 0; i < 5; i++) {
-		decodeEl.innerHTML = current;
-		const next = decodeEl.value;
-
-		if (next === current) {
-			break;
-		}
-
-		current = next;
-	}
-
-	return current;
-};
+// `Tom & Jerry` lands in the cache as `Tom &amp;amp; Jerry`. We unwind with the
+// shared multi-pass textarea decoder (capped at 5, well above the 2 passes the
+// cache actually produces).
+export const decodeHTMLEntities = (value: string): string => decodeHtmlEntitiesDom(value, 5);
 
 export const formatCellValue = (value: unknown): string => {
 	if (value === null || value === undefined) {

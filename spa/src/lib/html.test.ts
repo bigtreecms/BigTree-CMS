@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { decodeHtmlEntities, sanitizeHtml, stripHtml } from "@/lib/html";
+import { decodeHtmlEntities, decodeHtmlEntitiesDom, sanitizeHtml, stripHtml } from "@/lib/html";
 
 describe("decodeHtmlEntities", () => {
 	it("returns the input unchanged when there is no ampersand", () => {
@@ -28,6 +28,28 @@ describe("decodeHtmlEntities", () => {
 		// (the literal text the user typed) — NOT to "<". A single-level decode is
 		// the intended behavior; preserving "&lt;" is correct.
 		expect(decodeHtmlEntities("&amp;lt;")).toBe("&lt;");
+	});
+});
+
+describe("decodeHtmlEntitiesDom", () => {
+	it("returns the input unchanged when there is no ampersand", () => {
+		expect(decodeHtmlEntitiesDom("plain text")).toBe("plain text");
+		expect(decodeHtmlEntitiesDom("")).toBe("");
+	});
+
+	it("decodes a single pass by default", () => {
+		expect(decodeHtmlEntitiesDom("Tom &amp; Jerry")).toBe("Tom & Jerry");
+	});
+
+	it("decodes the broader named-entity table the textarea covers", () => {
+		expect(decodeHtmlEntitiesDom("&copy; 2026")).toBe("© 2026");
+	});
+
+	it("unwinds a double-encoded value across multiple passes", () => {
+		// The view cache writes "&" back as "&amp;amp;" (two htmlspecialchars
+		// passes). One pass yields "&amp;"; a second collapses it to "&".
+		expect(decodeHtmlEntitiesDom("Tom &amp;amp; Jerry", 1)).toBe("Tom &amp; Jerry");
+		expect(decodeHtmlEntitiesDom("Tom &amp;amp; Jerry", 5)).toBe("Tom & Jerry");
 	});
 });
 

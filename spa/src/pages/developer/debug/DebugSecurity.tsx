@@ -5,6 +5,7 @@ import { Save, ShieldOff } from "lucide-react";
 import { DebugLayout } from "@/components/developer/DebugLayout";
 import { Button } from "@/components/ui/Button";
 import { Card, CardHeader } from "@/components/ui/Card";
+import { SectionLabel } from "@/components/ui/SectionLabel";
 import { LoadingText } from "@/components/ui/LoadingText";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { TextArea } from "@/components/ui/TextArea";
@@ -322,9 +323,10 @@ const UnbanPanel = () => {
 
 	return (
 		<Card className="mt-6 overflow-hidden">
-			<CardHeader className="flex items-center gap-2 text-[11.5px] font-semibold uppercase tracking-[0.06em] text-text-3">
-				<ShieldOff size={13} />
-				Lift a login ban
+			<CardHeader>
+				<SectionLabel size="sm" icon={<ShieldOff size={13} />}>
+					Lift a login ban
+				</SectionLabel>
 			</CardHeader>
 
 			<div className="grid grid-cols-1 gap-4 p-4 md:grid-cols-2">

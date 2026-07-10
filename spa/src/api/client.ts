@@ -206,6 +206,18 @@ export const api = {
 		request<{ data: T; meta?: ApiMeta }>(path, { ...opts, method: "GET", withMeta: true }),
 
 	/**
+	 * Like `getWithMeta` for list endpoints: reshapes the paginated envelope into
+	 * the `{ items, meta }` shape the tag / user / audit list callers expose,
+	 * defaulting `items` to `[]` and `meta` to `{}` when the server omits them.
+	 */
+	listWithMeta: <T>(path: string, opts?: Omit<ApiCallOptions, "method" | "body">) =>
+		request<{ data: T[]; meta?: ApiMeta }>(path, {
+			...opts,
+			method: "GET",
+			withMeta: true,
+		}).then((res) => ({ items: res.data ?? [], meta: res.meta ?? {} })),
+
+	/**
 	 * Boot-time hydration. If we have a persisted access token, we assume it's
 	 * still good — if it isn't, the first API call will 401 and the refresh
 	 * dance will kick in. If we have only a refresh token (rare; happens if

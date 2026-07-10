@@ -36,11 +36,20 @@ const withTheme: Decorator = (Story, context) => (
 );
 
 // Many primitives (Button `to`, anything using <Link>) need a router in scope.
-const withRouter: Decorator = (Story) => (
-	<MemoryRouter>
-		<Story />
-	</MemoryRouter>
-);
+// A story that must supply its own router (e.g. one using the data-router
+// `useBlocker`) opts out with `parameters: { router: false }` to avoid nesting
+// two routers.
+const withRouter: Decorator = (Story, context) => {
+	if (context.parameters.router === false) {
+		return <Story />;
+	}
+
+	return (
+		<MemoryRouter>
+			<Story />
+		</MemoryRouter>
+	);
+};
 
 const preview: Preview = {
 	decorators: [withTheme, withRouter],

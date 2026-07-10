@@ -11,7 +11,6 @@ import {
 	Video as VideoIcon,
 } from "lucide-react";
 
-import type { ModuleFormField } from "@/api/endpoints/modules";
 import { UPLOAD_PATH, resourcesApi, type ResourceDetail } from "@/api/endpoints/resources";
 import {
 	IMAGE_PROCESS_PATH,
@@ -36,7 +35,7 @@ import { FieldRow } from "@/renderer/forms/FieldRow";
 
 import { CollapsibleRowHeader } from "./CollapsibleRowHeader";
 import { FieldCropModal } from "./FieldCropModal";
-import { isTruthyFlag, normalizeColumnSettings, stringifyForTitle, toInt } from "./fieldHelpers";
+import { columnToFormField, isTruthyFlag, stringifyForTitle, toInt } from "./fieldHelpers";
 import { settingsOf, type FieldComponentProps } from "./types";
 
 /**
@@ -373,13 +372,7 @@ const MediaItemRow = ({
 						</EmptyState>
 					) : (
 						columns.map((column) => {
-							const subField: ModuleFormField = {
-								column: column.id,
-								title: column.title || column.id,
-								subtitle: column.subtitle,
-								type: column.type,
-								settings: normalizeColumnSettings(column.settings),
-							};
+							const subField = columnToFormField(column);
 
 							return (
 								<FieldRow key={column.id} field={subField}>

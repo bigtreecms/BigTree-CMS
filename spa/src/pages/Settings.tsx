@@ -16,6 +16,7 @@ import { usePaginatedSearch } from "@/hooks/usePaginatedSearch";
 import { stripHtml } from "@/lib/html";
 import { queryKeys } from "@/lib/queryKeys";
 import { formatNumber } from "@/lib/number";
+import { settingEditPath } from "@/lib/routes";
 
 /**
  * /settings — global settings list.
@@ -107,7 +108,7 @@ export const Settings = () => {
 					aria-label={`Edit ${row.name}`}
 					onClick={(e) => {
 						e.stopPropagation();
-						navigate(`/settings/${encodeURIComponent(row.id)}/edit`);
+						navigate(settingEditPath(row.id));
 					}}
 				>
 					<Pencil size={14} />
@@ -146,7 +147,7 @@ export const Settings = () => {
 						? `No settings match “${debounced}”.`
 						: "No settings yet. (Create them under Developer → Settings.)"
 				}
-				onRowClick={(row) => navigate(`/settings/${encodeURIComponent(row.id)}/edit`)}
+				onRowClick={(row) => navigate(settingEditPath(row.id))}
 			/>
 
 			{totalPages > 1 && (

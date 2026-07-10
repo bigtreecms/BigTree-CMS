@@ -7,6 +7,7 @@ import { DebugLayout } from "@/components/developer/DebugLayout";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { Button } from "@/components/ui/Button";
 import { Card, CardHeader } from "@/components/ui/Card";
+import { SectionLabel } from "@/components/ui/SectionLabel";
 import { LoadingText } from "@/components/ui/LoadingText";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 
@@ -90,8 +91,8 @@ export const DebugStatus = () => {
 				<>
 					{data.warnings.length > 0 && (
 						<Card className="mb-5 overflow-hidden">
-							<CardHeader className="text-[11.5px] font-semibold uppercase tracking-[0.06em] text-text-3">
-								Warnings
+							<CardHeader>
+								<SectionLabel size="sm">Warnings</SectionLabel>
 							</CardHeader>
 
 							<ul className="divide-y divide-border">
@@ -129,8 +130,8 @@ export const DebugStatus = () => {
 					)}
 
 					<Card className="overflow-hidden">
-						<CardHeader className="text-[11.5px] font-semibold uppercase tracking-[0.06em] text-text-3">
-							Server Parameters
+						<CardHeader>
+							<SectionLabel size="sm">Server Parameters</SectionLabel>
 						</CardHeader>
 
 						<ul className="divide-y divide-border">

@@ -1,3 +1,4 @@
+import { toStringValue } from "./fieldHelpers";
 import { INPUT_CLASS, settingsOf, type FieldComponentProps } from "./types";
 
 /**
@@ -14,7 +15,7 @@ export const TextField = ({ field, value, onChange, disabled }: FieldComponentPr
 			type="text"
 			aria-label={field.title}
 			className={INPUT_CLASS}
-			value={typeof value === "string" ? value : value == null ? "" : String(value)}
+			value={toStringValue(value)}
 			maxLength={maxLength}
 			placeholder={placeholder}
 			disabled={disabled}

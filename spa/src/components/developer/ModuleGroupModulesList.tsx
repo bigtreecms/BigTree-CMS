@@ -9,6 +9,7 @@ import { modulesApi, type ModuleSummary } from "@/api/endpoints/modules";
 import { iconFor } from "@/lib/legacyIcons";
 import { pluralize } from "@/lib/number";
 import { queryKeys } from "@/lib/queryKeys";
+import { moduleDetailPath } from "@/lib/routes";
 import { useToastMutation } from "@/hooks/useToastMutation";
 import { useDragReorder } from "@/hooks/useDragReorder";
 import { Card } from "@/components/ui/Card";
@@ -105,7 +106,7 @@ export const ModuleGroupModulesList = ({ groupId }: ModuleGroupModulesListProps)
 								<Icon size={15} />
 							</span>
 							<Link
-								to={`/developer/modules/${encodeURIComponent(module.id)}`}
+								to={moduleDetailPath(module.id)}
 								className="min-w-0 flex-1 truncate text-[12.5px] font-medium text-text hover:text-accent"
 							>
 								{module.name}

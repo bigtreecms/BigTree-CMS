@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { PopoverPanel } from "@/components/ui/Popover";
 import { RemovableChip } from "@/components/ui/RemovableChip";
 import { useOnClickOutside } from "@/hooks/useOnClickOutside";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { tagsApi, type Tag } from "@/api/endpoints/tags";
 import { queryKeys } from "@/lib/queryKeys";
 
@@ -53,13 +54,7 @@ export const TagInput = (props: TagInputProps) => {
 	const trimmed = text.trim();
 
 	// Debounce the search so we don't hit the API on every keystroke.
-	const [debounced, setDebounced] = useState("");
-
-	useEffect(() => {
-		const h = setTimeout(() => setDebounced(trimmed.toLowerCase()), 150);
-
-		return () => clearTimeout(h);
-	}, [trimmed]);
+	const debounced = useDebouncedValue(trimmed.toLowerCase(), 150);
 
 	const searchQuery = useQuery({
 		queryKey: queryKeys.tags.search(debounced),
@@ -100,7 +95,6 @@ export const TagInput = (props: TagInputProps) => {
 		}
 
 		setText("");
-		setDebounced("");
 		setOpen(props.multiple ?? false);
 
 		// Refocus the input so the user can keep typing in multi mode.

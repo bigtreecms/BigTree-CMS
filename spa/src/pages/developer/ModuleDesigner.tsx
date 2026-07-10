@@ -17,6 +17,7 @@ import { modulesApi, type ModuleSummary } from "@/api/endpoints/modules";
 
 import { pluralize } from "@/lib/number";
 import { queryKeys } from "@/lib/queryKeys";
+import { moduleDetailPath } from "@/lib/routes";
 import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 import { useToastMutation } from "@/hooks/useToastMutation";
 
@@ -126,7 +127,7 @@ export const ModuleDesigner = () => {
 				isLoading={query.isLoading}
 				loadingLabel="Loading modules…"
 				emptyLabel="No modules defined yet."
-				onRowClick={(row) => navigate(`/developer/modules/${encodeURIComponent(row.id)}`)}
+				onRowClick={(row) => navigate(moduleDetailPath(row.id))}
 			/>
 
 			{deleteDialog.item && (

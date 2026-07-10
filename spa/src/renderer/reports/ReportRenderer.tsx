@@ -15,12 +15,14 @@ import type {
 } from "@/api/endpoints/modules";
 import { pluralize } from "@/lib/number";
 import { toast } from "@/lib/toast";
+import { moduleDetailPath } from "@/lib/routes";
 import { useAuthStore } from "@/auth/store";
 import { LEVEL } from "@/lib/permissions";
 
 import { ReportFilterForm, type ReportFilterFormValues } from "./ReportFilterForm";
 import { ReportResults } from "./ReportResults";
 import { downloadCsv } from "./csv";
+import { parseReportFields, viewFieldColumns } from "./reportColumns";
 
 /**
  * Runtime for a saved module report.
@@ -101,10 +103,7 @@ export const ReportRenderer = ({ moduleId, reportId }: ReportRendererProps) => {
 		<div className="space-y-6">
 			{isDeveloper && (
 				<div className="flex justify-end">
-					<Button
-						to={`/developer/modules/${encodeURIComponent(moduleId)}`}
-						icon={<Pencil size={14} />}
-					>
+					<Button to={moduleDetailPath(moduleId)} icon={<Pencil size={14} />}>
 						Edit Report in Developer
 					</Button>
 				</div>
@@ -184,28 +183,15 @@ const collectSortFields = (
 	const { report, view } = prepared;
 
 	if (report.type === "csv") {
-		const fields = report.fields;
-
-		if (!fields) {
+		if (!report.fields) {
 			return [{ key: "id", label: "ID" }];
 		}
 
-		if (Array.isArray(fields)) {
-			return fields.map((label) => ({ key: label, label }));
-		}
-
-		if (typeof fields === "string") {
-			return [{ key: fields, label: fields }];
-		}
-
-		return Object.entries(fields).map(([key, label]) => ({ key, label: String(label) }));
+		return parseReportFields(report.fields);
 	}
 
 	if (view && view.fields) {
-		return Object.entries(view.fields).map(([key, field]) => ({
-			key,
-			label: field?.title ?? key,
-		}));
+		return viewFieldColumns(view);
 	}
 
 	return [{ key: "id", label: "ID" }];

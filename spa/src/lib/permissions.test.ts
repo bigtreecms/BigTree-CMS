@@ -2,12 +2,14 @@ import { describe, expect, it } from "vitest";
 
 import type { AuthUser } from "@/auth/store";
 import {
+	applyPermission,
 	canEditPage,
 	canPublishPage,
 	canViewPage,
 	hasLevel,
 	isAdmin,
 	isDeveloper,
+	toggleFlag,
 } from "@/lib/permissions";
 
 // permissions.ts only depends on AuthUser/PageAccess as types, so a partial cast
@@ -71,5 +73,36 @@ describe("page access helpers", () => {
 		expect(canPublishPage("v")).toBe(false);
 		expect(canPublishPage("n")).toBe(false);
 		expect(canPublishPage(undefined)).toBe(false);
+	});
+});
+
+describe("applyPermission", () => {
+	it("assigns a concrete code and returns a new map", () => {
+		const map = { "1": "e" as const };
+		const next = applyPermission(map, "2", "p");
+
+		expect(next).toEqual({ "1": "e", "2": "p" });
+		expect(next).not.toBe(map); // new reference
+	});
+
+	it("removes the entry for no-access and inherit", () => {
+		const map = { "1": "e" as const, "2": "p" as const };
+
+		expect(applyPermission(map, "1", "")).toEqual({ "2": "p" });
+		expect(applyPermission(map, "2", "i")).toEqual({ "1": "e" });
+	});
+
+	it("tolerates an undefined map", () => {
+		expect(applyPermission(undefined, "1", "n")).toEqual({ "1": "n" });
+	});
+});
+
+describe("toggleFlag", () => {
+	it("stores 'on' when enabled", () => {
+		expect(toggleFlag({}, "5", true)).toEqual({ "5": "on" });
+	});
+
+	it("removes the entry when disabled", () => {
+		expect(toggleFlag({ "5": "on" }, "5", false)).toEqual({});
 	});
 });

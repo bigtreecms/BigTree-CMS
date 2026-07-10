@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 
 import { modulesApi, type ModuleGroup, type ModuleSummary } from "@/api/endpoints/modules";
 import { queryKeys } from "@/lib/queryKeys";
+import { applyPermission } from "@/lib/permissions";
 import type { PermissionCode, UserPermissions } from "@/api/endpoints/users";
 
 import { SectionLabel } from "@/components/ui/SectionLabel";
@@ -145,15 +146,7 @@ export const ModulePermissionsTree = ({
 	}, [modulesQ.data, groupsQ.data]);
 
 	const setPerm = (id: string, perm: PermissionCode) => {
-		const next = { ...(value ?? {}) };
-
-		if (perm === "" || perm === "i") {
-			delete next[id];
-		} else {
-			next[id] = perm;
-		}
-
-		onChange(next);
+		onChange(applyPermission(value, id, perm));
 	};
 
 	const setGbpPerm = (moduleId: string, categoryId: string, perm: PermissionCode) => {

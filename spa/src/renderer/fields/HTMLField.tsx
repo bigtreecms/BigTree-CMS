@@ -4,6 +4,7 @@ import type { Editor as TinyMCEEditor } from "tinymce";
 
 import { useAuthStore } from "@/auth/store";
 
+import { toStringValue } from "./fieldHelpers";
 import { settingsOf, type FieldComponentProps } from "./types";
 
 /**
@@ -94,7 +95,7 @@ export const HTMLField = ({ field, value, onChange, disabled }: FieldComponentPr
 		}
 	}, [disabled]);
 
-	const text = typeof value === "string" ? value : value == null ? "" : String(value);
+	const text = toStringValue(value);
 
 	// `import.meta.env.BASE_URL` is "/" in dev (assets served via the public
 	// dir) and "/admin/spa/" in production builds. Either way the static-copy

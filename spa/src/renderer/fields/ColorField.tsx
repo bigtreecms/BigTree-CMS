@@ -1,7 +1,8 @@
+import { toStringValue } from "./fieldHelpers";
 import { INPUT_CLASS, type FieldComponentProps } from "./types";
 
 export const ColorField = ({ field, value, onChange, disabled }: FieldComponentProps) => {
-	const stringValue = typeof value === "string" ? value : value == null ? "" : String(value);
+	const stringValue = toStringValue(value);
 	const hex = /^#[0-9a-fA-F]{6}$/.test(stringValue) ? stringValue : "#000000";
 
 	return (

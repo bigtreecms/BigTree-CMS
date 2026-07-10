@@ -29,6 +29,7 @@ import { feedsApi } from "@/api/endpoints/feeds";
 import { settingsApi } from "@/api/endpoints/settings";
 import { describeApiError } from "@/lib/errorHandling";
 import { queryKeys } from "@/lib/queryKeys";
+import { useToggleSet } from "@/hooks/useToggleSet";
 import { TextInput } from "@/components/developer/module-designer/inputs";
 
 type Step = "details" | "components" | "files" | "review";
@@ -68,7 +69,7 @@ export const ExtensionBuild = () => {
 	const [authorName, setAuthorName] = useState("");
 	const [authorEmail, setAuthorEmail] = useState("");
 	const [authorUrl, setAuthorUrl] = useState("");
-	const [openLicenses, setOpenLicenses] = useState<Set<string>>(new Set());
+	const { set: openLicenses, toggle: toggleLicense } = useToggleSet<string>();
 	const [closedLicense, setClosedLicense] = useState("");
 
 	// Components
@@ -353,19 +354,7 @@ export const ExtensionBuild = () => {
 														key={name}
 														label={name}
 														checked={openLicenses.has(name)}
-														onChange={() =>
-															setOpenLicenses((prev) => {
-																const next = new Set(prev);
-
-																if (next.has(name)) {
-																	next.delete(name);
-																} else {
-																	next.add(name);
-																}
-
-																return next;
-															})
-														}
+														onChange={() => toggleLicense(name)}
 													/>
 												)
 											)}
