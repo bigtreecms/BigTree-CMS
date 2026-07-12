@@ -1,5 +1,5 @@
-import { ApiError } from "@/types/api";
 import { Loading } from "@/components/ui/Loading";
+import { describeApiError } from "@/lib/errorHandling";
 
 interface QueryRendererProps {
 	isLoading?: boolean;
@@ -23,9 +23,11 @@ export const QueryRenderer = ({
 	}
 
 	if (error) {
-		const message = error instanceof ApiError ? error.message : "Failed to load.";
-
-		return <div className="text-[12.5px] text-danger">{message}</div>;
+		return (
+			<div className="text-[12.5px] text-danger">
+				{describeApiError(error, "Failed to load.")}
+			</div>
+		);
 	}
 
 	if (isEmpty && empty != null) {

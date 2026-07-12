@@ -153,12 +153,7 @@ export const Backups = () => {
 			</p>
 
 			<ConfirmDialog
-				open={deleteDialog.isOpen}
-				onOpenChange={(open) => {
-					if (!open) {
-						deleteDialog.close();
-					}
-				}}
+				{...deleteDialog.dialogProps}
 				title="Delete backup?"
 				description="This removes the backup file from the server. This can't be undone."
 				confirmLabel="Delete"

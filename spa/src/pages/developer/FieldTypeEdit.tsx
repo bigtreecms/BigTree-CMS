@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
@@ -28,6 +28,7 @@ import { queryKeys } from "@/lib/queryKeys";
 import { useFormSubmit } from "@/hooks/useFormSubmit";
 import { useReturnTo } from "@/hooks/useReturnTo";
 import { useDirtyTracker } from "@/hooks/useDirtyTracker";
+import { useSeededState } from "@/hooks/useSeededState";
 import { validateRequired } from "@/lib/formValidation";
 
 import { TextField } from "@/components/ui/TextField";
@@ -76,7 +77,6 @@ export const FieldTypeEdit = () => {
 		isAdd ? { id: "", name: "", use_cases: [], input_schema: [] } : { id: "" }
 	);
 	const [mode, setMode] = useState<"declarative" | "module">("declarative");
-	const [seeded, setSeeded] = useState(isAdd);
 	const [isLegacy, setIsLegacy] = useState(false);
 	const [settingsParseError, setSettingsParseError] = useState(false);
 	const {
@@ -87,38 +87,33 @@ export const FieldTypeEdit = () => {
 		onMutationError,
 	} = useFormSubmit();
 
-	useEffect(() => {
-		if (!isAdd && detailQ.data) {
-			const data = detailQ.data;
-			const inputSchema = Array.isArray(data.input_schema)
-				? (data.input_schema as InputDescriptor[])
-				: [];
-			const moduleSource = typeof data.module_source === "string" ? data.module_source : "";
-			const isModule = data.render === "module" || moduleSource !== "" || !!data.asset_url;
+	const seededFromData = useSeededState(!isAdd ? detailQ.data : undefined, (data) => {
+		const inputSchema = Array.isArray(data.input_schema)
+			? (data.input_schema as InputDescriptor[])
+			: [];
+		const moduleSource = typeof data.module_source === "string" ? data.module_source : "";
+		const isModule = data.render === "module" || moduleSource !== "" || !!data.asset_url;
 
-			setBody({
-				id: data.id,
-				name: data.name,
-				use_cases: toUseCaseList(data.use_cases),
-				input_schema: inputSchema,
-				module_source: moduleSource,
-				settings_schema: Array.isArray(data.settings_schema)
-					? (data.settings_schema as SettingDescriptor[])
-					: [],
-			});
-			setMode(isModule ? "module" : "declarative");
-			setSeeded(true);
-			setSettingsParseError(data.settings_parse_error === true);
+		setBody({
+			id: data.id,
+			name: data.name,
+			use_cases: toUseCaseList(data.use_cases),
+			input_schema: inputSchema,
+			module_source: moduleSource,
+			settings_schema: Array.isArray(data.settings_schema)
+				? (data.settings_schema as SettingDescriptor[])
+				: [],
+		});
+		setMode(isModule ? "module" : "declarative");
+		setSettingsParseError(data.settings_parse_error === true);
 
-			// A pre-existing record with no input_schema and no module is a legacy
-			// draw.php type — saving here migrates it to the chosen mode. An
-			// extension-delivered module (asset_url, no local source) is also flagged
-			// so the author knows saving replaces it with local code.
-			setIsLegacy(
-				(!isModule && inputSchema.length === 0) || (!!data.asset_url && !moduleSource)
-			);
-		}
-	}, [isAdd, detailQ.data]);
+		// A pre-existing record with no input_schema and no module is a legacy
+		// draw.php type — saving here migrates it to the chosen mode. An
+		// extension-delivered module (asset_url, no local source) is also flagged
+		// so the author knows saving replaces it with local code.
+		setIsLegacy((!isModule && inputSchema.length === 0) || (!!data.asset_url && !moduleSource));
+	});
+	const seeded = isAdd || seededFromData;
 
 	const saveMutation = useMutation({
 		mutationFn: (next: FieldTypeCreateBody) =>
@@ -202,8 +197,7 @@ export const FieldTypeEdit = () => {
 			isAdd={isAdd}
 			title={title}
 			sub="Compose a custom field type from built-in primitives (declarative), or write a JavaScript module that draws it in the SPA."
-			loading={!isAdd && detailQ.isLoading}
-			queryError={isAdd ? undefined : detailQ.error}
+			detailQuery={detailQ}
 			error={generalError}
 			isDirty={isDirty}
 			onSubmit={onFormSubmit}

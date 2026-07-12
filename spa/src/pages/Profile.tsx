@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Key, Save, ShieldCheck, User } from "lucide-react";
 
@@ -20,6 +20,7 @@ import { TimezoneSelect } from "@/components/users/TimezoneSelect";
 import { TwoFactorPanel } from "@/components/users/TwoFactorPanel";
 import { queryKeys } from "@/lib/queryKeys";
 import { useDirtyTracker } from "@/hooks/useDirtyTracker";
+import { useSeededState } from "@/hooks/useSeededState";
 import { useToastMutation } from "@/hooks/useToastMutation";
 import { UnsavedChangesGuard } from "@/components/ui/UnsavedChangesGuard";
 import { Card, CardHeader } from "@/components/ui/Card";
@@ -50,22 +51,16 @@ export const Profile = () => {
 	const [form, setForm] = useState<UpdateUserPayload>({});
 	const [passwordOpen, setPasswordOpen] = useState(false);
 	const [tab, setTab] = useState<TabValue>("account");
-	const [seeded, setSeeded] = useState(false);
 
-	useEffect(() => {
-		if (!meQ.data) {
-			return;
-		}
-
+	const seeded = useSeededState(meQ.data, (me) => {
 		setForm({
-			email: meQ.data.email,
-			name: meQ.data.name,
-			company: meQ.data.company,
-			timezone: meQ.data.timezone,
-			daily_digest: meQ.data.daily_digest,
+			email: me.email,
+			name: me.name,
+			company: me.company,
+			timezone: me.timezone,
+			daily_digest: me.daily_digest,
 		});
-		setSeeded(true);
-	}, [meQ.data]);
+	});
 
 	const updateMutation = useToastMutation({
 		mutationFn: (payload: UpdateUserPayload) => {
@@ -271,14 +266,14 @@ const SecurityTab = ({ me, onChangePassword }: SecurityTabProps) => (
 				<span className="text-text-3">
 					Change the password you use to sign in with email + password.
 				</span>
-				<button
-					type="button"
+				<Button
+					variant="secondary"
+					className="shrink-0"
+					icon={<Key size={13} />}
 					onClick={onChangePassword}
-					className="inline-flex shrink-0 items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 hover:bg-hover"
 				>
-					<Key size={13} />
 					Change password
-				</button>
+				</Button>
 			</div>
 		</Card>
 

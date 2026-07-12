@@ -188,12 +188,7 @@ export const SubDeleteDialog = <T extends { id: string }>({
 
 	return (
 		<ConfirmDialog
-			open={dialog.isOpen}
-			onOpenChange={(v) => {
-				if (!v) {
-					dialog.close();
-				}
-			}}
+			{...dialog.dialogProps}
 			title={`Delete ${noun} "${labelFor(dialog.item)}"?`}
 			description={description}
 			confirmLabel={`Delete ${noun}`}

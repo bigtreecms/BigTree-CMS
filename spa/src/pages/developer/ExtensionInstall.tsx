@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { AlertTriangle, CheckCircle2, ChevronLeft, Package, Upload } from "lucide-react";
@@ -17,6 +17,7 @@ import {
 	type ExtensionInstallPreview,
 	type ExtensionInstallResult,
 } from "@/api/endpoints/extensions";
+import { useFilePicker } from "@/hooks/useFilePicker";
 import { describeApiError } from "@/lib/errorHandling";
 import { toast } from "@/lib/toast";
 import { sanitizeHtml } from "@/lib/html";
@@ -30,12 +31,12 @@ import { queryKeys } from "@/lib/queryKeys";
 export const ExtensionInstall = () => {
 	const navigate = useNavigate();
 	const queryClient = useQueryClient();
-	const inputRef = useRef<HTMLInputElement>(null);
 
 	const [file, setFile] = useState<File | null>(null);
 	const [preview, setPreview] = useState<ExtensionInstallPreview | null>(null);
 	const [result, setResult] = useState<ExtensionInstallResult | null>(null);
 	const [error, setError] = useState<string | null>(null);
+	const filePicker = useFilePicker((picked) => setFile(picked));
 
 	const unpackMutation = useMutation({
 		mutationFn: (f: File) => extensionsApi.installUnpack(f),
@@ -189,22 +190,19 @@ export const ExtensionInstall = () => {
 			) : (
 				<Card className="space-y-4 p-5">
 					<input
-						ref={inputRef}
+						ref={filePicker.inputRef}
 						type="file"
 						aria-label="Extension package file"
 						accept=".zip,application/zip"
 						className="hidden"
-						onChange={(e) => {
-							setFile(e.target.files?.[0] ?? null);
-							e.target.value = "";
-						}}
+						onChange={filePicker.onChange}
 					/>
 
 					<div className="flex flex-wrap items-center gap-3">
 						<Button
 							variant="secondary"
 							icon={<Upload size={13} />}
-							onClick={() => inputRef.current?.click()}
+							onClick={filePicker.open}
 						>
 							Choose package
 						</Button>

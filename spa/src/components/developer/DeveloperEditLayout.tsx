@@ -13,6 +13,11 @@ import { UnsavedChangesGuard } from "@/components/ui/UnsavedChangesGuard";
 
 import { DeveloperSectionNav } from "@/components/developer/DeveloperSectionNav";
 
+interface DetailQueryLike {
+	isLoading: boolean;
+	error: unknown;
+}
+
 interface DeveloperEditLayoutProps {
 	width: "narrow" | "medium" | "wide";
 	/** Breadcrumb section label (e.g. "Callouts"). */
@@ -22,10 +27,16 @@ interface DeveloperEditLayoutProps {
 	isAdd: boolean;
 	title: string;
 	sub?: string;
-	/** Pre-derived: `!isAdd && detailQ.isLoading`. */
-	loading: boolean;
-	/** Pre-derived: `isAdd ? undefined : detailQ.error`. */
-	queryError: unknown;
+	/**
+	 * Prefer this over `loading`/`queryError`. On the Add route, loading and
+	 * query error are suppressed; on Edit they come from the query.
+	 * Mutually exclusive with explicit `loading`/`queryError` (use one style).
+	 */
+	detailQuery?: DetailQueryLike;
+	/** Override: pre-derived loading. Prefer `detailQuery` when possible. */
+	loading?: boolean;
+	/** Override: pre-derived query error. Prefer `detailQuery` when possible. */
+	queryError?: unknown;
 	/** Submit hook's general error → Alert. */
 	error?: string | null;
 	isDirty: boolean;
@@ -56,8 +67,9 @@ export const DeveloperEditLayout = ({
 	isAdd,
 	title,
 	sub,
-	loading,
-	queryError,
+	detailQuery,
+	loading: loadingOverride,
+	queryError: queryErrorOverride,
 	error,
 	isDirty,
 	onSubmit,
@@ -67,6 +79,11 @@ export const DeveloperEditLayout = ({
 	headActions,
 	children,
 }: DeveloperEditLayoutProps) => {
+	const loading =
+		loadingOverride ?? (detailQuery != null ? !isAdd && detailQuery.isLoading : false);
+	const queryError =
+		queryErrorOverride ?? (detailQuery != null && !isAdd ? detailQuery.error : undefined);
+
 	const body =
 		onSubmit != null ? (
 			<FormShell

@@ -1,8 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 
 import { useToggleSet } from "@/hooks/useToggleSet";
-import { useQueryClient } from "@tanstack/react-query";
-import { useToastMutation } from "@/hooks/useToastMutation";
 import { ChevronDown, ChevronRight } from "lucide-react";
 
 import { Card } from "@/components/ui/Card";
@@ -12,8 +10,7 @@ import { QueryRenderer } from "@/components/ui/QueryRenderer";
 import { SearchInput } from "@/components/ui/SearchInput";
 import { Toolbar } from "@/components/ui/Toolbar";
 
-import { autoModulesApi, type ModuleEntryRow } from "@/api/endpoints/auto-modules";
-import { queryKeys } from "@/lib/queryKeys";
+import type { ModuleEntryRow } from "@/api/endpoints/auto-modules";
 import type { ModuleView } from "@/api/endpoints/modules";
 
 import {
@@ -28,6 +25,7 @@ import { ViewStatusBadge } from "./ViewStatusBadge";
 import { ViewRowCells } from "./ViewRowCells";
 import { RowActions } from "./RowActions";
 import { useEntryDelete } from "./useEntryDelete";
+import { useModuleEntryReorder } from "./useModuleEntryReorder";
 import { useModuleEntryLinks } from "@/pages/ModuleLayout";
 import { useModuleEntries } from "./useModuleEntries";
 
@@ -103,7 +101,6 @@ interface DragApi {
 }
 
 export const NestedView = ({ moduleId, view }: NestedViewProps) => {
-	const queryClient = useQueryClient();
 	const { set: expanded, toggle } = useToggleSet<string>();
 	const [localRows, setLocalRows] = useState<ModuleEntryRow[] | null>(null);
 	const [dragId, setDragId] = useState<string | null>(null);
@@ -122,14 +119,7 @@ export const NestedView = ({ moduleId, view }: NestedViewProps) => {
 		}
 	}, [listQuery.data]);
 
-	const reorderMutation = useToastMutation({
-		mutationFn: (ids: Array<string | number>) => autoModulesApi.reorder(moduleId, ids, view.id),
-		errorMessage: "Couldn't save the new order",
-		onError: () =>
-			queryClient.invalidateQueries({
-				queryKey: queryKeys.moduleEntries.view(moduleId, view.id),
-			}),
-	});
+	const reorderMutation = useModuleEntryReorder(moduleId, view.id);
 
 	const rows = useMemo(
 		() => localRows ?? listQuery.data?.items ?? [],

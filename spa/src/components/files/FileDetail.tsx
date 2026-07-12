@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useFilePicker } from "@/hooks/useFilePicker";
 import { useToastMutation } from "@/hooks/useToastMutation";
 import {
 	Copy,
@@ -65,7 +66,6 @@ export const FileDetail = ({ resourceId, onOpenChange, folderQueryKey }: FileDet
 	const deleteDialog = useConfirmDialog<true>();
 	const copyToClipboard = useCopyToClipboard();
 	const [cropOpen, setCropOpen] = useState(false);
-	const replaceInputRef = useRef<HTMLInputElement>(null);
 
 	const detailQuery = useQuery({
 		queryKey: resourceId
@@ -183,15 +183,9 @@ export const FileDetail = ({ resourceId, onOpenChange, folderQueryKey }: FileDet
 	const minWidth = cropList.reduce((m, c) => Math.max(m, c.width || 0), 0);
 	const minHeight = cropList.reduce((m, c) => Math.max(m, c.height || 0), 0);
 
-	const onPickReplacement = (event: React.ChangeEvent<HTMLInputElement>) => {
-		const file = event.target.files?.[0];
-		// Allow re-selecting the same file later.
-		event.target.value = "";
-
-		if (file) {
-			replaceMutation.mutate(file);
-		}
-	};
+	const replaceFilePicker = useFilePicker((file) => {
+		replaceMutation.mutate(file);
+	});
 
 	const copyUrl = async () => {
 		if (!resource?.file) {
@@ -246,17 +240,17 @@ export const FileDetail = ({ resourceId, onOpenChange, folderQueryKey }: FileDet
 						{!resource.is_video && (
 							<div className="flex flex-wrap items-center gap-2">
 								<input
-									ref={replaceInputRef}
+									ref={replaceFilePicker.inputRef}
 									type="file"
 									className="hidden"
 									aria-label="Replace file"
 									accept={resource.is_image ? "image/*" : undefined}
-									onChange={onPickReplacement}
+									onChange={replaceFilePicker.onChange}
 								/>
 								<Button
 									variant="secondary"
 									icon={<RefreshCw size={13} />}
-									onClick={() => replaceInputRef.current?.click()}
+									onClick={replaceFilePicker.open}
 									disabled={pending}
 									loading={replaceMutation.isPending}
 									loadingLabel="Replacing…"
@@ -355,10 +349,7 @@ export const FileDetail = ({ resourceId, onOpenChange, folderQueryKey }: FileDet
 
 			{deleteDialog.isOpen && resource && (
 				<ConfirmDialog
-					open={deleteDialog.isOpen}
-					onOpenChange={(v) => {
-						if (!v) deleteDialog.close();
-					}}
+					{...deleteDialog.dialogProps}
 					title={`Delete “${resource.name}”?`}
 					description={`This permanently removes the file and all of its crops. ${
 						(usageQuery.data?.length ?? 0) > 0
@@ -479,14 +470,14 @@ const CropsSection = ({ crops, onAddCrop }: CropsSectionProps) => {
 		<section>
 			<div className="mb-1.5 flex items-center justify-between">
 				<SectionLabel as="h3">Crops</SectionLabel>
-				<button
-					type="button"
-					className="inline-flex items-center gap-1 rounded-md border border-border bg-surface px-2 py-1 text-[11.5px] hover:bg-hover"
+				<Button
+					variant="secondary"
+					size="sm"
+					icon={<CropIcon size={11} />}
 					onClick={onAddCrop}
 				>
-					<CropIcon size={11} />
 					Add crop
-				</button>
+				</Button>
 			</div>
 
 			{entries.length === 0 ? (

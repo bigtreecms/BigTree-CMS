@@ -169,12 +169,7 @@ export const DeveloperListPage = <T,>({
 
 			{deleteDialog.item && (
 				<ConfirmDialog
-					open={deleteDialog.isOpen}
-					onOpenChange={(open) => {
-						if (!open) {
-							deleteDialog.close();
-						}
-					}}
+					{...deleteDialog.dialogProps}
 					title={`Delete "${rowLabel(deleteDialog.item)}"?`}
 					description={confirmDescription}
 					confirmLabel={confirmLabel}

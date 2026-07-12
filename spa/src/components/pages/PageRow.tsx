@@ -5,7 +5,7 @@ import type { PageListRow } from "@/api/endpoints/pages";
 import { EditableTitle } from "./EditableTitle";
 import { StatusBadge, type PageStatus } from "./StatusBadge";
 import { relativeTime } from "@/lib/time";
-import { pageDraftEditPath, pageEditPath } from "@/lib/routes";
+import { pageDraftEditPath, pageEditPath, pagePath } from "@/lib/routes";
 import type { DragReorderApi } from "@/hooks/useDragReorder";
 
 /**
@@ -84,7 +84,7 @@ export const PageRow = ({
 				</span>
 				<div className="min-w-0 flex-1">
 					<Link
-						to={`/pages/${row.id}`}
+						to={pagePath(row.id)}
 						className="block min-w-0 outline-none"
 						onClick={(e) => {
 							// Don't navigate when the user double-clicks the inner editable span

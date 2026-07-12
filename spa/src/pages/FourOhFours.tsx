@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { keepPreviousData, useMutation, useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { Check, Download, EyeOff, Link2, Plus, Trash, Upload, X } from "lucide-react";
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
@@ -23,7 +23,6 @@ import {
 } from "@/api/endpoints/four-oh-fours";
 
 import { downloadCsv } from "@/lib/csv";
-import { describeApiError } from "@/lib/errorHandling";
 import { derivePagination } from "@/lib/pagination";
 import { formatNumber, pluralize } from "@/lib/number";
 import { todayStamp } from "@/lib/time";
@@ -168,8 +167,9 @@ export const FourOhFours = ({ type }: FourOhFoursProps) => {
 		},
 	});
 
-	const exportMutation = useMutation({
+	const exportMutation = useToastMutation({
 		mutationFn: () => fourOhFoursApi.export(type),
+		errorMessage: "CSV export failed",
 		onSuccess: ({ data: rows, meta }) => {
 			if (rows.length === 0) {
 				toast.error("Nothing to export.");
@@ -199,7 +199,6 @@ export const FourOhFours = ({ type }: FourOhFoursProps) => {
 
 			toast.success(`Exported ${rows.length} ${rows.length === 1 ? "entry" : "entries"}`);
 		},
-		onError: (err) => toast.error(describeApiError(err, "CSV export failed")),
 	});
 
 	const toggleAll = () => {
@@ -482,10 +481,7 @@ export const FourOhFours = ({ type }: FourOhFoursProps) => {
 			</div>
 
 			<ConfirmDialog
-				open={bulkDeleteDialog.isOpen}
-				onOpenChange={(v) => {
-					if (!v) bulkDeleteDialog.close();
-				}}
+				{...bulkDeleteDialog.dialogProps}
 				title={`Delete ${selectedCount} entries?`}
 				description="They can be re-captured the next time the broken URL is requested, but any redirects you'd set up on them will be lost."
 				confirmLabel="Delete"
@@ -494,10 +490,7 @@ export const FourOhFours = ({ type }: FourOhFoursProps) => {
 			/>
 
 			<ConfirmDialog
-				open={clearDeadDialog.isOpen}
-				onOpenChange={(v) => {
-					if (!v) clearDeadDialog.close();
-				}}
+				{...clearDeadDialog.dialogProps}
 				title="Clear dead 404s?"
 				description="Deletes unredirected 404 entries with fewer than 5 recorded hits — usually one-off typos and crawler noise."
 				confirmLabel="Clear"

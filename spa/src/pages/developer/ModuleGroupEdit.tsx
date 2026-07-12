@@ -10,6 +10,7 @@ import { ModuleGroupModulesList } from "@/components/developer/ModuleGroupModule
 import { modulesApi, type ModuleGroup } from "@/api/endpoints/modules";
 
 import { queryKeys } from "@/lib/queryKeys";
+import { developerEditPath } from "@/lib/routes";
 import { useFormSubmit } from "@/hooks/useFormSubmit";
 import { useResourceEditor } from "@/hooks/useResourceEditor";
 import { validateRequired } from "@/lib/formValidation";
@@ -46,7 +47,7 @@ export const ModuleGroupEdit = () => {
 			modulesApi.createGroup({ name: next.name, route: next.route || undefined }),
 		update: (id, next) => modulesApi.updateGroup(id, next),
 		invalidateKey: queryKeys.moduleGroups.root(),
-		editPath: (id) => `/developer/module-groups/${encodeURIComponent(id)}/edit`,
+		editPath: (id) => developerEditPath("module-groups", id),
 		onError: (err) => onMutationError(err, "Save failed"),
 	});
 
@@ -61,8 +62,7 @@ export const ModuleGroupEdit = () => {
 			listPath="/developer/module-groups"
 			isAdd={isAdd}
 			title={isAdd ? "Add module group" : body.name || idParam || "Edit module group"}
-			loading={!isAdd && detailQ.isLoading}
-			queryError={isAdd ? undefined : detailQ.error}
+			detailQuery={detailQ}
 			error={error}
 			isDirty={isDirty}
 		>

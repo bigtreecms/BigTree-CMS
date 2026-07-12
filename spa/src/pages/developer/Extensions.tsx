@@ -280,12 +280,7 @@ export const Extensions = () => {
 			</SlideOver>
 
 			<ConfirmDialog
-				open={deleteDialog.isOpen}
-				onOpenChange={(open) => {
-					if (!open) {
-						deleteDialog.close();
-					}
-				}}
+				{...deleteDialog.dialogProps}
 				title="Uninstall extension?"
 				description="This removes the extension and every resource its manifest declares (modules, templates, callouts, etc.). This can't be undone."
 				confirmLabel="Uninstall"

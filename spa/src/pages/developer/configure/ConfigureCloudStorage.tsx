@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useOAuthRedirectResult } from "@/hooks/useOAuthRedirectResult";
+import { useSeededState } from "@/hooks/useSeededState";
 import { useToastMutation } from "@/hooks/useToastMutation";
 import { RefreshCw, Save } from "lucide-react";
 
@@ -71,24 +72,22 @@ export const ConfigureCloudStorage = () => {
 	const [generalError, setGeneralError] = useState<string | null>(null);
 	const [recacheProgress, setRecacheProgress] = useState<number | null>(null);
 
-	useEffect(() => {
-		if (detailQ.data) {
-			const amazon = (detailQ.data.providers.amazon?.settings ?? {}) as ProviderDraft;
-			const next: Record<CloudProvider, ProviderDraft> = {
-				amazon: { ...amazon },
-				rackspace: { ...(detailQ.data.providers.rackspace?.settings as ProviderDraft) },
-				google: { ...(detailQ.data.providers.google?.settings as ProviderDraft) },
-			};
-			setDrafts(next);
-			setDefaultService(detailQ.data.default_service ?? "local");
-			setDefaultContainer(detailQ.data.default_container ?? "");
-			setCloudfront({
-				distribution: (amazon.cloudfront_distribution as string) ?? "",
-				domain: (amazon.cloudfront_domain as string) ?? "",
-				ssl: (amazon.cloudfront_ssl as string) ?? "",
-			});
-		}
-	}, [detailQ.data]);
+	useSeededState(detailQ.data, (data) => {
+		const amazon = (data.providers.amazon?.settings ?? {}) as ProviderDraft;
+		const next: Record<CloudProvider, ProviderDraft> = {
+			amazon: { ...amazon },
+			rackspace: { ...(data.providers.rackspace?.settings as ProviderDraft) },
+			google: { ...(data.providers.google?.settings as ProviderDraft) },
+		};
+		setDrafts(next);
+		setDefaultService(data.default_service ?? "local");
+		setDefaultContainer(data.default_container ?? "");
+		setCloudfront({
+			distribution: (amazon.cloudfront_distribution as string) ?? "",
+			domain: (amazon.cloudfront_domain as string) ?? "",
+			ssl: (amazon.cloudfront_ssl as string) ?? "",
+		});
+	});
 
 	const saveProviderMutation = useMutation({
 		mutationFn: ({ provider, body }: { provider: CloudProvider; body: ProviderDraft }) =>

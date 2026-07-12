@@ -22,6 +22,7 @@ import { settingsApi, type SettingDetail } from "@/api/endpoints/settings";
 import { formatNumber } from "@/lib/number";
 import { derivePagination } from "@/lib/pagination";
 import { queryKeys } from "@/lib/queryKeys";
+import { developerEditPath } from "@/lib/routes";
 import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { useToastMutation } from "@/hooks/useToastMutation";
@@ -175,9 +176,7 @@ export const DeveloperSettings = () => {
 				isLoading={query.isLoading || (query.isFetching && !query.data)}
 				loadingLabel="Loading…"
 				emptyLabel={debounced ? `No settings match “${debounced}”.` : "No settings yet."}
-				onRowClick={(row) =>
-					navigate(`/developer/settings/${encodeURIComponent(row.id)}/edit`)
-				}
+				onRowClick={(row) => navigate(developerEditPath("settings", row.id))}
 			/>
 
 			{totalPages > 1 && (
@@ -188,12 +187,7 @@ export const DeveloperSettings = () => {
 
 			{deleteDialog.item && (
 				<ConfirmDialog
-					open={deleteDialog.isOpen}
-					onOpenChange={(open) => {
-						if (!open) {
-							deleteDialog.close();
-						}
-					}}
+					{...deleteDialog.dialogProps}
 					title={`Delete "${deleteDialog.item.name}"?`}
 					description="Both the definition and the stored value will be removed."
 					confirmLabel="Delete setting"

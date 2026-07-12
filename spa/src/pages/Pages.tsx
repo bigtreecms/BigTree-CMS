@@ -18,7 +18,7 @@ import { queryKeys } from "@/lib/queryKeys";
 import { pagesApi, type PageListRow } from "@/api/endpoints/pages";
 import { pendingChangesApi } from "@/api/endpoints/dashboard";
 import { relativeTime } from "@/lib/time";
-import { pageEditPath, pageRevisionsPath } from "@/lib/routes";
+import { pageAddPath, pageEditPath, pagePath, pageRevisionsPath } from "@/lib/routes";
 import { expandImageUrl } from "@/lib/imageUrl";
 import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 
@@ -223,7 +223,7 @@ export const Pages = () => {
 
 					return {
 						label: anc.nav_title,
-						to: isLast ? undefined : `/pages/${anc.id}`,
+						to: isLast ? undefined : pagePath(anc.id),
 					};
 				}),
 			];
@@ -258,7 +258,7 @@ export const Pages = () => {
 						<Button
 							variant="primary"
 							icon={<Plus size={13} />}
-							to={`/pages/add/${parent}`}
+							to={pageAddPath(parent)}
 						>
 							Add subpage
 						</Button>
@@ -412,12 +412,7 @@ export const Pages = () => {
 			)}
 
 			<ConfirmDialog
-				open={confirmDialog.isOpen}
-				onOpenChange={(open) => {
-					if (!open) {
-						confirmDialog.close();
-					}
-				}}
+				{...confirmDialog.dialogProps}
 				title={
 					confirmDialog.item
 						? confirmDialog.item.type === "delete"

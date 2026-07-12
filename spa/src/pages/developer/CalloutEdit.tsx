@@ -12,6 +12,7 @@ import type { TemplateResource } from "@/api/endpoints/templates";
 import { useDesignerSubmit } from "@/components/developer/useDesignerSubmit";
 
 import { queryKeys } from "@/lib/queryKeys";
+import { developerEditPath } from "@/lib/routes";
 import { useResourceEditor } from "@/hooks/useResourceEditor";
 
 import { SelectField } from "@/components/ui/SelectField";
@@ -51,7 +52,7 @@ export const CalloutEdit = () => {
 		create: (next) => calloutsApi.create(next),
 		update: (id, next) => calloutsApi.update(id, next),
 		invalidateKey: queryKeys.callouts.root(),
-		editPath: (id) => `/developer/callouts/${encodeURIComponent(id)}/edit`,
+		editPath: (id) => developerEditPath("callouts", id),
 		onError: (err) => submit.onMutationError(err, "Save failed"),
 	});
 
@@ -74,8 +75,7 @@ export const CalloutEdit = () => {
 			isAdd={isAdd}
 			title={title}
 			sub={isAdd ? "Define a new callout type." : "Editing callout definition."}
-			loading={!isAdd && detailQ.isLoading}
-			queryError={isAdd ? undefined : detailQ.error}
+			detailQuery={detailQ}
 			error={submit.error}
 			isDirty={isDirty}
 			formShellBounded={false}

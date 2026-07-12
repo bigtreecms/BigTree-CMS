@@ -134,8 +134,7 @@ export const ModuleDesignerEdit = () => {
 					? "Create a module from an existing table, or have the designer build the table for you."
 					: "Editing module definition."
 			}
-			loading={!isAdd && detailQ.isLoading}
-			queryError={isAdd ? undefined : detailQ.error}
+			detailQuery={detailQ}
 			isDirty={false}
 		>
 			{isAdd ? (

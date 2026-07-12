@@ -179,10 +179,7 @@ export const PasskeysPanel = () => {
 
 			{deleteDialog.item && (
 				<ConfirmDialog
-					open={deleteDialog.isOpen}
-					onOpenChange={(v) => {
-						if (!v) deleteDialog.close();
-					}}
+					{...deleteDialog.dialogProps}
 					title={`Remove “${deleteDialog.item.name}”?`}
 					description="You won't be able to sign in with this passkey anymore. Other sign-in methods continue to work."
 					confirmLabel="Remove passkey"

@@ -126,12 +126,7 @@ export const PendingChangeDetail = () => {
 
 			{confirmDialog.item === "approve" && (
 				<ConfirmDialog
-					open={confirmDialog.isOpen}
-					onOpenChange={(open) => {
-						if (!open) {
-							confirmDialog.close();
-						}
-					}}
+					{...confirmDialog.dialogProps}
 					title="Approve this change?"
 					description="The pending change will be merged into the live record."
 					confirmLabel="Approve & publish"
@@ -141,12 +136,7 @@ export const PendingChangeDetail = () => {
 
 			{confirmDialog.item === "reject" && (
 				<ConfirmDialog
-					open={confirmDialog.isOpen}
-					onOpenChange={(open) => {
-						if (!open) {
-							confirmDialog.close();
-						}
-					}}
+					{...confirmDialog.dialogProps}
 					title="Reject this change?"
 					description="The pending change will be discarded. The submitting user will need to redo their edits."
 					confirmLabel="Reject"

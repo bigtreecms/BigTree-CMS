@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { ChevronLeft, History, Key, Save, ShieldCheck } from "lucide-react";
@@ -38,6 +38,7 @@ import { useReturnTo } from "@/hooks/useReturnTo";
 import { useToastMutation } from "@/hooks/useToastMutation";
 import { useDirtyTracker } from "@/hooks/useDirtyTracker";
 import { useConfirmDialog } from "@/hooks/useConfirmDialog";
+import { useSeededState } from "@/hooks/useSeededState";
 import { UnsavedChangesGuard } from "@/components/ui/UnsavedChangesGuard";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { Field } from "@/components/ui/Field";
@@ -76,15 +77,8 @@ export const UserEdit = () => {
 	const [passwordOpen, setPasswordOpen] = useState(false);
 	const deleteDialog = useConfirmDialog<true>();
 	const remove2faDialog = useConfirmDialog<true>();
-	const [seeded, setSeeded] = useState(false);
 
-	// Seed local state when the fetched user changes.
-	useEffect(() => {
-		if (!userQ.data) {
-			return;
-		}
-
-		const u = userQ.data;
+	const seeded = useSeededState(userQ.data, (u) => {
 		setForm({
 			email: u.email,
 			name: u.name,
@@ -95,8 +89,7 @@ export const UserEdit = () => {
 		});
 		setPermissions(u.permissions ?? {});
 		setAlerts(u.alerts ?? {});
-		setSeeded(true);
-	}, [userQ.data]);
+	});
 
 	const updateMutation = useToastMutation({
 		mutationFn: (payload: UpdateUserPayload) => usersApi.update(id, payload),
@@ -413,13 +406,9 @@ export const UserEdit = () => {
 							</p>
 						</div>
 
-						<button
-							type="button"
-							onClick={() => deleteDialog.open(true)}
-							className="rounded-md bg-danger px-3 py-1.5 text-[12.5px] font-medium text-white hover:bg-danger/90"
-						>
+						<Button variant="danger" onClick={() => deleteDialog.open(true)}>
 							Delete user
-						</button>
+						</Button>
 					</div>
 				</div>
 			)}
@@ -432,10 +421,7 @@ export const UserEdit = () => {
 			/>
 
 			<ConfirmDialog
-				open={deleteDialog.isOpen}
-				onOpenChange={(v) => {
-					if (!v) deleteDialog.close();
-				}}
+				{...deleteDialog.dialogProps}
 				title="Delete user?"
 				description={`This will permanently delete ${displayName}.`}
 				confirmLabel="Delete"
@@ -444,10 +430,7 @@ export const UserEdit = () => {
 			/>
 
 			<ConfirmDialog
-				open={remove2faDialog.isOpen}
-				onOpenChange={(v) => {
-					if (!v) remove2faDialog.close();
-				}}
+				{...remove2faDialog.dialogProps}
 				title="Remove two-factor authentication?"
 				description={`${displayName} will be able to sign in with just their password until they re-enrol. Use this when they've lost their authenticator.`}
 				confirmLabel="Remove 2FA"

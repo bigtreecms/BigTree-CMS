@@ -21,6 +21,7 @@ import {
 import { useDesignerSubmit } from "@/components/developer/useDesignerSubmit";
 
 import { queryKeys } from "@/lib/queryKeys";
+import { developerEditPath } from "@/lib/routes";
 import { useResourceEditor } from "@/hooks/useResourceEditor";
 
 /**
@@ -62,7 +63,7 @@ export const TemplateEdit = () => {
 		create: (next) => templatesApi.create(next),
 		update: (id, next) => templatesApi.update(id, next),
 		invalidateKey: queryKeys.templates.root(),
-		editPath: (id) => `/developer/templates/${encodeURIComponent(id)}/edit`,
+		editPath: (id) => developerEditPath("templates", id),
 		onError: (err) => submit.onMutationError(err, "Save failed"),
 	});
 
@@ -95,8 +96,7 @@ export const TemplateEdit = () => {
 			isAdd={isAdd}
 			title={title}
 			sub={isAdd ? "Define a new page template." : "Editing template definition."}
-			loading={!isAdd && detailQ.isLoading}
-			queryError={isAdd ? undefined : detailQ.error}
+			detailQuery={detailQ}
 			error={submit.error}
 			isDirty={isDirty}
 			formShellBounded={false}

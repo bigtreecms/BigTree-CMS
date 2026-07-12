@@ -5,6 +5,7 @@ import { Eye } from "lucide-react";
 import { useAuthStore } from "@/auth/store";
 import { authApi } from "@/auth/endpoints";
 import { DebugLayout } from "@/components/developer/DebugLayout";
+import { Button } from "@/components/ui/Button";
 import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
 import { MonoText } from "@/components/ui/MonoText";
 import { Pager } from "@/components/ui/Pager";
@@ -97,18 +98,18 @@ export const DebugEmulator = () => {
 				const isSelf = row.id === currentUserId;
 
 				return (
-					<button
-						type="button"
+					<Button
+						variant="secondary"
+						size="sm"
+						icon={<Eye size={12} />}
 						disabled={isSelf || emulateMutation.isPending}
 						onClick={(e) => {
 							e.stopPropagation();
 							emulateDialog.open(row);
 						}}
-						className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-2.5 py-1 text-[12px] font-medium text-text-2 hover:border-border-strong hover:bg-hover disabled:opacity-50"
 					>
-						<Eye size={12} />
 						{isSelf ? "You" : "Emulate"}
-					</button>
+					</Button>
 				);
 			},
 		},
@@ -151,12 +152,7 @@ export const DebugEmulator = () => {
 			)}
 
 			<ConfirmDialog
-				open={emulateDialog.isOpen}
-				onOpenChange={(open) => {
-					if (!open) {
-						emulateDialog.close();
-					}
-				}}
+				{...emulateDialog.dialogProps}
 				title={`Emulate ${emulateDialog.item?.name || emulateDialog.item?.email}?`}
 				description="You'll be signed in as this user with their exact permissions. A banner stays on screen so you can return to your own account at any time."
 				confirmLabel="Emulate user"

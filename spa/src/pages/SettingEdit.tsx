@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Eye, EyeOff, Lock, ShieldAlert } from "lucide-react";
@@ -8,6 +8,7 @@ import { PageHead } from "@/components/shell/PageHead";
 import { PageContainer } from "@/components/shell/PageContainer";
 import { Alert } from "@/components/ui/Alert";
 import { Badge } from "@/components/ui/Badge";
+import { Button } from "@/components/ui/Button";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { Field } from "@/components/ui/Field";
 import { FormFooter } from "@/components/ui/FormFooter";
@@ -24,6 +25,7 @@ import { useAuthStore } from "@/auth/store";
 import { useLock } from "@/hooks/useLock";
 import { useReturnTo } from "@/hooks/useReturnTo";
 import { useDirtyTracker } from "@/hooks/useDirtyTracker";
+import { useSeededState } from "@/hooks/useSeededState";
 import { UnsavedChangesGuard } from "@/components/ui/UnsavedChangesGuard";
 import { Loading } from "@/components/ui/Loading";
 import { describeApiError } from "@/lib/errorHandling";
@@ -72,19 +74,12 @@ export const SettingEdit = () => {
 		enabled: settingId !== "" && Boolean(settingQuery.data),
 	});
 
-	// Seed local editable value from the server payload. We use the inequality
-	// check against `undefined` so a legitimately-null setting value still
-	// initialises (vs leaving the renderer stuck on "no value yet").
-	useEffect(() => {
-		if (!settingQuery.data) {
-			return;
-		}
-
-		// Don't re-seed if we already loaded the value once — preserves user
-		// edits across refetches.
-		setValue((prev: unknown) => (prev === undefined ? (settingQuery.data?.value ?? "") : prev));
+	// Seed local editable value once from the server payload. Null values
+	// still initialise (as "") so the renderer isn't stuck on "no value yet".
+	useSeededState(settingQuery.data, (data) => {
+		setValue(data.value ?? "");
 		setGeneralError(null);
-	}, [settingQuery.data]);
+	});
 
 	const saveMutation = useMutation({
 		mutationFn: () => settingsApi.updateValue(settingId, value),
@@ -294,14 +289,9 @@ const FlagBar = ({ setting, revealEncrypted, canReveal, onReveal }: FlagBarProps
 		<div className="mb-3 flex flex-wrap items-center gap-2">
 			{flags}
 			{showReveal && (
-				<button
-					type="button"
-					onClick={onReveal}
-					className="inline-flex items-center gap-1 rounded-md border border-border bg-surface px-2 py-0.5 text-[11.5px] hover:bg-hover"
-				>
-					<Eye size={11} />
+				<Button variant="secondary" size="sm" icon={<Eye size={11} />} onClick={onReveal}>
 					Reveal value
-				</button>
+				</Button>
 			)}
 			{showHidden && revealEncrypted && (
 				<span className="inline-flex items-center gap-1 text-[11.5px] text-text-3">

@@ -141,12 +141,7 @@ export const PendingChanges = () => {
 
 			{actionDialog.item && (
 				<ConfirmDialog
-					open={actionDialog.isOpen}
-					onOpenChange={(open) => {
-						if (!open) {
-							actionDialog.close();
-						}
-					}}
+					{...actionDialog.dialogProps}
 					title={
 						actionDialog.item.kind === "approve"
 							? "Approve this change?"

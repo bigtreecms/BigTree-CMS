@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Save } from "lucide-react";
 
 import { useScrollToFirstError } from "@/hooks/useScrollToFirstError";
+import { useSeededState } from "@/hooks/useSeededState";
 import { ConfigureLayout } from "@/components/developer/ConfigureLayout";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { Button } from "@/components/ui/Button";
@@ -94,15 +95,13 @@ export const ConfigureFileMetadata = () => {
 		video: useResourceSettingsValidation(videoResources, "settings"),
 	};
 
-	useEffect(() => {
-		if (detailQ.data) {
-			setDraft({
-				file: detailQ.data.file.map((r) => ({ ...r })),
-				image: detailQ.data.image.map((r) => ({ ...r })),
-				video: detailQ.data.video.map((r) => ({ ...r })),
-			});
-		}
-	}, [detailQ.data]);
+	useSeededState(detailQ.data, (data) => {
+		setDraft({
+			file: data.file.map((r) => ({ ...r })),
+			image: data.image.map((r) => ({ ...r })),
+			video: data.video.map((r) => ({ ...r })),
+		});
+	});
 
 	const saveMutation = useToastMutation({
 		mutationFn: (next: FileMetadataConfig) => configureApi.fileMetadata.update(next),

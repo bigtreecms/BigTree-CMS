@@ -6,6 +6,7 @@ import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
 import { PageContainer } from "@/components/shell/PageContainer";
 import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
+import { IconButton } from "@/components/ui/IconButton";
 import { NameIdCell } from "@/components/ui/NameIdCell";
 import { Pager } from "@/components/ui/Pager";
 import { SearchInput } from "@/components/ui/SearchInput";
@@ -98,18 +99,16 @@ export const Settings = () => {
 			headerAlign: "right",
 			align: "right",
 			cell: (row) => (
-				<button
-					type="button"
-					className="inline-grid size-7 place-items-center rounded text-text-3 hover:bg-hover hover:text-text"
+				<IconButton
+					label={`Edit ${row.name}`}
 					title="Edit setting"
-					aria-label={`Edit ${row.name}`}
 					onClick={(e) => {
 						e.stopPropagation();
 						navigate(settingEditPath(row.id));
 					}}
 				>
 					<Pencil size={14} />
-				</button>
+				</IconButton>
 			),
 		},
 	];

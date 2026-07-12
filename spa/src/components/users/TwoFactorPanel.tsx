@@ -1,11 +1,9 @@
 import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { ShieldCheck } from "lucide-react";
 
 import { authApi, type TwoFactorSetup } from "@/auth/endpoints";
 
-import { toast } from "@/lib/toast";
-import { describeApiError } from "@/lib/errorHandling";
 import { queryKeys } from "@/lib/queryKeys";
 import { useToastMutation } from "@/hooks/useToastMutation";
 import { TwoFactorEnrollForm } from "./TwoFactorEnrollForm";
@@ -45,14 +43,12 @@ export const TwoFactorPanel = ({ enabled }: TwoFactorPanelProps) => {
 		queryClient.invalidateQueries({ queryKey: queryKeys.users.me() });
 	};
 
-	const setupMutation = useMutation({
+	const setupMutation = useToastMutation({
 		mutationFn: () => authApi.twoFactorSetup(),
+		errorMessage: "Could not start 2FA setup",
 		onSuccess: (data) => {
 			setSetup(data);
 			setEnableCode("");
-		},
-		onError: (err: unknown) => {
-			toast.error(describeApiError(err, "Could not start 2FA setup"));
 		},
 	});
 
@@ -92,16 +88,16 @@ export const TwoFactorPanel = ({ enabled }: TwoFactorPanelProps) => {
 					</Badge>
 
 					{enabled && !disabling && (
-						<button
-							type="button"
+						<Button
+							variant="secondary"
+							className="shrink-0"
 							onClick={() => {
 								setDisabling(true);
 								setDisableCode("");
 							}}
-							className="inline-flex shrink-0 items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-text-2 hover:bg-hover hover:text-danger"
 						>
 							Disable
-						</button>
+						</Button>
 					)}
 
 					{!enabled && !setup && (

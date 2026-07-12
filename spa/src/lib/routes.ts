@@ -1,13 +1,23 @@
 import type { ResourceUsageLink } from "@/api/endpoints/resources";
 
+/** /pages/:id — view a page's children (Pages table drill-down). */
+export const pagePath = (id: number | string) => `/pages/${id}`;
+
 /** /pages/:id/edit */
 export const pageEditPath = (id: number | string) => `/pages/${id}/edit`;
+
+/** /pages/add/:parentId — add a subpage under parent. */
+export const pageAddPath = (parentId: number | string) => `/pages/add/${parentId}`;
 
 /** /pages/draft/:pcid/edit — for pending-changes new-page drafts. */
 export const pageDraftEditPath = (pcid: number | string) => `/pages/draft/${pcid}/edit`;
 
 /** /pages/:id/edit/revisions */
 export const pageRevisionsPath = (id: number | string) => `/pages/${id}/edit/revisions`;
+
+/** /developer/{section}/:id/edit — section is e.g. "callouts", "feeds", "templates". */
+export const developerEditPath = (section: string, id: string | number) =>
+	`/developer/${section}/${encodeURIComponent(id)}/edit`;
 
 /** /settings/:id/edit — the id is URL-encoded (setting ids can contain `.`/`/`). */
 export const settingEditPath = (id: number | string) => `/settings/${encodeURIComponent(id)}/edit`;

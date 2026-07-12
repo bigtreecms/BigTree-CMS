@@ -585,12 +585,7 @@ export const Users = () => {
 			{/* Delete confirmation */}
 			{deleteDialog.item && (
 				<ConfirmDialog
-					open={deleteDialog.isOpen}
-					onOpenChange={(open) => {
-						if (!open) {
-							deleteDialog.close();
-						}
-					}}
+					{...deleteDialog.dialogProps}
 					title="Delete user?"
 					description="This will revoke admin access immediately. Page revisions authored by this user remain attributed to them."
 					confirmLabel="Delete user"

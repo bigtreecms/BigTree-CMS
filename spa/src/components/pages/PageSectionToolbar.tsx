@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { pageEditPath, pageRevisionsPath } from "@/lib/routes";
+import { pageAddPath, pageEditPath, pagePath, pageRevisionsPath } from "@/lib/routes";
 import { Copy, Edit, FileText, List as PagesIcon, Move, Plus, ShieldCheck } from "lucide-react";
 
 /**
@@ -46,13 +46,13 @@ export const PageSectionToolbar = ({
 			id: "view",
 			label: "View Subpages",
 			icon: <PagesIcon size={13} />,
-			to: `/pages/${pageId || parentId}`,
+			to: pagePath(pageId || parentId),
 		},
 		{
 			id: "add",
 			label: "Add Subpage",
 			icon: <Plus size={13} />,
-			to: `/pages/add/${pageId || parentId}`,
+			to: pageAddPath(pageId || parentId),
 		},
 		{
 			id: "edit",

@@ -1,6 +1,6 @@
 import type { ModuleReport, ModuleReportRunResponse } from "@/api/endpoints/modules";
 
-import { csvCell as encodeCsvCell } from "@/lib/csv";
+import { downloadCsv as triggerCsvDownload } from "@/lib/csv";
 import { decodeHtmlEntitiesDom } from "@/lib/html";
 import { todayStamp } from "@/lib/time";
 import { parseReportFields, viewFieldColumns, type ReportColumn } from "./reportColumns";
@@ -16,7 +16,8 @@ import { parseReportFields, viewFieldColumns, type ReportColumn } from "./report
  *   - view reports fall back to the related view's fields, then the row keys.
  *
  * Cells are decoded once (legacy storage often double-encodes HTML entities),
- * then quoted with embedded `"` doubled to match RFC 4180.
+ * then passed through `lib/csv.downloadCsv` for formula-injection neutralization
+ * and RFC 4180 quoting.
  */
 
 export const downloadCsv = (response: ModuleReportRunResponse) => {
@@ -26,19 +27,11 @@ export const downloadCsv = (response: ModuleReportRunResponse) => {
 		return;
 	}
 
-	const header = columns.map((c) => csvCell(c.label));
-	const body = response.items.map((row) => columns.map((c) => csvCell(row[c.key])).join(","));
-
-	const csv = [header.join(","), ...body].join("\n");
-	const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8" });
-	const url = URL.createObjectURL(blob);
-	const a = document.createElement("a");
-	a.href = url;
-	a.download = csvFilename(response.report);
-	document.body.appendChild(a);
-	a.click();
-	document.body.removeChild(a);
-	URL.revokeObjectURL(url);
+	triggerCsvDownload(
+		csvFilename(response.report),
+		columns.map((c) => c.label),
+		response.items.map((row) => columns.map((c) => decodedCellString(row[c.key])))
+	);
 };
 
 type CsvColumn = ReportColumn;
@@ -67,26 +60,25 @@ const collectColumns = (response: ModuleReportRunResponse): CsvColumn[] => {
 	return [];
 };
 
-const csvCell = (value: unknown): string => {
+/** Decode / stringify a report cell for CSV export (encoding is lib/csv's job). */
+const decodedCellString = (value: unknown): string => {
 	if (value === null || value === undefined) {
-		return '""';
+		return "";
 	}
-
-	let raw: string;
 
 	if (typeof value === "string") {
-		raw = decodeHtmlEntitiesDom(value);
-	} else if (typeof value === "number" || typeof value === "boolean") {
-		raw = String(value);
-	} else {
-		try {
-			raw = JSON.stringify(value);
-		} catch {
-			raw = "";
-		}
+		return decodeHtmlEntitiesDom(value);
 	}
 
-	return encodeCsvCell(raw);
+	if (typeof value === "number" || typeof value === "boolean") {
+		return String(value);
+	}
+
+	try {
+		return JSON.stringify(value);
+	} catch {
+		return "";
+	}
 };
 
 const csvFilename = (report: ModuleReport): string => {

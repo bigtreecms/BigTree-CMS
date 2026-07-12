@@ -38,7 +38,7 @@ import { resourceToFormField, templatesApi, type TemplateSummary } from "@/api/e
 
 import { FieldRenderer } from "@/renderer/forms/FieldRenderer";
 import { FieldRow } from "@/renderer/forms/FieldRow";
-import { isFieldRequired, isFieldValueEmpty } from "@/renderer/forms/validation";
+import { validateRequiredFields } from "@/renderer/forms/validation";
 import { PendingBadge } from "@/components/pending-changes/PendingBadge";
 import { PendingFieldCompare } from "@/components/pending-changes/PendingFieldCompare";
 import { draftOwnerLabel, fieldValuesEqual } from "@/lib/fieldComparison";
@@ -54,7 +54,7 @@ import { applyApiFieldErrors } from "@/lib/errorHandling";
 import { canPublishPage } from "@/lib/permissions";
 import { toast } from "@/lib/toast";
 import { queryKeys } from "@/lib/queryKeys";
-import { pageDraftEditPath } from "@/lib/routes";
+import { pageDraftEditPath, pagePath } from "@/lib/routes";
 import { InlineEmpty } from "@/components/ui/InlineEmpty";
 
 /**
@@ -125,7 +125,7 @@ export const PageEdit = () => {
 			return from;
 		}
 
-		return parent && parent > 0 ? `/pages/${parent}` : "/pages";
+		return parent && parent > 0 ? pagePath(parent) : "/pages";
 	};
 
 	const pageQuery = useQuery({
@@ -296,15 +296,10 @@ export const PageEdit = () => {
 		}
 
 		const resourceValues = (body.resources ?? {}) as Record<string, unknown>;
-		const resourceErrors: Record<string, string> = {};
-
-		for (const resource of templateQuery.data?.resources ?? []) {
-			const field = resourceToFormField(resource);
-
-			if (isFieldRequired(field) && isFieldValueEmpty(field, resourceValues[field.column])) {
-				resourceErrors[field.column] = `${field.title || field.column} is required.`;
-			}
-		}
+		const resourceErrors = validateRequiredFields(
+			(templateQuery.data?.resources ?? []).map(resourceToFormField),
+			resourceValues
+		);
 
 		if (Object.keys(resourceErrors).length > 0) {
 			setFieldErrors(resourceErrors);
@@ -355,7 +350,7 @@ export const PageEdit = () => {
 
 	const breadcrumbs = [
 		{ label: "Pages", to: "/pages" },
-		...lineage.map((p) => ({ label: p.nav_title, to: `/pages/${p.id}` })),
+		...lineage.map((p) => ({ label: p.nav_title, to: pagePath(p.id) })),
 		{ label: draft ? "Edit draft" : "Edit" },
 	];
 
@@ -519,10 +514,7 @@ export const PageEdit = () => {
 			</form>
 
 			<ConfirmDialog
-				open={deleteDialog.isOpen}
-				onOpenChange={(v) => {
-					if (!v) deleteDialog.close();
-				}}
+				{...deleteDialog.dialogProps}
 				title={
 					draft
 						? `Discard draft “${page.nav_title || "Untitled"}”?`

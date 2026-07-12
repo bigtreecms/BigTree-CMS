@@ -1,4 +1,5 @@
 import type { TwoFactorSetup } from "@/auth/endpoints";
+import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
 import { TextInput } from "@/components/ui/TextInput";
 
@@ -68,22 +69,18 @@ export const TwoFactorEnrollForm = ({
 				</Field>
 
 				<div className="flex justify-end gap-2">
-					<button
-						type="button"
-						onClick={onCancel}
-						disabled={busy}
-						className="rounded-md border border-border bg-surface px-3 py-1.5 hover:bg-hover"
-					>
+					<Button variant="secondary" onClick={onCancel} disabled={busy}>
 						{cancelLabel}
-					</button>
-					<button
-						type="button"
+					</Button>
+					<Button
+						variant="primary"
 						onClick={onConfirm}
-						disabled={busy || code.trim().length === 0}
-						className="rounded-md bg-accent px-3 py-1.5 font-medium text-accent-fg disabled:opacity-50 hover:bg-accent-hover"
+						disabled={code.trim().length === 0}
+						loading={busy}
+						loadingLabel="Verifying…"
 					>
-						{busy ? "Verifying…" : confirmLabel}
-					</button>
+						{confirmLabel}
+					</Button>
 				</div>
 			</div>
 		</div>

@@ -18,6 +18,7 @@ import { useFormSubmit } from "@/hooks/useFormSubmit";
 import { useResourceEditor } from "@/hooks/useResourceEditor";
 import { validateRequired } from "@/lib/formValidation";
 import { queryKeys } from "@/lib/queryKeys";
+import { developerEditPath } from "@/lib/routes";
 
 import { TextField } from "@/components/ui/TextField";
 import { Loading } from "@/components/ui/Loading";
@@ -46,7 +47,7 @@ export const CalloutGroupEdit = () => {
 		create: (next) => calloutsApi.createGroup(next),
 		update: (id, next) => calloutsApi.updateGroup(id, next),
 		invalidateKey: queryKeys.calloutGroups.root(),
-		editPath: (id) => `/developer/callout-groups/${encodeURIComponent(id)}/edit`,
+		editPath: (id) => developerEditPath("callout-groups", id),
 		onError: (err) => onMutationError(err, "Save failed"),
 	});
 
@@ -89,8 +90,7 @@ export const CalloutGroupEdit = () => {
 			listPath="/developer/callout-groups"
 			isAdd={isAdd}
 			title={title}
-			loading={!isAdd && detailQ.isLoading}
-			queryError={isAdd ? undefined : detailQ.error}
+			detailQuery={detailQ}
 			error={error}
 			isDirty={isDirty}
 			onSubmit={(e) =>

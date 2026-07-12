@@ -14,12 +14,11 @@ import {
 	type ModuleSummary,
 } from "@/api/endpoints/modules";
 
-import { useScrollToFirstError } from "@/hooks/useScrollToFirstError";
 import { useDirtyTracker } from "@/hooks/useDirtyTracker";
+import { useFormSubmit } from "@/hooks/useFormSubmit";
 import { useInlineForm } from "@/hooks/useInlineForm";
 import { UnsavedChangesGuard } from "@/components/ui/UnsavedChangesGuard";
 import { Card } from "@/components/ui/Card";
-import { applyApiFieldErrors } from "@/lib/errorHandling";
 import { toast } from "@/lib/toast";
 import { validateRequired } from "@/lib/formValidation";
 import { queryKeys } from "@/lib/queryKeys";
@@ -95,10 +94,12 @@ export const ModuleShellTab = ({ moduleId, module }: ModuleShellTabProps) => {
 	const [state, setState] = useState<ShellState>(() =>
 		module ? fromModule(module) : emptyState()
 	);
-	const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
-
-	useScrollToFirstError(fieldErrors);
-	const [generalError, setGeneralError] = useState<string | null>(null);
+	const {
+		error: generalError,
+		fieldErrors,
+		handleSubmit: runSubmit,
+		onMutationError,
+	} = useFormSubmit();
 	const newGroup = useInlineForm();
 	const [newGroupName, setNewGroupName] = useState("");
 
@@ -146,13 +147,7 @@ export const ModuleShellTab = ({ moduleId, module }: ModuleShellTabProps) => {
 				navigate(moduleDetailPath(fresh.id), { replace: true });
 			}
 		},
-		onError: (err) => {
-			applyApiFieldErrors(err, {
-				setFieldErrors,
-				setError: setGeneralError,
-				fallback: "Save failed",
-			});
-		},
+		onError: (err) => onMutationError(err, "Save failed"),
 	});
 
 	const set = (patch: Partial<ShellState>) => setState((prev) => ({ ...prev, ...patch }));
@@ -164,24 +159,17 @@ export const ModuleShellTab = ({ moduleId, module }: ModuleShellTabProps) => {
 	const isDirty = useDirtyTracker(state) && !saveMutation.isPending;
 
 	const handleSubmit = (event: React.FormEvent) => {
-		event.preventDefault();
-
 		if (saveMutation.isPending) {
-			return;
-		}
-
-		const errors = validateRequired([{ field: "name", label: "Name", value: state.name }]);
-
-		if (Object.keys(errors).length > 0) {
-			setFieldErrors(errors);
-			setGeneralError("Please fill in the required fields.");
+			event.preventDefault();
 
 			return;
 		}
 
-		setGeneralError(null);
-		setFieldErrors({});
-		saveMutation.mutate(state);
+		runSubmit(
+			event,
+			() => validateRequired([{ field: "name", label: "Name", value: state.name }]),
+			() => saveMutation.mutate(state)
+		);
 	};
 
 	const groupOptions = [

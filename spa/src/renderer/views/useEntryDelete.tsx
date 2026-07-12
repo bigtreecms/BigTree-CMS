@@ -52,10 +52,7 @@ export const useEntryDelete = (moduleId: string, viewId: string) => {
 
 	const dialog = deleteDialog.item ? (
 		<ConfirmDialog
-			open={deleteDialog.isOpen}
-			onOpenChange={(v) => {
-				if (!v) deleteDialog.close();
-			}}
+			{...deleteDialog.dialogProps}
 			title={isPending ? "Delete pending entry?" : "Delete entry?"}
 			description={
 				isPending

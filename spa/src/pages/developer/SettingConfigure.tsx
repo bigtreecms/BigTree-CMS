@@ -138,8 +138,7 @@ export const SettingConfigure = () => {
 					? "Edit the definition. Values are edited from the user-facing Settings list."
 					: "Define a new setting. The value-editor opens after creation."
 			}
-			loading={isEdit && detailQ.isLoading}
-			queryError={isEdit ? detailQ.error : undefined}
+			detailQuery={detailQ}
 			error={error}
 			isDirty={isDirty}
 			onSubmit={(e) =>

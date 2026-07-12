@@ -14,9 +14,8 @@ import {
 } from "@/api/endpoints/modules";
 import { fieldTypesApi, fieldTypesForUseCase } from "@/api/endpoints/field-types";
 
-import { useScrollToFirstError } from "@/hooks/useScrollToFirstError";
 import { dbTablesQueryKey } from "@/hooks/useDbTables";
-import { applyApiFieldErrors } from "@/lib/errorHandling";
+import { useFormSubmit } from "@/hooks/useFormSubmit";
 import { toast } from "@/lib/toast";
 import { validateRequired } from "@/lib/formValidation";
 import { queryKeys } from "@/lib/queryKeys";
@@ -65,9 +64,12 @@ export const ModuleBuilderWizard = () => {
 	const [actions, setActions] = useState({ approve: false, feature: false, archive: false });
 	const [rows, setRows] = useState<FieldRow[]>(() => [newRow()]);
 
-	const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
-	useScrollToFirstError(fieldErrors);
-	const [generalError, setGeneralError] = useState<string | null>(null);
+	const {
+		error: generalError,
+		fieldErrors,
+		handleSubmit: runSubmit,
+		onMutationError,
+	} = useFormSubmit({ requiredMessage: "Please fix the highlighted fields." });
 
 	const groupsQ = useQuery({
 		queryKey: queryKeys.moduleGroups.list(),
@@ -95,13 +97,7 @@ export const ModuleBuilderWizard = () => {
 			});
 			navigate(moduleDetailPath(mod.id), { replace: true });
 		},
-		onError: (err) => {
-			applyApiFieldErrors(err, {
-				setFieldErrors,
-				setError: setGeneralError,
-				fallback: "Build failed",
-			});
-		},
+		onError: (err) => onMutationError(err, "Build failed"),
 	});
 
 	const setRow = (uid: number, patch: Partial<FieldRow>) => {
@@ -115,51 +111,52 @@ export const ModuleBuilderWizard = () => {
 	};
 
 	const handleSubmit = (event: React.FormEvent) => {
-		event.preventDefault();
-
 		if (scaffoldMutation.isPending) {
-			return;
-		}
-
-		const errors = validateRequired([
-			{ field: "name", label: "Name", value: name },
-			{ field: "table", label: "Table name", value: table },
-		]);
-
-		if (!errors.table && table.trim() && !/^[A-Za-z0-9_]+$/.test(table.trim())) {
-			errors.table = "Only letters, numbers, and underscores.";
-		}
-
-		const cleanFields: ModuleScaffoldField[] = rows
-			.map((r) => ({ title: r.title.trim(), type: r.type }))
-			.filter((r) => r.title.length > 0);
-
-		if (cleanFields.length === 0) {
-			errors.fields = "Add at least one field with a title.";
-		}
-
-		if (Object.keys(errors).length > 0) {
-			setFieldErrors(errors);
-			setGeneralError("Please fix the highlighted fields.");
+			event.preventDefault();
 
 			return;
 		}
 
-		setGeneralError(null);
-		setFieldErrors({});
-		scaffoldMutation.mutate({
-			name: name.trim(),
-			table: table.trim(),
-			fields: cleanFields,
-			group: group || null,
-			route: route.trim() || undefined,
-			icon: icon || undefined,
-			class: className.trim() || undefined,
-			item_title: itemTitle.trim() || undefined,
-			view_title: viewTitle.trim() || undefined,
-			view_type: viewType,
-			actions,
-		});
+		runSubmit(
+			event,
+			() => {
+				const errors = validateRequired([
+					{ field: "name", label: "Name", value: name },
+					{ field: "table", label: "Table name", value: table },
+				]);
+
+				if (!errors.table && table.trim() && !/^[A-Za-z0-9_]+$/.test(table.trim())) {
+					errors.table = "Only letters, numbers, and underscores.";
+				}
+
+				const hasField = rows.some((r) => r.title.trim().length > 0);
+
+				if (!hasField) {
+					errors.fields = "Add at least one field with a title.";
+				}
+
+				return errors;
+			},
+			() => {
+				const cleanFields: ModuleScaffoldField[] = rows
+					.map((r) => ({ title: r.title.trim(), type: r.type }))
+					.filter((r) => r.title.length > 0);
+
+				scaffoldMutation.mutate({
+					name: name.trim(),
+					table: table.trim(),
+					fields: cleanFields,
+					group: group || null,
+					route: route.trim() || undefined,
+					icon: icon || undefined,
+					class: className.trim() || undefined,
+					item_title: itemTitle.trim() || undefined,
+					view_title: viewTitle.trim() || undefined,
+					view_type: viewType,
+					actions,
+				});
+			}
+		);
 	};
 
 	const groupOptions = [

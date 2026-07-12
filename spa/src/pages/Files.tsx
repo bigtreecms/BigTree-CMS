@@ -394,12 +394,7 @@ export const Files = () => {
 
 			{deleteFolderDialog.item && (
 				<ConfirmDialog
-					open={deleteFolderDialog.isOpen}
-					onOpenChange={(open) => {
-						if (!open) {
-							deleteFolderDialog.close();
-						}
-					}}
+					{...deleteFolderDialog.dialogProps}
 					title={`Delete "${deleteFolderDialog.item.name}"?`}
 					description="Subfolders and files inside this folder will be moved up one level — they won't be deleted. This action cannot be undone."
 					confirmLabel="Delete folder"

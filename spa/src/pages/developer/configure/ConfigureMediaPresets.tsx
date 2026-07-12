@@ -115,15 +115,15 @@ export const ConfigureMediaPresets = () => {
 									onChange={(e) => update(p.id, { name: e.target.value })}
 								/>
 
-								<button
-									type="button"
-									onClick={() => deleteDialog.open(p.id)}
-									className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface-2 p-2 text-text-3 hover:bg-hover hover:text-danger"
+								<IconButton
+									label="Delete preset"
 									title="Delete preset"
-									aria-label="Delete preset"
+									tone="danger"
+									className="border border-border bg-surface-2 p-2"
+									onClick={() => deleteDialog.open(p.id)}
 								>
 									<Trash size={13} />
-								</button>
+								</IconButton>
 							</div>
 
 							{isOpen && (
@@ -155,12 +155,7 @@ export const ConfigureMediaPresets = () => {
 
 			{deleteDialog.item && (
 				<ConfirmDialog
-					open={deleteDialog.isOpen}
-					onOpenChange={(open) => {
-						if (!open) {
-							deleteDialog.close();
-						}
-					}}
+					{...deleteDialog.dialogProps}
 					title="Delete this preset?"
 					description="Image fields referencing it will fall back to their inline settings."
 					confirmLabel="Delete"

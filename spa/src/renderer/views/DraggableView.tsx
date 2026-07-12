@@ -1,6 +1,4 @@
 import { useEffect, useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
-import { useToastMutation } from "@/hooks/useToastMutation";
 
 import { Card } from "@/components/ui/Card";
 import { DragHandle } from "@/components/ui/DragHandle";
@@ -9,8 +7,7 @@ import { QueryRenderer } from "@/components/ui/QueryRenderer";
 import { SearchInput } from "@/components/ui/SearchInput";
 import { Toolbar } from "@/components/ui/Toolbar";
 
-import { autoModulesApi, type ModuleEntryRow } from "@/api/endpoints/auto-modules";
-import { queryKeys } from "@/lib/queryKeys";
+import type { ModuleEntryRow } from "@/api/endpoints/auto-modules";
 import type { ModuleView } from "@/api/endpoints/modules";
 import { useDragReorder } from "@/hooks/useDragReorder";
 
@@ -19,6 +16,7 @@ import { ViewStatusBadge } from "./ViewStatusBadge";
 import { ViewRowCells } from "./ViewRowCells";
 import { RowActions } from "./RowActions";
 import { useEntryDelete } from "./useEntryDelete";
+import { useModuleEntryReorder } from "./useModuleEntryReorder";
 import { useModuleEntryLinks } from "@/pages/ModuleLayout";
 import { useModuleEntries } from "./useModuleEntries";
 
@@ -47,7 +45,6 @@ interface DraggableRow {
 
 export const DraggableView = ({ moduleId, view }: DraggableViewProps) => {
 	const { editPath, actionPath } = useModuleEntryLinks();
-	const queryClient = useQueryClient();
 	const [localRows, setLocalRows] = useState<DraggableRow[] | null>(null);
 	const { requestDelete, dialog: deleteDialog } = useEntryDelete(moduleId, view.id);
 	const { query, setQuery, debouncedQuery, builtins, custom, fieldColumns, listQuery, openEdit } =
@@ -63,15 +60,7 @@ export const DraggableView = ({ moduleId, view }: DraggableViewProps) => {
 
 	const rows = localRows ?? [];
 
-	const reorderMutation = useToastMutation({
-		mutationFn: (ids: Array<string | number>) => autoModulesApi.reorder(moduleId, ids, view.id),
-		errorMessage: "Couldn't save the new order",
-		onError: () =>
-			// Refetch to restore the server's truth.
-			queryClient.invalidateQueries({
-				queryKey: queryKeys.moduleEntries.view(moduleId, view.id),
-			}),
-	});
+	const reorderMutation = useModuleEntryReorder(moduleId, view.id);
 
 	const drag = useDragReorder<DraggableRow, string | number>(
 		rows,

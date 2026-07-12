@@ -1,4 +1,4 @@
-import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
+import { useState, type Dispatch, type SetStateAction } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
 	useMutation,
@@ -11,6 +11,7 @@ import {
 import { toast } from "@/lib/toast";
 import { useDirtyTracker } from "@/hooks/useDirtyTracker";
 import { useReturnTo } from "@/hooks/useReturnTo";
+import { useSeededState } from "@/hooks/useSeededState";
 
 export interface UseResourceEditorOptions<TData, TBody> {
 	/** List view the id-missing redirect and post-save `useReturnTo` fall back to. */
@@ -78,17 +79,13 @@ export const useResourceEditor = <TData, TBody extends object>(
 	});
 
 	const [body, setBody] = useState<TBody>(options.initialBody);
-	const [seeded, setSeeded] = useState(isAdd);
 
-	useEffect(() => {
-		if (!isAdd && detailQ.data) {
-			setBody(options.seed(detailQ.data, idParam as string));
-			setSeeded(true);
-		}
-		// Re-seed only when the loaded record changes, not when the inline `seed`
-		// closure gets a new identity each render (that would loop).
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [isAdd, detailQ.data]);
+	// Seed once from the detail query; `useSeededState` holds the latest `seed`
+	// via a ref so a new options.seed identity each render doesn't re-run.
+	const seededFromData = useSeededState(!isAdd ? detailQ.data : undefined, (data) => {
+		setBody(options.seed(data, idParam as string));
+	});
+	const seeded = isAdd || seededFromData;
 
 	const saveMutation = useMutation({
 		mutationFn: (next: TBody) =>

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 import { useOAuthRedirectResult } from "@/hooks/useOAuthRedirectResult";
 import { useToastMutation } from "@/hooks/useToastMutation";
@@ -16,7 +16,6 @@ import { Card } from "@/components/ui/Card";
 
 import { configureApi, type ServiceCredentials } from "@/api/endpoints/configure";
 
-import { describeApiError } from "@/lib/errorHandling";
 import { toast } from "@/lib/toast";
 import { queryKeys } from "@/lib/queryKeys";
 
@@ -113,15 +112,13 @@ export const ConfigureServices = () => {
 		},
 	});
 
-	const connectMutation = useMutation({
+	const connectMutation = useToastMutation({
 		mutationFn: ({ service, body }: { service: string; body: Draft }) =>
 			configureApi.services.startOAuth(service, body),
+		errorMessage: "Could not start the connection",
 		onSuccess: ({ launch_url }) => {
 			// Full-page navigation into the provider handshake; it returns to this screen.
 			window.location.href = launch_url;
-		},
-		onError: (err) => {
-			toast.error(describeApiError(err, "Could not start the connection"));
 		},
 	});
 
@@ -282,12 +279,7 @@ export const ConfigureServices = () => {
 
 			{disconnectDialog.item && (
 				<ConfirmDialog
-					open={disconnectDialog.isOpen}
-					onOpenChange={(open) => {
-						if (!open) {
-							disconnectDialog.close();
-						}
-					}}
+					{...disconnectDialog.dialogProps}
 					title="Disconnect this service?"
 					description="Any module fields that pull from this service will stop working until reconnected."
 					confirmLabel="Disconnect"

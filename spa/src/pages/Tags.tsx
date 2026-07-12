@@ -180,12 +180,7 @@ export const Tags = () => {
 
 			{deleteDialog.item && (
 				<ConfirmDialog
-					open={deleteDialog.isOpen}
-					onOpenChange={(open) => {
-						if (!open) {
-							deleteDialog.close();
-						}
-					}}
+					{...deleteDialog.dialogProps}
 					title={`Delete “${deleteDialog.item.tag}”?`}
 					description={
 						deleteDialog.item.usage_count > 0

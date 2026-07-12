@@ -14,6 +14,7 @@ import type { ModuleFormField } from "@/api/endpoints/modules";
 import { useDesignerSubmit } from "@/components/developer/useDesignerSubmit";
 
 import { queryKeys } from "@/lib/queryKeys";
+import { developerEditPath } from "@/lib/routes";
 import { useResourceEditor } from "@/hooks/useResourceEditor";
 
 import { SelectField } from "@/components/ui/SelectField";
@@ -64,7 +65,7 @@ export const FeedEdit = () => {
 		create: (next) => feedsApi.create(next),
 		update: (id, next) => feedsApi.update(id, next),
 		invalidateKey: queryKeys.feeds.root(),
-		editPath: (id) => `/developer/feeds/${encodeURIComponent(id)}/edit`,
+		editPath: (id) => developerEditPath("feeds", id),
 		onError: (err) => submit.onMutationError(err, "Save failed"),
 	});
 
@@ -87,8 +88,7 @@ export const FeedEdit = () => {
 			listPath="/developer/feeds"
 			isAdd={isAdd}
 			title={title}
-			loading={!isAdd && detailQ.isLoading}
-			queryError={isAdd ? undefined : detailQ.error}
+			detailQuery={detailQ}
 			error={submit.error}
 			isDirty={isDirty}
 			formShellBounded={false}

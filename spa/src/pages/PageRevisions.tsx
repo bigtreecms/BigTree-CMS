@@ -4,7 +4,7 @@ import { Navigate, useParams } from "react-router-dom";
 import { ChevronLeft, RotateCcw, Save, Trash } from "lucide-react";
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
-import { pageEditPath } from "@/lib/routes";
+import { pageEditPath, pagePath } from "@/lib/routes";
 import { PageHead } from "@/components/shell/PageHead";
 import { PageContainer } from "@/components/shell/PageContainer";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
@@ -116,7 +116,7 @@ export const PageRevisions = () => {
 
 	const breadcrumbs = [
 		{ label: "Pages", to: "/pages" },
-		...lineage.map((p) => ({ label: p.nav_title, to: `/pages/${p.id}` })),
+		...lineage.map((p) => ({ label: p.nav_title, to: pagePath(p.id) })),
 		{ label: page.nav_title || "Page", to: pageEditPath(page.id) },
 		{ label: "Revisions" },
 	];
@@ -182,12 +182,7 @@ export const PageRevisions = () => {
 
 			{deleteDialog.item && (
 				<ConfirmDialog
-					open={deleteDialog.isOpen}
-					onOpenChange={(open) => {
-						if (!open) {
-							deleteDialog.close();
-						}
-					}}
+					{...deleteDialog.dialogProps}
 					title="Delete revision?"
 					description={`This will permanently remove the snapshot from ${deleteDialog.item.updated_at}.`}
 					confirmLabel="Delete revision"
@@ -198,12 +193,7 @@ export const PageRevisions = () => {
 
 			{restoreDialog.item && (
 				<ConfirmDialog
-					open={restoreDialog.isOpen}
-					onOpenChange={(open) => {
-						if (!open) {
-							restoreDialog.close();
-						}
-					}}
+					{...restoreDialog.dialogProps}
 					title="Restore this revision?"
 					description={`The live page will be overwritten with the version from ${restoreDialog.item.updated_at}. The current version is snapshotted first, so you can undo this.`}
 					confirmLabel="Restore revision"

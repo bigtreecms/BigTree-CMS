@@ -16,7 +16,7 @@ import { isPendingResult, pagesApi, type PageEditBody } from "@/api/endpoints/pa
 import { resourceToFormField, templatesApi } from "@/api/endpoints/templates";
 import type { Tag } from "@/api/endpoints/tags";
 
-import { isFieldRequired, isFieldValueEmpty } from "@/renderer/forms/validation";
+import { validateRequiredFields } from "@/renderer/forms/validation";
 
 import { useAuthStore } from "@/auth/store";
 import { canPublishPage, isAdmin } from "@/lib/permissions";
@@ -24,6 +24,7 @@ import { toast } from "@/lib/toast";
 import { queryKeys } from "@/lib/queryKeys";
 import { useFormSubmit } from "@/hooks/useFormSubmit";
 import { useDirtyTracker } from "@/hooks/useDirtyTracker";
+import { pagePath } from "@/lib/routes";
 import { UnsavedChangesGuard } from "@/components/ui/UnsavedChangesGuard";
 
 import { PageTabStrip, type PageTabValue } from "@/components/pages/PageTabStrip";
@@ -140,7 +141,7 @@ export const PageAdd = () => {
 			// a create back to the parent's view-tree.
 			const from = (location.state as { from?: string } | null)?.from;
 
-			navigate(from ?? (parent > 0 ? `/pages/${parent}` : "/pages"));
+			navigate(from ?? (parent > 0 ? pagePath(parent) : "/pages"));
 		},
 		onError: (err) => onMutationError(err, "Create failed"),
 	});
@@ -155,20 +156,12 @@ export const PageAdd = () => {
 		}
 
 		const resourceValues = (body.resources ?? {}) as Record<string, unknown>;
-		const resourceErrors: Record<string, string> = {};
-
-		if (!templateDisabled) {
-			for (const resource of templateQuery.data?.resources ?? []) {
-				const field = resourceToFormField(resource);
-
-				if (
-					isFieldRequired(field) &&
-					isFieldValueEmpty(field, resourceValues[field.column])
-				) {
-					resourceErrors[field.column] = `${field.title || field.column} is required.`;
-				}
-			}
-		}
+		const resourceErrors = !templateDisabled
+			? validateRequiredFields(
+					(templateQuery.data?.resources ?? []).map(resourceToFormField),
+					resourceValues
+				)
+			: {};
 
 		if (Object.keys(resourceErrors).length > 0) {
 			setFieldErrors(resourceErrors);
@@ -197,7 +190,7 @@ export const PageAdd = () => {
 
 	const breadcrumbs = [
 		{ label: "Pages", to: "/pages" },
-		...lineage.map((p) => ({ label: p.nav_title, to: `/pages/${p.id}` })),
+		...lineage.map((p) => ({ label: p.nav_title, to: pagePath(p.id) })),
 		{ label: "Add subpage" },
 	];
 
@@ -215,7 +208,7 @@ export const PageAdd = () => {
 				title={body.nav_title?.trim() || "New subpage"}
 				sub="Configure properties, then add content, SEO, and sharing metadata."
 				actions={
-					<Button icon={<X size={13} />} to={`/pages/${parent}`}>
+					<Button icon={<X size={13} />} to={parent > 0 ? pagePath(parent) : "/pages"}>
 						Cancel
 					</Button>
 				}
