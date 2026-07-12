@@ -121,6 +121,59 @@ export const columnToFormField = (column: RepeaterColumn): ModuleFormField => ({
 	settings: normalizeColumnSettings(column.settings),
 });
 
+/** Stored fallback keys the legacy admin computed for a collapsed row's summary. */
+export const TITLE_KEY = "__internal-title";
+export const SUBTITLE_KEY = "__internal-subtitle";
+
+/**
+ * Derive the display title + subtitle for a collapsed repeater/gallery row —
+ * the identical algorithm `MatrixField` and `MediaGalleryField` each inlined.
+ * Any column flagged `display_title` contributes: first contributor wins the
+ * title slot, second wins the subtitle slot. Stored `__internal-title` /
+ * `__internal-subtitle` keys act as a fallback so unchanged rows keep showing
+ * whatever the server computed last. `getValue` reads a column's cell out of the
+ * row (default `d[id]`; MediaGallery stores its extras under `d.info`).
+ */
+export const deriveRepeaterSummary = <T extends Record<string, unknown>>(
+	data: T,
+	columns: RepeaterColumn[],
+	getValue: (data: T, columnId: string) => unknown = (d, id) => d[id]
+): { title: string; subtitle: string } => {
+	let title = "";
+	let subtitle = "";
+
+	for (const col of columns) {
+		if (!isTruthyFlag(col.display_title)) {
+			continue;
+		}
+
+		const raw = getValue(data, col.id);
+
+		if (raw == null || raw === "") {
+			continue;
+		}
+
+		const text = stringifyForTitle(raw);
+
+		if (!title) {
+			title = text;
+		} else if (!subtitle) {
+			subtitle = text;
+			break;
+		}
+	}
+
+	if (!title && typeof data[TITLE_KEY] === "string") {
+		title = String(data[TITLE_KEY]);
+	}
+
+	if (!subtitle && typeof data[SUBTITLE_KEY] === "string") {
+		subtitle = String(data[SUBTITLE_KEY]);
+	}
+
+	return { title, subtitle };
+};
+
 /** A single entry of a static `settings.list` (BigTree's legacy list shape). */
 export interface StaticListItem {
 	key?: string;

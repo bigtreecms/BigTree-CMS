@@ -4,11 +4,9 @@ import { useQuery } from "@tanstack/react-query";
 import { Trash2 } from "lucide-react";
 
 import { DebugLayout } from "@/components/developer/DebugLayout";
-import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { Button } from "@/components/ui/Button";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { SectionLabel } from "@/components/ui/SectionLabel";
-import { LoadingText } from "@/components/ui/LoadingText";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 
 import { systemApi } from "@/api/endpoints/system";
@@ -76,16 +74,13 @@ export const DebugStatus = () => {
 					Clear cache
 				</Button>
 			}
+			query={statusQ}
 		>
 			<p className="mb-5 text-[12.5px] text-text-3">
 				Critical errors appear in <span className="font-semibold text-danger">red</span>,
 				warnings appear in <span className="font-semibold text-warn">yellow</span>, and
 				successes appear in <span className="font-semibold text-success">green</span>.
 			</p>
-
-			{statusQ.isLoading && <LoadingText />}
-
-			{statusQ.error && <ErrorPanel error={statusQ.error} />}
 
 			{data && (
 				<>

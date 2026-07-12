@@ -97,13 +97,9 @@ export const FolderEditor = ({
 			width="sm"
 			footer={
 				<div className="flex justify-end gap-2">
-					<button
-						type="button"
-						className="rounded-md border border-border px-3 py-1.5 text-[12.5px] hover:bg-hover"
-						onClick={() => onOpenChange(false)}
-					>
+					<Button variant="secondary" onClick={() => onOpenChange(false)}>
 						Cancel
-					</button>
+					</Button>
 					<Button variant="primary" disabled={!valid || pending} onClick={submit}>
 						{pending ? "Saving…" : isRename ? "Rename" : "Create"}
 					</Button>

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Crop, ImageIcon, Images, Search, Upload as UploadIcon, X } from "lucide-react";
 
 import { ResourcePicker } from "@/components/files/ResourcePicker";
@@ -8,20 +8,11 @@ import { IconButton } from "@/components/ui/IconButton";
 import { SectionLabel } from "@/components/ui/SectionLabel";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 
-import {
-	IMAGE_PROCESS_PATH,
-	imagesApi,
-	type PendingCrop,
-	type ProcessImageResult,
-	type ReprocessSource,
-} from "@/api/endpoints/images";
-import { useLatestUpload } from "@/hooks/useLatestUpload";
-import { useUploads } from "@/hooks/useUploads";
-import { describeApiError } from "@/lib/errorHandling";
 import { expandImageUrl } from "@/lib/imageUrl";
 
 import { FieldCropModal } from "./FieldCropModal";
 import { toInt } from "./fieldHelpers";
+import { useImageFieldProcessing } from "./useImageFieldProcessing";
 import { settingsOf, type FieldComponentProps } from "./types";
 
 /**
@@ -64,43 +55,10 @@ export const ImageField = ({ field, value, onChange, disabled }: FieldComponentP
 	const inputRef = useRef<HTMLInputElement>(null);
 	const [pickerOpen, setPickerOpen] = useState(false);
 	const [error, setError] = useState<string | null>(null);
-	const [reprocessing, setReprocessing] = useState(false);
 	const [showCrops, setShowCrops] = useState(false);
-	const [cropState, setCropState] = useState<{ file: string; crops: PendingCrop[] } | null>(null);
-	const { items, enqueue } = useUploads();
 
-	// The settings the server needs to apply the field's crops. Sent verbatim;
-	// the backend reads the keys it cares about (crops/thumbs/center_crops/
-	// directory/min_*/preset/retina) and ignores UI-only ones.
-	const processSettings = useMemo(() => JSON.stringify(settings), [settings]);
-
-	const applyResult = useCallback(
-		(result: ProcessImageResult | undefined) => {
-			if (!result?.file) {
-				setError("The server did not return a processed image.");
-
-				return;
-			}
-
-			setError(null);
-
-			// Defer committing the new image until any manual crops are finalized.
-			// If the user cancels the cropper, nothing was changed, so the
-			// previously selected image (or empty state) is left intact.
-			if (result.pending_crops.length > 0) {
-				setCropState({ file: result.file, crops: result.pending_crops });
-			} else {
-				onChange(result.file);
-			}
-		},
-		[onChange]
-	);
-
-	// Drain finished uploads (done → set value + maybe open cropper; error → surface).
-	const { inFlight } = useLatestUpload(items, {
-		onDone: (item) => applyResult(item.result as ProcessImageResult | undefined),
-		onError: (item) => setError(item.error ?? "Upload failed."),
-	});
+	const { inFlight, reprocessing, enqueueFile, reprocess, cropModalProps } =
+		useImageFieldProcessing(settings, { onCommit: onChange, onError: setError });
 
 	const busy = disabled || Boolean(inFlight) || reprocessing;
 
@@ -112,25 +70,7 @@ export const ImageField = ({ field, value, onChange, disabled }: FieldComponentP
 		}
 
 		setError(null);
-		enqueue([first], { path: IMAGE_PROCESS_PATH, extra: { settings: processSettings } });
-	};
-
-	const runReprocess = async (source: ReprocessSource) => {
-		if (busy) {
-			return;
-		}
-
-		setReprocessing(true);
-		setError(null);
-
-		try {
-			const result = await imagesApi.reprocess(source, settings as Record<string, unknown>);
-			applyResult(result);
-		} catch (err) {
-			setError(describeApiError(err, "Could not process the image."));
-		} finally {
-			setReprocessing(false);
-		}
+		enqueueFile(first);
 	};
 
 	const currentPath = typeof value === "string" && value.length > 0 ? value : null;
@@ -172,7 +112,7 @@ export const ImageField = ({ field, value, onChange, disabled }: FieldComponentP
 					<Button
 						variant="secondary"
 						icon={<Crop size={13} />}
-						onClick={() => runReprocess({ file: currentPath, in_place: true })}
+						onClick={() => reprocess({ file: currentPath, in_place: true })}
 						disabled={busy}
 					>
 						Choose new crops
@@ -292,22 +232,10 @@ export const ImageField = ({ field, value, onChange, disabled }: FieldComponentP
 				type="image"
 				minWidth={minWidth}
 				minHeight={minHeight}
-				onSelect={(resource) => runReprocess({ resource_id: resource.id })}
+				onSelect={(resource) => reprocess({ resource_id: resource.id })}
 			/>
 
-			<FieldCropModal
-				open={Boolean(cropState)}
-				file={cropState?.file ?? ""}
-				crops={cropState?.crops ?? []}
-				onComplete={() => {
-					if (cropState) {
-						onChange(cropState.file);
-					}
-
-					setCropState(null);
-				}}
-				onCancel={() => setCropState(null)}
-			/>
+			<FieldCropModal {...cropModalProps} />
 		</div>
 	);
 };

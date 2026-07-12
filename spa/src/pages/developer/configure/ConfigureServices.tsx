@@ -11,9 +11,7 @@ import { Checkbox } from "@/components/ui/Checkbox";
 import { DisclosureToggle } from "@/components/ui/DisclosureToggle";
 import { TextInput } from "@/components/ui/TextInput";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
-import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { Field } from "@/components/ui/Field";
-import { LoadingText } from "@/components/ui/LoadingText";
 import { Card } from "@/components/ui/Card";
 
 import { configureApi, type ServiceCredentials } from "@/api/endpoints/configure";
@@ -149,11 +147,8 @@ export const ConfigureServices = () => {
 		<ConfigureLayout
 			title="Services"
 			sub="Third-party social / business integrations. Enter each provider's credentials and connect — the OAuth handshake returns you here."
+			query={detailQ}
 		>
-			{detailQ.isLoading && <LoadingText />}
-
-			{detailQ.error && <ErrorPanel error={detailQ.error} />}
-
 			{detailQ.data && (
 				<div className="space-y-3">
 					{SERVICES.map((s) => {

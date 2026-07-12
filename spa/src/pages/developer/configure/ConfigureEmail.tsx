@@ -3,7 +3,6 @@ import { Save } from "lucide-react";
 
 import { ConfigureLayout } from "@/components/developer/ConfigureLayout";
 import { Button } from "@/components/ui/Button";
-import { LoadingText } from "@/components/ui/LoadingText";
 import { TextInput } from "@/components/ui/TextInput";
 import { Field } from "@/components/ui/Field";
 import { SelectField } from "@/components/ui/SelectField";
@@ -13,7 +12,7 @@ import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { configureApi, type EmailConfig, type EmailServiceId } from "@/api/endpoints/configure";
 
 import { queryKeys } from "@/lib/queryKeys";
-import { useConfigDraft } from "@/hooks/useConfigDraft";
+import { useServiceSettingsDraft } from "./useServiceSettingsDraft";
 
 const SERVICES: Array<{ id: EmailServiceId; label: string; blurb: string }> = [
 	{
@@ -29,25 +28,18 @@ const SERVICES: Array<{ id: EmailServiceId; label: string; blurb: string }> = [
 ];
 
 export const ConfigureEmail = () => {
-	const { detailQ, draft, setDraft, generalError, saveMutation } = useConfigDraft({
-		queryKey: queryKeys.configure.email(),
-		queryFn: () => configureApi.email.get(),
-		seed: (data: EmailConfig) => ({
-			service: data.service ?? "local",
-			settings: { ...(data.settings ?? {}) },
-		}),
-		save: (next: EmailConfig) => configureApi.email.update(next),
-		successMessage: "Email service updated",
-		errorMessage: "Could not save email config",
-	});
-
-	const onChange = (key: string, value: string) => {
-		if (!draft) {
-			return;
-		}
-
-		setDraft({ ...draft, settings: { ...draft.settings, [key]: value } });
-	};
+	const { detailQ, draft, setDraft, generalError, saveMutation, onChange, onSubmit } =
+		useServiceSettingsDraft({
+			queryKey: queryKeys.configure.email(),
+			queryFn: () => configureApi.email.get(),
+			seed: (data: EmailConfig) => ({
+				service: data.service ?? "local",
+				settings: { ...(data.settings ?? {}) },
+			}),
+			save: (next: EmailConfig) => configureApi.email.update(next),
+			successMessage: "Email service updated",
+			errorMessage: "Could not save email config",
+		});
 
 	const onChangeService = (service: EmailServiceId) => {
 		if (!draft) {
@@ -55,16 +47,6 @@ export const ConfigureEmail = () => {
 		}
 
 		setDraft({ ...draft, service });
-	};
-
-	const onSubmit = (e: React.FormEvent) => {
-		e.preventDefault();
-
-		if (!draft) {
-			return;
-		}
-
-		saveMutation.mutate(draft);
 	};
 
 	const active = useMemo(
@@ -76,11 +58,8 @@ export const ConfigureEmail = () => {
 		<ConfigureLayout
 			title="Email"
 			sub="Picks the delivery service BigTree uses for password resets, daily digests, and EmailService::sendEmail() calls."
+			query={detailQ}
 		>
-			{detailQ.isLoading && <LoadingText />}
-
-			{detailQ.error && <ErrorPanel error={detailQ.error} />}
-
 			{draft && (
 				<FormShell
 					onSubmit={onSubmit}

@@ -6,8 +6,6 @@ import { ConfigureLayout } from "@/components/developer/ConfigureLayout";
 import { Button } from "@/components/ui/Button";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { TextInput } from "@/components/ui/TextInput";
-import { ErrorPanel } from "@/components/ui/ErrorPanel";
-import { LoadingText } from "@/components/ui/LoadingText";
 import { Field } from "@/components/ui/Field";
 import { UploadButton } from "@/components/ui/UploadButton";
 import { Card } from "@/components/ui/Card";
@@ -70,11 +68,8 @@ export const ConfigureAnalytics = () => {
 		<ConfigureLayout
 			title="Analytics"
 			sub="Google Analytics 4 service-account hookup that powers the dashboard's traffic chart."
+			query={detailQ}
 		>
-			{detailQ.isLoading && <LoadingText />}
-
-			{detailQ.error && <ErrorPanel error={detailQ.error} />}
-
 			{detailQ.data && (
 				<Card className="p-4">
 					{detailQ.data.verified ? (

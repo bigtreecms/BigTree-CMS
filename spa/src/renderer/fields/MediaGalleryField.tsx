@@ -1,12 +1,10 @@
-import { useCallback, useId, useMemo, useRef, useState } from "react";
+import { useId, useMemo, useRef, useState } from "react";
 import { useToastMutation } from "@/hooks/useToastMutation";
 import {
 	ChevronRight,
-	GripVertical,
 	Image as ImageIcon,
 	Plus,
 	Search,
-	Trash,
 	Upload as UploadIcon,
 	Video as VideoIcon,
 } from "lucide-react";
@@ -14,29 +12,25 @@ import {
 import { UPLOAD_PATH, resourcesApi, type ResourceDetail } from "@/api/endpoints/resources";
 import {
 	IMAGE_PROCESS_PATH,
-	imagesApi,
 	type PendingCrop,
 	type ProcessImageResult,
 } from "@/api/endpoints/images";
 import { ResourcePicker } from "@/components/files/ResourcePicker";
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { IconButton } from "@/components/ui/IconButton";
 import { Field } from "@/components/ui/Field";
 import { TextInput } from "@/components/ui/TextInput";
 import { useLatestUpload } from "@/hooks/useLatestUpload";
 import { useRepeaterRows, type RepeaterRow } from "@/hooks/useRepeaterRows";
 import { useUploads } from "@/hooks/useUploads";
-import { describeApiError } from "@/lib/errorHandling";
 import { expandImageUrl } from "@/lib/imageUrl";
 import { toast } from "@/lib/toast";
 
-import { FieldRenderer } from "@/renderer/forms/FieldRenderer";
-import { FieldRow } from "@/renderer/forms/FieldRow";
-
-import { CollapsibleRowHeader } from "./CollapsibleRowHeader";
 import { FieldCropModal } from "./FieldCropModal";
-import { columnToFormField, isTruthyFlag, stringifyForTitle, toInt } from "./fieldHelpers";
+import { deriveRepeaterSummary, isTruthyFlag, toInt } from "./fieldHelpers";
+import { RepeaterColumnFields } from "./RepeaterColumnFields";
+import { RepeaterRowShell } from "./RepeaterRowShell";
+import { useImageFieldProcessing } from "./useImageFieldProcessing";
 import { settingsOf, type FieldComponentProps } from "./types";
 
 /**
@@ -109,9 +103,6 @@ interface MediaItemData {
 }
 
 type MediaItem = RepeaterRow<MediaItemData>;
-
-const TITLE_KEY = "__internal-title";
-const SUBTITLE_KEY = "__internal-subtitle";
 
 const buildPreviewUrl = (
 	path: string | undefined,
@@ -295,21 +286,30 @@ const MediaItemRow = ({
 	const isVideo = data.type === "video";
 	const previewUrl = buildPreviewUrl(data.image, previewSettings, isVideo);
 	const fullUrl = expandImageUrl(data.image);
-	const summary = useMemo(() => deriveSummary(data, columns), [data, columns]);
+	const summary = useMemo(
+		() => deriveRepeaterSummary(data, columns, (d, id) => (d.info ?? {})[id]),
+		[data, columns]
+	);
 	const titleText = summary.title || (isVideo ? `Video #${index + 1}` : `Photo #${index + 1}`);
 
 	return (
-		<li className="rounded-md border border-border bg-surface">
-			<div className="flex items-stretch gap-2 p-2">
-				<IconButton
-					label="Move up"
-					title="Move up"
-					onClick={() => onMove("up")}
-					disabled={disabled || index === 0}
-				>
-					<GripVertical size={13} />
-				</IconButton>
-
+		<RepeaterRowShell
+			index={index}
+			total={total}
+			expanded={expanded}
+			onToggle={onToggle}
+			onMove={onMove}
+			onDelete={onDelete}
+			disabled={disabled}
+			panelId={`${idPrefix}-row-${item.uid}`}
+			stacked
+			title={titleText}
+			subtitle={
+				summary.subtitle || data.video?.service
+					? summary.subtitle || String(data.video?.service ?? "")
+					: undefined
+			}
+			leading={
 				<div className="overflow-hidden rounded border border-border bg-surface-2">
 					{previewUrl ? (
 						<img
@@ -331,77 +331,27 @@ const MediaItemRow = ({
 						</div>
 					)}
 				</div>
-
-				<CollapsibleRowHeader
-					open={expanded}
-					onToggle={onToggle}
-					controls={`${idPrefix}-row-${item.uid}`}
-					stacked
-					title={titleText}
-					subtitle={
-						summary.subtitle || data.video?.service
-							? summary.subtitle || String(data.video?.service ?? "")
-							: undefined
-					}
-				/>
-
-				<IconButton
-					label="Delete item"
-					title="Delete item"
-					tone="danger"
-					onClick={onDelete}
-					disabled={disabled}
-				>
-					<Trash size={13} />
-				</IconButton>
-			</div>
-
-			{expanded && (
-				<div
-					id={`${idPrefix}-row-${item.uid}`}
-					className="border-t border-border px-3 pb-1 pt-3"
-				>
-					{isVideo && data.video && (
-						<div className="mb-3 text-[11.5px] text-text-3">
-							{data.video.service} · {data.video.id || data.video.url}
-						</div>
-					)}
-
-					{columns.length === 0 ? (
-						<EmptyState size="sm" dashed>
-							No extra fields configured for this gallery.
-						</EmptyState>
-					) : (
-						columns.map((column) => {
-							const subField = columnToFormField(column);
-
-							return (
-								<FieldRow key={column.id} field={subField}>
-									<FieldRenderer
-										field={subField}
-										value={(data.info ?? {})[column.id]}
-										onChange={(next) => onColumnChange(column.id, next)}
-										disabled={disabled}
-									/>
-								</FieldRow>
-							);
-						})
-					)}
-
-					{index < total - 1 && (
-						<Button
-							variant="secondary"
-							size="sm"
-							className="mb-2"
-							onClick={() => onMove("down")}
-							disabled={disabled}
-						>
-							Move down
-						</Button>
-					)}
+			}
+		>
+			{isVideo && data.video && (
+				<div className="mb-3 text-[11.5px] text-text-3">
+					{data.video.service} · {data.video.id || data.video.url}
 				</div>
 			)}
-		</li>
+
+			{columns.length === 0 ? (
+				<EmptyState size="sm" dashed>
+					No extra fields configured for this gallery.
+				</EmptyState>
+			) : (
+				<RepeaterColumnFields
+					columns={columns}
+					getValue={(id) => (data.info ?? {})[id]}
+					onColumnChange={onColumnChange}
+					disabled={disabled}
+				/>
+			)}
+		</RepeaterRowShell>
 	);
 };
 
@@ -436,39 +386,16 @@ const AddBar = ({
 }: AddBarProps) => {
 	const inputRef = useRef<HTMLInputElement>(null);
 	const [pickerOpen, setPickerOpen] = useState(false);
-	const [reprocessing, setReprocessing] = useState(false);
-	const [cropState, setCropState] = useState<{ file: string; crops: PendingCrop[] } | null>(null);
-	const { items, enqueue } = useUploads();
 
-	// Apply the gallery field's own crop settings (stored under its directory,
-	// not the media library) so photos get the same treatment as the image field.
-	const processSettings = useMemo(() => JSON.stringify(settings), [settings]);
-
-	const applyResult = useCallback(
-		(result: ProcessImageResult | undefined) => {
-			if (!result?.file) {
-				toast.error("The server did not return a processed image.");
-
-				return;
-			}
-
-			// Defer adding the gallery item until any manual crops are finalized.
-			// If the user cancels the cropper, no item is added, so the photo is
-			// not used.
-			if (result.pending_crops.length > 0) {
-				setCropState({ file: result.file, crops: result.pending_crops });
-			} else {
-				onPhotoUploaded(result.file);
-			}
-		},
-		[onPhotoUploaded]
-	);
-
-	// Drain finished uploads (done → add item + maybe crop; error → toast).
-	const { inFlight } = useLatestUpload(items, {
-		onDone: (item) => applyResult(item.result as ProcessImageResult | undefined),
-		onError: (item) => toast.error(item.error ?? "Upload failed."),
-	});
+	const { inFlight, reprocessing, enqueueFile, reprocess, cropModalProps } =
+		useImageFieldProcessing(settings, {
+			onCommit: onPhotoUploaded,
+			onError: (message) => {
+				if (message) {
+					toast.error(message);
+				}
+			},
+		});
 	const busy = Boolean(disabled) || Boolean(inFlight) || reprocessing;
 
 	const handlePick = (files: FileList | null) => {
@@ -478,23 +405,7 @@ const AddBar = ({
 			return;
 		}
 
-		enqueue([first], { path: IMAGE_PROCESS_PATH, extra: { settings: processSettings } });
-	};
-
-	const handleBrowse = async (resource: { id: number }) => {
-		setReprocessing(true);
-
-		try {
-			const result = await imagesApi.reprocess(
-				{ resource_id: resource.id },
-				settings as Record<string, unknown>
-			);
-			applyResult(result);
-		} catch (err) {
-			toast.error(describeApiError(err, "Could not process the image."));
-		} finally {
-			setReprocessing(false);
-		}
+		enqueueFile(first);
 	};
 
 	const showAnyVideo = allowYoutube || allowVimeo;
@@ -578,22 +489,10 @@ const AddBar = ({
 				type="image"
 				minWidth={minWidth}
 				minHeight={minHeight}
-				onSelect={(resource) => handleBrowse(resource)}
+				onSelect={(resource) => reprocess({ resource_id: resource.id })}
 			/>
 
-			<FieldCropModal
-				open={Boolean(cropState)}
-				file={cropState?.file ?? ""}
-				crops={cropState?.crops ?? []}
-				onComplete={() => {
-					if (cropState) {
-						onPhotoUploaded(cropState.file);
-					}
-
-					setCropState(null);
-				}}
-				onCancel={() => setCropState(null)}
-			/>
+			<FieldCropModal {...cropModalProps} />
 		</>
 	);
 };
@@ -854,45 +753,4 @@ const LocalVideoPrompt = ({ settings, onClose, onCreated }: LocalVideoPromptProp
 			/>
 		</div>
 	);
-};
-
-interface ItemSummary {
-	title: string;
-	subtitle: string;
-}
-
-const deriveSummary = (data: MediaItemData, columns: MediaColumn[]): ItemSummary => {
-	let title = "";
-	let subtitle = "";
-
-	for (const col of columns) {
-		if (!isTruthyFlag(col.display_title)) {
-			continue;
-		}
-
-		const raw = (data.info ?? {})[col.id];
-
-		if (raw == null || raw === "") {
-			continue;
-		}
-
-		const text = stringifyForTitle(raw);
-
-		if (!title) {
-			title = text;
-		} else if (!subtitle) {
-			subtitle = text;
-			break;
-		}
-	}
-
-	if (!title && typeof data[TITLE_KEY] === "string") {
-		title = String(data[TITLE_KEY]);
-	}
-
-	if (!subtitle && typeof data[SUBTITLE_KEY] === "string") {
-		subtitle = String(data[SUBTITLE_KEY]);
-	}
-
-	return { title, subtitle };
 };

@@ -1,7 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
 import { useConfirmDialog } from "@/hooks/useConfirmDialog";
-
-import { useScrollToFirstError } from "@/hooks/useScrollToFirstError";
 
 import {
 	modulesApi,
@@ -11,18 +8,12 @@ import {
 } from "@/api/endpoints/modules";
 
 import { FieldGrid } from "@/components/ui/FieldGrid";
-import { SectionLabel } from "@/components/ui/SectionLabel";
-import {
-	ResourceDesigner,
-	toModuleFormFields,
-	type ResourceEntry,
-} from "@/components/developer/ResourceDesigner";
 
 import { DataTableSelect } from "@/components/developer/DataTableSelect";
-import { useResourceSettingsValidation } from "@/components/developer/field-settings/useResourceSettingsValidation";
 
 import { CheckboxInput, TextareaInput, TextInput } from "./inputs";
-import { FormHooksEditor } from "./FormHooksEditor";
+import { ModuleFieldsSection } from "./ModuleFieldsSection";
+import { useModuleFieldsValidation } from "./useModuleFieldsValidation";
 import { AddSubButton, EditorCard, SubDeleteDialog, SubList, SubRow } from "./scaffold";
 import { NEW_ROW, useSubCrud } from "./useSubCrud";
 
@@ -95,28 +86,7 @@ export const ModuleEmbedFormsTab = ({ moduleId, moduleTable }: ModuleEmbedFormsT
 
 	const { draft, setDraft } = crud;
 	const deleteDialog = useConfirmDialog<ModuleEmbedForm>();
-	const [settingsErrors, setSettingsErrors] = useState<Record<number, Record<string, string>>>(
-		{}
-	);
-
-	// Nested settings errors are keyed by resource index; flatten so the
-	// scroll-to-first-error hook can see whether any exist this submit.
-	const flatSettingsErrors = useMemo(
-		() => Object.assign({}, ...Object.values(settingsErrors)) as Record<string, string>,
-		[settingsErrors]
-	);
-
-	useScrollToFirstError(flatSettingsErrors);
-
-	const settingsValidation = useResourceSettingsValidation(
-		draft.fields as unknown as ResourceEntry[],
-		"modules"
-	);
-
-	// Drop stale per-field settings errors whenever a different row opens/closes.
-	useEffect(() => {
-		setSettingsErrors({});
-	}, [crud.editingId]);
+	const { settingsErrors, validate } = useModuleFieldsValidation(draft.fields, crud.editingId);
 
 	const editorTitle = crud.editingId === NEW_ROW ? "New embed form" : "Edit embed form";
 
@@ -149,8 +119,7 @@ export const ModuleEmbedFormsTab = ({ moduleId, moduleTable }: ModuleEmbedFormsT
 					title={editorTitle}
 					onClose={crud.cancel}
 					onSave={() => {
-						const sErrors = settingsValidation.validate();
-						setSettingsErrors(sErrors);
+						const sErrors = validate();
 						crud.save(
 							crud.editingId,
 							toBody(draft),
@@ -215,23 +184,13 @@ export const ModuleEmbedFormsTab = ({ moduleId, moduleTable }: ModuleEmbedFormsT
 						hint="Stylesheet URL or inline CSS applied to the embedded form."
 					/>
 
-					<div>
-						<SectionLabel className="mb-2">Fields</SectionLabel>
-						<ResourceDesigner
-							resources={draft.fields as unknown as ResourceEntry[]}
-							onChange={(next) =>
-								setDraft((p) => ({ ...p, fields: toModuleFormFields(next) }))
-							}
-							keyField="column"
-							useCase="modules"
-							columnsTable={draft.table}
-							settingsErrors={settingsErrors}
-						/>
-					</div>
-
-					<FormHooksEditor
-						value={draft.hooks}
-						onChange={(v) => setDraft((p) => ({ ...p, hooks: v }))}
+					<ModuleFieldsSection
+						fields={draft.fields}
+						onFieldsChange={(next) => setDraft((p) => ({ ...p, fields: next }))}
+						settingsErrors={settingsErrors}
+						columnsTable={draft.table}
+						hooks={draft.hooks}
+						onHooksChange={(v) => setDraft((p) => ({ ...p, hooks: v }))}
 					/>
 				</EditorCard>
 			)}

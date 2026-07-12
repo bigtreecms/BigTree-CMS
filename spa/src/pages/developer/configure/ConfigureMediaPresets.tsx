@@ -8,7 +8,6 @@ import { TextInput } from "@/components/ui/TextInput";
 import { Button } from "@/components/ui/Button";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { Card } from "@/components/ui/Card";
-import { LoadingText } from "@/components/ui/LoadingText";
 import { MediaPresetEditor } from "@/components/developer/MediaPresetEditor";
 
 import { configureApi, type MediaPreset } from "@/api/endpoints/configure";
@@ -80,11 +79,8 @@ export const ConfigureMediaPresets = () => {
 					Add preset
 				</Button>
 			}
+			query={detailQ}
 		>
-			{detailQ.isLoading && <LoadingText />}
-
-			{detailQ.error && <ErrorPanel error={detailQ.error} />}
-
 			{generalError && <ErrorPanel message={generalError} />}
 
 			{detailQ.data && presets.length === 0 && (

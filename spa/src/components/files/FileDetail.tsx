@@ -222,13 +222,9 @@ export const FileDetail = ({ resourceId, onOpenChange, folderQueryKey }: FileDet
 						</button>
 
 						<div className="flex gap-2">
-							<button
-								type="button"
-								className="rounded-md border border-border px-3 py-1.5 text-[12.5px] hover:bg-hover"
-								onClick={() => onOpenChange(false)}
-							>
+							<Button variant="secondary" onClick={() => onOpenChange(false)}>
 								Close
-							</button>
+							</Button>
 							<Button
 								variant="primary"
 								disabled={!dirty || pending}

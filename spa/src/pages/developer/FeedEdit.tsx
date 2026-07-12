@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Navigate, useParams } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
 
@@ -22,10 +21,10 @@ import { useResourceSettingsValidation } from "@/components/developer/field-sett
 import { feedsApi, type FeedEditBody, type FeedSummary } from "@/api/endpoints/feeds";
 import type { ModuleFormField } from "@/api/endpoints/modules";
 
+import { useDesignerSubmit } from "@/components/developer/useDesignerSubmit";
+
 import { queryKeys } from "@/lib/queryKeys";
-import { useFormSubmit } from "@/hooks/useFormSubmit";
 import { useResourceEditor } from "@/hooks/useResourceEditor";
-import { validateRequired } from "@/lib/formValidation";
 
 import { SelectField } from "@/components/ui/SelectField";
 import { TextField } from "@/components/ui/TextField";
@@ -44,10 +43,7 @@ const asObject = (value: unknown): Record<string, unknown> =>
 
 export const FeedEdit = () => {
 	const { id: idParam } = useParams<{ id: string }>();
-	const { error, setError, fieldErrors, setFieldErrors, onMutationError } = useFormSubmit();
-	const [settingsErrors, setSettingsErrors] = useState<Record<number, Record<string, string>>>(
-		{}
-	);
+	const submit = useDesignerSubmit();
 
 	const { isAdd, detailQ, body, set, save, saving, isDirty } = useResourceEditor<
 		FeedSummary,
@@ -79,7 +75,7 @@ export const FeedEdit = () => {
 		update: (id, next) => feedsApi.update(id, next),
 		invalidateKey: queryKeys.feeds.root(),
 		editPath: (id) => `/developer/feeds/${encodeURIComponent(id)}/edit`,
-		onError: (err) => onMutationError(err, "Save failed"),
+		onError: (err) => submit.onMutationError(err, "Save failed"),
 	});
 
 	const settingsValidation = useResourceSettingsValidation(
@@ -120,36 +116,23 @@ export const FeedEdit = () => {
 
 				<DeveloperSectionNav />
 
-				{error && (
+				{submit.error && (
 					<Alert tone="danger" className="mb-3">
-						{error}
+						{submit.error}
 					</Alert>
 				)}
 
 				<FormShell
 					bounded={false}
-					onSubmit={(e) => {
-						e.preventDefault();
-
-						const errors = validateRequired([
+					onSubmit={submit.buildSubmit({
+						required: [
 							{ field: "id", label: "ID", value: body.id },
 							{ field: "name", label: "Name", value: body.name },
-						]);
-						const sErrors = settingsValidation.validate();
-
-						if (Object.keys(errors).length > 0 || Object.keys(sErrors).length > 0) {
-							setFieldErrors(errors);
-							setSettingsErrors(sErrors);
-							setError("Please fill in the required fields.");
-
-							return;
-						}
-
-						setFieldErrors({});
-						setSettingsErrors({});
-						setError(null);
-						save(body);
-					}}
+						],
+						settingsValidation,
+						save: () => save(body),
+						saving,
+					})}
 					footer={
 						<FormFooter
 							cancelTo="/developer/feeds"
@@ -166,7 +149,7 @@ export const FeedEdit = () => {
 								value={body.id ?? ""}
 								onChange={(v) => set({ id: v })}
 								hint="Becomes the public path under /feeds/{id}/."
-								error={fieldErrors.id}
+								error={submit.fieldErrors.id}
 								disabled={!isAdd}
 								required
 							/>
@@ -174,7 +157,7 @@ export const FeedEdit = () => {
 								label="Name"
 								value={body.name ?? ""}
 								onChange={(v) => set({ name: v })}
-								error={fieldErrors.name}
+								error={submit.fieldErrors.name}
 								required
 							/>
 							<DataTableSelect
@@ -217,7 +200,7 @@ export const FeedEdit = () => {
 									}
 									keyField="column"
 									useCase="feeds"
-									settingsErrors={settingsErrors}
+									settingsErrors={submit.settingsErrors}
 								/>
 							</div>
 						)}

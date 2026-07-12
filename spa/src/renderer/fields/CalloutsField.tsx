@@ -1,12 +1,11 @@
 import { useEffect, useId, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { GripVertical, Plus, Trash } from "lucide-react";
+import { Plus } from "lucide-react";
 
 import { useAuthStore } from "@/auth/store";
 
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { IconButton } from "@/components/ui/IconButton";
 import { LoadingText } from "@/components/ui/LoadingText";
 import { Select } from "@/components/ui/Select";
 import { useRepeaterRows, type RepeaterRow } from "@/hooks/useRepeaterRows";
@@ -17,8 +16,8 @@ import { resourceToFormField } from "@/api/endpoints/templates";
 import { FieldRenderer } from "@/renderer/forms/FieldRenderer";
 import { FieldRow } from "@/renderer/forms/FieldRow";
 
-import { CollapsibleRowHeader } from "./CollapsibleRowHeader";
 import { stringifyForTitle, toInt } from "./fieldHelpers";
+import { RepeaterRowShell } from "./RepeaterRowShell";
 import { settingsOf, type FieldComponentProps } from "./types";
 
 /**
@@ -249,96 +248,60 @@ const CalloutRowItem = ({
 	const typeName = callout?.name ?? `Unknown type (${row.data[TYPE_KEY] ?? "—"})`;
 
 	return (
-		<li className="rounded-md border border-border bg-surface">
-			<div className="flex items-center gap-2 px-2 py-1.5">
-				<IconButton
-					label="Move up"
-					title="Move up"
-					onClick={() => onMove("up")}
-					disabled={disabled || index === 0}
-				>
-					<GripVertical size={13} />
-				</IconButton>
-
-				<CollapsibleRowHeader
-					open={expanded}
-					onToggle={onToggle}
-					controls={`${idPrefix}-row-${row.uid}`}
-					disabled={typeMissing}
-					title={displayTitle || typeName}
-					subtitle={displayTitle ? typeName : undefined}
-					trailing={
-						<>
-							{tooLowLevel && (
-								<span className="ml-1 rounded bg-surface-2 px-1.5 py-0.5 text-[10.5px] font-medium uppercase tracking-wider text-text-3">
-									Locked
-								</span>
-							)}
-							{typeMissing && (
-								<span className="ml-1 rounded bg-danger/10 px-1.5 py-0.5 text-[10.5px] font-medium uppercase tracking-wider text-danger">
-									Missing type
-								</span>
-							)}
-						</>
-					}
-				/>
-
-				<IconButton
-					label="Delete item"
-					title="Delete item"
-					tone="danger"
-					onClick={onDelete}
-					disabled={disabled}
-				>
-					<Trash size={13} />
-				</IconButton>
-			</div>
-
-			{expanded && callout && (
-				<div
-					id={`${idPrefix}-row-${row.uid}`}
-					className="border-t border-border px-3 pb-1 pt-3"
-				>
-					{callout.resources.length === 0 ? (
-						<EmptyState size="sm" dashed>
-							This callout type has no fields configured.
-						</EmptyState>
-					) : (
-						callout.resources.map((resource) => {
-							// Callout resources are keyed by `id` (like template
-							// resources), so adapt to the `column`-keyed field shape
-							// the renderer expects. Using `resource.id` directly is
-							// essential: every field shares `row.data[undefined]`
-							// otherwise (one field's edits leak into all of them).
-							const formField = resourceToFormField(resource);
-
-							return (
-								<FieldRow key={formField.column} field={formField}>
-									<FieldRenderer
-										field={formField}
-										value={row.data[formField.column]}
-										onChange={(next) => onCellChange(formField.column, next)}
-										disabled={rowDisabled}
-									/>
-								</FieldRow>
-							);
-						})
+		<RepeaterRowShell
+			index={index}
+			total={totalRows}
+			expanded={expanded}
+			onToggle={onToggle}
+			onMove={onMove}
+			onDelete={onDelete}
+			disabled={disabled}
+			panelId={`${idPrefix}-row-${row.uid}`}
+			headerDisabled={typeMissing}
+			title={displayTitle || typeName}
+			subtitle={displayTitle ? typeName : undefined}
+			trailing={
+				<>
+					{tooLowLevel && (
+						<span className="ml-1 rounded bg-surface-2 px-1.5 py-0.5 text-[10.5px] font-medium uppercase tracking-wider text-text-3">
+							Locked
+						</span>
 					)}
-
-					{index < totalRows - 1 && (
-						<Button
-							variant="secondary"
-							size="sm"
-							className="mb-2"
-							onClick={() => onMove("down")}
-							disabled={disabled}
-						>
-							Move down
-						</Button>
+					{typeMissing && (
+						<span className="ml-1 rounded bg-danger/10 px-1.5 py-0.5 text-[10.5px] font-medium uppercase tracking-wider text-danger">
+							Missing type
+						</span>
 					)}
-				</div>
-			)}
-		</li>
+				</>
+			}
+		>
+			{callout &&
+				(callout.resources.length === 0 ? (
+					<EmptyState size="sm" dashed>
+						This callout type has no fields configured.
+					</EmptyState>
+				) : (
+					callout.resources.map((resource) => {
+						// Callout resources are keyed by `id` (like template
+						// resources), so adapt to the `column`-keyed field shape
+						// the renderer expects. Using `resource.id` directly is
+						// essential: every field shares `row.data[undefined]`
+						// otherwise (one field's edits leak into all of them).
+						const formField = resourceToFormField(resource);
+
+						return (
+							<FieldRow key={formField.column} field={formField}>
+								<FieldRenderer
+									field={formField}
+									value={row.data[formField.column]}
+									onChange={(next) => onCellChange(formField.column, next)}
+									disabled={rowDisabled}
+								/>
+							</FieldRow>
+						);
+					})
+				))}
+		</RepeaterRowShell>
 	);
 };
 

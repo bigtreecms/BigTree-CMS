@@ -2,11 +2,9 @@ import { Save } from "lucide-react";
 
 import { ConfigureLayout } from "@/components/developer/ConfigureLayout";
 import { Button } from "@/components/ui/Button";
-import { TextInput } from "@/components/ui/TextInput";
 import { Field } from "@/components/ui/Field";
 import { SelectField } from "@/components/ui/SelectField";
 import { FormShell } from "@/components/ui/FormShell";
-import { LoadingText } from "@/components/ui/LoadingText";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { UploadButton } from "@/components/ui/UploadButton";
 
@@ -19,7 +17,8 @@ import {
 import { describeApiError } from "@/lib/errorHandling";
 import { queryKeys } from "@/lib/queryKeys";
 import { useToastMutation } from "@/hooks/useToastMutation";
-import { useConfigDraft } from "@/hooks/useConfigDraft";
+import { useServiceSettingsDraft } from "./useServiceSettingsDraft";
+import { ServiceSettingsFields, type ServiceSettingField } from "./ServiceSettingsFields";
 
 const GATEWAYS: Array<{ id: PaymentGatewayId; label: string }> = [
 	{ id: "", label: "Disabled" },
@@ -32,15 +31,7 @@ const GATEWAYS: Array<{ id: PaymentGatewayId; label: string }> = [
 
 // Per-gateway field map. The legacy admin uses these exact key names so the
 // stored shape stays compatible with BigTreePaymentGateway consumers.
-const FIELDS: Record<
-	PaymentGatewayId,
-	Array<{
-		key: string;
-		label: string;
-		type?: "select";
-		options?: Array<{ value: string; label: string }>;
-	}>
-> = {
+const FIELDS: Record<PaymentGatewayId, ServiceSettingField[]> = {
 	"": [],
 	"authorize.net": [
 		{ key: "authorize-api-login", label: "API login" },
@@ -111,21 +102,28 @@ const FIELDS: Record<
 	],
 };
 
-const isMaskedKey = (key: string) => /secret|key|password|token|signature/i.test(key);
-
 export const ConfigurePaymentGateway = () => {
-	const { detailQ, draft, setDraft, generalError, setGeneralError, saveMutation, writeCache } =
-		useConfigDraft({
-			queryKey: queryKeys.configure.paymentGateway(),
-			queryFn: () => configureApi.paymentGateway.get(),
-			seed: (data: PaymentGatewayConfig) => ({
-				service: data.service,
-				settings: { ...(data.settings ?? {}) },
-			}),
-			save: (next: PaymentGatewayConfig) => configureApi.paymentGateway.update(next),
-			successMessage: "Payment gateway updated",
-			errorMessage: "Could not save payment gateway",
-		});
+	const {
+		detailQ,
+		draft,
+		setDraft,
+		generalError,
+		setGeneralError,
+		saveMutation,
+		writeCache,
+		onChange,
+		onSubmit,
+	} = useServiceSettingsDraft({
+		queryKey: queryKeys.configure.paymentGateway(),
+		queryFn: () => configureApi.paymentGateway.get(),
+		seed: (data: PaymentGatewayConfig) => ({
+			service: data.service,
+			settings: { ...(data.settings ?? {}) },
+		}),
+		save: (next: PaymentGatewayConfig) => configureApi.paymentGateway.update(next),
+		successMessage: "Payment gateway updated",
+		errorMessage: "Could not save payment gateway",
+	});
 
 	// Certificate upload writes a fresh config back through the same re-seed.
 	const certMutation = useToastMutation({
@@ -141,35 +139,14 @@ export const ConfigurePaymentGateway = () => {
 		},
 	});
 
-	const onSubmit = (e: React.FormEvent) => {
-		e.preventDefault();
-
-		if (!draft) {
-			return;
-		}
-
-		saveMutation.mutate(draft);
-	};
-
-	const onChange = (key: string, value: string) => {
-		if (!draft) {
-			return;
-		}
-
-		setDraft({ ...draft, settings: { ...draft.settings, [key]: value } });
-	};
-
 	const fields = draft ? (FIELDS[draft.service] ?? []) : [];
 
 	return (
 		<ConfigureLayout
 			title="Payment gateway"
 			sub="Credentials for the payment provider that module forms (and BigTreePaymentGateway) charge through."
+			query={detailQ}
 		>
-			{detailQ.isLoading && <LoadingText />}
-
-			{detailQ.error && <ErrorPanel error={detailQ.error} />}
-
 			{draft && (
 				<FormShell
 					onSubmit={onSubmit}
@@ -196,39 +173,11 @@ export const ConfigurePaymentGateway = () => {
 
 					{fields.length > 0 && (
 						<div className="mt-4 space-y-3">
-							{fields.map((f) => {
-								const masked = isMaskedKey(f.key);
-								const isSet = !!draft.settings[`${f.key}-set`];
-								const value = (draft.settings[f.key] as string) ?? "";
-
-								if (f.type === "select" && f.options) {
-									return (
-										<SelectField
-											key={f.key}
-											label={f.label}
-											value={value}
-											onChange={(v) => onChange(f.key, v)}
-											options={f.options}
-										/>
-									);
-								}
-
-								return (
-									<Field key={f.key} label={f.label}>
-										<TextInput
-											type={masked ? "password" : "text"}
-											value={value}
-											placeholder={
-												masked && isSet
-													? "•••••••• (stored, leave blank to keep)"
-													: ""
-											}
-											onChange={(e) => onChange(f.key, e.target.value)}
-											autoComplete="off"
-										/>
-									</Field>
-								);
-							})}
+							<ServiceSettingsFields
+								fields={fields}
+								settings={draft.settings}
+								onChange={onChange}
+							/>
 
 							{draft.service === "linkpoint" && (
 								<Field label="Certificate (.pem)">

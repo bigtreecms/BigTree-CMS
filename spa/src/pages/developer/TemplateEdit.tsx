@@ -1,5 +1,4 @@
 import { Navigate, useParams } from "react-router-dom";
-import { useState } from "react";
 import { ChevronLeft } from "lucide-react";
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
@@ -29,10 +28,10 @@ import {
 	type TemplateSummary,
 } from "@/api/endpoints/templates";
 
+import { useDesignerSubmit } from "@/components/developer/useDesignerSubmit";
+
 import { queryKeys } from "@/lib/queryKeys";
-import { useFormSubmit } from "@/hooks/useFormSubmit";
 import { useResourceEditor } from "@/hooks/useResourceEditor";
-import { validateRequired } from "@/lib/formValidation";
 
 /**
  * Combined add / edit screen. Add mode: no `:id` route param.
@@ -42,10 +41,7 @@ import { validateRequired } from "@/lib/formValidation";
  */
 export const TemplateEdit = () => {
 	const { id: idParam } = useParams<{ id: string }>();
-	const { error, setError, fieldErrors, setFieldErrors, onMutationError } = useFormSubmit();
-	const [settingsErrors, setSettingsErrors] = useState<Record<number, Record<string, string>>>(
-		{}
-	);
+	const submit = useDesignerSubmit();
 
 	const { isAdd, detailQ, body, set, save, saving, isDirty } = useResourceEditor<
 		TemplateSummary,
@@ -77,7 +73,7 @@ export const TemplateEdit = () => {
 		update: (id, next) => templatesApi.update(id, next),
 		invalidateKey: queryKeys.templates.root(),
 		editPath: (id) => `/developer/templates/${encodeURIComponent(id)}/edit`,
-		onError: (err) => onMutationError(err, "Save failed"),
+		onError: (err) => submit.onMutationError(err, "Save failed"),
 	});
 
 	const settingsValidation = useResourceSettingsValidation(
@@ -89,32 +85,15 @@ export const TemplateEdit = () => {
 		return <Navigate to="/developer/templates" replace />;
 	}
 
-	const handleSubmit = (event: React.FormEvent) => {
-		event.preventDefault();
-
-		if (saving) {
-			return;
-		}
-
-		const errors = validateRequired([
+	const handleSubmit = submit.buildSubmit({
+		required: [
 			{ field: "id", label: "ID", value: body.id },
 			{ field: "name", label: "Name", value: body.name },
-		]);
-		const sErrors = settingsValidation.validate();
-
-		if (Object.keys(errors).length > 0 || Object.keys(sErrors).length > 0) {
-			setFieldErrors(errors);
-			setSettingsErrors(sErrors);
-			setError("Please fill in the required fields.");
-
-			return;
-		}
-
-		setError(null);
-		setFieldErrors({});
-		setSettingsErrors({});
-		save(body);
-	};
+		],
+		settingsValidation,
+		save: () => save(body),
+		saving,
+	});
 
 	const title = isAdd ? "Add template" : body.name || idParam || "Edit template";
 
@@ -145,9 +124,9 @@ export const TemplateEdit = () => {
 
 				<DeveloperSectionNav />
 
-				{error && (
+				{submit.error && (
 					<Alert tone="danger" className="mb-3">
-						{error}
+						{submit.error}
 					</Alert>
 				)}
 
@@ -170,7 +149,7 @@ export const TemplateEdit = () => {
 								value={body.id ?? ""}
 								onChange={(v) => set({ id: v })}
 								hint="Lowercase, hyphens or underscores. Cannot change after create."
-								error={fieldErrors.id}
+								error={submit.fieldErrors.id}
 								disabled={!isAdd}
 								required
 							/>
@@ -178,7 +157,7 @@ export const TemplateEdit = () => {
 								label="Name"
 								value={body.name ?? ""}
 								onChange={(v) => set({ name: v })}
-								error={fieldErrors.name}
+								error={submit.fieldErrors.name}
 								required
 							/>
 							{body.routed && (
@@ -218,7 +197,7 @@ export const TemplateEdit = () => {
 								}
 								keyField="id"
 								useCase="templates"
-								settingsErrors={settingsErrors}
+								settingsErrors={submit.settingsErrors}
 							/>
 						</div>
 

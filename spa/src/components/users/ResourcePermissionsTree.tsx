@@ -1,8 +1,6 @@
 import { Fragment, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronDown, ChevronRight } from "lucide-react";
 
-import { IconButton } from "@/components/ui/IconButton";
 import { resourceFoldersApi, type ResourceFolderRow } from "@/api/endpoints/resource-folders";
 import { queryKeys } from "@/lib/queryKeys";
 import { applyPermission } from "@/lib/permissions";
@@ -11,6 +9,7 @@ import type { PermissionCode, UserPermissions } from "@/api/endpoints/users";
 import { PermissionRadios } from "./PermissionRadios";
 import { PermissionRow } from "./PermissionRow";
 import { PermissionTreeHeader } from "./PermissionTreeHeader";
+import { TreeExpander, TreeLoadingRow } from "./PermissionTreeParts";
 import { RESOURCE_PERMISSION_OPTIONS } from "./permissionOptions";
 
 interface ResourcePermissionsTreeProps {
@@ -90,18 +89,11 @@ const FolderRow = ({
 		<div>
 			<PermissionRow columns="minmax(0,1fr) repeat(4, 80px)" depth={depth}>
 				<div className="flex items-center gap-1.5 min-w-0">
-					{showExpander ? (
-						<IconButton
-							label={expanded ? "Collapse" : "Expand"}
-							size="sm"
-							onClick={() => setExpanded((e) => !e)}
-							ariaExpanded={expanded}
-						>
-							{expanded ? <ChevronDown size={13} /> : <ChevronRight size={13} />}
-						</IconButton>
-					) : (
-						<span className="inline-block w-[18px]" aria-hidden="true" />
-					)}
+					<TreeExpander
+						expanded={expanded}
+						hasChildren={showExpander}
+						onToggle={() => setExpanded((e) => !e)}
+					/>
 
 					<span className="truncate text-text">{name}</span>
 				</div>
@@ -141,14 +133,7 @@ const FolderChildren = ({ parent, depth, value, setPerm }: FolderChildrenProps) 
 	});
 
 	if (isLoading) {
-		return (
-			<div
-				className="border-t border-border bg-surface px-3 py-2 text-[12px] text-text-3"
-				style={{ paddingLeft: `${12 + depth * 16}px` }}
-			>
-				Loading…
-			</div>
-		);
+		return <TreeLoadingRow depth={depth} />;
 	}
 
 	const rows = data ?? [];

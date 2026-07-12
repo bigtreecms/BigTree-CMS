@@ -6,7 +6,6 @@ import { TextInput } from "@/components/ui/TextInput";
 import { Field } from "@/components/ui/Field";
 import { SelectField } from "@/components/ui/SelectField";
 import { FormShell } from "@/components/ui/FormShell";
-import { LoadingText } from "@/components/ui/LoadingText";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 
 import {
@@ -80,11 +79,8 @@ export const ConfigureGeocoding = () => {
 		<ConfigureLayout
 			title="Geocoding"
 			sub="Powers address → lat/lng lookups for Geocoding fields and the Google Maps Static API thumbnails."
+			query={detailQ}
 		>
-			{detailQ.isLoading && <LoadingText />}
-
-			{detailQ.error && <ErrorPanel error={detailQ.error} />}
-
 			{draft && (
 				<FormShell
 					onSubmit={onSubmit}

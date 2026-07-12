@@ -6,13 +6,11 @@ import { DebugLayout } from "@/components/developer/DebugLayout";
 import { Button } from "@/components/ui/Button";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { SectionLabel } from "@/components/ui/SectionLabel";
-import { LoadingText } from "@/components/ui/LoadingText";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { TextArea } from "@/components/ui/TextArea";
 import { TextInput } from "@/components/ui/TextInput";
 import { Field } from "@/components/ui/Field";
 import { FormShell } from "@/components/ui/FormShell";
-import { ErrorPanel } from "@/components/ui/ErrorPanel";
 
 import { systemApi, type SecurityPolicy } from "@/api/endpoints/system";
 import { queryKeys } from "@/lib/queryKeys";
@@ -101,11 +99,8 @@ export const DebugSecurity = () => {
 		<DebugLayout
 			title="Security policy"
 			sub="Brute-force protection, password requirements, and login IP restrictions."
+			query={policyQ}
 		>
-			{policyQ.isLoading && <LoadingText />}
-
-			{policyQ.error && <ErrorPanel error={policyQ.error} />}
-
 			{draft && (
 				<FormShell
 					bounded={false}

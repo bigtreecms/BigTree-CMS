@@ -1,16 +1,13 @@
 import { useId, useMemo } from "react";
-import { GripVertical, Plus, Trash } from "lucide-react";
+import { Plus } from "lucide-react";
 
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { IconButton } from "@/components/ui/IconButton";
 import { useRepeaterRows, type RepeaterRow } from "@/hooks/useRepeaterRows";
 
-import { FieldRenderer } from "@/renderer/forms/FieldRenderer";
-import { FieldRow } from "@/renderer/forms/FieldRow";
-
-import { CollapsibleRowHeader } from "./CollapsibleRowHeader";
-import { columnToFormField, isTruthyFlag, stringifyForTitle, toInt } from "./fieldHelpers";
+import { deriveRepeaterSummary, toInt } from "./fieldHelpers";
+import { RepeaterColumnFields } from "./RepeaterColumnFields";
+import { RepeaterRowShell } from "./RepeaterRowShell";
 import { settingsOf, type FieldComponentProps } from "./types";
 
 /**
@@ -52,55 +49,6 @@ interface MatrixFieldSettings {
 type RowData = Record<string, unknown>;
 
 type MatrixRow = RepeaterRow<RowData>;
-
-const TITLE_KEY = "__internal-title";
-const SUBTITLE_KEY = "__internal-subtitle";
-
-/**
- * Derive the display title + subtitle for a collapsed row. Any column flagged
- * `display_title` contributes — first contributor wins the title slot, second
- * wins the subtitle slot. Stored `__internal-title` / `__internal-subtitle`
- * keys (carried over from the legacy admin) act as a fallback so unchanged
- * rows keep showing whatever the server computed last.
- */
-const deriveRowSummary = (
-	row: RowData,
-	columns: MatrixColumn[]
-): { title: string; subtitle: string } => {
-	let title = "";
-	let subtitle = "";
-
-	for (const col of columns) {
-		if (!isTruthyFlag(col.display_title)) {
-			continue;
-		}
-
-		const raw = row[col.id];
-
-		if (raw == null || raw === "") {
-			continue;
-		}
-
-		const text = stringifyForTitle(raw);
-
-		if (!title) {
-			title = text;
-		} else if (!subtitle) {
-			subtitle = text;
-			break;
-		}
-	}
-
-	if (!title && typeof row[TITLE_KEY] === "string") {
-		title = String(row[TITLE_KEY]);
-	}
-
-	if (!subtitle && typeof row[SUBTITLE_KEY] === "string") {
-		subtitle = String(row[SUBTITLE_KEY]);
-	}
-
-	return { title, subtitle };
-};
 
 export const MatrixField = ({ field, value, onChange, disabled }: FieldComponentProps) => {
 	const settings = settingsOf(field) as MatrixFieldSettings;
@@ -211,7 +159,7 @@ const MatrixRowItem = ({
 	disabled,
 	idPrefix,
 }: MatrixRowItemProps) => {
-	const summary = deriveRowSummary(row.data, columns);
+	const summary = deriveRepeaterSummary(row.data, columns);
 	const titleText = summary.title || `Item ${index + 1}`;
 
 	const wrapperClass =
@@ -220,69 +168,25 @@ const MatrixRowItem = ({
 			: "rounded-md border border-border bg-surface";
 
 	return (
-		<li className={wrapperClass}>
-			<div className="flex items-center gap-2 px-2 py-1.5">
-				<IconButton
-					label="Move up"
-					title="Move up"
-					onClick={() => onMove("up")}
-					disabled={disabled || index === 0}
-				>
-					<GripVertical size={13} />
-				</IconButton>
-
-				<CollapsibleRowHeader
-					open={expanded}
-					onToggle={onToggle}
-					controls={`${idPrefix}-row-${row.uid}`}
-					title={titleText}
-					subtitle={summary.subtitle || undefined}
-				/>
-
-				<IconButton
-					label="Delete item"
-					title="Delete item"
-					tone="danger"
-					onClick={onDelete}
-					disabled={disabled}
-				>
-					<Trash size={13} />
-				</IconButton>
-			</div>
-
-			{expanded && (
-				<div
-					id={`${idPrefix}-row-${row.uid}`}
-					className="border-t border-border px-3 pb-1 pt-3"
-				>
-					{columns.map((column) => {
-						const subField = columnToFormField(column);
-
-						return (
-							<FieldRow key={column.id} field={subField}>
-								<FieldRenderer
-									field={subField}
-									value={row.data[column.id]}
-									onChange={(next) => onCellChange(column.id, next)}
-									disabled={disabled}
-								/>
-							</FieldRow>
-						);
-					})}
-
-					{index < totalRows - 1 && (
-						<Button
-							variant="secondary"
-							size="sm"
-							className="mb-2"
-							onClick={() => onMove("down")}
-							disabled={disabled}
-						>
-							Move down
-						</Button>
-					)}
-				</div>
-			)}
-		</li>
+		<RepeaterRowShell
+			index={index}
+			total={totalRows}
+			expanded={expanded}
+			onToggle={onToggle}
+			onMove={onMove}
+			onDelete={onDelete}
+			disabled={disabled}
+			panelId={`${idPrefix}-row-${row.uid}`}
+			title={titleText}
+			subtitle={summary.subtitle || undefined}
+			className={wrapperClass}
+		>
+			<RepeaterColumnFields
+				columns={columns}
+				getValue={(id) => row.data[id]}
+				onColumnChange={onCellChange}
+				disabled={disabled}
+			/>
+		</RepeaterRowShell>
 	);
 };
