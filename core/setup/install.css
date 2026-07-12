@@ -1,0 +1,682 @@
+/* Install wizard styles — aligned with the SPA design system */
+/* (spa/src/styles/tokens.css + base.css + AuthCard / Field / Button / Alert). */
+
+/* ─── Design tokens (ported from spa/src/styles/tokens.css) ─────────────────── */
+
+:root {
+	--accent-h: 155;
+
+	--font-sans: "Geist", ui-sans-serif, system-ui, -apple-system, "Helvetica Neue", sans-serif;
+	--font-mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+	--radius-sm: 5px;
+	--radius-md: 7px;
+	--radius-lg: 10px;
+	--radius-xl: 14px;
+
+	--color-accent: oklch(46% 0.11 var(--accent-h));
+	--color-accent-hover: oklch(40% 0.11 var(--accent-h));
+	--color-accent-soft: oklch(95% 0.04 var(--accent-h));
+	--color-accent-soft-2: oklch(90% 0.06 var(--accent-h));
+	--color-accent-fg: oklch(98% 0.01 var(--accent-h));
+	--color-accent-ring: oklch(46% 0.11 var(--accent-h) / 0.35);
+
+	--color-bg: oklch(99% 0.002 95);
+	--color-surface: #ffffff;
+	--color-surface-2: oklch(98% 0.003 95);
+	--color-surface-3: oklch(96% 0.004 95);
+	--color-hover: oklch(96% 0.004 95);
+	--color-border: oklch(91% 0.004 95);
+	--color-border-strong: oklch(85% 0.005 95);
+
+	--color-text: oklch(20% 0.01 250);
+	--color-text-2: oklch(40% 0.012 250);
+	--color-text-3: oklch(52% 0.012 250);
+	--color-text-4: oklch(70% 0.01 250);
+
+	--color-success: oklch(52% 0.13 150);
+	--color-success-bg: oklch(96% 0.04 150);
+	--color-warn: oklch(52% 0.14 75);
+	--color-warn-bg: oklch(96% 0.04 75);
+	--color-danger: oklch(55% 0.18 25);
+	--color-danger-bg: oklch(96% 0.04 25);
+	--color-info: oklch(52% 0.13 240);
+	--color-info-bg: oklch(96% 0.03 240);
+
+	--shadow-sm: 0 1px 2px rgba(15, 20, 25, 0.04), 0 0 0 0.5px rgba(15, 20, 25, 0.04);
+	--shadow-md: 0 4px 12px rgba(15, 20, 25, 0.06), 0 0 0 0.5px rgba(15, 20, 25, 0.05);
+	--shadow-lg: 0 16px 40px rgba(15, 20, 25, 0.12), 0 0 0 0.5px rgba(15, 20, 25, 0.06);
+}
+
+@media (prefers-color-scheme: dark) {
+	:root {
+		--color-bg: oklch(15% 0.006 250);
+		--color-surface: oklch(18% 0.008 250);
+		--color-surface-2: oklch(21% 0.008 250);
+		--color-surface-3: oklch(24% 0.009 250);
+		--color-hover: oklch(24% 0.009 250);
+		--color-border: oklch(28% 0.008 250);
+		--color-border-strong: oklch(34% 0.009 250);
+
+		--color-text: oklch(96% 0.005 250);
+		--color-text-2: oklch(78% 0.008 250);
+		--color-text-3: oklch(60% 0.01 250);
+		--color-text-4: oklch(48% 0.01 250);
+
+		--color-accent: oklch(70% 0.13 var(--accent-h));
+		--color-accent-hover: oklch(76% 0.13 var(--accent-h));
+		--color-accent-soft: oklch(28% 0.05 var(--accent-h));
+		--color-accent-soft-2: oklch(34% 0.07 var(--accent-h));
+		--color-accent-fg: oklch(12% 0.02 var(--accent-h));
+
+		--color-success: oklch(55% 0.13 150);
+		--color-warn: oklch(70% 0.14 75);
+		--color-info: oklch(55% 0.13 240);
+
+		--color-success-bg: oklch(28% 0.06 150);
+		--color-warn-bg: oklch(28% 0.06 75);
+		--color-danger-bg: oklch(28% 0.06 25);
+		--color-info-bg: oklch(28% 0.05 240);
+
+		--shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3), 0 0 0 0.5px rgba(255, 255, 255, 0.04);
+		--shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4), 0 0 0 0.5px rgba(255, 255, 255, 0.05);
+		--shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.5), 0 0 0 0.5px rgba(255, 255, 255, 0.06);
+	}
+}
+
+/* ─── Reset / base ──────────────────────────────────────────────────────────── */
+
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+}
+
+html,
+body {
+	margin: 0;
+	padding: 0;
+}
+
+body.install {
+	background: var(--color-bg);
+	color: var(--color-text);
+	font-family: var(--font-sans);
+	font-size: 13.5px;
+	line-height: 1.45;
+	-webkit-font-smoothing: antialiased;
+	font-feature-settings: "cv11", "ss01";
+	min-height: 100vh;
+	text-wrap: pretty;
+}
+
+input,
+textarea,
+select,
+button {
+	font-family: inherit;
+	font-size: inherit;
+}
+
+h1,
+h2,
+h3,
+h4 {
+	margin: 0;
+	font-weight: 600;
+	letter-spacing: -0.01em;
+	text-wrap: balance;
+}
+
+a {
+	color: var(--color-accent);
+	text-decoration: none;
+	transition: color 0.15s ease;
+}
+
+a:hover {
+	color: var(--color-accent-hover);
+}
+
+:focus-visible {
+	outline: 2px solid var(--color-accent-ring);
+	outline-offset: 2px;
+	border-radius: var(--radius-sm);
+}
+
+.clear {
+	clear: both;
+}
+
+.contain:after {
+	clear: both;
+	content: "";
+	display: table;
+}
+
+/* ─── Layout ────────────────────────────────────────────────────────────────── */
+
+.install_wrapper {
+	margin: 0 auto;
+	max-width: 640px;
+	padding: 48px 16px 40px;
+	width: 100%;
+}
+
+/* Brand header — mirrors spa AuthCard mark + title treatment */
+.install_brand {
+	align-items: center;
+	display: flex;
+	gap: 10px;
+	margin: 0 0 20px;
+}
+
+.install_brand_mark {
+	background: var(--color-accent);
+	border-radius: var(--radius-md);
+	color: var(--color-accent-fg);
+	display: grid;
+	flex-shrink: 0;
+	height: 32px;
+	place-items: center;
+	width: 32px;
+}
+
+.install_brand_mark svg {
+	display: block;
+	height: 16px;
+	width: 16px;
+}
+
+/* Title stack — match AuthCard; beat .install_wrapper p margins/clear. */
+.install_brand > div {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	min-width: 0;
+}
+
+.install_wrapper .install_brand h1 {
+	color: var(--color-text);
+	font-size: 15px;
+	font-weight: 600;
+	letter-spacing: -0.01em;
+	line-height: 1.25;
+	margin: 0;
+}
+
+.install_wrapper .install_brand p {
+	clear: none;
+	color: var(--color-text-3);
+	font-size: 12px;
+	line-height: 1.35;
+	margin: 2px 0 0;
+}
+
+/* Main card */
+.install_wrapper form {
+	background: var(--color-surface);
+	border: 1px solid var(--color-border);
+	border-radius: var(--radius-lg);
+	box-shadow: var(--shadow-md);
+	overflow: hidden;
+	padding: 28px 28px 0;
+}
+
+/* ─── Sections ──────────────────────────────────────────────────────────────── */
+
+.install_wrapper h2 {
+	color: var(--color-text);
+	float: none;
+	font-size: 14px;
+	font-weight: 600;
+	letter-spacing: -0.01em;
+	line-height: 1.3;
+	margin: 0 0 6px;
+	overflow: visible;
+	padding: 0;
+}
+
+/* Drop legacy sprite icon hooks */
+.install_wrapper h2 span {
+	display: none;
+}
+
+.install_wrapper hr {
+	background: var(--color-border);
+	border: 0;
+	height: 1px;
+	margin: 24px 0 20px;
+}
+
+/* ─── Fieldsets / copy ──────────────────────────────────────────────────────── */
+
+.install_wrapper fieldset {
+	border: 0;
+	margin: 0;
+	min-width: 0;
+	padding: 0;
+}
+
+.install_wrapper fieldset.left {
+	float: left;
+	margin: 0 0 16px;
+	padding: 0;
+	width: calc(50% - 8px);
+}
+
+.install_wrapper fieldset.right {
+	float: right;
+	margin: 0 0 16px;
+	padding: 0;
+	width: calc(50% - 8px);
+}
+
+.install_wrapper fieldset.clear {
+	float: none;
+	width: auto;
+}
+
+.install_wrapper fieldset.lower {
+	background: var(--color-surface-2);
+	border-top: 1px solid var(--color-border);
+	margin: 24px -28px 0;
+	padding: 16px 28px;
+}
+
+.install_wrapper label {
+	color: var(--color-text-2);
+	display: block;
+	font-size: 12px;
+	font-weight: 500;
+	line-height: 1.3;
+	margin: 0 0 6px;
+	user-select: none;
+}
+
+.install_wrapper label small {
+	color: var(--color-text-3);
+	font-size: 11px;
+	font-weight: 400;
+	margin: 0 0 0 4px;
+}
+
+.install_wrapper p {
+	clear: both;
+	color: var(--color-text-2);
+	font-size: 13px;
+	line-height: 1.5;
+	/* Keep bottom margin even when the paragraph is the only child of a fieldset —
+	   that space separates intro copy from the control that follows (e.g. checkboxes). */
+	margin: 0 0 14px;
+}
+
+.install_wrapper p small {
+	color: var(--color-text-3);
+	display: inline-block;
+	float: none;
+	font-size: 11px;
+	font-weight: 500;
+	letter-spacing: 0.04em;
+	margin: 0 10px 0 0;
+	min-width: 72px;
+	text-transform: uppercase;
+	width: auto;
+}
+
+.install_wrapper ul {
+	color: var(--color-text-2);
+	line-height: 1.55;
+	list-style: disc outside;
+	/* Bottom margin separates bullets from the controls that follow (e.g. Routing). */
+	margin: 12px 0 14px 18px;
+	padding: 0;
+}
+
+.install_wrapper ul li {
+	margin: 4px 0;
+}
+
+/* Control row after intro copy / lists (e.g. Site routing selects). */
+.install_wrapper fieldset.clear + br.clear + .contain,
+.install_wrapper fieldset.clear + .contain {
+	margin-top: 4px;
+}
+
+.install_wrapper strong {
+	color: var(--color-text);
+	font-weight: 600;
+}
+
+/* ─── Form controls (TextInput / Select parity) ─────────────────────────────── */
+
+.install_wrapper input.text,
+.install_wrapper input[type="text"],
+.install_wrapper input[type="password"],
+.install_wrapper input[type="email"],
+.install_wrapper input[type="url"],
+.install_wrapper select {
+	appearance: none;
+	background: var(--color-surface);
+	border: 1px solid var(--color-border);
+	border-radius: var(--radius-md);
+	box-sizing: border-box;
+	color: var(--color-text);
+	display: block;
+	font-family: inherit;
+	font-size: 13px;
+	height: auto;
+	line-height: 1.4;
+	margin: 0 0 0;
+	max-width: 100%;
+	outline: none;
+	padding: 8px 12px;
+	transition: border-color 0.15s ease, box-shadow 0.15s ease;
+	width: 100% !important;
+}
+
+.install_wrapper select {
+	/* Chevron */
+	background-image: linear-gradient(45deg, transparent 50%, var(--color-text-3) 50%),
+		linear-gradient(135deg, var(--color-text-3) 50%, transparent 50%);
+	background-position: calc(100% - 16px) calc(50% - 2px), calc(100% - 11px) calc(50% - 2px);
+	background-repeat: no-repeat;
+	background-size: 5px 5px, 5px 5px;
+	cursor: pointer;
+	padding-right: 32px;
+}
+
+.install_wrapper input.text:focus,
+.install_wrapper input[type="text"]:focus,
+.install_wrapper input[type="password"]:focus,
+.install_wrapper input[type="email"]:focus,
+.install_wrapper input[type="url"]:focus,
+.install_wrapper select:focus {
+	border-color: var(--color-accent);
+	box-shadow: 0 0 0 1px var(--color-accent-ring);
+}
+
+.install_wrapper input::placeholder {
+	color: var(--color-text-3);
+}
+
+.install_wrapper input:disabled,
+.install_wrapper select:disabled {
+	cursor: not-allowed;
+	opacity: 0.6;
+}
+
+/* ─── Checkboxes (SPA Checkbox primitive) ───────────────────────────────────── */
+
+.install_wrapper label.for_checkbox {
+	align-items: center;
+	color: var(--color-text-2);
+	cursor: pointer;
+	display: flex;
+	font-size: 12.5px;
+	font-weight: 400;
+	gap: 8px;
+	line-height: 1.35;
+	margin: 0 0 10px;
+	padding: 0;
+	user-select: none;
+	width: fit-content;
+}
+
+.install_wrapper label.for_checkbox:last-child {
+	margin-bottom: 0;
+}
+
+/* Checkbox groups need breathing room before the next field (e.g. Session storage). */
+.install_wrapper fieldset:has(> label.for_checkbox) {
+	margin-bottom: 16px;
+}
+
+/* Checkbox-only fieldset after a description fieldset (e.g. Example site). */
+.install_wrapper fieldset:has(> label.for_checkbox:first-child) {
+	margin-top: 2px;
+}
+
+.install_wrapper label.for_checkbox input[type="checkbox"],
+.install_wrapper label.for_checkbox input.checkbox {
+	accent-color: var(--color-accent);
+	cursor: pointer;
+	flex-shrink: 0;
+	float: none;
+	height: 16px;
+	margin: 0;
+	width: 16px;
+}
+
+/* ─── Alerts (SPA Alert tones) ──────────────────────────────────────────────── */
+
+.install_wrapper .error_message,
+.install_wrapper .warning_message,
+.install_wrapper .delete_message {
+	border-radius: var(--radius-md);
+	font-size: 12.5px;
+	line-height: 1.45;
+	margin: 0 0 10px;
+	padding: 8px 12px;
+}
+
+.install_wrapper .error_message {
+	background: color-mix(in oklab, var(--color-danger) 5%, transparent);
+	border: 1px solid color-mix(in oklab, var(--color-danger) 40%, transparent);
+	color: var(--color-danger);
+}
+
+.install_wrapper .warning_message,
+.install_wrapper .delete_message {
+	background: var(--color-warn-bg);
+	border: 1px solid color-mix(in oklab, var(--color-warn) 40%, transparent);
+	color: var(--color-warn);
+}
+
+.install_wrapper .iis_message {
+	margin-top: 16px;
+}
+
+/* ─── Code block ────────────────────────────────────────────────────────────── */
+
+.install_wrapper code {
+	background: var(--color-surface-2);
+	border: 1px solid var(--color-border);
+	border-radius: var(--radius-md);
+	color: var(--color-text);
+	display: block;
+	font-family: var(--font-mono);
+	font-size: 12px;
+	line-height: 1.6;
+	margin: 16px 0;
+	overflow-x: auto;
+	padding: 12px 14px;
+}
+
+/* ─── Validation ────────────────────────────────────────────────────────────── */
+
+.install_wrapper .form_error label {
+	color: var(--color-danger);
+}
+
+.install_wrapper .form_error input,
+.install_wrapper .form_error input.text {
+	border-color: var(--color-danger);
+}
+
+.install_wrapper .form_error input:focus {
+	box-shadow: 0 0 0 1px color-mix(in oklab, var(--color-danger) 35%, transparent);
+}
+
+/* ─── Buttons (SPA Button primary / secondary) ──────────────────────────────── */
+
+.install_wrapper input[type="submit"],
+.install_wrapper a.button,
+.install_wrapper button,
+.install_wrapper .button {
+	align-items: center;
+	appearance: none;
+	background: var(--color-accent);
+	border: 1px solid transparent;
+	border-radius: var(--radius-md);
+	color: var(--color-accent-fg);
+	cursor: pointer;
+	display: inline-flex;
+	font-family: inherit;
+	font-size: 13px;
+	font-weight: 500;
+	gap: 6px;
+	height: auto;
+	justify-content: center;
+	line-height: 1.3;
+	padding: 8px 14px;
+	text-decoration: none;
+	transition: background-color 0.15s ease, border-color 0.15s ease, opacity 0.15s ease,
+		transform 0.1s ease;
+	user-select: none;
+}
+
+.install_wrapper input[type="submit"]:hover,
+.install_wrapper a.button:hover,
+.install_wrapper button:hover,
+.install_wrapper .button:hover {
+	background: var(--color-accent-hover);
+	color: var(--color-accent-fg);
+}
+
+.install_wrapper input[type="submit"]:active,
+.install_wrapper a.button:active,
+.install_wrapper button:active,
+.install_wrapper .button:active {
+	transform: scale(0.97);
+}
+
+.install_wrapper input[type="submit"]:focus-visible,
+.install_wrapper a.button:focus-visible,
+.install_wrapper button:focus-visible,
+.install_wrapper .button:focus-visible {
+	outline: 2px solid var(--color-accent-ring);
+	outline-offset: 2px;
+}
+
+/* Legacy color class aliases → primary (accent) */
+.install_wrapper .button.blue,
+.install_wrapper .button.green,
+.install_wrapper input[type="submit"].blue,
+.install_wrapper input[type="submit"].green {
+	background: var(--color-accent);
+	border-color: transparent;
+	color: var(--color-accent-fg);
+}
+
+.install_wrapper .button.blue:hover,
+.install_wrapper .button.green:hover,
+.install_wrapper input[type="submit"].blue:hover,
+.install_wrapper input[type="submit"].green:hover {
+	background: var(--color-accent-hover);
+}
+
+.install_wrapper .button.red,
+.install_wrapper input[type="submit"].red {
+	background: var(--color-danger);
+	color: #fff;
+}
+
+/* ─── Footer ────────────────────────────────────────────────────────────────── */
+
+.install_footer {
+	align-items: center;
+	color: var(--color-text-3);
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	margin: 28px auto 0;
+	text-align: center;
+}
+
+.install_footer a {
+	color: var(--color-text-3);
+	font-size: 12px;
+	transition: color 0.15s ease;
+}
+
+.install_footer a:hover {
+	color: var(--color-text-2);
+}
+
+/* Legacy class hooks still referenced by markup */
+.install_logo {
+	/* Replaced by .install_brand / .install_footer; keep as muted text link */
+	background: none;
+	color: var(--color-text-3);
+	display: block;
+	font-size: 12.5px;
+	font-weight: 500;
+	height: auto;
+	margin: 28px auto 0;
+	text-align: center;
+	text-indent: 0;
+	width: auto;
+}
+
+.install_logo:hover {
+	color: var(--color-text-2);
+}
+
+.install_copyright {
+	color: var(--color-text-4);
+	display: block;
+	font-size: 11.5px;
+	margin: 6px auto 0;
+	text-align: center;
+	width: auto;
+}
+
+.install_copyright:hover {
+	color: var(--color-text-3);
+}
+
+/* ─── Misc layout helpers used by the form ──────────────────────────────────── */
+
+.install_wrapper .contain fieldset.left {
+	margin-right: 16px;
+}
+
+.install_wrapper .contain fieldset.left:last-child {
+	margin-right: 0;
+}
+
+/* Spacing after float pairs (legacy <br class="clear" />) */
+.install_wrapper br.clear {
+	display: block;
+	content: "";
+	clear: both;
+	margin: 0;
+}
+
+/* Responsive: stack two-column fieldsets */
+@media (max-width: 560px) {
+	.install_wrapper {
+		padding: 28px 12px 32px;
+	}
+
+	.install_wrapper form {
+		padding: 20px 18px 0;
+	}
+
+	.install_wrapper fieldset.lower {
+		margin-left: -18px;
+		margin-right: -18px;
+		padding: 14px 18px;
+	}
+
+	.install_wrapper fieldset.left,
+	.install_wrapper fieldset.right {
+		float: none;
+		width: 100%;
+	}
+
+	.install_wrapper .contain fieldset.left {
+		margin-right: 0;
+	}
+}

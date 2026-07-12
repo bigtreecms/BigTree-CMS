@@ -1,4 +1,9 @@
 <?php
+	// Site root is two levels above this file (core/setup/ → project root).
+	// All relative paths in this installer are from the site root.
+	$bigtree_site_root = dirname(__DIR__, 2);
+	chdir($bigtree_site_root);
+
 	// Set version
 	include "core/version.php";
 	include "core/inc/bigtree/utils.php";
@@ -57,13 +62,14 @@
 		}
 	}
 
-	// Refuse to run if BigTree is already installed. install.php is a one-shot
-	// file that deletes itself on success (see the @unlink near the end of this
-	// script); this guard is defense-in-depth for when that self-delete fails and
-	// the file is left web-reachable — re-running it would recreate tables and
-	// insert a fresh level-2 admin user, enabling takeover + data loss. To
-	// intentionally reinstall, delete custom/environment.php first.
-	if (file_exists(__DIR__ . "/custom/environment.php")) {
+	// Refuse to run if BigTree is already installed. The public root index.php is
+	// a one-shot install bootstrap that is replaced or deleted on success (see the
+	// routing branch + cleanup near the end of this script); this guard is
+	// defense-in-depth for when that replacement fails and the installer is left
+	// web-reachable — re-running it would recreate tables and insert a fresh
+	// level-2 admin user, enabling takeover + data loss. To intentionally
+	// reinstall, delete custom/environment.php first.
+	if (file_exists($bigtree_site_root . "/custom/environment.php")) {
 		header("HTTP/1.1 403 Forbidden");
 		die("BigTree is already installed. To reinstall, remove custom/environment.php and run this script again.");
 	}
@@ -191,14 +197,16 @@
 		if (!isset($domain)) {
 			$scheme = BigTree::getIsSSL() ? "https" : "http";
 			$domain = $scheme."://".$_SERVER["HTTP_HOST"];
-			
+			// Public entry is root index.php (or DirectoryIndex "/"); strip it for base.
+			$install_base = str_replace("index.php", "", $_SERVER["REQUEST_URI"] ?? "/");
+
 			if ($routing == "basic") {
-				$static_root = $domain.str_replace("install.php","",$_SERVER["REQUEST_URI"])."site/";
+				$static_root = $domain.$install_base."site/";
 				$www_root = $static_root."index.php/";
 			} elseif ($routing == "iis") {
-				$www_root = $static_root = $domain.str_replace("install.php","",$_SERVER["REQUEST_URI"])."site/";
+				$www_root = $static_root = $domain.$install_base."site/";
 			} else {
-				$www_root = $static_root = $domain.str_replace("install.php","",$_SERVER["REQUEST_URI"]);
+				$www_root = $static_root = $domain.$install_base;
 			}
 		}
 		
@@ -574,9 +582,16 @@ RewriteRule ^(.*)$ index.php?bigtree_htaccess_url=$1 [QSA,L]
 RewriteRule .* - [E=HTTP_IF_MODIFIED_SINCE:%{HTTP:If-Modified-Since}]
 RewriteRule .* - [E=HTTP_BIGTREE_PARTIAL:%{HTTP:BigTree-Partial}]');
 		} else {
-			bt_touch_writable("index.php",'<?php header("Location: site/index.php/"); ?>');
+			// Basic routing: replace this installer bootstrap with a redirect into /site/.
+			// Must overwrite — bt_touch_writable skips existing files, and root index.php
+			// is the install entry until this point.
+			file_put_contents("index.php", '<?php header("Location: site/index.php/"); ?>');
+
+			if (!BT_SU_EXEC) {
+				chmod("index.php", 0777);
+			}
 		}
-		
+
 		if ($routing != "basic" && $routing != "iis") {
 			bt_touch_writable(".htaccess",'RewriteEngine On
 RewriteRule ^$ site/ [L]
@@ -600,155 +615,162 @@ RewriteRule (.*) site/$1 [L]');
 	}
 
 	if ($installed) {
-		@unlink("install.php");
-		@unlink("bigtree-theme.sql");
-		@unlink("README.md");
+		// Public entry was root index.php. Basic routing already overwrote it with a
+		// redirect; rewrite/IIS remove it so traffic goes via .htaccess / site docroot.
+		// Setup assets under core/setup/ stay on disk (not the public install UI).
+		if ($routing != "basic") {
+			@unlink($bigtree_site_root . "/index.php");
+		}
+
+		@unlink($bigtree_site_root . "/bigtree-theme.sql");
+		@unlink($bigtree_site_root . "/README.md");
 	}
 	
 	// Set localhost as the default MySQL host
 	$host = !empty($host) ? $host : "localhost";
 ?>
-<!doctype html> 
-<!--[if lt IE 7 ]> <html lang="en" class="no-js ie6"> <![endif]-->
-<!--[if IE 7 ]>	<html lang="en" class="no-js ie7"> <![endif]-->
-<!--[if IE 8 ]>	<html lang="en" class="no-js ie8"> <![endif]-->
-<!--[if IE 9 ]>	<html lang="en" class="no-js ie9"> <![endif]-->
-<!--[if (gt IE 9)|!(IE)]><!--> <html lang="en" class="no-js"> <!--<![endif]-->
+<!doctype html>
+<html lang="en">
 	<head>
 		<meta charset="utf-8">
-		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<title>Install BigTree <?=BIGTREE_VERSION?></title>
-		<?php if ($installed && $routing != "iis") { ?>
-		<link rel="stylesheet" href="<?=$www_root?>admin/css/install.css" type="text/css" media="all" />
-		<?php } else { ?>
-		<script src="core/admin/js/lib.js"></script>
-		<script src="core/admin/js/main.js"></script>
-		<?php } ?>
-
+		<link rel="preconnect" href="https://fonts.googleapis.com">
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+		<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
 		<style type="text/css">
 			<?php
-				$protocol = (@$_SERVER["HTTPS"] == "on") ? "https://" : "http://";
-				
-				if ($_SERVER["SERVER_PORT"] != "80" && $port) {
-					$base = $protocol.$_SERVER["SERVER_NAME"].":".$_SERVER["SERVER_PORT"].str_replace("install.php", "", $_SERVER["REQUEST_URI"]);
-				} else {
-					$base = $protocol.$_SERVER["SERVER_NAME"].str_replace("install.php", "", $_SERVER["REQUEST_URI"]);
-				}
-
-				require_once "vendor/wikimedia/less.php/lib/Less/Autoloader.php";
-				Less_Autoloader::register();
-
-				// Load LESS compiler
-				$parser = new \Less_Parser(["compress" => true]);
-
-				if ($installed) {
-					$parser->parseFile("core/admin/css/install.less", $base."admin/filler/");
-				} else {
-					$parser->parseFile("core/admin/css/install.less", $base."core/admin/filler/");
-				}
-
-				echo $parser->getCss();
+				// Plain CSS (SPA design tokens). Lives next to this installer under
+				// core/setup/ so styles survive removing the legacy core/admin tree.
+				echo file_get_contents(__DIR__ . "/install.css");
 			?>
 		</style>
 	</head>
 	<body class="install">
 		<div class="install_wrapper">
 			<?php if ($installed) { ?>
-			<h1>BigTree <?=BIGTREE_VERSION?> Installed</h1>
+			<header class="install_brand">
+				<div class="install_brand_mark" aria-hidden="true">
+					<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+						<path d="M12 2 4 12h4v8h8v-8h4L12 2Z" />
+					</svg>
+				</div>
+				<div>
+					<h1>BigTree <?=BIGTREE_VERSION?> installed</h1>
+					<p>Your site is ready to go.</p>
+				</div>
+			</header>
 			<form method="post" action="" class="module">
-				<h2 class="getting_started"><span></span>Installation Complete</h2>
+				<h2>Installation complete</h2>
 				<fieldset class="clear">
-					<p>Your new BigTree site is ready to go! Login to the CMS using the email/password you entered on the previous page.</p>
-					<?php if ($routing == "basic" && file_exists("install.php")) { ?>
-					<p class="delete_message">Remember to delete install.php from your root folder as it is publicly accessible in Basic Routing mode.</p>
+					<p>Your new BigTree site is ready. Sign in to the CMS with the email and password you just created.</p>
+					<?php
+						// Basic routing should have replaced index.php with a redirect; warn if
+						// the installer bootstrap is somehow still present.
+						$root_index = @file_get_contents($bigtree_site_root . "/index.php");
+						$installer_still_present = is_string($root_index) && str_contains($root_index, "core/setup/install.php");
+					?>
+					<?php if ($routing == "basic" && $installer_still_present) { ?>
+					<p class="delete_message">Replace or delete the root index.php installer bootstrap — it is still publicly accessible in Basic Routing mode.</p>
 					<?php } elseif ($routing == "iis") { ?>
-					<p class="error_message iis_message">To setup proper rewrite routing for IIS you must import the following .htaccess rules to the /site/ directory:</p>
+					<p class="error_message iis_message">To set up rewrite routing for IIS, import the following .htaccess rules into the /site/ directory:</p>
 					<code>
 						RewriteCond %{REQUEST_FILENAME} !-d<br />
 						RewriteCond %{REQUEST_FILENAME} !-f<br />
 						RewriteRule ^(.*)$ index.php?bigtree_htaccess_url=$1 [QSA,L]
 					</code>
-					<p class="delete_message">To remove the /site/ path from your BigTree install you will need to setup a separate IIS Site for your BigTree install and set its document root to the /site/ folder (as well as moving the rewrite rules to apply the the main Site instead of the /site/ directory). After doing so, edit your /custom/environment.php file to adjust your domain, www_root, static_root, and admin_root variables.</p>
+					<p class="delete_message">To remove the /site/ path from your BigTree install you will need to setup a separate IIS Site for your BigTree install and set its document root to the /site/ folder (as well as moving the rewrite rules to apply to the main Site instead of the /site/ directory). After doing so, edit your /custom/environment.php file to adjust your domain, www_root, static_root, and admin_root variables.</p>
 					<?php } ?>
 				</fieldset>
-				
+
 				<hr />
-				
-				<h2>Public Site</h2>
+
+				<h2>Public site</h2>
 				<fieldset class="clear">
 					<p><small>URL</small><a href="<?=$www_root?>"><?=$www_root?></a></p>
 				</fieldset>
-				<br /><br />
-				<h2>Administration Area</h2>
+
+				<hr />
+
+				<h2>Administration area</h2>
 				<fieldset class="clear">
 					<p>
 						<small>URL</small><a href="<?=$www_root?>admin/"><?=$www_root?>admin/</a><br />
-						<small>EMAIL</small><?=$cms_user?><br />
-						<small>PASSWORD</small><?php for ($i = 0, $count = strlen($cms_pass); $i < $count; $i++) { echo "*"; } ?><br />
+						<small>Email</small><?=$cms_user?><br />
+						<small>Password</small><?php for ($i = 0, $count = strlen($cms_pass); $i < $count; $i++) { echo "*"; } ?><br />
 					</p>
 				</fieldset>
-				
+
 				<br class="clear" /><br />
 			</form>
 			<?php } else { ?>
-			<h1>Install BigTree <?=BIGTREE_VERSION?></h1>
+			<header class="install_brand">
+				<div class="install_brand_mark" aria-hidden="true">
+					<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+						<path d="M12 2 4 12h4v8h8v-8h4L12 2Z" />
+					</svg>
+				</div>
+				<div>
+					<h1>Install BigTree <?=BIGTREE_VERSION?></h1>
+					<p>Set up your database, admin account, and routing.</p>
+				</div>
+			</header>
 			<form method="post" action="" class="module">
-				<h2 class="getting_started"><span></span>Getting Started</h2>
+				<h2>Getting started</h2>
 				<fieldset class="clear">
-					<p>Welcome to the BigTree installer. If you need help with installation, <a href="https://www.bigtreecms.org/docs/dev-guide/installation/" target="_blank">check out the developer docs</a>.</p>
-					<br />
+					<p>Welcome to the BigTree installer. If you need help with installation, <a href="https://www.bigtreecms.org/docs/dev-guide/installation/" target="_blank" rel="noopener noreferrer">check out the developer docs</a>.</p>
 				</fieldset>
 				<?php
 					if (count($warnings)) {
-						echo '<br />';
+						echo '<br class="clear" />';
 						foreach ($warnings as $warning) {
 				?>
-				<p class="warning_message clear"><?=$warning?></p>
+				<p class="warning_message"><?=$warning?></p>
 				<?php
 						}
 					}
 					if (count($fails)) {
-						echo '<br />';
+						echo '<br class="clear" />';
 						foreach ($fails as $fail) {
 				?>
-				<p class="error_message clear"><?=$fail?></p>
+				<p class="error_message"><?=$fail?></p>
 				<?php
 						}
-						echo '<br /><fieldset class="clear"><p><strong>Please resolve all the errors marked in red above to install BigTree.</strong></p></fieldset><br /><br />';
+						echo '<br class="clear" /><fieldset class="clear"><p><strong>Resolve the errors above before installing BigTree.</strong></p></fieldset><br class="clear" />';
 					} else {
 						if ($error) {
-							echo '<br />';
+							echo '<br class="clear" />';
 				?>
-				<p class="error_message clear"><?=$error?></p>
+				<p class="error_message"><?=$error?></p>
 				<?php
 						}
 				?>
 				<hr />
-				
-				<h2 class="database"><span></span>Session &amp; Database Properties</h2>
+
+				<h2>Session &amp; database</h2>
 				<fieldset class="clear">
 					<p>Enter your MySQL database information below.</p>
 				</fieldset>
-				<hr />
+				<br class="clear" />
 				<fieldset class="left<?php if (count($_POST) && !$host) { ?> form_error<?php } ?>">
-					<label>Hostname</label>
+					<label for="db_host">Hostname</label>
 					<input class="text" type="text" id="db_host" required name="host" value="<?=htmlspecialchars($host ?? "")?>" tabindex="1" />
 				</fieldset>
 				<fieldset class="right<?php if (count($_POST) && !$db) { ?> form_error<?php } ?>">
-					<label>Database</label>
+					<label for="db_name">Database</label>
 					<input class="text" type="text" id="db_name" required name="db" value="<?=htmlspecialchars($db ?? "")?>" tabindex="2" />
 				</fieldset>
-				<br class="clear" /><br />
+				<br class="clear" />
 				<fieldset class="left<?php if (count($_POST) && !$user) { ?> form_error<?php } ?>">
-					<label>Username</label>
+					<label for="db_user">Username</label>
 					<input class="text" type="text" id="db_user" required name="user" value="<?=htmlspecialchars($user ?? "")?>" tabindex="3" autocomplete="off" />
 				</fieldset>
 				<fieldset class="right">
-					<label>Password</label>
+					<label for="db_pass">Password</label>
 					<input class="text" type="password" id="db_pass" required name="password" value="<?=htmlspecialchars($password ?? "")?>" tabindex="4" autocomplete="off" />
 				</fieldset>
 				<div class="db_port_or_socket_settings"<?php if (empty($db_port_or_socket)) { ?> style="display: none;"<?php } ?>>
-					<br class="clear" /><br />
+					<br class="clear" />
 					<fieldset class="left">
 						<label>Port <small>(defaults to 3306)</small></label>
 						<input class="text" type="text" name="port" value="<?=htmlspecialchars($port ?? "")?>" tabindex="7" />
@@ -758,50 +780,54 @@ RewriteRule (.*) site/$1 [L]');
 						<input class="text" type="text" name="socket" value="<?=htmlspecialchars($socket ?? "")?>" tabindex="8" />
 					</fieldset>
 				</div>
-				<fieldset>
-					<br /><br />
-					<input type="checkbox" class="checkbox" name="db_port_or_socket" id="db_port_or_socket"<?php if (!empty($db_port_or_socket)) { ?> checked="checked"<?php } ?> tabindex="5" />
-					<label class="for_checkbox">Connect via Socket or Alternate Port</label>
-					<input type="checkbox" class="checkbox" name="loadbalanced" id="loadbalanced"<?php if (!empty($loadbalanced)) { ?> checked="checked"<?php } ?> tabindex="6" />
-					<label class="for_checkbox">Load Balanced MySQL</label>
+				<br class="clear" />
+				<fieldset class="clear">
+					<label class="for_checkbox">
+						<input type="checkbox" class="checkbox" name="db_port_or_socket" id="db_port_or_socket"<?php if (!empty($db_port_or_socket)) { ?> checked="checked"<?php } ?> tabindex="5" />
+						Connect via socket or alternate port
+					</label>
+					<label class="for_checkbox">
+						<input type="checkbox" class="checkbox" name="loadbalanced" id="loadbalanced"<?php if (!empty($loadbalanced)) { ?> checked="checked"<?php } ?> tabindex="6" />
+						Load balanced MySQL
+					</label>
 				</fieldset>
 
-				<fieldset>
-					<br /><br />
-					<label>Session Storage <small>(BigTree Database Handler required for enhanced security features)</small></label>
-					<select name="session_handler" tabindex="7">
+				<br class="clear" />
+				<fieldset class="clear">
+					<label for="session_handler">Session storage <small>(Database handler required for enhanced security features)</small></label>
+					<select name="session_handler" id="session_handler" tabindex="7">
 						<option value="db">BigTree Database Handler</option>
 						<option value="default">Default PHP Handler</option>
 					</select>
 				</fieldset>
-				
+
 				<div id="loadbalanced_settings"<?php if (empty($loadbalanced)) { ?> style="display: none;"<?php } ?>>
 					<hr />
-					
-					<h2 class="database"><span></span>Write Database Properties</h2>
+
+					<h2>Write database</h2>
 					<fieldset class="clear">
 						<p>If you are hosting a load balanced setup with multiple MySQL servers, enter the master write server information below.</p>
 					</fieldset>
-					<hr />
+					<br class="clear" />
 					<fieldset class="left<?php if (count($_POST) && !empty($loadbalanced) && empty($write_host)) { ?> form_error<?php } ?>">
-						<label>Hostname</label>
+						<label for="db_write_host">Hostname</label>
 						<input class="text" type="text" id="db_write_host" name="write_host" value="<?=htmlspecialchars($write_host ?? "")?>" tabindex="8" />
 					</fieldset>
 					<fieldset class="right<?php if (count($_POST) && !empty($loadbalanced) && empty($write_db)) { ?> form_error<?php } ?>">
-						<label>Database</label>
+						<label for="db_write_name">Database</label>
 						<input class="text" type="text" id="db_write_name" name="write_db" value="<?=htmlspecialchars($write_db ?? "")?>" tabindex="9" />
 					</fieldset>
-					<br class="clear" /><br />
+					<br class="clear" />
 					<fieldset class="left<?php if (count($_POST) && !empty($loadbalanced) && empty($write_user)) { ?> form_error<?php } ?>">
-						<label>Username</label>
+						<label for="db_write_user">Username</label>
 						<input class="text" type="text" id="db_write_user" name="write_user" value="<?=htmlspecialchars($write_user ?? "")?>" tabindex="10" autocomplete="off" />
 					</fieldset>
 					<fieldset class="right<?php if (count($_POST) && !empty($loadbalanced) && empty($write_password)) { ?> form_error<?php } ?>">
-						<label>Password</label>
+						<label for="db_write_pass">Password</label>
 						<input class="text" type="password" id="db_write_pass" name="write_password" value="<?=htmlspecialchars($write_password ?? "")?>" tabindex="11" autocomplete="off" />
 					</fieldset>
 					<div class="db_port_or_socket_settings"<?php if (empty($db_port_or_socket)) { ?> style="display: none;"<?php } ?>>
-						<br class="clear" /><br />
+						<br class="clear" />
 						<fieldset class="left">
 							<label>Port <small>(defaults to 3306)</small></label>
 							<input class="text" type="text" name="write_port" value="<?=htmlspecialchars($write_port ?? "")?>" tabindex="12" />
@@ -811,34 +837,36 @@ RewriteRule (.*) site/$1 [L]');
 							<input class="text" type="text" name="write_socket" value="<?=htmlspecialchars($write_socket ?? "")?>" tabindex="13" />
 						</fieldset>
 					</div>
-					<br class="clear" /><br />
+					<br class="clear" />
 				</div>
-				
+
 				<hr />
-				
-				<h2 class="account"><span></span>Administrator Account</h2>
+
+				<h2>Administrator account</h2>
 				<fieldset class="clear">
-					<p>Please enter the desired email address and password for your site's developer account.</p>
+					<p>Enter the email and password for your site's developer account.</p>
 				</fieldset>
-				<hr />
+				<br class="clear" />
 				<fieldset class="left<?php if (count($_POST) && empty($cms_user)) { ?> form_error<?php } ?>">
-					<label>Email Address</label>
+					<label for="cms_user">Email address</label>
 					<input class="text" type="email" required id="cms_user" name="cms_user" value="<?=htmlspecialchars($cms_user ?? "")?>" tabindex="14" autocomplete="off" />
 				</fieldset>
 				<fieldset class="right<?php if (count($_POST) && empty($cms_pass)) { ?> form_error<?php } ?>">
-					<label>Password</label>
+					<label for="cms_pass">Password</label>
 					<input class="text" type="password" required id="cms_pass" name="cms_pass" value="<?=htmlspecialchars($cms_pass ?? "")?>" tabindex="15" autocomplete="off" />
 				</fieldset>
+				<br class="clear" />
 				<fieldset class="clear">
-					<br /><br />
-					<input type="checkbox" class="checkbox" name="force_secure_login" id="force_secure_login"<?php if (!empty($force_secure_login)) { ?> checked="checked"<?php } ?> tabindex="16" />
-					<label class="for_checkbox">Force HTTPS Logins</label>
+					<label class="for_checkbox">
+						<input type="checkbox" class="checkbox" name="force_secure_login" id="force_secure_login"<?php if (!empty($force_secure_login)) { ?> checked="checked"<?php } ?> tabindex="16" />
+						Force HTTPS logins
+					</label>
 				</fieldset>
-				
+
 				<hr />
-				
+
 				<?php if (!$iis || $iis_rewrite) { ?>
-				<h2 class="routing"><span></span>Site Routing</h2>
+				<h2>Site routing</h2>
 				<fieldset class="clear">
 					<?php if ($iis) { ?>
 					<p>BigTree makes your URLs pretty but URL Rewrite support can make them even more pretty. By choosing "Rewrite Routing" you can remove /index.php/ from your URLs.</p>
@@ -856,11 +884,11 @@ RewriteRule (.*) site/$1 [L]');
 						<?php } ?>
 					</ul>
 				</fieldset>
-				<hr />
+				<br class="clear" />
 				<div class="contain">
 					<fieldset class="left">
-						<label>Routing</label>
-						<select name="routing" tabindex="17">
+						<label for="routing">Routing</label>
+						<select name="routing" id="routing" tabindex="17">
 							<?php
 								if ($iis) {
 							?>
@@ -882,58 +910,64 @@ RewriteRule (.*) site/$1 [L]');
 						</select>
 					</fieldset>
 					<fieldset class="left">
-						<label>URL Behavior</label>
-						<select name="slash_behavior" tabindex="18">
+						<label for="slash_behavior">URL behavior</label>
+						<select name="slash_behavior" id="slash_behavior" tabindex="18">
 							<option value="append">URLs End With /</option>
 							<option value="remove"<?php if (empty($slash_behavior) || $slash_behavior == "remove") { ?> selected="selected"<?php } ?>>URLs End With Page Slug</option>
 							<option value="none"<?php if (!empty($slash_behavior) && $slash_behavior == "none") { ?> selected="selected"<?php } ?>>Allow Either</option>
 						</select>
 					</fieldset>
 				</div>
-				
+
 				<hr />
 				<?php } else { ?>
 				<input type="hidden" name="routing" value="basic" />
 				<?php } ?>
-				
-				<h2 class="example"><span></span>Example Site</h2>
+
+				<h2>Example site</h2>
 				<fieldset class="clear">
-					<p>If you would also like to install the BigTree example site, check the box below. These optional demo files include example templates and modules to help get you started learning BigTree.</p>
+					<p>Optionally install the BigTree example site. Demo templates and modules help you learn the system.</p>
+					<label class="for_checkbox">
+						<input type="checkbox" class="checkbox" name="install_example_site" id="install_example_site"<?php if (!empty($install_example_site)) { ?> checked="checked"<?php } ?> tabindex="19" />
+						Install example site
+					</label>
 				</fieldset>
-				<br />
-				<fieldset class="clear">
-					<input type="checkbox" class="checkbox" name="install_example_site" id="install_example_site"<?php if (!empty($install_example_site)) { ?> checked="checked"<?php } ?> tabindex="19" />
-					<label class="for_checkbox">Install Example Site</label>
-				</fieldset>
-								
+
 				<fieldset class="lower">
-					<input type="submit" class="button blue" value="Install Now" tabindex="20" />
+					<input type="submit" class="button blue" value="Install now" tabindex="20" />
 				</fieldset>
 				<?php
 					}
 				?>
 			</form>
-		    <script>
-		        $(document).ready(function() {
-		        	$("#loadbalanced").on("change", function() {
-		        		if ($(this).prop("checked")) {
-		        			$("#loadbalanced_settings").css({ display: "block" });
-		        		} else {
-		        			$("#loadbalanced_settings").css({ display: "none" });
-		        		}
-		        	});
-		        	$("#db_port_or_socket").on("change", function() {
-		        		if ($(this).prop("checked")) {
-		        			$(".db_port_or_socket_settings").css({ display: "block" });
-		        		} else {
-		        			$(".db_port_or_socket_settings").css({ display: "none" });
-		        		}
-		        	});
-		        });
-		    </script>
+			<script>
+				(function () {
+					var loadBalanced = document.getElementById("loadbalanced");
+					var loadBalancedSettings = document.getElementById("loadbalanced_settings");
+					var portOrSocket = document.getElementById("db_port_or_socket");
+					var portOrSocketSettings = document.querySelectorAll(".db_port_or_socket_settings");
+
+					if (loadBalanced && loadBalancedSettings) {
+						loadBalanced.addEventListener("change", function () {
+							loadBalancedSettings.style.display = loadBalanced.checked ? "block" : "none";
+						});
+					}
+
+					if (portOrSocket && portOrSocketSettings.length) {
+						portOrSocket.addEventListener("change", function () {
+							var display = portOrSocket.checked ? "block" : "none";
+							portOrSocketSettings.forEach(function (el) {
+								el.style.display = display;
+							});
+						});
+					}
+				})();
+			</script>
 			<?php } ?>
-			<a href="https://www.bigtreecms.org" class="install_logo" target="_blank">BigTree</a>
-			<a href="https://www.fastspot.com" class="install_copyright" target="_blank">&copy; <?=date("Y")?> Fastspot</a>
+			<footer class="install_footer">
+				<a href="https://www.bigtreecms.org" target="_blank" rel="noopener noreferrer">BigTree CMS</a>
+				<a href="https://www.fastspot.com" target="_blank" rel="noopener noreferrer">&copy; <?=date("Y")?> Fastspot</a>
+			</footer>
 		</div>
 	</body>
 </html>
