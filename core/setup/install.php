@@ -1,8 +1,19 @@
 <?php
-	// Site root is two levels above this file (core/setup/ → project root).
-	// All relative paths in this installer are from the site root.
-	$bigtree_site_root = dirname(__DIR__, 2);
-	chdir($bigtree_site_root);
+	// Site root: prefer the constant set by the public root bootstrap (index.php).
+	// Fall back to two levels above this file (core/setup/ → project root).
+	$bigtree_site_root = defined("BIGTREE_SITE_ROOT")
+		? BIGTREE_SITE_ROOT
+		: dirname(__DIR__, 2);
+
+	if (!@chdir($bigtree_site_root)) {
+		http_response_code(500);
+		die("BigTree installer could not chdir to the site root: ".htmlspecialchars($bigtree_site_root));
+	}
+
+	// Surface install failures — a silent white screen after the DB step is hard to debug.
+	error_reporting(E_ALL);
+	ini_set("display_errors", "1");
+	ini_set("html_errors", "1");
 
 	// Set version
 	include "core/version.php";
@@ -10,10 +21,11 @@
 
 	// Setup SQL functions for MySQL extension if we have it.
 	if (function_exists("mysql_connect")) {
-		function sqlconnect($server,$user,$password,$port,$socket) {
+		function sqlconnect($server, $user, $password, $port, $socket) {
 			$port = $port ?: 3306;
-			$server = $socket ? ":".ltrim($socket,":") : $server.":".$port;
-			return mysql_connect($server,$user,$password);
+			$server = $socket ? ":".ltrim($socket, ":") : $server.":".$port;
+
+			return mysql_connect($server, $user, $password);
 		}
 
 		function sqlselectdb($db) {
@@ -21,7 +33,13 @@
 		}
 
 		function sqlquery($query) {
-			return mysql_query($query);
+			$result = mysql_query($query);
+
+			if ($result === false) {
+				throw new RuntimeException("SQL error: ".mysql_error()." — ".bigtree_install_sql_preview($query));
+			}
+
+			return $result;
 		}
 
 		function sqlescape($string) {
@@ -29,24 +47,119 @@
 		}
 	// Otherwise Use MySQLi
 	} else {
-		function sqlconnect($server,$user,$password,$port,$socket) {
-			return mysqli_connect($server,$user,$password,"",$port ?: 3306,$socket);
+		function sqlconnect($server, $user, $password, $port, $socket) {
+			// PHP 8.1+ throws mysqli_sql_exception on connect/query errors by default.
+			mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+
+			return mysqli_connect($server, $user, $password, "", $port ?: 3306, $socket);
 		}
 
 		function sqlselectdb($db) {
 			global $sql_connection;
+
 			return $sql_connection->select_db($db);
 		}
 
 		function sqlquery($query) {
 			global $sql_connection;
-			return $sql_connection->query($query);
+
+			try {
+				return $sql_connection->query($query);
+			} catch (mysqli_sql_exception $e) {
+				throw new RuntimeException(
+					"SQL error: ".$e->getMessage()." — ".bigtree_install_sql_preview($query),
+					(int) $e->getCode(),
+					$e
+				);
+			}
 		}
 
 		function sqlescape($string) {
 			global $sql_connection;
+
 			return $sql_connection->real_escape_string($string);
 		}
+	}
+
+	/**
+	 * Shorten a SQL statement for error messages.
+	 */
+	function bigtree_install_sql_preview($query) {
+		$flat = preg_replace('/\s+/', " ", trim((string) $query));
+
+		if (strlen($flat) > 180) {
+			$flat = substr($flat, 0, 180)."…";
+		}
+
+		return $flat;
+	}
+
+	/**
+	 * Run a SQL dump that may contain multi-line statements.
+	 *
+	 * base.sql used to be one statement per line; newer tables (refresh tokens,
+	 * migrations, etc.) are pretty-printed across lines. Splitting on "\n" and
+	 * querying each line caused: CREATE TABLE `foo` (  → syntax error near ''.
+	 */
+	function bigtree_install_run_sql($sql) {
+		// Normalize line endings.
+		$sql = str_replace(["\r\n", "\r"], "\n", (string) $sql);
+		$statements = [];
+		$buffer = "";
+
+		foreach (explode("\n", $sql) as $line) {
+			$trimmed = trim($line);
+
+			// Skip empty / full-line comments while not inside a statement.
+			if ($buffer === "" && ($trimmed === "" || str_starts_with($trimmed, "--"))) {
+				continue;
+			}
+
+			$buffer .= ($buffer === "" ? "" : "\n").$line;
+
+			// Statement ends at a line whose trimmed form ends with ';'
+			// (all installer SQL dumps use this convention; no procedure bodies).
+			if (str_ends_with($trimmed, ";")) {
+				$statement = trim($buffer);
+				$buffer = "";
+
+				// Drop a trailing semicolon — mysqli accepts either form.
+				if (str_ends_with($statement, ";")) {
+					$statement = substr($statement, 0, -1);
+				}
+
+				$statement = trim($statement);
+
+				if ($statement !== "") {
+					$statements[] = $statement;
+				}
+			}
+		}
+
+		$trailing = trim($buffer);
+
+		if ($trailing !== "") {
+			$statements[] = $trailing;
+		}
+
+		foreach ($statements as $statement) {
+			sqlquery($statement);
+		}
+
+		return count($statements);
+	}
+
+	/**
+	 * Load and run a .sql file from disk.
+	 */
+	function bigtree_install_run_sql_file($path) {
+		$sql = file_get_contents($path);
+
+		if ($sql === false) {
+			throw new RuntimeException("Could not read SQL file: ".$path);
+		}
+
+		return bigtree_install_run_sql($sql);
 	}
 
 	// Turn off errors
@@ -69,9 +182,27 @@
 	// web-reachable — re-running it would recreate tables and insert a fresh
 	// level-2 admin user, enabling takeover + data loss. To intentionally
 	// reinstall, delete custom/environment.php first.
-	if (file_exists($bigtree_site_root . "/custom/environment.php")) {
+	if (file_exists($bigtree_site_root."/custom/environment.php")) {
+		// Already installed — send the user somewhere useful instead of a bare 403 body.
+		$site_index = $bigtree_site_root.DIRECTORY_SEPARATOR."site".DIRECTORY_SEPARATOR."index.php";
+		$admin_guess = "site/index.php/admin/";
+
+		if (is_file($bigtree_site_root.DIRECTORY_SEPARATOR.".htaccess")) {
+			$admin_guess = "admin/";
+		}
+
 		header("HTTP/1.1 403 Forbidden");
-		die("BigTree is already installed. To reinstall, remove custom/environment.php and run this script again.");
+		header("Content-Type: text/html; charset=utf-8");
+		echo "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><title>Already installed</title></head><body style=\"font:14px/1.5 system-ui,sans-serif;max-width:36rem;margin:3rem auto;padding:0 1rem\">";
+		echo "<h1>BigTree is already installed</h1>";
+		echo "<p>To reinstall, remove <code>custom/environment.php</code> and run this script again.</p>";
+
+		if (is_file($site_index)) {
+			echo "<p><a href=\"".htmlspecialchars($admin_guess)."\">Go to the admin</a></p>";
+		}
+
+		echo "</body></html>";
+		exit;
 	}
 
 	// Issues that are game enders first.
@@ -132,7 +263,7 @@
 	}
 
 	// Determine if we're on Apache or IIS
-	if (strpos($_SERVER["SERVER_SOFTWARE"],"IIS") !== false) {
+	if (strpos($_SERVER["SERVER_SOFTWARE"] ?? "", "IIS") !== false) {
 		$iis = $iis_rewrite = true;
 		$warnings[] = "You are running Microsoft IIS. BigTree is only tested on Apache; proceed with caution in production environments.";
 		// See if we have the equivalent of rewrite installed.
@@ -160,10 +291,31 @@
 			$$key = $val;
 		}
 	}
-	
+
+	// Defaults for optional / routing fields so PHP 8+ never treats them as undefined.
+	$host = $host ?? "localhost";
+	$password = $password ?? "";
+	$port = $port ?? "";
+	$socket = $socket ?? "";
+	$routing = $routing ?? "basic";
+	$slash_behavior = $slash_behavior ?? "remove";
+	$session_handler = $session_handler ?? "db";
+	$db = $db ?? "";
+	$user = $user ?? "";
+	$cms_user = $cms_user ?? "";
+	$cms_pass = $cms_pass ?? "";
+	$write_host = $write_host ?? "";
+	$write_user = $write_user ?? "";
+	$write_password = $write_password ?? "";
+	$write_db = $write_db ?? "";
+	$write_port = $write_port ?? "";
+	$write_socket = $write_socket ?? "";
+
 	$error = null;
 	$success = false;
 	$installed = false;
+	// When true, replace/delete the public root index.php *after* the success HTML is sent.
+	$finalize_entry_point = false;
 
 	if (count($_POST) && !($db && $host && $user && $cms_user && $cms_pass)) {
 		$error = "Errors found! Please fix the highlighted fields and submit the form again.";
@@ -192,13 +344,16 @@
 	}
 	
 	if (empty($error) && count($_POST)) {
+	try {
 
 		// Let domain/www_root/static_root be set by post for command line installs
 		if (!isset($domain)) {
 			$scheme = BigTree::getIsSSL() ? "https" : "http";
-			$domain = $scheme."://".$_SERVER["HTTP_HOST"];
+			$domain = $scheme."://".($_SERVER["HTTP_HOST"] ?? "localhost");
 			// Public entry is root index.php (or DirectoryIndex "/"); strip it for base.
-			$install_base = str_replace("index.php", "", $_SERVER["REQUEST_URI"] ?? "/");
+			// Also strip a trailing query string so www_root is a clean path.
+			$request_path = strtok($_SERVER["REQUEST_URI"] ?? "/", "?");
+			$install_base = str_replace("index.php", "", $request_path);
 
 			if ($routing == "basic") {
 				$static_root = $domain.$install_base."site/";
@@ -259,28 +414,13 @@
 		];
 		
 		// Make sure we're not running in a special mode that forces values for textareas that aren't allowing null.
+		// base.sql also sets NO_AUTO_VALUE_ON_ZERO for the id=0 homepage seed.
 		sqlquery("SET SESSION sql_mode = ''");
-		$sql_queries = explode("\n",file_get_contents("core/setup/base.sql"));
-		
-		foreach ($sql_queries as $query) {
-			$query = trim($query);
-		
-			if ($query != "") {
-				$q = sqlquery($query);
-			}
-		}
+		bigtree_install_run_sql_file("core/setup/base.sql");
 
-		// Allow for a theme SQL
+		// Allow for a theme SQL dump next to the public entry point.
 		if (file_exists("bigtree-theme.sql")) {
-			$sql_queries = explode("\n",file_get_contents("bigtree-theme.sql"));
-		
-			foreach ($sql_queries as $query) {
-				$query = trim($query);
-				
-				if ($query != "") {
-					$q = sqlquery($query);
-				}
-			}
+			bigtree_install_run_sql_file("bigtree-theme.sql");
 		}
 		
 		$enc_pass = sqlescape(password_hash(trim($cms_pass), PASSWORD_DEFAULT));
@@ -301,50 +441,85 @@
 		function bt_mkdir_writable($dir) {
 			global $root;
 
-			mkdir($root.$dir);
+			$path = $root.$dir;
 
-			if (!BT_SU_EXEC) {
-				chmod($root.$dir,0777);
-			}
-		}
-		
-		function bt_touch_writable($file,$contents = "") {
-			if (!file_exists($file)) {
-				file_put_contents($file,$contents);
+			// Site root / empty path is already the install cwd — nothing to create.
+			if ($path === "" || $path === "." || $path === "./") {
+				return;
 			}
 
-			if (!BT_SU_EXEC) {
-				chmod($file,0777);
-			}
-		}
-		
-		function bt_copy_dir($from,$to) {
-			global $root;
-
-			$d = opendir($root.$from);
-
-			if (!file_exists($root.$to)) {
-				@mkdir($root.$to);
-				if (!BT_SU_EXEC) {
-					@chmod($root.$to,0777);
+			// Idempotent — a partial prior install (or pre-created dirs) must not
+			// fatal with "mkdir(): File exists" under strict error handlers.
+			if (!is_dir($path)) {
+				if (!@mkdir($path, 0777, true) && !is_dir($path)) {
+					throw new RuntimeException("Could not create directory: ".$path);
 				}
 			}
 
-			while ($f = readdir($d)) {
+			if (!BT_SU_EXEC && function_exists("chmod")) {
+				@chmod($path, 0777);
+			}
+		}
+
+		function bt_touch_writable($file, $contents = "") {
+			if (!file_exists($file)) {
+				if (@file_put_contents($file, $contents) === false) {
+					throw new RuntimeException("Could not write file: ".$file);
+				}
+			}
+
+			if (!BT_SU_EXEC && function_exists("chmod")) {
+				@chmod($file, 0777);
+			}
+		}
+
+		function bt_copy_dir($from, $to) {
+			global $root;
+
+			$d = @opendir($root.$from);
+
+			if ($d === false) {
+				throw new RuntimeException("Could not read directory: ".$root.$from);
+			}
+
+			// Empty $to means the site root (cwd). Do not mkdir("") — that fails and
+			// is what example-site install uses: bt_copy_dir("core/example-site/", "").
+			$dest = $root.$to;
+			$dest_is_root = ($to === "" || $to === "." || $to === "./" || $dest === "" || $dest === ".");
+
+			if (!$dest_is_root && !is_dir($dest)) {
+				if (!@mkdir($dest, 0777, true) && !is_dir($dest)) {
+					closedir($d);
+					throw new RuntimeException("Could not create directory: ".$dest);
+				}
+
+				if (!BT_SU_EXEC && function_exists("chmod")) {
+					@chmod($dest, 0777);
+				}
+			}
+
+			while (($f = readdir($d)) !== false) {
 				if ($f != "." && $f != "..") {
 					if (is_dir($root.$from.$f)) {
-						bt_copy_dir($from.$f."/",$to.$f."/");
+						bt_copy_dir($from.$f."/", $to.$f."/");
 					} else {
-						if (!file_exists($to.$f)) {
-							@copy($from.$f,$to.$f);
+						$target = $to.$f;
+
+						if (!file_exists($target)) {
+							if (!@copy($from.$f, $target)) {
+								closedir($d);
+								throw new RuntimeException("Could not copy file: ".$from.$f." → ".$target);
+							}
 						}
 
-						if (!BT_SU_EXEC) {
-							@chmod($to.$f,0777);
+						if (!BT_SU_EXEC && function_exists("chmod")) {
+							@chmod($target, 0777);
 						}
 					}
 				}
 			}
+
+			closedir($d);
 		}
 		
 		$root = "";
@@ -377,24 +552,44 @@
 		bt_mkdir_writable("templates/basic/");
 		bt_mkdir_writable("templates/callouts/");
 
-		bt_touch_writable("custom/environment.php",str_replace($find,$replace,file_get_contents("core/setup/environment.php")));
+		// Force-write critical config (bt_touch_writable skips existing files).
+		$environment_template = file_get_contents("core/setup/environment.php");
+
+		if ($environment_template === false) {
+			throw new RuntimeException("Could not read core/setup/environment.php");
+		}
+
+		if (@file_put_contents("custom/environment.php", str_replace($find, $replace, $environment_template)) === false) {
+			throw new RuntimeException("Could not write custom/environment.php — check directory permissions.");
+		}
+
+		if (!BT_SU_EXEC && function_exists("chmod")) {
+			@chmod("custom/environment.php", 0777);
+		}
+
 		bt_touch_writable("cache/composer-check.flag", "true");
-		
+
 		// Install the example site if they asked for it.
-		if ($install_example_site) {
-			bt_copy_dir("core/example-site/","");
-			$sql_queries = explode("\n",file_get_contents("core/setup/example-site.sql"));
-			foreach ($sql_queries as $query) {
-				$query = trim($query);
-				if ($query != "") {
-					$q = sqlquery($query);
-				}
-			}
-			bt_touch_writable("custom/settings.php",str_replace($find,$replace,file_get_contents("core/example-site/custom/settings.php")));
+		if (!empty($install_example_site)) {
+			bt_copy_dir("core/example-site/", "");
+			bigtree_install_run_sql_file("core/setup/example-site.sql");
+			$settings_template = file_get_contents("core/example-site/custom/settings.php");
 		} else {
-			bt_touch_writable("custom/settings.php",str_replace($find,$replace,file_get_contents("core/setup/settings.php")));
+			$settings_template = file_get_contents("core/setup/settings.php");
 			bt_mkdir_writable("custom/json-db/");
-			bt_copy_dir("core/setup/json-db/","custom/json-db/");
+			bt_copy_dir("core/setup/json-db/", "custom/json-db/");
+		}
+
+		if ($settings_template === false) {
+			throw new RuntimeException("Could not read settings template");
+		}
+
+		if (@file_put_contents("custom/settings.php", str_replace($find, $replace, $settings_template)) === false) {
+			throw new RuntimeException("Could not write custom/settings.php — check directory permissions.");
+		}
+
+		if (!BT_SU_EXEC && function_exists("chmod")) {
+			@chmod("custom/settings.php", 0777);
 		}
 
 		// Now copy over the default templates
@@ -418,11 +613,19 @@
 	include $server_root."core/cron.php";
 ');
 
-		// Create site/index.php, site/.htaccess, and .htaccess (masks the 'site' directory)
-		bt_touch_writable("site/index.php",'<?php
-	$server_root = str_replace("site/index.php","",strtr(__FILE__, "\\\\", "/"));	
+		// Create site/index.php (force-write — must not leave a stale partial).
+		$site_index = '<?php
+	$server_root = str_replace("site/index.php","",strtr(__FILE__, "\\\\", "/"));
 	include "../core/launch.php";
-?>');
+';
+
+		if (@file_put_contents("site/index.php", $site_index) === false) {
+			throw new RuntimeException("Could not write site/index.php");
+		}
+
+		if (!BT_SU_EXEC && function_exists("chmod")) {
+			@chmod("site/index.php", 0777);
+		}
 		
 		if ($routing == "advanced") {
 			bt_touch_writable("site/.htaccess",'<IfModule mod_deflate.c>
@@ -581,21 +784,19 @@ RewriteRule ^(.*)$ index.php?bigtree_htaccess_url=$1 [QSA,L]
 
 RewriteRule .* - [E=HTTP_IF_MODIFIED_SINCE:%{HTTP:If-Modified-Since}]
 RewriteRule .* - [E=HTTP_BIGTREE_PARTIAL:%{HTTP:BigTree-Partial}]');
-		} else {
-			// Basic routing: replace this installer bootstrap with a redirect into /site/.
-			// Must overwrite — bt_touch_writable skips existing files, and root index.php
-			// is the install entry until this point.
-			file_put_contents("index.php", '<?php header("Location: site/index.php/"); ?>');
-
-			if (!BT_SU_EXEC) {
-				chmod("index.php", 0777);
-			}
 		}
 
 		if ($routing != "basic" && $routing != "iis") {
-			bt_touch_writable(".htaccess",'RewriteEngine On
+			// Overwrite any existing root .htaccess so rewrite routing is applied.
+			if (@file_put_contents(".htaccess", 'RewriteEngine On
 RewriteRule ^$ site/ [L]
-RewriteRule (.*) site/$1 [L]');
+RewriteRule (.*) site/$1 [L]') === false) {
+				throw new RuntimeException("Could not write root .htaccess for rewrite routing.");
+			}
+
+			if (!BT_SU_EXEC && function_exists("chmod")) {
+				@chmod(".htaccess", 0777);
+			}
 		}
 
 		// Harden serving of user-uploaded resources: never let a stored SVG render
@@ -611,19 +812,28 @@ RewriteRule (.*) site/$1 [L]');
 	</FilesMatch>
 </IfModule>');
 
+		// Optional seed files / docs — ignore failures.
+		@unlink($bigtree_site_root."/bigtree-theme.sql");
+		@unlink($bigtree_site_root."/README.md");
+
+		// Entry-point swap is deferred until after the success page is fully sent so
+		// overwriting/deleting root index.php never interrupts this response.
 		$installed = true;
-	}
+		$finalize_entry_point = true;
 
-	if ($installed) {
-		// Public entry was root index.php. Basic routing already overwrote it with a
-		// redirect; rewrite/IIS remove it so traffic goes via .htaccess / site docroot.
-		// Setup assets under core/setup/ stay on disk (not the public install UI).
-		if ($routing != "basic") {
-			@unlink($bigtree_site_root . "/index.php");
+	} catch (Throwable $e) {
+		// If environment.php already landed, treat as installed so the user still
+		// gets a success screen + entry-point finalization rather than a white page.
+		if (file_exists($bigtree_site_root."/custom/environment.php")) {
+			$installed = true;
+			$finalize_entry_point = true;
+			$warnings[] = "Installation finished with a warning: ".$e->getMessage();
+		} else {
+			$error = "Installation failed: ".$e->getMessage();
+			$installed = false;
+			$finalize_entry_point = false;
 		}
-
-		@unlink($bigtree_site_root . "/bigtree-theme.sql");
-		@unlink($bigtree_site_root . "/README.md");
+	}
 	}
 	
 	// Set localhost as the default MySQL host
@@ -664,15 +874,12 @@ RewriteRule (.*) site/$1 [L]');
 				<h2>Installation complete</h2>
 				<fieldset class="clear">
 					<p>Your new BigTree site is ready. Sign in to the CMS with the email and password you just created.</p>
-					<?php
-						// Basic routing should have replaced index.php with a redirect; warn if
-						// the installer bootstrap is somehow still present.
-						$root_index = @file_get_contents($bigtree_site_root . "/index.php");
-						$installer_still_present = is_string($root_index) && str_contains($root_index, "core/setup/install.php");
-					?>
-					<?php if ($routing == "basic" && $installer_still_present) { ?>
-					<p class="delete_message">Replace or delete the root index.php installer bootstrap — it is still publicly accessible in Basic Routing mode.</p>
-					<?php } elseif ($routing == "iis") { ?>
+					<?php if (!empty($warnings)) { ?>
+						<?php foreach ($warnings as $warning) { ?>
+					<p class="warning_message"><?=$warning?></p>
+						<?php } ?>
+					<?php } ?>
+					<?php if ($routing == "iis") { ?>
 					<p class="error_message iis_message">To set up rewrite routing for IIS, import the following .htaccess rules into the /site/ directory:</p>
 					<code>
 						RewriteCond %{REQUEST_FILENAME} !-d<br />
@@ -971,3 +1178,33 @@ RewriteRule (.*) site/$1 [L]');
 		</div>
 	</body>
 </html>
+<?php
+	// Finalize the public entry point only after the success page has been sent.
+	// Mutating root index.php earlier can interrupt this response on some SAPIs.
+	if (!empty($finalize_entry_point) && !empty($installed)) {
+		$entry = $bigtree_site_root.DIRECTORY_SEPARATOR."index.php";
+
+		if ($routing === "basic") {
+			// Replace the installer bootstrap with a redirect into /site/.
+			$redirect = "<?php\n\theader(\"Location: site/index.php/\");\n";
+			@file_put_contents($entry, $redirect);
+
+			if (defined("BT_SU_EXEC") && !BT_SU_EXEC && function_exists("chmod")) {
+				@chmod($entry, 0777);
+			}
+		} else {
+			// Rewrite / IIS: drop the installer; .htaccess or site docroot handles traffic.
+			@unlink($entry);
+		}
+
+		// Flush so the browser receives the success HTML before we exit.
+		if (function_exists("fastcgi_finish_request")) {
+			@fastcgi_finish_request();
+		} else {
+			if (ob_get_level() > 0) {
+				@ob_end_flush();
+			}
+
+			@flush();
+		}
+	}
