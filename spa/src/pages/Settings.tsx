@@ -6,6 +6,7 @@ import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
 import { PageContainer } from "@/components/shell/PageContainer";
 import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
+import { NameIdCell } from "@/components/ui/NameIdCell";
 import { Pager } from "@/components/ui/Pager";
 import { SearchInput } from "@/components/ui/SearchInput";
 import { Toolbar } from "@/components/ui/Toolbar";
@@ -65,19 +66,12 @@ export const Settings = () => {
 			header: "Name",
 			width: "minmax(0,1.3fr)",
 			cell: (row) => (
-				<div className="min-w-0">
-					<div className="truncate font-medium text-text" title={row.name}>
-						{row.name}
-					</div>
-					{row.description && (
-						<div
-							className="truncate text-[11px] text-text-3"
-							title={stripHtml(row.description)}
-						>
-							{stripHtml(row.description)}
-						</div>
-					)}
-				</div>
+				<NameIdCell
+					name={row.name}
+					nameTitle={row.name}
+					subtitle={row.description ? stripHtml(row.description) : undefined}
+					subtitleTitle={row.description ? stripHtml(row.description) : undefined}
+				/>
 			),
 		},
 		{
@@ -153,11 +147,9 @@ export const Settings = () => {
 				onRowClick={(row) => navigate(settingEditPath(row.id))}
 			/>
 
-			{totalPages > 1 && (
-				<div className="mt-3 flex justify-end">
-					<Pager page={page} totalPages={totalPages} onChange={setPage} />
-				</div>
-			)}
+			<div className="mt-3 flex justify-end">
+				<Pager page={page} totalPages={totalPages} onChange={setPage} />
+			</div>
 		</PageContainer>
 	);
 };

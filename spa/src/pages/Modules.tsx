@@ -9,6 +9,7 @@ import { PageHead } from "@/components/shell/PageHead";
 import { PageContainer } from "@/components/shell/PageContainer";
 import { Button } from "@/components/ui/Button";
 import { Card, CardHeader } from "@/components/ui/Card";
+import { IconTile } from "@/components/ui/IconTile";
 import { SearchInput } from "@/components/ui/SearchInput";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Loading } from "@/components/ui/Loading";
@@ -216,9 +217,9 @@ const ModuleTile = ({ module }: ModuleTileProps) => {
 				className="flex w-full items-center gap-2.5 rounded-md border border-border bg-surface py-2.5 pl-3 pr-12 text-[13.5px] font-medium text-text transition-colors hover:border-border-strong hover:bg-surface-2 focus-visible:border-accent focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent-ring"
 				title={`Manage ${module.name}`}
 			>
-				<span className="grid size-[26px] shrink-0 place-items-center rounded-md bg-accent-soft text-accent">
+				<IconTile size="xs" tone="accent" className="shrink-0">
 					<Icon size={15} />
-				</span>
+				</IconTile>
 				<span className="min-w-0 flex-1 truncate">{module.name}</span>
 			</Link>
 			<Link

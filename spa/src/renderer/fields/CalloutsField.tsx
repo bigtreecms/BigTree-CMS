@@ -13,10 +13,8 @@ import { calloutsApi, type CalloutSummary } from "@/api/endpoints/callouts";
 import { queryKeys } from "@/lib/queryKeys";
 import { resourceToFormField } from "@/api/endpoints/templates";
 
-import { FieldRenderer } from "@/renderer/forms/FieldRenderer";
-import { FieldRow } from "@/renderer/forms/FieldRow";
-
 import { stringifyForTitle, toInt } from "./fieldHelpers";
+import { RepeaterColumnFields } from "./RepeaterColumnFields";
 import { RepeaterRowShell } from "./RepeaterRowShell";
 import { settingsOf, type FieldComponentProps } from "./types";
 
@@ -281,25 +279,16 @@ const CalloutRowItem = ({
 						This callout type has no fields configured.
 					</EmptyState>
 				) : (
-					callout.resources.map((resource) => {
-						// Callout resources are keyed by `id` (like template
-						// resources), so adapt to the `column`-keyed field shape
-						// the renderer expects. Using `resource.id` directly is
-						// essential: every field shares `row.data[undefined]`
-						// otherwise (one field's edits leak into all of them).
-						const formField = resourceToFormField(resource);
-
-						return (
-							<FieldRow key={formField.column} field={formField}>
-								<FieldRenderer
-									field={formField}
-									value={row.data[formField.column]}
-									onChange={(next) => onCellChange(formField.column, next)}
-									disabled={rowDisabled}
-								/>
-							</FieldRow>
-						);
-					})
+					// Callout resources are keyed by `id` (like template resources),
+					// so adapt via resourceToFormField. Using `resource.id` directly
+					// is essential: every field shares `row.data[undefined]` otherwise
+					// (one field's edits leak into all of them).
+					<RepeaterColumnFields
+						fields={callout.resources.map(resourceToFormField)}
+						getValue={(columnId) => row.data[columnId]}
+						onColumnChange={onCellChange}
+						disabled={rowDisabled}
+					/>
 				))}
 		</RepeaterRowShell>
 	);

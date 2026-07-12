@@ -6,6 +6,8 @@ import { pluralize } from "@/lib/number";
 import { pageEditPath } from "@/lib/routes";
 import { QueryRenderer } from "@/components/ui/QueryRenderer";
 import { InlineEmpty } from "@/components/ui/InlineEmpty";
+import { IconTile } from "@/components/ui/IconTile";
+import { NameIdCell } from "@/components/ui/NameIdCell";
 import type { ContentAlert } from "@/api/endpoints/dashboard";
 
 /**
@@ -47,17 +49,17 @@ export const ContentAlertsCard = ({ alerts, loading, error }: ContentAlertsCardP
 							key={alert.page_id}
 							className="flex items-center gap-2.5 rounded-md p-2 transition-colors hover:bg-surface-2"
 						>
-							<span className="grid size-[26px] place-items-center rounded-md bg-warn-bg text-warn">
+							<IconTile size="xs" tone="warn">
 								<Clock size={14} />
-							</span>
+							</IconTile>
 							<Link
 								to={pageEditPath(alert.page_id)}
 								className="block min-w-0 flex-1 text-[12.5px] text-text hover:text-accent"
 							>
-								<div className="truncate font-medium">{alert.nav_title}</div>
-								<div className="truncate text-[11px] text-text-3">
-									{alert.age_days} days old · threshold {alert.threshold_days}
-								</div>
+								<NameIdCell
+									name={alert.nav_title}
+									subtitle={`${alert.age_days} days old · threshold ${alert.threshold_days}`}
+								/>
 							</Link>
 							<span className="text-text-3">
 								<ChevronRight size={12} />

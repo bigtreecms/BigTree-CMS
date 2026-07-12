@@ -8,6 +8,7 @@ import { PageHead } from "@/components/shell/PageHead";
 import { PageContainer } from "@/components/shell/PageContainer";
 import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
 import { Button } from "@/components/ui/Button";
+import { NameIdCell } from "@/components/ui/NameIdCell";
 import { Pager } from "@/components/ui/Pager";
 import { SubNav } from "@/components/ui/SubNav";
 
@@ -57,21 +58,18 @@ export const Messages = () => {
 					folder === "in" && currentUserId && !row.read_by.includes(currentUserId);
 
 				return (
-					<div className="min-w-0">
-						<div
-							className={`truncate ${unread ? "font-semibold text-text" : "text-text-2"}`}
-							title={row.subject}
-						>
-							{row.subject || "(no subject)"}
-						</div>
-						<div className="truncate text-[11px] text-text-3">
-							{folder === "in"
+					<NameIdCell
+						name={row.subject || "(no subject)"}
+						nameTitle={row.subject}
+						primaryClassName={`truncate ${unread ? "font-semibold text-text" : "text-text-2"}`}
+						subtitle={
+							folder === "in"
 								? `From ${row.sender_name ?? `#${row.sender}`}`
 								: `To ${row.recipient_names
 										.map((r) => r.name ?? `#${r.id}`)
-										.join(", ")}`}
-						</div>
-					</div>
+										.join(", ")}`
+						}
+					/>
 				);
 			},
 		},
@@ -125,11 +123,9 @@ export const Messages = () => {
 				onRowClick={(row) => navigate(`/messages/${row.id}`)}
 			/>
 
-			{totalPages > 1 && (
-				<div className="mt-3 flex justify-end">
-					<Pager page={page} totalPages={totalPages} onChange={setPage} />
-				</div>
-			)}
+			<div className="mt-3 flex justify-end">
+				<Pager page={page} totalPages={totalPages} onChange={setPage} />
+			</div>
 
 			<ComposeMessage
 				open={composeOpen}

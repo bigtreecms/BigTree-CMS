@@ -1,20 +1,11 @@
 import { useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronLeft } from "lucide-react";
 
-import { Breadcrumb } from "@/components/shell/Breadcrumb";
-import { PageHead } from "@/components/shell/PageHead";
-import { PageContainer } from "@/components/shell/PageContainer";
-import { Alert } from "@/components/ui/Alert";
 import { FieldGrid } from "@/components/ui/FieldGrid";
-import { Button } from "@/components/ui/Button";
 import { Checkbox } from "@/components/ui/Checkbox";
-import { EditPageGuard } from "@/components/ui/EditPageGuard";
-import { FormFooter } from "@/components/ui/FormFooter";
-import { FormShell } from "@/components/ui/FormShell";
 
-import { DeveloperSectionNav } from "@/components/developer/DeveloperSectionNav";
+import { DeveloperEditLayout } from "@/components/developer/DeveloperEditLayout";
 import { FieldSettingsEditor } from "@/components/developer/FieldSettingsEditor";
 import type { ResourceEntry } from "@/components/developer/ResourceDesigner";
 import { useResourceSettingsValidation } from "@/components/developer/field-settings/useResourceSettingsValidation";
@@ -29,7 +20,7 @@ import { queryKeys } from "@/lib/queryKeys";
 import { useFormSubmit } from "@/hooks/useFormSubmit";
 import { useResourceEditor } from "@/hooks/useResourceEditor";
 import { useScrollToFirstError } from "@/hooks/useScrollToFirstError";
-import { UnsavedChangesGuard } from "@/components/ui/UnsavedChangesGuard";
+import { settingEditPath } from "@/lib/routes";
 import { validateRequired } from "@/lib/formValidation";
 
 import { TextField } from "@/components/ui/TextField";
@@ -59,7 +50,7 @@ const DESCRIPTION_FIELD: ModuleFormField = {
  */
 export const SettingConfigure = () => {
 	const { id: routeId } = useParams<{ id: string }>();
-	const { error, setError, fieldErrors, setFieldErrors, onMutationError } = useFormSubmit();
+	const { error, fieldErrors, handleSubmit, onMutationError } = useFormSubmit();
 	const [settingsErrors, setSettingsErrors] = useState<Record<string, string>>({});
 
 	useScrollToFirstError(settingsErrors);
@@ -97,12 +88,11 @@ export const SettingConfigure = () => {
 		update: (id, next) => settingsApi.updateDefinition(id, next),
 		invalidateKey: queryKeys.settings.root(),
 		// A freshly created definition opens straight into its value editor.
-		editPath: (id) => `/settings/${encodeURIComponent(id)}/edit`,
+		editPath: (id) => settingEditPath(id),
 		onError: (err) => onMutationError(err, "Save failed"),
 	});
 
 	const isEdit = !isAdd;
-	const settingId = routeId ?? "";
 
 	// Validate the setting's own field-type settings by treating it as a
 	// single-entry resource list, reusing the resource-designer validator.
@@ -136,177 +126,144 @@ export const SettingConfigure = () => {
 
 	const typeKnown = typeGroups.some((g) => g.options.some((o) => o.id === body.type));
 
-	const submit = () => {
-		const errors = validateRequired([{ field: "id", label: "ID", value: body.id }]);
-		const sErrors = settingsValidation.validate()[0] ?? {};
-
-		if (Object.keys(errors).length > 0 || Object.keys(sErrors).length > 0) {
-			setFieldErrors(errors);
-			setSettingsErrors(sErrors);
-			setError("Please fill in the required fields.");
-
-			return;
-		}
-
-		setFieldErrors({});
-		setSettingsErrors({});
-		setError(null);
-		save(body);
-	};
-
 	return (
-		<EditPageGuard
+		<DeveloperEditLayout
 			width="narrow"
+			section="Settings"
+			listPath="/developer/settings"
+			isAdd={isAdd}
+			title={isEdit ? "Edit setting" : "Add setting"}
+			sub={
+				isEdit
+					? "Edit the definition. Values are edited from the user-facing Settings list."
+					: "Define a new setting. The value-editor opens after creation."
+			}
 			loading={isEdit && detailQ.isLoading}
-			error={isEdit ? detailQ.error : undefined}
+			queryError={isEdit ? detailQ.error : undefined}
+			error={error}
+			isDirty={isDirty}
+			onSubmit={(e) =>
+				handleSubmit(
+					e,
+					() => {
+						const errors = validateRequired([
+							{ field: "id", label: "ID", value: body.id },
+						]);
+						const sErrors = settingsValidation.validate()[0] ?? {};
+
+						// Surface settings errors alongside required-field errors.
+						setSettingsErrors(sErrors);
+
+						if (Object.keys(sErrors).length > 0 && Object.keys(errors).length === 0) {
+							// Force the validate path to fail so handleSubmit sets the banner.
+							return { _settings: "invalid" };
+						}
+
+						return errors;
+					},
+					() => {
+						setSettingsErrors({});
+						save(body);
+					}
+				)
+			}
+			submitLabel={isEdit ? "Save setting" : "Create setting"}
+			saving={saving}
 		>
-			<PageContainer width="narrow">
-				<Breadcrumb
-					items={[
-						{ label: "Developer", to: "/developer" },
-						{ label: "Settings", to: "/developer/settings" },
-						{ label: isEdit ? body.name || settingId : "Add" },
-					]}
-				/>
+			<div className="space-y-4">
+				<FieldGrid>
+					<TextField
+						label="ID"
+						value={body.id}
+						onChange={(v) => set({ id: v })}
+						hint={
+							isEdit
+								? "Stable storage key, cannot be changed."
+								: "Stable storage key, cannot change later."
+						}
+						error={fieldErrors.id}
+						disabled={isEdit}
+						required
+					/>
+					<TextField
+						label="Name"
+						value={body.name ?? ""}
+						onChange={(v) => set({ name: v })}
+						error={fieldErrors.name}
+					/>
+				</FieldGrid>
 
-				<PageHead
-					title={isEdit ? "Edit setting" : "Add setting"}
-					sub={
-						isEdit
-							? "Edit the definition. Values are edited from the user-facing Settings list."
-							: "Define a new setting. The value-editor opens after creation."
-					}
-					actions={
-						<Button icon={<ChevronLeft size={13} />} to="/developer/settings">
-							Back
-						</Button>
-					}
-				/>
+				<div>
+					<FieldLabel>Description</FieldLabel>
+					<HTMLFieldLazy
+						field={DESCRIPTION_FIELD}
+						value={body.description ?? ""}
+						onChange={(v) => set({ description: typeof v === "string" ? v : "" })}
+					/>
+				</div>
 
-				<DeveloperSectionNav />
-
-				{error && (
-					<Alert tone="danger" className="mb-3">
-						{error}
-					</Alert>
-				)}
-
-				<FormShell
-					onSubmit={(e) => {
-						e.preventDefault();
-						submit();
-					}}
-					footer={
-						<FormFooter
-							cancelTo="/developer/settings"
-							submitLabel={isEdit ? "Save setting" : "Create setting"}
-							loading={saving}
-							loadingLabel={isEdit ? "Saving…" : "Creating…"}
-						/>
-					}
-				>
-					<div className="space-y-4">
-						<FieldGrid>
-							<TextField
-								label="ID"
-								value={body.id}
-								onChange={(v) => set({ id: v })}
-								hint={
-									isEdit
-										? "Stable storage key, cannot be changed."
-										: "Stable storage key, cannot change later."
-								}
-								error={fieldErrors.id}
-								disabled={isEdit}
-								required
-							/>
-							<TextField
-								label="Name"
-								value={body.name ?? ""}
-								onChange={(v) => set({ name: v })}
-								error={fieldErrors.name}
-							/>
-						</FieldGrid>
-
-						<div>
-							<FieldLabel>Description</FieldLabel>
-							<HTMLFieldLazy
-								field={DESCRIPTION_FIELD}
-								value={body.description ?? ""}
-								onChange={(v) =>
-									set({ description: typeof v === "string" ? v : "" })
-								}
-							/>
-						</div>
-
-						<div>
-							<Field className="max-w-sm" label="Field type">
-								<Select
-									value={body.type ?? "text"}
-									onChange={(e) => changeType(e.target.value)}
-									disabled={fieldTypesQ.isLoading}
-								>
-									{fieldTypesQ.isLoading && (
-										<option value={body.type ?? "text"}>
-											Loading field types…
+				<div>
+					<Field className="max-w-sm" label="Field type">
+						<Select
+							value={body.type ?? "text"}
+							onChange={(e) => changeType(e.target.value)}
+							disabled={fieldTypesQ.isLoading}
+						>
+							{fieldTypesQ.isLoading && (
+								<option value={body.type ?? "text"}>Loading field types…</option>
+							)}
+							{!fieldTypesQ.isLoading && !typeKnown && (
+								<option value={body.type ?? ""}>{body.type}</option>
+							)}
+							{typeGroups.map((group) => (
+								<optgroup key={group.label} label={group.label}>
+									{group.options.map((o) => (
+										<option key={o.id} value={o.id}>
+											{o.name}
 										</option>
-									)}
-									{!fieldTypesQ.isLoading && !typeKnown && (
-										<option value={body.type ?? ""}>{body.type}</option>
-									)}
-									{typeGroups.map((group) => (
-										<optgroup key={group.label} label={group.label}>
-											{group.options.map((o) => (
-												<option key={o.id} value={o.id}>
-													{o.name}
-												</option>
-											))}
-										</optgroup>
 									))}
-								</Select>
-								<span className="mt-1 block text-[11px] text-text-3">
-									Determines the editor shown when setting this value, and the
-									options below.
-								</span>
-							</Field>
+								</optgroup>
+							))}
+						</Select>
+						<span className="mt-1 block text-[11px] text-text-3">
+							Determines the editor shown when setting this value, and the options
+							below.
+						</span>
+					</Field>
 
-							<div className="mt-3">
-								<FieldLabel>Field settings</FieldLabel>
-								<div className="rounded-md border border-border bg-surface-2 p-3">
-									<FieldSettingsEditor
-										type={body.type ?? "text"}
-										useCase="settings"
-										value={body.settings}
-										onChange={(v) => set({ settings: v })}
-										hideLabel
-										errors={settingsErrors}
-									/>
-								</div>
-							</div>
-						</div>
-
-						<div className="grid grid-cols-1 gap-3 rounded-md border border-border bg-surface-2 p-3 md:grid-cols-3">
-							<Checkbox
-								label="Encrypted at rest"
-								checked={!!body.encrypted}
-								onChange={(encrypted) => set({ encrypted })}
-							/>
-							<Checkbox
-								label="Locked (cannot delete)"
-								checked={!!body.locked}
-								onChange={(locked) => set({ locked })}
-							/>
-							<Checkbox
-								label="System"
-								checked={!!body.system}
-								onChange={(system) => set({ system })}
+					<div className="mt-3">
+						<FieldLabel>Field settings</FieldLabel>
+						<div className="rounded-md border border-border bg-surface-2 p-3">
+							<FieldSettingsEditor
+								type={body.type ?? "text"}
+								useCase="settings"
+								value={body.settings}
+								onChange={(v) => set({ settings: v })}
+								hideLabel
+								errors={settingsErrors}
 							/>
 						</div>
 					</div>
-				</FormShell>
+				</div>
 
-				<UnsavedChangesGuard isDirty={isDirty} />
-			</PageContainer>
-		</EditPageGuard>
+				<div className="grid grid-cols-1 gap-3 rounded-md border border-border bg-surface-2 p-3 md:grid-cols-3">
+					<Checkbox
+						label="Encrypted at rest"
+						checked={!!body.encrypted}
+						onChange={(encrypted) => set({ encrypted })}
+					/>
+					<Checkbox
+						label="Locked (cannot delete)"
+						checked={!!body.locked}
+						onChange={(locked) => set({ locked })}
+					/>
+					<Checkbox
+						label="System"
+						checked={!!body.system}
+						onChange={(system) => set({ system })}
+					/>
+				</div>
+			</div>
+		</DeveloperEditLayout>
 	);
 };

@@ -54,6 +54,8 @@ export interface DeveloperListPageProps<T> {
 	onReorder?: (orderedKeys: Array<string | number>) => void;
 	/** Escape slot rendered inside PageHead's actions, before the Add button. */
 	toolbar?: ReactNode;
+	/** Override the row-click destination. Defaults to `${route}/${key}/edit`. */
+	rowPath?: (row: T) => string;
 }
 
 /**
@@ -83,6 +85,7 @@ export const DeveloperListPage = <T,>({
 	confirmDescription,
 	onReorder,
 	toolbar,
+	rowPath,
 }: DeveloperListPageProps<T>) => {
 	const navigate = useNavigate();
 	const deleteDialog = useConfirmDialog<T>();
@@ -155,7 +158,11 @@ export const DeveloperListPage = <T,>({
 				loadingLabel={loadingLabel}
 				emptyLabel={emptyLabel}
 				onRowClick={(row) =>
-					navigate(`${route}/${encodeURIComponent(getRowKey(row))}/edit`)
+					navigate(
+						rowPath
+							? rowPath(row)
+							: `${route}/${encodeURIComponent(getRowKey(row))}/edit`
+					)
 				}
 				onReorder={onReorder}
 			/>

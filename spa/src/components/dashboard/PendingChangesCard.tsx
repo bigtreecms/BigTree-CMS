@@ -7,6 +7,8 @@ import { DashCard } from "./DashCard";
 import { QueryRenderer } from "@/components/ui/QueryRenderer";
 import { InlineEmpty } from "@/components/ui/InlineEmpty";
 import { Button } from "@/components/ui/Button";
+import { IconTile } from "@/components/ui/IconTile";
+import { NameIdCell } from "@/components/ui/NameIdCell";
 import { SectionLabel } from "@/components/ui/SectionLabel";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { IconButton } from "@/components/ui/IconButton";
@@ -97,19 +99,17 @@ export const PendingChangesCard = ({
 											key={p.id}
 											className="flex items-center gap-2.5 rounded-md p-2 transition-colors hover:bg-surface-2"
 										>
-											<span className="grid size-[26px] place-items-center rounded-md bg-surface-3 text-text-2">
+											<IconTile size="xs" tone="neutral">
 												<FileText size={14} />
-											</span>
+											</IconTile>
 											<Link
 												to={`/pending-changes/${p.id}`}
 												className="block min-w-0 flex-1 text-[12.5px] text-text hover:text-accent"
 											>
-												<div className="truncate font-medium">
-													{p.title || `Change #${p.id}`}
-												</div>
-												<div className="truncate text-[11px] text-text-3">
-													{humanizeTable(p.table)} · {p.type} · {p.date}
-												</div>
+												<NameIdCell
+													name={p.title || `Change #${p.id}`}
+													subtitle={`${humanizeTable(p.table)} · ${p.type} · ${p.date}`}
+												/>
 											</Link>
 											<IconButton
 												tone="danger"

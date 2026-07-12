@@ -1,21 +1,13 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ChevronLeft } from "lucide-react";
 
-import { Breadcrumb } from "@/components/shell/Breadcrumb";
-import { PageHead } from "@/components/shell/PageHead";
-import { PageContainer } from "@/components/shell/PageContainer";
 import { Alert } from "@/components/ui/Alert";
 import { FieldGrid } from "@/components/ui/FieldGrid";
-import { EditPageGuard } from "@/components/ui/EditPageGuard";
 import { Radio } from "@/components/ui/Radio";
-import { Button } from "@/components/ui/Button";
 import { Checkbox } from "@/components/ui/Checkbox";
-import { FormFooter } from "@/components/ui/FormFooter";
-import { FormShell } from "@/components/ui/FormShell";
 
-import { DeveloperSectionNav } from "@/components/developer/DeveloperSectionNav";
+import { DeveloperEditLayout } from "@/components/developer/DeveloperEditLayout";
 import { InputSchemaBuilder } from "@/components/developer/InputSchemaBuilder";
 import { ModuleSourceEditor } from "@/components/developer/field-module/ModuleSourceEditor";
 import {
@@ -31,13 +23,11 @@ import {
 	type SettingDescriptor,
 } from "@/api/endpoints/field-types";
 
-import { applyApiFieldErrors } from "@/lib/errorHandling";
 import { toast } from "@/lib/toast";
 import { queryKeys } from "@/lib/queryKeys";
-import { useScrollToFirstError } from "@/hooks/useScrollToFirstError";
+import { useFormSubmit } from "@/hooks/useFormSubmit";
 import { useReturnTo } from "@/hooks/useReturnTo";
 import { useDirtyTracker } from "@/hooks/useDirtyTracker";
-import { UnsavedChangesGuard } from "@/components/ui/UnsavedChangesGuard";
 import { validateRequired } from "@/lib/formValidation";
 
 import { TextField } from "@/components/ui/TextField";
@@ -89,10 +79,13 @@ export const FieldTypeEdit = () => {
 	const [seeded, setSeeded] = useState(isAdd);
 	const [isLegacy, setIsLegacy] = useState(false);
 	const [settingsParseError, setSettingsParseError] = useState(false);
-	const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
-
-	useScrollToFirstError(fieldErrors);
-	const [generalError, setGeneralError] = useState<string | null>(null);
+	const {
+		error: generalError,
+		setError: setGeneralError,
+		fieldErrors,
+		handleSubmit,
+		onMutationError,
+	} = useFormSubmit();
 
 	useEffect(() => {
 		if (!isAdd && detailQ.data) {
@@ -135,13 +128,7 @@ export const FieldTypeEdit = () => {
 			toast.success(isAdd ? "Field type created" : "Field type saved");
 			navigate(returnTo);
 		},
-		onError: (err) => {
-			applyApiFieldErrors(err, {
-				setFieldErrors,
-				setError: setGeneralError,
-				fallback: "Save failed",
-			});
-		},
+		onError: (err) => onMutationError(err, "Save failed"),
 	});
 
 	// Dirty while the user has edited the form, but not while a save is in flight
@@ -169,209 +156,170 @@ export const FieldTypeEdit = () => {
 
 	const title = isAdd ? "Add custom field type" : body.name || idParam || "Edit field type";
 
+	const onFormSubmit = (e: FormEvent) => {
+		handleSubmit(
+			e,
+			() =>
+				validateRequired([
+					{ field: "id", label: "ID", value: body.id },
+					{ field: "name", label: "Name", value: body.name },
+				]),
+			() => {
+				if (mode !== "module") {
+					saveMutation.mutate({
+						...body,
+						render: "declarative",
+						value_type: "object",
+						input_schema: body.input_schema ?? [],
+					});
+
+					return;
+				}
+
+				if (!(body.module_source ?? "").trim()) {
+					setGeneralError("Please write the module's code before saving.");
+
+					return;
+				}
+
+				saveMutation.mutate({
+					...body,
+					render: "module",
+					input_schema: [],
+					module_source: body.module_source ?? "",
+					value_type: body.value_type ?? "string",
+					settings_schema: body.settings_schema ?? [],
+				});
+			}
+		);
+	};
+
 	return (
-		<EditPageGuard
+		<DeveloperEditLayout
 			width="narrow"
+			section="Field types"
+			listPath="/developer/field-types"
+			isAdd={isAdd}
+			title={title}
+			sub="Compose a custom field type from built-in primitives (declarative), or write a JavaScript module that draws it in the SPA."
 			loading={!isAdd && detailQ.isLoading}
-			error={isAdd ? undefined : detailQ.error}
+			queryError={isAdd ? undefined : detailQ.error}
+			error={generalError}
+			isDirty={isDirty}
+			onSubmit={onFormSubmit}
+			submitLabel={isAdd ? "Create field type" : "Save"}
+			saving={saveMutation.isPending}
 		>
-			<PageContainer width="narrow">
-				<Breadcrumb
-					items={[
-						{ label: "Developer", to: "/developer" },
-						{ label: "Field types", to: "/developer/field-types" },
-						{ label: isAdd ? "Add" : "Edit" },
-					]}
-				/>
+			<div className="space-y-4">
+				<FieldGrid>
+					<TextField
+						label="ID"
+						value={body.id ?? ""}
+						onChange={(v) => set({ id: v })}
+						hint="A unique identifier (letters, numbers, - or _)."
+						error={fieldErrors.id}
+						disabled={!isAdd}
+						required
+					/>
+					<TextField
+						label="Name"
+						value={body.name ?? ""}
+						onChange={(v) => set({ name: v })}
+						error={fieldErrors.name}
+						required
+					/>
+				</FieldGrid>
 
-				<PageHead
-					title={title}
-					sub="Compose a custom field type from built-in primitives (declarative), or write a JavaScript module that draws it in the SPA."
-					actions={
-						<Button icon={<ChevronLeft size={13} />} to="/developer/field-types">
-							Back
-						</Button>
-					}
-				/>
+				<div>
+					<SectionLabel className="mb-2">Use cases</SectionLabel>
+					<div className="flex flex-wrap gap-3 rounded-md border border-border bg-surface-2 p-3">
+						{USE_CASES.map((u) => (
+							<Checkbox
+								key={u.value}
+								label={u.label}
+								checked={selectedUseCases.has(u.value)}
+								onChange={() => toggleUseCase(u.value)}
+							/>
+						))}
+					</div>
+				</div>
 
-				<DeveloperSectionNav />
-
-				{generalError && (
-					<Alert tone="danger" className="mb-3">
-						{generalError}
+				{isLegacy && (
+					<Alert tone="info">
+						This is a legacy <code>draw.php</code> field type. It still renders through
+						the server bridge, but new types can&apos;t be authored that way — pick a
+						render mode below to migrate it. Saving will convert it.
 					</Alert>
 				)}
 
-				<FormShell
-					onSubmit={(e) => {
-						e.preventDefault();
-
-						const errors = validateRequired([
-							{ field: "id", label: "ID", value: body.id },
-							{ field: "name", label: "Name", value: body.name },
-						]);
-
-						if (Object.keys(errors).length > 0) {
-							setFieldErrors(errors);
-							setGeneralError("Please fill in the required fields.");
-
-							return;
-						}
-
-						setFieldErrors({});
-						setGeneralError(null);
-
-						if (mode !== "module") {
-							saveMutation.mutate({
-								...body,
-								render: "declarative",
-								value_type: "object",
-								input_schema: body.input_schema ?? [],
-							});
-
-							return;
-						}
-
-						if (!(body.module_source ?? "").trim()) {
-							setGeneralError("Please write the module's code before saving.");
-
-							return;
-						}
-
-						saveMutation.mutate({
-							...body,
-							render: "module",
-							input_schema: [],
-							module_source: body.module_source ?? "",
-							value_type: body.value_type ?? "string",
-							settings_schema: body.settings_schema ?? [],
-						});
-					}}
-					footer={
-						<FormFooter
-							cancelTo="/developer/field-types"
-							submitLabel={isAdd ? "Create field type" : "Save"}
-							loading={saveMutation.isPending}
-							loadingLabel="Saving…"
+				<div>
+					<SectionLabel className="mb-2">Rendering</SectionLabel>
+					<div className="flex flex-col gap-2 rounded-md border border-border bg-surface-2 p-3">
+						<Radio
+							name="render-mode"
+							align="start"
+							checked={mode === "declarative"}
+							onChange={() => setMode("declarative")}
+							label={
+								<>
+									<span className="font-medium">Declarative</span> — compose this
+									field from built-in primitives. No code; renders natively in the
+									SPA.
+								</>
+							}
 						/>
-					}
-				>
-					<div className="space-y-4">
-						<FieldGrid>
-							<TextField
-								label="ID"
-								value={body.id ?? ""}
-								onChange={(v) => set({ id: v })}
-								hint="A unique identifier (letters, numbers, - or _)."
-								error={fieldErrors.id}
-								disabled={!isAdd}
-								required
-							/>
-							<TextField
-								label="Name"
-								value={body.name ?? ""}
-								onChange={(v) => set({ name: v })}
-								error={fieldErrors.name}
-								required
-							/>
-						</FieldGrid>
+						<Radio
+							name="render-mode"
+							align="start"
+							checked={mode === "module"}
+							onChange={() => {
+								setMode("module");
 
-						<div>
-							<SectionLabel className="mb-2">Use cases</SectionLabel>
-							<div className="flex flex-wrap gap-3 rounded-md border border-border bg-surface-2 p-3">
-								{USE_CASES.map((u) => (
-									<Checkbox
-										key={u.value}
-										label={u.label}
-										checked={selectedUseCases.has(u.value)}
-										onChange={() => toggleUseCase(u.value)}
-									/>
-								))}
-							</div>
-						</div>
-
-						{isLegacy && (
-							<Alert tone="info">
-								This is a legacy <code>draw.php</code> field type. It still renders
-								through the server bridge, but new types can&apos;t be authored that
-								way — pick a render mode below to migrate it. Saving will convert
-								it.
-							</Alert>
-						)}
-
-						<div>
-							<SectionLabel className="mb-2">Rendering</SectionLabel>
-							<div className="flex flex-col gap-2 rounded-md border border-border bg-surface-2 p-3">
-								<Radio
-									name="render-mode"
-									align="start"
-									checked={mode === "declarative"}
-									onChange={() => setMode("declarative")}
-									label={
-										<>
-											<span className="font-medium">Declarative</span> —
-											compose this field from built-in primitives. No code;
-											renders natively in the SPA.
-										</>
-									}
-								/>
-								<Radio
-									name="render-mode"
-									align="start"
-									checked={mode === "module"}
-									onChange={() => {
-										setMode("module");
-
-										if (!(body.module_source ?? "").trim()) {
-											set({
-												module_source: MODULE_STARTER,
-												settings_schema:
-													body.settings_schema &&
-													body.settings_schema.length > 0
-														? body.settings_schema
-														: MODULE_STARTER_SETTINGS,
-											});
-										}
-									}}
-									label={
-										<>
-											<span className="font-medium">JavaScript module</span> —
-											write code that draws the field. Runs locally in the
-											SPA; you implicitly trust your own code (distribution
-											trust is handled when packaging an extension).
-										</>
-									}
-								/>
-							</div>
-						</div>
-
-						{mode === "declarative" ? (
-							<div>
-								<SectionLabel className="mb-2">Fields</SectionLabel>
-								<InputSchemaBuilder
-									value={body.input_schema ?? []}
-									onChange={(next) => set({ input_schema: next })}
-								/>
-							</div>
-						) : (
-							<ModuleSourceEditor
-								value={body.module_source ?? ""}
-								onChange={(v) => set({ module_source: v })}
-								settingsSchema={body.settings_schema ?? []}
-								onSettingsSchemaChange={(next) => {
-									setSettingsParseError(false);
-									set({ settings_schema: next });
-								}}
-								settingsParseError={settingsParseError}
-								typeId={body.id ?? ""}
-								name={body.name ?? ""}
-							/>
-						)}
+								if (!(body.module_source ?? "").trim()) {
+									set({
+										module_source: MODULE_STARTER,
+										settings_schema:
+											body.settings_schema && body.settings_schema.length > 0
+												? body.settings_schema
+												: MODULE_STARTER_SETTINGS,
+									});
+								}
+							}}
+							label={
+								<>
+									<span className="font-medium">JavaScript module</span> — write
+									code that draws the field. Runs locally in the SPA; you
+									implicitly trust your own code (distribution trust is handled
+									when packaging an extension).
+								</>
+							}
+						/>
 					</div>
-				</FormShell>
+				</div>
 
-				<UnsavedChangesGuard isDirty={isDirty} />
-			</PageContainer>
-		</EditPageGuard>
+				{mode === "declarative" ? (
+					<div>
+						<SectionLabel className="mb-2">Fields</SectionLabel>
+						<InputSchemaBuilder
+							value={body.input_schema ?? []}
+							onChange={(next) => set({ input_schema: next })}
+						/>
+					</div>
+				) : (
+					<ModuleSourceEditor
+						value={body.module_source ?? ""}
+						onChange={(v) => set({ module_source: v })}
+						settingsSchema={body.settings_schema ?? []}
+						onSettingsSchemaChange={(next) => {
+							setSettingsParseError(false);
+							set({ settings_schema: next });
+						}}
+						settingsParseError={settingsParseError}
+						typeId={body.id ?? ""}
+						name={body.name ?? ""}
+					/>
+				)}
+			</div>
+		</DeveloperEditLayout>
 	);
 };

@@ -10,6 +10,7 @@ import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { Button } from "@/components/ui/Button";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { InlineEmpty } from "@/components/ui/InlineEmpty";
 import { Loading } from "@/components/ui/Loading";
 import { TrafficBars } from "@/components/dashboard/TrafficBars";
 import { MetricComparison } from "@/components/analytics/MetricComparison";
@@ -126,9 +127,9 @@ export const Analytics = () => {
 							{series && series.length > 0 ? (
 								<TrafficBars series={series} />
 							) : (
-								<p className="py-6 text-center text-[12.5px] text-text-3">
+								<InlineEmpty variant="plain" align="center">
 									No recent daily data.
-								</p>
+								</InlineEmpty>
 							)}
 						</div>
 					</Card>

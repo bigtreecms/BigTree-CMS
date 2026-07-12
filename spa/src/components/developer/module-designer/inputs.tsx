@@ -4,6 +4,7 @@ import { JsonField } from "../../ui/JsonField";
 import { SelectField } from "../../ui/SelectField";
 import { TextArea } from "../../ui/TextArea";
 import { TextField } from "../../ui/TextField";
+import type { LabeledOption } from "@/types/labeled-option";
 
 /**
  * Thin, designer-flavored wrappers over the shared `ui/*` form primitives. The
@@ -32,7 +33,7 @@ interface SelectInputProps {
 	label: string;
 	value: string;
 	onChange: (next: string) => void;
-	options: Array<{ value: string; label: string }>;
+	options: LabeledOption[];
 	hint?: string;
 	error?: string;
 	disabled?: boolean;

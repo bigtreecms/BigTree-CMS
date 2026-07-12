@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/Button";
 import { Loading } from "@/components/ui/Loading";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { Card, CardHeader } from "@/components/ui/Card";
+import { NameIdCell } from "@/components/ui/NameIdCell";
 
 import { describeWebAuthnError } from "@/lib/errorHandling";
 import { toast } from "@/lib/toast";
@@ -154,12 +155,11 @@ export const PasskeysPanel = () => {
 								className="grid grid-cols-[auto_minmax(0,1fr)_minmax(0,1fr)_auto] items-center gap-3 px-3 py-2 text-[12.5px]"
 							>
 								<Fingerprint size={16} className="text-accent" />
-								<div className="min-w-0">
-									<div className="truncate text-text-2">{p.name}</div>
-									<div className="truncate text-[11px] text-text-3">
-										Added {p.created_at}
-									</div>
-								</div>
+								<NameIdCell
+									name={p.name}
+									primaryClassName="truncate text-text-2"
+									subtitle={`Added ${p.created_at}`}
+								/>
 								<div className="truncate text-[11.5px] text-text-3">
 									{p.last_used ? `Last used ${p.last_used}` : "Never used"}
 								</div>

@@ -5,6 +5,8 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { FileText, LayoutGrid, Search, Tag, Users, X } from "lucide-react";
 
 import { IconButton } from "@/components/ui/IconButton";
+import { InlineEmpty } from "@/components/ui/InlineEmpty";
+import { QuickSearchResultRow } from "@/components/shell/QuickSearchResultRow";
 import { searchApi, type SearchResultGroups } from "@/api/endpoints/search";
 import { queryKeys } from "@/lib/queryKeys";
 import { useAuthStore } from "@/auth/store";
@@ -155,121 +157,80 @@ export const QuickSearch = ({ open, onClose }: QuickSearchProps) => {
 		el?.scrollIntoView({ block: "nearest", behavior: "smooth" });
 	}, [activeIndex, open]);
 
-	// Helpers to render individual result rows (keeps the big render readable)
+	const selectAndClose = (path: string) => {
+		navigate(path);
+		onClose();
+	};
+
 	const renderPage = (p: any, idx: number, isActive: boolean) => (
-		<button
+		<QuickSearchResultRow
 			key={`p-${p.id}`}
-			type="button"
-			data-search-idx={idx}
-			onClick={() => {
-				navigate("/pages");
-				onClose();
-			}}
-			className={`flex w-full items-center gap-3 rounded-md px-3 py-2 text-left transition-colors ${
-				isActive ? "bg-hover" : "hover:bg-hover"
-			}`}
-		>
-			<FileText size={15} className="shrink-0 text-text-3" />
-			<div className="min-w-0 flex-1">
-				<div className="truncate font-medium">{p.nav_title}</div>
-				<div className="truncate text-[11px] text-text-3">{p.path || "/"}</div>
-			</div>
-			{p.archived && (
-				<span className="rounded bg-warn-bg px-1.5 py-px text-[10px] text-warn">
-					archived
-				</span>
-			)}
-		</button>
+			icon={FileText}
+			idx={idx}
+			isActive={isActive}
+			title={p.nav_title}
+			subtitle={p.path || "/"}
+			badge={
+				p.archived ? (
+					<span className="rounded bg-warn-bg px-1.5 py-px text-[10px] text-warn">
+						archived
+					</span>
+				) : undefined
+			}
+			onSelect={() => selectAndClose("/pages")}
+		/>
 	);
 
 	const renderModule = (m: any, idx: number, isActive: boolean) => (
-		<button
+		<QuickSearchResultRow
 			key={`m-${m.id}`}
-			type="button"
-			data-search-idx={idx}
-			onClick={() => {
-				navigate("/modules");
-				onClose();
-			}}
-			className={`flex w-full items-center gap-3 rounded-md px-3 py-2 text-left transition-colors ${
-				isActive ? "bg-hover" : "hover:bg-hover"
-			}`}
-		>
-			<LayoutGrid size={15} className="shrink-0 text-text-3" />
-			<div className="min-w-0 flex-1">
-				<div className="truncate font-medium">{m.name}</div>
-				<div className="truncate text-[11px] text-text-3">{m.route}</div>
-			</div>
-		</button>
+			icon={LayoutGrid}
+			idx={idx}
+			isActive={isActive}
+			title={m.name}
+			subtitle={m.route}
+			onSelect={() => selectAndClose("/modules")}
+		/>
 	);
 
 	const renderEntryGroup = (g: any, idx: number, isActive: boolean) => (
-		<button
+		<QuickSearchResultRow
 			key={`e-${g.module.id}-${idx}`}
-			type="button"
-			data-search-idx={idx}
-			onClick={() => {
-				navigate("/modules");
-				onClose();
-			}}
-			className={`flex w-full items-center gap-3 rounded-md px-3 py-2 text-left transition-colors ${
-				isActive ? "bg-hover" : "hover:bg-hover"
-			}`}
-		>
-			<LayoutGrid size={15} className="shrink-0 text-text-3" />
-			<div className="min-w-0 flex-1">
-				<div className="truncate font-medium">{g.module.name} entry</div>
-				<div className="truncate text-[11px] text-text-3">
-					{Array.isArray(g.items) && g.items[0]
-						? String(
-								(g.items[0] as any).id ?? Object.values(g.items[0] as any)[0] ?? ""
-							)
-						: ""}
-				</div>
-			</div>
-		</button>
+			icon={LayoutGrid}
+			idx={idx}
+			isActive={isActive}
+			title={`${g.module.name} entry`}
+			subtitle={
+				Array.isArray(g.items) && g.items[0]
+					? String((g.items[0] as any).id ?? Object.values(g.items[0] as any)[0] ?? "")
+					: ""
+			}
+			onSelect={() => selectAndClose("/modules")}
+		/>
 	);
 
 	const renderTag = (t: any, idx: number, isActive: boolean) => (
-		<button
+		<QuickSearchResultRow
 			key={`t-${t.id}`}
-			type="button"
-			data-search-idx={idx}
-			onClick={() => {
-				navigate("/tags");
-				onClose();
-			}}
-			className={`flex w-full items-center gap-3 rounded-md px-3 py-2 text-left transition-colors ${
-				isActive ? "bg-hover" : "hover:bg-hover"
-			}`}
-		>
-			<Tag size={15} className="shrink-0 text-text-3" />
-			<div className="min-w-0 flex-1">
-				<div className="truncate font-medium">{t.tag}</div>
-				<div className="truncate text-[11px] text-text-3">used {t.usage_count} times</div>
-			</div>
-		</button>
+			icon={Tag}
+			idx={idx}
+			isActive={isActive}
+			title={t.tag}
+			subtitle={`used ${t.usage_count} times`}
+			onSelect={() => selectAndClose("/tags")}
+		/>
 	);
 
 	const renderUser = (u: any, idx: number, isActive: boolean) => (
-		<button
+		<QuickSearchResultRow
 			key={`u-${u.id}`}
-			type="button"
-			data-search-idx={idx}
-			onClick={() => {
-				navigate("/users");
-				onClose();
-			}}
-			className={`flex w-full items-center gap-3 rounded-md px-3 py-2 text-left transition-colors ${
-				isActive ? "bg-hover" : "hover:bg-hover"
-			}`}
-		>
-			<Users size={15} className="shrink-0 text-text-3" />
-			<div className="min-w-0 flex-1">
-				<div className="truncate font-medium">{u.name}</div>
-				<div className="truncate text-[11px] text-text-3">{u.email}</div>
-			</div>
-		</button>
+			icon={Users}
+			idx={idx}
+			isActive={isActive}
+			title={u.name}
+			subtitle={u.email}
+			onSelect={() => selectAndClose("/users")}
+		/>
 	);
 
 	// Visual grouped rendering (with running idx for keyboard highlight)
@@ -305,15 +266,20 @@ export const QuickSearch = ({ open, onClose }: QuickSearchProps) => {
 					{/* Results */}
 					<div className="max-h-[460px] overflow-auto p-1 text-[13px]">
 						{!debouncedQuery && (
-							<div className="px-4 py-10 text-center text-[12.5px] text-text-3">
+							<InlineEmpty
+								variant="plain"
+								align="center"
+								pad="xl"
+								className="px-4 py-10"
+							>
 								Type at least two characters to search the site.
-							</div>
+							</InlineEmpty>
 						)}
 
 						{debouncedQuery && isLoading && (
-							<div className="px-4 py-6 text-center text-[12.5px] text-text-3">
+							<InlineEmpty variant="plain" align="center" className="px-4">
 								Searching…
-							</div>
+							</InlineEmpty>
 						)}
 
 						{debouncedQuery && !isLoading && groups && (
@@ -361,9 +327,14 @@ export const QuickSearch = ({ open, onClose }: QuickSearchProps) => {
 								})}
 
 								{Object.keys(groups).length === 0 && (
-									<div className="px-4 py-8 text-center text-[12.5px] text-text-3">
+									<InlineEmpty
+										variant="plain"
+										align="center"
+										pad="xl"
+										className="px-4 py-8"
+									>
 										No results for “{debouncedQuery}”.
-									</div>
+									</InlineEmpty>
 								)}
 							</>
 						)}

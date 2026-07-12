@@ -4,6 +4,7 @@ import { PageRow } from "./PageRow";
 import { useDragReorder } from "@/hooks/useDragReorder";
 import { Badge } from "@/components/ui/Badge";
 import { Chip } from "@/components/ui/Chip";
+import { InlineEmpty } from "@/components/ui/InlineEmpty";
 
 /**
  * Section + table block for a list of page rows.
@@ -145,9 +146,9 @@ export const PageTable = ({
 				</div>
 
 				{filtered.length === 0 ? (
-					<div className="px-3 py-6 text-center text-[12.5px] text-text-3">
+					<InlineEmpty variant="plain" align="center">
 						{getEmptyMessage()}
-					</div>
+					</InlineEmpty>
 				) : (
 					filtered.map((row) => (
 						<PageRow

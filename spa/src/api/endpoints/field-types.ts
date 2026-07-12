@@ -1,5 +1,6 @@
 import { api } from "@/api/client";
 import { decodeHtmlEntities } from "@/lib/html";
+import type { LabeledOption } from "@/types/labeled-option";
 
 /**
  * Field types — both built-ins (read-only, served from the core JSON DB) and
@@ -280,7 +281,7 @@ export interface SettingDescriptor {
 	placeholder?: string;
 	default?: unknown;
 	required?: boolean;
-	options?: Array<{ value: string; label: string }>;
+	options?: LabeledOption[];
 	columns?: string[];
 	keys?: string[];
 	depends_on?: string;

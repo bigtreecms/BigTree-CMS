@@ -306,22 +306,26 @@ export const ConfigureCloudStorage = () => {
 						saving={saveProviderMutation.isPending}
 						footnote={
 							defaultService === "amazon" ? (
-								<button
-									type="button"
+								<Button
+									variant="secondary"
+									size="sm"
 									disabled={recacheMutation.isPending}
 									onClick={() => recacheMutation.mutate()}
-									className="inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-[12.5px] font-medium text-text hover:bg-hover disabled:opacity-60"
+									icon={
+										<RefreshCw
+											size={13}
+											className={
+												recacheMutation.isPending
+													? "animate-spin"
+													: undefined
+											}
+										/>
+									}
 								>
-									<RefreshCw
-										size={13}
-										className={
-											recacheMutation.isPending ? "animate-spin" : undefined
-										}
-									/>
 									{recacheMutation.isPending
 										? `Recaching… ${recacheProgress ?? 0} cached`
 										: "Recache S3 files"}
-								</button>
+								</Button>
 							) : undefined
 						}
 					>
@@ -398,16 +402,16 @@ export const ConfigureCloudStorage = () => {
 						}
 						saving={saveProviderMutation.isPending}
 						footnote={
-							<button
-								type="button"
+							<Button
+								variant="link"
+								size="sm"
 								disabled={googleOAuthMutation.isPending}
 								onClick={() => googleOAuthMutation.mutate()}
-								className="inline-flex items-center gap-1.5 rounded-md border border-accent/40 px-3 py-1.5 text-[12.5px] font-medium text-accent hover:bg-accent/10 disabled:opacity-60"
+								loading={googleOAuthMutation.isPending}
+								loadingLabel="Starting…"
 							>
-								{googleOAuthMutation.isPending
-									? "Starting…"
-									: "Complete activation (Google OAuth)"}
-							</button>
+								Complete activation (Google OAuth)
+							</Button>
 						}
 					>
 						<Field label="Project ID">
@@ -493,15 +497,17 @@ const ProviderCard = ({ title, active, saving, onSave, footnote, children }: Pro
 		<div className="mt-4 flex items-center justify-between gap-3">
 			{footnote ? <p className="text-[11.5px] text-text-3">{footnote}</p> : <span />}
 
-			<button
-				type="button"
+			<Button
+				variant="secondary"
+				size="sm"
 				onClick={onSave}
 				disabled={saving}
-				className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface-2 px-3 py-1.5 text-[12.5px] font-medium text-text hover:bg-hover disabled:opacity-60"
+				loading={saving}
+				loadingLabel="Saving…"
+				icon={<Save size={13} />}
 			>
-				<Save size={13} />
-				{saving ? "Saving…" : "Save credentials"}
-			</button>
+				Save credentials
+			</Button>
 		</div>
 	</Card>
 );

@@ -193,14 +193,13 @@ export const ConfigureServices = () => {
 										/>
 
 										{entry.connected && (
-											<button
-												type="button"
+											<Button
+												variant="dangerGhost"
 												onClick={() => disconnectDialog.open(s.id)}
-												className="inline-flex items-center gap-1.5 rounded-md border border-danger/40 px-3 py-1.5 text-[12.5px] font-medium text-danger hover:bg-danger/10"
+												icon={<Unplug size={13} />}
 											>
-												<Unplug size={13} />
 												Disconnect
-											</button>
+											</Button>
 										)}
 									</div>
 								</div>

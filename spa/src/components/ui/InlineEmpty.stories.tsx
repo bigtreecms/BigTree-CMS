@@ -30,6 +30,15 @@ export const WithIcon: Story = {
 	args: { icon: Mail, children: "No unread messages" },
 };
 
+/** Borderless centered muted note — search empties, analytics notes. */
+export const Plain: Story = {
+	args: {
+		variant: "plain",
+		align: "center",
+		children: "Type at least two characters to search the site.",
+	},
+};
+
 export const Variants: Story = {
 	render: (args) => (
 		<div className="flex max-w-md flex-col gap-3">
@@ -47,6 +56,9 @@ export const Variants: Story = {
 			</InlineEmpty>
 			<InlineEmpty {...args} icon={Mail}>
 				With a leading icon
+			</InlineEmpty>
+			<InlineEmpty {...args} variant="plain" align="center">
+				Plain borderless note
 			</InlineEmpty>
 		</div>
 	),

@@ -9,6 +9,7 @@ import type { SettingControl, SettingDescriptor } from "@/api/endpoints/field-ty
 import { SchemaFieldLabel } from "@/components/developer/SchemaFieldLabel";
 import { InlineEmpty } from "@/components/ui/InlineEmpty";
 import { useListEditor } from "@/hooks/useListEditor";
+import type { LabeledOption } from "@/types/labeled-option";
 
 interface SettingsSchemaBuilderProps {
 	value: SettingDescriptor[];
@@ -24,10 +25,8 @@ const SETTING_CONTROLS: Array<{ value: SettingControl; label: string }> = [
 	{ value: "enum", label: "Select" },
 ];
 
-type EnumOption = { value: string; label: string };
-
-const optionsOf = (descriptor: SettingDescriptor): EnumOption[] =>
-	Array.isArray(descriptor.options) ? (descriptor.options as EnumOption[]) : [];
+const optionsOf = (descriptor: SettingDescriptor): LabeledOption[] =>
+	Array.isArray(descriptor.options) ? (descriptor.options as LabeledOption[]) : [];
 
 /**
  * Builds a module field type's settings schema (SettingDescriptor[]) — the

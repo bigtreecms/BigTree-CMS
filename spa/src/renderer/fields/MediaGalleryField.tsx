@@ -1,4 +1,4 @@
-import { useId, useMemo, useRef, useState } from "react";
+import { useId, useMemo, useState } from "react";
 import { useToastMutation } from "@/hooks/useToastMutation";
 import {
 	ChevronRight,
@@ -20,6 +20,7 @@ import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Field } from "@/components/ui/Field";
 import { TextInput } from "@/components/ui/TextInput";
+import { useFilePicker } from "@/hooks/useFilePicker";
 import { useLatestUpload } from "@/hooks/useLatestUpload";
 import { useRepeaterRows, type RepeaterRow } from "@/hooks/useRepeaterRows";
 import { useUploads } from "@/hooks/useUploads";
@@ -384,7 +385,6 @@ const AddBar = ({
 	onAskVideo,
 	onAskLocalVideo,
 }: AddBarProps) => {
-	const inputRef = useRef<HTMLInputElement>(null);
 	const [pickerOpen, setPickerOpen] = useState(false);
 
 	const { inFlight, reprocessing, enqueueFile, reprocess, cropModalProps } =
@@ -398,15 +398,9 @@ const AddBar = ({
 		});
 	const busy = Boolean(disabled) || Boolean(inFlight) || reprocessing;
 
-	const handlePick = (files: FileList | null) => {
-		const first = files?.[0];
-
-		if (!first) {
-			return;
-		}
-
-		enqueueFile(first);
-	};
+	const filePicker = useFilePicker((file) => {
+		enqueueFile(file);
+	});
 
 	const showAnyVideo = allowYoutube || allowVimeo;
 	const minWidth = toInt(settings.min_width);
@@ -421,7 +415,7 @@ const AddBar = ({
 							<Button
 								variant="secondary"
 								icon={<UploadIcon size={13} />}
-								onClick={() => inputRef.current?.click()}
+								onClick={filePicker.open}
 								disabled={busy || atLimit}
 							>
 								Upload photo
@@ -472,15 +466,12 @@ const AddBar = ({
 			</div>
 
 			<input
-				ref={inputRef}
+				ref={filePicker.inputRef}
 				type="file"
 				accept="image/*"
 				aria-label="Add images"
 				className="hidden"
-				onChange={(e) => {
-					handlePick(e.target.files);
-					e.target.value = "";
-				}}
+				onChange={filePicker.onChange}
 			/>
 
 			<ResourcePicker
@@ -584,8 +575,6 @@ interface LocalVideoPromptProps {
  * in `AddBar`).
  */
 const LocalVideoPrompt = ({ settings, onClose, onCreated }: LocalVideoPromptProps) => {
-	const videoInputRef = useRef<HTMLInputElement>(null);
-	const coverInputRef = useRef<HTMLInputElement>(null);
 	const { items, enqueue } = useUploads();
 
 	const [step, setStep] = useState<"video" | "cover">("video");
@@ -631,25 +620,13 @@ const LocalVideoPrompt = ({ settings, onClose, onCreated }: LocalVideoPromptProp
 		onError: (item) => toast.error(item.error ?? "Upload failed."),
 	});
 
-	const pickVideo = (files: FileList | null) => {
-		const first = files?.[0];
+	const videoPicker = useFilePicker((file) => {
+		enqueue([file], { path: UPLOAD_PATH });
+	});
 
-		if (!first) {
-			return;
-		}
-
-		enqueue([first], { path: UPLOAD_PATH });
-	};
-
-	const pickCover = (files: FileList | null) => {
-		const first = files?.[0];
-
-		if (!first) {
-			return;
-		}
-
-		enqueue([first], { path: IMAGE_PROCESS_PATH, extra: { settings: processSettings } });
-	};
+	const coverPicker = useFilePicker((file) => {
+		enqueue([file], { path: IMAGE_PROCESS_PATH, extra: { settings: processSettings } });
+	});
 
 	const minWidth = toInt(settings.min_width);
 	const minHeight = toInt(settings.min_height);
@@ -673,7 +650,7 @@ const LocalVideoPrompt = ({ settings, onClose, onCreated }: LocalVideoPromptProp
 					<Button
 						variant="secondary"
 						icon={<UploadIcon size={13} />}
-						onClick={() => videoInputRef.current?.click()}
+						onClick={videoPicker.open}
 						disabled={Boolean(inFlight)}
 					>
 						Choose video
@@ -687,7 +664,7 @@ const LocalVideoPrompt = ({ settings, onClose, onCreated }: LocalVideoPromptProp
 					<Button
 						variant="secondary"
 						icon={<UploadIcon size={13} />}
-						onClick={() => coverInputRef.current?.click()}
+						onClick={coverPicker.open}
 						disabled={Boolean(inFlight)}
 					>
 						Choose cover photo
@@ -712,26 +689,20 @@ const LocalVideoPrompt = ({ settings, onClose, onCreated }: LocalVideoPromptProp
 			</div>
 
 			<input
-				ref={videoInputRef}
+				ref={videoPicker.inputRef}
 				type="file"
 				accept="video/*"
 				aria-label="Choose video file"
 				className="hidden"
-				onChange={(e) => {
-					pickVideo(e.target.files);
-					e.target.value = "";
-				}}
+				onChange={videoPicker.onChange}
 			/>
 			<input
-				ref={coverInputRef}
+				ref={coverPicker.inputRef}
 				type="file"
 				accept="image/*"
 				aria-label="Choose cover image"
 				className="hidden"
-				onChange={(e) => {
-					pickCover(e.target.files);
-					e.target.value = "";
-				}}
+				onChange={coverPicker.onChange}
 			/>
 
 			<FieldCropModal

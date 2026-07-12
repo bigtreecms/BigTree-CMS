@@ -1,42 +1,50 @@
+import type { ModuleFormField } from "@/api/endpoints/modules";
 import { FieldRenderer } from "@/renderer/forms/FieldRenderer";
 import { FieldRow } from "@/renderer/forms/FieldRow";
 
 import { columnToFormField, type RepeaterColumn } from "./fieldHelpers";
 
 interface RepeaterColumnFieldsProps {
-	columns: RepeaterColumn[];
-	/** Read a column's stored cell value (Matrix reads `row.data`, MediaGallery `data.info`). */
+	/**
+	 * Pre-mapped form fields. When provided, wins over `columns` — use for
+	 * Callouts (resourceToFormField) and Declarative (descriptor → ModuleFormField).
+	 */
+	fields?: ModuleFormField[];
+	/** Raw repeater columns; mapped via {@link columnToFormField} when `fields` is absent. */
+	columns?: RepeaterColumn[];
+	/** Read a column/field's stored cell value. */
 	getValue: (columnId: string) => unknown;
 	onColumnChange: (columnId: string, next: unknown) => void;
 	disabled?: boolean;
 }
 
 /**
- * The shared `columns.map → FieldRow/FieldRenderer` panel body used by
- * `MatrixField` and `MediaGalleryField`, which both render a repeater row's
- * sub-fields from a `RepeaterColumn` list via {@link columnToFormField}. The
- * only per-field difference is where a cell value lives, threaded via `getValue`.
+ * Shared `fields.map → FieldRow/FieldRenderer` panel body used by Matrix,
+ * MediaGallery, Callouts, and Declarative field types. Prefer `fields` when
+ * the source shape is not a `RepeaterColumn` list.
  */
 export const RepeaterColumnFields = ({
+	fields,
 	columns,
 	getValue,
 	onColumnChange,
 	disabled,
-}: RepeaterColumnFieldsProps) => (
-	<>
-		{columns.map((column) => {
-			const subField = columnToFormField(column);
+}: RepeaterColumnFieldsProps) => {
+	const resolved: ModuleFormField[] =
+		fields ?? (columns ?? []).map((column) => columnToFormField(column));
 
-			return (
-				<FieldRow key={column.id} field={subField}>
+	return (
+		<>
+			{resolved.map((subField) => (
+				<FieldRow key={subField.column} field={subField}>
 					<FieldRenderer
 						field={subField}
-						value={getValue(column.id)}
-						onChange={(next) => onColumnChange(column.id, next)}
+						value={getValue(subField.column)}
+						onChange={(next) => onColumnChange(subField.column, next)}
 						disabled={disabled}
 					/>
 				</FieldRow>
-			);
-		})}
-	</>
-);
+			))}
+		</>
+	);
+};

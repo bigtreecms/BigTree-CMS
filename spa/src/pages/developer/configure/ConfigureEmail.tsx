@@ -12,6 +12,7 @@ import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { configureApi, type EmailConfig, type EmailServiceId } from "@/api/endpoints/configure";
 
 import { queryKeys } from "@/lib/queryKeys";
+import { ServiceSettingsFields, type ServiceSettingField } from "./ServiceSettingsFields";
 import { useServiceSettingsDraft } from "./useServiceSettingsDraft";
 
 const SERVICES: Array<{ id: EmailServiceId; label: string; blurb: string }> = [
@@ -26,6 +27,37 @@ const SERVICES: Array<{ id: EmailServiceId; label: string; blurb: string }> = [
 	{ id: "postmark", label: "Postmark", blurb: "Transactional email by the makers of Beanstalk." },
 	{ id: "sendgrid", label: "SendGrid", blurb: "Transactional email delivery and management." },
 ];
+
+/** Per-service credential descriptors — rendered via {@link ServiceSettingsFields}. */
+const SERVICE_FIELDS: Record<EmailServiceId, ServiceSettingField[]> = {
+	local: [],
+	smtp: [
+		{ key: "smtp_host", label: "Hostname" },
+		{ key: "smtp_port", label: "Port" },
+		{ key: "smtp_user", label: "Username" },
+		{ key: "smtp_password", label: "Password" },
+		{
+			key: "smtp_security",
+			label: "Security",
+			type: "select",
+			options: [
+				{ value: "", label: "Plain text" },
+				{ value: "ssl", label: "SSL" },
+				{ value: "tls", label: "TLS" },
+			],
+		},
+	],
+	mandrill: [{ key: "mandrill_key", label: "API key" }],
+	mailgun: [
+		{ key: "mailgun_key", label: "API key" },
+		{ key: "mailgun_domain", label: "Domain" },
+	],
+	postmark: [{ key: "postmark_key", label: "API key" }],
+	sendgrid: [
+		{ key: "sendgrid_api_user", label: "API user" },
+		{ key: "sendgrid_api_key", label: "API key" },
+	],
+};
 
 export const ConfigureEmail = () => {
 	const { detailQ, draft, setDraft, generalError, saveMutation, onChange, onSubmit } =
@@ -53,6 +85,8 @@ export const ConfigureEmail = () => {
 		() => SERVICES.find((s) => s.id === draft?.service) ?? SERVICES[0]!,
 		[draft]
 	);
+
+	const serviceFields = draft ? (SERVICE_FIELDS[draft.service] ?? []) : [];
 
 	return (
 		<ConfigureLayout
@@ -86,102 +120,12 @@ export const ConfigureEmail = () => {
 					/>
 
 					<div className="mt-4 space-y-3">
-						{draft.service === "smtp" && (
-							<>
-								<Field label="Hostname">
-									<TextInput
-										value={draft.settings.smtp_host ?? ""}
-										onChange={(e) => onChange("smtp_host", e.target.value)}
-									/>
-								</Field>
-								<Field label="Port">
-									<TextInput
-										value={draft.settings.smtp_port ?? ""}
-										onChange={(e) => onChange("smtp_port", e.target.value)}
-										placeholder="25"
-									/>
-								</Field>
-								<Field label="Username">
-									<TextInput
-										value={draft.settings.smtp_user ?? ""}
-										onChange={(e) => onChange("smtp_user", e.target.value)}
-									/>
-								</Field>
-								<Field label="Password">
-									<TextInput
-										type="password"
-										value={draft.settings.smtp_password ?? ""}
-										onChange={(e) => onChange("smtp_password", e.target.value)}
-									/>
-								</Field>
-								<SelectField
-									label="Security"
-									value={draft.settings.smtp_security ?? ""}
-									onChange={(v) => onChange("smtp_security", v)}
-									options={[
-										{ value: "", label: "Plain text" },
-										{ value: "ssl", label: "SSL" },
-										{ value: "tls", label: "TLS" },
-									]}
-								/>
-							</>
-						)}
-
-						{draft.service === "mandrill" && (
-							<Field label="API key">
-								<TextInput
-									value={draft.settings.mandrill_key ?? ""}
-									onChange={(e) => onChange("mandrill_key", e.target.value)}
-								/>
-							</Field>
-						)}
-
-						{draft.service === "mailgun" && (
-							<>
-								<Field label="API key">
-									<TextInput
-										value={draft.settings.mailgun_key ?? ""}
-										onChange={(e) => onChange("mailgun_key", e.target.value)}
-									/>
-								</Field>
-								<Field label="Domain">
-									<TextInput
-										placeholder="e.g. mg.example.com"
-										value={draft.settings.mailgun_domain ?? ""}
-										onChange={(e) => onChange("mailgun_domain", e.target.value)}
-									/>
-								</Field>
-							</>
-						)}
-
-						{draft.service === "postmark" && (
-							<Field label="API key">
-								<TextInput
-									value={draft.settings.postmark_key ?? ""}
-									onChange={(e) => onChange("postmark_key", e.target.value)}
-								/>
-							</Field>
-						)}
-
-						{draft.service === "sendgrid" && (
-							<>
-								<Field label="API user">
-									<TextInput
-										value={draft.settings.sendgrid_api_user ?? ""}
-										onChange={(e) =>
-											onChange("sendgrid_api_user", e.target.value)
-										}
-									/>
-								</Field>
-								<Field label="API key">
-									<TextInput
-										value={draft.settings.sendgrid_api_key ?? ""}
-										onChange={(e) =>
-											onChange("sendgrid_api_key", e.target.value)
-										}
-									/>
-								</Field>
-							</>
+						{serviceFields.length > 0 && (
+							<ServiceSettingsFields
+								fields={serviceFields}
+								settings={draft.settings}
+								onChange={onChange}
+							/>
 						)}
 
 						<Field label='BigTree "From" address'>

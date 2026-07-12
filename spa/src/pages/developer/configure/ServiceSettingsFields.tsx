@@ -1,13 +1,14 @@
 import { TextInput } from "@/components/ui/TextInput";
 import { Field } from "@/components/ui/Field";
 import { SelectField } from "@/components/ui/SelectField";
+import type { LabeledOption } from "@/types/labeled-option";
 
 /** A single per-service credential field descriptor. */
 export interface ServiceSettingField {
 	key: string;
 	label: string;
 	type?: "select";
-	options?: Array<{ value: string; label: string }>;
+	options?: LabeledOption[];
 }
 
 /** Secret-ish keys are rendered masked and get a "stored, leave blank to keep" hint. */

@@ -9,7 +9,7 @@ import { IconButton } from "@/components/ui/IconButton";
 import { Modal } from "@/components/ui/Modal";
 import { TextInput } from "@/components/ui/TextInput";
 import { usersApi } from "@/api/endpoints/users";
-import { ApiError } from "@/types/api";
+import { describeApiError } from "@/lib/errorHandling";
 import { toast } from "@/lib/toast";
 
 interface PasswordChangeDialogProps {
@@ -58,13 +58,7 @@ export const PasswordChangeDialog = ({
 			onOpenChange(false);
 		},
 		onError: (err: unknown) => {
-			if (err instanceof ApiError) {
-				setError(err.message);
-
-				return;
-			}
-
-			setError("Password change failed");
+			setError(describeApiError(err, "Password change failed"));
 		},
 	});
 

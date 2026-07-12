@@ -7,6 +7,7 @@ import { authApi, type TwoFactorSetup } from "@/auth/endpoints";
 import { toast } from "@/lib/toast";
 import { describeApiError } from "@/lib/errorHandling";
 import { queryKeys } from "@/lib/queryKeys";
+import { useToastMutation } from "@/hooks/useToastMutation";
 import { TwoFactorEnrollForm } from "./TwoFactorEnrollForm";
 import { Button } from "@/components/ui/Button";
 import { Card, CardHeader } from "@/components/ui/Card";
@@ -55,29 +56,25 @@ export const TwoFactorPanel = ({ enabled }: TwoFactorPanelProps) => {
 		},
 	});
 
-	const enableMutation = useMutation({
+	const enableMutation = useToastMutation({
 		mutationFn: () => authApi.enableTwoFactor(setup!.secret, enableCode.trim()),
+		successMessage: "Two-factor authentication enabled",
+		errorMessage: "Could not enable two-factor authentication",
 		onSuccess: () => {
 			invalidate();
 			setSetup(null);
 			setEnableCode("");
-			toast.success("Two-factor authentication enabled");
-		},
-		onError: (err: unknown) => {
-			toast.error(describeApiError(err, "Could not enable two-factor authentication"));
 		},
 	});
 
-	const disableMutation = useMutation({
+	const disableMutation = useToastMutation({
 		mutationFn: () => authApi.disableTwoFactor(disableCode.trim()),
+		successMessage: "Two-factor authentication disabled",
+		errorMessage: "Could not disable two-factor authentication",
 		onSuccess: () => {
 			invalidate();
 			setDisabling(false);
 			setDisableCode("");
-			toast.success("Two-factor authentication disabled");
-		},
-		onError: (err: unknown) => {
-			toast.error(describeApiError(err, "Could not disable two-factor authentication"));
 		},
 	});
 

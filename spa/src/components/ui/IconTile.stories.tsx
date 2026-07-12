@@ -21,8 +21,11 @@ const meta = {
 		children: <Database size={18} />,
 	},
 	argTypes: {
-		tone: { control: "inline-radio", options: ["accent", "neutral", "info"] },
-		size: { control: "inline-radio", options: ["sm", "md", "lg"] },
+		tone: {
+			control: "inline-radio",
+			options: ["accent", "neutral", "info", "warn", "brand"],
+		},
+		size: { control: "inline-radio", options: ["xs", "sm", "md", "lg"] },
 		radius: { control: "inline-radio", options: ["md", "lg", "full"] },
 		ringed: { control: "boolean" },
 	},
@@ -33,7 +36,7 @@ type Story = StoryObj<typeof meta>;
 
 export const Playground: Story = {};
 
-/** The three token tints. */
+/** The token tints, including warn and solid brand. */
 export const Tones: Story = {
 	render: () => (
 		<div className="flex items-center gap-3">
@@ -46,14 +49,23 @@ export const Tones: Story = {
 			<IconTile tone="info" radius="full" size="lg">
 				<Info size={18} />
 			</IconTile>
+			<IconTile tone="warn" size="xs">
+				<Info size={14} />
+			</IconTile>
+			<IconTile tone="brand" size="xs">
+				<Database size={14} />
+			</IconTile>
 		</div>
 	),
 };
 
-/** The size scale — `sm` (size-7), `md` (size-9), `lg` (size-10). */
+/** The size scale — `xs` (26px), `sm` (size-7), `md` (size-9), `lg` (size-10). */
 export const Sizes: Story = {
 	render: () => (
 		<div className="flex items-center gap-3">
+			<IconTile size="xs">
+				<Database size={14} />
+			</IconTile>
 			<IconTile size="sm">
 				<Database size={14} />
 			</IconTile>

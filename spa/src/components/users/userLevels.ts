@@ -1,6 +1,7 @@
 import type { AuthUser } from "@/auth/store";
 import type { UserLevelLabel } from "@/api/endpoints/users";
 import { isDeveloper, type Level } from "@/lib/permissions";
+import type { LabeledOption } from "@/types/labeled-option";
 
 export interface UserLevel {
 	value: Level;
@@ -46,9 +47,7 @@ export const assignableUserLevels = (currentUser: AuthUser | null | undefined): 
 };
 
 /** `assignableUserLevels` shaped for `SelectField`, whose values are strings. */
-export const userLevelOptions = (
-	currentUser: AuthUser | null | undefined
-): { value: string; label: string }[] => {
+export const userLevelOptions = (currentUser: AuthUser | null | undefined): LabeledOption[] => {
 	return assignableUserLevels(currentUser).map(({ value, label }) => ({
 		value: String(value),
 		label,

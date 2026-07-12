@@ -60,3 +60,19 @@ export const ForgotPassword: Story = {
 		</AuthCard>
 	),
 };
+
+/** Wider card used during multi-step auth flows (e.g. forced 2FA enrollment). */
+export const Wide: Story = {
+	args: {
+		title: "Set up two-factor authentication",
+		subtitle: "Your organization requires a second factor to sign in.",
+		wide: true,
+	},
+	render: (args) => (
+		<AuthCard {...args}>
+			<p className="text-[12.5px] text-text-2">
+				Enrollment form body goes here — QR code, secret, and verify step.
+			</p>
+		</AuthCard>
+	),
+};

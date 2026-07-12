@@ -13,15 +13,10 @@ import {
 	Wand2,
 } from "lucide-react";
 
-import { Breadcrumb } from "@/components/shell/Breadcrumb";
-import { PageHead } from "@/components/shell/PageHead";
-import { PageContainer } from "@/components/shell/PageContainer";
-import { Button } from "@/components/ui/Button";
-import { EditPageGuard } from "@/components/ui/EditPageGuard";
 import { IconTile } from "@/components/ui/IconTile";
 import { TabbedEditor, type TabbedEditorTab } from "@/components/ui/TabbedEditor";
 
-import { DeveloperSectionNav } from "@/components/developer/DeveloperSectionNav";
+import { DeveloperEditLayout } from "@/components/developer/DeveloperEditLayout";
 import { ModuleActionsTab } from "@/components/developer/module-designer/ModuleActionsTab";
 import { ModuleEmbedFormsTab } from "@/components/developer/module-designer/ModuleEmbedFormsTab";
 import { ModuleFormsTab } from "@/components/developer/module-designer/ModuleFormsTab";
@@ -128,96 +123,80 @@ export const ModuleDesignerEdit = () => {
 	const activeTab = tabs.some((t) => t.value === tab) ? tab : "shell";
 
 	return (
-		<EditPageGuard
+		<DeveloperEditLayout
 			width="medium"
+			section="Modules"
+			listPath="/developer/modules"
+			isAdd={isAdd}
+			title={title}
+			sub={
+				isAdd
+					? "Create a module from an existing table, or have the designer build the table for you."
+					: "Editing module definition."
+			}
 			loading={!isAdd && detailQ.isLoading}
-			error={isAdd ? undefined : detailQ.error}
+			queryError={isAdd ? undefined : detailQ.error}
+			isDirty={false}
 		>
-			<PageContainer width="medium">
-				<Breadcrumb
-					items={[
-						{ label: "Developer", to: "/developer" },
-						{ label: "Modules", to: "/developer/modules" },
-						{ label: isAdd ? "Add" : "Edit" },
-					]}
-				/>
-
-				<PageHead
-					title={title}
-					sub={
-						isAdd
-							? "Create a module from an existing table, or have the designer build the table for you."
-							: "Editing module definition."
-					}
-					actions={
-						<Button icon={<ChevronLeft size={13} />} to="/developer/modules">
-							Back
-						</Button>
-					}
-				/>
-
-				<DeveloperSectionNav />
-
-				{isAdd ? (
-					addMode === "choose" ? (
-						<div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-							<button
-								type="button"
-								onClick={() => setAddMode("existing")}
-								className="flex flex-col items-start gap-2 rounded-xl border border-border bg-surface p-5 text-left transition-colors hover:border-border-strong hover:bg-hover"
-							>
-								<IconTile radius="lg">
-									<Database size={18} />
-								</IconTile>
-								<span className="text-[13.5px] font-semibold text-text">
-									Use an existing table
-								</span>
-								<span className="text-[12px] text-text-3">
-									Point the module at a MySQL table you've already created, then
-									set up its forms and views.
-								</span>
-							</button>
-							<button
-								type="button"
-								onClick={() => setAddMode("build")}
-								className="flex flex-col items-start gap-2 rounded-xl border border-border bg-surface p-5 text-left transition-colors hover:border-border-strong hover:bg-hover"
-							>
-								<IconTile radius="lg">
-									<Wand2 size={18} />
-								</IconTile>
-								<span className="text-[13.5px] font-semibold text-text">
-									Build the table for me
-								</span>
-								<span className="text-[12px] text-text-3">
-									Define a few fields and the designer creates the table, an
-									add/edit form, and a landing view automatically.
-								</span>
-							</button>
-						</div>
-					) : (
-						<div className="space-y-3">
-							<button
-								type="button"
-								onClick={() => setAddMode("choose")}
-								className="inline-flex items-center gap-1.5 text-[12px] text-text-3 hover:text-text"
-							>
-								<ChevronLeft size={13} />
-								Back to options
-							</button>
-
-							{addMode === "existing" ? (
-								<div className="rounded-xl border border-border bg-surface-2 p-4">
-									<ModuleShellTab moduleId={null} module={null} />
-								</div>
-							) : (
-								<ModuleBuilderWizard />
-							)}
-						</div>
-					)
+			{isAdd ? (
+				addMode === "choose" ? (
+					<div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+						<button
+							type="button"
+							onClick={() => setAddMode("existing")}
+							className="flex flex-col items-start gap-2 rounded-xl border border-border bg-surface p-5 text-left transition-colors hover:border-border-strong hover:bg-hover"
+						>
+							<IconTile radius="lg">
+								<Database size={18} />
+							</IconTile>
+							<span className="text-[13.5px] font-semibold text-text">
+								Use an existing table
+							</span>
+							<span className="text-[12px] text-text-3">
+								Point the module at a MySQL table you've already created, then set
+								up its forms and views.
+							</span>
+						</button>
+						<button
+							type="button"
+							onClick={() => setAddMode("build")}
+							className="flex flex-col items-start gap-2 rounded-xl border border-border bg-surface p-5 text-left transition-colors hover:border-border-strong hover:bg-hover"
+						>
+							<IconTile radius="lg">
+								<Wand2 size={18} />
+							</IconTile>
+							<span className="text-[13.5px] font-semibold text-text">
+								Build the table for me
+							</span>
+							<span className="text-[12px] text-text-3">
+								Define a few fields and the designer creates the table, an add/edit
+								form, and a landing view automatically.
+							</span>
+						</button>
+					</div>
 				) : (
-					<TabbedEditor tabs={tabs} value={activeTab} onChange={setTab} />
-				)}
-			</PageContainer>
-		</EditPageGuard>
+					<div className="space-y-3">
+						<button
+							type="button"
+							onClick={() => setAddMode("choose")}
+							className="inline-flex items-center gap-1.5 text-[12px] text-text-3 hover:text-text"
+						>
+							<ChevronLeft size={13} />
+							Back to options
+						</button>
+
+						{addMode === "existing" ? (
+							<div className="rounded-xl border border-border bg-surface-2 p-4">
+								<ModuleShellTab moduleId={null} module={null} />
+							</div>
+						) : (
+							<ModuleBuilderWizard />
+						)}
+					</div>
+				)
+			) : (
+				<TabbedEditor tabs={tabs} value={activeTab} onChange={setTab} />
+			)}
+		</DeveloperEditLayout>
 	);
 };

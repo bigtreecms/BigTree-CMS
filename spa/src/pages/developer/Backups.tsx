@@ -9,6 +9,7 @@ import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { Button } from "@/components/ui/Button";
+import { IconButton } from "@/components/ui/IconButton";
 
 import { systemApi, type Backup } from "@/api/endpoints/system";
 import { formatBytes } from "@/lib/bytes";
@@ -92,14 +93,14 @@ export const Backups = () => {
 						<Download size={12} />
 						Download
 					</a>
-					<button
-						type="button"
+					<IconButton
+						tone="danger"
 						onClick={() => deleteDialog.open(row)}
-						className="inline-flex items-center rounded-md border border-border bg-surface p-1.5 text-text-3 hover:border-danger/40 hover:text-danger"
-						aria-label="Delete backup"
+						label="Delete backup"
+						title="Delete backup"
 					>
 						<Trash2 size={13} />
-					</button>
+					</IconButton>
 				</div>
 			),
 		},

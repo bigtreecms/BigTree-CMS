@@ -1,10 +1,10 @@
-import { useRef } from "react";
 import { File as FileIcon, Upload as UploadIcon, X } from "lucide-react";
 
 import { Button } from "@/components/ui/Button";
 import { IconButton } from "@/components/ui/IconButton";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import { UPLOAD_PATH, type ResourceDetail } from "@/api/endpoints/resources";
+import { useFilePicker } from "@/hooks/useFilePicker";
 import { useLatestUpload } from "@/hooks/useLatestUpload";
 import { useUploads } from "@/hooks/useUploads";
 
@@ -28,7 +28,6 @@ interface UploadFieldSettings {
 
 export const UploadField = ({ field, value, onChange, disabled }: FieldComponentProps) => {
 	const settings = settingsOf(field) as UploadFieldSettings;
-	const inputRef = useRef<HTMLInputElement>(null);
 	const { items, enqueue } = useUploads();
 
 	// Watch the upload queue for our newest completed item and surface its URL.
@@ -42,15 +41,9 @@ export const UploadField = ({ field, value, onChange, disabled }: FieldComponent
 		},
 	});
 
-	const handlePick = (files: FileList | null) => {
-		const first = files?.[0];
-
-		if (!first) {
-			return;
-		}
-
-		enqueue([first], { path: UPLOAD_PATH });
-	};
+	const filePicker = useFilePicker((file) => {
+		enqueue([file], { path: UPLOAD_PATH });
+	});
 
 	const currentPath = typeof value === "string" && value.length > 0 ? value : null;
 	const showRemove = !settings.disable_remove;
@@ -61,7 +54,7 @@ export const UploadField = ({ field, value, onChange, disabled }: FieldComponent
 				<Button
 					variant="secondary"
 					icon={<UploadIcon size={13} />}
-					onClick={() => inputRef.current?.click()}
+					onClick={filePicker.open}
 					disabled={disabled || Boolean(inFlight)}
 				>
 					{currentPath ? "Replace file" : "Choose file"}
@@ -77,15 +70,12 @@ export const UploadField = ({ field, value, onChange, disabled }: FieldComponent
 					</span>
 				)}
 				<input
-					ref={inputRef}
+					ref={filePicker.inputRef}
 					type="file"
 					aria-label={field.title}
 					className="hidden"
 					accept={settings.valid_extensions || undefined}
-					onChange={(e) => {
-						handlePick(e.target.files);
-						e.target.value = "";
-					}}
+					onChange={filePicker.onChange}
 				/>
 			</div>
 

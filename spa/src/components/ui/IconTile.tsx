@@ -1,16 +1,19 @@
 import type { ReactNode } from "react";
 
-export type IconTileTone = "accent" | "neutral" | "info";
-export type IconTileSize = "sm" | "md" | "lg";
+export type IconTileTone = "accent" | "neutral" | "info" | "warn" | "brand";
+export type IconTileSize = "xs" | "sm" | "md" | "lg";
 export type IconTileRadius = "md" | "lg" | "full";
 
 const TONE_CLASS: Record<IconTileTone, string> = {
 	accent: "bg-accent-soft text-accent",
 	neutral: "bg-surface-2 text-text-3",
 	info: "bg-info-bg text-info",
+	warn: "bg-warn-bg text-warn",
+	brand: "bg-accent text-accent-fg",
 };
 
 const SIZE_CLASS: Record<IconTileSize, string> = {
+	xs: "size-[26px]",
 	sm: "size-7",
 	md: "size-9",
 	lg: "size-10",
@@ -27,7 +30,7 @@ interface IconTileProps {
 	children: ReactNode;
 	/** Token-mapped tint. Defaults to `accent` (the soft-accent list/step chip). */
 	tone?: IconTileTone;
-	/** Box size: `sm` (size-7), `md` (size-9, default), `lg` (size-10). */
+	/** Box size: `xs` (26px), `sm` (size-7), `md` (size-9, default), `lg` (size-10). */
 	size?: IconTileSize;
 	/** Corner radius: `md` (default), `lg` (wizard step tiles), `full` (round). */
 	radius?: IconTileRadius;

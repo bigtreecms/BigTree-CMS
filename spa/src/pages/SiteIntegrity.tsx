@@ -29,6 +29,7 @@ import { integrityApi } from "@/api/endpoints/integrity";
 import { useIntegrityScan, type ScanFinding } from "@/hooks/useIntegrityScan";
 import { downloadCsv } from "@/lib/csv";
 import { formatNumber, pluralize } from "@/lib/number";
+import { todayStamp } from "@/lib/time";
 import { toast } from "@/lib/toast";
 import { queryKeys } from "@/lib/queryKeys";
 
@@ -81,7 +82,7 @@ export const SiteIntegrity = () => {
 			}
 
 			downloadCsv(
-				`site-integrity-${new Date().toISOString().slice(0, 10)}.csv`,
+				`site-integrity-${todayStamp()}.csv`,
 				["Location", "Title", "Type", "Broken URL", "Field"],
 				rows.map((r) => [
 					r.location,

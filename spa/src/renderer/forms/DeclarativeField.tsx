@@ -2,8 +2,7 @@ import type { InputDescriptor } from "@/api/endpoints/field-types";
 import type { ModuleFormField } from "@/api/endpoints/modules";
 import type { FieldComponentProps } from "@/renderer/fields/types";
 
-import { FieldRenderer } from "./FieldRenderer";
-import { FieldRow } from "./FieldRow";
+import { RepeaterColumnFields } from "@/renderer/fields/RepeaterColumnFields";
 
 interface DeclarativeFieldProps extends FieldComponentProps {
 	inputSchema: InputDescriptor[];
@@ -54,28 +53,22 @@ export const DeclarativeField = ({
 }: DeclarativeFieldProps) => {
 	const obj = asObject(value);
 
+	const fields: ModuleFormField[] = inputSchema.map((descriptor) => ({
+		column: descriptor.id,
+		type: descriptor.type,
+		title: descriptor.title ?? descriptor.id,
+		subtitle: descriptor.subtitle,
+		settings: settingsFor(descriptor),
+	}));
+
 	return (
 		<div className="space-y-1 rounded-md border border-border bg-surface-2 p-3">
-			{inputSchema.map((descriptor) => {
-				const subField: ModuleFormField = {
-					column: descriptor.id,
-					type: descriptor.type,
-					title: descriptor.title ?? descriptor.id,
-					subtitle: descriptor.subtitle,
-					settings: settingsFor(descriptor),
-				};
-
-				return (
-					<FieldRow key={descriptor.id} field={subField}>
-						<FieldRenderer
-							field={subField}
-							value={obj[descriptor.id]}
-							onChange={(next) => onChange({ ...obj, [descriptor.id]: next })}
-							disabled={disabled}
-						/>
-					</FieldRow>
-				);
-			})}
+			<RepeaterColumnFields
+				fields={fields}
+				getValue={(columnId) => obj[columnId]}
+				onColumnChange={(columnId, next) => onChange({ ...obj, [columnId]: next })}
+				disabled={disabled}
+			/>
 		</div>
 	);
 };

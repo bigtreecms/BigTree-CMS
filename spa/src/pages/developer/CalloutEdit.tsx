@@ -1,18 +1,8 @@
 import { Navigate, useParams } from "react-router-dom";
-import { ChevronLeft } from "lucide-react";
 
-import { Breadcrumb } from "@/components/shell/Breadcrumb";
-import { PageHead } from "@/components/shell/PageHead";
-import { PageContainer } from "@/components/shell/PageContainer";
-import { Alert } from "@/components/ui/Alert";
 import { FieldGrid } from "@/components/ui/FieldGrid";
-import { EditPageGuard } from "@/components/ui/EditPageGuard";
-import { Button } from "@/components/ui/Button";
-import { FormFooter } from "@/components/ui/FormFooter";
-import { FormShell } from "@/components/ui/FormShell";
-import { UnsavedChangesGuard } from "@/components/ui/UnsavedChangesGuard";
 
-import { DeveloperSectionNav } from "@/components/developer/DeveloperSectionNav";
+import { DeveloperEditLayout } from "@/components/developer/DeveloperEditLayout";
 import { ResourceDesigner, type ResourceEntry } from "@/components/developer/ResourceDesigner";
 import { useResourceSettingsValidation } from "@/components/developer/field-settings/useResourceSettingsValidation";
 
@@ -77,124 +67,92 @@ export const CalloutEdit = () => {
 	const title = isAdd ? "Add callout" : body.name || idParam || "Edit callout";
 
 	return (
-		<EditPageGuard
+		<DeveloperEditLayout
 			width="medium"
+			section="Callouts"
+			listPath="/developer/callouts"
+			isAdd={isAdd}
+			title={title}
+			sub={isAdd ? "Define a new callout type." : "Editing callout definition."}
 			loading={!isAdd && detailQ.isLoading}
-			error={isAdd ? undefined : detailQ.error}
+			queryError={isAdd ? undefined : detailQ.error}
+			error={submit.error}
+			isDirty={isDirty}
+			formShellBounded={false}
+			onSubmit={submit.buildSubmit({
+				required: [
+					{ field: "id", label: "ID", value: body.id },
+					{ field: "name", label: "Name", value: body.name },
+				],
+				settingsValidation,
+				save: () => save(body),
+				saving,
+			})}
+			submitLabel={isAdd ? "Create callout" : "Save callout"}
+			saving={saving}
 		>
-			<PageContainer width="medium">
-				<Breadcrumb
-					items={[
-						{ label: "Developer", to: "/developer" },
-						{ label: "Callouts", to: "/developer/callouts" },
-						{ label: isAdd ? "Add" : "Edit" },
-					]}
+			<div className="space-y-4">
+				<FieldGrid>
+					<TextField
+						label="ID"
+						value={body.id ?? ""}
+						onChange={(v) => set({ id: v })}
+						hint="Lowercase, hyphens or underscores. Cannot change after create."
+						error={submit.fieldErrors.id}
+						disabled={!isAdd}
+						required
+					/>
+					<TextField
+						label="Name"
+						value={body.name ?? ""}
+						onChange={(v) => set({ name: v })}
+						error={submit.fieldErrors.name}
+						required
+					/>
+				</FieldGrid>
+
+				<TextField
+					label="Description"
+					value={body.description ?? ""}
+					onChange={(v) => set({ description: v })}
 				/>
 
-				<PageHead
-					title={title}
-					sub={isAdd ? "Define a new callout type." : "Editing callout definition."}
-					actions={
-						<Button icon={<ChevronLeft size={13} />} to="/developer/callouts">
-							Back
-						</Button>
-					}
-				/>
+				<FieldGrid>
+					<SelectField
+						label="Minimum user level"
+						value={String(body.level ?? 0)}
+						onChange={(v) => set({ level: Number(v) })}
+						options={[
+							{ value: "0", label: "Editor (0)" },
+							{ value: "1", label: "Admin (1)" },
+							{ value: "2", label: "Developer (2)" },
+						]}
+					/>
+					<TextField
+						label="Default title text"
+						value={body.display_default ?? ""}
+						onChange={(v) => set({ display_default: v })}
+						hint="Fallback shown when display_field is empty."
+					/>
+				</FieldGrid>
 
-				<DeveloperSectionNav />
-
-				{submit.error && (
-					<Alert tone="danger" className="mb-3">
-						{submit.error}
-					</Alert>
-				)}
-
-				<FormShell
-					bounded={false}
-					onSubmit={submit.buildSubmit({
-						required: [
-							{ field: "id", label: "ID", value: body.id },
-							{ field: "name", label: "Name", value: body.name },
-						],
-						settingsValidation,
-						save: () => save(body),
-						saving,
-					})}
-					footer={
-						<FormFooter
-							cancelTo="/developer/callouts"
-							submitLabel={isAdd ? "Create callout" : "Save callout"}
-							loading={saving}
-							loadingLabel="Saving…"
-						/>
-					}
-				>
-					<div className="space-y-4">
-						<FieldGrid>
-							<TextField
-								label="ID"
-								value={body.id ?? ""}
-								onChange={(v) => set({ id: v })}
-								hint="Lowercase, hyphens or underscores. Cannot change after create."
-								error={submit.fieldErrors.id}
-								disabled={!isAdd}
-								required
-							/>
-							<TextField
-								label="Name"
-								value={body.name ?? ""}
-								onChange={(v) => set({ name: v })}
-								error={submit.fieldErrors.name}
-								required
-							/>
-						</FieldGrid>
-
-						<TextField
-							label="Description"
-							value={body.description ?? ""}
-							onChange={(v) => set({ description: v })}
-						/>
-
-						<FieldGrid>
-							<SelectField
-								label="Minimum user level"
-								value={String(body.level ?? 0)}
-								onChange={(v) => set({ level: Number(v) })}
-								options={[
-									{ value: "0", label: "Editor (0)" },
-									{ value: "1", label: "Admin (1)" },
-									{ value: "2", label: "Developer (2)" },
-								]}
-							/>
-							<TextField
-								label="Default title text"
-								value={body.display_default ?? ""}
-								onChange={(v) => set({ display_default: v })}
-								hint="Fallback shown when display_field is empty."
-							/>
-						</FieldGrid>
-
-						<div>
-							<SectionLabel className="mb-2">Fields</SectionLabel>
-							<ResourceDesigner
-								resources={(body.resources ?? []) as unknown as ResourceEntry[]}
-								onChange={(next) =>
-									set({ resources: next as unknown as TemplateResource[] })
-								}
-								keyField="id"
-								useCase="callouts"
-								settingsErrors={submit.settingsErrors}
-								displayFieldId={body.display_field}
-								onSetDisplayField={(id) =>
-									set({ display_field: id === body.display_field ? "" : id })
-								}
-							/>
-						</div>
-					</div>
-				</FormShell>
-
-				<UnsavedChangesGuard isDirty={isDirty} />
-			</PageContainer>
-		</EditPageGuard>
+				<div>
+					<SectionLabel className="mb-2">Fields</SectionLabel>
+					<ResourceDesigner
+						resources={(body.resources ?? []) as unknown as ResourceEntry[]}
+						onChange={(next) =>
+							set({ resources: next as unknown as TemplateResource[] })
+						}
+						keyField="id"
+						useCase="callouts"
+						settingsErrors={submit.settingsErrors}
+						displayFieldId={body.display_field}
+						onSetDisplayField={(id) =>
+							set({ display_field: id === body.display_field ? "" : id })
+						}
+					/>
+				</div>
+			</div>
+		</DeveloperEditLayout>
 	);
 };

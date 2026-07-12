@@ -1,5 +1,7 @@
-import { useRef, type ReactNode } from "react";
+import type { ReactNode } from "react";
 import { Upload } from "lucide-react";
+
+import { useFilePicker } from "@/hooks/useFilePicker";
 
 interface UploadButtonProps {
 	/** Called with the chosen file. The input is reset afterward so the same file can be re-picked. */
@@ -29,24 +31,14 @@ export const UploadButton = ({
 	icon,
 	className,
 }: UploadButtonProps) => {
-	const inputRef = useRef<HTMLInputElement>(null);
-
-	const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-		const file = e.target.files?.[0];
-
-		if (file) {
-			onSelect(file);
-		}
-
-		e.target.value = "";
-	};
+	const { open, inputRef, onChange } = useFilePicker(onSelect);
 
 	return (
 		<>
 			<button
 				type="button"
 				disabled={disabled}
-				onClick={() => inputRef.current?.click()}
+				onClick={open}
 				className={
 					className ??
 					"inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-[12.5px] font-medium text-accent-fg hover:bg-accent-hover disabled:opacity-60"
@@ -62,7 +54,7 @@ export const UploadButton = ({
 				accept={accept}
 				aria-label={typeof label === "string" ? label : "Choose file"}
 				className="hidden"
-				onChange={handleChange}
+				onChange={onChange}
 			/>
 		</>
 	);

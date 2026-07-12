@@ -3,17 +3,22 @@ import type { ReactNode } from "react";
 interface AuthCardProps {
 	title: string;
 	subtitle: string;
+	/** Wider card for multi-step flows (e.g. 2FA enrollment). Default is 360px. */
+	wide?: boolean;
 	children: ReactNode;
 }
 
 /**
- * The centered card layout shared by the unauthenticated screens (forgot /
- * reset password). Mirrors the login screen's framing so the flows feel like
- * one surface.
+ * The centered card layout shared by the unauthenticated screens (login,
+ * forgot / reset password). One surface for the whole auth flow.
  */
-export const AuthCard = ({ title, subtitle, children }: AuthCardProps) => (
+export const AuthCard = ({ title, subtitle, wide = false, children }: AuthCardProps) => (
 	<div className="grid min-h-screen place-items-center bg-bg px-4">
-		<div className="w-full max-w-[360px] rounded-lg border border-border bg-surface p-6 shadow-md">
+		<div
+			className={`w-full rounded-lg border border-border bg-surface p-6 shadow-md ${
+				wide ? "max-w-[520px]" : "max-w-[360px]"
+			}`}
+		>
 			<div className="mb-5 flex items-center gap-2.5">
 				<div className="grid size-8 place-items-center rounded-md bg-accent text-accent-fg">
 					<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">

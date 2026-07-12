@@ -26,6 +26,7 @@ import { downloadCsv } from "@/lib/csv";
 import { describeApiError } from "@/lib/errorHandling";
 import { derivePagination } from "@/lib/pagination";
 import { formatNumber, pluralize } from "@/lib/number";
+import { todayStamp } from "@/lib/time";
 import { toast } from "@/lib/toast";
 import { queryKeys } from "@/lib/queryKeys";
 import { usePaginatedSearch } from "@/hooks/usePaginatedSearch";
@@ -177,7 +178,7 @@ export const FourOhFours = ({ type }: FourOhFoursProps) => {
 			}
 
 			downloadCsv(
-				`${type}-report-${new Date().toISOString().slice(0, 10)}.csv`,
+				`${type}-report-${todayStamp()}.csv`,
 				["Requests", "Broken URL", "Query Variables", "Redirect", "Ignored"],
 				rows.map((r) => [
 					r.requests,
@@ -469,18 +470,16 @@ export const FourOhFours = ({ type }: FourOhFoursProps) => {
 				}
 			/>
 
-			{totalPages > 1 && (
-				<div className="mt-3 flex justify-end">
-					<Pager
-						page={page}
-						totalPages={totalPages}
-						onChange={(p) => {
-							setPage(p);
-							resetRowState();
-						}}
-					/>
-				</div>
-			)}
+			<div className="mt-3 flex justify-end">
+				<Pager
+					page={page}
+					totalPages={totalPages}
+					onChange={(p) => {
+						setPage(p);
+						resetRowState();
+					}}
+				/>
+			</div>
 
 			<ConfirmDialog
 				open={bulkDeleteDialog.isOpen}

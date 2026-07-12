@@ -10,6 +10,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Fingerprint } from "lucide-react";
 import { Alert } from "@/components/ui/Alert";
+import { AuthCard } from "@/components/ui/AuthCard";
 import { Button } from "@/components/ui/Button";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { Field } from "@/components/ui/Field";
@@ -33,9 +34,8 @@ interface LocationState {
 }
 
 /**
- * Login screen — minimal first cut, will get the prototype's full styling
- * pass once we extract a reusable Input + Button + Card. For now it exercises
- * the auth flow end-to-end: submit → set session → redirect to original path.
+ * Login screen — auth flow end-to-end: submit → set session → redirect to
+ * the original path (or pause on MFA / forced 2FA enrollment).
  */
 export const Login = () => {
 	const navigate = useNavigate();
@@ -178,158 +178,142 @@ export const Login = () => {
 	}
 
 	return (
-		<div className="grid min-h-screen place-items-center bg-bg px-4">
-			<div
-				className={`w-full rounded-lg border border-border bg-surface p-6 shadow-md ${
-					enroll ? "max-w-[520px]" : "max-w-[360px]"
-				}`}
-			>
-				<div className="mb-5 flex items-center gap-2.5">
-					<div className="grid size-8 place-items-center rounded-md bg-accent text-accent-fg">
-						<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-							<path d="M12 2 4 12h4v8h8v-8h4L12 2Z" />
-						</svg>
-					</div>
-					<div>
-						<h1 className="text-[15px] font-semibold tracking-[-0.01em]">
-							{enroll ? "Set up two-factor authentication" : "Sign in to BigTree"}
-						</h1>
-						<p className="text-[12px] text-text-3">
-							{enroll
-								? "Your organization requires a second factor to sign in."
-								: "Use your admin credentials."}
-						</p>
-					</div>
+		<AuthCard
+			title={enroll ? "Set up two-factor authentication" : "Sign in to BigTree"}
+			subtitle={
+				enroll
+					? "Your organization requires a second factor to sign in."
+					: "Use your admin credentials."
+			}
+			wide={!!enroll}
+		>
+			{state?.resetSuccess && !serverError && (
+				<Alert tone="success" className="mb-3">
+					Password updated. Sign in with your new password.
+				</Alert>
+			)}
+
+			{serverError && (
+				<Alert tone="danger" className="mb-3">
+					{serverError}
+				</Alert>
+			)}
+
+			{enroll ? (
+				<div className="text-[12.5px]">
+					<TwoFactorEnrollForm
+						setup={enroll.setup}
+						code={enrollCode}
+						onCodeChange={setEnrollCode}
+						onCancel={() => {
+							setEnroll(null);
+							setEnrollCode("");
+							setServerError(null);
+						}}
+						onConfirm={onConfirmEnroll}
+						busy={enrollBusy}
+						confirmLabel="Verify & sign in"
+						cancelLabel="Back"
+					/>
 				</div>
-
-				{state?.resetSuccess && !serverError && (
-					<Alert tone="success" className="mb-3">
-						Password updated. Sign in with your new password.
-					</Alert>
-				)}
-
-				{serverError && (
-					<Alert tone="danger" className="mb-3">
-						{serverError}
-					</Alert>
-				)}
-
-				{enroll ? (
-					<div className="text-[12.5px]">
-						<TwoFactorEnrollForm
-							setup={enroll.setup}
-							code={enrollCode}
-							onCodeChange={setEnrollCode}
-							onCancel={() => {
-								setEnroll(null);
-								setEnrollCode("");
-								setServerError(null);
-							}}
-							onConfirm={onConfirmEnroll}
-							busy={enrollBusy}
-							confirmLabel="Verify & sign in"
-							cancelLabel="Back"
-						/>
-					</div>
-				) : !mfa ? (
-					<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
-						<Field label="Email" error={form.formState.errors.email?.message}>
-							<TextInput
-								type="email"
-								autoComplete="email"
-								autoFocus
-								{...form.register("email")}
-							/>
-						</Field>
-
-						<Field label="Password" error={form.formState.errors.password?.message}>
-							<TextInput
-								type="password"
-								autoComplete="current-password"
-								{...form.register("password")}
-							/>
-						</Field>
-
-						<Link
-							to="/login/forgot"
-							className="block text-right text-[12px] text-text-3 hover:text-text-2"
-						>
-							Forgot password?
-						</Link>
-
-						{!rememberDisabled && (
-							<Checkbox
-								label="Remember me"
-								checked={form.watch("remember") ?? false}
-								onChange={(checked) => form.setValue("remember", checked)}
-							/>
-						)}
-
-						<Button
-							variant="primary"
-							size="lg"
-							type="submit"
-							className="mt-1 w-full justify-center"
-							disabled={form.formState.isSubmitting}
-						>
-							{form.formState.isSubmitting ? "Signing in…" : "Sign in"}
-						</Button>
-
-						{passkeySupported && (
-							<>
-								<div className="flex items-center gap-2 py-1 text-[11px] uppercase tracking-[0.06em] text-text-3">
-									<span className="h-px flex-1 bg-border" />
-									or
-									<span className="h-px flex-1 bg-border" />
-								</div>
-								<Button
-									variant="secondary"
-									size="lg"
-									className="w-full justify-center"
-									icon={<Fingerprint size={14} />}
-									onClick={onPasskeySignIn}
-									disabled={passkeyBusy || form.formState.isSubmitting}
-								>
-									{passkeyBusy
-										? "Waiting for authenticator…"
-										: "Sign in with a passkey"}
-								</Button>
-							</>
-						)}
-					</form>
-				) : (
-					<form onSubmit={mfaForm.handleSubmit(onSubmitMfa)} className="space-y-3">
-						<p className="text-[12.5px] text-text-2">
-							Enter the 6-digit code from your authenticator app.
-						</p>
-						<input
-							type="text"
-							inputMode="numeric"
-							pattern="[0-9]*"
+			) : !mfa ? (
+				<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
+					<Field label="Email" error={form.formState.errors.email?.message}>
+						<TextInput
+							type="email"
+							autoComplete="email"
 							autoFocus
-							maxLength={6}
-							{...mfaForm.register("code", { required: true })}
-							className="w-full rounded-md border border-border bg-surface px-2.5 py-1.5 text-center font-mono text-[14px] tracking-widest outline-none focus:border-accent"
+							{...form.register("email")}
 						/>
-						<Button
-							variant="primary"
-							size="lg"
-							type="submit"
-							className="w-full justify-center"
-							disabled={mfaForm.formState.isSubmitting}
-						>
-							{mfaForm.formState.isSubmitting ? "Verifying…" : "Verify"}
-						</Button>
-						<button
-							type="button"
-							onClick={() => setMfa(null)}
-							className="w-full text-[12px] text-text-3 hover:text-text-2"
-						>
-							Back
-						</button>
-					</form>
-				)}
-			</div>
-		</div>
+					</Field>
+
+					<Field label="Password" error={form.formState.errors.password?.message}>
+						<TextInput
+							type="password"
+							autoComplete="current-password"
+							{...form.register("password")}
+						/>
+					</Field>
+
+					<Link
+						to="/login/forgot"
+						className="block text-right text-[12px] text-text-3 hover:text-text-2"
+					>
+						Forgot password?
+					</Link>
+
+					{!rememberDisabled && (
+						<Checkbox
+							label="Remember me"
+							checked={form.watch("remember") ?? false}
+							onChange={(checked) => form.setValue("remember", checked)}
+						/>
+					)}
+
+					<Button
+						variant="primary"
+						size="lg"
+						type="submit"
+						className="mt-1 w-full justify-center"
+						disabled={form.formState.isSubmitting}
+					>
+						{form.formState.isSubmitting ? "Signing in…" : "Sign in"}
+					</Button>
+
+					{passkeySupported && (
+						<>
+							<div className="flex items-center gap-2 py-1 text-[11px] uppercase tracking-[0.06em] text-text-3">
+								<span className="h-px flex-1 bg-border" />
+								or
+								<span className="h-px flex-1 bg-border" />
+							</div>
+							<Button
+								variant="secondary"
+								size="lg"
+								className="w-full justify-center"
+								icon={<Fingerprint size={14} />}
+								onClick={onPasskeySignIn}
+								disabled={passkeyBusy || form.formState.isSubmitting}
+							>
+								{passkeyBusy
+									? "Waiting for authenticator…"
+									: "Sign in with a passkey"}
+							</Button>
+						</>
+					)}
+				</form>
+			) : (
+				<form onSubmit={mfaForm.handleSubmit(onSubmitMfa)} className="space-y-3">
+					<p className="text-[12.5px] text-text-2">
+						Enter the 6-digit code from your authenticator app.
+					</p>
+					<input
+						type="text"
+						inputMode="numeric"
+						pattern="[0-9]*"
+						autoFocus
+						maxLength={6}
+						{...mfaForm.register("code", { required: true })}
+						className="w-full rounded-md border border-border bg-surface px-2.5 py-1.5 text-center font-mono text-[14px] tracking-widest outline-none focus:border-accent"
+					/>
+					<Button
+						variant="primary"
+						size="lg"
+						type="submit"
+						className="w-full justify-center"
+						disabled={mfaForm.formState.isSubmitting}
+					>
+						{mfaForm.formState.isSubmitting ? "Verifying…" : "Verify"}
+					</Button>
+					<button
+						type="button"
+						onClick={() => setMfa(null)}
+						className="w-full text-[12px] text-text-3 hover:text-text-2"
+					>
+						Back
+					</button>
+				</form>
+			)}
+		</AuthCard>
 	);
 };

@@ -34,3 +34,22 @@ export const Truncated: Story = {
 		id: "a-very-long-resource-identifier-that-overflows",
 	},
 };
+
+/** Muted non-mono second line — descriptions, paths, meta (not IDs). */
+export const WithSubtitle: Story = {
+	args: {
+		name: "Featured Articles",
+		id: undefined,
+		subtitle: "Homepage callout · last edited 2 days ago",
+	},
+};
+
+/** Unread / muted primary line via primaryClassName. */
+export const CustomPrimary: Story = {
+	args: {
+		name: "Welcome to BigTree",
+		id: undefined,
+		primaryClassName: "truncate font-semibold text-text",
+		subtitle: "From Admin",
+	},
+};

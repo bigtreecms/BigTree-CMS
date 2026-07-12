@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Crop, ImageIcon, Images, Search, Upload as UploadIcon, X } from "lucide-react";
 
 import { ResourcePicker } from "@/components/files/ResourcePicker";
@@ -9,6 +9,7 @@ import { SectionLabel } from "@/components/ui/SectionLabel";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 
 import { expandImageUrl } from "@/lib/imageUrl";
+import { useFilePicker } from "@/hooks/useFilePicker";
 
 import { FieldCropModal } from "./FieldCropModal";
 import { toInt } from "./fieldHelpers";
@@ -52,7 +53,6 @@ export const ImageField = ({ field, value, onChange, disabled }: FieldComponentP
 	const minWidth = toInt(settings.min_width);
 	const minHeight = toInt(settings.min_height);
 
-	const inputRef = useRef<HTMLInputElement>(null);
 	const [pickerOpen, setPickerOpen] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	const [showCrops, setShowCrops] = useState(false);
@@ -62,16 +62,10 @@ export const ImageField = ({ field, value, onChange, disabled }: FieldComponentP
 
 	const busy = disabled || Boolean(inFlight) || reprocessing;
 
-	const handlePick = (files: FileList | null) => {
-		const first = files?.[0];
-
-		if (!first) {
-			return;
-		}
-
+	const filePicker = useFilePicker((file) => {
 		setError(null);
-		enqueueFile(first);
-	};
+		enqueueFile(file);
+	});
 
 	const currentPath = typeof value === "string" && value.length > 0 ? value : null;
 	// Loadable URL for the full image, and the (possibly prefixed) preview thumb.
@@ -91,7 +85,7 @@ export const ImageField = ({ field, value, onChange, disabled }: FieldComponentP
 				<Button
 					variant="secondary"
 					icon={<UploadIcon size={13} />}
-					onClick={() => inputRef.current?.click()}
+					onClick={filePicker.open}
 					disabled={busy}
 				>
 					{currentPath ? "Replace image" : "Upload image"}
@@ -153,15 +147,12 @@ export const ImageField = ({ field, value, onChange, disabled }: FieldComponentP
 				)}
 
 				<input
-					ref={inputRef}
+					ref={filePicker.inputRef}
 					type="file"
 					accept="image/*"
 					aria-label={field.title}
 					className="hidden"
-					onChange={(e) => {
-						handlePick(e.target.files);
-						e.target.value = "";
-					}}
+					onChange={filePicker.onChange}
 				/>
 			</div>
 

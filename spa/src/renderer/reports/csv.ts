@@ -2,6 +2,7 @@ import type { ModuleReport, ModuleReportRunResponse } from "@/api/endpoints/modu
 
 import { csvCell as encodeCsvCell } from "@/lib/csv";
 import { decodeHtmlEntitiesDom } from "@/lib/html";
+import { todayStamp } from "@/lib/time";
 import { parseReportFields, viewFieldColumns, type ReportColumn } from "./reportColumns";
 
 /**
@@ -89,7 +90,7 @@ const csvCell = (value: unknown): string => {
 };
 
 const csvFilename = (report: ModuleReport): string => {
-	const stamp = new Date().toISOString().slice(0, 10);
+	const stamp = todayStamp();
 	const slug = (report.title || "report")
 		.toLowerCase()
 		.replace(/[^a-z0-9]+/g, "-")

@@ -12,6 +12,7 @@ import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { systemApi } from "@/api/endpoints/system";
 import type { StatusLevel } from "@/api/endpoints/system";
 import { queryKeys } from "@/lib/queryKeys";
+import { pageEditPath } from "@/lib/routes";
 import { useToastMutation } from "@/hooks/useToastMutation";
 
 /**
@@ -105,7 +106,7 @@ export const DebugStatus = () => {
 													<>
 														Remove links to the admin on{" "}
 														<Link
-															to={`/pages/${w.page_id}/edit`}
+															to={pageEditPath(w.page_id)}
 															className="text-accent hover:underline"
 														>
 															{w.nav_title}

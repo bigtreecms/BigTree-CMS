@@ -9,6 +9,7 @@ import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { Bell, ChevronDown, ExternalLink, LogOut, Moon, Search, Sun, User } from "lucide-react";
 import { useAuthStore } from "@/auth/store";
 import { Avatar } from "@/components/ui/Avatar";
+import { IconTile } from "@/components/ui/IconTile";
 import { MobileNav } from "./MobileNav";
 
 /**
@@ -54,7 +55,7 @@ export const TopBar = ({ dark, onToggleDark, onOpenSearch }: TopBarProps) => {
 
 			{/* Brand */}
 			<div className="flex shrink-0 items-center gap-2.5">
-				<div className="grid size-[26px] place-items-center rounded-md bg-accent text-accent-fg">
+				<IconTile size="xs" tone="brand">
 					<svg
 						width="14"
 						height="14"
@@ -64,7 +65,7 @@ export const TopBar = ({ dark, onToggleDark, onOpenSearch }: TopBarProps) => {
 					>
 						<path d="M12 2 4 12h4v8h8v-8h4L12 2Z" />
 					</svg>
-				</div>
+				</IconTile>
 				<span className="text-[14px] font-semibold tracking-[-0.01em]">{siteName}</span>
 			</div>
 

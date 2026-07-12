@@ -1,25 +1,12 @@
-import { useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
-import { Plus, Trash } from "lucide-react";
-
-import { Breadcrumb } from "@/components/shell/Breadcrumb";
-import { PageHead } from "@/components/shell/PageHead";
-import { PageContainer } from "@/components/shell/PageContainer";
-import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
-import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
 import { NameIdCell } from "@/components/ui/NameIdCell";
-import { Button } from "@/components/ui/Button";
-import { IconButton } from "@/components/ui/IconButton";
+import type { DataTableColumn } from "@/components/ui/DataTable";
 
-import { DeveloperSectionNav } from "@/components/developer/DeveloperSectionNav";
+import { DeveloperListPage } from "@/components/developer/DeveloperListPage";
 
 import { modulesApi, type ModuleSummary } from "@/api/endpoints/modules";
 
-import { pluralize } from "@/lib/number";
 import { queryKeys } from "@/lib/queryKeys";
 import { moduleDetailPath } from "@/lib/routes";
-import { useConfirmDialog } from "@/hooks/useConfirmDialog";
-import { useToastMutation } from "@/hooks/useToastMutation";
 
 /**
  * /developer/modules — the module designer landing. Lists every installed
@@ -30,28 +17,6 @@ import { useToastMutation } from "@/hooks/useToastMutation";
  * developer-facing CRUD list.
  */
 export const ModuleDesigner = () => {
-	const navigate = useNavigate();
-	const deleteDialog = useConfirmDialog<ModuleSummary>();
-
-	const query = useQuery({
-		queryKey: queryKeys.modules.list(),
-		queryFn: () => modulesApi.list(),
-	});
-
-	const rows = [...(query.data ?? [])].sort((a, b) =>
-		a.name.localeCompare(b.name, undefined, { sensitivity: "base" })
-	);
-
-	const deleteMutation = useToastMutation({
-		mutationFn: (id: string) => modulesApi.delete(id),
-		invalidate: [["modules"]],
-		successMessage: "Module deleted",
-		errorMessage: "Delete failed",
-		onSuccess: () => {
-			deleteDialog.close();
-		},
-	});
-
 	const columns: DataTableColumn<ModuleSummary>[] = [
 		{
 			key: "name",
@@ -83,68 +48,33 @@ export const ModuleDesigner = () => {
 					<span className="text-text-3">—</span>
 				),
 		},
-		{
-			key: "actions",
-			header: "",
-			width: "56px",
-			align: "right",
-			cell: (row) => (
-				<IconButton
-					tone="danger"
-					onClick={(e) => {
-						e.stopPropagation();
-						deleteDialog.open(row);
-					}}
-					title="Delete module"
-					label="Delete module"
-				>
-					<Trash size={13} />
-				</IconButton>
-			),
-		},
 	];
 
 	return (
-		<PageContainer width="wide">
-			<Breadcrumb items={[{ label: "Developer", to: "/developer" }, { label: "Modules" }]} />
-
-			<PageHead
-				title="Modules"
-				sub={pluralize(rows.length, "module")}
-				actions={
-					<Button variant="primary" icon={<Plus size={13} />} to="/developer/modules/add">
-						New module
-					</Button>
-				}
-			/>
-
-			<DeveloperSectionNav />
-
-			<DataTable<ModuleSummary>
-				columns={columns}
-				rows={rows}
-				getRowKey={(row) => row.id}
-				isLoading={query.isLoading}
-				loadingLabel="Loading modules…"
-				emptyLabel="No modules defined yet."
-				onRowClick={(row) => navigate(moduleDetailPath(row.id))}
-			/>
-
-			{deleteDialog.item && (
-				<ConfirmDialog
-					open={deleteDialog.isOpen}
-					onOpenChange={(open) => {
-						if (!open) {
-							deleteDialog.close();
-						}
-					}}
-					title={`Delete "${deleteDialog.item.name}"?`}
-					description="This removes the module and all of its actions, forms, views, reports and embed forms. Content rows in the module's table are left intact."
-					confirmLabel="Delete module"
-					variant="danger"
-					onConfirm={() => deleteMutation.mutate(deleteDialog.item!.id)}
-				/>
-			)}
-		</PageContainer>
+		<DeveloperListPage<ModuleSummary>
+			title="Modules"
+			countNoun="module"
+			route="/developer/modules"
+			addLabel="New module"
+			loadingLabel="Loading modules…"
+			emptyLabel="No modules defined yet."
+			queryKey={queryKeys.modules.list()}
+			invalidateKey={["modules"]}
+			list={() => modulesApi.list()}
+			remove={(id) => modulesApi.delete(id)}
+			deriveRows={(data) =>
+				[...data].sort((a, b) =>
+					a.name.localeCompare(b.name, undefined, { sensitivity: "base" })
+				)
+			}
+			columns={columns}
+			getRowKey={(row) => row.id}
+			deleteButtonLabel="Delete module"
+			deleteSuccessMessage="Module deleted"
+			rowLabel={(row) => row.name}
+			confirmLabel="Delete module"
+			confirmDescription="This removes the module and all of its actions, forms, views, reports and embed forms. Content rows in the module's table are left intact."
+			rowPath={(row) => moduleDetailPath(row.id)}
+		/>
 	);
 };

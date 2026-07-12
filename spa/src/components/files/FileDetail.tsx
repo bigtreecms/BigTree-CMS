@@ -211,15 +211,14 @@ export const FileDetail = ({ resourceId, onOpenChange, folderQueryKey }: FileDet
 				width="lg"
 				footer={
 					<div className="flex justify-between gap-2">
-						<button
-							type="button"
-							className="inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-[12.5px] text-danger hover:bg-danger-bg disabled:opacity-50"
+						<Button
+							variant="dangerGhost"
 							onClick={() => deleteDialog.open(true)}
 							disabled={!resource || pending}
+							icon={<Trash size={13} />}
 						>
-							<Trash size={13} />
 							Delete
-						</button>
+						</Button>
 
 						<div className="flex gap-2">
 							<Button variant="secondary" onClick={() => onOpenChange(false)}>

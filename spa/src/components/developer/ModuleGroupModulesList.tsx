@@ -13,6 +13,7 @@ import { moduleDetailPath } from "@/lib/routes";
 import { useToastMutation } from "@/hooks/useToastMutation";
 import { useDragReorder } from "@/hooks/useDragReorder";
 import { Card } from "@/components/ui/Card";
+import { IconTile } from "@/components/ui/IconTile";
 import { Loading } from "@/components/ui/Loading";
 import { InlineEmpty } from "@/components/ui/InlineEmpty";
 
@@ -102,9 +103,9 @@ export const ModuleGroupModulesList = ({ groupId }: ModuleGroupModulesListProps)
 							onDragEnd={drag.onDragEnd}
 						>
 							<DragHandle />
-							<span className="grid size-[26px] shrink-0 place-items-center rounded-md bg-accent-soft text-accent">
+							<IconTile size="xs" tone="accent" className="shrink-0">
 								<Icon size={15} />
-							</span>
+							</IconTile>
 							<Link
 								to={moduleDetailPath(module.id)}
 								className="min-w-0 flex-1 truncate text-[12.5px] font-medium text-text hover:text-accent"

@@ -54,6 +54,7 @@ import { applyApiFieldErrors } from "@/lib/errorHandling";
 import { canPublishPage } from "@/lib/permissions";
 import { toast } from "@/lib/toast";
 import { queryKeys } from "@/lib/queryKeys";
+import { pageDraftEditPath } from "@/lib/routes";
 import { InlineEmpty } from "@/components/ui/InlineEmpty";
 
 /**
@@ -219,7 +220,7 @@ export const PageEdit = () => {
 			toast.success("Page duplicated", {
 				description: "The copy was created as an unpublished draft.",
 			});
-			navigate(`/pages/draft/${result.pending_change_id}/edit`);
+			navigate(pageDraftEditPath(result.pending_change_id));
 		},
 	});
 

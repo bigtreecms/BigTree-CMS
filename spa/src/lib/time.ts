@@ -91,6 +91,11 @@ export function formatTime(input: string | Date | null | undefined): string {
 	return d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
 }
 
+/** Today's date as `YYYY-MM-DD` — for CSV export filenames. */
+export function todayStamp(): string {
+	return new Date().toISOString().slice(0, 10);
+}
+
 /**
  * Split a datetime into separate date ("6/24/26") and time ("3:45 PM") strings
  * for tables that render them in distinct columns.

@@ -23,6 +23,7 @@ import { FieldSettingsEditor } from "./FieldSettingsEditor";
 import { queryKeys } from "@/lib/queryKeys";
 import { InlineEmpty } from "@/components/ui/InlineEmpty";
 import { IconButton } from "@/components/ui/IconButton";
+import type { LabeledOption } from "@/types/labeled-option";
 import { Field, FieldLabel } from "@/components/ui/Field";
 import { DragHandle } from "@/components/ui/DragHandle";
 
@@ -480,7 +481,7 @@ interface LabelledComboboxProps {
 	label: string;
 	value: string;
 	onChange: (next: string) => void;
-	options: Array<{ value: string; label: string }>;
+	options: LabeledOption[];
 	loading?: boolean;
 	hint?: string;
 	placeholder?: string;

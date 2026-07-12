@@ -11,6 +11,7 @@ import { DescriptionList } from "@/components/ui/DescriptionList";
 import { MonoText } from "@/components/ui/MonoText";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
+import { IconButton } from "@/components/ui/IconButton";
 import { SlideOver } from "@/components/ui/SlideOver";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
@@ -164,29 +165,29 @@ export const Extensions = () => {
 									? "Upgrading…"
 									: "Upgrade"}
 							</Button>
-							<button
-								type="button"
+							<Button
+								variant="secondary"
+								size="sm"
 								onClick={(e) => {
 									e.stopPropagation();
 									ignore(row.id);
 								}}
-								className="rounded-md border border-border bg-surface px-2 py-1 text-[11.5px] text-text-3 hover:bg-hover"
 							>
 								Ignore
-							</button>
+							</Button>
 						</>
 					)}
-					<button
-						type="button"
+					<IconButton
+						tone="danger"
 						onClick={(e) => {
 							e.stopPropagation();
 							deleteDialog.open(row);
 						}}
-						className="inline-flex items-center rounded-md border border-border bg-surface p-1.5 text-text-3 hover:border-danger/40 hover:text-danger"
-						aria-label="Uninstall extension"
+						label="Uninstall extension"
+						title="Uninstall extension"
 					>
 						<Trash2 size={13} />
-					</button>
+					</IconButton>
 				</div>
 			),
 		},

@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
 import { Save, ShieldOff } from "lucide-react";
 
 import { DebugLayout } from "@/components/developer/DebugLayout";
+import { Alert } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { SectionLabel } from "@/components/ui/SectionLabel";
@@ -14,6 +14,7 @@ import { FormShell } from "@/components/ui/FormShell";
 
 import { systemApi, type SecurityPolicy } from "@/api/endpoints/system";
 import { queryKeys } from "@/lib/queryKeys";
+import { useConfigDraft } from "@/hooks/useConfigDraft";
 import { useToastMutation } from "@/hooks/useToastMutation";
 
 /** Empty-but-shaped policy so the form binds before the GET resolves. */
@@ -43,28 +44,13 @@ const normalize = (raw: Partial<SecurityPolicy>): SecurityPolicy => {
 };
 
 export const DebugSecurity = () => {
-	const queryClient = useQueryClient();
-
-	const policyQ = useQuery({
+	const { detailQ, draft, setDraft, generalError, saveMutation } = useConfigDraft({
 		queryKey: queryKeys.system.securityPolicy(),
 		queryFn: () => systemApi.securityPolicy.get(),
-	});
-
-	const [draft, setDraft] = useState<SecurityPolicy | null>(null);
-
-	useEffect(() => {
-		if (policyQ.data) {
-			setDraft(normalize(policyQ.data));
-		}
-	}, [policyQ.data]);
-
-	const saveMutation = useToastMutation({
-		mutationFn: (next: SecurityPolicy) => systemApi.securityPolicy.update(next),
+		seed: normalize,
+		save: (next) => systemApi.securityPolicy.update(next),
 		successMessage: "Security policy updated",
 		errorMessage: "Could not save policy",
-		onSuccess: (fresh) => {
-			queryClient.setQueryData(queryKeys.system.securityPolicy(), fresh);
-		},
 	});
 
 	const onSubmit = (e: React.FormEvent) => {
@@ -99,8 +85,14 @@ export const DebugSecurity = () => {
 		<DebugLayout
 			title="Security policy"
 			sub="Brute-force protection, password requirements, and login IP restrictions."
-			query={policyQ}
+			query={detailQ}
 		>
+			{generalError && (
+				<Alert tone="danger" className="mb-3">
+					{generalError}
+				</Alert>
+			)}
+
 			{draft && (
 				<FormShell
 					bounded={false}
@@ -347,13 +339,15 @@ const UnbanPanel = () => {
 							/>
 						</Field>
 					</div>
-					<button
+					<Button
 						type="submit"
-						disabled={!ip.trim() || unbanIP.isPending}
-						className="mb-px rounded-md border border-border bg-surface px-3 py-2 text-[12.5px] font-medium text-text-2 hover:border-border-strong hover:bg-hover disabled:opacity-60"
+						variant="secondary"
+						className="mb-px"
+						disabled={!ip.trim()}
+						loading={unbanIP.isPending}
 					>
 						Unban
-					</button>
+					</Button>
 				</form>
 
 				<form
@@ -376,13 +370,15 @@ const UnbanPanel = () => {
 							/>
 						</Field>
 					</div>
-					<button
+					<Button
 						type="submit"
-						disabled={!userId.trim() || unbanUser.isPending}
-						className="mb-px rounded-md border border-border bg-surface px-3 py-2 text-[12.5px] font-medium text-text-2 hover:border-border-strong hover:bg-hover disabled:opacity-60"
+						variant="secondary"
+						className="mb-px"
+						disabled={!userId.trim()}
+						loading={unbanUser.isPending}
 					>
 						Unban
-					</button>
+					</Button>
 				</form>
 			</div>
 		</Card>

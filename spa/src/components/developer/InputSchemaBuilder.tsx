@@ -11,6 +11,7 @@ import { FieldSettingsEditor } from "@/components/developer/FieldSettingsEditor"
 import { SchemaFieldLabel } from "@/components/developer/SchemaFieldLabel";
 import { InlineEmpty } from "@/components/ui/InlineEmpty";
 import { useListEditor } from "@/hooks/useListEditor";
+import type { LabeledOption } from "@/types/labeled-option";
 
 interface InputSchemaBuilderProps {
 	value: InputDescriptor[];
@@ -18,7 +19,7 @@ interface InputSchemaBuilderProps {
 }
 
 /** Primitive field types offered as declarative sub-fields. */
-const PRIMITIVE_TYPES: Array<{ value: string; label: string }> = [
+const PRIMITIVE_TYPES: LabeledOption[] = [
 	{ value: "text", label: "Text" },
 	{ value: "textarea", label: "Textarea" },
 	{ value: "html", label: "HTML" },

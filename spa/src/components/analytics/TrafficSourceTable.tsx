@@ -1,4 +1,5 @@
 import { Card, CardHeader } from "@/components/ui/Card";
+import { InlineEmpty } from "@/components/ui/InlineEmpty";
 import { formatNumber } from "@/lib/number";
 
 interface TrafficSourceTableProps {
@@ -33,9 +34,9 @@ export const TrafficSourceTable = ({
 			</div>
 
 			{rows.length === 0 ? (
-				<div className="px-4 py-6 text-center text-[12.5px] text-text-3">
+				<InlineEmpty variant="plain" align="center" className="px-4">
 					We have no data yet.
-				</div>
+				</InlineEmpty>
 			) : (
 				<ul className="m-0 flex list-none flex-col p-0">
 					{rows.map(([name, counts]) => (

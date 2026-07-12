@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToastMutation } from "@/hooks/useToastMutation";
 import { CheckCircle2, Unplug } from "lucide-react";
 
@@ -12,8 +12,6 @@ import { Card } from "@/components/ui/Card";
 
 import { type AnalyticsStatus, configureApi } from "@/api/endpoints/configure";
 
-import { describeApiError } from "@/lib/errorHandling";
-import { toast } from "@/lib/toast";
 import { queryKeys } from "@/lib/queryKeys";
 import { useState } from "react";
 
@@ -41,23 +39,23 @@ export const ConfigureAnalytics = () => {
 		},
 	});
 
-	const uploadMutation = useMutation({
+	const uploadMutation = useToastMutation({
 		mutationFn: (file: File) => configureApi.analytics.uploadCredentials(file),
+		successMessage: "Service-account key uploaded",
+		errorMessage: "Could not read that key file",
 		onSuccess: (fresh) => {
 			onStatus(fresh);
 			setPropertyId(fresh.property_id || "");
-			toast.success("Service-account key uploaded");
 		},
-		onError: (err) => toast.error(describeApiError(err, "Could not read that key file")),
 	});
 
-	const verifyMutation = useMutation({
+	const verifyMutation = useToastMutation({
 		mutationFn: () => configureApi.analytics.setProperty(propertyId.trim()),
+		successMessage: "Property ID verified",
+		errorMessage: "Could not verify that property ID",
 		onSuccess: (fresh) => {
 			onStatus(fresh);
-			toast.success("Property ID verified");
 		},
-		onError: (err) => toast.error(describeApiError(err, "Could not verify that property ID")),
 	});
 
 	// Credentials are uploaded once the service-account email comes back, even
@@ -90,14 +88,14 @@ export const ConfigureAnalytics = () => {
 								</dd>
 							</dl>
 
-							<button
-								type="button"
+							<Button
+								variant="dangerGhost"
+								className="mt-4"
 								onClick={() => setConfirmDisconnect(true)}
-								className="mt-4 inline-flex items-center gap-1.5 rounded-md border border-danger/40 px-3 py-1.5 text-[12.5px] font-medium text-danger hover:bg-danger/10"
+								icon={<Unplug size={13} />}
 							>
-								<Unplug size={13} />
 								Disconnect
-							</button>
+							</Button>
 						</>
 					) : (
 						<>
@@ -169,14 +167,14 @@ export const ConfigureAnalytics = () => {
 							</ol>
 
 							{hasCredentials && (
-								<button
-									type="button"
+								<Button
+									variant="dangerGhost"
+									className="mt-5"
 									onClick={() => setConfirmDisconnect(true)}
-									className="mt-5 inline-flex items-center gap-1.5 rounded-md border border-danger/40 px-3 py-1.5 text-[12.5px] font-medium text-danger hover:bg-danger/10"
+									icon={<Unplug size={13} />}
 								>
-									<Unplug size={13} />
 									Start over
-								</button>
+								</Button>
 							)}
 						</>
 					)}
