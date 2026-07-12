@@ -460,8 +460,12 @@
 			return Response::ok($payload);
 		}
 
-		/** Clear the legacy PHP session + bigtree_admin cookies (logout helper). */
-		private function destroyPhpSession() {
+		/**
+		 * Clear the legacy PHP session + bigtree_admin cookies.
+		 * Used by JWT logout and by the front-end bar logout endpoint
+		 * (core/admin/ajax/bar-logout.php) — the bar has no refresh token.
+		 */
+		public static function clearLegacyPhpSession(): void {
 			try {
 				$cookie_domain = str_replace(DOMAIN, "", WWW_ROOT);
 
@@ -493,6 +497,11 @@
 			} catch (\Throwable $e) {
 				// Session teardown is best-effort — token revocation already happened.
 			}
+		}
+
+		/** @see clearLegacyPhpSession */
+		private function destroyPhpSession() {
+			self::clearLegacyPhpSession();
 		}
 
 		public function logoutAll(Request $request) {

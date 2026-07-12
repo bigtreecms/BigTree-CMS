@@ -1,11 +1,12 @@
 import { ApiError, type ApiErrorPayload, type ApiMeta, type ApiSuccess } from "@/types/api";
 import { authStore, type AuthUser } from "@/auth/store";
+import { apiBase } from "@/lib/adminBoot";
 
 /**
  * Centralized fetch wrapper for the BigTree REST API.
  *
  * Responsibilities:
- *   - Prepend the base path ("/users" → "/admin/api/v1/users")
+ *   - Prepend the API base from {@link apiBase} ("/users" → "{apiBase}/users")
  *   - Inject Authorization: Bearer <access_token> from the auth store
  *   - JSON-encode body, set Content-Type
  *   - Parse the response envelope; throw a typed ApiError on non-2xx
@@ -17,8 +18,6 @@ import { authStore, type AuthUser } from "@/auth/store";
  * Refresh tokens live in localStorage (via authStore) and travel in the
  * request body — there is no cookie involvement here.
  */
-
-const BASE = "/admin/api/v1";
 
 interface RefreshResponse {
 	access_token: string;
@@ -69,7 +68,7 @@ async function refreshAccessToken(): Promise<boolean> {
 	if (!refresh) return false;
 
 	try {
-		const response = await fetch(`${BASE}/auth/refresh`, {
+		const response = await fetch(`${apiBase()}/auth/refresh`, {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify({ refresh_token: refresh }),
@@ -99,7 +98,7 @@ function refreshOnce(): Promise<boolean> {
 }
 
 async function request<T>(path: string, opts: ApiCallOptions = {}): Promise<T> {
-	const url = `${BASE}${path}${buildQuery(opts.query)}`;
+	const url = `${apiBase()}${path}${buildQuery(opts.query)}`;
 	const headers: Record<string, string> = {
 		Accept: "application/json",
 		...(opts.headers ?? {}),

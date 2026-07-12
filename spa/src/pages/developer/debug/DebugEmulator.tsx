@@ -14,6 +14,7 @@ import { Toolbar } from "@/components/ui/Toolbar";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { usersApi, type UserListItem, levelToLabel } from "@/api/endpoints/users";
+import { adminPath } from "@/lib/adminBoot";
 import { derivePagination } from "@/lib/pagination";
 import { queryKeys } from "@/lib/queryKeys";
 import { useConfirmDialog } from "@/hooks/useConfirmDialog";
@@ -57,8 +58,7 @@ export const DebugEmulator = () => {
 		errorMessage: "Could not emulate user",
 		onSuccess: () => {
 			// Full reload under the emulated session — resets all query caches.
-			const base = import.meta.env.PROD ? "/admin/spa/dashboard" : "/dashboard";
-			window.location.assign(base);
+			window.location.assign(adminPath("/dashboard"));
 		},
 	});
 

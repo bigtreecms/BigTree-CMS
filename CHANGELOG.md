@@ -1,5 +1,30 @@
 # Changelog
 
+### 5.0
+
+- **BREAKING:** The classic PHP admin UI is removed. The React SPA in `spa/` is
+  the only admin interface, served from `core/admin/dist/` at `{admin_root}`
+  (default `/admin`) by `core/admin/router.php`.
+- **BREAKING:** Custom PHP module actions (`render: "server"`) no longer run in
+  the admin. Rebuild them as JavaScript module actions or auto forms/views/reports.
+- **BREAKING:** Front-end overlay “Edit Content” (`pages/front-end-edit`) is
+  removed. The bar still supports “Edit in BigTree” → SPA page editor and
+  session logout via `{admin}/ajax/bar-logout`.
+- **BREAKING:** Classic bookmark shapes such as `{admin}/pages/edit/{id}/` redirect
+  to SPA paths (`{admin}/pages/{id}/edit`). Unmapped classic URLs fall through to
+  the SPA shell.
+- **BREAKING:** CSP `frame-ancestors` is no longer applied to all admin HTML as
+  in the classic router. Public embed forms (`{admin}/embed/{hash}`) remain
+  iframe-friendly.
+- NEW: Production SPA packaging (`npm run build:package` → committed
+  `core/admin/dist/`, no source maps). CI fails if dist is stale.
+- NEW: Install-aware SPA boot config (`window.__BIGTREE_ADMIN__`) and Vite base
+  placeholder rewrite for subdirectory `admin_root` installs.
+- Multi-site alternate-domain login hand-off after SPA session bridge remains a
+  follow-up; use SPA login per domain for 5.0.
+- Operators with `custom/admin/router.php` must implement the SPA + API + bar
+  contract (docs only; no runtime detection).
+
 ### 4.6
 
 - NEW: Passkeys support

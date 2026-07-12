@@ -1,0 +1,1 @@
+const x=(e,p)=>({update:(t,c)=>p(e.map((s,d)=>d===t?Object.assign({},s,c):s)),replace:(t,c)=>p(e.map((s,d)=>d===t?c:s)),remove:t=>p(e.filter((c,s)=>s!==t)),add:t=>p([...e,t]),move:(t,c)=>{if(t===c||t<0||t>=e.length||c<0||c>=e.length)return;const s=[...e],[d]=s.splice(t,1);s.splice(c,0,d),p(s)}});export{x as u};

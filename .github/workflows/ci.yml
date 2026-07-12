@@ -28,6 +28,24 @@ jobs:
       - run: npm run lint
       - run: npm test
       - run: npm run build
+      # Ship path: spa/dist (scratch) → core/admin/dist (committed). --check fails
+      # when packaging was forgotten after SPA source changes.
+      - name: Package SPA and assert core/admin/dist is up to date
+        working-directory: .
+        run: |
+          bash scripts/package-admin-spa.sh --check
+          if find core/admin/dist -name '*.map' -type f | grep -q .; then
+            echo "error: source maps must not exist under core/admin/dist" >&2
+            exit 1
+          fi
+      - name: Upload packaged admin SPA (debug artifact)
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: admin-spa-dist
+          path: core/admin/dist
+          if-no-files-found: error
+          retention-days: 7
       # Storybook: the static build catches a broken story config, and
       # test-storybook smoke-renders every story in a real headless Chromium via
       # the Vitest browser project — so install just that browser (+ its OS deps)
@@ -257,6 +275,28 @@ jobs:
           BIGTREE_TEST_EMAIL: smoke@ci.local
           BIGTREE_TEST_PASSWORD: SmokeTest-CI-2026!
         run: bash core/inc/bigtree/api/_smoke/auth.sh
+      # SPA cutover: admin HTML is served from core/admin/dist (committed).
+      - name: Smoke SPA index + asset rewrite + classic redirect
+        run: |
+          set -euo pipefail
+          BODY=$(curl -sS -D /tmp/admin-headers.txt http://127.0.0.1:8080/admin/)
+          echo "$BODY" | grep -q '__BIGTREE_ADMIN__' \
+            || { echo "missing boot config injection"; exit 1; }
+          echo "$BODY" | grep -q '__BIGTREE_ADMIN_BASE__' \
+            && { echo "unreplaced Vite base placeholder in HTML"; exit 1; }
+          echo "$BODY" | grep -qE 'src="/admin/assets/[^"]+\.js"' \
+            || { echo "expected rewritten /admin/assets/*.js script tag"; exit 1; }
+          ASSET=$(echo "$BODY" | sed -n 's/.*src="\(\/admin\/assets\/[^"]*\.js\)".*/\1/p' | head -1)
+          test -n "$ASSET"
+          CODE=$(curl -sS -o /dev/null -w '%{http_code}' "http://127.0.0.1:8080${ASSET}")
+          test "$CODE" = "200" || { echo "asset $ASSET returned $CODE"; exit 1; }
+          REDIR=$(curl -sS -o /dev/null -w '%{http_code} %{redirect_url}' \
+            http://127.0.0.1:8080/admin/pages/edit/1/)
+          echo "$REDIR" | grep -qE '^302 ' \
+            || { echo "expected 302 for classic pages/edit; got $REDIR"; exit 1; }
+          echo "$REDIR" | grep -q '/admin/pages/1/edit' \
+            || { echo "expected Location …/pages/1/edit; got $REDIR"; exit 1; }
+          echo "SPA smoke OK"
       - name: Dump PHP server log on failure
         if: failure()
         run: cat /tmp/php-smoke.log || true

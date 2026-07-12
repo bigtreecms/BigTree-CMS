@@ -26,7 +26,7 @@ export interface SystemVersion {
 export interface SiteInfo {
 	nav_title: string;
 	www_root: string;
-	/** The classic admin's root URL, for legacy-only surfaces. */
+	/** Admin UI root URL (SPA is served at this path). */
 	admin_root: string;
 }
 

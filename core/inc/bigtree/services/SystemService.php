@@ -141,8 +141,7 @@
 			return Response::ok([
 				"nav_title" => Sanitize::decodeEntities(($root["nav_title"] ?? "BigTree")),
 				"www_root" => $bigtree["config"]["www_root"] ?? "",
-				// The classic admin's root — the SPA links here for legacy-only
-				// surfaces (custom-PHP module actions, front-end preview, etc.).
+				// Admin UI root (SPA at admin_root after the cutover).
 				"admin_root" => $bigtree["config"]["admin_root"] ?? "",
 			]);
 		}

@@ -10,3 +10,6 @@
 .claude
 /cron-run.php
 /spa/*.tsbuildinfo
+
+# spa/dist is ignored via spa/.gitignore (build scratch).
+# core/admin/dist is intentionally tracked — packaged SPA for shipping/CI.

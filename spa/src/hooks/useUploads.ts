@@ -1,8 +1,7 @@
 import { useCallback, useRef, useState } from "react";
 
 import { authStore } from "@/auth/store";
-
-const BASE = "/admin/api/v1";
+import { apiBase } from "@/lib/adminBoot";
 
 export type UploadStatus = "pending" | "uploading" | "done" | "error" | "canceled";
 
@@ -17,7 +16,7 @@ export interface UploadItem {
 }
 
 export interface UploadOptions {
-	/** API path relative to /admin/api/v1, e.g. "/resources". */
+	/** API path relative to {@link apiBase}, e.g. "/resources". */
 	path: string;
 	/** Form field name carrying the file. Defaults to "file". */
 	fieldName?: string;
@@ -118,7 +117,7 @@ const startUpload = (
 
 	const xhr = new XMLHttpRequest();
 	xhrs.set(item.id, xhr);
-	xhr.open("POST", `${BASE}${opts.path}`);
+	xhr.open("POST", `${apiBase()}${opts.path}`);
 
 	const token = authStore.getState().accessToken;
 

@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/__BIGTREE_ADMIN_BASE__/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Geist font family — matches design tokens -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+
+    <title>BigTree Admin</title>
+
+    <!-- SDK import map: lets custom action modules (and the live preview) resolve
+         bare `react` / `@bigtree/ui` / `@bigtree/fields` imports to the SPA's own
+         singletons. Inert for app code (Vite resolves those at build time); only
+         the blob-imported author modules consume it. See src/sdk/registerSdk.ts. -->
+
+    <script type="importmap">
+      {
+        "imports": {
+          "react": "/sdk/react.js",
+          "react/jsx-runtime": "/sdk/react-jsx-runtime.js",
+          "@bigtree/ui": "/sdk/ui.js",
+          "@bigtree/fields": "/sdk/fields.js"
+        }
+      }
+    </script>
+    <script type="module" crossorigin src="/__BIGTREE_ADMIN_BASE__/assets/index-DXsDQGvs.js"></script>
+    <link rel="modulepreload" crossorigin href="/__BIGTREE_ADMIN_BASE__/assets/query-vendor-zH_Vgfhh.js">
+    <link rel="modulepreload" crossorigin href="/__BIGTREE_ADMIN_BASE__/assets/react-vendor-Cb6IRs4R.js">
+    <link rel="modulepreload" crossorigin href="/__BIGTREE_ADMIN_BASE__/assets/ui-vendor-bj78zAqK.js">
+    <link rel="stylesheet" crossorigin href="/__BIGTREE_ADMIN_BASE__/assets/index-ByJH6QMf.css">
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>

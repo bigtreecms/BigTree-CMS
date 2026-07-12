@@ -18,8 +18,8 @@ export interface SubNavItem {
 	 *  behavior). */
 	end?: boolean;
 	/**
-	 * `to` is a full URL outside the SPA (e.g. a legacy custom-PHP action in
-	 * the classic admin) — rendered as a plain anchor with an external glyph.
+	 * `to` is a full URL outside the SPA — rendered as a plain anchor with an
+	 * external glyph (rarely used after the classic admin cutover).
 	 */
 	external?: boolean;
 }
@@ -43,7 +43,7 @@ const ItemLink = ({ item }: { item: SubNavItem }) => {
 
 	if (item.external) {
 		return (
-			<a href={item.to} className={itemClass(false)} title="Opens in the classic admin">
+			<a href={item.to} className={itemClass(false)} title="Opens in a new context">
 				<SubNavItemContent
 					icon={Icon && <Icon size={14} />}
 					label={item.label}
@@ -88,7 +88,7 @@ const MoreMenu = ({ items }: { items: SubNavItem[] }) => {
 								key={item.to}
 								href={item.to}
 								role="menuitem"
-								title="Opens in the classic admin"
+								title="Opens in a new context"
 								className="flex items-center gap-2 rounded px-2.5 py-1.5 text-[13px] text-text-2 transition-colors hover:bg-hover hover:text-text"
 							>
 								<SubNavItemContent

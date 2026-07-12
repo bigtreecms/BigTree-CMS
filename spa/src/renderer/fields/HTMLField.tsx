@@ -97,8 +97,8 @@ export const HTMLField = ({ field, value, onChange, disabled }: FieldComponentPr
 
 	const text = toStringValue(value);
 
-	// `import.meta.env.BASE_URL` is "/" in dev (assets served via the public
-	// dir) and "/admin/spa/" in production builds. Either way the static-copy
+	// Vite `BASE_URL` is "/" in dev and "/__BIGTREE_ADMIN_BASE__/" in production
+	// (PHP rewrites the placeholder to the install admin path). The static-copy
 	// plugin puts the editor at `${base}tinymce/tinymce.min.js`.
 	const scriptSrc = `${import.meta.env.BASE_URL}tinymce/tinymce.min.js`.replace(/\/{2,}/g, "/");
 

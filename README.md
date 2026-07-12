@@ -23,18 +23,18 @@ BigTree 5 adds three modernised layers on top of a frozen legacy core.
 Requires **PHP 8.2+** (CI runs against 8.2).
 
 ```
-core/                          ← legacy core (frozen, bug-fix only)
-  admin/                       ← legacy PHP admin UI
+core/                          ← core (god-classes + services; UI routing is SPA)
+  admin/                       ← SPA dist, bar, field-types, upgrades, router
   inc/bigtree/
     api/                       ← REST API (JWT, /admin/api/v1)
-    services/                  ← service layer (27 classes)
-spa/                           ← admin SPA (React 18 + TypeScript + Tailwind)
+    services/                  ← service layer
+spa/                           ← admin SPA source (React 18 + TypeScript + Tailwind)
 ```
 
-**Legacy core (frozen)**
-`core/` contains the original god-classes (`BigTreeAdmin`, `BigTreeCMS`) and
-the global `SQL` helper. The legacy PHP admin lives under `core/admin/`.
-These files receive bug-fixes but are not the target for new features.
+**Core**
+`core/` contains the original god-classes (`BigTreeAdmin`, `BigTreeCMS`), the
+global `SQL` helper, the REST API, and the service layer. The classic PHP admin
+UI was removed in 5.0; historical UI is on the `master` branch if needed.
 
 **REST API**
 `core/inc/bigtree/api/` implements a JWT-authenticated REST API served at
@@ -54,9 +54,19 @@ needed.
 
 **Admin SPA**
 `spa/` is a React 18 + TypeScript + Tailwind application that replaces the
-legacy PHP admin UI, consuming the REST API above. See `spa/README.md` for
-prerequisites, quick-start instructions, the `/admin/api/v1` dev proxy, and
-production-build steps.
+legacy PHP admin UI, consuming the REST API above. Production serves the built
+app from **`core/admin/dist/`** via `core/admin/router.php` at `{admin_root}`
+(default `/admin`). Classic PHP admin UI routing has been removed.
+
+See `spa/README.md` for dev setup (`npm run dev`, API proxy) and packaging:
+
+```bash
+cd spa && npm ci && npm run build:package
+```
+
+CI fails if `core/admin/dist` is stale relative to a fresh `spa` build. See
+`scripts/package-admin-spa.sh`, `core/admin/README.md`, and
+`docs/design/spa-admin-cutover.md`.
 
 **Running the REST API locally**
 The API is served automatically by the normal BigTree front controller — no

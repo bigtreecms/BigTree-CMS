@@ -7,6 +7,8 @@
 	"scripts": {
 		"dev": "vite",
 		"build": "tsc -b && vite build",
+		"package": "bash ../scripts/package-admin-spa.sh",
+		"build:package": "npm run build && npm run package",
 		"preview": "vite preview",
 		"typecheck": "tsc -b --noEmit",
 		"lint": "eslint . --max-warnings 0",

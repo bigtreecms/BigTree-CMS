@@ -2,6 +2,8 @@ import { Suspense, lazy } from "react";
 import type { ComponentType } from "react";
 import { Navigate, Outlet, createBrowserRouter } from "react-router-dom";
 
+import { routerBasename } from "@/lib/adminBoot";
+
 import { RouteFallback } from "./RouteFallback";
 
 /**
@@ -153,8 +155,8 @@ import { LEVEL } from "@/lib/permissions";
  *   Each top-level section is its own subtree with nested children for
  *   drill-downs (e.g. /pages, /pages/:parentId, /pages/:id/edit).
  *
- *   The basename is /admin/spa in production so we live under the existing
- *   PHP admin URL space. In dev (Vite at :5173) the basename is "/".
+ *   Basename comes from {@link routerBasename} / `window.__BIGTREE_ADMIN__`
+ *   (production default `/admin` when injection is missing; dev is `/`).
  */
 export const router = createBrowserRouter(
 	[
@@ -455,6 +457,6 @@ export const router = createBrowserRouter(
 		{ path: "*", element: <Navigate to="/" replace /> },
 	],
 	{
-		basename: import.meta.env.PROD ? "/admin/spa" : "/",
+		basename: routerBasename(),
 	}
 );

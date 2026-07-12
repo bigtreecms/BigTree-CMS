@@ -90,6 +90,10 @@ var BigTreeBar = {
 
 		bigtree_bar_html = '<a href="<?=ADMIN_ROOT?>" id="bigtree_bar_logo"></a>';
 		<?php
+			// SPA page editor (classic overlay front-end-edit is removed).
+			$spa_edit = rtrim(ADMIN_ROOT, "/") . "/pages/" . rawurlencode(strip_tags((string)($_GET["current_page_id"] ?? ""))) . "/edit";
+			$bar_logout = rtrim(ADMIN_ROOT, "/") . "/ajax/bar-logout";
+
 			if ($permission) {
 				if (!empty($_GET["custom_edit_link"])) {
 		?>
@@ -97,12 +101,12 @@ var BigTreeBar = {
 		<?php
 				} else {
 		?>
-		bigtree_bar_html += '<a class="bigtree_link" id="bigtree_edit_content" href="#">Edit Content</a><a class="bigtree_link" href="<?=ADMIN_ROOT?>pages/edit/<?=htmlspecialchars(strip_tags($_GET["current_page_id"]))?>/?return=front">Edit in BigTree</a>';
+		bigtree_bar_html += '<a class="bigtree_link" href="<?=htmlspecialchars($spa_edit, ENT_QUOTES, "UTF-8")?>">Edit in BigTree</a>';
 		<?php
 				}
 			}
 		?>
-		bigtree_bar_html += '<a href="#" id="bigtree_bar_close"></a><a href="<?=ADMIN_ROOT?>login/logout/?true<?php $admin->drawCSRFTokenGET() ?>" id="bigtree_logout">Logout</a><div class="divider"></div><span id="bigtree_name"><?=str_replace("'","\'",htmlspecialchars(strip_tags($_GET["username"])))?></span>';
+		bigtree_bar_html += '<a href="#" id="bigtree_bar_close"></a><a href="<?=htmlspecialchars($bar_logout, ENT_QUOTES, "UTF-8")?>" id="bigtree_logout">Logout</a><div class="divider"></div><span id="bigtree_name"><?=str_replace("'","\'",htmlspecialchars(strip_tags($_GET["username"] ?? "")))?></span>';
 		<?php if (!empty($_GET["previewing"])) { ?>
 		bigtree_bar_html += '<span id="bigtree_preview_notice">THIS IS A PREVIEW OF PENDING CHANGES</span>';
 		<?php } elseif (!empty($bigtree["config"]["maintenance_url"])) { ?>
@@ -135,28 +139,6 @@ var BigTreeBar = {
 			return false;
 		};
 
-		if (document.getElementById("bigtree_edit_content")) {
-			document.getElementById("bigtree_edit_content").onclick = function() {
-				if (!document.getElementById("bigtree_bar_overlay")) {
-					leftd = parseInt((BigTreeBar.windowWidth() - 820) / 2);
-					topd = parseInt((BigTreeBar.windowHeight() - 615) / 2);
-
-					bigtree_bar_overlay = document.createElement("div");
-					bigtree_bar_overlay.setAttribute("id","bigtree_bar_overlay");
-					BigTreeBar.body.appendChild(bigtree_bar_overlay);
-
-					bigtree_bar_frame = document.createElement("iframe");
-					bigtree_bar_frame.setAttribute("id","bigtree_bar_frame");
-					bigtree_bar_frame.setAttribute("src","<?=ADMIN_ROOT?>pages/front-end-edit/<?=htmlspecialchars(strip_tags($_GET["current_page_id"] ?? ""))?>/");
-					bigtree_bar_frame.style.left = leftd + "px";
-					bigtree_bar_frame.style.top = topd + "px";
-					BigTreeBar.body.appendChild(bigtree_bar_frame);
-				}
-
-				return false;
-			};
-		}
-
 		BigTreeBar.dispatch("openbigtreebar");
 
 		return false;
@@ -173,7 +155,7 @@ var BigTreeBar = {
 		bigtree_bar = document.createElement("div");
 		bigtree_bar.setAttribute("id","bigtree_bar");
 
-		bigtree_bar_html = '<a href="<?=ADMIN_ROOT?>" id="bigtree_bar_logo"></a><a class="bigtree_link" id="bigtree_edit_content" href="' + return_link + '">Continue Editing</a><a href="' + return_link + '" id="bigtree_bar_close"></a><a href="<?=ADMIN_ROOT?>login/logout/" id="bigtree_logout">Logout</a><span id="bigtree_name"><?=htmlspecialchars(strip_tags(str_replace("'","\'",$_GET["username"])))?></span><span id="bigtree_preview_notice">PAGE PREVIEW</span>';
+		bigtree_bar_html = '<a href="<?=ADMIN_ROOT?>" id="bigtree_bar_logo"></a><a class="bigtree_link" href="' + return_link + '">Continue Editing</a><a href="' + return_link + '" id="bigtree_bar_close"></a><a href="<?=htmlspecialchars(rtrim(ADMIN_ROOT, "/") . "/ajax/bar-logout", ENT_QUOTES, "UTF-8")?>" id="bigtree_logout">Logout</a><span id="bigtree_name"><?=htmlspecialchars(strip_tags(str_replace("'","\'",$_GET["username"] ?? "")))?></span><span id="bigtree_preview_notice">PAGE PREVIEW</span>';
 		bigtree_bar.innerHTML = bigtree_bar_html;
 
 		BigTreeBar.body.appendChild(bigtree_bar);

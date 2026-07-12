@@ -30,9 +30,11 @@ import { URL } from "node:url";
  *     VITE_API_TARGET=http://bigtree.com/4.5/admin/api/v1/
  *       (trailing slash is tolerated and stripped)
  *
- * Prod: `npm run build` outputs to spa/dist/ — Apache serves it at /admin/spa/.
- * Since the SPA shares an origin with the PHP server, no proxy is involved at
- * runtime; the fetch wrapper's relative `/admin/api/v1/...` URLs just work.
+ * Prod: `npm run build` outputs to spa/dist/ (scratch). Package into
+ * core/admin/dist/ via scripts/package-admin-spa.sh for shipping. Interim
+ * installs may still Alias spa/dist at /admin/spa/; the PHP cutover serves
+ * core/admin/dist from the admin router. No proxy in production — API paths
+ * are same-origin via apiBase().
  */
 const SPA_API_PREFIX = "/admin/api/v1";
 
@@ -66,7 +68,9 @@ export default defineConfig(({ mode }) => {
 	}
 
 	return {
-		base: mode === "production" ? "/admin/spa/" : "/",
+		// Placeholder rewritten by core/admin/router.php to the install's admin path
+		// (e.g. /admin or /remaster/admin). Do not use bare "./" — deep-link reloads break.
+		base: mode === "production" ? "/__BIGTREE_ADMIN_BASE__/" : "/",
 		plugins: [
 			react(),
 			tailwindcss(),
@@ -166,7 +170,8 @@ export default defineConfig(({ mode }) => {
 		build: {
 			outDir: "dist",
 			emptyOutDir: true,
-			sourcemap: true,
+			// Never ship maps in core/admin/dist (packaging also strips *.map).
+			sourcemap: false,
 			rollupOptions: {
 				output: {
 					manualChunks: {

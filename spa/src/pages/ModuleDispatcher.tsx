@@ -1,16 +1,13 @@
 import { useParams } from "react-router-dom";
-import { ExternalLink } from "lucide-react";
 
-import { isRunnableAction, legacyActionUrl, resolveActionByRoute } from "@/lib/moduleActions";
+import { isRunnableAction, resolveActionByRoute } from "@/lib/moduleActions";
 import { useModuleContext } from "@/pages/ModuleLayout";
-import { useSiteInfo } from "@/hooks/useSiteInfo";
 import { ModuleAction } from "@/pages/ModuleAction";
 import { ModuleEntryAdd } from "@/pages/ModuleEntryAdd";
 import { ModuleEntryEdit } from "@/pages/ModuleEntryEdit";
 import { ModuleReport } from "@/pages/ModuleReport";
 import { ModuleView } from "@/pages/ModuleView";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 
 const card = (message: string) => <EmptyState>{message}</EmptyState>;
@@ -29,7 +26,6 @@ const card = (message: string) => <EmptyState>{message}</EmptyState>;
 export const ModuleDispatcher = () => {
 	const { "*": splat } = useParams();
 	const { module, actions, isLoading } = useModuleContext();
-	const site = useSiteInfo();
 
 	if (isLoading) {
 		return card("Loading module…");
@@ -80,29 +76,27 @@ export const ModuleDispatcher = () => {
 		return <ModuleEntryAdd formId={action.form} />;
 	}
 
-	// Runnable check (custom/view/report/form) failed → legacy custom-PHP
-	// action. Send the user to the classic admin to finish the task there
-	// (until the action is ported to the action-module system).
-	const legacyUrl =
-		module && site?.admin_root
-			? legacyActionUrl(site.admin_root, module, action, ...commands)
-			: null;
-
+	// Runnable check failed → legacy custom-PHP action. Classic admin UI is
+	// gone; show a porting message instead of linking out.
 	return (
 		<Card className="p-9 text-center">
-			<p className="mb-1 text-[13px] font-medium">This action runs in the classic admin.</p>
-			<p className="mb-4 text-[12.5px] text-text-3">
-				It's a custom PHP page that hasn't been ported to the new admin yet.
+			<p className="mb-1 text-[13px] font-medium">
+				This action is not available in the new admin.
 			</p>
-			{legacyUrl ? (
-				<Button href={legacyUrl} variant="primary" icon={<ExternalLink size={13} />}>
-					Open in the classic admin
-				</Button>
-			) : (
-				<p className="text-[12.5px] text-text-3">
-					Open the classic admin and navigate to this module to use it.
-				</p>
-			)}
+			<p className="text-[12.5px] text-text-3">
+				{module ? (
+					<>
+						“{action.name}” on <strong>{module.name}</strong> is a custom PHP page.
+						Rebuild it as a JavaScript module action, or as a form / view / report, to
+						use it here.
+					</>
+				) : (
+					<>
+						It's a custom PHP page. Rebuild it as a JavaScript module action, or as a
+						form / view / report, to use it here.
+					</>
+				)}
+			</p>
 		</Card>
 	);
 };

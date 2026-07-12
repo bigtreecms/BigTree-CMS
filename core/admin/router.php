@@ -1,12 +1,16 @@
 <?php
 	/**
+	 * Admin front controller: REST API, front-end bar, packaged SPA.
+	 *
+	 * Classic PHP admin UI routing was removed — the SPA in core/admin/dist is
+	 * the admin interface. Reference branch `master` for historical UI code.
+	 *
 	 * @global array $bigtree
-	 * @global BigTreeCMS $cms
 	 * @global string $server_root
 	 */
 
 	// Set a definition to check for being in the admin
-	define("BIGTREE_ADMIN_ROUTED",true);
+	define("BIGTREE_ADMIN_ROUTED", true);
 
 	// Set static root for those without it
 	if (!isset($bigtree["config"]["static_root"])) {
@@ -14,567 +18,153 @@
 	}
 
 	// Make sure no notice gets thrown for $bigtree["path"] being too small.
-	$bigtree["path"] = array_pad($bigtree["path"],4,"");
+	$bigtree["path"] = array_pad($bigtree["path"], 4, "");
 
-	// REST API at /admin/api/v1/... — handed off to the stateless Kernel.
-	// No PHP session, no BigTreeAdmin constructor side-effects, no CSRF baggage.
+	// -------------------------------------------------------------------------
+	// 1) REST API at /admin/api/v1/... — stateless Kernel (no PHP session).
+	// -------------------------------------------------------------------------
 	if ($bigtree["path"][1] === "api" && $bigtree["path"][2] === "v1") {
 		if (file_exists("../custom/bootstrap.php")) {
 			include "../custom/bootstrap.php";
 		} else {
 			include "../core/bootstrap.php";
 		}
-	
+
 		require BigTree::path("inc/bigtree/api/Kernel.php");
 		BigTree\Api\Kernel::handle($bigtree["path"]);
 		die();
 	}
 
-	// If we're routing through * it means we're accessing an extension's assets
+	// -------------------------------------------------------------------------
+	// 2) Extension asset prefix: /admin/*/{extension_id}/...
+	// -------------------------------------------------------------------------
 	if ($bigtree["path"][1] == "*") {
-		define("EXTENSION_ROOT",$server_root."extensions/".$bigtree["path"][2]."/");
+		define("EXTENSION_ROOT", $server_root."extensions/".$bigtree["path"][2]."/");
 		$bigtree["extension_context"] = $bigtree["path"][2];
-		$bigtree["path"] = array_merge(array($bigtree["path"][0]),array_slice($bigtree["path"],3));
+		$bigtree["path"] = array_merge([$bigtree["path"][0]], array_slice($bigtree["path"], 3));
 	}
 
-	// Images.
-	if ($bigtree["path"][1] == "images") {
-		// Get additional image folder path
-		$image_path = implode("/",array_slice($bigtree["path"],2));
+	require_once __DIR__ . "/_spa-serve.php";
 
-		if (defined("EXTENSION_ROOT")) {
-			$image_file = EXTENSION_ROOT."images/$image_path";
-		} else {
-			$image_file = file_exists("../custom/admin/images/$image_path") ? "../custom/admin/images/$image_path" : "../core/admin/images/$image_path";
-		}
-
-		if (function_exists("apache_request_headers")) {
-			$headers = apache_request_headers();
-			$ims = isset($headers["If-Modified-Since"]) ? $headers["If-Modified-Since"] : "";
-		} else {
-			$ims = isset($_SERVER["HTTP_IF_MODIFIED_SINCE"]) ? $_SERVER["HTTP_IF_MODIFIED_SINCE"] : "";
-		}
-
-		$last_modified = filemtime($image_file);
-		if ($ims && strtotime($ims) == $last_modified) {
-			header("Last-Modified: ".gmdate("D, d M Y H:i:s", $last_modified).' GMT', true, 304);
+	// Extension static files — never fall through to the SPA dist.
+	if (defined("EXTENSION_ROOT")) {
+		if (bigtree_serve_extension_static($bigtree["path"])) {
 			die();
 		}
 
-		$type = strtolower(substr($image_file,-3,3));
-		if ($type == "gif") {
-			header("Content-type: image/gif");
-		} elseif ($type == "jpg") {
-			header("Content-type: image/jpeg");
-		} elseif ($type == "png") {
-			header("Content-type: image/png");
-		} elseif ($type == "svg") {
-			header("Content-type: image/svg+xml");
-		}
-
-		header("Last-Modified: ".gmdate("D, d M Y H:i:s", $last_modified).' GMT', true, 200);
-		readfile($image_file);
+		http_response_code(404);
+		header("Content-Type: text/plain; charset=utf-8");
+		echo "Not found.";
 		die();
 	}
 
-	// CSS
-	if ($bigtree["path"][1] == "css") {
-		$css_path = implode("/", array_slice($bigtree["path"], 2));
+	$admin_path = bigtree_admin_path_from_config($bigtree["config"]);
+	$admin_subpath = array_slice($bigtree["path"], 1);
+	$admin_rel = implode("/", array_filter($admin_subpath, static function ($s) {
+		return $s !== "" && $s !== null;
+	}));
 
-		if (defined("EXTENSION_ROOT")) {
-			$css_file = EXTENSION_ROOT."css/$css_path";
-		} else {
-			$css_file = file_exists("../custom/admin/css/$css_path") ? "../custom/admin/css/$css_path" : "../core/admin/css/$css_path";
+	$method = $_SERVER["REQUEST_METHOD"] ?? "GET";
+
+	// -------------------------------------------------------------------------
+	// 3) Classic bookmark → SPA redirects (GET/HEAD)
+	// -------------------------------------------------------------------------
+	if ($method === "GET" || $method === "HEAD") {
+		$location = bigtree_classic_to_spa_redirect($admin_subpath, $admin_path);
+
+		if ($location !== null) {
+			header("Location: " . $location, true, 302);
+			die();
 		}
+	}
 
-		if (function_exists("apache_request_headers")) {
-			$headers = apache_request_headers();
-			$ims = isset($headers["If-Modified-Since"]) ? $headers["If-Modified-Since"] : "";
-		} else {
-			$ims = isset($_SERVER["HTTP_IF_MODIFIED_SINCE"]) ? $_SERVER["HTTP_IF_MODIFIED_SINCE"] : "";
-		}
+	// -------------------------------------------------------------------------
+	// 4) Front-end bar surface (session PHP; not classic admin UI)
+	// -------------------------------------------------------------------------
+	$is_bar_js = ($bigtree["path"][1] === "ajax" && (
+		$bigtree["path"][2] === "bar.js" || $bigtree["path"][2] === "bar.js.php"
+	));
+	$is_bar_logout = ($bigtree["path"][1] === "ajax" && $bigtree["path"][2] === "bar-logout");
+	$is_bar_css = ($bigtree["path"][1] === "css" && $bigtree["path"][2] === "bar.css");
+	$is_bar_image = (
+		$bigtree["path"][1] === "images"
+		&& preg_match('/^icon-sprite\.(svg|png)$/', $bigtree["path"][2] ?? "")
+	);
 
-		$last_modified = filemtime($css_file);
+	if ($is_bar_css || $is_bar_image) {
+		$rel = $bigtree["path"][1] . "/" . implode("/", array_slice($bigtree["path"], 2));
+		$rel = rtrim($rel, "/");
 
-		if ($ims && strtotime($ims) == $last_modified) {
-			header("Last-Modified: ".gmdate("D, d M Y H:i:s", $last_modified).' GMT', true, 304);
+		if (bigtree_serve_bar_static($rel)) {
 			die();
 		}
 
-		header("Content-type: text/css");
-		header("Last-Modified: ".gmdate("D, d M Y H:i:s", $last_modified).' GMT', true, 200);
+		http_response_code(404);
+		header("Content-Type: text/plain; charset=utf-8");
+		echo "Not found.";
+		die();
+	}
 
-		// Handle LESS
-		if (strtolower(substr($css_file, -5, 5)) == ".less") {
-			$server_root = isset($server_root) ? $server_root : str_replace("core/admin/router.php", "", strtr(__FILE__, "\\", "/"));
-			$cache_file = $server_root."cache/admin-compiled-css-".md5($css_file).".css";
+	if ($is_bar_js || $is_bar_logout) {
+		if (file_exists("../custom/bootstrap.php")) {
+			include "../custom/bootstrap.php";
+		} else {
+			include "../core/bootstrap.php";
+		}
 
-			// Already compiled this, just return it
-			if (file_exists($cache_file) && filemtime($cache_file) >= $last_modified) {
-				readfile($cache_file);
+		// BigTreeAdmin loads $_SESSION["bigtree_admin"] for permission checks.
+		$admin = new BigTreeAdmin;
+
+		if ($is_bar_logout) {
+			include BigTree::path("admin/ajax/bar-logout.php");
+			die();
+		}
+
+		include BigTree::path("admin/ajax/bar.js.php");
+		die();
+	}
+
+	// -------------------------------------------------------------------------
+	// 5–7) Packaged SPA from core/admin/dist
+	// -------------------------------------------------------------------------
+	$dist_root = realpath($server_root . "core/admin/dist");
+
+	if ($dist_root === false || !is_dir($dist_root)) {
+		http_response_code(503);
+		header("Content-Type: text/plain; charset=utf-8");
+		echo "BigTree admin UI is not installed (missing core/admin/dist). "
+			. "Run: cd spa && npm ci && npm run build:package";
+		die();
+	}
+
+	$file = bigtree_resolve_dist_file($dist_root, $admin_rel);
+
+	if ($file !== null) {
+		$real = realpath($file);
+
+		if ($real !== false && bigtree_dist_path_is_safe($dist_root, $real)) {
+			if (str_ends_with(strtolower($real), ".map")) {
+				http_response_code(404);
+				header("Content-Type: text/plain; charset=utf-8");
+				echo "Not found.";
 				die();
 			}
 
-			// Load LESS compiler — prefer the newer version but support older fork
-			if (file_exists($server_root."vendor/wikimedia/less.php/lib/Less/Autoloader.php")) {
-				require_once $server_root."vendor/wikimedia/less.php/lib/Less/Autoloader.php";
-			} else {
-				require_once $server_root."vendor/oyejorge/less.php/lib/Less/Autoloader.php";
-			}
-
-			Less_Autoloader::register();
-			$parser = new Less_Parser(["compress" => true]);
-			$parser->parseFile($css_file);
-			$css = $parser->getCss();
-
-			// Cache and return
-			file_put_contents($cache_file, $css);
-			die($css);
+			bigtree_serve_static_file($real, $admin_path, $admin_rel);
+			die();
 		}
+	}
 
-		// Regular old CSS
-		readfile($css_file);
+	if ($method === "GET" || $method === "HEAD") {
+		bigtree_serve_spa_index(
+			$dist_root . DIRECTORY_SEPARATOR . "index.html",
+			$admin_path,
+			$bigtree["config"]
+		);
 		die();
 	}
 
-	// JavaScript
-	if ($bigtree["path"][1] == "js") {
-		// Calcuate the maximum post size so we can pass it along to scripts
-		$pms = ini_get('post_max_size');
-		$mul = substr($pms,-1);
-		$mul = ($mul == 'M' ? 1048576 : ($mul == 'K' ? 1024 : ($mul == 'G' ? 1073741824 : 1)));
-		$max_file_size = $mul * (int)$pms;
-
-		$js_path = implode("/",array_slice($bigtree["path"],2));
-		if (defined("EXTENSION_ROOT")) {
-			$js_file = EXTENSION_ROOT."js/$js_path";
-		} else {
-			$js_file = file_exists("../custom/admin/js/$js_path") ? "../custom/admin/js/$js_path" : "../core/admin/js/$js_path";
-		}
-
-		// If we're serving php, just include it instead of trying to parse it as JS
-		if (substr($js_file,-4,4) == ".php") {
-			header("Content-type: text/javascript");
-			include $js_file;
-			die();
-		}
-
-		// Serve different headers since some JS serves CSS/images from the JS directory
-		$type = substr($js_file,-3,3);
-		if ($type == "css") {
-			header("Content-type: text/css");
-		} elseif ($type == "htm" || substr($js_file,-4,4) == "html") {
-			header("Content-type: text/html");
-		} elseif ($type == "png") {
-			header("Content-type: image/png");
-		} elseif ($type == "gif") {
-			header("Content-type: image/gif");
-		} elseif ($type == "jpg") {
-			header("Content-type: image/jpeg");
-		} elseif ($type == "ttf") {
-			header("Content-type: font/ttf");
-		} elseif (substr($js_file, -4, 4) == "woff") {
-			header("Content-type: font/x-woff");
-		} else {
-			header("Content-type: text/javascript");
-		}
-
-		if (function_exists("apache_request_headers")) {
-			$headers = apache_request_headers();
-			$ims = isset($headers["If-Modified-Since"]) ? $headers["If-Modified-Since"] : "";
-		} else {
-			$ims = isset($_SERVER["HTTP_IF_MODIFIED_SINCE"]) ? $_SERVER["HTTP_IF_MODIFIED_SINCE"] : "";
-		}
-
-		$last_modified = filemtime($js_file);
-		if ($ims && strtotime($ims) == $last_modified && count($_GET) == 1) {
-			header("Last-Modified: ".gmdate("D, d M Y H:i:s", $last_modified).' GMT', true, 304);
-			die();
-		}
-
-		header("Last-Modified: ".gmdate("D, d M Y H:i:s", $last_modified).' GMT', true, 200);
-		$find = array('$max_file_size',"www_root/","admin_root/","static_root/");
-		$replace = array($max_file_size,$bigtree["config"]["www_root"],$bigtree["config"]["admin_root"],$bigtree["config"]["static_root"]);
-
-		// Allow GET variables to serve as replacements in JS using $var and file.js?var=whatever
-		foreach ($_GET as $key => $val) {
-			// Remove anything non-alphanumeric from the dynamic value
-			$val = preg_replace("/[^A-Za-z0-9 ]/", '', $val);
-
-			$find[] = '$'.$key;
-			$find[] = "{".$key."}";
-			$replace[] = $val;
-			$replace[] = $val;
-		}
-
-		die(str_replace($find,$replace,file_get_contents($js_file)));
-	}
-
-	// We're loading a page in the admin, so add and remove some content / security headers
-	$csp_domains = [];
-
-	if (!empty($bigtree["config"]["sites"]) && is_array($bigtree["config"]["sites"]) && count($bigtree["config"]["sites"])) {
-		foreach ($bigtree["config"]["sites"] as $site) {
-			$clean_csp_domain = str_replace(array("https://", "http://"), "", $site["domain"]);
-			$csp_domains[] = "http://".$clean_csp_domain;
-			$csp_domains[] = "https://".$clean_csp_domain;
-		}
-	} else {
-		$clean_csp_domain = str_replace(array("https://", "http://"), "", $bigtree["config"]["domain"]);
-		$csp_domains[] = "http://".$clean_csp_domain;
-		$csp_domains[] = "https://".$clean_csp_domain;
-	}
-
-	header("Content-Type: text/html; charset=utf-8");
-	header("Content-Security-Policy: frame-ancestors ".implode(" ",$csp_domains));
-
-	if (function_exists("header_remove")) {
-		header_remove("Server");
-		header_remove("X-Powered-By");
-	}
-
-	// Bootstrap BigTree Environment
-	if (file_exists("../custom/bootstrap.php")) {
-		include "../custom/bootstrap.php";
-	} else {
-		include "../core/bootstrap.php";
-	}
-
-	// Connect to MySQL and begin sessions and output buffering.
-	if (empty($bigtree["mysql_read_connection"])) {
-		$bigtree["mysql_read_connection"] = bigtree_setup_sql_connection();
-	}
-
-	ob_start();
-	BigTreeSessionHandler::start();
-
-	// Set date format if it wasn't defined in config
-	if (empty($bigtree["config"]["date_format"])) {
-		$bigtree["config"]["date_format"] = "m/d/Y";
-	}
-
-	// Initialize BigTree's additional CSS and JS arrays for inclusion in the admin's header
-	$bigtree["js"] = array();
-	$bigtree["css"] = array();
-
-	// Instantiate the $admin var (user system)
-	$admin = new BigTreeAdmin;
-
-	// Make it easier to extend the nav tree without overwriting important things.
-	include BigTree::path("admin/_nav-tree.php");
-
-	// Load the default layout.
-	$bigtree["layout"] = "default";
-	$bigtree["subnav_extras"] = array();
-
-	// Setup security policy
-	$admin->initSecurity();
-
-	// If we're not logged in and we're not trying to login or access an embedded form, redirect to the login page.
-	if (!isset($admin->ID) && $bigtree["path"][1] != "login") {
-		if (implode("/", array_slice($bigtree["path"],1,3)) != "ajax/auto-modules/embeddable-form" &&
-			implode("/", array_slice($bigtree["path"],1,2)) != "ajax/two-factor-check") {
-
-			if (strpos($_SERVER["REQUEST_URI"], "bar.js.php") === false) {
-				$_SESSION["bigtree_login_redirect"] = DOMAIN.$_SERVER["REQUEST_URI"];
-			}
-
-			BigTree::redirect(ADMIN_ROOT."login/");
-		}
-	}
-
-	// Developer Mode On?
-	if (isset($admin->ID) && !empty($bigtree["config"]["developer_mode"]) && $admin->Level < 2) {
-		include BigTree::path("admin/pages/developer-mode.php");
-		$admin->stop();
-	}
-
-	// Redirect to dashboard by default if we're not requesting anything.
-	if (empty($bigtree["path"][1])) {
-		BigTree::redirect(ADMIN_ROOT."dashboard/");
-	}
-
-	// See if we're requesting something in /ajax/
-	if ($bigtree["path"][1] == "ajax") {
-		$module = false;
-		$core_ajax_directories = array("two-factor-check","auto-modules","callouts","dashboard","file-browser","pages","tags");
-
-		if (!in_array($bigtree["path"][2],$core_ajax_directories) && $bigtree["path"]) {
-			// If the current user isn't allowed in the module for the ajax, stop them.
-			$module = $admin->getModuleByRoute($bigtree["path"][2]);
-
-			if ($module && !$admin->checkAccess($module["id"])) {
-				die("Permission denied to module: ".$module["name"]);
-			} elseif (!$admin->ID) {
-				die("Please login.");
-			}
-
-			if ($module) {
-				$bigtree["current_module"] = $bigtree["module"] = $module;
-			}
-		}
-
-		$ajax_path = array_slice($bigtree["path"],2);
-		// Extensions must use this directory
-		if (defined("EXTENSION_ROOT")) {
-			[$inc,$commands] = BigTree::route(EXTENSION_ROOT."ajax/",$ajax_path);
-		// Check custom/core
-		} else {
-			[$inc,$commands] = BigTree::route(SERVER_ROOT."custom/admin/ajax/",$ajax_path);
-			// Check core if we didn't find the page or if we found the page but it had commands (because we may be overriding a page earlier in the chain but using the core further down)
-			if (!$inc || count($commands)) {
-				[$core_inc,$core_commands] = BigTree::route(SERVER_ROOT."core/admin/ajax/",$ajax_path);
-				// If we either never found the custom file or if there are more routes found in the core file use the core.
-				if (!$inc || ($inc && $core_inc && count($core_commands) < count($commands))) {
-					$inc = $core_inc;
-					$commands = $core_commands;
-				}
-			}
-		}
-
-		if (!file_exists($inc)) {
-			header($_SERVER["SERVER_PROTOCOL"]." 404 Not Found");
-			die("File not found.");
-		}
-		$bigtree["commands"] = $commands;
-
-		// Get the pieces of the location so we can get header and footers. Take away the first 3 routes since they're either custom/admin/modules or core/admin/modules.
-		$pieces = array_slice(explode("/",str_replace(SERVER_ROOT,"",$inc)),3);
-		// Include all headers in the module directory in the order they occur.
-		$inc_path = "";
-		$headers = $footers = array();
-		foreach ($pieces as $piece) {
-			if (substr($piece,-4,4) != ".php") {
-				$inc_path .= $piece."/";
-				if (defined("EXTENSION_ROOT")) {
-					$header = EXTENSION_ROOT."ajax/".$inc_path."_header.php";
-					$footer = EXTENSION_ROOT."ajax/".$inc_path."_footer.php";
-				} else {
-					$header = BigTree::path("admin/ajax/".$inc_path."_header.php");
-					$footer = BigTree::path("admin/ajax/".$inc_path."_footer.php");
-				}
-				if (file_exists($header)) {
-					$headers[] = $header;
-				}
-				if (file_exists($footer)) {
-					$footers[] = $footer;
-				}
-			}
-		}
-		// Draw the headers.
-		foreach ($headers as $header) {
-			include $header;
-		}
-		// Draw the main page.
-		include $inc;
-		// Draw the footers.
-		$footers = array_reverse($footers);
-		foreach ($footers as $footer) {
-			include $footer;
-		}
-		die();
-	}
-
-	// Execute cron tab functions if they haven't been run in 24 hours
-	$last_check = intval($cms->getSetting("bigtree-internal-cron-last-run"));
-
-	// It's been more than 24 hours since we last ran cron.
-	if ((time() - $last_check) > (24 * 60 * 60)) {
-		// Update the setting.
-		$admin->updateInternalSettingValue("bigtree-internal-cron-last-run", time());
-
-		// Email the daily digest
-		$admin->emailDailyDigest();
-
-		// Update tag reference counts
-		$admin->updateTagReferenceCounts();
-
-		// Cache google analytics
-		$ga = new BigTreeGoogleAnalytics4;
-
-		if (!empty($ga->Settings["verified"])) {
-			// The Google Analytics wrappers can cause Exceptions and we don't want the page failing to load due to them.
-			try {
-				$ga->cacheInformation();
-			} catch (Exception $e) {}
-		}
-
-		// Ping bigtreecms.org with current version stats
-		if (empty($bigtree["config"]["disable_ping"])) {
-			BigTree::cURL("https://www.bigtreecms.org/ajax/ping/?www_root=".urlencode(WWW_ROOT)."&version=".urlencode(BIGTREE_VERSION));
-		}
-
-		// If we're using database-based sessions, do a garbage cleanup (as some server setups will have random gc turned off)
-		if (!empty($bigtree["config"]["session_handler"]) && $bigtree["config"]["session_handler"] == "db") {
-			$session_handler = new BigTreeSessionHandler;
-			$session_handler->gc(ini_get("session.gc_maxlifetime"));
-		}
-	}
-
-	$ispage = false;
-	$inc = false;
-	$primary_route = $bigtree["path"][1];
-	$module_path = array_slice($bigtree["path"],1);
-	$module = $admin->getModuleByRoute($primary_route);
-	$complete = false;
-
-	// We're routing through a module, so get module information and check permissions
-	if ($module) {
-		// Setup environment vars
-		$bigtree["current_module"] = $bigtree["module"] = $module;
-		define("MODULE_ROOT",ADMIN_ROOT.$module["route"]."/");
-
-		if (!empty($module["extension"])) {
-			$bigtree["extension_context"] = $module["extension"];
-
-			if (!defined("EXTENSION_ROOT")) {
-				define("EXTENSION_ROOT", SERVER_ROOT."extensions/".$module["extension"]."/");
-			}
-		}
-
-		// Find out what module action we're trying to hit
-		$route_response = $admin->getModuleActionByRoute($module["id"],array_slice($bigtree["path"],2));
-
-		if ($route_response) {
-			$bigtree["module_action"] = $route_response["action"];
-			$bigtree["commands"] = $route_response["commands"];
-		}
-
-		// Make sure the user has access to the module
-		if (!$admin->checkAccess($module["id"], $route_response["action"] ?? "")) {
-			$admin->stop(file_get_contents(BigTree::path("admin/pages/_denied.php")));
-		}
-
-		// Append module navigation.
-		$actions = $admin->getModuleActions($module);
-
-		// Append module info to the admin nav to draw the headers and breadcrumb and such.
-		$bigtree["nav_tree"]["auto-module"] = [
-			"title" => $module["name"],
-			"link" => $module["route"],
-			"icon" => "modules",
-			"children" => [],
-			"hidden" => true
-		];
-
-		foreach ($actions as $action) {
-			$hidden = $action["in_nav"] ? false : true;
-			$route = $action["route"] ? $module["route"]."/".$action["route"] : $module["route"];
-			$bigtree["nav_tree"]["auto-module"]["children"][] = array("title" => $action["name"],"link" => $route,"nav_icon" => $action["class"],"hidden" => $hidden,"level" => $action["level"]);
-		}
-
-		// Bring in related modules if this one is in a group.
-		if ($module["group"]) {
-			$related_modules = $admin->getModulesByGroup($module["group"]);
-			$related_group = $admin->getModuleGroup($module["group"]);
-			if (count($related_modules) > 1) {
-				$bigtree["related_modules"] = array();
-				$bigtree["related_group"] = $related_group["name"];
-				foreach ($related_modules as $rm) {
-					$bigtree["related_modules"][] = array("title" => $rm["name"],"link" => $rm["route"]);
-				}
-			}
-		}
-
-		// Handle auto actions
-		if (!empty($bigtree["module_action"]["form"])) {
-			include BigTree::path("admin/auto-modules/form.php");
-			$complete = true;
-		} elseif (!empty($bigtree["module_action"]["view"])) {
-			include BigTree::path("admin/auto-modules/view.php");
-			$complete = true;
-		} elseif (!empty($bigtree["module_action"]["report"])) {
-			include BigTree::path("admin/auto-modules/report.php");
-			$complete = true;
-		}
-	}
-
-	// Auto actions are going to be already done so we don't need to try manual routing.
-	if (!$complete) {
-		// Check custom if it's not an extension, otherwise use the extension directory
-		if ($module && !empty($module["extension"])) {
-			$module_path[0] = str_replace($module["extension"]."*","",$module_path[0]);
-			[$inc,$commands] = BigTree::route(SERVER_ROOT."extensions/".$module["extension"]."/modules/",$module_path);
-
-			if (!defined("EXTENSION_ROOT")) {
-				define("EXTENSION_ROOT", SERVER_ROOT."extensions/".$module["extension"]."/");
-			}
-		} else {
-			[$inc,$commands] = BigTree::route(SERVER_ROOT."custom/admin/modules/",$module_path);
-			// Check core if we didn't find the page or if we found the page but it had commands (because we may be overriding a page earlier in the chain but using the core further down)
-			if (!$inc || count($commands)) {
-				[$core_inc,$core_commands] = BigTree::route(SERVER_ROOT."core/admin/modules/",$module_path);
-				// If we either never found the custom file or if there are more routes found in the core file use the core.
-				if (!$inc || ($inc && $core_inc && count($core_commands) < count($commands))) {
-					$inc = $core_inc;
-					$commands = $core_commands;
-				}
-			}
-		}
-		if (count($commands)) {
-			$bigtree["module_path"] = array_slice($module_path,1,-1 * count($commands));
-		} else {
-			$bigtree["module_path"] = array_slice($module_path,1);
-		}
-		// Check pages
-		if (!$inc) {
-			$inc = BigTree::path("admin/pages/$primary_route.php");
-			if (file_exists($inc)) {
-				include $inc;
-				$complete = true;
-			} else {
-				$inc = false;
-			}
-		}
-
-		// If we didn't find anything, it's a 404
-		if (!$inc) {
-			header($_SERVER["SERVER_PROTOCOL"]." 404 Not Found");
-			define("BIGTREE_404",true);
-			include BigTree::path("admin/pages/_404.php");
-		// It's a manually created module page, include it
-		} elseif (!$complete) {
-			// Setup the commands array.
-			$bigtree["commands"] = $commands;
-			// Get the pieces of the location so we can get header and footers. Take away the first 3 routes since they're either custom/admin/modules, core/admin/modules, or extensions/{id}/modules
-			$pieces = array_slice(explode("/",str_replace(SERVER_ROOT,"",$inc)),3);
-			// Include all headers in the module directory in the order they occur.
-			$inc_path = "";
-			$headers = $footers = array();
-
-			foreach ($pieces as $piece) {
-				if (substr($piece,-4,4) != ".php") {
-					$inc_path .= $piece."/";
-
-					if (!empty($module["extension"])) {
-						$header = SERVER_ROOT."extensions/".$module["extension"]."/modules/".$inc_path."_header.php";
-						$footer = SERVER_ROOT."extensions/".$module["extension"]."/modules/".$inc_path."_footer.php";
-					} else {
-						$header = BigTree::path("admin/modules/".$inc_path."_header.php");
-						$footer = BigTree::path("admin/modules/".$inc_path."_footer.php");
-					}
-					if (file_exists($header)) {
-						$headers[] = $header;
-					}
-					if (file_exists($footer)) {
-						$footers[] = $footer;
-					}
-				}
-			}
-			// Draw the headers.
-			foreach ($headers as $header) {
-				include $header;
-			}
-			// Draw the main page.
-			include $inc;
-			// Draw the footers.
-			$footers = array_reverse($footers);
-			foreach ($footers as $footer) {
-				include $footer;
-			}
-		}
-	}
-
-	$bigtree["content"] = ob_get_clean();
-
-	include BigTree::path("admin/layouts/".$bigtree["layout"].".php");
+	http_response_code(404);
+	header("Content-Type: text/plain; charset=utf-8");
+	echo "Not found.";
+	die();

@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { api } from "@/api/client";
 import { authStore, type AuthUser } from "@/auth/store";
+import { apiBase } from "@/lib/adminBoot";
 import { ApiError } from "@/types/api";
 
 /**
@@ -41,7 +42,7 @@ describe("api request", () => {
 
 		expect(result).toEqual({ id: 1 });
 		const [url, init] = fetchMock.mock.calls[0]!;
-		expect(url).toBe("/admin/api/v1/x");
+		expect(url).toBe(`${apiBase()}/x`);
 		expect((init.headers as Record<string, string>).Authorization).toBe("Bearer acc");
 	});
 
@@ -51,7 +52,7 @@ describe("api request", () => {
 
 		await api.get("/x", { query: { a: 1, b: undefined, c: "z", d: null } });
 
-		expect(fetchMock.mock.calls[0]![0]).toBe("/admin/api/v1/x?a=1&c=z");
+		expect(fetchMock.mock.calls[0]![0]).toBe(`${apiBase()}/x?a=1&c=z`);
 	});
 
 	it("getWithMeta resolves to { data, meta }", async () => {
