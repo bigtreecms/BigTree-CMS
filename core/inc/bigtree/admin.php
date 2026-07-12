@@ -6835,32 +6835,97 @@
 		public function getUniqueModuleRoute($route) {
 			$route = BigTreeCMS::urlify($route);
 
-			// Go through the hard coded modules
-			$existing = [];
-			$d = opendir(SERVER_ROOT."core/admin/modules/");
+			// Reserved first segments under admin_root (SPA routes + router surfaces).
+			// Classic hard-coded module/page directories were removed with the SPA cutover.
+			$existing = [
+				"api",
+				"ajax",
+				"css",
+				"images",
+				"js",
+				"assets",
+				"dist",
+				"tinymce",
+				"field-sandbox",
+				"field-modules",
+				"sdk",
+				"login",
+				"dashboard",
+				"pages",
+				"modules",
+				"files",
+				"users",
+				"profile",
+				"settings",
+				"tags",
+				"messages",
+				"pending-changes",
+				"developer",
+				"analytics",
+				"embed",
+				"favicon.svg",
+			];
 
-			while ($f = readdir($d)) {
-				if ($f != "." && $f != "..") {
-					$existing[] = $f;
+			// Directory names under core/admin/ (ajax, css, field-types, dist, …)
+			$admin_dir = SERVER_ROOT."core/admin/";
+
+			if (is_dir($admin_dir)) {
+				$d = opendir($admin_dir);
+
+				if ($d) {
+					while ($f = readdir($d)) {
+						if ($f != "." && $f != "..") {
+							$existing[] = $f;
+						}
+					}
+
+					closedir($d);
 				}
 			}
 
-			// Go through the directories (really ajax, css, images, js)
-			$d = opendir(SERVER_ROOT."core/admin/");
+			// Optional leftover classic module trees (if present on disk)
+			foreach (["modules", "pages"] as $subdir) {
+				$path = SERVER_ROOT."core/admin/".$subdir."/";
 
-			while ($f = readdir($d)) {
-				if ($f != "." && $f != "..") {
-					$existing[] = $f;
+				if (!is_dir($path)) {
+					continue;
 				}
+
+				$d = opendir($path);
+
+				if (!$d) {
+					continue;
+				}
+
+				while ($f = readdir($d)) {
+					if ($f == "." || $f == "..") {
+						continue;
+					}
+
+					if ($subdir === "pages" && str_ends_with($f, ".php")) {
+						$existing[] = substr($f, 0, -4);
+					} else {
+						$existing[] = $f;
+					}
+				}
+
+				closedir($d);
 			}
 
-			// Go through the hard coded pages
-			$d = opendir(SERVER_ROOT."core/admin/pages/");
+			// custom/admin/modules routes (SPA module JS + any residual PHP)
+			$custom_modules = SERVER_ROOT."custom/admin/modules/";
 
-			while ($f = readdir($d)) {
-				if ($f != "." && $f != "..") {
-					// Drop the .php
-					$existing[] = substr($f, 0, -4);
+			if (is_dir($custom_modules)) {
+				$d = opendir($custom_modules);
+
+				if ($d) {
+					while ($f = readdir($d)) {
+						if ($f != "." && $f != "..") {
+							$existing[] = $f;
+						}
+					}
+
+					closedir($d);
 				}
 			}
 
@@ -7242,8 +7307,7 @@
 			static::getSecurityPolicy();
 
 			if (static::isIPBannedByPolicy($ip) || !static::isIPAllowedByPolicy($ip)) {
-				$bigtree["layout"] = "login";
-				$this->stop(file_get_contents(BigTree::path("admin/pages/ip-restriction.php")));
+				$this->stop("Access denied from this IP address.");
 			}
 		}
 
@@ -8807,7 +8871,7 @@
 
 			if (empty($this->Permissions["module"][$module])) {
 				define("BIGTREE_ACCESS_DENIED", true);
-				$this->stop(file_get_contents(BigTree::path("admin/pages/_denied.php")));
+				$this->stop("Permission denied.");
 			}
 
 			return $this->Permissions["module"][$module];
@@ -8826,7 +8890,7 @@
 			global $admin, $bigtree, $cms;
 			if (!isset($this->Level) || $this->Level < $level) {
 				define("BIGTREE_ACCESS_DENIED", true);
-				$this->stop(file_get_contents(BigTree::path("admin/pages/_denied.php")));
+				$this->stop("Permission denied.");
 			}
 		}
 
@@ -8845,11 +8909,8 @@
 				return true;
 			}
 			if ($this->Permissions[$module] != "p") {
-				ob_clean();
-				include BigTree::path("admin/pages/_denied.php");
-				$bigtree["content"] = ob_get_clean();
-				include BigTree::path("admin/layouts/default.php");
-				die();
+				define("BIGTREE_ACCESS_DENIED", true);
+				$this->stop("Permission denied. Publisher access is required.");
 			}
 
 			return true;
@@ -9379,9 +9440,20 @@
 
 		public function stop($message = "") {
 			global $admin, $bigtree, $cms;
-			echo $message;
-			$bigtree["content"] = ob_get_clean();
-			include BigTree::path("admin/layouts/".$bigtree["layout"].".php");
+
+			// Classic admin layouts were removed with the SPA cutover — halt with a
+			// minimal response instead of including admin/layouts/*.php.
+			while (ob_get_level() > 0) {
+				ob_end_clean();
+			}
+
+			if (!headers_sent()) {
+				http_response_code(defined("BIGTREE_ACCESS_DENIED") ? 403 : 400);
+				header("Content-Type: text/html; charset=utf-8");
+			}
+
+			$body = is_string($message) && $message !== "" ? $message : "Request could not be completed.";
+			echo $body;
 			die();
 		}
 
