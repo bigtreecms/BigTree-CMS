@@ -97,6 +97,24 @@
 			return $this;
 		}
 
+		/**
+		 * Set Cache-Control for a short private cache window. Prefer this over
+		 * hand-writing the header so every list/lookup endpoint shares one form.
+		 */
+		public function cacheFor(int $seconds): self {
+
+			return $this->header("Cache-Control", "private, max-age=$seconds");
+		}
+
+		/**
+		 * Set Cache-Control so the browser revalidates on every request (pairs
+		 * with an ETag on endpoints that change under the SPA).
+		 */
+		public function noCache(): self {
+
+			return $this->header("Cache-Control", "private, no-cache");
+		}
+
 		public function cookie($name, $value, array $options = []) {
 			$this->cookies[] = [$name, $value, $options];
 

@@ -250,15 +250,7 @@
 
 			// Run the optional install.php with the legacy globals in scope so existing
 			// install scripts keep working.
-			$output = "";
-			$install_file = SERVER_ROOT . "extensions/" . $manifest["id"] . "/install.php";
-
-			if (file_exists($install_file)) {
-				global $bigtree, $cms;
-				ob_start();
-				include $install_file;
-				$output = (string)ob_get_clean();
-			}
+			$output = $this->runExtensionScript(SERVER_ROOT . "extensions/" . $manifest["id"] . "/install.php");
 
 			return Response::created([
 				"id" => (string)$manifest["id"],
@@ -368,15 +360,7 @@
 			$admin = new BigTreeAdmin();
 			$admin->installExtension($new_manifest, $old_manifest);
 
-			$output = "";
-			$update_file = $ext_dir . "update.php";
-
-			if (file_exists($update_file)) {
-				global $bigtree, $cms;
-				ob_start();
-				include $update_file;
-				$output = (string)ob_get_clean();
-			}
+			$output = $this->runExtensionScript($ext_dir . "update.php");
 
 			$admin->cacheHooks();
 
@@ -1025,6 +1009,24 @@
 			}
 
 			return (array)@json_decode((string)file_get_contents($path), true);
+		}
+
+		/**
+		 * Run an optional install/update script with the legacy globals in scope
+		 * so existing extension scripts keep working. Returns captured stdout, or
+		 * "" when the file is absent.
+		 */
+		private function runExtensionScript(string $path): string {
+			if (!file_exists($path)) {
+				return "";
+			}
+
+			// Legacy install/update scripts expect $bigtree and $cms in scope.
+			global $bigtree, $cms;
+			ob_start();
+			include $path;
+
+			return (string)ob_get_clean();
 		}
 
 		private function present(array $ext) {

@@ -798,7 +798,7 @@
 				return [];
 			}
 
-			$placeholders = implode(",", array_fill(0, count($ids), "?"));
+			$placeholders = \BigTree\Api\Sanitize::placeholders($ids);
 			$rows = SQL::fetchAll(
 				"SELECT id, nav_title, title, archived, archived_inherited FROM bigtree_pages WHERE id IN ($placeholders)",
 				...$ids
@@ -830,7 +830,7 @@
 				return [];
 			}
 
-			$placeholders = implode(",", array_fill(0, count($ids), "?"));
+			$placeholders = \BigTree\Api\Sanitize::placeholders($ids);
 			$rows = SQL::fetchAll(
 				"SELECT * FROM `".str_replace("`", "", $table)."` WHERE id IN ($placeholders)",
 				...$ids

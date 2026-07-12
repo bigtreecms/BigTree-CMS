@@ -1,7 +1,6 @@
 <?php
 	namespace BigTree\Services;
 
-	use BigTree\Api\Flag;
 	use BigTree\Api\Request;
 	use BigTree\Api\Sanitize;
 	use BigTree\Api\Response;
@@ -86,41 +85,15 @@
 		// — per-domain searchers —
 
 		private function searchPages($q, $limit, $user) {
-			$like = Sanitize::likeTerm($q);
-			// LIMIT needs an integer literal; ? substitution would quote it.
-			$overfetch = max(1, (int)$limit) * 3;
-			$rows = SQL::fetchAll(
-				"SELECT id, nav_title, path, archived
-				 FROM bigtree_pages
-				 WHERE (nav_title LIKE ? OR title LIKE ?)
-				 ORDER BY archived ASC, nav_title ASC
-				 LIMIT $overfetch",
-				$like, $like
-			);
-			$kept = [];
-
-			foreach ($rows as $r) {
-				if (PermissionService::userPageLevel($user, (int)$r["id"]) === "n") {
-					continue;
-				}
-				$kept[] = [
-					"id" => (int)$r["id"],
-					"nav_title" => Sanitize::decodeEntities($r["nav_title"]),
-					"path" => $r["path"],
-					"archived" => Flag::isOn($r["archived"]),
-				];
-
-				if (count($kept) >= $limit) {
-					break;
-				}
-			}
-
-			return $kept;
+			// Delegate to PageService so federated search and GET /pages/search
+			// share the overfetch-then-filter semantics and the same presenter.
+			return (new PageService())->searchRows($q, $user, (int)$limit);
 		}
 
 		private function searchTags($q, $limit) {
 			$like = Sanitize::likeTerm($q, true);
 			$limit = max(1, (int)$limit);
+			// Federated search also matches metaphone — richer than TagService::search.
 			$rows = SQL::fetchAll(
 				"SELECT id, tag, route, usage_count FROM bigtree_tags
 				 WHERE tag LIKE ? OR metaphone LIKE ?
@@ -128,15 +101,7 @@
 				$like, $like
 			);
 
-			return array_map(function ($r) {
-
-				return [
-					"id" => (int)$r["id"],
-					"tag" => $r["tag"],
-					"route" => $r["route"],
-					"usage_count" => (int)$r["usage_count"],
-				];
-			}, $rows);
+			return array_map([TagService::class, "presentRow"], $rows);
 		}
 
 		private function searchUsers($q, $limit) {

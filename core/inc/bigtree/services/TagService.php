@@ -116,6 +116,20 @@
 
 		// — helpers —
 
+		/**
+		 * Canonical 4-key tag presenter. Public static so PageService::loadTags
+		 * and SearchService::searchTags share one shape (id/tag/route/usage_count).
+		 */
+		public static function presentRow(array $row): array {
+
+			return [
+				"id" => (int)$row["id"],
+				"tag" => $row["tag"],
+				"route" => $row["route"],
+				"usage_count" => (int)$row["usage_count"],
+			];
+		}
+
 		private function normalize($t) {
 
 			return strtolower(trim(preg_replace('/[^a-zA-Z0-9]/', '', $t)));
@@ -139,11 +153,6 @@
 
 		private function present(array $row) {
 
-			return [
-				"id" => (int)$row["id"],
-				"tag" => $row["tag"],
-				"route" => $row["route"],
-				"usage_count" => (int)$row["usage_count"],
-			];
+			return self::presentRow($row);
 		}
 	}

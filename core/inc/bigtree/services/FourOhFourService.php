@@ -187,7 +187,7 @@
 			if (!$ids) {
 				return Response::noContent();
 			}
-			$placeholders = implode(",", array_fill(0, count($ids), "?"));
+			$placeholders = \BigTree\Api\Sanitize::placeholders($ids);
 			SQL::query(...array_merge(["DELETE FROM bigtree_404s WHERE id IN ($placeholders)"], $ids));
 
 			return Response::noContent();

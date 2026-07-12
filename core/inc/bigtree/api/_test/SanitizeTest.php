@@ -89,3 +89,9 @@
 		$raw = 'A "risky" <title> & more';
 		T::equals(Sanitize::decodeEntities(\BigTree::safeEncode($raw)), $raw, "decodeEntities inverts safeEncode");
 	}
+
+	function test_sanitize_placeholders() {
+		T::equals(Sanitize::placeholders(["a"]), "?", "single value → one placeholder");
+		T::equals(Sanitize::placeholders([1, 2, 3]), "?,?,?", "three values → three placeholders");
+		T::equals(Sanitize::placeholders([]), "", "empty array → empty string");
+	}

@@ -87,7 +87,7 @@
 				return [];
 			}
 
-			$placeholders = implode(",", array_fill(0, count($ids), "?"));
+			$placeholders = \BigTree\Api\Sanitize::placeholders($ids);
 			$users = SQL::fetchAll("SELECT id, name FROM bigtree_users WHERE id IN ($placeholders)", ...$ids);
 			$map = [];
 

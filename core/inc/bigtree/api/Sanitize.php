@@ -98,4 +98,16 @@
 
 			return html_entity_decode((string)$value, ENT_QUOTES | ENT_HTML5, "UTF-8");
 		}
+
+		/**
+		 * Build an IN (…) placeholder list for a prepared statement: "?,?,?" for
+		 * a three-element array. Callers keep their own emptiness guards — every
+		 * site already checks the array is non-empty before building the clause.
+		 *
+		 * @param array $values Values that will be bound to the placeholders.
+		 */
+		public static function placeholders(array $values): string {
+
+			return implode(",", array_fill(0, count($values), "?"));
+		}
 	}

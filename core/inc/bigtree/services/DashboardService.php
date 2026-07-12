@@ -45,10 +45,7 @@
 				$data["integrity"] = $this->integrityStats();
 			}
 
-			$r = Response::ok($data);
-			$r->header("Cache-Control", "private, max-age=15");
-
-			return $r;
+			return Response::ok($data)->cacheFor(15);
 		}
 
 		public function contentAlerts(Request $request) {
@@ -224,11 +221,9 @@
 				"cache_age_seconds" => $cache_mtime ? (time() - $cache_mtime) : null,
 			]);
 
-			$r = Response::ok($response);
-			// Short cache header so the SPA can be refreshed without hitting us every render,
+			// Short cache so the SPA can refresh without hitting us every render,
 			// but short enough that a manual rebuild becomes visible quickly.
-			$r->header("Cache-Control", "private, max-age=30");
-			return $r;
+			return Response::ok($response)->cacheFor(30);
 		}
 
 		/**

@@ -87,99 +87,23 @@
 		}
 
 		/**
-		 * Build a sub-resource INSERT payload from request body $d, per $spec — a
-		 * `key => verb` map drawn from the closed transform vocabulary the
-		 * create/update methods for forms/views/reports/embed-forms all share:
-		 *
-		 *   "encode"    BigTree::safeEncode of the (string) value ("" when absent)
-		 *   "string"    plain (string) cast ("" when absent)
-		 *   "array"     the array value, or [] when absent / not an array
-		 *   "checkbox"  Flag::checkbox (yes/no normalization)
-		 *   "nullable"  the truthy value, otherwise null
-		 *   "bool"      a plain !empty() boolean
-		 *
-		 * Per-entity specials that don't fit the vocabulary (cleanFormFields, the
-		 * report `type` "csv" default, the embed-form `hash` mint) stay explicit in
-		 * each method — they set their key on the built array directly.
+		 * Build a sub-resource INSERT payload from request body $d, per $spec.
+		 * Delegates to FieldSpec::insert — see that class for the verb vocabulary.
+		 * Per-entity specials that don't fit (cleanFormFields, the report `type`
+		 * "csv" default, the embed-form `hash` mint) stay explicit in each method.
 		 */
 		private function buildInsert(array $d, array $spec): array {
-			$out = [];
 
-			foreach ($spec as $key => $verb) {
-				$out[$key] = $this->transformField($d[$key] ?? null, $verb);
-			}
-
-			return $out;
+			return \BigTree\Api\FieldSpec::insert($d, $spec);
 		}
 
 		/**
 		 * Build a sub-resource UPDATE (partial) payload from $d, per the same $spec
-		 * as buildInsert: each key is written only when present. The presence rule
-		 * is the isset()-vs-array_key_exists() distinction the update methods encode
-		 * by hand — checkbox/nullable/bool keys use array_key_exists() so an
-		 * explicit null/false is honored; encode/string use isset(); "array" also
-		 * requires the submitted value to be an array. This is the subtlety that
-		 * drifts when a new sub-resource type is added, so it lives in one place.
+		 * as buildInsert. Delegates to FieldSpec::update.
 		 */
 		private function buildUpdate(array $d, array $spec): array {
-			$update = [];
 
-			foreach ($spec as $key => $verb) {
-				if (!$this->fieldPresent($d, $key, $verb)) {
-					continue;
-				}
-
-				$update[$key] = $this->transformField($d[$key] ?? null, $verb);
-			}
-
-			return $update;
-		}
-
-		/** Apply one transform verb to a raw value. See buildInsert for the vocabulary. */
-		private function transformField($value, string $verb) {
-			switch ($verb) {
-				case "encode":
-
-					return \BigTree::safeEncode((string)($value ?? ""));
-
-				case "string":
-
-					return (string)($value ?? "");
-
-				case "array":
-
-					return is_array($value) ? $value : [];
-
-				case "checkbox":
-
-					return \BigTree\Api\Flag::checkbox($value);
-
-				case "nullable":
-
-					return !empty($value) ? $value : null;
-
-				case "bool":
-
-					return !empty($value);
-			}
-
-			throw new \LogicException("Unknown sub-resource field verb: $verb");
-		}
-
-		/** Whether $d carries $key under the presence rule its verb dictates (see buildUpdate). */
-		private function fieldPresent(array $d, string $key, string $verb): bool {
-			if ($verb === "array") {
-
-				return isset($d[$key]) && is_array($d[$key]);
-			}
-
-			if ($verb === "encode" || $verb === "string") {
-
-				return isset($d[$key]);
-			}
-
-			// checkbox / nullable / bool: honor an explicitly-submitted null or false.
-			return array_key_exists($key, $d);
+			return \BigTree\Api\FieldSpec::update($d, $spec);
 		}
 
 		/**

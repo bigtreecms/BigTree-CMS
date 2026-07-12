@@ -33,10 +33,7 @@
 				}
 			}
 
-			$r = Response::ok($options);
-			$r->header("Cache-Control", "private, max-age=60");
-
-			return $r;
+			return Response::ok($options)->cacheFor(60);
 		}
 
 		public function columns(Request $request) {
@@ -63,9 +60,6 @@
 				}
 			}
 
-			$r = Response::ok($options);
-			$r->header("Cache-Control", "private, max-age=60");
-
-			return $r;
+			return Response::ok($options)->cacheFor(60);
 		}
 	}

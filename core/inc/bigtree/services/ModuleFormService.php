@@ -171,15 +171,7 @@
 				}
 			}
 
-			if ($table === "" || $descriptor === "") {
-				throw new BadRequestException("Field `$column` is missing table/descriptor settings", "invalid_field_settings");
-			}
-
-			$schema = BigTree::describeTable($table);
-
-			if (!$schema || empty($schema["columns"])) {
-				throw new NotFoundException("Table `$table` not found");
-			}
+			$schema = $this->requireDescribedTable($table, $descriptor, $column);
 
 			if (empty($schema["columns"][$descriptor])) {
 				throw new BadRequestException("Descriptor column `$descriptor` does not exist on `$table`", "invalid_field_settings");
@@ -232,7 +224,7 @@
 				}
 
 				$other_ids = array_values(array_map("intval", $other_ids));
-				$placeholders = implode(",", array_fill(0, count($other_ids), "?"));
+				$placeholders = \BigTree\Api\Sanitize::placeholders($other_ids);
 				$rows = SQL::fetchAll(
 					"SELECT `id`, `$descriptor` AS `title` FROM `$table` WHERE `id` IN ($placeholders)",
 					...$other_ids
@@ -291,7 +283,7 @@
 					]);
 				}
 
-				$placeholders = implode(",", array_fill(0, count($ids), "?"));
+				$placeholders = \BigTree\Api\Sanitize::placeholders($ids);
 				$where[] = "`id` IN ($placeholders)";
 
 				foreach ($ids as $id) {
@@ -380,15 +372,7 @@
 			$descriptor = (string)($settings["pop-description"] ?? "");
 			$sort = (string)($settings["pop-sort"] ?? "");
 
-			if ($table === "" || $descriptor === "") {
-				throw new BadRequestException("Field `$column` is missing table/descriptor settings", "invalid_field_settings");
-			}
-
-			$schema = BigTree::describeTable($table);
-
-			if (!$schema || empty($schema["columns"])) {
-				throw new NotFoundException("Table `$table` not found");
-			}
+			$schema = $this->requireDescribedTable($table, $descriptor, $column);
 
 			if (empty($schema["columns"][$descriptor]) || empty($schema["columns"]["id"])) {
 				throw new BadRequestException("Field `$column` references columns that don't exist on `$table`", "invalid_field_settings");
@@ -403,5 +387,24 @@
 			}
 
 			return $options;
+		}
+
+		/**
+		 * Shared prefix of relationOptions / resolveDatabaseList: require non-empty
+		 * table+descriptor settings, describe the table, 404 if missing. Each caller
+		 * keeps its own final column-existence check (the error strings differ).
+		 */
+		private function requireDescribedTable(string $table, string $descriptor, string $column): array {
+			if ($table === "" || $descriptor === "") {
+				throw new BadRequestException("Field `$column` is missing table/descriptor settings", "invalid_field_settings");
+			}
+
+			$schema = BigTree::describeTable($table);
+
+			if (!$schema || empty($schema["columns"])) {
+				throw new NotFoundException("Table `$table` not found");
+			}
+
+			return $schema;
 		}
 	}

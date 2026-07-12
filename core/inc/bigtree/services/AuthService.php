@@ -544,21 +544,14 @@
 				"user_not_found"
 			);
 
-			$access = $this->issueAccessToken($target);
-			$refresh = TokenStore::issueFamily((int)$target["id"], $request->ip, $request->user_agent);
+			$envelope = $this->tokenEnvelope($target, $request);
+			$envelope["emulated_by"] = [
+				"id" => (int)$actor->id,
+				"name" => $actor->name,
+				"email" => $actor->email,
+			];
 
-			return Response::ok([
-				"access_token" => $access,
-				"refresh_token" => $refresh["raw"],
-				"token_type" => "Bearer",
-				"expires_in" => self::ACCESS_TTL,
-				"user" => $this->publicUser($target),
-				"emulated_by" => [
-					"id" => (int)$actor->id,
-					"name" => $actor->name,
-					"email" => $actor->email,
-				],
-			]);
+			return Response::ok($envelope);
 		}
 
 		// — Passkey endpoints —
@@ -1017,22 +1010,33 @@
 			return strpos($parts[2] ?? "", "s") !== false;
 		}
 
-		private function issueTokens(array $user, Request $request, $remember = false) {
+		/**
+		 * Mint access + refresh tokens and return the canonical 5-key envelope.
+		 * Shared by issueTokens (login) and the emulate endpoint so a future
+		 * envelope change (new claim surface, TTL field, etc.) lands in one place.
+		 *
+		 * Both tokens go in the body. The SPA persists them to localStorage.
+		 * No cookie is set — there's no value in HttpOnly for the refresh
+		 * token on an admin tool where XSS would already own the in-memory
+		 * access token. Storing tokens client-side keeps deployment topology
+		 * simple (no cookie path/domain dance) and is the de facto SPA pattern.
+		 */
+		private function tokenEnvelope(array $user, Request $request, bool $remember = false): array {
 			$access = $this->issueAccessToken($user);
 			$refresh = TokenStore::issueFamily((int)$user["id"], $request->ip, $request->user_agent, $remember);
 
-			// Both tokens go in the body. The SPA persists them to localStorage.
-			// No cookie is set — there's no value in HttpOnly for the refresh
-			// token on an admin tool where XSS would already own the in-memory
-			// access token. Storing tokens client-side keeps deployment topology
-			// simple (no cookie path/domain dance) and is the de facto SPA pattern.
-			return Response::ok([
+			return [
 				"access_token" => $access,
 				"refresh_token" => $refresh["raw"],
 				"token_type" => "Bearer",
 				"expires_in" => self::ACCESS_TTL,
 				"user" => $this->publicUser($user),
-			]);
+			];
+		}
+
+		private function issueTokens(array $user, Request $request, $remember = false) {
+
+			return Response::ok($this->tokenEnvelope($user, $request, (bool)$remember));
 		}
 
 		private function issueAccessToken(array $user) {

@@ -13,6 +13,7 @@
 	 */
 
 	use BigTree\Api\JsonStore;
+	use BigTree\Api\Exceptions\BadRequestException;
 	use BigTree\Api\Exceptions\ConflictException;
 	use BigTree\Api\Exceptions\NotFoundException;
 
@@ -26,6 +27,65 @@
 			echo "  (skipped — modules store unavailable: " . $e->getMessage() . ")\n";
 
 			return false;
+		}
+	}
+
+	function test_jsonstore_require_new_id_validates_and_returns() {
+		if (!_jsonstore_ready()) {
+			return;
+		}
+
+		$store = new JsonStore("modules", "Module");
+		$id = "jsonstore-new-" . uniqid();
+
+		// A well-formed, unused id is returned after the absent check.
+		$returned = $store->requireNewId(["id" => $id]);
+		T::equals($returned, $id, "requireNewId returns the validated id");
+
+		// Invalid id shape → invalid_id BadRequest (code_string is SPA contract).
+		$threw = null;
+
+		try {
+			$store->requireNewId(["id" => "has space"]);
+		} catch (BadRequestException $e) {
+			$threw = $e;
+		}
+
+		T::ok($threw instanceof BadRequestException, "requireNewId throws BadRequest for an invalid id");
+		T::equals($threw->code_string, "invalid_id", "requireNewId uses the invalid_id code");
+		T::equals(
+			$threw->getMessage(),
+			"Module id must be alphanumeric (with - or _) and ≤ 127 chars",
+			"requireNewId uses the converged invalid_id message with the store label"
+		);
+
+		// Missing id key is treated as empty → invalid.
+		T::throws(function () use ($store) {
+			$store->requireNewId([]);
+		}, BadRequestException::class, "requireNewId throws for a missing id key");
+	}
+
+	function test_jsonstore_require_new_id_conflicts_on_duplicate() {
+		if (!_jsonstore_ready()) {
+			return;
+		}
+
+		$store = new JsonStore("modules", "Module");
+		$module_id = null;
+
+		try {
+			$module_id = BigTreeJSONDB::insert("modules", [
+				"name" => "ZZ_jsonstore_" . uniqid(),
+				"route" => "zz-jsonstore-" . uniqid(),
+			]);
+
+			T::throws(function () use ($store, $module_id) {
+				$store->requireNewId(["id" => (string)$module_id]);
+			}, ConflictException::class, "requireNewId throws Conflict for a taken id");
+		} finally {
+			if ($module_id !== null) {
+				BigTreeJSONDB::delete("modules", $module_id);
+			}
 		}
 	}
 

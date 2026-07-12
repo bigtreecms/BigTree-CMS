@@ -27,6 +27,18 @@
 	 *  - Multi-site path collision dance
 	 */
 	class PageService {
+		// Content columns snapshotted into bigtree_page_revisions (restoreRevision
+		// update map + insertRevisionSnapshot share this list; per-map extras stay
+		// explicit at each call site).
+		private const REVISION_COLUMNS = [
+			"title",
+			"meta_description",
+			"template",
+			"external",
+			"new_window",
+			"resources",
+		];
+
 		public function list(Request $request) {
 			$parent = $request->queryInt("parent");
 			$include_archived = $request->queryBool("include_archived");
@@ -75,7 +87,7 @@
 			$visibleIds = array_column($items, "id");
 
 			if ($visibleIds) {
-				$placeholders = implode(",", array_fill(0, count($visibleIds), "?"));
+				$placeholders = Sanitize::placeholders($visibleIds);
 				$pendingRows = SQL::fetchAll(
 					"SELECT DISTINCT item_id FROM bigtree_pending_changes 
 					 WHERE `table` = 'bigtree_pages' AND item_id IN ($placeholders)",
@@ -531,22 +543,11 @@
 				$this->syncOpenGraph($id, $d["open_graph"]);
 			}
 
-			$fresh = SQL::fetch("SELECT * FROM bigtree_pages WHERE id = ?", $id);
-
-			$this->allocatePageResources($id, $fresh["template"], [
-				"resources" => Json::decode($fresh["resources"]),
-				"external" => $fresh["external"],
-			]);
-
 			// Template publish hook fires on update too. Pass the merged update payload
 			// so the hook sees only what changed (matches legacy updatePage:9813).
-			$this->fireTemplatePublishHook(
-				$fresh["template"], $id, $update ?: [], $d["tags"] ?? [], $d["open_graph"] ?? []
+			return $this->finishPageWrite(
+				$id, $update ?: [], $d["tags"] ?? [], $d["open_graph"] ?? [], $page
 			);
-
-			Hooks::fire("page.updated", $fresh, ["previous" => $page]);
-
-			return $this->present($fresh, true);
 		}
 
 		/**
@@ -983,7 +984,7 @@
 			$childIds = [];
 
 			if ($ids) {
-				$placeholders = implode(",", array_fill(0, count($ids), "?"));
+				$placeholders = Sanitize::placeholders($ids);
 				$rows = SQL::fetchAll(
 					"SELECT id FROM bigtree_pages WHERE parent = ? AND id IN ($placeholders)",
 					...array_merge([$parent], $ids)
@@ -1072,29 +1073,63 @@
 			// Snapshot the current published state so the restore can be undone.
 			$this->insertRevisionSnapshot($id, $page, (int)$request->user->id);
 
-			$update = [
-				"title" => $revision["title"],
-				"meta_description" => $revision["meta_description"],
-				"template" => $revision["template"],
-				"external" => $revision["external"],
-				"new_window" => $revision["new_window"],
-				"resources" => $revision["resources"],
-				"last_edited_by" => $request->user->id,
-				"updated_at" => "NOW()",
-			];
+			$update = [];
+
+			foreach (self::REVISION_COLUMNS as $col) {
+				$update[$col] = $revision[$col];
+			}
+
+			$update["last_edited_by"] = $request->user->id;
+			$update["updated_at"] = "NOW()";
 			SQL::update("bigtree_pages", $id, $update);
 
-			$fresh = SQL::fetch("SELECT * FROM bigtree_pages WHERE id = ?", $id);
+			return Response::ok($this->finishPageWrite($id, $update, [], [], $page));
+		}
 
-			$this->allocatePageResources($id, $fresh["template"], [
-				"resources" => Json::decode($fresh["resources"]),
-				"external" => $fresh["external"],
-			]);
+		/**
+		 * Search pages by title/nav_title with permission filtering. Overfetches
+		 * ×3 so permission-hidden rows don't starve the result set under the
+		 * caller's visibility. Shared by GET /pages/search and the federated
+		 * SearchService pages domain — both must return the same row shape and
+		 * the same overfetch semantics.
+		 *
+		 * @param string $q     Search query.
+		 * @param mixed  $user  Authenticated user (PermissionService).
+		 * @param int    $limit Max rows to return after filtering.
+		 */
+		public function searchRows(string $q, $user, int $limit): array {
+			$like = Sanitize::likeTerm($q);
+			// LIMIT needs an integer literal; ? substitution would quote it.
+			// Overfetch so permission filtering doesn't starve the result set.
+			$overfetch = max(1, (int)$limit) * 3;
+			$rows = SQL::fetchAll(
+				"SELECT id, nav_title, path, archived
+				 FROM bigtree_pages
+				 WHERE (nav_title LIKE ? OR title LIKE ?)
+				 ORDER BY archived ASC, nav_title ASC
+				 LIMIT $overfetch",
+				$like, $like
+			);
+			$kept = [];
 
-			$this->fireTemplatePublishHook($fresh["template"], $id, $update, [], []);
-			Hooks::fire("page.updated", $fresh, ["previous" => $page]);
+			foreach ($rows as $r) {
+				if (PermissionService::userPageLevel($user, (int)$r["id"]) === "n") {
+					continue;
+				}
 
-			return Response::ok($this->present($fresh, true));
+				$kept[] = [
+					"id" => (int)$r["id"],
+					"nav_title" => Sanitize::decodeEntities($r["nav_title"]),
+					"path" => $r["path"],
+					"archived" => Flag::isOn($r["archived"]),
+				];
+
+				if (count($kept) >= $limit) {
+					break;
+				}
+			}
+
+			return $kept;
 		}
 
 		public function search(Request $request) {
@@ -1103,27 +1138,8 @@
 			if ($q === "") {
 				return Response::ok([]);
 			}
-			$like = Sanitize::likeTerm($q);
-			$rows = SQL::fetchAll(
-				"SELECT id, nav_title, path, archived FROM bigtree_pages WHERE nav_title LIKE ? OR title LIKE ? ORDER BY archived ASC, nav_title ASC LIMIT 25",
-				$like, $like
-			);
-			$me = $request->user;
-			$items = array_filter(array_map(function ($r) use ($me) {
-				$level = PermissionService::userPageLevel($me, (int)$r["id"]);
 
-				if ($level === "n") {
-					return null;
-				}
-				return [
-					"id" => (int)$r["id"],
-					"nav_title" => Sanitize::decodeEntities($r["nav_title"]),
-					"path" => $r["path"],
-					"archived" => Flag::isOn($r["archived"]),
-				];
-			}, $rows));
-
-			return Response::ok(array_values($items));
+			return Response::ok($this->searchRows($q, $request->user, 25));
 		}
 
 		// — helpers —
@@ -1135,26 +1151,44 @@
 		}
 
 		/**
+		 * Shared write epilogue for update and restoreRevision: re-fetch the live
+		 * row, allocate resources, fire the template publish hook + page.updated
+		 * hook, and return the presented row.
+		 */
+		private function finishPageWrite(int $id, array $update, array $tags, array $og, array $previous): array {
+			$fresh = SQL::fetch("SELECT * FROM bigtree_pages WHERE id = ?", $id);
+
+			$this->allocatePageResources($id, $fresh["template"], [
+				"resources" => Json::decode($fresh["resources"]),
+				"external" => $fresh["external"],
+			]);
+
+			$this->fireTemplatePublishHook($fresh["template"], $id, $update, $tags, $og);
+			Hooks::fire("page.updated", $fresh, ["previous" => $previous]);
+
+			return $this->present($fresh, true);
+		}
+
+		/**
 		 * Write a snapshot of a page's content columns into bigtree_page_revisions.
 		 * A non-empty description marks it a user-saved revision; the default (empty
 		 * description) produces the auto-revision used to make a restore reversible.
 		 */
 		private function insertRevisionSnapshot(int $id, array $page, int $author, string $desc = ""): int {
-
-			return (int)SQL::insert("bigtree_page_revisions", [
+			$row = [
 				"page" => $id,
-				"title" => $page["title"],
-				"meta_description" => $page["meta_description"],
-				"template" => $page["template"],
-				"external" => $page["external"],
-				"new_window" => $page["new_window"],
-				"resources" => $page["resources"],
 				"author" => $author,
 				"saved" => Flag::checkbox($desc !== ""),
 				"saved_description" => $desc,
 				"resource_allocation" => "",
 				"has_deleted_resources" => "",
-			]);
+			];
+
+			foreach (self::REVISION_COLUMNS as $col) {
+				$row[$col] = $page[$col];
+			}
+
+			return (int)SQL::insert("bigtree_page_revisions", $row);
 		}
 
 		/**
@@ -1365,7 +1399,7 @@
 			}
 
 			if ($to_remove) {
-				$placeholders = implode(",", array_fill(0, count($to_remove), "?"));
+				$placeholders = Sanitize::placeholders($to_remove);
 				$args = array_merge([(string)$page_id], array_values($to_remove));
 				SQL::query("DELETE FROM bigtree_tags_rel WHERE `table` = 'bigtree_pages' AND entry = ? AND tag IN ($placeholders)", ...$args);
 			}
@@ -1414,15 +1448,7 @@
 				$page_id
 			);
 
-			return array_map(function ($r) {
-
-				return [
-					"id" => (int)$r["id"],
-					"tag" => $r["tag"],
-					"route" => $r["route"],
-					"usage_count" => (int)$r["usage_count"],
-				];
-			}, $rows);
+			return array_map([TagService::class, "presentRow"], $rows);
 		}
 
 		private function loadOpenGraph($page_id) {

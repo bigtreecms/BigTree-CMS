@@ -2,16 +2,28 @@
 	namespace BigTree\Services;
 
 	use BigTree\Api\Entity;
+	use BigTree\Api\FieldSpec;
 	use BigTree\Api\JsonStore;
 	use BigTree\Api\Request;
 	use BigTree\Api\Response;
-	use BigTree\Api\Resources;
-	use BigTree\Api\Sanitize;
-	use BigTree\Api\Exceptions\BadRequestException;
 	use BigTreeJSONDB;
-	use BigTree;
 
 	class CalloutService {
+		// Column => transform verb (see FieldSpec). Create/update both use this map.
+		private const FIELDS = [
+			"name" => "encode",
+			"description" => "encode",
+			"level" => "int",
+			"resources" => "clean",
+			"display_field" => "string",
+			"display_default" => "string",
+		];
+
+		private const GROUP_FIELDS = [
+			"name" => "encode",
+			"callouts" => "array",
+		];
+
 		public function list(Request $request) {
 			$rows = BigTreeJSONDB::getAll("callouts", "position", "DESC");
 
@@ -27,25 +39,19 @@
 
 		public function create(Request $request) {
 			$d = $request->body;
-			$id = (string)$d["id"];
+			$id = (new JsonStore("callouts", "Callout"))->requireNewId($d);
 
-			if (!Sanitize::isValidId($id)) {
-				throw new BadRequestException("Callout id must be alphanumeric (with - or _) and ≤ 127 chars", "invalid_id");
+			// name defaults to the id when the caller omits it.
+			if (!isset($d["name"])) {
+				$d["name"] = $id;
 			}
 
-			(new JsonStore("callouts", "Callout"))->assertAbsent($id);
+			$insert = FieldSpec::insert($d, self::FIELDS);
+			$insert["id"] = $id;
+			$insert["position"] = 0;
 
 			BigTreeJSONDB::incrementPosition("callouts");
-			BigTreeJSONDB::insert("callouts", [
-				"id" => $id,
-				"name" => BigTree::safeEncode($d["name"] ?? $id),
-				"description" => BigTree::safeEncode($d["description"] ?? ""),
-				"level" => (int)($d["level"] ?? 0),
-				"resources" => Resources::clean($d["resources"] ?? []),
-				"display_field" => $d["display_field"] ?? "",
-				"display_default" => $d["display_default"] ?? "",
-				"position" => 0,
-			]);
+			BigTreeJSONDB::insert("callouts", $insert);
 
 			return Response::created($this->present(BigTreeJSONDB::get("callouts", $id)), null);
 		}
@@ -55,14 +61,7 @@
 			$existing = Entity::findOrFailJson("callouts", $id, "Callout");
 
 			$d = $request->body;
-			$next = array_merge($existing, [
-				"name" => isset($d["name"]) ? BigTree::safeEncode($d["name"]) : $existing["name"],
-				"description" => isset($d["description"]) ? BigTree::safeEncode($d["description"]) : ($existing["description"] ?? ""),
-				"level" => isset($d["level"]) ? (int)$d["level"] : (int)($existing["level"] ?? 0),
-				"resources" => isset($d["resources"]) ? Resources::clean($d["resources"]) : ($existing["resources"] ?? []),
-				"display_field" => $d["display_field"] ?? ($existing["display_field"] ?? ""),
-				"display_default" => $d["display_default"] ?? ($existing["display_default"] ?? ""),
-			]);
+			$next = array_merge($existing, FieldSpec::update($d, self::FIELDS));
 			BigTreeJSONDB::update("callouts", $id, $next);
 
 			return Response::ok($this->present(BigTreeJSONDB::get("callouts", $id)));
@@ -97,15 +96,16 @@
 
 		public function createGroup(Request $request) {
 			$d = $request->body;
-			$id = (string)$d["id"];
+			// requireNewId adds the isValidId guard that create siblings already had.
+			$id = (new JsonStore("callout-groups", "Callout group"))->requireNewId($d);
 
-			(new JsonStore("callout-groups", "Callout group"))->assertAbsent($id);
+			if (!isset($d["name"])) {
+				$d["name"] = $id;
+			}
 
-			BigTreeJSONDB::insert("callout-groups", [
-				"id" => $id,
-				"name" => BigTree::safeEncode($d["name"] ?? $id),
-				"callouts" => array_values((array)($d["callouts"] ?? [])),
-			]);
+			$insert = FieldSpec::insert($d, self::GROUP_FIELDS);
+			$insert["id"] = $id;
+			BigTreeJSONDB::insert("callout-groups", $insert);
 
 			return Response::created(BigTreeJSONDB::get("callout-groups", $id), null);
 		}
@@ -114,10 +114,7 @@
 			$id = $request->routeParam("id");
 			$existing = Entity::findOrFailJson("callout-groups", $id, "Callout group");
 			$d = $request->body;
-			$next = array_merge($existing, [
-				"name" => isset($d["name"]) ? BigTree::safeEncode($d["name"]) : $existing["name"],
-				"callouts" => isset($d["callouts"]) ? array_values((array)$d["callouts"]) : ($existing["callouts"] ?? []),
-			]);
+			$next = array_merge($existing, FieldSpec::update($d, self::GROUP_FIELDS));
 			BigTreeJSONDB::update("callout-groups", $id, $next);
 
 			return Response::ok(BigTreeJSONDB::get("callout-groups", $id));

@@ -84,16 +84,7 @@
 			}
 
 			$route = $this->uniqueModuleRoute($route);
-			$id = BigTreeJSONDB::insert("modules", [
-				"name" => BigTree::safeEncode($d["name"]),
-				"group" => $d["group"] ?? null,
-				"class" => $d["class"] ?? "",
-				"table" => $d["table"] ?? "",
-				"gbp" => $d["gbp"] ?? ["enabled" => false],
-				"icon" => $d["icon"] ?? "",
-				"route" => $route,
-				"position" => 0,
-			]);
+			$id = BigTreeJSONDB::insert("modules", $this->moduleInsertMap($d, $d["name"], $route));
 
 			return Response::created($this->present(BigTreeJSONDB::get("modules", $id)), null);
 		}
@@ -194,16 +185,10 @@
 			$view_type = ($d["view_type"] ?? "searchable") === "draggable" ? "draggable" : "searchable";
 
 			// — Everything validated; create the module record —
-			$module_id = BigTreeJSONDB::insert("modules", [
-				"name" => BigTree::safeEncode($name),
-				"group" => $d["group"] ?? null,
-				"class" => $class,
-				"table" => $table,
-				"gbp" => $d["gbp"] ?? ["enabled" => false],
-				"icon" => $d["icon"] ?? "",
-				"route" => $route,
-				"position" => 0,
-			]);
+			// Pass validated class/table via $d so the shared insert map picks them up.
+			$d["class"] = $class;
+			$d["table"] = $table;
+			$module_id = BigTreeJSONDB::insert("modules", $this->moduleInsertMap($d, $name, $route));
 
 			// — Build the table —
 			SQL::query("CREATE TABLE `$table` (`id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT, PRIMARY KEY (`id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci");
@@ -461,10 +446,7 @@
 				}
 			}
 
-			$r = Response::ok($payload);
-			$r->header("Cache-Control", "private, max-age=60");
-
-			return $r;
+			return Response::ok($payload)->cacheFor(60);
 		}
 
 		public function forms(Request $request) {
@@ -1183,6 +1165,25 @@
 		}
 
 		// — helpers —
+
+		/**
+		 * Shared 8-key insert map for create() and scaffold(). $name and $route
+		 * are already validated/normalized by the caller; class/table/group/icon/gbp
+		 * are read from $d with the same defaults both paths previously inlined.
+		 */
+		private function moduleInsertMap(array $d, string $name, string $route): array {
+
+			return [
+				"name" => BigTree::safeEncode($name),
+				"group" => $d["group"] ?? null,
+				"class" => $d["class"] ?? "",
+				"table" => $d["table"] ?? "",
+				"gbp" => $d["gbp"] ?? ["enabled" => false],
+				"icon" => $d["icon"] ?? "",
+				"route" => $route,
+				"position" => 0,
+			];
+		}
 
 		private function groupName(array $m): string {
 			if (empty($m["group"])) {

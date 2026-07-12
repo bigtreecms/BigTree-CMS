@@ -207,12 +207,8 @@
 					// Publishing promotes the pending draft to a live row; re-key its
 					// already-tracked allocations from "p{change}" onto the new live id.
 					$admin->updateResourceAllocation($table, $new_id, $pending_change_id);
-					$fresh = BigTreeAutoModule::getItem($table, $new_id);
-					Hooks::fire("module_entry.updated", [
-						"module" => $module_id, "table" => $table, "id" => $new_id, "item" => $fresh["item"] ?? $fresh,
-					]);
 
-					return Response::ok($fresh);
+					return $this->respondUpdated($module_id, $table, $new_id);
 				}
 
 				$entry_id = (int)$lookup_id;
@@ -228,12 +224,8 @@
 
 				BigTreeAutoModule::updateItem($table, $entry_id, $data, $mtm, $tags, $og);
 				$this->trackModuleResources($table, $entry_id, $data);
-				$fresh = BigTreeAutoModule::getItem($table, $entry_id);
-				Hooks::fire("module_entry.updated", [
-					"module" => $module_id, "table" => $table, "id" => $entry_id, "item" => $fresh["item"] ?? $fresh,
-				]);
 
-				return Response::ok($fresh);
+				return $this->respondUpdated($module_id, $table, $entry_id);
 			}
 
 			// submitChange requires a logged-in legacy admin ($admin->ID / ->track()),
@@ -304,7 +296,7 @@
 			$rows = [];
 
 			if ($ids) {
-				$placeholders = implode(",", array_fill(0, count($ids), "?"));
+				$placeholders = \BigTree\Api\Sanitize::placeholders($ids);
 				$fetched = SQL::fetchAll(
 					"SELECT * FROM `$table` WHERE id IN ($placeholders)",
 					...$ids
@@ -621,6 +613,20 @@
 			PermissionService::assertCanEditRow($request->user, $module, $existing["item"] ?? []);
 
 			return [$module_id, $raw_id, $module, $table, $is_pending, $lookup_id, $pending_change_id];
+		}
+
+		/**
+		 * Shared publish-respond block: fetch the fresh item, fire module_entry.updated,
+		 * and return a 200. Used by both update() publish branches (pending promote
+		 * and live update).
+		 */
+		private function respondUpdated(string $module_id, string $table, int $id): Response {
+			$fresh = BigTreeAutoModule::getItem($table, $id);
+			Hooks::fire("module_entry.updated", [
+				"module" => $module_id, "table" => $table, "id" => $id, "item" => $fresh["item"] ?? $fresh,
+			]);
+
+			return Response::ok($fresh);
 		}
 
 		/**

@@ -2,12 +2,11 @@
 	namespace BigTree\Services;
 
 	use BigTree\Api\Entity;
+	use BigTree\Api\FieldSpec;
 	use BigTree\Api\JsonStore;
 	use BigTree\Api\Request;
 	use BigTree\Api\Response;
 	use BigTree\Api\ETag;
-	use BigTree\Api\Flag;
-	use BigTree\Api\Sanitize;
 	use BigTree\Api\Exceptions\BadRequestException;
 	use BigTree\Api\Exceptions\NotFoundException;
 	use BigTreeAdmin;
@@ -20,6 +19,13 @@
 	 * mtime so unchanged registries are served as 304.
 	 */
 	class FieldTypeService {
+		// Column => transform verb (see FieldSpec). use_cases (normalizeUseCases)
+		// and the render-mode fields (applyRenderFields) stay as per-entity specials.
+		private const FIELDS = [
+			"name" => "encode",
+			"self_draw" => "checkbox",
+		];
+
 		public function list(Request $request) {
 			// Hash against the live JSONDB file BigTreeJSONDB actually reads/writes
 			// (custom/json-db/field-types.json) — not the install-time setup seed,
@@ -32,10 +38,9 @@
 			$etag = ETag::fromMtimes($paths);
 
 			if (ETag::check($request, $etag)) {
-				$r = Response::notModified($etag);
-				$r->header("Cache-Control", "private, no-cache");
-
-				return $r;
+				// no-cache so the browser revalidates with the ETag on every request
+				// instead of serving a stale 304 window.
+				return Response::notModified($etag)->noCache();
 			}
 
 			$split = $request->queryBool("split");
@@ -111,15 +116,13 @@
 				}
 			}
 
-			$r = Response::ok($payload);
-			$r->header("ETag", $etag);
 			// no-cache (not max-age) so the browser revalidates with the ETag on
 			// every request instead of serving a stale body for N seconds. The
 			// revalidation short-circuits to a cheap 304 above when unchanged, so
 			// this stays efficient while reflecting create/update/delete immediately.
-			$r->header("Cache-Control", "private, no-cache");
-
-			return $r;
+			return Response::ok($payload)
+				->header("ETag", $etag)
+				->noCache();
 		}
 
 		public function get(Request $request) {
@@ -141,20 +144,15 @@
 
 		public function create(Request $request) {
 			$d = $request->body;
-			$id = (string)$d["id"];
+			$id = (new JsonStore("field-types", "Field type"))->requireNewId($d);
 
-			if (!Sanitize::isValidId($id)) {
-				throw new BadRequestException("id must be alphanumeric (with - or _)", "invalid_id");
+			if (!isset($d["name"])) {
+				$d["name"] = $id;
 			}
 
-			(new JsonStore("field-types", "Field type"))->assertAbsent($id);
-
-			$record = [
-				"id" => $id,
-				"name" => BigTree::safeEncode($d["name"] ?? $id),
-				"use_cases" => $this->normalizeUseCases($d["use_cases"] ?? null),
-				"self_draw" => Flag::checkbox($d["self_draw"] ?? null),
-			];
+			$record = FieldSpec::insert($d, self::FIELDS);
+			$record["id"] = $id;
+			$record["use_cases"] = $this->normalizeUseCases($d["use_cases"] ?? null);
 
 			BigTreeJSONDB::insert("field-types", $this->applyRenderFields($record, $d));
 
@@ -165,11 +163,12 @@
 			$id = $request->routeParam("id");
 			$existing = Entity::findOrFailJson("field-types", $id, "Field type");
 			$d = $request->body;
-			$next = array_merge($existing, [
-				"name" => isset($d["name"]) ? BigTree::safeEncode($d["name"]) : $existing["name"],
-				"use_cases" => isset($d["use_cases"]) && is_array($d["use_cases"]) ? $this->normalizeUseCases($d["use_cases"]) : $existing["use_cases"],
-				"self_draw" => isset($d["self_draw"]) ? Flag::checkbox($d["self_draw"]) : ($existing["self_draw"] ?? ""),
-			]);
+			$next = array_merge($existing, FieldSpec::update($d, self::FIELDS));
+
+			if (isset($d["use_cases"]) && is_array($d["use_cases"])) {
+				$next["use_cases"] = $this->normalizeUseCases($d["use_cases"]);
+			}
+
 			BigTreeJSONDB::update("field-types", $id, $this->applyRenderFields($next, $d));
 
 			return Response::ok(BigTreeJSONDB::get("field-types", $id));
@@ -213,10 +212,7 @@
 					$schema["trust"] = "core";
 				}
 
-				$r = Response::ok($schema);
-				$r->header("Cache-Control", "private, max-age=300");
-
-				return $r;
+				return Response::ok($schema)->cacheFor(300);
 			}
 
 			// Fall back: custom or extension field type — registered in JSONDB. A
@@ -257,14 +253,11 @@
 					$payload["settings_schema"] = $this->readSettingsSchema($id);
 				}
 
-				$r = Response::ok($payload);
-				$r->header("Cache-Control", "private, max-age=60");
-
-				return $r;
+				return Response::ok($payload)->cacheFor(60);
 			}
 
 			if ($render === "declarative") {
-				$r = Response::ok([
+				return Response::ok([
 					"id" => $id,
 					"name" => $ft["name"] ?? $id,
 					"category" => "custom",
@@ -273,13 +266,10 @@
 					"contract_version" => (int)($ft["contract_version"] ?? 1),
 					"input_schema" => array_values($ft["input_schema"]),
 					"settings_schema" => is_array($ft["settings_schema"] ?? null) ? $ft["settings_schema"] : [],
-				]);
-				$r->header("Cache-Control", "private, max-age=60");
-
-				return $r;
+				])->cacheFor(60);
 			}
 
-			$r = Response::ok([
+			return Response::ok([
 				"id" => $id,
 				"name" => $ft["name"] ?? $id,
 				"category" => "custom",
@@ -289,10 +279,7 @@
 				"settings_schema" => [],
 				"self_draw" => !empty($ft["self_draw"]),
 				"render_fallback" => true,
-			]);
-			$r->header("Cache-Control", "private, max-age=60");
-
-			return $r;
+			])->cacheFor(60);
 		}
 
 		/**

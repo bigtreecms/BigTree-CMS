@@ -108,28 +108,6 @@
 			SQL::query("DELETE FROM bigtree_refresh_tokens WHERE expires_at < DATE_SUB(NOW(), INTERVAL 7 DAY)");
 		}
 
-		public static function cookieOptions() {
-
-			return [
-				"expires" => time() + self::TTL_SECONDS,
-				"path" => rtrim(ADMIN_ROOT, "/") . "/api/v1/auth",
-				"secure" => true,
-				"httponly" => true,
-				"samesite" => "Strict",
-			];
-		}
-
-		public static function clearCookieOptions() {
-
-			return [
-				"expires" => time() - 3600,
-				"path" => rtrim(ADMIN_ROOT, "/") . "/api/v1/auth",
-				"secure" => true,
-				"httponly" => true,
-				"samesite" => "Strict",
-			];
-		}
-
 		private static function randomToken() {
 
 			return Jwt::base64url(random_bytes(32));

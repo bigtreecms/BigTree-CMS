@@ -1,14 +1,16 @@
 <?php
 	namespace BigTree\Api;
 
+	use BigTree\Api\Exceptions\BadRequestException;
 	use BigTree\Api\Exceptions\ConflictException;
 	use BigTreeJSONDB;
 
 	/**
 	 * Thin helper bound to a single JSONDB store name + human label, encapsulating
 	 * the mechanical CRUD boilerplate the resource services (Callout, Template,
-	 * Feed, FieldType) otherwise repeat verbatim: the duplicate-id conflict guard,
-	 * the exists-or-404 delete guard, and the position-- reorder loop.
+	 * Feed, FieldType) otherwise repeat verbatim: the create-path id prologue,
+	 * the duplicate-id conflict guard, the exists-or-404 delete guard, and the
+	 * position-- reorder loop.
 	 *
 	 * Response mapping deliberately stays out — each service keeps its own
 	 * present(), since the response shape is entity-specific. This only collapses
@@ -22,6 +24,29 @@
 			private readonly string $store,
 			private readonly string $label
 		) {
+		}
+
+		/**
+		 * Create-path prologue: pull `id` from the request body, validate it as a
+		 * record key (Sanitize::isValidId), assert it is not already taken, and
+		 * return the validated string. One place so every JSONDB entity create
+		 * (including groups) shares the same invalid_id wording and guard.
+		 *
+		 * @param array $d Request body.
+		 */
+		public function requireNewId(array $d): string {
+			$id = (string)($d["id"] ?? "");
+
+			if (!Sanitize::isValidId($id)) {
+				throw new BadRequestException(
+					"{$this->label} id must be alphanumeric (with - or _) and ≤ 127 chars",
+					"invalid_id"
+				);
+			}
+
+			$this->assertAbsent($id);
+
+			return $id;
 		}
 
 		/**
