@@ -7,6 +7,7 @@
 	use BigTree\Api\Exceptions\NotFoundException;
 	use BigTree;
 	use SQL;
+	use BigTreeJSONDB;
 
 	/**
 	 * Module forms: CRUD over the form sub-resources stored in a module's JSONDB
@@ -407,4 +408,101 @@
 
 			return $schema;
 		}
+	
+		public static function getModuleForms($sort = "title", $module = false) {
+			$sort_parts = explode(" ", $sort);
+			$sort_column = $sort_parts[0] ?? "";
+			$sort_direction = $sort_parts[1] ?? "";
+
+			if ($module) {
+				$context = BigTreeJSONDB::getSubset("modules", $module);
+
+				return $context->getAll("forms", $sort_column, $sort_direction);
+			} else {
+				$forms = [];
+				$sort_field = [];
+				$modules = BigTreeJSONDB::getAll("modules");
+
+				foreach ($modules as $module) {
+					if (!empty($module["forms"])) {
+						$forms = array_merge($forms, array_filter((array) $module["forms"]));
+					}
+				}
+
+				foreach ($forms as $form) {
+					$sort_field[] = $form[$sort_column];
+				}
+
+				if ($sort_direction == "DESC") {
+					array_multisort($sort_field, SORT_DESC, $forms);
+				} else {
+					array_multisort($sort_field, SORT_ASC, $forms);
+				}
+
+				return $forms;
+			}
+		}
+
+		public static function getModuleActionForForm($form) {
+			if (is_array($form)) {
+				$form = $form["id"];
+			}
+
+			$modules = BigTreeJSONDB::getAll("modules");
+
+			foreach ($modules as $module) {
+				$matching_actions = array_filter($module["actions"], function($action) use ($form) {
+					return $action["form"] == $form;
+				});
+
+				foreach ($matching_actions as $action) {
+					if ($action["route"] == "edit") {
+						$action["module"] = $module["id"];
+
+						return $action;
+					}
+				}
+
+				if (count($matching_actions)) {
+					$matching_actions[0]["module"] = $module["id"];
+
+					return $matching_actions[0];
+				}
+			}
+		}
+
+		public static function getModuleEmbedForms($sort = "title", $module = false) {
+			$sort_parts = explode(" ", $sort);
+			$sort_column = $sort_parts[0] ?? "";
+			$sort_direction = $sort_parts[1] ?? "";
+
+			if ($module) {
+				$context = BigTreeJSONDB::getSubset("modules", $module);
+
+				return $context->getAll("embeddable-forms", $sort_column, $sort_direction);
+			} else {
+				$forms = [];
+				$sort_field = [];
+				$modules = BigTreeJSONDB::getAll("modules");
+
+				foreach ($modules as $module) {
+					if (!empty($module["embeddable-forms"])) {
+						$forms = array_merge($forms, array_filter((array) $module["embeddable-forms"]));
+					}
+				}
+
+				foreach ($forms as $form) {
+					$sort_field[] = $form[$sort_column];
+				}
+
+				if ($sort_direction == "DESC") {
+					array_multisort($sort_field, SORT_DESC, $forms);
+				} else {
+					array_multisort($sort_field, SORT_ASC, $forms);
+				}
+
+				return $forms;
+			}
+		}
+
 	}

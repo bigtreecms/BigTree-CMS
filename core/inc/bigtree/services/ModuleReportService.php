@@ -5,6 +5,7 @@
 	use BigTree\Api\Response;
 	use BigTree\Api\Exceptions\NotFoundException;
 	use BigTreeAutoModule;
+	use BigTreeJSONDB;
 
 	/**
 	 * Module reports: CRUD over the report sub-resources stored in a module's
@@ -260,4 +261,37 @@
 
 			return $out;
 		}
+	
+		public static function getModuleReports($sort = "title", $module = false) {
+			$sort_pieces = explode(" ", $sort);
+			$sort_column = $sort_pieces[0] ?? "";
+			$sort_direction = $sort_pieces[1] ?? "";
+
+			if ($module) {
+				$context = BigTreeJSONDB::getSubset("modules", $module);
+
+				return $context->getAll("reports", $sort_column, $sort_direction);
+			} else {
+				$reports = [];
+				$sort_field = [];
+				$modules = BigTreeJSONDB::getAll("modules");
+
+				foreach ($modules as $module) {
+					$reports = array_merge($reports, array_filter((array) $module["reports"]));
+				}
+
+				foreach ($reports as $report) {
+					$sort_field[] = $report[$sort_column];
+				}
+
+				if ($sort_direction == "DESC") {
+					array_multisort($sort_field, SORT_DESC, $reports);
+				} else {
+					array_multisort($sort_field, SORT_ASC, $reports);
+				}
+
+				return $reports;
+			}
+		}
+
 	}

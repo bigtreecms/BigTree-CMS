@@ -21,6 +21,10 @@
 	$bigtree["config"]["session_handler"] = "[session_handler]"; // Change to "db" to use BigTree's session handler or "default" for PHP's default
 	$bigtree["config"]["ssl_only_session_cookie"] = false;
 
+	// REST API / SPA JWT signing secret (HS256). Generated at install — keep private.
+	// Optional: set api.jwt_secret_previous when rotating secrets so in-flight tokens verify.
+	$bigtree["config"]["api"]["jwt_secret"] = "[jwt_secret]";
+
 	// Database Environment
 	$bigtree["config"]["db"]["host"] = "[host]";
 	$bigtree["config"]["db"]["name"] = "[db]";

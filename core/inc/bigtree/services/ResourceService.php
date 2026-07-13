@@ -13,7 +13,6 @@
 	use BigTree\Api\Exceptions\BadRequestException;
 	use BigTree\Api\Exceptions\AuthorizationException;
 	use BigTree;
-	use BigTreeAdmin;
 	use BigTreeAutoModule;
 	use BigTreeCMS;
 	use BigTreeImage;
@@ -646,7 +645,7 @@
 		 * Enriched "where is this file used" list for the SPA file detail panel. Each
 		 * allocation row is resolved into a human location + title + status, plus an
 		 * SPA link descriptor (no legacy ADMIN_ROOT URLs). Parallels the legacy admin's
-		 * BigTreeAdmin::getResourceAllocationUsage(), which emits ADMIN_ROOT links for
+		 * ResourceAllocationService::getResourceAllocationUsage(), which emits ADMIN_ROOT links for
 		 * the PHP file edit screen.
 		 */
 		public function usage(Request $request) {
@@ -655,7 +654,7 @@
 			$id = $request->id();
 			Entity::assertExists("bigtree_resources", $id, "Resource");
 
-			$allocations = BigTreeAdmin::getResourceAllocation($id);
+			$allocations = ResourceAllocationService::getResourceAllocation($id);
 			$usages = [];
 			$module_cache = [];
 
@@ -734,7 +733,7 @@
 					}
 				} elseif ($table === "bigtree_settings") {
 					$usage["location"] = "Settings";
-					$setting = BigTreeAdmin::getSetting($entry);
+					$setting = SettingService::readSetting($entry);
 					// Settings have no pending/archived lifecycle.
 					$usage["status"] = "published";
 
@@ -876,7 +875,7 @@
 					continue;
 				}
 
-				$action = BigTreeAdmin::getModuleActionForForm($form);
+				$action = ModuleFormService::getModuleActionForForm($form);
 
 				if ($action) {
 					$edit_route = $action["route"] ?? null;

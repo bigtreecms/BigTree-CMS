@@ -16,7 +16,7 @@
 	/**
 	 * Image form-field processing — the API equivalent of the legacy admin's
 	 * image field (core/admin/field-types/image/process.php +
-	 * BigTreeAdmin::processImageUpload / Admin::processCrops).
+	 * FieldProcessingService::processImageUpload / Admin::processCrops).
 	 *
 	 * Unlike ResourceService, this does NOT create media-library
 	 * (bigtree_resources) rows. It stores the original under the field's own
@@ -162,7 +162,7 @@
 		/**
 		 * Store the original + auto-generate thumbs/center-crops/exact crops, and
 		 * return the stored path plus any crops needing manual selection. Mirrors
-		 * BigTreeAdmin::processImageUpload minus the resource-row / global-crops
+		 * FieldProcessingService::processImageUpload minus the resource-row / global-crops
 		 * bits.
 		 *
 		 * When $in_place_path is given, $source is treated as an existing original

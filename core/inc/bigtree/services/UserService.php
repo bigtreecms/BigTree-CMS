@@ -11,7 +11,6 @@
 	use BigTree\Api\Exceptions\BadRequestException;
 	use BigTree\Api\Exceptions\ConflictException;
 	use BigTree\Api\Exceptions\AuthorizationException;
-	use BigTreeAdmin;
 	use BigTree;
 	use SQL;
 
@@ -195,7 +194,7 @@
 				throw new BadRequestException("new_password required", "missing_password");
 			}
 
-			if (!BigTreeAdmin::validatePassword($new)) {
+			if (!SecurityPolicyService::validatePassword($new)) {
 				throw new BadRequestException("Password does not meet policy requirements", "weak_password");
 			}
 

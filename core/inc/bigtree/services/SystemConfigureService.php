@@ -6,7 +6,6 @@
 	use BigTree\Api\Upload;
 	use BigTree\Api\Exceptions\BadRequestException;
 	use BigTree\Api\Exceptions\NotFoundException;
-	use BigTreeAdmin;
 	use BigTreeCMS;
 	use BigTreeJSONDB;
 	use BigTree;
@@ -56,7 +55,7 @@
 				"settings" => $settings,
 			];
 
-			BigTreeAdmin::updateInternalSettingValue("bigtree-internal-email-service", $next, true);
+			SettingService::updateInternalValue("bigtree-internal-email-service", $next, true);
 
 			return Response::ok($next);
 		}
@@ -89,7 +88,7 @@
 				"mapquest_key" => (string)($body["mapquest_key"] ?? ""),
 			];
 
-			BigTreeAdmin::updateInternalSettingValue("bigtree-internal-geocoding-service", $next, true);
+			SettingService::updateInternalValue("bigtree-internal-geocoding-service", $next, true);
 
 			return Response::ok($next);
 		}
@@ -140,7 +139,7 @@
 			}
 
 			$cloud[$provider] = $settings;
-			BigTreeAdmin::updateInternalSettingValue("bigtree-internal-cloud-storage", $cloud, true);
+			SettingService::updateInternalValue("bigtree-internal-cloud-storage", $cloud, true);
 
 			return Response::ok([
 				"active" => !empty($settings["active"]),
@@ -169,7 +168,7 @@
 			$settings["private_key"] = $target;
 			$cloud["google"] = $settings;
 
-			BigTreeAdmin::updateInternalSettingValue("bigtree-internal-cloud-storage", $cloud, true);
+			SettingService::updateInternalValue("bigtree-internal-cloud-storage", $cloud, true);
 
 			return Response::ok([
 				"active" => !empty($settings["active"]),
@@ -391,7 +390,7 @@
 				"settings" => $settings,
 			];
 
-			BigTreeAdmin::updateInternalSettingValue("bigtree-internal-payment-gateway", $next, true);
+			SettingService::updateInternalValue("bigtree-internal-payment-gateway", $next, true);
 
 			return Response::ok([
 				"service" => $service,
@@ -426,7 +425,7 @@
 				"settings" => $settings,
 			];
 
-			BigTreeAdmin::updateInternalSettingValue("bigtree-internal-payment-gateway", $next, true);
+			SettingService::updateInternalValue("bigtree-internal-payment-gateway", $next, true);
 
 			return Response::ok([
 				"service" => $next["service"],
@@ -448,7 +447,7 @@
 		}
 
 		public function disconnectAnalytics(Request $request) {
-			BigTreeAdmin::updateInternalSettingValue("bigtree-internal-google-analytics-4", [], true);
+			SettingService::updateInternalValue("bigtree-internal-google-analytics-4", [], true);
 
 			return Response::noContent();
 		}
@@ -536,7 +535,7 @@
 				throw new NotFoundException("Unknown service", "unknown_service");
 			}
 
-			BigTreeAdmin::updateInternalSettingValue(OAuthBrokerService::SERVICES[$service]["setting"], [], true);
+			SettingService::updateInternalValue(OAuthBrokerService::SERVICES[$service]["setting"], [], true);
 
 			return Response::noContent();
 		}

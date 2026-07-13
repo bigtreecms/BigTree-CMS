@@ -11,7 +11,6 @@
 	use BigTree\Api\Exceptions\BadRequestException;
 	use BigTree\Api\Exceptions\ConflictException;
 	use BigTree\Api\Exceptions\NotFoundException;
-	use BigTreeAdmin;
 	use BigTreeCMS;
 	use BigTreeUpdater;
 	use BigTree;
@@ -107,7 +106,7 @@
 		public function updateSecurityPolicy(Request $request) {
 			$existing = BigTreeCMS::getSetting("bigtree-internal-security-policy") ?: [];
 			$merged = array_replace_recursive(is_array($existing) ? $existing : [], $request->body);
-			BigTreeAdmin::updateInternalSettingValue("bigtree-internal-security-policy", $merged);
+			SettingService::updateInternalValue("bigtree-internal-security-policy", $merged);
 
 			return Response::ok($merged);
 		}
@@ -220,13 +219,13 @@
 				}
 			};
 
-			$forms = array_merge(BigTreeAdmin::getModuleForms(), BigTreeAdmin::getModuleEmbedForms());
+			$forms = array_merge(ModuleFormService::getModuleForms(), ModuleFormService::getModuleEmbedForms());
 
 			foreach ($forms as $form) {
 				$recurse_fields($form["fields"]);
 			}
 
-			$templates = array_merge(BigTreeAdmin::getTemplates(), BigTreeAdmin::getCallouts());
+			$templates = array_merge(TemplateService::getTemplates(), CalloutService::getCallouts());
 
 			foreach ($templates as $template) {
 				$recurse_fields($template["resources"]);
@@ -235,7 +234,7 @@
 			// — Pages whose content links directly to the admin —
 			// The SPA builds its own link from page_id/nav_title (legacy emitted
 			// raw <a> markup pointing at the old admin route).
-			foreach (BigTreeAdmin::getPageAdminLinks() as $page) {
+			foreach (PageService::getPageAdminLinks() as $page) {
 				$warnings[] = [
 					"parameter" => "Bad Admin Links",
 					"rec" => "Remove links to the admin in this page's content.",
@@ -625,7 +624,7 @@
 			} else {
 				// Remember an operator-supplied path so a later retry can suggest it,
 				// mirroring the legacy set-ftp-directory step.
-				BigTreeAdmin::updateInternalSettingValue("bigtree-internal-ftp-upgrade-root", $ftp_root);
+				SettingService::updateInternalValue("bigtree-internal-ftp-upgrade-root", $ftp_root);
 
 				if (!$updater->Connection->changeDirectory(rtrim($ftp_root, "/") . "/core/inc/bigtree/")) {
 					return Response::ok(["ok" => false, "needs_ftp_root" => true, "method" => $updater->Method, "bad_root" => $ftp_root]);
@@ -691,9 +690,7 @@
 
 			global $admin, $cms, $bigtree;
 
-			if (!($admin instanceof BigTreeAdmin)) {
-				$admin = new BigTreeAdmin();
-			}
+			$admin = LegacyAdmin::bridge($request->user ?? null);
 
 			if (!($cms instanceof BigTreeCMS)) {
 				$cms = new BigTreeCMS();

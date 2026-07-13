@@ -12,7 +12,6 @@
 	use BigTree\Api\Exceptions\ConflictException;
 	use BigTree\Api\Exceptions\AuthorizationException;
 	use BigTree\WebAuthn;
-	use BigTreeAdmin;
 	use BigTreeCMS;
 	use BigTree;
 	use Exception;
@@ -39,7 +38,7 @@
 		 * beyond what the login UI itself reveals.
 		 */
 		public function loginPolicy(Request $request) {
-			$policy = BigTreeAdmin::getSecurityPolicy();
+			$policy = SecurityPolicyService::getSecurityPolicy();
 
 			return Response::ok([
 				"remember_disabled" => !empty($policy["remember_disabled"]),
@@ -52,7 +51,7 @@
 		 * admin does the same in login/process.php).
 		 */
 		private function rememberRequested(Request $request) {
-			if (!empty(BigTreeAdmin::getSecurityPolicy()["remember_disabled"])) {
+			if (!empty(SecurityPolicyService::getSecurityPolicy()["remember_disabled"])) {
 				return false;
 			}
 
@@ -70,13 +69,13 @@
 
 			$ip = ip2long($request->ip) ?: null;
 
-			if (BigTreeAdmin::isIPBanned($ip)) {
+			if (SecurityPolicyService::isIPBanned($ip)) {
 				throw new AuthorizationException("IP is temporarily banned", "ip_banned");
 			}
 
 			$user = SQL::fetch("SELECT * FROM bigtree_users WHERE LOWER(email) = ?", $email);
 
-			if ($user && BigTreeAdmin::isUserBanned($user["id"])) {
+			if ($user && SecurityPolicyService::isUserBanned($user["id"])) {
 				throw new AuthorizationException("User is temporarily banned", "user_banned");
 			}
 
@@ -104,7 +103,7 @@
 			// are issued (legacy redirects to login/2fa/setup at this point). The
 			// setup token authorizes only the enrollment endpoints below. Passkey
 			// logins bypass this gate — WebAuthn is already a strong factor.
-			if ((BigTreeAdmin::getSecurityPolicy()["two_factor"] ?? "") === "google") {
+			if ((SecurityPolicyService::getSecurityPolicy()["two_factor"] ?? "") === "google") {
 				$setup_token = $this->issueMfaPartial((int)$user["id"], $remember, true);
 
 				return Response::ok(["two_factor_setup_required" => true, "setup_token" => $setup_token]);
@@ -149,7 +148,7 @@
 			// before the one-shot clear below. Re-clamped against the policy in case
 			// it changed between the password step and the code entry.
 			$remember = $this->tokenRemember($user["2fa_login_token"])
-				&& empty(BigTreeAdmin::getSecurityPolicy()["remember_disabled"]);
+				&& empty(SecurityPolicyService::getSecurityPolicy()["remember_disabled"]);
 
 			// One-shot: clear the token so the partial can't be reused.
 			SQL::update("bigtree_users", $user["id"], ["2fa_login_token" => ""]);
@@ -232,7 +231,7 @@
 			// The setup token carries the original "remember me" choice; read it
 			// before the one-shot clear, re-clamped against the current policy.
 			$remember = $this->tokenRemember($setup_token)
-				&& empty(BigTreeAdmin::getSecurityPolicy()["remember_disabled"]);
+				&& empty(SecurityPolicyService::getSecurityPolicy()["remember_disabled"]);
 
 			SQL::update("bigtree_users", $user["id"], [
 				"2fa_secret" => $secret,
@@ -336,7 +335,7 @@
 			}
 
 			// Best-effort teardown of the legacy PHP session the bridge endpoint
-			// may have established (mirrors BigTreeAdmin::logout's cookie/session
+			// may have established (mirrors the legacy logout cookie/session
 			// clearing, minus the redirect).
 			$this->destroyPhpSession();
 
@@ -347,7 +346,7 @@
 		 * POST /auth/php-session
 		 * Bridges the SPA's token auth into the legacy PHP session so the
 		 * front-end BigTree bar / on-page editing work after an SPA-only login.
-		 * Mirrors the session-establishment half of BigTreeAdmin::login
+		 * Mirrors the session-establishment half of the legacy admin login
 		 * (single-site path): a bigtree_user_sessions chain, the
 		 * bigtree_admin[*] cookies, and the $_SESSION["bigtree_admin"] payload.
 		 *
@@ -370,7 +369,7 @@
 
 			$remember = $this->rememberRequested($request);
 
-			// CSRF token + session chain, generated exactly like BigTreeAdmin::login.
+			// CSRF token + session chain, generated exactly like the legacy admin login.
 			$csrf_token = base64_encode(random_bytes(32));
 			$csrf_token_field = "__csrf_token_" . BigTree::randomString(32) . "__";
 
@@ -577,7 +576,7 @@
 		public function passkeyVerify(Request $request) {
 			$ip = ip2long($request->ip) ?: null;
 
-			if (BigTreeAdmin::isIPBanned($ip)) {
+			if (SecurityPolicyService::isIPBanned($ip)) {
 				throw new AuthorizationException("IP is temporarily banned", "ip_banned");
 			}
 
@@ -602,7 +601,7 @@
 				throw new AuthenticationException("Passkey challenge invalid or expired", "invalid_challenge");
 			}
 
-			$passkey = BigTreeAdmin::getPasskeyByCredentialId($credential_id);
+			$passkey = PasskeyService::getPasskeyByCredentialId($credential_id);
 
 			if (!$passkey) {
 				$this->recordFailedAttempt($ip, null);
@@ -616,7 +615,7 @@
 				throw new AuthenticationException("Credential's user no longer exists", "unknown_user");
 			}
 
-			if (BigTreeAdmin::isUserBanned($user["id"])) {
+			if (SecurityPolicyService::isUserBanned($user["id"])) {
 				throw new AuthorizationException("User is temporarily banned", "user_banned");
 			}
 
@@ -643,7 +642,7 @@
 			}
 
 			SQL::update("bigtree_passkey_challenges", $challenge_row["id"], ["consumed" => 1]);
-			BigTreeAdmin::updatePasskeyUsed($passkey["id"], $new_sign_count);
+			PasskeyService::updatePasskeyUsed($passkey["id"], $new_sign_count);
 
 			return $this->issueTokens($user, $request, $this->rememberRequested($request));
 		}
@@ -696,7 +695,7 @@
 				throw new BadRequestException("token and password required", "missing_fields");
 			}
 
-			if (!BigTreeAdmin::validatePassword($password)) {
+			if (!SecurityPolicyService::validatePassword($password)) {
 				throw new BadRequestException("Password does not meet policy requirements", "weak_password");
 			}
 
@@ -751,7 +750,7 @@
 			$rp_id = $parsed["host"] ?? "";
 			$rp_name = $bigtree["config"]["domain_name"] ?? ($parsed["host"] ?? "BigTree");
 
-			$existing_ids = array_map(function ($p) { return $p["credential_id"]; }, BigTreeAdmin::getUserPasskeys($user_id));
+			$existing_ids = array_map(function ($p) { return $p["credential_id"]; }, PasskeyService::getUserPasskeys($user_id));
 
 			$options = WebAuthn::getRegistrationOptions(
 				$rp_id, $rp_name, $user_id, $user["email"], $user["name"] ?: $user["email"], $existing_ids
@@ -806,7 +805,7 @@
 
 			SQL::update("bigtree_passkey_challenges", $challenge_row["id"], ["consumed" => 1]);
 
-			$passkey_id = BigTreeAdmin::createPasskey(
+			$passkey_id = PasskeyService::createPasskey(
 				$user_id,
 				$credential["credential_id"],
 				$credential["public_key"],
@@ -828,7 +827,7 @@
 		 * GET /auth/passkeys — list current user's passkeys.
 		 */
 		public function listPasskeys(Request $request) {
-			$rows = BigTreeAdmin::getUserPasskeys((int)$request->user->id);
+			$rows = PasskeyService::getUserPasskeys((int)$request->user->id);
 
 			return Response::ok(array_map(function ($p) {
 
@@ -848,7 +847,7 @@
 		 */
 		public function deletePasskey(Request $request) {
 			$passkey_id = $request->id();
-			BigTreeAdmin::deletePasskey($passkey_id, (int)$request->user->id);
+			PasskeyService::deletePasskey($passkey_id, (int)$request->user->id);
 
 			return Response::noContent();
 		}

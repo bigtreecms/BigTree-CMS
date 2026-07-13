@@ -12,10 +12,11 @@
 	use BigTree\Api\Exceptions\BadRequestException;
 	use BigTree\Api\Exceptions\NotFoundException;
 	use BigTree\Api\Exceptions\AuthorizationException;
-	use BigTreeAdmin;
 	use BigTreeCMS;
 	use BigTree;
 	use SQL;
+	use BigTreeJSONDB;
+	use TextStatistics;
 
 	/**
 	 * Page CRUD, tree navigation, revisions, archive/publish, reorder, search.
@@ -177,7 +178,7 @@
 		}
 
 		// GET /pages/{id}/seo-rating — score the page's live content with the same
-		// algorithm as the legacy admin (BigTreeAdmin::getPageSEORating: title, meta
+		// algorithm as the legacy admin (PageService::getPageSEORating: title, meta
 		// description, H1, content length/links/readability, freshness). Returns the
 		// 0-100 score, the human recommendations, and the legacy gradient color so
 		// the SPA can render the rating verbatim.
@@ -188,7 +189,7 @@
 			$page = Entity::findOrFail("bigtree_pages", $id, "Page");
 
 			$content = Json::decode($page["resources"]);
-			$seo = BigTreeAdmin::getPageSEORating($page, $content);
+			$seo = PageService::getPageSEORating($page, $content);
 
 			// getPageSEORating returns null when the template can't be resolved (e.g.
 			// an external link or a removed template) — there's nothing to rate.
@@ -528,7 +529,7 @@
 			foreach (SQL::fetchAllSingle(
 				"SELECT id FROM bigtree_pending_changes WHERE `table` = 'bigtree_pages' AND item_id = ?", $id
 			) as $stale_change_id) {
-				\BigTreeAdmin::deallocateResources("bigtree_pages", "p".$stale_change_id);
+				\BigTree\Services\ResourceAllocationService::deallocateResources("bigtree_pages", "p".$stale_change_id);
 			}
 
 			SQL::delete("bigtree_pending_changes", ["table" => "bigtree_pages", "item_id" => $id]);
@@ -658,7 +659,7 @@
 			SQL::delete("bigtree_pending_changes", (int)$row["id"]);
 			// performCreate/performUpdate already allocated against the live page id;
 			// drop the now-deleted draft's allocations so they don't dangle.
-			\BigTreeAdmin::deallocateResources("bigtree_pages", "p".(int)$row["id"]);
+			\BigTree\Services\ResourceAllocationService::deallocateResources("bigtree_pages", "p".(int)$row["id"]);
 
 			return $result;
 		}
@@ -1193,7 +1194,7 @@
 
 		/**
 		 * Find a route that doesn't collide with another sibling page. At top level
-		 * (parent=0) the route additionally can't collide with one of BigTreeAdmin's
+		 * (parent=0) the route additionally can't collide with one of the reserved-route list's
 		 * reserved top-level routes (ajax, css, feeds, js, sitemap.xml, _preview,
 		 * _preview-pending, etc.) or with a directory name under site/. We auto-suffix
 		 * with -2, -3, ... until clear (mirrors legacy createPage:1593-1612).
@@ -1205,7 +1206,7 @@
 
 			// Reserved-route check at top level.
 			if ((int)$parent === 0) {
-				$reserved = \BigTreeAdmin::$ReservedTLRoutes ?? [];
+				$reserved = PageService::reservedTopLevelRoutes() ?? [];
 				$site_dirs = $this->reservedSiteDirectories();
 				while (in_array($route, $reserved, true) || in_array($route, $site_dirs, true)) {
 					$route = $base . "-" . $x++;
@@ -1303,9 +1304,9 @@
 		 */
 		private function allocatePageResources($entry, $template_id, array $data): void {
 			$template = $template_id ? \BigTreeJSONDB::get("templates", (string)$template_id) : null;
-			$reference_keys = \BigTreeAdmin::getResourceReferenceKeys($template["resources"] ?? []);
+			$reference_keys = \BigTree\Services\ResourceAllocationService::getResourceReferenceKeys($template["resources"] ?? []);
 
-			\BigTreeAdmin::allocateResourcesFromData("bigtree_pages", $entry, $data, $reference_keys);
+			\BigTree\Services\ResourceAllocationService::allocateResourcesFromData("bigtree_pages", $entry, $data, $reference_keys);
 		}
 
 		private function repathChildren($old_path, $new_path) {
@@ -1323,12 +1324,12 @@
 			foreach ($children as $cid) {
 				// Drop resource allocations for the page and any queued drafts before
 				// the row goes away, so nothing dangles in bigtree_resource_allocation.
-				\BigTreeAdmin::deallocateResources("bigtree_pages", (int)$cid);
+				\BigTree\Services\ResourceAllocationService::deallocateResources("bigtree_pages", (int)$cid);
 
 				foreach (SQL::fetchAllSingle(
 					"SELECT id FROM bigtree_pending_changes WHERE `table` = 'bigtree_pages' AND item_id = ?", (int)$cid
 				) as $change_id) {
-					\BigTreeAdmin::deallocateResources("bigtree_pages", "p".$change_id);
+					\BigTree\Services\ResourceAllocationService::deallocateResources("bigtree_pages", "p".$change_id);
 				}
 
 				SQL::delete("bigtree_pages", (int)$cid);
@@ -1511,5 +1512,265 @@
 			}
 
 			return $out;
+		}
+	
+		public static function getPageSEORating($page, $content) {
+			$template = BigTreeCMS::getTemplate($page["template"]);
+
+			if (empty($template)) {
+				return null;
+			}
+
+			$tsources = [];
+			$h1_field = "";
+			$body_fields = [];
+
+			if (is_array($template["resources"])) {
+				foreach ($template["resources"] as $item) {
+					if (isset($item["seo_body"]) && $item["seo_body"]) {
+						$body_fields[] = $item["id"];
+					}
+					if (isset($item["seo_h1"]) && $item["seo_h1"]) {
+						$h1_field = $item["id"];
+					}
+					$tsources[$item["id"]] = $item;
+				}
+			}
+
+			if (!$h1_field && !empty($tsources["page_header"])) {
+				$h1_field = "page_header";
+			}
+
+			if (!count($body_fields) && !empty($tsources["page_content"])) {
+				$body_fields[] = "page_content";
+			}
+
+			$textStats = new TextStatistics;
+			$recommendations = [];
+
+			$score = 0;
+
+			// Check if they have a page title.
+			if ($page["title"]) {
+				$score += 5;
+				// They have a title, let's see if it's unique
+				$r = sqlrows(sqlquery("SELECT * FROM bigtree_pages WHERE title = '".sqlescape($page["title"])."' AND id != '".sqlescape($page["id"])."'"));
+				if ($r == 0) {
+					// They have a unique title
+					$score += 5;
+				} else {
+					$recommendations[] = "Your page title should be unique. ".($r - 1)." other page(s) have the same title.";
+				}
+				$words = $textStats->word_count($page["title"]);
+				$length = mb_strlen($page["title"]);
+				if ($words >= 4 && $length <= 72) {
+					// Fits the bill!
+					$score += 5;
+				} else {
+					$recommendations[] = "Your page title should be no more than 72 characters and should contain at least 4 words.";
+				}
+			} else {
+				$recommendations[] = "You should enter a page title.";
+			}
+
+			// Check for meta description
+			if ($page["meta_description"]) {
+				$score += 5;
+				// They have a meta description, let's see if it's no more than 165 characters.
+				if (mb_strlen($page["meta_description"]) <= 165) {
+					$score += 5;
+				} else {
+					$recommendations[] = "Your meta description should be no more than 165 characters. It is currently ".mb_strlen($page["meta_description"])." characters.";
+				}
+			} else {
+				$recommendations[] = "You should enter a meta description.";
+			}
+
+			// Check for an H1
+			if (!$h1_field || $content[$h1_field]) {
+				$score += 10;
+			} else {
+				$recommendations[] = "You should enter a page header.";
+			}
+			// Check the content!
+			if (!count($body_fields)) {
+				// If this template doesn't for some reason have a seo body resource, give the benefit of the doubt.
+				$score += 65;
+			} else {
+				$regular_text = "";
+				$stripped_text = "";
+				foreach ($body_fields as $field) {
+					if (!is_array($content[$field])) {
+						$regular_text .= $content[$field]." ";
+						$stripped_text .= strip_tags($content[$field])." ";
+					}
+				}
+				// Check to see if there is any content
+				if ($stripped_text) {
+					$score += 5;
+					$words = $textStats->word_count($stripped_text);
+					$readability = $textStats->flesch_kincaid_reading_ease($stripped_text);
+					if ($readability < 0) {
+						$readability = 0;
+					}
+					$number_of_links = substr_count($regular_text, "<a ");
+					$number_of_external_links = substr_count($regular_text, 'href="http://');
+
+					// See if there are at least 300 words.
+					if ($words >= 300) {
+						$score += 15;
+					} else {
+						$recommendations[] = "You should enter at least 300 words of page content. You currently have ".$words." word(s).";
+					}
+
+					// See if we have any links
+					if ($number_of_links) {
+						$score += 5;
+						// See if we have at least one link per 120 words.
+						if (floor($words / 120) <= $number_of_links) {
+							$score += 5;
+						} else {
+							$recommendations[] = "You should have at least one link for every 120 words of page content. You currently have $number_of_links link(s). You should have at least ".floor($words / 120).".";
+						}
+						// See if we have any external links.
+						if ($number_of_external_links) {
+							$score += 5;
+						} else {
+							$recommendations[] = "Having an external link helps build Page Rank.";
+						}
+					} else {
+						$recommendations[] = "You should have at least one link in your content.";
+					}
+
+					// Check on our readability score.
+					if ($readability >= 90) {
+						$score += 20;
+					} else {
+						$read_score = round(($readability / 90), 2);
+						$recommendations[] = "Your readability score is ".($read_score * 100)."%. Using shorter sentences and words with fewer syllables will make your site easier to read by search engines and users.";
+						$score += ceil($read_score * 20);
+					}
+				} else {
+					$recommendations[] = "You should enter page content.";
+				}
+
+				// Check page freshness
+				$updated = strtotime($page["updated_at"]);
+				$age = time() - $updated - (60 * 24 * 60 * 60);
+				// See how much older it is than 2 months.
+				if ($age > 0) {
+					$age_score = 10 - floor(2 * ($age / (30 * 24 * 60 * 60)));
+					if ($age_score < 0) {
+						$age_score = 0;
+					}
+					$score += $age_score;
+					$recommendations[] = "Your content is around ".ceil(2 + ($age / (30 * 24 * 60 * 60)))." months old. Updating your page more frequently will make it rank higher.";
+				} else {
+					$score += 10;
+				}
+			}
+
+			$color = "#008000";
+			if ($score <= 50) {
+				$color = BigTree::colorMesh("#CCAC00", "#FF0000", 100 - (100 * $score / 50));
+			} elseif ($score <= 80) {
+				$color = BigTree::colorMesh("#008000", "#CCAC00", 100 - (100 * ($score - 50) / 30));
+			}
+
+			return ["score" => $score, "recommendations" => $recommendations, "color" => $color];
+		}
+
+		public static function getPageIds() {
+			$ids = [];
+			$q = sqlquery("SELECT id FROM bigtree_pages WHERE archived != 'on' ORDER BY id ASC");
+			while ($f = sqlfetch($q)) {
+				$ids[] = $f["id"];
+			}
+
+			return $ids;
+		}
+
+		public static function getPageAdminLinks() {
+			global $bigtree;
+			$pages = [];
+			$q = sqlquery("SELECT * FROM bigtree_pages WHERE REPLACE(resources,'{adminroot}js/embeddable-form.js','') LIKE '%{adminroot}%' OR resources LIKE '%".$bigtree["config"]["admin_root"]."%' OR resources LIKE '%".str_replace($bigtree["config"]["www_root"], "{wwwroot}", $bigtree["config"]["admin_root"])."%'");
+			while ($f = sqlfetch($q)) {
+				$pages[] = $f;
+			}
+
+			return $pages;
+		}
+
+	
+		/**
+		 * Reserved top-level page routes, including the admin path first segment
+		 * (mirrors legacy admin constructor append of admin_root).
+		 */
+		public static function reservedTopLevelRoutes(): array {
+			$routes = [
+				"ajax",
+				"css",
+				"feeds",
+				"js",
+				"sitemap.xml",
+				"_preview",
+				"_preview-pending",
+			];
+
+			if (defined("ADMIN_ROOT") && defined("WWW_ROOT")) {
+				$ar = explode("/", str_replace(WWW_ROOT, "", ADMIN_ROOT));
+
+				if (!empty($ar[0]) && !in_array($ar[0], $routes, true)) {
+					$routes[] = $ar[0];
+				}
+			}
+
+			return $routes;
+		}
+	
+		public static function getPageIDForPath($path, $previewing = false) {
+			$commands = [];
+
+			// Get any GET variables and hashes and remove them
+			$url_parse = parse_url(implode("/", array_values($path)));
+			$query_vars = $url_parse["query"] ?? "";
+			$hash = $url_parse["fragment"] ?? "";
+			$path = !empty($url_parse["path"]) ? explode("/", rtrim($url_parse["path"], "/")) : [];
+
+			if (!$previewing) {
+				$publish_at = "AND (publish_at <= NOW() OR publish_at IS NULL) AND (expire_at >= NOW() OR expire_at IS NULL)";
+			} else {
+				$publish_at = "";
+			}
+
+			// See if we have a straight up perfect match to the path.
+			$page = SQL::fetch("SELECT id, template FROM bigtree_pages WHERE path = ? AND archived = '' $publish_at", implode("/", $path));
+
+			if ($page) {
+				$template = BigTreeJSONDB::get("templates", $page["template"]);
+
+				return [$page["id"], [], $template["routed"] ?? false, $query_vars, $hash];
+			}
+
+			// Guess we don't, let's chop off commands until we find a page.
+			$x = 0;
+
+			while ($x < count($path)) {
+				$x++;
+				$commands[] = $path[count($path) - $x];
+
+				// We have additional commands, so we're now making sure the template is also routed, otherwise it's a 404.
+				$page = SQL::fetch("SELECT id, template FROM bigtree_pages WHERE path = ? AND archived = '' $publish_at", implode("/", array_slice($path, 0, -1 * $x)));
+
+				if ($page) {
+					$template = BigTreeJSONDB::get("templates", $page["template"]);
+
+					if (!empty($template["routed"])) {
+						return [$page["id"], array_reverse($commands), "on", $query_vars, $hash];
+					}
+				}
+			}
+
+			return [false, false, false, false, false];
 		}
 	}

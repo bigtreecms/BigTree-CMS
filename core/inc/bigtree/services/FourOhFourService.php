@@ -11,6 +11,7 @@
 	use BigTree\Api\Exceptions\BadRequestException;
 	use BigTree;
 	use SQL;
+	use BigTreeCMS;
 
 	/**
 	 * Manage the bigtree_404s table: 404 log, 301 redirects, ignored URLs.
@@ -124,7 +125,7 @@
 
 		/**
 		 * Manually add a single 301 redirect. Runs through
-		 * BigTreeAdmin::create301 so the source URL is parsed (full URL or
+		 * FourOhFourService::create301 so the source URL is parsed (full URL or
 		 * domain-relative fragment), the site key inferred where possible, the
 		 * destination converted to an internal-page link, and any existing entry
 		 * for the same source updated rather than duplicated.
@@ -135,11 +136,11 @@
 			$to = trim((string)$d["to"]);
 			$site_key = trim((string)($d["site_key"] ?? "")) ?: null;
 
-			$admin = new \BigTreeAdmin();
-			$admin->create301($from, $to, $site_key);
+			$actor_id = isset($request->user) ? (int)($request->user->id ?? 0) ?: null : null;
+			self::create301($from, $to, $site_key, $actor_id);
 
-			$parsed = \BigTreeAdmin::parse404SourceURL($from, $site_key);
-			$row = \BigTreeAdmin::getExisting404($parsed["url"], $parsed["get_vars"], $parsed["site_key"]);
+			$parsed = self::parse404SourceURL($from, $site_key);
+			$row = self::getExisting404($parsed["url"], $parsed["get_vars"], $parsed["site_key"]);
 
 			return Response::created($this->present($row), null);
 		}
@@ -196,7 +197,7 @@
 		/**
 		 * Bulk-import 301 redirects from an uploaded CSV (one `from,to` pair per
 		 * row). Mirrors the legacy dashboard import: each row runs through
-		 * BigTreeAdmin::create301, which parses the source URL, de-dupes against
+		 * FourOhFourService::create301, which parses the source URL, de-dupes against
 		 * existing entries (updating rather than duplicating), converts internal
 		 * link targets to IPLs, and cleans stale route history. A header row whose
 		 * first cell looks like a label ("from"/"source"/"url") is skipped.
@@ -211,7 +212,7 @@
 
 			$site_key = $request->bodyString("site_key") ?: null;
 			$first_row_titles = $request->bodyBool("first_row_titles");
-			$admin = new \BigTreeAdmin();
+			$actor_id = isset($request->user) ? (int)($request->user->id ?? 0) ?: null : null;
 
 			$imported = 0;
 			$skipped = 0;
@@ -241,7 +242,7 @@
 					continue;
 				}
 
-				$admin->create301($from, $to, $site_key);
+				self::create301($from, $to, $site_key, $actor_id);
 				$imported++;
 			}
 
@@ -262,5 +263,95 @@
 				"site_key" => $r["site_key"],
 				"type" => Flag::isOn($r["ignored"]) ? "ignored" : ($r["redirect_url"] !== "" ? "301" : "404"),
 			];
+		}
+	
+		public static function parse404SourceURL($source, $site_key = null) {
+			global $bigtree;
+
+			$source = trim($source);
+
+			// If this is a multi-site environment and a full URL was pasted in we're going to auto-select the key no matter what they passed in
+			if (!is_null($site_key)) {
+				$from_domain = parse_url($source, PHP_URL_HOST);
+
+				foreach ($bigtree["config"]["sites"] as $index => $site) {
+					$domain = parse_url($site["domain"], PHP_URL_HOST);
+
+					if ($domain == $from_domain) {
+						$site_key = $index;
+						$source = str_replace($site["www_root"], "", $source);
+					}
+				}
+			}
+
+			// Allow for from URLs with GET vars
+			$source_parts = parse_url($source);
+			$get_vars = "";
+
+			if (!empty($source_parts["query"])) {
+				$source = str_replace("?".$source_parts["query"], "", $source);
+				$get_vars = sqlescape(htmlspecialchars($source_parts["query"]));
+			}
+
+			return [
+				"url" => htmlspecialchars(strip_tags(trim(str_replace(WWW_ROOT, "", $source), "/"))),
+				"get_vars" => $get_vars,
+				"site_key" => $site_key
+			];
+		}
+
+		public static function getExisting404($url, $get_vars, $site_key = null) {
+			if (!empty($get_vars)) {
+				if (!is_null($site_key)) {
+					return SQL::fetch("SELECT * FROM bigtree_404s WHERE `broken_url` = ? AND get_vars = ? AND `site_key` = ?", $url, $get_vars, $site_key);
+				} else {
+					return SQL::fetch("SELECT * FROM bigtree_404s WHERE `broken_url` = ? AND get_vars = ?", $url, $get_vars);
+				}
+			} else {
+				if (!is_null($site_key)) {
+					return SQL::fetch("SELECT * FROM bigtree_404s WHERE `broken_url` = ? AND get_vars = '' AND `site_key` = ?", $url, $site_key);
+				} else {
+					return SQL::fetch("SELECT * FROM bigtree_404s WHERE `broken_url` = ? AND get_vars = ''", $url);
+				}
+			}
+		}
+
+		public static function create301($from, $to, $site_key = null, $actor_id = null) {
+			global $bigtree;
+
+			// See if the from already exists
+			$sanitized_input = static::parse404SourceURL($from, $site_key);
+			$from = $sanitized_input["url"];
+			$get_vars = $sanitized_input["get_vars"];
+			$site_key = $sanitized_input["site_key"];
+			$to = sqlescape(htmlspecialchars(LinkService::autoIPL(trim($to))));
+			$existing = static::getExisting404($from, $get_vars, $site_key);
+			$history_cleaned = false;
+
+			if ($site_key) {
+				foreach (BigTreeCMS::$SiteRoots as $site_path => $data) {
+					if ($data["key"] == $site_key) {
+						$history_cleaned = true;
+						SQL::delete("bigtree_route_history", ["old_route" => ltrim($site_path."/".$from, "/")]);
+					}
+				}
+			}
+
+			if (!$history_cleaned) {
+				SQL::delete("bigtree_route_history", ["old_route" => $from]);
+			}
+
+			if ($existing) {
+				sqlquery("UPDATE bigtree_404s SET `redirect_url` = '$to' WHERE id = '".$existing["id"]."'");
+				if ($actor_id !== null) { AuditService::write("bigtree_404s", $existing["id"], "updated", $actor_id); }
+			} else {
+				if (!is_null($site_key)) {
+					sqlquery("INSERT INTO bigtree_404s (`broken_url`, `get_vars`, `redirect_url`, `site_key`) VALUES ('$from', '$get_vars', '$to', '".sqlescape($site_key)."')");
+				} else {
+					sqlquery("INSERT INTO bigtree_404s (`broken_url`, `get_vars`, `redirect_url`) VALUES ('$from', '$get_vars', '$to')");
+				}
+
+				if ($actor_id !== null) { AuditService::write("bigtree_404s", sqlid(), "created", $actor_id); }
+			}
 		}
 	}

@@ -11,7 +11,6 @@
 	use BigTree\Api\Exceptions\BadRequestException;
 	use BigTree\Api\Exceptions\ConflictException;
 	use BigTree\Api\Exceptions\NotFoundException;
-	use BigTreeAdmin;
 	use BigTreeCMS;
 	use BigTreeJSONDB;
 	use BigTree;
@@ -269,7 +268,7 @@
 
 			$this->insertScaffoldAction($context, $module_id, "View $view_title", "", true, "list", null, $view_id, 1);
 
-			BigTreeAdmin::updateModuleViewColumnNumericStatusForTable($table);
+			ModuleViewService::updateModuleViewColumnNumericStatusForTable($table);
 
 			return Response::created($this->present(BigTreeJSONDB::get("modules", $module_id)), null);
 		}
@@ -277,7 +276,7 @@
 		// Insert a module action via the JSONDB subset, mirroring createAction's
 		// position handling. Used only by scaffold().
 		private function insertScaffoldAction($context, $module_id, $name, $route, $in_nav, $icon, $form, $view, $position) {
-			$route = BigTreeAdmin::uniqueModuleActionRoute($module_id, (string)$route);
+			$route = ModuleService::uniqueModuleActionRoute($module_id, (string)$route);
 
 			if ((int)$position === 0) {
 				$context->incrementPosition("actions");
@@ -486,7 +485,7 @@
 				$route_raw = BigTreeCMS::urlify((string)($d["name"] ?? ""));
 			}
 
-			$route = BigTreeAdmin::uniqueModuleActionRoute($module_id, $route_raw);
+			$route = ModuleService::uniqueModuleActionRoute($module_id, $route_raw);
 			$position = (int)($d["position"] ?? 0);
 
 			if ($position === 0) {
@@ -584,7 +583,7 @@
 					$route_raw = BigTreeCMS::urlify((string)($d["name"] ?? ($existing["name"] ?? "")));
 				}
 
-				$update["route"] = BigTreeAdmin::uniqueModuleActionRoute($module_id, $route_raw, $action_id);
+				$update["route"] = ModuleService::uniqueModuleActionRoute($module_id, $route_raw, $action_id);
 			}
 
 			// Render mode (custom module action vs auto/legacy). Switching into "module"
@@ -889,7 +888,7 @@
 		 *   { "values": { <column>: <value>, ... } }
 		 *
 		 * Mirrors the legacy embeddable-form/process.php: runs the form's pre
-		 * hook (if any), processes each field via BigTreeAdmin::processField to
+		 * hook (if any), processes each field via FieldProcessingService::processField to
 		 * apply per-type sanitization, then writes either directly via
 		 * createItem or as a pending change via createPendingItem (driven by
 		 * `default_pending` on the form). Post/publish hooks run on success.
@@ -922,7 +921,7 @@
 			// ids into IRLsCreated as they run; reset it so we allocate only this
 			// submission's resources after the row is written (mirrors the legacy
 			// embeddable-form/process.php).
-			\BigTreeAdmin::$IRLsCreated = [];
+			ResourceAllocationService::$IRLsCreated = [];
 
 			foreach ($fields as $resource) {
 				if (!is_array($resource)) {
@@ -945,7 +944,7 @@
 					"file_input" => null,
 				];
 
-				$output = \BigTreeAdmin::processField($field);
+				$output = \BigTree\Services\FieldProcessingService::processField($field);
 
 				if (!is_null($output)) {
 					$entry[$column] = $output;
@@ -980,7 +979,7 @@
 			}
 
 			// Track resource allocation against the new row (pending rows key on "p{id}").
-			\BigTreeAdmin::allocateResources($form["table"], $pending ? "p".$edit_id : $edit_id);
+			\BigTree\Services\ResourceAllocationService::allocateResources($form["table"], $pending ? "p".$edit_id : $edit_id);
 
 			if (!empty($form["hooks"]["post"]) && is_callable($form["hooks"]["post"])) {
 				call_user_func($form["hooks"]["post"], $edit_id, $entry, !$pending);
@@ -1237,4 +1236,74 @@
 				"position" => (int)($m["position"] ?? 0),
 			];
 		}
+	
+		public static function getModule($id) {
+			$module = BigTreeJSONDB::get("modules", $id);
+
+			if (empty($module)) {
+				return null;
+			}
+
+			if (empty($module["actions"]) || !is_array($module["actions"])) {
+				$module["actions"] = [];
+			}
+
+			if (empty($module["views"]) || !is_array($module["views"])) {
+				$module["views"] = [];
+			}
+
+			if (empty($module["forms"]) || !is_array($module["forms"])) {
+				$module["forms"] = [];
+			}
+
+			if (empty($module["embeddable-forms"]) || !is_array($module["embeddable-forms"])) {
+				$module["embeddable-forms"] = [];
+			}
+
+			if (empty($module["reports"]) || !is_array($module["reports"])) {
+				$module["reports"] = [];
+			}
+
+			return $module;
+		}
+
+		public static function getModuleGroup($id) {
+			return BigTreeJSONDB::get("module-groups", $id);
+		}
+
+		public static function getModuleActions($module) {
+			if (is_array($module)) {
+				$module = $module["id"];
+			}
+
+			$context = BigTreeJSONDB::getSubset("modules", $module);
+			$actions = $context->getAll("actions", "position");
+
+			foreach ($actions as $index => $action) {
+				$actions[$index]["module"] = $module;
+			}
+
+			return $actions;
+		}
+
+		public static function uniqueModuleActionRoute($module, $route, $action = false) {
+			$module = BigTreeJSONDB::get("modules", $module);
+			$oroute = $route;
+			$x = 2;
+
+			do {
+				$exists = false;
+
+				foreach ($module["actions"] as $module_action) {
+					if ($module_action["id"] != $action && $module_action["route"] == $route) {
+						$exists = true;
+						$route = $oroute."-".$x;
+						$x++;
+					}
+				}
+			} while ($exists);
+
+			return $route;
+		}
+
 	}

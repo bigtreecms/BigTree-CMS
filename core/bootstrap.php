@@ -183,13 +183,26 @@
 	// Lazy loading of modules
 	$bigtree["module_list"] = $cms->ModuleClassList;
 
-	// Setup admin class if it's custom, but don't instantiate the $admin var.
-	if (defined("BIGTREE_CUSTOM_ADMIN_CLASS") && BIGTREE_CUSTOM_ADMIN_CLASS) {
-		include_once SITE_ROOT.BIGTREE_CUSTOM_ADMIN_CLASS_PATH;
-		eval("class BigTreeAdmin extends ".BIGTREE_CUSTOM_ADMIN_CLASS." {}");
-	} else {
-		class BigTreeAdmin extends BigTreeAdminBase {};
-	}
+	// Lazy-declare BigTreeAdmin so admin.php is only parsed by surfaces that
+	// genuinely need it: SPA admin router, cron, front-end toolbar, field-type
+	// process/draw includes, upgrade/migrate scripts, multi-site loginSession,
+	// and API paths that still go through LegacyAdmin::bridge(). The classic
+	// PHP admin UI is gone; this class is a compatibility facade, not a UI.
+	// Registered before any consumer can touch the class.
+	spl_autoload_register(function ($class) {
+		if ($class !== "BigTreeAdmin") {
+			return;
+		}
+
+		include_once BigTree::path("inc/bigtree/admin.php");
+
+		if (defined("BIGTREE_CUSTOM_ADMIN_CLASS") && BIGTREE_CUSTOM_ADMIN_CLASS) {
+			include_once SITE_ROOT.BIGTREE_CUSTOM_ADMIN_CLASS_PATH;
+			eval("class BigTreeAdmin extends ".BIGTREE_CUSTOM_ADMIN_CLASS." {}");
+		} else {
+			eval("class BigTreeAdmin extends BigTreeAdminBase {}");
+		}
+	}, true, true);
 
 	// If we're in the process of logging into sites
 	if (defined("BIGTREE_SITE_KEY") && isset($_GET["bigtree_login_redirect_session_key"])) {

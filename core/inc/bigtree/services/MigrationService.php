@@ -3,7 +3,6 @@
 
 	use SQL;
 	use BigTreeCMS;
-	use BigTreeAdmin;
 
 	/**
 	 * Migration ledger (017 Phase 1 + 2a).
@@ -125,7 +124,7 @@
 				return;
 			}
 
-			BigTreeAdmin::updateInternalSettingValue("bigtree-internal-revision", $max_applied);
+			SettingService::updateInternalValue("bigtree-internal-revision", $max_applied);
 		}
 
 		/**

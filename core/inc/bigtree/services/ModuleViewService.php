@@ -4,6 +4,8 @@
 	use BigTree\Api\Request;
 	use BigTree\Api\Response;
 	use BigTree;
+	use BigTreeJSONDB;
+	use BigTreeAutoModule;
 
 	/**
 	 * Module views: CRUD over the view sub-resources stored in a module's JSONDB
@@ -118,4 +120,72 @@
 
 			return $this->deleteSubCascade($request, "views", "view", "View");
 		}
+	
+		public static function getModuleViews($sort = "title", $module = false) {
+			$sort_pieces = explode(" ", $sort);
+			$sort_column = $sort_pieces[0] ?? "";
+			$sort_direction = $sort_pieces[1] ?? "";
+
+			if ($module) {
+				$context = BigTreeJSONDB::getSubset("modules", $module);
+
+				return $context->getAll("views", $sort_column, $sort_direction);
+			} else {
+				$views = [];
+				$sort_field = [];
+				$modules = BigTreeJSONDB::getAll("modules");
+
+				foreach ($modules as $module) {
+					$views = array_merge($views, array_filter((array) $module["views"]));
+				}
+
+				foreach ($views as $view) {
+					$sort_field[] = $view[$sort_column];
+				}
+
+				if ($sort_direction == "DESC") {
+					array_multisort($sort_field, SORT_DESC, $views);
+				} else {
+					array_multisort($sort_field, SORT_ASC, $views);
+				}
+
+				return $views;
+			}
+		}
+
+		public static function updateModuleViewColumnNumericStatusForTable($table_name) {
+			$modules = BigTreeJSONDB::getAll("modules");
+
+			foreach ($modules as $module) {
+				foreach ($module["views"] as $view) {
+					if ($view["table"] == $table_name) {
+						if (is_array($view["fields"])) {
+							$form = BigTreeAutoModule::getRelatedFormForView($view);
+							$table = BigTree::describeTable($view["table"]);
+
+							foreach ($view["fields"] as $key => $field) {
+								$numeric = false;
+								$type = $table["columns"][$key]["type"];
+
+								if (in_array($type, ["int", "float", "double", "double precision", "tinyint", "smallint", "mediumint", "bigint", "real", "decimal", "dec", "fixed", "numeric"])) {
+									$numeric = true;
+								}
+
+								if (!empty($field["parser"]) ||
+									(!empty($form["fields"][$key]["type"]) && $form["fields"][$key]["type"] == "list" && $form["fields"][$key]["settings"]["list_type"] == "db")
+								) {
+									$numeric = false;
+								}
+
+								$view["fields"][$key]["numeric"] = $numeric;
+							}
+
+							$context = BigTreeJSONDB::getSubset("modules", $module["id"]);
+							$context->update("views", $view["id"], $view);
+						}
+					}
+				}
+			}
+		}
+
 	}

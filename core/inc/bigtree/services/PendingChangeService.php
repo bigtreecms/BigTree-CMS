@@ -8,7 +8,6 @@
 	use BigTree\Api\Response;
 	use BigTree\Api\Exceptions\AuthorizationException;
 	use BigTree\Api\Exceptions\BadRequestException;
-	use BigTreeAdmin;
 	use BigTreeAutoModule;
 	use BigTreeJSONDB;
 	use SQL;
@@ -124,7 +123,7 @@
 
 			SQL::delete("bigtree_pending_changes", $id);
 			// Discard the draft's resource allocations (mirrors legacy reject-change.php).
-			BigTreeAdmin::deallocateResources($row["table"], "p".$id);
+			ResourceAllocationService::deallocateResources($row["table"], "p".$id);
 
 			return Response::noContent();
 		}
@@ -134,16 +133,10 @@
 		/**
 		 * Re-key a published draft's resource allocations from its "p{change}" entry
 		 * onto the new live row id. updateResourceAllocation is a legacy instance
-		 * method, so bridge in a bare BigTreeAdmin the way the other write services do.
+		 * method (now static on ResourceAllocationService).
 		 */
 		private function reallocatePendingResources(string $table, $live_id, int $change_id): void {
-			global $admin;
-
-			if (!($admin instanceof BigTreeAdmin)) {
-				$admin = new BigTreeAdmin();
-			}
-
-			$admin->updateResourceAllocation($table, $live_id, $change_id);
+			ResourceAllocationService::updateResourceAllocation($table, $live_id, $change_id);
 		}
 
 		private function enforceVisibility($user, array $row) {

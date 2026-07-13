@@ -10,7 +10,6 @@
 	use BigTree\Api\Exceptions\ConflictException;
 	use BigTree\Api\Exceptions\NotFoundException;
 	use BigTree;
-	use BigTreeAdmin;
 	use BigTreeAutoModule;
 	use BigTreeCMS;
 	use BigTreeJSONDB;
@@ -21,7 +20,7 @@
 	 * from the legacy admin's extensions module — update detection, refresh hooks
 	 * cache, install (upload), in-place upgrade, and the build/packaging wizard.
 	 *
-	 * The heavy domain logic (installExtension, cacheHooks) lives on BigTreeAdmin;
+	 * The heavy domain logic (installExtension) still lives on the legacy admin facade;
 	 * we orchestrate a fresh instance the same way other services do
 	 * (AutoModuleService, SystemService) rather than re-implementing it.
 	 */
@@ -37,7 +36,7 @@
 
 		public function get(Request $request) {
 			$id = $request->routeParam("id");
-			$ext = BigTreeAdmin::getExtension($id);
+			$ext = ExtensionService::getExtension($id);
 
 			if (!$ext) {
 				throw new NotFoundException("Extension $id not found");
@@ -47,7 +46,7 @@
 
 		public function delete(Request $request) {
 			$id = $request->routeParam("id");
-			$ext = BigTreeAdmin::getExtension($id);
+			$ext = ExtensionService::getExtension($id);
 
 			if (!$ext) {
 				throw new NotFoundException("Extension $id not found");
@@ -87,8 +86,7 @@
 		// POST /extensions/recache-hooks — rebuild cache/bigtree-hooks.json from every
 		// installed extension's hooks/ directory (legacy recache-hooks.php).
 		public function recacheHooks(Request $request) {
-			$admin = new BigTreeAdmin();
-			$admin->cacheHooks();
+			\BigTree\Api\Hooks::rebuildCache();
 
 			return Response::ok(["status" => "ok"]);
 		}
@@ -97,7 +95,7 @@
 		// revision of each installed extension and flag the ones with a newer version
 		// (legacy extensions/default.php). Read-only; never writes.
 		public function updates(Request $request) {
-			$extensions = BigTreeAdmin::getExtensions();
+			$extensions = ExtensionService::getExtensions();
 			$query = [];
 
 			foreach ($extensions as $extension) {
@@ -245,7 +243,7 @@
 				throw new ConflictException("An extension with the id " . $manifest["id"] . " is already installed.", "already_installed");
 			}
 
-			$admin = new BigTreeAdmin();
+			$admin = LegacyAdmin::bridge($request->user ?? null);
 			$admin->installExtension($manifest);
 
 			// Run the optional install.php with the legacy globals in scope so existing
@@ -268,7 +266,7 @@
 		// FTP should upload the new version via the installer instead.
 		public function upgrade(Request $request) {
 			$id = $request->routeParam("id");
-			$ext = BigTreeAdmin::getExtension($id);
+			$ext = ExtensionService::getExtension($id);
 
 			if (!$ext) {
 				throw new NotFoundException("Extension $id not found");
@@ -357,12 +355,12 @@
 			BigTree::deleteDirectory($stage);
 			@unlink($zip_path);
 
-			$admin = new BigTreeAdmin();
+			$admin = LegacyAdmin::bridge($request->user ?? null);
 			$admin->installExtension($new_manifest, $old_manifest);
 
 			$output = $this->runExtensionScript($ext_dir . "update.php");
 
-			$admin->cacheHooks();
+			\BigTree\Api\Hooks::rebuildCache();
 
 			return Response::ok([
 				"id" => $id,
@@ -408,7 +406,7 @@
 		// user to trim before packaging.
 		public function buildInspect(Request $request) {
 			$d = $request->body;
-			$admin = new BigTreeAdmin();
+			$admin = LegacyAdmin::bridge($request->user ?? null);
 
 			$modules = array_filter((array)($d["modules"] ?? []));
 			$templates = array_filter((array)($d["templates"] ?? []));
@@ -604,7 +602,7 @@
 		// any existing package, writes the manifest, zips, and records the extension.
 		public function buildPackage(Request $request) {
 			$d = $request->body;
-			$admin = new BigTreeAdmin();
+			$admin = LegacyAdmin::bridge($request->user ?? null);
 			$available_licenses = $this->availableLicenses();
 
 			$id = trim((string)($d["id"] ?? ""));
@@ -867,7 +865,7 @@
 			}
 
 			SQL::query("SET foreign_key_checks = 1");
-			$admin->cacheHooks();
+			\BigTree\Api\Hooks::rebuildCache();
 
 			return Response::created([
 				"id" => $id,
@@ -1039,4 +1037,17 @@
 				"installed_at" => $ext["installed_at"] ?? null,
 			];
 		}
+	
+		public static function getExtension($id) {
+			return BigTreeJSONDB::get("extensions", $id);
+		}
+
+		public static function getExtensions($sort = "name ASC") {
+			$sort_pieces = explode(" ", $sort);
+			$sort_column = $sort_pieces[0] ?? "";
+			$sort_direction = $sort_pieces[1] ?? "";
+
+			return BigTreeJSONDB::getAll("extensions", $sort_column, $sort_direction ?: "ASC");
+		}
+
 	}

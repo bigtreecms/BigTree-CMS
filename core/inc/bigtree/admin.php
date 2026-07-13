@@ -248,11 +248,7 @@
 		*/
 
 		public static function trackResource($resource) {
-			$resource = intval($resource);
-
-			if ($resource > 0) {
-				static::$IRLsCreated[] = $resource;
-			}
+			\BigTree\Services\ResourceAllocationService::trackResource($resource);
 		}
 
 		/*
@@ -264,49 +260,7 @@
 		*/
 
 		public static function getResourceUrlPrefixes() {
-			global $bigtree;
-
-			static $prefixes = null;
-
-			if ($prefixes !== null) {
-				return $prefixes;
-			}
-
-			$roots = [];
-			$add_root = function($root) use (&$roots) {
-				if (!is_string($root) || $root === "") {
-					return;
-				}
-
-				if (substr($root, 0, 7) !== "http://" && substr($root, 0, 8) !== "https://" && substr($root, 0, 2) !== "//") {
-					return;
-				}
-
-				$roots[] = rtrim($root, "/")."/";
-			};
-
-			$add_root(WWW_ROOT);
-			$add_root(STATIC_ROOT);
-
-			if (!empty($bigtree["config"]["sites"]) && is_array($bigtree["config"]["sites"])) {
-				foreach ($bigtree["config"]["sites"] as $site) {
-					$add_root($site["www_root"] ?? "");
-					$add_root($site["static_root"] ?? "");
-				}
-			}
-
-			BigTreeCMS::generateReplaceableRoots();
-
-			foreach (BigTreeCMS::$ReplaceableRoots as $hard_root => $token) {
-				$add_root($hard_root);
-			}
-
-			$prefixes = array_values(array_unique($roots));
-			usort($prefixes, function($a, $b) {
-				return strlen($b) - strlen($a);
-			});
-
-			return $prefixes;
+			return \BigTree\Services\ResourceAllocationService::getResourceUrlPrefixes();
 		}
 
 		/*
@@ -318,65 +272,7 @@
 		*/
 
 		public static function getKnownResourcePrefixes() {
-			static $prefixes = null;
-
-			if ($prefixes !== null) {
-				return $prefixes;
-			}
-
-			$found = [];
-			$add_prefix_list = function($list) use (&$found, &$add_prefix_list) {
-				if (!is_array($list)) {
-					return;
-				}
-
-				foreach ($list as $entry) {
-					if (!is_array($entry)) {
-						continue;
-					}
-
-					if (!empty($entry["prefix"])) {
-						$found[] = $entry["prefix"];
-					}
-
-					$add_prefix_list($entry["thumbs"] ?? null);
-					$add_prefix_list($entry["center_crops"] ?? null);
-				}
-			};
-
-			$settings = BigTreeJSONDB::get("config", "media-settings");
-
-			if (!empty($settings["presets"]) && is_array($settings["presets"])) {
-				foreach ($settings["presets"] as $preset) {
-					$add_prefix_list($preset["crops"] ?? null);
-					$add_prefix_list($preset["thumbs"] ?? null);
-					$add_prefix_list($preset["center_crops"] ?? null);
-				}
-			}
-
-			// Resources keep the prefixes they were generated with, even if media settings have since changed
-			foreach (SQL::fetchAll("SELECT DISTINCT crops, thumbs FROM bigtree_resources WHERE crops != '' OR thumbs != ''") as $row) {
-				foreach ([$row["crops"], $row["thumbs"]] as $encoded) {
-					$data = $encoded ? json_decode($encoded, true) : null;
-
-					if (!is_array($data)) {
-						continue;
-					}
-
-					foreach ($data as $prefix => $dimensions) {
-						if (is_string($prefix) && $prefix !== "") {
-							$found[] = $prefix;
-						}
-					}
-				}
-			}
-
-			$prefixes = array_values(array_unique(array_filter($found)));
-			usort($prefixes, function($a, $b) {
-				return strlen($b) - strlen($a);
-			});
-
-			return $prefixes;
+			return \BigTree\Services\ResourceAllocationService::getKnownResourcePrefixes();
 		}
 
 		/*
@@ -391,35 +287,7 @@
 		*/
 
 		public static function getResourcePathFromUrl($url) {
-			if (!is_string($url) || $url === "") {
-				return false;
-			}
-
-			if (strpos($url, "files/resources/") === 0) {
-				return $url;
-			}
-
-			$path = parse_url($url, PHP_URL_PATH);
-
-			if (is_string($path)) {
-				$path = ltrim($path, "/");
-
-				if (strpos($path, "files/resources/") === 0) {
-					return $path;
-				}
-			}
-
-			foreach (static::getResourceUrlPrefixes() as $prefix) {
-				if (strpos($url, $prefix) === 0) {
-					$remainder = ltrim(substr($url, strlen($prefix)), "/");
-
-					if (strpos($remainder, "files/resources/") === 0) {
-						return $remainder;
-					}
-				}
-			}
-
-			return false;
+			return \BigTree\Services\ResourceAllocationService::getResourcePathFromUrl($url);
 		}
 
 		/*
@@ -434,41 +302,7 @@
 		*/
 
 		public static function getResourceByUrl($url) {
-			if (array_key_exists($url, static::$ResourceByUrlCache)) {
-				return static::$ResourceByUrlCache[$url] ?: false;
-			}
-
-			$resource = static::getResourceByFile($url);
-
-			if ($resource) {
-				static::$ResourceByUrlCache[$url] = $resource;
-
-				return $resource;
-			}
-
-			$path = static::getResourcePathFromUrl($url);
-
-			if ($path) {
-				$resource = static::getResourceByFile($path);
-
-				if ($resource) {
-					static::$ResourceByUrlCache[$url] = $resource;
-
-					return $resource;
-				}
-
-				$resource = static::getResourceByFile(BigTreeCMS::replaceHardRoots($url));
-
-				if ($resource) {
-					static::$ResourceByUrlCache[$url] = $resource;
-
-					return $resource;
-				}
-			}
-
-			static::$ResourceByUrlCache[$url] = false;
-
-			return false;
+			return \BigTree\Services\ResourceAllocationService::getResourceByUrl($url);
 		}
 
 		/*
@@ -477,16 +311,7 @@
 		*/
 
 		public static function primeResourceFileCache() {
-			if (static::$ResourceFileCachePrimed) {
-				return;
-			}
-
-			static::$ResourceFileCachePrimed = true;
-
-			// Only ids are cached up front to keep memory low; lookups pull full rows on demand
-			foreach (SQL::fetchAll("SELECT id, file FROM bigtree_resources") as $resource) {
-				static::cacheResourceByFile($resource["file"], intval($resource["id"]));
-			}
+			\BigTree\Services\ResourceAllocationService::primeResourceFileCache();
 		}
 
 		private static function cacheResourceByFile($file, $item) {
@@ -510,12 +335,7 @@
 		*/
 
 		public static function trackResourcesInValue($value, $reference_keys = null) {
-			$resources = [];
-			static::collectResourcesInValue($value, $resources, $reference_keys, null);
-
-			foreach ($resources as $resource) {
-				static::trackResource($resource);
-			}
+			return \BigTree\Services\ResourceAllocationService::trackResourcesInValue($value, $reference_keys);
 		}
 
 		/*
@@ -531,10 +351,7 @@
 		*/
 
 		public static function findResourcesInData($data, $reference_keys = null) {
-			$resources = [];
-			static::collectResourcesInValue($data, $resources, $reference_keys, null);
-
-			return array_values(array_unique(array_filter(array_map("intval", $resources))));
+			return \BigTree\Services\ResourceAllocationService::findResourcesInData($data, $reference_keys);
 		}
 
 		private static function collectResourcesInValue($value, &$resources, $reference_keys, $current_key) {
@@ -595,18 +412,7 @@
 		*/
 
 		public static function allocateResources($table, $entry) {
-			SQL::delete("bigtree_resource_allocation", ["table" => $table, "entry" => $entry]);
-
-			foreach (array_unique(static::$IRLsCreated) as $resource) {
-				SQL::insert("bigtree_resource_allocation", [
-					"table" => $table,
-					"entry" => $entry,
-					"resource" => $resource,
-					"updated_at" => "NOW()"
-				]);
-			}
-
-			static::$IRLsCreated = [];
+			return \BigTree\Services\ResourceAllocationService::allocateResources($table, $entry);
 		}
 
 		/*
@@ -625,9 +431,7 @@
 		*/
 
 		public static function allocateResourcesFromData($table, $entry, $data, $reference_keys = null) {
-			static::$IRLsCreated = [];
-			static::trackResourcesInValue($data, $reference_keys);
-			static::allocateResources($table, $entry);
+			return \BigTree\Services\ResourceAllocationService::allocateResourcesFromData($table, $entry, $data, $reference_keys);
 		}
 
 		/*
@@ -646,13 +450,7 @@
 		*/
 
 		public static function getResourceReferenceKeys($fields, $types = null) {
-			if ($types === null) {
-				$types = ["image-reference", "file-reference", "video-reference"];
-			}
-
-			$callout_group_cache = [];
-
-			return static::walkResourceReferenceKeys($fields, $types, $callout_group_cache);
+			return \BigTree\Services\ResourceAllocationService::getResourceReferenceKeys($fields, $types);
 		}
 
 		private static function walkResourceReferenceKeys($fields, $types, &$callout_group_cache) {
@@ -787,21 +585,7 @@
 		*/
 
 		public static function autoIPL($html) {
-			if (empty($html)) {
-				return $html;
-			}
-
-			// If this string is actually just a URL, IPL it.
-			if ((substr($html, 0, 7) == "http://" || substr($html, 0, 8) == "https://") && strpos($html, "\n") === false && strpos($html, "\r") === false) {
-				$html = static::makeIPL($html);
-				// Otherwise, switch all the image srcs and javascripts srcs and whatnot to {wwwroot}.
-			} else {
-				$html = preg_replace_callback('/href="([^"]*)"/', ["BigTreeAdmin", "autoIPLCallbackHref"], $html);
-				$html = preg_replace_callback('/src="([^"]*)"/', ["BigTreeAdmin", "autoIPLCallbackSrc"], $html);
-				$html = BigTreeCMS::replaceHardRoots($html);
-			}
-
-			return $html;
+			return \BigTree\Services\LinkService::autoIPL($html);
 		}
 
 		private static function autoIPLCallbackHref($matches) {
@@ -868,28 +652,7 @@
 		*/
 
 		public function cacheHooks() {
-			$hooks = [];
-			$extensions = BigTreeJSONDB::getAll("extensions");
-
-			foreach ($extensions as $extension) {
-				$base_dir = SERVER_ROOT."extensions/".$extension["id"]."/hooks/";
-
-				if (file_exists($base_dir)) {
-					$hook_files = BigTree::directoryContents($base_dir, true, "php");
-
-					foreach ($hook_files as $file) {
-						$parts = explode("/", str_replace($base_dir, "", substr($file, 0, -4)));
-
-						if (count($parts) == 2) {
-							$hooks[$parts[0]][$parts[1]][] = str_replace(SERVER_ROOT, "", $file);
-						} elseif (count($parts) == 1) {
-							$hooks[$parts[0]][] = str_replace(SERVER_ROOT, "", $file);
-						}
-					}
-				}
-			}
-
-			BigTree::putFile(SERVER_ROOT."cache/bigtree-hooks.json", BigTree::json($hooks));
+			\BigTree\Api\Hooks::rebuildCache();
 		}
 
 		/*
@@ -1081,114 +844,7 @@
 		*/
 
 		public static function checkHTML($relative_path, $html, $external = false) {
-			if (!$html || !is_string($html)) {
-				return [];
-			}
-
-			$errors = [];
-			$doc = new DOMDocument();
-			@$doc->loadHTML($html); // Silenced because the HTML could be invalid.
-			// Check A tags.
-			$links = $doc->getElementsByTagName("a");
-			foreach ($links as $link) {
-				$href = $link->getAttribute("href");
-				$href = BigTreeCMS::replaceRelativeRoots($href);
-
-				if ($href == WWW_ROOT || $href == STATIC_ROOT || $href == ADMIN_ROOT) {
-					continue;
-				}
-
-				// See if the link matches something local
-				$local = false;
-
-				if (substr($href, 0, 4) == "http") {
-					foreach (BigTreeCMS::$ReplaceableRootTokens as $local_key) {
-						if (strpos($href, $local_key) === 0) {
-							$local = true;
-						}
-					}
-				}
-
-				if ((substr($href, 0, 2) == "//" || substr($href, 0, 4) == "http") && !$local) {
-					// External link, not much we can do but alert that it's dead
-					if ($external) {
-						if (!static::urlExists($href)) {
-							$errors["a"][] = $href;
-						}
-					}
-				} elseif (substr($href, 0, 6) == "ipl://") {
-					if (!static::iplExists($href)) {
-						$errors["a"][] = $href;
-					}
-				} elseif (substr($href, 0, 6) == "irl://") {
-					if (!static::irlExists($href)) {
-						$errors["a"][] = $href;
-					}
-				} elseif (substr($href, 0, 7) == "mailto:" || substr($href, 0, 1) == "#" || substr($href, 0, 5) == "data:" || substr($href, 0, 4) == "tel:") {
-					// Don't do anything, it's a page mark, data URI, or email address
-				} elseif (substr($href, 0, 4) == "http") {
-					// It's a local hard link
-					if (!static::urlExists($href)) {
-						$errors["a"][] = $href;
-					}
-				} else {
-					// Local file.
-					$local = $relative_path.$href;
-					if (!static::urlExists($local)) {
-						$errors["a"][] = $local;
-					}
-				}
-			}
-			// Check IMG tags.
-			$images = $doc->getElementsByTagName("img");
-			foreach ($images as $image) {
-				$href = $image->getAttribute("src");
-
-                if (substr($href, 0, 5) == "data:") {
-                    continue;
-                }
-
-				$href = BigTreeCMS::replaceRelativeRoots($href);
-
-				// See if the link matches something local
-				$local = false;
-
-				if (substr($href, 0, 4) == "http") {
-					foreach (BigTreeCMS::$ReplaceableRootTokens as $local_key) {
-						if (strpos($href, $local_key) === 0) {
-							$local = true;
-						}
-					}
-				}
-
-				if ((substr($href, 0, 2) == "//" || substr($href, 0, 4) == "http") && !$local) {
-					// External link, not much we can do but alert that it's dead
-					if ($external) {
-						if (!static::urlExists($href)) {
-							$errors["img"][] = $href;
-						}
-					}
-				} elseif (substr($href, 0, 6) == "irl://") {
-					if (!static::irlExists($href)) {
-						$errors["img"][] = $href;
-					}
-				} elseif (substr($href, 0, 5) == "data:") {
-					// Do nothing, it's a data URI
-				} elseif (substr($href, 0, 4) == "http") {
-					// It's a local hard link
-					if (!static::urlExists($href)) {
-						$errors["img"][] = $href;
-					}
-				} else {
-					// Local file.
-					$local = $relative_path.$href;
-					if (!static::urlExists($local)) {
-						$errors["img"][] = $local;
-					}
-				}
-			}
-
-			return $errors;
+			return \BigTree\Services\LinkService::checkHTML($relative_path, $html, $external);
 		}
 
 		/*
@@ -1302,42 +958,7 @@
 		*/
 
 		public function create301($from, $to, $site_key = null) {
-			global $bigtree;
-
-			// See if the from already exists
-			$sanitized_input = $this->parse404SourceURL($from, $site_key);
-			$from = $sanitized_input["url"];
-			$get_vars = $sanitized_input["get_vars"];
-			$site_key = $sanitized_input["site_key"];
-			$to = sqlescape(htmlspecialchars($this->autoIPL(trim($to))));
-			$existing = $this->getExisting404($from, $get_vars, $site_key);
-			$history_cleaned = false;
-
-			if ($site_key) {
-				foreach (BigTreeCMS::$SiteRoots as $site_path => $data) {
-					if ($data["key"] == $site_key) {
-						$history_cleaned = true;
-						SQL::delete("bigtree_route_history", ["old_route" => ltrim($site_path."/".$from, "/")]);
-					}
-				}
-			}
-
-			if (!$history_cleaned) {
-				SQL::delete("bigtree_route_history", ["old_route" => $from]);
-			}
-
-			if ($existing) {
-				sqlquery("UPDATE bigtree_404s SET `redirect_url` = '$to' WHERE id = '".$existing["id"]."'");
-				$this->track("bigtree_404s", $existing["id"], "updated");
-			} else {
-				if (!is_null($site_key)) {
-					sqlquery("INSERT INTO bigtree_404s (`broken_url`, `get_vars`, `redirect_url`, `site_key`) VALUES ('$from', '$get_vars', '$to', '".sqlescape($site_key)."')");
-				} else {
-					sqlquery("INSERT INTO bigtree_404s (`broken_url`, `get_vars`, `redirect_url`) VALUES ('$from', '$get_vars', '$to')");
-				}
-
-				$this->track("bigtree_404s", sqlid(), "created");
-			}
+			\BigTree\Services\FourOhFourService::create301($from, $to, $site_key, $this->ID);
 		}
 
 		/*
@@ -2665,7 +2286,7 @@
 		*/
 
 		public static function deallocateResources($table, $entry) {
-			SQL::delete("bigtree_resource_allocation", ["table" => $table, "entry" => $entry]);
+			\BigTree\Services\ResourceAllocationService::deallocateResources($table, $entry);
 		}
 
 		/*
@@ -4086,50 +3707,7 @@
 		*/
 
 		public static function getCachedFieldTypes($split = false) {
-			$types["modules"] = $types["templates"] = $types["callouts"] = $types["settings"] = [
-				"default" => [
-					"text" => ["name" => "Text", "self_draw" => false],
-					"textarea" => ["name" => "Text Area", "self_draw" => false],
-					"html" => ["name" => "HTML Area", "self_draw" => false],
-					"link" => ["name" => "Link", "self_draw" => false],
-					"upload" => ["name" => "File Upload", "self_draw" => false],
-					"image" => ["name" => "Image Upload", "self_draw" => false],
-					"video" => ["name" => "YouTube or Vimeo Video", "self_draw" => false],
-					"file-reference" => ["name" => "File Reference", "self_draw" => false],
-					"image-reference" => ["name" => "Image Reference", "self_draw" => false],
-					"video-reference" => ["name" => "Video Reference", "self_draw" => false],
-					"list" => ["name" => "List", "self_draw" => false],
-					"checkbox" => ["name" => "Checkbox", "self_draw" => false],
-					"date" => ["name" => "Date Picker", "self_draw" => false],
-					"time" => ["name" => "Time Picker", "self_draw" => false],
-					"datetime" => ["name" => "Date &amp; Time Picker", "self_draw" => false],
-					"media-gallery" => ["name" => "Media Gallery", "self_draw" => false],
-					"callouts" => ["name" => "Callouts", "self_draw" => false],
-					"matrix" => ["name" => "Matrix", "self_draw" => false],
-					"one-to-many" => ["name" => "One to Many", "self_draw" => false]
-				],
-				"custom" => []
-			];
-
-			$types["modules"]["default"]["route"] = ["name" => "Generated Route", "self_draw" => true];
-			$field_types = BigTreeJSONDB::getAll("field-types", "name", "ASC");
-
-			foreach ($field_types as $field_type) {
-				foreach ($field_type["use_cases"] as $case => $val) {
-					if ($val) {
-						$types[$case]["custom"][$field_type["id"]] = ["name" => $field_type["name"], "self_draw" => $field_type["self_draw"]];
-					}
-				}
-			}
-
-			// Re-merge if we don't want them split
-			if (!$split) {
-				foreach ($types as $use_case => $list) {
-					$types[$use_case] = array_merge($list["default"], $list["custom"]);
-				}
-			}
-
-			return $types;
+			return \BigTree\Services\FieldTypeService::getCachedFieldTypes($split);
 		}
 
 		/*
@@ -4144,7 +3722,7 @@
 		*/
 
 		public static function getCallout($id) {
-			return BigTreeJSONDB::get("callouts", $id);
+			return \BigTree\Services\CalloutService::getCallout($id);
 		}
 
 		/*
@@ -4186,11 +3764,7 @@
 		*/
 
 		public static function getCallouts($sort = "position") {
-			$sort_pieces = explode(" ", $sort);
-			$sort_column = $sort_pieces[0] ?? "";
-			$sort_direction = $sort_pieces[1] ?? "";
-
-			return BigTreeJSONDB::getAll("callouts", $sort_column, $sort_direction ?: "ASC");
+			return \BigTree\Services\CalloutService::getCallouts($sort);
 		}
 
 		/*
@@ -4412,20 +3986,8 @@
 				An existing 404 or null if one is not found.
 		*/
 
-		static public function getExisting404($url, $get_vars, $site_key = null) {
-			if (!empty($get_vars)) {
-				if (!is_null($site_key)) {
-					return SQL::fetch("SELECT * FROM bigtree_404s WHERE `broken_url` = ? AND get_vars = ? AND `site_key` = ?", $url, $get_vars, $site_key);
-				} else {
-					return SQL::fetch("SELECT * FROM bigtree_404s WHERE `broken_url` = ? AND get_vars = ?", $url, $get_vars);
-				}
-			} else {
-				if (!is_null($site_key)) {
-					return SQL::fetch("SELECT * FROM bigtree_404s WHERE `broken_url` = ? AND get_vars = '' AND `site_key` = ?", $url, $site_key);
-				} else {
-					return SQL::fetch("SELECT * FROM bigtree_404s WHERE `broken_url` = ? AND get_vars = ''", $url);
-				}
-			}
+		public static function getExisting404($url, $get_vars, $site_key = null) {
+			return \BigTree\Services\FourOhFourService::getExisting404($url, $get_vars, $site_key);
 		}
 
 		/*
@@ -4440,7 +4002,7 @@
 		*/
 
 		public static function getExtension($id) {
-			return BigTreeJSONDB::get("extensions", $id);
+			return \BigTree\Services\ExtensionService::getExtension($id);
 		}
 
 		/*
@@ -4455,11 +4017,7 @@
 		*/
 
 		public static function getExtensions($sort = "name ASC") {
-			$sort_pieces = explode(" ", $sort);
-			$sort_column = $sort_pieces[0] ?? "";
-			$sort_direction = $sort_pieces[1] ?? "";
-
-			return BigTreeJSONDB::getAll("extensions", $sort_column, $sort_direction ?: "ASC");
+			return \BigTree\Services\ExtensionService::getExtensions($sort);
 		}
 
 		/*
@@ -4493,7 +4051,7 @@
 		*/
 
 		public static function getFieldType($id) {
-			return BigTreeJSONDB::get("field-types", $id);
+			return \BigTree\Services\FieldTypeService::getFieldType($id);
 		}
 
 		/*
@@ -4508,11 +4066,7 @@
 		*/
 
 		public static function getFieldTypes($sort = "name ASC") {
-			$sort_pieces = explode(" ", $sort);
-			$sort_column = $sort_pieces[0] ?? "";
-			$sort_direction = $sort_pieces[1] ?? "";
-
-			return BigTreeJSONDB::getAll("field-types", $sort_column, $sort_direction ?: "ASC");
+			return \BigTree\Services\FieldTypeService::getFieldTypes($sort);
 		}
 
 		/*
@@ -4670,33 +4224,7 @@
 		*/
 
 		public static function getModule($id) {
-			$module = BigTreeJSONDB::get("modules", $id);
-
-			if (empty($module)) {
-				return null;
-			}
-
-			if (empty($module["actions"]) || !is_array($module["actions"])) {
-				$module["actions"] = [];
-			}
-
-			if (empty($module["views"]) || !is_array($module["views"])) {
-				$module["views"] = [];
-			}
-
-			if (empty($module["forms"]) || !is_array($module["forms"])) {
-				$module["forms"] = [];
-			}
-
-			if (empty($module["embeddable-forms"]) || !is_array($module["embeddable-forms"])) {
-				$module["embeddable-forms"] = [];
-			}
-
-			if (empty($module["reports"]) || !is_array($module["reports"])) {
-				$module["reports"] = [];
-			}
-
-			return $module;
+			return \BigTree\Services\ModuleService::getModule($id);
 		}
 
 		/*
@@ -4776,31 +4304,7 @@
 		*/
 
 		public static function getModuleActionForForm($form) {
-			if (is_array($form)) {
-				$form = $form["id"];
-			}
-
-			$modules = BigTreeJSONDB::getAll("modules");
-
-			foreach ($modules as $module) {
-				$matching_actions = array_filter($module["actions"], function($action) use ($form) {
-					return $action["form"] == $form;
-				});
-
-				foreach ($matching_actions as $action) {
-					if ($action["route"] == "edit") {
-						$action["module"] = $module["id"];
-
-						return $action;
-					}
-				}
-
-				if (count($matching_actions)) {
-					$matching_actions[0]["module"] = $module["id"];
-
-					return $matching_actions[0];
-				}
-			}
+			return \BigTree\Services\ModuleFormService::getModuleActionForForm($form);
 		}
 
 		/*
@@ -4873,18 +4377,7 @@
 		*/
 
 		public static function getModuleActions($module) {
-			if (is_array($module)) {
-				$module = $module["id"];
-			}
-
-			$context = BigTreeJSONDB::getSubset("modules", $module);
-			$actions = $context->getAll("actions", "position");
-
-			foreach ($actions as $index => $action) {
-				$actions[$index]["module"] = $module;
-			}
-
-			return $actions;
+			return \BigTree\Services\ModuleService::getModuleActions($module);
 		}
 
 		/*
@@ -4930,37 +4423,7 @@
 		*/
 
 		public static function getModuleEmbedForms($sort = "title", $module = false) {
-			$sort_parts = explode(" ", $sort);
-			$sort_column = $sort_parts[0] ?? "";
-			$sort_direction = $sort_parts[1] ?? "";
-
-			if ($module) {
-				$context = BigTreeJSONDB::getSubset("modules", $module);
-
-				return $context->getAll("embeddable-forms", $sort_column, $sort_direction);
-			} else {
-				$forms = [];
-				$sort_field = [];
-				$modules = BigTreeJSONDB::getAll("modules");
-
-				foreach ($modules as $module) {
-					if (!empty($module["embeddable-forms"])) {
-						$forms = array_merge($forms, array_filter((array) $module["embeddable-forms"]));
-					}
-				}
-
-				foreach ($forms as $form) {
-					$sort_field[] = $form[$sort_column];
-				}
-
-				if ($sort_direction == "DESC") {
-					array_multisort($sort_field, SORT_DESC, $forms);
-				} else {
-					array_multisort($sort_field, SORT_ASC, $forms);
-				}
-
-				return $forms;
-			}
+			return \BigTree\Services\ModuleFormService::getModuleEmbedForms($sort, $module);
 		}
 
 		/*
@@ -4976,37 +4439,7 @@
 		*/
 
 		public static function getModuleForms($sort = "title", $module = false) {
-			$sort_parts = explode(" ", $sort);
-			$sort_column = $sort_parts[0] ?? "";
-			$sort_direction = $sort_parts[1] ?? "";
-
-			if ($module) {
-				$context = BigTreeJSONDB::getSubset("modules", $module);
-
-				return $context->getAll("forms", $sort_column, $sort_direction);
-			} else {
-				$forms = [];
-				$sort_field = [];
-				$modules = BigTreeJSONDB::getAll("modules");
-
-				foreach ($modules as $module) {
-					if (!empty($module["forms"])) {
-						$forms = array_merge($forms, array_filter((array) $module["forms"]));
-					}
-				}
-
-				foreach ($forms as $form) {
-					$sort_field[] = $form[$sort_column];
-				}
-
-				if ($sort_direction == "DESC") {
-					array_multisort($sort_field, SORT_DESC, $forms);
-				} else {
-					array_multisort($sort_field, SORT_ASC, $forms);
-				}
-
-				return $forms;
-			}
+			return \BigTree\Services\ModuleFormService::getModuleForms($sort, $module);
 		}
 
 		/*
@@ -5025,7 +4458,7 @@
 		*/
 
 		public static function getModuleGroup($id) {
-			return BigTreeJSONDB::get("module-groups", $id);
+			return \BigTree\Services\ModuleService::getModuleGroup($id);
 		}
 
 		/*
@@ -5136,35 +4569,7 @@
 		*/
 
 		public static function getModuleReports($sort = "title", $module = false) {
-			$sort_pieces = explode(" ", $sort);
-			$sort_column = $sort_pieces[0] ?? "";
-			$sort_direction = $sort_pieces[1] ?? "";
-
-			if ($module) {
-				$context = BigTreeJSONDB::getSubset("modules", $module);
-
-				return $context->getAll("reports", $sort_column, $sort_direction);
-			} else {
-				$reports = [];
-				$sort_field = [];
-				$modules = BigTreeJSONDB::getAll("modules");
-
-				foreach ($modules as $module) {
-					$reports = array_merge($reports, array_filter((array) $module["reports"]));
-				}
-
-				foreach ($reports as $report) {
-					$sort_field[] = $report[$sort_column];
-				}
-
-				if ($sort_direction == "DESC") {
-					array_multisort($sort_field, SORT_DESC, $reports);
-				} else {
-					array_multisort($sort_field, SORT_ASC, $reports);
-				}
-
-				return $reports;
-			}
+			return \BigTree\Services\ModuleReportService::getModuleReports($sort, $module);
 		}
 
 		/*
@@ -5257,35 +4662,7 @@
 		*/
 
 		public static function getModuleViews($sort = "title", $module = false) {
-			$sort_pieces = explode(" ", $sort);
-			$sort_column = $sort_pieces[0] ?? "";
-			$sort_direction = $sort_pieces[1] ?? "";
-
-			if ($module) {
-				$context = BigTreeJSONDB::getSubset("modules", $module);
-
-				return $context->getAll("views", $sort_column, $sort_direction);
-			} else {
-				$views = [];
-				$sort_field = [];
-				$modules = BigTreeJSONDB::getAll("modules");
-
-				foreach ($modules as $module) {
-					$views = array_merge($views, array_filter((array) $module["views"]));
-				}
-
-				foreach ($views as $view) {
-					$sort_field[] = $view[$sort_column];
-				}
-
-				if ($sort_direction == "DESC") {
-					array_multisort($sort_field, SORT_DESC, $views);
-				} else {
-					array_multisort($sort_field, SORT_ASC, $views);
-				}
-
-				return $views;
-			}
+			return \BigTree\Services\ModuleViewService::getModuleViews($sort, $module);
 		}
 
 		/*
@@ -5429,14 +4806,7 @@
 		*/
 
 		public static function getPageAdminLinks() {
-			global $bigtree;
-			$pages = [];
-			$q = sqlquery("SELECT * FROM bigtree_pages WHERE REPLACE(resources,'{adminroot}js/embeddable-form.js','') LIKE '%{adminroot}%' OR resources LIKE '%".$bigtree["config"]["admin_root"]."%' OR resources LIKE '%".str_replace($bigtree["config"]["www_root"], "{wwwroot}", $bigtree["config"]["admin_root"])."%'");
-			while ($f = sqlfetch($q)) {
-				$pages[] = $f;
-			}
-
-			return $pages;
+			return \BigTree\Services\PageService::getPageAdminLinks();
 		}
 
 		/*
@@ -5524,13 +4894,7 @@
 		*/
 
 		public static function getPageIds() {
-			$ids = [];
-			$q = sqlquery("SELECT id FROM bigtree_pages WHERE archived != 'on' ORDER BY id ASC");
-			while ($f = sqlfetch($q)) {
-				$ids[] = $f["id"];
-			}
-
-			return $ids;
+			return \BigTree\Services\PageService::getPageIds();
 		}
 
 		/*
@@ -5551,49 +4915,7 @@
 		*/
 
 		public static function getPageIDForPath($path, $previewing = false) {
-			$commands = [];
-
-			// Get any GET variables and hashes and remove them
-			$url_parse = parse_url(implode("/", array_values($path)));
-			$query_vars = $url_parse["query"] ?? "";
-			$hash = $url_parse["fragment"] ?? "";
-			$path = !empty($url_parse["path"]) ? explode("/", rtrim($url_parse["path"], "/")) : [];
-
-			if (!$previewing) {
-				$publish_at = "AND (publish_at <= NOW() OR publish_at IS NULL) AND (expire_at >= NOW() OR expire_at IS NULL)";
-			} else {
-				$publish_at = "";
-			}
-
-			// See if we have a straight up perfect match to the path.
-			$page = SQL::fetch("SELECT id, template FROM bigtree_pages WHERE path = ? AND archived = '' $publish_at", implode("/", $path));
-
-			if ($page) {
-				$template = BigTreeJSONDB::get("templates", $page["template"]);
-
-				return [$page["id"], [], $template["routed"] ?? false, $query_vars, $hash];
-			}
-
-			// Guess we don't, let's chop off commands until we find a page.
-			$x = 0;
-
-			while ($x < count($path)) {
-				$x++;
-				$commands[] = $path[count($path) - $x];
-
-				// We have additional commands, so we're now making sure the template is also routed, otherwise it's a 404.
-				$page = SQL::fetch("SELECT id, template FROM bigtree_pages WHERE path = ? AND archived = '' $publish_at", implode("/", array_slice($path, 0, -1 * $x)));
-
-				if ($page) {
-					$template = BigTreeJSONDB::get("templates", $page["template"]);
-
-					if (!empty($template["routed"])) {
-						return [$page["id"], array_reverse($commands), "on", $query_vars, $hash];
-					}
-				}
-			}
-
-			return [false, false, false, false, false];
+			return \BigTree\Services\PageService::getPageIDForPath($path, $previewing);
 		}
 
 		/*
@@ -5810,169 +5132,7 @@
 		*/
 
 		public static function getPageSEORating($page, $content) {
-			$template = BigTreeCMS::getTemplate($page["template"]);
-
-			if (empty($template)) {
-				return null;
-			}
-
-			$tsources = [];
-			$h1_field = "";
-			$body_fields = [];
-
-			if (is_array($template["resources"])) {
-				foreach ($template["resources"] as $item) {
-					if (isset($item["seo_body"]) && $item["seo_body"]) {
-						$body_fields[] = $item["id"];
-					}
-					if (isset($item["seo_h1"]) && $item["seo_h1"]) {
-						$h1_field = $item["id"];
-					}
-					$tsources[$item["id"]] = $item;
-				}
-			}
-
-			if (!$h1_field && !empty($tsources["page_header"])) {
-				$h1_field = "page_header";
-			}
-
-			if (!count($body_fields) && !empty($tsources["page_content"])) {
-				$body_fields[] = "page_content";
-			}
-
-			$textStats = new TextStatistics;
-			$recommendations = [];
-
-			$score = 0;
-
-			// Check if they have a page title.
-			if ($page["title"]) {
-				$score += 5;
-				// They have a title, let's see if it's unique
-				$r = sqlrows(sqlquery("SELECT * FROM bigtree_pages WHERE title = '".sqlescape($page["title"])."' AND id != '".sqlescape($page["id"])."'"));
-				if ($r == 0) {
-					// They have a unique title
-					$score += 5;
-				} else {
-					$recommendations[] = "Your page title should be unique. ".($r - 1)." other page(s) have the same title.";
-				}
-				$words = $textStats->word_count($page["title"]);
-				$length = mb_strlen($page["title"]);
-				if ($words >= 4 && $length <= 72) {
-					// Fits the bill!
-					$score += 5;
-				} else {
-					$recommendations[] = "Your page title should be no more than 72 characters and should contain at least 4 words.";
-				}
-			} else {
-				$recommendations[] = "You should enter a page title.";
-			}
-
-			// Check for meta description
-			if ($page["meta_description"]) {
-				$score += 5;
-				// They have a meta description, let's see if it's no more than 165 characters.
-				if (mb_strlen($page["meta_description"]) <= 165) {
-					$score += 5;
-				} else {
-					$recommendations[] = "Your meta description should be no more than 165 characters. It is currently ".mb_strlen($page["meta_description"])." characters.";
-				}
-			} else {
-				$recommendations[] = "You should enter a meta description.";
-			}
-
-			// Check for an H1
-			if (!$h1_field || $content[$h1_field]) {
-				$score += 10;
-			} else {
-				$recommendations[] = "You should enter a page header.";
-			}
-			// Check the content!
-			if (!count($body_fields)) {
-				// If this template doesn't for some reason have a seo body resource, give the benefit of the doubt.
-				$score += 65;
-			} else {
-				$regular_text = "";
-				$stripped_text = "";
-				foreach ($body_fields as $field) {
-					if (!is_array($content[$field])) {
-						$regular_text .= $content[$field]." ";
-						$stripped_text .= strip_tags($content[$field])." ";
-					}
-				}
-				// Check to see if there is any content
-				if ($stripped_text) {
-					$score += 5;
-					$words = $textStats->word_count($stripped_text);
-					$readability = $textStats->flesch_kincaid_reading_ease($stripped_text);
-					if ($readability < 0) {
-						$readability = 0;
-					}
-					$number_of_links = substr_count($regular_text, "<a ");
-					$number_of_external_links = substr_count($regular_text, 'href="http://');
-
-					// See if there are at least 300 words.
-					if ($words >= 300) {
-						$score += 15;
-					} else {
-						$recommendations[] = "You should enter at least 300 words of page content. You currently have ".$words." word(s).";
-					}
-
-					// See if we have any links
-					if ($number_of_links) {
-						$score += 5;
-						// See if we have at least one link per 120 words.
-						if (floor($words / 120) <= $number_of_links) {
-							$score += 5;
-						} else {
-							$recommendations[] = "You should have at least one link for every 120 words of page content. You currently have $number_of_links link(s). You should have at least ".floor($words / 120).".";
-						}
-						// See if we have any external links.
-						if ($number_of_external_links) {
-							$score += 5;
-						} else {
-							$recommendations[] = "Having an external link helps build Page Rank.";
-						}
-					} else {
-						$recommendations[] = "You should have at least one link in your content.";
-					}
-
-					// Check on our readability score.
-					if ($readability >= 90) {
-						$score += 20;
-					} else {
-						$read_score = round(($readability / 90), 2);
-						$recommendations[] = "Your readability score is ".($read_score * 100)."%. Using shorter sentences and words with fewer syllables will make your site easier to read by search engines and users.";
-						$score += ceil($read_score * 20);
-					}
-				} else {
-					$recommendations[] = "You should enter page content.";
-				}
-
-				// Check page freshness
-				$updated = strtotime($page["updated_at"]);
-				$age = time() - $updated - (60 * 24 * 60 * 60);
-				// See how much older it is than 2 months.
-				if ($age > 0) {
-					$age_score = 10 - floor(2 * ($age / (30 * 24 * 60 * 60)));
-					if ($age_score < 0) {
-						$age_score = 0;
-					}
-					$score += $age_score;
-					$recommendations[] = "Your content is around ".ceil(2 + ($age / (30 * 24 * 60 * 60)))." months old. Updating your page more frequently will make it rank higher.";
-				} else {
-					$score += 10;
-				}
-			}
-
-			$color = "#008000";
-			if ($score <= 50) {
-				$color = BigTree::colorMesh("#CCAC00", "#FF0000", 100 - (100 * $score / 50));
-			} elseif ($score <= 80) {
-				$color = BigTree::colorMesh("#008000", "#CCAC00", 100 - (100 * ($score - 50) / 30));
-			}
-
-			return ["score" => $score, "recommendations" => $recommendations, "color" => $color];
+			return \BigTree\Services\PageService::getPageSEORating($page, $content);
 		}
 
 		/*
@@ -6204,103 +5364,12 @@
 		*/
 
 		public static function getResourceByFile($file) {
-			if (array_key_exists($file, static::$ResourceByFileCache)) {
-				$cached = static::$ResourceByFileCache[$file];
-
-				// Primed id stubs fall through to a full lookup
-				if (is_array($cached) || !$cached) {
-					return $cached ?: false;
-				}
-			}
-
-			if (!is_array(static::$IRLPrefixes) || !count(static::$IRLPrefixes)) {
-				static::$IRLPrefixes = static::getKnownResourcePrefixes();
-			}
-
-			$last_prefix = false;
-			$item = static::lookupResourceByFileCandidates($file, $already_decoded);
-
-			// Try stripping thumbnail / crop prefixes to match the original file
-			if (!$item) {
-				foreach (static::$IRLPrefixes as $prefix) {
-					$sfile = str_replace("files/resources/$prefix", "files/resources/", $file);
-
-					if ($sfile === $file) {
-						continue;
-					}
-
-					$item = static::lookupResourceByFileCandidates($sfile, $already_decoded);
-
-					if ($item) {
-						$last_prefix = $prefix;
-
-						break;
-					}
-				}
-			}
-
-			if (!$item) {
-				static::$ResourceByFileCache[$file] = false;
-
-				return false;
-			}
-
-			// Items served from the cache have already been decoded
-			if (!$already_decoded) {
-				$item["prefix"] = false;
-				$item["crops"] = !empty($item["crops"]) ? json_decode($item["crops"], true) : null;
-				$item["thumbs"] = !empty($item["thumbs"]) ? json_decode($item["thumbs"], true) : null;
-				$item["metadata"] = !empty($item["metadata"]) ? json_decode($item["metadata"], true) : null;
-				$item["video_data"] = !empty($item["video_data"]) ? json_decode($item["video_data"], true) : null;
-				$item = BigTree::untranslateArray($item);
-
-				// Replace any primed id stubs for this resource with the decoded row
-				static::cacheResourceByFile($item["file"], $item);
-			}
-
-			$item["prefix"] = $last_prefix;
-
-			static::cacheResourceByFile($file, $item);
-
-			return $item;
+			return \BigTree\Services\ResourceAllocationService::getResourceByFile($file);
 		}
 
 		private static function lookupResourceByFileCandidates($file, &$already_decoded) {
-			$already_decoded = false;
-			$tokenized_file = BigTreeCMS::replaceHardRoots($file);
-			$single_domain_tokenized_file = static::stripMultipleRootTokens($tokenized_file);
-			$candidates = array_values(array_unique([
-				$file,
-				$tokenized_file,
-				$single_domain_tokenized_file,
-				str_replace("{wwwroot}", "{staticroot}", $single_domain_tokenized_file),
-				str_replace("{staticroot}", "{wwwroot}", $single_domain_tokenized_file)
-			]));
-
-			foreach ($candidates as $candidate) {
-				if (!empty(static::$ResourceByFileCache[$candidate])) {
-					$entry = static::$ResourceByFileCache[$candidate];
-
-					if (is_array($entry)) {
-						$already_decoded = true;
-
-						return $entry;
-					}
-
-					// Primed entries only store the resource id; pull the full row on demand
-					return SQL::fetch("SELECT * FROM bigtree_resources WHERE id = ?", $entry);
-				}
-			}
-
-			// The primed cache contains every resource, so a miss is final
-			if (static::$ResourceFileCachePrimed) {
-				return false;
-			}
-
-			return SQL::fetch(
-				"SELECT * FROM bigtree_resources WHERE file IN (".implode(", ", array_fill(0, count($candidates), "?")).")",
-				...$candidates
-			);
+			// moved to ResourceAllocationService
+			return null;
 		}
 
 		/*
@@ -6315,18 +5384,7 @@
 		*/
 
 		public static function getResource($id) {
-			$resource = SQL::fetch("SELECT * FROM bigtree_resources WHERE id = ?", $id);
-
-			if (!$resource) {
-				return false;
-			}
-
-			$resource["crops"] = !empty($resource["crops"]) ? json_decode($resource["crops"], true) : null;
-			$resource["thumbs"] = !empty($resource["thumbs"]) ? json_decode($resource["thumbs"], true) : null;
-			$resource["metadata"] = !empty($resource["metadata"]) ? json_decode($resource["metadata"], true) : null;
-			$resource["video_data"] = !empty($resource["video_data"]) ? json_decode($resource["video_data"], true) : null;
-
-			return BigTree::untranslateArray($resource);
+			return \BigTree\Services\ResourceAllocationService::getResource($id);
 		}
 
 		/*
@@ -6341,7 +5399,7 @@
 		*/
 
 		public static function getResourceAllocation($id) {
-			return SQL::fetchAll("SELECT * FROM bigtree_resource_allocation WHERE resource = ? ORDER BY updated_at DESC", $id);
+			return \BigTree\Services\ResourceAllocationService::getResourceAllocation($id);
 		}
 
 		/*
@@ -6356,82 +5414,7 @@
 		*/
 
 		public static function getResourceAllocationUsage($id) {
-			global $cms;
-
-			$allocations = static::getResourceAllocation($id);
-			$usages = [];
-			$table_cache = [];
-
-			foreach ($allocations as $allocation) {
-				$table = $allocation["table"];
-				$entry = strval($allocation["entry"]);
-				$pending = (substr($entry, 0, 1) === "p");
-				$usage = [
-					"location" => $table,
-					"title" => $entry,
-					"edit_url" => null,
-					"pending" => $pending,
-					"archived" => false,
-					"updated_at" => $allocation["updated_at"]
-				];
-
-				if ($table === "bigtree_pages") {
-					$usage["location"] = "Pages";
-
-					if ($pending) {
-						$page = $cms->getPendingPage($entry, false);
-						$usage["edit_url"] = ADMIN_ROOT."pages/edit/".$entry."/";
-					} else {
-						$page = $cms->getPage($entry, false);
-						$usage["edit_url"] = ADMIN_ROOT."pages/edit/".$entry."/";
-					}
-
-					if ($page) {
-						$usage["title"] = $page["nav_title"] ?: $page["title"];
-						$usage["archived"] = !empty($page["archived"]) || !empty($page["archived_inherited"]);
-					} else {
-						$usage["title"] = "Deleted Page (".$entry.")";
-						$usage["edit_url"] = null;
-					}
-				} elseif ($table === "bigtree_settings") {
-					$setting = static::getSetting($entry);
-					$usage["location"] = "Settings";
-
-					if ($setting) {
-						$usage["title"] = $setting["name"] ?: $setting["id"];
-
-						if (empty($setting["system"])) {
-							$usage["edit_url"] = ADMIN_ROOT."settings/edit/".$entry."/";
-						}
-					} else {
-						$usage["title"] = "Deleted Setting (".$entry.")";
-					}
-				} else {
-					if (!isset($table_cache[$table])) {
-						$table_cache[$table] = static::getModuleEditInfoForTable($table);
-					}
-
-					$module_info = $table_cache[$table];
-					$usage["location"] = $module_info["location"];
-
-					if ($module_info["edit_url"]) {
-						$usage["edit_url"] = $module_info["edit_url"].$entry."/";
-					}
-
-					$item = BigTreeAutoModule::getItem($table, $entry);
-
-					if ($item) {
-						$usage["title"] = static::getModuleEntryTitle($item["item"], $entry);
-					} else {
-						$usage["title"] = "Deleted Entry (".$entry.")";
-						$usage["edit_url"] = null;
-					}
-				}
-
-				$usages[] = $usage;
-			}
-
-			return $usages;
+			return \BigTree\Services\ResourceAllocationService::getResourceAllocationUsage($id);
 		}
 
 		private static function getModuleEditInfoForTable($table) {
@@ -6685,33 +5668,7 @@
 		*/
 
 		public static function getSetting($id, $decode = true) {
-			global $bigtree;
-
-			$id = BigTreeCMS::extensionSettingCheck($id);
-			$setting = BigTreeJSONDB::get("settings", $id);
-
-			if (!$setting) {
-				return false;
-			}
-
-			if ($setting["encrypted"]) {
-				$setting["value"] = SQL::fetchSingle("SELECT AES_DECRYPT(`value`, ?) FROM bigtree_settings WHERE id = ?", $bigtree["config"]["settings_key"], $id);
-			} else {
-				$setting["value"] = SQL::fetchSingle("SELECT value FROM bigtree_settings WHERE id = ?", $id);
-			}
-
-			// Decode the JSON value
-			if ($decode) {
-				$setting["value"] = json_decode($setting["value"] ?? "", true);
-
-				if (is_array($setting["value"])) {
-					$setting["value"] = BigTree::untranslateArray($setting["value"]);
-				} else {
-					$setting["value"] = BigTreeCMS::replaceInternalPageLinks($setting["value"]);
-				}
-			}
-
-			return $setting;
+			return \BigTree\Services\SettingService::readSetting($id, $decode);
 		}
 
 		/*
@@ -6814,11 +5771,7 @@
 		*/
 
 		public static function getTemplates($sort = "position") {
-			$sort_parts = explode(" ", $sort);
-			$sort_column = $sort_parts[0] ?? "";
-			$sort_direction = $sort_parts[1] ?? "";
-
-			return BigTreeJSONDB::getAll("templates", $sort_column, $sort_direction ?: "ASC");
+			return \BigTree\Services\TemplateService::getTemplates($sort);
 		}
 
 		/*
@@ -7225,14 +6178,7 @@
 		*/
 
 		public static function getSecurityPolicy() {
-			global $bigtree;
-
-			if (!isset($bigtree["security-policy"]) || !is_array($bigtree["security-policy"])) {
-				$policy = BigTreeCMS::getSetting("bigtree-internal-security-policy");
-				$bigtree["security-policy"] = is_array($policy) ? $policy : [];
-			}
-
-			return $bigtree["security-policy"];
+			return \BigTree\Services\SecurityPolicyService::getSecurityPolicy();
 		}
 
 		/*
@@ -7247,19 +6193,7 @@
 		*/
 
 		public static function isIPBannedByPolicy($ip) {
-			$policy = static::getSecurityPolicy();
-
-			if (!empty($policy["banned_ips"])) {
-				$banned = explode("\n", $policy["banned_ips"]);
-
-				foreach ($banned as $address) {
-					if (ip2long(trim($address)) == $ip) {
-						return true;
-					}
-				}
-			}
-
-			return false;
+			return \BigTree\Services\SecurityPolicyService::isIPBannedByPolicy($ip);
 		}
 
 		/*
@@ -7274,25 +6208,7 @@
 		*/
 
 		public static function isIPAllowedByPolicy($ip) {
-			$policy = static::getSecurityPolicy();
-
-			if (empty($policy["allowed_ips"])) {
-				return true;
-			}
-
-			$list = explode("\n", $policy["allowed_ips"]);
-
-			foreach ($list as $item) {
-				[$begin, $end] = explode(",", $item);
-				$begin = ip2long(trim($begin));
-				$end = ip2long(trim($end));
-
-				if ($begin <= $ip && $end >= $ip) {
-					return true;
-				}
-			}
-
-			return false;
+			return \BigTree\Services\SecurityPolicyService::isIPAllowedByPolicy($ip);
 		}
 
 		/*
@@ -7304,9 +6220,9 @@
 			global $bigtree;
 
 			$ip = ip2long(BigTree::remoteIP());
-			static::getSecurityPolicy();
+			\BigTree\Services\SecurityPolicyService::getSecurityPolicy();
 
-			if (static::isIPBannedByPolicy($ip) || !static::isIPAllowedByPolicy($ip)) {
+			if (\BigTree\Services\SecurityPolicyService::isIPBannedByPolicy($ip) || !\BigTree\Services\SecurityPolicyService::isIPAllowedByPolicy($ip)) {
 				$this->stop("Access denied from this IP address.");
 			}
 		}
@@ -7606,42 +6522,7 @@
 		*/
 
 		public static function iplExists($ipl) {
-			$ipl = explode("//", $ipl);
-
-			// See if the page it references still exists.
-			$nav_id = $ipl[1];
-
-			if (!sqlrows(sqlquery("SELECT id FROM bigtree_pages WHERE id = '$nav_id'"))) {
-				return false;
-			}
-
-			// Decode the commands attached to the page
-			$commands = json_decode(base64_decode($ipl[2]), true);
-
-			// If there are no commands, we're good.
-			if (empty($commands[0])) {
-				return true;
-			}
-
-			// If it's a hash tag link, we're also good.
-			if (substr($commands[0], 0, 1) == "#") {
-				return true;
-			}
-
-			// Get template for the navigation id to see if it's a routed template
-			$template_id = SQL::fetchSingle("SELECT template FROM bigtree_pages WHERE id = ?", $nav_id);
-
-			// If we're a routed template, we're good.
-			if ($template_id) {
-				$template = BigTreeJSONDB::get("templates", $template_id);
-
-				if (!empty($template["routed"])) {
-					return true;
-				}
-			}
-
-			// We may have been on a page, but there's extra routes that don't go anywhere or do anything so it's a 404.
-			return false;
+			return \BigTree\Services\LinkService::iplExists($ipl);
 		}
 
 		/*
@@ -7656,13 +6537,7 @@
 		*/
 
 		public static function irlExists($irl) {
-			$irl = explode("//", $irl);
-			$resource = static::getResource($irl[1]);
-			if ($resource) {
-				return true;
-			}
-
-			return false;
+			return \BigTree\Services\LinkService::irlExists($irl);
 		}
 
 		/*
@@ -7674,19 +6549,7 @@
 		*/
 
 		public static function isIPBanned($ip) {
-			global $bigtree;
-
-			// Check to see if this IP is already banned from logging in.
-			$ban = sqlfetch(sqlquery("SELECT * FROM bigtree_login_bans WHERE expires > NOW() AND ip = '$ip'"));
-
-			if ($ban) {
-				$bigtree["ban_expiration"] = date("F j, Y @ g:ia", strtotime($ban["expires"]));
-				$bigtree["ban_is_user"] = false;
-
-				return true;
-			}
-
-			return false;
+			return \BigTree\Services\SecurityPolicyService::isIPBanned($ip);
 		}
 
 		/*
@@ -7701,19 +6564,7 @@
 		*/
 
 		public static function isUserBanned($user) {
-			global $bigtree;
-
-			// See if this user is banned due to failed login attempts
-			$ban = sqlfetch(sqlquery("SELECT * FROM bigtree_login_bans WHERE expires > NOW() AND `user` = '".intval($user)."'"));
-
-			if ($ban) {
-				$bigtree["ban_expiration"] = date("F j, Y @ g:ia", strtotime($ban["expires"]));
-				$bigtree["ban_is_user"] = true;
-
-				return true;
-			}
-
-			return false;
+			return \BigTree\Services\SecurityPolicyService::isUserBanned($user);
 		}
 
 		/*
@@ -8132,91 +6983,7 @@
 		*/
 
 		public static function makeIPL($url) {
-			global $bigtree;
-
-			if (substr($url, 0, 6) === "irl://") {
-				$parts = explode("//", substr($url, 6), 2);
-
-				if (!empty($parts[0]) && is_numeric($parts[0])) {
-					static::trackResource($parts[0]);
-				}
-
-				return $url;
-			}
-
-			$resource = static::getResourceByUrl($url);
-
-			if ($resource) {
-				static::trackResource($resource["id"]);
-
-				return "irl://".$resource["id"]."//".$resource["prefix"];
-			}
-
-			if (strpos($url, WWW_ROOT) === 0) {
-				$path_components = explode("/", rtrim(substr($url, strlen(WWW_ROOT)), "/"));
-			} else {
-				$path_components = explode("/", rtrim($url, "/"));
-			}
-
-			// See if this is a file
-			$local_path = str_replace([WWW_ROOT, STATIC_ROOT], SITE_ROOT, $url);
-
-			if (substr($local_path, 0, 2) !== "//" && (
-				($path_components[0] !== "files" || $path_components[1] !== "resources") &&
-				(substr($local_path, 0, 1) == "/" || substr($local_path, 0, 2) == "\\\\") &&
-				file_exists($local_path)
-			)) {
-
-				return BigTreeCMS::replaceHardRoots($url);
-			}
-
-			// If we have multiple sites, try each domain
-			if (is_array($bigtree["config"]["sites"]) && count($bigtree["config"]["sites"]) > 1) {
-				foreach ($bigtree["config"]["sites"] as $site_key => $configuration) {
-					$site_roots = array_filter([
-						$configuration["www_root"] ?? "",
-						$configuration["static_root"] ?? ""
-					]);
-					$matched_root = false;
-
-					foreach ($site_roots as $site_root) {
-						if ($site_root && strpos($url, $site_root) !== false) {
-							$matched_root = $site_root;
-
-							break;
-						}
-					}
-
-					// This is the site we're pointing to
-					if ($matched_root) {
-						$path_components = explode("/", rtrim(str_replace($matched_root, "", $url), "/"));
-
-						// Get the root path of the site for calculating an IPL and add it to the path components
-						$f = sqlfetch(sqlquery("SELECT path FROM bigtree_pages WHERE id = '".$configuration["trunk"]."'"));
-						$path_components = array_filter(array_merge(explode("/", $f["path"]), $path_components));
-
-						// Check for page link
-						[$navid, $commands, $routed_state, $get_vars, $hash] = static::getPageIDForPath($path_components);
-
-						if ($navid) {
-							return "ipl://".$navid."//".base64_encode(json_encode($commands))."//".base64_encode($get_vars)."//".base64_encode($hash);
-						} else {
-							return BigTreeCMS::replaceHardRoots($url);
-						}
-					}
-				}
-
-				return BigTreeCMS::replaceHardRoots($url);
-			} else {
-				// Check for page link
-				[$navid, $commands, $routed_state, $get_vars, $hash] = static::getPageIDForPath($path_components);
-			}
-
-			if (!$navid) {
-				return BigTreeCMS::replaceHardRoots($url);
-			}
-
-			return "ipl://".$navid."//".base64_encode(json_encode($commands))."//".base64_encode($get_vars)."//".base64_encode($hash);
+			return \BigTree\Services\LinkService::makeIPL($url);
 		}
 
 		/*
@@ -8314,38 +7081,7 @@
 		*/
 
 		public static function parse404SourceURL($source, $site_key = null) {
-			global $bigtree;
-
-			$source = trim($source);
-
-			// If this is a multi-site environment and a full URL was pasted in we're going to auto-select the key no matter what they passed in
-			if (!is_null($site_key)) {
-				$from_domain = parse_url($source, PHP_URL_HOST);
-
-				foreach ($bigtree["config"]["sites"] as $index => $site) {
-					$domain = parse_url($site["domain"], PHP_URL_HOST);
-
-					if ($domain == $from_domain) {
-						$site_key = $index;
-						$source = str_replace($site["www_root"], "", $source);
-					}
-				}
-			}
-
-			// Allow for from URLs with GET vars
-			$source_parts = parse_url($source);
-			$get_vars = "";
-
-			if (!empty($source_parts["query"])) {
-				$source = str_replace("?".$source_parts["query"], "", $source);
-				$get_vars = sqlescape(htmlspecialchars($source_parts["query"]));
-			}
-
-			return [
-				"url" => htmlspecialchars(strip_tags(trim(str_replace(WWW_ROOT, "", $source), "/"))),
-				"get_vars" => $get_vars,
-				"site_key" => $site_key
-			];
+			return \BigTree\Services\FourOhFourService::parse404SourceURL($source, $site_key);
 		}
 
 		/*
@@ -8377,44 +7113,7 @@
 		*/
 
 		public static function processCrop($crop_key, $index, $x, $y, $width, $height) {
-			$storage = new BigTreeStorage;
-
-			$crops = BigTreeCMS::cacheGet("org.bigtreecms.crops", $crop_key);
-			$crop = $crops[$index];
-
-			$image_src = $crop["image"];
-			$target_width = $crop["width"];
-			$target_height = $crop["height"];
-			$thumbs = $crop["thumbs"];
-			$center_crops = $crop["center_crops"];
-
-			$image = new BigTreeImage($image_src);
-			$temp_crop = $image->getTempFileName();
-			$image->crop($temp_crop, $x, $y, $target_width, $target_height, $width, $height, $crop["retina"], $crop["grayscale"]);
-			$temp_image = new BigTreeImage($temp_crop);
-
-			// Make thumbnails for the crop
-			if (is_array($thumbs)) {
-				foreach ($thumbs as $thumb) {
-					// We're going to figure out what size the thumbs will be so we can re-crop the original image so we don't lose image quality.
-					$temp_thumb = $temp_image->getTempFileName();
-					$size = $temp_image->getThumbnailSize($thumb["width"], $thumb["height"]);
-					$image->crop($temp_thumb, $x, $y, $size["width"], $size["height"], $width, $height, $crop["retina"], $thumb["grayscale"]);
-					$storage->replace($temp_thumb, $thumb["prefix"].$crop["name"], $crop["directory"]);
-				}
-			}
-
-			// Make center crops of the crop
-			if (is_array($center_crops)) {
-				foreach ($center_crops as $center_crop) {
-					$temp_center_crop = $image->getTempFileName();
-					$temp_image->centerCrop($temp_center_crop, $center_crop["width"], $center_crop["height"], $crop["retina"], $center_crop["grayscale"]);
-					$storage->replace($temp_center_crop, $center_crop["prefix"].$crop["name"], $crop["directory"]);
-				}
-			}
-
-			// Move crop into its resting place
-			$storage->replace($temp_crop, $crop["prefix"].$crop["name"], $crop["directory"]);
+			return \BigTree\Services\FieldProcessingService::processCrop($crop_key, $index, $x, $y, $width, $height);
 		}
 
 		/*
@@ -8426,56 +7125,7 @@
 		*/
 
 		public static function processCrops($crop_key) {
-			$storage = new BigTreeStorage;
-
-			// Get and remove the crop data
-			$crops = BigTreeCMS::cacheGet("org.bigtreecms.crops", $crop_key);
-			BigTreeCMS::cacheDelete("org.bigtreecms.crops", $crop_key);
-
-			foreach ($crops as $key => $crop) {
-				$image_src = $crop["image"];
-				$target_width = $crop["width"];
-				$target_height = $crop["height"];
-				$x = $_POST["x"][$key];
-				$y = $_POST["y"][$key];
-				$width = $_POST["width"][$key];
-				$height = $_POST["height"][$key];
-				$thumbs = $crop["thumbs"];
-				$center_crops = $crop["center_crops"];
-
-				$image = new BigTreeImage($image_src);
-				$temp_crop = $image->getTempFileName();
-				$image->crop($temp_crop, $x, $y, $target_width, $target_height, $width, $height, $crop["retina"], $crop["grayscale"]);
-				$temp_image = new BigTreeImage($temp_crop);
-
-				// Make thumbnails for the crop
-				if (is_array($thumbs)) {
-					foreach ($thumbs as $thumb) {
-						// We're going to figure out what size the thumbs will be so we can re-crop the original image so we don't lose image quality.
-						$temp_thumb = $temp_image->getTempFileName();
-						$size = $temp_image->getThumbnailSize($thumb["width"], $thumb["height"]);
-						$image->crop($temp_thumb, $x, $y, $size["width"], $size["height"], $width, $height, $crop["retina"], $thumb["grayscale"]);
-						$storage->replace($temp_thumb, $thumb["prefix"].$crop["name"], $crop["directory"]);
-					}
-				}
-
-				// Make center crops of the crop
-				if (is_array($center_crops)) {
-					foreach ($center_crops as $center_crop) {
-						$temp_center_crop = $image->getTempFileName();
-						$temp_image->centerCrop($temp_center_crop, $center_crop["width"], $center_crop["height"], $crop["retina"], $center_crop["grayscale"]);
-						$storage->replace($temp_center_crop, $center_crop["prefix"].$crop["name"], $crop["directory"]);
-					}
-				}
-
-				// Move crop into its resting place
-				$storage->replace($temp_crop, $crop["prefix"].$crop["name"], $crop["directory"]);
-			}
-
-			// Remove all the temporary images
-			foreach ($crops as $crop) {
-				@unlink($crop["image"]);
-			}
+			return \BigTree\Services\FieldProcessingService::processCrops($crop_key);
 		}
 
 		/*
@@ -8490,80 +7140,7 @@
 		*/
 
 		public static function processField($field) {
-			global $admin, $bigtree, $cms;
-
-			// Make sure options is an array to prevent warnings, load from options as a fallback for < 4.3
-			if (!is_array($field["settings"])) {
-				if (is_array($field["options"]) && array_filter($field["options"])) {
-					$field["settings"] = $field["options"];
-				} else {
-					$field["settings"] = [];
-				}
-			}
-
-			$field["options"] = &$field["settings"];
-			$field["output"] = "";
-
-			// Save current context
-			$bigtree["saved_extension_context"] = $bigtree["extension_context"] ?? "";
-
-			// Check if the field type is stored in an extension
-			if (strpos($field["type"], "*") !== false) {
-				[$extension, $field_type] = explode("*", $field["type"]);
-
-				$bigtree["extension_context"] = $extension;
-				$field_type_path = SERVER_ROOT."extensions/$extension/field-types/$field_type/process.php";
-			} else {
-				// < 4.3 location - we prefer it to allow old overrides to continue to work
-				$field_type_path = SERVER_ROOT."custom/admin/form-field-types/process/".$field["type"].".php";
-
-				if (!file_exists($field_type_path)) {
-					$field_type_path = BigTree::path("admin/field-types/".$field["type"]."/process.php");
-				}
-			}
-
-			// If we have a customized handler for this data type, run it.
-			if (file_exists($field_type_path)) {
-				include $field_type_path;
-
-				// If it's explicitly ignored return null
-				if (!empty($field["ignore"])) {
-					return null;
-				} else {
-					$output = $field["output"];
-				}
-
-				// Fall back to default handling
-			} else {
-				if (is_array($field["input"])) {
-					$output = $field["input"];
-				} else {
-					$output = BigTree::safeEncode($field["input"]);
-				}
-			}
-
-			// Check validation
-			if (!BigTreeAutoModule::validate($output, $field["settings"]["validation"] ?? "")) {
-				$error = !empty($field["settings"]["error_message"]) ? $field["settings"]["error_message"] : BigTreeAutoModule::validationErrorMessage($output, $field["settings"]["validation"]);
-				$bigtree["errors"][] = [
-					"field" => $field["title"],
-					"error" => $error
-				];
-			}
-
-			// Translation of internal links
-			if (is_array($output)) {
-				$output = BigTree::translateArray($output);
-			} else {
-				$output = $admin->autoIPL($output);
-			}
-
-			static::trackResourcesInValue($output);
-
-			// Restore context
-			$bigtree["extension_context"] = $bigtree["saved_extension_context"];
-
-			return $output;
+			return \BigTree\Services\FieldProcessingService::processField($field);
 		}
 
 		// 4.5-exclusive for returning relationship titles to callout / matrix
@@ -8627,113 +7204,7 @@
 		*/
 
 		public static function processImageUpload($field, $replace = false, $force_local_replace = false) {
-			global $bigtree;
-
-			$failed = false;
-			$name = $field["file_input"]["name"];
-			$temp_name = $field["file_input"]["tmp_name"];
-			$error = $field["file_input"]["error"];
-
-			// If a file upload error occurred, return the old image and set errors
-			if ($error == 1 || $error == 2) {
-				$bigtree["errors"][] = ["field" => $field["title"], "error" => "The file you uploaded ($name) was too large &mdash; <strong>Max file size: ".ini_get("upload_max_filesize")."</strong>"];
-
-				return false;
-			} elseif ($error == 3) {
-				$bigtree["errors"][] = ["field" => $field["title"], "error" => "The file upload failed ($name)."];
-
-				return false;
-			}
-
-			// Backwards compatibility with 4.2
-			if (empty($field["settings"])) {
-				$field["settings"] = $field["options"];
-			}
-
-			// See if we're using image presets
-			if (!empty($field["settings"]["preset"])) {
-				$media_settings = BigTreeJSONDB::get("config", "media-settings");
-				$preset = $media_settings["presets"][$field["settings"]["preset"]];
-
-				// If the preset still exists, copy its properties over to our options
-				if ($preset) {
-					foreach ($preset as $key => $val) {
-						$field["settings"][$key] = $val;
-					}
-				}
-			}
-
-			// This is a file manager upload, add a 100x100 center crop
-			if (!empty($field["settings"]["preset"]) && $field["settings"]["preset"] == "default") {
-				if (empty($field["settings"]["center_crops"]) || !is_array($field["settings"]["center_crops"])) {
-					$field["settings"]["center_crops"] = [];
-				}
-
-				$field["settings"]["center_crops"][] = [
-					"prefix" => "list-preview/",
-					"width" => 100,
-					"height" => 100
-				];
-			}
-
-			// Load up the image class for doing manipulation / calculation and fix any EXIF rotations
-			$image = new BigTreeImage($temp_name, $field["settings"]);
-
-			if ($image->Error) {
-				$bigtree["errors"][] = ["field" => $field["title"], "error" => $image->Error];
-				$image->destroy();
-
-				return false;
-			}
-
-			// For crops that don't meet the required image size, see if a sub-crop will work.
-			$image->filterGeneratableCrops();
-
-			// Get largest crop and thumbnail to check if we have the memory available to make them
-			$largest_thumb = $image->getLargestThumbnail();
-			$largest_crop = $image->getLargestCrop();
-
-			if (($largest_thumb && !$image->checkMemory($largest_thumb["width"], $largest_thumb["height"])) ||
-				($largest_crop && !$image->checkMemory($largest_crop["width"], $largest_crop["height"]))
-			) {
-				$bigtree["errors"][] = ["field" => $field["title"], "error" => "The image uploaded is too large for the server to manipulate. Please upload a smaller version of this image"];
-				$image->destroy();
-
-				return false;
-			}
-
-			// Upload the original to the proper place.
-			if ($replace) {
-				$field["output"] = $image->replace($name, $force_local_replace);
-			} else {
-				$field["output"] = $image->store($name);
-			}
-
-			// If the upload service didn't return a value, we failed to upload it for one reason or another.
-			if (!$field["output"]) {
-				$bigtree["errors"][] = ["field" => $field["title"], "error" => $image->Error];
-				$image->destroy();
-
-				return false;
-			}
-
-			// Handle crops and thumbnails
-			$crops = $image->processCrops();
-			$image->processThumbnails();
-			$image->processCenterCrops();
-
-			// If we don't have any crops, get rid of the temporary image we made.
-			if (!count($crops)) {
-				$image->destroy();
-			} else {
-				if (!is_array($bigtree["crops"])) {
-					$bigtree["crops"] = [];
-				}
-
-				$bigtree["crops"] = array_merge($bigtree["crops"], $crops);
-			}
-
-			return $field["output"];
+			return \BigTree\Services\FieldProcessingService::processImageUpload($field, $replace, $force_local_replace);
 		}
 
 		/*
@@ -9469,21 +7940,7 @@
 		*/
 
 		public static function stripMultipleRootTokens($string) {
-			global $bigtree;
-
-			if (empty($bigtree["config"]["sites"]) || !array_filter((array) $bigtree["config"]["sites"])) {
-				return $string;
-			}
-
-			foreach ($bigtree["config"]["sites"] as $key => $data) {
-				$string = str_replace(
-					["{wwwroot:$key}", "{staticroot:$key}"],
-					["{wwwroot}", "{staticroot}"],
-					$string
-				);
-			}
-
-			return $string;
+			return \BigTree\Services\LinkService::stripMultipleRootTokens($string);
 		}
 
 		/*
@@ -9701,7 +8158,7 @@
 		*/
 
 		public static function urlExists($url) {
-			return BigTree::urlExists($url);
+			return \BigTree\Services\LinkService::urlExists($url);
 		}
 
 		/*
@@ -9758,23 +8215,7 @@
 		*/
 
 		public static function uniqueModuleActionRoute($module, $route, $action = false) {
-			$module = BigTreeJSONDB::get("modules", $module);
-			$oroute = $route;
-			$x = 2;
-
-			do {
-				$exists = false;
-
-				foreach ($module["actions"] as $module_action) {
-					if ($module_action["id"] != $action && $module_action["route"] == $route) {
-						$exists = true;
-						$route = $oroute."-".$x;
-						$x++;
-					}
-				}
-			} while ($exists);
-
-			return $route;
+			return \BigTree\Services\ModuleService::uniqueModuleActionRoute($module, $route, $action);
 		}
 
 		/*
@@ -9942,28 +8383,7 @@
 		*/
 
 		public static function updateInternalSettingValue($id, $value, $encrypted = false) {
-			global $bigtree;
-
-			if (is_array($value)) {
-				$value = BigTree::translateArray($value);
-			} else {
-				$value = static::autoIPL($value);
-			}
-
-			$value = BigTree::json($value);
-
-			if (!SQL::exists("bigtree_settings", $id)) {
-				SQL::insert("bigtree_settings", [
-					"id" => $id,
-					"encrypted" => $encrypted ? "on" : ""
-				]);
-			}
-
-			if ($encrypted) {
-				SQL::query("UPDATE bigtree_settings SET `value` = AES_ENCRYPT(?, ?), `encrypted` = 'on' WHERE id = ?", $value, $bigtree["config"]["settings_key"], $id);
-			} else {
-				SQL::update("bigtree_settings", $id, ["value" => $value, "encrypted" => ""]);
-			}
+			\BigTree\Services\SettingService::updateInternalValue($id, $value, $encrypted);
 		}
 
 		/*
@@ -10313,38 +8733,7 @@
 		*/
 
 		public static function updateModuleViewColumnNumericStatusForTable($table_name) {
-			$modules = BigTreeJSONDB::getAll("modules");
-
-			foreach ($modules as $module) {
-				foreach ($module["views"] as $view) {
-					if ($view["table"] == $table_name) {
-						if (is_array($view["fields"])) {
-							$form = BigTreeAutoModule::getRelatedFormForView($view);
-							$table = BigTree::describeTable($view["table"]);
-
-							foreach ($view["fields"] as $key => $field) {
-								$numeric = false;
-								$type = $table["columns"][$key]["type"];
-
-								if (in_array($type, ["int", "float", "double", "double precision", "tinyint", "smallint", "mediumint", "bigint", "real", "decimal", "dec", "fixed", "numeric"])) {
-									$numeric = true;
-								}
-
-								if (!empty($field["parser"]) ||
-									(!empty($form["fields"][$key]["type"]) && $form["fields"][$key]["type"] == "list" && $form["fields"][$key]["settings"]["list_type"] == "db")
-								) {
-									$numeric = false;
-								}
-
-								$view["fields"][$key]["numeric"] = $numeric;
-							}
-
-							$context = BigTreeJSONDB::getSubset("modules", $module["id"]);
-							$context->update("views", $view["id"], $view);
-						}
-					}
-				}
-			}
+			\BigTree\Services\ModuleViewService::updateModuleViewColumnNumericStatusForTable($table_name);
 		}
 
 		/*
@@ -10812,8 +9201,7 @@
 		*/
 
 		public function updateResourceAllocation($table, $entry, $pending_id) {
-			SQL::delete("bigtree_resource_allocation", ["table" => $table, "entry" => $entry]);
-			SQL::update("bigtree_resource_allocation", ["table" => $table, "entry" => "p".$pending_id], ["entry" => $entry]);
+			\BigTree\Services\ResourceAllocationService::updateResourceAllocation($table, $entry, $pending_id);
 		}
 
 		/*
@@ -11100,29 +9488,7 @@
 		*/
 
 		public static function validatePassword($password) {
-			global $bigtree;
-
-			$policy = $bigtree["security-policy"]["password"];
-			$failed = false;
-
-			// Check length policy
-			if ($policy["length"] && strlen($password) < $policy["length"]) {
-				$failed = true;
-			}
-			// Check case policy
-			if ($policy["multicase"] && strtolower($password) === $password) {
-				$failed = true;
-			}
-			// Check numeric policy
-			if ($policy["numbers"] && !preg_match("/[0-9]/", $password)) {
-				$failed = true;
-			}
-			// Check non-alphanumeric policy
-			if ($policy["nonalphanumeric"] && ctype_alnum($password)) {
-				$failed = true;
-			}
-
-			return !$failed;
+			return \BigTree\Services\SecurityPolicyService::validatePassword($password);
 		}
 
 		/*
@@ -11252,9 +9618,7 @@
 				Boolean
 		*/
 		public static function passkeysEnabled() {
-			global $bigtree;
-
-			return strpos($bigtree["config"]["admin_root"], "https://") === 0 && extension_loaded("openssl");
+			return \BigTree\Services\PasskeyService::passkeysEnabled();
 		}
 
 		/*
@@ -11268,7 +9632,7 @@
 				Array of passkey rows
 		*/
 		public static function getUserPasskeys($user_id) {
-			return SQL::fetchAll("SELECT * FROM bigtree_user_passkeys WHERE user = ? ORDER BY created_at DESC", $user_id);
+			return \BigTree\Services\PasskeyService::getUserPasskeys($user_id);
 		}
 
 		/*
@@ -11282,11 +9646,7 @@
 				Passkey row including public_key and sign_count, or false
 		*/
 		public static function getPasskeyByCredentialId($credential_id) {
-			return SQL::fetch("SELECT p.*, u.id AS user_id, u.email, u.name AS user_name,
-			                          u.level, u.permissions
-			                   FROM bigtree_user_passkeys p
-			                   JOIN bigtree_users u ON u.id = p.user
-			                   WHERE p.credential_id = ?", $credential_id);
+			return \BigTree\Services\PasskeyService::getPasskeyByCredentialId($credential_id);
 		}
 
 		/*
@@ -11306,15 +9666,7 @@
 				New passkey ID
 		*/
 		public static function createPasskey($user_id, $credential_id, $public_key, $sign_count, $name, $aaguid, $transports) {
-			return SQL::insert("bigtree_user_passkeys", [
-				"user"          => $user_id,
-				"credential_id" => $credential_id,
-				"public_key"    => $public_key,
-				"sign_count"    => $sign_count,
-				"name"          => $name,
-				"aaguid"        => $aaguid,
-				"transports"    => $transports,
-			]);
+			return \BigTree\Services\PasskeyService::createPasskey($user_id, $credential_id, $public_key, $sign_count, $name, $aaguid, $transports);
 		}
 
 		/*
@@ -11326,7 +9678,7 @@
 				user_id - Must match the passkey's user to prevent cross-user deletion
 		*/
 		public static function deletePasskey($id, $user_id) {
-			SQL::delete("bigtree_user_passkeys", ["id" => $id, "user" => $user_id]);
+			\BigTree\Services\PasskeyService::deletePasskey($id, $user_id);
 		}
 
 		/*
@@ -11338,10 +9690,7 @@
 				sign_count - New sign count from the authenticator
 		*/
 		public static function updatePasskeyUsed($id, $sign_count) {
-			SQL::update("bigtree_user_passkeys", $id, [
-				"sign_count" => $sign_count,
-				"last_used"  => date("Y-m-d H:i:s"),
-			]);
+			\BigTree\Services\PasskeyService::updatePasskeyUsed($id, $sign_count);
 		}
 
 		/*

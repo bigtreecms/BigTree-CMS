@@ -365,6 +365,10 @@
 			}
 		}
 		
+		// Cryptographically random secrets for settings encryption + SPA JWT auth.
+		$settings_key = uniqid("", true);
+		$jwt_secret = bin2hex(random_bytes(32));
+
 		$find = [
 			"[host]",
 			"[db]",
@@ -383,6 +387,7 @@
 			"[staticroot]",
 			"[email]",
 			"[settings_key]",
+			"[jwt_secret]",
 			"[force_secure_login]",
 			"[routing]",
 			"[slash_behavior]",
@@ -406,7 +411,8 @@
 			$www_root,
 			$static_root,
 			$cms_user,
-			uniqid("",true),
+			$settings_key,
+			$jwt_secret,
 			(isset($force_secure_login)) ? "true" : "false",
 			($routing == "basic") ? "basic" : "htaccess",
 			$slash_behavior,

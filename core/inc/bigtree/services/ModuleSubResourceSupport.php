@@ -114,7 +114,7 @@
 		 */
 		private function syncNumericStatus(string $table): void {
 			if ($table !== "") {
-				\BigTreeAdmin::updateModuleViewColumnNumericStatusForTable($table);
+				\BigTree\Services\ModuleViewService::updateModuleViewColumnNumericStatusForTable($table);
 			}
 		}
 

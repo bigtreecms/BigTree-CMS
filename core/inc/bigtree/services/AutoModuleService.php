@@ -11,7 +11,6 @@
 	use BigTree\Api\Exceptions\AuthorizationException;
 	use BigTreeAutoModule;
 	use BigTreeJSONDB;
-	use BigTreeAdmin;
 	use BigTreeCMS;
 	use SQL;
 
@@ -45,7 +44,7 @@
 			// Shared by both the full-set and DB-pagination paths below.
 			$per_page = !empty($view["settings"]["per_page"])
 				? (int)$view["settings"]["per_page"]
-				: (int)BigTreeAdmin::$PerPage;
+				: (int)SettingService::perPage();
 			$per_page = max(1, $per_page);
 
 			// The row-level permission predicate (PermissionService::userRowLevel)
@@ -206,7 +205,7 @@
 					$new_id = (int)BigTreeAutoModule::publishPendingItem($table, $pending_change_id, $data, $mtm, $tags, $og);
 					// Publishing promotes the pending draft to a live row; re-key its
 					// already-tracked allocations from "p{change}" onto the new live id.
-					$admin->updateResourceAllocation($table, $new_id, $pending_change_id);
+					ResourceAllocationService::updateResourceAllocation($table, $new_id, $pending_change_id);
 
 					return $this->respondUpdated($module_id, $table, $new_id);
 				}
@@ -219,7 +218,7 @@
 				);
 
 				if ($pending_change_id) {
-					\BigTreeAdmin::deallocateResources($table, "p".$pending_change_id);
+					\BigTree\Services\ResourceAllocationService::deallocateResources($table, "p".$pending_change_id);
 				}
 
 				BigTreeAutoModule::updateItem($table, $entry_id, $data, $mtm, $tags, $og);
@@ -248,10 +247,10 @@
 
 			if ($is_pending) {
 				BigTreeAutoModule::deletePendingItem($table, $pending_change_id);
-				\BigTreeAdmin::deallocateResources($table, "p".$pending_change_id);
+				\BigTree\Services\ResourceAllocationService::deallocateResources($table, "p".$pending_change_id);
 			} else {
 				BigTreeAutoModule::deleteItem($table, (int)$lookup_id);
-				\BigTreeAdmin::deallocateResources($table, (int)$lookup_id);
+				\BigTree\Services\ResourceAllocationService::deallocateResources($table, (int)$lookup_id);
 
 				// Drop allocations for any outstanding draft of the deleted row too.
 				$pending_change_id = SQL::fetchSingle(
@@ -259,7 +258,7 @@
 				);
 
 				if ($pending_change_id) {
-					\BigTreeAdmin::deallocateResources($table, "p".$pending_change_id);
+					\BigTree\Services\ResourceAllocationService::deallocateResources($table, "p".$pending_change_id);
 				}
 			}
 
@@ -475,30 +474,11 @@
 		}
 
 		/**
-		 * The legacy pending-change helpers (createPendingItem / submitChange) read
-		 * the global `$admin` (BigTreeAdmin) for the acting user's id and audit
-		 * tracking. The API request has no admin session, so construct a bare
-		 * BigTreeAdmin (its constructor is inert without a session) and populate it
-		 * from the authenticated JWT user. Mirrors the pattern in SystemService.
+		 * Hydrate the legacy global $admin from the API actor for BigTreeAutoModule
+		 * write paths that still read global $admin.
 		 */
 		private function bindLegacyAdmin($user): void {
-			global $admin;
-
-			if (!($admin instanceof BigTreeAdmin)) {
-				$admin = new BigTreeAdmin();
-			}
-
-			if (!$admin->ID) {
-				$admin->ID = $user->id;
-				$admin->Level = (int)$user->level;
-
-				$row = SQL::fetch("SELECT permissions, timezone FROM bigtree_users WHERE id = ?", (int)$user->id);
-
-				if ($row) {
-					$admin->Permissions = Json::decode($row["permissions"]);
-					$admin->Timezone = $row["timezone"];
-				}
-			}
+			LegacyAdmin::bridge($user);
 		}
 
 		/**
@@ -511,12 +491,12 @@
 		private function referenceKeysForTable(string $table): array {
 			$keys = [];
 
-			foreach (\BigTreeAdmin::getModuleForms() as $form) {
+			foreach (\BigTree\Services\ModuleFormService::getModuleForms() as $form) {
 				if (($form["table"] ?? "") !== $table) {
 					continue;
 				}
 
-				$keys = array_merge($keys, \BigTreeAdmin::getResourceReferenceKeys($form["fields"] ?? []));
+				$keys = array_merge($keys, \BigTree\Services\ResourceAllocationService::getResourceReferenceKeys($form["fields"] ?? []));
 			}
 
 			return array_values(array_unique($keys));
@@ -528,7 +508,7 @@
 		 * directly. `$entry` is the live row id or a "p"-prefixed pending change id.
 		 */
 		private function trackModuleResources(string $table, $entry, array $data): void {
-			\BigTreeAdmin::allocateResourcesFromData($table, $entry, $data, $this->referenceKeysForTable($table));
+			\BigTree\Services\ResourceAllocationService::allocateResourcesFromData($table, $entry, $data, $this->referenceKeysForTable($table));
 		}
 
 		/**

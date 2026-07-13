@@ -9,7 +9,6 @@
 	use BigTree\Api\Exceptions\BadRequestException;
 	use BigTree\Api\Exceptions\ConflictException;
 	use BigTree\Api\Exceptions\AuthorizationException;
-	use BigTreeAdmin;
 	use BigTreeCMS;
 	use BigTreeJSONDB;
 	use BigTree;
@@ -153,7 +152,7 @@
 
 			BigTreeJSONDB::delete("settings", $id);
 			SQL::delete("bigtree_settings", $id);
-			BigTreeAdmin::deallocateResources("bigtree_settings", $id);
+			ResourceAllocationService::deallocateResources("bigtree_settings", $id);
 
 			return Response::noContent();
 		}
@@ -180,7 +179,7 @@
 				true
 			) ? ["value"] : null;
 
-			BigTreeAdmin::allocateResourcesFromData("bigtree_settings", $id, ["value" => $value], $reference_keys);
+			ResourceAllocationService::allocateResourcesFromData("bigtree_settings", $id, ["value" => $value], $reference_keys);
 		}
 
 		private function updateDefinition($old_id, array $existing, array $d) {
@@ -244,5 +243,79 @@
 			}
 
 			return $out;
+		}
+	
+		public static function readSetting($id, $decode = true) {
+			global $bigtree;
+
+			$id = BigTreeCMS::extensionSettingCheck($id);
+			$setting = BigTreeJSONDB::get("settings", $id);
+
+			if (!$setting) {
+				return false;
+			}
+
+			if ($setting["encrypted"]) {
+				$setting["value"] = SQL::fetchSingle("SELECT AES_DECRYPT(`value`, ?) FROM bigtree_settings WHERE id = ?", $bigtree["config"]["settings_key"], $id);
+			} else {
+				$setting["value"] = SQL::fetchSingle("SELECT value FROM bigtree_settings WHERE id = ?", $id);
+			}
+
+			// Decode the JSON value
+			if ($decode) {
+				$setting["value"] = json_decode($setting["value"] ?? "", true);
+
+				if (is_array($setting["value"])) {
+					$setting["value"] = BigTree::untranslateArray($setting["value"]);
+				} else {
+					$setting["value"] = BigTreeCMS::replaceInternalPageLinks($setting["value"]);
+				}
+			}
+
+			return $setting;
+		}
+
+		public static function updateInternalValue($id, $value, $encrypted = false) {
+			global $bigtree;
+
+			if (is_array($value)) {
+				$value = BigTree::translateArray($value);
+			} else {
+				$value = LinkService::autoIPL($value);
+			}
+
+			$value = BigTree::json($value);
+
+			if (!SQL::exists("bigtree_settings", $id)) {
+				SQL::insert("bigtree_settings", [
+					"id" => $id,
+					"encrypted" => $encrypted ? "on" : ""
+				]);
+			}
+
+			if ($encrypted) {
+				SQL::query("UPDATE bigtree_settings SET `value` = AES_ENCRYPT(?, ?), `encrypted` = 'on' WHERE id = ?", $value, $bigtree["config"]["settings_key"], $id);
+			} else {
+				SQL::update("bigtree_settings", $id, ["value" => $value, "encrypted" => ""]);
+			}
+		}
+
+		/**
+		 * Per-request page size from bigtree-internal-per-page (default 15).
+		 * Replaces silent reliance on a static that was only populated after the
+		 * admin constructor ran.
+		 */
+		public static function perPage(): int {
+			static $cached = null;
+
+			if ($cached !== null) {
+				return $cached;
+			}
+
+			$setting = static::readSetting("bigtree-internal-per-page");
+			$v = is_array($setting) ? ($setting["value"] ?? 15) : 15;
+			$cached = max(1, (int) $v);
+
+			return $cached;
 		}
 	}

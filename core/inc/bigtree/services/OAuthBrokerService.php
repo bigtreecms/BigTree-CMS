@@ -7,7 +7,6 @@
 	use BigTree\Api\Jwt;
 	use BigTree\Api\Exceptions\BadRequestException;
 	use BigTree\Api\Exceptions\NotFoundException;
-	use BigTreeAdmin;
 	use BigTreeCMS;
 	use BigTree;
 
@@ -86,7 +85,7 @@
 
 			$settings["test_environment"] = Flag::checkbox($request->body["test_environment"] ?? null);
 
-			BigTreeAdmin::updateInternalSettingValue($def["setting"], $settings, true);
+			SettingService::updateInternalValue($def["setting"], $settings, true);
 
 			return Response::ok(["launch_url" => $this->launchUrl($this->mintToken((int)$request->user->id, $service, "service"))]);
 		}
@@ -111,7 +110,7 @@
 			$cloud["secret"] = $secret;
 			$cloud["project"] = (string)($google["project"] ?? ($cloud["project"] ?? ""));
 
-			BigTreeAdmin::updateInternalSettingValue("bigtree-internal-cloud-storage", $cloud, true);
+			SettingService::updateInternalValue("bigtree-internal-cloud-storage", $cloud, true);
 
 			return Response::ok(["launch_url" => $this->launchUrl($this->mintToken((int)$request->user->id, "google", "gcs"))]);
 		}
@@ -175,7 +174,7 @@
 				$cloud = BigTreeCMS::getSetting("bigtree-internal-cloud-storage") ?: [];
 				$cloud["google"] = is_array($cloud["google"] ?? null) ? $cloud["google"] : [];
 				$cloud["google"]["active"] = true;
-				BigTreeAdmin::updateInternalSettingValue("bigtree-internal-cloud-storage", $cloud, true);
+				SettingService::updateInternalValue("bigtree-internal-cloud-storage", $cloud, true);
 
 				$this->redirectToSpa("cloud-storage", ["connected" => "google"]);
 			}

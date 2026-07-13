@@ -103,4 +103,13 @@
 				"hooks" => $t["hooks"] ?? [],
 			];
 		}
+	
+		public static function getTemplates($sort = "position") {
+			$sort_parts = explode(" ", $sort);
+			$sort_column = $sort_parts[0] ?? "";
+			$sort_direction = $sort_parts[1] ?? "";
+
+			return BigTreeJSONDB::getAll("templates", $sort_column, $sort_direction ?: "ASC");
+		}
+
 	}

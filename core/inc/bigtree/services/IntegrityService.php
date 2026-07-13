@@ -5,7 +5,6 @@
 	use BigTree\Api\Response;
 	use BigTree\Api\Sanitize;
 	use BigTree;
-	use BigTreeAdmin;
 	use BigTreeAutoModule;
 	use BigTreeCMS;
 	use BigTreeModule;
@@ -83,7 +82,7 @@
 				BigTreeCMS::cacheDelete(self::CACHE);
 
 				$resumed = false;
-				$pages = BigTreeAdmin::getPageIds();
+				$pages = PageService::getPageIds();
 				$modules = $this->buildModuleList();
 				$current_page = 0;
 				$current_module = 0;
@@ -279,17 +278,17 @@
 		 * Ported from the legacy integrity/check.php session-build loop.
 		 */
 		private function buildModuleList(): array {
-			$forms = BigTreeAdmin::getModuleForms();
+			$forms = ModuleFormService::getModuleForms();
 			$list = [];
 
 			foreach ($forms as $form) {
-				$action = BigTreeAdmin::getModuleActionForForm($form);
+				$action = ModuleFormService::getModuleActionForForm($form);
 
 				if (!$action) {
 					continue;
 				}
 
-				$module = BigTreeAdmin::getModule($action["module"]);
+				$module = ModuleService::getModule($action["module"]);
 
 				if (!$module) {
 					continue;
@@ -319,7 +318,7 @@
 					}
 				}
 
-				$group = !empty($module["group"]) ? BigTreeAdmin::getModuleGroup($module["group"]) : null;
+				$group = !empty($module["group"]) ? ModuleService::getModuleGroup($module["group"]) : null;
 
 				if (!empty($group["name"])) {
 					$name = "Modules › ".$group["name"]." › ".$module["name"]." › ".$form["title"];
@@ -404,7 +403,7 @@
 		/**
 		 * Recursively checks a set of resource/field definitions against a decoded
 		 * data set, accumulating broken links/images into $errors keyed by field
-		 * title. Handles text (raw URLs), html (via BigTreeAdmin::checkHTML), and
+		 * title. Handles text (raw URLs), html (via LinkService::checkHTML), and
 		 * nested callouts/matrix columns.
 		 *
 		 * Ported from core/admin/ajax/dashboard/integrity-check/_header.php.
@@ -430,25 +429,25 @@
 								$data = substr($data, 0, strpos($data, "#") - 1);
 							}
 
-							if (!BigTreeAdmin::urlExists($data)) {
+							if (!LinkService::urlExists($data)) {
 								$errors[$field] = ["a" => [$data]];
 							}
 						}
 					} elseif (substr($data, 0, 4) == "http") {
 						// Internal hard link.
-						if ($data != WWW_ROOT && $data != STATIC_ROOT && $data != ADMIN_ROOT && !BigTreeAdmin::urlExists($data)) {
+						if ($data != WWW_ROOT && $data != STATIC_ROOT && $data != ADMIN_ROOT && !LinkService::urlExists($data)) {
 							$errors[$field] = ["a" => [$data]];
 						}
 					}
 				} elseif ($type == "html") {
-					$found = BigTreeAdmin::checkHTML($local_path, $data, $external);
+					$found = LinkService::checkHTML($local_path, $data, $external);
 
 					if (!empty($found)) {
 						$errors[$field] = $found;
 					}
 				} elseif ($type == "callouts" && is_array($data)) {
 					foreach ($data as $callout_data) {
-						$callout = BigTreeAdmin::getCallout($callout_data["type"] ?? "");
+						$callout = CalloutService::getCallout($callout_data["type"] ?? "");
 
 						if ($callout) {
 							$callout_resources = array_filter((array)$callout["resources"]);

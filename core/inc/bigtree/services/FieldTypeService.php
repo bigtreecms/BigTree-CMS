@@ -9,7 +9,6 @@
 	use BigTree\Api\ETag;
 	use BigTree\Api\Exceptions\BadRequestException;
 	use BigTree\Api\Exceptions\NotFoundException;
-	use BigTreeAdmin;
 	use BigTreeJSONDB;
 	use BigTree;
 
@@ -48,7 +47,7 @@
 			// getCachedFieldTypes() returns data nested by use_case for the legacy
 			// admin. Flatten into the SPA-friendly shape: Record<typeId, FieldType>
 			// (or {default, custom} of the same) with use_cases as an array.
-			$nested = BigTreeAdmin::getCachedFieldTypes(true);
+			$nested = FieldTypeService::getCachedFieldTypes(true);
 			$entries = [];
 
 			foreach ($nested as $use_case => $buckets) {
@@ -182,7 +181,7 @@
 
 			// Delegate to the admin method so the SPA and legacy developer UI share
 			// one complete cascade (cache, source files, extension dir + manifest).
-			$bigtree_admin = $admin instanceof BigTreeAdmin ? $admin : new BigTreeAdmin();
+			$bigtree_admin = LegacyAdmin::bridge();
 			$bigtree_admin->deleteFieldType($id);
 
 			return Response::noContent();
@@ -924,4 +923,64 @@
 
 			return null;
 		}
+	
+		public static function getFieldType($id) {
+			return BigTreeJSONDB::get("field-types", $id);
+		}
+
+		public static function getFieldTypes($sort = "name ASC") {
+			$sort_pieces = explode(" ", $sort);
+			$sort_column = $sort_pieces[0] ?? "";
+			$sort_direction = $sort_pieces[1] ?? "";
+
+			return BigTreeJSONDB::getAll("field-types", $sort_column, $sort_direction ?: "ASC");
+		}
+
+		public static function getCachedFieldTypes($split = false) {
+			$types["modules"] = $types["templates"] = $types["callouts"] = $types["settings"] = [
+				"default" => [
+					"text" => ["name" => "Text", "self_draw" => false],
+					"textarea" => ["name" => "Text Area", "self_draw" => false],
+					"html" => ["name" => "HTML Area", "self_draw" => false],
+					"link" => ["name" => "Link", "self_draw" => false],
+					"upload" => ["name" => "File Upload", "self_draw" => false],
+					"image" => ["name" => "Image Upload", "self_draw" => false],
+					"video" => ["name" => "YouTube or Vimeo Video", "self_draw" => false],
+					"file-reference" => ["name" => "File Reference", "self_draw" => false],
+					"image-reference" => ["name" => "Image Reference", "self_draw" => false],
+					"video-reference" => ["name" => "Video Reference", "self_draw" => false],
+					"list" => ["name" => "List", "self_draw" => false],
+					"checkbox" => ["name" => "Checkbox", "self_draw" => false],
+					"date" => ["name" => "Date Picker", "self_draw" => false],
+					"time" => ["name" => "Time Picker", "self_draw" => false],
+					"datetime" => ["name" => "Date &amp; Time Picker", "self_draw" => false],
+					"media-gallery" => ["name" => "Media Gallery", "self_draw" => false],
+					"callouts" => ["name" => "Callouts", "self_draw" => false],
+					"matrix" => ["name" => "Matrix", "self_draw" => false],
+					"one-to-many" => ["name" => "One to Many", "self_draw" => false]
+				],
+				"custom" => []
+			];
+
+			$types["modules"]["default"]["route"] = ["name" => "Generated Route", "self_draw" => true];
+			$field_types = BigTreeJSONDB::getAll("field-types", "name", "ASC");
+
+			foreach ($field_types as $field_type) {
+				foreach ($field_type["use_cases"] as $case => $val) {
+					if ($val) {
+						$types[$case]["custom"][$field_type["id"]] = ["name" => $field_type["name"], "self_draw" => $field_type["self_draw"]];
+					}
+				}
+			}
+
+			// Re-merge if we don't want them split
+			if (!$split) {
+				foreach ($types as $use_case => $list) {
+					$types[$use_case] = array_merge($list["default"], $list["custom"]);
+				}
+			}
+
+			return $types;
+		}
+
 	}

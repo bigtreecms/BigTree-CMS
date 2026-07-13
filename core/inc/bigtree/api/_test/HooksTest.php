@@ -62,3 +62,31 @@
 			Hooks::clearDefaultContext();
 		}
 	}
+
+	/**
+	 * rebuildCache() rewrites cache/bigtree-hooks.json and resets the in-memory
+	 * registry. Restores prior file contents after the assertion.
+	 */
+	function test_hooks_rebuild_cache() {
+		$cache_path = SERVER_ROOT . Hooks::CACHE_FILE;
+		$original = file_exists($cache_path) ? file_get_contents($cache_path) : null;
+
+		try {
+			Hooks::rebuildCache();
+			T::ok(file_exists($cache_path), "rebuildCache writes bigtree-hooks.json");
+			$decoded = json_decode(file_get_contents($cache_path), true);
+			T::ok(is_array($decoded), "written cache is valid JSON array/object");
+			Hooks::clearCache();
+			// loadRegistry should read the file we just wrote
+			$result = Hooks::run("nonexistent.type", "", ["z" => 3]);
+			T::equals($result["z"], 3, "after rebuild, unhooked events still pass data through");
+		} finally {
+			if ($original !== null) {
+				file_put_contents($cache_path, $original);
+			} else {
+				@unlink($cache_path);
+			}
+
+			Hooks::clearCache();
+		}
+	}

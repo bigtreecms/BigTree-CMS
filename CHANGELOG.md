@@ -24,6 +24,24 @@
   follow-up; use SPA login per domain for 5.0.
 - Operators with `custom/admin/router.php` must implement the SPA + API + bar
   contract (docs only; no runtime detection).
+- FIXED: Fresh installs now write `$bigtree["config"]["api"]["jwt_secret"]` into
+  `custom/environment.php` so SPA login works without manual config.
+- UPDATED: `BigTreeAdmin` / `admin.php` is no longer load-bearing for the modern
+  stack. Capabilities used by the REST API live in `BigTree\Services\*` (security
+  policy, passkeys, links/IPL, settings, resource allocation, catalog getters,
+  404/301, field processing, etc.); `BigTreeAdminBase` methods are one-line
+  facades. `BigTreeAdmin` is declared lazily so public front-end requests no
+  longer parse the full admin class file. API code reaches the legacy instance
+  only through `LegacyAdmin::bridge()` (extension install/upgrade, auto-module
+  writes, field-type process includes).
+- **Behavior note:** API call sites that previously called `BigTreeAdmin::x()`
+  now call `Service::x()` and no longer pass through `BIGTREE_CUSTOM_ADMIN_CLASS`
+  overrides of `x()`. Custom subclasses still apply for the SPA admin entry,
+  front-end toolbar, cron, field-type includes, and other surfaces that still
+  construct or subclass BigTreeAdmin.
+- FIXED: API auto-module pagination no longer silently used the default 15 rows
+  per page unless an admin instance had been constructed first; it now reads
+  `bigtree-internal-per-page` via `SettingService::perPage()`.
 
 ### 4.6
 

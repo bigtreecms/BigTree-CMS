@@ -121,7 +121,7 @@
 				"chosen deleted page id is genuinely absent"
 			);
 
-			// A JSON DB setting (where BigTreeAdmin::getSetting reads name/system).
+			// A JSON DB setting (where SettingService::readSetting reads name/system).
 			BigTreeJSONDB::insert("settings", [
 				"id" => $setting_id,
 				"name" => "Resusage Setting Name",

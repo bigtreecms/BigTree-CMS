@@ -30,14 +30,14 @@
 
 			try {
 				// IP restriction policy (banned / allowed lists) gates every route,
-				// including public ones — the same check the legacy admin runs in
-				// BigTreeAdmin::initSecurity(). Loading the policy here also makes it
-				// available to services that read $bigtree["security-policy"] (e.g.
-				// the failed-login ban recording in AuthService).
-				\BigTreeAdmin::getSecurityPolicy();
+				// including public ones — the same check initSecurity() runs on
+				// the BigTreeAdmin facade. Loading the policy here also makes it
+				// available to services that read $bigtree["security-policy"]
+				// (e.g. the failed-login ban recording in AuthService).
+				\BigTree\Services\SecurityPolicyService::getSecurityPolicy();
 				$ip = ip2long($request->ip);
 
-				if (\BigTreeAdmin::isIPBannedByPolicy($ip) || !\BigTreeAdmin::isIPAllowedByPolicy($ip)) {
+				if (\BigTree\Services\SecurityPolicyService::isIPBannedByPolicy($ip) || !\BigTree\Services\SecurityPolicyService::isIPAllowedByPolicy($ip)) {
 					throw new Exceptions\AuthorizationException("Access from this IP address is restricted", "ip_restricted");
 				}
 

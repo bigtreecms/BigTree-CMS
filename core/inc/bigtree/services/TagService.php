@@ -7,7 +7,6 @@
 	use BigTree\Api\Request;
 	use BigTree\Api\Response;
 	use BigTree\Api\Exceptions\BadRequestException;
-	use BigTreeAdmin;
 	use BigTreeCMS;
 	use BigTree;
 	use SQL;

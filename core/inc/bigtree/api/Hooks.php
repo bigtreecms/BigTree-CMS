@@ -5,8 +5,8 @@
 	 * Hook dispatcher for the REST API.
 	 *
 	 * Reads the existing cache/bigtree-hooks.json registry directly so we don't
-	 * have to construct a BigTreeAdmin (which would run session/auth side effects
-	 * inappropriate for stateless API requests).
+	 * have to construct a legacy admin instance (which would run session/auth
+	 * side effects inappropriate for stateless API requests).
 	 *
 	 * Registered hook files are plain PHP, included with a $data variable available
 	 * (and any $data_context keys hoisted as locals). The included file's last
@@ -108,9 +108,8 @@
 			$path = SERVER_ROOT . self::CACHE_FILE;
 
 			if (!file_exists($path)) {
-				// Don't auto-build here — the legacy admin builds this cache via
-				// BigTreeAdmin::cacheHooks() and we'd need its $this context. If
-				// the cache is missing, no hooks fire (and that's acceptable for
+				// Don't auto-build here — call Hooks::rebuildCache() explicitly when
+				// needed. If the cache is missing, no hooks fire (acceptable for
 				// API requests on a freshly-installed site).
 				self::$cache = [];
 
@@ -122,5 +121,35 @@
 			self::$cache = is_array($decoded) ? $decoded : [];
 
 			return self::$cache;
+		}
+
+		/**
+		 * Rebuild cache/bigtree-hooks.json from every installed extension's
+		 * hooks/ directory. Also resets the in-memory registry cache.
+		 */
+		public static function rebuildCache() {
+			self::$cache = null;
+			$hooks = [];
+			$extensions = \BigTreeJSONDB::getAll("extensions");
+
+			foreach ($extensions as $extension) {
+				$base_dir = SERVER_ROOT."extensions/".$extension["id"]."/hooks/";
+
+				if (file_exists($base_dir)) {
+					$hook_files = \BigTree::directoryContents($base_dir, true, "php");
+
+					foreach ($hook_files as $file) {
+						$parts = explode("/", str_replace($base_dir, "", substr($file, 0, -4)));
+
+						if (count($parts) == 2) {
+							$hooks[$parts[0]][$parts[1]][] = str_replace(SERVER_ROOT, "", $file);
+						} elseif (count($parts) == 1) {
+							$hooks[$parts[0]][] = str_replace(SERVER_ROOT, "", $file);
+						}
+					}
+				}
+			}
+
+			\BigTree::putFile(SERVER_ROOT."cache/bigtree-hooks.json", \BigTree::json($hooks));
 		}
 	}

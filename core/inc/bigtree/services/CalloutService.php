@@ -142,4 +142,17 @@
 				"resources" => $c["resources"] ?? [],
 			];
 		}
+	
+		public static function getCallout($id) {
+			return BigTreeJSONDB::get("callouts", $id);
+		}
+
+		public static function getCallouts($sort = "position") {
+			$sort_pieces = explode(" ", $sort);
+			$sort_column = $sort_pieces[0] ?? "";
+			$sort_direction = $sort_pieces[1] ?? "";
+
+			return BigTreeJSONDB::getAll("callouts", $sort_column, $sort_direction ?: "ASC");
+		}
+
 	}
