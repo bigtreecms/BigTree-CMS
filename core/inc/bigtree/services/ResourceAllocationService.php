@@ -213,7 +213,7 @@
 
 			// Only ids are cached up front to keep memory low; lookups pull full rows on demand
 			foreach (SQL::fetchAll("SELECT id, file FROM bigtree_resources") as $resource) {
-				static::cacheResourceByFile($resource["file"], intval($resource["id"]));
+				self::cacheResourceByFile($resource["file"], intval($resource["id"]));
 			}
 		}
 
@@ -230,7 +230,7 @@
 
 		public static function trackResourcesInValue($value, $reference_keys = null) {
 			$resources = [];
-			static::collectResourcesInValue($value, $resources, $reference_keys, null);
+			self::collectResourcesInValue($value, $resources, $reference_keys, null);
 
 			foreach ($resources as $resource) {
 				static::trackResource($resource);
@@ -239,7 +239,7 @@
 
 		public static function findResourcesInData($data, $reference_keys = null) {
 			$resources = [];
-			static::collectResourcesInValue($data, $resources, $reference_keys, null);
+			self::collectResourcesInValue($data, $resources, $reference_keys, null);
 
 			return array_values(array_unique(array_filter(array_map("intval", $resources))));
 		}
@@ -247,7 +247,7 @@
 		private static function collectResourcesInValue($value, &$resources, $reference_keys, $current_key) {
 			if (is_array($value)) {
 				foreach ($value as $key => $piece) {
-					static::collectResourcesInValue($piece, $resources, $reference_keys, $key);
+					self::collectResourcesInValue($piece, $resources, $reference_keys, $key);
 				}
 			} else {
 				if ($reference_keys !== null && $current_key !== null && in_array($current_key, $reference_keys, true)) {
@@ -320,7 +320,7 @@
 
 			$callout_group_cache = [];
 
-			return static::walkResourceReferenceKeys($fields, $types, $callout_group_cache);
+			return self::walkResourceReferenceKeys($fields, $types, $callout_group_cache);
 		}
 
 		private static function walkResourceReferenceKeys($fields, $types, &$callout_group_cache) {
@@ -341,7 +341,7 @@
 
 				if ($type === "callouts" && !empty($field["settings"]["callouts"])) {
 					foreach ($field["settings"]["callouts"] as $callout) {
-						$keys = array_merge($keys, static::walkResourceReferenceKeys($callout["fields"] ?? [], $types, $callout_group_cache));
+						$keys = array_merge($keys, self::walkResourceReferenceKeys($callout["fields"] ?? [], $types, $callout_group_cache));
 					}
 				}
 
@@ -356,14 +356,14 @@
 							$callout_fields = array_merge($callout_fields, $callout["resources"] ?? []);
 						}
 
-						$callout_group_cache[$group_key] = static::walkResourceReferenceKeys($callout_fields, $types, $callout_group_cache);
+						$callout_group_cache[$group_key] = self::walkResourceReferenceKeys($callout_fields, $types, $callout_group_cache);
 					}
 
 					$keys = array_merge($keys, $callout_group_cache[$group_key]);
 				}
 
 				if ($type === "matrix" && !empty($field["settings"]["columns"])) {
-					$keys = array_merge($keys, static::walkResourceReferenceKeys($field["settings"]["columns"], $types, $callout_group_cache));
+					$keys = array_merge($keys, self::walkResourceReferenceKeys($field["settings"]["columns"], $types, $callout_group_cache));
 				}
 			}
 
@@ -431,7 +431,7 @@
 					}
 				} else {
 					if (!isset($table_cache[$table])) {
-						$table_cache[$table] = static::getModuleEditInfoForTable($table);
+						$table_cache[$table] = self::getModuleEditInfoForTable($table);
 					}
 
 					$module_info = $table_cache[$table];
@@ -444,7 +444,7 @@
 					$item = BigTreeAutoModule::getItem($table, $entry);
 
 					if ($item) {
-						$usage["title"] = static::getModuleEntryTitle($item["item"], $entry);
+						$usage["title"] = self::getModuleEntryTitle($item["item"], $entry);
 					} else {
 						$usage["title"] = "Deleted Entry (".$entry.")";
 						$usage["edit_url"] = null;
@@ -483,7 +483,7 @@
 
 				$action = \BigTree\Services\ModuleFormService::getModuleActionForForm($form);
 
-				if ($module && $action) {
+				if ($action) {
 					return [
 						"location" => $module["name"],
 						"edit_url" => ADMIN_ROOT.$module["route"]."/".$action["route"]."/"

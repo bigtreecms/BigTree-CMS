@@ -308,7 +308,8 @@
 					$seen_entries[$key] = true;
 					$route = (string)($row["module_route"] ?? "");
 					$name = $route;
-					$mod = $mid !== "" ? BigTreeJSONDB::get("modules", $mid) : null;
+					// $mid is non-empty here (empty values continue above).
+					$mod = BigTreeJSONDB::get("modules", $mid);
 
 					if ($mod) {
 						$name = (string)($mod["name"] ?? $route);
@@ -326,7 +327,7 @@
 					$found = false;
 
 					foreach ($out["entries"] as &$group) {
-						if ((string)($group["module"]["id"] ?? "") === $mid) {
+						if ((string)$group["module"]["id"] === $mid) {
 							$group["items"][] = $entry_item;
 							$found = true;
 

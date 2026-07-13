@@ -1,10 +1,58 @@
 parameters:
 	ignoreErrors:
 		-
-			message: '#^Offset ''license'' does not exist on null\.$#'
-			identifier: offsetAccess.notFound
-			count: 3
-			path: core/inc/bigtree/services/ExtensionService.php
+			message: '#^Call to function in_array\(\) with arguments ''anthropic'', array\{''xai'', ''openai'', ''anthropic''\} and true will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: core/inc/bigtree/api/_test/BigTreeAITest.php
+
+		-
+			message: '#^Call to function in_array\(\) with arguments ''openai'', array\{''xai'', ''openai'', ''anthropic''\} and true will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: core/inc/bigtree/api/_test/BigTreeAITest.php
+
+		-
+			message: '#^Call to function in_array\(\) with arguments ''xai'', array\{''xai'', ''openai'', ''anthropic''\} and true will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: core/inc/bigtree/api/_test/BigTreeAITest.php
+
+		-
+			message: '#^Call to function is_array\(\) with array will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: core/inc/bigtree/api/_test/EntityTest.php
+
+		-
+			message: '#^Offset 0 on array\{\} on left side of \?\? does not exist\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: core/inc/bigtree/api/_test/FieldProcessingTest.php
+
+		-
+			message: '#^Comparison operation "\>" between 900010\|900015\|900020\|900025\|900030 and 0 is always true\.$#'
+			identifier: greater.alwaysTrue
+			count: 1
+			path: core/inc/bigtree/api/_test/MigrationLedgerTest.php
+
+		-
+			message: '#^Negated boolean expression is always false\.$#'
+			identifier: booleanNot.alwaysFalse
+			count: 1
+			path: core/inc/bigtree/api/_test/MigrationRunnerExecTest.php
+
+		-
+			message: '#^Negated boolean expression is always true\.$#'
+			identifier: booleanNot.alwaysTrue
+			count: 1
+			path: core/inc/bigtree/api/_test/MigrationRunnerExecTest.php
+
+		-
+			message: '#^Call to function is_array\(\) with array will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: core/inc/bigtree/api/_test/ReservedRouteTest.php
 
 		-
 			message: '#^Variable \$table” might not be defined\.$#'
@@ -57,14 +105,8 @@ parameters:
 		-
 			message: '#^Ternary operator condition is always false\.$#'
 			identifier: ternary.alwaysFalse
-			count: 4
+			count: 3
 			path: core/inc/bigtree/services/ResourceService.php
-
-		-
-			message: '#^Path in include\(\) "/core/version\.php" is not a file or it does not exist\.$#'
-			identifier: include.fileNotFound
-			count: 1
-			path: core/inc/bigtree/services/SystemService.php
 
 		-
 			message: '#^Static method SQL\:\:exists\(\) invoked with 4 parameters, 2\-3 required\.$#'

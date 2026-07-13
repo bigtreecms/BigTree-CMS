@@ -7,6 +7,7 @@
 	use BigTreeAutoModule;
 	use BigTreeImage;
 	use BigTreeJSONDB;
+	use BigTreeStorage;
 
 	/**
 	 * Field process/crop/upload pipeline (cluster I).

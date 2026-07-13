@@ -47,3 +47,15 @@ foreach ([
 		define($constant, $value);
 	}
 }
+
+// Version constants live in core/version.php (included by bootstrap / installer).
+// MigrationService and the migrate CLI tools compare against BIGTREE_REVISION;
+// declare them here so PHPStan can resolve the symbols without executing the
+// real bootstrap. Values match core/version.php for realism only.
+if (!defined("BIGTREE_VERSION")) {
+	define("BIGTREE_VERSION", "5.0");
+}
+
+if (!defined("BIGTREE_REVISION")) {
+	define("BIGTREE_REVISION", 507);
+}

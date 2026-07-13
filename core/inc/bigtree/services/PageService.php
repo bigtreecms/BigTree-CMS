@@ -1215,7 +1215,7 @@
 
 			// Reserved-route check at top level.
 			if ((int)$parent === 0) {
-				$reserved = PageService::reservedTopLevelRoutes() ?? [];
+				$reserved = PageService::reservedTopLevelRoutes();
 				$site_dirs = $this->reservedSiteDirectories();
 				while (in_array($route, $reserved, true) || in_array($route, $site_dirs, true)) {
 					$route = $base . "-" . $x++;

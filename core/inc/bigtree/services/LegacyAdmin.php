@@ -20,7 +20,7 @@
 		 * global $admin consumers (BigTreeAutoModule, field process.php includes)
 		 * see the same instance.
 		 *
-		 * @param object|null $user API user with id/level (or null)
+		 * @param object|array<string,mixed>|null $user API user with id/level (or null)
 		 * @return \BigTreeAdmin
 		 */
 		public static function bridge($user = null): \BigTreeAdmin {
@@ -37,8 +37,13 @@
 			}
 
 			if (!$instance->ID && $user !== null) {
-				$user_id = is_object($user) ? ($user->id ?? null) : ($user["id"] ?? null);
-				$user_level = is_object($user) ? ($user->level ?? 0) : ($user["level"] ?? 0);
+				if (is_object($user)) {
+					$user_id = $user->id ?? null;
+					$user_level = $user->level ?? 0;
+				} else {
+					$user_id = $user["id"] ?? null;
+					$user_level = $user["level"] ?? 0;
+				}
 
 				if ($user_id) {
 					$instance->ID = $user_id;

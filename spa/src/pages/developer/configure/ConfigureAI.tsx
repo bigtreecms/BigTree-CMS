@@ -296,9 +296,7 @@ export const ConfigureAI = () => {
 									<SelectField
 										label="Embedding model"
 										value={draft.embedding_model}
-										onChange={(v) =>
-											setDraft({ ...draft, embedding_model: v })
-										}
+										onChange={(v) => setDraft({ ...draft, embedding_model: v })}
 										options={embeddingOptions}
 										hint={`Always OpenAI · fixed ${draft.embedding_dimensions}-dimension VECTOR index. Changing models requires a full rebuild.`}
 									/>
@@ -406,7 +404,9 @@ export const ConfigureAI = () => {
 									!hasEmbedKey && (
 										<p className="mt-2 text-[12px] text-warn">
 											Add an OpenAI embedding API key above to fill{" "}
-											<code className="text-[11px]">bigtree_ai_embeddings</code>
+											<code className="text-[11px]">
+												bigtree_ai_embeddings
+											</code>
 											. xAI has no public embedding models.
 										</p>
 									)}
