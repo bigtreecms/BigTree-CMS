@@ -43,7 +43,11 @@
 				"SELECT COUNT(*) FROM bigtree_users" . $sql_where,
 				"SELECT id, email, name, company, level, daily_digest, timezone FROM bigtree_users" . $sql_where . " ORDER BY name",
 				$params,
-				[$this, "presentList"],
+				// Closure required: private method arrays fail the `callable` type
+				// check when passed across class boundaries into Pagination.
+				function ($row) {
+					return $this->presentList($row);
+				},
 				100
 			);
 		}

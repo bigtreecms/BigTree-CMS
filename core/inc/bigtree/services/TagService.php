@@ -28,7 +28,11 @@
 				"SELECT COUNT(*) FROM bigtree_tags" . $where,
 				"SELECT id, tag, route, usage_count FROM bigtree_tags" . $where . " ORDER BY tag ASC",
 				$args,
-				[$this, "present"],
+				// Closure required: private method arrays fail the `callable` type
+				// check when passed across class boundaries into Pagination.
+				function ($row) {
+					return $this->present($row);
+				},
 				100
 			);
 		}

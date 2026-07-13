@@ -30,7 +30,11 @@
 				"SELECT COUNT(*) FROM bigtree_404s" . $where,
 				"SELECT * FROM bigtree_404s" . $where . " ORDER BY requests DESC, id DESC",
 				$args,
-				[$this, "present"],
+				// Closure required: private method arrays fail the `callable` type
+				// check when passed across class boundaries into Pagination.
+				function ($row) {
+					return $this->present($row);
+				},
 				100
 			);
 		}
