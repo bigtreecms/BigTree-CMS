@@ -153,6 +153,7 @@
 			BigTreeJSONDB::delete("settings", $id);
 			SQL::delete("bigtree_settings", $id);
 			ResourceAllocationService::deallocateResources("bigtree_settings", $id);
+			EmbeddingService::deleteSetting((string)$id);
 
 			return Response::noContent();
 		}
@@ -180,6 +181,7 @@
 			) ? ["value"] : null;
 
 			ResourceAllocationService::allocateResourcesFromData("bigtree_settings", $id, ["value" => $value], $reference_keys);
+			EmbeddingService::indexSetting((string)$id, $value);
 		}
 
 		private function updateDefinition($old_id, array $existing, array $d) {

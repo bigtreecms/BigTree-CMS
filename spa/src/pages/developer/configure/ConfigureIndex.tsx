@@ -7,6 +7,7 @@ import {
 	Mail,
 	MapPin,
 	Share2,
+	Sparkles,
 } from "lucide-react";
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
@@ -48,6 +49,13 @@ const CARDS: TileLink[] = [
 		icon: <LineChart size={16} />,
 		title: "Analytics",
 		description: "Google Analytics 4 service-account hookup for the dashboard traffic widget.",
+	},
+	{
+		to: "/developer/configure/ai",
+		icon: <Sparkles size={16} />,
+		title: "AI",
+		description:
+			"xAI / OpenAI / Anthropic API key + model. Powers AI search and future AI features.",
 	},
 	{
 		to: "/developer/configure/services",

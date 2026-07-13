@@ -67,31 +67,77 @@ export const DebugUpgrade = () => {
 			return;
 		}
 
-		const runScript = async (script: string, page?: number, totalPages?: number) => {
-			const res = await systemApi.upgrade.migrate(script, page, totalPages);
+		/** Same capped page protocol as RunMigrations (legacy 503-style). */
+		const runScript = async (script: string) => {
+			const first = await systemApi.upgrade.migrate(script);
 
-			if (res.error) {
-				throw new Error(res.error);
+			if (first.error) {
+				throw new Error(first.error);
 			}
 
-			if (res.response) {
-				appendLog(res.response);
+			if (first.response) {
+				appendLog(first.response);
 			}
 
-			if (res.complete) {
+			if (first.complete) {
 				return;
 			}
 
-			if (res.pages) {
-				await runScript(script, 1, res.pages);
+			const totalPages = first.pages && first.pages > 0 ? first.pages : 0;
 
-				return;
+			if (totalPages < 1) {
+				const safetyCap = 500;
+
+				for (let page = 1; page <= safetyCap; page++) {
+					const res = await systemApi.upgrade.migrate(script, page);
+
+					if (res.error) {
+						throw new Error(res.error);
+					}
+
+					if (res.response) {
+						appendLog(res.response);
+					}
+
+					if (res.complete) {
+						return;
+					}
+				}
+
+				throw new Error(
+					`${script} did not complete after ${safetyCap} pages (missing pages count)`
+				);
 			}
 
-			await runScript(script, (page ?? 0) + 1, totalPages);
+			for (let page = 1; page <= totalPages; page++) {
+				const res = await systemApi.upgrade.migrate(script, page, totalPages);
+
+				if (res.error) {
+					throw new Error(res.error);
+				}
+
+				if (res.response) {
+					appendLog(res.response);
+				}
+
+				if (res.complete) {
+					return;
+				}
+			}
 		};
 
-		for (const script of queue) {
+		// Drain live queue one script at a time (re-query after each — floor moves).
+		const safetyScripts = 100;
+
+		for (let i = 0; i < safetyScripts; i++) {
+			const { queue: live } = await systemApi.upgrade.migrations();
+
+			if (!live.length) {
+				break;
+			}
+
+			const script = live[0]!;
+			appendLog(`Running ${script}…`);
 			await runScript(script);
 		}
 
@@ -196,7 +242,19 @@ export const DebugUpgrade = () => {
 							<div className="flex items-center justify-between px-4 py-2.5">
 								<dt className="text-[12.5px] text-text-2">BigTree version</dt>
 								<dd className="font-mono text-[12.5px] tabular-nums text-text">
-									{data.current_version || "—"} (rev {data.current_revision})
+									{data.current_version || "—"}
+								</dd>
+							</div>
+							<div className="flex items-center justify-between px-4 py-2.5">
+								<dt className="text-[12.5px] text-text-2">Database revision</dt>
+								<dd className="font-mono text-[12.5px] tabular-nums text-text">
+									{data.current_revision}
+								</dd>
+							</div>
+							<div className="flex items-center justify-between px-4 py-2.5">
+								<dt className="text-[12.5px] text-text-2">Core target revision</dt>
+								<dd className="font-mono text-[12.5px] tabular-nums text-text">
+									{data.core_revision ?? "—"}
 								</dd>
 							</div>
 							<div className="flex items-center justify-between px-4 py-2.5">
@@ -207,6 +265,51 @@ export const DebugUpgrade = () => {
 							</div>
 						</dl>
 					</Card>
+
+					{data.migrations_pending && (
+						<div className="mb-4 flex flex-col gap-3 rounded-lg border border-warn/40 bg-warn-bg/30 p-3 text-[12.5px] text-text-2">
+							<div className="flex items-start gap-2">
+								<AlertTriangle size={15} className="mt-0.5 shrink-0 text-warn" />
+								<div>
+									<p className="font-medium text-text">
+										Database migrations are pending
+									</p>
+									<p className="mt-1">
+										The core code targets revision{" "}
+										<span className="font-mono tabular-nums">
+											{data.core_revision}
+										</span>{" "}
+										but the database is still at{" "}
+										<span className="font-mono tabular-nums">
+											{data.current_revision}
+										</span>
+										. This is separate from “latest release” on bigtreecms.org —
+										you can be on the latest product version and still need
+										local revision scripts.
+									</p>
+									{(data.migration_queue?.length ?? 0) > 0 && (
+										<ul className="mt-2 list-inside list-disc font-mono text-[11.5px] text-text-3">
+											{data.migration_queue!.map((s) => (
+												<li key={s}>{s}</li>
+											))}
+										</ul>
+									)}
+								</div>
+							</div>
+							<div className="flex flex-wrap gap-2">
+								<Button variant="primary" to="/developer/migrations">
+									Run migrations
+								</Button>
+								<Button
+									variant="secondary"
+									disabled={busy}
+									onClick={() => void runMigrations()}
+								>
+									Run here
+								</Button>
+							</div>
+						</div>
+					)}
 
 					{data.config_ignored && (
 						<div className="mb-4 flex items-start gap-2 rounded-lg border border-warn/40 bg-warn-bg/30 p-3 text-[12.5px] text-text-2">

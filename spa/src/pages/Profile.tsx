@@ -90,6 +90,8 @@ export const Profile = () => {
 					name: fresh.name,
 					level: fresh.level,
 					timezone: fresh.timezone,
+					// Preserve capability flags (e.g. ai_search) from the auth user.
+					features: auth.user?.features,
 				});
 			}
 		},

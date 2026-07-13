@@ -350,9 +350,17 @@
 			if (!is_string($id_or_route) || $id_or_route === "") {
 				return null;
 			}
+
+			// JSONDB module ids are strings like "modules-15c3…".
+			$by_id = BigTreeJSONDB::get("modules", $id_or_route);
+
+			if ($by_id && isset($by_id["id"])) {
+				return $by_id["id"];
+			}
+
 			$module = BigTreeJSONDB::get("modules", $id_or_route, "route");
 
-			return $module ? (int)$module["id"] : null;
+			return $module["id"] ?? null;
 		}
 
 		private static function rank($p) {

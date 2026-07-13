@@ -37,18 +37,17 @@
 		const VERSION_CHECK_URL = "https://www.bigtreecms.org/ajax/version-check/";
 
 		public function version(Request $request) {
-			$revision = (int)BigTreeCMS::getSetting("bigtree-internal-revision");
-			$version_file = SERVER_ROOT . "core/version.php";
-			$version = "";
-
-			if (file_exists($version_file)) {
-				include $version_file;
-				$version = $bigtree_version ?? "";
-			}
+			$db_revision = (int)BigTreeCMS::getSetting("bigtree-internal-revision");
+			$core_revision = defined("BIGTREE_REVISION") ? (int)BIGTREE_REVISION : $db_revision;
+			$version = defined("BIGTREE_VERSION") ? BIGTREE_VERSION : "";
 
 			return Response::ok([
 				"version" => $version,
-				"revision" => $revision,
+				/** Applied DB revision (bigtree-internal-revision). */
+				"revision" => $db_revision,
+				/** Core code target revision (version.php BIGTREE_REVISION). */
+				"core_revision" => $core_revision,
+				"migrations_pending" => $this->hasPendingMigrations(),
 				"php" => PHP_VERSION,
 			]);
 		}
@@ -500,9 +499,18 @@
 				];
 			}
 
+			$db_revision = (int)BigTreeCMS::getSetting("bigtree-internal-revision");
+			$core_revision = defined("BIGTREE_REVISION") ? (int)BIGTREE_REVISION : $db_revision;
+			$migration_queue = $this->buildMigrationQueue();
+
 			return Response::ok([
 				"current_version" => defined("BIGTREE_VERSION") ? BIGTREE_VERSION : "",
-				"current_revision" => (int)BigTreeCMS::getSetting("bigtree-internal-revision"),
+				/** Applied DB revision setting. */
+				"current_revision" => $db_revision,
+				/** Code target from core/version.php. */
+				"core_revision" => $core_revision,
+				"migrations_pending" => count($migration_queue) > 0,
+				"migration_queue" => $migration_queue,
 				"method" => $updater->Method ?: null,
 				"config_ignored" => $config_ignored,
 				"updates" => $out,
@@ -643,11 +651,22 @@
 		 * logic to the legacy scripts.php so the same revision files are reused.
 		 */
 		public function upgradeMigrations(Request $request) {
+			$queue = $this->buildMigrationQueue();
+
 			return Response::ok([
 				"current_revision" => (int)BigTreeCMS::getSetting("bigtree-internal-revision"),
 				"target_revision" => defined("BIGTREE_REVISION") ? BIGTREE_REVISION : null,
-				"queue" => $this->buildMigrationQueue(),
+				"queue" => $queue,
+				"pending" => count($queue) > 0,
 			]);
+		}
+
+		/**
+		 * Whether any DB migration scripts still need to run for this core revision.
+		 * Used by AuthService so developers are forced through the upgrade gate.
+		 */
+		public function hasPendingMigrations(): bool {
+			return count($this->buildMigrationQueue()) > 0;
 		}
 
 		/**
@@ -664,14 +683,27 @@
 		 */
 		public function runUpgradeMigration(Request $request) {
 			$script = $request->bodyString("script");
+			$queue = $this->buildMigrationQueue();
 
-			if (!in_array($script, $this->buildMigrationQueue(), true)) {
-				throw new BadRequestException("Unknown or out-of-order migration script", "upgrade_bad_script");
+			// Must be pending. Prefer the head of the queue (in-order), but also
+			// accept any currently pending script key so a client that fetched the
+			// full list before starting does not fail after an earlier script advanced
+			// the floor mid-run.
+			if (!in_array($script, $queue, true)) {
+				throw new BadRequestException(
+					"Unknown or out-of-order migration script (not pending: {$script})",
+					"upgrade_bad_script"
+				);
 			}
 
-			$file = SERVER_ROOT . "core/admin/ajax/developer/upgrade/" . $script . ".php";
+			// Only allow path-safe keys under the upgrade tree.
+			if (!preg_match('#^(revisions/\d+|roll-up-scripts/[A-Za-z0-9._-]+)$#', $script)) {
+				throw new BadRequestException("Invalid migration script path", "upgrade_bad_script");
+			}
 
-			if (!file_exists($file)) {
+			$file = rtrim(SERVER_ROOT, "/") . "/core/admin/ajax/developer/upgrade/" . $script . ".php";
+
+			if (!is_file($file)) {
 				throw new NotFoundException("Migration script is missing", "upgrade_script_missing");
 			}
 
@@ -725,7 +757,9 @@
 		}
 
 		private function buildMigrationQueue() {
-			$current_revision = (int)BigTreeCMS::getSetting("bigtree-internal-revision");
+			$raw = BigTreeCMS::getSetting("bigtree-internal-revision");
+			// Settings are JSON-decoded; coerce carefully (false/null → 0).
+			$current_revision = is_numeric($raw) ? (int)$raw : 0;
 			$queue = [];
 
 			if ($current_revision < 22) {
@@ -742,13 +776,29 @@
 			}
 
 			$target = defined("BIGTREE_REVISION") ? (int)BIGTREE_REVISION : $current_revision;
+			$revisions_dir = rtrim(SERVER_ROOT, "/")."/core/admin/ajax/developer/upgrade/revisions/";
 
 			while ($current_revision < $target) {
 				$current_revision++;
+				$file = $revisions_dir.$current_revision.".php";
 
-				if (file_exists(SERVER_ROOT . "core/admin/ajax/developer/upgrade/revisions/$current_revision.php")) {
+				if (is_file($file)) {
 					$queue[] = "revisions/$current_revision";
 				}
+			}
+
+			// Also surface ledger-based pending revisions (drift / partial runs).
+			try {
+				foreach (MigrationService::pending() as $n) {
+					$key = "revisions/$n";
+					$file = $revisions_dir.$n.".php";
+
+					if (is_file($file) && !in_array($key, $queue, true)) {
+						$queue[] = $key;
+					}
+				}
+			} catch (\Throwable $e) {
+				// Ledger table may not exist on very old installs — ignore.
 			}
 
 			return $queue;

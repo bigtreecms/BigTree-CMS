@@ -123,7 +123,12 @@ export interface UpgradeAvailable {
 
 export interface UpgradeCheck {
 	current_version: string;
+	/** Applied DB revision (bigtree-internal-revision). */
 	current_revision: number;
+	/** Core code target revision (version.php). */
+	core_revision?: number;
+	migrations_pending?: boolean;
+	migration_queue?: string[];
 	method: UpgradeMethod | null;
 	config_ignored: boolean;
 	updates: UpgradeAvailable[];
@@ -150,6 +155,8 @@ export interface UpgradeMigrations {
 	current_revision: number;
 	target_revision: number | null;
 	queue: string[];
+	/** True when queue is non-empty. */
+	pending?: boolean;
 }
 
 /** Verbatim legacy migration-script contract. */

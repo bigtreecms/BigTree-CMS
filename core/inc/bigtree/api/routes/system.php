@@ -264,4 +264,21 @@
 			"allow_unknown" => true,
 			"audit" => ["table" => "bigtree_settings", "type" => "file_metadata_updated", "entry" => "file-metadata"],
 		],
+
+		"GET /system/configure/ai" => [
+			"service" => [SystemConfigureService::class, "getAI"],
+			"permission" => ["level" => 2],
+		],
+		"PUT /system/configure/ai" => [
+			"service" => [SystemConfigureService::class, "updateAI"],
+			"permission" => ["level" => 2],
+			"allow_unknown" => true,
+			"audit" => ["table" => "bigtree_settings", "type" => "ai_configured", "entry" => "bigtree-internal-ai-service"],
+		],
+		"POST /system/configure/ai/embeddings/reindex" => [
+			"service" => [SystemConfigureService::class, "reindexAIEmbeddings"],
+			"permission" => ["level" => 2],
+			"allow_unknown" => true,
+			"audit" => ["table" => "bigtree_settings", "type" => "ai_embeddings_reindex", "entry" => "bigtree-internal-ai-service"],
+		],
 	];

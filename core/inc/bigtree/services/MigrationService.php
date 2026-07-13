@@ -64,12 +64,25 @@
 		 */
 		public static function begin(int $revision, ?string $checksum = null): void {
 			$existing = SQL::fetch("SELECT success FROM bigtree_migrations WHERE revision = ?", $revision);
+			$checksum = $checksum ?? self::checksumFor($revision);
+			$floor = (int)BigTreeCMS::getSetting("bigtree-internal-revision");
 
 			if ($existing) {
+				// Allow a true re-run after someone rewound bigtree-internal-revision
+				// below this N (e.g. testing) — reset the in-flight marker so finish()
+				// can complete again. Do not touch rows still ahead of the floor.
+				if ((int)$existing["success"] === 1 && $floor < $revision) {
+					SQL::query(
+						"UPDATE bigtree_migrations
+							SET success = 0, checksum = ?, applied_at = NOW(), duration_ms = NULL
+							WHERE revision = ?",
+						$checksum,
+						$revision
+					);
+				}
+
 				return;
 			}
-
-			$checksum = $checksum ?? self::checksumFor($revision);
 
 			SQL::query(
 				"INSERT INTO bigtree_migrations (revision, name, checksum, applied_at, success)
@@ -87,9 +100,11 @@
 		 * the {complete:true} branch). Idempotent:
 		 *
 		 *   - Flips the row to success=1 and sets duration_ms = NOW() - applied_at.
-		 *   - Mirrors the legacy bigtree-internal-revision integer to the max success=1
-		 *     revision that is <= BIGTREE_REVISION (the Phase 1/2 compat bridge), but
-		 *     NEVER LOWERS it (clamps so a gap in applied revisions cannot regress it).
+		 *   - Advances bigtree-internal-revision to **this** revision only when it is
+		 *     higher than the current floor. We deliberately do NOT jump to MAX(ledger)
+		 *     — stale success=1 rows from a previous run (after a manual revision rewind)
+		 *     would otherwise skip intermediate scripts and break the SPA runner with
+		 *     "Unknown or out-of-order migration script".
 		 *
 		 * @param int $revision Revision number (the N in revisions/N.php).
 		 */
@@ -102,29 +117,61 @@
 				$revision
 			);
 
-			self::mirrorInternalRevision();
+			self::advanceInternalRevisionTo($revision);
 		}
 
 		/**
-		 * Mirror the legacy integer to the highest applied revision (never lower).
-		 *
-		 * Sets bigtree-internal-revision to the max success=1 ledger revision that is
-		 * <= BIGTREE_REVISION, clamped so it can only ever increase. This keeps the
-		 * Phase 1 integer (which existing reads still rely on) in step with the ledger
-		 * without ever regressing past a gap.
+		 * Advance bigtree-internal-revision to $revision if higher (never lower).
 		 */
-		private static function mirrorInternalRevision(): void {
-			$max_applied = (int)SQL::fetchSingle(
-				"SELECT MAX(revision) FROM bigtree_migrations WHERE success = 1 AND revision <= ?",
-				BIGTREE_REVISION
-			);
+		private static function advanceInternalRevisionTo(int $revision): void {
 			$current = (int)BigTreeCMS::getSetting("bigtree-internal-revision");
 
-			if ($max_applied <= $current) {
+			if ($revision <= $current) {
 				return;
 			}
 
-			SettingService::updateInternalValue("bigtree-internal-revision", $max_applied);
+			if ($revision > BIGTREE_REVISION) {
+				$revision = BIGTREE_REVISION;
+			}
+
+			SettingService::updateInternalValue("bigtree-internal-revision", $revision);
+		}
+
+		/**
+		 * Mirror the legacy integer to the highest *contiguous* applied revision
+		 * (never lower). Used by tooling that needs a full resync — not by finish(),
+		 * which advances one step at a time.
+		 *
+		 * Contiguous = every on-disk revisions/M.php with M <= N is success=1 (or
+		 * M is at/below the previous floor). Prevents jumping over gaps.
+		 */
+		public static function mirrorInternalRevision(): void {
+			$floor = (int)BigTreeCMS::getSetting("bigtree-internal-revision");
+			$applied = self::successfulLedgerRevisions();
+			$target = BIGTREE_REVISION;
+			$contiguous = $floor;
+
+			foreach (self::onDiskRevisions() as $n) {
+				if ($n > $target) {
+					break;
+				}
+
+				if ($n <= $floor) {
+					$contiguous = max($contiguous, $n);
+
+					continue;
+				}
+
+				if (!isset($applied[$n])) {
+					break;
+				}
+
+				$contiguous = $n;
+			}
+
+			if ($contiguous > $floor) {
+				SettingService::updateInternalValue("bigtree-internal-revision", $contiguous);
+			}
 		}
 
 		/**

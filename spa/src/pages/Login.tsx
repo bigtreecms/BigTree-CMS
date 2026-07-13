@@ -18,6 +18,7 @@ import { TextInput } from "@/components/ui/TextInput";
 import { TwoFactorEnrollForm } from "@/components/users/TwoFactorEnrollForm";
 import { isWebAuthnSupported } from "@/lib/webauthn";
 import { queryKeys } from "@/lib/queryKeys";
+import { postLoginPath } from "@/lib/postLoginPath";
 
 const schema = z.object({
 	email: z.string().email("Enter a valid email"),
@@ -43,6 +44,8 @@ export const Login = () => {
 	const state = location.state as LocationState | null;
 	const returnTo = state?.from ?? "/dashboard";
 	const authenticated = useAuthStore((s) => !!s.accessToken);
+	const user = useAuthStore((s) => s.user);
+	const destination = postLoginPath(user, returnTo);
 
 	const [mfa, setMfa] = useState<{ token: string } | null>(null);
 	const [enroll, setEnroll] = useState<{ token: string; setup: TwoFactorSetup } | null>(null);
@@ -69,7 +72,7 @@ export const Login = () => {
 	const mfaForm = useForm<{ code: string }>({ defaultValues: { code: "" } });
 
 	if (authenticated) {
-		return <Navigate to={returnTo} replace />;
+		return <Navigate to={destination} replace />;
 	}
 
 	async function onSubmit(values: FormValues) {
@@ -88,7 +91,9 @@ export const Login = () => {
 				setEnrollCode("");
 				return;
 			}
-			navigate(returnTo, { replace: true });
+			// Prefer the user payload from this login (includes migrations_pending).
+			const loggedIn = "user" in result ? result.user : useAuthStore.getState().user;
+			navigate(postLoginPath(loggedIn, returnTo), { replace: true });
 		} catch (err) {
 			handleSubmitError(err);
 		}
@@ -108,7 +113,7 @@ export const Login = () => {
 				enroll.setup.secret,
 				enrollCode.trim()
 			);
-			navigate(returnTo, { replace: true });
+			navigate(postLoginPath(useAuthStore.getState().user, returnTo), { replace: true });
 		} catch (err) {
 			handleSubmitError(err);
 		} finally {
@@ -124,7 +129,7 @@ export const Login = () => {
 		setServerError(null);
 		try {
 			await authApi.twoFactor(mfa.token, code);
-			navigate(returnTo, { replace: true });
+			navigate(postLoginPath(useAuthStore.getState().user, returnTo), { replace: true });
 		} catch (err) {
 			handleSubmitError(err);
 		}
@@ -140,7 +145,7 @@ export const Login = () => {
 
 		try {
 			await authApi.loginWithPasskey();
-			navigate(returnTo, { replace: true });
+			navigate(postLoginPath(useAuthStore.getState().user, returnTo), { replace: true });
 		} catch (err) {
 			if (err instanceof DOMException) {
 				// User cancelled / timed out / no matching credential — quiet failure.

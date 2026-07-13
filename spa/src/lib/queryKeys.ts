@@ -195,6 +195,8 @@ export const queryKeys = {
 		site: () => ["system", "site"] as const,
 		backups: () => ["system", "backups"] as const,
 		upgradeCheck: () => ["system", "upgrade", "check"] as const,
+		/** Pending core DB revision scripts (developer migration gate). */
+		migrations: () => ["system", "upgrade", "migrations"] as const,
 		status: () => ["system", "status"] as const,
 		securityPolicy: () => ["system", "security-policy"] as const,
 	},
@@ -209,6 +211,7 @@ export const queryKeys = {
 		analytics: () => ["configure", "analytics"] as const,
 		mediaPresets: () => ["configure", "media-presets"] as const,
 		paymentGateway: () => ["configure", "payment-gateway"] as const,
+		ai: () => ["configure", "ai"] as const,
 	},
 
 	db: {

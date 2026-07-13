@@ -19,6 +19,9 @@
         "pre-autoload-dump": "Aws\\Script\\Composer\\Composer::removeUnusedServices"
     },
     "extra": {
-        "aws/aws-sdk-php": ["S3", "CloudFront"]
+        "aws/aws-sdk-php": [
+            "S3",
+            "CloudFront"
+        ]
     }
 }

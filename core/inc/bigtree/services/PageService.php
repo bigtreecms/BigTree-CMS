@@ -302,6 +302,7 @@
 			);
 
 			Hooks::fire("page.created", $page);
+			EmbeddingService::indexPage($page);
 
 			return $this->present($page, true);
 		}
@@ -871,6 +872,7 @@
 			if (Flag::isOn($page["trunk"])) $this->invalidateMultiSiteCache();
 
 			Hooks::fire("page.deleted", $page);
+			EmbeddingService::deletePage((int)$id);
 
 			return Response::noContent();
 		}
@@ -880,6 +882,7 @@
 			$this->enforce($request->user, $id, "p");
 			SQL::update("bigtree_pages", $id, ["archived" => "on", "updated_at" => "NOW()"]);
 			$this->setArchivedInherited($id, "on");
+			EmbeddingService::deletePage((int)$id);
 
 			return Response::noContent();
 		}
@@ -889,6 +892,11 @@
 			$this->enforce($request->user, $id, "p");
 			SQL::update("bigtree_pages", $id, ["archived" => "", "updated_at" => "NOW()"]);
 			$this->setArchivedInherited($id, "");
+			$page = SQL::fetch("SELECT * FROM bigtree_pages WHERE id = ?", $id);
+
+			if ($page) {
+				EmbeddingService::indexPage($page);
+			}
 
 			return Response::noContent();
 		}
@@ -1166,6 +1174,7 @@
 
 			$this->fireTemplatePublishHook($fresh["template"], $id, $update, $tags, $og);
 			Hooks::fire("page.updated", $fresh, ["previous" => $previous]);
+			EmbeddingService::indexPage($fresh);
 
 			return $this->present($fresh, true);
 		}
@@ -1332,6 +1341,7 @@
 					\BigTree\Services\ResourceAllocationService::deallocateResources("bigtree_pages", "p".$change_id);
 				}
 
+				EmbeddingService::deletePage((int)$cid);
 				SQL::delete("bigtree_pages", (int)$cid);
 			}
 		}

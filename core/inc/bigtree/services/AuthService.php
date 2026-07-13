@@ -518,8 +518,7 @@
 				"email" => $request->user->email,
 				"name" => $request->user->name,
 				"level" => $request->user->level,
-				"timezone" => $request->user->timezone,
-				"permissions" => $request->user->permissions,
+				"timezone" => $request->user->timezone ?? "",
 			]));
 		}
 
@@ -1113,13 +1112,32 @@
 		}
 
 		private function publicUser(array $user) {
+			$ai = new \BigTreeAI();
+			$level = (int)$user["level"];
+			// Developers must apply schema revisions before using the rest of admin
+			// (mirrors the legacy login → upgrade redirect). Only trust a real queue
+			// check — do not force the gate on transient errors (that caused a
+			// flash of /developer/migrations then an empty-queue bounce).
+			$migrations_pending = false;
+
+			if ($level >= 2) {
+				try {
+					$migrations_pending = (new SystemService())->hasPendingMigrations();
+				} catch (\Throwable $e) {
+					$migrations_pending = false;
+				}
+			}
 
 			return [
 				"id" => (int)$user["id"],
 				"email" => $user["email"],
 				"name" => $user["name"],
-				"level" => (int)$user["level"],
+				"level" => $level,
 				"timezone" => $user["timezone"] ?? "",
+				"features" => [
+					"ai_search" => $ai->isFeatureEnabled("search"),
+				],
+				"migrations_pending" => $migrations_pending,
 			];
 		}
 

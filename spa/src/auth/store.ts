@@ -35,6 +35,15 @@ export interface AuthUser {
 	name: string;
 	level: number;
 	timezone?: string;
+	/** Server-driven capability flags (e.g. AI search when Configure → AI enables it). */
+	features?: {
+		ai_search?: boolean;
+	};
+	/**
+	 * Developer-only: true when core revision scripts still need to run.
+	 * The SPA forces /developer/migrations until this clears.
+	 */
+	migrations_pending?: boolean;
 }
 
 /** Identity of the developer currently emulating another user. */
@@ -120,6 +129,8 @@ interface AuthState {
 	developerLockout: boolean;
 
 	setSession: (access: string, refresh: string, expiresInSeconds: number, user: AuthUser) => void;
+	/** Update the cached user without touching tokens (e.g. after /auth/me). */
+	setUser: (user: AuthUser) => void;
 	/**
 	 * Begin emulating `user`: parks the developer's current session in origin
 	 * storage, then installs the emulated session as the active one.
@@ -146,10 +157,10 @@ export const useAuthStore = create<AuthState>((set) => ({
 	expiresAt: initial?.expiresAt ?? null,
 	user: initial?.user ?? null,
 	emulatedBy: initial?.emulatedBy ?? null,
-	// If we already have a persisted access token, we're "hydrated enough" to
-	// render protected routes immediately. We still kick off a background
-	// refresh in the fetch layer if requests start returning 401.
-	hydrating: !initial,
+	// Always wait for bootstrapSession (re-fetches /auth/me) before route
+	// guards read user flags like migrations_pending — otherwise a stale
+	// localStorage flag can flash the migrations gate then disappear.
+	hydrating: true,
 	developerLockout: false,
 
 	setSession: (access, refresh, expiresInSeconds, user) => {
@@ -162,6 +173,20 @@ export const useAuthStore = create<AuthState>((set) => ({
 		};
 		savePersisted(next);
 		set({ ...next, emulatedBy: null, hydrating: false });
+	},
+
+	setUser: (user) => {
+		const current = loadPersisted();
+
+		if (!current) {
+			set({ user });
+
+			return;
+		}
+
+		const next: PersistedAuth = { ...current, user };
+		savePersisted(next);
+		set({ user });
 	},
 
 	startEmulation: (access, refresh, expiresInSeconds, user, emulatedBy) => {

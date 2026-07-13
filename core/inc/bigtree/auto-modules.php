@@ -469,6 +469,7 @@
 					if ($exact) {
 						self::track($table, $id, "created via publisher", $change["user"]);
 						self::track($table, $id, "published");
+						self::indexEmbeddingSafe($table, $id);
 
 						return $id;
 					}
@@ -476,6 +477,7 @@
 			}
 
 			self::track($table,$id,"created");
+			self::indexEmbeddingSafe($table, $id);
 
 			return $id;
 		}
@@ -548,6 +550,12 @@
 
 			self::uncacheItem($id, $table);
 			self::track($table, $id, "deleted");
+
+			try {
+				\BigTree\Services\EmbeddingService::deleteModuleEntry($table, $id);
+			} catch (Throwable $e) {
+				// ignore
+			}
 		}
 
 		/*
@@ -2214,6 +2222,27 @@
 
 			if ($table != "bigtree_pages") {
 				self::recacheItem($id,$table);
+			}
+
+			self::indexEmbeddingSafe($table, $id);
+		}
+
+		/**
+		 * Best-effort AI embedding index update (never throws to callers).
+		 */
+		private static function indexEmbeddingSafe($table, $id) {
+			try {
+				if ($table === "bigtree_pages" || !preg_match('/^[a-zA-Z0-9_]+$/', (string)$table)) {
+					return;
+				}
+
+				$row = SQL::fetch("SELECT * FROM `$table` WHERE id = ?", $id);
+
+				if ($row) {
+					\BigTree\Services\EmbeddingService::indexModuleEntry($table, $id, $row);
+				}
+			} catch (Throwable $e) {
+				// ignore
 			}
 		}
 

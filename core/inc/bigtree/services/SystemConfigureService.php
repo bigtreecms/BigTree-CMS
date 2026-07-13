@@ -24,6 +24,7 @@
 	 *  - payment-gateway → bigtree-internal-payment-gateway
 	 *  - analytics       → bigtree-internal-google-analytics-4
 	 *  - services        → bigtree-internal-{service} (one per provider)
+	 *  - ai              → bigtree-internal-ai-service
 	 *  - media-presets   → JSONDB("config", "media-settings")
 	 *  - file-metadata   → JSONDB("config", "file-metadata")
 	 *
@@ -619,6 +620,171 @@
 				"image" => array_values($next["image"]),
 				"video" => array_values($next["video"]),
 			]);
+		}
+
+		// — ai —
+
+		public function getAI(Request $request) {
+			return Response::ok($this->presentAIConfig(
+				BigTreeCMS::getSetting("bigtree-internal-ai-service") ?: []
+			));
+		}
+
+		public function updateAI(Request $request) {
+			$body = $request->body;
+			$service = (string)($body["service"] ?? "");
+
+			if (!in_array($service, array_merge([""], \BigTreeAI::SERVICES), true)) {
+				throw new BadRequestException("Unknown AI service", "invalid_service");
+			}
+
+			$existing = BigTreeCMS::getSetting("bigtree-internal-ai-service") ?: [];
+			$api_key = (string)($body["api_key"] ?? "");
+
+			// Empty string means "leave the stored key alone".
+			if ($api_key === "" && !empty($existing["api_key"])) {
+				$api_key = (string)$existing["api_key"];
+			}
+
+			$embedding_api_key = (string)($body["embedding_api_key"] ?? "");
+
+			// Empty string means "leave the stored embeddings key alone".
+			if ($embedding_api_key === "" && !empty($existing["embedding_api_key"])) {
+				$embedding_api_key = (string)$existing["embedding_api_key"];
+			}
+
+			// Explicit clear when client sends a sentinel (optional future); for now
+			// blank = keep. When chat is OpenAI, dedicated key is optional.
+
+			$model = (string)($body["model"] ?? "");
+
+			if ($service === "") {
+				$model = "";
+			} elseif ($model !== "" && !\BigTreeAI::isValidModel($service, $model)) {
+				throw new BadRequestException("Unknown model for this service", "invalid_model");
+			} elseif ($model === "") {
+				// Default to the first allowlisted model when a service is chosen.
+				$models = \BigTreeAI::modelsForService($service);
+				$model = $models[0]["id"] ?? "";
+			}
+
+			$embedding_model = (string)($body["embedding_model"] ?? "");
+			$embed_models = \BigTreeAI::embeddingModels();
+
+			if ($service === "") {
+				$embedding_model = "";
+				$embedding_api_key = "";
+			} elseif ($embedding_model !== "" && !\BigTreeAI::isValidEmbeddingModel($embedding_model)) {
+				throw new BadRequestException("Unknown embedding model", "invalid_embedding_model");
+			} elseif ($embedding_model === "" && $embed_models) {
+				$embedding_model = $embed_models[0]["id"] ?? "";
+			}
+
+			$features_in = is_array($body["features"] ?? null) ? $body["features"] : [];
+			$search_enabled = !empty($features_in["search"]);
+			$embeddings_enabled = !empty($features_in["embeddings"]);
+
+			// Search can only be on when the stack is fully configured after save.
+			$would_be_configured = $service !== "" && $api_key !== "" && $model !== "";
+
+			if (!$would_be_configured) {
+				$search_enabled = false;
+			}
+
+			// Embeddings always use OpenAI: dedicated key, or chat key when service is openai.
+			$effective_embed_key = $embedding_api_key !== ""
+				? $embedding_api_key
+				: ($service === "openai" ? $api_key : "");
+
+			$can_embed = $service !== ""
+				&& $embedding_model !== ""
+				&& $effective_embed_key !== ""
+				&& EmbeddingService::tableReady();
+
+			if (!$can_embed) {
+				$embeddings_enabled = false;
+			}
+
+			$next = [
+				"service" => $service,
+				"api_key" => $api_key,
+				"model" => $model,
+				"embedding_model" => $embedding_model,
+				"embedding_api_key" => $embedding_api_key,
+				"features" => [
+					"search" => $search_enabled,
+					"embeddings" => $embeddings_enabled,
+				],
+			];
+
+			SettingService::updateInternalValue("bigtree-internal-ai-service", $next, true);
+
+			return Response::ok($this->presentAIConfig($next));
+		}
+
+		/**
+		 * Batched embeddings reindex (developer-only).
+		 * Body/query: page (0 = probe page count).
+		 */
+		public function reindexAIEmbeddings(Request $request) {
+			return (new EmbeddingService())->reindex($request);
+		}
+
+		/**
+		 * SPA-facing AI config: mask the API key, expose allowlisted models.
+		 *
+		 * @param array<string,mixed> $settings
+		 * @return array<string,mixed>
+		 */
+		private function presentAIConfig(array $settings) {
+			$service = (string)($settings["service"] ?? "");
+			$api_key = (string)($settings["api_key"] ?? "");
+			$embedding_api_key = (string)($settings["embedding_api_key"] ?? "");
+			$model = (string)($settings["model"] ?? "");
+			$embedding_model = (string)($settings["embedding_model"] ?? "");
+			$features = is_array($settings["features"] ?? null) ? $settings["features"] : [];
+			$configured = in_array($service, \BigTreeAI::SERVICES, true)
+				&& $api_key !== ""
+				&& $model !== "";
+			$embeddings_supported = EmbeddingService::isSupported();
+			$embeddings_ready = EmbeddingService::tableReady();
+			$effective_embed_key = $embedding_api_key !== ""
+				? $embedding_api_key
+				: ($service === "openai" ? $api_key : "");
+			$can_embed = $embeddings_ready
+				&& $embedding_model !== ""
+				&& $effective_embed_key !== ""
+				&& \BigTreeAI::isValidEmbeddingModel($embedding_model);
+
+			// SPA expects embedding_models keyed by chat service (same list for all).
+			$embed_list = \BigTreeAI::embeddingModels();
+			$embedding_models = [];
+
+			foreach (\BigTreeAI::SERVICES as $sid) {
+				$embedding_models[$sid] = $embed_list;
+			}
+
+			return [
+				"service" => $service,
+				"api_key" => "",
+				"api_key_set" => $api_key !== "",
+				"embedding_api_key" => "",
+				"embedding_api_key_set" => $embedding_api_key !== "",
+				"model" => $model,
+				"embedding_model" => $embedding_model,
+				"features" => [
+					"search" => !empty($features["search"]) && $configured,
+					"embeddings" => !empty($features["embeddings"]) && $can_embed,
+				],
+				"configured" => $configured,
+				"models" => \BigTreeAI::MODELS,
+				"embedding_models" => $embedding_models,
+				"embeddings_supported" => $embeddings_supported,
+				"embeddings_ready" => $embeddings_ready,
+				"embedding_dimensions" => \BigTreeAI::EMBEDDING_DIMENSIONS,
+				/** True when chat is not OpenAI — UI should collect a separate embeddings key. */
+				"embedding_key_required" => $service !== "" && $service !== "openai",
+			];
 		}
 
 		// — helpers —

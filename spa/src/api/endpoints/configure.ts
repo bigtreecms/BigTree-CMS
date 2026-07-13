@@ -123,6 +123,49 @@ export interface FileMetadataConfig {
 	video: FileMetadataField[];
 }
 
+export type AiServiceId = "" | "xai" | "openai" | "anthropic";
+
+export interface AiModelOption {
+	id: string;
+	label: string;
+}
+
+export interface AiConfig {
+	service: AiServiceId;
+	/** Always empty from the server; send a new key or "" to leave stored. */
+	api_key: string;
+	api_key_set: boolean;
+	/** Always empty from the server; OpenAI key used only for embeddings. */
+	embedding_api_key: string;
+	embedding_api_key_set: boolean;
+	model: string;
+	embedding_model: string;
+	features: {
+		search: boolean;
+		embeddings: boolean;
+	};
+	configured: boolean;
+	/** Allowlisted chat models keyed by service id. */
+	models: Record<string, AiModelOption[]>;
+	/** Allowlisted OpenAI embedding models keyed by chat service id. */
+	embedding_models: Record<string, AiModelOption[]>;
+	/** True when MySQL 9+ / MariaDB 11.7+ VECTOR is available. */
+	embeddings_supported: boolean;
+	/** True when bigtree_ai_embeddings table exists. */
+	embeddings_ready: boolean;
+	embedding_dimensions: number;
+	/** True when chat is not OpenAI — a dedicated embedding API key is required. */
+	embedding_key_required: boolean;
+}
+
+export interface AiEmbeddingsReindexResult {
+	complete: boolean;
+	page: number;
+	pages: number;
+	indexed: number;
+	response: string;
+}
+
 export const configureApi = {
 	email: {
 		get: () => api.get<EmailConfig>("/system/configure/email"),
@@ -221,5 +264,22 @@ export const configureApi = {
 		get: () => api.get<FileMetadataConfig>("/system/configure/file-metadata"),
 		update: (body: FileMetadataConfig) =>
 			api.put<FileMetadataConfig>("/system/configure/file-metadata", body),
+	},
+
+	ai: {
+		get: () => api.get<AiConfig>("/system/configure/ai"),
+		update: (body: {
+			service: AiServiceId;
+			api_key: string;
+			embedding_api_key?: string;
+			model: string;
+			embedding_model: string;
+			features: { search: boolean; embeddings: boolean };
+		}) => api.put<AiConfig>("/system/configure/ai", body),
+		/** One page of a batched embeddings rebuild (page 0 = probe). */
+		reindexEmbeddings: (page = 0) =>
+			api.post<AiEmbeddingsReindexResult>("/system/configure/ai/embeddings/reindex", {
+				page,
+			}),
 	},
 };

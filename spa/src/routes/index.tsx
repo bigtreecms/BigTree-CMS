@@ -29,6 +29,7 @@ const CalloutGroupEdit = lazyDev(
 );
 const CalloutGroups = lazyDev(() => import("@/pages/developer/CalloutGroups"), "CalloutGroups");
 const Callouts = lazyDev(() => import("@/pages/developer/Callouts"), "Callouts");
+const ConfigureAI = lazyDev(() => import("@/pages/developer/configure/ConfigureAI"), "ConfigureAI");
 const ConfigureAnalytics = lazyDev(
 	() => import("@/pages/developer/configure/ConfigureAnalytics"),
 	"ConfigureAnalytics"
@@ -78,6 +79,7 @@ const DebugSecurity = lazyDev(
 );
 const DebugStatus = lazyDev(() => import("@/pages/developer/debug/DebugStatus"), "DebugStatus");
 const DebugUpgrade = lazyDev(() => import("@/pages/developer/debug/DebugUpgrade"), "DebugUpgrade");
+const RunMigrations = lazyDev(() => import("@/pages/developer/RunMigrations"), "RunMigrations");
 const Developer = lazyDev(() => import("@/pages/developer/Developer"), "Developer");
 const DeveloperSettings = lazyDev(
 	() => import("@/pages/developer/DeveloperSettings"),
@@ -331,6 +333,7 @@ export const router = createBrowserRouter(
 							),
 							children: [
 								{ index: true, element: <Developer /> },
+								{ path: "migrations", element: <RunMigrations /> },
 								{
 									path: "templates",
 									children: [
@@ -410,6 +413,7 @@ export const router = createBrowserRouter(
 											element: <ConfigurePaymentGateway />,
 										},
 										{ path: "analytics", element: <ConfigureAnalytics /> },
+										{ path: "ai", element: <ConfigureAI /> },
 										{ path: "services", element: <ConfigureServices /> },
 										{
 											path: "media-presets",

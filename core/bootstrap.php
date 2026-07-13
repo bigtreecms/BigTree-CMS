@@ -121,6 +121,7 @@
 		"BigTreeCloudStorage" => "inc/bigtree/apis/cloud-storage.php",
 		"BigTreeGeocoding" => "inc/bigtree/apis/geocoding.php",
 		"BigTreeEmailService" => "inc/bigtree/apis/email-service.php",
+		"BigTreeAI" => "inc/bigtree/apis/ai.php",
 		"BigTreeTwitterAPI" => "inc/bigtree/apis/twitter.php",
 		"BigTreeInstagramAPI" => "inc/bigtree/apis/instagram.php",
 		"BigTreeGooglePlusAPI" => "inc/bigtree/apis/google-plus.php",

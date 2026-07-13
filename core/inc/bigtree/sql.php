@@ -12,6 +12,26 @@
 	!empty($bigtree["config"]["db"]["port"]) || $bigtree["config"]["db"]["port"] = 3306;
 	!empty($bigtree["config"]["db"]["socket"]) || $bigtree["config"]["db"]["socket"] = null;
 
+	/**
+	 * mysqli treats host "localhost" as a Unix-domain socket and ignores "port".
+	 * When a TCP port is configured and no socket path is set, force 127.0.0.1 so
+	 * the port is honored (important for non-default ports like 3307 under MAMP).
+	 */
+	function bigtree_sql_connection_host(array $config) {
+		$host = $config["host"] ?? null;
+		$socket = $config["socket"] ?? null;
+		$port = $config["port"] ?? null;
+
+		if (($host === "localhost" || $host === "localhost.localdomain")
+			&& (empty($socket) || $socket === null)
+			&& !empty($port)
+		) {
+			return "127.0.0.1";
+		}
+
+		return $host;
+	}
+
 	if (isset($bigtree["config"]["sql_interface"]) && $bigtree["config"]["sql_interface"] == "mysqli") {
 
 		function bigtree_setup_sql_connection($read_write = "read") {
@@ -28,7 +48,7 @@
 
 			if ($read_write == "read") {
 				$connection = new mysqli(
-					$bigtree["config"]["db"]["host"],
+					bigtree_sql_connection_host($bigtree["config"]["db"]),
 					$bigtree["config"]["db"]["user"],
 					$bigtree["config"]["db"]["password"],
 					$bigtree["config"]["db"]["name"],
@@ -40,7 +60,7 @@
 				$connection->query("SET time_zone = '$offset'");
 			} else {
 				$connection = new mysqli(
-					$bigtree["config"]["db_write"]["host"],
+					bigtree_sql_connection_host($bigtree["config"]["db_write"]),
 					$bigtree["config"]["db_write"]["user"],
 					$bigtree["config"]["db_write"]["password"],
 					$bigtree["config"]["db_write"]["name"],

@@ -339,13 +339,26 @@
 			!empty(static::$Config[$type]["port"]) || static::$Config[$type]["port"] = 3306;
 			!empty(static::$Config[$type]["socket"]) || static::$Config[$type]["socket"] = null;
 
+			// "localhost" + port uses a Unix socket and ignores port in mysqli —
+			// force TCP when a port is set and no socket path is provided.
+			$host = static::$Config[$type]["host"];
+			$socket = static::$Config[$type]["socket"];
+			$port = static::$Config[$type]["port"];
+
+			if (($host === "localhost" || $host === "localhost.localdomain")
+				&& (empty($socket) || $socket === null)
+				&& !empty($port)
+			) {
+				$host = "127.0.0.1";
+			}
+
 			static::${$property} = new mysqli(
-				static::$Config[$type]["host"],
+				$host,
 				static::$Config[$type]["user"],
 				static::$Config[$type]["password"],
 				static::$Config[$type]["name"],
-				static::$Config[$type]["port"],
-				static::$Config[$type]["socket"]
+				$port,
+				$socket
 			);
 
 			// Make sure everything is run in UTF8, turn off strict mode if set

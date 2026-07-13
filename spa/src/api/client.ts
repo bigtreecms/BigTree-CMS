@@ -226,6 +226,14 @@ export const api = {
 	bootstrapSession: async (): Promise<boolean> => {
 		const state = authStore.getState();
 		if (state.accessToken && state.user) {
+			// Refresh user payload so flags like migrations_pending / features
+			// aren't stale from localStorage after a code deploy.
+			try {
+				const me = await request<AuthUser>("/auth/me", { method: "GET" });
+				authStore.getState().setUser(me);
+			} catch {
+				// Leave cached user; the next API call will 401/refresh if needed.
+			}
 			authStore.getState().setHydrated();
 			return true;
 		}

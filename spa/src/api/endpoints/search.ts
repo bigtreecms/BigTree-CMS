@@ -24,14 +24,15 @@ export interface SearchUser {
 }
 
 export interface SearchModule {
-	id: number;
+	/** JSONDB module ids are strings (e.g. `modules-…`); legacy numeric ids still appear. */
+	id: number | string;
 	name: string;
 	route: string;
 	icon?: string;
 }
 
 export interface SearchModuleEntryGroup {
-	module: { id: number; name: string; route: string };
+	module: { id: number | string; name: string; route: string };
 	/** Raw view cache rows (column1, id, sort_field, etc.). Rendering is intentionally generic. */
 	items: Array<Record<string, unknown>>;
 }
@@ -42,6 +43,13 @@ export interface SearchResultGroups {
 	users?: SearchUser[];
 	modules?: SearchModule[];
 	entries?: SearchModuleEntryGroup[];
+}
+
+/** Response from POST /search/ai when AI search is enabled. */
+export interface AiSearchResponse {
+	mode: "ai";
+	answer: string;
+	results: SearchResultGroups;
 }
 
 export const searchApi = {
@@ -55,4 +63,14 @@ export const searchApi = {
 		if (opts.types && opts.types.length) query.types = opts.types.join(",");
 		return api.get<SearchResultGroups>("/search", { query });
 	},
+
+	/**
+	 * Agentic search powered by the site's configured AI service.
+	 * Only available when features.ai_search is true on the auth user.
+	 */
+	aiSearch: (q: string, opts: { limit?: number } = {}) =>
+		api.post<AiSearchResponse>("/search/ai", {
+			q: q.trim(),
+			limit: opts.limit,
+		}),
 };
