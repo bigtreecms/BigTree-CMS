@@ -16,9 +16,9 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          # setup-node resolves "20" to the latest 20.x (>= 20.19), which
-          # Storybook 10 requires (it rejects 20.17 — oxc-parser engine).
-          node-version: "20"
+          # Matches spa/.nvmrc (Node 24). All SPA toolchain deps (Vite 5,
+          # Vitest 3, ESLint 9, Storybook 10) declare engines that accept 24.
+          node-version-file: spa/.nvmrc
           cache: npm
           cache-dependency-path: spa/package-lock.json
       - run: npm ci
