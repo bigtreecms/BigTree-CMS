@@ -85,13 +85,14 @@ export const Profile = () => {
 					Math.floor((auth.expiresAt - Date.now()) / 1000)
 				);
 				setSession(auth.accessToken, auth.refreshToken, remainingSeconds, {
+					// Spread the existing auth user so flags like features and
+					// migrations_pending (and any future flag) survive a profile save.
+					...auth.user,
 					id: fresh.id,
 					email: fresh.email,
 					name: fresh.name,
 					level: fresh.level,
 					timezone: fresh.timezone,
-					// Preserve capability flags (e.g. ai_search) from the auth user.
-					features: auth.user?.features,
 				});
 			}
 		},

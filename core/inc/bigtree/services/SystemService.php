@@ -666,7 +666,32 @@
 		 * Used by AuthService so developers are forced through the upgrade gate.
 		 */
 		public function hasPendingMigrations(): bool {
-			return count($this->buildMigrationQueue()) > 0;
+			// Runs on every developer login / refresh / /auth/me — memoize per request.
+			static $cached = null;
+
+			if ($cached !== null) {
+				return $cached;
+			}
+
+			$raw = BigTreeCMS::getSetting("bigtree-internal-revision");
+			$current_revision = is_numeric($raw) ? (int)$raw : 0;
+			$target = defined("BIGTREE_REVISION") ? (int)BIGTREE_REVISION : $current_revision;
+
+			// Fast path: an up-to-date integer revision can't have pending roll-up or
+			// numbered scripts, so consult only the ledger and skip the file scan.
+			if ($current_revision >= $target) {
+				try {
+					$cached = count(MigrationService::pending()) > 0;
+				} catch (\Throwable $e) {
+					$cached = false;
+				}
+
+				return $cached;
+			}
+
+			$cached = count($this->buildMigrationQueue()) > 0;
+
+			return $cached;
 		}
 
 		/**

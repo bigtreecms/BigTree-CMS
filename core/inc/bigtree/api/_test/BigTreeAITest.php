@@ -6,7 +6,7 @@
 	function test_bigtree_ai_model_allowlists() {
 		T::ok(BigTreeAI::isValidModel("xai", "grok-4-latest"), "xAI grok-4-latest is allowlisted");
 		T::ok(BigTreeAI::isValidModel("openai", "gpt-4.1"), "OpenAI gpt-4.1 is allowlisted");
-		T::ok(BigTreeAI::isValidModel("anthropic", "claude-sonnet-4-20250514"), "Anthropic sonnet is allowlisted");
+		T::ok(BigTreeAI::isValidModel("anthropic", "claude-sonnet-5"), "Anthropic sonnet is allowlisted");
 		T::ok(!BigTreeAI::isValidModel("openai", "not-a-real-model"), "unknown model rejected");
 		T::ok(!BigTreeAI::isValidModel("", "gpt-4.1"), "empty service rejects models");
 
@@ -26,10 +26,9 @@
 		T::ok(!BigTreeAI::isValidEmbeddingModel("not-a-model"), "unknown embedding model rejected");
 		T::equals(BigTreeAI::EMBEDDING_DIMENSIONS, 1536, "default embedding dimensions are 1536");
 		T::equals(BigTreeAI::EMBEDDING_ENDPOINT, "https://api.openai.com/v1/embeddings", "embeddings always use OpenAI");
+		// Any chat service can pair with OpenAI embeddings (via embedding_api_key);
+		// embeddingModels() is the single shared list for every provider.
 		T::ok(count(BigTreeAI::embeddingModels()) >= 1, "embedding models list non-empty");
-		// Any chat service can pair with OpenAI embeddings (via embedding_api_key).
-		T::ok(count(BigTreeAI::embeddingModelsForService("xai")) >= 1, "xAI chat still lists embedding models");
-		T::ok(count(BigTreeAI::embeddingModelsForService("anthropic")) >= 1, "Anthropic chat still lists embedding models");
 	}
 
 	function test_bigtree_ai_embedding_key_resolution() {

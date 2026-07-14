@@ -22,6 +22,10 @@
 
 		const TABLE = "bigtree_ai_embeddings";
 		const STATUS_SETTING = "bigtree-internal-ai-embeddings-status";
+		// Short-TTL cache of query→vector so debounced quick-search doesn't re-embed
+		// the same prefix on every keystroke.
+		const QUERY_CACHE = "org.bigtreecms.ai-query-embedding";
+		const QUERY_CACHE_TTL = 900;
 		const CHUNK_SOFT_MAX = 6000;
 		const CHUNK_SIZE = 4000;
 		const CHUNK_OVERLAP = 200;
@@ -49,6 +53,94 @@
 			}
 		}
 
+		/**
+		 * Create bigtree_ai_embeddings (+ best-effort ANN index) when the DB
+		 * supports VECTOR but the table doesn't exist yet. Idempotent and safe to
+		 * call on hot paths — returns quickly once the table is ready.
+		 *
+		 * This is the canonical location for the embeddings DDL: revision 506 and
+		 * SystemConfigureService::updateAI() both call it, so a host that gains
+		 * VECTOR support after migration 506 ran can still get the table created by
+		 * saving AI config or pressing "Rebuild index". (install.php keeps a
+		 * standalone copy for fresh base installs — keep the two in sync.)
+		 */
+		public static function ensureTable(): bool {
+			if (!self::isSupported()) {
+				return false;
+			}
+
+			if (self::tableReady()) {
+				return true;
+			}
+
+			try {
+				if (!SQL::tableExists(self::TABLE)) {
+					SQL::query(self::createTableSql());
+				}
+
+				self::ensureVectorIndex();
+				$ready = (bool)SQL::tableExists(self::TABLE);
+				self::writeStatus(["table_ready" => $ready]);
+
+				return $ready;
+			} catch (\Throwable $e) {
+				self::recordError($e->getMessage());
+
+				return false;
+			}
+		}
+
+		/** Canonical CREATE TABLE for bigtree_ai_embeddings (fixed VECTOR(n) for v1). */
+		private static function createTableSql(): string {
+			$dimensions = (int)BigTreeAI::EMBEDDING_DIMENSIONS;
+
+			return "
+				CREATE TABLE IF NOT EXISTS `" . self::TABLE . "` (
+					`id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+					`source_type` VARCHAR(32) NOT NULL,
+					`source_id` VARCHAR(191) NOT NULL,
+					`module_id` VARCHAR(191) NULL,
+					`module_route` VARCHAR(191) NULL,
+					`table_name` VARCHAR(191) NULL,
+					`chunk_index` SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+					`title` VARCHAR(500) NOT NULL DEFAULT '',
+					`content_text` MEDIUMTEXT NOT NULL,
+					`content_hash` CHAR(64) NOT NULL DEFAULT '',
+					`embedding` VECTOR($dimensions) NOT NULL,
+					`model` VARCHAR(100) NOT NULL DEFAULT '',
+					`updated_at` DATETIME NOT NULL,
+					PRIMARY KEY (`id`),
+					UNIQUE KEY `source_chunk_model` (`source_type`, `source_id`, `chunk_index`, `model`),
+					KEY `source` (`source_type`, `source_id`),
+					KEY `module` (`module_id`),
+					KEY `updated` (`updated_at`)
+				) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+			";
+		}
+
+		/** Best-effort MariaDB ANN index (syntax varies; ORDER BY distance works without it). */
+		private static function ensureVectorIndex(): void {
+			try {
+				$dialect = BigTreeAI::vectorDialect();
+
+				if ($dialect === "mariadb") {
+					$has = SQL::fetch(
+						"SHOW INDEX FROM `" . self::TABLE . "` WHERE Key_name = 'embedding_vec'"
+					);
+
+					if (!$has) {
+						SQL::query(
+							"ALTER TABLE `" . self::TABLE . "`
+							 ADD VECTOR INDEX `embedding_vec` (`embedding`) M=16 DISTANCE=cosine"
+						);
+					}
+				}
+				// MySQL 9 vector indexes (if/when available) can be added here later.
+			} catch (\Throwable $e) {
+				// Non-fatal — ORDER BY DISTANCE still works without an ANN index.
+			}
+		}
+
 		public static function isEnabled(): bool {
 			if (!self::tableReady()) {
 				return false;
@@ -57,6 +149,44 @@
 			$ai = new BigTreeAI();
 
 			return $ai->isFeatureEnabled("embeddings");
+		}
+
+		/** @var bool Guard so the client connection is flushed at most once per request. */
+		private static $response_flushed = false;
+
+		/**
+		 * Run a fail-open index update *after* the HTTP response is flushed, so an
+		 * editorial save doesn't wait on the OpenAI embeddings round trip. No-op
+		 * when embeddings are disabled; when fastcgi_finish_request() is unavailable
+		 * (mod_php / CLI) the work still runs at shutdown, just without early flush.
+		 */
+		public static function deferIndex(callable $fn): void {
+			if (!self::isEnabled()) {
+				return;
+			}
+
+			register_shutdown_function(function () use ($fn) {
+				self::flushResponse();
+
+				try {
+					$fn();
+				} catch (\Throwable $e) {
+					self::recordError($e->getMessage());
+				}
+			});
+		}
+
+		/** Flush + close the client connection once so deferred work runs in the background. */
+		private static function flushResponse(): void {
+			if (self::$response_flushed) {
+				return;
+			}
+
+			self::$response_flushed = true;
+
+			if (function_exists("fastcgi_finish_request")) {
+				@fastcgi_finish_request();
+			}
 		}
 
 		// — public index API (fail-open) —
@@ -234,22 +364,26 @@
 			}
 
 			$ai = new BigTreeAI();
-			$vectors = $ai->embed(trim($query));
+			$q = trim($query);
+			$model = $ai->resolvedEmbeddingModel();
+			$vector = self::cachedQueryEmbedding($ai, $q, $model);
 
-			if ($vectors === false || empty($vectors[0])) {
+			if ($vector === null) {
 				return $empty;
 			}
 
 			$limit = max(1, min(50, $limit));
-			$model = $ai->resolvedEmbeddingModel();
 
 			try {
-				$rows = self::distanceQuery($vectors[0], $model, $limit * 3);
+				$rows = self::distanceQuery($vector, $model, $limit * 3);
 			} catch (\Throwable $e) {
 				self::recordError($e->getMessage());
 
 				return $empty;
 			}
+
+			// Batch-fetch the page rows referenced by page hits to avoid N+1 lookups.
+			$page_rows = self::fetchPageRows($rows);
 
 			$out = $empty;
 			$seen_pages = [];
@@ -266,10 +400,7 @@
 						continue;
 					}
 
-					$page = SQL::fetch(
-						"SELECT id, nav_title, path, archived FROM bigtree_pages WHERE id = ?",
-						$id
-					);
+					$page = $page_rows[$id] ?? null;
 
 					if (!$page || Flag::isOn($page["archived"] ?? "")) {
 						continue;
@@ -474,9 +605,9 @@
 				);
 			}
 
-			if (!self::tableReady()) {
+			if (!self::tableReady() && !self::ensureTable()) {
 				throw new BadRequestException(
-					"Embeddings table is missing — run system migrations first",
+					"Embeddings table could not be created — check database permissions",
 					"embeddings_table_missing"
 				);
 			}
@@ -488,6 +619,74 @@
 		}
 
 		// — internals —
+
+		/**
+		 * Embed a search query, reusing a short-TTL cache keyed on model + text so
+		 * a debounced quick-search doesn't pay for the same embed on every keystroke.
+		 *
+		 * @return list<float>|null Null when the query is blank or the embed failed.
+		 */
+		private static function cachedQueryEmbedding(BigTreeAI $ai, string $query, string $model): ?array {
+			if ($query === "") {
+				return null;
+			}
+
+			$cache_key = hash("sha256", $model . "\n" . $query);
+			$cached = BigTreeCMS::cacheGet(self::QUERY_CACHE, $cache_key, self::QUERY_CACHE_TTL);
+
+			if (is_array($cached) && isset($cached[0])) {
+				return array_map("floatval", $cached);
+			}
+
+			$vectors = $ai->embed($query);
+
+			if ($vectors === false || empty($vectors[0])) {
+				return null;
+			}
+
+			BigTreeCMS::cachePut(self::QUERY_CACHE, $cache_key, $vectors[0]);
+
+			return $vectors[0];
+		}
+
+		/**
+		 * Fetch every page row referenced by page-type hits in one query (avoids an
+		 * N+1 SELECT per result).
+		 *
+		 * @param list<array<string,mixed>> $rows
+		 * @return array<int,array<string,mixed>> Keyed by page id.
+		 */
+		private static function fetchPageRows(array $rows): array {
+			$ids = [];
+
+			foreach ($rows as $row) {
+				if ((string)($row["source_type"] ?? "") === "page") {
+					$id = (int)($row["source_id"] ?? 0);
+
+					if ($id > 0) {
+						$ids[$id] = true;
+					}
+				}
+			}
+
+			if (!$ids) {
+				return [];
+			}
+
+			$ids = array_keys($ids);
+			$placeholders = implode(",", array_fill(0, count($ids), "?"));
+			$page_rows = SQL::fetchAll(
+				"SELECT id, nav_title, path, archived FROM bigtree_pages WHERE id IN ($placeholders)",
+				...$ids
+			) ?: [];
+			$map = [];
+
+			foreach ($page_rows as $page) {
+				$map[(int)$page["id"]] = $page;
+			}
+
+			return $map;
+		}
 
 		/**
 		 * @param list<float> $vector
@@ -640,51 +839,41 @@
 			$literal = self::vectorToLiteral($vector);
 			$dialect = BigTreeAI::vectorDialect();
 			$from_fn = $dialect === "mariadb" ? "VEC_FromText" : "STRING_TO_VECTOR";
-			$existing_id = SQL::fetchSingle(
-				"SELECT id FROM `" . self::TABLE . "`
-				 WHERE source_type = ? AND source_id = ? AND chunk_index = ? AND model = ?",
+			$title = mb_substr($title, 0, 500);
+
+			// Single upsert on the source_chunk_model unique key — avoids the
+			// SELECT-then-write race where two concurrent saves of the same entry
+			// both miss the SELECT and collide on INSERT.
+			SQL::query(
+				"INSERT INTO `" . self::TABLE . "`
+					(source_type, source_id, module_id, module_route, table_name,
+					 chunk_index, title, content_text, content_hash, embedding, model, updated_at)
+				 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, $from_fn(?), ?, NOW())
+				 ON DUPLICATE KEY UPDATE
+					module_id = ?, module_route = ?, table_name = ?,
+					title = ?, content_text = ?, content_hash = ?,
+					embedding = $from_fn(?), updated_at = NOW()",
+				// INSERT values
 				$source_type,
 				$source_id,
+				$meta["module_id"] ?? null,
+				$meta["module_route"] ?? null,
+				$meta["table_name"] ?? null,
 				$chunk_index,
-				$model
+				$title,
+				$content,
+				$hash,
+				$literal,
+				$model,
+				// ON DUPLICATE KEY UPDATE values
+				$meta["module_id"] ?? null,
+				$meta["module_route"] ?? null,
+				$meta["table_name"] ?? null,
+				$title,
+				$content,
+				$hash,
+				$literal
 			);
-
-			if ($existing_id) {
-				SQL::query(
-					"UPDATE `" . self::TABLE . "` SET
-						title = ?, content_text = ?, content_hash = ?,
-						embedding = $from_fn(?),
-						module_id = ?, module_route = ?, table_name = ?,
-						updated_at = NOW()
-					 WHERE id = ?",
-					mb_substr($title, 0, 500),
-					$content,
-					$hash,
-					$literal,
-					$meta["module_id"] ?? null,
-					$meta["module_route"] ?? null,
-					$meta["table_name"] ?? null,
-					$existing_id
-				);
-			} else {
-				SQL::query(
-					"INSERT INTO `" . self::TABLE . "`
-						(source_type, source_id, module_id, module_route, table_name,
-						 chunk_index, title, content_text, content_hash, embedding, model, updated_at)
-					 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, $from_fn(?), ?, NOW())",
-					$source_type,
-					$source_id,
-					$meta["module_id"] ?? null,
-					$meta["module_route"] ?? null,
-					$meta["table_name"] ?? null,
-					$chunk_index,
-					mb_substr($title, 0, 500),
-					$content,
-					$hash,
-					$literal,
-					$model
-				);
-			}
 		}
 
 		/** @param list<float> $vector */
@@ -815,8 +1004,13 @@
 			return trim(implode(" ", $chunks));
 		}
 
-		/** @param list<string> $chunks */
-		private static function collectPlainText($value, array &$chunks): void {
+		/**
+		 * Recursively collect stripped plain-text leaves from a decoded resource
+		 * tree. Shared with SearchService (which used to keep a copy-paste twin).
+		 *
+		 * @param list<string> $chunks
+		 */
+		public static function collectPlainText($value, array &$chunks): void {
 			if (is_string($value)) {
 				$stripped = trim(html_entity_decode(strip_tags($value), ENT_QUOTES | ENT_HTML5, "UTF-8"));
 

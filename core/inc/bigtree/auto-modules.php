@@ -2231,19 +2231,19 @@
 		 * Best-effort AI embedding index update (never throws to callers).
 		 */
 		private static function indexEmbeddingSafe($table, $id) {
-			try {
-				if ($table === "bigtree_pages" || !preg_match('/^[a-zA-Z0-9_]+$/', (string)$table)) {
-					return;
-				}
+			if ($table === "bigtree_pages" || !preg_match('/^[a-zA-Z0-9_]+$/', (string)$table)) {
+				return;
+			}
 
+			// Defer the OpenAI embed round trip past the response so the editorial
+			// save returns immediately (fail-open — errors are swallowed).
+			\BigTree\Services\EmbeddingService::deferIndex(function () use ($table, $id) {
 				$row = SQL::fetch("SELECT * FROM `$table` WHERE id = ?", $id);
 
 				if ($row) {
 					\BigTree\Services\EmbeddingService::indexModuleEntry($table, $id, $row);
 				}
-			} catch (Throwable $e) {
-				// ignore
-			}
+			});
 		}
 
 		/*

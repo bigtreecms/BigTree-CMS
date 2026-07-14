@@ -36,7 +36,9 @@ export const ProtectedRoute = () => {
 		enabled: authenticated && developer && !hydrating,
 		staleTime: 15_000,
 		retry: 1,
-		refetchOnWindowFocus: true,
+		// staleTime + navigation-triggered refetches re-assert the gate on any route
+		// change; refetching on every window focus just hammers the migration scan.
+		refetchOnWindowFocus: false,
 	});
 
 	// Bridge the token auth into the legacy PHP session (front-end BigTree bar

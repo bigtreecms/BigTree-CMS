@@ -203,7 +203,9 @@
 	 * Safe no-op on older MySQL/MariaDB so base.sql stays portable.
 	 */
 	function bigtree_install_maybe_create_ai_embeddings() {
-		// Keep in sync with BigTreeAI::EMBEDDING_DIMENSIONS / revision 506.
+		// Standalone copy of the embeddings DDL for fresh base installs. The
+		// canonical version lives in BigTree\Services\EmbeddingService::ensureTable()
+		// (which revision 506 + Configure → AI call) — keep the two in sync.
 		$dimensions = 1536;
 		$supported = bigtree_install_vector_store_supported();
 		$table_ready = false;

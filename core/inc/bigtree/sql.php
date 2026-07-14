@@ -23,7 +23,7 @@
 		$port = $config["port"] ?? null;
 
 		if (($host === "localhost" || $host === "localhost.localdomain")
-			&& (empty($socket) || $socket === null)
+			&& empty($socket)
 			&& !empty($port)
 		) {
 			return "127.0.0.1";

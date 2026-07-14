@@ -9,6 +9,7 @@
 	use BigTree\Api\Exceptions\BadRequestException;
 	use BigTreeJSONDB;
 	use BigTreeAI;
+	use BigTreeCMS;
 	use SQL;
 
 	/**
@@ -37,6 +38,10 @@
 		const MODULE_ENTRY_CAP = 5;
 		const AI_MAX_ROUNDS = 4;
 		const AI_TOOL_LIMIT = 8;
+		// Per-user throttle on the paid agent loop (fixed window).
+		const AI_RATE_LIMIT = 10;
+		const AI_RATE_WINDOW = 60;
+		const AI_RATE_CACHE = "org.bigtreecms.ai-search-rate";
 
 		public function search(Request $request) {
 			$q = $request->queryString("q");
@@ -84,18 +89,33 @@
 			}
 
 			// Blend semantic vector hits when embeddings are enabled (default on).
+			// Skip very short queries where LIKE search wins anyway — this is the hot
+			// debounced quick-search path, and each miss is a paid embed call.
 			$semantic_flag = $request->query["semantic"] ?? null;
 			$use_semantic = $semantic_flag === null
-				? EmbeddingService::isEnabled()
+				? (EmbeddingService::isEnabled() && mb_strlen(trim($q)) >= 4)
 				: !in_array((string)$semantic_flag, ["0", "false", "off", ""], true);
+
+			$semantic_settings = [];
 
 			if ($use_semantic && EmbeddingService::isEnabled()) {
 				$semantic = EmbeddingService::search($q, $limit, $request->user);
 				$results = $this->mergeSemanticIntoResults($results, $semantic, $limit);
+				$semantic_settings = $semantic["settings"] ?? [];
 			}
 
 			// Rank by title/text relevance (+ semantic distance when present).
 			$results = $this->rankResultGroups($results, $q, $this->extractKeywords($q));
+
+			// Settings only come from the vector index (no LIKE equivalent) — surface
+			// them so e.g. "google analytics key" lands on the setting. Already
+			// distance-ordered and permission-filtered by EmbeddingService::search.
+			if ($semantic_settings) {
+				$results["settings"] = $this->stripRankingFields(
+					array_slice($semantic_settings, 0, $limit)
+				);
+			}
+
 			$counts = [];
 
 			foreach ($results as $key => $rows) {
@@ -133,8 +153,12 @@
 				throw new BadRequestException("q is too long", "query_too_long");
 			}
 
-			$limit = max(1, min(20, (int)($request->body["limit"] ?? self::AI_TOOL_LIMIT)));
 			$user = $request->user;
+
+			// Guard the paid provider loop before any DB seed or API call.
+			$this->throttleAiSearch($user);
+
+			$limit = max(1, min(20, (int)($request->body["limit"] ?? self::AI_TOOL_LIMIT)));
 
 			// Accumulated navigable results for the SPA (same shapes as classic search).
 			$collected = [
@@ -271,6 +295,44 @@
 				"total" => array_sum($counts),
 				"rounds" => $rounds,
 				"keywords" => $keywords,
+			]);
+		}
+
+		/**
+		 * Cheap per-user fixed-window rate limit for the AI agent loop. Each call
+		 * is up to 4 paid provider rounds, so an authenticated editor could
+		 * otherwise fire them as fast as they can press Enter.
+		 *
+		 * @throws BadRequestException when the window's allowance is exhausted.
+		 */
+		private function throttleAiSearch($user): void {
+			$user_id = (int)($user->id ?? 0);
+
+			if ($user_id < 1) {
+				return;
+			}
+
+			$key = (string)$user_id;
+			$now = time();
+			$record = BigTreeCMS::cacheGet(self::AI_RATE_CACHE, $key);
+			$window_start = is_array($record) ? (int)($record["window_start"] ?? 0) : 0;
+			$count = is_array($record) ? (int)($record["count"] ?? 0) : 0;
+
+			if ($now - $window_start >= self::AI_RATE_WINDOW) {
+				$window_start = $now;
+				$count = 0;
+			}
+
+			if ($count >= self::AI_RATE_LIMIT) {
+				throw new BadRequestException(
+					"Too many AI searches — try again shortly.",
+					"ai_rate_limited"
+				);
+			}
+
+			BigTreeCMS::cachePut(self::AI_RATE_CACHE, $key, [
+				"window_start" => $window_start,
+				"count" => $count + 1,
 			]);
 		}
 
@@ -758,11 +820,13 @@
 			return $kept;
 		}
 
-		private function searchModuleEntries($q, $limit_per_module, $user) {
+		private function searchModuleEntries($q, $limit_per_module, $user, int $max_modules = 25) {
 			$all = BigTreeJSONDB::getAll("modules");
 			$results = [];
-			// Cap how many modules we sweep to keep latency bounded
-			$max_modules = 25;
+			// Cap how many modules we sweep to keep latency bounded. The seed sweep
+			// passes a smaller cap since it runs this per keyword; explicit tool calls
+			// keep the full 25.
+			$max_modules = max(1, $max_modules);
 			$module_count = 0;
 
 			foreach ($all as $m) {
@@ -913,16 +977,39 @@
 		 * @param array<string,list<mixed>> $collected
 		 * @return array<string,mixed> Compact summary for the model prompt
 		 */
+		/**
+		 * The bounded set of terms to seed the federated search with: the 2 longest
+		 * (most specific) keywords plus the joined phrase when there are several.
+		 *
+		 * @param list<string> $keywords
+		 * @return list<string>
+		 */
+		private function seedTerms(array $keywords): array {
+			$sorted = $keywords;
+			usort($sorted, function ($a, $b) {
+				return mb_strlen((string)$b) <=> mb_strlen((string)$a);
+			});
+			$terms = array_slice($sorted, 0, 2);
+
+			if (count($keywords) > 1) {
+				$terms[] = implode(" ", $keywords);
+			}
+
+			return array_values(array_unique($terms));
+		}
+
 		private function seedKeywordSearch(array $keywords, $user, int $limit, array &$collected): array {
 			if (!$keywords) {
 				return ["keywords" => [], "hit_counts" => []];
 			}
 
-			// Search each keyword alone (module view search ANDs space-separated terms).
-			foreach ($keywords as $kw) {
+			// Bound the sweep: seeding runs the full federation per term, so cap it at
+			// the 2 most specific (longest) keywords plus the joined phrase, and pass a
+			// smaller module cap. Module view search ANDs space-separated terms.
+			foreach ($this->seedTerms($keywords) as $kw) {
 				$this->mergeCollected($collected, "pages", $this->searchPages($kw, $limit, $user), "id");
 				$this->mergeCollected($collected, "modules", $this->searchModules($kw, $limit, $user), "id");
-				$this->mergeEntryGroups($collected, $this->searchModuleEntries($kw, $limit, $user));
+				$this->mergeEntryGroups($collected, $this->searchModuleEntries($kw, $limit, $user, 10));
 
 				if ((int)$user->level >= 1) {
 					$this->mergeCollected($collected, "tags", $this->searchTags($kw, $limit), "id");
@@ -1556,7 +1643,7 @@ PROMPT;
 			}
 
 			$chunks = [];
-			$this->collectPlainText($decoded, $chunks);
+			EmbeddingService::collectPlainText($decoded, $chunks);
 			$text = trim(preg_replace('/\s+/', " ", implode(" ", $chunks)) ?? "");
 
 			if (mb_strlen($text) > 2000) {
@@ -1564,27 +1651,5 @@ PROMPT;
 			}
 
 			return $text;
-		}
-
-		/**
-		 * @param mixed $value
-		 * @param list<string> $chunks
-		 */
-		private function collectPlainText($value, array &$chunks): void {
-			if (is_string($value)) {
-				$stripped = trim(html_entity_decode(strip_tags($value), ENT_QUOTES | ENT_HTML5, "UTF-8"));
-
-				if ($stripped !== "") {
-					$chunks[] = $stripped;
-				}
-
-				return;
-			}
-
-			if (is_array($value)) {
-				foreach ($value as $child) {
-					$this->collectPlainText($child, $chunks);
-				}
-			}
 		}
 	}

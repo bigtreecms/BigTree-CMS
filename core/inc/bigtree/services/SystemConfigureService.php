@@ -641,25 +641,29 @@
 			$existing = BigTreeCMS::getSetting("bigtree-internal-ai-service") ?: [];
 			$api_key = (string)($body["api_key"] ?? "");
 
-			// Empty string means "leave the stored key alone".
-			if ($api_key === "" && !empty($existing["api_key"])) {
+			// Blank = "leave the stored key alone"; an explicit `api_key_clear` flag
+			// purges it (there's otherwise no way to remove a stored secret).
+			if (!empty($body["api_key_clear"])) {
+				$api_key = "";
+			} elseif ($api_key === "" && !empty($existing["api_key"])) {
 				$api_key = (string)$existing["api_key"];
 			}
 
 			$embedding_api_key = (string)($body["embedding_api_key"] ?? "");
 
-			// Empty string means "leave the stored embeddings key alone".
-			if ($embedding_api_key === "" && !empty($existing["embedding_api_key"])) {
+			// Blank = keep; `embedding_api_key_clear` purges the stored embeddings key.
+			if (!empty($body["embedding_api_key_clear"])) {
+				$embedding_api_key = "";
+			} elseif ($embedding_api_key === "" && !empty($existing["embedding_api_key"])) {
 				$embedding_api_key = (string)$existing["embedding_api_key"];
 			}
-
-			// Explicit clear when client sends a sentinel (optional future); for now
-			// blank = keep. When chat is OpenAI, dedicated key is optional.
 
 			$model = (string)($body["model"] ?? "");
 
 			if ($service === "") {
+				// Disabling AI shouldn't retain a provider secret at rest.
 				$model = "";
+				$api_key = "";
 			} elseif ($model !== "" && !\BigTreeAI::isValidModel($service, $model)) {
 				throw new BadRequestException("Unknown model for this service", "invalid_model");
 			} elseif ($model === "") {
@@ -695,6 +699,12 @@
 			$effective_embed_key = $embedding_api_key !== ""
 				? $embedding_api_key
 				: ($service === "openai" ? $api_key : "");
+
+			// Create the vector table on demand so enabling embeddings works even if
+			// the DB gained VECTOR support after migration 506 already ran.
+			if (EmbeddingService::isSupported() && !EmbeddingService::tableReady()) {
+				EmbeddingService::ensureTable();
+			}
 
 			$can_embed = $service !== ""
 				&& $embedding_model !== ""

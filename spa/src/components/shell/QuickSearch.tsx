@@ -2,7 +2,16 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import * as Dialog from "@radix-ui/react-dialog";
-import { FileText, LayoutGrid, Search, Sparkles, Tag, Users, X } from "lucide-react";
+import {
+	FileText,
+	LayoutGrid,
+	Search,
+	SlidersHorizontal,
+	Sparkles,
+	Tag,
+	Users,
+	X,
+} from "lucide-react";
 
 import { IconButton } from "@/components/ui/IconButton";
 import { InlineEmpty } from "@/components/ui/InlineEmpty";
@@ -19,7 +28,7 @@ import { isAdmin } from "@/lib/permissions";
 import { describeApiError } from "@/lib/errorHandling";
 import { decodeHtmlEntitiesDom } from "@/lib/html";
 import { modulePath } from "@/lib/moduleActions";
-import { moduleEntryEditPath, pageEditPath } from "@/lib/routes";
+import { moduleEntryEditPath, pageEditPath, settingEditPath } from "@/lib/routes";
 
 /* eslint-disable @typescript-eslint/no-explicit-any -- search results are heterogeneous (raw module cache rows, etc.) and intentionally rendered generically */
 
@@ -34,13 +43,14 @@ interface ActionableItem {
 	action: () => void;
 }
 
-const GROUP_ORDER = ["pages", "modules", "entries", "tags", "users"] as const;
-/** Result groups only Administrators may navigate to (Tags / Users are level 1). */
-const ADMIN_ONLY_GROUPS = new Set<string>(["tags", "users"]);
+const GROUP_ORDER = ["pages", "modules", "entries", "settings", "tags", "users"] as const;
+/** Result groups only Administrators may navigate to (Settings / Tags / Users are level 1). */
+const ADMIN_ONLY_GROUPS = new Set<string>(["settings", "tags", "users"]);
 const GROUP_LABELS: Record<string, string> = {
 	pages: "Pages",
 	modules: "Modules",
 	entries: "Module entries",
+	settings: "Settings",
 	tags: "Tags",
 	users: "Users",
 };
@@ -230,19 +240,16 @@ export const QuickSearch = ({ open, onClose }: QuickSearchProps) => {
 	const [submittedQuery, setSubmittedQuery] = useState("");
 	const [activeIndex, setActiveIndex] = useState(0);
 
-	// Debounce the typed query for classic search only.
+	// Debounce the typed query for the classic pass. In AI mode this still runs so
+	// instant type-ahead results render while the user composes their question.
 	useEffect(() => {
-		if (aiSearchEnabled) {
-			return;
-		}
-
 		const t = setTimeout(() => {
 			setDebouncedQuery(rawQuery.trim());
 			setActiveIndex(0);
 		}, 250);
 
 		return () => clearTimeout(t);
-	}, [rawQuery, aiSearchEnabled]);
+	}, [rawQuery]);
 
 	// Auto-focus the input when the palette opens
 	useEffect(() => {
@@ -271,10 +278,12 @@ export const QuickSearch = ({ open, onClose }: QuickSearchProps) => {
 		}
 	}
 
+	// Classic search runs in both modes now — cheap type-ahead the SPA can show
+	// immediately (hybrid: AI mode keeps this live while composing a question).
 	const classicQuery = useQuery({
 		queryKey: queryKeys.search.results(debouncedQuery),
 		queryFn: () => searchApi.search(debouncedQuery, { limit: 8 }),
-		enabled: open && !aiSearchEnabled && debouncedQuery.length >= 2,
+		enabled: open && debouncedQuery.length >= 2,
 	});
 
 	const aiQuery = useQuery({
@@ -286,18 +295,23 @@ export const QuickSearch = ({ open, onClose }: QuickSearchProps) => {
 		retry: false,
 	});
 
-	const groups: SearchResultGroups | undefined = aiSearchEnabled
-		? normalizeGroups((aiQuery.data as AiSearchResponse | undefined)?.results)
+	const aiData = aiQuery.data as AiSearchResponse | undefined;
+	// The AI answer is pinned to the exact submitted query; the moment the user
+	// edits the input we fall back to the live (debounced) classic results.
+	const aiCurrent =
+		aiSearchEnabled && submittedQuery.length >= 2 && rawQuery.trim() === submittedQuery;
+	const aiHasAnswer = aiCurrent && !!aiData;
+	const aiThinking = aiCurrent && aiQuery.isFetching && !aiData;
+
+	// Prefer AI groups once the answer lands; otherwise show the classic list.
+	const groups: SearchResultGroups | undefined = aiHasAnswer
+		? normalizeGroups(aiData?.results)
 		: normalizeGroups(classicQuery.data);
-	const answer = aiSearchEnabled
-		? ((aiQuery.data as AiSearchResponse | undefined)?.answer ?? "")
-		: "";
-	const isLoading = aiSearchEnabled ? aiQuery.isFetching : classicQuery.isLoading;
-	const activeQueryText = aiSearchEnabled ? submittedQuery : debouncedQuery;
+	const answer = aiHasAnswer ? (aiData?.answer ?? "") : "";
+	const classicLoading = classicQuery.isLoading && debouncedQuery.length >= 2;
+	const activeQueryText = aiHasAnswer ? submittedQuery : debouncedQuery;
 	const aiError =
-		aiSearchEnabled && aiQuery.isError
-			? describeApiError(aiQuery.error, "AI search failed")
-			: null;
+		aiCurrent && aiQuery.isError ? describeApiError(aiQuery.error, "AI search failed") : null;
 
 	const runAiSearch = () => {
 		const q = rawQuery.trim();
@@ -345,6 +359,8 @@ export const QuickSearch = ({ open, onClose }: QuickSearchProps) => {
 					push(g, it, pageEditPath(row.id as string | number));
 				} else if (g === "modules" && typeof row.route === "string" && row.route) {
 					push(g, it, modulePath({ route: row.route }));
+				} else if (g === "settings" && row.id != null) {
+					push(g, it, settingEditPath(row.id as string | number));
 				} else if (g === "tags") {
 					push(g, it, "/tags");
 				} else if (g === "users" && row.id != null) {
@@ -468,6 +484,18 @@ export const QuickSearch = ({ open, onClose }: QuickSearchProps) => {
 		/>
 	);
 
+	const renderSetting = (s: any, idx: number, isActive: boolean) => (
+		<QuickSearchResultRow
+			key={`s-${s.id}`}
+			icon={SlidersHorizontal}
+			idx={idx}
+			isActive={isActive}
+			title={displayText(s.name) || String(s.id)}
+			subtitle={String(s.id)}
+			onSelect={() => selectAndClose(settingEditPath(s.id))}
+		/>
+	);
+
 	const renderTag = (t: any, idx: number, isActive: boolean) => (
 		<QuickSearchResultRow
 			key={`t-${t.id}`}
@@ -547,7 +575,7 @@ export const QuickSearch = ({ open, onClose }: QuickSearchProps) => {
 					</div>
 
 					<div className="max-h-[460px] overflow-auto px-1 py-3 text-[13px]">
-						{!activeQueryText && (
+						{!activeQueryText && !aiThinking && (
 							<InlineEmpty
 								variant="plain"
 								align="center"
@@ -555,35 +583,38 @@ export const QuickSearch = ({ open, onClose }: QuickSearchProps) => {
 								className="px-4 py-10"
 							>
 								{aiSearchEnabled
-									? "Describe what you're looking for, then press Enter."
+									? "Search as you type, or press Enter to ask AI for an answer."
 									: "Type at least two characters to search the site."}
 							</InlineEmpty>
 						)}
 
-						{activeQueryText &&
-							isLoading &&
-							(aiSearchEnabled ? (
-								<AiSearchLoading />
-							) : (
-								<InlineEmpty variant="plain" align="center" className="px-4">
-									Searching…
-								</InlineEmpty>
-							))}
+						{/* Full loader only when the AI pass is running and there's nothing
+						    to show yet — otherwise classic results stay visible below. */}
+						{aiThinking && !hasRenderableResults && <AiSearchLoading />}
 
-						{activeQueryText && !isLoading && aiError && (
-							<InlineEmpty
-								variant="plain"
-								align="center"
-								pad="xl"
-								className="px-4 py-8 text-danger"
-							>
-								{aiError}
+						{classicLoading && !hasRenderableResults && !aiThinking && (
+							<InlineEmpty variant="plain" align="center" className="px-4">
+								Searching…
 							</InlineEmpty>
 						)}
 
-						{activeQueryText && !isLoading && !aiError && (groups || answer) && (
+						{aiError && (
+							<div className="mb-2 mx-1 rounded-lg border border-danger/30 bg-surface-2/50 px-3 py-2 text-[12px] text-danger">
+								{aiError}
+							</div>
+						)}
+
+						{/* Hybrid: keep classic rows visible while the AI answer is computed. */}
+						{aiThinking && hasRenderableResults && (
+							<div className="mb-2 mx-1 flex items-center gap-2 rounded-lg border border-border bg-surface-2/50 px-3 py-2 text-[12px] text-text-3">
+								<Sparkles size={12} className="animate-pulse text-accent" />
+								Asking AI…
+							</div>
+						)}
+
+						{activeQueryText && (hasRenderableResults || answer) && (
 							<>
-								{aiSearchEnabled && answer && (
+								{answer && (
 									<div className="mb-2 mx-1 rounded-lg border border-border bg-surface-2/50 px-3 py-2.5 text-[13px] leading-snug text-text-2">
 										<div className="mb-1 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-text-3">
 											<Sparkles size={11} className="text-accent" />
@@ -652,6 +683,12 @@ export const QuickSearch = ({ open, onClose }: QuickSearchProps) => {
 																currentIdx,
 																isActive
 															);
+														if (gKey === "settings")
+															return renderSetting(
+																it,
+																currentIdx,
+																isActive
+															);
 														if (gKey === "tags")
 															return renderTag(
 																it,
@@ -670,19 +707,23 @@ export const QuickSearch = ({ open, onClose }: QuickSearchProps) => {
 											</div>
 										);
 									})}
-
-								{emptyGroups && !answer && (
-									<InlineEmpty
-										variant="plain"
-										align="center"
-										pad="xl"
-										className="px-4 py-8"
-									>
-										No results for “{activeQueryText}”.
-									</InlineEmpty>
-								)}
 							</>
 						)}
+
+						{activeQueryText &&
+							!classicLoading &&
+							!aiThinking &&
+							emptyGroups &&
+							!answer && (
+								<InlineEmpty
+									variant="plain"
+									align="center"
+									pad="xl"
+									className="px-4 py-8"
+								>
+									No results for “{activeQueryText}”.
+								</InlineEmpty>
+							)}
 					</div>
 
 					{/* Footer hints */}

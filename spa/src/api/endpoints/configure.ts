@@ -271,7 +271,11 @@ export const configureApi = {
 		update: (body: {
 			service: AiServiceId;
 			api_key: string;
+			/** Purge the stored chat key (blank api_key otherwise means "keep"). */
+			api_key_clear?: boolean;
 			embedding_api_key?: string;
+			/** Purge the stored embeddings key. */
+			embedding_api_key_clear?: boolean;
 			model: string;
 			embedding_model: string;
 			features: { search: boolean; embeddings: boolean };

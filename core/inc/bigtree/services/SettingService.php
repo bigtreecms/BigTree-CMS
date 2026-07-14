@@ -181,7 +181,9 @@
 			) ? ["value"] : null;
 
 			ResourceAllocationService::allocateResourcesFromData("bigtree_settings", $id, ["value" => $value], $reference_keys);
-			EmbeddingService::indexSetting((string)$id, $value);
+			EmbeddingService::deferIndex(function () use ($id, $value) {
+				EmbeddingService::indexSetting((string)$id, $value);
+			});
 		}
 
 		private function updateDefinition($old_id, array $existing, array $d) {

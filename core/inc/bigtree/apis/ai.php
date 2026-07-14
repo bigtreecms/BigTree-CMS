@@ -22,8 +22,9 @@
 				["id" => "gpt-4o", "label" => "GPT-4o"],
 			],
 			"anthropic" => [
-				["id" => "claude-sonnet-4-20250514", "label" => "Claude Sonnet 4"],
-				["id" => "claude-haiku-4-5-20251001", "label" => "Claude Haiku 4.5"],
+				["id" => "claude-sonnet-5", "label" => "Claude Sonnet 5"],
+				["id" => "claude-opus-4-8", "label" => "Claude Opus 4.8"],
+				["id" => "claude-haiku-4-5", "label" => "Claude Haiku 4.5"],
 			],
 		];
 
@@ -157,20 +158,6 @@
 			return self::EMBEDDING_MODELS;
 		}
 
-		/**
-		 * @deprecated Prefer embeddingModels() — embeddings are OpenAI-only.
-		 * @return list<array{id:string,label:string}>
-		 */
-		public static function embeddingModelsForService(string $service): array {
-			// All chat providers may use OpenAI embeddings (via embedding_api_key
-			// when chat is not OpenAI). Return the shared list for any service.
-			if ($service === "" || !in_array($service, self::SERVICES, true)) {
-				return [];
-			}
-
-			return self::EMBEDDING_MODELS;
-		}
-
 		public static function isValidEmbeddingModel(string $model): bool {
 			foreach (self::EMBEDDING_MODELS as $entry) {
 				if ($entry["id"] === $model) {
@@ -222,7 +209,7 @@
 			$response = $this->requestJson(self::EMBEDDING_ENDPOINT, $body, [
 				"Authorization: Bearer " . $this->embeddingApiKey(),
 				"Content-Type: application/json",
-			]);
+			], 15);
 
 			if ($response === false) {
 				return false;
@@ -302,32 +289,36 @@
 				return false;
 			}
 
-			$is_maria = stripos($version, "mariadb") !== false;
-			// VERSION() for MariaDB looks like "11.7.1-MariaDB" or "11.8.0-MariaDB".
-			if ($is_maria) {
-				if (preg_match('/^(\d+)\.(\d+)/', $version, $m)) {
-					$major = (int)$m[1];
-					$minor = (int)$m[2];
-					$cached = $major > 11 || ($major === 11 && $minor >= 7);
+			$cached = self::parseVectorSupport($version);
 
-					return $cached;
-				}
+			return $cached;
+		}
 
-				$cached = false;
-
+		/**
+		 * Pure test of a VERSION() string for VECTOR support (MySQL 9+ /
+		 * MariaDB 11.7+). Extracted from vectorStoreSupported() so it can be unit
+		 * tested without a DB connection. VERSION() looks like "11.7.1-MariaDB",
+		 * "10.11.6-MariaDB", "9.0.1", or "8.0.36".
+		 */
+		public static function parseVectorSupport(string $version): bool {
+			if ($version === "") {
 				return false;
 			}
 
-			// MySQL: "9.0.1" etc.
-			if (preg_match('/^(\d+)\.(\d+)/', $version, $m)) {
-				$cached = ((int)$m[1]) >= 9;
+			$is_maria = stripos($version, "mariadb") !== false;
 
-				return $cached;
+			if (!preg_match('/^(\d+)\.(\d+)/', $version, $m)) {
+				return false;
 			}
 
-			$cached = false;
+			$major = (int)$m[1];
+			$minor = (int)$m[2];
 
-			return false;
+			if ($is_maria) {
+				return $major > 11 || ($major === 11 && $minor >= 7);
+			}
+
+			return $major >= 9;
 		}
 
 		/**
@@ -681,9 +672,11 @@
 		/**
 		 * @param list<string> $headers
 		 * @param array<string,mixed> $body
+		 * @param int $timeout Per-request cap so one slow provider can't consume the
+		 *                     whole PHP budget (aiSearch makes up to 6 sequential calls).
 		 * @return array<string,mixed>|false
 		 */
-		private function requestJson(string $url, array $body, array $headers) {
+		private function requestJson(string $url, array $body, array $headers, int $timeout = 30) {
 			global $bigtree;
 
 			$payload = json_encode($body);
@@ -694,9 +687,13 @@
 				return false;
 			}
 
+			// Explicit CURLOPT_TIMEOUT overrides BigTree::cURL's default of
+			// max_execution_time - 5 (which would be the entire request budget).
 			$raw = BigTree::cURL($url, $payload, [
 				CURLOPT_HTTPHEADER => $headers,
 				CURLOPT_POST => true,
+				CURLOPT_TIMEOUT => $timeout,
+				CURLOPT_CONNECTTIMEOUT => 5,
 			]);
 
 			$code = (int)($bigtree["last_curl_response_code"] ?? 0);

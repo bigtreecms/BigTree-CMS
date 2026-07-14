@@ -340,17 +340,11 @@
 			!empty(static::$Config[$type]["socket"]) || static::$Config[$type]["socket"] = null;
 
 			// "localhost" + port uses a Unix socket and ignores port in mysqli —
-			// force TCP when a port is set and no socket path is provided.
-			$host = static::$Config[$type]["host"];
+			// bigtree_sql_connection_host() forces TCP when a port is set and no
+			// socket path is provided (shared with bigtree_setup_sql_connection).
 			$socket = static::$Config[$type]["socket"];
 			$port = static::$Config[$type]["port"];
-
-			if (($host === "localhost" || $host === "localhost.localdomain")
-				&& (empty($socket) || $socket === null)
-				&& !empty($port)
-			) {
-				$host = "127.0.0.1";
-			}
+			$host = bigtree_sql_connection_host(static::$Config[$type]);
 
 			static::${$property} = new mysqli(
 				$host,

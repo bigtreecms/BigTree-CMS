@@ -29,6 +29,8 @@ interface AiDraft {
 	features: { search: boolean; embeddings: boolean };
 	api_key_set: boolean;
 	embedding_api_key_set: boolean;
+	api_key_clear: boolean;
+	embedding_api_key_clear: boolean;
 	models: AiConfig["models"];
 	embedding_models: AiConfig["embedding_models"];
 	embeddings_supported: boolean;
@@ -60,6 +62,37 @@ const SERVICES: Array<{ id: AiServiceId; label: string; help: string }> = [
 	},
 ];
 
+interface RemoveKeyButtonProps {
+	onClick: () => void;
+}
+
+const RemoveKeyButton = ({ onClick }: RemoveKeyButtonProps) => (
+	<button
+		type="button"
+		className="mt-1.5 text-[11px] text-text-3 underline underline-offset-2 hover:text-danger"
+		onClick={onClick}
+	>
+		Remove stored key
+	</button>
+);
+
+interface KeyClearNoticeProps {
+	onUndo: () => void;
+}
+
+const KeyClearNotice = ({ onUndo }: KeyClearNoticeProps) => (
+	<p className="mt-1.5 text-[11px] text-warn">
+		Stored key will be removed when you save.{" "}
+		<button
+			type="button"
+			className="underline underline-offset-2 hover:text-text"
+			onClick={onUndo}
+		>
+			Keep it
+		</button>
+	</p>
+);
+
 export const ConfigureAI = () => {
 	const setSession = useAuthStore((s) => s.setSession);
 	const [reindexStatus, setReindexStatus] = useState<string | null>(null);
@@ -79,6 +112,8 @@ export const ConfigureAI = () => {
 			},
 			api_key_set: !!data.api_key_set,
 			embedding_api_key_set: !!data.embedding_api_key_set,
+			api_key_clear: false,
+			embedding_api_key_clear: false,
 			models: data.models ?? {},
 			embedding_models: data.embedding_models ?? {},
 			embeddings_supported: !!data.embeddings_supported,
@@ -90,7 +125,9 @@ export const ConfigureAI = () => {
 			const fresh = await configureApi.ai.update({
 				service: next.service,
 				api_key: next.api_key,
+				api_key_clear: next.api_key_clear,
 				embedding_api_key: next.embedding_api_key,
+				embedding_api_key_clear: next.embedding_api_key_clear,
 				model: next.model,
 				embedding_model: next.embedding_model,
 				features: next.features,
@@ -179,15 +216,22 @@ export const ConfigureAI = () => {
 			}))
 		: [];
 
-	const hasChatKey = !!(draft && (draft.api_key_set || draft.api_key.trim() !== ""));
+	// A stored key only counts if it isn't queued for removal on save.
+	const chatKeyPresent = !!(
+		draft &&
+		(draft.api_key.trim() !== "" || (draft.api_key_set && !draft.api_key_clear))
+	);
+	const dedicatedEmbedKeyPresent = !!(
+		draft &&
+		(draft.embedding_api_key.trim() !== "" ||
+			(draft.embedding_api_key_set && !draft.embedding_api_key_clear))
+	);
+	const hasChatKey = chatKeyPresent;
 	const hasEmbedKey = !!(
 		draft &&
 		(draft.service === "openai"
-			? draft.api_key_set ||
-				draft.api_key.trim() !== "" ||
-				draft.embedding_api_key_set ||
-				draft.embedding_api_key.trim() !== ""
-			: draft.embedding_api_key_set || draft.embedding_api_key.trim() !== "")
+			? chatKeyPresent || dedicatedEmbedKeyPresent
+			: dedicatedEmbedKeyPresent)
 	);
 	const canEnableSearch = !!(draft && draft.service && hasChatKey && draft.model);
 	const canEnableEmbeddings = !!(
@@ -276,11 +320,39 @@ export const ConfigureAI = () => {
 									type="password"
 									autoComplete="off"
 									value={draft.api_key}
-									placeholder={draft.api_key_set ? "•••••••• (stored)" : "sk-…"}
+									placeholder={
+										draft.api_key_clear
+											? "Stored key will be removed on save"
+											: draft.api_key_set
+												? "•••••••• (stored)"
+												: "sk-…"
+									}
 									onChange={(e) =>
-										setDraft({ ...draft, api_key: e.target.value })
+										setDraft({
+											...draft,
+											api_key: e.target.value,
+											api_key_clear: false,
+										})
 									}
 								/>
+								{draft.api_key_set &&
+									(draft.api_key_clear ? (
+										<KeyClearNotice
+											onUndo={() =>
+												setDraft({ ...draft, api_key_clear: false })
+											}
+										/>
+									) : (
+										<RemoveKeyButton
+											onClick={() =>
+												setDraft({
+													...draft,
+													api_key: "",
+													api_key_clear: true,
+												})
+											}
+										/>
+									))}
 							</Field>
 
 							<SelectField
@@ -313,7 +385,7 @@ export const ConfigureAI = () => {
 													? "A dedicated OpenAI embeddings key is stored. Leave blank to keep it."
 													: "xAI/Anthropic have no embedding models. Paste an OpenAI API key to power vector search."
 												: draft.embedding_api_key_set
-													? "A dedicated embeddings key is stored. Leave blank to keep it, or clear chat key reuse by pasting a new one."
+													? "A dedicated embeddings key is stored. Leave blank to keep it, or paste a new one to replace it."
 													: "Leave blank to reuse the OpenAI chat key above for embeddings."
 										}
 									>
@@ -322,19 +394,43 @@ export const ConfigureAI = () => {
 											autoComplete="off"
 											value={draft.embedding_api_key}
 											placeholder={
-												draft.embedding_api_key_set
-													? "•••••••• (stored)"
-													: draft.embedding_key_required
-														? "sk-… (OpenAI)"
-														: "Optional — defaults to chat key"
+												draft.embedding_api_key_clear
+													? "Stored key will be removed on save"
+													: draft.embedding_api_key_set
+														? "•••••••• (stored)"
+														: draft.embedding_key_required
+															? "sk-… (OpenAI)"
+															: "Optional — defaults to chat key"
 											}
 											onChange={(e) =>
 												setDraft({
 													...draft,
 													embedding_api_key: e.target.value,
+													embedding_api_key_clear: false,
 												})
 											}
 										/>
+										{draft.embedding_api_key_set &&
+											(draft.embedding_api_key_clear ? (
+												<KeyClearNotice
+													onUndo={() =>
+														setDraft({
+															...draft,
+															embedding_api_key_clear: false,
+														})
+													}
+												/>
+											) : (
+												<RemoveKeyButton
+													onClick={() =>
+														setDraft({
+															...draft,
+															embedding_api_key: "",
+															embedding_api_key_clear: true,
+														})
+													}
+												/>
+											))}
 									</Field>
 								</>
 							)}
@@ -380,8 +476,8 @@ export const ConfigureAI = () => {
 
 								<p className="mt-2 text-[12px] text-text-3">
 									Semantic search over pages, settings, and module content using a
-									native VECTOR index. Requires MySQL 9+ or MariaDB 11.7+, system
-									migrations 506–507, and an OpenAI embedding key.
+									native VECTOR index. Requires MySQL 9+ or MariaDB 11.7+ and an
+									OpenAI embedding key.
 								</p>
 
 								{!draft.embeddings_supported && (
@@ -393,8 +489,8 @@ export const ConfigureAI = () => {
 
 								{draft.embeddings_supported && !draft.embeddings_ready && (
 									<p className="mt-2 text-[12px] text-warn">
-										Embeddings table is missing — run developer system
-										migrations (revisions 506–507).
+										Embeddings table isn&apos;t created yet — save this page or
+										press Rebuild index to create it.
 									</p>
 								)}
 

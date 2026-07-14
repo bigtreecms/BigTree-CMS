@@ -37,12 +37,19 @@ export interface SearchModuleEntryGroup {
 	items: Array<Record<string, unknown>>;
 }
 
+/** Semantic-only hit (administrators): the id can contain `.`/`/`. */
+export interface SearchSetting {
+	id: string;
+	name: string;
+}
+
 export interface SearchResultGroups {
 	pages?: SearchPage[];
 	tags?: SearchTag[];
 	users?: SearchUser[];
 	modules?: SearchModule[];
 	entries?: SearchModuleEntryGroup[];
+	settings?: SearchSetting[];
 }
 
 /** Response from POST /search/ai when AI search is enabled. */
