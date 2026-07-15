@@ -5,6 +5,7 @@
 /templates
 /cache
 /.idea
+/plans
 .DS_Store
 .htaccess
 .claude

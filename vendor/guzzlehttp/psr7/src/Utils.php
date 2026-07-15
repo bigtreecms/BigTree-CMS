@@ -20,11 +20,11 @@ final class Utils
         $result = [];
 
         foreach ($keys as &$key) {
-            $key = strtolower((string) $key);
+            $key = strtr((string) $key, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz');
         }
 
         foreach ($data as $k => $v) {
-            if (!in_array(strtolower((string) $k), $keys)) {
+            if (!in_array(strtr((string) $k, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), $keys)) {
                 $result[$k] = $v;
             }
         }
@@ -212,7 +212,7 @@ final class Utils
             if ($host !== '') {
                 if (isset($changes['set_headers']) && is_array($changes['set_headers'])) {
                     foreach (array_keys($changes['set_headers']) as $header) {
-                        if (strtolower((string) $header) === 'host') {
+                        if (strtr((string) $header, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz') === 'host') {
                             throw new \InvalidArgumentException(
                                 'Cannot modify request with both a URI containing a host and an explicit Host header.'
                             );
@@ -248,7 +248,7 @@ final class Utils
 
         $hasHost = false;
         foreach (array_keys($headers) as $header) {
-            if (strtolower((string) $header) === 'host') {
+            if (strtr((string) $header, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz') === 'host') {
                 $hasHost = true;
                 break;
             }
@@ -284,7 +284,7 @@ final class Utils
             $addedHeaders = [];
             foreach ($headers as $header => $value) {
                 $header = (string) $header;
-                $normalized = strtolower($header);
+                $normalized = strtr($header, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz');
 
                 if (isset($addedHeaders[$normalized])) {
                     /** @var RequestInterface */
@@ -462,6 +462,9 @@ final class Utils
      *   in subsequent reads. String inputs are always treated as string bodies,
      *   even when they name callable functions.
      *
+     * Passing a non-string scalar (`int`, `float`, or `bool`) is deprecated; cast
+     * it to a string instead. guzzlehttp/psr7 3.0 will reject non-string scalars.
+     *
      * @param resource|string|int|float|bool|StreamInterface|callable|\Iterator|null $resource Entity body data
      * @param array{size?: int, metadata?: array}                                    $options  Additional options
      *
@@ -470,6 +473,22 @@ final class Utils
     public static function streamFor($resource = '', array $options = []): StreamInterface
     {
         if (is_scalar($resource)) {
+            if (!is_string($resource)) {
+                \trigger_deprecation(
+                    'guzzlehttp/psr7',
+                    '2.12',
+                    'Passing %s to Utils::streamFor() is deprecated; cast it to a string. guzzlehttp/psr7 3.0 will only accept string, resource, StreamInterface, Stringable, Iterator, callable, or null.',
+                    \gettype($resource)
+                );
+
+                if (is_float($resource) && !is_finite($resource)) {
+                    // Normalized only to avoid PHP 8.5's (string) NAN warning
+                    // while deprecated; 3.0 rejects non-finite floats with every
+                    // other non-string scalar.
+                    $resource = is_nan($resource) ? 'NAN' : ($resource > 0 ? 'INF' : '-INF');
+                }
+            }
+
             $stream = self::tryFopen('php://temp', 'r+');
             if ($resource !== '') {
                 fwrite($stream, (string) $resource);
