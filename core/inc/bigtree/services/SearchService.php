@@ -1136,28 +1136,6 @@ PROMPT;
 		}
 
 		/**
-		 * @param list<array<string,mixed>> $rows
-		 * @return list<array<string,mixed>>
-		 */
-		private function uniqueById(array $rows): array {
-			$seen = [];
-			$out = [];
-
-			foreach ($rows as $row) {
-				$id = (string)($row["id"] ?? "");
-
-				if ($id === "" || isset($seen[$id])) {
-					continue;
-				}
-
-				$seen[$id] = true;
-				$out[] = $row;
-			}
-
-			return $out;
-		}
-
-		/**
 		 * @param array<string,list<mixed>> $collected
 		 * @param list<array<string,mixed>> $rows
 		 */

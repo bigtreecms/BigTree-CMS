@@ -513,9 +513,8 @@
 				$update["timezone"] = (string)$changes["timezone"];
 			}
 
-			// Guard: level and permissions are never writable through this path.
-			unset($update["level"], $update["permissions"]);
-
+			// The allow-list above is the guard: level and permissions are never
+			// copied into $update, so they can't be written through this path.
 			if ($update) {
 				SQL::update("bigtree_users", $id, $update);
 			}

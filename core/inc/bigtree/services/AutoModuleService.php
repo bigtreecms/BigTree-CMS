@@ -1263,7 +1263,7 @@
 				}
 
 				if ($schema[$column]["type"] === "checkbox") {
-					$data[$column] = !empty($value) && $value !== "false" && $value !== "0" ? "on" : "";
+					$data[$column] = !empty($value) && $value !== "false" ? "on" : "";
 				} else {
 					$data[$column] = is_bool($value) ? ($value ? "1" : "0") : (string)$value;
 				}

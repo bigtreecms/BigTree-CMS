@@ -258,7 +258,7 @@ PHP);
 		$out = $tool->executeApproved(["to" => "grandma"], ai_fake_user(0));
 
 		T::equals($out["status"], "sent", "executeApproved returns its outcome");
-		T::equals(FakeExtensionMutatingTool::$approved_with["to"], "grandma", "approval runs from the stored payload");
+		T::equals(FakeExtensionMutatingTool::$approved_with, ["to" => "grandma"], "approval runs from the stored payload");
 	}
 
 	function test_extension_approval_rechecks_availability() {

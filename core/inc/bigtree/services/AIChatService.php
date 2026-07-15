@@ -1195,6 +1195,15 @@
 				return;
 			}
 
+			// Entry groups are associative; normalize to a string-keyed map so the
+			// merged value matches the $entries element type when it's appended below.
+			$normalized = [];
+
+			foreach ($group as $key => $value) {
+				$normalized[(string)$key] = $value;
+			}
+
+			$group = $normalized;
 			$mid = (string)($group["module"]["id"] ?? "");
 
 			if ($mid === "") {

@@ -21,7 +21,7 @@
 	 * executeApproved() still owns — a tool that writes a specific page/entry/user
 	 * must re-verify permission on that object here.
 	 */
-	interface ApprovableTool {
+	interface ApprovableTool extends \BigTree\Services\AI\AIToolInterface {
 		/**
 		 * Execute a previously staged, user-approved mutation.
 		 *
