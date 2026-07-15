@@ -3569,7 +3569,7 @@
 
 		public static function getArchivedNavigationByParent($parent) {
 			$nav = [];
-			$q = sqlquery("SELECT id,nav_title as title,parent,external,new_window,template,publish_at,expire_at,path,ga_page_views FROM bigtree_pages WHERE parent = '$parent' AND archived = 'on' ORDER BY nav_title asc");
+			$q = sqlquery("SELECT id,nav_title as title,parent,`external`,new_window,template,publish_at,expire_at,path,ga_page_views FROM bigtree_pages WHERE parent = '$parent' AND archived = 'on' ORDER BY nav_title asc");
 			while ($nav_item = sqlfetch($q)) {
 				$nav_item["external"] = BigTreeCMS::replaceRelativeRoots($nav_item["external"]);
 				$nav[] = $nav_item;
@@ -4106,7 +4106,7 @@
 
 		public static function getHiddenNavigationByParent($parent) {
 			$nav = [];
-			$q = sqlquery("SELECT id,nav_title as title,parent,external,new_window,template,publish_at,expire_at,path,ga_page_views FROM bigtree_pages WHERE parent = '$parent' AND in_nav = '' AND archived != 'on' ORDER BY nav_title asc");
+			$q = sqlquery("SELECT id,nav_title as title,parent,`external`,new_window,template,publish_at,expire_at,path,ga_page_views FROM bigtree_pages WHERE parent = '$parent' AND in_nav = '' AND archived != 'on' ORDER BY nav_title asc");
 			while ($nav_item = sqlfetch($q)) {
 				$nav_item["external"] = BigTreeCMS::replaceRelativeRoots($nav_item["external"]);
 				$nav[] = $nav_item;
@@ -4681,7 +4681,7 @@
 
 		public static function getNaturalNavigationByParent($parent, $levels = 1) {
 			$nav = [];
-			$q = sqlquery("SELECT id,nav_title AS title,parent,external,new_window,template,publish_at,expire_at,path,ga_page_views FROM bigtree_pages WHERE parent = '$parent' AND in_nav = 'on' AND archived != 'on' ORDER BY position DESC, id ASC");
+			$q = sqlquery("SELECT id,nav_title AS title,parent,`external`,new_window,template,publish_at,expire_at,path,ga_page_views FROM bigtree_pages WHERE parent = '$parent' AND in_nav = 'on' AND archived != 'on' ORDER BY position DESC, id ASC");
 			while ($nav_item = sqlfetch($q)) {
 				$nav_item["external"] = BigTreeCMS::replaceRelativeRoots($nav_item["external"]);
 				if ($levels > 1) {

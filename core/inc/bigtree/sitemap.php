@@ -85,7 +85,7 @@
 		protected function loadSitemapLinks() {
 			$links = array();
 	
-			$q = sqlquery("SELECT id,template,external,path FROM bigtree_pages 
+			$q = sqlquery("SELECT id,template,`external`,path FROM bigtree_pages
 						   WHERE archived = '' AND seo_invisible = '' AND (publish_at <= NOW() OR publish_at IS NULL) 
 						   ORDER BY id ASC");
 	

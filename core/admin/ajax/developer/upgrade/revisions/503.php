@@ -237,7 +237,7 @@
 		$start = ($batch - 1) * $batch_size;
 
 		if ($segment["type"] === "pages") {
-			$pages = SQL::fetchAll("SELECT id, template, resources, external FROM bigtree_pages ORDER BY id ASC LIMIT $start, $batch_size");
+			$pages = SQL::fetchAll("SELECT id, template, resources, `external` FROM bigtree_pages ORDER BY id ASC LIMIT $start, $batch_size");
 
 			foreach ($pages as $page) {
 				$resources_data = json_decode($page["resources"], true) ?: [];
