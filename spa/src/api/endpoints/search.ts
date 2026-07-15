@@ -3,38 +3,38 @@ import { api } from "@/api/client";
 /** Result shapes returned by the federated GET /search endpoint (SearchService). */
 
 export interface SearchPage {
+	archived: boolean;
 	id: number;
 	nav_title: string;
 	path: string;
-	archived: boolean;
 }
 
 export interface SearchTag {
 	id: number;
-	tag: string;
 	route: string;
+	tag: string;
 	usage_count: number;
 }
 
 export interface SearchUser {
-	id: number;
-	name: string;
 	email: string;
+	id: number;
 	level: number;
+	name: string;
 }
 
 export interface SearchModule {
+	icon?: string;
 	/** JSONDB module ids are strings (e.g. `modules-…`); legacy numeric ids still appear. */
 	id: number | string;
 	name: string;
 	route: string;
-	icon?: string;
 }
 
 export interface SearchModuleEntryGroup {
-	module: { id: number | string; name: string; route: string };
 	/** Raw view cache rows (column1, id, sort_field, etc.). Rendering is intentionally generic. */
 	items: Array<Record<string, unknown>>;
+	module: { id: number | string; name: string; route: string };
 }
 
 /** Semantic-only hit (administrators): the id can contain `.`/`/`. */
@@ -44,18 +44,18 @@ export interface SearchSetting {
 }
 
 export interface SearchResultGroups {
+	entries?: SearchModuleEntryGroup[];
+	modules?: SearchModule[];
 	pages?: SearchPage[];
+	settings?: SearchSetting[];
 	tags?: SearchTag[];
 	users?: SearchUser[];
-	modules?: SearchModule[];
-	entries?: SearchModuleEntryGroup[];
-	settings?: SearchSetting[];
 }
 
 /** Response from POST /search/ai when AI search is enabled. */
 export interface AiSearchResponse {
-	mode: "ai";
 	answer: string;
+	mode: "ai";
 	results: SearchResultGroups;
 }
 

@@ -12,13 +12,13 @@ export const TextField = ({ field, value, onChange, disabled }: FieldComponentPr
 
 	return (
 		<input
-			type="text"
 			aria-label={field.title}
 			className={INPUT_CLASS}
-			value={toStringValue(value)}
+			disabled={disabled}
 			maxLength={maxLength}
 			placeholder={placeholder}
-			disabled={disabled}
+			type="text"
+			value={toStringValue(value)}
 			onChange={(event) => onChange(event.target.value)}
 		/>
 	);

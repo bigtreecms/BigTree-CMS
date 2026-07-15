@@ -18,9 +18,9 @@ import { useLinkSearch } from "@/hooks/useLinkSearch";
 type ResultKind = "page" | "module" | "file";
 
 interface Hit {
+	groupLabel: string;
 	kind: ResultKind;
 	label: string;
-	groupLabel: string;
 	value: string;
 }
 
@@ -72,14 +72,14 @@ export const LinkFinder = () => {
 	};
 
 	return (
-		<div ref={containerRef} className="relative my-1.5 self-center">
+		<div className="relative my-1.5 self-center" ref={containerRef}>
 			<div className="flex items-center rounded-md border border-border bg-surface px-2 py-1 transition-colors focus-within:border-accent focus-within:ring-1 focus-within:ring-accent-ring">
-				<Search size={13} className="mr-1.5 text-text-3" />
+				<Search className="mr-1.5 text-text-3" size={13} />
 				<input
-					className="w-44 bg-transparent text-[12.5px] text-text outline-none placeholder:text-text-3 md:w-56"
-					value={q}
-					placeholder="Link Finder"
 					aria-label="Link Finder"
+					className="w-44 bg-transparent text-[12.5px] text-text outline-none placeholder:text-text-3 md:w-56"
+					placeholder="Link Finder"
+					value={q}
 					onChange={(e) => {
 						setQ(e.target.value);
 						setOpen(true);
@@ -103,8 +103,8 @@ export const LinkFinder = () => {
 							{hits.map((hit, index) => (
 								<li key={`${hit.kind}-${index}-${hit.value}`}>
 									<button
-										type="button"
 										className="flex w-full items-center gap-2 px-3 py-1.5 text-left hover:bg-hover"
+										type="button"
 										onClick={() => pick(hit)}
 									>
 										<KindIcon kind={hit.kind} />
@@ -127,12 +127,12 @@ export const LinkFinder = () => {
 
 const KindIcon = ({ kind }: { kind: ResultKind }) => {
 	if (kind === "page") {
-		return <Newspaper size={12} className="shrink-0 text-accent" />;
+		return <Newspaper className="shrink-0 text-accent" size={12} />;
 	}
 
 	if (kind === "module") {
-		return <Package size={12} className="shrink-0 text-accent" />;
+		return <Package className="shrink-0 text-accent" size={12} />;
 	}
 
-	return <FileIcon size={12} className="shrink-0 text-accent" />;
+	return <FileIcon className="shrink-0 text-accent" size={12} />;
 };

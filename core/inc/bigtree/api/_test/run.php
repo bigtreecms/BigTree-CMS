@@ -24,7 +24,17 @@
 	require __DIR__ . "/../../../../bootstrap.php";
 	require __DIR__ . "/TestCase.php";
 
-	$files = glob(__DIR__ . "/*Test.php");
+	// Phase 1 parity helpers (request builders, cleanup) before *Test.php load.
+	if (file_exists(__DIR__ . "/parity/helpers.php")) {
+		require_once __DIR__ . "/parity/helpers.php";
+	}
+
+	$files = array_merge(
+		glob(__DIR__ . "/*Test.php") ?: [],
+		glob(__DIR__ . "/parity/*Test.php") ?: []
+	);
+	$files = array_values(array_unique($files));
+	sort($files);
 
 	if (!$files) {
 		echo "No tests found.\n";
@@ -32,7 +42,9 @@
 	}
 
 	foreach ($files as $file) {
-		echo "\n=== " . basename($file, ".php") . " ===\n";
+		$label = str_replace(__DIR__ . "/", "", $file);
+		$label = preg_replace('/\.php$/', "", $label);
+		echo "\n=== " . $label . " ===\n";
 		require_once $file;
 	}
 

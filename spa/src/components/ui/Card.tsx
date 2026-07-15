@@ -10,11 +10,11 @@ const PADDING = {
 } as const;
 
 interface CardProps extends HTMLAttributes<HTMLElement> {
-	/** Inner padding. Omit for a flush card (e.g. one wrapping a {@link CardHeader} + table). */
-	padding?: keyof typeof PADDING;
 	/** Rendered tag, when the card is semantically a form / section / article rather than a div. */
 	as?: "div" | "section" | "article" | "form";
 	children?: ReactNode;
+	/** Inner padding. Omit for a flush card (e.g. one wrapping a {@link CardHeader} + table). */
+	padding?: keyof typeof PADDING;
 }
 
 /**
@@ -36,12 +36,12 @@ export const Card = ({ padding, as: Tag = "div", className, children, ...rest }:
 };
 
 interface CardHeaderProps extends Omit<HTMLAttributes<HTMLElement>, "title"> {
-	/** Standard title rendered as a semibold heading. Ignored when `children` is given. */
-	title?: ReactNode;
-	/** Optional sub-line under the title (only used alongside `title`). */
-	description?: ReactNode;
 	/** Custom header content. Overrides `title`/`description` for bespoke layouts. */
 	children?: ReactNode;
+	/** Optional sub-line under the title (only used alongside `title`). */
+	description?: ReactNode;
+	/** Standard title rendered as a semibold heading. Ignored when `children` is given. */
+	title?: ReactNode;
 }
 
 /**
@@ -77,11 +77,11 @@ const JUSTIFY = {
 } as const;
 
 interface CardFooterProps extends HTMLAttributes<HTMLDivElement> {
-	/** Pin the bar to the bottom of the viewport while the form above scrolls. */
-	sticky?: boolean;
+	children: ReactNode;
 	/** `start` for bars that place their own spacer between left and right groups. */
 	justify?: keyof typeof JUSTIFY;
-	children: ReactNode;
+	/** Pin the bar to the bottom of the viewport while the form above scrolls. */
+	sticky?: boolean;
 }
 
 /**

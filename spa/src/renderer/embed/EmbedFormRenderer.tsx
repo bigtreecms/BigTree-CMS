@@ -75,9 +75,9 @@ export const EmbedFormRenderer = ({ hash }: EmbedFormRendererProps) => {
 	if (configQuery.isLoading) {
 		return (
 			<Loading
-				variant="block"
 				className="mx-auto max-w-2xl px-6 py-12"
 				label="Loading form…"
+				variant="block"
 			/>
 		);
 	}
@@ -111,8 +111,8 @@ export const EmbedFormRenderer = ({ hash }: EmbedFormRendererProps) => {
 			<h1 className="mb-4 text-[18px] font-semibold text-text">{config.title}</h1>
 			<FormRenderer
 				form={form}
-				onSubmit={(values) => submitMutation.mutateAsync(values)}
 				submitLabel="Submit"
+				onSubmit={(values) => submitMutation.mutateAsync(values)}
 			/>
 		</div>
 	);

@@ -90,8 +90,8 @@ export const TagMerge = () => {
 			<Breadcrumb items={[{ label: "Tags", to: "/tags" }, { label: "Merge tags" }]} />
 
 			<PageHead
-				title="Merge tags"
 				sub="Pick a target tag — every relation pointing at the source tags will be re-pointed to it, then the source tags will be deleted."
+				title="Merge tags"
 			/>
 
 			<section className="mb-5 overflow-hidden rounded-lg border border-border bg-surface">
@@ -102,8 +102,8 @@ export const TagMerge = () => {
 						<p className="text-[13px] text-text-3">
 							No source tags selected.{" "}
 							<button
-								type="button"
 								className="text-accent hover:underline"
+								type="button"
 								onClick={() => navigate("/tags")}
 							>
 								Pick tags to merge
@@ -115,8 +115,8 @@ export const TagMerge = () => {
 						<ul className="flex flex-wrap gap-2">
 							{sourceTags.map((tag) => (
 								<li
-									key={tag.id}
 									className="inline-flex items-center gap-2 rounded-md border border-border bg-surface-2 px-2 py-1 text-[12.5px]"
+									key={tag.id}
 								>
 									<span className="font-medium">{tag.tag}</span>
 									<span className="tabular-nums text-text-3">
@@ -142,10 +142,10 @@ export const TagMerge = () => {
 
 				<div className="px-4 py-3">
 					<TagInput
+						excludeIds={sourceIds}
+						placeholder="Type to search or create a tag…"
 						value={target}
 						onChange={setTarget}
-						placeholder="Type to search or create a tag…"
-						excludeIds={sourceIds}
 					/>
 					<p className="mt-1.5 text-[11.5px] text-text-3">
 						Picking a new name will create it before the merge runs.
@@ -157,11 +157,11 @@ export const TagMerge = () => {
 						Cancel
 					</Button>
 					<Button
-						variant="primary"
-						icon={<ArrowRight size={13} />}
 						disabled={!valid}
+						icon={<ArrowRight size={13} />}
 						loading={mergeMutation.isPending}
 						loadingLabel="Merging…"
+						variant="primary"
 						onClick={() => mergeMutation.mutate()}
 					>
 						Merge tags

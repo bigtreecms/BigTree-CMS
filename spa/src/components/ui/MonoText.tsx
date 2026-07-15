@@ -1,17 +1,17 @@
 import type { ElementType, ReactNode } from "react";
 
 interface MonoTextProps {
-	children: ReactNode;
 	/** Element to render. Defaults to `span`; pass `div` inside table cells. */
 	as?: ElementType;
-	/** Clip overflow with an ellipsis. Default `true`. */
-	truncate?: boolean;
+	children: ReactNode;
 	/**
 	 * Layout-only classes the caller still owns — the `ml-1`, `w-32 shrink-0`,
 	 * or `block` that varies per context. The base carries none.
 	 */
 	className?: string;
 	title?: string;
+	/** Clip overflow with an ellipsis. Default `true`. */
+	truncate?: boolean;
 }
 
 /**
@@ -33,7 +33,7 @@ export const MonoText = ({
 	const extra = className ? ` ${className}` : "";
 
 	return (
-		<Tag title={title} className={`${base}${trunc}${extra}`}>
+		<Tag className={`${base}${trunc}${extra}`} title={title}>
 			{children}
 		</Tag>
 	);

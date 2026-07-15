@@ -9,10 +9,10 @@ import { Alert } from "@/components/ui/Alert";
 import { InlineEmpty } from "@/components/ui/InlineEmpty";
 
 interface ActionModulePreviewProps {
-	source: string;
 	/** Action name + route, used to populate the previewed host.context. */
 	name: string;
 	route: string;
+	source: string;
 }
 
 interface RecordedCall {
@@ -72,11 +72,11 @@ export const ActionModulePreview = ({ source, name, route }: ActionModulePreview
 		<div className="space-y-2">
 			<div className="rounded-md border border-border bg-surface p-3">
 				{/* key forces a clean remount on source change so the module re-imports */}
-				<ActionRunner key={debounced} host={host} source={debounced} onError={setError} />
+				<ActionRunner host={host} key={debounced} source={debounced} onError={setError} />
 			</div>
 
 			{error && (
-				<Alert tone="danger" mono>
+				<Alert mono tone="danger">
 					{error}
 				</Alert>
 			)}

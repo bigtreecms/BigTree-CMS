@@ -209,19 +209,19 @@ export const ModuleReportsTab = ({ moduleId, moduleTable }: ModuleReportsTabProp
 	return (
 		<div className="space-y-3">
 			<SubList
-				isLoading={crud.isLoading}
-				loadingLabel="Loading reports…"
 				emptyLabel="No reports yet. Reports filter a table and render the results as a view or CSV."
 				isEmpty={crud.items.length === 0}
+				isLoading={crud.isLoading}
+				loadingLabel="Loading reports…"
 			>
 				{crud.items.map((r) => (
 					<SubRow
-						key={r.id}
-						title={r.title}
-						subtitle={r.table}
 						badge={r.type}
-						onEdit={() => crud.startEdit(r.id)}
+						key={r.id}
+						subtitle={r.table}
+						title={r.title}
 						onDelete={() => deleteDialog.open(r)}
+						onEdit={() => crud.startEdit(r.id)}
 					/>
 				))}
 			</SubList>
@@ -230,6 +230,8 @@ export const ModuleReportsTab = ({ moduleId, moduleTable }: ModuleReportsTabProp
 
 			{crud.editingId !== null && (
 				<EditorCard
+					saveLabel={crud.editingId === NEW_ROW ? "Create report" : "Save report"}
+					saving={crud.saving}
 					title={editorTitle}
 					onClose={crud.cancel}
 					onSave={() =>
@@ -238,55 +240,53 @@ export const ModuleReportsTab = ({ moduleId, moduleTable }: ModuleReportsTabProp
 							{ field: "table", label: "Data table", value: draft.table },
 						])
 					}
-					saving={crud.saving}
-					saveLabel={crud.editingId === NEW_ROW ? "Create report" : "Save report"}
 				>
 					<FieldGrid>
 						<TextInput
+							required
+							error={crud.fieldErrors.title}
 							label="Title"
 							value={draft.title}
 							onChange={(v) => setDraft((p) => ({ ...p, title: v }))}
-							error={crud.fieldErrors.title}
-							required
 						/>
 						<DataTableSelect
+							required
+							error={crud.fieldErrors.table}
 							label="Data table"
 							value={draft.table}
 							onChange={(v) => setDraft((p) => ({ ...p, table: v }))}
-							error={crud.fieldErrors.table}
-							required
 						/>
 						<SelectInput
 							label="Output type"
-							value={draft.type}
-							onChange={(v) => setDraft((p) => ({ ...p, type: v as "view" | "csv" }))}
 							options={[
 								{ value: "view", label: "Render in a view" },
 								{ value: "csv", label: "CSV download" },
 							]}
+							value={draft.type}
+							onChange={(v) => setDraft((p) => ({ ...p, type: v as "view" | "csv" }))}
 						/>
 						{draft.type === "view" && (
 							<SelectInput
+								hint="Supplies the row template for results."
 								label="Results view"
+								options={viewOptions}
 								value={draft.view}
 								onChange={(v) => setDraft((p) => ({ ...p, view: v }))}
-								options={viewOptions}
-								hint="Supplies the row template for results."
 							/>
 						)}
 					</FieldGrid>
 
 					<TextInput
+						mono
+						hint="Optional PHP parser applied to each result row."
 						label="Parser"
 						value={draft.parser}
 						onChange={(v) => setDraft((p) => ({ ...p, parser: v }))}
-						hint="Optional PHP parser applied to each result row."
-						mono
 					/>
 
 					<CheckboxInput
-						label="Stream large result sets"
 						checked={draft.streaming}
+						label="Stream large result sets"
 						onChange={(v) => setDraft((p) => ({ ...p, streaming: v }))}
 					/>
 
@@ -297,18 +297,18 @@ export const ModuleReportsTab = ({ moduleId, moduleTable }: ModuleReportsTabProp
 					) : (
 						<>
 							<ReportFiltersEditor
-								rows={draft.filters}
-								onChange={(rows) => setDraft((p) => ({ ...p, filters: rows }))}
 								columns={columnsQ.data ?? []}
 								loading={columnsQ.isLoading}
+								rows={draft.filters}
+								onChange={(rows) => setDraft((p) => ({ ...p, filters: rows }))}
 							/>
 
 							{draft.type === "csv" && (
 								<ReportFieldsEditor
-									rows={draft.fields}
-									onChange={(rows) => setDraft((p) => ({ ...p, fields: rows }))}
 									columns={columnsQ.data ?? []}
 									loading={columnsQ.isLoading}
+									rows={draft.fields}
+									onChange={(rows) => setDraft((p) => ({ ...p, fields: rows }))}
 								/>
 							)}
 						</>
@@ -317,10 +317,10 @@ export const ModuleReportsTab = ({ moduleId, moduleTable }: ModuleReportsTabProp
 			)}
 
 			<SubDeleteDialog
-				dialog={deleteDialog}
-				noun="report"
-				labelFor={(r) => r.title}
 				description="Actions that open this report will need to be repointed. Entry data is left intact."
+				dialog={deleteDialog}
+				labelFor={(r) => r.title}
+				noun="report"
 				onConfirm={(id) => crud.remove(id)}
 			/>
 		</div>

@@ -16,21 +16,21 @@ type Action = "view" | "add" | "edit" | "revisions" | "move" | "duplicate" | "ac
 
 interface PageSectionToolbarProps {
 	active: Action;
-	pageId: number;
-	parentId: number;
-	onMove?: () => void;
-	onDuplicate?: () => void;
 	/** Admin-only access-levels viewer; the item renders only when provided. */
 	onAccessLevels?: () => void;
+	onDuplicate?: () => void;
+	onMove?: () => void;
+	pageId: number;
+	parentId: number;
 }
 
 interface ItemSpec {
+	disabled?: boolean;
+	icon: React.ReactNode;
 	id: Action;
 	label: string;
-	icon: React.ReactNode;
-	to?: string;
 	onClick?: () => void;
-	disabled?: boolean;
+	to?: string;
 }
 
 export const PageSectionToolbar = ({
@@ -107,10 +107,10 @@ export const PageSectionToolbar = ({
 				if (it.to && !it.disabled) {
 					return (
 						<Link
+							aria-current={isActive ? "page" : undefined}
+							className={className}
 							key={it.id}
 							to={it.to}
-							className={className}
-							aria-current={isActive ? "page" : undefined}
 						>
 							{it.icon}
 							<span>{it.label}</span>
@@ -120,12 +120,12 @@ export const PageSectionToolbar = ({
 
 				return (
 					<button
+						aria-current={isActive ? "page" : undefined}
+						className={className}
+						disabled={it.disabled}
 						key={it.id}
 						type="button"
-						className={className}
 						onClick={it.onClick}
-						disabled={it.disabled}
-						aria-current={isActive ? "page" : undefined}
 					>
 						{it.icon}
 						<span>{it.label}</span>

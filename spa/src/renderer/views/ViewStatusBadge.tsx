@@ -25,7 +25,6 @@ const STATUS_TONE: Record<StatusKey, BadgeTone> = {
 };
 
 interface ViewStatusBadgeProps {
-	row: ModuleEntryRow;
 	className?: string;
 	/**
 	 * When set, render as plain value text on mobile and only take on the
@@ -36,6 +35,7 @@ interface ViewStatusBadgeProps {
 	 * sizes (default).
 	 */
 	plainOnMobile?: boolean;
+	row: ModuleEntryRow;
 }
 
 export const ViewStatusBadge = ({
@@ -47,11 +47,11 @@ export const ViewStatusBadge = ({
 
 	return (
 		<StatusBadge
-			variant="text"
-			tone={STATUS_TONE[status.key]}
+			className={className}
 			label={status.label}
 			plainOnMobile={plainOnMobile}
-			className={className}
+			tone={STATUS_TONE[status.key]}
+			variant="text"
 		/>
 	);
 };

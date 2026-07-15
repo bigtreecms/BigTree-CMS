@@ -2,12 +2,6 @@ import type { HTMLAttributes } from "react";
 import { GripVertical } from "lucide-react";
 
 interface DragHandleProps extends HTMLAttributes<HTMLSpanElement> {
-	/** When false, the grip dims and loses its grab cursor (reordering disabled). Default true. */
-	enabled?: boolean;
-	/** Native tooltip — defaults to "Drag to reorder". */
-	title?: string;
-	/** `GripVertical` icon size. Default 14. */
-	size?: number;
 	/**
 	 * Whether the handle element itself carries the HTML5 drag. Most rows put
 	 * `draggable`/`onDragStart` on the row and use this purely as a visual grip;
@@ -15,6 +9,12 @@ interface DragHandleProps extends HTMLAttributes<HTMLSpanElement> {
 	 * drag source.
 	 */
 	draggable?: boolean;
+	/** When false, the grip dims and loses its grab cursor (reordering disabled). Default true. */
+	enabled?: boolean;
+	/** `GripVertical` icon size. Default 14. */
+	size?: number;
+	/** Native tooltip — defaults to "Drag to reorder". */
+	title?: string;
 }
 
 /**
@@ -35,11 +35,11 @@ export const DragHandle = ({
 	...rest
 }: DragHandleProps) => (
 	<span
+		aria-hidden="true"
 		className={`grid size-6 shrink-0 place-items-center rounded text-text-4 ${
 			enabled ? ENABLED : DISABLED
 		}${className ? ` ${className}` : ""}`}
 		title={title}
-		aria-hidden="true"
 		{...rest}
 	>
 		<GripVertical size={size} />

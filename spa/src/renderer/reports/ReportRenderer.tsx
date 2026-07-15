@@ -92,7 +92,7 @@ export const ReportRenderer = ({ moduleId, reportId }: ReportRendererProps) => {
 	const sortFields = useMemo(() => collectSortFields(prepareQuery.data), [prepareQuery.data]);
 
 	if (prepareQuery.isLoading) {
-		return <Loading variant="card" label="Loading report…" />;
+		return <Loading label="Loading report…" variant="card" />;
 	}
 
 	if (prepareQuery.isError || !report) {
@@ -105,36 +105,36 @@ export const ReportRenderer = ({ moduleId, reportId }: ReportRendererProps) => {
 		<div className="space-y-6">
 			{isDeveloper && (
 				<div className="flex justify-end">
-					<Button to={moduleDetailPath(moduleId)} icon={<Pencil size={14} />}>
+					<Button icon={<Pencil size={14} />} to={moduleDetailPath(moduleId)}>
 						Edit Report in Developer
 					</Button>
 				</div>
 			)}
 
 			<ReportFilterForm
-				filters={filters}
 				filterOptions={prepareQuery.data?.filter_options ?? {}}
-				sortFields={sortFields}
+				filters={filters}
 				reportType={report.type}
+				sortFields={sortFields}
 				submitting={runMutation.isPending}
 				onSubmit={handleSubmit}
 			/>
 
 			{results && results.report.type === "view" && (
 				<ReportResults
+					downloadIcon={<Download size={14} />}
 					results={results}
 					onDownloadCsv={handleDownloadCsv}
-					downloadIcon={<Download size={14} />}
 				/>
 			)}
 
 			{results && results.report.type === "csv" && (
-				<Card padding="lg" className="text-center text-[13px] text-text-2">
+				<Card className="text-center text-[13px] text-text-2" padding="lg">
 					Exported {pluralize(results.meta.count, "row")}.
 					<div className="mt-3">
 						<Button
-							variant="primary"
 							icon={<Download size={14} />}
+							variant="primary"
 							onClick={handleDownloadCsv}
 						>
 							Download again

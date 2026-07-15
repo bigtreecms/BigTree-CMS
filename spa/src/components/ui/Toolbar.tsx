@@ -1,11 +1,11 @@
 import type { ReactNode } from "react";
 
 interface ToolbarProps {
-	/** Left-pinned content (typically a {@link SearchInput}). Gets the shared responsive width recipe. */
-	search?: ReactNode;
 	/** Right-pushed content after the flex spacer (pager, filters, actions). */
 	children?: ReactNode;
 	className?: string;
+	/** Left-pinned content (typically a {@link SearchInput}). Gets the shared responsive width recipe. */
+	search?: ReactNode;
 }
 
 /**

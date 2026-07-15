@@ -3,20 +3,20 @@ import { Field } from "@/components/ui/Field";
 import { useDbColumns } from "@/hooks/useDbColumns";
 
 interface DataColumnSelectProps {
+	ariaLabel?: string;
+	className?: string;
+	disabled?: boolean;
+	error?: string;
+	hint?: string;
+	id?: string;
+	label?: string;
+	onChange: (column: string) => void;
+	placeholder?: string;
+	required?: boolean;
 	/** Table whose columns are offered; when empty the picker is disabled. */
 	table: string;
 	/** Selected column name; empty string when nothing is chosen. */
 	value: string;
-	onChange: (column: string) => void;
-	label?: string;
-	hint?: string;
-	error?: string;
-	required?: boolean;
-	disabled?: boolean;
-	placeholder?: string;
-	id?: string;
-	ariaLabel?: string;
-	className?: string;
 }
 
 /**
@@ -51,23 +51,23 @@ export const DataColumnSelect = ({
 	return (
 		<Field
 			as="div"
-			label={label}
-			hint={hint}
-			error={error}
-			required={required}
 			className={className}
+			error={error}
+			hint={hint}
+			label={label}
+			required={required}
 		>
 			<Combobox<string>
-				value={selected}
-				onChange={(option) => onChange(option ? option.value : "")}
-				options={options}
+				ariaLabel={ariaLabel ?? label}
+				disabled={disabled || table === ""}
+				emptyLabel="No columns found."
+				id={id}
 				isLoading={columnsQ.isLoading}
+				options={options}
 				placeholder={table === "" ? "Select a table first" : placeholder}
 				searchPlaceholder="Search columns…"
-				emptyLabel="No columns found."
-				disabled={disabled || table === ""}
-				id={id}
-				ariaLabel={ariaLabel ?? label}
+				value={selected}
+				onChange={(option) => onChange(option ? option.value : "")}
 			/>
 		</Field>
 	);

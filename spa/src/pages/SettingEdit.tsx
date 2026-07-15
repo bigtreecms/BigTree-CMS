@@ -167,7 +167,6 @@ export const SettingEdit = () => {
 			<Breadcrumb items={breadcrumbs} />
 
 			<PageHead
-				title={setting.name || setting.id}
 				sub={
 					setting.description ? (
 						// Descriptions are WYSIWYG HTML authored in the developer
@@ -179,43 +178,44 @@ export const SettingEdit = () => {
 						/>
 					) : undefined
 				}
+				title={setting.name || setting.id}
 			/>
 
 			<FlagBar
-				setting={setting}
-				revealEncrypted={revealEncrypted}
-				onReveal={() => setRevealEncrypted(true)}
 				canReveal={isPublisher}
+				revealEncrypted={revealEncrypted}
+				setting={setting}
+				onReveal={() => setRevealEncrypted(true)}
 			/>
 
 			{readOnly && (
 				<LockBanner
-					owner={lock.lockOwner}
 					lockedAt={lock.lockedAt}
+					owner={lock.lockOwner}
 					onUnlock={lock.forceUnlock}
 				/>
 			)}
 
 			{generalError && (
-				<Alert tone="danger" className="mb-3">
+				<Alert className="mb-3" tone="danger">
 					{generalError}
 				</Alert>
 			)}
 
 			<FormShell
+				footer={
+					<FormFooter
+						disabled={readOnly || valueWithheld}
+						loading={saveMutation.isPending}
+						loadingLabel="Saving…"
+						submitLabel="Save"
+						onCancel={() => navigate("/settings")}
+					/>
+				}
 				onSubmit={(e) => {
 					e.preventDefault();
 					handleSave();
 				}}
-				footer={
-					<FormFooter
-						onCancel={() => navigate("/settings")}
-						submitLabel="Save"
-						disabled={readOnly || valueWithheld}
-						loading={saveMutation.isPending}
-						loadingLabel="Saving…"
-					/>
-				}
 			>
 				{valueWithheld ? (
 					<InlineEmpty pad="lg">
@@ -230,10 +230,10 @@ export const SettingEdit = () => {
 					// duplicate label and keep only its error markup.
 					<Field as="div" error={fieldError ?? undefined}>
 						<FieldRenderer
+							disabled={readOnly}
 							field={formField}
 							value={value}
 							onChange={setValue}
-							disabled={readOnly}
 						/>
 					</Field>
 				)}
@@ -245,10 +245,10 @@ export const SettingEdit = () => {
 };
 
 interface FlagBarProps {
-	setting: SettingDetail;
-	revealEncrypted: boolean;
 	canReveal: boolean;
 	onReveal: () => void;
+	revealEncrypted: boolean;
+	setting: SettingDetail;
 }
 
 const FlagBar = ({ setting, revealEncrypted, canReveal, onReveal }: FlagBarProps) => {
@@ -256,7 +256,7 @@ const FlagBar = ({ setting, revealEncrypted, canReveal, onReveal }: FlagBarProps
 
 	if (setting.encrypted) {
 		flags.push(
-			<Badge key="enc" size="sm" tone="info" icon={<ShieldAlert size={11} />}>
+			<Badge icon={<ShieldAlert size={11} />} key="enc" size="sm" tone="info">
 				Encrypted
 			</Badge>
 		);
@@ -264,7 +264,7 @@ const FlagBar = ({ setting, revealEncrypted, canReveal, onReveal }: FlagBarProps
 
 	if (setting.locked) {
 		flags.push(
-			<Badge key="locked" size="sm" tone="warn" icon={<Lock size={11} />}>
+			<Badge icon={<Lock size={11} />} key="locked" size="sm" tone="warn">
 				Locked
 			</Badge>
 		);
@@ -289,7 +289,7 @@ const FlagBar = ({ setting, revealEncrypted, canReveal, onReveal }: FlagBarProps
 		<div className="mb-3 flex flex-wrap items-center gap-2">
 			{flags}
 			{showReveal && (
-				<Button variant="secondary" size="sm" icon={<Eye size={11} />} onClick={onReveal}>
+				<Button icon={<Eye size={11} />} size="sm" variant="secondary" onClick={onReveal}>
 					Reveal value
 				</Button>
 			)}

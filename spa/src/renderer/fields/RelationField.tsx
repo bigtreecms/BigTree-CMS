@@ -242,7 +242,7 @@ export const RelationField = ({ field, value, onChange, disabled, kind }: Relati
 
 	if (!enabledCtx) {
 		return (
-			<EmptyState size="sm" dashed>
+			<EmptyState dashed size="sm">
 				This {isMtm ? "many-to-many" : "one-to-many"} field needs to be rendered inside a
 				module form (FormRenderer was called without a moduleId).
 			</EmptyState>
@@ -257,48 +257,48 @@ export const RelationField = ({ field, value, onChange, disabled, kind }: Relati
 
 			{selectedIds.length > 0 ? (
 				<SelectedList
-					ids={selectedIds}
-					titles={titleCache}
-					sortable={sortable && !disabled}
-					onRemove={removeId}
-					onMove={moveId}
 					disabled={disabled}
+					ids={selectedIds}
+					sortable={sortable && !disabled}
+					titles={titleCache}
+					onMove={moveId}
+					onRemove={removeId}
 				/>
 			) : (
-				<EmptyState size="sm" dashed>
+				<EmptyState dashed size="sm">
 					Nothing selected yet — use the picker below to add items.
 				</EmptyState>
 			)}
 
 			<Picker
-				items={pickerItems}
-				isLoading={pickerQuery.isFetching && !pickerQuery.data}
-				search={search}
-				onSearchChange={setSearch}
-				onPick={addId}
-				disabled={disabled || atLimit}
 				atLimit={atLimit}
+				disabled={disabled || atLimit}
+				isLoading={pickerQuery.isFetching && !pickerQuery.data}
+				items={pickerItems}
+				search={search}
+				onPick={addId}
+				onSearchChange={setSearch}
 			/>
 
 			<div className="flex flex-wrap items-center justify-between gap-2 text-[11.5px] text-text-3">
 				<div className="flex flex-wrap gap-2">
 					{showAddAll && (
 						<Button
-							size="sm"
-							icon={<Plus size={11} />}
-							onClick={addAll}
 							disabled={disabled || pickerItems.length === 0}
+							icon={<Plus size={11} />}
+							size="sm"
+							onClick={addAll}
 						>
 							Add all
 						</Button>
 					)}
 					{showReset && selectedIds.length > 0 && (
 						<Button
+							disabled={disabled}
+							icon={<RotateCcw size={11} />}
 							size="sm"
 							variant="dangerGhost"
-							icon={<RotateCcw size={11} />}
 							onClick={reset}
-							disabled={disabled}
 						>
 							Reset
 						</Button>
@@ -329,12 +329,12 @@ const mergeTitles = (prev: Map<number, string>, items: RelationOption[]): Map<nu
 };
 
 interface SelectedListProps {
-	ids: number[];
-	titles: Map<number, string>;
-	sortable: boolean;
-	onRemove: (id: number) => void;
-	onMove: (id: number, direction: "up" | "down") => void;
 	disabled?: boolean;
+	ids: number[];
+	onMove: (id: number, direction: "up" | "down") => void;
+	onRemove: (id: number) => void;
+	sortable: boolean;
+	titles: Map<number, string>;
 }
 
 const SelectedList = ({ ids, titles, sortable, onRemove, onMove, disabled }: SelectedListProps) => {
@@ -345,26 +345,26 @@ const SelectedList = ({ ids, titles, sortable, onRemove, onMove, disabled }: Sel
 
 				return (
 					<li
-						key={id}
 						className="flex items-center gap-2 rounded-md border border-border bg-surface px-2 py-1.5"
+						key={id}
 					>
 						{sortable && (
 							<div className="flex flex-col">
 								<IconButton
+									disabled={disabled || index === 0}
 									label="Move up"
 									size="sm"
-									onClick={() => onMove(id, "up")}
-									disabled={disabled || index === 0}
 									title="Move up"
+									onClick={() => onMove(id, "up")}
 								>
 									<ArrowUp size={11} />
 								</IconButton>
 								<IconButton
+									disabled={disabled || index === ids.length - 1}
 									label="Move down"
 									size="sm"
-									onClick={() => onMove(id, "down")}
-									disabled={disabled || index === ids.length - 1}
 									title="Move down"
+									onClick={() => onMove(id, "down")}
 								>
 									<ArrowDown size={11} />
 								</IconButton>
@@ -386,13 +386,13 @@ const SelectedList = ({ ids, titles, sortable, onRemove, onMove, disabled }: Sel
 };
 
 interface PickerProps {
-	items: RelationOption[];
-	isLoading: boolean;
-	search: string;
-	onSearchChange: (next: string) => void;
-	onPick: (id: number) => void;
-	disabled: boolean;
 	atLimit: boolean;
+	disabled: boolean;
+	isLoading: boolean;
+	items: RelationOption[];
+	onPick: (id: number) => void;
+	onSearchChange: (next: string) => void;
+	search: string;
 }
 
 const Picker = ({
@@ -413,29 +413,29 @@ const Picker = ({
 	const placeholder = atLimit ? "Limit reached" : "Search items…";
 
 	return (
-		<div ref={containerRef} className="relative">
+		<div className="relative" ref={containerRef}>
 			<div className="relative">
 				<Search
-					size={13}
 					className="absolute left-2.5 top-1/2 -translate-y-1/2 text-text-3"
+					size={13}
 				/>
 				<input
-					type="text"
 					aria-label="Search items"
 					className="w-full rounded-md border border-border bg-surface py-1.5 px-8 text-[12.5px] placeholder:text-text-3 focus:outline-none focus:ring-1 focus:ring-accent-ring disabled:opacity-60"
+					disabled={disabled}
 					placeholder={placeholder}
+					type="text"
 					value={search}
 					onChange={(e) => {
 						onSearchChange(e.target.value);
 						setOpen(true);
 					}}
 					onFocus={() => setOpen(true)}
-					disabled={disabled}
 				/>
 				{search && (
 					<IconButton
-						label="Clear"
 						className="absolute right-1.5 top-1/2 -translate-y-1/2"
+						label="Clear"
 						onClick={() => {
 							onSearchChange("");
 							setOpen(false);
@@ -459,8 +459,8 @@ const Picker = ({
 							{items.map((item) => (
 								<li key={item.id}>
 									<button
-										type="button"
 										className="flex w-full items-center justify-between gap-2 px-3 py-1.5 text-left text-[12.5px] text-text-2 hover:bg-hover"
+										type="button"
 										onClick={() => {
 											onPick(item.id);
 											onSearchChange("");

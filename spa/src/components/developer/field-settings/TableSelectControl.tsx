@@ -13,11 +13,11 @@ export const TableSelectControl = ({ descriptor, settings, onPatch }: ControlPro
 	const missing = value !== "" && !options.some((o) => o.value === value);
 
 	return (
-		<ControlShell label={descriptor.label} hint={descriptor.hint} note={descriptor.note}>
+		<ControlShell hint={descriptor.hint} label={descriptor.label} note={descriptor.note}>
 			<Select
 				dense
-				value={value}
 				disabled={tablesQ.isLoading}
+				value={value}
 				onChange={(e) => onPatch({ [descriptor.id]: e.target.value })}
 			>
 				<option value="" />

@@ -6,24 +6,24 @@ import { FieldRenderer } from "./FieldRenderer";
 import { FieldRow } from "./FieldRow";
 
 interface FieldRowItemProps {
+	disabled?: boolean;
+	error?: string;
 	field: ModuleFormField;
-	/** This field's current draft value. */
-	value: unknown;
+	/** True for a never-published draft (every field is "new", no baseline). */
+	isNew?: boolean;
+	/** True when this field's draft value differs from the published content. */
+	pending?: boolean;
+	/** Heading for the draft column in the comparison, attributed to its owner. */
+	pendingLabel?: string;
+	/** The published value, used by the comparison panel (omit for new drafts). */
+	publishedValue?: unknown;
 	/**
 	 * Stable, column-agnostic setter from FormRenderer. Must be referentially
 	 * stable (memoized) for this component's React.memo to be effective.
 	 */
 	setFieldValue: (column: string, next: unknown) => void;
-	error?: string;
-	disabled?: boolean;
-	/** True when this field's draft value differs from the published content. */
-	pending?: boolean;
-	/** True for a never-published draft (every field is "new", no baseline). */
-	isNew?: boolean;
-	/** The published value, used by the comparison panel (omit for new drafts). */
-	publishedValue?: unknown;
-	/** Heading for the draft column in the comparison, attributed to its owner. */
-	pendingLabel?: string;
+	/** This field's current draft value. */
+	value: unknown;
 }
 
 /**
@@ -55,20 +55,20 @@ const FieldRowItemComponent = ({
 
 	return (
 		<FieldRow
-			field={field}
-			error={error}
-			pending={pending}
-			isNew={isNew}
-			publishedValue={publishedValue}
 			currentValue={value}
+			error={error}
+			field={field}
+			isNew={isNew}
+			pending={pending}
 			pendingLabel={pendingLabel}
+			publishedValue={publishedValue}
 		>
 			<FieldRenderer
+				disabled={disabled}
+				error={error}
 				field={field}
 				value={value}
 				onChange={handleChange}
-				disabled={disabled}
-				error={error}
 			/>
 		</FieldRow>
 	);

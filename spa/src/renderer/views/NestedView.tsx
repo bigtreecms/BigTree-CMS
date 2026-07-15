@@ -51,8 +51,8 @@ interface NestedViewProps {
 }
 
 interface TreeNode {
-	row: ModuleEntryRow;
 	children: TreeNode[];
+	row: ModuleEntryRow;
 }
 
 const isEmptyParent = (value: unknown): boolean =>
@@ -93,11 +93,11 @@ const buildTree = (rows: ModuleEntryRow[]): TreeNode[] => {
 interface DragApi {
 	canDrag: boolean;
 	dragId: string | null;
-	overId: string | null;
-	onDragStart: (e: React.DragEvent, row: ModuleEntryRow) => void;
-	onDragOver: (e: React.DragEvent, row: ModuleEntryRow) => void;
-	onDrop: (e: React.DragEvent, row: ModuleEntryRow) => void;
 	onDragEnd: () => void;
+	onDragOver: (e: React.DragEvent, row: ModuleEntryRow) => void;
+	onDragStart: (e: React.DragEvent, row: ModuleEntryRow) => void;
+	onDrop: (e: React.DragEvent, row: ModuleEntryRow) => void;
+	overId: string | null;
 }
 
 export const NestedView = ({ moduleId, view }: NestedViewProps) => {
@@ -214,10 +214,10 @@ export const NestedView = ({ moduleId, view }: NestedViewProps) => {
 			<Toolbar
 				search={
 					<SearchInput
+						aria-label={`Search ${view.title.toLowerCase()}`}
+						placeholder={`Search ${view.title.toLowerCase()}…`}
 						value={query}
 						onChange={setQuery}
-						placeholder={`Search ${view.title.toLowerCase()}…`}
-						aria-label={`Search ${view.title.toLowerCase()}`}
 					/>
 				}
 			/>
@@ -230,33 +230,33 @@ export const NestedView = ({ moduleId, view }: NestedViewProps) => {
 
 			<Card className="overflow-hidden">
 				<QueryRenderer
-					isLoading={listQuery.isLoading && !listQuery.data}
-					error={listQuery.error}
-					isEmpty={rows.length === 0}
-					loading={<Loading variant="block" label="Loading entries…" />}
 					empty={
 						<div className="p-9 text-center text-[13px] text-text-3">
 							{viewEmptyLabel(debouncedQuery)}
 						</div>
 					}
+					error={listQuery.error}
+					isEmpty={rows.length === 0}
+					isLoading={listQuery.isLoading && !listQuery.data}
+					loading={<Loading label="Loading entries…" variant="block" />}
 				>
 					{tree ? (
 						<ul className="divide-y divide-border">
 							{tree.map((node) => (
 								<NestedRow
-									key={String(node.row.id)}
-									node={node}
-									depth={0}
-									expanded={expanded}
-									onToggle={toggle}
-									onEdit={openEdit}
-									onDelete={requestDelete}
-									fieldColumns={fieldColumns}
 									builtins={builtins}
 									custom={custom}
-									moduleId={moduleId}
-									viewId={view.id}
+									depth={0}
 									drag={drag}
+									expanded={expanded}
+									fieldColumns={fieldColumns}
+									key={String(node.row.id)}
+									moduleId={moduleId}
+									node={node}
+									viewId={view.id}
+									onDelete={requestDelete}
+									onEdit={openEdit}
+									onToggle={toggle}
 								/>
 							))}
 						</ul>
@@ -264,19 +264,19 @@ export const NestedView = ({ moduleId, view }: NestedViewProps) => {
 						<ul className="divide-y divide-border">
 							{rows.map((row) => (
 								<NestedRow
-									key={String(row.id)}
-									node={{ row, children: [] }}
-									depth={0}
-									expanded={expanded}
-									onToggle={toggle}
-									onEdit={openEdit}
-									onDelete={requestDelete}
-									fieldColumns={fieldColumns}
 									builtins={builtins}
 									custom={custom}
-									moduleId={moduleId}
-									viewId={view.id}
+									depth={0}
 									drag={drag}
+									expanded={expanded}
+									fieldColumns={fieldColumns}
+									key={String(row.id)}
+									moduleId={moduleId}
+									node={{ row, children: [] }}
+									viewId={view.id}
+									onDelete={requestDelete}
+									onEdit={openEdit}
+									onToggle={toggle}
 								/>
 							))}
 						</ul>
@@ -290,18 +290,18 @@ export const NestedView = ({ moduleId, view }: NestedViewProps) => {
 };
 
 interface NestedRowProps {
-	node: TreeNode;
-	depth: number;
-	expanded: Set<string>;
-	onToggle: (id: string) => void;
-	onEdit: (row: ModuleEntryRow) => void;
-	onDelete: (row: ModuleEntryRow) => void;
-	fieldColumns: [string, { title: string }][];
 	builtins: BuiltinViewActionFlags;
 	custom: CustomViewAction[];
-	moduleId: string;
-	viewId: string;
+	depth: number;
 	drag: DragApi;
+	expanded: Set<string>;
+	fieldColumns: [string, { title: string }][];
+	moduleId: string;
+	node: TreeNode;
+	onDelete: (row: ModuleEntryRow) => void;
+	onEdit: (row: ModuleEntryRow) => void;
+	onToggle: (id: string) => void;
+	viewId: string;
 }
 
 const NestedRow = ({
@@ -337,11 +337,11 @@ const NestedRow = ({
 					isDragging ? "bg-accent-soft opacity-60" : ""
 				} ${isOver ? "shadow-[inset_0_2px_0_0_var(--color-accent)]" : ""}`}
 				draggable={drag.canDrag}
-				onDragStart={(e) => drag.onDragStart(e, node.row)}
-				onDragOver={(e) => drag.onDragOver(e, node.row)}
-				onDrop={(e) => drag.onDrop(e, node.row)}
-				onDragEnd={drag.onDragEnd}
 				onClick={() => onEdit(node.row)}
+				onDragEnd={drag.onDragEnd}
+				onDragOver={(e) => drag.onDragOver(e, node.row)}
+				onDragStart={(e) => drag.onDragStart(e, node.row)}
+				onDrop={(e) => drag.onDrop(e, node.row)}
 			>
 				<span
 					className="flex shrink-0 items-center"
@@ -358,13 +358,13 @@ const NestedRow = ({
 
 					{hasChildren ? (
 						<button
-							type="button"
+							aria-label={isOpen ? "Collapse" : "Expand"}
 							className="grid size-5 place-items-center rounded text-text-3 hover:bg-hover hover:text-text"
+							type="button"
 							onClick={(e) => {
 								e.stopPropagation();
 								onToggle(id);
 							}}
-							aria-label={isOpen ? "Collapse" : "Expand"}
 						>
 							{isOpen ? <ChevronDown size={13} /> : <ChevronRight size={13} />}
 						</button>
@@ -373,20 +373,20 @@ const NestedRow = ({
 					)}
 				</span>
 
-				<ViewRowCells fieldColumns={fieldColumns} row={node.row} dim={dim} />
+				<ViewRowCells dim={dim} fieldColumns={fieldColumns} row={node.row} />
 
-				<ViewStatusBadge row={node.row} className="shrink-0" />
+				<ViewStatusBadge className="shrink-0" row={node.row} />
 
 				<RowActions
-					moduleId={moduleId}
-					viewId={viewId}
-					row={node.row}
+					actionPath={actionPath}
 					builtins={builtins}
+					className={dim}
 					custom={custom}
 					editPath={editPath}
-					actionPath={actionPath}
+					moduleId={moduleId}
+					row={node.row}
+					viewId={viewId}
 					onDelete={onDelete}
-					className={dim}
 				/>
 			</li>
 
@@ -394,19 +394,19 @@ const NestedRow = ({
 				<>
 					{node.children.map((child) => (
 						<NestedRow
-							key={String(child.row.id)}
-							node={child}
-							depth={depth + 1}
-							expanded={expanded}
-							onToggle={onToggle}
-							onEdit={onEdit}
-							onDelete={onDelete}
-							fieldColumns={fieldColumns}
 							builtins={builtins}
 							custom={custom}
-							moduleId={moduleId}
-							viewId={viewId}
+							depth={depth + 1}
 							drag={drag}
+							expanded={expanded}
+							fieldColumns={fieldColumns}
+							key={String(child.row.id)}
+							moduleId={moduleId}
+							node={child}
+							viewId={viewId}
+							onDelete={onDelete}
+							onEdit={onEdit}
+							onToggle={onToggle}
 						/>
 					))}
 				</>

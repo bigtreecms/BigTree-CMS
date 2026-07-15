@@ -19,9 +19,9 @@ export const HOST_CONTRACT_VERSION = 1;
 
 /** Context about where/how the action was launched. */
 export interface ActionContext {
-	moduleId: string;
 	/** The action record being run. */
 	action: ModuleAction;
+	moduleId: string;
 	/** Route params for the action page. */
 	params: Record<string, string>;
 	/** Entry ids selected in a view when the action was launched from one. */
@@ -45,9 +45,9 @@ export interface ActionHost {
 
 /** The default export of a custom action module bundle. */
 export interface ActionModule {
-	contractVersion: number;
 	/** The React component the host renders, handed the `host` as a prop. */
 	Component: ComponentType<{ host: ActionHost }>;
+	contractVersion: number;
 }
 
 /**

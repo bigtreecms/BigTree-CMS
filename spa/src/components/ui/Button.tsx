@@ -7,26 +7,17 @@ export type ButtonSize = "sm" | "md" | "lg";
 
 interface ButtonProps {
 	children: ReactNode;
-	/**
-	 * `primary` = accent fill, `secondary` (default) = bordered surface,
-	 * `danger` = solid destructive (confirm CTAs), `dangerGhost` = bordered
-	 * destructive (subtle, e.g. a header Delete next to other actions),
-	 * `link` = borderless accent text (inline/ghost — e.g. a "View" link inside
-	 * a card; pair with `size="sm"` and negative-margin `className` to sit flush).
-	 */
-	variant?: ButtonVariant;
-	/** `sm` = tight/inline, `md` (default) = standard, `lg` = prominent (e.g. full-width auth submits). */
-	size?: ButtonSize;
-	icon?: ReactNode;
-	onClick?: MouseEventHandler<HTMLButtonElement | HTMLAnchorElement>;
-	/** Internal route — renders a react-router `<Link>` for client-side nav. */
-	to?: string;
-	/** External/absolute URL — renders an `<a>`. */
-	href?: string;
-	/** Anchor target (e.g. `_blank`); only used together with `href`. */
-	target?: string;
+	/** Extra classes appended after the variant/size classes (layout tweaks only). */
+	className?: string;
+	/** Stable selector for Playwright / testing. */
+	"data-testid"?: string;
 	/** Disables the control. A disabled button never renders as a link/anchor. */
 	disabled?: boolean;
+	/** Associates a `submit` button with a form by id (button rendered outside it). */
+	form?: string;
+	/** External/absolute URL — renders an `<a>`. */
+	href?: string;
+	icon?: ReactNode;
 	/**
 	 * Busy state: disables the control (OR-ed with `disabled`), swaps the icon
 	 * for an inline spinner, and renders `loadingLabel` in place of `children`.
@@ -35,13 +26,24 @@ interface ButtonProps {
 	loading?: boolean;
 	/** Label rendered while `loading` (defaults to `children`). e.g. "Saving…". */
 	loadingLabel?: ReactNode;
+	onClick?: MouseEventHandler<HTMLButtonElement | HTMLAnchorElement>;
+	/** `sm` = tight/inline, `md` (default) = standard, `lg` = prominent (e.g. full-width auth submits). */
+	size?: ButtonSize;
+	/** Anchor target (e.g. `_blank`); only used together with `href`. */
+	target?: string;
+	title?: string;
+	/** Internal route — renders a react-router `<Link>` for client-side nav. */
+	to?: string;
 	/** Native button type — defaults to `button`. */
 	type?: "button" | "submit";
-	/** Associates a `submit` button with a form by id (button rendered outside it). */
-	form?: string;
-	title?: string;
-	/** Extra classes appended after the variant/size classes (layout tweaks only). */
-	className?: string;
+	/**
+	 * `primary` = accent fill, `secondary` (default) = bordered surface,
+	 * `danger` = solid destructive (confirm CTAs), `dangerGhost` = bordered
+	 * destructive (subtle, e.g. a header Delete next to other actions),
+	 * `link` = borderless accent text (inline/ghost — e.g. a "View" link inside
+	 * a card; pair with `size="sm"` and negative-margin `className` to sit flush).
+	 */
+	variant?: ButtonVariant;
 }
 
 /**
@@ -91,18 +93,25 @@ export const Button = ({
 	form,
 	title,
 	className: extra,
+	"data-testid": testId,
 }: ButtonProps) => {
 	const className = `${baseClassName} ${sizeClassName[size]} ${variantClassName[variant]}${
 		extra ? ` ${extra}` : ""
 	}`;
 
 	const isDisabled = disabled || loading;
-	const renderedIcon = loading ? <Loader2 size={13} className="animate-spin" /> : icon;
+	const renderedIcon = loading ? <Loader2 className="animate-spin" size={13} /> : icon;
 	const renderedChildren = loading ? (loadingLabel ?? children) : children;
 
 	if (!isDisabled && to) {
 		return (
-			<Link to={to} onClick={onClick} className={className} title={title}>
+			<Link
+				className={className}
+				data-testid={testId}
+				title={title}
+				to={to}
+				onClick={onClick}
+			>
 				{icon}
 				{children}
 			</Link>
@@ -112,12 +121,13 @@ export const Button = ({
 	if (!isDisabled && href) {
 		return (
 			<a
-				href={href}
-				target={target}
-				rel={target === "_blank" ? "noopener noreferrer" : undefined}
-				onClick={onClick}
 				className={className}
+				data-testid={testId}
+				href={href}
+				rel={target === "_blank" ? "noopener noreferrer" : undefined}
+				target={target}
 				title={title}
+				onClick={onClick}
 			>
 				{icon}
 				{children}
@@ -127,12 +137,13 @@ export const Button = ({
 
 	return (
 		<button
-			type={type}
-			form={form}
-			onClick={onClick}
-			disabled={isDisabled}
 			className={className}
+			data-testid={testId}
+			disabled={isDisabled}
+			form={form}
 			title={title}
+			type={type}
+			onClick={onClick}
 		>
 			{renderedIcon}
 			{renderedChildren}

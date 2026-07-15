@@ -26,8 +26,8 @@ export const MessagesTable = ({ messages }: MessagesTableProps) => {
 
 				return (
 					<div
-						key={m.id}
 						className="grid min-h-[44px] grid-cols-[1.4fr_2fr_110px_80px_80px] items-center gap-x-3 border-b border-border px-3.5 text-[13px] transition-colors last:border-b-0 hover:bg-surface-2"
+						key={m.id}
 					>
 						<span className="inline-flex items-center gap-2 font-medium">
 							<Avatar name={m.sender_name} seed={String(m.sender)} size={24} />
@@ -37,9 +37,9 @@ export const MessagesTable = ({ messages }: MessagesTableProps) => {
 						<span className="text-[12px] text-text-3 tabular-nums">{date}</span>
 						<span className="text-[12px] text-text-3 tabular-nums">{time}</span>
 						<Button
-							variant="link"
-							size="sm"
 							className="-mx-2.5 -my-1.5"
+							size="sm"
+							variant="link"
 							onClick={() => navigate(`/messages/${m.id}`)}
 						>
 							View <ChevronRight size={11} />

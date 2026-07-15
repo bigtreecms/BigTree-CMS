@@ -3,11 +3,11 @@ import type { ReactNode } from "react";
 import { Field } from "@/components/ui/Field";
 
 interface ControlShellProps {
-	label?: string;
+	children: ReactNode;
 	hint?: string;
+	label?: string;
 	note?: string;
 	required?: boolean;
-	children: ReactNode;
 }
 
 /**
@@ -17,7 +17,7 @@ interface ControlShellProps {
  * `hint` on the label line, and a `note` below the control.
  */
 export const ControlShell = ({ label, hint, note, required, children }: ControlShellProps) => (
-	<Field label={label} required={required} size="sm" inlineHint={hint} hint={note}>
+	<Field hint={note} inlineHint={hint} label={label} required={required} size="sm">
 		{children}
 	</Field>
 );

@@ -11,16 +11,9 @@ import {
 } from "./viewHelpers";
 
 interface RowActionsProps {
-	moduleId: string;
-	viewId: string;
-	row: ModuleEntryRow;
-	builtins: BuiltinViewActionFlags;
-	custom: CustomViewAction[];
-	/** Builds the edit-form path for a row id. */
-	editPath: (id: string | number) => string;
 	/** Builds a custom-action path for a route + row id. */
 	actionPath: (route: string, id: string | number) => string;
-	onDelete: (row: ModuleEntryRow) => void;
+	builtins: BuiltinViewActionFlags;
 	/**
 	 * When false, the edit link is hidden and delete is disabled — used for
 	 * not-yet-persisted (pending) rows. Defaults to true.
@@ -28,6 +21,13 @@ interface RowActionsProps {
 	canEditOrDelete?: boolean;
 	/** Extra wrapper classes — e.g. `w-full` in a table cell, or a status dim class. */
 	className?: string;
+	custom: CustomViewAction[];
+	/** Builds the edit-form path for a row id. */
+	editPath: (id: string | number) => string;
+	moduleId: string;
+	onDelete: (row: ModuleEntryRow) => void;
+	row: ModuleEntryRow;
+	viewId: string;
 }
 
 const stop = (e: { stopPropagation: () => void }) => e.stopPropagation();
@@ -58,9 +58,9 @@ export const RowActions = ({
 			return (
 				<IconButton
 					key={action.key}
-					to={actionPath(action.route, row.id)}
 					label={action.name}
 					title={action.name}
+					to={actionPath(action.route, row.id)}
 					onClick={stop}
 				>
 					<Icon size={15} />
@@ -69,19 +69,19 @@ export const RowActions = ({
 		})}
 
 		{builtins.edit && canEditOrDelete && (
-			<IconButton to={editPath(row.id)} label="Edit" title="Edit" onClick={stop}>
+			<IconButton label="Edit" title="Edit" to={editPath(row.id)} onClick={stop}>
 				<Edit size={15} />
 			</IconButton>
 		)}
 
-		<BuiltinToggleButtons moduleId={moduleId} viewId={viewId} row={row} builtins={builtins} />
+		<BuiltinToggleButtons builtins={builtins} moduleId={moduleId} row={row} viewId={viewId} />
 
 		{builtins.delete && (
 			<IconButton
+				disabled={!canEditOrDelete}
 				label="Delete"
 				title="Delete"
 				tone="danger"
-				disabled={!canEditOrDelete}
 				onClick={(e) => {
 					e.stopPropagation();
 					onDelete(row);

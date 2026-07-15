@@ -116,10 +116,10 @@ export const DebugAudit = () => {
 					<Badge bordered>{humanizeType(row.type)}</Badge>
 					{row.context?.via === "ai_assistant" && (
 						<Badge
-							tone="accent"
-							size="sm"
 							icon={<Sparkles size={9} />}
+							size="sm"
 							title="Approved via the AI assistant"
+							tone="accent"
 						>
 							AI
 						</Badge>
@@ -131,8 +131,8 @@ export const DebugAudit = () => {
 
 	return (
 		<DebugLayout
-			title="Audit trail"
 			sub="Read-only history of mutating actions, attributed to the acting user."
+			title="Audit trail"
 		>
 			<div className="mb-3 flex flex-wrap items-end gap-3">
 				<div>
@@ -140,11 +140,11 @@ export const DebugAudit = () => {
 						User
 					</FieldLabel>
 					<UserSelect
+						ariaLabel="Filter by user"
+						className="w-56"
 						id="audit-user"
 						value={userFilter}
 						onChange={setUserFilter}
-						ariaLabel="Filter by user"
-						className="w-56"
 					/>
 				</div>
 
@@ -153,11 +153,11 @@ export const DebugAudit = () => {
 						Table
 					</FieldLabel>
 					<TableSelect
+						ariaLabel="Filter by table"
+						className="w-56"
 						id="audit-table"
 						value={tableFilter}
 						onChange={setTableFilter}
-						ariaLabel="Filter by table"
-						className="w-56"
 					/>
 				</div>
 
@@ -192,13 +192,13 @@ export const DebugAudit = () => {
 						Source
 					</FieldLabel>
 					<select
+						aria-label="Filter by change source"
+						className="h-8 rounded-md border border-border bg-surface px-2 text-[13px] text-text focus:border-border-strong focus:outline-none"
 						id="audit-via"
 						value={via}
 						onChange={(e) =>
 							setVia(e.target.value === "ai_assistant" ? "ai_assistant" : "")
 						}
-						className="h-8 rounded-md border border-border bg-surface px-2 text-[13px] text-text focus:border-border-strong focus:outline-none"
-						aria-label="Filter by change source"
 					>
 						<option value="">Any source</option>
 						<option value="ai_assistant">AI assistant</option>
@@ -215,11 +215,11 @@ export const DebugAudit = () => {
 			) : (
 				<DataTable
 					columns={columns}
-					rows={rows}
+					emptyLabel="No audit entries match these filters."
 					getRowKey={(row) => row.id}
 					isLoading={listQ.isLoading}
 					loadingLabel="Loading audit trail…"
-					emptyLabel="No audit entries match these filters."
+					rows={rows}
 					onRowClick={(row) => setDetail(row)}
 				/>
 			)}
@@ -231,15 +231,15 @@ export const DebugAudit = () => {
 			)}
 
 			<SlideOver
+				description={detail ? `${detail.table} · ${detail.entry}` : undefined}
 				open={detail !== null}
+				title={detail ? humanizeType(detail.type) : "Audit entry"}
+				width="lg"
 				onOpenChange={(open) => {
 					if (!open) {
 						setDetail(null);
 					}
 				}}
-				title={detail ? humanizeType(detail.type) : "Audit entry"}
-				description={detail ? `${detail.table} · ${detail.entry}` : undefined}
-				width="lg"
 			>
 				{detail && (
 					<DescriptionList

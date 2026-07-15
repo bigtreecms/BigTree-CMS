@@ -12,14 +12,14 @@ export const NumberField = ({ field, value, onChange, disabled }: FieldComponent
 
 	return (
 		<input
-			type="number"
 			aria-label={field.title}
 			className={INPUT_CLASS}
-			value={value == null || value === "" ? "" : String(value)}
-			min={min}
-			max={max}
-			step={step}
 			disabled={disabled}
+			max={max}
+			min={min}
+			step={step}
+			type="number"
+			value={value == null || value === "" ? "" : String(value)}
 			onChange={(event) => {
 				const raw = event.target.value;
 

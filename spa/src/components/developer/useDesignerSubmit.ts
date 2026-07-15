@@ -11,12 +11,12 @@ export interface DesignerSettingsValidation {
 export interface DesignerSubmitArgs {
 	/** Required top-level fields (id/name/…) validated before save. */
 	required: RequiredRule[];
-	/** Nested field-settings validation from `useResourceSettingsValidation`. */
-	settingsValidation: DesignerSettingsValidation;
 	/** Fire the create-or-update mutation once validation passes. */
 	save: () => void;
 	/** When true the handler is a no-op (mutation already in flight). */
 	saving?: boolean;
+	/** Nested field-settings validation from `useResourceSettingsValidation`. */
+	settingsValidation: DesignerSettingsValidation;
 }
 
 /**

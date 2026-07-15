@@ -28,13 +28,13 @@ import { formatNumber } from "@/lib/number";
  */
 
 interface PageSummaryPanelProps {
-	page: PageDetail | null;
+	defaultOpen?: boolean;
 	/**
 	 * Override the displayed live URL. Default uses page.path (which is the
 	 * site-relative path from PageService); the API doesn't expose www_root.
 	 */
 	liveUrl?: string;
-	defaultOpen?: boolean;
+	page: PageDetail | null;
 }
 
 type StatusTone = "ok" | "draft" | "warn" | "danger";
@@ -111,14 +111,14 @@ export const PageSummaryPanel = ({ page, liveUrl, defaultOpen = false }: PageSum
 			data-open={open}
 		>
 			<button
-				type="button"
+				aria-expanded={open}
 				className={`flex w-full flex-wrap items-center gap-x-2.5 gap-y-1.5 px-4 py-2.5 text-left transition-colors ${
 					open
 						? "border-b border-border bg-surface-2"
 						: "border-b border-transparent hover:bg-surface-2"
 				}`}
+				type="button"
 				onClick={() => setOpen((v) => !v)}
-				aria-expanded={open}
 			>
 				<span
 					className={`grid size-4  place-items-center rounded text-text-3 transition-transform ${
@@ -137,7 +137,7 @@ export const PageSummaryPanel = ({ page, liveUrl, defaultOpen = false }: PageSum
 
 				{!open && (
 					<span className="ml-auto inline-flex items-center gap-2 text-[12px] text-text-3">
-						<Badge tone={TONE_BADGE[status.tone]} dot>
+						<Badge dot tone={TONE_BADGE[status.tone]}>
 							{status.label}
 						</Badge>
 						<span className="text-text-4">·</span>
@@ -201,14 +201,14 @@ export const PageSummaryPanel = ({ page, liveUrl, defaultOpen = false }: PageSum
 					<Prop label="Live URL" span={2}>
 						{url ? (
 							<a
-								href={"/" + url.replace(/^\//, "")}
-								target="_blank"
-								rel="noopener noreferrer"
 								className="inline-flex min-w-0 items-center gap-1 truncate text-[14px] font-medium text-accent hover:underline"
+								href={"/" + url.replace(/^\//, "")}
+								rel="noopener noreferrer"
+								target="_blank"
 								title={url}
 							>
 								<span className="truncate">/{url.replace(/^\//, "")}</span>
-								<ExternalLink size={11} className="shrink-0" />
+								<ExternalLink className="shrink-0" size={11} />
 							</a>
 						) : (
 							<span className="text-[14px] font-medium text-text-3">—</span>
@@ -225,8 +225,8 @@ export const PageSummaryPanel = ({ page, liveUrl, defaultOpen = false }: PageSum
 };
 
 interface PropProps {
-	label: string;
 	children: React.ReactNode;
+	label: string;
 	span?: 1 | 2;
 }
 

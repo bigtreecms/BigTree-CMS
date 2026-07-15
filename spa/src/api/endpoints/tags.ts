@@ -14,8 +14,8 @@ import type { ApiMeta } from "@/types/api";
 
 export interface Tag {
 	id: number;
-	tag: string;
 	route: string;
+	tag: string;
 	usage_count: number;
 }
 
@@ -31,8 +31,8 @@ export interface TagListResponse {
 }
 
 export interface MergePayload {
-	into: number;
 	from: number[];
+	into: number;
 }
 
 export const tagsApi = {

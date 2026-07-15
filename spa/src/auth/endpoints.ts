@@ -5,9 +5,9 @@ import { authenticatePasskey, registerPasskey } from "@/lib/webauthn";
 /** Wire-shape of POST /auth/login responses. */
 interface LoginTokenResponse {
 	access_token: string;
+	expires_in: number;
 	refresh_token: string;
 	token_type: "Bearer";
-	expires_in: number;
 	user: AuthUser;
 }
 
@@ -23,17 +23,17 @@ interface LoginMfaResponse {
 
 /** Security policy mandates TOTP and this user hasn't enrolled — login pauses for enrollment. */
 interface LoginSetupRequiredResponse {
-	two_factor_setup_required: true;
 	setup_token: string;
+	two_factor_setup_required: true;
 }
 
 type LoginResponse = LoginTokenResponse | LoginMfaResponse | LoginSetupRequiredResponse;
 
 /** GET /auth/2fa/setup — the enrollment ceremony payload. */
 export interface TwoFactorSetup {
-	secret: string;
-	qr_image: string;
 	otpauth_uri: string;
+	qr_image: string;
+	secret: string;
 }
 
 /** Returned by enable/disable — current TOTP state for the user. */
@@ -266,19 +266,19 @@ interface PasskeyRegisterChallenge {
 }
 
 export interface PasskeyRecord {
-	id: number;
-	name: string;
 	aaguid: string;
-	transports: string;
 	created_at: string;
+	id: number;
 	last_used: string | null;
+	name: string;
+	transports: string;
 }
 
 export interface RegisteredPasskey {
+	aaguid: string;
+	credential_id: string;
 	id: number;
 	name: string;
-	credential_id: string;
-	aaguid: string;
 }
 
 export const passkeysApi = {

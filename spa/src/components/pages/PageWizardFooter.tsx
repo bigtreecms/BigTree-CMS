@@ -8,13 +8,13 @@ import { PAGE_TABS, type PageTabValue } from "./PageTabStrip";
 
 interface PageWizardFooterProps {
 	activeTab: PageTabValue;
+	/** The commit actions (Save, Create, Create & Publish …), grouped and right-aligned. */
+	children: ReactNode;
 	onSelect: (tab: PageTabValue) => void;
 	/** Rendered right after Back, before the spacer — e.g. a Delete action. */
 	secondary?: ReactNode;
 	/** Render the "Next Step" advance button (the page create wizard; PageEdit has none). */
 	showNext?: boolean;
-	/** The commit actions (Save, Create, Create & Publish …), grouped and right-aligned. */
-	children: ReactNode;
 }
 
 /**
@@ -34,11 +34,11 @@ export const PageWizardFooter = ({
 	const isLast = index === PAGE_TABS.length - 1;
 
 	return (
-		<CardFooter justify="start" className="flex-wrap items-center">
+		<CardFooter className="flex-wrap items-center" justify="start">
 			{!isFirst && (
 				<Button
-					variant="secondary"
 					icon={<ChevronLeft size={13} />}
+					variant="secondary"
 					onClick={() => onSelect(PAGE_TABS[index - 1] ?? PAGE_TABS[0]!)}
 				>
 					Back

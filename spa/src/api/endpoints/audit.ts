@@ -11,37 +11,37 @@ import { api } from "@/api/client";
 
 export interface AuditContext {
 	ip: string | null;
-	user_agent: string | null;
-	request_id: string | null;
 	method: string | null;
 	path: string | null;
+	request_id: string | null;
+	user_agent: string | null;
 	/** Change source: null for ordinary REST changes, "ai_assistant" for AI-approved ones. */
 	via: string | null;
 }
 
 export interface AuditEntry {
-	id: number;
-	user: number;
-	user_name: string | null;
-	user_email: string | null;
-	table: string;
-	entry: string;
-	type: string;
-	date: string;
 	context?: AuditContext;
+	date: string;
+	entry: string;
+	id: number;
+	table: string;
+	type: string;
+	user: number;
+	user_email: string | null;
+	user_name: string | null;
 }
 
 export interface AuditListParams {
-	user?: number;
-	table?: string;
-	entry?: string;
-	start?: string;
 	end?: string;
-	/** Filter by change source, e.g. "ai_assistant" for AI-approved changes only. */
-	via?: string;
+	entry?: string;
 	include?: string;
 	page?: number;
 	per_page?: number;
+	start?: string;
+	table?: string;
+	user?: number;
+	/** Filter by change source, e.g. "ai_assistant" for AI-approved changes only. */
+	via?: string;
 }
 
 export const auditApi = {

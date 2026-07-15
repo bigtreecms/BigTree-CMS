@@ -91,9 +91,9 @@ export const Analytics = () => {
 			/>
 
 			<PageHead
-				title="Analytics"
-				sub={analyticsQ.isLoading ? "Loading…" : sub}
 				actions={<ConfigLink />}
+				sub={analyticsQ.isLoading ? "Loading…" : sub}
+				title="Analytics"
 			/>
 
 			{analyticsQ.error ? (
@@ -104,8 +104,8 @@ export const Analytics = () => {
 				<EmptyState dashed className="leading-[1.6]">
 					Google Analytics isn't connected yet. Connect it from{" "}
 					<Link
-						to="/developer/configure/analytics"
 						className="font-medium text-accent hover:underline"
+						to="/developer/configure/analytics"
 					>
 						Developer → Analytics
 					</Link>{" "}
@@ -120,14 +120,14 @@ export const Analytics = () => {
 				<div className="flex flex-col gap-4">
 					<Card className="overflow-hidden">
 						<CardHeader
-							title="Two-week heads-up"
 							description="Visits over the past 14 days"
+							title="Two-week heads-up"
 						/>
 						<div className="p-4">
 							{series && series.length > 0 ? (
 								<TrafficBars series={series} />
 							) : (
-								<InlineEmpty variant="plain" align="center">
+								<InlineEmpty align="center" variant="plain">
 									No recent daily data.
 								</InlineEmpty>
 							)}
@@ -135,36 +135,36 @@ export const Analytics = () => {
 					</Card>
 
 					<MetricComparison
-						title="Current month"
-						rangeLabel={ranges.month}
 						current={cache.month}
+						rangeLabel={ranges.month}
+						title="Current month"
 						yearAgo={cache.year_ago_month}
 					/>
 					<MetricComparison
-						title="Current quarter"
-						rangeLabel={ranges.quarter}
 						current={cache.quarter}
+						rangeLabel={ranges.quarter}
+						title="Current quarter"
 						yearAgo={cache.year_ago_quarter}
 					/>
 					<MetricComparison
-						title="Current year"
-						rangeLabel={ranges.year}
 						current={cache.year}
+						rangeLabel={ranges.year}
+						title="Current year"
 						yearAgo={cache.year_ago_year}
 					/>
 
 					<div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
 						<TrafficSourceTable
-							title="Top referrers"
+							data={cache.referrers}
 							description="Domains referring the most traffic over the past month."
 							nameHeader="Referrer"
-							data={cache.referrers}
+							title="Top referrers"
 						/>
 						<TrafficSourceTable
-							title="Browsers"
+							data={cache.browsers}
 							description="Browsers your visitors used over the past month."
 							nameHeader="Browser"
-							data={cache.browsers}
+							title="Browsers"
 						/>
 					</div>
 				</div>

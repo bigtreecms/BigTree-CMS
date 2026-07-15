@@ -21,22 +21,22 @@ import { useToastMutation } from "@/hooks/useToastMutation";
 import { describeApiError } from "@/lib/errorHandling";
 
 interface AiDraft {
-	service: AiServiceId;
 	api_key: string;
-	embedding_api_key: string;
-	model: string;
-	embedding_model: string;
-	features: { search: boolean; chat: boolean; embeddings: boolean };
-	api_key_set: boolean;
-	embedding_api_key_set: boolean;
 	api_key_clear: boolean;
+	api_key_set: boolean;
+	embedding_api_key: string;
 	embedding_api_key_clear: boolean;
-	models: AiConfig["models"];
-	embedding_models: AiConfig["embedding_models"];
-	embeddings_supported: boolean;
-	embeddings_ready: boolean;
+	embedding_api_key_set: boolean;
 	embedding_dimensions: number;
 	embedding_key_required: boolean;
+	embedding_model: string;
+	embedding_models: AiConfig["embedding_models"];
+	embeddings_ready: boolean;
+	embeddings_supported: boolean;
+	features: { search: boolean; chat: boolean; embeddings: boolean };
+	model: string;
+	models: AiConfig["models"];
+	service: AiServiceId;
 }
 
 const SERVICES: Array<{ id: AiServiceId; label: string; help: string }> = [
@@ -68,8 +68,8 @@ interface RemoveKeyButtonProps {
 
 const RemoveKeyButton = ({ onClick }: RemoveKeyButtonProps) => (
 	<button
-		type="button"
 		className="mt-1.5 text-[11px] text-text-3 underline underline-offset-2 hover:text-danger"
+		type="button"
 		onClick={onClick}
 	>
 		Remove stored key
@@ -84,8 +84,8 @@ const KeyClearNotice = ({ onUndo }: KeyClearNoticeProps) => (
 	<p className="mt-1.5 text-[11px] text-warn">
 		Stored key will be removed when you save.{" "}
 		<button
-			type="button"
 			className="underline underline-offset-2 hover:text-text"
+			type="button"
 			onClick={onUndo}
 		>
 			Keep it
@@ -247,29 +247,31 @@ export const ConfigureAI = () => {
 
 	return (
 		<ConfigureLayout
-			title="AI"
-			sub="Provider credentials that power AI features across BigTree — conversational search and optional vector embeddings."
 			query={detailQ}
+			sub="Provider credentials that power AI features across BigTree — conversational search and optional vector embeddings."
+			title="AI"
 		>
 			{draft && (
 				<FormShell
-					onSubmit={onSubmit}
 					footer={
 						<Button
-							variant="primary"
-							type="submit"
 							icon={<Save size={13} />}
 							loading={saveMutation.isPending}
 							loadingLabel="Saving…"
+							type="submit"
+							variant="primary"
 						>
 							Save
 						</Button>
 					}
+					onSubmit={onSubmit}
 				>
 					{generalError && <ErrorPanel message={generalError} />}
 
 					<SelectField
+						hint={active.help}
 						label="Service"
+						options={SERVICES.map((s) => ({ value: s.id, label: s.label }))}
 						value={draft.service}
 						onChange={(v) => {
 							const service = v as AiServiceId;
@@ -304,24 +306,20 @@ export const ConfigureAI = () => {
 								},
 							});
 						}}
-						options={SERVICES.map((s) => ({ value: s.id, label: s.label }))}
-						hint={active.help}
 					/>
 
 					{draft.service !== "" && (
 						<div className="mt-4 space-y-3">
 							<Field
-								label="Chat API key"
 								hint={
 									draft.api_key_set
 										? "A key is stored. Leave blank to keep it, or paste a new key to replace it."
 										: "Provider secret used for chat / tool-calling. Stored encrypted."
 								}
+								label="Chat API key"
 							>
 								<TextInput
-									type="password"
 									autoComplete="off"
-									value={draft.api_key}
 									placeholder={
 										draft.api_key_clear
 											? "Stored key will be removed on save"
@@ -329,6 +327,8 @@ export const ConfigureAI = () => {
 												? "•••••••• (stored)"
 												: "sk-…"
 									}
+									type="password"
+									value={draft.api_key}
 									onChange={(e) =>
 										setDraft({
 											...draft,
@@ -358,29 +358,24 @@ export const ConfigureAI = () => {
 							</Field>
 
 							<SelectField
+								hint="Used for conversational AI search and tool calling."
 								label="Chat model"
+								options={modelOptions}
 								value={draft.model}
 								onChange={(v) => setDraft({ ...draft, model: v })}
-								options={modelOptions}
-								hint="Used for conversational AI search and tool calling."
 							/>
 
 							{embeddingOptions.length > 0 && (
 								<>
 									<SelectField
+										hint={`Always OpenAI · fixed ${draft.embedding_dimensions}-dimension VECTOR index. Changing models requires a full rebuild.`}
 										label="Embedding model"
+										options={embeddingOptions}
 										value={draft.embedding_model}
 										onChange={(v) => setDraft({ ...draft, embedding_model: v })}
-										options={embeddingOptions}
-										hint={`Always OpenAI · fixed ${draft.embedding_dimensions}-dimension VECTOR index. Changing models requires a full rebuild.`}
 									/>
 
 									<Field
-										label={
-											draft.embedding_key_required
-												? "OpenAI embedding API key"
-												: "OpenAI embedding API key (optional)"
-										}
 										hint={
 											draft.embedding_key_required
 												? draft.embedding_api_key_set
@@ -390,11 +385,14 @@ export const ConfigureAI = () => {
 													? "A dedicated embeddings key is stored. Leave blank to keep it, or paste a new one to replace it."
 													: "Leave blank to reuse the OpenAI chat key above for embeddings."
 										}
+										label={
+											draft.embedding_key_required
+												? "OpenAI embedding API key"
+												: "OpenAI embedding API key (optional)"
+										}
 									>
 										<TextInput
-											type="password"
 											autoComplete="off"
-											value={draft.embedding_api_key}
 											placeholder={
 												draft.embedding_api_key_clear
 													? "Stored key will be removed on save"
@@ -404,6 +402,8 @@ export const ConfigureAI = () => {
 															? "sk-… (OpenAI)"
 															: "Optional — defaults to chat key"
 											}
+											type="password"
+											value={draft.embedding_api_key}
 											onChange={(e) =>
 												setDraft({
 													...draft,
@@ -439,14 +439,14 @@ export const ConfigureAI = () => {
 
 							<div className="rounded-lg border border-border bg-surface-2/40 p-3">
 								<div className="mb-2 flex items-center gap-2 text-[12.5px] font-semibold text-text">
-									<Sparkles size={14} className="text-accent" />
+									<Sparkles className="text-accent" size={14} />
 									Features
 								</div>
 
 								<Checkbox
-									label="Enable AI search"
 									checked={draft.features.search}
 									disabled={!canEnableSearch}
+									label="Enable AI search"
 									onChange={(checked) =>
 										setDraft({
 											...draft,
@@ -462,9 +462,9 @@ export const ConfigureAI = () => {
 								</p>
 
 								<Checkbox
-									label="Enable AI assistant"
 									checked={draft.features.chat}
 									disabled={!canEnableSearch}
+									label="Enable AI assistant"
 									onChange={(checked) =>
 										setDraft({
 											...draft,
@@ -480,9 +480,9 @@ export const ConfigureAI = () => {
 								</p>
 
 								<Checkbox
-									label="Enable vector embeddings"
 									checked={draft.features.embeddings}
 									disabled={!canEnableEmbeddings}
+									label="Enable vector embeddings"
 									onChange={(checked) =>
 										setDraft({
 											...draft,
@@ -538,7 +538,7 @@ export const ConfigureAI = () => {
 							{draft.features.embeddings && canEnableEmbeddings && (
 								<div className="rounded-lg border border-border p-3">
 									<div className="mb-2 flex items-center gap-2 text-[12.5px] font-semibold text-text">
-										<Database size={14} className="text-accent" />
+										<Database className="text-accent" size={14} />
 										Embeddings index
 									</div>
 									<p className="mb-3 text-[12px] text-text-3">
@@ -547,11 +547,11 @@ export const ConfigureAI = () => {
 										timeouts.
 									</p>
 									<Button
-										type="button"
-										variant="secondary"
 										icon={<RefreshCw size={13} />}
 										loading={reindexMutation.isPending}
 										loadingLabel="Rebuilding…"
+										type="button"
+										variant="secondary"
 										onClick={() => reindexMutation.mutate()}
 									>
 										Rebuild index
@@ -564,7 +564,7 @@ export const ConfigureAI = () => {
 								</div>
 							)}
 
-							<Alert tone="info" className="mt-1">
+							<Alert className="mt-1" tone="info">
 								AI search calls your chat provider; embeddings always call OpenAI
 								and may incur usage charges. Keys never leave this site except to
 								the selected provider&apos;s API.

@@ -72,33 +72,33 @@ export const ResourceReferenceField = ({
 	return (
 		<div className="space-y-2">
 			<Button
-				variant="secondary"
-				icon={<Search size={13} />}
-				onClick={() => setPickerOpen(true)}
 				disabled={disabled}
+				icon={<Search size={13} />}
+				variant="secondary"
+				onClick={() => setPickerOpen(true)}
 			>
 				{resourceId ? "Replace" : "Browse media"}
 			</Button>
 
 			{resourceId && (
 				<ReferencePreview
-					pickerType={pickerType}
-					resourceId={resourceId}
-					resource={resourceQuery.data ?? null}
+					disabled={disabled}
 					loading={resourceQuery.isLoading}
 					missing={resourceQuery.isError}
-					onClear={() => onChange("")}
+					pickerType={pickerType}
+					resource={resourceQuery.data ?? null}
+					resourceId={resourceId}
 					showRemove={showRemove}
-					disabled={disabled}
+					onClear={() => onChange("")}
 				/>
 			)}
 
 			<ResourcePicker
-				open={pickerOpen}
-				onOpenChange={setPickerOpen}
-				type={pickerType}
-				minWidth={minWidth}
 				minHeight={minHeight}
+				minWidth={minWidth}
+				open={pickerOpen}
+				type={pickerType}
+				onOpenChange={setPickerOpen}
 				onSelect={(resource) => onChange(String(resource.id))}
 			/>
 		</div>
@@ -106,14 +106,14 @@ export const ResourceReferenceField = ({
 };
 
 interface ReferencePreviewProps {
-	pickerType: ResourcePickerType;
-	resourceId: number;
-	resource: ResourceDetail | null;
+	disabled?: boolean;
 	loading: boolean;
 	missing: boolean;
 	onClear: () => void;
+	pickerType: ResourcePickerType;
+	resource: ResourceDetail | null;
+	resourceId: number;
 	showRemove: boolean;
-	disabled?: boolean;
 }
 
 const ReferencePreview = ({
@@ -129,7 +129,7 @@ const ReferencePreview = ({
 	return (
 		<div className="flex items-start gap-3 rounded-md border border-border bg-surface-2 p-2">
 			<div className="overflow-hidden rounded border border-border bg-surface">
-				<PreviewTile pickerType={pickerType} resource={resource} loading={loading} />
+				<PreviewTile loading={loading} pickerType={pickerType} resource={resource} />
 			</div>
 			<div className="min-w-0 flex-1 text-[12px]">
 				<SectionLabel size="sm">Current · #{resourceId}</SectionLabel>
@@ -142,10 +142,10 @@ const ReferencePreview = ({
 					</div>
 				) : (
 					<a
-						href={resource.file}
-						target="_blank"
-						rel="noopener noreferrer"
 						className="block truncate text-accent hover:underline"
+						href={resource.file}
+						rel="noopener noreferrer"
+						target="_blank"
 						title={resource.name}
 					>
 						{resource.name}
@@ -162,9 +162,9 @@ const ReferencePreview = ({
 };
 
 interface PreviewTileProps {
+	loading: boolean;
 	pickerType: ResourcePickerType;
 	resource: ResourceDetail | null;
-	loading: boolean;
 }
 
 const PreviewTile = ({ pickerType, resource, loading }: PreviewTileProps) => {
@@ -180,11 +180,11 @@ const PreviewTile = ({ pickerType, resource, loading }: PreviewTileProps) => {
 		if (service === "youtube" && id) {
 			return (
 				<iframe
-					src={`https://www.youtube.com/embed/${encodeURIComponent(id)}`}
-					title={resource.name}
+					allowFullScreen
 					className="block aspect-video h-20 w-32"
 					sandbox="allow-scripts allow-same-origin allow-popups allow-presentation"
-					allowFullScreen
+					src={`https://www.youtube.com/embed/${encodeURIComponent(id)}`}
+					title={resource.name}
 				/>
 			);
 		}
@@ -192,11 +192,11 @@ const PreviewTile = ({ pickerType, resource, loading }: PreviewTileProps) => {
 		if (service === "vimeo" && id) {
 			return (
 				<iframe
-					src={`https://player.vimeo.com/video/${encodeURIComponent(id)}`}
-					title={resource.name}
+					allowFullScreen
 					className="block aspect-video h-20 w-32"
 					sandbox="allow-scripts allow-same-origin allow-popups allow-presentation"
-					allowFullScreen
+					src={`https://player.vimeo.com/video/${encodeURIComponent(id)}`}
+					title={resource.name}
 				/>
 			);
 		}
@@ -204,7 +204,7 @@ const PreviewTile = ({ pickerType, resource, loading }: PreviewTileProps) => {
 
 	if (resource.is_image && resource.file) {
 		return (
-			<img src={resource.file} alt="" className="block size-20 object-cover" loading="lazy" />
+			<img alt="" className="block size-20 object-cover" loading="lazy" src={resource.file} />
 		);
 	}
 

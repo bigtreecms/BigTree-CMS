@@ -23,29 +23,29 @@ import type { ResourceSummary } from "@/api/endpoints/resource-folders";
  * endpoint) but absent for thumbnails generated at upload time.
  */
 export interface ResourcePrefixedAsset {
+	created_at?: string;
+	directory?: string;
+	file: string;
+	height: number;
+	name?: string;
 	prefix: string;
 	width: number;
-	height: number;
-	file: string;
-	name?: string;
-	directory?: string;
-	created_at?: string;
 }
 
 /** Extra fields returned by `GET /resources/{id}` (vs the listing summary). */
 export interface ResourceDetail extends ResourceSummary {
+	/** prefix → asset map. Empty when there are no derived crops. */
+	crops: Record<string, ResourcePrefixedAsset>;
 	location: string;
 	md5: string;
 	metadata: Record<string, unknown>;
-	/** prefix → asset map. Empty when there are no derived crops. */
-	crops: Record<string, ResourcePrefixedAsset>;
 	thumbs: Record<string, ResourcePrefixedAsset>;
 	video_data: Record<string, unknown>;
 }
 
 export interface ResourceAllocation {
-	table: string;
 	entry: string;
+	table: string;
 	updated_at: string;
 }
 
@@ -65,40 +65,40 @@ export type ResourceUsageStatus = "published" | "archived" | "pending" | "none";
 
 /** An enriched allocation row for the file detail "Used by" panel. */
 export interface ResourceUsage {
-	location: string;
-	title: string;
-	status: ResourceUsageStatus;
-	updated_at: string;
 	link: ResourceUsageLink | null;
+	location: string;
+	status: ResourceUsageStatus;
+	title: string;
+	updated_at: string;
 }
 
 export interface UpdateResourcePayload {
-	name?: string;
 	folder?: number;
 	metadata?: Record<string, unknown>;
+	name?: string;
 }
 
 export interface CropPayload {
+	directory?: string;
+	height: number;
+	prefix?: string;
+	target_height?: number;
+	target_width?: number;
+	width: number;
 	x: number;
 	y: number;
-	width: number;
-	height: number;
-	target_width?: number;
-	target_height?: number;
-	prefix?: string;
-	directory?: string;
 }
 
 export interface CropResult {
 	file: string;
-	width: number;
 	height: number;
 	prefix: string;
+	width: number;
 }
 
 export interface CreateVideoPayload {
-	url: string;
 	folder?: number;
+	url: string;
 }
 
 export const UPLOAD_PATH = "/resources/upload";
@@ -106,10 +106,10 @@ export const UPLOAD_PATH = "/resources/upload";
 /** A developer-configured metadata field definition (per file kind). */
 export interface ResourceMetadataField {
 	id: string;
-	title: string;
-	subtitle: string;
-	type: string;
 	settings: Record<string, unknown> | null;
+	subtitle: string;
+	title: string;
+	type: string;
 }
 
 /** Metadata definitions split by file kind, from GET /resources/metadata-fields. */

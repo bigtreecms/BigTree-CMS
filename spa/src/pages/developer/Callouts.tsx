@@ -14,7 +14,7 @@ const columns: DataTableColumn<CalloutSummary>[] = [
 		key: "name",
 		header: "Name",
 		width: "minmax(0,1.5fr)",
-		cell: (row) => <NameIdCell name={row.name} id={row.id} />,
+		cell: (row) => <NameIdCell id={row.id} name={row.name} />,
 	},
 	{
 		key: "description",
@@ -48,22 +48,22 @@ const columns: DataTableColumn<CalloutSummary>[] = [
 
 export const Callouts = () => (
 	<DeveloperListPage<CalloutSummary>
-		title="Callouts"
-		countNoun="callout"
-		route="/developer/callouts"
 		addLabel="Add callout"
-		loadingLabel="Loading callouts…"
-		emptyLabel="No callouts yet."
-		queryKey={queryKeys.callouts.list()}
-		invalidateKey={queryKeys.callouts.root()}
-		list={() => calloutsApi.list()}
-		remove={(id) => calloutsApi.delete(id)}
 		columns={columns}
-		getRowKey={(row) => row.id}
+		confirmDescription="Removing a callout type can break existing Callouts-field entries that reference it."
+		confirmLabel="Delete callout"
+		countNoun="callout"
 		deleteButtonLabel="Delete callout"
 		deleteSuccessMessage="Callout deleted"
+		emptyLabel="No callouts yet."
+		getRowKey={(row) => row.id}
+		invalidateKey={queryKeys.callouts.root()}
+		list={() => calloutsApi.list()}
+		loadingLabel="Loading callouts…"
+		queryKey={queryKeys.callouts.list()}
+		remove={(id) => calloutsApi.delete(id)}
+		route="/developer/callouts"
 		rowLabel={(row) => row.name}
-		confirmLabel="Delete callout"
-		confirmDescription="Removing a callout type can break existing Callouts-field entries that reference it."
+		title="Callouts"
 	/>
 );

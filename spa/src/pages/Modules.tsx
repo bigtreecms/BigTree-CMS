@@ -137,30 +137,30 @@ export const Modules = () => {
 			<Breadcrumb items={[{ label: "Modules" }]} />
 
 			<PageHead
-				title="Modules"
-				sub={subText}
 				actions={
 					canCreate ? (
 						<Button
-							variant="primary"
 							icon={<Plus size={13} />}
 							to="/developer/modules/add"
+							variant="primary"
 						>
 							New module
 						</Button>
 					) : undefined
 				}
+				sub={subText}
+				title="Modules"
 			/>
 
 			<SearchInput
+				className="mb-5 max-w-md"
+				placeholder="Search modules…"
 				value={query}
 				onChange={setQuery}
-				placeholder="Search modules…"
-				className="mb-5 max-w-md"
 			/>
 
 			{isLoading ? (
-				<Loading variant="card" label="Loading modules…" />
+				<Loading label="Loading modules…" variant="card" />
 			) : filtered.length === 0 ? (
 				<EmptyState dashed>
 					{trimmedQuery ? `No modules match “${query}”.` : "No modules available."}
@@ -170,8 +170,8 @@ export const Modules = () => {
 					{filtered.map((g) => (
 						<ModuleGroupCard
 							key={g.group ? `g-${g.group.id}` : "ungrouped"}
-							title={g.group?.name ?? "Ungrouped"}
 							modules={g.modules}
+							title={g.group?.name ?? "Ungrouped"}
 						/>
 					))}
 				</div>
@@ -181,8 +181,8 @@ export const Modules = () => {
 };
 
 interface ModuleGroupCardProps {
-	title: string;
 	modules: ModuleSummary[];
+	title: string;
 }
 
 const ModuleGroupCard = ({ title, modules }: ModuleGroupCardProps) => {
@@ -213,20 +213,20 @@ const ModuleTile = ({ module }: ModuleTileProps) => {
 	return (
 		<div className="group relative">
 			<Link
-				to={modulePath(module)}
 				className="flex w-full items-center gap-2.5 rounded-md border border-border bg-surface py-2.5 pl-3 pr-12 text-[13.5px] font-medium text-text transition-colors hover:border-border-strong hover:bg-surface-2 focus-visible:border-accent focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent-ring"
 				title={`Manage ${module.name}`}
+				to={modulePath(module)}
 			>
-				<IconTile size="xs" tone="accent" className="shrink-0">
+				<IconTile className="shrink-0" size="xs" tone="accent">
 					<Icon size={15} />
 				</IconTile>
 				<span className="min-w-0 flex-1 truncate">{module.name}</span>
 			</Link>
 			<Link
-				to={`${modulePath(module)}/add`}
+				aria-label={`Add to ${module.name}`}
 				className="absolute right-1.5 top-1/2 grid size-7 -translate-y-1/2 place-items-center rounded-md text-text-3 transition-colors hover:bg-accent hover:text-accent-fg"
 				title={`Add to ${module.name}`}
-				aria-label={`Add to ${module.name}`}
+				to={`${modulePath(module)}/add`}
 				onClick={(e) => e.stopPropagation()}
 			>
 				<Plus size={13} />

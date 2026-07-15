@@ -100,12 +100,12 @@ export const normalizeColumnSettings = (raw: unknown): Record<string, unknown> =
  * shapes, so either can feed {@link columnToFormField}.
  */
 export interface RepeaterColumn {
-	id: string;
-	title: string;
-	subtitle?: string;
-	type: string;
-	settings?: unknown;
 	display_title?: boolean | string | number;
+	id: string;
+	settings?: unknown;
+	subtitle?: string;
+	title: string;
+	type: string;
 }
 
 /**
@@ -176,16 +176,16 @@ export const deriveRepeaterSummary = <T extends Record<string, unknown>>(
 
 /** A single entry of a static `settings.list` (BigTree's legacy list shape). */
 export interface StaticListItem {
-	key?: string;
-	value?: string;
 	description?: string;
+	key?: string;
 	label?: string;
+	value?: string;
 }
 
 /** A resolved `{ value, label }` option, as `SelectField`/`RadioField` render. */
 export interface StaticOption {
-	value: string;
 	label: string;
+	value: string;
 }
 
 /**

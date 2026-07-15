@@ -4,11 +4,11 @@ import type { PermissionCode } from "@/api/endpoints/users";
 import type { PermissionOption } from "./permissionOptions";
 
 interface PermissionRadiosProps {
+	disabled?: boolean;
 	name: string;
-	value: PermissionCode | undefined;
 	onChange: (next: PermissionCode) => void;
 	options: PermissionOption[];
-	disabled?: boolean;
+	value: PermissionCode | undefined;
 }
 
 /**
@@ -35,15 +35,15 @@ export const PermissionRadios = ({
 
 				return (
 					<Radio
-						key={opt.value}
-						name={name}
-						value={opt.value}
-						size="sm"
-						className="justify-center"
-						title={opt.label}
 						ariaLabel={opt.label}
 						checked={checked}
+						className="justify-center"
 						disabled={disabled}
+						key={opt.value}
+						name={name}
+						size="sm"
+						title={opt.label}
+						value={opt.value}
 						onChange={() => onChange(opt.value)}
 					/>
 				);

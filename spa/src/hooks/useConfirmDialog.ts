@@ -1,15 +1,15 @@
 import { useState } from "react";
 
 export interface UseConfirmDialogResult<T> {
-	item: T | null;
-	isOpen: boolean;
-	open: (item: T) => void;
 	close: () => void;
 	/** Spread onto `<ConfirmDialog>`: `open` + `onOpenChange` (closes on dismiss). */
 	dialogProps: {
 		open: boolean;
 		onOpenChange: (open: boolean) => void;
 	};
+	isOpen: boolean;
+	item: T | null;
+	open: (item: T) => void;
 }
 
 export function useConfirmDialog<T = unknown>(): UseConfirmDialogResult<T> {

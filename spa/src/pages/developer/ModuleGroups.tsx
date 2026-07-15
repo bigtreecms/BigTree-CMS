@@ -12,7 +12,7 @@ const columns: DataTableColumn<ModuleGroup>[] = [
 		key: "name",
 		header: "Name",
 		width: "minmax(0,2fr)",
-		cell: (row) => <NameIdCell name={row.name} id={row.id} />,
+		cell: (row) => <NameIdCell id={row.id} name={row.name} />,
 	},
 	{
 		key: "route",
@@ -40,22 +40,22 @@ const columns: DataTableColumn<ModuleGroup>[] = [
 
 export const ModuleGroups = () => (
 	<DeveloperListPage<ModuleGroup>
-		title="Module groups"
-		countNoun="group"
-		route="/developer/module-groups"
 		addLabel="Add group"
-		loadingLabel="Loading groups…"
-		emptyLabel="No module groups yet."
-		queryKey={queryKeys.moduleGroups.list()}
-		invalidateKey={queryKeys.moduleGroups.root()}
-		list={() => modulesApi.listGroups()}
-		remove={(id) => modulesApi.deleteGroup(id)}
 		columns={columns}
-		getRowKey={(row) => row.id}
+		confirmDescription="Modules in this group keep their definitions but lose their grouping on the Modules tab."
+		confirmLabel="Delete group"
+		countNoun="group"
 		deleteButtonLabel="Delete group"
 		deleteSuccessMessage="Module group deleted"
+		emptyLabel="No module groups yet."
+		getRowKey={(row) => row.id}
+		invalidateKey={queryKeys.moduleGroups.root()}
+		list={() => modulesApi.listGroups()}
+		loadingLabel="Loading groups…"
+		queryKey={queryKeys.moduleGroups.list()}
+		remove={(id) => modulesApi.deleteGroup(id)}
+		route="/developer/module-groups"
 		rowLabel={(row) => row.name}
-		confirmLabel="Delete group"
-		confirmDescription="Modules in this group keep their definitions but lose their grouping on the Modules tab."
+		title="Module groups"
 	/>
 );

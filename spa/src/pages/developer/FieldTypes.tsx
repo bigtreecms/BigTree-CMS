@@ -23,7 +23,7 @@ const columns: DataTableColumn<Row>[] = [
 		key: "name",
 		header: "Name",
 		width: "minmax(0,1.5fr)",
-		cell: (row) => <NameIdCell name={row.name || row.id} id={row.id} />,
+		cell: (row) => <NameIdCell id={row.id} name={row.name || row.id} />,
 	},
 	{
 		key: "use_cases",
@@ -62,26 +62,26 @@ const columns: DataTableColumn<Row>[] = [
 
 export const FieldTypes = () => (
 	<DeveloperListPage<Row>
-		title="Field types"
-		countNoun="custom field type"
-		route="/developer/field-types"
 		addLabel="Add custom type"
-		loadingLabel="Loading field types…"
+		columns={columns}
+		confirmDescription="Any field already using this type will fall through to the StubField renderer until it's reassigned."
+		confirmLabel="Delete"
+		countNoun="custom field type"
+		deleteButtonLabel="Delete field type"
+		deleteSuccessMessage="Field type deleted"
 		emptyLabel="No custom field types yet."
-		queryKey={queryKeys.fieldTypes.split()}
+		getRowKey={(row) => row.id}
 		invalidateKey={queryKeys.fieldTypes.root()}
 		list={async () =>
 			Object.values((await fieldTypesApi.listSplit()).custom ?? {}).sort((a, b) =>
 				a.id.localeCompare(b.id)
 			)
 		}
+		loadingLabel="Loading field types…"
+		queryKey={queryKeys.fieldTypes.split()}
 		remove={(id) => fieldTypesApi.delete(id)}
-		columns={columns}
-		getRowKey={(row) => row.id}
-		deleteButtonLabel="Delete field type"
-		deleteSuccessMessage="Field type deleted"
+		route="/developer/field-types"
 		rowLabel={(row) => row.name || row.id}
-		confirmLabel="Delete"
-		confirmDescription="Any field already using this type will fall through to the StubField renderer until it's reassigned."
+		title="Field types"
 	/>
 );

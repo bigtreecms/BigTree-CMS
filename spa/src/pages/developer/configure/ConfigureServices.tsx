@@ -21,8 +21,8 @@ import { queryKeys } from "@/lib/queryKeys";
 
 interface ServiceMeta {
 	id: string;
-	label: string;
 	keyLabel: string;
+	label: string;
 	secretLabel: string;
 	testEnv: boolean;
 }
@@ -142,9 +142,9 @@ export const ConfigureServices = () => {
 
 	return (
 		<ConfigureLayout
-			title="Services"
-			sub="Third-party social / business integrations. Enter each provider's credentials and connect — the OAuth handshake returns you here."
 			query={detailQ}
+			sub="Third-party social / business integrations. Enter each provider's credentials and connect — the OAuth handshake returns you here."
+			title="Services"
 		>
 			{detailQ.data && (
 				<div className="space-y-3">
@@ -183,17 +183,17 @@ export const ConfigureServices = () => {
 
 									<div className="flex items-center gap-2">
 										<DisclosureToggle
-											open={isOpen}
-											onToggle={() => setExpanded(isOpen ? null : s.id)}
 											className="gap-1.5 rounded-md border border-border bg-surface-2 px-3 py-1.5 text-[12.5px] font-medium text-text hover:bg-hover"
 											label={entry.connected ? "Reconnect" : "Connect"}
+											open={isOpen}
+											onToggle={() => setExpanded(isOpen ? null : s.id)}
 										/>
 
 										{entry.connected && (
 											<Button
+												icon={<Unplug size={13} />}
 												variant="dangerGhost"
 												onClick={() => disconnectDialog.open(s.id)}
-												icon={<Unplug size={13} />}
 											>
 												Disconnect
 											</Button>
@@ -206,26 +206,26 @@ export const ConfigureServices = () => {
 										<div className="grid grid-cols-1 gap-3 md:grid-cols-2">
 											<Field label={s.keyLabel}>
 												<TextInput
+													autoComplete="off"
 													value={draft.key}
 													onChange={(e) =>
 														setDraft(s.id, { key: e.target.value })
 													}
-													autoComplete="off"
 												/>
 											</Field>
 											<Field label={s.secretLabel}>
 												<TextInput
-													type="password"
-													value={draft.secret}
+													autoComplete="off"
 													placeholder={
 														entry.has_secret
 															? "•••••••• (stored, leave blank to keep)"
 															: ""
 													}
+													type="password"
+													value={draft.secret}
 													onChange={(e) =>
 														setDraft(s.id, { secret: e.target.value })
 													}
-													autoComplete="off"
 												/>
 											</Field>
 										</div>
@@ -243,8 +243,8 @@ export const ConfigureServices = () => {
 
 										{s.testEnv && (
 											<Checkbox
-												label="Use the test / sandbox environment"
 												checked={!!draft.test_environment}
+												label="Use the test / sandbox environment"
 												onChange={(test_environment) =>
 													setDraft(s.id, { test_environment })
 												}
@@ -252,12 +252,12 @@ export const ConfigureServices = () => {
 										)}
 
 										<Button
-											variant="primary"
 											disabled={
 												connectMutation.isPending ||
 												!draft.key.trim() ||
 												(!draft.secret.trim() && !entry.has_secret)
 											}
+											variant="primary"
 											onClick={() =>
 												connectMutation.mutate({
 													service: s.id,
@@ -280,9 +280,9 @@ export const ConfigureServices = () => {
 			{disconnectDialog.item && (
 				<ConfirmDialog
 					{...disconnectDialog.dialogProps}
-					title="Disconnect this service?"
-					description="Any module fields that pull from this service will stop working until reconnected."
 					confirmLabel="Disconnect"
+					description="Any module fields that pull from this service will stop working until reconnected."
+					title="Disconnect this service?"
 					variant="danger"
 					onConfirm={() => disconnectMutation.mutate(disconnectDialog.item!)}
 				/>

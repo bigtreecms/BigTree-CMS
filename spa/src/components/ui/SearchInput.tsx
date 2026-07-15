@@ -1,16 +1,16 @@
 import { Search, X } from "lucide-react";
 
 interface SearchInputProps {
-	/** Current query string. */
-	value: string;
+	/** Accessible label for the field when there is no visible label. */
+	"aria-label"?: string;
+	autoFocus?: boolean;
+	/** Layout-only classes for the wrapper (width, margins, flex). `relative` is always applied. */
+	className?: string;
 	/** Called with the new query, and with `""` when the clear button is pressed. */
 	onChange: (value: string) => void;
 	placeholder?: string;
-	/** Layout-only classes for the wrapper (width, margins, flex). `relative` is always applied. */
-	className?: string;
-	autoFocus?: boolean;
-	/** Accessible label for the field when there is no visible label. */
-	"aria-label"?: string;
+	/** Current query string. */
+	value: string;
 }
 
 /**
@@ -30,23 +30,23 @@ export const SearchInput = ({
 }: SearchInputProps) => (
 	<div className={className ? `relative ${className}` : "relative"}>
 		<Search
-			size={14}
 			className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-text-3"
+			size={14}
 		/>
 		<input
+			aria-label={ariaLabel}
+			autoFocus={autoFocus}
 			className="w-full rounded-md border border-border bg-surface py-1.5 px-9 text-[13.5px] placeholder:text-text-3 focus:outline-none focus:ring-1 focus:ring-accent-ring"
 			placeholder={placeholder}
 			value={value}
 			onChange={(e) => onChange(e.target.value)}
-			autoFocus={autoFocus}
-			aria-label={ariaLabel}
 		/>
 		{value && (
 			<button
-				type="button"
-				className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-text-3 hover:bg-hover hover:text-text"
-				onClick={() => onChange("")}
 				aria-label="Clear search"
+				className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-text-3 hover:bg-hover hover:text-text"
+				type="button"
+				onClick={() => onChange("")}
 			>
 				<X size={14} />
 			</button>

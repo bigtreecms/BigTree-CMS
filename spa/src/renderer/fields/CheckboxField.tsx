@@ -12,10 +12,10 @@ export const CheckboxField = ({ field, value, onChange, disabled }: FieldCompone
 	return (
 		<label className="inline-flex cursor-pointer items-center gap-2 text-[13px] text-text-2">
 			<input
-				type="checkbox"
-				className="size-3.5 rounded border-border accent-accent disabled:cursor-not-allowed"
 				checked={checked}
+				className="size-3.5 rounded border-border accent-accent disabled:cursor-not-allowed"
 				disabled={disabled}
+				type="checkbox"
 				onChange={(event) => onChange(event.target.checked)}
 			/>
 			<span>{field.subtitle || "Yes"}</span>

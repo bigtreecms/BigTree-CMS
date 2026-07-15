@@ -36,14 +36,14 @@ export const DeveloperSectionNav = () => {
 
 				return (
 					<Link
-						key={s.id}
-						to={s.to}
+						aria-current={isActive ? "page" : undefined}
 						className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-[12.5px] transition-colors ${
 							isActive
 								? "bg-accent-soft font-medium text-accent"
 								: "text-text-2 hover:bg-hover hover:text-text"
 						}`}
-						aria-current={isActive ? "page" : undefined}
+						key={s.id}
+						to={s.to}
 					>
 						{s.icon}
 						<span>{s.label}</span>

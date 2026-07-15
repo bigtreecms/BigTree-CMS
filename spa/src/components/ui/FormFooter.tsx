@@ -4,24 +4,24 @@ import type { ReactNode } from "react";
 import { Button } from "./Button";
 
 interface FormFooterProps {
-	/** Cancel destination — renders a `<Link>`. Use this or `onCancel`. */
-	cancelTo?: string;
-	/** Cancel handler — renders a plain button. Use this or `cancelTo`. */
-	onCancel?: () => void;
 	/** Cancel button label. Defaults to "Cancel". */
 	cancelLabel?: ReactNode;
-	/** Primary submit button label (e.g. "Save feed"). */
-	submitLabel: ReactNode;
-	/** Submit button icon. Defaults to a Save icon. */
-	submitIcon?: ReactNode;
-	/** Busy state for the submit button (e.g. `mutation.isPending`). */
-	loading?: boolean;
-	/** Label shown on the submit button while `loading` (e.g. "Saving…"). */
-	loadingLabel?: ReactNode;
+	/** Cancel destination — renders a `<Link>`. Use this or `onCancel`. */
+	cancelTo?: string;
 	/** Extra guard that disables submit (e.g. a validity flag). */
 	disabled?: boolean;
 	/** Optional action rendered far-left of the pair (e.g. a Delete button). */
 	extra?: ReactNode;
+	/** Busy state for the submit button (e.g. `mutation.isPending`). */
+	loading?: boolean;
+	/** Label shown on the submit button while `loading` (e.g. "Saving…"). */
+	loadingLabel?: ReactNode;
+	/** Cancel handler — renders a plain button. Use this or `cancelTo`. */
+	onCancel?: () => void;
+	/** Submit button icon. Defaults to a Save icon. */
+	submitIcon?: ReactNode;
+	/** Primary submit button label (e.g. "Save feed"). */
+	submitLabel: ReactNode;
 }
 
 /**
@@ -48,12 +48,12 @@ export const FormFooter = ({
 			{cancelLabel}
 		</Button>
 		<Button
-			variant="primary"
-			type="submit"
-			icon={submitIcon}
 			disabled={disabled}
+			icon={submitIcon}
 			loading={loading}
 			loadingLabel={loadingLabel}
+			type="submit"
+			variant="primary"
 		>
 			{submitLabel}
 		</Button>

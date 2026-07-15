@@ -80,19 +80,19 @@ export const ExtensionInstall = () => {
 			/>
 
 			<PageHead
-				title="Install extension"
-				sub="Upload an extension package (.zip). You'll review what it changes before it's installed."
 				actions={
 					<Button icon={<ChevronLeft size={13} />} to="/developer/extensions">
 						Back
 					</Button>
 				}
+				sub="Upload an extension package (.zip). You'll review what it changes before it's installed."
+				title="Install extension"
 			/>
 
 			<DeveloperSectionNav />
 
 			{error && (
-				<Alert tone="danger" className="mb-3">
+				<Alert className="mb-3" tone="danger">
 					{error}
 				</Alert>
 			)}
@@ -105,7 +105,7 @@ export const ExtensionInstall = () => {
 					</div>
 					{result.output ? (
 						<div>
-							<SectionLabel as="h3" size="sm" className="mb-1.5">
+							<SectionLabel as="h3" className="mb-1.5" size="sm">
 								Installer output
 							</SectionLabel>
 							<div
@@ -131,7 +131,7 @@ export const ExtensionInstall = () => {
 			) : preview ? (
 				<Card className="space-y-4 p-5">
 					<div className="flex items-center gap-2">
-						<Package size={16} className="text-text-3" />
+						<Package className="text-text-3" size={16} />
 						<span className="text-[14px] font-semibold text-text">
 							{preview.manifest.title} {preview.manifest.version}
 						</span>
@@ -144,9 +144,9 @@ export const ExtensionInstall = () => {
 
 					{preview.errors.length > 0 && (
 						<Alert
-							tone="danger"
 							icon={<AlertTriangle size={13} />}
 							title="Errors — fix these before installing"
+							tone="danger"
 						>
 							<ul className="list-disc space-y-1 pl-5 text-[12px]">
 								{preview.errors.map((e) => (
@@ -157,7 +157,7 @@ export const ExtensionInstall = () => {
 					)}
 
 					{preview.warnings.length > 0 && (
-						<Alert tone="warn" title="Warnings">
+						<Alert title="Warnings" tone="warn">
 							<ul className="list-disc space-y-1 pl-5 text-[12px] text-text-2">
 								{preview.warnings.map((w) => (
 									<li key={w}>{w}</li>
@@ -174,10 +174,10 @@ export const ExtensionInstall = () => {
 
 					<div className="flex gap-2">
 						<Button
-							variant="primary"
 							disabled={!preview.ready}
 							loading={processMutation.isPending}
 							loadingLabel="Installing…"
+							variant="primary"
 							onClick={() => processMutation.mutate()}
 						>
 							Install
@@ -190,18 +190,18 @@ export const ExtensionInstall = () => {
 			) : (
 				<Card className="space-y-4 p-5">
 					<input
+						accept=".zip,application/zip"
+						aria-label="Extension package file"
+						className="hidden"
 						ref={filePicker.inputRef}
 						type="file"
-						aria-label="Extension package file"
-						accept=".zip,application/zip"
-						className="hidden"
 						onChange={filePicker.onChange}
 					/>
 
 					<div className="flex flex-wrap items-center gap-3">
 						<Button
-							variant="secondary"
 							icon={<Upload size={13} />}
+							variant="secondary"
 							onClick={filePicker.open}
 						>
 							Choose package
@@ -212,10 +212,10 @@ export const ExtensionInstall = () => {
 					</div>
 
 					<Button
-						variant="primary"
 						disabled={!file}
 						loading={unpackMutation.isPending}
 						loadingLabel="Uploading…"
+						variant="primary"
 						onClick={() => file && unpackMutation.mutate(file)}
 					>
 						Upload & review

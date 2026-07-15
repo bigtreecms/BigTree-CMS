@@ -26,9 +26,9 @@ import { SectionLabel } from "@/components/ui/SectionLabel";
 /** A filter row in the editor; `rest` round-trips any non-edited filter config. */
 export interface FilterRow {
 	column: string;
+	rest: Omit<ModuleReportFilter, "title" | "type">;
 	title: string;
 	type: ModuleReportFilterType;
-	rest: Omit<ModuleReportFilter, "title" | "type">;
 }
 
 /** A CSV field row: a column mapped to a CSV heading. */
@@ -70,10 +70,10 @@ export const defaultFilterType = (column: DbOption): ModuleReportFilterType => {
 };
 
 interface AddColumnPickerProps {
-	label: string;
 	columns: DbOption[];
-	usedColumns: string[];
+	label: string;
 	onAdd: (column: DbOption) => void;
+	usedColumns: string[];
 }
 
 /** Dropdown that offers the table columns not yet present in a list. */
@@ -86,7 +86,7 @@ const AddColumnPicker = ({ label, columns, usedColumns, onAdd }: AddColumnPicker
 
 	return (
 		<div className="mt-2 inline-flex items-center gap-1.5">
-			<Plus size={13} className="text-text-3" />
+			<Plus className="text-text-3" size={13} />
 			<Select
 				compact
 				value=""
@@ -119,7 +119,7 @@ interface DeleteButtonProps {
 }
 
 const DeleteButton = ({ onClick }: DeleteButtonProps) => (
-	<IconButton tone="danger" onClick={onClick} title="Remove" label="Remove">
+	<IconButton label="Remove" title="Remove" tone="danger" onClick={onClick}>
 		<Trash size={13} />
 	</IconButton>
 );
@@ -131,10 +131,10 @@ const ColumnTag = ({ column }: { column: string }) => (
 );
 
 interface ReportFiltersEditorProps {
-	rows: FilterRow[];
-	onChange: (rows: FilterRow[]) => void;
 	columns: DbOption[];
 	loading?: boolean;
+	onChange: (rows: FilterRow[]) => void;
+	rows: FilterRow[];
 }
 
 export const ReportFiltersEditor = ({
@@ -174,24 +174,24 @@ export const ReportFiltersEditor = ({
 
 						return (
 							<li
-								key={`${row.column}-${index}`}
 								className={rowClasses(isDragging, isDropTarget)}
+								key={`${row.column}-${index}`}
 								onDragOver={(e) => drag.onDragOver(e, index)}
 								onDrop={drag.onDrop}
 							>
 								<DragHandle
 									draggable
-									onDragStart={(e) => drag.onDragStart(e, index)}
 									onDragEnd={drag.onDragEnd}
+									onDragStart={(e) => drag.onDragStart(e, index)}
 								/>
 								<ColumnTag column={row.column} />
 								<TextInput
 									compact
-									className="min-w-0 flex-1"
-									value={row.title}
 									aria-label="Filter label"
-									onChange={(e) => setRow(index, { title: e.target.value })}
+									className="min-w-0 flex-1"
 									placeholder="Filter label"
+									value={row.title}
+									onChange={(e) => setRow(index, { title: e.target.value })}
 								/>
 								<Select
 									compact
@@ -219,8 +219,8 @@ export const ReportFiltersEditor = ({
 				<Loading className="mt-2" label="Loading columns…" />
 			) : (
 				<AddColumnPicker
-					label="Add filter column…"
 					columns={columns}
+					label="Add filter column…"
 					usedColumns={rows.map((r) => r.column)}
 					onAdd={addColumn}
 				/>
@@ -230,10 +230,10 @@ export const ReportFiltersEditor = ({
 };
 
 interface ReportFieldsEditorProps {
-	rows: FieldRow[];
-	onChange: (rows: FieldRow[]) => void;
 	columns: DbOption[];
 	loading?: boolean;
+	onChange: (rows: FieldRow[]) => void;
+	rows: FieldRow[];
 }
 
 export const ReportFieldsEditor = ({
@@ -268,24 +268,24 @@ export const ReportFieldsEditor = ({
 
 						return (
 							<li
-								key={`${row.column}-${index}`}
 								className={rowClasses(isDragging, isDropTarget)}
+								key={`${row.column}-${index}`}
 								onDragOver={(e) => drag.onDragOver(e, index)}
 								onDrop={drag.onDrop}
 							>
 								<DragHandle
 									draggable
-									onDragStart={(e) => drag.onDragStart(e, index)}
 									onDragEnd={drag.onDragEnd}
+									onDragStart={(e) => drag.onDragStart(e, index)}
 								/>
 								<ColumnTag column={row.column} />
 								<TextInput
 									compact
-									className="min-w-0 flex-1"
-									value={row.title}
 									aria-label="CSV heading"
-									onChange={(e) => setRow(index, { title: e.target.value })}
+									className="min-w-0 flex-1"
 									placeholder="CSV heading"
+									value={row.title}
+									onChange={(e) => setRow(index, { title: e.target.value })}
 								/>
 								<DeleteButton onClick={() => removeRow(index)} />
 							</li>
@@ -297,8 +297,8 @@ export const ReportFieldsEditor = ({
 				<Loading className="mt-2" label="Loading columns…" />
 			) : (
 				<AddColumnPicker
-					label="Add CSV column…"
 					columns={columns}
+					label="Add CSV column…"
 					usedColumns={rows.map((r) => r.column)}
 					onAdd={addColumn}
 				/>

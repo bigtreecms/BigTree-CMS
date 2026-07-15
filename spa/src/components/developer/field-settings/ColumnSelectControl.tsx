@@ -21,13 +21,13 @@ export const ColumnSelectControl = ({ descriptor, settings, onPatch }: ControlPr
 
 	if (table === "") {
 		return (
-			<ControlShell label={descriptor.label} hint={descriptor.hint} note={descriptor.note}>
+			<ControlShell hint={descriptor.hint} label={descriptor.label} note={descriptor.note}>
 				<input
-					type="text"
 					disabled
 					readOnly
-					value="Please select a table first"
 					className="w-full cursor-not-allowed rounded-md border border-border bg-surface-2 px-3 py-1.5 text-[13px] text-text-3"
+					type="text"
+					value="Please select a table first"
 				/>
 			</ControlShell>
 		);
@@ -37,11 +37,11 @@ export const ColumnSelectControl = ({ descriptor, settings, onPatch }: ControlPr
 	const missing = value !== "" && !options.some((o) => o.value === value);
 
 	return (
-		<ControlShell label={descriptor.label} hint={descriptor.hint} note={descriptor.note}>
+		<ControlShell hint={descriptor.hint} label={descriptor.label} note={descriptor.note}>
 			<Select
 				dense
-				value={value}
 				disabled={columnsQ.isLoading}
+				value={value}
 				onChange={(e) => onPatch({ [descriptor.id]: e.target.value })}
 			>
 				<option value="" />

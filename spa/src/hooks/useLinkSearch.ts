@@ -13,29 +13,29 @@ import { queryKeys } from "@/lib/queryKeys";
 const MIN_QUERY_LENGTH = 2;
 
 export interface UseLinkSearchOptions {
-	/** Federated search types: `["pages"]` for the link field, `["pages", "modules"]` for the finder. */
-	types: string[];
-	/** Cap per group — sent to the search endpoint and applied to the resource slice. */
-	limit: number;
 	/** Extra gate ANDed with the open state (e.g. a field whose search setting is off). */
 	enabled?: boolean;
+	/** Cap per group — sent to the search endpoint and applied to the resource slice. */
+	limit: number;
+	/** Federated search types: `["pages"]` for the link field, `["pages", "modules"]` for the finder. */
+	types: string[];
 }
 
 export interface UseLinkSearchResult {
-	query: string;
-	setQuery: (next: string) => void;
-	setOpen: (next: boolean) => void;
 	/** Attach to the element that should keep the dropdown open while clicked inside. */
 	containerRef: RefObject<HTMLDivElement>;
-	/** The dropdown is open, enabled, and the debounced query is long enough to query on. */
-	shouldSearch: boolean;
-	pages: SearchPage[];
-	modules: SearchModule[];
 	files: ResourceSummary[];
-	/** Both queries are still in flight. */
-	isFetching: boolean;
 	/** At least one query has returned for the current search. */
 	hasData: boolean;
+	/** Both queries are still in flight. */
+	isFetching: boolean;
+	modules: SearchModule[];
+	pages: SearchPage[];
+	query: string;
+	setOpen: (next: boolean) => void;
+	setQuery: (next: string) => void;
+	/** The dropdown is open, enabled, and the debounced query is long enough to query on. */
+	shouldSearch: boolean;
 }
 
 /**

@@ -72,14 +72,14 @@ export const ConfigureMediaPresets = () => {
 
 	return (
 		<ConfigureLayout
-			title="Media presets"
-			sub="Reusable image-field configurations — minimum dimensions, crops, thumbnails. Save the dropdown of choices an editor sees on every image field."
 			actions={
-				<Button variant="primary" icon={<Plus size={13} />} onClick={addPreset}>
+				<Button icon={<Plus size={13} />} variant="primary" onClick={addPreset}>
 					Add preset
 				</Button>
 			}
 			query={detailQ}
+			sub="Reusable image-field configurations — minimum dimensions, crops, thumbnails. Save the dropdown of choices an editor sees on every image field."
+			title="Media presets"
 		>
 			{generalError && <ErrorPanel message={generalError} />}
 
@@ -97,10 +97,10 @@ export const ConfigureMediaPresets = () => {
 						<Card key={p.id}>
 							<div className="flex items-center gap-2 p-3">
 								<IconButton
+									ariaExpanded={isOpen}
 									label={isOpen ? "Collapse" : "Expand"}
 									size="sm"
 									onClick={() => setExpanded(isOpen ? null : p.id)}
-									ariaExpanded={isOpen}
 								>
 									{isOpen ? (
 										<ChevronDown size={15} />
@@ -110,16 +110,16 @@ export const ConfigureMediaPresets = () => {
 								</IconButton>
 
 								<TextInput
-									value={(p.name as string) ?? ""}
 									placeholder="Preset name"
+									value={(p.name as string) ?? ""}
 									onChange={(e) => update(p.id, { name: e.target.value })}
 								/>
 
 								<IconButton
+									className="border border-border bg-surface-2 p-2"
 									label="Delete preset"
 									title="Delete preset"
 									tone="danger"
-									className="border border-border bg-surface-2 p-2"
 									onClick={() => deleteDialog.open(p.id)}
 								>
 									<Trash size={13} />
@@ -142,11 +142,11 @@ export const ConfigureMediaPresets = () => {
 			{presets.length > 0 && (
 				<div className="sticky bottom-4 mt-4 flex justify-end">
 					<Button
-						variant="primary"
 						icon={<Save size={13} />}
-						onClick={() => saveMutation.mutate(presets)}
 						loading={saveMutation.isPending}
 						loadingLabel="Saving…"
+						variant="primary"
+						onClick={() => saveMutation.mutate(presets)}
 					>
 						Save all
 					</Button>
@@ -156,9 +156,9 @@ export const ConfigureMediaPresets = () => {
 			{deleteDialog.item && (
 				<ConfirmDialog
 					{...deleteDialog.dialogProps}
-					title="Delete this preset?"
-					description="Image fields referencing it will fall back to their inline settings."
 					confirmLabel="Delete"
+					description="Image fields referencing it will fall back to their inline settings."
+					title="Delete this preset?"
 					variant="danger"
 					onConfirm={() => remove(deleteDialog.item!)}
 				/>

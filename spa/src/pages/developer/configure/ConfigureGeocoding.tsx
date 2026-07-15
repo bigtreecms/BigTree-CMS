@@ -32,8 +32,8 @@ const SERVICES: Array<{ id: GeocodingServiceId; label: string; help: React.React
 				<a
 					className="text-accent underline"
 					href="https://developers.google.com/maps/documentation/geocoding/start"
-					target="_blank"
 					rel="noreferrer"
+					target="_blank"
 				>
 					Getting Started
 				</a>
@@ -77,33 +77,33 @@ export const ConfigureGeocoding = () => {
 
 	return (
 		<ConfigureLayout
-			title="Geocoding"
-			sub="Powers address → lat/lng lookups for Geocoding fields and the Google Maps Static API thumbnails."
 			query={detailQ}
+			sub="Powers address → lat/lng lookups for Geocoding fields and the Google Maps Static API thumbnails."
+			title="Geocoding"
 		>
 			{draft && (
 				<FormShell
-					onSubmit={onSubmit}
 					footer={
 						<Button
-							variant="primary"
-							type="submit"
 							icon={<Save size={13} />}
 							loading={saveMutation.isPending}
 							loadingLabel="Saving…"
+							type="submit"
+							variant="primary"
 						>
 							Save
 						</Button>
 					}
+					onSubmit={onSubmit}
 				>
 					{generalError && <ErrorPanel message={generalError} />}
 
 					<SelectField
+						hint={active.help}
 						label="Service"
+						options={SERVICES.map((s) => ({ value: s.id, label: s.label }))}
 						value={draft.service}
 						onChange={(v) => setDraft({ ...draft, service: v as GeocodingServiceId })}
-						options={SERVICES.map((s) => ({ value: s.id, label: s.label }))}
-						hint={active.help}
 					/>
 
 					<div className="mt-4 space-y-3">

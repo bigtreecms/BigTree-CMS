@@ -4,18 +4,18 @@ import { Upload } from "lucide-react";
 import { useFilePicker } from "@/hooks/useFilePicker";
 
 interface UploadButtonProps {
-	/** Called with the chosen file. The input is reset afterward so the same file can be re-picked. */
-	onSelect: (file: File) => void;
-	/** Button label. */
-	label: ReactNode;
 	/** `accept` attribute for the underlying file input (e.g. ".json", ".pem"). */
 	accept?: string;
+	/** Tailwind overrides for the button. */
+	className?: string;
 	/** Disables the control (e.g. while an upload is in flight). */
 	disabled?: boolean;
 	/** Override the leading icon. Defaults to an upload glyph. */
 	icon?: ReactNode;
-	/** Tailwind overrides for the button. */
-	className?: string;
+	/** Button label. */
+	label: ReactNode;
+	/** Called with the chosen file. The input is reset afterward so the same file can be re-picked. */
+	onSelect: (file: File) => void;
 }
 
 /**
@@ -36,24 +36,24 @@ export const UploadButton = ({
 	return (
 		<>
 			<button
-				type="button"
-				disabled={disabled}
-				onClick={open}
 				className={
 					className ??
 					"inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-[12.5px] font-medium text-accent-fg hover:bg-accent-hover disabled:opacity-60"
 				}
+				disabled={disabled}
+				type="button"
+				onClick={open}
 			>
 				{icon ?? <Upload size={13} />}
 				{label}
 			</button>
 
 			<input
-				ref={inputRef}
-				type="file"
 				accept={accept}
 				aria-label={typeof label === "string" ? label : "Choose file"}
 				className="hidden"
+				ref={inputRef}
+				type="file"
 				onChange={onChange}
 			/>
 		</>

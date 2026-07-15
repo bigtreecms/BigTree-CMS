@@ -12,7 +12,7 @@ interface PendingBadgeProps {
 }
 
 export const PendingBadge = ({ label = "Pending" }: PendingBadgeProps) => (
-	<Badge tone="warn" dot uppercase>
+	<Badge dot uppercase tone="warn">
 		{label}
 	</Badge>
 );

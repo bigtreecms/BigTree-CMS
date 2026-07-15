@@ -32,10 +32,10 @@ export interface EmailConfig {
 export type GeocodingServiceId = "" | "google" | "bing" | "mapquest";
 
 export interface GeocodingConfig {
-	service: GeocodingServiceId;
-	google_key: string;
 	bing_key: string;
+	google_key: string;
 	mapquest_key: string;
+	service: GeocodingServiceId;
 }
 
 export type CloudProvider = "amazon" | "rackspace" | "google";
@@ -46,16 +46,16 @@ export interface CloudProviderState {
 }
 
 export interface CloudStorageConfig {
-	default_service: "local" | CloudProvider;
 	default_container: string;
+	default_service: "local" | CloudProvider;
 	providers: Record<CloudProvider, CloudProviderState>;
 }
 
 /** One page of the paged S3 recache. Loop while `complete` is false. */
 export interface AmazonRecacheResponse {
+	cached: number;
 	complete: boolean;
 	marker: string | null;
-	cached: number;
 	processed: number;
 }
 
@@ -73,36 +73,36 @@ export interface PaymentGatewayConfig {
 }
 
 export interface AnalyticsStatus {
-	verified: boolean;
 	property_id: string;
 	service_account: string;
+	verified: boolean;
 }
 
 export interface ServiceState {
 	connected: boolean;
+	has_secret: boolean;
 	identity: string;
 	/** Stored client key/app id (not secret). */
 	key: string;
-	has_secret: boolean;
 	scope: string;
+	test_environment: boolean;
 	/** Whether this provider exposes an editable scope field. */
 	uses_scope: boolean;
-	test_environment: boolean;
 }
 
 export type ServicesIndex = Record<string, ServiceState>;
 
 export interface ServiceCredentials {
 	key: string;
-	secret: string;
 	scope?: string;
+	secret: string;
 	test_environment?: boolean;
 }
 
 export interface MediaPreset {
+	[key: string]: unknown;
 	id: string;
 	name: string;
-	[key: string]: unknown;
 }
 
 export interface MediaPresetsConfig {
@@ -111,10 +111,10 @@ export interface MediaPresetsConfig {
 
 export interface FileMetadataField {
 	id: string;
-	title: string;
-	subtitle: string;
-	type: string;
 	settings: Record<string, unknown>;
+	subtitle: string;
+	title: string;
+	type: string;
 }
 
 export interface FileMetadataConfig {
@@ -131,39 +131,39 @@ export interface AiModelOption {
 }
 
 export interface AiConfig {
-	service: AiServiceId;
 	/** Always empty from the server; send a new key or "" to leave stored. */
 	api_key: string;
 	api_key_set: boolean;
+	configured: boolean;
 	/** Always empty from the server; OpenAI key used only for embeddings. */
 	embedding_api_key: string;
 	embedding_api_key_set: boolean;
-	model: string;
+	embedding_dimensions: number;
+	/** True when chat is not OpenAI — a dedicated embedding API key is required. */
+	embedding_key_required: boolean;
 	embedding_model: string;
+	/** Allowlisted OpenAI embedding models keyed by chat service id. */
+	embedding_models: Record<string, AiModelOption[]>;
+	/** True when bigtree_ai_embeddings table exists. */
+	embeddings_ready: boolean;
+	/** True when MySQL 9+ / MariaDB 11.7+ VECTOR is available. */
+	embeddings_supported: boolean;
 	features: {
 		search: boolean;
 		chat: boolean;
 		embeddings: boolean;
 	};
-	configured: boolean;
+	model: string;
 	/** Allowlisted chat models keyed by service id. */
 	models: Record<string, AiModelOption[]>;
-	/** Allowlisted OpenAI embedding models keyed by chat service id. */
-	embedding_models: Record<string, AiModelOption[]>;
-	/** True when MySQL 9+ / MariaDB 11.7+ VECTOR is available. */
-	embeddings_supported: boolean;
-	/** True when bigtree_ai_embeddings table exists. */
-	embeddings_ready: boolean;
-	embedding_dimensions: number;
-	/** True when chat is not OpenAI — a dedicated embedding API key is required. */
-	embedding_key_required: boolean;
+	service: AiServiceId;
 }
 
 export interface AiEmbeddingsReindexResult {
 	complete: boolean;
+	indexed: number;
 	page: number;
 	pages: number;
-	indexed: number;
 	response: string;
 }
 

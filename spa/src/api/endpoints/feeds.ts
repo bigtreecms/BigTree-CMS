@@ -9,23 +9,23 @@ import type { ModuleFormField } from "@/api/endpoints/modules";
  */
 
 export interface FeedSummary {
+	description: string;
+	fields: ModuleFormField[];
 	id: string;
 	name: string;
-	description: string;
+	settings: Record<string, unknown> | unknown[];
 	table: string;
 	type: string;
-	settings: Record<string, unknown> | unknown[];
-	fields: ModuleFormField[];
 }
 
 export interface FeedEditBody {
+	description?: string;
+	fields?: ModuleFormField[];
 	id?: string;
 	name?: string;
-	description?: string;
+	settings?: Record<string, unknown> | unknown[];
 	table?: string;
 	type?: string;
-	settings?: Record<string, unknown> | unknown[];
-	fields?: ModuleFormField[];
 }
 
 export const feedsApi = { ...crudEndpoints<FeedSummary, FeedEditBody>("/feeds") };

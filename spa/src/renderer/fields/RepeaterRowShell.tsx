@@ -7,30 +7,30 @@ import { IconButton } from "@/components/ui/IconButton";
 import { CollapsibleRowHeader } from "./CollapsibleRowHeader";
 
 interface RepeaterRowShellProps {
-	index: number;
-	total: number;
-	expanded: boolean;
-	onToggle: () => void;
-	onMove: (dir: "up" | "down") => void;
-	onDelete: () => void;
-	/** Disables the move/delete row actions (not the panel body). */
-	disabled?: boolean;
-	/** id shared by the toggle's `aria-controls` and the panel element. */
-	panelId: string;
-	title: ReactNode;
-	subtitle?: ReactNode;
-	/** Status pills rendered after the title (Callouts' Locked / Missing type). */
-	trailing?: ReactNode;
-	/** Stack title over subtitle (MediaGallery's taller row). */
-	stacked?: boolean;
-	/** Disables the expand toggle itself — e.g. a callout whose type is missing. */
-	headerDisabled?: boolean;
-	/** Leading cell before the title region (MediaGallery's thumbnail). */
-	leading?: ReactNode;
-	/** Overrides the `<li>` wrapper classes (Matrix's callout-style variant). */
-	className?: string;
 	/** Panel body rendered when expanded. */
 	children: ReactNode;
+	/** Overrides the `<li>` wrapper classes (Matrix's callout-style variant). */
+	className?: string;
+	/** Disables the move/delete row actions (not the panel body). */
+	disabled?: boolean;
+	expanded: boolean;
+	/** Disables the expand toggle itself — e.g. a callout whose type is missing. */
+	headerDisabled?: boolean;
+	index: number;
+	/** Leading cell before the title region (MediaGallery's thumbnail). */
+	leading?: ReactNode;
+	onDelete: () => void;
+	onMove: (dir: "up" | "down") => void;
+	onToggle: () => void;
+	/** id shared by the toggle's `aria-controls` and the panel element. */
+	panelId: string;
+	/** Stack title over subtitle (MediaGallery's taller row). */
+	stacked?: boolean;
+	subtitle?: ReactNode;
+	title: ReactNode;
+	total: number;
+	/** Status pills rendered after the title (Callouts' Locked / Missing type). */
+	trailing?: ReactNode;
 }
 
 const DEFAULT_WRAPPER = "rounded-md border border-border bg-surface";
@@ -68,10 +68,10 @@ export const RepeaterRowShell = ({
 			}
 		>
 			<IconButton
+				disabled={disabled || index === 0}
 				label="Move up"
 				title="Move up"
 				onClick={() => onMove("up")}
-				disabled={disabled || index === 0}
 			>
 				<GripVertical size={13} />
 			</IconButton>
@@ -79,38 +79,38 @@ export const RepeaterRowShell = ({
 			{leading}
 
 			<CollapsibleRowHeader
-				open={expanded}
-				onToggle={onToggle}
 				controls={panelId}
-				title={title}
-				subtitle={subtitle}
-				trailing={trailing}
-				stacked={stacked}
 				disabled={headerDisabled}
+				open={expanded}
+				stacked={stacked}
+				subtitle={subtitle}
+				title={title}
+				trailing={trailing}
+				onToggle={onToggle}
 			/>
 
 			<IconButton
+				disabled={disabled}
 				label="Delete item"
 				title="Delete item"
 				tone="danger"
 				onClick={onDelete}
-				disabled={disabled}
 			>
 				<Trash size={13} />
 			</IconButton>
 		</div>
 
 		{expanded && (
-			<div id={panelId} className="border-t border-border px-3 pb-1 pt-3">
+			<div className="border-t border-border px-3 pb-1 pt-3" id={panelId}>
 				{children}
 
 				{index < total - 1 && (
 					<Button
-						variant="secondary"
-						size="sm"
 						className="mb-2"
-						onClick={() => onMove("down")}
 						disabled={disabled}
+						size="sm"
+						variant="secondary"
+						onClick={() => onMove("down")}
 					>
 						Move down
 					</Button>

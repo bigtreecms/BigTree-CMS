@@ -3,13 +3,13 @@ import { useCallback, useState } from "react";
 import type { Area } from "react-easy-crop";
 
 export interface ImageCropController {
-	crop: { x: number; y: number };
-	zoom: number;
 	areaPixels: Area | null;
-	setCrop: (crop: { x: number; y: number }) => void;
-	setZoom: (zoom: number) => void;
+	crop: { x: number; y: number };
 	onCropComplete: (_: Area, areaPx: Area) => void;
 	reset: () => void;
+	setCrop: (crop: { x: number; y: number }) => void;
+	setZoom: (zoom: number) => void;
+	zoom: number;
 }
 
 /**

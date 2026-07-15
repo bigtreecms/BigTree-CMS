@@ -20,26 +20,26 @@ import { api } from "@/api/client";
  * is `null` unless the caller is a publisher AND passes `include_encrypted=true`.
  */
 export interface SettingDetail {
-	id: string;
-	name: string;
 	description: string;
-	type: string;
-	settings: Record<string, unknown> | unknown[];
-	locked: boolean;
-	system: boolean;
 	encrypted: boolean;
 	extension: string | null;
+	id: string;
+	locked: boolean;
+	name: string;
+	settings: Record<string, unknown> | unknown[];
+	system: boolean;
+	type: string;
 	value: unknown;
 	/** True when the server intentionally withheld the encrypted value. */
 	value_omitted?: boolean;
 }
 
 export interface SettingListParams {
+	/** Include settings flagged as `system` (hidden from the main list by default). */
+	include_system?: boolean;
 	page?: number;
 	per_page?: number;
 	q?: string;
-	/** Include settings flagged as `system` (hidden from the main list by default). */
-	include_system?: boolean;
 }
 
 export const settingsApi = {
@@ -80,13 +80,13 @@ export const settingsApi = {
 };
 
 export interface SettingCreateBody {
-	id: string;
-	name?: string;
 	description?: string;
-	type?: string;
-	settings?: Record<string, unknown> | unknown[];
-	locked?: boolean;
-	system?: boolean;
 	encrypted?: boolean;
 	extension?: string;
+	id: string;
+	locked?: boolean;
+	name?: string;
+	settings?: Record<string, unknown> | unknown[];
+	system?: boolean;
+	type?: string;
 }

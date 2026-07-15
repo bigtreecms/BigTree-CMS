@@ -41,9 +41,9 @@ interface ModuleViewsTabProps {
 /** One editable column row; carries through `parser`/`numeric` untouched. */
 interface ColumnRow {
 	key: string;
-	title: string;
-	parser?: string;
 	numeric?: string | boolean;
+	parser?: string;
+	title: string;
 	/** Column width in px ("" = auto). The renderer uses it as a proportional weight. */
 	width?: string;
 }
@@ -220,19 +220,19 @@ export const ModuleViewsTab = ({ moduleId, moduleTable }: ModuleViewsTabProps) =
 	return (
 		<div className="space-y-3">
 			<SubList
-				isLoading={crud.isLoading}
-				loadingLabel="Loading views…"
 				emptyLabel="No views yet. A view is the list/table editors browse this module's entries in."
 				isEmpty={crud.items.length === 0}
+				isLoading={crud.isLoading}
+				loadingLabel="Loading views…"
 			>
 				{crud.items.map((v) => (
 					<SubRow
-						key={v.id}
-						title={v.title}
-						subtitle={v.table}
 						badge={v.type}
-						onEdit={() => crud.startEdit(v.id)}
+						key={v.id}
+						subtitle={v.table}
+						title={v.title}
 						onDelete={() => deleteDialog.open(v)}
+						onEdit={() => crud.startEdit(v.id)}
 					/>
 				))}
 			</SubList>
@@ -241,6 +241,8 @@ export const ModuleViewsTab = ({ moduleId, moduleTable }: ModuleViewsTabProps) =
 
 			{crud.editingId !== null && (
 				<EditorCard
+					saveLabel={crud.editingId === NEW_ROW ? "Create view" : "Save view"}
+					saving={crud.saving}
 					title={editorTitle}
 					onClose={crud.cancel}
 					onSave={() =>
@@ -249,36 +251,34 @@ export const ModuleViewsTab = ({ moduleId, moduleTable }: ModuleViewsTabProps) =
 							{ field: "table", label: "Data table", value: draft.table },
 						])
 					}
-					saving={crud.saving}
-					saveLabel={crud.editingId === NEW_ROW ? "Create view" : "Save view"}
 				>
 					<FieldGrid>
 						<TextInput
+							required
+							error={crud.fieldErrors.title}
 							label="Title"
 							value={draft.title}
 							onChange={(v) => setDraft((p) => ({ ...p, title: v }))}
-							error={crud.fieldErrors.title}
-							required
 						/>
 						<DataTableSelect
+							required
+							error={crud.fieldErrors.table}
 							label="Data table"
 							value={draft.table}
 							onChange={(v) => setDraft((p) => ({ ...p, table: v }))}
-							error={crud.fieldErrors.table}
-							required
 						/>
 						<SelectInput
 							label="Type"
+							options={VIEW_TYPES.map((t) => ({ value: t, label: t }))}
 							value={draft.type}
 							onChange={(v) => setDraft((p) => ({ ...p, type: v as ModuleViewType }))}
-							options={VIEW_TYPES.map((t) => ({ value: t, label: t }))}
 						/>
 						<SelectInput
+							hint="The form opened when editing a row."
 							label="Related form"
+							options={formOptions}
 							value={draft.related_form}
 							onChange={(v) => setDraft((p) => ({ ...p, related_form: v }))}
-							options={formOptions}
-							hint="The form opened when editing a row."
 						/>
 					</FieldGrid>
 
@@ -290,19 +290,19 @@ export const ModuleViewsTab = ({ moduleId, moduleTable }: ModuleViewsTabProps) =
 
 					<div className="grid grid-cols-1 gap-4 md:grid-cols-3">
 						<TextInput
+							mono
 							label="Sort column"
 							value={draft.sort_column}
 							onChange={(v) => setDraft((p) => ({ ...p, sort_column: v }))}
-							mono
 						/>
 						<SelectInput
 							label="Sort direction"
-							value={draft.sort_direction}
-							onChange={(v) => setDraft((p) => ({ ...p, sort_direction: v }))}
 							options={[
 								{ value: "DESC", label: "Descending" },
 								{ value: "ASC", label: "Ascending" },
 							]}
+							value={draft.sort_direction}
+							onChange={(v) => setDraft((p) => ({ ...p, sort_direction: v }))}
 						/>
 						<TextInput
 							label="Per page"
@@ -312,11 +312,11 @@ export const ModuleViewsTab = ({ moduleId, moduleTable }: ModuleViewsTabProps) =
 					</div>
 
 					<TextInput
+						mono
+						hint="Optional SQL filter applied to every query in this view."
 						label="Filter (WHERE clause)"
 						value={draft.filter}
 						onChange={(v) => setDraft((p) => ({ ...p, filter: v }))}
-						hint="Optional SQL filter applied to every query in this view."
-						mono
 					/>
 
 					<div>
@@ -336,7 +336,6 @@ export const ModuleViewsTab = ({ moduleId, moduleTable }: ModuleViewsTabProps) =
 
 									return (
 										<li
-											key={index}
 											className={`flex items-center gap-2 rounded-md border border-border bg-surface px-2 py-1.5 transition-colors ${
 												isDragging ? "bg-accent-soft shadow-md" : ""
 											} ${
@@ -344,50 +343,51 @@ export const ModuleViewsTab = ({ moduleId, moduleTable }: ModuleViewsTabProps) =
 													? "shadow-[inset_0_2px_0_0_var(--color-accent)]"
 													: ""
 											}`}
+											key={index}
 											onDragOver={(e) => columnDrag.onDragOver(e, index)}
 											onDrop={columnDrag.onDrop}
 										>
 											<DragHandle
 												draggable
+												onDragEnd={columnDrag.onDragEnd}
 												onDragStart={(e) =>
 													columnDrag.onDragStart(e, index)
 												}
-												onDragEnd={columnDrag.onDragEnd}
 											/>
 											<DataColumnSelect
+												ariaLabel="Column"
+												className="w-48 shrink-0"
 												table={draft.table}
 												value={col.key}
 												onChange={(v) => setColumn(index, { key: v })}
-												ariaLabel="Column"
-												className="w-48 shrink-0"
 											/>
 											<BareTextInput
 												compact
-												value={col.title}
 												aria-label="Column heading"
+												className="flex-1"
+												placeholder="Heading"
+												value={col.title}
 												onChange={(e) =>
 													setColumn(index, { title: e.target.value })
 												}
-												placeholder="Heading"
-												className="flex-1"
 											/>
 											<BareTextInput
 												compact
-												type="number"
+												aria-label="Column width"
+												className="w-20 shrink-0 tabular-nums"
 												min={0}
+												placeholder="auto"
+												title="Column width in px (relative weight; blank = auto)"
+												type="number"
 												value={col.width ?? ""}
 												onChange={(e) =>
 													setColumn(index, { width: e.target.value })
 												}
-												placeholder="auto"
-												title="Column width in px (relative weight; blank = auto)"
-												aria-label="Column width"
-												className="w-20 shrink-0 tabular-nums"
 											/>
 											<IconButton
+												label="Remove column"
 												tone="danger"
 												onClick={() => removeColumn(index)}
-												label="Remove column"
 											>
 												<Trash size={13} />
 											</IconButton>
@@ -397,12 +397,12 @@ export const ModuleViewsTab = ({ moduleId, moduleTable }: ModuleViewsTabProps) =
 							</ul>
 						)}
 						<Button
-							variant="secondary"
-							icon={<Plus size={13} />}
 							className="mt-2"
 							disabled={!draft.table}
-							onClick={addColumn}
+							icon={<Plus size={13} />}
 							title={draft.table ? undefined : "Select a data table first"}
+							variant="secondary"
+							onClick={addColumn}
 						>
 							Add column
 						</Button>
@@ -412,35 +412,35 @@ export const ModuleViewsTab = ({ moduleId, moduleTable }: ModuleViewsTabProps) =
 						<div>
 							<SectionLabel className="mb-2">{draft.type} settings</SectionLabel>
 							<ViewTypeSettingsControl
-								type={draft.type}
-								table={draft.table}
 								settings={draft.settings}
+								table={draft.table}
+								type={draft.type}
 								onChange={(s) => setDraft((p) => ({ ...p, settings: s }))}
 							/>
 						</div>
 					)}
 
 					<ViewActionsControl
-						value={draft.actions}
-						onChange={(v) => setDraft((p) => ({ ...p, actions: v }))}
 						columns={columnsQ.data ?? []}
 						loading={columnsQ.isLoading}
 						tableSelected={draft.table !== ""}
+						value={draft.actions}
+						onChange={(v) => setDraft((p) => ({ ...p, actions: v }))}
 					/>
 
 					<CheckboxInput
-						label="Exclude this view's rows from global search"
 						checked={draft.exclude_from_search}
+						label="Exclude this view's rows from global search"
 						onChange={(v) => setDraft((p) => ({ ...p, exclude_from_search: v }))}
 					/>
 				</EditorCard>
 			)}
 
 			<SubDeleteDialog
-				dialog={deleteDialog}
-				noun="view"
-				labelFor={(v) => v.title}
 				description="Actions and reports that reference this view will need to be repointed. Entry data is left intact."
+				dialog={deleteDialog}
+				labelFor={(v) => v.title}
+				noun="view"
 				onConfirm={(id) => crud.remove(id)}
 			/>
 		</div>

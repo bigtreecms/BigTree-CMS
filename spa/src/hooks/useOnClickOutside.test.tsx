@@ -6,8 +6,8 @@ import { useRef } from "react";
 import { useOnClickOutside } from "@/hooks/useOnClickOutside";
 
 interface ProbeProps {
-	handler: () => void;
 	enabled?: boolean;
+	handler: () => void;
 }
 
 const Probe = ({ handler, enabled }: ProbeProps) => {
@@ -17,7 +17,7 @@ const Probe = ({ handler, enabled }: ProbeProps) => {
 
 	return (
 		<div>
-			<div ref={ref} data-testid="inside">
+			<div data-testid="inside" ref={ref}>
 				inside
 			</div>
 
@@ -47,7 +47,7 @@ describe("useOnClickOutside", () => {
 
 	it("does nothing while disabled", () => {
 		const handler = vi.fn();
-		const { getByTestId } = render(<Probe handler={handler} enabled={false} />);
+		const { getByTestId } = render(<Probe enabled={false} handler={handler} />);
 
 		fireEvent.mouseDown(getByTestId("outside"));
 

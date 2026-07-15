@@ -1,6 +1,7 @@
 import type { HTMLAttributes, ReactNode } from "react";
 
 interface EmptyStateProps extends HTMLAttributes<HTMLDivElement> {
+	children: ReactNode;
 	/**
 	 * Use the dashed "drop zone / nothing here yet" treatment on a `surface-2`
 	 * background instead of the default solid card. Mirrors the two visual
@@ -14,7 +15,6 @@ interface EmptyStateProps extends HTMLAttributes<HTMLDivElement> {
 	 * selected" notices.
 	 */
 	size?: "sm" | "md";
-	children: ReactNode;
 }
 
 /**

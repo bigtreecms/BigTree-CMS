@@ -39,7 +39,7 @@ export const Paddings: Story = {
 export const WithHeader: Story = {
 	render: () => (
 		<Card className="overflow-hidden">
-			<CardHeader title="Traffic sources" description="Last 14 days" />
+			<CardHeader description="Last 14 days" title="Traffic sources" />
 			<div className="p-4 text-[13px] text-text-2">Body content goes here.</div>
 		</Card>
 	),
@@ -62,7 +62,7 @@ export const CustomHeader: Story = {
 export const WithFooter: Story = {
 	render: () => (
 		<Card className="overflow-hidden">
-			<CardHeader title="Account details" description="Required fields marked with *" />
+			<CardHeader description="Required fields marked with *" title="Account details" />
 			<div className="p-4 text-[13px] text-text-2">Form fields go here.</div>
 			<CardFooter>
 				<Button variant="secondary">Cancel</Button>
@@ -81,7 +81,7 @@ export const FooterWithSpacer: Story = {
 		<Card className="overflow-hidden">
 			<CardHeader title="Add subpage" />
 			<div className="p-4 text-[13px] text-text-2">Wizard step content.</div>
-			<CardFooter justify="start" className="flex-wrap items-center">
+			<CardFooter className="flex-wrap items-center" justify="start">
 				<Button variant="secondary">Back</Button>
 				<div className="hidden flex-1 sm:block" />
 				<Button variant="primary">Create</Button>
@@ -97,7 +97,7 @@ export const AsForm: Story = {
 			<CardHeader title="Account details" />
 			<div className="p-4 text-[13px] text-text-2">Form fields go here.</div>
 			<CardFooter>
-				<Button variant="primary" type="submit">
+				<Button type="submit" variant="primary">
 					Save changes
 				</Button>
 			</CardFooter>

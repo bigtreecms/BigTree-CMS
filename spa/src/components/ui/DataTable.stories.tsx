@@ -9,9 +9,9 @@ import { DataTable, type DataTableColumn, type DataTableSort } from "./DataTable
  * Supports sortable headers, row clicks, custom row tints, and drag-reorder.
  */
 interface User {
+	email: string;
 	id: number;
 	name: string;
-	email: string;
 	role: string;
 }
 

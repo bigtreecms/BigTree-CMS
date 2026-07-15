@@ -32,10 +32,10 @@ const SIMPLE_PLUGINS = "link code visualblocks lists";
 const SIMPLE_TOOLBAR = "link unlink bold italic underline removeformat";
 
 interface HTMLFieldSettings {
+	height?: string | number;
 	simple?: boolean | string | number;
 	simple_by_permission?: string | number;
 	width?: string | number;
-	height?: string | number;
 }
 
 /**
@@ -104,18 +104,7 @@ export const HTMLField = ({ field, value, onChange, disabled }: FieldComponentPr
 
 	return (
 		<Editor
-			// Re-mount when skin / variant flips so TinyMCE picks up the new init
-			// (`init` is only consumed once per editor instance).
-			key={`${theme}-${isSimple ? "simple" : "full"}`}
-			tinymceScriptSrc={scriptSrc}
-			licenseKey="gpl"
-			value={text}
 			disabled={disabled}
-			onInit={(_evt, editor) => {
-				editorRef.current = editor;
-				editor.options.set("disabled", Boolean(disabled));
-			}}
-			onEditorChange={(html) => onChange(html)}
 			init={{
 				disabled: Boolean(disabled),
 				menubar: false,
@@ -136,6 +125,17 @@ export const HTMLField = ({ field, value, onChange, disabled }: FieldComponentPr
 				height: settings.height ?? (isSimple ? 180 : 360),
 				// File / image pickers are wired up in the Image / Upload field
 				// work — for now the dialogs fall back to a plain URL field.
+			}}
+			// Re-mount when skin / variant flips so TinyMCE picks up the new init
+			// (`init` is only consumed once per editor instance).
+			key={`${theme}-${isSimple ? "simple" : "full"}`}
+			licenseKey="gpl"
+			tinymceScriptSrc={scriptSrc}
+			value={text}
+			onEditorChange={(html) => onChange(html)}
+			onInit={(_evt, editor) => {
+				editorRef.current = editor;
+				editor.options.set("disabled", Boolean(disabled));
 			}}
 		/>
 	);

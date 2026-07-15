@@ -8,8 +8,8 @@ export const EnumControl = ({ descriptor, settings, onPatch }: ControlProps) => 
 
 	return (
 		<ControlShell
-			label={descriptor.label}
 			hint={descriptor.hint}
+			label={descriptor.label}
 			note={descriptor.note}
 			required={descriptor.required}
 		>

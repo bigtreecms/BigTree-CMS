@@ -36,7 +36,12 @@
 				self::$instance = $instance;
 			}
 
-			if (!$instance->ID && $user !== null) {
+			// Hydrate from the API actor when provided. Re-apply when the actor
+			// changes (multi-dispatch test harness, or sequential API calls that
+			// bridge different users) — previously we only set ID when empty, so a
+			// second bridge with a new user kept the stale id (and FK-failed after
+			// the first fixture user was deleted).
+			if ($user !== null) {
 				if (is_object($user)) {
 					$user_id = $user->id ?? null;
 					$user_level = $user->level ?? 0;
@@ -45,7 +50,7 @@
 					$user_level = $user["level"] ?? 0;
 				}
 
-				if ($user_id) {
+				if ($user_id && (int)$instance->ID !== (int)$user_id) {
 					$instance->ID = $user_id;
 					$instance->Level = (int) $user_level;
 
@@ -55,6 +60,8 @@
 						$instance->Permissions = Json::decode($row["permissions"]);
 						$instance->Timezone = $row["timezone"];
 					}
+				} elseif ($user_id && (int)$instance->Level !== (int)$user_level) {
+					$instance->Level = (int) $user_level;
 				}
 			}
 

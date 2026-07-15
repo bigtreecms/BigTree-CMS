@@ -20,10 +20,10 @@ import {
 import { groupPendingByCategory, humanizeTable } from "@/lib/pendingChanges";
 
 interface PendingChangesCardProps {
-	summary: DashboardSummary | undefined;
-	pending: PendingChange[];
-	loading: boolean;
 	error: unknown;
+	loading: boolean;
+	pending: PendingChange[];
+	summary: DashboardSummary | undefined;
 }
 
 export const PendingChangesCard = ({
@@ -62,14 +62,11 @@ export const PendingChangesCard = ({
 
 	return (
 		<DashCard
-			icon={Bell}
-			title="Pending changes"
-			sub={loading ? "Loading…" : `${totalPending} awaiting review`}
 			action={
 				groups.length > 0 ? (
 					<Button
-						variant="secondary"
 						size="sm"
+						variant="secondary"
 						onClick={() => navigate("/pending-changes")}
 					>
 						{loading ? "…" : `${groups.length} categories`}
@@ -77,15 +74,18 @@ export const PendingChangesCard = ({
 					</Button>
 				) : null
 			}
+			icon={Bell}
+			sub={loading ? "Loading…" : `${totalPending} awaiting review`}
+			title="Pending changes"
 		>
 			<QueryRenderer error={error}>
 				<div className="grid grid-cols-1 gap-6 md:grid-cols-2">
 					<div className="flex min-w-0 flex-col gap-2">
-						<SectionLabel size="xs" className="mb-0.5 border-b border-border pb-1.5">
+						<SectionLabel className="mb-0.5 border-b border-border pb-1.5" size="xs">
 							Recent pending changes
 						</SectionLabel>
 						{recent.length === 0 ? (
-							<InlineEmpty fill pad="md" className="leading-[1.55]">
+							<InlineEmpty fill className="leading-[1.55]" pad="md">
 								No pending changes to review right now.
 							</InlineEmpty>
 						) : (
@@ -96,15 +96,15 @@ export const PendingChangesCard = ({
 
 									return (
 										<li
-											key={p.id}
 											className="flex items-center gap-2.5 rounded-md p-2 transition-colors hover:bg-surface-2"
+											key={p.id}
 										>
 											<IconTile size="xs" tone="neutral">
 												<FileText size={14} />
 											</IconTile>
 											<Link
-												to={`/pending-changes/${p.id}`}
 												className="block min-w-0 flex-1 text-[12.5px] text-text hover:text-accent"
+												to={`/pending-changes/${p.id}`}
 											>
 												<NameIdCell
 													name={p.title || `Change #${p.id}`}
@@ -112,21 +112,24 @@ export const PendingChangesCard = ({
 												/>
 											</Link>
 											<IconButton
-												tone="danger"
 												className="disabled:opacity-40"
+												disabled={busy}
+												label="Reject"
+												title="Reject"
+												tone="danger"
 												onClick={(e) => {
 													e.stopPropagation();
 													rejectDialog.open(p.id);
 												}}
-												disabled={busy}
-												title="Reject"
-												label="Reject"
 											>
 												<X size={13} />
 											</IconButton>
 											<IconButton
-												tone="success"
 												className="disabled:opacity-40"
+												disabled={busy}
+												label="Approve"
+												title={isPage ? "Open to approve" : "Approve"}
+												tone="success"
 												onClick={(e) => {
 													e.stopPropagation();
 
@@ -140,9 +143,6 @@ export const PendingChangesCard = ({
 
 													approveDialog.open(p.id);
 												}}
-												disabled={busy}
-												title={isPage ? "Open to approve" : "Approve"}
-												label="Approve"
 											>
 												<Check size={13} />
 											</IconButton>
@@ -154,11 +154,11 @@ export const PendingChangesCard = ({
 					</div>
 
 					<div className="flex min-w-0 flex-col gap-2">
-						<SectionLabel size="xs" className="mb-0.5 border-b border-border pb-1.5">
+						<SectionLabel className="mb-0.5 border-b border-border pb-1.5" size="xs">
 							Awaiting publisher approval
 						</SectionLabel>
 						{myPending === 0 ? (
-							<InlineEmpty fill pad="md" className="leading-[1.55]">
+							<InlineEmpty fill className="leading-[1.55]" pad="md">
 								You have no changes awaiting a publisher's approval.
 							</InlineEmpty>
 						) : (
@@ -174,17 +174,17 @@ export const PendingChangesCard = ({
 
 			<ConfirmDialog
 				{...approveDialog.dialogProps}
-				title="Approve this change?"
-				description="The pending change will be published and made live on the site."
 				confirmLabel="Approve"
+				description="The pending change will be published and made live on the site."
+				title="Approve this change?"
 				onConfirm={() => approveMutation.mutate(approveDialog.item!)}
 			/>
 
 			<ConfirmDialog
 				{...rejectDialog.dialogProps}
-				title="Reject this change?"
-				description="The pending change will be discarded. The submitting user will need to redo their edits."
 				confirmLabel="Reject"
+				description="The pending change will be discarded. The submitting user will need to redo their edits."
+				title="Reject this change?"
 				variant="danger"
 				onConfirm={() => rejectMutation.mutate(rejectDialog.item!)}
 			/>

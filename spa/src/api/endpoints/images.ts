@@ -12,10 +12,10 @@ import { api } from "@/api/client";
 
 /** A nested thumbnail / center-crop spec carried inside a pending crop. */
 export interface CropDerivativeSpec {
+	grayscale?: boolean;
+	height: number;
 	prefix: string;
 	width: number;
-	height: number;
-	grayscale?: boolean;
 }
 
 /**
@@ -24,24 +24,24 @@ export interface CropDerivativeSpec {
  * finalize the crop via `POST /images/crop`.
  */
 export interface PendingCrop {
-	prefix: string;
-	width: number;
-	height: number;
-	retina: boolean;
-	grayscale: boolean;
-	thumbs: CropDerivativeSpec[];
 	center_crops: CropDerivativeSpec[];
 	directory: string;
+	grayscale: boolean;
+	height: number;
 	name: string;
+	prefix: string;
+	retina: boolean;
+	thumbs: CropDerivativeSpec[];
+	width: number;
 }
 
 /** Response from `/images/process` and `/images/reprocess`. */
 export interface ProcessImageResult {
 	/** Stored original path (the value the field persists). */
 	file: string;
-	width: number;
 	height: number;
 	pending_crops: PendingCrop[];
+	width: number;
 }
 
 /**
@@ -54,30 +54,30 @@ export type ReprocessSource = { resource_id: number } | { file: string; in_place
 
 /** Body for finalizing one manual crop. */
 export interface CropFinalizePayload {
+	center_crops: CropDerivativeSpec[];
+	directory: string;
 	/** Stored original path the crop is taken from. */
 	file: string;
+	grayscale: boolean;
+	height: number;
+	name: string;
+	prefix: string;
+	retina: boolean;
+	target_height: number;
+	/** Output dimensions. */
+	target_width: number;
+	thumbs: CropDerivativeSpec[];
+	width: number;
 	/** Crop rect in source pixels. */
 	x: number;
 	y: number;
-	width: number;
-	height: number;
-	/** Output dimensions. */
-	target_width: number;
-	target_height: number;
-	prefix: string;
-	name: string;
-	directory: string;
-	retina: boolean;
-	grayscale: boolean;
-	thumbs: CropDerivativeSpec[];
-	center_crops: CropDerivativeSpec[];
 }
 
 export interface CropFinalizeResult {
 	file: string;
+	height: number;
 	prefix: string;
 	width: number;
-	height: number;
 }
 
 /** Path used by `useUploads` for the multipart upload. */

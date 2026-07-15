@@ -101,15 +101,15 @@ export const UploadZone = ({ folderId, onUploaded }: UploadZoneProps) => {
 						? "border-accent bg-accent-soft/40"
 						: "border-border bg-surface-2 hover:bg-hover"
 				}`}
-				onDrop={handleDrop}
-				onDragOver={handleDragOver}
 				onDragLeave={handleDragLeave}
+				onDragOver={handleDragOver}
+				onDrop={handleDrop}
 			>
-				<UploadIcon size={20} className="mx-auto mb-1 text-text-3" />
+				<UploadIcon className="mx-auto mb-1 text-text-3" size={20} />
 				<div className="text-[13px] text-text-2">
 					<button
-						type="button"
 						className="font-medium text-accent hover:underline"
+						type="button"
 						onClick={() => inputRef.current?.click()}
 					>
 						Choose files
@@ -121,11 +121,11 @@ export const UploadZone = ({ folderId, onUploaded }: UploadZoneProps) => {
 				</div>
 
 				<input
-					ref={inputRef}
-					type="file"
 					multiple
 					aria-label="Choose files to upload"
 					className="hidden"
+					ref={inputRef}
+					type="file"
 					onChange={(e) => {
 						if (e.target.files && e.target.files.length > 0) {
 							startUploads(e.target.files);
@@ -138,7 +138,7 @@ export const UploadZone = ({ folderId, onUploaded }: UploadZoneProps) => {
 			{visibleItems.length > 0 && (
 				<ul className="mt-2 space-y-1.5 rounded-lg border border-border bg-surface px-3 py-2">
 					{visibleItems.map((item) => (
-						<UploadRow key={item.id} item={item} onCancel={() => cancel(item.id)} />
+						<UploadRow item={item} key={item.id} onCancel={() => cancel(item.id)} />
 					))}
 				</ul>
 			)}
@@ -172,9 +172,9 @@ const UploadRow = ({ item, onCancel }: UploadRowProps) => {
 				{inFlight && (
 					<>
 						<ProgressBar
-							value={item.progress}
-							label="Upload progress"
 							className="flex-1"
+							label="Upload progress"
+							value={item.progress}
 						/>
 						<span className="w-9 text-right tabular-nums text-[11px] text-text-3">
 							{item.progress}%
@@ -195,7 +195,7 @@ const UploadRow = ({ item, onCancel }: UploadRowProps) => {
 				)}
 			</div>
 
-			<IconButton onClick={onCancel} label="Cancel upload" disabled={done || failed}>
+			<IconButton disabled={done || failed} label="Cancel upload" onClick={onCancel}>
 				<X size={13} />
 			</IconButton>
 		</li>

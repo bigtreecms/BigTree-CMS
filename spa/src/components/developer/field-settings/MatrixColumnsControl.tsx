@@ -15,12 +15,12 @@ import { TextInput } from "@/components/ui/TextInput";
 import { useListEditor } from "@/hooks/useListEditor";
 
 interface Column {
-	id?: string;
-	title?: string;
-	subtitle?: string;
-	type?: string;
 	display_title?: string;
+	id?: string;
 	settings?: Record<string, unknown>;
+	subtitle?: string;
+	title?: string;
+	type?: string;
 }
 
 /**
@@ -67,19 +67,19 @@ export const MatrixColumnsControl = ({ descriptor, settings, onPatch }: ControlP
 		});
 
 	return (
-		<ControlShell label={descriptor.label} hint={descriptor.hint} note={descriptor.note}>
+		<ControlShell hint={descriptor.hint} label={descriptor.label} note={descriptor.note}>
 			<div className="space-y-1.5">
 				{columns.map((column, index) => {
 					const isOpen = expanded.has(index);
 
 					return (
-						<div key={index} className="rounded-md border border-border bg-surface">
+						<div className="rounded-md border border-border bg-surface" key={index}>
 							<div className="flex flex-wrap items-center gap-2 p-2">
 								<IconButton
+									ariaExpanded={isOpen}
 									label="Toggle column settings"
 									size="sm"
 									onClick={() => toggle(index)}
-									ariaExpanded={isOpen}
 								>
 									{isOpen ? (
 										<ChevronDown size={13} />
@@ -100,33 +100,33 @@ export const MatrixColumnsControl = ({ descriptor, settings, onPatch }: ControlP
 								</Select>
 								<TextInput
 									compact
+									aria-label="Column ID"
 									className="min-w-0 flex-1"
 									placeholder="ID"
-									aria-label="Column ID"
 									value={column.id ?? ""}
 									onChange={(e) => update(index, { id: e.target.value })}
 								/>
 								<TextInput
 									compact
+									aria-label="Column title"
 									className="min-w-0 flex-1"
 									placeholder="Title"
-									aria-label="Column title"
 									value={column.title ?? ""}
 									onChange={(e) => update(index, { title: e.target.value })}
 								/>
 								<TextInput
 									compact
+									aria-label="Column subtitle"
 									className="min-w-0 flex-1"
 									placeholder="Subtitle"
-									aria-label="Column subtitle"
 									value={column.subtitle ?? ""}
 									onChange={(e) => update(index, { subtitle: e.target.value })}
 								/>
 								<Checkbox
-									size="sm"
+									checked={Boolean(column.display_title)}
 									className="whitespace-nowrap"
 									label="Title"
-									checked={Boolean(column.display_title)}
+									size="sm"
 									onChange={(checked) =>
 										update(index, {
 											display_title: checked ? "on" : "",
@@ -134,9 +134,9 @@ export const MatrixColumnsControl = ({ descriptor, settings, onPatch }: ControlP
 									}
 								/>
 								<IconButton
+									label="Remove column"
 									tone="danger"
 									onClick={() => remove(index)}
-									label="Remove column"
 								>
 									<Trash size={13} />
 								</IconButton>
@@ -155,8 +155,8 @@ export const MatrixColumnsControl = ({ descriptor, settings, onPatch }: ControlP
 					);
 				})}
 				<button
-					type="button"
 					className="inline-flex items-center gap-1 rounded border border-border bg-surface px-2 py-1 text-[12px] hover:bg-hover"
+					type="button"
 					onClick={add}
 				>
 					<Plus size={12} />

@@ -34,27 +34,27 @@ export type FieldRenderMode = "core-component" | "declarative" | "module" | "ser
 export type FieldTrust = "local" | "core" | "verified" | "marketplace";
 
 export interface FieldType {
-	id: string;
-	name: string;
-	use_cases?: FieldUseCase[] | string[];
-	self_draw?: boolean | string;
-	extension?: string;
-	render?: FieldRenderMode;
-	value_type?: string;
-	contract_version?: number;
-	trust?: FieldTrust;
-	asset_url?: string;
-	/** (local module) true when settings.js exists but couldn't be parsed. */
-	settings_parse_error?: boolean;
 	/** Some entries carry their own draw/process/settings php paths — kept loose. */
 	[key: string]: unknown;
+	asset_url?: string;
+	contract_version?: number;
+	extension?: string;
+	id: string;
+	name: string;
+	render?: FieldRenderMode;
+	self_draw?: boolean | string;
+	/** (local module) true when settings.js exists but couldn't be parsed. */
+	settings_parse_error?: boolean;
+	trust?: FieldTrust;
+	use_cases?: FieldUseCase[] | string[];
+	value_type?: string;
 }
 
 /** One type as it appears inside a use-case bucket: just its display info. */
 export interface FieldTypeInfo {
+	[key: string]: unknown;
 	name?: string;
 	self_draw?: boolean | string | null;
-	[key: string]: unknown;
 }
 
 /**
@@ -73,10 +73,10 @@ export type FieldTypeRegistry = FieldTypeRegistryNested | FieldTypeRegistryFlat;
 
 /** A flattened option, ready for a select/combobox. */
 export interface FieldTypeOption {
-	id: string;
-	name: string;
 	/** "default" for the core built-ins, "custom" for user/extension types. */
 	group: "default" | "custom";
+	id: string;
+	name: string;
 }
 
 /**
@@ -215,28 +215,28 @@ export const fieldTypeName = (
  * per type and mark built-ins as un-deletable.
  */
 export interface FieldTypeRegistrySplit {
-	default: Record<string, FieldType>;
 	custom: Record<string, FieldType>;
+	default: Record<string, FieldType>;
 }
 
 export interface FieldTypeCreateBody {
 	id: string;
-	name?: string;
-	use_cases?: string[];
-	self_draw?: boolean;
-	/** Render contract — "declarative" with an input_schema, or "module". */
-	render?: FieldRenderMode;
-	/** Stored value shape; "object" for declarative composites. */
-	value_type?: string;
 	/** Tier 1 composite definition — see InputDescriptor. */
 	input_schema?: InputDescriptor[];
 	/** (render "module", local) the field's source code — stored and run in-context. */
 	module_source?: string;
+	name?: string;
+	/** Render contract — "declarative" with an input_schema, or "module". */
+	render?: FieldRenderMode;
+	self_draw?: boolean;
 	/**
 	 * Per-field settings the type exposes (extracted from a module's `settings`
 	 * export on save; drives the settings designer when the field is placed).
 	 */
 	settings_schema?: SettingDescriptor[];
+	use_cases?: string[];
+	/** Stored value shape; "object" for declarative composites. */
+	value_type?: string;
 }
 
 /**
@@ -264,29 +264,29 @@ export type SettingControl =
 	| "matrix_columns";
 
 export interface SettingShowIf {
-	field: string;
-	equals?: string | number | boolean;
-	in?: Array<string | number>;
 	empty?: boolean;
+	equals?: string | number | boolean;
+	field: string;
+	in?: Array<string | number>;
 	not_empty?: boolean;
 }
 
 export interface SettingDescriptor {
-	id: string;
-	control: SettingControl;
-	label?: string;
-	hint?: string;
-	note?: string;
-	heading?: string;
-	placeholder?: string;
-	default?: unknown;
-	required?: boolean;
-	options?: LabeledOption[];
 	columns?: string[];
-	keys?: string[];
-	depends_on?: string;
 	context_defaults?: Record<string, string>;
 	contexts?: string[];
+	control: SettingControl;
+	default?: unknown;
+	depends_on?: string;
+	heading?: string;
+	hint?: string;
+	id: string;
+	keys?: string[];
+	label?: string;
+	note?: string;
+	options?: LabeledOption[];
+	placeholder?: string;
+	required?: boolean;
 	show_if?: SettingShowIf;
 }
 
@@ -319,33 +319,33 @@ export const applySettingDefaults = (
  */
 export interface InputDescriptor {
 	id: string;
-	type: string;
-	title?: string;
-	subtitle?: string;
 	required?: boolean;
 	settings?: Record<string, unknown>;
+	subtitle?: string;
+	title?: string;
+	type: string;
 }
 
 export interface FieldTypeSchema {
-	id: string;
-	name: string;
-	category?: string;
-	render?: FieldRenderMode;
-	value_type?: string;
-	contract_version?: number;
-	settings_schema?: SettingDescriptor[];
-	input_schema?: InputDescriptor[];
-	/** (render "module", local) the field's source code, run in-context. */
-	module_source?: string;
+	[key: string]: unknown;
 	/** (render "module", extension) URL of the field type's ES module bundle. */
 	asset_url?: string;
+	category?: string;
+	contract_version?: number;
+	id: string;
+	input_schema?: InputDescriptor[];
 	/** (render "module", extension) SRI hash the sandbox verifies before exec. */
 	integrity?: string;
+	/** (render "module", local) the field's source code, run in-context. */
+	module_source?: string;
+	name: string;
+	render?: FieldRenderMode;
+	render_fallback?: boolean;
+	self_draw?: boolean;
+	settings_schema?: SettingDescriptor[];
 	/** Gates in-context vs sandboxed execution for module types. */
 	trust?: FieldTrust;
-	self_draw?: boolean;
-	render_fallback?: boolean;
-	[key: string]: unknown;
+	value_type?: string;
 }
 
 export const fieldTypesApi = {

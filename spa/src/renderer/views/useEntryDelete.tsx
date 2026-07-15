@@ -53,13 +53,13 @@ export const useEntryDelete = (moduleId: string, viewId: string) => {
 	const dialog = deleteDialog.item ? (
 		<ConfirmDialog
 			{...deleteDialog.dialogProps}
-			title={isPending ? "Delete pending entry?" : "Delete entry?"}
+			confirmLabel="Delete"
 			description={
 				isPending
 					? "This deletes the pending entry — it has never been published, so nothing live is affected."
 					: "This action cannot be undone."
 			}
-			confirmLabel="Delete"
+			title={isPending ? "Delete pending entry?" : "Delete entry?"}
 			variant="danger"
 			onConfirm={() => {
 				if (isPersistedEntryId(deleteDialog.item!.id)) {

@@ -14,41 +14,41 @@ import { useReturnTo } from "@/hooks/useReturnTo";
 import { useSeededState } from "@/hooks/useSeededState";
 
 export interface UseResourceEditorOptions<TData, TBody> {
-	/** List view the id-missing redirect and post-save `useReturnTo` fall back to. */
-	listPath: string;
-	/** Entity noun for the success toast ("Callout" → "Callout created" / "Callout saved"). */
-	entityLabel: string;
-	/** Detail query for edit mode; skipped (`enabled: false`) in add mode. */
-	queryKey: QueryKey;
-	queryFn: () => Promise<TData>;
-	/** Form body in add mode; also the placeholder before the record seeds in edit mode. */
-	initialBody: TBody;
-	/** Map the loaded record into the form body. `idParam` is passed for list-shaped queries. */
-	seed: (data: TData, idParam: string) => TBody;
 	create: (body: TBody) => Promise<{ id: string }>;
-	update: (id: string, body: TBody) => Promise<unknown>;
-	/** Query key invalidated on a successful save. */
-	invalidateKey: QueryKey;
 	/** Where an add navigates on success (its own edit URL, `replace: true`). */
 	editPath: (id: string) => string;
+	/** Entity noun for the success toast ("Callout" → "Callout created" / "Callout saved"). */
+	entityLabel: string;
+	/** Form body in add mode; also the placeholder before the record seeds in edit mode. */
+	initialBody: TBody;
+	/** Query key invalidated on a successful save. */
+	invalidateKey: QueryKey;
+	/** List view the id-missing redirect and post-save `useReturnTo` fall back to. */
+	listPath: string;
 	/** Error path — pass `useFormSubmit`'s `onMutationError` to keep field-error binding. */
 	onError: (err: unknown) => void;
+	queryFn: () => Promise<TData>;
+	/** Detail query for edit mode; skipped (`enabled: false`) in add mode. */
+	queryKey: QueryKey;
+	/** Map the loaded record into the form body. `idParam` is passed for list-shaped queries. */
+	seed: (data: TData, idParam: string) => TBody;
+	update: (id: string, body: TBody) => Promise<unknown>;
 }
 
 export interface UseResourceEditor<TData, TBody> {
+	body: TBody;
+	detailQ: UseQueryResult<TData>;
 	idParam?: string;
 	isAdd: boolean;
-	detailQ: UseQueryResult<TData>;
-	body: TBody;
-	setBody: Dispatch<SetStateAction<TBody>>;
-	/** Shallow-merge a patch into the body. */
-	set: (patch: Partial<TBody>) => void;
-	/** False until the edit record has seeded the form (drives `useDirtyTracker`). */
-	seeded: boolean;
+	isDirty: boolean;
 	/** Fire the create-or-update mutation with the current body. */
 	save: (body: TBody) => void;
 	saving: boolean;
-	isDirty: boolean;
+	/** False until the edit record has seeded the form (drives `useDirtyTracker`). */
+	seeded: boolean;
+	/** Shallow-merge a patch into the body. */
+	set: (patch: Partial<TBody>) => void;
+	setBody: Dispatch<SetStateAction<TBody>>;
 }
 
 /**

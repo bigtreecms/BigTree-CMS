@@ -17,11 +17,11 @@ import type { UseConfirmDialogResult } from "@/hooks/useConfirmDialog";
  */
 
 interface SubListProps {
-	isLoading?: boolean;
-	loadingLabel?: string;
+	children: ReactNode;
 	emptyLabel: string;
 	isEmpty: boolean;
-	children: ReactNode;
+	isLoading?: boolean;
+	loadingLabel?: string;
 }
 
 export const SubList = ({
@@ -51,19 +51,19 @@ export const SubList = ({
 };
 
 interface SubRowProps {
-	title: string;
-	subtitle?: string;
 	badge?: string;
-	onEdit: () => void;
-	onDelete: () => void;
-	/** When set, the row shows a drag handle and becomes a drag-to-reorder source. */
-	reorderable?: boolean;
 	isDragging?: boolean;
 	isDropTarget?: boolean;
-	onDragStart?: (e: DragEvent) => void;
-	onDragOver?: (e: DragEvent) => void;
-	onDrop?: (e: DragEvent) => void;
+	onDelete: () => void;
 	onDragEnd?: () => void;
+	onDragOver?: (e: DragEvent) => void;
+	onDragStart?: (e: DragEvent) => void;
+	onDrop?: (e: DragEvent) => void;
+	onEdit: () => void;
+	/** When set, the row shows a drag handle and becomes a drag-to-reorder source. */
+	reorderable?: boolean;
+	subtitle?: string;
+	title: string;
 }
 
 export const SubRow = ({
@@ -85,15 +85,15 @@ export const SubRow = ({
 			isDragging ? "bg-accent-soft shadow-md" : ""
 		} ${isDropTarget ? "shadow-[inset_0_2px_0_0_var(--color-accent)]" : ""}`}
 		draggable={reorderable}
-		onDragStart={onDragStart}
-		onDragOver={onDragOver}
-		onDrop={onDrop}
 		onDragEnd={onDragEnd}
+		onDragOver={onDragOver}
+		onDragStart={onDragStart}
+		onDrop={onDrop}
 	>
 		{reorderable && <DragHandle />}
 		<button
-			type="button"
 			className="flex min-w-0 flex-1 items-center gap-2 text-left"
+			type="button"
 			onClick={onEdit}
 		>
 			<span className="truncate text-[12.5px] font-medium text-text">{title}</span>
@@ -104,10 +104,10 @@ export const SubRow = ({
 			)}
 			{subtitle && <MonoText>{subtitle}</MonoText>}
 		</button>
-		<IconButton onClick={onEdit} title="Edit" label="Edit">
+		<IconButton label="Edit" title="Edit" onClick={onEdit}>
 			<Pencil size={13} />
 		</IconButton>
-		<IconButton tone="danger" onClick={onDelete} title="Delete" label="Delete">
+		<IconButton label="Delete" title="Delete" tone="danger" onClick={onDelete}>
 			<Trash size={13} />
 		</IconButton>
 	</li>
@@ -119,18 +119,18 @@ interface AddSubButtonProps {
 }
 
 export const AddSubButton = ({ label, onClick }: AddSubButtonProps) => (
-	<Button variant="secondary" icon={<Plus size={13} />} onClick={onClick}>
+	<Button icon={<Plus size={13} />} variant="secondary" onClick={onClick}>
 		{label}
 	</Button>
 );
 
 interface EditorCardProps {
-	title: string;
+	children: ReactNode;
 	onClose: () => void;
 	onSave: () => void;
-	saving?: boolean;
 	saveLabel?: string;
-	children: ReactNode;
+	saving?: boolean;
+	title: string;
 }
 
 export const EditorCard = ({
@@ -144,7 +144,7 @@ export const EditorCard = ({
 	<Card>
 		<div className="flex items-center justify-between border-b border-border px-4 py-2.5">
 			<span className="text-[13px] font-semibold text-text">{title}</span>
-			<IconButton onClick={onClose} label="Close editor">
+			<IconButton label="Close editor" onClick={onClose}>
 				<X size={14} />
 			</IconButton>
 		</div>
@@ -153,7 +153,7 @@ export const EditorCard = ({
 			<Button variant="secondary" onClick={onClose}>
 				Cancel
 			</Button>
-			<Button variant="primary" onClick={onSave} disabled={saving}>
+			<Button disabled={saving} variant="primary" onClick={onSave}>
 				{saving ? "Saving…" : saveLabel}
 			</Button>
 		</div>
@@ -161,12 +161,12 @@ export const EditorCard = ({
 );
 
 interface SubDeleteDialogProps<T extends { id: string }> {
+	description: string;
 	dialog: UseConfirmDialogResult<T>;
-	/** Singular resource noun; drives the title and confirm label (e.g. "form"). */
-	noun: string;
 	/** Human label for the row being deleted (e.g. `(f) => f.title`). */
 	labelFor: (item: T) => string;
-	description: string;
+	/** Singular resource noun; drives the title and confirm label (e.g. "form"). */
+	noun: string;
 	onConfirm: (id: string) => void;
 }
 
@@ -189,9 +189,9 @@ export const SubDeleteDialog = <T extends { id: string }>({
 	return (
 		<ConfirmDialog
 			{...dialog.dialogProps}
-			title={`Delete ${noun} "${labelFor(dialog.item)}"?`}
-			description={description}
 			confirmLabel={`Delete ${noun}`}
+			description={description}
+			title={`Delete ${noun} "${labelFor(dialog.item)}"?`}
 			variant="danger"
 			onConfirm={() => {
 				onConfirm(dialog.item!.id);

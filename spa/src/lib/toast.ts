@@ -9,28 +9,28 @@ import { create } from "zustand";
 export type ToastVariant = "success" | "error" | "info" | "warning";
 
 export interface ToastItem {
-	id: number;
-	variant: ToastVariant;
-	title: string;
-	description?: string;
 	actionLabel?: string;
-	onAction?: () => void;
+	description?: string;
 	/** Milliseconds before auto-dismiss; 0 disables auto-dismiss. */
 	duration: number;
+	id: number;
+	onAction?: () => void;
+	title: string;
+	variant: ToastVariant;
 }
 
 export interface ToastOptions {
-	description?: string;
 	actionLabel?: string;
-	onAction?: () => void;
+	description?: string;
 	duration?: number;
+	onAction?: () => void;
 }
 
 interface ToastStore {
+	clear: () => void;
+	dismiss: (id: number) => void;
 	items: ToastItem[];
 	push: (variant: ToastVariant, title: string, opts?: ToastOptions) => number;
-	dismiss: (id: number) => void;
-	clear: () => void;
 }
 
 let nextId = 1;

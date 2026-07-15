@@ -8,19 +8,19 @@ import { RequiredMarker } from "@/components/ui/Field";
 import { isFieldRequired } from "./validation";
 
 interface FieldRowProps {
-	field: ModuleFormField;
-	error?: string;
 	children: ReactNode;
-	/** True when this field's draft value differs from the published content. */
-	pending?: boolean;
-	/** True for a never-published draft (every field is "new", no baseline). */
-	isNew?: boolean;
-	/** The published value, used by the comparison panel (omit for new drafts). */
-	publishedValue?: unknown;
 	/** The current draft value, used by the comparison panel. */
 	currentValue?: unknown;
+	error?: string;
+	field: ModuleFormField;
+	/** True for a never-published draft (every field is "new", no baseline). */
+	isNew?: boolean;
+	/** True when this field's draft value differs from the published content. */
+	pending?: boolean;
 	/** Heading for the draft column in the comparison, attributed to its owner. */
 	pendingLabel?: string;
+	/** The published value, used by the comparison panel (omit for new drafts). */
+	publishedValue?: unknown;
 }
 
 /**
@@ -61,11 +61,11 @@ const FieldRowComponent = ({
 
 			{pending && (
 				<PendingFieldCompare
-					published={publishedValue}
-					pending={currentValue}
-					isNew={isNew}
-					pendingLabel={pendingLabel}
 					fieldType={field.type}
+					isNew={isNew}
+					pending={currentValue}
+					pendingLabel={pendingLabel}
+					published={publishedValue}
 				/>
 			)}
 

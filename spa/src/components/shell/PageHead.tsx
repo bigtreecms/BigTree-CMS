@@ -1,10 +1,10 @@
 import type { ReactNode } from "react";
 
 interface PageHeadProps {
-	title: string;
-	sub?: ReactNode;
 	actions?: ReactNode;
 	badge?: ReactNode;
+	sub?: ReactNode;
+	title: string;
 }
 
 /**

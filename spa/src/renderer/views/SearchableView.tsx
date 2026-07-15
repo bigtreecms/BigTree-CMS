@@ -112,7 +112,7 @@ export const SearchableView = ({ moduleId, view }: SearchableViewProps) => {
 			sortable: true,
 			align: "left",
 			headerAlign: "left",
-			cell: (row) => <ViewStatusBadge row={row} plainOnMobile />,
+			cell: (row) => <ViewStatusBadge plainOnMobile row={row} />,
 		});
 
 		if (hasRowActions) {
@@ -132,16 +132,16 @@ export const SearchableView = ({ moduleId, view }: SearchableViewProps) => {
 
 					return (
 						<RowActions
-							moduleId={moduleId}
-							viewId={view.id}
-							row={row}
-							builtins={builtins}
-							custom={custom}
-							editPath={editPath}
 							actionPath={actionPath}
-							onDelete={requestDelete}
+							builtins={builtins}
 							canEditOrDelete={canEditOrDelete}
 							className={`w-full ${dim}`}
+							custom={custom}
+							editPath={editPath}
+							moduleId={moduleId}
+							row={row}
+							viewId={view.id}
+							onDelete={requestDelete}
 						/>
 					);
 				},
@@ -178,10 +178,10 @@ export const SearchableView = ({ moduleId, view }: SearchableViewProps) => {
 			<Toolbar
 				search={
 					<SearchInput
+						aria-label={`Search ${view.title.toLowerCase()}`}
+						placeholder={`Search ${view.title.toLowerCase()}…`}
 						value={query}
 						onChange={setQuery}
-						placeholder={`Search ${view.title.toLowerCase()}…`}
-						aria-label={`Search ${view.title.toLowerCase()}`}
 					/>
 				}
 			>
@@ -190,15 +190,15 @@ export const SearchableView = ({ moduleId, view }: SearchableViewProps) => {
 
 			<DataTable<ModuleEntryRow>
 				columns={columns}
-				rows={rows}
+				emptyLabel={viewEmptyLabel(debouncedQuery)}
 				getRowKey={(row) => row.id as string | number}
 				isLoading={listQuery.isLoading && !listQuery.data}
 				loadingLabel="Loading entries…"
-				emptyLabel={viewEmptyLabel(debouncedQuery)}
-				sort={sort}
-				onSortChange={onSortChange}
-				onRowClick={builtins.edit ? openEdit : undefined}
 				rowClassName={(row) => statusRowClass(statusFromRow(row).key)}
+				rows={rows}
+				sort={sort}
+				onRowClick={builtins.edit ? openEdit : undefined}
+				onSortChange={onSortChange}
 			/>
 
 			{deleteDialog}

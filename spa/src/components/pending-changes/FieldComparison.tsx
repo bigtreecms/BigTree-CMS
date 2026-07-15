@@ -15,16 +15,16 @@ import { expandImageUrl } from "@/lib/imageUrl";
  */
 
 interface FieldComparisonProps {
-	/** The currently published value (the live content). */
-	published: unknown;
-	/** The draft value the user is editing. */
-	pending: unknown;
-	/** True when there is no published counterpart (a never-published new entry). */
-	isNew?: boolean;
-	/** Heading for the draft column, attributed to its owner. Defaults neutrally. */
-	pendingLabel?: string;
 	/** The field's BigTree type slug, used to pick a richer renderer. */
 	fieldType?: string;
+	/** True when there is no published counterpart (a never-published new entry). */
+	isNew?: boolean;
+	/** The draft value the user is editing. */
+	pending: unknown;
+	/** Heading for the draft column, attributed to its owner. Defaults neutrally. */
+	pendingLabel?: string;
+	/** The currently published value (the live content). */
+	published: unknown;
 }
 
 export const FieldComparison = ({
@@ -36,28 +36,28 @@ export const FieldComparison = ({
 }: FieldComparisonProps) => (
 	<div className="mt-2 grid grid-cols-1 gap-2 rounded-md border border-warn/30 bg-warn/3 p-2 sm:grid-cols-2">
 		<ComparisonColumn
-			heading="Published"
-			value={published}
 			emptyLabel={isNew ? "No published version yet" : "Empty"}
-			tone="published"
 			fieldType={fieldType}
+			heading="Published"
+			tone="published"
+			value={published}
 		/>
 		<ComparisonColumn
-			heading={pendingLabel}
-			value={pending}
 			emptyLabel="Empty"
-			tone="pending"
 			fieldType={fieldType}
+			heading={pendingLabel}
+			tone="pending"
+			value={pending}
 		/>
 	</div>
 );
 
 interface ComparisonColumnProps {
-	heading: string;
-	value: unknown;
 	emptyLabel: string;
-	tone: "published" | "pending";
 	fieldType?: string;
+	heading: string;
+	tone: "published" | "pending";
+	value: unknown;
 }
 
 const ComparisonColumn = ({
@@ -78,14 +78,14 @@ const ComparisonColumn = ({
 		{isEmptyValue(value) ? (
 			<div className="text-[12px] italic text-text-3">{emptyLabel}</div>
 		) : (
-			<ComparisonValue value={value} fieldType={fieldType} />
+			<ComparisonValue fieldType={fieldType} value={value} />
 		)}
 	</div>
 );
 
 interface ComparisonValueProps {
-	value: unknown;
 	fieldType?: string;
+	value: unknown;
 }
 
 const ComparisonValue = ({ value, fieldType }: ComparisonValueProps) => {
@@ -122,10 +122,10 @@ const DecodedUrl = ({ value }: { value: unknown }) => {
 
 	return (
 		<a
-			href={decoded}
-			target="_blank"
-			rel="noopener noreferrer"
 			className="block truncate rounded border border-border bg-surface px-2 py-1.5 text-[11.5px] text-accent hover:underline"
+			href={decoded}
+			rel="noopener noreferrer"
+			target="_blank"
 			title={decoded}
 		>
 			{decoded}
@@ -148,16 +148,16 @@ const ImagePreview = ({ value }: { value: unknown }) => {
 				<CodeBlock text={src} />
 			) : (
 				<a
-					href={src}
-					target="_blank"
-					rel="noopener noreferrer"
 					aria-label="Open image preview in a new tab"
 					className="block"
+					href={src}
+					rel="noopener noreferrer"
+					target="_blank"
 				>
 					<img
-						src={src}
 						alt=""
 						className="max-h-32 w-auto max-w-full rounded border border-border bg-surface object-contain"
+						src={src}
 						onError={() => setFailed(true)}
 					/>
 				</a>

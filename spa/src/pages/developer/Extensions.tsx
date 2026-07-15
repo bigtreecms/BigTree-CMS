@@ -97,13 +97,12 @@ export const Extensions = () => {
 
 				return (
 					<div className="flex items-center gap-2">
-						<Package size={14} className="shrink-0 text-text-3" />
+						<Package className="shrink-0 text-text-3" size={14} />
 						<div className="min-w-0">
 							<div className="flex items-center gap-2">
 								<span className="truncate font-medium text-text">{row.name}</span>
 								{updateById.get(row.id) && (
 									<Badge
-										tone="accent"
 										className="shrink-0"
 										title={
 											info?.version
@@ -114,6 +113,7 @@ export const Extensions = () => {
 													}`
 												: "An update is available"
 										}
+										tone="accent"
 									>
 										Update available
 									</Badge>
@@ -153,9 +153,9 @@ export const Extensions = () => {
 					{updateById.get(row.id) && (
 						<>
 							<Button
-								variant="primary"
-								size="sm"
 								disabled={upgradeMutation.isPending}
+								size="sm"
+								variant="primary"
 								onClick={(e) => {
 									e.stopPropagation();
 									upgradeMutation.mutate(row.id);
@@ -166,8 +166,8 @@ export const Extensions = () => {
 									: "Upgrade"}
 							</Button>
 							<Button
-								variant="secondary"
 								size="sm"
+								variant="secondary"
 								onClick={(e) => {
 									e.stopPropagation();
 									ignore(row.id);
@@ -178,13 +178,13 @@ export const Extensions = () => {
 						</>
 					)}
 					<IconButton
+						label="Uninstall extension"
+						title="Uninstall extension"
 						tone="danger"
 						onClick={(e) => {
 							e.stopPropagation();
 							deleteDialog.open(row);
 						}}
-						label="Uninstall extension"
-						title="Uninstall extension"
 					>
 						<Trash2 size={13} />
 					</IconButton>
@@ -200,15 +200,13 @@ export const Extensions = () => {
 			/>
 
 			<PageHead
-				title="Extensions"
-				sub="Installed extensions and their manifests. Uninstalling removes everything the extension declares."
 				actions={
 					<>
 						<Button
 							icon={<RefreshCw size={13} />}
-							onClick={() => recacheMutation.mutate()}
 							loading={recacheMutation.isPending}
 							loadingLabel="Refreshing…"
+							onClick={() => recacheMutation.mutate()}
 						>
 							Refresh hooks cache
 						</Button>
@@ -216,14 +214,16 @@ export const Extensions = () => {
 							Build extension
 						</Button>
 						<Button
-							variant="primary"
 							icon={<Upload size={13} />}
 							to="/developer/extensions/install"
+							variant="primary"
 						>
 							Install extension
 						</Button>
 					</>
 				}
+				sub="Installed extensions and their manifests. Uninstalling removes everything the extension declares."
+				title="Extensions"
 			/>
 
 			<DeveloperSectionNav />
@@ -233,25 +233,25 @@ export const Extensions = () => {
 			) : (
 				<DataTable
 					columns={columns}
-					rows={listQ.data ?? []}
+					emptyLabel="No extensions installed."
 					getRowKey={(row) => row.id}
 					isLoading={listQ.isLoading}
 					loadingLabel="Loading extensions…"
-					emptyLabel="No extensions installed."
+					rows={listQ.data ?? []}
 					onRowClick={(row) => setDetail(row)}
 				/>
 			)}
 
 			<SlideOver
+				description={detail?.id}
 				open={detail !== null}
+				title={detail?.name ?? "Extension"}
+				width="lg"
 				onOpenChange={(open) => {
 					if (!open) {
 						setDetail(null);
 					}
 				}}
-				title={detail?.name ?? "Extension"}
-				description={detail?.id}
-				width="lg"
 			>
 				{detail && (
 					<div className="space-y-4">
@@ -268,7 +268,7 @@ export const Extensions = () => {
 						/>
 
 						<div>
-							<SectionLabel as="h3" size="sm" className="mb-1.5">
+							<SectionLabel as="h3" className="mb-1.5" size="sm">
 								Manifest
 							</SectionLabel>
 							<pre className="overflow-x-auto rounded-lg border border-border bg-surface-2 p-3 font-mono text-[11.5px] leading-relaxed text-text-2">
@@ -281,9 +281,9 @@ export const Extensions = () => {
 
 			<ConfirmDialog
 				{...deleteDialog.dialogProps}
-				title="Uninstall extension?"
-				description="This removes the extension and every resource its manifest declares (modules, templates, callouts, etc.). This can't be undone."
 				confirmLabel="Uninstall"
+				description="This removes the extension and every resource its manifest declares (modules, templates, callouts, etc.). This can't be undone."
+				title="Uninstall extension?"
 				variant="danger"
 				onConfirm={() => {
 					if (deleteDialog.item) {

@@ -2,8 +2,8 @@ import { useJsonDraft } from "../../../hooks/useJsonDraft";
 import { TextArea } from "../../ui/TextArea";
 
 interface JsonFallbackControlProps {
-	value: Record<string, unknown> | unknown[] | undefined;
 	onChange: (next: Record<string, unknown>) => void;
+	value: Record<string, unknown> | unknown[] | undefined;
 }
 
 /**
@@ -22,13 +22,13 @@ export const JsonFallbackControl = ({ value, onChange }: JsonFallbackControlProp
 		<div>
 			<TextArea
 				mono
-				rows={6}
 				aria-label="JSON settings"
-				value={draft}
-				onChange={(e) => setDraft(e.target.value)}
-				onBlur={commit}
-				spellCheck={false}
 				className="leading-relaxed"
+				rows={6}
+				spellCheck={false}
+				value={draft}
+				onBlur={commit}
+				onChange={(e) => setDraft(e.target.value)}
 			/>
 			{error && (
 				<span data-field-error className="mt-1 block text-[11.5px] text-danger">

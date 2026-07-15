@@ -3,24 +3,24 @@ import { useState } from "react";
 import { gravatarUrl } from "@/lib/gravatar";
 
 interface AvatarProps {
-	/** Display name — used for both initials and (unless `seed` is set) color. */
-	name?: string | null;
+	/** Layout-only classes appended to the wrapper. */
+	className?: string;
 	/** Email — feeds Gravatar lookup, and the initials/color fallback if no `name`. */
 	email?: string | null;
-	/** Diameter in px. Default 28. */
-	size?: number;
 	/**
 	 * When set with an `email`, render that account's Gravatar on top of the
 	 * initials disc, falling back to the disc if no Gravatar exists.
 	 */
 	gravatar?: boolean;
+	/** Display name — used for both initials and (unless `seed` is set) color. */
+	name?: string | null;
 	/**
 	 * Override the color seed (e.g. a stable user id) when the display name isn't
 	 * a reliable identity. Defaults to `name || email`.
 	 */
 	seed?: string;
-	/** Layout-only classes appended to the wrapper. */
-	className?: string;
+	/** Diameter in px. Default 28. */
+	size?: number;
 }
 
 /**
@@ -41,6 +41,7 @@ export const Avatar = ({ name, email, size = 28, gravatar, seed, className }: Av
 
 	return (
 		<span
+			aria-hidden="true"
 			className={`relative inline-grid shrink-0 place-items-center overflow-hidden rounded-full font-semibold tabular-nums select-none${className ? ` ${className}` : ""}`}
 			style={{
 				width: size,
@@ -49,18 +50,17 @@ export const Avatar = ({ name, email, size = 28, gravatar, seed, className }: Av
 				color: `oklch(22% 0.04 ${hue})`,
 				fontSize: Math.max(9, Math.round(size * 0.4)),
 			}}
-			aria-hidden="true"
 		>
 			{initials}
 			{showGravatar && (
 				<img
+					alt=""
+					className="absolute inset-0 size-full object-cover"
+					height={size}
+					loading="lazy"
 					src={gravatarUrl(email, size)}
 					width={size}
-					height={size}
-					alt=""
-					loading="lazy"
 					onError={() => setGravatarFailed(true)}
-					className="absolute inset-0 size-full object-cover"
 				/>
 			)}
 		</span>

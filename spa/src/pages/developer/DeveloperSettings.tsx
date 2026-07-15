@@ -86,7 +86,7 @@ export const DeveloperSettings = () => {
 			key: "name",
 			header: "Name",
 			width: "minmax(0,1.6fr)",
-			cell: (row) => <NameIdCell name={row.name} id={row.id} />,
+			cell: (row) => <NameIdCell id={row.id} name={row.name} />,
 		},
 		{
 			key: "type",
@@ -131,13 +131,13 @@ export const DeveloperSettings = () => {
 					</span>
 				) : (
 					<IconButton
+						label="Delete setting"
+						title="Delete setting"
 						tone="danger"
 						onClick={(e) => {
 							e.stopPropagation();
 							deleteDialog.open(row);
 						}}
-						title="Delete setting"
-						label="Delete setting"
 					>
 						<Trash size={13} />
 					</IconButton>
@@ -150,32 +150,32 @@ export const DeveloperSettings = () => {
 			<Breadcrumb items={[{ label: "Developer", to: "/developer" }, { label: "Settings" }]} />
 
 			<PageHead
-				title="Settings (admin)"
-				sub={total === 1 ? "1 setting" : `${formatNumber(total)} settings`}
 				actions={
 					<Button
-						variant="primary"
 						icon={<Plus size={13} />}
 						to="/developer/settings/add"
+						variant="primary"
 					>
 						Add setting
 					</Button>
 				}
+				sub={total === 1 ? "1 setting" : `${formatNumber(total)} settings`}
+				title="Settings (admin)"
 			/>
 
 			<DeveloperSectionNav />
 
 			<div className="mb-3 max-w-md">
-				<SearchInput value={search} onChange={setSearch} placeholder="Search settings…" />
+				<SearchInput placeholder="Search settings…" value={search} onChange={setSearch} />
 			</div>
 
 			<DataTable<SettingDetail>
 				columns={columns}
-				rows={rows}
+				emptyLabel={debounced ? `No settings match “${debounced}”.` : "No settings yet."}
 				getRowKey={(row) => row.id}
 				isLoading={query.isLoading || (query.isFetching && !query.data)}
 				loadingLabel="Loading…"
-				emptyLabel={debounced ? `No settings match “${debounced}”.` : "No settings yet."}
+				rows={rows}
 				onRowClick={(row) => navigate(developerEditPath("settings", row.id))}
 			/>
 
@@ -188,9 +188,9 @@ export const DeveloperSettings = () => {
 			{deleteDialog.item && (
 				<ConfirmDialog
 					{...deleteDialog.dialogProps}
-					title={`Delete "${deleteDialog.item.name}"?`}
-					description="Both the definition and the stored value will be removed."
 					confirmLabel="Delete setting"
+					description="Both the definition and the stored value will be removed."
+					title={`Delete "${deleteDialog.item.name}"?`}
 					variant="danger"
 					onConfirm={() => deleteMutation.mutate(deleteDialog.item!.id)}
 				/>

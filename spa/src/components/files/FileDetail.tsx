@@ -44,11 +44,11 @@ import { Field } from "@/components/ui/Field";
 import { SectionLabel } from "@/components/ui/SectionLabel";
 
 interface FileDetailProps {
-	/** Resource id to load, or `null` to keep the SlideOver closed. */
-	resourceId: number | null;
-	onOpenChange: (open: boolean) => void;
 	/** Query key for the parent folder listing — invalidated on save/delete. */
 	folderQueryKey: readonly unknown[];
+	onOpenChange: (open: boolean) => void;
+	/** Resource id to load, or `null` to keep the SlideOver closed. */
+	resourceId: number | null;
 }
 
 /**
@@ -198,18 +198,14 @@ export const FileDetail = ({ resourceId, onOpenChange, folderQueryKey }: FileDet
 	return (
 		<>
 			<SlideOver
-				open={open}
-				onOpenChange={onOpenChange}
-				title={resource?.name ?? "File"}
 				description={resource ? `Resource #${resource.id}` : undefined}
-				width="lg"
 				footer={
 					<div className="flex justify-between gap-2">
 						<Button
-							variant="dangerGhost"
-							onClick={() => deleteDialog.open(true)}
 							disabled={!resource || pending}
 							icon={<Trash size={13} />}
+							variant="dangerGhost"
+							onClick={() => deleteDialog.open(true)}
 						>
 							Delete
 						</Button>
@@ -219,10 +215,10 @@ export const FileDetail = ({ resourceId, onOpenChange, folderQueryKey }: FileDet
 								Close
 							</Button>
 							<Button
-								variant="primary"
 								disabled={!dirty || pending}
 								loading={updateMutation.isPending}
 								loadingLabel="Saving…"
+								variant="primary"
 								onClick={() => updateMutation.mutate()}
 							>
 								Save changes
@@ -230,30 +226,34 @@ export const FileDetail = ({ resourceId, onOpenChange, folderQueryKey }: FileDet
 						</div>
 					</div>
 				}
+				open={open}
+				title={resource?.name ?? "File"}
+				width="lg"
+				onOpenChange={onOpenChange}
 			>
 				{detailQuery.isLoading || !resource ? (
-					<Loading variant="block" className="h-40" />
+					<Loading className="h-40" variant="block" />
 				) : (
 					<div className="space-y-5">
-						<Preview resource={resource} cacheKey={detailQuery.dataUpdatedAt} />
+						<Preview cacheKey={detailQuery.dataUpdatedAt} resource={resource} />
 
 						{!resource.is_video && (
 							<div className="flex flex-wrap items-center gap-2">
 								<input
+									accept={resource.is_image ? "image/*" : undefined}
+									aria-label="Replace file"
+									className="hidden"
 									ref={replaceFilePicker.inputRef}
 									type="file"
-									className="hidden"
-									aria-label="Replace file"
-									accept={resource.is_image ? "image/*" : undefined}
 									onChange={replaceFilePicker.onChange}
 								/>
 								<Button
-									variant="secondary"
-									icon={<RefreshCw size={13} />}
-									onClick={replaceFilePicker.open}
 									disabled={pending}
+									icon={<RefreshCw size={13} />}
 									loading={replaceMutation.isPending}
 									loadingLabel="Replacing…"
+									variant="secondary"
+									onClick={replaceFilePicker.open}
 								>
 									Replace file
 								</Button>
@@ -268,16 +268,14 @@ export const FileDetail = ({ resourceId, onOpenChange, folderQueryKey }: FileDet
 
 						<Field label="Name">
 							<TextInput
+								maxLength={255}
 								value={name}
 								onChange={(e) => setName(e.target.value)}
-								maxLength={255}
 							/>
 						</Field>
 
 						<SelectField
 							label="Folder"
-							value={String(folder)}
-							onChange={(v) => setFolder(Number(v))}
 							options={[
 								{ value: "0", label: "Home" },
 								...(foldersQuery.data ?? []).map((f) => ({
@@ -285,6 +283,8 @@ export const FileDetail = ({ resourceId, onOpenChange, folderQueryKey }: FileDet
 									label: " ".repeat((f.depth + 1) * 2) + f.name,
 								})),
 							]}
+							value={String(folder)}
+							onChange={(v) => setFolder(Number(v))}
 						/>
 
 						<MetaGrid resource={resource} onCopyUrl={copyUrl} />
@@ -306,11 +306,12 @@ export const FileDetail = ({ resourceId, onOpenChange, folderQueryKey }: FileDet
 
 										return (
 											<Field
+												inlineHint={def.subtitle}
 												key={def.id}
 												label={def.title}
-												inlineHint={def.subtitle}
 											>
 												<FieldRenderer
+													disabled={pending}
 													field={field}
 													value={metadata[def.id]}
 													onChange={(next) =>
@@ -319,7 +320,6 @@ export const FileDetail = ({ resourceId, onOpenChange, folderQueryKey }: FileDet
 															[def.id]: next,
 														}))
 													}
-													disabled={pending}
 												/>
 											</Field>
 										);
@@ -344,19 +344,19 @@ export const FileDetail = ({ resourceId, onOpenChange, folderQueryKey }: FileDet
 			</SlideOver>
 
 			{resource && resource.is_image && (
-				<CropModal open={cropOpen} onOpenChange={setCropOpen} resource={resource} />
+				<CropModal open={cropOpen} resource={resource} onOpenChange={setCropOpen} />
 			)}
 
 			{deleteDialog.isOpen && resource && (
 				<ConfirmDialog
 					{...deleteDialog.dialogProps}
-					title={`Delete “${resource.name}”?`}
+					confirmLabel="Delete file"
 					description={`This permanently removes the file and all of its crops. ${
 						(usageQuery.data?.length ?? 0) > 0
 							? "It's currently used by other content — those references will break."
 							: "It does not appear to be in use."
 					}`}
-					confirmLabel="Delete file"
+					title={`Delete “${resource.name}”?`}
 					variant="danger"
 					onConfirm={() => deleteMutation.mutate()}
 				/>
@@ -366,9 +366,9 @@ export const FileDetail = ({ resourceId, onOpenChange, folderQueryKey }: FileDet
 };
 
 interface PreviewProps {
-	resource: ResourceDetail;
 	/** Cache-buster appended to the image URL so replacements show immediately. */
 	cacheKey?: number;
+	resource: ResourceDetail;
 }
 
 const Preview = ({ resource, cacheKey }: PreviewProps) => {
@@ -376,9 +376,9 @@ const Preview = ({ resource, cacheKey }: PreviewProps) => {
 		return (
 			<div className="overflow-hidden rounded-lg border border-border bg-surface-2">
 				<img
-					src={expandImageUrl(resource.file) + (cacheKey ? `?${cacheKey}` : "")}
 					alt={resource.name}
 					className="block max-h-[260px] w-full object-contain"
+					src={expandImageUrl(resource.file) + (cacheKey ? `?${cacheKey}` : "")}
 				/>
 			</div>
 		);
@@ -394,8 +394,8 @@ const Preview = ({ resource, cacheKey }: PreviewProps) => {
 };
 
 interface MetaGridProps {
-	resource: ResourceDetail;
 	onCopyUrl: () => void;
+	resource: ResourceDetail;
 }
 
 const MetaGrid = ({ resource, onCopyUrl }: MetaGridProps) => {
@@ -421,7 +421,6 @@ const MetaGrid = ({ resource, onCopyUrl }: MetaGridProps) => {
 	return (
 		<DescriptionList
 			boxed
-			labelWidth={110}
 			items={[
 				...rows.map(([label, value]) => ({
 					label,
@@ -434,18 +433,18 @@ const MetaGrid = ({ resource, onCopyUrl }: MetaGridProps) => {
 					value: (
 						<>
 							<a
-								href={fileUrl}
-								target="_blank"
-								rel="noopener noreferrer"
 								className="inline-flex items-center gap-1 truncate text-accent hover:underline"
+								href={fileUrl}
+								rel="noopener noreferrer"
+								target="_blank"
 							>
 								<LinkIcon size={12} />
 								<span className="truncate font-mono text-[11.5px]">{fileUrl}</span>
 							</a>
 							<IconButton
 								className="ml-auto shrink-0"
-								title="Copy URL"
 								label="Copy URL"
+								title="Copy URL"
 								onClick={onCopyUrl}
 							>
 								<Copy size={12} />
@@ -454,6 +453,7 @@ const MetaGrid = ({ resource, onCopyUrl }: MetaGridProps) => {
 					),
 				},
 			]}
+			labelWidth={110}
 		/>
 	);
 };
@@ -471,9 +471,9 @@ const CropsSection = ({ crops, onAddCrop }: CropsSectionProps) => {
 			<div className="mb-1.5 flex items-center justify-between">
 				<SectionLabel as="h3">Crops</SectionLabel>
 				<Button
-					variant="secondary"
-					size="sm"
 					icon={<CropIcon size={11} />}
+					size="sm"
+					variant="secondary"
 					onClick={onAddCrop}
 				>
 					Add crop
@@ -486,13 +486,13 @@ const CropsSection = ({ crops, onAddCrop }: CropsSectionProps) => {
 				<ul className="grid grid-cols-2 gap-2">
 					{entries.map(([prefix, c]) => (
 						<li
-							key={prefix}
 							className="overflow-hidden rounded-md border border-border bg-surface"
+							key={prefix}
 						>
 							<img
-								src={expandImageUrl(c.file)}
 								alt=""
 								className="block aspect-video w-full object-cover"
+								src={expandImageUrl(c.file)}
 							/>
 							<div className="px-2 py-1.5 text-[11px]">
 								<div className="truncate text-text-2" title={c.name ?? prefix}>

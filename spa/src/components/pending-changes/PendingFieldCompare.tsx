@@ -11,13 +11,13 @@ import { FieldComparison } from "./FieldComparison";
  */
 
 interface PendingFieldCompareProps {
-	published: unknown;
-	pending: unknown;
-	isNew?: boolean;
-	/** Heading for the draft column, attributed to its owner. */
-	pendingLabel?: string;
 	/** The field's BigTree type slug, for richer comparison rendering. */
 	fieldType?: string;
+	isNew?: boolean;
+	pending: unknown;
+	/** Heading for the draft column, attributed to its owner. */
+	pendingLabel?: string;
+	published: unknown;
 }
 
 export const PendingFieldCompare = ({
@@ -32,22 +32,22 @@ export const PendingFieldCompare = ({
 	return (
 		<div className="mt-1">
 			<DisclosureToggle
-				open={open}
-				onToggle={() => setOpen((v) => !v)}
-				size={12}
 				className="gap-1 text-[11.5px] text-text-3 hover:text-text-2"
 				label={
 					open ? "Hide comparison" : isNew ? "View new content" : "Compare with published"
 				}
+				open={open}
+				size={12}
+				onToggle={() => setOpen((v) => !v)}
 			/>
 
 			{open && (
 				<FieldComparison
-					published={published}
-					pending={pending}
-					isNew={isNew}
-					pendingLabel={pendingLabel}
 					fieldType={fieldType}
+					isNew={isNew}
+					pending={pending}
+					pendingLabel={pendingLabel}
+					published={published}
 				/>
 			)}
 		</div>

@@ -15,8 +15,12 @@ import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { isPersistedEntryId, parseViewActions } from "./viewHelpers";
 
 interface UseModuleEntriesOptions {
-	moduleId: string;
-	view: ModuleView;
+	/**
+	 * Keep the previous page's rows visible while the next query resolves —
+	 * for the paginated (`SearchableView`) and optimistic-reorder
+	 * (`DraggableView`) views. Off by default.
+	 */
+	keepPrevious?: boolean;
 	/**
 	 * Extra list params (page, sort) merged into the query and its key.
 	 * `SearchableView` passes its pager/sort state through here; `NestedView`
@@ -24,12 +28,8 @@ interface UseModuleEntriesOptions {
 	 * by the hook and shouldn't be repeated here.
 	 */
 	listParams?: Omit<ModuleEntriesListParams, "view" | "q">;
-	/**
-	 * Keep the previous page's rows visible while the next query resolves —
-	 * for the paginated (`SearchableView`) and optimistic-reorder
-	 * (`DraggableView`) views. Off by default.
-	 */
-	keepPrevious?: boolean;
+	moduleId: string;
+	view: ModuleView;
 }
 
 /**

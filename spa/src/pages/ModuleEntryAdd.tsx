@@ -81,17 +81,17 @@ export const ModuleEntryAdd = ({ formId }: ModuleEntryAddProps) => {
 			<PageHead title={form ? `Add ${form.title}` : "Add entry"} />
 
 			{formsQuery.isLoading ? (
-				<Loading variant="card" label="Loading form…" />
+				<Loading label="Loading form…" variant="card" />
 			) : !form ? (
 				<EmptyState>This module doesn't have a form configured.</EmptyState>
 			) : (
 				<FormRenderer
+					canPublish={moduleQuery.data?.access === "p"}
 					form={form}
 					moduleId={moduleId}
-					onCancel={() => navigate(returnPath)}
-					submitLabel="Create"
-					canPublish={moduleQuery.data?.access === "p"}
 					publishLabel="Create & Publish"
+					submitLabel="Create"
+					onCancel={() => navigate(returnPath)}
 					onSubmit={async (values, opts) => {
 						await createMutation.mutateAsync({
 							values,

@@ -14,60 +14,60 @@ import { api } from "@/api/client";
 export type IntegrityErrorType = "link" | "image";
 
 export interface IntegrityError {
-	type: IntegrityErrorType;
 	field: string;
+	type: IntegrityErrorType;
 	url: string;
 }
 
 export interface IntegrityModule {
-	/** Module form id (string in JSONDB). */
-	id: string;
-	/** Human-readable breadcrumb, e.g. "Modules › News › Add/Edit Article". */
-	name: string;
-	/** Owning module id — used to build SPA edit links. */
-	module_id: string | number;
 	/** A view id under the module, used to build entry edit links. */
 	edit_view_id: string | number | null;
+	/** Module form id (string in JSONDB). */
+	id: string;
 	/** Entry ids to scan. */
 	items: Array<number | string>;
+	/** Owning module id — used to build SPA edit links. */
+	module_id: string | number;
+	/** Human-readable breadcrumb, e.g. "Modules › News › Add/Edit Article". */
+	name: string;
 }
 
 export interface IntegrityState {
-	internal_session: boolean;
 	external_session: boolean;
+	internal_session: boolean;
 }
 
 export interface IntegritySession {
-	external: boolean;
-	resumed: boolean;
-	pages: number[];
-	modules: IntegrityModule[];
-	current_page: number;
-	current_module: number;
 	current_item: number;
+	current_module: number;
+	current_page: number;
+	external: boolean;
+	module_errors: Record<string, Record<string, IntegrityError[]>>;
+	modules: IntegrityModule[];
 	/** Errors already discovered (only populated when resuming). */
 	page_errors: Record<string, { nav_title: string; errors: IntegrityError[] }>;
-	module_errors: Record<string, Record<string, IntegrityError[]>>;
+	pages: number[];
+	resumed: boolean;
 }
 
 export interface PageCheckResult {
+	errors: IntegrityError[];
 	id: number;
 	nav_title: string;
-	errors: IntegrityError[];
 }
 
 export interface ModuleItemCheckResult {
+	errors: IntegrityError[];
 	form: string;
 	id: number | string;
-	errors: IntegrityError[];
 }
 
 export interface IntegrityExportRow {
+	field: string;
 	location: string;
 	title: string;
 	type: IntegrityErrorType;
 	url: string;
-	field: string;
 }
 
 export const integrityApi = {

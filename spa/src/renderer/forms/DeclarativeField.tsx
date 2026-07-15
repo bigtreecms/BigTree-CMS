@@ -64,10 +64,10 @@ export const DeclarativeField = ({
 	return (
 		<div className="space-y-1 rounded-md border border-border bg-surface-2 p-3">
 			<RepeaterColumnFields
+				disabled={disabled}
 				fields={fields}
 				getValue={(columnId) => obj[columnId]}
 				onColumnChange={(columnId, next) => onChange({ ...obj, [columnId]: next })}
-				disabled={disabled}
 			/>
 		</div>
 	);

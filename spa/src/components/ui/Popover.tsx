@@ -15,9 +15,9 @@ import { useOnClickOutside } from "@/hooks/useOnClickOutside";
  * `Popover` wrapper instead when the trigger is a plain click target.
  */
 interface PopoverPanelProps {
+	children: ReactNode;
 	/** Per-site width / anchor / max-height / overflow classes. */
 	className?: string;
-	children: ReactNode;
 }
 
 export const PopoverPanel = ({ className, children }: PopoverPanelProps) => {
@@ -38,16 +38,16 @@ export const PopoverPanel = ({ className, children }: PopoverPanelProps) => {
  * `onClick`.
  */
 interface PopoverProps {
-	open: boolean;
-	onOpenChange: (open: boolean) => void;
-	/** The clickable trigger (button-like), plus any trailing siblings. */
-	trigger: ReactNode;
 	/** Panel contents. */
 	children: ReactNode;
 	/** Extra classes for the relative container (typically the width). */
 	className?: string;
+	onOpenChange: (open: boolean) => void;
+	open: boolean;
 	/** Panel width / anchor / max-height / overflow overrides. */
 	panelClassName?: string;
+	/** The clickable trigger (button-like), plus any trailing siblings. */
+	trigger: ReactNode;
 }
 
 export const Popover = ({
@@ -63,7 +63,7 @@ export const Popover = ({
 	useOnClickOutside(containerRef, () => onOpenChange(false), open);
 
 	return (
-		<div ref={containerRef} className={`relative ${className ?? ""}`}>
+		<div className={`relative ${className ?? ""}`} ref={containerRef}>
 			{trigger}
 			{open && <PopoverPanel className={panelClassName}>{children}</PopoverPanel>}
 		</div>

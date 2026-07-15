@@ -51,8 +51,8 @@ export const DebugIndex = () => (
 		<Breadcrumb items={[{ label: "Developer", to: "/developer" }, { label: "Debug" }]} />
 
 		<PageHead
-			title="Debug"
 			sub="Diagnostics, security policy, backups, and the install's structural health."
+			title="Debug"
 		/>
 
 		<DeveloperSectionNav />

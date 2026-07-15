@@ -21,12 +21,9 @@ import type { DragReorderApi } from "@/hooks/useDragReorder";
  */
 
 interface PageRowProps {
-	row: PageListRow;
-	drag: DragReorderApi<number>;
-	onRename: (next: string) => void;
-	onToggleArchive: () => void;
 	/** Whether drag-to-reorder is enabled for this table (from PageTable.allowReorder). */
 	allowReorder?: boolean;
+	drag: DragReorderApi<number>;
 	/** Optional override label for the left action column (used for title attribute on archived rows). */
 	leftActionLabel?: string;
 	/**
@@ -37,6 +34,9 @@ interface PageRowProps {
 	onDelete?: () => void;
 	/** Optional move-to-different-parent handler. When present, a Move button appears between Archive and Edit. */
 	onMove?: () => void;
+	onRename: (next: string) => void;
+	onToggleArchive: () => void;
+	row: PageListRow;
 }
 
 export const PageRow = ({
@@ -66,10 +66,10 @@ export const PageRow = ({
 				isDragging ? "bg-accent-soft shadow-md" : ""
 			} ${isDropTarget ? "shadow-[inset_0_2px_0_0_var(--color-accent)]" : ""}`}
 			draggable={canReorder}
-			onDragStart={(e) => drag.onDragStart(e, row.id)}
-			onDragOver={(e) => drag.onDragOver(e, row.id)}
-			onDrop={drag.onDrop}
 			onDragEnd={drag.onDragEnd}
+			onDragOver={(e) => drag.onDragOver(e, row.id)}
+			onDragStart={(e) => drag.onDragStart(e, row.id)}
+			onDrop={drag.onDrop}
 		>
 			{/* Grip */}
 			<DragHandle
@@ -84,8 +84,8 @@ export const PageRow = ({
 				</span>
 				<div className="min-w-0 flex-1">
 					<Link
-						to={pagePath(row.id)}
 						className="block min-w-0 outline-none"
+						to={pagePath(row.id)}
 						onClick={(e) => {
 							// Don't navigate when the user double-clicks the inner editable span
 							if ((e.target as HTMLElement).closest("[contenteditable='true']")) {
@@ -118,21 +118,21 @@ export const PageRow = ({
 			{/* Left action: Delete (draft pages) or Archive/Restore */}
 			{leftActionIsDelete ? (
 				<button
+					className="grid size-7 place-items-center rounded-md border-0 bg-transparent text-text-3 transition-colors hover:bg-hover hover:text-danger disabled:cursor-not-allowed disabled:opacity-40"
+					disabled={locked}
+					title="Delete"
 					type="button"
 					onClick={onDelete}
-					className="grid size-7 place-items-center rounded-md border-0 bg-transparent text-text-3 transition-colors hover:bg-hover hover:text-danger disabled:cursor-not-allowed disabled:opacity-40"
-					title="Delete"
-					disabled={locked}
 				>
 					<Trash2 size={14} />
 				</button>
 			) : (
 				<button
+					className="grid size-7 place-items-center rounded-md border-0 bg-transparent text-text-3 transition-colors hover:bg-hover hover:text-text disabled:cursor-not-allowed disabled:opacity-40"
+					disabled={locked}
+					title={leftActionLabel ?? (row.archived ? "Restore" : "Archive")}
 					type="button"
 					onClick={onToggleArchive}
-					className="grid size-7 place-items-center rounded-md border-0 bg-transparent text-text-3 transition-colors hover:bg-hover hover:text-text disabled:cursor-not-allowed disabled:opacity-40"
-					title={leftActionLabel ?? (row.archived ? "Restore" : "Archive")}
-					disabled={locked}
 				>
 					{row.archived ? <RotateCcw size={14} /> : <Archive size={14} />}
 				</button>
@@ -141,12 +141,12 @@ export const PageRow = ({
 			{/* Move */}
 			{onMove ? (
 				<button
+					aria-label="Move page"
+					className="grid size-7 place-items-center rounded-md border-0 bg-transparent text-text-3 transition-colors hover:bg-hover hover:text-text disabled:cursor-not-allowed disabled:opacity-40"
+					disabled={locked || row.archived}
+					title="Move to a different parent"
 					type="button"
 					onClick={onMove}
-					className="grid size-7 place-items-center rounded-md border-0 bg-transparent text-text-3 transition-colors hover:bg-hover hover:text-text disabled:cursor-not-allowed disabled:opacity-40"
-					title="Move to a different parent"
-					disabled={locked || row.archived}
-					aria-label="Move page"
 				>
 					<Move size={14} />
 				</button>
@@ -157,25 +157,25 @@ export const PageRow = ({
 			{/* Right action: Delete (archived rows) or Edit link */}
 			{row.archived && onDelete ? (
 				<button
+					className="grid size-7 place-items-center rounded-md border-0 bg-transparent text-text-3 transition-colors hover:bg-hover hover:text-danger disabled:cursor-not-allowed disabled:opacity-40"
+					disabled={locked}
+					title="Delete"
 					type="button"
 					onClick={onDelete}
-					className="grid size-7 place-items-center rounded-md border-0 bg-transparent text-text-3 transition-colors hover:bg-hover hover:text-danger disabled:cursor-not-allowed disabled:opacity-40"
-					title="Delete"
-					disabled={locked}
 				>
 					<Trash2 size={14} />
 				</button>
 			) : (
 				<Link
+					aria-disabled={locked}
+					className="grid size-7 place-items-center rounded-md border-0 bg-transparent text-text-3 transition-colors hover:bg-hover hover:text-text"
+					state={{ from: location.pathname + location.search }}
+					title="Edit page"
 					to={
 						isDraft
 							? pageDraftEditPath(row.pending_change_id as number)
 							: pageEditPath(row.id)
 					}
-					state={{ from: location.pathname + location.search }}
-					className="grid size-7 place-items-center rounded-md border-0 bg-transparent text-text-3 transition-colors hover:bg-hover hover:text-text"
-					title="Edit page"
-					aria-disabled={locked}
 					onClick={(e) => {
 						if (locked) {
 							e.preventDefault();

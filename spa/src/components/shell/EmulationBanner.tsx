@@ -24,15 +24,15 @@ export const EmulationBanner = () => {
 
 	return (
 		<div className="flex items-center justify-center gap-3 border-b border-warn/30 bg-warn-bg px-4 py-1.5 text-[12.5px] font-medium text-warn">
-			<Eye size={13} className="shrink-0" />
+			<Eye className="shrink-0" size={13} />
 			<span>
 				Emulating <strong>{user?.name || user?.email}</strong> — actions are performed as
 				this user.
 			</span>
 			<button
+				className="rounded-md border border-warn/40 bg-warn/10 px-2 py-0.5 font-semibold text-warn hover:bg-warn/20"
 				type="button"
 				onClick={stop}
-				className="rounded-md border border-warn/40 bg-warn/10 px-2 py-0.5 font-semibold text-warn hover:bg-warn/20"
 			>
 				Stop emulating
 			</button>

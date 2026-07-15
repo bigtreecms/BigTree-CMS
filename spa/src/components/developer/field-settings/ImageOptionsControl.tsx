@@ -26,58 +26,58 @@ import { useListEditor } from "@/hooks/useListEditor";
  */
 
 interface DimRow {
-	prefix?: string;
-	width?: string;
-	height?: string;
-	grayscale?: string;
-	thumbs?: DimRow[];
 	center_crops?: DimRow[];
+	grayscale?: string;
+	height?: string;
+	prefix?: string;
+	thumbs?: DimRow[];
+	width?: string;
 }
 
 const asRows = (value: unknown): DimRow[] => (Array.isArray(value) ? (value as DimRow[]) : []);
 
 interface DimFieldsProps {
-	row: DimRow;
 	onChange: (patch: Partial<DimRow>) => void;
 	onRemove: () => void;
+	row: DimRow;
 }
 
 const DimFields = ({ row, onChange, onRemove }: DimFieldsProps) => (
 	<div className="flex items-center gap-2">
 		<TextInput
 			compact
+			aria-label="Prefix"
 			className="min-w-0 flex-1"
 			placeholder="Prefix"
-			aria-label="Prefix"
 			value={row.prefix ?? ""}
 			onChange={(e) => onChange({ prefix: e.target.value })}
 		/>
 		<TextInput
 			compact
-			className="min-w-0 flex-1"
-			placeholder="Width"
 			aria-label="Width"
+			className="min-w-0 flex-1"
 			inputMode="numeric"
+			placeholder="Width"
 			value={row.width ?? ""}
 			onChange={(e) => onChange({ width: e.target.value.replace(/[^0-9]/g, "") })}
 		/>
 		<TextInput
 			compact
-			className="min-w-0 flex-1"
-			placeholder="Height"
 			aria-label="Height"
+			className="min-w-0 flex-1"
 			inputMode="numeric"
+			placeholder="Height"
 			value={row.height ?? ""}
 			onChange={(e) => onChange({ height: e.target.value.replace(/[^0-9]/g, "") })}
 		/>
 		<Checkbox
-			size="sm"
+			checked={Boolean(row.grayscale)}
 			className="whitespace-nowrap"
 			label="Grey"
-			checked={Boolean(row.grayscale)}
+			size="sm"
 			onChange={(checked) => onChange({ grayscale: checked ? "on" : "" })}
 		/>
-		<IconButton tone="danger" onClick={onRemove} label="Remove">
+		<IconButton label="Remove" tone="danger" onClick={onRemove}>
 			<Trash size={13} />
 		</IconButton>
 	</div>
@@ -85,8 +85,8 @@ const DimFields = ({ row, onChange, onRemove }: DimFieldsProps) => (
 
 interface DimListProps {
 	label: string;
-	rows: DimRow[];
 	onChange: (next: DimRow[]) => void;
+	rows: DimRow[];
 }
 
 const DimList = ({ label, rows, onChange }: DimListProps) => {
@@ -97,8 +97,8 @@ const DimList = ({ label, rows, onChange }: DimListProps) => {
 			<div className="flex items-center justify-between">
 				<span className="text-[11.5px] font-medium text-text-2">{label}</span>
 				<button
-					type="button"
 					className="inline-flex items-center gap-1 rounded border border-border bg-surface px-2 py-0.5 text-[11.5px] hover:bg-hover"
+					type="button"
 					onClick={() => add({})}
 				>
 					<Plus size={11} />
@@ -135,8 +135,8 @@ export const ImageOptionsControl = ({ settings, onPatch }: ControlProps) => {
 			<ControlShell label="Existing Preset">
 				<Select
 					dense
-					value={preset}
 					disabled={presetsQ.isLoading}
+					value={preset}
 					onChange={(e) => onPatch({ preset: e.target.value })}
 				>
 					<option value="" />
@@ -156,7 +156,7 @@ export const ImageOptionsControl = ({ settings, onPatch }: ControlProps) => {
 			) : (
 				<>
 					<div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-						<ControlShell label="Minimum Width" hint="(px)">
+						<ControlShell hint="(px)" label="Minimum Width">
 							<TextInput
 								compact
 								className="min-w-0 flex-1"
@@ -167,7 +167,7 @@ export const ImageOptionsControl = ({ settings, onPatch }: ControlProps) => {
 								}
 							/>
 						</ControlShell>
-						<ControlShell label="Minimum Height" hint="(px)">
+						<ControlShell hint="(px)" label="Minimum Height">
 							<TextInput
 								compact
 								className="min-w-0 flex-1"
@@ -178,7 +178,7 @@ export const ImageOptionsControl = ({ settings, onPatch }: ControlProps) => {
 								}
 							/>
 						</ControlShell>
-						<ControlShell label="Preview Prefix" hint="(forms)">
+						<ControlShell hint="(forms)" label="Preview Prefix">
 							<TextInput
 								compact
 								className="min-w-0 flex-1"
@@ -189,8 +189,8 @@ export const ImageOptionsControl = ({ settings, onPatch }: ControlProps) => {
 					</div>
 
 					<Checkbox
-						label="Create Hi-Resolution Retina Images When Available"
 						checked={Boolean(settings.retina)}
+						label="Create Hi-Resolution Retina Images When Available"
 						onChange={(next) => onPatch({ retina: next ? "on" : "" })}
 					/>
 
@@ -198,8 +198,8 @@ export const ImageOptionsControl = ({ settings, onPatch }: ControlProps) => {
 						<div className="flex items-center justify-between">
 							<SectionLabel size="sm">Crops</SectionLabel>
 							<button
-								type="button"
 								className="inline-flex items-center gap-1 rounded border border-border bg-surface px-2 py-0.5 text-[11.5px] hover:bg-hover"
+								type="button"
 								onClick={() => cropEditor.add({})}
 							>
 								<Plus size={11} />
@@ -208,8 +208,8 @@ export const ImageOptionsControl = ({ settings, onPatch }: ControlProps) => {
 						</div>
 						{crops.map((crop, index) => (
 							<div
-								key={index}
 								className="space-y-2 rounded border border-border bg-surface p-2"
+								key={index}
 							>
 								<DimFields
 									row={crop}

@@ -33,19 +33,19 @@ import { settingsOf, type FieldComponentProps } from "./types";
  *   - Optional `min_width` / `min_height`, `preview_prefix`, `preview_cache_suffix`
  */
 interface ConfiguredCrop {
+	height?: number | string;
 	prefix?: string;
 	width?: number | string;
-	height?: number | string;
 }
 
 interface ImageFieldSettings {
-	min_width?: number | string;
-	min_height?: number | string;
-	preview_prefix?: string;
-	preview_cache_suffix?: string;
+	crops?: ConfiguredCrop[];
 	disable_browse?: boolean | string | number;
 	disable_remove?: boolean | string | number;
-	crops?: ConfiguredCrop[];
+	min_height?: number | string;
+	min_width?: number | string;
+	preview_cache_suffix?: string;
+	preview_prefix?: string;
 }
 
 export const ImageField = ({ field, value, onChange, disabled }: FieldComponentProps) => {
@@ -83,20 +83,20 @@ export const ImageField = ({ field, value, onChange, disabled }: FieldComponentP
 		<div className="space-y-2">
 			<div className="flex flex-wrap items-center gap-2">
 				<Button
-					variant="secondary"
-					icon={<UploadIcon size={13} />}
-					onClick={filePicker.open}
 					disabled={busy}
+					icon={<UploadIcon size={13} />}
+					variant="secondary"
+					onClick={filePicker.open}
 				>
 					{currentPath ? "Replace image" : "Upload image"}
 				</Button>
 
 				{showBrowse && (
 					<Button
-						variant="secondary"
-						icon={<Search size={13} />}
-						onClick={() => setPickerOpen(true)}
 						disabled={busy}
+						icon={<Search size={13} />}
+						variant="secondary"
+						onClick={() => setPickerOpen(true)}
 					>
 						Browse media
 					</Button>
@@ -104,10 +104,10 @@ export const ImageField = ({ field, value, onChange, disabled }: FieldComponentP
 
 				{currentPath && configuredCrops.length > 0 && (
 					<Button
-						variant="secondary"
-						icon={<Crop size={13} />}
-						onClick={() => reprocess({ file: currentPath, in_place: true })}
 						disabled={busy}
+						icon={<Crop size={13} />}
+						variant="secondary"
+						onClick={() => reprocess({ file: currentPath, in_place: true })}
 					>
 						Choose new crops
 					</Button>
@@ -115,8 +115,8 @@ export const ImageField = ({ field, value, onChange, disabled }: FieldComponentP
 
 				{currentPath && configuredCrops.length > 0 && (
 					<Button
-						variant="secondary"
 						icon={<Images size={13} />}
+						variant="secondary"
 						onClick={() => setShowCrops((s) => !s)}
 					>
 						{showCrops ? "Hide existing crops" : "Show existing crops"}
@@ -134,9 +134,9 @@ export const ImageField = ({ field, value, onChange, disabled }: FieldComponentP
 						{inFlight ? (
 							<>
 								<ProgressBar
-									value={inFlight.progress}
-									label="Upload progress"
 									className="w-24"
+									label="Upload progress"
+									value={inFlight.progress}
 								/>
 								{inFlight.progress}%
 							</>
@@ -147,17 +147,17 @@ export const ImageField = ({ field, value, onChange, disabled }: FieldComponentP
 				)}
 
 				<input
-					ref={filePicker.inputRef}
-					type="file"
 					accept="image/*"
 					aria-label={field.title}
 					className="hidden"
+					ref={filePicker.inputRef}
+					type="file"
 					onChange={filePicker.onChange}
 				/>
 			</div>
 
 			{error && (
-				<Alert tone="danger" data-field-error>
+				<Alert data-field-error tone="danger">
 					{error}
 				</Alert>
 			)}
@@ -165,17 +165,17 @@ export const ImageField = ({ field, value, onChange, disabled }: FieldComponentP
 			{currentPath ? (
 				<div className="flex items-start gap-3 rounded-md border border-border bg-surface-2 p-2">
 					<div className="overflow-hidden rounded border border-border bg-surface">
-						<a href={fullUrl ?? "#"} target="_blank" rel="noopener noreferrer">
-							<PreviewThumb src={previewUrl ?? ""} fallback={fullUrl ?? ""} />
+						<a href={fullUrl ?? "#"} rel="noopener noreferrer" target="_blank">
+							<PreviewThumb fallback={fullUrl ?? ""} src={previewUrl ?? ""} />
 						</a>
 					</div>
 					<div className="min-w-0 flex-1 text-[12px]">
 						<SectionLabel size="sm">Current</SectionLabel>
 						<a
-							href={fullUrl ?? "#"}
-							target="_blank"
-							rel="noopener noreferrer"
 							className="block truncate text-accent hover:underline"
+							href={fullUrl ?? "#"}
+							rel="noopener noreferrer"
+							target="_blank"
 							title={fullUrl ?? undefined}
 						>
 							{fullUrl}
@@ -200,17 +200,17 @@ export const ImageField = ({ field, value, onChange, disabled }: FieldComponentP
 				<div className="flex flex-wrap gap-2 rounded-md border border-border bg-surface-2 p-2">
 					{configuredCrops.map((c) => (
 						<a
-							key={c.prefix}
-							href={expandImageUrl(currentPath, c.prefix)}
-							target="_blank"
-							rel="noopener noreferrer"
 							className="block"
+							href={expandImageUrl(currentPath, c.prefix)}
+							key={c.prefix}
+							rel="noopener noreferrer"
+							target="_blank"
 							title={`${c.prefix} (${c.width ?? "—"}×${c.height ?? "—"})`}
 						>
 							<img
-								src={expandImageUrl(currentPath, c.prefix)}
 								alt={c.prefix}
 								className="block max-h-20 w-auto max-w-[220px] rounded border border-border"
+								src={expandImageUrl(currentPath, c.prefix)}
 							/>
 						</a>
 					))}
@@ -218,11 +218,11 @@ export const ImageField = ({ field, value, onChange, disabled }: FieldComponentP
 			)}
 
 			<ResourcePicker
-				open={pickerOpen}
-				onOpenChange={setPickerOpen}
-				type="image"
-				minWidth={minWidth}
 				minHeight={minHeight}
+				minWidth={minWidth}
+				open={pickerOpen}
+				type="image"
+				onOpenChange={setPickerOpen}
 				onSelect={(resource) => reprocess({ resource_id: resource.id })}
 			/>
 
@@ -232,10 +232,10 @@ export const ImageField = ({ field, value, onChange, disabled }: FieldComponentP
 };
 
 interface PreviewThumbProps {
-	/** Preferred source (e.g. the `preview_prefix` thumbnail). */
-	src: string;
 	/** Fallback when `src` fails to load (the full-size image). */
 	fallback: string;
+	/** Preferred source (e.g. the `preview_prefix` thumbnail). */
+	src: string;
 }
 
 /**
@@ -262,9 +262,9 @@ const PreviewThumb = ({ src, fallback }: PreviewThumbProps) => {
 
 	return (
 		<img
-			src={current}
 			alt=""
 			className="block size-24 object-cover"
+			src={current}
 			onError={() => setStage((s) => (s === 0 && src && src !== fallback ? 1 : 2))}
 		/>
 	);

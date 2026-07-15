@@ -36,8 +36,8 @@ const SpyField = ({ field, value, onChange, disabled }: FieldComponentProps) => 
 	return (
 		<input
 			aria-label={field.column}
-			value={typeof value === "string" ? value : ""}
 			disabled={disabled}
+			value={typeof value === "string" ? value : ""}
 			onChange={(event) => onChange(event.target.value)}
 		/>
 	);
@@ -95,7 +95,7 @@ describe("FormRenderer field render isolation", () => {
 		const onSubmit = vi.fn();
 		const user = userEvent.setup();
 
-		renderWithRouter(<FormRenderer form={makeForm()} onSubmit={onSubmit} submitLabel="Save" />);
+		renderWithRouter(<FormRenderer form={makeForm()} submitLabel="Save" onSubmit={onSubmit} />);
 
 		await user.type(screen.getByLabelText("a"), "one");
 		await user.type(screen.getByLabelText("b"), "two");

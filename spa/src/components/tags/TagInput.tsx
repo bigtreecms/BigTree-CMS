@@ -22,22 +22,22 @@ import { queryKeys } from "@/lib/queryKeys";
  */
 
 interface SingleProps {
-	multiple?: false;
-	value: Tag | null;
-	onChange: (next: Tag | null) => void;
-	placeholder?: string;
 	disabled?: boolean;
 	/** Tags to omit from the suggestion dropdown (e.g. the current target on a merge page). */
 	excludeIds?: number[];
+	multiple?: false;
+	onChange: (next: Tag | null) => void;
+	placeholder?: string;
+	value: Tag | null;
 }
 
 interface MultiProps {
-	multiple: true;
-	value: Tag[];
-	onChange: (next: Tag[]) => void;
-	placeholder?: string;
 	disabled?: boolean;
 	excludeIds?: number[];
+	multiple: true;
+	onChange: (next: Tag[]) => void;
+	placeholder?: string;
+	value: Tag[];
 }
 
 type TagInputProps = SingleProps | MultiProps;
@@ -175,7 +175,7 @@ export const TagInput = (props: TagInputProps) => {
 	};
 
 	return (
-		<div ref={wrapperRef} className="relative">
+		<div className="relative" ref={wrapperRef}>
 			<div
 				className={`flex flex-wrap items-center gap-1.5 rounded-md border border-border bg-surface px-2 py-1.5 text-[13.5px] focus-within:ring-1 focus-within:ring-accent-ring ${
 					props.disabled ? "opacity-60" : ""
@@ -184,10 +184,10 @@ export const TagInput = (props: TagInputProps) => {
 				{props.multiple &&
 					props.value.map((tag) => (
 						<RemovableChip
+							disabled={props.disabled}
 							key={tag.id}
 							label={tag.tag}
 							onRemove={() => removeTag(tag.id)}
-							disabled={props.disabled}
 						/>
 					))}
 
@@ -197,9 +197,9 @@ export const TagInput = (props: TagInputProps) => {
 
 							return (
 								<RemovableChip
+									disabled={props.disabled}
 									label={single.tag}
 									onRemove={() => removeTag(single.id)}
-									disabled={props.disabled}
 								/>
 							);
 						})()
@@ -207,20 +207,20 @@ export const TagInput = (props: TagInputProps) => {
 
 				{(props.multiple || !props.value) && (
 					<input
+						aria-label={props.placeholder ?? "Add tag"}
+						className="flex-1 min-w-[120px] bg-transparent outline-none placeholder:text-text-3"
+						disabled={props.disabled}
+						placeholder={props.placeholder ?? "Add tag…"}
 						ref={inputRef}
 						type="text"
-						className="flex-1 min-w-[120px] bg-transparent outline-none placeholder:text-text-3"
-						placeholder={props.placeholder ?? "Add tag…"}
-						aria-label={props.placeholder ?? "Add tag"}
 						value={text}
+						onBlur={handleBlur}
 						onChange={(e) => {
 							setText(e.target.value);
 							setOpen(true);
 						}}
 						onFocus={() => setOpen(true)}
-						onBlur={handleBlur}
 						onKeyDown={handleKeyDown}
-						disabled={props.disabled}
 					/>
 				)}
 			</div>
@@ -239,19 +239,19 @@ export const TagInput = (props: TagInputProps) => {
 
 							{suggestions.map((tag, i) => (
 								<button
-									key={tag.id}
-									type="button"
 									className={`flex w-full items-center justify-between gap-2 px-3 py-1.5 text-left text-[13px] ${
 										activeIndex === i
 											? "bg-accent-soft text-text"
 											: "hover:bg-hover"
 									}`}
-									onMouseEnter={() => setActiveIndex(i)}
+									key={tag.id}
+									type="button"
 									onMouseDown={(e) => {
 										// Prevent input blur from firing first.
 										e.preventDefault();
 										pickTag(tag);
 									}}
+									onMouseEnter={() => setActiveIndex(i)}
 								>
 									<span>{tag.tag}</span>
 									<span className="text-[11px] tabular-nums text-text-3">
@@ -262,17 +262,17 @@ export const TagInput = (props: TagInputProps) => {
 
 							{canCreate && (
 								<button
-									type="button"
 									className={`flex w-full items-center gap-2 border-t border-border px-3 py-1.5 text-left text-[13px] ${
 										activeIndex === suggestions.length
 											? "bg-accent-soft text-text"
 											: "hover:bg-hover"
 									}`}
-									onMouseEnter={() => setActiveIndex(suggestions.length)}
+									type="button"
 									onMouseDown={(e) => {
 										e.preventDefault();
 										createMutation.mutate(trimmed);
 									}}
+									onMouseEnter={() => setActiveIndex(suggestions.length)}
 								>
 									<span className="text-text-3">Create</span>
 									<span className="font-medium">“{trimmed}”</span>

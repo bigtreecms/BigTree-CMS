@@ -49,30 +49,30 @@ export const ImagesView = ({ moduleId, view }: ImagesViewProps) => {
 			<Toolbar
 				search={
 					<SearchInput
+						aria-label={`Search ${view.title.toLowerCase()}`}
+						placeholder={`Search ${view.title.toLowerCase()}…`}
 						value={query}
 						onChange={setQuery}
-						placeholder={`Search ${view.title.toLowerCase()}…`}
-						aria-label={`Search ${view.title.toLowerCase()}`}
 					/>
 				}
 			/>
 
 			<QueryRenderer
-				isLoading={listQuery.isLoading && !listQuery.data}
+				empty={<EmptyState>{viewEmptyLabel(debouncedQuery)}</EmptyState>}
 				error={listQuery.error}
 				isEmpty={rows.length === 0}
-				loading={<Loading variant="card" label="Loading entries…" />}
-				empty={<EmptyState>{viewEmptyLabel(debouncedQuery)}</EmptyState>}
+				isLoading={listQuery.isLoading && !listQuery.data}
+				loading={<Loading label="Loading entries…" variant="card" />}
 			>
 				<ImagesGrid
-					rows={rows}
-					moduleId={moduleId}
-					viewId={view.id}
-					prefix={prefix}
-					onClick={openEdit}
-					canEdit={builtins.edit}
 					canDelete={builtins.delete}
+					canEdit={builtins.edit}
 					customActions={custom}
+					moduleId={moduleId}
+					prefix={prefix}
+					rows={rows}
+					viewId={view.id}
+					onClick={openEdit}
 				/>
 			</QueryRenderer>
 		</>
@@ -80,14 +80,14 @@ export const ImagesView = ({ moduleId, view }: ImagesViewProps) => {
 };
 
 interface ImagesGridProps {
-	rows: ModuleEntryRow[];
-	moduleId: string;
-	viewId: string;
-	prefix: string;
-	onClick: (row: ModuleEntryRow) => void;
-	canEdit: boolean;
 	canDelete: boolean;
+	canEdit: boolean;
 	customActions: CustomViewAction[];
+	moduleId: string;
+	onClick: (row: ModuleEntryRow) => void;
+	prefix: string;
+	rows: ModuleEntryRow[];
+	viewId: string;
 }
 
 export const ImagesGrid = ({
@@ -114,23 +114,23 @@ export const ImagesGrid = ({
 
 				return (
 					<div
-						key={String(row.id)}
 						className="group flex flex-col overflow-hidden rounded-lg border border-border bg-surface transition-colors hover:border-border-strong"
+						key={String(row.id)}
 					>
 						<button
-							type="button"
-							className="block text-left focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent-ring disabled:cursor-default"
-							onClick={() => onClick(row)}
-							disabled={!canEdit}
 							aria-label="Edit"
+							className="block text-left focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent-ring disabled:cursor-default"
+							disabled={!canEdit}
+							type="button"
+							onClick={() => onClick(row)}
 						>
 							<div className="relative aspect-4/3 w-full bg-surface-2">
 								{src ? (
 									<img
-										src={src}
 										alt=""
-										loading="lazy"
 										className="absolute inset-0 size-full object-cover"
+										loading="lazy"
+										src={src}
 									/>
 								) : (
 									<div className="absolute inset-0 grid place-items-center text-text-4">
@@ -145,9 +145,9 @@ export const ImagesGrid = ({
 								{customActions.map((action) => (
 									<IconButton
 										key={action.key}
-										to={actionPath(action.route, row.id)}
 										label={action.name}
 										title={action.name}
+										to={actionPath(action.route, row.id)}
 									>
 										<span className="inline-block text-[11px] font-medium">
 											{action.name.slice(0, 2)}
@@ -156,17 +156,17 @@ export const ImagesGrid = ({
 								))}
 
 								{canEdit && (
-									<IconButton to={editPath(row.id)} label="Edit" title="Edit">
+									<IconButton label="Edit" title="Edit" to={editPath(row.id)}>
 										<Edit size={14} />
 									</IconButton>
 								)}
 
 								{canDelete && (
 									<IconButton
+										disabled={!canMutate}
 										label="Delete"
 										title="Delete"
 										tone="danger"
-										disabled={!canMutate}
 										onClick={() => requestDelete(row)}
 									>
 										<Trash size={14} />

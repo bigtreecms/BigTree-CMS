@@ -15,9 +15,9 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
 
 		return (
 			<textarea
+				className={className ? `${base} ${className}` : base}
 				ref={ref}
 				rows={rows}
-				className={className ? `${base} ${className}` : base}
 				{...rest}
 			/>
 		);

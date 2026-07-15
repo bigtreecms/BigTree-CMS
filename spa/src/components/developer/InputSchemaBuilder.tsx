@@ -14,8 +14,8 @@ import { useListEditor } from "@/hooks/useListEditor";
 import type { LabeledOption } from "@/types/labeled-option";
 
 interface InputSchemaBuilderProps {
-	value: InputDescriptor[];
 	onChange: (next: InputDescriptor[]) => void;
+	value: InputDescriptor[];
 }
 
 /** Primitive field types offered as declarative sub-fields. */
@@ -70,13 +70,13 @@ export const InputSchemaBuilder = ({ value, onChange }: InputSchemaBuilderProps)
 			)}
 
 			{value.map((descriptor, index) => (
-				<div key={index} className="rounded-md border border-border bg-surface-2 p-3">
+				<div className="rounded-md border border-border bg-surface-2 p-3" key={index}>
 					<div className="grid grid-cols-1 gap-3 md:grid-cols-3">
 						<SchemaFieldLabel label="Key">
 							<TextInput
+								placeholder="e.g. first_name"
 								value={descriptor.id}
 								onChange={(e) => patch(index, { id: e.target.value })}
-								placeholder="e.g. first_name"
 							/>
 						</SchemaFieldLabel>
 						<SchemaFieldLabel label="Type">
@@ -93,9 +93,9 @@ export const InputSchemaBuilder = ({ value, onChange }: InputSchemaBuilderProps)
 						</SchemaFieldLabel>
 						<SchemaFieldLabel label="Label">
 							<TextInput
+								placeholder="Shown above the field"
 								value={descriptor.title ?? ""}
 								onChange={(e) => patch(index, { title: e.target.value })}
-								placeholder="Shown above the field"
 							/>
 						</SchemaFieldLabel>
 					</div>
@@ -108,30 +108,30 @@ export const InputSchemaBuilder = ({ value, onChange }: InputSchemaBuilderProps)
 							/>
 						</SchemaFieldLabel>
 						<Checkbox
+							checked={!!descriptor.required}
 							className="self-end pb-2"
 							label="Required"
-							checked={!!descriptor.required}
 							onChange={(next) => patch(index, { required: next })}
 						/>
 						<div className="flex items-end justify-end gap-1 pb-1">
 							<button
+								className="inline-flex items-center gap-1 rounded-md border border-border bg-surface px-2 py-1 text-[11.5px] text-text-2 hover:bg-hover"
+								title="Field settings"
 								type="button"
 								onClick={() =>
 									setOpenSettings(openSettings === index ? null : index)
 								}
-								className="inline-flex items-center gap-1 rounded-md border border-border bg-surface px-2 py-1 text-[11.5px] text-text-2 hover:bg-hover"
-								title="Field settings"
 							>
 								<Settings2 size={13} />
 								Settings
 							</button>
 							<RowReorderControls
-								onMoveUp={() => move(index, index - 1)}
-								onMoveDown={() => move(index, index + 1)}
-								onRemove={() => remove(index)}
 								isFirst={index === 0}
 								isLast={index === value.length - 1}
 								itemLabel="sub-field"
+								onMoveDown={() => move(index, index + 1)}
+								onMoveUp={() => move(index, index - 1)}
+								onRemove={() => remove(index)}
 							/>
 						</div>
 					</div>
@@ -139,18 +139,18 @@ export const InputSchemaBuilder = ({ value, onChange }: InputSchemaBuilderProps)
 					{openSettings === index && (
 						<div className="mt-3 border-t border-border pt-3">
 							<FieldSettingsEditor
+								hideLabel
 								type={descriptor.type}
 								useCase="modules"
 								value={descriptor.settings}
 								onChange={(next) => patch(index, { settings: next })}
-								hideLabel
 							/>
 						</div>
 					)}
 				</div>
 			))}
 
-			<Button variant="secondary" icon={<Plus size={14} />} onClick={add}>
+			<Button icon={<Plus size={14} />} variant="secondary" onClick={add}>
 				Add sub-field
 			</Button>
 		</div>

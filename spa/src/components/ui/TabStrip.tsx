@@ -2,25 +2,25 @@ import { useRef } from "react";
 import type { KeyboardEvent, ReactNode } from "react";
 
 export interface TabStripItem {
-	value: string;
-	label: ReactNode;
-	icon?: ReactNode;
 	disabled?: boolean;
+	icon?: ReactNode;
+	label: ReactNode;
+	value: string;
 }
 
 interface TabStripProps {
-	tabs: TabStripItem[];
-	value: string;
-	onChange: (value: string) => void;
-	/** Optional content pinned to the far right of the strip (e.g. a LinkFinder). */
-	trailing?: ReactNode;
+	className?: string;
 	/**
 	 * Prefix for the tab/panel ids so hosts can wire their panels to the strip via
 	 * `aria-controls` / `aria-labelledby`. Each tab is `${idBase}-tab-${value}` and
 	 * is wired to a panel at `${idBase}-panel-${value}`.
 	 */
 	idBase?: string;
-	className?: string;
+	onChange: (value: string) => void;
+	tabs: TabStripItem[];
+	/** Optional content pinned to the far right of the strip (e.g. a LinkFinder). */
+	trailing?: ReactNode;
+	value: string;
 }
 
 /**
@@ -93,32 +93,32 @@ export const TabStrip = ({ tabs, value, onChange, trailing, idBase, className }:
 			className={`flex min-w-0 items-center border-b border-border bg-surface px-1 ${className ?? ""}`}
 		>
 			<div
-				role="tablist"
 				className="flex min-w-0 flex-1 items-center gap-1 overflow-x-auto [-ms-overflow-style:none] scrollbar-none [&::-webkit-scrollbar]:hidden"
+				role="tablist"
 			>
 				{tabs.map((tab, index) => {
 					const active = tab.value === value;
 
 					return (
 						<button
-							key={tab.value}
-							ref={(el) => {
-								refs.current[index] = el;
-							}}
-							type="button"
-							role="tab"
-							id={idBase ? `${idBase}-tab-${tab.value}` : undefined}
-							aria-selected={active}
 							aria-controls={idBase ? `${idBase}-panel-${tab.value}` : undefined}
-							tabIndex={active ? 0 : -1}
-							disabled={tab.disabled}
-							onClick={() => onChange(tab.value)}
-							onKeyDown={(event) => handleKeyDown(event, index)}
+							aria-selected={active}
 							className={`-mb-px flex shrink-0 items-center gap-1.5 whitespace-nowrap border-b-2 px-3 py-2 text-[13px] font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
 								active
 									? "border-accent text-accent"
 									: "border-transparent text-text-3 hover:text-text"
 							}`}
+							disabled={tab.disabled}
+							id={idBase ? `${idBase}-tab-${tab.value}` : undefined}
+							key={tab.value}
+							ref={(el) => {
+								refs.current[index] = el;
+							}}
+							role="tab"
+							tabIndex={active ? 0 : -1}
+							type="button"
+							onClick={() => onChange(tab.value)}
+							onKeyDown={(event) => handleKeyDown(event, index)}
 						>
 							{tab.icon}
 							<span>{tab.label}</span>

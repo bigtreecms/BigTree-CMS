@@ -105,9 +105,9 @@ export const Tags = () => {
 				<div className="flex items-center justify-end gap-1">
 					<IconButton
 						className="disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-text-3"
-						title="Merge into another tag"
-						label="Merge into another tag"
 						disabled={!canEdit}
+						label="Merge into another tag"
+						title="Merge into another tag"
 						onClick={(e) => {
 							e.stopPropagation();
 							navigate(`/tags/merge?from=${tag.id}`);
@@ -116,11 +116,11 @@ export const Tags = () => {
 						<GitMerge size={15} />
 					</IconButton>
 					<IconButton
-						tone="danger"
 						className="disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-text-3"
-						title="Delete tag"
-						label="Delete tag"
 						disabled={!canEdit}
+						label="Delete tag"
+						title="Delete tag"
+						tone="danger"
 						onClick={(e) => {
 							e.stopPropagation();
 							deleteDialog.open(tag);
@@ -138,32 +138,32 @@ export const Tags = () => {
 			<Breadcrumb items={[{ label: "Tags" }, { label: "View Tags" }]} />
 
 			<PageHead
-				title="Tags"
-				sub={pluralize(total, "tag")}
 				actions={
 					canEdit ? (
-						<Button variant="primary" icon={<Plus size={13} />} to="/tags/add">
+						<Button icon={<Plus size={13} />} to="/tags/add" variant="primary">
 							Add tag
 						</Button>
 					) : undefined
 				}
+				sub={pluralize(total, "tag")}
+				title="Tags"
 			/>
 
 			{canEdit && (
 				<SubNav<"list" | "add">
 					className="mb-4"
-					value="list"
-					onChange={(v) => navigate(v === "add" ? "/tags/add" : "/tags")}
 					items={[
 						{ value: "list", label: "View Tags" },
 						{ value: "add", label: "Add Tag", icon: <Plus size={13} /> },
 					]}
+					value="list"
+					onChange={(v) => navigate(v === "add" ? "/tags/add" : "/tags")}
 				/>
 			)}
 
 			<Toolbar
 				search={
-					<SearchInput value={query} onChange={setQuery} placeholder="Search tags…" />
+					<SearchInput placeholder="Search tags…" value={query} onChange={setQuery} />
 				}
 			>
 				<Pager page={safePage} totalPages={totalPages} onChange={setPage} />
@@ -171,23 +171,23 @@ export const Tags = () => {
 
 			<DataTable<Tag>
 				columns={columns}
-				rows={rows}
+				emptyLabel={query ? `No tags match “${query}”.` : "No tags yet."}
 				getRowKey={(tag) => tag.id}
 				isLoading={listQuery.isLoading && !listQuery.data}
 				loadingLabel="Loading tags…"
-				emptyLabel={query ? `No tags match “${query}”.` : "No tags yet."}
+				rows={rows}
 			/>
 
 			{deleteDialog.item && (
 				<ConfirmDialog
 					{...deleteDialog.dialogProps}
-					title={`Delete “${deleteDialog.item.tag}”?`}
+					confirmLabel="Delete tag"
 					description={
 						deleteDialog.item.usage_count > 0
 							? `This tag is currently used by ${pluralize(deleteDialog.item.usage_count, "item")}. Those associations will be removed.`
 							: "This tag isn't currently used by any content."
 					}
-					confirmLabel="Delete tag"
+					title={`Delete “${deleteDialog.item.tag}”?`}
 					variant="danger"
 					onConfirm={() => deleteMutation.mutate(deleteDialog.item!.id)}
 				/>

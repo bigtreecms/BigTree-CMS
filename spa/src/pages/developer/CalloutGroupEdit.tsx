@@ -57,7 +57,7 @@ export const CalloutGroupEdit = () => {
 	});
 
 	if (!isAdd && !idParam) {
-		return <Navigate to="/developer/callout-groups" replace />;
+		return <Navigate replace to="/developer/callout-groups" />;
 	}
 
 	const callouts = calloutsQ.data ?? [];
@@ -85,14 +85,16 @@ export const CalloutGroupEdit = () => {
 
 	return (
 		<DeveloperEditLayout
-			width="narrow"
-			section="Callout groups"
-			listPath="/developer/callout-groups"
-			isAdd={isAdd}
-			title={title}
 			detailQuery={detailQ}
 			error={error}
+			isAdd={isAdd}
 			isDirty={isDirty}
+			listPath="/developer/callout-groups"
+			saving={saving}
+			section="Callout groups"
+			submitLabel={isAdd ? "Create group" : "Save group"}
+			title={title}
+			width="narrow"
 			onSubmit={(e) =>
 				handleSubmit(
 					e,
@@ -104,26 +106,24 @@ export const CalloutGroupEdit = () => {
 					() => save(body)
 				)
 			}
-			submitLabel={isAdd ? "Create group" : "Save group"}
-			saving={saving}
 		>
 			<div className="space-y-4">
 				<FieldGrid>
 					<TextField
+						required
+						disabled={!isAdd}
+						error={fieldErrors.id}
+						hint="Lowercase, hyphens or underscores."
 						label="ID"
 						value={body.id ?? ""}
 						onChange={(v) => set({ id: v })}
-						hint="Lowercase, hyphens or underscores."
-						error={fieldErrors.id}
-						disabled={!isAdd}
-						required
 					/>
 					<TextField
+						required
+						error={fieldErrors.name}
 						label="Name"
 						value={body.name ?? ""}
 						onChange={(v) => set({ name: v })}
-						error={fieldErrors.name}
-						required
 					/>
 				</FieldGrid>
 
@@ -152,8 +152,8 @@ export const CalloutGroupEdit = () => {
 
 										return (
 											<li
-												key={id}
 												className="flex items-center gap-3 px-3 py-2 text-[12.5px]"
+												key={id}
 											>
 												<span className="min-w-0 flex-1">
 													<div className="truncate text-text-2">
@@ -162,10 +162,10 @@ export const CalloutGroupEdit = () => {
 													<MonoText as="div">{id}</MonoText>
 												</span>
 												<IconButton
+													label={`Remove ${callout?.name ?? id} from group`}
+													title="Remove from group"
 													tone="danger"
 													onClick={() => removeCallout(id)}
-													title="Remove from group"
-													label={`Remove ${callout?.name ?? id} from group`}
 												>
 													<Trash size={13} />
 												</IconButton>
@@ -180,22 +180,22 @@ export const CalloutGroupEdit = () => {
 							)}
 
 							<Combobox<string>
+								ariaLabel="Add a callout to this group"
+								clearable={false}
+								emptyLabel={
+									addOptions.length === 0
+										? "All callouts are in this group."
+										: "No callouts match."
+								}
+								options={addOptions}
+								placeholder="Add a callout…"
+								searchPlaceholder="Search callouts…"
 								value={null}
 								onChange={(option) => {
 									if (option) {
 										addCallout(option.value);
 									}
 								}}
-								options={addOptions}
-								placeholder="Add a callout…"
-								searchPlaceholder="Search callouts…"
-								emptyLabel={
-									addOptions.length === 0
-										? "All callouts are in this group."
-										: "No callouts match."
-								}
-								clearable={false}
-								ariaLabel="Add a callout to this group"
 							/>
 						</div>
 					)}

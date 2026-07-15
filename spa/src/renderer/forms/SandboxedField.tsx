@@ -19,10 +19,10 @@ type DistributiveOmit<T, K extends PropertyKey> = T extends unknown ? Omit<T, K>
 
 interface SandboxedFieldProps extends FieldComponentProps {
 	assetUrl: string;
-	/** SRI string (e.g. "sha384-…"); the sandbox refuses unsigned modules. */
-	integrity: string;
 	/** Highest module contract version the host supports. */
 	contractVersion: number;
+	/** SRI string (e.g. "sha384-…"); the sandbox refuses unsigned modules. */
+	integrity: string;
 }
 
 /**
@@ -122,15 +122,15 @@ export const SandboxedField = ({
 	return (
 		<div>
 			<iframe
-				ref={iframeRef}
-				src={`${FIELD_SANDBOX_URL}#c=${channelRef.current}`}
-				sandbox="allow-scripts"
-				title="Custom field"
 				className="block w-full rounded-md border border-border bg-surface"
+				ref={iframeRef}
+				sandbox="allow-scripts"
+				src={`${FIELD_SANDBOX_URL}#c=${channelRef.current}`}
 				style={{ height }}
+				title="Custom field"
 			/>
 			{status === "loading" && (
-				<LoadingText size="sm" className="mt-1 block" label="Loading field…" />
+				<LoadingText className="mt-1 block" label="Loading field…" size="sm" />
 			)}
 		</div>
 	);

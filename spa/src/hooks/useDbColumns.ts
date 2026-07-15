@@ -4,13 +4,13 @@ import { dbApi } from "@/api/endpoints/db";
 import { queryKeys } from "@/lib/queryKeys";
 
 interface UseDbColumnsOptions {
-	/** Fetch the sort-aware column listing (the `db_column_sort` control). */
-	sort?: boolean;
 	/**
 	 * Override the default `table !== ""` gate with the caller's own condition
 	 * (e.g. the resource designer's column-bound flag, or an editing guard).
 	 */
 	enabled?: boolean;
+	/** Fetch the sort-aware column listing (the `db_column_sort` control). */
+	sort?: boolean;
 }
 
 /**

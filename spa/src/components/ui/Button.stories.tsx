@@ -59,13 +59,13 @@ export const Variants: Story = {
 export const Sizes: Story = {
 	render: (args) => (
 		<div className="flex flex-wrap items-center gap-3">
-			<Button {...args} variant="primary" size="sm">
+			<Button {...args} size="sm" variant="primary">
 				Small
 			</Button>
-			<Button {...args} variant="primary" size="md">
+			<Button {...args} size="md" variant="primary">
 				Medium
 			</Button>
-			<Button {...args} variant="primary" size="lg">
+			<Button {...args} size="lg" variant="primary">
 				Large
 			</Button>
 		</div>
@@ -76,13 +76,13 @@ export const Sizes: Story = {
 export const WithIcon: Story = {
 	render: (args) => (
 		<div className="flex flex-wrap items-center gap-3">
-			<Button {...args} variant="primary" icon={<Save size={13} />}>
+			<Button {...args} icon={<Save size={13} />} variant="primary">
 				Save
 			</Button>
-			<Button {...args} variant="secondary" icon={<Plus size={13} />}>
+			<Button {...args} icon={<Plus size={13} />} variant="secondary">
 				Add new
 			</Button>
-			<Button {...args} variant="dangerGhost" icon={<Trash2 size={13} />}>
+			<Button {...args} icon={<Trash2 size={13} />} variant="dangerGhost">
 				Delete
 			</Button>
 		</div>
@@ -93,7 +93,7 @@ export const WithIcon: Story = {
 export const AsLink: Story = {
 	render: (args) => (
 		<div className="flex flex-wrap items-center gap-3">
-			<Button {...args} variant="primary" to="/pages">
+			<Button {...args} to="/pages" variant="primary">
 				Internal link (to)
 			</Button>
 			<Button {...args} href="https://www.bigtreecms.org" target="_blank">
@@ -117,14 +117,14 @@ export const Loading: Story = {
 		<div className="flex flex-wrap items-center gap-3">
 			<Button
 				{...args}
-				variant="primary"
-				icon={<Save size={13} />}
 				loading
+				icon={<Save size={13} />}
 				loadingLabel="Saving…"
+				variant="primary"
 			>
 				Save
 			</Button>
-			<Button {...args} variant="secondary" loading>
+			<Button {...args} loading variant="secondary">
 				No label swap
 			</Button>
 		</div>
@@ -140,9 +140,9 @@ export const Matrix: Story = {
 		return (
 			<div className="flex flex-col gap-3">
 				{variants.map((variant) => (
-					<div key={variant} className="flex items-center gap-3">
+					<div className="flex items-center gap-3" key={variant}>
 						{sizes.map((size) => (
-							<Button key={size} variant={variant} size={size}>
+							<Button key={size} size={size} variant={variant}>
 								{variant}/{size}
 							</Button>
 						))}

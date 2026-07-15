@@ -40,11 +40,11 @@ import { settingsOf, type FieldComponentProps } from "./types";
  */
 
 interface CalloutsFieldSettings {
-	noun?: string;
-	max?: number | string;
-	groups?: string[] | string;
 	/** Legacy 4.1-and-older single-group key — still occasionally in stored configs. */
 	group?: string;
+	groups?: string[] | string;
+	max?: number | string;
+	noun?: string;
 }
 
 type RowData = Record<string, unknown>;
@@ -170,58 +170,58 @@ export const CalloutsField = ({ field, value, onChange, disabled }: FieldCompone
 	return (
 		<div className="space-y-2">
 			{rows.length === 0 ? (
-				<EmptyState size="sm" dashed>
+				<EmptyState dashed size="sm">
 					No items yet. Pick a type below and click <strong>Add {noun}</strong>.
 				</EmptyState>
 			) : (
 				<ul className="space-y-1.5">
 					{rows.map((row, index) => (
 						<CalloutRowItem
+							callout={calloutsById.get(String(row.data[TYPE_KEY] ?? "")) ?? null}
+							disabled={disabled}
+							expanded={isExpanded(row.uid)}
+							idPrefix={reactId}
+							index={index}
 							key={row.uid}
 							row={row}
-							index={index}
 							totalRows={rows.length}
-							callout={calloutsById.get(String(row.data[TYPE_KEY] ?? "")) ?? null}
 							userLevel={userLevel}
-							expanded={isExpanded(row.uid)}
-							onToggle={() => toggleExpanded(row.uid)}
-							onDelete={() => remove(row.uid)}
 							onCellChange={(columnId, next) => updateCell(row.uid, columnId, next)}
+							onDelete={() => remove(row.uid)}
 							onMove={(dir) => move(index, dir)}
-							disabled={disabled}
-							idPrefix={reactId}
+							onToggle={() => toggleExpanded(row.uid)}
 						/>
 					))}
 				</ul>
 			)}
 
 			<AddRow
-				noun={noun}
 				availableTypes={availableTypes}
-				value={pendingType}
-				onChange={setPendingType}
-				onAdd={addRow}
+				currentCount={rows.length}
 				disabled={disabled || atLimit}
 				max={max}
-				currentCount={rows.length}
+				noun={noun}
+				value={pendingType}
+				onAdd={addRow}
+				onChange={setPendingType}
 			/>
 		</div>
 	);
 };
 
 interface CalloutRowItemProps {
-	row: CalloutRow;
-	index: number;
-	totalRows: number;
 	callout: CalloutSummary | null;
-	userLevel: number;
-	expanded: boolean;
-	onToggle: () => void;
-	onDelete: () => void;
-	onCellChange: (columnId: string, next: unknown) => void;
-	onMove: (direction: "up" | "down") => void;
 	disabled?: boolean;
+	expanded: boolean;
 	idPrefix: string;
+	index: number;
+	onCellChange: (columnId: string, next: unknown) => void;
+	onDelete: () => void;
+	onMove: (direction: "up" | "down") => void;
+	onToggle: () => void;
+	row: CalloutRow;
+	totalRows: number;
+	userLevel: number;
 }
 
 const CalloutRowItem = ({
@@ -247,17 +247,14 @@ const CalloutRowItem = ({
 
 	return (
 		<RepeaterRowShell
-			index={index}
-			total={totalRows}
-			expanded={expanded}
-			onToggle={onToggle}
-			onMove={onMove}
-			onDelete={onDelete}
 			disabled={disabled}
-			panelId={`${idPrefix}-row-${row.uid}`}
+			expanded={expanded}
 			headerDisabled={typeMissing}
-			title={displayTitle || typeName}
+			index={index}
+			panelId={`${idPrefix}-row-${row.uid}`}
 			subtitle={displayTitle ? typeName : undefined}
+			title={displayTitle || typeName}
+			total={totalRows}
 			trailing={
 				<>
 					{tooLowLevel && (
@@ -272,10 +269,13 @@ const CalloutRowItem = ({
 					)}
 				</>
 			}
+			onDelete={onDelete}
+			onMove={onMove}
+			onToggle={onToggle}
 		>
 			{callout &&
 				(callout.resources.length === 0 ? (
-					<EmptyState size="sm" dashed>
+					<EmptyState dashed size="sm">
 						This callout type has no fields configured.
 					</EmptyState>
 				) : (
@@ -284,10 +284,10 @@ const CalloutRowItem = ({
 					// is essential: every field shares `row.data[undefined]` otherwise
 					// (one field's edits leak into all of them).
 					<RepeaterColumnFields
+						disabled={rowDisabled}
 						fields={callout.resources.map(resourceToFormField)}
 						getValue={(columnId) => row.data[columnId]}
 						onColumnChange={onCellChange}
-						disabled={rowDisabled}
 					/>
 				))}
 		</RepeaterRowShell>
@@ -295,14 +295,14 @@ const CalloutRowItem = ({
 };
 
 interface AddRowProps {
-	noun: string;
 	availableTypes: CalloutSummary[];
-	value: string;
-	onChange: (next: string) => void;
-	onAdd: () => void;
+	currentCount: number;
 	disabled: boolean;
 	max: number;
-	currentCount: number;
+	noun: string;
+	onAdd: () => void;
+	onChange: (next: string) => void;
+	value: string;
 }
 
 const AddRow = ({
@@ -317,7 +317,7 @@ const AddRow = ({
 }: AddRowProps) => {
 	if (availableTypes.length === 0) {
 		return (
-			<EmptyState size="sm" dashed>
+			<EmptyState dashed size="sm">
 				No {noun.toLowerCase()} types available for your access level.
 			</EmptyState>
 		);
@@ -328,9 +328,9 @@ const AddRow = ({
 			<div className="flex flex-wrap items-center gap-2">
 				<Select
 					compact
+					disabled={disabled}
 					value={value}
 					onChange={(e) => onChange(e.target.value)}
-					disabled={disabled}
 				>
 					{availableTypes.map((type) => (
 						<option key={type.id} value={type.id}>
@@ -340,10 +340,10 @@ const AddRow = ({
 				</Select>
 
 				<Button
-					variant="secondary"
-					icon={<Plus size={13} />}
-					onClick={onAdd}
 					disabled={disabled || !value}
+					icon={<Plus size={13} />}
+					variant="secondary"
+					onClick={onAdd}
 				>
 					Add {noun}
 				</Button>

@@ -57,7 +57,7 @@ export const Variants: Story = {
 			<InlineEmpty {...args} icon={Mail}>
 				With a leading icon
 			</InlineEmpty>
-			<InlineEmpty {...args} variant="plain" align="center">
+			<InlineEmpty {...args} align="center" variant="plain">
 				Plain borderless note
 			</InlineEmpty>
 		</div>

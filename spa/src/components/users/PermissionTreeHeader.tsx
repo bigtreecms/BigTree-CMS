@@ -1,10 +1,10 @@
 import type { ReactNode } from "react";
 
 interface PermissionTreeHeaderProps {
-	/** CSS `grid-template-columns` — must match the matching tree's row grid. */
-	columns: string;
 	/** Header cells (first a label like "Folder"/"Module"/"Page", then the column headings). */
 	children: ReactNode;
+	/** CSS `grid-template-columns` — must match the matching tree's row grid. */
+	columns: string;
 }
 
 /**

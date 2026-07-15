@@ -10,25 +10,25 @@ import { Select } from "./Select";
  */
 
 interface SelectOption {
-	value: string;
 	label: string;
+	value: string;
 }
 
 interface SelectFieldProps {
+	/** Layout-only classes forwarded to the wrapping {@link Field} (e.g. grid spans). */
+	className?: string;
+	/** Compact vertical padding for space-constrained sections. */
+	dense?: boolean;
+	disabled?: boolean;
+	error?: string;
+	hint?: ReactNode;
 	label: string;
-	value: string;
 	onChange: (next: string) => void;
 	options: SelectOption[];
-	hint?: ReactNode;
-	error?: string;
-	disabled?: boolean;
 	required?: boolean;
 	/** Label text size forwarded to {@link Field}: `"md"` (default) or `"sm"`. */
 	size?: FieldSize;
-	/** Compact vertical padding for space-constrained sections. */
-	dense?: boolean;
-	/** Layout-only classes forwarded to the wrapping {@link Field} (e.g. grid spans). */
-	className?: string;
+	value: string;
 }
 
 export const SelectField = ({
@@ -45,18 +45,18 @@ export const SelectField = ({
 	className,
 }: SelectFieldProps) => (
 	<Field
-		label={label}
-		hint={hint}
+		className={className}
 		error={error}
+		hint={hint}
+		label={label}
 		required={required}
 		size={size}
-		className={className}
 	>
 		<Select
+			dense={dense}
+			disabled={disabled}
 			value={value}
 			onChange={(e) => onChange(e.target.value)}
-			disabled={disabled}
-			dense={dense}
 		>
 			{options.map((o) => (
 				<option key={o.value} value={o.value}>

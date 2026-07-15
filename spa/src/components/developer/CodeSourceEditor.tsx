@@ -4,19 +4,19 @@ import { DisclosureToggle } from "@/components/ui/DisclosureToggle";
 import { SectionLabel } from "@/components/ui/SectionLabel";
 
 export interface HostApiReferenceRow {
-	name: string;
 	desc: string;
+	name: string;
 }
 
 interface CodeSourceEditorProps {
+	/** Overrides `label` as the textarea's accessible name. */
+	ariaLabel?: string;
 	/** Section heading above the editor; doubles as the textarea's accessible name. */
 	label: string;
-	value: string;
 	onChange: (next: string) => void;
 	/** Rows rendered in the collapsible "Host API reference" table. */
 	reference: HostApiReferenceRow[];
-	/** Overrides `label` as the textarea's accessible name. */
-	ariaLabel?: string;
+	value: string;
 }
 
 /**
@@ -62,30 +62,30 @@ export const CodeSourceEditor = ({
 			<div>
 				<SectionLabel className="mb-2">{label}</SectionLabel>
 				<textarea
-					value={value}
 					aria-label={ariaLabel ?? label}
-					onChange={(e) => onChange(e.target.value)}
-					onKeyDown={onKeyDown}
-					spellCheck={false}
 					autoCapitalize="off"
 					autoCorrect="off"
-					rows={18}
 					className="w-full rounded-md border border-border bg-surface-2 p-3 font-mono text-[12.5px] leading-relaxed text-text focus:outline-none focus:ring-1 focus:ring-accent-ring"
+					rows={18}
+					spellCheck={false}
+					value={value}
+					onChange={(e) => onChange(e.target.value)}
+					onKeyDown={onKeyDown}
 				/>
 			</div>
 
 			<div className="rounded-md border border-border bg-surface">
 				<DisclosureToggle
-					open={showApi}
-					onToggle={() => setShowApi((v) => !v)}
-					size={14}
 					className="w-full gap-1.5 px-3 py-2 text-[12px] font-medium text-text-2"
 					label="Host API reference"
+					open={showApi}
+					size={14}
+					onToggle={() => setShowApi((v) => !v)}
 				/>
 				{showApi && (
 					<dl className="grid grid-cols-1 gap-x-4 gap-y-1.5 border-t border-border p-3 sm:grid-cols-[auto_1fr]">
 						{reference.map((row) => (
-							<div key={row.name} className="contents">
+							<div className="contents" key={row.name}>
 								<dt className="font-mono text-[11.5px] text-accent">{row.name}</dt>
 								<dd className="text-[12px] text-text-2">{row.desc}</dd>
 							</div>

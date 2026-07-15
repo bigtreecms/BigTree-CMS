@@ -73,7 +73,7 @@ export const ProtectedRoute = () => {
 	}
 
 	if (!authenticated) {
-		return <Navigate to="/login" replace state={{ from: location.pathname }} />;
+		return <Navigate replace state={{ from: location.pathname }} to="/login" />;
 	}
 
 	// Wait for the live queue before letting developers into the rest of admin.
@@ -91,12 +91,12 @@ export const ProtectedRoute = () => {
 			: !!user?.migrations_pending;
 
 	if (developer && livePending && !onMigrationsPage) {
-		return <Navigate to="/developer/migrations" replace />;
+		return <Navigate replace to="/developer/migrations" />;
 	}
 
 	// If we're on the migrations page but nothing is pending, leave.
 	if (developer && onMigrationsPage && migrationsQ.data && !livePending) {
-		return <Navigate to="/dashboard" replace />;
+		return <Navigate replace to="/dashboard" />;
 	}
 
 	return <Outlet />;

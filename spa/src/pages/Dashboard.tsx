@@ -64,35 +64,39 @@ export const Dashboard = () => {
 
 	return (
 		<PageContainer width="xwide">
-			<Breadcrumb items={[{ label: "Dashboard" }]} />
-			<PageHead title="Dashboard" sub={`Welcome back, ${firstName}.`} />
+			<div data-testid="dashboard-page">
+				<Breadcrumb items={[{ label: "Dashboard" }]} />
+				<PageHead sub={`Welcome back, ${firstName}.`} title="Dashboard" />
 
-			<div className="flex flex-col gap-4">
-				{admin &&
-					(analyticsQ.isLoading || analyticsQ.error || analyticsQ.data?.configured) && (
-						<TrafficCard
-							data={analyticsQ.data}
-							loading={analyticsQ.isLoading}
-							error={analyticsQ.error}
-						/>
-					)}
-				<PendingChangesCard
-					summary={summaryQ.data}
-					pending={pendingQ.data ?? []}
-					loading={summaryQ.isLoading || pendingQ.isLoading}
-					error={summaryQ.error ?? pendingQ.error}
-				/>
-				<ContentAlertsCard
-					alerts={alertsQ.data ?? []}
-					loading={alertsQ.isLoading}
-					error={alertsQ.error}
-				/>
-				<UnreadMessagesCard
-					messages={messagesQ.data?.data ?? []}
-					currentUserId={currentUserId}
-					loading={messagesQ.isLoading}
-					error={messagesQ.error}
-				/>
+				<div className="flex flex-col gap-4">
+					{admin &&
+						(analyticsQ.isLoading ||
+							analyticsQ.error ||
+							analyticsQ.data?.configured) && (
+							<TrafficCard
+								data={analyticsQ.data}
+								error={analyticsQ.error}
+								loading={analyticsQ.isLoading}
+							/>
+						)}
+					<PendingChangesCard
+						error={summaryQ.error ?? pendingQ.error}
+						loading={summaryQ.isLoading || pendingQ.isLoading}
+						pending={pendingQ.data ?? []}
+						summary={summaryQ.data}
+					/>
+					<ContentAlertsCard
+						alerts={alertsQ.data ?? []}
+						error={alertsQ.error}
+						loading={alertsQ.isLoading}
+					/>
+					<UnreadMessagesCard
+						currentUserId={currentUserId}
+						error={messagesQ.error}
+						loading={messagesQ.isLoading}
+						messages={messagesQ.data?.data ?? []}
+					/>
+				</div>
 			</div>
 		</PageContainer>
 	);

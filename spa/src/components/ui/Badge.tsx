@@ -20,25 +20,25 @@ const TONE_CLASS: Record<BadgeTone, string> = {
 };
 
 interface BadgeProps {
+	/** Add a `border-border` outline (subtle neutral pills). */
+	bordered?: boolean;
 	children: ReactNode;
-	/** Token-mapped status tone. Defaults to `neutral`. */
-	tone?: BadgeTone;
+	/** Layout-only classes (e.g. `shrink-0`, `ml-auto`, `tabular-nums`). */
+	className?: string;
 	/** Leading colored dot (`bg-current`) — the at-a-glance status treatment. */
 	dot?: boolean;
 	/** Leading icon node; the caller sizes it (e.g. `<Key size={9} />`). */
 	icon?: ReactNode;
-	/** Add a `border-border` outline (subtle neutral pills). */
-	bordered?: boolean;
-	/** Uppercase + slight tracking (e.g. the "Pending" field badge). */
-	uppercase?: boolean;
 	/**
 	 * `md` (default) — pill shape (`rounded-full`, `px-2`).
 	 * `sm` — tighter square-ish chip (`rounded`, `px-1.5`) for table cells and inline type labels.
 	 */
 	size?: "md" | "sm";
-	/** Layout-only classes (e.g. `shrink-0`, `ml-auto`, `tabular-nums`). */
-	className?: string;
 	title?: string;
+	/** Token-mapped status tone. Defaults to `neutral`. */
+	tone?: BadgeTone;
+	/** Uppercase + slight tracking (e.g. the "Pending" field badge). */
+	uppercase?: boolean;
 }
 
 export const Badge = ({
@@ -57,10 +57,10 @@ export const Badge = ({
 
 	return (
 		<span
-			title={title}
 			className={`inline-flex items-center text-[11px] font-medium ${sizeClass} ${
 				bordered ? "border border-border " : ""
 			}${uppercase ? "uppercase tracking-[0.04em] " : ""}${TONE_CLASS[tone]} ${className}`}
+			title={title}
 		>
 			{dot ? <span className="size-1.5 rounded-full bg-current" /> : null}
 			{icon}

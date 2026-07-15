@@ -64,43 +64,43 @@ import { settingsOf, type FieldComponentProps } from "./types";
  */
 
 interface MediaColumn {
-	id: string;
-	title: string;
-	subtitle?: string;
-	type: string;
-	settings?: unknown;
 	display_title?: boolean | string | number;
+	id: string;
+	settings?: unknown;
+	subtitle?: string;
+	title: string;
+	type: string;
 }
 
 interface MediaGallerySettings {
-	max?: number | string;
-	disable_photos?: boolean | string | number;
-	disable_youtube?: boolean | string | number;
-	disable_vimeo?: boolean | string | number;
-	enable_manual?: boolean | string | number;
-	preview_prefix?: string;
-	preview_cache_suffix?: string;
-	min_width?: number | string;
-	min_height?: number | string;
 	columns?: MediaColumn[];
+	disable_photos?: boolean | string | number;
+	disable_vimeo?: boolean | string | number;
+	disable_youtube?: boolean | string | number;
+	enable_manual?: boolean | string | number;
+	max?: number | string;
+	min_height?: number | string;
+	min_width?: number | string;
+	preview_cache_suffix?: string;
+	preview_prefix?: string;
 }
 
 interface VideoData {
-	service?: string;
-	id?: string;
-	url?: string;
-	embed?: string;
 	[k: string]: unknown;
+	embed?: string;
+	id?: string;
+	service?: string;
+	url?: string;
 }
 
 interface MediaItemData {
-	type?: "photo" | "video";
-	image?: string;
-	video?: VideoData;
-	info?: Record<string, unknown>;
-	"__internal-title"?: string;
-	"__internal-subtitle"?: string;
 	[k: string]: unknown;
+	"__internal-subtitle"?: string;
+	"__internal-title"?: string;
+	image?: string;
+	info?: Record<string, unknown>;
+	type?: "photo" | "video";
+	video?: VideoData;
 }
 
 type MediaItem = RepeaterRow<MediaItemData>;
@@ -189,51 +189,51 @@ export const MediaGalleryField = ({ field, value, onChange, disabled }: FieldCom
 	return (
 		<div className="space-y-2">
 			{items.length === 0 ? (
-				<EmptyState size="sm" dashed>
+				<EmptyState dashed size="sm">
 					No items yet — use the buttons below to add media.
 				</EmptyState>
 			) : (
 				<ul className="grid grid-cols-1 gap-1.5 md:grid-cols-2">
 					{items.map((item, index) => (
 						<MediaItemRow
-							key={item.uid}
-							item={item}
-							index={index}
-							total={items.length}
 							columns={columns}
-							previewSettings={settings}
+							disabled={disabled}
 							expanded={isExpanded(item.uid)}
-							onToggle={() => toggleExpanded(item.uid)}
+							idPrefix={reactId}
+							index={index}
+							item={item}
+							key={item.uid}
+							previewSettings={settings}
+							total={items.length}
+							onColumnChange={(col, next) => updateItemColumn(item.uid, col, next)}
 							onDelete={() => deleteItem(item.uid)}
 							onMove={(dir) => moveItem(index, dir)}
 							onPatchData={(patch) => updateItemData(item.uid, patch)}
-							onColumnChange={(col, next) => updateItemColumn(item.uid, col, next)}
-							disabled={disabled}
-							idPrefix={reactId}
+							onToggle={() => toggleExpanded(item.uid)}
 						/>
 					))}
 				</ul>
 			)}
 
 			<AddBar
+				allowLocal={allowLocal}
+				allowPhotos={allowPhotos}
+				allowVimeo={allowVimeo}
+				allowYoutube={allowYoutube}
 				atLimit={atLimit}
+				currentCount={items.length}
 				disabled={disabled}
 				max={max}
-				currentCount={items.length}
-				allowPhotos={allowPhotos}
-				allowYoutube={allowYoutube}
-				allowVimeo={allowVimeo}
-				allowLocal={allowLocal}
 				settings={settings}
-				onPhotoUploaded={handlePhotoUploaded}
-				onAskVideo={() => setVideoPromptOpen(true)}
 				onAskLocalVideo={() => setLocalVideoOpen(true)}
+				onAskVideo={() => setVideoPromptOpen(true)}
+				onPhotoUploaded={handlePhotoUploaded}
 			/>
 
 			{videoPromptOpen && (
 				<VideoUrlPrompt
-					allowYoutube={allowYoutube}
 					allowVimeo={allowVimeo}
+					allowYoutube={allowYoutube}
 					onClose={() => setVideoPromptOpen(false)}
 					onCreated={(resource) => {
 						handleVideoCreated(resource);
@@ -254,19 +254,19 @@ export const MediaGalleryField = ({ field, value, onChange, disabled }: FieldCom
 };
 
 interface MediaItemRowProps {
-	item: MediaItem;
-	index: number;
-	total: number;
 	columns: MediaColumn[];
-	previewSettings: MediaGallerySettings;
+	disabled?: boolean;
 	expanded: boolean;
-	onToggle: () => void;
+	idPrefix: string;
+	index: number;
+	item: MediaItem;
+	onColumnChange: (columnId: string, next: unknown) => void;
 	onDelete: () => void;
 	onMove: (direction: "up" | "down") => void;
 	onPatchData: (patch: Partial<MediaItemData>) => void;
-	onColumnChange: (columnId: string, next: unknown) => void;
-	disabled?: boolean;
-	idPrefix: string;
+	onToggle: () => void;
+	previewSettings: MediaGallerySettings;
+	total: number;
 }
 
 const MediaItemRow = ({
@@ -295,29 +295,18 @@ const MediaItemRow = ({
 
 	return (
 		<RepeaterRowShell
-			index={index}
-			total={total}
-			expanded={expanded}
-			onToggle={onToggle}
-			onMove={onMove}
-			onDelete={onDelete}
-			disabled={disabled}
-			panelId={`${idPrefix}-row-${item.uid}`}
 			stacked
-			title={titleText}
-			subtitle={
-				summary.subtitle || data.video?.service
-					? summary.subtitle || String(data.video?.service ?? "")
-					: undefined
-			}
+			disabled={disabled}
+			expanded={expanded}
+			index={index}
 			leading={
 				<div className="overflow-hidden rounded border border-border bg-surface-2">
 					{previewUrl ? (
 						<img
-							src={previewUrl}
 							alt=""
 							className="block h-16 w-20 object-cover"
 							loading="lazy"
+							src={previewUrl}
 							onError={(e) => {
 								// The prefixed crop may not exist yet — fall back to the
 								// full image once before giving up.
@@ -333,6 +322,17 @@ const MediaItemRow = ({
 					)}
 				</div>
 			}
+			panelId={`${idPrefix}-row-${item.uid}`}
+			subtitle={
+				summary.subtitle || data.video?.service
+					? summary.subtitle || String(data.video?.service ?? "")
+					: undefined
+			}
+			title={titleText}
+			total={total}
+			onDelete={onDelete}
+			onMove={onMove}
+			onToggle={onToggle}
 		>
 			{isVideo && data.video && (
 				<div className="mb-3 text-[11.5px] text-text-3">
@@ -341,15 +341,15 @@ const MediaItemRow = ({
 			)}
 
 			{columns.length === 0 ? (
-				<EmptyState size="sm" dashed>
+				<EmptyState dashed size="sm">
 					No extra fields configured for this gallery.
 				</EmptyState>
 			) : (
 				<RepeaterColumnFields
 					columns={columns}
+					disabled={disabled}
 					getValue={(id) => (data.info ?? {})[id]}
 					onColumnChange={onColumnChange}
-					disabled={disabled}
 				/>
 			)}
 		</RepeaterRowShell>
@@ -357,18 +357,18 @@ const MediaItemRow = ({
 };
 
 interface AddBarProps {
+	allowLocal: boolean;
+	allowPhotos: boolean;
+	allowVimeo: boolean;
+	allowYoutube: boolean;
 	atLimit: boolean;
+	currentCount: number;
 	disabled?: boolean;
 	max: number;
-	currentCount: number;
-	allowPhotos: boolean;
-	allowYoutube: boolean;
-	allowVimeo: boolean;
-	allowLocal: boolean;
-	settings: MediaGallerySettings;
-	onPhotoUploaded: (url: string) => void;
-	onAskVideo: () => void;
 	onAskLocalVideo: () => void;
+	onAskVideo: () => void;
+	onPhotoUploaded: (url: string) => void;
+	settings: MediaGallerySettings;
 }
 
 const AddBar = ({
@@ -413,18 +413,18 @@ const AddBar = ({
 					{allowPhotos && (
 						<>
 							<Button
-								variant="secondary"
-								icon={<UploadIcon size={13} />}
-								onClick={filePicker.open}
 								disabled={busy || atLimit}
+								icon={<UploadIcon size={13} />}
+								variant="secondary"
+								onClick={filePicker.open}
 							>
 								Upload photo
 							</Button>
 							<Button
-								variant="secondary"
-								icon={<Search size={13} />}
-								onClick={() => setPickerOpen(true)}
 								disabled={busy || atLimit}
+								icon={<Search size={13} />}
+								variant="secondary"
+								onClick={() => setPickerOpen(true)}
 							>
 								Browse photos
 							</Button>
@@ -432,20 +432,20 @@ const AddBar = ({
 					)}
 					{showAnyVideo && (
 						<Button
-							variant="secondary"
-							icon={<Plus size={13} />}
-							onClick={onAskVideo}
 							disabled={busy || atLimit}
+							icon={<Plus size={13} />}
+							variant="secondary"
+							onClick={onAskVideo}
 						>
 							Add video URL
 						</Button>
 					)}
 					{allowLocal && (
 						<Button
-							variant="secondary"
-							icon={<VideoIcon size={13} />}
-							onClick={onAskLocalVideo}
 							disabled={busy || atLimit}
+							icon={<VideoIcon size={13} />}
+							variant="secondary"
+							onClick={onAskLocalVideo}
 						>
 							Add local video
 						</Button>
@@ -466,20 +466,20 @@ const AddBar = ({
 			</div>
 
 			<input
-				ref={filePicker.inputRef}
-				type="file"
 				accept="image/*"
 				aria-label="Add images"
 				className="hidden"
+				ref={filePicker.inputRef}
+				type="file"
 				onChange={filePicker.onChange}
 			/>
 
 			<ResourcePicker
-				open={pickerOpen}
-				onOpenChange={setPickerOpen}
-				type="image"
-				minWidth={minWidth}
 				minHeight={minHeight}
+				minWidth={minWidth}
+				open={pickerOpen}
+				type="image"
+				onOpenChange={setPickerOpen}
 				onSelect={(resource) => reprocess({ resource_id: resource.id })}
 			/>
 
@@ -489,8 +489,8 @@ const AddBar = ({
 };
 
 interface VideoUrlPromptProps {
-	allowYoutube: boolean;
 	allowVimeo: boolean;
+	allowYoutube: boolean;
 	onClose: () => void;
 	onCreated: (resource: ResourceDetail) => void;
 }
@@ -527,10 +527,11 @@ const VideoUrlPrompt = ({ allowYoutube, allowVimeo, onClose, onCreated }: VideoU
 		<div className="rounded-md border border-border bg-surface-2 p-3">
 			<Field label={`${hint} URL`}>
 				<TextInput
-					dense
 					autoFocus
-					type="url"
+					dense
 					inputMode="url"
+					placeholder="https://youtube.com/watch?v=… or https://vimeo.com/…"
+					type="url"
 					value={url}
 					onChange={(e) => setUrl(e.target.value)}
 					onKeyDown={(e) => {
@@ -539,19 +540,18 @@ const VideoUrlPrompt = ({ allowYoutube, allowVimeo, onClose, onCreated }: VideoU
 							submit();
 						}
 					}}
-					placeholder="https://youtube.com/watch?v=… or https://vimeo.com/…"
 				/>
 			</Field>
 			<div className="mt-2 flex justify-end gap-2">
-				<Button variant="secondary" onClick={onClose} disabled={createMutation.isPending}>
+				<Button disabled={createMutation.isPending} variant="secondary" onClick={onClose}>
 					Cancel
 				</Button>
 				<Button
-					variant="primary"
-					onClick={submit}
 					disabled={!looksValid}
 					loading={createMutation.isPending}
 					loadingLabel="Adding…"
+					variant="primary"
+					onClick={submit}
 				>
 					Add
 				</Button>
@@ -561,9 +561,9 @@ const VideoUrlPrompt = ({ allowYoutube, allowVimeo, onClose, onCreated }: VideoU
 };
 
 interface LocalVideoPromptProps {
-	settings: MediaGallerySettings;
 	onClose: () => void;
 	onCreated: (coverUrl: string, videoUrl: string) => void;
+	settings: MediaGallerySettings;
 }
 
 /**
@@ -638,7 +638,7 @@ const LocalVideoPrompt = ({ settings, onClose, onCreated }: LocalVideoPromptProp
 				<span className={step === "video" ? "text-text" : "text-text-3"}>
 					1. Video file
 				</span>
-				<ChevronRight size={12} className="text-text-3" />
+				<ChevronRight className="text-text-3" size={12} />
 				<span className={step === "cover" ? "text-text" : "text-text-3"}>
 					2. Cover photo
 				</span>
@@ -648,10 +648,10 @@ const LocalVideoPrompt = ({ settings, onClose, onCreated }: LocalVideoPromptProp
 				<>
 					<p className="mb-2 text-[11.5px] text-text-3">Upload an H.264 video file.</p>
 					<Button
-						variant="secondary"
-						icon={<UploadIcon size={13} />}
-						onClick={videoPicker.open}
 						disabled={Boolean(inFlight)}
+						icon={<UploadIcon size={13} />}
+						variant="secondary"
+						onClick={videoPicker.open}
 					>
 						Choose video
 					</Button>
@@ -662,10 +662,10 @@ const LocalVideoPrompt = ({ settings, onClose, onCreated }: LocalVideoPromptProp
 						Now choose a cover photo{coverHint}.
 					</p>
 					<Button
-						variant="secondary"
-						icon={<UploadIcon size={13} />}
-						onClick={coverPicker.open}
 						disabled={Boolean(inFlight)}
+						icon={<UploadIcon size={13} />}
+						variant="secondary"
+						onClick={coverPicker.open}
 					>
 						Choose cover photo
 					</Button>
@@ -679,45 +679,45 @@ const LocalVideoPrompt = ({ settings, onClose, onCreated }: LocalVideoPromptProp
 					</span>
 				)}
 				<button
-					type="button"
 					className="ml-auto rounded-md border border-border px-3 py-1 text-[12px] hover:bg-hover disabled:opacity-50"
-					onClick={onClose}
 					disabled={Boolean(inFlight)}
+					type="button"
+					onClick={onClose}
 				>
 					Cancel
 				</button>
 			</div>
 
 			<input
-				ref={videoPicker.inputRef}
-				type="file"
 				accept="video/*"
 				aria-label="Choose video file"
 				className="hidden"
+				ref={videoPicker.inputRef}
+				type="file"
 				onChange={videoPicker.onChange}
 			/>
 			<input
-				ref={coverPicker.inputRef}
-				type="file"
 				accept="image/*"
 				aria-label="Choose cover image"
 				className="hidden"
+				ref={coverPicker.inputRef}
+				type="file"
 				onChange={coverPicker.onChange}
 			/>
 
 			<FieldCropModal
-				open={Boolean(cropState)}
-				file={cropState?.file ?? ""}
 				crops={cropState?.crops ?? []}
+				file={cropState?.file ?? ""}
+				open={Boolean(cropState)}
+				onCancel={() => {
+					setCropState(null);
+					onClose();
+				}}
 				onComplete={() => {
 					if (cropState) {
 						onCreated(cropState.file, videoUrl as string);
 					}
 
-					setCropState(null);
-					onClose();
-				}}
-				onCancel={() => {
 					setCropState(null);
 					onClose();
 				}}

@@ -83,8 +83,8 @@ export const ConfigureIndex = () => (
 		<Breadcrumb items={[{ label: "Developer", to: "/developer" }, { label: "Configure" }]} />
 
 		<PageHead
-			title="Configure"
 			sub="Third-party integrations and storage backends BigTree talks to on your behalf."
+			title="Configure"
 		/>
 
 		<DeveloperSectionNav />

@@ -53,29 +53,29 @@ const toBuffer = (input: string): ArrayBuffer => {
 
 interface ServerCredentialDescriptor {
 	id: string;
-	type?: PublicKeyCredentialType;
 	transports?: AuthenticatorTransport[];
+	type?: PublicKeyCredentialType;
 }
 
 interface ServerRegistrationOptions {
-	challenge: string;
-	rp: PublicKeyCredentialRpEntity;
-	user: { id: string; name: string; displayName: string };
-	pubKeyCredParams?: PublicKeyCredentialParameters[];
-	timeout?: number;
 	attestation?: AttestationConveyancePreference;
 	authenticatorSelection?: AuthenticatorSelectionCriteria;
+	challenge: string;
 	excludeCredentials?: ServerCredentialDescriptor[];
 	extensions?: AuthenticationExtensionsClientInputs;
+	pubKeyCredParams?: PublicKeyCredentialParameters[];
+	rp: PublicKeyCredentialRpEntity;
+	timeout?: number;
+	user: { id: string; name: string; displayName: string };
 }
 
 interface ServerAuthenticationOptions {
-	challenge: string;
-	timeout?: number;
-	rpId?: string;
-	userVerification?: UserVerificationRequirement;
 	allowCredentials?: ServerCredentialDescriptor[];
+	challenge: string;
 	extensions?: AuthenticationExtensionsClientInputs;
+	rpId?: string;
+	timeout?: number;
+	userVerification?: UserVerificationRequirement;
 }
 
 /* ── Public API ──────────────────────────────────────────────────────── */
@@ -88,8 +88,8 @@ export const isWebAuthnSupported = (): boolean =>
 	typeof navigator.credentials?.get === "function";
 
 export interface RegistrationResponse {
-	clientDataJSON: string;
 	attestationObject: string;
+	clientDataJSON: string;
 }
 
 /**
@@ -141,9 +141,9 @@ export const registerPasskey = async (
 };
 
 export interface AuthenticationResponse {
-	credentialId: string;
-	clientDataJSON: string;
 	authenticatorData: string;
+	clientDataJSON: string;
+	credentialId: string;
 	signature: string;
 }
 

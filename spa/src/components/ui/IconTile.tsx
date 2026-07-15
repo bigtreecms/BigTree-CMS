@@ -28,16 +28,16 @@ const RADIUS_CLASS: Record<IconTileRadius, string> = {
 interface IconTileProps {
 	/** The icon node — the caller sizes it (e.g. `<Database size={18} />`). */
 	children: ReactNode;
-	/** Token-mapped tint. Defaults to `accent` (the soft-accent list/step chip). */
-	tone?: IconTileTone;
-	/** Box size: `xs` (26px), `sm` (size-7), `md` (size-9, default), `lg` (size-10). */
-	size?: IconTileSize;
+	/** Layout-only classes the caller still owns (`shrink-0`, `mx-auto mb-3`, …). */
+	className?: string;
 	/** Corner radius: `md` (default), `lg` (wizard step tiles), `full` (round). */
 	radius?: IconTileRadius;
 	/** Add a `ring-1 ring-border` outline (the file/thumbnail treatment). */
 	ringed?: boolean;
-	/** Layout-only classes the caller still owns (`shrink-0`, `mx-auto mb-3`, …). */
-	className?: string;
+	/** Box size: `xs` (26px), `sm` (size-7), `md` (size-9, default), `lg` (size-10). */
+	size?: IconTileSize;
+	/** Token-mapped tint. Defaults to `accent` (the soft-accent list/step chip). */
+	tone?: IconTileTone;
 }
 
 /**

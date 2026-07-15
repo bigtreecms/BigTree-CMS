@@ -109,9 +109,9 @@ export const ModuleAction = ({ actionId }: ModuleActionProps) => {
 				)
 			) : (
 				<ActionRunner
+					assetUrl={schema.asset_url || undefined}
 					host={host}
 					source={schema.module_source || undefined}
-					assetUrl={schema.asset_url || undefined}
 				/>
 			)}
 		</>

@@ -807,7 +807,9 @@
 		public function checkPOSTError() {
 			global $bigtree;
 
-			if (is_null($bigtree["php_boot_error"])) {
+			// php_boot_error is only set when the front controller traps a boot-time
+			// PHP warning (e.g. post_max_size). Missing key is normal for API/tests.
+			if (!isset($bigtree["php_boot_error"]) || is_null($bigtree["php_boot_error"])) {
 				return;
 			}
 

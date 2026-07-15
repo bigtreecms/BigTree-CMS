@@ -24,15 +24,15 @@ export const DirectoryControl = ({ descriptor, settings, onPatch, useCase }: Con
 
 	return (
 		<ControlShell
-			label={descriptor.label}
 			hint={descriptor.hint}
+			label={descriptor.label}
 			note={descriptor.note}
 			required={descriptor.required}
 		>
 			<TextInput
 				dense
-				value={String(current ?? fallback ?? "")}
 				placeholder={fallback}
+				value={String(current ?? fallback ?? "")}
 				onChange={(e) => onPatch({ [descriptor.id]: e.target.value })}
 			/>
 		</ControlShell>

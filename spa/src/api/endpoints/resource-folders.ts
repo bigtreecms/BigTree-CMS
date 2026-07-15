@@ -15,27 +15,27 @@ import { api } from "@/api/client";
 export type FolderAccess = "n" | "v" | "e" | "p";
 
 export interface ResourceFolderRow {
-	id: number;
-	parent: number;
-	name: string;
 	access: FolderAccess;
 	/** Server-computed via EXISTS subquery on bigtree_resource_folders.parent. */
 	has_children: boolean;
+	id: number;
+	name: string;
+	parent: number;
 }
 
 export interface ResourceSummary {
-	id: number;
-	folder: number;
+	date?: string;
 	file: string;
-	name: string;
-	type: string;
-	mimetype?: string;
+	folder: number;
+	height?: number;
+	id: number;
 	is_image: boolean;
 	is_video?: boolean;
-	height?: number;
-	width?: number;
+	mimetype?: string;
+	name: string;
 	size?: number;
-	date?: string;
+	type: string;
+	width?: number;
 }
 
 export interface FolderBreadcrumbEntry {
@@ -44,25 +44,25 @@ export interface FolderBreadcrumbEntry {
 }
 
 export interface FolderContents {
+	access: FolderAccess;
 	breadcrumb: FolderBreadcrumbEntry[];
 	folders: ResourceFolderRow[];
 	resources: ResourceSummary[];
-	access: FolderAccess;
 }
 
 /** A row from GET /resource-folders/flat — the whole tree in display order. */
 export interface FlatFolderRow {
-	id: number;
-	parent: number;
-	name: string;
+	access: FolderAccess;
 	/** Nesting depth (0 = directly under Home) for select-option indentation. */
 	depth: number;
-	access: FolderAccess;
+	id: number;
+	name: string;
+	parent: number;
 }
 
 export interface CreateFolderPayload {
-	parent: number;
 	name: string;
+	parent: number;
 }
 
 export interface UpdateFolderPayload {

@@ -16,16 +16,16 @@ import { MODULE_PERMISSION_OPTIONS } from "./permissionOptions";
 const GRID_COLUMNS = "minmax(0,1fr) repeat(3, 80px)";
 
 interface ModulePermissionsTreeProps {
-	value: UserPermissions["module"];
-	onChange: (next: NonNullable<UserPermissions["module"]>) => void;
 	gbpValue: UserPermissions["module_gbp"];
+	onChange: (next: NonNullable<UserPermissions["module"]>) => void;
 	onGbpChange: (next: NonNullable<UserPermissions["module_gbp"]>) => void;
+	value: UserPermissions["module"];
 }
 
 interface GbpCategoryRowsProps {
 	module: ModuleSummary;
-	value: Record<string, PermissionCode> | undefined;
 	onChange: (categoryId: string, perm: PermissionCode) => void;
+	value: Record<string, PermissionCode> | undefined;
 }
 
 /**
@@ -66,15 +66,15 @@ const GbpCategoryRows = ({ module, value, onChange }: GbpCategoryRowsProps) => {
 				const current = value?.[category.id] ?? "";
 
 				return (
-					<PermissionRow key={category.id} columns={GRID_COLUMNS} nested>
+					<PermissionRow nested columns={GRID_COLUMNS} key={category.id}>
 						<span className="truncate text-text-2">
 							<span className="text-text-3">{label}:</span> {category.title}
 						</span>
 						<PermissionRadios
 							name={`gbp-${module.id}-${category.id}`}
+							options={MODULE_PERMISSION_OPTIONS}
 							value={current}
 							onChange={(next) => onChange(category.id, next)}
-							options={MODULE_PERMISSION_OPTIONS}
 						/>
 					</PermissionRow>
 				);
@@ -180,7 +180,7 @@ export const ModulePermissionsTree = ({
 			<PermissionTreeHeader columns={GRID_COLUMNS}>
 				<div>Module</div>
 				{MODULE_PERMISSION_OPTIONS.map((opt) => (
-					<div key={opt.value} className="text-center">
+					<div className="text-center" key={opt.value}>
 						{opt.label}
 					</div>
 				))}
@@ -190,8 +190,8 @@ export const ModulePermissionsTree = ({
 				{grouped.map(({ group, modules }) => (
 					<div key={group.id}>
 						<SectionLabel
-							size="sm"
 							className="border-t border-border bg-surface-2 px-3 py-1.5 first:border-t-0"
+							size="sm"
 						>
 							{group.name}
 						</SectionLabel>
@@ -206,9 +206,9 @@ export const ModulePermissionsTree = ({
 										<span className="truncate text-text">{m.name}</span>
 										<PermissionRadios
 											name={`module-perm-${m.id}`}
+											options={MODULE_PERMISSION_OPTIONS}
 											value={current}
 											onChange={(next) => setPerm(m.id, next)}
-											options={MODULE_PERMISSION_OPTIONS}
 										/>
 									</PermissionRow>
 

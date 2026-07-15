@@ -15,14 +15,14 @@
  */
 
 export interface BigTreeAdminBoot {
-	/** React Router basename, no trailing slash (e.g. "/admin"). Empty string in dev. */
-	basename: string;
 	/** REST API prefix including version, no trailing slash (e.g. "/admin/api/v1"). */
 	apiBase: string;
-	/** Optional public site root URL from PHP config. */
-	wwwRoot?: string;
 	/** Asset base with trailing slash; aligns with Vite `BASE_URL` once placeholder rewrite lands. */
 	assetBase?: string;
+	/** React Router basename, no trailing slash (e.g. "/admin"). Empty string in dev. */
+	basename: string;
+	/** Optional public site root URL from PHP config. */
+	wwwRoot?: string;
 }
 
 declare global {

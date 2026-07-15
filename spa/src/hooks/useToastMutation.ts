@@ -13,16 +13,16 @@ interface ToastMutationOptions<TData, TError, TVariables, TContext> extends Omit
 	UseMutationOptions<TData, TError, TVariables, TContext>,
 	"onSuccess" | "onError"
 > {
-	/** Query keys to invalidate on success. */
-	invalidate?: QueryKey[];
-	/** Toast shown on success. Omit to suppress. */
-	successMessage?: string;
 	/** Fallback toast shown on error when the API returns no message. */
 	errorMessage?: string;
-	/** Extra work to run after invalidation + toast (e.g. navigate, setState). */
-	onSuccess?: (data: TData, variables: TVariables, context: TContext) => void | Promise<void>;
+	/** Query keys to invalidate on success. */
+	invalidate?: QueryKey[];
 	/** Extra work to run after the error toast. */
 	onError?: (error: TError, variables: TVariables, context: TContext | undefined) => void;
+	/** Extra work to run after invalidation + toast (e.g. navigate, setState). */
+	onSuccess?: (data: TData, variables: TVariables, context: TContext) => void | Promise<void>;
+	/** Toast shown on success. Omit to suppress. */
+	successMessage?: string;
 }
 
 /**

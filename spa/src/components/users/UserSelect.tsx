@@ -7,14 +7,14 @@ import { usersApi, type UserListItem } from "@/api/endpoints/users";
 import { queryKeys } from "@/lib/queryKeys";
 
 interface UserSelectProps {
-	/** Selected user id, or null when nothing is chosen. */
-	value: number | null;
-	onChange: (id: number | null) => void;
-	placeholder?: string;
-	disabled?: boolean;
-	id?: string;
 	ariaLabel?: string;
 	className?: string;
+	disabled?: boolean;
+	id?: string;
+	onChange: (id: number | null) => void;
+	placeholder?: string;
+	/** Selected user id, or null when nothing is chosen. */
+	value: number | null;
 }
 
 const toOption = (
@@ -75,21 +75,21 @@ export const UserSelect = ({
 
 	return (
 		<Combobox<number>
+			ariaLabel={ariaLabel}
+			className={className}
+			disabled={disabled}
+			emptyLabel="No users found."
+			id={id}
+			isLoading={listQ.isFetching && !listQ.data}
+			options={options}
+			placeholder={placeholder}
+			searchPlaceholder="Search by name or email…"
 			value={selected}
 			onChange={(option) => {
 				setSelected(option);
 				onChange(option ? option.value : null);
 			}}
-			options={options}
 			onSearchChange={setQuery}
-			isLoading={listQ.isFetching && !listQ.data}
-			placeholder={placeholder}
-			searchPlaceholder="Search by name or email…"
-			emptyLabel="No users found."
-			disabled={disabled}
-			id={id}
-			ariaLabel={ariaLabel}
-			className={className}
 		/>
 	);
 };

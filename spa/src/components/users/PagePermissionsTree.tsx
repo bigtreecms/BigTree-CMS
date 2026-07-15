@@ -13,12 +13,12 @@ import { TreeExpander, TreeLoadingRow } from "./PermissionTreeParts";
 import { PAGE_PERMISSION_OPTIONS } from "./permissionOptions";
 
 interface PagePermissionsTreeProps {
-	value: UserPermissions["page"];
 	alerts: UserAlerts;
-	onChange: (next: UserPermissions["page"]) => void;
-	onAlertsChange: (next: UserAlerts) => void;
 	/** True when user.level >= 1 — controls are hidden and the user is treated as having full publisher access. */
 	isAdminUser: boolean;
+	onAlertsChange: (next: UserAlerts) => void;
+	onChange: (next: UserPermissions["page"]) => void;
+	value: UserPermissions["page"];
 }
 
 /**
@@ -49,17 +49,17 @@ export const PagePermissionsTree = ({
 
 			<div className="border-x border-b border-border">
 				<TreeRow
-					id={0}
-					label="All Pages"
-					depth={0}
 					hasChildren
-					initiallyExpanded
-					value={value}
-					alerts={alerts}
-					setPagePerm={setPagePerm}
-					setAlert={setAlert}
-					isAdminUser={isAdminUser}
 					hideInheritForRoot
+					initiallyExpanded
+					alerts={alerts}
+					depth={0}
+					id={0}
+					isAdminUser={isAdminUser}
+					label="All Pages"
+					setAlert={setAlert}
+					setPagePerm={setPagePerm}
+					value={value}
 				/>
 			</div>
 		</div>
@@ -80,7 +80,7 @@ const TreeHeader = ({ isAdminUser }: TreeHeaderProps) => {
 
 			{!isAdminUser &&
 				PAGE_PERMISSION_OPTIONS.map((opt) => (
-					<div key={opt.value} className="text-center">
+					<div className="text-center" key={opt.value}>
 						{opt.label}
 					</div>
 				))}
@@ -89,20 +89,20 @@ const TreeHeader = ({ isAdminUser }: TreeHeaderProps) => {
 };
 
 interface TreeRowProps {
-	id: number;
-	label: string;
-	depth: number;
-	hasChildren: boolean;
-	initiallyExpanded?: boolean;
-	value: UserPermissions["page"];
-	alerts: UserAlerts;
-	setPagePerm: (id: string, perm: PermissionCode) => void;
-	setAlert: (id: string, on: boolean) => void;
-	isAdminUser: boolean;
-	/** Hide the Inherit radio (true for the synthetic root row). */
-	hideInheritForRoot?: boolean;
 	/** True when any ancestor has an alert subscribed — disables this row's checkbox. */
 	alertInheritedFromAbove?: boolean;
+	alerts: UserAlerts;
+	depth: number;
+	hasChildren: boolean;
+	/** Hide the Inherit radio (true for the synthetic root row). */
+	hideInheritForRoot?: boolean;
+	id: number;
+	initiallyExpanded?: boolean;
+	isAdminUser: boolean;
+	label: string;
+	setAlert: (id: string, on: boolean) => void;
+	setPagePerm: (id: string, perm: PermissionCode) => void;
+	value: UserPermissions["page"];
 }
 
 const TreeRow = ({
@@ -147,25 +147,25 @@ const TreeRow = ({
 
 				<label className="flex items-center justify-center">
 					<input
-						type="checkbox"
-						checked={alertOn}
-						disabled={!!alertInheritedFromAbove}
 						aria-label="Email alert on change"
-						onChange={(e) => setAlert(idKey, e.target.checked)}
+						checked={alertOn}
 						className="size-3.5 cursor-pointer accent-accent disabled:cursor-not-allowed disabled:opacity-50"
+						disabled={!!alertInheritedFromAbove}
+						type="checkbox"
+						onChange={(e) => setAlert(idKey, e.target.checked)}
 					/>
 				</label>
 
 				{!isAdminUser && (
 					<PermissionRadios
 						name={`page-perm-${id}`}
-						value={currentPerm}
-						onChange={(next) => setPagePerm(idKey, next)}
 						options={
 							hideInheritForRoot
 								? PAGE_PERMISSION_OPTIONS.filter((o) => o.value !== "i")
 								: PAGE_PERMISSION_OPTIONS
 						}
+						value={currentPerm}
+						onChange={(next) => setPagePerm(idKey, next)}
 					/>
 				)}
 
@@ -175,14 +175,14 @@ const TreeRow = ({
 
 			{expanded && hasChildren && (
 				<PageChildren
-					parent={id}
-					depth={depth + 1}
-					value={value}
-					alerts={alerts}
-					setPagePerm={setPagePerm}
-					setAlert={setAlert}
-					isAdminUser={isAdminUser}
 					alertInheritedFromAbove={childAlertsInherited}
+					alerts={alerts}
+					depth={depth + 1}
+					isAdminUser={isAdminUser}
+					parent={id}
+					setAlert={setAlert}
+					setPagePerm={setPagePerm}
+					value={value}
 				/>
 			)}
 		</div>
@@ -190,14 +190,14 @@ const TreeRow = ({
 };
 
 interface PageChildrenProps {
-	parent: number;
-	depth: number;
-	value: UserPermissions["page"];
-	alerts: UserAlerts;
-	setPagePerm: (id: string, perm: PermissionCode) => void;
-	setAlert: (id: string, on: boolean) => void;
-	isAdminUser: boolean;
 	alertInheritedFromAbove: boolean;
+	alerts: UserAlerts;
+	depth: number;
+	isAdminUser: boolean;
+	parent: number;
+	setAlert: (id: string, on: boolean) => void;
+	setPagePerm: (id: string, perm: PermissionCode) => void;
+	value: UserPermissions["page"];
 }
 
 const PageChildren = ({
@@ -229,17 +229,17 @@ const PageChildren = ({
 		<Fragment>
 			{rows.map((row: PageListRow) => (
 				<TreeRow
-					key={row.id}
-					id={row.id}
-					label={row.nav_title}
+					alertInheritedFromAbove={alertInheritedFromAbove}
+					alerts={alerts}
 					depth={depth}
 					hasChildren={row.has_children}
-					value={value}
-					alerts={alerts}
-					setPagePerm={setPagePerm}
-					setAlert={setAlert}
+					id={row.id}
 					isAdminUser={isAdminUser}
-					alertInheritedFromAbove={alertInheritedFromAbove}
+					key={row.id}
+					label={row.nav_title}
+					setAlert={setAlert}
+					setPagePerm={setPagePerm}
+					value={value}
 				/>
 			))}
 		</Fragment>

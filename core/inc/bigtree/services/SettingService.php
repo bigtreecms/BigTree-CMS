@@ -124,6 +124,16 @@
 					throw new AuthorizationException("Updating a value requires level:1");
 				}
 
+				// Mirror legacy settings/update.php: system settings are never
+				// value-editable via the admin; locked settings need a developer.
+				if (!empty($def["system"])) {
+					throw new AuthorizationException("System settings cannot be modified", "system_setting");
+				}
+
+				if (!empty($def["locked"]) && (int)$request->user->level < 2) {
+					throw new AuthorizationException("Locked settings require developer access", "locked_setting");
+				}
+
 				$this->setValue($id, $def, $d["value"]);
 			} else {
 				if ((int)$request->user->level < 2) {

@@ -46,9 +46,9 @@ export const WithTrailing: Story = {
 	args: {
 		trailing: (
 			<input
-				type="search"
-				placeholder="Find a link…"
 				className="rounded-md border border-border bg-surface px-2 py-1 text-[12.5px] outline-none"
+				placeholder="Find a link…"
+				type="search"
 			/>
 		),
 	},

@@ -3,11 +3,11 @@ import type { ModuleEntryRow } from "@/api/endpoints/auto-modules";
 import { formatCellValue } from "./viewHelpers";
 
 interface ViewRowCellsProps {
+	/** Status "dim" class applied to the cell group (archived / not-approved rows). */
+	dim?: string;
 	/** `Object.entries(view.fields)` — only the entry order matters; values map to `column{n}`. */
 	fieldColumns: [string, unknown][];
 	row: ModuleEntryRow;
-	/** Status "dim" class applied to the cell group (archived / not-approved rows). */
-	dim?: string;
 }
 
 /**
@@ -24,8 +24,8 @@ export const ViewRowCells = ({ fieldColumns, row, dim = "" }: ViewRowCellsProps)
 
 			return (
 				<span
-					key={key}
 					className={`truncate text-text-2 ${isFirst ? "font-medium text-text" : "flex-1"}`}
+					key={key}
 				>
 					{formatCellValue(row[valueKey])}
 				</span>

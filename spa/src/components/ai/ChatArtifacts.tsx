@@ -18,11 +18,11 @@ interface ChatArtifactsProps {
 }
 
 interface ArtifactLink {
-	key: string;
 	icon: LucideIcon;
-	title: string;
-	subtitle: string;
+	key: string;
 	path: string;
+	subtitle: string;
+	title: string;
 }
 
 const displayText = (value: unknown): string => {
@@ -174,15 +174,15 @@ export const ChatArtifacts = ({ artifacts, onNavigate }: ChatArtifactsProps) => 
 
 				return (
 					<button
+						className="flex items-center gap-2 rounded-md px-2 py-1.5 text-left transition-colors hover:bg-hover"
 						key={link.key}
 						type="button"
 						onClick={() => {
 							navigate(link.path);
 							onNavigate();
 						}}
-						className="flex items-center gap-2 rounded-md px-2 py-1.5 text-left transition-colors hover:bg-hover"
 					>
-						<Icon size={13} className="shrink-0 text-text-3" />
+						<Icon className="shrink-0 text-text-3" size={13} />
 						<span className="min-w-0 flex-1">
 							<span className="block truncate text-[12.5px] text-text">
 								{link.title}

@@ -29,14 +29,14 @@ type Story = StoryObj<typeof meta>;
 
 const Trigger = ({ open, onToggle }: { open: boolean; onToggle: () => void }) => (
 	<button
-		type="button"
-		aria-haspopup="dialog"
 		aria-expanded={open}
-		onClick={onToggle}
+		aria-haspopup="dialog"
 		className="flex w-full items-center justify-between rounded-md border border-border bg-surface py-1.5 pl-3 pr-2 text-left text-[13px] focus:outline-none focus:ring-1 focus:ring-accent-ring"
+		type="button"
+		onClick={onToggle}
 	>
 		<span>{open ? "Close panel" : "Open panel"}</span>
-		<ChevronsUpDown size={13} className="text-text-3" />
+		<ChevronsUpDown className="text-text-3" size={13} />
 	</button>
 );
 
@@ -47,11 +47,11 @@ export const Default: Story = {
 
 		return (
 			<Popover
-				open={open}
-				onOpenChange={setOpen}
 				className="w-full"
+				open={open}
 				panelClassName="w-full overflow-hidden"
 				trigger={<Trigger open={open} onToggle={() => setOpen((prev) => !prev)} />}
+				onOpenChange={setOpen}
 			>
 				<div className="px-3 py-2 text-[13px] text-text-2">
 					A floating panel anchored under the trigger. Click outside to dismiss.
@@ -70,9 +70,9 @@ export const EndAligned: Story = {
 			<div className="flex justify-end">
 				<Popover
 					open={open}
-					onOpenChange={setOpen}
 					panelClassName="right-0 top-full w-[min(320px,90vw)] overflow-hidden"
 					trigger={<Trigger open={open} onToggle={() => setOpen((prev) => !prev)} />}
+					onOpenChange={setOpen}
 				>
 					<div className="px-3 py-2 text-[13px] text-text-2">
 						Anchored to the right edge with a capped width.
@@ -90,15 +90,15 @@ export const ScrollingList: Story = {
 
 		return (
 			<Popover
-				open={open}
-				onOpenChange={setOpen}
 				className="w-full"
+				open={open}
 				panelClassName="w-full max-h-48 overflow-y-auto"
 				trigger={<Trigger open={open} onToggle={() => setOpen((prev) => !prev)} />}
+				onOpenChange={setOpen}
 			>
 				<ul className="py-1">
 					{Array.from({ length: 20 }, (_, i) => (
-						<li key={i} className="px-3 py-1.5 text-[13px] text-text-2 hover:bg-hover">
+						<li className="px-3 py-1.5 text-[13px] text-text-2 hover:bg-hover" key={i}>
 							Option {i + 1}
 						</li>
 					))}

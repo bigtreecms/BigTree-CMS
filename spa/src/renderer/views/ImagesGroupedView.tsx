@@ -57,36 +57,36 @@ export const ImagesGroupedView = ({ moduleId, view }: ImagesGroupedViewProps) =>
 			<Toolbar
 				search={
 					<SearchInput
+						aria-label={`Search ${view.title.toLowerCase()}`}
+						placeholder={`Search ${view.title.toLowerCase()}…`}
 						value={query}
 						onChange={setQuery}
-						placeholder={`Search ${view.title.toLowerCase()}…`}
-						aria-label={`Search ${view.title.toLowerCase()}`}
 					/>
 				}
 			/>
 
 			<QueryRenderer
-				isLoading={listQuery.isLoading && !listQuery.data}
+				empty={<EmptyState>{viewEmptyLabel(debouncedQuery)}</EmptyState>}
 				error={listQuery.error}
 				isEmpty={rows.length === 0}
-				loading={<Loading variant="card" label="Loading entries…" />}
-				empty={<EmptyState>{viewEmptyLabel(debouncedQuery)}</EmptyState>}
+				isLoading={listQuery.isLoading && !listQuery.data}
+				loading={<Loading label="Loading entries…" variant="card" />}
 			>
 				<div className="flex flex-col gap-4">
 					{groups.map(([groupKey, items]) => {
 						const isCollapsed = collapsed.has(groupKey);
 
 						return (
-							<Card as="section" key={groupKey} className="overflow-hidden">
+							<Card as="section" className="overflow-hidden" key={groupKey}>
 								<DisclosureToggle
-									open={!isCollapsed}
-									onToggle={() => toggle(groupKey)}
 									className="w-full gap-2 border-b border-border bg-surface-2 px-3.5 py-2"
 									label={
 										<h3 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-text">
 											{groupKey}
 										</h3>
 									}
+									open={!isCollapsed}
+									onToggle={() => toggle(groupKey)}
 								>
 									<span className="text-[11px] tabular-nums text-text-3">
 										{items.length}
@@ -96,14 +96,14 @@ export const ImagesGroupedView = ({ moduleId, view }: ImagesGroupedViewProps) =>
 								{!isCollapsed && (
 									<div className="p-3">
 										<ImagesGrid
-											rows={items}
-											moduleId={moduleId}
-											viewId={view.id}
-											prefix={prefix}
-											onClick={openEdit}
-											canEdit={builtins.edit}
 											canDelete={builtins.delete}
+											canEdit={builtins.edit}
 											customActions={custom}
+											moduleId={moduleId}
+											prefix={prefix}
+											rows={items}
+											viewId={view.id}
+											onClick={openEdit}
 										/>
 									</div>
 								)}

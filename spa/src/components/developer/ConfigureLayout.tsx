@@ -9,9 +9,8 @@ import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { DeveloperSectionNav } from "@/components/developer/DeveloperSectionNav";
 
 interface ConfigureLayoutProps {
-	title: string;
-	sub?: string;
 	actions?: ReactNode;
+	children: ReactNode;
 	/**
 	 * When provided, the layout renders the shared loading/error gate above the
 	 * children (any TanStack query satisfies the `{ isLoading, error }` shape).
@@ -19,7 +18,8 @@ interface ConfigureLayoutProps {
 	 * once loaded.
 	 */
 	query?: { isLoading: boolean; error: unknown };
-	children: ReactNode;
+	sub?: string;
+	title: string;
 }
 
 /**
@@ -37,7 +37,7 @@ export const ConfigureLayout = ({ title, sub, actions, query, children }: Config
 			]}
 		/>
 
-		<PageHead title={title} sub={sub} actions={actions} />
+		<PageHead actions={actions} sub={sub} title={title} />
 
 		<DeveloperSectionNav />
 

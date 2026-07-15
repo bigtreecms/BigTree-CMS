@@ -77,20 +77,20 @@ export const TwoFactorPanel = ({ enabled }: TwoFactorPanelProps) => {
 	return (
 		<Card>
 			<CardHeader className="flex items-center gap-2">
-				<ShieldCheck size={14} className="text-text-3" />
+				<ShieldCheck className="text-text-3" size={14} />
 				<SectionLabel as="h3">Two-factor authentication</SectionLabel>
 			</CardHeader>
 
 			<div className="space-y-3 p-4 text-[12.5px]">
 				<div className="flex items-center justify-between gap-3">
-					<Badge tone={enabled ? "success" : "info"} dot>
+					<Badge dot tone={enabled ? "success" : "info"}>
 						{enabled ? "Enabled" : "Not enabled"}
 					</Badge>
 
 					{enabled && !disabling && (
 						<Button
-							variant="secondary"
 							className="shrink-0"
+							variant="secondary"
 							onClick={() => {
 								setDisabling(true);
 								setDisableCode("");
@@ -102,11 +102,11 @@ export const TwoFactorPanel = ({ enabled }: TwoFactorPanelProps) => {
 
 					{!enabled && !setup && (
 						<Button
-							variant="primary"
 							className="shrink-0"
-							onClick={() => setupMutation.mutate()}
 							loading={setupMutation.isPending}
 							loadingLabel="Starting…"
+							variant="primary"
+							onClick={() => setupMutation.mutate()}
 						>
 							Enable
 						</Button>
@@ -129,15 +129,15 @@ export const TwoFactorPanel = ({ enabled }: TwoFactorPanelProps) => {
 
 				{!enabled && setup && (
 					<TwoFactorEnrollForm
-						setup={setup}
+						busy={enableMutation.isPending}
 						code={enableCode}
-						onCodeChange={setEnableCode}
+						setup={setup}
 						onCancel={() => {
 							setSetup(null);
 							setEnableCode("");
 						}}
+						onCodeChange={setEnableCode}
 						onConfirm={() => enableMutation.mutate()}
-						busy={enableMutation.isPending}
 					/>
 				)}
 
@@ -145,33 +145,33 @@ export const TwoFactorPanel = ({ enabled }: TwoFactorPanelProps) => {
 					<div className="rounded-md border border-border bg-surface-2 p-4">
 						<Field label="Enter a current code to confirm">
 							<TextInput
-								inputMode="numeric"
+								autoFocus
 								autoComplete="one-time-code"
+								className="tracking-[0.2em]"
+								inputMode="numeric"
+								placeholder="123456"
 								value={disableCode}
 								onChange={(e) => setDisableCode(e.target.value)}
-								placeholder="123456"
-								autoFocus
-								className="tracking-[0.2em]"
 							/>
 						</Field>
 
 						<div className="mt-3 flex justify-end gap-2">
 							<Button
+								disabled={disableMutation.isPending}
 								variant="secondary"
 								onClick={() => {
 									setDisabling(false);
 									setDisableCode("");
 								}}
-								disabled={disableMutation.isPending}
 							>
 								Cancel
 							</Button>
 							<Button
-								variant="danger"
-								onClick={() => disableMutation.mutate()}
 								disabled={disableCode.trim().length === 0}
 								loading={disableMutation.isPending}
 								loadingLabel="Disabling…"
+								variant="danger"
+								onClick={() => disableMutation.mutate()}
 							>
 								Disable 2FA
 							</Button>

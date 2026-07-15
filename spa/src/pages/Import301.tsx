@@ -77,13 +77,13 @@ export const Import301 = () => {
 			/>
 
 			<PageHead
-				title="Import 301 redirects"
-				sub="Bulk-create redirects from a CSV file."
 				actions={
 					<Button icon={<ChevronLeft size={13} />} to="/dashboard/404s/301">
 						Back
 					</Button>
 				}
+				sub="Bulk-create redirects from a CSV file."
+				title="Import 301 redirects"
 			/>
 
 			<div className="mb-4 rounded-xl border border-border bg-surface-2 p-4 text-[12.5px] text-text-2">
@@ -108,53 +108,53 @@ export const Import301 = () => {
 			</div>
 
 			{error && (
-				<Alert tone="danger" className="mb-3">
+				<Alert className="mb-3" tone="danger">
 					{error}
 				</Alert>
 			)}
 
 			<FormShell
+				footer={
+					<FormFooter
+						cancelTo="/dashboard/404s/301"
+						disabled={!file}
+						loading={importMutation.isPending}
+						loadingLabel="Importing…"
+						submitIcon={<Upload size={13} />}
+						submitLabel="Import"
+					/>
+				}
 				onSubmit={(e) => {
 					e.preventDefault();
 					setError(null);
 					importMutation.mutate();
 				}}
-				footer={
-					<FormFooter
-						cancelTo="/dashboard/404s/301"
-						submitIcon={<Upload size={13} />}
-						submitLabel="Import"
-						disabled={!file}
-						loading={importMutation.isPending}
-						loadingLabel="Importing…"
-					/>
-				}
 			>
 				<div className="space-y-4">
 					{multisite && (
 						<SelectField
 							label="Site"
-							value={siteKey || sites[0]?.key || ""}
-							onChange={setSiteKey}
 							options={sites.map((site) => ({
 								value: site.key,
 								label: site.domain || site.key,
 							}))}
+							value={siteKey || sites[0]?.key || ""}
+							onChange={setSiteKey}
 						/>
 					)}
 
-					<Field label="CSV file" required>
+					<Field required label="CSV file">
 						<input
-							type="file"
 							accept=".csv,text/csv"
-							onChange={(e) => setFile(e.target.files?.[0] ?? null)}
 							className="block w-full text-[12.5px] text-text-2 file:mr-3 file:rounded-md file:border file:border-border file:bg-surface-2 file:px-3 file:py-1.5 file:text-[12.5px] file:text-text hover:file:bg-hover"
+							type="file"
+							onChange={(e) => setFile(e.target.files?.[0] ?? null)}
 						/>
 					</Field>
 
 					<Checkbox
-						label="First row contains column titles"
 						checked={firstRowTitles}
+						label="First row contains column titles"
 						onChange={setFirstRowTitles}
 					/>
 				</div>

@@ -23,10 +23,10 @@ const meta = {
 
 		return (
 			<ImageCropStage
-				image={image}
 				aspect={aspect}
-				objectFit={objectFit}
 				controller={controller}
+				image={image}
+				objectFit={objectFit}
 			/>
 		);
 	},

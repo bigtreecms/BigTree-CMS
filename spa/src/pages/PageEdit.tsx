@@ -73,11 +73,11 @@ import { InlineEmpty } from "@/components/ui/InlineEmpty";
  * is "pending" when its column appears in the change's `changed_fields`.
  */
 export interface PendingFieldInfo {
-	isPending: (column: string) => boolean;
-	published: (column: string) => unknown;
 	current: (column: string) => unknown;
+	isPending: (column: string) => boolean;
 	/** Heading for the draft column, attributed to the change's owner. */
 	label: string;
+	published: (column: string) => unknown;
 }
 
 const seedBody = (page: PageDetail): PageEditBody => ({
@@ -324,13 +324,13 @@ export const PageEdit = () => {
 		!lock.ownedByOther;
 
 	if (!valid) {
-		return <Navigate to="/pages" replace />;
+		return <Navigate replace to="/pages" />;
 	}
 
 	if (pageQuery.isLoading || !pageQuery.data || !body) {
 		return (
 			<PageContainer width="wide">
-				<Loading variant="card" label="Loading page…" />
+				<Loading label="Loading page…" variant="card" />
 			</PageContainer>
 		);
 	}
@@ -361,17 +361,17 @@ export const PageEdit = () => {
 			<Breadcrumb items={breadcrumbs} />
 
 			<PageHead
-				title={page.nav_title || "Untitled page"}
-				sub="Edit the page's properties, content, SEO, and sharing metadata."
 				actions={
 					<Button
+						disabled={readOnly}
 						variant="dangerGhost"
 						onClick={() => deleteDialog.open(true)}
-						disabled={readOnly}
 					>
 						Delete
 					</Button>
 				}
+				sub="Edit the page's properties, content, SEO, and sharing metadata."
+				title={page.nav_title || "Untitled page"}
 			/>
 
 			<PageSummaryPanel page={page} />
@@ -380,7 +380,11 @@ export const PageEdit = () => {
 				active="edit"
 				pageId={page.id}
 				parentId={page.parent}
-				onMove={draft ? undefined : () => setMovingOpen(true)}
+				onAccessLevels={
+					// Admin-only viewer (the endpoint enforces it too); drafts have
+					// no live page to inspect.
+					!draft && isAdminUser ? () => setAccessOpen(true) : undefined
+				}
 				onDuplicate={
 					// Live, non-top-level pages only (drafts have nothing to copy;
 					// legacy refuses top-level pages). The server enforces publisher
@@ -389,11 +393,7 @@ export const PageEdit = () => {
 						? undefined
 						: () => duplicateMutation.mutate()
 				}
-				onAccessLevels={
-					// Admin-only viewer (the endpoint enforces it too); drafts have
-					// no live page to inspect.
-					!draft && isAdminUser ? () => setAccessOpen(true) : undefined
-				}
+				onMove={draft ? undefined : () => setMovingOpen(true)}
 			/>
 
 			{page.changes_applied && (
@@ -409,24 +409,24 @@ export const PageEdit = () => {
 
 			{readOnly && (
 				<LockBanner
-					owner={lock.lockOwner}
 					lockedAt={lock.lockedAt}
+					owner={lock.lockOwner}
 					onUnlock={lock.forceUnlock}
 				/>
 			)}
 
 			{generalError && (
-				<Alert tone="danger" className="mb-3">
+				<Alert className="mb-3" tone="danger">
 					{generalError}
 				</Alert>
 			)}
 
 			<form
+				className="mb-6 overflow-hidden rounded-lg border border-border bg-surface"
 				onSubmit={(e) => {
 					e.preventDefault();
 					handleSave(false);
 				}}
-				className="mb-6 overflow-hidden rounded-lg border border-border bg-surface"
 			>
 				<PageTabStrip value={activeTab} onChange={setActiveTab} />
 
@@ -434,29 +434,23 @@ export const PageEdit = () => {
 					{activeTab === "properties" && (
 						<PropertiesTab
 							body={body}
-							templates={templatesQuery.data ?? []}
-							templateDisabled={templateDisabled}
-							fieldErrors={fieldErrors}
 							disabled={readOnly}
-							onPatch={setBodyPatch}
+							fieldErrors={fieldErrors}
 							pending={pendingInfo}
+							templateDisabled={templateDisabled}
+							templates={templatesQuery.data ?? []}
+							onPatch={setBodyPatch}
 						/>
 					)}
 
 					{activeTab === "content" && (
 						<ContentTab
 							body={body}
-							template={templateDisabled ? undefined : templateQuery.data}
-							loading={!templateDisabled && templateQuery.isLoading}
-							templateDisabled={templateDisabled}
-							fieldErrors={fieldErrors}
+							changedResourceIds={changedResourceIds}
 							disabled={readOnly}
-							onChange={(resources) => setBodyPatch({ resources })}
-							tags={tagObjects}
-							onTagsChange={(next) => {
-								setTagObjects(next);
-								setBodyPatch({ tags: next.map((t) => t.id) });
-							}}
+							fieldErrors={fieldErrors}
+							loading={!templateDisabled && templateQuery.isLoading}
+							pendingLabel={pendingInfo?.label}
 							publishedResources={
 								pendingInfo
 									? ((page.pending_original?.resources as
@@ -464,19 +458,25 @@ export const PageEdit = () => {
 											| undefined) ?? {})
 									: undefined
 							}
-							changedResourceIds={changedResourceIds}
-							pendingLabel={pendingInfo?.label}
+							tags={tagObjects}
+							template={templateDisabled ? undefined : templateQuery.data}
+							templateDisabled={templateDisabled}
+							onChange={(resources) => setBodyPatch({ resources })}
+							onTagsChange={(next) => {
+								setTagObjects(next);
+								setBodyPatch({ tags: next.map((t) => t.id) });
+							}}
 						/>
 					)}
 
 					{activeTab === "seo" && (
 						<SeoTab
 							body={body}
-							page={page}
-							fieldErrors={fieldErrors}
 							disabled={readOnly}
-							onPatch={setBodyPatch}
+							fieldErrors={fieldErrors}
+							page={page}
 							pending={pendingInfo}
+							onPatch={setBodyPatch}
 						/>
 					)}
 
@@ -484,28 +484,28 @@ export const PageEdit = () => {
 						<SharingTab
 							body={body}
 							disabled={readOnly}
-							onPatch={setBodyPatch}
 							pending={pendingInfo}
+							onPatch={setBodyPatch}
 						/>
 					)}
 				</div>
 
 				<PageWizardFooter activeTab={activeTab} onSelect={setActiveTab}>
 					<Button
-						variant={canPublish ? "secondary" : "primary"}
-						icon={<Save size={13} />}
-						onClick={() => handleSave(false)}
 						disabled={readOnly || saveMutation.isPending}
+						icon={<Save size={13} />}
+						variant={canPublish ? "secondary" : "primary"}
+						onClick={() => handleSave(false)}
 					>
 						{saveMutation.isPending ? "Saving…" : "Save"}
 					</Button>
 
 					{canPublish && (
 						<Button
-							variant="primary"
-							icon={<Save size={13} />}
-							onClick={() => handleSave(true)}
 							disabled={readOnly || saveMutation.isPending}
+							icon={<Save size={13} />}
+							variant="primary"
+							onClick={() => handleSave(true)}
 						>
 							Save & Publish
 						</Button>
@@ -515,35 +515,35 @@ export const PageEdit = () => {
 
 			<ConfirmDialog
 				{...deleteDialog.dialogProps}
-				title={
-					draft
-						? `Discard draft “${page.nav_title || "Untitled"}”?`
-						: `Delete “${page.nav_title}”?`
-				}
+				confirmLabel={draft ? "Discard draft" : "Delete page"}
 				description={
 					draft
 						? "This permanently discards the unpublished draft. The page was never published, so nothing else is affected."
 						: "This removes the page and all of its descendants. The action cannot be undone."
 				}
-				confirmLabel={draft ? "Discard draft" : "Delete page"}
+				title={
+					draft
+						? `Discard draft “${page.nav_title || "Untitled"}”?`
+						: `Delete “${page.nav_title}”?`
+				}
 				variant="danger"
 				onConfirm={() => deleteMutation.mutate()}
 			/>
 
 			{!draft && (
 				<MovePageDialog
-					open={movingOpen}
-					onOpenChange={setMovingOpen}
-					page={{ id: page.id, nav_title: page.nav_title, parent: page.parent }}
 					invalidateKey={queryKeys.pages.list(page.parent)}
+					open={movingOpen}
+					page={{ id: page.id, nav_title: page.nav_title, parent: page.parent }}
+					onOpenChange={setMovingOpen}
 				/>
 			)}
 
 			{!draft && isAdminUser && (
 				<AccessLevelsDialog
 					open={accessOpen}
-					onOpenChange={setAccessOpen}
 					pageId={page.id}
+					onOpenChange={setAccessOpen}
 				/>
 			)}
 
@@ -556,12 +556,12 @@ export const PageEdit = () => {
 
 interface PropertiesTabProps {
 	body: PageEditBody;
-	templates: TemplateSummary[];
-	templateDisabled: boolean;
-	fieldErrors: Record<string, string>;
 	disabled?: boolean;
+	fieldErrors: Record<string, string>;
 	onPatch: (patch: Partial<PageEditBody>) => void;
 	pending?: PendingFieldInfo;
+	templateDisabled: boolean;
+	templates: TemplateSummary[];
 }
 
 export const PropertiesTab = ({
@@ -580,70 +580,70 @@ export const PropertiesTab = ({
 		<>
 			<div className="grid grid-cols-1 gap-[18px] md:grid-cols-2 md:gap-x-[22px]">
 				<Field
-					label="Navigation Title"
-					error={fieldErrors.nav_title}
 					column="nav_title"
+					error={fieldErrors.nav_title}
+					label="Navigation Title"
 					pending={pending}
 				>
 					<TextInput
+						disabled={disabled}
+						placeholder="Shown in site nav and breadcrumbs"
 						value={body.nav_title ?? ""}
 						onChange={(e) => onPatch({ nav_title: e.target.value })}
-						placeholder="Shown in site nav and breadcrumbs"
-						disabled={disabled}
 					/>
 				</Field>
 
 				<Field
-					label="Page Title"
-					hint="(web browsers use this for their title bar)"
-					error={fieldErrors.title}
 					column="title"
+					error={fieldErrors.title}
+					hint="(web browsers use this for their title bar)"
+					label="Page Title"
 					pending={pending}
 				>
 					<TextInput
+						disabled={disabled}
+						placeholder={body.nav_title || "e.g. About us — Your Site"}
 						value={body.title ?? ""}
 						onChange={(e) => onPatch({ title: e.target.value })}
-						placeholder={body.nav_title || "e.g. About us — Your Site"}
-						disabled={disabled}
 					/>
 				</Field>
 			</div>
 
 			<div className="grid grid-cols-1 gap-[18px] md:grid-cols-3 md:gap-x-[22px]">
 				<Field
-					label="Publish At"
-					hint="(blank = immediately)"
 					column="publish_at"
+					hint="(blank = immediately)"
+					label="Publish At"
 					pending={pending}
 				>
 					<DateInput
+						disabled={disabled}
 						value={body.publish_at ?? ""}
 						onChange={(v) => onPatch({ publish_at: v || null })}
-						disabled={disabled}
 					/>
 				</Field>
 				<Field
-					label="Expire At"
-					hint="(blank = never)"
 					column="expire_at"
+					hint="(blank = never)"
+					label="Expire At"
 					pending={pending}
 				>
 					<DateInput
+						disabled={disabled}
 						value={body.expire_at ?? ""}
 						onChange={(v) => onPatch({ expire_at: v || null })}
-						disabled={disabled}
 					/>
 				</Field>
 				<Field
-					label="Content Max Age"
-					hint="(before alerts)"
 					column="max_age"
+					hint="(before alerts)"
+					label="Content Max Age"
 					pending={pending}
 				>
 					<Select
+						disabled={disabled}
 						value={body.max_age ?? 0}
 						onChange={(e) => onPatch({ max_age: Number(e.target.value) })}
-						disabled={disabled}
 					>
 						<option value={0}>No Limit</option>
 						<option value={30}>30 days</option>
@@ -656,20 +656,20 @@ export const PropertiesTab = ({
 
 			<div className="flex flex-wrap items-center gap-4 rounded-md border border-border bg-surface-2 px-3 py-2">
 				<Check
-					label="Visible in Navigation"
 					checked={Boolean(body.in_nav)}
-					onChange={(v) => onPatch({ in_nav: v })}
-					disabled={disabled}
 					column="in_nav"
+					disabled={disabled}
+					label="Visible in Navigation"
 					pending={pending}
+					onChange={(v) => onPatch({ in_nav: v })}
 				/>
 				<Check
-					label="Trunk"
 					checked={Boolean(body.trunk)}
-					onChange={(v) => onPatch({ trunk: v })}
-					disabled={disabled}
 					column="trunk"
+					disabled={disabled}
+					label="Trunk"
 					pending={pending}
+					onChange={(v) => onPatch({ trunk: v })}
 				/>
 			</div>
 
@@ -677,15 +677,15 @@ export const PropertiesTab = ({
 
 			<div className="grid grid-cols-1 gap-[18px] md:grid-cols-2 md:gap-x-[22px]">
 				<Field
-					label="Template"
-					error={fieldErrors.template}
 					column="template"
+					error={fieldErrors.template}
+					label="Template"
 					pending={pending}
 				>
 					<Select
+						disabled={disabled || templateDisabled}
 						value={templateDisabled ? "" : (body.template ?? "")}
 						onChange={(e) => onPatch({ template: e.target.value })}
-						disabled={disabled || templateDisabled}
 					>
 						{templateDisabled && (
 							<option value="">— (overridden by External Link) —</option>
@@ -719,24 +719,24 @@ export const PropertiesTab = ({
 				</Field>
 
 				<Field
-					label="External Link"
-					hint="(include http://, overrides template)"
-					error={fieldErrors.external}
 					column="external"
+					error={fieldErrors.external}
+					hint="(include http://, overrides template)"
+					label="External Link"
 					pending={pending}
 				>
 					<TextInput
+						disabled={disabled}
+						placeholder="https://"
 						value={body.external ?? ""}
 						onChange={(e) => onPatch({ external: e.target.value })}
-						placeholder="https://"
-						disabled={disabled}
 					/>
 					<Checkbox
-						className="mt-2"
-						label="Open in New Window"
 						checked={Boolean(body.new_window)}
-						onChange={(checked) => onPatch({ new_window: checked })}
+						className="mt-2"
 						disabled={disabled || !body.external}
+						label="Open in New Window"
+						onChange={(checked) => onPatch({ new_window: checked })}
 					/>
 				</Field>
 			</div>
@@ -746,27 +746,27 @@ export const PropertiesTab = ({
 
 interface ContentTabProps {
 	body: PageEditBody;
-	template: TemplateSummary | undefined;
-	loading: boolean;
-	templateDisabled: boolean;
-	fieldErrors: Record<string, string>;
-	disabled?: boolean;
-	onChange: (resources: Record<string, unknown>) => void;
-	/** Selected tags. Rendering the tag browser requires onTagsChange too. */
-	tags?: Tag[];
-	onTagsChange?: (next: Tag[]) => void;
-	/**
-	 * Published resource values keyed by resource id, for per-field comparison.
-	 * Undefined unless the page has a queued EDIT overlaid.
-	 */
-	publishedResources?: Record<string, unknown>;
 	/**
 	 * Resource ids that carry a queued change (computed once at load). Drives the
 	 * "Pending" marker so it doesn't flip on while the user is still typing.
 	 */
 	changedResourceIds?: Set<string> | null;
+	disabled?: boolean;
+	fieldErrors: Record<string, string>;
+	loading: boolean;
+	onChange: (resources: Record<string, unknown>) => void;
+	onTagsChange?: (next: Tag[]) => void;
 	/** Heading for the draft column in resource comparisons, attributed to its owner. */
 	pendingLabel?: string;
+	/**
+	 * Published resource values keyed by resource id, for per-field comparison.
+	 * Undefined unless the page has a queued EDIT overlaid.
+	 */
+	publishedResources?: Record<string, unknown>;
+	/** Selected tags. Rendering the tag browser requires onTagsChange too. */
+	tags?: Tag[];
+	template: TemplateSummary | undefined;
+	templateDisabled: boolean;
 }
 
 export const ContentTab = ({
@@ -793,10 +793,10 @@ export const ContentTab = ({
 			<FieldLabel>Tags</FieldLabel>
 			<TagInput
 				multiple
-				value={tags ?? []}
-				onChange={onTagsChange}
 				disabled={disabled}
 				placeholder="Search for or add tags…"
+				value={tags ?? []}
+				onChange={onTagsChange}
 			/>
 		</div>
 	) : null;
@@ -851,20 +851,20 @@ export const ContentTab = ({
 
 					return (
 						<FieldRow
-							key={resource.id}
-							field={formField}
-							error={fieldErrors[resource.id]}
-							pending={pending}
-							publishedValue={publishedValue}
 							currentValue={resources[resource.id]}
+							error={fieldErrors[resource.id]}
+							field={formField}
+							key={resource.id}
+							pending={pending}
 							pendingLabel={pendingLabel}
+							publishedValue={publishedValue}
 						>
 							<FieldRenderer
+								disabled={disabled}
+								error={fieldErrors[resource.id]}
 								field={formField}
 								value={resources[resource.id]}
 								onChange={(next) => setFieldValue(resource.id, next)}
-								disabled={disabled}
-								error={fieldErrors[resource.id]}
 							/>
 						</FieldRow>
 					);
@@ -877,10 +877,10 @@ export const ContentTab = ({
 
 interface SeoTabProps {
 	body: PageEditBody;
-	page?: PageDetail;
-	fieldErrors: Record<string, string>;
 	disabled?: boolean;
+	fieldErrors: Record<string, string>;
 	onPatch: (patch: Partial<PageEditBody>) => void;
+	page?: PageDetail;
 	pending?: PendingFieldInfo;
 }
 
@@ -897,11 +897,11 @@ export const SeoTab = ({ body, page, fieldErrors, disabled, onPatch, pending }: 
 	return (
 		<>
 			<Field
-				label="URL Route"
-				hint="(leave blank to auto generate)"
-				error={fieldErrors.route}
 				wide
 				column="route"
+				error={fieldErrors.route}
+				hint="(leave blank to auto generate)"
+				label="URL Route"
 				pending={pending}
 			>
 				<div className="flex items-center gap-0 overflow-hidden rounded-md border border-border-strong bg-surface focus-within:border-accent focus-within:ring-1 focus-within:ring-accent-ring">
@@ -911,27 +911,27 @@ export const SeoTab = ({ body, page, fieldErrors, disabled, onPatch, pending }: 
 					<input
 						aria-label="URL Route"
 						className="flex-1 bg-transparent px-3 py-[7px] text-[13px] outline-none placeholder:text-text-3"
+						disabled={disabled}
+						placeholder={slugSuggest || "auto-generated"}
 						value={body.route ?? ""}
 						onChange={(e) => onPatch({ route: e.target.value })}
-						placeholder={slugSuggest || "auto-generated"}
-						disabled={disabled}
 					/>
 				</div>
 			</Field>
 
 			<Field
-				label="Meta Description"
-				error={fieldErrors.meta_description}
 				wide
 				column="meta_description"
+				error={fieldErrors.meta_description}
+				label="Meta Description"
 				pending={pending}
 			>
 				<TextArea
+					disabled={disabled}
+					placeholder="Concise summary shown in search engine result snippets. Aim for 150–160 characters."
 					rows={5}
 					value={description}
 					onChange={(e) => onPatch({ meta_description: e.target.value })}
-					placeholder="Concise summary shown in search engine result snippets. Aim for 150–160 characters."
-					disabled={disabled}
 				/>
 				<span
 					className={`mt-1 block text-[11px] ${description.length > 160 ? "text-warn" : "text-text-3"}`}
@@ -941,27 +941,27 @@ export const SeoTab = ({ body, page, fieldErrors, disabled, onPatch, pending }: 
 			</Field>
 
 			<Field
-				label="Meta Keywords"
-				hint="Most search engines ignore this."
-				error={fieldErrors.meta_keywords}
 				wide
 				column="meta_keywords"
+				error={fieldErrors.meta_keywords}
+				hint="Most search engines ignore this."
+				label="Meta Keywords"
 				pending={pending}
 			>
 				<TextInput
+					disabled={disabled}
 					value={body.meta_keywords ?? ""}
 					onChange={(e) => onPatch({ meta_keywords: e.target.value })}
-					disabled={disabled}
 				/>
 			</Field>
 
 			<Check
-				label="Hide from search engines"
 				checked={Boolean(body.seo_invisible)}
-				onChange={(v) => onPatch({ seo_invisible: v })}
-				disabled={disabled}
 				column="seo_invisible"
+				disabled={disabled}
+				label="Hide from search engines"
 				pending={pending}
+				onChange={(v) => onPatch({ seo_invisible: v })}
 			/>
 		</>
 	);
@@ -984,37 +984,37 @@ export const SharingTab = ({ body, disabled, onPatch, pending }: SharingTabProps
 	return (
 		<>
 			<Field
-				label="Open Graph Title"
-				hint="(defaults to the page title if left empty)"
 				wide
 				column="open_graph"
+				hint="(defaults to the page title if left empty)"
+				label="Open Graph Title"
 				pending={pending}
 			>
 				<TextInput
+					disabled={disabled}
 					value={og.title ?? ""}
 					onChange={(e) => setOg({ title: e.target.value })}
-					disabled={disabled}
 				/>
 			</Field>
 
 			<Field
-				label="Open Graph Description"
-				hint="(defaults to the page's meta description if left empty)"
 				wide
+				hint="(defaults to the page's meta description if left empty)"
+				label="Open Graph Description"
 			>
 				<TextInput
+					disabled={disabled}
 					value={og.description ?? ""}
 					onChange={(e) => setOg({ description: e.target.value })}
-					disabled={disabled}
 				/>
 			</Field>
 
 			<div className="grid grid-cols-1 gap-[18px] md:grid-cols-2 md:gap-x-[22px]">
 				<Field label="Open Graph Type">
 					<Select
+						disabled={disabled}
 						value={og.type ?? ""}
 						onChange={(e) => setOg({ type: e.target.value })}
-						disabled={disabled}
 					>
 						<option value="">—</option>
 						<option value="website">website</option>
@@ -1023,12 +1023,12 @@ export const SharingTab = ({ body, disabled, onPatch, pending }: SharingTabProps
 						<option value="video.movie">video.movie</option>
 					</Select>
 				</Field>
-				<Field label="Open Graph Image" hint="(min 1200×630)">
+				<Field hint="(min 1200×630)" label="Open Graph Image">
 					<TextInput
+						disabled={disabled}
+						placeholder="https://"
 						value={og.image ?? ""}
 						onChange={(e) => setOg({ image: e.target.value })}
-						placeholder="https://"
-						disabled={disabled}
 					/>
 				</Field>
 			</div>
@@ -1040,14 +1040,14 @@ export const SharingTab = ({ body, disabled, onPatch, pending }: SharingTabProps
 // inflating the shared components dir. —
 
 interface FieldProps {
-	label: string;
-	hint?: string;
 	children: React.ReactNode;
-	error?: string;
-	wide?: boolean;
 	/** Column this field maps to; enables pending markers when `pending` is set. */
 	column?: string;
+	error?: string;
+	hint?: string;
+	label: string;
 	pending?: PendingFieldInfo;
+	wide?: boolean;
 }
 
 const Field = ({ label, hint, children, error, wide, column, pending }: FieldProps) => {
@@ -1065,9 +1065,9 @@ const Field = ({ label, hint, children, error, wide, column, pending }: FieldPro
 			{children}
 			{showPending && column && pending && (
 				<PendingFieldCompare
-					published={pending.published(column)}
 					pending={pending.current(column)}
 					pendingLabel={pending.label}
+					published={pending.published(column)}
 				/>
 			)}
 			{error && (
@@ -1080,12 +1080,12 @@ const Field = ({ label, hint, children, error, wide, column, pending }: FieldPro
 };
 
 interface CheckProps {
-	label: string;
 	checked: boolean;
-	onChange: (next: boolean) => void;
-	disabled?: boolean;
 	/** Column this toggle maps to; shows a "Pending" badge when changed. */
 	column?: string;
+	disabled?: boolean;
+	label: string;
+	onChange: (next: boolean) => void;
 	pending?: PendingFieldInfo;
 }
 
@@ -1095,7 +1095,6 @@ const Check = ({ label, checked, onChange, disabled, column, pending }: CheckPro
 	return (
 		<Checkbox
 			checked={checked}
-			onChange={onChange}
 			disabled={disabled}
 			label={
 				<>
@@ -1103,14 +1102,15 @@ const Check = ({ label, checked, onChange, disabled, column, pending }: CheckPro
 					{showPending && <PendingBadge />}
 				</>
 			}
+			onChange={onChange}
 		/>
 	);
 };
 
 interface DateInputProps {
-	value: string;
-	onChange: (next: string) => void;
 	disabled?: boolean;
+	onChange: (next: string) => void;
+	value: string;
 }
 
 const DateInput = ({ value, onChange, disabled }: DateInputProps) => {
@@ -1119,15 +1119,15 @@ const DateInput = ({ value, onChange, disabled }: DateInputProps) => {
 	return (
 		<div className="relative">
 			<TextInput
-				type="datetime-local"
 				className="pr-8 font-mono text-[12.5px]"
+				disabled={disabled}
+				type="datetime-local"
 				value={normalized}
 				onChange={(e) => onChange(e.target.value)}
-				disabled={disabled}
 			/>
 			<Calendar
-				size={14}
 				className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-text-3"
+				size={14}
 			/>
 		</div>
 	);

@@ -5,15 +5,15 @@ import { Loading } from "@/components/ui/Loading";
 import { SectionLabel } from "@/components/ui/SectionLabel";
 
 interface ViewActionsControlProps {
-	/** Action map keyed by action route; built-ins store the value `"on"`. */
-	value: Record<string, unknown>;
-	onChange: (actions: Record<string, unknown>) => void;
 	/** Columns of the view's table; drives which toggles are offered. */
 	columns: DbOption[];
 	/** True while the column list is still loading. */
 	loading?: boolean;
+	onChange: (actions: Record<string, unknown>) => void;
 	/** True when no table has been selected yet. */
 	tableSelected: boolean;
+	/** Action map keyed by action route; built-ins store the value `"on"`. */
+	value: Record<string, unknown>;
 }
 
 /**
@@ -23,10 +23,10 @@ interface ViewActionsControlProps {
  * Edit/Delete always offer.
  */
 interface StandardAction {
-	route: string;
 	column: string;
-	label: string;
 	description: string;
+	label: string;
+	route: string;
 }
 
 // Mirrors BigTreeAdmin::$ViewActions, in the same display order.
@@ -114,12 +114,12 @@ export const ViewActionsControl = ({
 
 						return (
 							<li
-								key={action.route}
 								className="rounded-md border border-border bg-surface px-3 py-2"
+								key={action.route}
 							>
 								<Checkbox
+									checked={on}
 									className="w-full"
-									labelClassName="flex min-w-0 flex-1 flex-col"
 									label={
 										<>
 											<span className="text-[13px] text-text">
@@ -130,7 +130,7 @@ export const ViewActionsControl = ({
 											</span>
 										</>
 									}
-									checked={on}
+									labelClassName="flex min-w-0 flex-1 flex-col"
 									onChange={(checked) => toggle(action.route, checked)}
 								/>
 							</li>

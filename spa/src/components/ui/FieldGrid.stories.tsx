@@ -36,7 +36,7 @@ export const Default: Story = {
 				<Field label="Slug">
 					<TextInput defaultValue="quarterly-report" />
 				</Field>
-				<Field label="Limit" hint="Defaults to 15.">
+				<Field hint="Defaults to 15." label="Limit">
 					<TextInput defaultValue="15" />
 				</Field>
 				<Field label="Order by">

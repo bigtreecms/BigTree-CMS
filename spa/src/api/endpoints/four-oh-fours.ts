@@ -8,12 +8,12 @@ import { api } from "@/api/client";
 export type FourOhFourType = "404" | "301" | "ignored";
 
 export interface FourOhFour {
-	id: number;
 	broken_url: string;
 	get_vars: string;
+	id: number;
+	ignored: boolean;
 	redirect_url: string;
 	requests: number;
-	ignored: boolean;
 	site_key: string | null;
 	type: FourOhFourType;
 }
@@ -21,14 +21,14 @@ export interface FourOhFour {
 export interface FourOhFoursListParams {
 	page?: number;
 	per_page?: number;
-	type?: FourOhFourType;
-	site_key?: string;
 	q?: string;
+	site_key?: string;
+	type?: FourOhFourType;
 }
 
 export interface ClearDeadResult {
-	before: number;
 	after: number;
+	before: number;
 	deleted: number;
 }
 
@@ -37,14 +37,14 @@ export interface ClearDeadResult {
  * a single-site install — the 404 screens fall back to a plain, site-less form.
  */
 export interface FourOhFourSite {
-	key: string;
 	domain: string;
+	key: string;
 	www_root: string;
 }
 
 export interface ImportCsvOptions {
-	siteKey?: string;
 	firstRowTitles?: boolean;
+	siteKey?: string;
 }
 
 export const fourOhFoursApi = {

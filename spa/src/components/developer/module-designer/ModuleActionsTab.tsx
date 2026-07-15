@@ -210,26 +210,26 @@ export const ModuleActionsTab = ({ moduleId }: ModuleActionsTabProps) => {
 	return (
 		<div className="space-y-3">
 			<SubList
-				isLoading={crud.isLoading}
-				loadingLabel="Loading actions…"
 				emptyLabel="No actions yet. Actions are the entry points shown in the module's nav."
 				isEmpty={crud.items.length === 0}
+				isLoading={crud.isLoading}
+				loadingLabel="Loading actions…"
 			>
 				{crud.items.map((a) => (
 					<SubRow
-						key={a.id}
-						title={a.name}
-						subtitle={a.route ?? undefined}
-						badge={a.in_nav === true || a.in_nav === "on" ? "in nav" : undefined}
-						onEdit={() => crud.startEdit(a.id)}
-						onDelete={() => deleteDialog.open(a)}
 						reorderable
+						badge={a.in_nav === true || a.in_nav === "on" ? "in nav" : undefined}
 						isDragging={drag.dragId === a.id}
 						isDropTarget={drag.overId === a.id && drag.dragId !== a.id}
-						onDragStart={(e) => drag.onDragStart(e, a.id)}
-						onDragOver={(e) => drag.onDragOver(e, a.id)}
-						onDrop={drag.onDrop}
+						key={a.id}
+						subtitle={a.route ?? undefined}
+						title={a.name}
+						onDelete={() => deleteDialog.open(a)}
 						onDragEnd={drag.onDragEnd}
+						onDragOver={(e) => drag.onDragOver(e, a.id)}
+						onDragStart={(e) => drag.onDragStart(e, a.id)}
+						onDrop={drag.onDrop}
+						onEdit={() => crud.startEdit(a.id)}
 					/>
 				))}
 			</SubList>
@@ -238,72 +238,72 @@ export const ModuleActionsTab = ({ moduleId }: ModuleActionsTabProps) => {
 
 			{crud.editingId !== null && (
 				<EditorCard
+					saveLabel={crud.editingId === NEW_ROW ? "Create action" : "Save action"}
+					saving={crud.saving}
 					title={editorTitle}
 					onClose={crud.cancel}
 					onSave={handleSave}
-					saving={crud.saving}
-					saveLabel={crud.editingId === NEW_ROW ? "Create action" : "Save action"}
 				>
 					<FieldGrid>
 						<TextInput
+							required
+							error={crud.fieldErrors.name}
 							label="Name"
 							value={draft.name}
 							onChange={(v) => setDraft((p) => ({ ...p, name: v }))}
-							error={crud.fieldErrors.name}
-							required
 						/>
 						<TextInput
+							mono
+							hint="URL segment under the module. Auto-generated when blank."
 							label="Route"
 							value={draft.route}
 							onChange={(v) => setDraft((p) => ({ ...p, route: v }))}
-							hint="URL segment under the module. Auto-generated when blank."
-							mono
 						/>
 						<SelectInput
+							hint="The form, view or report this action opens — or a custom module."
 							label="Target"
+							options={targetOptions}
 							value={draft.target}
 							onChange={onTargetChange}
-							options={targetOptions}
-							hint="The form, view or report this action opens — or a custom module."
 						/>
 						<IconSelect
+							hint="Shown beside the action in the module navigation."
 							label="Icon"
 							value={draft.icon}
 							onChange={(v) => setDraft((p) => ({ ...p, icon: v }))}
-							hint="Shown beside the action in the module navigation."
 						/>
 						<SelectInput
 							label="Minimum level"
-							value={String(draft.level)}
-							onChange={(v) => setDraft((p) => ({ ...p, level: Number(v) }))}
 							options={[
 								{ value: "0", label: "Editor (0)" },
 								{ value: "1", label: "Admin (1)" },
 								{ value: "2", label: "Developer (2)" },
 							]}
+							value={String(draft.level)}
+							onChange={(v) => setDraft((p) => ({ ...p, level: Number(v) }))}
 						/>
 					</FieldGrid>
 
 					<CheckboxInput
-						label="Show in module navigation"
 						checked={draft.in_nav}
+						label="Show in module navigation"
 						onChange={(v) => setDraft((p) => ({ ...p, in_nav: v }))}
 					/>
 
 					{draft.target === TARGET_MODULE && (
 						<div className="space-y-3 border-t border-border pt-3">
 							<TextInput
+								mono
+								hint="Method on the module class host.invoke() submits to. Opt it in via getActionHandlers(). Optional — leave blank for a UI-only action."
 								label="Handler"
 								value={draft.handler}
 								onChange={(v) => setDraft((p) => ({ ...p, handler: v }))}
-								hint="Method on the module class host.invoke() submits to. Opt it in via getActionHandlers(). Optional — leave blank for a UI-only action."
-								mono
 							/>
 							<ActionModuleEditor
-								value={draft.source}
-								onChange={(v) => setDraft((p) => ({ ...p, source: v }))}
 								name={draft.name}
 								route={draft.route}
+								value={draft.source}
+								onChange={(v) => setDraft((p) => ({ ...p, source: v }))}
 							/>
 						</div>
 					)}
@@ -311,10 +311,10 @@ export const ModuleActionsTab = ({ moduleId }: ModuleActionsTabProps) => {
 			)}
 
 			<SubDeleteDialog
-				dialog={deleteDialog}
-				noun="action"
-				labelFor={(a) => a.name}
 				description="This removes the action from the module's navigation. The form/view it points to is left intact."
+				dialog={deleteDialog}
+				labelFor={(a) => a.name}
+				noun="action"
 				onConfirm={(id) => crud.remove(id)}
 			/>
 		</div>

@@ -5,16 +5,16 @@ import { SectionLabel } from "@/components/ui/SectionLabel";
 
 /** The Open Graph value carried by pages and module entries. */
 export interface OpenGraphValue {
-	title?: string;
 	description?: string;
-	type?: string;
 	image?: string;
+	title?: string;
+	type?: string;
 }
 
 interface OpenGraphSectionProps {
-	value: OpenGraphValue;
-	onChange: (next: OpenGraphValue) => void;
 	disabled?: boolean;
+	onChange: (next: OpenGraphValue) => void;
+	value: OpenGraphValue;
 }
 
 /**
@@ -35,16 +35,16 @@ export const OpenGraphSection = ({ value, onChange, disabled }: OpenGraphSection
 
 			<div className="flex flex-col gap-[14px]">
 				<Field
+					inlineHint="(defaults to the entry's title if left empty)"
 					label="Title"
 					size="sm"
-					inlineHint="(defaults to the entry's title if left empty)"
 				>
 					<TextInput
 						dense
 						aria-label="Open Graph title"
+						disabled={disabled}
 						value={value.title ?? ""}
 						onChange={(e) => patch({ title: e.target.value })}
-						disabled={disabled}
 					/>
 				</Field>
 
@@ -52,20 +52,17 @@ export const OpenGraphSection = ({ value, onChange, disabled }: OpenGraphSection
 					<TextInput
 						dense
 						aria-label="Open Graph description"
+						disabled={disabled}
 						value={value.description ?? ""}
 						onChange={(e) => patch({ description: e.target.value })}
-						disabled={disabled}
 					/>
 				</Field>
 
 				<div className="grid grid-cols-1 gap-[14px] md:grid-cols-2 md:gap-x-[22px]">
 					<SelectField
-						label="Type"
-						size="sm"
 						dense
-						value={value.type ?? ""}
-						onChange={(v) => patch({ type: v })}
 						disabled={disabled}
+						label="Type"
 						options={[
 							{ value: "", label: "—" },
 							{ value: "website", label: "website" },
@@ -73,15 +70,18 @@ export const OpenGraphSection = ({ value, onChange, disabled }: OpenGraphSection
 							{ value: "profile", label: "profile" },
 							{ value: "video.movie", label: "video.movie" },
 						]}
+						size="sm"
+						value={value.type ?? ""}
+						onChange={(v) => patch({ type: v })}
 					/>
-					<Field label="Image" size="sm" inlineHint="(min 1200×630)">
+					<Field inlineHint="(min 1200×630)" label="Image" size="sm">
 						<TextInput
 							dense
 							aria-label="Open Graph image URL"
+							disabled={disabled}
+							placeholder="https://"
 							value={value.image ?? ""}
 							onChange={(e) => patch({ image: e.target.value })}
-							placeholder="https://"
-							disabled={disabled}
 						/>
 					</Field>
 				</div>

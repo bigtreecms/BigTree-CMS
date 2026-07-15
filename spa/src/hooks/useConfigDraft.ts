@@ -5,15 +5,15 @@ import { useToastMutation } from "@/hooks/useToastMutation";
 import { describeApiError } from "@/lib/errorHandling";
 
 export interface UseConfigDraftOptions<TData, TDraft> {
+	errorMessage: string;
+	queryFn: () => Promise<TData>;
 	/** Cache key for the config query (also the `setQueryData` write-back target). */
 	queryKey: QueryKey;
-	queryFn: () => Promise<TData>;
-	/** Map the loaded config into the editable draft (deep-clone what you edit). */
-	seed: (data: TData) => TDraft;
 	/** Persist the draft; the resolved config is written straight back to the cache. */
 	save: (draft: TDraft) => Promise<TData>;
+	/** Map the loaded config into the editable draft (deep-clone what you edit). */
+	seed: (data: TData) => TDraft;
 	successMessage: string;
-	errorMessage: string;
 }
 
 /**

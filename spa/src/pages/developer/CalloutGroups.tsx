@@ -33,22 +33,22 @@ const columns: DataTableColumn<CalloutGroup>[] = [
 
 export const CalloutGroups = () => (
 	<DeveloperListPage<CalloutGroup>
-		title="Callout groups"
-		countNoun="group"
-		route="/developer/callout-groups"
 		addLabel="Add group"
-		loadingLabel="Loading groups…"
-		emptyLabel="No callout groups yet."
-		queryKey={queryKeys.calloutGroups.list()}
-		invalidateKey={queryKeys.calloutGroups.root()}
-		list={() => calloutsApi.listGroups()}
-		remove={(id) => calloutsApi.deleteGroup(id)}
 		columns={columns}
-		getRowKey={(row) => row.id}
+		confirmDescription="Callouts in this group will continue to exist; only the grouping is removed."
+		confirmLabel="Delete group"
+		countNoun="group"
 		deleteButtonLabel="Delete group"
 		deleteSuccessMessage="Group deleted"
+		emptyLabel="No callout groups yet."
+		getRowKey={(row) => row.id}
+		invalidateKey={queryKeys.calloutGroups.root()}
+		list={() => calloutsApi.listGroups()}
+		loadingLabel="Loading groups…"
+		queryKey={queryKeys.calloutGroups.list()}
+		remove={(id) => calloutsApi.deleteGroup(id)}
+		route="/developer/callout-groups"
 		rowLabel={(row) => row.name}
-		confirmLabel="Delete group"
-		confirmDescription="Callouts in this group will continue to exist; only the grouping is removed."
+		title="Callout groups"
 	/>
 );

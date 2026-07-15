@@ -20,7 +20,7 @@ const COLUMNS_4 = "minmax(0,1fr) repeat(4, 80px)";
 const Placeholder = ({ n }: { n: number }) => (
 	<>
 		{Array.from({ length: n }).map((_, i) => (
-			<div key={i} className="h-4 rounded bg-surface-2" />
+			<div className="h-4 rounded bg-surface-2" key={i} />
 		))}
 	</>
 );
@@ -75,7 +75,7 @@ export const MultipleRows: Story = {
 			</PermissionTreeHeader>
 			<div className="border-x border-b border-border">
 				{["News Articles", "Blog Posts", "Team Members"].map((name) => (
-					<PermissionRow key={name} columns={COLUMNS_3}>
+					<PermissionRow columns={COLUMNS_3} key={name}>
 						<span className="truncate text-text">{name}</span>
 						<Placeholder n={3} />
 					</PermissionRow>
@@ -100,13 +100,13 @@ export const Nested: Story = {
 					<span className="truncate text-text">News Articles</span>
 					<Placeholder n={3} />
 				</PermissionRow>
-				<PermissionRow columns={COLUMNS_3} nested>
+				<PermissionRow nested columns={COLUMNS_3}>
 					<span className="truncate text-text-2">
 						<span className="text-text-3">Region:</span> North America
 					</span>
 					<Placeholder n={3} />
 				</PermissionRow>
-				<PermissionRow columns={COLUMNS_3} nested>
+				<PermissionRow nested columns={COLUMNS_3}>
 					<span className="truncate text-text-2">
 						<span className="text-text-3">Region:</span> Europe
 					</span>

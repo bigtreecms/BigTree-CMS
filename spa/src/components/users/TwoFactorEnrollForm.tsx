@@ -4,16 +4,16 @@ import { Field } from "@/components/ui/Field";
 import { TextInput } from "@/components/ui/TextInput";
 
 interface TwoFactorEnrollFormProps {
-	/** The ceremony payload (secret + QR + otpauth URI) from the server. */
-	setup: TwoFactorSetup;
-	code: string;
-	onCodeChange: (code: string) => void;
-	onCancel: () => void;
-	onConfirm: () => void;
 	/** Disables inputs while the verify request is in flight. */
 	busy: boolean;
-	confirmLabel?: string;
 	cancelLabel?: string;
+	code: string;
+	confirmLabel?: string;
+	onCancel: () => void;
+	onCodeChange: (code: string) => void;
+	onConfirm: () => void;
+	/** The ceremony payload (secret + QR + otpauth URI) from the server. */
+	setup: TwoFactorSetup;
 }
 
 /**
@@ -41,9 +41,9 @@ export const TwoFactorEnrollForm = ({
 
 		<div className="flex flex-col gap-4 sm:flex-row sm:items-start">
 			<img
-				src={setup.qr_image}
 				alt="Two-factor QR code"
 				className="size-40 shrink-0 rounded-md border border-border bg-white p-2"
+				src={setup.qr_image}
 			/>
 
 			<div className="min-w-0 flex-1 space-y-3">
@@ -58,26 +58,26 @@ export const TwoFactorEnrollForm = ({
 
 				<Field label="Verification code">
 					<TextInput
-						inputMode="numeric"
+						autoFocus
 						autoComplete="one-time-code"
+						className="tracking-[0.2em]"
+						inputMode="numeric"
+						placeholder="123456"
 						value={code}
 						onChange={(e) => onCodeChange(e.target.value)}
-						placeholder="123456"
-						autoFocus
-						className="tracking-[0.2em]"
 					/>
 				</Field>
 
 				<div className="flex justify-end gap-2">
-					<Button variant="secondary" onClick={onCancel} disabled={busy}>
+					<Button disabled={busy} variant="secondary" onClick={onCancel}>
 						{cancelLabel}
 					</Button>
 					<Button
-						variant="primary"
-						onClick={onConfirm}
 						disabled={code.trim().length === 0}
 						loading={busy}
 						loadingLabel="Verifying…"
+						variant="primary"
+						onClick={onConfirm}
 					>
 						{confirmLabel}
 					</Button>

@@ -1,10 +1,10 @@
 import type { ReactNode } from "react";
 
 interface PageContainerProps {
+	children: ReactNode;
+	className?: string;
 	/** Content width tier. Default `wide`. */
 	width?: "wide" | "medium" | "narrow" | "xwide";
-	className?: string;
-	children: ReactNode;
 }
 
 const widthClass: Record<NonNullable<PageContainerProps["width"]>, string> = {

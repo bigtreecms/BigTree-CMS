@@ -64,15 +64,15 @@ export const Pages = () => {
 	const archived = useMemo(() => rows.filter((r) => r.archived), [rows]);
 
 	interface PendingConfirm {
-		type: "archive" | "restore" | "delete";
 		id: number;
-		title: string;
 		/**
 		 * Set when deleting a draft (pending NEW page). These live only in
 		 * bigtree_pending_changes, so they're removed by rejecting the change
 		 * rather than deleting a real page row.
 		 */
 		pendingChangeId?: number;
+		title: string;
+		type: "archive" | "restore" | "delete";
 	}
 
 	const confirmDialog = useConfirmDialog<PendingConfirm>();
@@ -232,17 +232,9 @@ export const Pages = () => {
 		<PageContainer width="wide">
 			<Breadcrumb items={breadcrumbItems} />
 			<PageHead
-				title={folderTitle}
-				sub={
-					<>
-						<span className="font-mono">/</span> · {visible.length} visible ·{" "}
-						{hidden.length} hidden
-						{newestUpdate ? <> · Updated {relativeTime(newestUpdate)}</> : null}
-					</>
-				}
 				actions={
 					<>
-						<Button icon={<Eye size={13} />} href={previewUrl} target="_blank">
+						<Button href={previewUrl} icon={<Eye size={13} />} target="_blank">
 							Preview
 						</Button>
 						{!isRoot && (
@@ -256,14 +248,22 @@ export const Pages = () => {
 							</Button>
 						)}
 						<Button
-							variant="primary"
 							icon={<Plus size={13} />}
 							to={pageAddPath(parent)}
+							variant="primary"
 						>
 							Add subpage
 						</Button>
 					</>
 				}
+				sub={
+					<>
+						<span className="font-mono">/</span> · {visible.length} visible ·{" "}
+						{hidden.length} hidden
+						{newestUpdate ? <> · Updated {relativeTime(newestUpdate)}</> : null}
+					</>
+				}
+				title={folderTitle}
 			/>
 
 			{error ? (
@@ -281,24 +281,10 @@ export const Pages = () => {
 
 							{visible.length > 0 && (
 								<PageTable
-									title="Visible"
-									icon={<FileText size={13} className="text-accent" />}
-									rows={visible}
-									onReorder={(ids) => handleReorder("visible", ids)}
-									onRename={(id, next) =>
-										renameMutation.mutate({ id, nav_title: next })
-									}
-									onToggleArchive={(id) => {
-										const r = visible.find((x) => x.id === id);
-										if (r) {
-											confirmDialog.open({
-												type: r.archived ? "restore" : "archive",
-												id,
-												title: r.nav_title,
-											});
-										}
-									}}
 									emptyLabel="No visible pages."
+									icon={<FileText className="text-accent" size={13} />}
+									rows={visible}
+									title="Visible"
 									onDelete={(id) => {
 										const r = visible.find((x) => x.id === id);
 
@@ -316,6 +302,20 @@ export const Pages = () => {
 
 										if (r) {
 											setMovingPage(r);
+										}
+									}}
+									onRename={(id, next) =>
+										renameMutation.mutate({ id, nav_title: next })
+									}
+									onReorder={(ids) => handleReorder("visible", ids)}
+									onToggleArchive={(id) => {
+										const r = visible.find((x) => x.id === id);
+										if (r) {
+											confirmDialog.open({
+												type: r.archived ? "restore" : "archive",
+												id,
+												title: r.nav_title,
+											});
 										}
 									}}
 								/>
@@ -323,25 +323,11 @@ export const Pages = () => {
 
 							{hidden.length > 0 && (
 								<PageTable
-									title="Hidden"
-									icon={<EyeOff size={13} className="text-text-3" />}
-									rows={hidden}
-									onReorder={() => {}}
-									onRename={(id, next) =>
-										renameMutation.mutate({ id, nav_title: next })
-									}
-									onToggleArchive={(id) => {
-										const r = hidden.find((x) => x.id === id);
-										if (r) {
-											confirmDialog.open({
-												type: r.archived ? "restore" : "archive",
-												id,
-												title: r.nav_title,
-											});
-										}
-									}}
-									emptyLabel="No hidden pages."
 									allowReorder={false}
+									emptyLabel="No hidden pages."
+									icon={<EyeOff className="text-text-3" size={13} />}
+									rows={hidden}
+									title="Hidden"
 									onDelete={(id) => {
 										const r = hidden.find((x) => x.id === id);
 
@@ -361,18 +347,46 @@ export const Pages = () => {
 											setMovingPage(r);
 										}
 									}}
+									onRename={(id, next) =>
+										renameMutation.mutate({ id, nav_title: next })
+									}
+									onReorder={() => {}}
+									onToggleArchive={(id) => {
+										const r = hidden.find((x) => x.id === id);
+										if (r) {
+											confirmDialog.open({
+												type: r.archived ? "restore" : "archive",
+												id,
+												title: r.nav_title,
+											});
+										}
+									}}
 								/>
 							)}
 
 							{archived.length > 0 && (
 								<PageTable
-									title="Archived"
-									icon={<Archive size={13} className="text-text-3" />}
+									allowReorder={false}
+									enableFilters={false}
+									icon={<Archive className="text-text-3" size={13} />}
+									leftActionLabel="Restore"
+									rightActionLabel="Delete"
 									rows={archived}
-									onReorder={() => {}}
+									title="Archived"
+									onDelete={(id) => {
+										const r = archived.find((x) => x.id === id);
+										if (r) {
+											confirmDialog.open({
+												type: "delete",
+												id,
+												title: r.nav_title,
+											});
+										}
+									}}
 									onRename={(id, next) =>
 										renameMutation.mutate({ id, nav_title: next })
 									}
+									onReorder={() => {}}
 									onToggleArchive={(id) => {
 										const r = archived.find((x) => x.id === id);
 										if (r) {
@@ -383,20 +397,6 @@ export const Pages = () => {
 											});
 										}
 									}}
-									leftActionLabel="Restore"
-									rightActionLabel="Delete"
-									onDelete={(id) => {
-										const r = archived.find((x) => x.id === id);
-										if (r) {
-											confirmDialog.open({
-												type: "delete",
-												id,
-												title: r.nav_title,
-											});
-										}
-									}}
-									allowReorder={false}
-									enableFilters={false}
 								/>
 							)}
 						</>
@@ -413,20 +413,6 @@ export const Pages = () => {
 
 			<ConfirmDialog
 				{...confirmDialog.dialogProps}
-				title={
-					confirmDialog.item
-						? confirmDialog.item.type === "delete"
-							? "Delete page"
-							: confirmDialog.item.type === "restore"
-								? "Restore page"
-								: "Archive page"
-						: ""
-				}
-				description={
-					confirmDialog.item
-						? `Are you sure you want to ${confirmDialog.item.type} "${confirmDialog.item.title}"?`
-						: ""
-				}
 				confirmLabel={
 					confirmDialog.item
 						? confirmDialog.item.type === "delete"
@@ -434,6 +420,20 @@ export const Pages = () => {
 							: confirmDialog.item.type === "restore"
 								? "Restore"
 								: "Archive"
+						: ""
+				}
+				description={
+					confirmDialog.item
+						? `Are you sure you want to ${confirmDialog.item.type} "${confirmDialog.item.title}"?`
+						: ""
+				}
+				title={
+					confirmDialog.item
+						? confirmDialog.item.type === "delete"
+							? "Delete page"
+							: confirmDialog.item.type === "restore"
+								? "Restore page"
+								: "Archive page"
 						: ""
 				}
 				variant={confirmDialog.item?.type === "delete" ? "danger" : "default"}
@@ -459,14 +459,14 @@ export const Pages = () => {
 			/>
 
 			<MovePageDialog
+				invalidateKey={queryKeys.pages.list(parent)}
 				open={movingPage !== null}
+				page={movingPage}
 				onOpenChange={(open) => {
 					if (!open) {
 						setMovingPage(null);
 					}
 				}}
-				page={movingPage}
-				invalidateKey={queryKeys.pages.list(parent)}
 			/>
 		</PageContainer>
 	);

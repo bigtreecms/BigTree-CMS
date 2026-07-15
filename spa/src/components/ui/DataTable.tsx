@@ -7,48 +7,48 @@ import { DragHandle } from "@/components/ui/DragHandle";
 import { Loading } from "@/components/ui/Loading";
 
 export interface DataTableColumn<Row> {
-	/** Used as the React key and as the sort identifier when `sortable` is on. */
-	key: string;
-	header: ReactNode;
-	/** Grid track expression (e.g. "minmax(0,1.3fr)" or "140px"). */
-	width: string;
-	cell: (row: Row) => ReactNode;
-	sortable?: boolean;
-	/** Hide on small screens (collapses to single column). Defaults to false. */
-	hideOnMobile?: boolean;
-	/** Alignment applied to the header cell. */
-	headerAlign?: "left" | "right" | "center";
 	/** Alignment applied to the cell on desktop layouts. */
 	align?: "left" | "right" | "center";
+	cell: (row: Row) => ReactNode;
+	header: ReactNode;
+	/** Alignment applied to the header cell. */
+	headerAlign?: "left" | "right" | "center";
+	/** Hide on small screens (collapses to single column). Defaults to false. */
+	hideOnMobile?: boolean;
+	/** Used as the React key and as the sort identifier when `sortable` is on. */
+	key: string;
+	sortable?: boolean;
+	/** Grid track expression (e.g. "minmax(0,1.3fr)" or "140px"). */
+	width: string;
 }
 
 export interface DataTableSort {
-	key: string;
 	dir: "asc" | "desc";
+	key: string;
 }
 
 interface DataTableProps<Row> {
 	columns: DataTableColumn<Row>[];
-	rows: Row[];
+	emptyLabel?: ReactNode;
 	getRowKey: (row: Row) => string | number;
 	isLoading?: boolean;
 	loadingLabel?: string;
-	emptyLabel?: ReactNode;
-	sort?: DataTableSort;
-	onSortChange?: (sort: DataTableSort) => void;
-	onRowClick?: (row: Row) => void;
-	/**
-	 * Optional extra classes applied per row (e.g. a status-based background
-	 * tint). Returned classes are appended after the base row classes, so they
-	 * win on conflicting properties.
-	 */
-	rowClassName?: (row: Row) => string | undefined;
 	/**
 	 * When provided, rows gain a drag handle and can be reordered; the callback
 	 * receives the row keys in their new order. Purely additive — without it the
 	 * table behaves exactly as before. Reordering is a desktop-only affordance.
 	 */
 	onReorder?: (orderedKeys: Array<string | number>) => void;
+	onRowClick?: (row: Row) => void;
+	onSortChange?: (sort: DataTableSort) => void;
+	/**
+	 * Optional extra classes applied per row (e.g. a status-based background
+	 * tint). Returned classes are appended after the base row classes, so they
+	 * win on conflicting properties.
+	 */
+	rowClassName?: (row: Row) => string | undefined;
+	rows: Row[];
+	sort?: DataTableSort;
 }
 
 /**
@@ -119,9 +119,9 @@ export const DataTable = <Row,>({
 
 						return (
 							<button
+								className={`flex items-center gap-1 hover:text-text ${headerAlignClass}`}
 								key={col.key}
 								type="button"
-								className={`flex items-center gap-1 hover:text-text ${headerAlignClass}`}
 								onClick={() => toggleSort(col.key)}
 							>
 								{col.header}
@@ -131,7 +131,7 @@ export const DataTable = <Row,>({
 					}
 
 					return (
-						<div key={col.key} className={headerAlignClass}>
+						<div className={headerAlignClass} key={col.key}>
 							{col.header}
 						</div>
 					);
@@ -139,7 +139,7 @@ export const DataTable = <Row,>({
 			</div>
 
 			{isLoading ? (
-				<Loading variant="block" label={loadingLabel} />
+				<Loading label={loadingLabel} variant="block" />
 			) : rows.length === 0 ? (
 				<div className="p-9 text-center text-[13px] text-text-3">{emptyLabel}</div>
 			) : (
@@ -149,12 +149,12 @@ export const DataTable = <Row,>({
 
 					return (
 						<div
-							key={key}
 							className={`grid grid-cols-1 gap-x-4 gap-y-2 border-b border-border px-3.5 py-2.5 text-[13px] last:border-b-0 hover:bg-surface-2 md:grid-cols-(--dt-cols) md:items-center md:gap-y-0 md:py-1.5 ${
 								onRowClick ? "cursor-pointer" : ""
 							} ${isDropTarget ? "shadow-[inset_0_2px_0_0_var(--color-accent)]" : ""} ${
 								rowClassName?.(row) ?? ""
 							}`}
+							key={key}
 							style={colsStyle}
 							onClick={() => onRowClick?.(row)}
 							onDragOver={reorderable ? (e) => drag.onDragOver(e, key) : undefined}
@@ -168,8 +168,8 @@ export const DataTable = <Row,>({
 									<DragHandle
 										draggable
 										onClick={(e) => e.stopPropagation()}
-										onDragStart={(e) => drag.onDragStart(e, key)}
 										onDragEnd={drag.onDragEnd}
+										onDragStart={(e) => drag.onDragStart(e, key)}
 									/>
 								</span>
 							)}
@@ -203,8 +203,8 @@ export const DataTable = <Row,>({
 
 								return (
 									<div
-										key={col.key}
 										className={`${col.hideOnMobile ? "hidden md:block" : ""} ${alignClass}`}
+										key={col.key}
 									>
 										{mobileLabel && (
 											<span
@@ -232,7 +232,7 @@ interface SortCaretProps {
 
 const SortCaret = ({ active, dir }: SortCaretProps) => {
 	if (!active) {
-		return <ChevronDown size={10} className="opacity-40" />;
+		return <ChevronDown className="opacity-40" size={10} />;
 	}
 
 	if (dir === "asc") {

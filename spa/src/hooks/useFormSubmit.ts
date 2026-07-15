@@ -10,15 +10,15 @@ export interface UseFormSubmitOptions {
 
 export interface UseFormSubmitReturn {
 	error: string | null;
-	setError: (e: string | null) => void;
 	fieldErrors: Record<string, string>;
-	setFieldErrors: (fe: Record<string, string>) => void;
 	handleSubmit: (
 		e: React.FormEvent,
 		validate: () => Record<string, string>,
 		submit: () => void
 	) => void;
 	onMutationError: (err: unknown, fallback?: string) => void;
+	setError: (e: string | null) => void;
+	setFieldErrors: (fe: Record<string, string>) => void;
 }
 
 /**

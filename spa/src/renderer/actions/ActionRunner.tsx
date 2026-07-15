@@ -9,17 +9,17 @@ import type { ActionHost, ActionModule } from "./actionModuleContract";
 import { loadActionModule, loadActionModuleFromSource } from "./actionModuleLoader";
 
 interface ActionRunnerProps {
-	host: ActionHost;
 	/** URL of the module bundle (extension-delivered, schema.asset_url). */
 	assetUrl?: string;
-	/** Inline source (locally authored, schema.module_source) — run in-context. */
-	source?: string;
+	host: ActionHost;
 	/**
 	 * Called with the load error message, or null on success. Lets the live
 	 * preview surface compile errors; when provided, the failure is shown by the
 	 * caller and this component renders nothing instead of its own error panel.
 	 */
 	onError?: (message: string | null) => void;
+	/** Inline source (locally authored, schema.module_source) — run in-context. */
+	source?: string;
 }
 
 /**
@@ -81,7 +81,7 @@ export const ActionRunner = ({ host, assetUrl, source, onError }: ActionRunnerPr
 		}
 
 		return (
-			<Alert tone="danger" title="This action couldn't load">
+			<Alert title="This action couldn't load" tone="danger">
 				<div className="text-text-2">
 					Its custom code failed to load. It may need to be rebuilt.
 				</div>

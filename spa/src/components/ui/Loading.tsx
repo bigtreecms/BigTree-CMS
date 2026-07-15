@@ -10,6 +10,10 @@ const VARIANT_CLASS: Record<LoadingVariant, string> = {
 };
 
 interface LoadingProps {
+	/** Layout-only classes appended to the wrapper. */
+	className?: string;
+	/** Hide the spinner and show text only. */
+	hideSpinner?: boolean;
 	/** Text shown beside the spinner. Default "Loading…". Pass `null` for spinner only. */
 	label?: ReactNode;
 	/**
@@ -18,10 +22,6 @@ interface LoadingProps {
 	 * - `card` — `block` wrapped in the bordered `surface` card (page-level placeholder).
 	 */
 	variant?: LoadingVariant;
-	/** Hide the spinner and show text only. */
-	hideSpinner?: boolean;
-	/** Layout-only classes appended to the wrapper. */
-	className?: string;
 }
 
 /**
@@ -39,11 +39,11 @@ export const Loading = ({
 	const extra = className ? ` ${className}` : "";
 
 	return (
-		<output className={`${VARIANT_CLASS[variant]}${extra}`} aria-live="polite">
+		<output aria-live="polite" className={`${VARIANT_CLASS[variant]}${extra}`}>
 			{!hideSpinner && (
 				<Loader2
-					size={variant === "inline" ? 13 : 15}
 					className="shrink-0 animate-spin text-text-4"
+					size={variant === "inline" ? 13 : 15}
 				/>
 			)}
 			{label != null && <span>{label}</span>}

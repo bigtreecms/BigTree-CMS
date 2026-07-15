@@ -15,36 +15,36 @@ import { api, crudEndpoints } from "@/api/client";
 
 export interface ModuleGbpConfig {
 	enabled?: boolean;
+	item_parser?: string;
+	name?: string;
 	other_table?: string;
 	title_field?: string;
-	name?: string;
-	item_parser?: string;
 }
 
 export interface ModuleSummary {
-	id: string;
-	name: string;
-	group: string | null;
-	group_name: string;
-	class: string;
-	table: string;
-	gbp: ModuleGbpConfig;
-	icon: string;
-	route: string;
-	position: number;
 	/**
 	 * Caller's permission level for this module, returned by GET /modules/{id}.
 	 * "p" unlocks "Save & Publish" on the module's forms. Optional because list
 	 * responses don't include it.
 	 */
 	access?: "n" | "v" | "e" | "p";
+	class: string;
+	gbp: ModuleGbpConfig;
+	group: string | null;
+	group_name: string;
+	icon: string;
+	id: string;
+	name: string;
+	position: number;
+	route: string;
+	table: string;
 }
 
 export interface ModuleGroup {
 	id: string;
 	name: string;
-	route?: string;
 	position?: number;
+	route?: string;
 }
 
 /**
@@ -63,26 +63,26 @@ export interface GbpCategory {
  * `in_nav` as a boolean to the SPA but keep the rest of the shape pass-through.
  */
 export interface ModuleAction {
-	id: string;
-	name: string;
-	/** The landing action stores null/"" here; all others have a slug. */
-	route: string | null;
 	class: string;
+	contract_version?: number;
+	form: string | null;
+	handler?: string;
+	id: string;
 	in_nav: boolean | string;
 	level: number;
+	name: string;
 	position: number;
-	form: string | null;
-	view: string | null;
-	report: string | null;
 	/**
 	 * Present on a custom (module) action — it draws its own UI from a JS module
 	 * and submits to a declared server handler. Absent on auto (form/view/report)
 	 * and legacy custom-PHP actions. See ModuleActionSchema for the full contract.
 	 */
 	render?: "module" | string;
+	report: string | null;
+	/** The landing action stores null/"" here; all others have a slug. */
+	route: string | null;
 	trust?: "local" | "core" | "verified" | "marketplace" | string;
-	handler?: string;
-	contract_version?: number;
+	view: string | null;
 }
 
 /**
@@ -93,16 +93,16 @@ export interface ModuleAction {
  * `asset_url` + `integrity` (extension-delivered, sandboxed when untrusted).
  */
 export interface ModuleActionSchema {
-	id: string;
-	name: string;
-	route: string;
-	render: "module" | "auto" | "server" | string;
-	handler: string;
-	contract_version: number;
-	trust?: "local" | "core" | "verified" | "marketplace" | string;
-	module_source?: string;
 	asset_url?: string;
+	contract_version: number;
+	handler: string;
+	id: string;
 	integrity?: string;
+	module_source?: string;
+	name: string;
+	render: "module" | "auto" | "server" | string;
+	route: string;
+	trust?: "local" | "core" | "verified" | "marketplace" | string;
 }
 
 /**
@@ -123,18 +123,14 @@ export type ModuleViewType =
 	| "images-grouped";
 
 export interface ModuleViewFieldConfig {
-	title: string;
+	numeric?: string | boolean;
 	parser?: string;
+	title: string;
 	/** Stored as a string in legacy JSONDB (px); empty string = auto. */
 	width?: string | number;
-	numeric?: string | boolean;
 }
 
 export interface ModuleViewSettings {
-	sort_column?: string;
-	sort_direction?: "ASC" | "DESC" | string;
-	per_page?: string | number;
-	filter?: string;
 	/**
 	 * Per-view-type settings are a loose blob — grouped views carry
 	 * `group_field` / `other_table` / `group_parser`, nested views
@@ -142,20 +138,24 @@ export interface ModuleViewSettings {
 	 * the keys it needs; the designer edits them via ViewTypeSettingsControl.
 	 */
 	[key: string]: unknown;
+	filter?: string;
+	per_page?: string | number;
+	sort_column?: string;
+	sort_direction?: "ASC" | "DESC" | string;
 }
 
 export interface ModuleView {
-	id: string;
-	title: string;
-	description?: string;
-	table: string;
-	type: ModuleViewType;
-	settings?: ModuleViewSettings;
-	fields?: Record<string, ModuleViewFieldConfig>;
 	actions?: Record<string, string>;
-	related_form?: string | null;
-	preview_url?: string;
+	description?: string;
 	exclude_from_search?: string | boolean;
+	fields?: Record<string, ModuleViewFieldConfig>;
+	id: string;
+	preview_url?: string;
+	related_form?: string | null;
+	settings?: ModuleViewSettings;
+	table: string;
+	title: string;
+	type: ModuleViewType;
 }
 
 /**
@@ -169,23 +169,23 @@ export interface ModuleView {
  */
 export interface ModuleFormField {
 	column: string;
-	title: string;
-	subtitle?: string;
-	type: string;
 	settings?: Record<string, unknown> | unknown[];
+	subtitle?: string;
+	title: string;
+	type: string;
 }
 
 export interface ModuleForm {
-	id: string;
-	title: string;
-	table: string;
-	fields: ModuleFormField[];
 	default_position?: string;
-	return_view?: string | null;
-	return_url?: string;
-	open_graph?: boolean | string;
-	tagging?: boolean | string;
+	fields: ModuleFormField[];
 	hooks?: unknown[] | Record<string, unknown>;
+	id: string;
+	open_graph?: boolean | string;
+	return_url?: string;
+	return_view?: string | null;
+	table: string;
+	tagging?: boolean | string;
+	title: string;
 }
 
 /**
@@ -199,25 +199,25 @@ export interface ModuleForm {
 export type ModuleReportFilterType = "search" | "dropdown" | "boolean" | "date-range";
 
 export interface ModuleReportFilter {
-	title: string;
-	type: ModuleReportFilterType;
 	options?: Record<string, string> | string[];
 	parser?: string;
-	pop_table?: string;
 	pop_description?: string;
+	pop_table?: string;
+	title: string;
+	type: ModuleReportFilterType;
 }
 
 export interface ModuleReport {
-	id: string;
-	title: string;
-	table: string;
-	type: "view" | "csv";
-	filters: Record<string, ModuleReportFilter> | ModuleReportFilter[];
 	fields: Record<string, string> | string[] | string;
-	parser?: string;
-	view?: string | null;
-	streaming?: boolean | string;
+	filters: Record<string, ModuleReportFilter> | ModuleReportFilter[];
+	id: string;
 	module?: string;
+	parser?: string;
+	streaming?: boolean | string;
+	table: string;
+	title: string;
+	type: "view" | "csv";
+	view?: string | null;
 }
 
 export interface ModuleReportRunSort {
@@ -231,36 +231,36 @@ export interface ModuleReportRunRequest {
 }
 
 export interface ModuleReportRunResponse {
-	report: ModuleReport;
-	view: ModuleView | null;
 	form: ModuleForm | null;
 	items: Array<Record<string, unknown>>;
 	meta: { count: number };
+	report: ModuleReport;
+	view: ModuleView | null;
 }
 
 export interface ModuleReportFilterOption {
-	value: string | number | null;
 	label: string;
+	value: string | number | null;
 }
 
 export interface ModuleReportPrepareResponse {
+	filter_options: Record<string, ModuleReportFilterOption[]>;
+	form: ModuleForm | null;
 	report: ModuleReport;
 	view: ModuleView | null;
-	form: ModuleForm | null;
-	filter_options: Record<string, ModuleReportFilterOption[]>;
 }
 
 export interface ModuleEmbedForm {
-	id: string;
-	title: string;
-	table: string;
+	css?: string;
+	default_pending?: boolean | string;
+	default_position?: string;
 	fields: ModuleFormField[];
 	hooks?: unknown[] | Record<string, unknown>;
-	default_position?: string;
-	default_pending?: boolean | string;
-	css?: string;
+	id: string;
 	redirect_url?: string;
+	table: string;
 	thank_you_message?: string;
+	title: string;
 }
 
 export interface RelationOption {
@@ -269,8 +269,8 @@ export interface RelationOption {
 }
 
 export interface ListOption {
-	value: string;
 	label: string;
+	value: string;
 }
 
 export interface RelationOptionsResponse {
@@ -287,8 +287,6 @@ export interface RelationOptionsResponse {
 
 export interface RelationOptionsParams {
 	column: string;
-	q?: string;
-	ids?: Array<number | string>;
 	/**
 	 * Many-to-many only. When set, the server queries the connecting table
 	 * for the entry's current selections (in stored order) and returns those
@@ -296,6 +294,8 @@ export interface RelationOptionsParams {
 	 * since its values live in the entry's own column.
 	 */
 	entry?: number;
+	ids?: Array<number | string>;
+	q?: string;
 }
 
 /**
@@ -303,22 +303,22 @@ export interface RelationOptionsParams {
  * the legacy "on"/"" toggles, so these stay loose where the storage is loose.
  */
 export interface ModuleCreateBody {
-	name: string;
-	group?: string | null;
 	class?: string;
-	table?: string;
 	gbp?: ModuleGbpConfig;
+	group?: string | null;
 	icon?: string;
+	name: string;
 	route?: string;
+	table?: string;
 }
 
 export type ModuleUpdateBody = Partial<ModuleCreateBody>;
 
 /** One field row in the "build the table for me" scaffold wizard. */
 export interface ModuleScaffoldField {
+	subtitle?: string;
 	title: string;
 	type: string;
-	subtitle?: string;
 }
 
 /**
@@ -326,87 +326,87 @@ export interface ModuleScaffoldField {
  * table + columns, the module, an add/edit form, and a landing view from this.
  */
 export interface ModuleScaffoldBody {
-	name: string;
-	/** NEW table name (letters/numbers/underscore); must not already exist. */
-	table: string;
+	/** Builtin actions → extra status columns (approved/featured/archived). */
+	actions?: { approve?: boolean; feature?: boolean; archive?: boolean };
+	class?: string;
 	fields: ModuleScaffoldField[];
 	group?: string | null;
-	route?: string;
 	icon?: string;
-	class?: string;
 	/** Singular item title for the form ("Add Article"); derived from name if blank. */
 	item_title?: string;
+	name: string;
+	route?: string;
+	/** NEW table name (letters/numbers/underscore); must not already exist. */
+	table: string;
 	/** Plural view title ("Viewing Articles"); derived from name if blank. */
 	view_title?: string;
 	view_type?: "searchable" | "draggable";
-	/** Builtin actions → extra status columns (approved/featured/archived). */
-	actions?: { approve?: boolean; feature?: boolean; archive?: boolean };
 }
 
 export interface ModuleActionBody {
-	name: string;
-	route?: string;
-	in_nav?: boolean;
-	icon?: string;
 	class?: string;
+	contract_version?: number;
 	form?: string | null;
-	view?: string | null;
-	report?: string | null;
+	handler?: string;
+	icon?: string;
+	in_nav?: boolean;
 	level?: number;
+	module_source?: string;
+	name: string;
 	position?: number;
 	/** Custom (module) action authoring — see ModuleAction / ModuleActionSchema. */
 	render?: "module" | "";
-	handler?: string;
-	module_source?: string;
-	contract_version?: number;
+	report?: string | null;
+	route?: string;
+	view?: string | null;
 }
 
 export interface ModuleFormBody {
-	title: string;
-	table: string;
-	fields?: ModuleFormField[];
 	default_position?: string;
-	return_view?: string | null;
-	return_url?: string;
-	tagging?: boolean;
-	open_graph?: boolean;
+	fields?: ModuleFormField[];
 	hooks?: Record<string, unknown> | unknown[];
+	open_graph?: boolean;
+	return_url?: string;
+	return_view?: string | null;
+	table: string;
+	tagging?: boolean;
+	title: string;
 }
 
 export interface ModuleViewBody {
-	title: string;
-	description?: string;
-	table: string;
-	type?: ModuleViewType;
-	settings?: ModuleViewSettings;
-	fields?: Record<string, ModuleViewFieldConfig>;
 	actions?: Record<string, string>;
-	related_form?: string | null;
-	preview_url?: string;
+	description?: string;
 	exclude_from_search?: boolean;
+	fields?: Record<string, ModuleViewFieldConfig>;
+	preview_url?: string;
+	related_form?: string | null;
+	settings?: ModuleViewSettings;
+	table: string;
+	title: string;
+	type?: ModuleViewType;
 }
 
 export interface ModuleReportBody {
-	title: string;
-	table: string;
-	type?: "view" | "csv";
-	filters?: Record<string, ModuleReportFilter>;
 	fields?: Record<string, string> | string[];
+	filters?: Record<string, ModuleReportFilter>;
 	parser?: string;
-	view?: string | null;
 	streaming?: boolean;
+	table: string;
+	title: string;
+	type?: "view" | "csv";
+	view?: string | null;
 }
 
 export interface ModuleEmbedFormBody {
-	title: string;
-	table: string;
+	css?: string;
+	default_pending?: boolean;
+	default_position?: string;
 	fields?: ModuleFormField[];
 	hooks?: Record<string, unknown> | unknown[];
-	default_position?: string;
-	default_pending?: boolean;
-	css?: string;
 	redirect_url?: string;
+	table: string;
 	thank_you_message?: string;
+	title: string;
 }
 
 const enc = encodeURIComponent;

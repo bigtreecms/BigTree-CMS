@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 
 interface PermissionRowProps {
+	children: ReactNode;
 	/** CSS `grid-template-columns` — must match the parent tree's header. */
 	columns: string;
 	/**
@@ -15,7 +16,6 @@ interface PermissionRowProps {
 	 * depth-based indentation.
 	 */
 	nested?: boolean;
-	children: ReactNode;
 }
 
 /**

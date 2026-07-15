@@ -2,21 +2,21 @@ import type { ReactNode } from "react";
 import { ChevronDown, ChevronRight } from "lucide-react";
 
 interface CollapsibleRowHeaderProps {
-	/** Whether the row is expanded — drives the chevron + `aria-expanded`. */
-	open: boolean;
-	onToggle: () => void;
+	className?: string;
 	/** id of the panel this toggle reveals (for `aria-controls`). */
 	controls: string;
-	title: ReactNode;
-	subtitle?: ReactNode;
+	disabled?: boolean;
 	/** Rendered inside the button before the title (e.g. an inline icon). */
 	leading?: ReactNode;
-	/** Rendered inside the button after the title/subtitle (e.g. a status pill). */
-	trailing?: ReactNode;
-	disabled?: boolean;
+	onToggle: () => void;
+	/** Whether the row is expanded — drives the chevron + `aria-expanded`. */
+	open: boolean;
 	/** Stack the title over the subtitle instead of laying them out inline. */
 	stacked?: boolean;
-	className?: string;
+	subtitle?: ReactNode;
+	title: ReactNode;
+	/** Rendered inside the button after the title/subtitle (e.g. a status pill). */
+	trailing?: ReactNode;
 }
 
 /**
@@ -39,19 +39,19 @@ export const CollapsibleRowHeader = ({
 	className,
 }: CollapsibleRowHeaderProps) => (
 	<button
-		type="button"
+		aria-controls={controls}
+		aria-expanded={open}
 		className={`flex min-w-0 flex-1 items-center gap-2 rounded px-1.5 py-1 text-left hover:bg-hover disabled:cursor-not-allowed disabled:opacity-60${
 			className ? ` ${className}` : ""
 		}`}
-		onClick={onToggle}
 		disabled={disabled}
-		aria-expanded={open}
-		aria-controls={controls}
+		type="button"
+		onClick={onToggle}
 	>
 		{open ? (
-			<ChevronDown size={13} className="text-text-3" />
+			<ChevronDown className="text-text-3" size={13} />
 		) : (
-			<ChevronRight size={13} className="text-text-3" />
+			<ChevronRight className="text-text-3" size={13} />
 		)}
 		{leading}
 		{stacked ? (

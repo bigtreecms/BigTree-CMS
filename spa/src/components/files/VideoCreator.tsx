@@ -8,12 +8,12 @@ import { toast } from "@/lib/toast";
 import { useToastMutation } from "@/hooks/useToastMutation";
 
 interface VideoCreatorProps {
-	open: boolean;
-	onOpenChange: (open: boolean) => void;
 	folderId: number;
 	invalidateKey: readonly unknown[];
 	/** Called with the new resource after creation, so the parent can open its detail panel. */
 	onCreated?: (resource: ResourceDetail) => void;
+	onOpenChange: (open: boolean) => void;
+	open: boolean;
 }
 
 const URL_HOST_HINT = /(youtu\.be|youtube\.com|vimeo\.com)/i;
@@ -65,33 +65,34 @@ export const VideoCreator = ({
 
 	return (
 		<SlideOver
-			open={open}
-			onOpenChange={onOpenChange}
-			title="Add managed video"
 			description="Paste a YouTube or Vimeo URL. We'll pull the title, description, and thumbnail."
-			width="sm"
 			footer={
 				<div className="flex justify-end gap-2">
 					<Button variant="secondary" onClick={() => onOpenChange(false)}>
 						Cancel
 					</Button>
 					<Button
-						variant="primary"
 						disabled={!looksValid}
 						loading={createMutation.isPending}
 						loadingLabel="Adding…"
+						variant="primary"
 						onClick={submit}
 					>
 						Add video
 					</Button>
 				</div>
 			}
+			open={open}
+			title="Add managed video"
+			width="sm"
+			onOpenChange={onOpenChange}
 		>
 			<Field label="Video URL">
 				<TextInput
 					autoFocus
-					type="url"
 					inputMode="url"
+					placeholder="https://youtube.com/watch?v=… or https://vimeo.com/…"
+					type="url"
 					value={url}
 					onChange={(e) => setUrl(e.target.value)}
 					onKeyDown={(e) => {
@@ -100,7 +101,6 @@ export const VideoCreator = ({
 							submit();
 						}
 					}}
-					placeholder="https://youtube.com/watch?v=… or https://vimeo.com/…"
 				/>
 				<p className="mt-1.5 text-[11.5px] text-text-3">
 					Supported services: YouTube, Vimeo.

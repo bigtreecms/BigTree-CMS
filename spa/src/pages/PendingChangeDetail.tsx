@@ -59,7 +59,7 @@ export const PendingChangeDetail = () => {
 	});
 
 	if (!valid) {
-		return <Navigate to="/dashboard" replace />;
+		return <Navigate replace to="/dashboard" />;
 	}
 
 	if (detailQ.isLoading || !detailQ.data) {
@@ -88,48 +88,48 @@ export const PendingChangeDetail = () => {
 			/>
 
 			<PageHead
-				title={change.title || `Pending change #${change.id}`}
-				sub={`${change.type} · ${change.table} · ${change.date}`}
 				actions={
 					<>
 						<Button icon={<ChevronLeft size={13} />} to="/dashboard">
 							Back
 						</Button>
 						<Button
-							variant="dangerGhost"
-							icon={<X size={13} />}
-							onClick={() => confirmDialog.open("reject")}
 							disabled={busy}
+							icon={<X size={13} />}
+							variant="dangerGhost"
+							onClick={() => confirmDialog.open("reject")}
 						>
 							Reject
 						</Button>
 						<Button
-							variant="primary"
-							icon={<Check size={13} />}
-							onClick={() => confirmDialog.open("approve")}
 							disabled={busy}
+							icon={<Check size={13} />}
+							variant="primary"
+							onClick={() => confirmDialog.open("approve")}
 						>
 							Approve & publish
 						</Button>
 					</>
 				}
+				sub={`${change.type} · ${change.table} · ${change.date}`}
+				title={change.title || `Pending change #${change.id}`}
 			/>
 
 			<div className="space-y-4">
 				<MetaBlock change={change} />
 
-				<DiffSection title="Field changes" payload={change.changes} />
-				<DiffSection title="Many-to-many changes" payload={change.mtm_changes} />
-				<DiffSection title="Tag changes" payload={change.tags_changes} />
-				<DiffSection title="Open Graph changes" payload={change.open_graph_changes} />
+				<DiffSection payload={change.changes} title="Field changes" />
+				<DiffSection payload={change.mtm_changes} title="Many-to-many changes" />
+				<DiffSection payload={change.tags_changes} title="Tag changes" />
+				<DiffSection payload={change.open_graph_changes} title="Open Graph changes" />
 			</div>
 
 			{confirmDialog.item === "approve" && (
 				<ConfirmDialog
 					{...confirmDialog.dialogProps}
-					title="Approve this change?"
-					description="The pending change will be merged into the live record."
 					confirmLabel="Approve & publish"
+					description="The pending change will be merged into the live record."
+					title="Approve this change?"
 					onConfirm={() => approveMutation.mutate()}
 				/>
 			)}
@@ -137,9 +137,9 @@ export const PendingChangeDetail = () => {
 			{confirmDialog.item === "reject" && (
 				<ConfirmDialog
 					{...confirmDialog.dialogProps}
-					title="Reject this change?"
-					description="The pending change will be discarded. The submitting user will need to redo their edits."
 					confirmLabel="Reject"
+					description="The pending change will be discarded. The submitting user will need to redo their edits."
+					title="Reject this change?"
 					variant="danger"
 					onConfirm={() => rejectMutation.mutate()}
 				/>
@@ -183,8 +183,8 @@ const MetaBlock = ({ change }: MetaBlockProps) => (
 );
 
 interface DiffSectionProps {
-	title: string;
 	payload: unknown;
+	title: string;
 }
 
 const DiffSection = ({ title, payload }: DiffSectionProps) => {
@@ -199,8 +199,8 @@ const DiffSection = ({ title, payload }: DiffSectionProps) => {
 		<section className="overflow-hidden rounded-lg border border-border bg-surface">
 			<SectionLabel
 				as="header"
-				size="sm"
 				className="border-b border-border bg-surface-2 px-3 py-2"
+				size="sm"
 			>
 				{title}
 			</SectionLabel>

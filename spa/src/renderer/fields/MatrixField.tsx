@@ -32,18 +32,18 @@ import { settingsOf, type FieldComponentProps } from "./types";
  */
 
 interface MatrixColumn {
-	id: string;
-	title: string;
-	subtitle?: string;
-	type: string;
-	settings?: unknown;
 	display_title?: boolean | string | number;
+	id: string;
+	settings?: unknown;
+	subtitle?: string;
+	title: string;
+	type: string;
 }
 
 interface MatrixFieldSettings {
+	columns?: MatrixColumn[];
 	max?: number | string;
 	style?: "list" | "callout" | string;
-	columns?: MatrixColumn[];
 }
 
 type RowData = Record<string, unknown>;
@@ -77,7 +77,7 @@ export const MatrixField = ({ field, value, onChange, disabled }: FieldComponent
 
 	if (columns.length === 0) {
 		return (
-			<EmptyState size="sm" dashed>
+			<EmptyState dashed size="sm">
 				This matrix field has no columns configured.
 			</EmptyState>
 		);
@@ -86,26 +86,26 @@ export const MatrixField = ({ field, value, onChange, disabled }: FieldComponent
 	return (
 		<div className="space-y-2" data-matrix-style={style}>
 			{rows.length === 0 ? (
-				<EmptyState size="sm" dashed>
+				<EmptyState dashed size="sm">
 					No items yet. Click <strong>Add item</strong> to create one.
 				</EmptyState>
 			) : (
 				<ul className="space-y-1.5">
 					{rows.map((row, index) => (
 						<MatrixRowItem
+							columns={columns}
+							disabled={disabled}
+							expanded={isExpanded(row.uid)}
+							idPrefix={reactId}
+							index={index}
 							key={row.uid}
 							row={row}
-							index={index}
-							columns={columns}
-							expanded={isExpanded(row.uid)}
-							onToggle={() => toggleExpanded(row.uid)}
-							onDelete={() => remove(row.uid)}
-							onCellChange={(columnId, next) => updateCell(row.uid, columnId, next)}
-							onMove={(direction) => move(index, direction)}
 							style={style}
-							disabled={disabled}
 							totalRows={rows.length}
-							idPrefix={reactId}
+							onCellChange={(columnId, next) => updateCell(row.uid, columnId, next)}
+							onDelete={() => remove(row.uid)}
+							onMove={(direction) => move(index, direction)}
+							onToggle={() => toggleExpanded(row.uid)}
 						/>
 					))}
 				</ul>
@@ -113,10 +113,10 @@ export const MatrixField = ({ field, value, onChange, disabled }: FieldComponent
 
 			<div className="flex items-center justify-between gap-2">
 				<Button
-					variant="secondary"
-					icon={<Plus size={13} />}
-					onClick={addRow}
 					disabled={disabled || atLimit}
+					icon={<Plus size={13} />}
+					variant="secondary"
+					onClick={addRow}
 				>
 					Add item
 				</Button>
@@ -131,18 +131,18 @@ export const MatrixField = ({ field, value, onChange, disabled }: FieldComponent
 };
 
 interface MatrixRowItemProps {
-	row: MatrixRow;
-	index: number;
-	totalRows: number;
 	columns: MatrixColumn[];
-	expanded: boolean;
-	onToggle: () => void;
-	onDelete: () => void;
-	onCellChange: (columnId: string, next: unknown) => void;
-	onMove: (direction: "up" | "down") => void;
-	style: "list" | "callout";
 	disabled?: boolean;
+	expanded: boolean;
 	idPrefix: string;
+	index: number;
+	onCellChange: (columnId: string, next: unknown) => void;
+	onDelete: () => void;
+	onMove: (direction: "up" | "down") => void;
+	onToggle: () => void;
+	row: MatrixRow;
+	style: "list" | "callout";
+	totalRows: number;
 }
 
 const MatrixRowItem = ({
@@ -169,23 +169,23 @@ const MatrixRowItem = ({
 
 	return (
 		<RepeaterRowShell
-			index={index}
-			total={totalRows}
-			expanded={expanded}
-			onToggle={onToggle}
-			onMove={onMove}
-			onDelete={onDelete}
-			disabled={disabled}
-			panelId={`${idPrefix}-row-${row.uid}`}
-			title={titleText}
-			subtitle={summary.subtitle || undefined}
 			className={wrapperClass}
+			disabled={disabled}
+			expanded={expanded}
+			index={index}
+			panelId={`${idPrefix}-row-${row.uid}`}
+			subtitle={summary.subtitle || undefined}
+			title={titleText}
+			total={totalRows}
+			onDelete={onDelete}
+			onMove={onMove}
+			onToggle={onToggle}
 		>
 			<RepeaterColumnFields
 				columns={columns}
+				disabled={disabled}
 				getValue={(id) => row.data[id]}
 				onColumnChange={onCellChange}
-				disabled={disabled}
 			/>
 		</RepeaterRowShell>
 	);

@@ -12,11 +12,11 @@ import { InlineEmpty } from "@/components/ui/InlineEmpty";
 import { SectionLabel } from "@/components/ui/SectionLabel";
 
 interface ModulePreviewProps {
-	source: string;
+	name: string;
 	/** Settings descriptors from the builder — rendered as a config form. */
 	settingsSchema: SettingDescriptor[];
+	source: string;
 	typeId: string;
-	name: string;
 }
 
 /**
@@ -64,17 +64,17 @@ export const ModulePreview = ({ source, settingsSchema, typeId, name }: ModulePr
 			<div className="rounded-md border border-border bg-surface p-3">
 				{/* key forces a clean remount on source/settings change so render() reruns */}
 				<ModuleField
-					key={`${debounced}::${JSON.stringify(settings)}`}
 					field={field}
+					key={`${debounced}::${JSON.stringify(settings)}`}
+					source={debounced}
 					value={value}
 					onChange={setValue}
-					source={debounced}
 					onError={setError}
 				/>
 			</div>
 
 			{error && (
-				<Alert tone="danger" mono>
+				<Alert mono tone="danger">
 					{error}
 				</Alert>
 			)}
@@ -98,11 +98,11 @@ export const ModulePreview = ({ source, settingsSchema, typeId, name }: ModulePr
 
 						return (
 							<Control
-								key={descriptor.id}
 								descriptor={descriptor}
+								key={descriptor.id}
 								settings={settings}
-								onPatch={onPatch}
 								useCase="modules"
+								onPatch={onPatch}
 							/>
 						);
 					})}

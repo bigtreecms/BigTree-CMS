@@ -24,16 +24,16 @@ import type { MediaPreset } from "@/api/endpoints/configure";
  */
 
 export interface SizeRow {
-	prefix?: string;
-	width?: string;
-	height?: string;
 	/** Legacy stores "on" for grayscale, "" otherwise. */
 	grayscale?: string;
+	height?: string;
+	prefix?: string;
+	width?: string;
 }
 
 export interface CropRow extends SizeRow {
-	thumbs?: SizeRow[];
 	center_crops?: SizeRow[];
+	thumbs?: SizeRow[];
 }
 
 /** Legacy stored these as objects keyed by count; normalize to a dense array. */
@@ -51,8 +51,8 @@ const asRows = <T,>(value: unknown): T[] => {
 
 interface SizeRowsEditorProps {
 	label: string;
-	rows: SizeRow[];
 	onChange: (rows: SizeRow[]) => void;
+	rows: SizeRow[];
 }
 
 const SizeRowsEditor = ({ label, rows, onChange }: SizeRowsEditorProps) => {
@@ -63,9 +63,9 @@ const SizeRowsEditor = ({ label, rows, onChange }: SizeRowsEditorProps) => {
 			<div className="mb-1.5 flex items-center justify-between">
 				<SectionLabel size="sm">{label}</SectionLabel>
 				<button
+					className="inline-flex items-center gap-1 rounded-md border border-border bg-surface px-2 py-0.5 text-[11.5px] text-text hover:bg-hover"
 					type="button"
 					onClick={() => add({ prefix: "", width: "", height: "", grayscale: "" })}
-					className="inline-flex items-center gap-1 rounded-md border border-border bg-surface px-2 py-0.5 text-[11.5px] text-text hover:bg-hover"
 				>
 					<Plus size={11} />
 					Add
@@ -79,45 +79,45 @@ const SizeRowsEditor = ({ label, rows, onChange }: SizeRowsEditorProps) => {
 			) : (
 				<div className="space-y-1.5">
 					{rows.map((row, i) => (
-						<div key={i} className="flex items-center gap-1.5">
+						<div className="flex items-center gap-1.5" key={i}>
 							<TextInput
 								compact
+								aria-label="prefix"
 								className="w-full"
 								placeholder="prefix"
-								aria-label="prefix"
 								value={row.prefix ?? ""}
 								onChange={(e) => update(i, { prefix: e.target.value })}
 							/>
 							<TextInput
 								compact
+								aria-label="width"
 								className="w-full"
 								placeholder="width"
-								aria-label="width"
 								value={row.width ?? ""}
 								onChange={(e) => update(i, { width: e.target.value })}
 							/>
 							<TextInput
 								compact
+								aria-label="height"
 								className="w-full"
 								placeholder="height"
-								aria-label="height"
 								value={row.height ?? ""}
 								onChange={(e) => update(i, { height: e.target.value })}
 							/>
 							<Checkbox
-								size="sm"
+								checked={row.grayscale === "on"}
 								className="whitespace-nowrap"
 								label="Gray"
-								checked={row.grayscale === "on"}
+								size="sm"
 								onChange={(checked) =>
 									update(i, { grayscale: checked ? "on" : "" })
 								}
 							/>
 							<IconButton
-								tone="danger"
-								onClick={() => remove(i)}
 								className="rounded-md border border-border bg-surface"
 								label="Remove"
+								tone="danger"
+								onClick={() => remove(i)}
 							>
 								<Trash size={12} />
 							</IconButton>
@@ -142,6 +142,7 @@ const CropsEditor = ({ crops, onChange }: CropsEditorProps) => {
 			<div className="mb-1.5 flex items-center justify-between">
 				<SectionLabel size="sm">Crops</SectionLabel>
 				<button
+					className="inline-flex items-center gap-1 rounded-md border border-border bg-surface px-2 py-0.5 text-[11.5px] text-text hover:bg-hover"
 					type="button"
 					onClick={() =>
 						add({
@@ -153,7 +154,6 @@ const CropsEditor = ({ crops, onChange }: CropsEditorProps) => {
 							center_crops: [],
 						})
 					}
-					className="inline-flex items-center gap-1 rounded-md border border-border bg-surface px-2 py-0.5 text-[11.5px] text-text hover:bg-hover"
 				>
 					<Plus size={11} />
 					Add crop
@@ -167,46 +167,46 @@ const CropsEditor = ({ crops, onChange }: CropsEditorProps) => {
 			) : (
 				<div className="space-y-2">
 					{crops.map((crop, i) => (
-						<div key={i} className="rounded-md border border-border bg-surface-2 p-2.5">
+						<div className="rounded-md border border-border bg-surface-2 p-2.5" key={i}>
 							<div className="flex items-center gap-1.5">
 								<TextInput
 									compact
+									aria-label="prefix"
 									className="w-full"
 									placeholder="prefix"
-									aria-label="prefix"
 									value={crop.prefix ?? ""}
 									onChange={(e) => update(i, { prefix: e.target.value })}
 								/>
 								<TextInput
 									compact
+									aria-label="width"
 									className="w-full"
 									placeholder="width"
-									aria-label="width"
 									value={crop.width ?? ""}
 									onChange={(e) => update(i, { width: e.target.value })}
 								/>
 								<TextInput
 									compact
+									aria-label="height"
 									className="w-full"
 									placeholder="height"
-									aria-label="height"
 									value={crop.height ?? ""}
 									onChange={(e) => update(i, { height: e.target.value })}
 								/>
 								<Checkbox
-									size="sm"
+									checked={crop.grayscale === "on"}
 									className="whitespace-nowrap"
 									label="Gray"
-									checked={crop.grayscale === "on"}
+									size="sm"
 									onChange={(checked) =>
 										update(i, { grayscale: checked ? "on" : "" })
 									}
 								/>
 								<IconButton
-									tone="danger"
-									onClick={() => remove(i)}
 									className="rounded-md border border-border bg-surface"
 									label="Remove crop"
+									tone="danger"
+									onClick={() => remove(i)}
 								>
 									<Trash size={12} />
 								</IconButton>
@@ -233,8 +233,8 @@ const CropsEditor = ({ crops, onChange }: CropsEditorProps) => {
 };
 
 interface MediaPresetEditorProps {
-	preset: MediaPreset;
 	onChange: (patch: Partial<MediaPreset>) => void;
+	preset: MediaPreset;
 }
 
 export const MediaPresetEditor = ({ preset, onChange }: MediaPresetEditorProps) => {
@@ -247,8 +247,8 @@ export const MediaPresetEditor = ({ preset, onChange }: MediaPresetEditorProps) 
 					<TextInput
 						compact
 						className="w-full"
-						type="number"
 						min={0}
+						type="number"
 						value={str("min_width")}
 						onChange={(e) => onChange({ min_width: e.target.value })}
 					/>
@@ -257,8 +257,8 @@ export const MediaPresetEditor = ({ preset, onChange }: MediaPresetEditorProps) 
 					<TextInput
 						compact
 						className="w-full"
-						type="number"
 						min={0}
+						type="number"
 						value={str("min_height")}
 						onChange={(e) => onChange({ min_height: e.target.value })}
 					/>
@@ -274,8 +274,8 @@ export const MediaPresetEditor = ({ preset, onChange }: MediaPresetEditorProps) 
 			</div>
 
 			<Checkbox
-				label="Create hi-resolution (retina) images when available"
 				checked={preset.retina === "on"}
+				label="Create hi-resolution (retina) images when available"
 				onChange={(checked) => onChange({ retina: checked ? "on" : "" })}
 			/>
 

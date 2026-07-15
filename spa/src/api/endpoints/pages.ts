@@ -10,77 +10,65 @@ import { api } from "@/api/client";
 export type PageAccess = "n" | "v" | "e" | "p";
 
 export interface PageListRow {
-	id: number;
-	parent: number;
-	nav_title: string;
-	route: string;
-	in_nav: boolean;
-	archived: boolean;
-	trunk: boolean;
-	position: number;
-	template: string;
-	external: string;
-	updated_at: string;
 	access: PageAccess;
-	/** True when there is an unpublished change in bigtree_pending_changes for this page. */
-	has_pending_change?: boolean;
-
+	archived: boolean;
+	/** ISO timestamp when the page is scheduled to expire (null if not set). */
+	expire_at?: string | null;
+	external: string;
 	/** Whether this page has any direct child pages (computed server-side via efficient EXISTS subquery on the parent index). */
 	has_children: boolean;
-
-	/** Present when this item represents a brand new page that only exists as a pending draft (type=NEW in bigtree_pending_changes). */
-	pending_change_id?: number;
-
+	/** True when there is an unpublished change in bigtree_pending_changes for this page. */
+	has_pending_change?: boolean;
+	id: number;
+	in_nav: boolean;
+	nav_title: string;
+	parent: number;
 	/** True for pending "NEW" page drafts that do not yet exist in bigtree_pages. */
 	pending?: boolean;
+	/** Present when this item represents a brand new page that only exists as a pending draft (type=NEW in bigtree_pending_changes). */
+	pending_change_id?: number;
+	position: number;
 
 	/** ISO timestamp when the page is scheduled to be published (null if not scheduled). */
 	publish_at?: string | null;
-	/** ISO timestamp when the page is scheduled to expire (null if not set). */
-	expire_at?: string | null;
+
+	route: string;
 
 	/** Server-computed flag indicating the page has a future publish_at (avoids client timezone issues). */
 	scheduled?: boolean;
+
+	template: string;
+	trunk: boolean;
+
+	updated_at: string;
 }
 
 export interface PageDetail {
-	id: number;
-	parent: number;
 	/** Caller's permission level for this page; "p" unlocks "Save & Publish". */
 	access: PageAccess;
-	trunk: boolean;
-	in_nav: boolean;
-	nav_title: string;
-	route: string;
-	path: string;
-	title: string;
-	meta_keywords: string;
-	meta_description: string;
-	seo_invisible: boolean;
-	template: string;
-	external: string;
-	new_window: boolean;
-	resources: Record<string, unknown>;
 	archived: boolean;
 	archived_inherited: boolean;
-	publish_at: string | null;
-	expire_at: string | null;
-	max_age: number;
-	last_edited_by: number;
-	position: number;
+	/** Page columns whose draft value differs from the published content. */
+	changed_fields?: string[];
+	/** True when the payload reflects an unpublished draft overlaid on (or in place of) the live page. */
+	changes_applied?: boolean;
 	created_at: string;
-	updated_at: string;
+	expire_at: string | null;
+	external: string;
 	/**
 	 * Cached last-30-days page views from the Google Analytics 4 sync. `null` until
 	 * the first sync runs, or when analytics isn't connected.
 	 */
 	ga_page_views: number | null;
-	tags?: Array<{
-		id: number;
-		tag: string;
-		route: string;
-		usage_count: number;
-	}>;
+	id: number;
+	in_nav: boolean;
+	last_edited_by: number;
+	lineage?: Array<{ id: number; nav_title: string; route: string }>;
+	max_age: number;
+	meta_description: string;
+	meta_keywords: string;
+	nav_title: string;
+	new_window: boolean;
 	open_graph?: {
 		title: string;
 		description: string;
@@ -89,43 +77,46 @@ export interface PageDetail {
 		image_width: number;
 		image_height: number;
 	} | null;
-	lineage?: Array<{ id: number; nav_title: string; route: string }>;
-
-	/** True when the payload reflects an unpublished draft overlaid on (or in place of) the live page. */
-	changes_applied?: boolean;
-	/** The bigtree_pending_changes id backing this draft, when `changes_applied`. */
-	pending_change_id?: number;
+	parent: number;
+	path: string;
 	/** True for a NEW draft that only exists in bigtree_pending_changes (no live row; `id` is 0). */
 	pending?: boolean;
+	/** The bigtree_pending_changes id backing this draft, when `changes_applied`. */
+	pending_change_id?: number;
 	/** Published values of the overlaid fields (incl. `resources`), for comparison. */
 	pending_original?: Record<string, unknown>;
-	/** Page columns whose draft value differs from the published content. */
-	changed_fields?: string[];
 	/** User id of whoever created the pending change. */
 	pending_owner?: number | null;
 	/** Display name of the pending change's owner, for attribution. */
 	pending_owner_name?: string | null;
+	position: number;
+	publish_at: string | null;
+	resources: Record<string, unknown>;
+
+	route: string;
+	seo_invisible: boolean;
+	tags?: Array<{
+		id: number;
+		tag: string;
+		route: string;
+		usage_count: number;
+	}>;
+	template: string;
+	title: string;
+	trunk: boolean;
+	updated_at: string;
 }
 
 /** Body shape for POST /pages and PATCH /pages/{id} edits. */
 export interface PageEditBody {
-	parent?: number;
-	nav_title?: string;
-	title?: string;
-	route?: string;
-	in_nav?: boolean;
-	meta_keywords?: string;
-	meta_description?: string;
-	seo_invisible?: boolean;
-	template?: string;
-	external?: string;
-	new_window?: boolean;
-	/** Field id → value map for the template's `resources`. */
-	resources?: Record<string, unknown>;
-	publish_at?: string | null;
 	expire_at?: string | null;
+	external?: string;
+	in_nav?: boolean;
 	max_age?: number;
-	tags?: number[];
+	meta_description?: string;
+	meta_keywords?: string;
+	nav_title?: string;
+	new_window?: boolean;
 	open_graph?: {
 		title?: string;
 		description?: string;
@@ -134,30 +125,39 @@ export interface PageEditBody {
 		image_width?: number;
 		image_height?: number;
 	};
-	trunk?: boolean;
+	parent?: number;
 	/**
 	 * When true, write live (requires publisher access). When false/omitted, the
 	 * save is queued as a pending change (draft) for a publisher to approve.
 	 */
 	publish?: boolean;
+	publish_at?: string | null;
+	/** Field id → value map for the template's `resources`. */
+	resources?: Record<string, unknown>;
+	route?: string;
+	seo_invisible?: boolean;
+	tags?: number[];
+	template?: string;
+	title?: string;
+	trunk?: boolean;
 }
 
 export interface PageRevision {
+	author: number;
 	id: number;
 	page: number;
-	title: string;
-	author: number;
 	saved: boolean;
 	saved_description: string;
+	title: string;
 	updated_at: string;
 }
 
 /** Search hit returned by GET /pages/search. */
 export interface PageSearchHit {
+	archived: boolean;
 	id: number;
 	nav_title: string;
 	path: string;
-	archived: boolean;
 }
 
 /** Returned by create/patch when the save was queued as a draft instead of published live. */
@@ -174,23 +174,23 @@ export interface PagePendingResult {
  */
 export interface PageSeoRating {
 	available: boolean;
-	score: number | null;
-	recommendations: string[];
 	color: string | null;
+	recommendations: string[];
+	score: number | null;
 }
 
 /** One user row in the access-levels breakdown. */
 export interface PageAccessUser {
-	id: number;
-	name: string;
 	email: string;
+	id: number;
 	level: number;
+	name: string;
 }
 
 /** GET /pages/{id}/access-levels — who can edit vs. publish the page. */
 export interface PageAccessLevels {
-	publishers: PageAccessUser[];
 	editors: PageAccessUser[];
+	publishers: PageAccessUser[];
 }
 
 export const isPendingResult = (r: unknown): r is PagePendingResult =>

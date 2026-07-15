@@ -17,17 +17,17 @@ import type { MediaPreset } from "./configure";
 export type { MediaPreset };
 
 export interface SystemVersion {
-	version: string;
-	revision: number;
 	php: string;
+	revision: number;
+	version: string;
 }
 
 /** GET /system/site — site identity + the roots the SPA links out to. */
 export interface SiteInfo {
-	nav_title: string;
-	www_root: string;
 	/** Admin UI root URL (SPA is served at this path). */
 	admin_root: string;
+	nav_title: string;
+	www_root: string;
 }
 
 export const siteApi = {
@@ -41,12 +41,12 @@ export const siteApi = {
 export type StatusLevel = "bad" | "ok" | "good";
 
 export interface SiteStatusWarning {
+	nav_title?: string;
+	/** Present only on "Bad Admin Links" rows so the SPA can link to the page editor. */
+	page_id?: number;
 	parameter: string;
 	rec: string;
 	status: StatusLevel;
-	/** Present only on "Bad Admin Links" rows so the SPA can link to the page editor. */
-	page_id?: number;
-	nav_title?: string;
 }
 
 export interface SiteStatusParameter {
@@ -58,8 +58,8 @@ export interface SiteStatusParameter {
 }
 
 export interface SiteStatus {
-	warnings: SiteStatusWarning[];
 	parameters: SiteStatusParameter[];
+	warnings: SiteStatusWarning[];
 }
 
 /**
@@ -68,42 +68,42 @@ export interface SiteStatus {
  * merge server-side, so a partial body only touches the keys it carries.
  */
 export interface SecurityFailRule {
+	ban: number | string;
 	count: number | string;
 	time: number | string;
-	ban: number | string;
 }
 
 export interface SecurityPasswordPolicy {
 	invitations: string;
 	length: number | string;
 	mixedcase: string;
-	numbers: string;
 	nonalphanumeric: string;
+	numbers: string;
 }
 
 export interface SecurityPolicy {
-	user_fails: SecurityFailRule;
-	ip_fails: SecurityFailRule;
-	password: SecurityPasswordPolicy;
-	two_factor: string;
-	remember_disabled: string;
-	logout_all: string;
-	suspect_geo_check: string;
-	include_daily_bans: string;
+	[key: string]: unknown;
 	allowed_ips: string;
 	banned_ips: string;
-	[key: string]: unknown;
+	include_daily_bans: string;
+	ip_fails: SecurityFailRule;
+	logout_all: string;
+	password: SecurityPasswordPolicy;
+	remember_disabled: string;
+	suspect_geo_check: string;
+	two_factor: string;
+	user_fails: SecurityFailRule;
 }
 
 export interface Backup {
-	backup_id: string;
-	size_bytes: number;
-	created_at: string;
-	expires_at: string;
 	age_seconds?: number;
+	backup_id: string;
+	created_at: string;
 	download_url: string;
-	filename?: string;
 	elapsed_ms?: number;
+	expires_at: string;
+	filename?: string;
+	size_bytes: number;
 }
 
 /**
@@ -114,63 +114,63 @@ export interface Backup {
 export type UpgradeMethod = "Local" | "FTP" | "SFTP";
 
 export interface UpgradeAvailable {
+	installable: boolean;
+	note: string;
+	release_date: string | null;
 	type: "revision" | "minor" | "major";
 	version: string;
-	release_date: string | null;
-	note: string;
-	installable: boolean;
 }
 
 export interface UpgradeCheck {
-	current_version: string;
-	/** Applied DB revision (bigtree-internal-revision). */
-	current_revision: number;
+	config_ignored: boolean;
 	/** Core code target revision (version.php). */
 	core_revision?: number;
-	migrations_pending?: boolean;
-	migration_queue?: string[];
+	/** Applied DB revision (bigtree-internal-revision). */
+	current_revision: number;
+	current_version: string;
 	method: UpgradeMethod | null;
-	config_ignored: boolean;
+	migration_queue?: string[];
+	migrations_pending?: boolean;
 	updates: UpgradeAvailable[];
 }
 
 export interface UpgradeDownload {
-	ok: boolean;
 	method: UpgradeMethod;
-	version: string;
-	size_bytes: number;
 	needs_credentials: boolean;
+	ok: boolean;
+	size_bytes: number;
+	version: string;
 }
 
 export interface UpgradeInstall {
-	ok: boolean;
+	bad_root?: string;
 	method: UpgradeMethod;
-	next?: "migrate";
 	needs_credentials?: boolean;
 	needs_ftp_root?: boolean;
-	bad_root?: string;
+	next?: "migrate";
+	ok: boolean;
 }
 
 export interface UpgradeMigrations {
 	current_revision: number;
-	target_revision: number | null;
-	queue: string[];
 	/** True when queue is non-empty. */
 	pending?: boolean;
+	queue: string[];
+	target_revision: number | null;
 }
 
 /** Verbatim legacy migration-script contract. */
 export interface UpgradeMigrationResult {
 	complete?: boolean;
-	response?: string;
-	pages?: number;
 	error?: string;
+	pages?: number;
+	response?: string;
 }
 
 export interface UpgradeInstallBody {
-	ftp_username?: string;
 	ftp_password?: string;
 	ftp_root?: string;
+	ftp_username?: string;
 }
 
 export const systemApi = {

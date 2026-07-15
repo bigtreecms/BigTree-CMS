@@ -3,10 +3,10 @@ import Cropper from "react-easy-crop";
 import type { ImageCropController } from "@/hooks/useImageCrop";
 
 interface ImageCropStageProps {
-	image: string;
 	aspect?: number;
-	objectFit?: "contain" | "cover" | "horizontal-cover" | "vertical-cover";
 	controller: ImageCropController;
+	image: string;
+	objectFit?: "contain" | "cover" | "horizontal-cover" | "vertical-cover";
 }
 
 /**
@@ -19,14 +19,14 @@ export const ImageCropStage = ({ image, aspect, objectFit, controller }: ImageCr
 	return (
 		<div className="relative h-[460px] bg-black">
 			<Cropper
-				image={image}
-				crop={crop}
-				zoom={zoom}
 				aspect={aspect}
-				onCropChange={setCrop}
-				onZoomChange={setZoom}
-				onCropComplete={onCropComplete}
+				crop={crop}
+				image={image}
 				objectFit={objectFit}
+				zoom={zoom}
+				onCropChange={setCrop}
+				onCropComplete={onCropComplete}
+				onZoomChange={setZoom}
 			/>
 		</div>
 	);

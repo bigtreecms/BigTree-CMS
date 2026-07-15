@@ -46,13 +46,13 @@ export const Tones: Story = {
 			<IconTile tone="neutral">
 				<FileText size={18} />
 			</IconTile>
-			<IconTile tone="info" radius="full" size="lg">
+			<IconTile radius="full" size="lg" tone="info">
 				<Info size={18} />
 			</IconTile>
-			<IconTile tone="warn" size="xs">
+			<IconTile size="xs" tone="warn">
 				<Info size={14} />
 			</IconTile>
-			<IconTile tone="brand" size="xs">
+			<IconTile size="xs" tone="brand">
 				<Database size={14} />
 			</IconTile>
 		</div>
@@ -83,10 +83,10 @@ export const Sizes: Story = {
 export const Ringed: Story = {
 	render: () => (
 		<div className="flex items-center gap-3">
-			<IconTile tone="neutral" ringed>
+			<IconTile ringed tone="neutral">
 				<FileText size={16} />
 			</IconTile>
-			<IconTile tone="accent" ringed>
+			<IconTile ringed tone="accent">
 				<Folder size={16} />
 			</IconTile>
 		</div>

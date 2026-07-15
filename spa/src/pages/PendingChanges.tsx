@@ -104,7 +104,6 @@ export const PendingChanges = () => {
 			/>
 
 			<PageHead
-				title="Pending changes"
 				sub={
 					listQ.isLoading
 						? "Loading…"
@@ -114,6 +113,7 @@ export const PendingChanges = () => {
 									groups.length === 1 ? "y" : "ies"
 								}`
 				}
+				title="Pending changes"
 			/>
 
 			{listQ.error ? (
@@ -128,12 +128,12 @@ export const PendingChanges = () => {
 				<div className="flex flex-col gap-4">
 					{groups.map((group) => (
 						<PendingChangeGroup
-							key={group.key}
-							group={group}
 							busyId={busyId}
+							group={group}
+							key={group.key}
 							onApprove={handleApprove}
-							onReject={handleReject}
 							onOpen={openDetail}
+							onReject={handleReject}
 						/>
 					))}
 				</div>
@@ -142,18 +142,18 @@ export const PendingChanges = () => {
 			{actionDialog.item && (
 				<ConfirmDialog
 					{...actionDialog.dialogProps}
-					title={
-						actionDialog.item.kind === "approve"
-							? "Approve this change?"
-							: "Reject this change?"
+					confirmLabel={
+						actionDialog.item.kind === "approve" ? "Approve & publish" : "Reject"
 					}
 					description={
 						actionDialog.item.kind === "approve"
 							? "The pending change will be merged into the live record."
 							: "The pending change will be discarded. The submitting user will need to redo their edits."
 					}
-					confirmLabel={
-						actionDialog.item.kind === "approve" ? "Approve & publish" : "Reject"
+					title={
+						actionDialog.item.kind === "approve"
+							? "Approve this change?"
+							: "Reject this change?"
 					}
 					variant={actionDialog.item.kind === "reject" ? "danger" : "default"}
 					onConfirm={confirmAction}

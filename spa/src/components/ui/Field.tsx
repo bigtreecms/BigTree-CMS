@@ -6,21 +6,6 @@ export type FieldSize = "sm" | "md";
 export const RequiredMarker = () => <span className="text-danger"> *</span>;
 
 interface FieldProps {
-	/** Visible label. Optional — omit for an unlabeled wrapper (e.g. a control that only needs a hint). */
-	label?: ReactNode;
-	error?: string;
-	/** Helper text shown under the control (above the error, if any). */
-	hint?: ReactNode;
-	/**
-	 * Subtle helper rendered inline after the label (`font-normal text-text-3`) —
-	 * the resource-designer treatment, where a short hint sits on the label line
-	 * rather than below the control.
-	 */
-	inlineHint?: ReactNode;
-	/** Appends a danger-colored asterisk to the label. */
-	required?: boolean;
-	/** Label text size: `md` (default, `text-[12px]`) or `sm` (`text-[11.5px]`, the denser designer controls). */
-	size?: FieldSize;
 	/**
 	 * Wrapper element. `label` (default) wraps the control in a `<label>` so it is
 	 * associated automatically; `div` renders a `<div>` + a `FieldLabel as="span"`
@@ -30,6 +15,21 @@ interface FieldProps {
 	as?: "label" | "div";
 	children: ReactNode;
 	className?: string;
+	error?: string;
+	/** Helper text shown under the control (above the error, if any). */
+	hint?: ReactNode;
+	/**
+	 * Subtle helper rendered inline after the label (`font-normal text-text-3`) —
+	 * the resource-designer treatment, where a short hint sits on the label line
+	 * rather than below the control.
+	 */
+	inlineHint?: ReactNode;
+	/** Visible label. Optional — omit for an unlabeled wrapper (e.g. a control that only needs a hint). */
+	label?: ReactNode;
+	/** Appends a danger-colored asterisk to the label. */
+	required?: boolean;
+	/** Label text size: `md` (default, `text-[12px]`) or `sm` (`text-[11.5px]`, the denser designer controls). */
+	size?: FieldSize;
 }
 
 /**
@@ -51,19 +51,19 @@ const labelToneClass = {
 } as const;
 
 interface FieldLabelProps {
+	/** Render as a `<span>` (default, for a label above a custom control) or a `<label htmlFor>`. */
+	as?: "label" | "span";
 	children: ReactNode;
+	className?: string;
+	htmlFor?: string;
+	/** Subtle helper rendered inline after the label (`font-normal text-text-3`). */
+	inlineHint?: ReactNode;
+	/** Appends a danger-colored asterisk. */
+	required?: boolean;
 	/** Label text size: `md` (default, `text-[12px]`) or `sm` (`text-[11.5px]`). */
 	size?: FieldSize;
 	/** Color tier: `default` (`text-text-2`) or `muted` (`text-text-3`, de-emphasized filter labels). */
 	tone?: keyof typeof labelToneClass;
-	/** Appends a danger-colored asterisk. */
-	required?: boolean;
-	/** Subtle helper rendered inline after the label (`font-normal text-text-3`). */
-	inlineHint?: ReactNode;
-	/** Render as a `<span>` (default, for a label above a custom control) or a `<label htmlFor>`. */
-	as?: "label" | "span";
-	htmlFor?: string;
-	className?: string;
 }
 
 /**
@@ -98,7 +98,7 @@ export const FieldLabel = ({
 
 	if (as === "label") {
 		return (
-			<label htmlFor={htmlFor} className={classes}>
+			<label className={classes} htmlFor={htmlFor}>
 				{content}
 			</label>
 		);
@@ -123,7 +123,7 @@ export const Field = ({
 	const body = (
 		<>
 			{label && (
-				<FieldLabel size={size} required={required} inlineHint={inlineHint}>
+				<FieldLabel inlineHint={inlineHint} required={required} size={size}>
 					{label}
 				</FieldLabel>
 			)}

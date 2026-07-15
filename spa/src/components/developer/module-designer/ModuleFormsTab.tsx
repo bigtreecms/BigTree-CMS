@@ -106,19 +106,19 @@ export const ModuleFormsTab = ({ moduleId, moduleTable }: ModuleFormsTabProps) =
 	return (
 		<div className="space-y-3">
 			<SubList
-				isLoading={crud.isLoading}
-				loadingLabel="Loading forms…"
 				emptyLabel="No forms yet. A form defines the add/edit screen for this module's entries."
 				isEmpty={crud.items.length === 0}
+				isLoading={crud.isLoading}
+				loadingLabel="Loading forms…"
 			>
 				{crud.items.map((f) => (
 					<SubRow
-						key={f.id}
-						title={f.title}
-						subtitle={f.table}
 						badge={`${Array.isArray(f.fields) ? f.fields.length : 0} fields`}
-						onEdit={() => crud.startEdit(f.id)}
+						key={f.id}
+						subtitle={f.table}
+						title={f.title}
 						onDelete={() => deleteDialog.open(f)}
+						onEdit={() => crud.startEdit(f.id)}
 					/>
 				))}
 			</SubList>
@@ -127,6 +127,8 @@ export const ModuleFormsTab = ({ moduleId, moduleTable }: ModuleFormsTabProps) =
 
 			{crud.editingId !== null && (
 				<EditorCard
+					saveLabel={crud.editingId === NEW_ROW ? "Create form" : "Save form"}
+					saving={crud.saving}
 					title={editorTitle}
 					onClose={crud.cancel}
 					onSave={() => {
@@ -141,75 +143,73 @@ export const ModuleFormsTab = ({ moduleId, moduleTable }: ModuleFormsTabProps) =
 							Object.keys(sErrors).length > 0
 						);
 					}}
-					saving={crud.saving}
-					saveLabel={crud.editingId === NEW_ROW ? "Create form" : "Save form"}
 				>
 					<FieldGrid>
 						<TextInput
+							required
+							error={crud.fieldErrors.title}
 							label="Title"
 							value={draft.title}
 							onChange={(v) => setDraft((p) => ({ ...p, title: v }))}
-							error={crud.fieldErrors.title}
-							required
 						/>
 						<DataTableSelect
+							required
+							error={crud.fieldErrors.table}
 							label="Data table"
 							value={draft.table}
 							onChange={(v) => setDraft((p) => ({ ...p, table: v }))}
-							error={crud.fieldErrors.table}
-							required
 						/>
 						<SelectInput
+							hint="Which view to show after a save."
 							label="Return view"
+							options={viewOptions}
 							value={draft.return_view}
 							onChange={(v) => setDraft((p) => ({ ...p, return_view: v }))}
-							options={viewOptions}
-							hint="Which view to show after a save."
 						/>
 						<TextInput
+							mono
+							hint="Overrides the return view with an explicit URL."
 							label="Return URL"
 							value={draft.return_url}
 							onChange={(v) => setDraft((p) => ({ ...p, return_url: v }))}
-							hint="Overrides the return view with an explicit URL."
-							mono
 						/>
 						<TextInput
+							hint="Default value for a positioned table's sort column."
 							label="Default position"
 							value={draft.default_position}
 							onChange={(v) => setDraft((p) => ({ ...p, default_position: v }))}
-							hint="Default value for a positioned table's sort column."
 						/>
 					</FieldGrid>
 
 					<div className="flex flex-wrap gap-5">
 						<CheckboxInput
-							label="Enable tagging"
 							checked={draft.tagging}
+							label="Enable tagging"
 							onChange={(v) => setDraft((p) => ({ ...p, tagging: v }))}
 						/>
 						<CheckboxInput
-							label="Open Graph fields"
 							checked={draft.open_graph}
+							label="Open Graph fields"
 							onChange={(v) => setDraft((p) => ({ ...p, open_graph: v }))}
 						/>
 					</div>
 
 					<ModuleFieldsSection
-						fields={draft.fields}
-						onFieldsChange={(next) => setDraft((p) => ({ ...p, fields: next }))}
-						settingsErrors={settingsErrors}
 						columnsTable={draft.table}
+						fields={draft.fields}
 						hooks={draft.hooks}
+						settingsErrors={settingsErrors}
+						onFieldsChange={(next) => setDraft((p) => ({ ...p, fields: next }))}
 						onHooksChange={(v) => setDraft((p) => ({ ...p, hooks: v }))}
 					/>
 				</EditorCard>
 			)}
 
 			<SubDeleteDialog
-				dialog={deleteDialog}
-				noun="form"
-				labelFor={(f) => f.title}
 				description="Actions that open this form will need to be repointed. Entry data in the module's table is left intact."
+				dialog={deleteDialog}
+				labelFor={(f) => f.title}
+				noun="form"
 				onConfirm={(id) => crud.remove(id)}
 			/>
 		</div>

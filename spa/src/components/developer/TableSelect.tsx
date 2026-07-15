@@ -6,14 +6,14 @@ import { auditApi } from "@/api/endpoints/audit";
 import { queryKeys } from "@/lib/queryKeys";
 
 interface TableSelectProps {
-	/** Selected table name, or null when nothing is chosen. */
-	value: string | null;
-	onChange: (table: string | null) => void;
-	placeholder?: string;
-	disabled?: boolean;
-	id?: string;
 	ariaLabel?: string;
 	className?: string;
+	disabled?: boolean;
+	id?: string;
+	onChange: (table: string | null) => void;
+	placeholder?: string;
+	/** Selected table name, or null when nothing is chosen. */
+	value: string | null;
 }
 
 /**
@@ -45,17 +45,17 @@ export const TableSelect = ({
 
 	return (
 		<Combobox<string>
-			value={selected}
-			onChange={(option) => onChange(option ? option.value : null)}
-			options={options}
-			isLoading={tablesQ.isLoading}
-			placeholder={placeholder}
-			searchPlaceholder="Search tables…"
-			emptyLabel="No tables found."
-			disabled={disabled}
-			id={id}
 			ariaLabel={ariaLabel}
 			className={className}
+			disabled={disabled}
+			emptyLabel="No tables found."
+			id={id}
+			isLoading={tablesQ.isLoading}
+			options={options}
+			placeholder={placeholder}
+			searchPlaceholder="Search tables…"
+			value={selected}
+			onChange={(option) => onChange(option ? option.value : null)}
 		/>
 	);
 };

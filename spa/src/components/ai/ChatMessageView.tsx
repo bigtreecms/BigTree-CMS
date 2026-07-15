@@ -7,30 +7,30 @@ import { ProposalCard } from "./ProposalCard";
 
 /** A single rendered turn — a persisted message or an in-flight placeholder. */
 export interface ChatEntry {
-	id: string | number;
-	role: "user" | "assistant";
-	content: string;
-	tool_activity?: ChatToolActivity[];
 	artifacts?: SearchResultGroups;
-	proposals?: ChatProposal[];
+	content: string;
+	id: string | number;
 	/** Assistant placeholder shown while the turn is still computing. */
 	pending?: boolean;
+	proposals?: ChatProposal[];
+	role: "user" | "assistant";
+	tool_activity?: ChatToolActivity[];
 }
 
 interface ChatMessageViewProps {
-	entry: ChatEntry;
-	/** Close the panel after following an artifact link. */
-	onNavigate: () => void;
-	/** Approve a staged proposal by id. */
-	onApproveProposal: (id: string) => void;
-	/** Reject a staged proposal by id. */
-	onRejectProposal: (id: string) => void;
 	/** proposal_id currently being approved/rejected, if any. */
 	busyProposalId?: string | null;
+	entry: ChatEntry;
+	/** Approve a staged proposal by id. */
+	onApproveProposal: (id: string) => void;
+	/** Close the panel after following an artifact link. */
+	onNavigate: () => void;
+	/** Reject a staged proposal by id. */
+	onRejectProposal: (id: string) => void;
 }
 
 const ThinkingDots = () => (
-	<span className="inline-flex items-center gap-1" aria-label="Thinking">
+	<span aria-label="Thinking" className="inline-flex items-center gap-1">
 		<span className="size-1.5 animate-bounce rounded-full bg-text-3 [animation-delay:-0.3s]" />
 		<span className="size-1.5 animate-bounce rounded-full bg-text-3 [animation-delay:-0.15s]" />
 		<span className="size-1.5 animate-bounce rounded-full bg-text-3" />
@@ -66,7 +66,7 @@ export const ChatMessageView = ({
 				{activity.length > 0 && (
 					<div className="mb-1.5 flex flex-col gap-0.5">
 						{activity.map((a, i) => (
-							<ToolActivityRow key={`${a.name}-${i}`} activity={a} />
+							<ToolActivityRow activity={a} key={`${a.name}-${i}`} />
 						))}
 					</div>
 				)}
@@ -86,12 +86,12 @@ export const ChatMessageView = ({
 
 				{(entry.proposals ?? []).map((proposal) => (
 					<ProposalCard
+						busy={busyProposalId === proposal.proposal_id}
 						key={proposal.proposal_id}
 						proposal={proposal}
 						onApprove={onApproveProposal}
-						onReject={onRejectProposal}
-						busy={busyProposalId === proposal.proposal_id}
 						onNavigate={onNavigate}
+						onReject={onRejectProposal}
 					/>
 				))}
 			</div>

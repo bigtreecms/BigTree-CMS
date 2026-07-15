@@ -34,15 +34,15 @@ export const States: Story = {
 	render: () => (
 		<div className="space-y-3">
 			<div className="flex flex-wrap items-center gap-2">
-				<StatusBadge tone="success" label="Published" dot />
-				<StatusBadge tone="warn" label="Pending" dot />
-				<StatusBadge tone="info" label="Scheduled" dot />
-				<StatusBadge tone="neutral" label="Archived" dot />
+				<StatusBadge dot label="Published" tone="success" />
+				<StatusBadge dot label="Pending" tone="warn" />
+				<StatusBadge dot label="Scheduled" tone="info" />
+				<StatusBadge dot label="Archived" tone="neutral" />
 			</div>
 			<div className="flex flex-wrap items-center gap-4">
-				<StatusBadge variant="text" tone="success" label="Published" />
-				<StatusBadge variant="text" tone="warn" label="Changed" />
-				<StatusBadge variant="text" tone="neutral" label="Inactive" />
+				<StatusBadge label="Published" tone="success" variant="text" />
+				<StatusBadge label="Changed" tone="warn" variant="text" />
+				<StatusBadge label="Inactive" tone="neutral" variant="text" />
 			</div>
 		</div>
 	),

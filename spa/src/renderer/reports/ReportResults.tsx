@@ -19,9 +19,9 @@ import { formatCellValue } from "@/renderer/views/viewHelpers";
  */
 
 interface ReportResultsProps {
-	results: ModuleReportRunResponse;
-	onDownloadCsv: () => void;
 	downloadIcon: ReactNode;
+	onDownloadCsv: () => void;
+	results: ModuleReportRunResponse;
 }
 
 export const ReportResults = ({ results, onDownloadCsv, downloadIcon }: ReportResultsProps) => {
@@ -68,7 +68,7 @@ export const ReportResults = ({ results, onDownloadCsv, downloadIcon }: ReportRe
 
 			<DataTable<Record<string, unknown>>
 				columns={columns}
-				rows={items}
+				emptyLabel="No matching rows."
 				getRowKey={(row) => {
 					const id = row.id;
 
@@ -78,7 +78,7 @@ export const ReportResults = ({ results, onDownloadCsv, downloadIcon }: ReportRe
 
 					return JSON.stringify(row);
 				}}
-				emptyLabel="No matching rows."
+				rows={items}
 			/>
 		</div>
 	);

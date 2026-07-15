@@ -84,8 +84,8 @@ export const CustomField = (props: FieldComponentProps) => {
 					key={schema.asset_url}
 					{...moduleProps}
 					assetUrl={schema.asset_url}
-					integrity={schema.integrity ?? ""}
 					contractVersion={HOST_CONTRACT_VERSION}
+					integrity={schema.integrity ?? ""}
 				/>
 			);
 		}

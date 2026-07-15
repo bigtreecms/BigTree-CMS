@@ -71,10 +71,10 @@ const FileThumb = ({ resource }: FileThumbProps) => {
 	if (resource.is_image && resource.file) {
 		return (
 			<img
-				src={expandImageUrl(resource.file)}
 				alt=""
 				className="size-9 rounded object-cover ring-1 ring-border"
 				loading="lazy"
+				src={expandImageUrl(resource.file)}
 			/>
 		);
 	}
@@ -82,7 +82,7 @@ const FileThumb = ({ resource }: FileThumbProps) => {
 	const Icon = resource.is_video ? Film : FileIcon;
 
 	return (
-		<IconTile tone="neutral" ringed>
+		<IconTile ringed tone="neutral">
 			{resource.is_image ? <ImageIcon size={16} /> : <Icon size={16} />}
 		</IconTile>
 	);
@@ -270,9 +270,9 @@ export const Files = () => {
 						<div className="flex items-center justify-end gap-1">
 							<IconButton
 								className="disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-text-3"
-								title="Rename folder"
-								label="Rename folder"
 								disabled={!canEdit}
+								label="Rename folder"
+								title="Rename folder"
 								onClick={(e) => {
 									e.stopPropagation();
 									setFolderEditor(row.folder);
@@ -281,11 +281,11 @@ export const Files = () => {
 								<Edit size={15} />
 							</IconButton>
 							<IconButton
-								tone="danger"
 								className="disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-text-3"
-								title="Delete folder"
-								label="Delete folder"
 								disabled={!canEdit}
+								label="Delete folder"
+								title="Delete folder"
+								tone="danger"
 								onClick={(e) => {
 									e.stopPropagation();
 									deleteFolderDialog.open(row.folder);
@@ -300,8 +300,8 @@ export const Files = () => {
 				return (
 					<div className="flex items-center justify-end gap-1">
 						<IconButton
-							title="View file"
 							label="View file"
+							title="View file"
 							onClick={(e) => {
 								e.stopPropagation();
 								setDetailResourceId(row.resource.id);
@@ -332,8 +332,6 @@ export const Files = () => {
 			<Breadcrumb items={breadcrumbItems} />
 
 			<PageHead
-				title="Files"
-				sub={sub}
 				actions={
 					canCreateFolder && !isSearching ? (
 						<>
@@ -352,6 +350,8 @@ export const Files = () => {
 						</>
 					) : undefined
 				}
+				sub={sub}
+				title="Files"
 			/>
 
 			{canUpload && !isSearching && (
@@ -361,64 +361,64 @@ export const Files = () => {
 			<Toolbar
 				search={
 					<SearchInput
+						placeholder="Search files by name…"
 						value={query}
 						onChange={setQuery}
-						placeholder="Search files by name…"
 					/>
 				}
 			/>
 
 			<DataTable<Row>
 				columns={columns}
-				rows={rows}
-				getRowKey={rowKey}
-				isLoading={loading}
-				loadingLabel={isSearching ? "Searching…" : "Loading files…"}
 				emptyLabel={
 					isSearching ? `No files match "${debounced}".` : "This folder is empty."
 				}
+				getRowKey={rowKey}
+				isLoading={loading}
+				loadingLabel={isSearching ? "Searching…" : "Loading files…"}
+				rows={rows}
 				onRowClick={handleRowClick}
 			/>
 
 			<FolderEditor
+				folder={folderEditor && folderEditor !== "new" ? folderEditor : null}
+				invalidateKey={queryKeys.resourceFolders.contents(folderId)}
 				open={folderEditor !== null}
+				parentId={folderId}
 				onOpenChange={(open) => {
 					if (!open) {
 						setFolderEditor(null);
 					}
 				}}
-				parentId={folderId}
-				folder={folderEditor && folderEditor !== "new" ? folderEditor : null}
-				invalidateKey={queryKeys.resourceFolders.contents(folderId)}
 			/>
 
 			{deleteFolderDialog.item && (
 				<ConfirmDialog
 					{...deleteFolderDialog.dialogProps}
-					title={`Delete "${deleteFolderDialog.item.name}"?`}
-					description="Subfolders and files inside this folder will be moved up one level — they won't be deleted. This action cannot be undone."
 					confirmLabel="Delete folder"
+					description="Subfolders and files inside this folder will be moved up one level — they won't be deleted. This action cannot be undone."
+					title={`Delete "${deleteFolderDialog.item.name}"?`}
 					variant="danger"
 					onConfirm={() => deleteFolderMutation.mutate(deleteFolderDialog.item!)}
 				/>
 			)}
 
 			<FileDetail
+				folderQueryKey={queryKeys.resourceFolders.contents(folderId)}
 				resourceId={detailResourceId}
 				onOpenChange={(open) => {
 					if (!open) {
 						setDetailResourceId(null);
 					}
 				}}
-				folderQueryKey={queryKeys.resourceFolders.contents(folderId)}
 			/>
 
 			<VideoCreator
-				open={videoCreatorOpen}
-				onOpenChange={setVideoCreatorOpen}
 				folderId={folderId}
 				invalidateKey={queryKeys.resourceFolders.contents(folderId)}
+				open={videoCreatorOpen}
 				onCreated={(resource) => setDetailResourceId(resource.id)}
+				onOpenChange={setVideoCreatorOpen}
 			/>
 		</PageContainer>
 	);

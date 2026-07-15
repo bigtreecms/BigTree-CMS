@@ -4,11 +4,11 @@ import { iconFor, MODULE_ICON_SLUGS } from "@/lib/legacyIcons";
 import { IconGridButton } from "./IconGridButton";
 
 interface IconPickerProps {
+	hint?: string;
+	label?: string;
+	onChange: (slug: string) => void;
 	/** Selected icon slug (empty string when none). */
 	value: string;
-	onChange: (slug: string) => void;
-	label?: string;
-	hint?: string;
 }
 
 /**
@@ -27,11 +27,11 @@ export const IconPicker = ({ value, onChange, label = "Icon", hint }: IconPicker
 
 				return (
 					<IconGridButton
-						key={slug}
 						icon={iconFor(slug)}
+						key={slug}
+						label={slug}
 						selected={isActive}
 						onSelect={() => onChange(isActive ? "" : slug)}
-						label={slug}
 					/>
 				);
 			})}

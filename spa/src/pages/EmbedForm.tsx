@@ -13,7 +13,7 @@ export const EmbedForm = () => {
 	const { hash } = useParams<{ hash: string }>();
 
 	if (!hash) {
-		return <Navigate to="/" replace />;
+		return <Navigate replace to="/" />;
 	}
 
 	return <EmbedFormRenderer hash={hash} />;

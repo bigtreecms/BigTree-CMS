@@ -40,12 +40,12 @@ interface SortField {
 }
 
 interface ReportFilterFormProps {
-	filters: FilterEntry[];
 	filterOptions: Record<string, ModuleReportFilterOption[]>;
-	sortFields: SortField[];
-	reportType: "view" | "csv";
-	submitting?: boolean;
+	filters: FilterEntry[];
 	onSubmit: (values: ReportFilterFormValues) => void;
+	reportType: "view" | "csv";
+	sortFields: SortField[];
+	submitting?: boolean;
 }
 
 export const ReportFilterForm = ({
@@ -103,15 +103,15 @@ export const ReportFilterForm = ({
 		<Card as="form" padding="sm" onSubmit={handleSubmit}>
 			<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
 				{filters.map(({ column, filter }) => (
-					<div key={column} className="flex flex-col gap-1.5">
+					<div className="flex flex-col gap-1.5" key={column}>
 						<label className="text-[12px] font-medium text-text-2">
 							{filter.title}
 						</label>
 						<FilterInput
 							column={column}
 							filter={filter}
-							value={values[column]}
 							options={filterOptions[column] ?? []}
+							value={values[column]}
 							onChange={(next) => setValue(column, next)}
 							onRangeChange={(key, next) => setRange(column, key, next)}
 						/>
@@ -120,14 +120,14 @@ export const ReportFilterForm = ({
 
 				<div className="flex flex-col gap-1.5">
 					<label
-						htmlFor="report-sort-field"
 						className="text-[12px] font-medium text-text-2"
+						htmlFor="report-sort-field"
 					>
 						Sort By
 					</label>
 					<Select
-						id="report-sort-field"
 						compact
+						id="report-sort-field"
 						value={sortField}
 						onChange={(e) => setSortField(e.target.value)}
 					>
@@ -141,14 +141,14 @@ export const ReportFilterForm = ({
 
 				<div className="flex flex-col gap-1.5">
 					<label
-						htmlFor="report-sort-order"
 						className="text-[12px] font-medium text-text-2"
+						htmlFor="report-sort-order"
 					>
 						Sort Order
 					</label>
 					<Select
-						id="report-sort-order"
 						compact
+						id="report-sort-order"
 						value={sortOrder}
 						onChange={(e) => setSortOrder(e.target.value as "ASC" | "DESC")}
 					>
@@ -160,10 +160,10 @@ export const ReportFilterForm = ({
 
 			<div className="mt-4 flex items-center justify-end">
 				<Button
-					type="submit"
-					variant="primary"
 					loading={submitting}
 					loadingLabel="Running…"
+					type="submit"
+					variant="primary"
 				>
 					{reportType === "csv" ? "Export CSV" : "Run Report"}
 				</Button>
@@ -175,10 +175,10 @@ export const ReportFilterForm = ({
 interface FilterInputProps {
 	column: string;
 	filter: ModuleReportFilter;
-	value: unknown;
-	options: ModuleReportFilterOption[];
 	onChange: (next: unknown) => void;
 	onRangeChange: (key: "start" | "end", next: string) => void;
+	options: ModuleReportFilterOption[];
+	value: unknown;
 }
 
 const FilterInput = ({
@@ -243,8 +243,8 @@ const FilterInput = ({
 				<div className="flex flex-col gap-1">
 					<TextInput
 						compact
-						type="date"
 						aria-label={`${column} start date`}
+						type="date"
 						value={range.start ?? ""}
 						onChange={(e) => onRangeChange("start", e.target.value)}
 					/>
@@ -253,8 +253,8 @@ const FilterInput = ({
 				<div className="flex flex-col gap-1">
 					<TextInput
 						compact
-						type="date"
 						aria-label={`${column} end date`}
+						type="date"
 						value={range.end ?? ""}
 						onChange={(e) => onRangeChange("end", e.target.value)}
 					/>

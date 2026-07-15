@@ -8,13 +8,13 @@ import type { LockOwner } from "@/types/api-resources";
  */
 
 export interface LockHandle {
-	lock_id: number;
 	expires_at: string;
+	lock_id: number;
 }
 
 export interface LockConflictDetails {
-	locked_by: LockOwner | null;
 	last_accessed: string;
+	locked_by: LockOwner | null;
 }
 
 export const locksApi = {

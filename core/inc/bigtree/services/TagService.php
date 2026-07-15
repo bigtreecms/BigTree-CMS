@@ -136,8 +136,8 @@
 		}
 
 		private function normalize($t) {
-
-			return strtolower(trim(preg_replace('/[^a-zA-Z0-9]/', '', $t)));
+			// Match legacy BigTreeAdmin::createTag — keep spaces, strip other non-alnum.
+			return strtolower(trim(preg_replace('/[^a-zA-Z0-9 ]/', '', $t)));
 		}
 
 		private function uniqueRoute($base) {

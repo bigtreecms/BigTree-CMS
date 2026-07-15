@@ -12,17 +12,17 @@ import {
 import { formatNumber } from "@/lib/number";
 
 interface MetricComparisonProps {
-	title: string;
-	rangeLabel: string;
 	current: AnalyticsCachePeriod | undefined;
+	rangeLabel: string;
+	title: string;
 	yearAgo: AnalyticsCachePeriod | undefined;
 }
 
 interface Metric {
-	label: string;
-	present: string;
-	past: string;
 	growth: GrowthResult;
+	label: string;
+	past: string;
+	present: string;
 }
 
 const TONE_CLASS: Record<GrowthResult["tone"], string> = {
@@ -74,11 +74,11 @@ export const MetricComparison = ({
 
 	return (
 		<Card className="overflow-hidden">
-			<CardHeader title={title} description={rangeLabel} />
+			<CardHeader description={rangeLabel} title={title} />
 
 			<div className="grid grid-cols-2 gap-px bg-border md:grid-cols-4">
 				{metrics.map((m) => (
-					<div key={m.label} className="bg-surface px-4 py-3">
+					<div className="bg-surface px-4 py-3" key={m.label}>
 						<div className="flex items-center justify-between">
 							<SectionLabel as="span" size="sm">
 								{m.label}

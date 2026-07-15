@@ -10,16 +10,16 @@ import type { ControlProps } from "./types";
  */
 export const IntControl = ({ descriptor, settings, onPatch }: ControlProps) => (
 	<ControlShell
-		label={descriptor.label}
 		hint={descriptor.hint}
+		label={descriptor.label}
 		note={descriptor.note}
 		required={descriptor.required}
 	>
 		<TextInput
 			dense
 			inputMode="numeric"
-			value={String(settings[descriptor.id] ?? "")}
 			placeholder={descriptor.placeholder}
+			value={String(settings[descriptor.id] ?? "")}
 			onChange={(e) => onPatch({ [descriptor.id]: e.target.value.replace(/[^0-9]/g, "") })}
 		/>
 	</ControlShell>

@@ -36,12 +36,12 @@ export const ModuleView = ({ viewId }: ModuleViewProps) => {
 	return (
 		<>
 			<PageHead
-				title={view?.title ?? module?.name ?? "View"}
 				sub={view?.description ? view.description : undefined}
+				title={view?.title ?? module?.name ?? "View"}
 			/>
 
 			{viewsQuery.isLoading ? (
-				<Loading variant="card" label="Loading view…" />
+				<Loading label="Loading view…" variant="card" />
 			) : !view ? (
 				<EmptyState>That view doesn't exist on this module.</EmptyState>
 			) : (

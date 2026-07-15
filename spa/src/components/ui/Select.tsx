@@ -22,7 +22,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
 		const base = inputClassFor({ dense, compact });
 
 		return (
-			<select ref={ref} className={className ? `${base} ${className}` : base} {...rest}>
+			<select className={className ? `${base} ${className}` : base} ref={ref} {...rest}>
 				{children}
 			</select>
 		);

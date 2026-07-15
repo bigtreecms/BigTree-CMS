@@ -37,23 +37,29 @@ import { validateRequiredFields } from "./validation";
  */
 
 export interface FormRendererProps {
-	form: ModuleForm;
-	initialValues?: Record<string, unknown>;
-	onSubmit: (
-		values: Record<string, unknown>,
-		opts?: { publish?: boolean }
-	) => Promise<unknown> | unknown;
-	onCancel?: () => void;
-	submitLabel?: string;
 	/**
 	 * When true, render a second primary button ("Save & Publish") that submits
 	 * with `{ publish: true }`. Gate this on the caller's publisher access.
 	 */
 	canPublish?: boolean;
-	publishLabel?: string;
-	secondaryAction?: ReactNode;
 	disabled?: boolean;
+	/**
+	 * Numeric entry id when editing an existing row; omit for create.
+	 * ManyToManyField uses this to load its initial selections from the
+	 * connecting table (the entry payload doesn't carry MTM data inline).
+	 */
+	entryId?: number | null;
+	form: ModuleForm;
 	header?: ReactNode;
+	/** The entry's Open Graph data (forms with `open_graph` enabled). */
+	initialOpenGraph?: OpenGraphValue | null;
+	/**
+	 * The entry's current tags (forms with `tagging` enabled). Submitted as
+	 * `__tags__` ids; the server replaces the entry's tag set wholesale, so
+	 * callers should always pass what the entry currently has.
+	 */
+	initialTags?: Tag[];
+	initialValues?: Record<string, unknown>;
 	/**
 	 * Owning module id. Required by relation-style fields (one-to-many /
 	 * many-to-many) so they can hit the relation-options endpoint. Optional
@@ -61,22 +67,21 @@ export interface FormRendererProps {
 	 * renderer without a module behind it.
 	 */
 	moduleId?: string;
-	/**
-	 * Numeric entry id when editing an existing row; omit for create.
-	 * ManyToManyField uses this to load its initial selections from the
-	 * connecting table (the entry payload doesn't carry MTM data inline).
-	 */
-	entryId?: number | null;
+	onCancel?: () => void;
+	onSubmit: (
+		values: Record<string, unknown>,
+		opts?: { publish?: boolean }
+	) => Promise<unknown> | unknown;
 	/**
 	 * Columns whose draft value differs from the published content. Each gets a
 	 * "Pending" badge and a published-vs-draft comparison toggle.
 	 */
 	pendingFields?: string[];
 	/**
-	 * Published (live) values keyed by column, for the comparison panel. Null
-	 * when the entry has never been published (a brand-new draft).
+	 * Heading for the draft side of each field comparison, attributed to the
+	 * pending change's owner (e.g. "Your draft" / "Draft by Jane").
 	 */
-	publishedValues?: Record<string, unknown> | null;
+	pendingLabel?: string;
 	/**
 	 * Pending state of the loaded entry, if any: "updated" = a live row with a
 	 * queued edit overlaid; "pending" = a never-published new draft. Drives the
@@ -84,18 +89,13 @@ export interface FormRendererProps {
 	 */
 	pendingStatus?: "updated" | "pending";
 	/**
-	 * Heading for the draft side of each field comparison, attributed to the
-	 * pending change's owner (e.g. "Your draft" / "Draft by Jane").
+	 * Published (live) values keyed by column, for the comparison panel. Null
+	 * when the entry has never been published (a brand-new draft).
 	 */
-	pendingLabel?: string;
-	/**
-	 * The entry's current tags (forms with `tagging` enabled). Submitted as
-	 * `__tags__` ids; the server replaces the entry's tag set wholesale, so
-	 * callers should always pass what the entry currently has.
-	 */
-	initialTags?: Tag[];
-	/** The entry's Open Graph data (forms with `open_graph` enabled). */
-	initialOpenGraph?: OpenGraphValue | null;
+	publishedValues?: Record<string, unknown> | null;
+	publishLabel?: string;
+	secondaryAction?: ReactNode;
+	submitLabel?: string;
 }
 
 export const FormRenderer = ({
@@ -266,7 +266,7 @@ export const FormRenderer = ({
 
 			<div className="p-4">
 				{generalError && (
-					<Alert tone="danger" className="mb-4">
+					<Alert className="mb-4" tone="danger">
 						{generalError}
 					</Alert>
 				)}
@@ -292,16 +292,16 @@ export const FormRenderer = ({
 				) : (
 					form.fields.map((field) => (
 						<FieldRowItem
-							key={field.column}
-							field={field}
-							value={values[field.column]}
-							setFieldValue={setFieldValue}
-							error={fieldErrors[field.column]}
 							disabled={disabled || submitting}
-							pending={pendingSet.has(field.column)}
+							error={fieldErrors[field.column]}
+							field={field}
 							isNew={isNewDraft}
-							publishedValue={publishedValues?.[field.column]}
+							key={field.column}
+							pending={pendingSet.has(field.column)}
 							pendingLabel={pendingLabel}
+							publishedValue={publishedValues?.[field.column]}
+							setFieldValue={setFieldValue}
+							value={values[field.column]}
 						/>
 					))
 				)}
@@ -311,44 +311,44 @@ export const FormRenderer = ({
 						<FieldLabel>Tags</FieldLabel>
 						<TagInput
 							multiple
-							value={tags}
-							onChange={setTags}
 							disabled={disabled || submitting}
 							placeholder="Search for or add tags…"
+							value={tags}
+							onChange={setTags}
 						/>
 					</div>
 				)}
 
 				{showOpenGraph && (
 					<OpenGraphSection
+						disabled={disabled || submitting}
 						value={openGraph}
 						onChange={setOpenGraph}
-						disabled={disabled || submitting}
 					/>
 				)}
 			</div>
 
 			<div className="sticky bottom-0 flex flex-wrap items-center justify-end gap-2 border-t border-border bg-surface-2 px-4 py-3">
 				{onCancel && (
-					<Button onClick={onCancel} disabled={submitting}>
+					<Button disabled={submitting} onClick={onCancel}>
 						Cancel
 					</Button>
 				)}
 				{secondaryAction}
 				<Button
-					type="submit"
-					variant={canPublish ? "secondary" : "primary"}
+					disabled={disabled}
 					loading={submitting}
 					loadingLabel="Saving…"
-					disabled={disabled}
+					type="submit"
+					variant={canPublish ? "secondary" : "primary"}
 				>
 					{submitLabel}
 				</Button>
 				{canPublish && (
 					<Button
+						disabled={submitting || disabled}
 						variant="primary"
 						onClick={(e) => handleSubmit(e, true)}
-						disabled={submitting || disabled}
 					>
 						{publishLabel}
 					</Button>
@@ -410,10 +410,10 @@ interface MtmFieldSettings {
 }
 
 interface MtmSubmissionEntry {
-	table: string;
+	data: Array<number | string>;
 	"my-id": string;
 	"other-id": string;
-	data: Array<number | string>;
+	table: string;
 }
 
 /**

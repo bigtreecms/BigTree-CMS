@@ -3,12 +3,12 @@ import { X } from "lucide-react";
 import type { ReactNode } from "react";
 
 interface SlideOverProps {
-	open: boolean;
-	onOpenChange: (open: boolean) => void;
-	title: string;
-	description?: string;
 	children: ReactNode;
+	description?: string;
 	footer?: ReactNode;
+	onOpenChange: (open: boolean) => void;
+	open: boolean;
+	title: string;
 	width?: "sm" | "md" | "lg" | "xl";
 }
 
@@ -54,8 +54,8 @@ export const SlideOver = ({
 						</div>
 
 						<Dialog.Close
-							className="relative rounded-md p-1 text-text-3 before:absolute before:-inset-2 before:content-[''] hover:bg-hover hover:text-text"
 							aria-label="Close"
+							className="relative rounded-md p-1 text-text-3 before:absolute before:-inset-2 before:content-[''] hover:bg-hover hover:text-text"
 						>
 							<X size={16} />
 						</Dialog.Close>

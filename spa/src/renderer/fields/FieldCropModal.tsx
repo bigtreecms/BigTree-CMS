@@ -9,15 +9,15 @@ import { expandImageUrl } from "@/lib/imageUrl";
 import { toast } from "@/lib/toast";
 
 interface FieldCropModalProps {
-	open: boolean;
-	/** Stored original path the crops are drawn from (raw `{wwwroot}` path). */
-	file: string;
 	/** Crops the server couldn't auto-generate; walked one at a time. */
 	crops: PendingCrop[];
-	/** All crops finalized. */
-	onComplete: () => void;
+	/** Stored original path the crops are drawn from (raw `{wwwroot}` path). */
+	file: string;
 	/** User dismissed before finishing (original stays, crops are incomplete). */
 	onCancel: () => void;
+	/** All crops finalized. */
+	onComplete: () => void;
+	open: boolean;
 }
 
 /**
@@ -110,31 +110,21 @@ export const FieldCropModal = ({
 
 	return (
 		<Modal
-			open={open}
-			onOpenChange={(next) => {
-				if (!next && !busy) {
-					onCancel();
-				}
-			}}
-			title={crops.length > 1 ? `Crop image ${index + 1} of ${crops.length}` : "Crop image"}
 			description={`Position the ${current.width}×${current.height}${current.retina ? " (retina)" : ""} crop. Drag to move, scroll or use the slider to zoom.`}
-			size="xl"
-			layout="bars"
-			scrim="dark"
 			footer={
 				<div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-					<label htmlFor="field-crop-zoom" className="text-[11.5px] text-text-3">
+					<label className="text-[11.5px] text-text-3" htmlFor="field-crop-zoom">
 						Zoom
 					</label>
 					<input
+						className="w-32 max-w-full accent-accent sm:w-40"
 						id="field-crop-zoom"
-						type="range"
-						min={1}
 						max={4}
+						min={1}
 						step={0.05}
+						type="range"
 						value={imageCrop.zoom}
 						onChange={(e) => imageCrop.setZoom(parseFloat(e.target.value))}
-						className="w-32 max-w-full accent-accent sm:w-40"
 					/>
 
 					{tooSmall && (
@@ -144,27 +134,37 @@ export const FieldCropModal = ({
 					)}
 
 					<div className="ml-auto flex items-center gap-2">
-						<Button variant="secondary" onClick={onCancel} disabled={busy}>
+						<Button disabled={busy} variant="secondary" onClick={onCancel}>
 							Cancel
 						</Button>
 						<Button
-							variant="primary"
-							onClick={finalizeCurrent}
 							disabled={!validCrop}
 							loading={busy}
 							loadingLabel="Cropping…"
+							variant="primary"
+							onClick={finalizeCurrent}
 						>
 							{isLast ? "Finish" : "Crop & continue"}
 						</Button>
 					</div>
 				</div>
 			}
+			layout="bars"
+			open={open}
+			scrim="dark"
+			size="xl"
+			title={crops.length > 1 ? `Crop image ${index + 1} of ${crops.length}` : "Crop image"}
+			onOpenChange={(next) => {
+				if (!next && !busy) {
+					onCancel();
+				}
+			}}
 		>
 			<ImageCropStage
-				image={imageSrc}
 				aspect={aspect}
-				objectFit="contain"
 				controller={imageCrop}
+				image={imageSrc}
+				objectFit="contain"
 			/>
 		</Modal>
 	);

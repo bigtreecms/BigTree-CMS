@@ -33,7 +33,7 @@ export const WithSubAndAction: Story = {
 		title: "Unread messages",
 		sub: "3 unread",
 		action: (
-			<Button variant="secondary" size="sm">
+			<Button size="sm" variant="secondary">
 				View all messages
 				<ChevronRight size={11} />
 			</Button>

@@ -64,9 +64,9 @@ export const ConfigureAnalytics = () => {
 
 	return (
 		<ConfigureLayout
-			title="Analytics"
-			sub="Google Analytics 4 service-account hookup that powers the dashboard's traffic chart."
 			query={detailQ}
+			sub="Google Analytics 4 service-account hookup that powers the dashboard's traffic chart."
+			title="Analytics"
 		>
 			{detailQ.data && (
 				<Card className="p-4">
@@ -89,10 +89,10 @@ export const ConfigureAnalytics = () => {
 							</dl>
 
 							<Button
-								variant="dangerGhost"
 								className="mt-4"
-								onClick={() => setConfirmDisconnect(true)}
 								icon={<Unplug size={13} />}
+								variant="dangerGhost"
+								onClick={() => setConfirmDisconnect(true)}
 							>
 								Disconnect
 							</Button>
@@ -124,12 +124,12 @@ export const ConfigureAnalytics = () => {
 										<UploadButton
 											accept=".json,application/json"
 											disabled={uploadMutation.isPending}
-											onSelect={(file) => uploadMutation.mutate(file)}
 											label={
 												uploadMutation.isPending
 													? "Uploading…"
 													: "Upload key"
 											}
+											onSelect={(file) => uploadMutation.mutate(file)}
 										/>
 									)}
 								</li>
@@ -143,22 +143,22 @@ export const ConfigureAnalytics = () => {
 									</div>
 
 									<div className="flex items-end gap-2">
-										<Field label="GA4 property ID" className="flex-1">
+										<Field className="flex-1" label="GA4 property ID">
 											<TextInput
-												value={propertyId}
 												disabled={!hasCredentials}
 												placeholder="e.g. 123456789"
+												value={propertyId}
 												onChange={(e) => setPropertyId(e.target.value)}
 											/>
 										</Field>
 
 										<Button
-											variant="primary"
 											className="mb-px"
 											disabled={!hasCredentials || !propertyId.trim()}
-											onClick={() => verifyMutation.mutate()}
 											loading={verifyMutation.isPending}
 											loadingLabel="Verifying…"
+											variant="primary"
+											onClick={() => verifyMutation.mutate()}
 										>
 											Verify
 										</Button>
@@ -168,10 +168,10 @@ export const ConfigureAnalytics = () => {
 
 							{hasCredentials && (
 								<Button
-									variant="dangerGhost"
 									className="mt-5"
-									onClick={() => setConfirmDisconnect(true)}
 									icon={<Unplug size={13} />}
+									variant="dangerGhost"
+									onClick={() => setConfirmDisconnect(true)}
 								>
 									Start over
 								</Button>
@@ -184,16 +184,16 @@ export const ConfigureAnalytics = () => {
 			{confirmDisconnect && (
 				<ConfirmDialog
 					open
+					confirmLabel="Disconnect"
+					description="The dashboard's traffic widget will stop showing data until you reconnect."
+					title="Disconnect Google Analytics?"
+					variant="danger"
+					onConfirm={() => disconnectMutation.mutate()}
 					onOpenChange={(open) => {
 						if (!open) {
 							setConfirmDisconnect(false);
 						}
 					}}
-					title="Disconnect Google Analytics?"
-					description="The dashboard's traffic widget will stop showing data until you reconnect."
-					confirmLabel="Disconnect"
-					variant="danger"
-					onConfirm={() => disconnectMutation.mutate()}
 				/>
 			)}
 		</ConfigureLayout>

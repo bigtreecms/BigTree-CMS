@@ -7,8 +7,8 @@ import { useEffect, useRef, useState } from "react";
  * jumpy resize as the field changes from text to input.
  */
 interface EditableTitleProps {
-	value: string;
 	onChange: (next: string) => void;
+	value: string;
 }
 
 export const EditableTitle = ({ value, onChange }: EditableTitleProps) => {
@@ -56,15 +56,18 @@ export const EditableTitle = ({ value, onChange }: EditableTitleProps) => {
 
 	return (
 		<span
-			ref={ref}
-			contentEditable={editing}
 			suppressContentEditableWarning
-			role="textbox"
 			aria-label="Edit title"
 			aria-readonly={!editing}
+			className={`-mx-1 -my-0.5 cursor-pointer truncate   rounded px-1 py-0.5 font-medium text-text hover:bg-hover ${
+				editing ? "cursor-text bg-surface outline outline-2 outline-accent" : ""
+			}`}
+			contentEditable={editing}
+			ref={ref}
+			role="textbox"
 			tabIndex={0}
-			onDoubleClick={startEdit}
 			onBlur={commit}
+			onDoubleClick={startEdit}
 			onKeyDown={(e) => {
 				if (e.key === "Enter") {
 					e.preventDefault();
@@ -78,9 +81,6 @@ export const EditableTitle = ({ value, onChange }: EditableTitleProps) => {
 					ref.current?.blur();
 				}
 			}}
-			className={`-mx-1 -my-0.5 cursor-pointer truncate   rounded px-1 py-0.5 font-medium text-text hover:bg-hover ${
-				editing ? "cursor-text bg-surface outline outline-2 outline-accent" : ""
-			}`}
 		>
 			{value}
 		</span>

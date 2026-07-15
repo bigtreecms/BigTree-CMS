@@ -56,8 +56,6 @@ export const Card: Story = {
 				</Button>
 				<Modal
 					{...args}
-					open={open}
-					onOpenChange={setOpen}
 					footer={
 						<>
 							<Button variant="secondary" onClick={() => setOpen(false)}>
@@ -68,6 +66,8 @@ export const Card: Story = {
 							</Button>
 						</>
 					}
+					open={open}
+					onOpenChange={setOpen}
 				>
 					<Field label="Name">
 						<TextInput defaultValue="About us" />
@@ -98,8 +98,6 @@ export const Bars: Story = {
 				</Button>
 				<Modal
 					{...args}
-					open={open}
-					onOpenChange={setOpen}
 					footer={
 						<div className="flex justify-end gap-2">
 							<Button variant="secondary" onClick={() => setOpen(false)}>
@@ -110,6 +108,8 @@ export const Bars: Story = {
 							</Button>
 						</div>
 					}
+					open={open}
+					onOpenChange={setOpen}
 				>
 					<div className="grid h-[320px] place-items-center bg-black text-[13px] text-white/70">
 						Full-bleed content area

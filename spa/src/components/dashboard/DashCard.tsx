@@ -4,11 +4,11 @@ import type { ReactNode } from "react";
 import { CardHeader } from "@/components/ui/Card";
 
 interface DashCardProps {
-	icon: LucideIcon;
-	title: string;
-	sub?: ReactNode;
 	action?: ReactNode;
 	children: ReactNode;
+	icon: LucideIcon;
+	sub?: ReactNode;
+	title: string;
 }
 
 /* ─── Section card chrome ─────────────────────────────────────────────── */

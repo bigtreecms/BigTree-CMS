@@ -14,24 +14,24 @@ const TONE_TEXT_CLASS: Record<BadgeTone, string> = {
 };
 
 interface StatusBadgeProps {
-	/** Token-mapped tone — the caller maps its domain status onto this. */
-	tone: BadgeTone;
-	/** Human-readable status label. */
-	label: string;
-	/**
-	 * `badge` (default) renders a filled `Badge` pill; `text` renders an inline
-	 * uppercase colored label (the list-view "Status" cell treatment).
-	 */
-	variant?: "badge" | "text";
+	className?: string;
 	/** `badge` variant only: render the leading colored dot. */
 	dot?: boolean;
+	/** Human-readable status label. */
+	label: string;
 	/**
 	 * `text` variant only: read as plain value text on mobile and only take on
 	 * the uppercase label styling at `md+`. Used inside responsive tables that
 	 * stack each cell under its own (also uppercase) column label on mobile.
 	 */
 	plainOnMobile?: boolean;
-	className?: string;
+	/** Token-mapped tone — the caller maps its domain status onto this. */
+	tone: BadgeTone;
+	/**
+	 * `badge` (default) renders a filled `Badge` pill; `text` renders an inline
+	 * uppercase colored label (the list-view "Status" cell treatment).
+	 */
+	variant?: "badge" | "text";
 }
 
 /**
@@ -63,7 +63,7 @@ export const StatusBadge = ({
 	}
 
 	return (
-		<Badge tone={tone} dot={dot} className={className}>
+		<Badge className={className} dot={dot} tone={tone}>
 			{label}
 		</Badge>
 	);

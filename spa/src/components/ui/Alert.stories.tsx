@@ -42,9 +42,9 @@ export const WithTitle: Story = {
 	render: () => (
 		<div className="w-96">
 			<Alert
-				tone="danger"
 				icon={<AlertTriangle size={13} />}
 				title="Errors — fix these before installing"
+				tone="danger"
 			>
 				<ul className="list-disc space-y-1 pl-5 text-[12px]">
 					<li>Missing required field “name”</li>

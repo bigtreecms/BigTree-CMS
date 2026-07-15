@@ -25,7 +25,7 @@ describe("Button", () => {
 	it("renders a plain button (never a link) when loading, even with `to`", () => {
 		render(
 			<MemoryRouter>
-				<Button to="/pages" loading loadingLabel="Saving…">
+				<Button loading loadingLabel="Saving…" to="/pages">
 					Save
 				</Button>
 			</MemoryRouter>

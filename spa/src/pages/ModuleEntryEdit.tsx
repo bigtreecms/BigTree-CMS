@@ -21,10 +21,10 @@ import { isPersistedEntryId, numericEntryId } from "@/renderer/views/viewHelpers
 import { toast } from "@/lib/toast";
 
 interface ModuleEntryEditProps {
-	formId: string;
 	// May be a real numeric id or a "p"-prefixed pending id (e.g. "p5"); also a
 	// raw string straight from the URL. Validated below.
 	entryId: number | string;
+	formId: string;
 }
 
 /**
@@ -125,32 +125,32 @@ export const ModuleEntryEdit = ({ formId, entryId }: ModuleEntryEditProps) => {
 
 			{readOnly && (
 				<LockBanner
-					owner={lock.lockOwner}
 					lockedAt={lock.lockedAt}
+					owner={lock.lockOwner}
 					onUnlock={lock.forceUnlock}
 				/>
 			)}
 
 			{isLoading ? (
-				<Loading variant="card" label="Loading entry…" />
+				<Loading label="Loading entry…" variant="card" />
 			) : !form ? (
 				<EmptyState>This module doesn't have a form configured.</EmptyState>
 			) : (
 				<FormRenderer
-					form={form}
-					initialValues={initialValues}
-					initialTags={pickTags(entryQuery.data)}
-					initialOpenGraph={pickOpenGraph(entryQuery.data)}
-					moduleId={moduleId}
-					entryId={liveId}
-					pendingFields={pendingFields}
-					publishedValues={publishedValues}
-					pendingStatus={pendingStatus}
-					pendingLabel={pendingLabel}
-					disabled={readOnly}
-					onCancel={() => navigate(returnPath)}
-					submitLabel="Save"
 					canPublish={moduleQuery.data?.access === "p"}
+					disabled={readOnly}
+					entryId={liveId}
+					form={form}
+					initialOpenGraph={pickOpenGraph(entryQuery.data)}
+					initialTags={pickTags(entryQuery.data)}
+					initialValues={initialValues}
+					moduleId={moduleId}
+					pendingFields={pendingFields}
+					pendingLabel={pendingLabel}
+					pendingStatus={pendingStatus}
+					publishedValues={publishedValues}
+					submitLabel="Save"
+					onCancel={() => navigate(returnPath)}
 					onSubmit={async (values, opts) => {
 						await updateMutation.mutateAsync({
 							values,

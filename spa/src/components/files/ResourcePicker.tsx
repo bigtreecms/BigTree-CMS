@@ -17,13 +17,13 @@ import { InlineEmpty } from "@/components/ui/InlineEmpty";
 export type ResourcePickerType = "image" | "file" | "video";
 
 interface ResourcePickerProps {
-	open: boolean;
-	onOpenChange: (open: boolean) => void;
-	type: ResourcePickerType;
+	minHeight?: number;
 	/** Optional dimension floor — applied client-side for image pickers. */
 	minWidth?: number;
-	minHeight?: number;
+	onOpenChange: (open: boolean) => void;
 	onSelect: (resource: ResourceSummary) => void;
+	open: boolean;
+	type: ResourcePickerType;
 }
 
 /**
@@ -91,9 +91,6 @@ export const ResourcePicker = ({
 
 	return (
 		<SlideOver
-			open={open}
-			onOpenChange={onOpenChange}
-			title={pickerTitle(type)}
 			description={
 				isSearching
 					? `Searching for “${debounced}”`
@@ -101,14 +98,17 @@ export const ResourcePicker = ({
 						? "Home folder"
 						: breadcrumb.map((b) => b.name).join(" / ")
 			}
+			open={open}
+			title={pickerTitle(type)}
 			width="lg"
+			onOpenChange={onOpenChange}
 		>
 			<div className="space-y-3">
 				<SearchInput
+					aria-label="Search the media library"
+					placeholder="Search the media library…"
 					value={query}
 					onChange={setQuery}
-					placeholder="Search the media library…"
-					aria-label="Search the media library"
 				/>
 
 				{!isSearching && (
@@ -116,7 +116,7 @@ export const ResourcePicker = ({
 				)}
 
 				{contentsQuery.isLoading && !isSearching ? (
-					<Loading variant="block" className="h-32" />
+					<Loading className="h-32" variant="block" />
 				) : searchQuery.isFetching && isSearching && !searchQuery.data ? (
 					<div className="grid h-32 place-items-center text-[13px] text-text-3">
 						Searching…
@@ -128,15 +128,15 @@ export const ResourcePicker = ({
 								{folders.map((folder) => (
 									<li key={folder.id}>
 										<button
-											type="button"
 											className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] hover:bg-hover"
+											type="button"
 											onClick={() => setFolderId(folder.id)}
 										>
-											<Folder size={14} className="text-accent" />
+											<Folder className="text-accent" size={14} />
 											<span className="truncate">{folder.name}</span>
 											<ChevronRight
-												size={14}
 												className="ml-auto text-text-3"
+												size={14}
 											/>
 										</button>
 									</li>
@@ -179,20 +179,20 @@ const FolderBreadcrumb = ({ breadcrumb, onNavigate }: FolderBreadcrumbProps) => 
 	return (
 		<nav className="flex flex-wrap items-center gap-1 text-[12px] text-text-3">
 			<button
-				type="button"
 				className="rounded px-1.5 py-0.5 hover:bg-hover hover:text-text"
+				type="button"
 				onClick={() => onNavigate(0)}
 			>
 				Home
 			</button>
 			{breadcrumb.map((piece, index) => (
-				<span key={piece.id} className="flex items-center gap-1">
+				<span className="flex items-center gap-1" key={piece.id}>
 					<ChevronRight size={12} />
 					<button
-						type="button"
 						className="rounded px-1.5 py-0.5 hover:bg-hover hover:text-text disabled:hover:bg-transparent"
-						onClick={() => onNavigate(piece.id)}
 						disabled={index === breadcrumb.length - 1}
+						type="button"
+						onClick={() => onNavigate(piece.id)}
 					>
 						{piece.name}
 					</button>
@@ -203,26 +203,26 @@ const FolderBreadcrumb = ({ breadcrumb, onNavigate }: FolderBreadcrumbProps) => 
 };
 
 interface ResourceTileProps {
+	onPick: () => void;
 	resource: ResourceSummary;
 	type: ResourcePickerType;
-	onPick: () => void;
 }
 
 const ResourceTile = ({ resource, type, onPick }: ResourceTileProps) => {
 	return (
 		<button
-			type="button"
 			className="group block w-full overflow-hidden rounded-md border border-border bg-surface text-left hover:border-accent-ring"
-			onClick={onPick}
 			title={resource.name}
+			type="button"
+			onClick={onPick}
 		>
 			<div className="aspect-square w-full bg-surface-2">
 				{resource.is_image && resource.file ? (
 					<img
-						src={expandImageUrl(resource.file)}
 						alt=""
 						className="size-full object-cover"
 						loading="lazy"
+						src={expandImageUrl(resource.file)}
 					/>
 				) : (
 					<div className="grid size-full place-items-center text-text-3">

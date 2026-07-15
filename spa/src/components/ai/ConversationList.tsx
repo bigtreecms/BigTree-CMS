@@ -12,8 +12,8 @@ import { InlineEmpty } from "@/components/ui/InlineEmpty";
 
 interface ConversationListProps {
 	activeId: number | null;
-	onSelect: (id: number) => void;
 	onDelete: (id: number) => void;
+	onSelect: (id: number) => void;
 }
 
 export const ConversationList = ({ activeId, onSelect, onDelete }: ConversationListProps) => {
@@ -24,7 +24,7 @@ export const ConversationList = ({ activeId, onSelect, onDelete }: ConversationL
 
 	if (listQ.isLoading) {
 		return (
-			<InlineEmpty variant="plain" align="center" className="px-4 py-8">
+			<InlineEmpty align="center" className="px-4 py-8" variant="plain">
 				Loading…
 			</InlineEmpty>
 		);
@@ -34,7 +34,7 @@ export const ConversationList = ({ activeId, onSelect, onDelete }: ConversationL
 
 	if (conversations.length === 0) {
 		return (
-			<InlineEmpty variant="plain" align="center" pad="xl" className="px-4 py-10">
+			<InlineEmpty align="center" className="px-4 py-10" pad="xl" variant="plain">
 				No conversations yet.
 			</InlineEmpty>
 		);
@@ -44,16 +44,16 @@ export const ConversationList = ({ activeId, onSelect, onDelete }: ConversationL
 		<div className="flex flex-col gap-px p-1">
 			{conversations.map((c) => (
 				<div
-					key={c.id}
 					className={`group flex items-center gap-1 rounded-md px-1 transition-colors hover:bg-hover ${
 						c.id === activeId ? "bg-hover" : ""
 					}`}
+					key={c.id}
 				>
 					<button
-						type="button"
-						onClick={() => onSelect(c.id)}
 						className="min-w-0 flex-1 truncate p-2  text-left text-[12.5px] text-text"
 						title={c.title}
+						type="button"
+						onClick={() => onSelect(c.id)}
 					>
 						{c.title || "Untitled conversation"}
 					</button>

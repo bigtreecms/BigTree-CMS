@@ -24,7 +24,7 @@ const meta = {
 	args: {
 		children: (
 			<>
-				<PageHead title="Page title" sub="A subtitle describing the screen" />
+				<PageHead sub="A subtitle describing the screen" title="Page title" />
 				<div className="rounded-xl border border-border bg-surface p-4 text-[13px] text-text-3">
 					Page content sits inside the column.
 				</div>

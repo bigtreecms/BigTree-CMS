@@ -9,10 +9,10 @@ import { MessagesTable } from "./MessagesTable";
 import type { Message } from "@/api/endpoints/dashboard";
 
 interface UnreadMessagesCardProps {
-	messages: Message[];
 	currentUserId: number;
-	loading: boolean;
 	error: unknown;
+	loading: boolean;
+	messages: Message[];
 }
 
 export const UnreadMessagesCard = ({
@@ -34,8 +34,13 @@ export const UnreadMessagesCard = ({
 
 	return (
 		<DashCard
+			action={
+				<Button size="sm" variant="secondary" onClick={() => navigate("/messages")}>
+					View all messages
+					<ChevronRight size={11} />
+				</Button>
+			}
 			icon={Mail}
-			title="Unread messages"
 			sub={
 				loading
 					? "Loading…"
@@ -43,17 +48,12 @@ export const UnreadMessagesCard = ({
 						? "All caught up"
 						: `${unread.length} unread`
 			}
-			action={
-				<Button variant="secondary" size="sm" onClick={() => navigate("/messages")}>
-					View all messages
-					<ChevronRight size={11} />
-				</Button>
-			}
+			title="Unread messages"
 		>
 			<QueryRenderer
+				empty={<InlineEmpty icon={Mail}>No unread messages</InlineEmpty>}
 				error={error}
 				isEmpty={unread.length === 0}
-				empty={<InlineEmpty icon={Mail}>No unread messages</InlineEmpty>}
 			>
 				<MessagesTable messages={unread} />
 			</QueryRenderer>

@@ -3,12 +3,12 @@ import { useSearchParams } from "react-router-dom";
 import { useQueryClient, type QueryKey } from "@tanstack/react-query";
 
 export interface UseOAuthRedirectResultOptions {
+	/** Refetched once the redirect has been consumed, so the page shows the new connection. */
+	invalidate: QueryKey;
 	/** Called with the `connected` param (the provider the broker connected). */
 	onConnected: (provider: string) => void;
 	/** Called with the `error` param (the broker's failure code, e.g. `oauth_failed`). */
 	onError: (code: string) => void;
-	/** Refetched once the redirect has been consumed, so the page shows the new connection. */
-	invalidate: QueryKey;
 }
 
 /**

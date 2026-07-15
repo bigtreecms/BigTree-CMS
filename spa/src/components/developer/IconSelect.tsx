@@ -10,12 +10,12 @@ import { iconFor, MODULE_ICON_SLUGS } from "@/lib/legacyIcons";
 import { IconGridButton } from "./IconGridButton";
 
 interface IconSelectProps {
+	hint?: string;
+	label?: string;
+	onChange: (slug: string) => void;
+	placeholder?: string;
 	/** Selected icon slug (empty string when none). */
 	value: string;
-	onChange: (slug: string) => void;
-	label?: string;
-	hint?: string;
-	placeholder?: string;
 }
 
 /**
@@ -46,19 +46,18 @@ export const IconSelect = ({
 			<FieldLabel>{label}</FieldLabel>
 			<Popover
 				open={open}
-				onOpenChange={setOpen}
 				panelClassName="w-full overflow-hidden"
 				trigger={
 					<>
 						<button
-							type="button"
-							aria-haspopup="listbox"
 							aria-expanded={open}
-							onClick={() => setOpen((prev) => !prev)}
+							aria-haspopup="listbox"
 							className="flex w-full items-center gap-2 rounded-md border border-border bg-surface py-1.5 pl-3 pr-9 text-left text-[13px] focus:outline-none focus:ring-1 focus:ring-accent-ring"
+							type="button"
+							onClick={() => setOpen((prev) => !prev)}
 						>
 							{Selected ? (
-								<Selected size={15} className="shrink-0 text-text-2" />
+								<Selected className="shrink-0 text-text-2" size={15} />
 							) : null}
 							<span
 								className={`min-w-0 flex-1 truncate ${value ? "text-text" : "text-text-3"}`}
@@ -71,21 +70,22 @@ export const IconSelect = ({
 						    button — interactive controls must not be nested (a11y). */}
 						{value ? (
 							<IconButton
+								className="absolute right-1.5 top-1/2 -translate-y-1/2"
 								label="Clear icon"
 								size="sm"
 								onClick={clear}
-								className="absolute right-1.5 top-1/2 -translate-y-1/2"
 							>
 								<X size={13} />
 							</IconButton>
 						) : (
 							<ChevronsUpDown
-								size={13}
 								className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-text-3"
+								size={13}
 							/>
 						)}
 					</>
 				}
+				onOpenChange={setOpen}
 			>
 				<div className="flex max-h-56 flex-wrap gap-1.5 overflow-y-auto p-2">
 					{MODULE_ICON_SLUGS.map((slug) => {
@@ -93,14 +93,14 @@ export const IconSelect = ({
 
 						return (
 							<IconGridButton
-								key={slug}
 								icon={iconFor(slug)}
+								key={slug}
+								label={slug}
 								selected={isActive}
 								onSelect={() => {
 									onChange(isActive ? "" : slug);
 									setOpen(false);
 								}}
-								label={slug}
 							/>
 						);
 					})}

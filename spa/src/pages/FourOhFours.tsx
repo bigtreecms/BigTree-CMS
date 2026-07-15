@@ -216,20 +216,20 @@ export const FourOhFours = ({ type }: FourOhFoursProps) => {
 			key: "select",
 			header: (
 				<Checkbox
-					size="sm"
+					checked={rows.length > 0 && selected.size === rows.length}
 					label="Select all"
 					labelClassName="sr-only"
-					checked={rows.length > 0 && selected.size === rows.length}
+					size="sm"
 					onChange={toggleAll}
 				/>
 			),
 			width: "32px",
 			cell: (row) => (
 				<Checkbox
-					size="sm"
+					checked={selected.has(row.id)}
 					label="Select row"
 					labelClassName="sr-only"
-					checked={selected.has(row.id)}
+					size="sm"
 					onChange={() => toggleRow(row.id)}
 				/>
 			),
@@ -261,6 +261,7 @@ export const FourOhFours = ({ type }: FourOhFoursProps) => {
 							onClick={(e) => e.stopPropagation()}
 						>
 							<TextInput
+								autoFocus
 								compact
 								mono
 								aria-label="Redirect URL"
@@ -278,22 +279,21 @@ export const FourOhFours = ({ type }: FourOhFoursProps) => {
 										setEditingRedirectId(null);
 									}
 								}}
-								autoFocus
 							/>
 							<IconButton
+								label="Save"
+								title="Save"
 								tone="accent"
 								onClick={() =>
 									setRedirectMutation.mutate({ id: row.id, url: redirectDraft })
 								}
-								title="Save"
-								label="Save"
 							>
 								<Check size={13} />
 							</IconButton>
 							<IconButton
-								onClick={() => setEditingRedirectId(null)}
-								title="Cancel"
 								label="Cancel"
+								title="Cancel"
+								onClick={() => setEditingRedirectId(null)}
 							>
 								<X size={13} />
 							</IconButton>
@@ -337,29 +337,29 @@ export const FourOhFours = ({ type }: FourOhFoursProps) => {
 					onClick={(e) => e.stopPropagation()}
 				>
 					<IconButton
+						label="Set redirect"
+						title="Set redirect"
 						onClick={() => {
 							setEditingRedirectId(row.id);
 							setRedirectDraft(row.redirect_url);
 						}}
-						title="Set redirect"
-						label="Set redirect"
 					>
 						<Link2 size={13} />
 					</IconButton>
 					{!row.ignored && (
 						<IconButton
-							onClick={() => ignoreMutation.mutate(row.id)}
-							title="Ignore"
 							label="Ignore"
+							title="Ignore"
+							onClick={() => ignoreMutation.mutate(row.id)}
 						>
 							<EyeOff size={13} />
 						</IconButton>
 					)}
 					<IconButton
+						label="Delete"
+						title="Delete"
 						tone="danger"
 						onClick={() => deleteMutation.mutate(row.id)}
-						title="Delete"
-						label="Delete"
 					>
 						<Trash size={13} />
 					</IconButton>
@@ -381,8 +381,6 @@ export const FourOhFours = ({ type }: FourOhFoursProps) => {
 			/>
 
 			<PageHead
-				title={TYPE_LABEL[type]}
-				sub={total === 1 ? "1 entry" : `${formatNumber(total)} entries`}
 				actions={
 					<>
 						<Button
@@ -404,8 +402,8 @@ export const FourOhFours = ({ type }: FourOhFoursProps) => {
 								</Button>
 
 								<Button
-									variant="primary"
 									icon={<Plus size={13} />}
+									variant="primary"
 									onClick={() => navigate("/dashboard/404s/301/add")}
 								>
 									Add 301
@@ -423,6 +421,8 @@ export const FourOhFours = ({ type }: FourOhFoursProps) => {
 						)}
 					</>
 				}
+				sub={total === 1 ? "1 entry" : `${formatNumber(total)} entries`}
+				title={TYPE_LABEL[type]}
 			/>
 
 			<div className="mb-3 flex flex-wrap items-center gap-3">
@@ -437,18 +437,18 @@ export const FourOhFours = ({ type }: FourOhFoursProps) => {
 				/>
 
 				<SearchInput
+					className="w-full sm:w-auto sm:max-w-md sm:flex-1"
+					placeholder="Search by URL…"
 					value={search}
 					onChange={setSearch}
-					placeholder="Search by URL…"
-					className="w-full sm:w-auto sm:max-w-md sm:flex-1"
 				/>
 
 				<div className="hidden flex-1 sm:block" />
 
 				{selectedCount > 0 && (
 					<Button
-						variant="dangerGhost"
 						icon={<Trash size={13} />}
+						variant="dangerGhost"
 						onClick={() => bulkDeleteDialog.open(true)}
 					>
 						Delete {selectedCount}
@@ -458,15 +458,15 @@ export const FourOhFours = ({ type }: FourOhFoursProps) => {
 
 			<DataTable<FourOhFour>
 				columns={columns}
-				rows={rows}
-				getRowKey={(row) => row.id}
-				isLoading={listQ.isLoading || (listQ.isFetching && !listQ.data)}
-				loadingLabel="Loading…"
 				emptyLabel={
 					debounced
 						? `No ${TYPE_LABEL[type].toLowerCase()} match “${debounced}”.`
 						: `No ${TYPE_LABEL[type].toLowerCase()} recorded.`
 				}
+				getRowKey={(row) => row.id}
+				isLoading={listQ.isLoading || (listQ.isFetching && !listQ.data)}
+				loadingLabel="Loading…"
+				rows={rows}
 			/>
 
 			<div className="mt-3 flex justify-end">
@@ -482,18 +482,18 @@ export const FourOhFours = ({ type }: FourOhFoursProps) => {
 
 			<ConfirmDialog
 				{...bulkDeleteDialog.dialogProps}
-				title={`Delete ${selectedCount} entries?`}
-				description="They can be re-captured the next time the broken URL is requested, but any redirects you'd set up on them will be lost."
 				confirmLabel="Delete"
+				description="They can be re-captured the next time the broken URL is requested, but any redirects you'd set up on them will be lost."
+				title={`Delete ${selectedCount} entries?`}
 				variant="danger"
 				onConfirm={() => bulkDeleteMutation.mutate(Array.from(selected))}
 			/>
 
 			<ConfirmDialog
 				{...clearDeadDialog.dialogProps}
-				title="Clear dead 404s?"
-				description="Deletes unredirected 404 entries with fewer than 5 recorded hits — usually one-off typos and crawler noise."
 				confirmLabel="Clear"
+				description="Deletes unredirected 404 entries with fewer than 5 recorded hits — usually one-off typos and crawler noise."
+				title="Clear dead 404s?"
 				variant="danger"
 				onConfirm={() => clearDeadMutation.mutate()}
 			/>

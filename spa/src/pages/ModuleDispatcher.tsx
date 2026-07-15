@@ -70,7 +70,7 @@ export const ModuleDispatcher = () => {
 			// Pass the raw id through — pending entries carry a "p" prefix (e.g.
 			// "p5") that must survive to the edit form / API; parseInt would turn
 			// it into NaN. ModuleEntryEdit validates and normalizes it.
-			return <ModuleEntryEdit formId={action.form} entryId={eid} />;
+			return <ModuleEntryEdit entryId={eid} formId={action.form} />;
 		}
 
 		return <ModuleEntryAdd formId={action.form} />;

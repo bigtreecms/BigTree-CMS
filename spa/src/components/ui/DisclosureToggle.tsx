@@ -2,24 +2,24 @@ import { ChevronDown, ChevronRight } from "lucide-react";
 import type { ReactNode } from "react";
 
 interface DisclosureToggleProps {
-	/** Whether the disclosure is open — drives the chevron swap + `aria-expanded`. */
-	open: boolean;
-	onToggle: () => void;
-	/**
-	 * The clickable label. Pass a string for the common case, or a fully-styled
-	 * node (e.g. an `<h3>`) when the caller needs custom label typography.
-	 */
-	label: ReactNode;
-	/** Chevron size in px (default 13). */
-	size?: number;
+	/** Trailing content rendered after the label (counts, type badges, pills). */
+	children?: ReactNode;
 	/**
 	 * Layout classes for the button — gap, padding, width, hover, etc. The
 	 * component owns only the chevron + `aria-expanded` semantics, so callers
 	 * supply their own container styling (and the gap between chevron and label).
 	 */
 	className?: string;
-	/** Trailing content rendered after the label (counts, type badges, pills). */
-	children?: ReactNode;
+	/**
+	 * The clickable label. Pass a string for the common case, or a fully-styled
+	 * node (e.g. an `<h3>`) when the caller needs custom label typography.
+	 */
+	label: ReactNode;
+	onToggle: () => void;
+	/** Whether the disclosure is open — drives the chevron swap + `aria-expanded`. */
+	open: boolean;
+	/** Chevron size in px (default 13). */
+	size?: number;
 }
 
 /**
@@ -38,15 +38,15 @@ export const DisclosureToggle = ({
 	children,
 }: DisclosureToggleProps) => (
 	<button
-		type="button"
-		onClick={onToggle}
 		aria-expanded={open}
 		className={`inline-flex cursor-pointer items-center text-left${className ? ` ${className}` : ""}`}
+		type="button"
+		onClick={onToggle}
 	>
 		{open ? (
-			<ChevronDown size={size} className="shrink-0 text-text-3" />
+			<ChevronDown className="shrink-0 text-text-3" size={size} />
 		) : (
-			<ChevronRight size={size} className="shrink-0 text-text-3" />
+			<ChevronRight className="shrink-0 text-text-3" size={size} />
 		)}
 		{label}
 		{children}

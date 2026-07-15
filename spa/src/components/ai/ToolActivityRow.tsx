@@ -55,7 +55,7 @@ export const ToolActivityRow = ({ activity }: ToolActivityRowProps) => {
 
 	return (
 		<div className="flex items-center gap-1.5 text-[11px] text-text-3">
-			<Icon size={11} className="shrink-0 text-text-3" />
+			<Icon className="shrink-0 text-text-3" size={11} />
 			<span>
 				{meta.label}
 				{query ? (

@@ -73,15 +73,15 @@ export const ResetPassword = () => {
 
 	if (!token || tokenRejected) {
 		return (
-			<AuthCard title="Reset link expired" subtitle="This link is no longer valid.">
+			<AuthCard subtitle="This link is no longer valid." title="Reset link expired">
 				<div className="space-y-3">
 					<p className="text-[12.5px] text-text-2">
 						Reset links expire after one hour and can only be used once. Request a new
 						one to continue.
 					</p>
 					<Link
-						to="/login/forgot"
 						className="block w-full rounded-md bg-accent px-3 py-2 text-center text-[13px] font-medium text-accent-fg hover:bg-accent-hover"
+						to="/login/forgot"
 					>
 						Request a new link
 					</Link>
@@ -91,37 +91,37 @@ export const ResetPassword = () => {
 	}
 
 	return (
-		<AuthCard title="Choose a new password" subtitle="Then sign in with it right away.">
+		<AuthCard subtitle="Then sign in with it right away." title="Choose a new password">
 			{serverError && (
-				<Alert tone="danger" className="mb-3">
+				<Alert className="mb-3" tone="danger">
 					{serverError}
 				</Alert>
 			)}
 
-			<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
-				<Field label="New password" error={form.formState.errors.password?.message}>
+			<form className="space-y-3" onSubmit={form.handleSubmit(onSubmit)}>
+				<Field error={form.formState.errors.password?.message} label="New password">
 					<TextInput
-						type="password"
-						autoComplete="new-password"
 						autoFocus
+						autoComplete="new-password"
+						type="password"
 						{...form.register("password")}
 					/>
 				</Field>
 
-				<Field label="Confirm password" error={form.formState.errors.confirm?.message}>
+				<Field error={form.formState.errors.confirm?.message} label="Confirm password">
 					<TextInput
-						type="password"
 						autoComplete="new-password"
+						type="password"
 						{...form.register("confirm")}
 					/>
 				</Field>
 
 				<Button
-					variant="primary"
-					size="lg"
-					type="submit"
 					className="mt-1 w-full justify-center"
 					disabled={form.formState.isSubmitting}
+					size="lg"
+					type="submit"
+					variant="primary"
 				>
 					{form.formState.isSubmitting ? "Saving…" : "Set new password"}
 				</Button>

@@ -118,31 +118,31 @@ export const Settings = () => {
 			<Breadcrumb items={[{ label: "Settings" }]} />
 
 			<PageHead
-				title="Settings"
 				sub={total === 1 ? "1 setting" : `${formatNumber(total)} settings`}
+				title="Settings"
 			/>
 
 			<Toolbar
 				search={
 					<SearchInput
+						placeholder="Search settings by name, id, or description…"
 						value={search}
 						onChange={setSearch}
-						placeholder="Search settings by name, id, or description…"
 					/>
 				}
 			/>
 
 			<DataTable<SettingDetail>
 				columns={columns}
-				rows={rows}
-				getRowKey={(row) => row.id}
-				isLoading={query.isLoading || (query.isFetching && !query.data)}
-				loadingLabel="Loading settings…"
 				emptyLabel={
 					debounced
 						? `No settings match “${debounced}”.`
 						: "No settings yet. (Create them under Developer → Settings.)"
 				}
+				getRowKey={(row) => row.id}
+				isLoading={query.isLoading || (query.isFetching && !query.data)}
+				loadingLabel="Loading settings…"
+				rows={rows}
 				onRowClick={(row) => navigate(settingEditPath(row.id))}
 			/>
 

@@ -115,10 +115,10 @@ export const GroupedView = ({ moduleId, view }: GroupedViewProps) => {
 			<Toolbar
 				search={
 					<SearchInput
+						aria-label={`Search ${view.title.toLowerCase()}`}
+						placeholder={`Search ${view.title.toLowerCase()}…`}
 						value={query}
 						onChange={setQuery}
-						placeholder={`Search ${view.title.toLowerCase()}…`}
-						aria-label={`Search ${view.title.toLowerCase()}`}
 					/>
 				}
 			/>
@@ -131,27 +131,27 @@ export const GroupedView = ({ moduleId, view }: GroupedViewProps) => {
 			)}
 
 			<QueryRenderer
-				isLoading={listQuery.isLoading && !listQuery.data}
+				empty={<EmptyState>{viewEmptyLabel(debouncedQuery)}</EmptyState>}
 				error={listQuery.error}
 				isEmpty={rows.length === 0}
-				loading={<Loading variant="card" label="Loading entries…" />}
-				empty={<EmptyState>{viewEmptyLabel(debouncedQuery)}</EmptyState>}
+				isLoading={listQuery.isLoading && !listQuery.data}
+				loading={<Loading label="Loading entries…" variant="card" />}
 			>
 				<div className="flex flex-col gap-4">
 					{groups.map(([groupKey, { title, items }]) => {
 						const isCollapsed = collapsed.has(groupKey);
 
 						return (
-							<Card as="section" key={groupKey} className="overflow-hidden">
+							<Card as="section" className="overflow-hidden" key={groupKey}>
 								<DisclosureToggle
-									open={!isCollapsed}
-									onToggle={() => toggle(groupKey)}
 									className="w-full gap-2 border-b border-border bg-surface-2 px-3.5 py-2"
 									label={
 										<h3 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-text">
 											{title}
 										</h3>
 									}
+									open={!isCollapsed}
+									onToggle={() => toggle(groupKey)}
 								>
 									<span className="text-[11px] tabular-nums text-text-3">
 										{items.length}
@@ -166,33 +166,33 @@ export const GroupedView = ({ moduleId, view }: GroupedViewProps) => {
 
 											return (
 												<li
-													key={String(row.id)}
 													className={`flex items-center gap-4 px-3 py-2 text-[13px] hover:bg-surface-2 ${statusRowClass(
 														status.key
 													)} ${builtins.edit ? "cursor-pointer" : ""}`}
+													key={String(row.id)}
 													onClick={() => openEdit(row)}
 												>
 													<ViewRowCells
+														dim={dim}
 														fieldColumns={fieldColumns}
 														row={row}
-														dim={dim}
 													/>
 
 													<ViewStatusBadge
-														row={row}
 														className="shrink-0"
+														row={row}
 													/>
 
 													<RowActions
-														moduleId={moduleId}
-														viewId={view.id}
-														row={row}
+														actionPath={actionPath}
 														builtins={builtins}
+														className={dim}
 														custom={custom}
 														editPath={editPath}
-														actionPath={actionPath}
+														moduleId={moduleId}
+														row={row}
+														viewId={view.id}
 														onDelete={requestDelete}
-														className={dim}
 													/>
 												</li>
 											);

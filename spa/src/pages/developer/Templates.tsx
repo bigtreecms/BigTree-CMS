@@ -18,7 +18,7 @@ const columns: DataTableColumn<TemplateSummary>[] = [
 		key: "name",
 		header: "Name",
 		width: "minmax(0,1.5fr)",
-		cell: (row) => <NameIdCell name={row.name} id={row.id} />,
+		cell: (row) => <NameIdCell id={row.id} name={row.name} />,
 	},
 	{
 		key: "module",
@@ -85,23 +85,23 @@ export const Templates = () => {
 
 	return (
 		<DeveloperListPage<TemplateSummary>
-			title="Templates"
-			countNoun="template"
-			route="/developer/templates"
 			addLabel="Add template"
-			loadingLabel="Loading templates…"
-			emptyLabel="No templates yet."
-			queryKey={queryKeys.templates.list()}
-			invalidateKey={queryKeys.templates.root()}
-			list={() => templatesApi.list()}
-			remove={(id) => templatesApi.delete(id)}
 			columns={columns}
-			getRowKey={(row) => row.id}
+			confirmDescription="Pages using this template will lose their content schema. This cannot be undone."
+			confirmLabel="Delete template"
+			countNoun="template"
 			deleteButtonLabel="Delete template"
 			deleteSuccessMessage="Template deleted"
+			emptyLabel="No templates yet."
+			getRowKey={(row) => row.id}
+			invalidateKey={queryKeys.templates.root()}
+			list={() => templatesApi.list()}
+			loadingLabel="Loading templates…"
+			queryKey={queryKeys.templates.list()}
+			remove={(id) => templatesApi.delete(id)}
+			route="/developer/templates"
 			rowLabel={(row) => row.name}
-			confirmLabel="Delete template"
-			confirmDescription="Pages using this template will lose their content schema. This cannot be undone."
+			title="Templates"
 			onReorder={handleReorder}
 		/>
 	);

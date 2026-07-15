@@ -49,21 +49,15 @@ import { DragHandle } from "@/components/ui/DragHandle";
 export type ResourceShape = "id" | "column";
 
 export interface ResourceEntry {
-	type: string;
-	title: string;
-	subtitle?: string;
-	settings?: Record<string, unknown> | unknown[];
 	/** Either `id` (templates / callouts / feeds) or `column` (module forms). */
 	[k: string]: unknown;
+	settings?: Record<string, unknown> | unknown[];
+	subtitle?: string;
+	title: string;
+	type: string;
 }
 
 interface ResourceDesignerProps {
-	resources: ResourceEntry[];
-	onChange: (next: ResourceEntry[]) => void;
-	/** Which key on each entry holds the field id. */
-	keyField: ResourceShape;
-	/** Filter the field-type catalog to types whose `use_cases` include this slug. */
-	useCase: FieldUseCase;
 	/**
 	 * When set (and `keyField` is "column"), each field's ID becomes a searchable
 	 * select of this data table's columns instead of a free-text input. Used by
@@ -72,7 +66,11 @@ interface ResourceDesignerProps {
 	columnsTable?: string;
 	/** Optional `display_field` callback so the host can render an inline "Use as title" pill. */
 	displayFieldId?: string;
+	/** Which key on each entry holds the field id. */
+	keyField: ResourceShape;
+	onChange: (next: ResourceEntry[]) => void;
 	onSetDisplayField?: (id: string) => void;
+	resources: ResourceEntry[];
 	/**
 	 * Required field-setting errors keyed by entry index, then descriptor id
 	 * (from `useResourceSettingsValidation`). Entries with errors auto-expand so
@@ -80,6 +78,8 @@ interface ResourceDesignerProps {
 	 * `FieldSettingsEditor`.
 	 */
 	settingsErrors?: Record<number, Record<string, string>>;
+	/** Filter the field-type catalog to types whose `use_cases` include this slug. */
+	useCase: FieldUseCase;
 }
 
 export const ResourceDesigner = ({
@@ -249,30 +249,30 @@ export const ResourceDesigner = ({
 
 						return (
 							<li
-								key={index}
 								className={`rounded-md border border-border bg-surface transition-colors ${
 									isDragging ? "bg-accent-soft shadow-md" : ""
 								} ${isDropTarget ? "shadow-[inset_0_2px_0_0_var(--color-accent)]" : ""}`}
+								key={index}
 								onDragOver={(e) => drag.onDragOver(e, index)}
 								onDrop={drag.onDrop}
 							>
 								<div
-									className="flex items-center gap-2 px-2 py-1.5"
 									draggable
-									onDragStart={(e) => drag.onDragStart(e, index)}
+									className="flex items-center gap-2 px-2 py-1.5"
 									onDragEnd={drag.onDragEnd}
+									onDragStart={(e) => drag.onDragStart(e, index)}
 								>
 									<DragHandle />
 
 									<DisclosureToggle
-										open={isOpen}
-										onToggle={() => toggle(index)}
 										className="min-w-0 flex-1 gap-2 rounded px-1.5 py-1 hover:bg-hover"
 										label={
 											<span className="truncate text-[12.5px] text-text-2">
 												{entry.title || id || `Field ${index + 1}`}
 											</span>
 										}
+										open={isOpen}
+										onToggle={() => toggle(index)}
 									>
 										<span className="rounded bg-surface-2 px-1.5 py-0.5 text-[10.5px] text-text-3">
 											{fieldTypeName(
@@ -289,10 +289,10 @@ export const ResourceDesigner = ({
 									</DisclosureToggle>
 
 									<IconButton
+										label="Delete field"
+										title="Delete field"
 										tone="danger"
 										onClick={() => removeEntry(index)}
-										title="Delete field"
-										label="Delete field"
 									>
 										<Trash size={13} />
 									</IconButton>
@@ -303,38 +303,38 @@ export const ResourceDesigner = ({
 										<div className="grid grid-cols-1 gap-3 md:grid-cols-2">
 											{useColumnSelect ? (
 												<LabelledCombobox
+													emptyLabel="No columns found."
+													hint="The data table column this field reads and writes."
 													label="Column"
+													loading={columnsQ.isLoading}
+													options={columnOptions}
+													placeholder="Select a column…"
+													searchPlaceholder="Search columns…"
 													value={id}
 													onChange={(v) =>
 														updateEntry(index, { [keyField]: v })
 													}
-													options={columnOptions}
-													loading={columnsQ.isLoading}
-													placeholder="Select a column…"
-													searchPlaceholder="Search columns…"
-													emptyLabel="No columns found."
-													hint="The data table column this field reads and writes."
 												/>
 											) : (
 												<LabelledInput
-													label="ID"
-													value={id}
-													onChange={(v) =>
-														updateEntry(index, { [keyField]: v })
-													}
 													hint={
 														keyField === "column"
 															? "Database column name (no spaces, lowercase)"
 															: "Field key (used in storage). Stable across edits."
 													}
+													label="ID"
+													value={id}
+													onChange={(v) =>
+														updateEntry(index, { [keyField]: v })
+													}
 												/>
 											)}
 											<LabelledSelect
+												groups={typeGroups}
 												label="Type"
+												loading={fieldTypesQ.isLoading}
 												value={entry.type || "text"}
 												onChange={(v) => updateEntry(index, { type: v })}
-												groups={typeGroups}
-												loading={fieldTypesQ.isLoading}
 											/>
 											<LabelledInput
 												label="Label"
@@ -342,19 +342,19 @@ export const ResourceDesigner = ({
 												onChange={(v) => updateEntry(index, { title: v })}
 											/>
 											<LabelledInput
+												hint="Shown in parens next to the label."
 												label="Subtitle / hint"
 												value={entry.subtitle ?? ""}
 												onChange={(v) =>
 													updateEntry(index, { subtitle: v })
 												}
-												hint="Shown in parens next to the label."
 											/>
 										</div>
 
 										<Checkbox
+											checked={readRequired(entry.settings)}
 											className="mt-3"
 											label="Required field"
-											checked={readRequired(entry.settings)}
 											onChange={(next) =>
 												updateEntry(index, {
 													settings: writeRequired(entry.settings, next),
@@ -367,6 +367,7 @@ export const ResourceDesigner = ({
 											<div className="rounded-md border border-border bg-surface-2 p-3">
 												<FieldSettingsEditor
 													hideLabel
+													errors={settingsErrors?.[index]}
 													type={entry.type || "text"}
 													useCase={useCase}
 													value={
@@ -377,18 +378,17 @@ export const ResourceDesigner = ({
 													onChange={(v) =>
 														updateEntry(index, { settings: v })
 													}
-													errors={settingsErrors?.[index]}
 												/>
 											</div>
 										</div>
 
 										{onSetDisplayField && (
 											<Checkbox
-												className="mt-2"
-												label="Use this field's value as the row title"
 												checked={!!isDisplay}
-												onChange={() => onSetDisplayField(id)}
+												className="mt-2"
 												disabled={!id}
+												label="Use this field's value as the row title"
+												onChange={() => onSetDisplayField(id)}
 											/>
 										)}
 									</div>
@@ -401,10 +401,10 @@ export const ResourceDesigner = ({
 
 			<div className="flex items-center gap-2">
 				<Button
-					variant="secondary"
-					icon={<Plus size={13} />}
-					onClick={addEntry}
 					disabled={addDisabled}
+					icon={<Plus size={13} />}
+					variant="secondary"
+					onClick={addEntry}
 				>
 					Add field
 				</Button>
@@ -419,21 +419,21 @@ export const ResourceDesigner = ({
 };
 
 interface LabelledInputProps {
-	label: string;
-	value: string;
-	onChange: (next: string) => void;
 	hint?: string;
+	label: string;
+	onChange: (next: string) => void;
+	value: string;
 }
 
 const LabelledInput = ({ label, value, onChange, hint }: LabelledInputProps) => (
-	<Field label={label} size="sm" hint={hint}>
+	<Field hint={hint} label={label} size="sm">
 		<TextInput dense value={value} onChange={(e) => onChange(e.target.value)} />
 	</Field>
 );
 
 interface SelectOption {
-	value: string;
 	label: string;
+	value: string;
 }
 
 interface SelectGroup {
@@ -442,12 +442,12 @@ interface SelectGroup {
 }
 
 interface LabelledSelectProps {
-	label: string;
-	value: string;
-	onChange: (next: string) => void;
 	/** Grouped options rendered as <optgroup>s (e.g. Default / Custom). */
 	groups: SelectGroup[];
+	label: string;
 	loading?: boolean;
+	onChange: (next: string) => void;
+	value: string;
 }
 
 const LabelledSelect = ({ label, value, onChange, groups, loading }: LabelledSelectProps) => {
@@ -457,9 +457,9 @@ const LabelledSelect = ({ label, value, onChange, groups, loading }: LabelledSel
 		<Field label={label} size="sm">
 			<Select
 				dense
+				disabled={loading}
 				value={value}
 				onChange={(e) => onChange(e.target.value)}
-				disabled={loading}
 			>
 				{loading && <option value={value}>Loading field types…</option>}
 				{!loading && !known && <option value={value}>{value}</option>}
@@ -478,15 +478,15 @@ const LabelledSelect = ({ label, value, onChange, groups, loading }: LabelledSel
 };
 
 interface LabelledComboboxProps {
+	emptyLabel?: string;
+	hint?: string;
 	label: string;
-	value: string;
+	loading?: boolean;
 	onChange: (next: string) => void;
 	options: LabeledOption[];
-	loading?: boolean;
-	hint?: string;
 	placeholder?: string;
 	searchPlaceholder?: string;
-	emptyLabel?: string;
+	value: string;
 }
 
 const LabelledCombobox = ({
@@ -503,16 +503,16 @@ const LabelledCombobox = ({
 	const selected = value ? { value, label: value } : null;
 
 	return (
-		<Field label={label} size="sm" hint={hint}>
+		<Field hint={hint} label={label} size="sm">
 			<Combobox<string>
-				value={selected}
-				onChange={(option) => onChange(option ? option.value : "")}
-				options={options}
+				ariaLabel={label}
+				emptyLabel={emptyLabel}
 				isLoading={loading}
+				options={options}
 				placeholder={placeholder}
 				searchPlaceholder={searchPlaceholder}
-				emptyLabel={emptyLabel}
-				ariaLabel={label}
+				value={selected}
+				onChange={(option) => onChange(option ? option.value : "")}
 			/>
 		</Field>
 	);

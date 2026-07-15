@@ -87,8 +87,8 @@ export const Developer = () => (
 		<Breadcrumb items={[{ label: "Developer" }]} />
 
 		<PageHead
-			title="Developer"
 			sub="Create + configure the structural pieces editors use day-to-day."
+			title="Developer"
 		/>
 
 		<DeveloperSectionNav />

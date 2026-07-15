@@ -8,13 +8,13 @@
  */
 
 export interface ApiMeta {
-	request_id?: string;
-	page?: number;
-	per_page?: number;
-	total?: number;
-	pages?: number;
-	next_cursor?: string | null;
 	[key: string]: unknown;
+	next_cursor?: string | null;
+	page?: number;
+	pages?: number;
+	per_page?: number;
+	request_id?: string;
+	total?: number;
 }
 
 export interface ApiSuccess<T> {
@@ -23,10 +23,10 @@ export interface ApiSuccess<T> {
 }
 
 export interface ApiFieldError {
+	[key: string]: unknown;
 	code: string;
 	field?: string;
 	message: string;
-	[key: string]: unknown;
 }
 
 export interface ApiErrorPayload {

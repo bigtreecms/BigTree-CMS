@@ -16,13 +16,13 @@ import { Button } from "@/components/ui/Button";
  */
 
 interface ProposalCardProps {
-	proposal: ChatProposal;
-	onApprove: (id: string) => void;
-	onReject: (id: string) => void;
 	/** Approve/reject request in flight for this card. */
 	busy?: boolean;
+	onApprove: (id: string) => void;
 	/** Close the chat panel after following a link to a created entity. */
 	onNavigate: () => void;
+	onReject: (id: string) => void;
+	proposal: ChatProposal;
 }
 
 /** Nicer labels for keys we render often; anything else is humanized from snake_case. */
@@ -207,7 +207,7 @@ export const ProposalCard = ({
 	return (
 		<div className="mt-2 overflow-hidden rounded-xl border border-accent/30 bg-surface-2/40">
 			<div className="flex items-center gap-2 border-b border-border/70 px-3 py-2">
-				<FilePlus2 size={14} className="shrink-0 text-accent" />
+				<FilePlus2 className="shrink-0 text-accent" size={14} />
 				<span className="flex-1 text-[12px] font-semibold text-text">Proposed change</span>
 				<span className={`flex items-center gap-1 text-[11px] ${status.className}`}>
 					<StatusIcon size={12} />
@@ -221,7 +221,7 @@ export const ProposalCard = ({
 				{rows.length > 0 && (
 					<dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1">
 						{rows.map((row, i) => (
-							<div key={`${row.label}-${i}`} className="contents">
+							<div className="contents" key={`${row.label}-${i}`}>
 								<dt className="text-[11px] text-text-3">{row.label}</dt>
 								<dd className="truncate text-[11.5px] text-text">
 									{row.from !== undefined ? (
@@ -249,20 +249,20 @@ export const ProposalCard = ({
 				{isPending && (
 					<div className="mt-3 flex items-center gap-2">
 						<Button
-							size="sm"
-							variant="primary"
 							icon={<Check size={14} />}
 							loading={busy}
 							loadingLabel="Working…"
+							size="sm"
+							variant="primary"
 							onClick={() => onApprove(proposal.proposal_id)}
 						>
 							Approve
 						</Button>
 						<Button
+							disabled={busy}
+							icon={<X size={14} />}
 							size="sm"
 							variant="secondary"
-							icon={<X size={14} />}
-							disabled={busy}
 							onClick={() => onReject(proposal.proposal_id)}
 						>
 							Reject
@@ -272,9 +272,9 @@ export const ProposalCard = ({
 
 				{pageId !== undefined && (
 					<Button
+						className="mt-2 -ml-1"
 						size="sm"
 						variant="link"
-						className="mt-2 -ml-1"
 						onClick={() => {
 							navigate(pageEditPath(pageId));
 							onNavigate();

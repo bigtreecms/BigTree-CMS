@@ -14,11 +14,11 @@ import { useAuthStore } from "@/auth/store";
 import { isAdmin } from "@/lib/permissions";
 
 export interface DropdownItem {
-	label: string;
-	to: string;
-	icon: LucideIcon;
 	/** When true, only render for Administrator+ (legacy `level => 1`). */
 	adminOnly?: boolean;
+	icon: LucideIcon;
+	label: string;
+	to: string;
 }
 
 /**
@@ -53,10 +53,10 @@ export const DashboardTab = () => {
 
 	return (
 		<div className="group relative">
-			<NavLink to="/dashboard" className={({ isActive }) => tabClass(isActive)}>
+			<NavLink className={({ isActive }) => tabClass(isActive)} to="/dashboard">
 				<LayoutDashboard size={14} />
 				<span>Dashboard</span>
-				<ChevronDown size={12} className="text-text-3" />
+				<ChevronDown className="text-text-3" size={12} />
 			</NavLink>
 
 			<div
@@ -65,10 +65,6 @@ export const DashboardTab = () => {
 			>
 				{items.map(({ label, to, icon: Icon }) => (
 					<NavLink
-						key={to}
-						to={to}
-						end={to === "/dashboard"}
-						role="menuitem"
 						className={({ isActive }) =>
 							[
 								"flex items-center gap-2 rounded px-2.5 py-1.5 text-[13px] transition-colors",
@@ -77,8 +73,12 @@ export const DashboardTab = () => {
 									: "text-text-2 hover:bg-hover hover:text-text",
 							].join(" ")
 						}
+						end={to === "/dashboard"}
+						key={to}
+						role="menuitem"
+						to={to}
 					>
-						<Icon size={14} className="shrink-0" />
+						<Icon className="shrink-0" size={14} />
 						<span>{label}</span>
 					</NavLink>
 				))}

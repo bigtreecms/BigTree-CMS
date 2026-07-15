@@ -9,12 +9,12 @@ import { api } from "@/api/client";
  */
 
 export interface UserListItem {
-	id: number;
-	email: string;
-	name: string;
 	company: string;
-	level: number;
 	daily_digest: boolean;
+	email: string;
+	id: number;
+	level: number;
+	name: string;
 	timezone: string;
 }
 
@@ -30,59 +30,59 @@ export interface UserListItem {
 export type PermissionCode = "p" | "e" | "n" | "i" | "";
 
 export interface UserPermissions {
-	/** Per-page permission map, keyed by page id (0 = root / All Pages). */
-	page?: Record<string, PermissionCode>;
 	/** Per-module permission map, keyed by module id. */
 	module?: Record<string, PermissionCode>;
-	/** Per-resource-folder permission map, keyed by folder id (0 = Home). */
-	resources?: Record<string, PermissionCode>;
 	/** Per-module group-based-permission map, keyed by module id → category id. */
 	module_gbp?: Record<string, Record<string, PermissionCode>>;
+	/** Per-page permission map, keyed by page id (0 = root / All Pages). */
+	page?: Record<string, PermissionCode>;
+	/** Per-resource-folder permission map, keyed by folder id (0 = Home). */
+	resources?: Record<string, PermissionCode>;
 }
 
 /** Content alerts: `{ pageId: "on" }` triggers an alert when the page goes stale. */
 export type UserAlerts = Record<string, "on" | "" | null>;
 
 export interface UserDetail {
-	id: number;
-	email: string;
-	name: string;
+	alerts?: UserAlerts;
 	company: string;
-	level: number;
 	daily_digest: boolean;
+	email: string;
+	id: number;
+	level: number;
+	name: string;
+	permissions?: UserPermissions;
 	timezone: string;
 	two_factor_enabled: boolean;
-	permissions?: UserPermissions;
-	alerts?: UserAlerts;
 }
 
 export interface CreateUserPayload {
-	email: string;
-	name: string;
-	company?: string;
-	level: number;
-	password?: string;
-	timezone?: string;
-	daily_digest?: boolean;
 	alerts?: UserAlerts;
+	company?: string;
+	daily_digest?: boolean;
+	email: string;
+	level: number;
+	name: string;
+	password?: string;
 	permissions?: UserPermissions;
+	timezone?: string;
 }
 
 export interface UpdateUserPayload {
-	email?: string;
-	name?: string;
-	company?: string;
-	level?: number;
-	timezone?: string;
-	daily_digest?: boolean;
 	alerts?: UserAlerts;
+	company?: string;
+	daily_digest?: boolean;
+	email?: string;
+	level?: number;
+	name?: string;
 	permissions?: UserPermissions;
+	timezone?: string;
 }
 
 export interface ChangePasswordPayload {
-	new_password: string;
 	/** Required when changing your own password; ignored when an admin changes someone else's. */
 	current_password?: string;
+	new_password: string;
 }
 
 export interface UsersListResponse {

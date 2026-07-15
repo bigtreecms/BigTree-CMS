@@ -10,9 +10,6 @@ import { SubNavItemContent } from "../ui/SubNavItemContent";
  * a static list to <SubNav />.
  */
 export interface SubNavItem {
-	label: string;
-	to: string;
-	icon?: LucideIcon;
 	/** Exact-match active state. Defaults to NavLink prefix matching so a view
 	 *  stays active on its `/add` and `/edit` sub-routes (legacy substring
 	 *  behavior). */
@@ -22,6 +19,9 @@ export interface SubNavItem {
 	 * external glyph (rarely used after the classic admin cutover).
 	 */
 	external?: boolean;
+	icon?: LucideIcon;
+	label: string;
+	to: string;
 }
 
 interface SubNavProps {
@@ -43,18 +43,18 @@ const ItemLink = ({ item }: { item: SubNavItem }) => {
 
 	if (item.external) {
 		return (
-			<a href={item.to} className={itemClass(false)} title="Opens in a new context">
+			<a className={itemClass(false)} href={item.to} title="Opens in a new context">
 				<SubNavItemContent
 					icon={Icon && <Icon size={14} />}
 					label={item.label}
-					trailing={<ExternalLink size={11} className="text-text-3" />}
+					trailing={<ExternalLink className="text-text-3" size={11} />}
 				/>
 			</a>
 		);
 	}
 
 	return (
-		<NavLink to={item.to} end={item.end} className={({ isActive }) => itemClass(isActive)}>
+		<NavLink className={({ isActive }) => itemClass(isActive)} end={item.end} to={item.to}>
 			<SubNavItemContent icon={Icon && <Icon size={14} />} label={item.label} />
 		</NavLink>
 	);
@@ -68,8 +68,8 @@ const MoreMenu = ({ items }: { items: SubNavItem[] }) => {
 	return (
 		<div className="group relative ml-auto">
 			<button
-				type="button"
 				className="flex items-center gap-1 px-3 py-2.5 text-[13px] font-medium text-text-3 transition-colors hover:text-text"
+				type="button"
 			>
 				<span>More</span>
 				<ChevronDown size={12} />
@@ -85,17 +85,17 @@ const MoreMenu = ({ items }: { items: SubNavItem[] }) => {
 					if (item.external) {
 						return (
 							<a
-								key={item.to}
+								className="flex items-center gap-2 rounded px-2.5 py-1.5 text-[13px] text-text-2 transition-colors hover:bg-hover hover:text-text"
 								href={item.to}
+								key={item.to}
 								role="menuitem"
 								title="Opens in a new context"
-								className="flex items-center gap-2 rounded px-2.5 py-1.5 text-[13px] text-text-2 transition-colors hover:bg-hover hover:text-text"
 							>
 								<SubNavItemContent
-									icon={Icon && <Icon size={14} className="shrink-0" />}
+									icon={Icon && <Icon className="shrink-0" size={14} />}
 									label={item.label}
 									trailing={
-										<ExternalLink size={11} className="shrink-0 text-text-3" />
+										<ExternalLink className="shrink-0 text-text-3" size={11} />
 									}
 								/>
 							</a>
@@ -104,10 +104,6 @@ const MoreMenu = ({ items }: { items: SubNavItem[] }) => {
 
 					return (
 						<NavLink
-							key={item.to}
-							to={item.to}
-							end={item.end}
-							role="menuitem"
 							className={({ isActive }) =>
 								[
 									"flex items-center gap-2 rounded px-2.5 py-1.5 text-[13px] transition-colors",
@@ -116,9 +112,13 @@ const MoreMenu = ({ items }: { items: SubNavItem[] }) => {
 										: "text-text-2 hover:bg-hover hover:text-text",
 								].join(" ")
 							}
+							end={item.end}
+							key={item.to}
+							role="menuitem"
+							to={item.to}
 						>
 							<SubNavItemContent
-								icon={Icon && <Icon size={14} className="shrink-0" />}
+								icon={Icon && <Icon className="shrink-0" size={14} />}
 								label={item.label}
 							/>
 						</NavLink>
@@ -186,18 +186,18 @@ export const SubNav = ({ items }: SubNavProps) => {
 		<nav className="relative mb-4 flex items-stretch border-b border-border">
 			{/* Off-screen mirror of the full list, used only to measure natural widths. */}
 			<div
-				ref={measureRef}
 				aria-hidden
 				className="pointer-events-none invisible absolute left-0 top-0 flex"
+				ref={measureRef}
 			>
 				{items.map((item) => (
-					<ItemLink key={item.to} item={item} />
+					<ItemLink item={item} key={item.to} />
 				))}
 			</div>
 
-			<div ref={containerRef} className="flex min-w-0 flex-1 items-stretch overflow-hidden">
+			<div className="flex min-w-0 flex-1 items-stretch overflow-hidden" ref={containerRef}>
 				{visible.map((item) => (
-					<ItemLink key={item.to} item={item} />
+					<ItemLink item={item} key={item.to} />
 				))}
 			</div>
 

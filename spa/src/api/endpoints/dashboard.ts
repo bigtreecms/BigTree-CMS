@@ -3,7 +3,13 @@ import { api } from "@/api/client";
 /** Wire shapes — mirror what the PHP services return after their JSON envelope. */
 
 export interface DashboardSummary {
-	user: { id: number; name: string; email: string; level: number };
+	"404s"?: { unresolved: number; redirects: number; ignored: number };
+	integrity?: {
+		pages_with_missing_template: number;
+		pages_total: number;
+		resources_total: number;
+		orphan_resource_allocations: number;
+	};
 	messages: { unread: number; total_in: number };
 	pending_changes: { mine: number; publishable: number | null };
 	recent_activity: Array<{
@@ -13,62 +19,52 @@ export interface DashboardSummary {
 		type: string;
 		date: string;
 	}>;
-	"404s"?: { unresolved: number; redirects: number; ignored: number };
-	integrity?: {
-		pages_with_missing_template: number;
-		pages_total: number;
-		resources_total: number;
-		orphan_resource_allocations: number;
-	};
+	user: { id: number; name: string; email: string; level: number };
 }
 
 export interface AnalyticsCachePeriod {
-	views: number;
-	visits: number;
-	bounces: number;
-	bounce_rate: number;
 	average_time: string;
 	average_time_seconds: number;
+	bounce_rate: number;
+	bounces: number;
 	total_duration: number;
+	views: number;
+	visits: number;
 }
 
 export interface AnalyticsCache {
+	browsers?: Record<string, { sessions: number; screenPageViews: number }>;
+	month?: AnalyticsCachePeriod;
+	quarter?: AnalyticsCachePeriod;
+	referrers?: Record<string, { sessions: number; screenPageViews: number }>;
 	/** Sessions per day, keyed by YYYYMMDD. Used for the 2-week bar chart. */
 	two_week?: Record<string, number>;
 	year?: AnalyticsCachePeriod;
-	month?: AnalyticsCachePeriod;
-	quarter?: AnalyticsCachePeriod;
-	year_ago_year?: AnalyticsCachePeriod;
 	year_ago_month?: AnalyticsCachePeriod;
 	year_ago_quarter?: AnalyticsCachePeriod;
-	referrers?: Record<string, { sessions: number; screenPageViews: number }>;
-	browsers?: Record<string, { sessions: number; screenPageViews: number }>;
+	year_ago_year?: AnalyticsCachePeriod;
 }
 
 export interface AnalyticsResponse {
-	configured: boolean;
-	verified: boolean;
-	property_id: string | null;
-	has_cache: boolean;
-	cache_at: string | null;
-	cache_age_seconds: number | null;
 	cache: AnalyticsCache | null;
+	cache_age_seconds: number | null;
+	cache_at: string | null;
+	configured: boolean;
+	has_cache: boolean;
+	property_id: string | null;
+	verified: boolean;
 }
 
 export interface ContentAlert {
-	page_id: number;
-	nav_title: string;
-	path: string;
-	updated_at: string;
 	age_days: number;
+	nav_title: string;
+	page_id: number;
+	path: string;
 	threshold_days: number;
+	updated_at: string;
 }
 
 export interface IntegrityStats {
-	pages_with_missing_template: number;
-	pages_total: number;
-	resources_total: number;
-	orphan_resource_allocations: number;
 	/**
 	 * Verbose mode (the /dashboard/integrity endpoint) also returns row lists
 	 * (e.g. arrays of pages that hit each condition). We keep them loose so
@@ -76,6 +72,10 @@ export interface IntegrityStats {
 	 * potential extra field.
 	 */
 	[key: string]: unknown;
+	orphan_resource_allocations: number;
+	pages_total: number;
+	pages_with_missing_template: number;
+	resources_total: number;
 }
 
 export const dashboardApi = {
@@ -86,15 +86,15 @@ export const dashboardApi = {
 };
 
 export interface PendingChange {
-	id: number;
-	user: number;
 	date: string;
-	title: string;
-	table: string;
+	id: number;
 	item_id: number | null;
-	type: string;
 	module: string | null;
 	pending_page_parent: number;
+	table: string;
+	title: string;
+	type: string;
+	user: number;
 }
 
 /**
@@ -103,12 +103,12 @@ export interface PendingChange {
  * straight DB column passthrough.
  */
 export interface PendingChangeDetail extends PendingChange {
-	item_id: number | null;
 	changes: Record<string, unknown>;
+	item_id: number | null;
 	mtm_changes: unknown[] | Record<string, unknown>;
-	tags_changes: number[] | Record<string, unknown>;
 	open_graph_changes: Record<string, unknown>;
 	publish_hook?: string | null;
+	tags_changes: number[] | Record<string, unknown>;
 }
 
 export const pendingChangesApi = {
@@ -123,25 +123,25 @@ export const pendingChangesApi = {
 };
 
 export interface Message {
+	date: string;
 	id: number;
+	message: string;
+	read_by: number[];
+	/** Resolved names aligned with `recipients` (null = deleted account). */
+	recipient_names: Array<{ id: number; name: string | null }>;
+	recipients: number[];
+	response_to: number;
 	sender: number;
 	/** Sender's display name; null when the account was deleted. */
 	sender_name: string | null;
-	recipients: number[];
-	/** Resolved names aligned with `recipients` (null = deleted account). */
-	recipient_names: Array<{ id: number; name: string | null }>;
 	subject: string;
-	message: string;
-	response_to: number;
-	date: string;
-	read_by: number[];
 }
 
 export interface CreateMessagePayload {
-	subject: string;
+	in_response_to?: number;
 	message: string;
 	recipients: number[];
-	in_response_to?: number;
+	subject: string;
 }
 
 export const messagesApi = {

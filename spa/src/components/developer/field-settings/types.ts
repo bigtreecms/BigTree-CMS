@@ -10,8 +10,8 @@ import type { FieldUseCase, SettingDescriptor } from "@/api/endpoints/field-type
  */
 export interface ControlProps {
 	descriptor: SettingDescriptor;
-	settings: Record<string, unknown>;
 	onPatch: (patch: Record<string, unknown>) => void;
+	settings: Record<string, unknown>;
 	useCase: FieldUseCase;
 }
 

@@ -3,18 +3,18 @@ import { Field } from "@/components/ui/Field";
 import { useDbTables } from "@/hooks/useDbTables";
 
 interface DataTableSelectProps {
-	/** Selected table name; empty string when nothing is chosen. */
-	value: string;
-	onChange: (table: string) => void;
-	label?: string;
-	hint?: string;
-	error?: string;
-	required?: boolean;
-	disabled?: boolean;
-	placeholder?: string;
-	id?: string;
 	ariaLabel?: string;
 	className?: string;
+	disabled?: boolean;
+	error?: string;
+	hint?: string;
+	id?: string;
+	label?: string;
+	onChange: (table: string) => void;
+	placeholder?: string;
+	required?: boolean;
+	/** Selected table name; empty string when nothing is chosen. */
+	value: string;
 }
 
 /**
@@ -48,23 +48,23 @@ export const DataTableSelect = ({
 	return (
 		<Field
 			as="div"
-			label={label}
-			hint={hint}
-			error={error}
-			required={required}
 			className={className}
+			error={error}
+			hint={hint}
+			label={label}
+			required={required}
 		>
 			<Combobox<string>
-				value={selected}
-				onChange={(option) => onChange(option ? option.value : "")}
-				options={options}
+				ariaLabel={ariaLabel ?? label}
+				disabled={disabled}
+				emptyLabel="No tables found."
+				id={id}
 				isLoading={tablesQ.isLoading}
+				options={options}
 				placeholder={placeholder}
 				searchPlaceholder="Search tables…"
-				emptyLabel="No tables found."
-				disabled={disabled}
-				id={id}
-				ariaLabel={ariaLabel ?? label}
+				value={selected}
+				onChange={(option) => onChange(option ? option.value : "")}
 			/>
 		</Field>
 	);

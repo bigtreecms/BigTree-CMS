@@ -137,7 +137,7 @@ export const UserEdit = () => {
 		!deleteMutation.isPending;
 
 	if (!Number.isFinite(id) || id <= 0) {
-		return <AccessDenied title="Invalid user" message="That URL doesn't point to a user." />;
+		return <AccessDenied message="That URL doesn't point to a user." title="Invalid user" />;
 	}
 
 	if (userQ.isLoading) {
@@ -157,7 +157,7 @@ export const UserEdit = () => {
 	}
 
 	if (!targetUser) {
-		return <AccessDenied title="User not found" message="This user no longer exists." />;
+		return <AccessDenied message="This user no longer exists." title="User not found" />;
 	}
 
 	if (!canEditThisUser) {
@@ -168,8 +168,8 @@ export const UserEdit = () => {
 	if (!isSelf && !!currentUser && targetUser.level > currentUser.level) {
 		return (
 			<AccessDenied
-				title="Higher access level"
 				message="You can't edit a user whose access level is higher than your own."
+				title="Higher access level"
 			/>
 		);
 	}
@@ -201,10 +201,6 @@ export const UserEdit = () => {
 			<Breadcrumb items={[{ label: "Users", to: "/users" }, { label: displayName }]} />
 
 			<PageHead
-				title={isSelf ? "Edit profile" : displayName}
-				sub={
-					isSelf ? "Update your account details." : `${levelLabel} · ${targetUser.email}`
-				}
 				actions={
 					<>
 						<Button icon={<ChevronLeft size={13} />} onClick={() => navigate("/users")}>
@@ -216,24 +212,28 @@ export const UserEdit = () => {
 						</Button>
 
 						<Button
-							variant="primary"
-							type="submit"
 							form="user-edit-form"
 							icon={<Save size={13} />}
 							loading={updateMutation.isPending}
 							loadingLabel="Saving…"
+							type="submit"
+							variant="primary"
 						>
 							Save changes
 						</Button>
 					</>
 				}
+				sub={
+					isSelf ? "Update your account details." : `${levelLabel} · ${targetUser.email}`
+				}
+				title={isSelf ? "Edit profile" : displayName}
 			/>
 
 			{isDeveloper(currentUser) && !isSelf && (
 				<div className="mb-3 flex items-center gap-3 rounded-md border border-border bg-surface-2 px-3 py-2 text-[12.5px] text-text-2">
 					<Link
-						to={`/developer/debug/audit?user=${id}`}
 						className="inline-flex items-center gap-1.5 text-accent hover:underline"
+						to={`/developer/debug/audit?user=${id}`}
 					>
 						<History size={13} />
 						View audit trail
@@ -241,10 +241,10 @@ export const UserEdit = () => {
 
 					{targetUser.two_factor_enabled && (
 						<button
+							className="inline-flex items-center gap-1.5 text-danger hover:underline disabled:opacity-60"
+							disabled={remove2faMutation.isPending}
 							type="button"
 							onClick={() => remove2faDialog.open(true)}
-							disabled={remove2faMutation.isPending}
-							className="inline-flex items-center gap-1.5 text-danger hover:underline disabled:opacity-60"
 						>
 							<ShieldCheck size={13} />
 							Remove two-factor authentication
@@ -253,7 +253,7 @@ export const UserEdit = () => {
 				</div>
 			)}
 
-			<form id="user-edit-form" onSubmit={submit} className="space-y-6">
+			<form className="space-y-6" id="user-edit-form" onSubmit={submit}>
 				<div className="grid gap-6 md:grid-cols-2">
 					<Card>
 						<CardHeader className="rounded-t-xl flex items-center gap-3">
@@ -274,26 +274,26 @@ export const UserEdit = () => {
 
 						<div className="rounded-b-xl space-y-4 p-4">
 							<TextField
+								required
 								label="Email"
 								type="email"
-								required
 								value={form.email ?? ""}
 								onChange={(email) => setForm({ ...form, email })}
 							/>
 
 							{canEditLevel && (
 								<SelectField
+									hint={userLevelHint(editedLevel)}
 									label="User level"
+									options={userLevelOptions(currentUser)}
 									value={String(form.level ?? 0)}
 									onChange={(level) => setForm({ ...form, level: Number(level) })}
-									options={userLevelOptions(currentUser)}
-									hint={userLevelHint(editedLevel)}
 								/>
 							)}
 
 							<Checkbox
-								label="Send daily digest email"
 								checked={form.daily_digest ?? false}
+								label="Send daily digest email"
 								onChange={(daily_digest) => setForm({ ...form, daily_digest })}
 							/>
 						</div>
@@ -343,13 +343,13 @@ export const UserEdit = () => {
 
 							{!editedIsAdmin && (
 								<SubNav<PermsTab>
-									value={permsTab}
-									onChange={setPermsTab}
 									items={[
 										{ value: "pages", label: "Pages" },
 										{ value: "modules", label: "Modules" },
 										{ value: "files", label: "Files" },
 									]}
+									value={permsTab}
+									onChange={setPermsTab}
 								/>
 							)}
 						</CardHeader>
@@ -357,23 +357,23 @@ export const UserEdit = () => {
 						<div className="p-4">
 							{(editedIsAdmin || permsTab === "pages") && (
 								<PagePermissionsTree
-									value={permissions.page}
 									alerts={alerts}
+									isAdminUser={editedIsAdmin}
+									value={permissions.page}
+									onAlertsChange={setAlerts}
 									onChange={(next) =>
 										setPermissions({ ...permissions, page: next })
 									}
-									onAlertsChange={setAlerts}
-									isAdminUser={editedIsAdmin}
 								/>
 							)}
 
 							{!editedIsAdmin && permsTab === "modules" && (
 								<ModulePermissionsTree
+									gbpValue={permissions.module_gbp}
 									value={permissions.module}
 									onChange={(next) =>
 										setPermissions({ ...permissions, module: next })
 									}
-									gbpValue={permissions.module_gbp}
 									onGbpChange={(next) =>
 										setPermissions({ ...permissions, module_gbp: next })
 									}
@@ -415,25 +415,25 @@ export const UserEdit = () => {
 
 			<PasswordChangeDialog
 				open={passwordOpen}
-				onOpenChange={setPasswordOpen}
-				userId={id}
 				requireCurrent={isSelf}
+				userId={id}
+				onOpenChange={setPasswordOpen}
 			/>
 
 			<ConfirmDialog
 				{...deleteDialog.dialogProps}
-				title="Delete user?"
-				description={`This will permanently delete ${displayName}.`}
 				confirmLabel="Delete"
+				description={`This will permanently delete ${displayName}.`}
+				title="Delete user?"
 				variant="danger"
 				onConfirm={() => deleteMutation.mutate()}
 			/>
 
 			<ConfirmDialog
 				{...remove2faDialog.dialogProps}
-				title="Remove two-factor authentication?"
-				description={`${displayName} will be able to sign in with just their password until they re-enrol. Use this when they've lost their authenticator.`}
 				confirmLabel="Remove 2FA"
+				description={`${displayName} will be able to sign in with just their password until they re-enrol. Use this when they've lost their authenticator.`}
+				title="Remove two-factor authentication?"
 				variant="danger"
 				onConfirm={() => remove2faMutation.mutate()}
 			/>

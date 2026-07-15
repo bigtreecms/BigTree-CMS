@@ -17,26 +17,26 @@ import { InlineEmpty } from "@/components/ui/InlineEmpty";
 type Filter = "all" | "published" | "draft" | "scheduled";
 
 interface PageTableProps {
-	title: string;
-	icon?: ReactNode;
-	rows: PageListRow[];
-	onReorder: (orderedIds: number[]) => void;
-	onRename: (id: number, next: string) => void;
-	onToggleArchive: (id: number) => void;
-	/** Show only rows matching this filter. "all" disables filtering. */
-	enableFilters?: boolean;
-	/** Custom empty state — defaults to "No pages yet." */
-	emptyLabel?: string;
 	/** Whether drag-to-reorder is enabled. Defaults to true. */
 	allowReorder?: boolean;
+	/** Custom empty state — defaults to "No pages yet." */
+	emptyLabel?: string;
+	/** Show only rows matching this filter. "all" disables filtering. */
+	enableFilters?: boolean;
+	icon?: ReactNode;
 	/** Label for the left action column header (e.g. "Archive" or "Restore"). */
 	leftActionLabel?: string;
-	/** Label for the right action column header (e.g. "Edit" or "Delete"). */
-	rightActionLabel?: string;
 	/** Optional delete handler. When provided, the right action becomes a delete button. */
 	onDelete?: (id: number) => void;
 	/** Optional move handler. When provided, a Move button column is shown between Archive and Edit. */
 	onMove?: (id: number) => void;
+	onRename: (id: number, next: string) => void;
+	onReorder: (orderedIds: number[]) => void;
+	onToggleArchive: (id: number) => void;
+	/** Label for the right action column header (e.g. "Edit" or "Delete"). */
+	rightActionLabel?: string;
+	rows: PageListRow[];
+	title: string;
 }
 
 export const PageTable = ({
@@ -146,21 +146,21 @@ export const PageTable = ({
 				</div>
 
 				{filtered.length === 0 ? (
-					<InlineEmpty variant="plain" align="center">
+					<InlineEmpty align="center" variant="plain">
 						{getEmptyMessage()}
 					</InlineEmpty>
 				) : (
 					filtered.map((row) => (
 						<PageRow
-							key={row.id}
-							row={row}
-							drag={drag}
-							onRename={(next) => onRename(row.id, next)}
-							onToggleArchive={() => onToggleArchive(row.id)}
 							allowReorder={allowReorder}
+							drag={drag}
+							key={row.id}
 							leftActionLabel={leftActionLabel}
+							row={row}
 							onDelete={onDelete ? () => onDelete(row.id) : undefined}
 							onMove={onMove ? () => onMove(row.id) : undefined}
+							onRename={(next) => onRename(row.id, next)}
+							onToggleArchive={() => onToggleArchive(row.id)}
 						/>
 					))
 				)}

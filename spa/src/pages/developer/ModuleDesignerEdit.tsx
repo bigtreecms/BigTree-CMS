@@ -69,7 +69,7 @@ export const ModuleDesignerEdit = () => {
 	});
 
 	if (!isAdd && !idParam) {
-		return <Navigate to="/developer/modules" replace />;
+		return <Navigate replace to="/developer/modules" />;
 	}
 
 	const module = detailQ.data ?? null;
@@ -81,7 +81,7 @@ export const ModuleDesignerEdit = () => {
 			value: "shell",
 			label: "Shell",
 			icon: <SettingsIcon size={13} />,
-			content: <ModuleShellTab moduleId={idParam ?? null} module={module} />,
+			content: <ModuleShellTab module={module} moduleId={idParam ?? null} />,
 		},
 	];
 
@@ -124,26 +124,26 @@ export const ModuleDesignerEdit = () => {
 
 	return (
 		<DeveloperEditLayout
-			width="medium"
-			section="Modules"
-			listPath="/developer/modules"
+			detailQuery={detailQ}
 			isAdd={isAdd}
-			title={title}
+			isDirty={false}
+			listPath="/developer/modules"
+			section="Modules"
 			sub={
 				isAdd
 					? "Create a module from an existing table, or have the designer build the table for you."
 					: "Editing module definition."
 			}
-			detailQuery={detailQ}
-			isDirty={false}
+			title={title}
+			width="medium"
 		>
 			{isAdd ? (
 				addMode === "choose" ? (
 					<div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
 						<button
+							className="flex flex-col items-start gap-2 rounded-xl border border-border bg-surface p-5 text-left transition-colors hover:border-border-strong hover:bg-hover"
 							type="button"
 							onClick={() => setAddMode("existing")}
-							className="flex flex-col items-start gap-2 rounded-xl border border-border bg-surface p-5 text-left transition-colors hover:border-border-strong hover:bg-hover"
 						>
 							<IconTile radius="lg">
 								<Database size={18} />
@@ -157,9 +157,9 @@ export const ModuleDesignerEdit = () => {
 							</span>
 						</button>
 						<button
+							className="flex flex-col items-start gap-2 rounded-xl border border-border bg-surface p-5 text-left transition-colors hover:border-border-strong hover:bg-hover"
 							type="button"
 							onClick={() => setAddMode("build")}
-							className="flex flex-col items-start gap-2 rounded-xl border border-border bg-surface p-5 text-left transition-colors hover:border-border-strong hover:bg-hover"
 						>
 							<IconTile radius="lg">
 								<Wand2 size={18} />
@@ -176,9 +176,9 @@ export const ModuleDesignerEdit = () => {
 				) : (
 					<div className="space-y-3">
 						<button
+							className="inline-flex items-center gap-1.5 text-[12px] text-text-3 hover:text-text"
 							type="button"
 							onClick={() => setAddMode("choose")}
-							className="inline-flex items-center gap-1.5 text-[12px] text-text-3 hover:text-text"
 						>
 							<ChevronLeft size={13} />
 							Back to options
@@ -186,7 +186,7 @@ export const ModuleDesignerEdit = () => {
 
 						{addMode === "existing" ? (
 							<div className="rounded-xl border border-border bg-surface-2 p-4">
-								<ModuleShellTab moduleId={null} module={null} />
+								<ModuleShellTab module={null} moduleId={null} />
 							</div>
 						) : (
 							<ModuleBuilderWizard />

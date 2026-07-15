@@ -3,16 +3,16 @@ import type { ReactNode } from "react";
 import { CardFooter, CardHeader } from "./Card";
 
 interface FormShellProps {
-	/** Optional header bar above the form body. */
-	header?: ReactNode;
-	children: ReactNode;
-	/** Sticky footer (typically Save / Cancel / Delete buttons). */
-	footer?: ReactNode;
 	/** Apply a max-width container to the form. Defaults to true. */
 	bounded?: boolean;
+	children: ReactNode;
+	className?: string;
+	/** Sticky footer (typically Save / Cancel / Delete buttons). */
+	footer?: ReactNode;
+	/** Optional header bar above the form body. */
+	header?: ReactNode;
 	/** Wrap the inner body in a <form> with this onSubmit. */
 	onSubmit?: (event: React.FormEvent) => void;
-	className?: string;
 }
 
 /**
@@ -51,7 +51,7 @@ export const FormShell = ({
 
 	if (onSubmit) {
 		return (
-			<form onSubmit={onSubmit} className={containerClass}>
+			<form className={containerClass} onSubmit={onSubmit}>
 				{Inner}
 			</form>
 		);

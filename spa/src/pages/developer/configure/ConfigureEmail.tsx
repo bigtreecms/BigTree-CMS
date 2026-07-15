@@ -90,33 +90,33 @@ export const ConfigureEmail = () => {
 
 	return (
 		<ConfigureLayout
-			title="Email"
-			sub="Picks the delivery service BigTree uses for password resets, daily digests, and EmailService::sendEmail() calls."
 			query={detailQ}
+			sub="Picks the delivery service BigTree uses for password resets, daily digests, and EmailService::sendEmail() calls."
+			title="Email"
 		>
 			{draft && (
 				<FormShell
-					onSubmit={onSubmit}
 					footer={
 						<Button
-							variant="primary"
-							type="submit"
 							icon={<Save size={13} />}
 							loading={saveMutation.isPending}
 							loadingLabel="Saving…"
+							type="submit"
+							variant="primary"
 						>
 							Save
 						</Button>
 					}
+					onSubmit={onSubmit}
 				>
 					{generalError && <ErrorPanel message={generalError} />}
 
 					<SelectField
+						hint={active.blurb}
 						label="Service"
+						options={SERVICES.map((s) => ({ value: s.id, label: s.label }))}
 						value={draft.service}
 						onChange={(v) => onChangeService(v as EmailServiceId)}
-						options={SERVICES.map((s) => ({ value: s.id, label: s.label }))}
-						hint={active.blurb}
 					/>
 
 					<div className="mt-4 space-y-3">

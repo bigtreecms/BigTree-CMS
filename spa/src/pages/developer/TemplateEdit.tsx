@@ -73,7 +73,7 @@ export const TemplateEdit = () => {
 	);
 
 	if (!isAdd && !idParam) {
-		return <Navigate to="/developer/templates" replace />;
+		return <Navigate replace to="/developer/templates" />;
 	}
 
 	const handleSubmit = submit.buildSubmit({
@@ -90,74 +90,74 @@ export const TemplateEdit = () => {
 
 	return (
 		<DeveloperEditLayout
-			width="medium"
-			section="Templates"
-			listPath="/developer/templates"
-			isAdd={isAdd}
-			title={title}
-			sub={isAdd ? "Define a new page template." : "Editing template definition."}
 			detailQuery={detailQ}
 			error={submit.error}
-			isDirty={isDirty}
 			formShellBounded={false}
-			onSubmit={handleSubmit}
-			submitLabel={isAdd ? "Create template" : "Save template"}
+			isAdd={isAdd}
+			isDirty={isDirty}
+			listPath="/developer/templates"
 			saving={saving}
+			section="Templates"
+			sub={isAdd ? "Define a new page template." : "Editing template definition."}
+			submitLabel={isAdd ? "Create template" : "Save template"}
+			title={title}
+			width="medium"
+			onSubmit={handleSubmit}
 		>
 			<div className="space-y-4">
 				<FieldGrid>
 					<TextField
+						required
+						disabled={!isAdd}
+						error={submit.fieldErrors.id}
+						hint="Lowercase, hyphens or underscores. Cannot change after create."
 						label="ID"
 						value={body.id ?? ""}
 						onChange={(v) => set({ id: v })}
-						hint="Lowercase, hyphens or underscores. Cannot change after create."
-						error={submit.fieldErrors.id}
-						disabled={!isAdd}
-						required
 					/>
 					<TextField
+						required
+						error={submit.fieldErrors.name}
 						label="Name"
 						value={body.name ?? ""}
 						onChange={(v) => set({ name: v })}
-						error={submit.fieldErrors.name}
-						required
 					/>
 					{body.routed && (
 						<TextField
+							hint="Routed templates can bind to a module's content."
 							label="Module (optional)"
 							value={body.module ?? ""}
 							onChange={(v) => set({ module: v })}
-							hint="Routed templates can bind to a module's content."
 						/>
 					)}
 					<SelectField
 						label="Minimum user level"
-						value={String(body.level ?? 0)}
-						onChange={(v) => set({ level: Number(v) })}
 						options={[
 							{ value: "0", label: "Editor (0)" },
 							{ value: "1", label: "Admin (1)" },
 							{ value: "2", label: "Developer (2)" },
 						]}
+						value={String(body.level ?? 0)}
+						onChange={(v) => set({ level: Number(v) })}
 					/>
 				</FieldGrid>
 
 				<Checkbox
-					label="Routed template (template handler can capture URL segments)"
 					checked={Boolean(body.routed)}
+					label="Routed template (template handler can capture URL segments)"
 					onChange={(routed) => set({ routed })}
 				/>
 
 				<div>
 					<SectionLabel className="mb-2">Resources (page content fields)</SectionLabel>
 					<ResourceDesigner
+						keyField="id"
 						resources={(body.resources ?? []) as unknown as ResourceEntry[]}
+						settingsErrors={submit.settingsErrors}
+						useCase="templates"
 						onChange={(next) =>
 							set({ resources: next as unknown as TemplateResource[] })
 						}
-						keyField="id"
-						useCase="templates"
-						settingsErrors={submit.settingsErrors}
 					/>
 				</div>
 

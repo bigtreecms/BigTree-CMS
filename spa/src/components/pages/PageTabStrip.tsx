@@ -15,8 +15,8 @@ const TAB_ITEMS: TabStripItem[] = [
 ];
 
 interface PageTabStripProps {
-	value: PageTabValue;
 	onChange: (next: PageTabValue) => void;
+	value: PageTabValue;
 }
 
 /**
@@ -27,8 +27,8 @@ interface PageTabStripProps {
 export const PageTabStrip = ({ value, onChange }: PageTabStripProps) => (
 	<TabStrip
 		tabs={TAB_ITEMS}
+		trailing={<LinkFinder />}
 		value={value}
 		onChange={(next) => onChange(next as PageTabValue)}
-		trailing={<LinkFinder />}
 	/>
 );

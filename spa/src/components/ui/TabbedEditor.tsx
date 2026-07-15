@@ -8,10 +8,10 @@ export interface TabbedEditorTab extends TabStripItem {
 }
 
 interface TabbedEditorProps {
+	className?: string;
+	onChange: (value: string) => void;
 	tabs: TabbedEditorTab[];
 	value: string;
-	onChange: (value: string) => void;
-	className?: string;
 }
 
 /**
@@ -26,13 +26,13 @@ export const TabbedEditor = ({ tabs, value, onChange, className }: TabbedEditorP
 
 	return (
 		<div className={`flex flex-col ${className ?? ""}`}>
-			<TabStrip tabs={tabs} value={value} onChange={onChange} idBase={baseId} />
+			<TabStrip idBase={baseId} tabs={tabs} value={value} onChange={onChange} />
 
 			<div
-				role="tabpanel"
-				id={`${baseId}-panel-${value}`}
 				aria-labelledby={`${baseId}-tab-${value}`}
 				className="pt-4 focus:outline-none"
+				id={`${baseId}-panel-${value}`}
+				role="tabpanel"
 			>
 				{active?.content}
 			</div>

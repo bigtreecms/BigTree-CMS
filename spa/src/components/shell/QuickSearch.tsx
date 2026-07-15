@@ -33,14 +33,14 @@ import { moduleEntryEditPath, pageEditPath, settingEditPath } from "@/lib/routes
 /* eslint-disable @typescript-eslint/no-explicit-any -- search results are heterogeneous (raw module cache rows, etc.) and intentionally rendered generically */
 
 interface QuickSearchProps {
-	open: boolean;
 	onClose: () => void;
+	open: boolean;
 }
 
 interface ActionableItem {
+	action: () => void;
 	group: string;
 	item: unknown;
-	action: () => void;
 }
 
 const GROUP_ORDER = ["pages", "modules", "entries", "settings", "tags", "users"] as const;
@@ -189,15 +189,15 @@ const AiSearchLoading = () => {
 
 	return (
 		<div
+			aria-live="polite"
 			className="flex flex-col items-center gap-4 px-4 py-10"
 			role="status"
-			aria-live="polite"
 		>
 			<div className="relative flex size-12 items-center justify-center">
 				<span className="absolute inset-0 animate-ping rounded-full bg-accent/20 [animation-duration:1.6s]" />
 				<span className="absolute inset-1 animate-pulse rounded-full bg-accent/15" />
 				<span className="relative flex size-10 items-center justify-center rounded-full border border-accent/30 bg-accent/10 text-accent">
-					<Sparkles size={18} className="animate-pulse" />
+					<Sparkles className="animate-pulse" size={18} />
 				</span>
 			</div>
 
@@ -434,12 +434,6 @@ export const QuickSearch = ({ open, onClose }: QuickSearchProps) => {
 
 	const renderPage = (p: any, idx: number, isActive: boolean) => (
 		<QuickSearchResultRow
-			key={`p-${p.id}`}
-			icon={FileText}
-			idx={idx}
-			isActive={isActive}
-			title={displayText(p.nav_title) || "Untitled"}
-			subtitle={displayText(p.path) || "/"}
 			badge={
 				p.archived ? (
 					<span className="rounded bg-warn-bg px-1.5 py-px text-[10px] text-warn">
@@ -447,18 +441,24 @@ export const QuickSearch = ({ open, onClose }: QuickSearchProps) => {
 					</span>
 				) : undefined
 			}
+			icon={FileText}
+			idx={idx}
+			isActive={isActive}
+			key={`p-${p.id}`}
+			subtitle={displayText(p.path) || "/"}
+			title={displayText(p.nav_title) || "Untitled"}
 			onSelect={() => selectAndClose(pageEditPath(p.id))}
 		/>
 	);
 
 	const renderModule = (m: any, idx: number, isActive: boolean) => (
 		<QuickSearchResultRow
-			key={`m-${m.id}`}
 			icon={LayoutGrid}
 			idx={idx}
 			isActive={isActive}
-			title={displayText(m.name) || "Module"}
+			key={`m-${m.id}`}
 			subtitle={displayText(m.route)}
+			title={displayText(m.name) || "Module"}
 			onSelect={() => selectAndClose(modulePath({ route: m.route }))}
 		/>
 	);
@@ -474,48 +474,48 @@ export const QuickSearch = ({ open, onClose }: QuickSearchProps) => {
 		isActive: boolean
 	) => (
 		<QuickSearchResultRow
-			key={`e-${row.module.id}-${row.entryId}`}
 			icon={LayoutGrid}
 			idx={idx}
 			isActive={isActive}
-			title={entryItemLabel(row.item)}
+			key={`e-${row.module.id}-${row.entryId}`}
 			subtitle={displayText(row.module.name || row.module.route)}
+			title={entryItemLabel(row.item)}
 			onSelect={() => selectAndClose(row.path)}
 		/>
 	);
 
 	const renderSetting = (s: any, idx: number, isActive: boolean) => (
 		<QuickSearchResultRow
-			key={`s-${s.id}`}
 			icon={SlidersHorizontal}
 			idx={idx}
 			isActive={isActive}
-			title={displayText(s.name) || String(s.id)}
+			key={`s-${s.id}`}
 			subtitle={String(s.id)}
+			title={displayText(s.name) || String(s.id)}
 			onSelect={() => selectAndClose(settingEditPath(s.id))}
 		/>
 	);
 
 	const renderTag = (t: any, idx: number, isActive: boolean) => (
 		<QuickSearchResultRow
-			key={`t-${t.id}`}
 			icon={Tag}
 			idx={idx}
 			isActive={isActive}
-			title={displayText(t.tag)}
+			key={`t-${t.id}`}
 			subtitle={`used ${t.usage_count} times`}
+			title={displayText(t.tag)}
 			onSelect={() => selectAndClose("/tags")}
 		/>
 	);
 
 	const renderUser = (u: any, idx: number, isActive: boolean) => (
 		<QuickSearchResultRow
-			key={`u-${u.id}`}
 			icon={Users}
 			idx={idx}
 			isActive={isActive}
-			title={displayText(u.name)}
+			key={`u-${u.id}`}
 			subtitle={displayText(u.email)}
+			title={displayText(u.name)}
 			onSelect={() => selectAndClose(`/users/${encodeURIComponent(String(u.id))}/edit`)}
 		/>
 	);
@@ -548,26 +548,26 @@ export const QuickSearch = ({ open, onClose }: QuickSearchProps) => {
 					{/* Search input row */}
 					<div className="flex items-center gap-3 border-b border-border px-4 py-3">
 						{aiSearchEnabled ? (
-							<Sparkles size={18} className="text-accent" />
+							<Sparkles className="text-accent" size={18} />
 						) : (
-							<Search size={18} className="text-text-3" />
+							<Search className="text-text-3" size={18} />
 						)}
 						<input
-							ref={inputRef}
-							value={rawQuery}
-							onChange={(e) => setRawQuery(e.target.value)}
 							aria-label={
 								aiSearchEnabled
 									? "Ask about pages, modules, tags, users"
 									: "Search pages, modules, tags, users"
 							}
+							className="flex-1 bg-transparent text-[15px] text-text placeholder:text-text-3 focus:outline-none"
 							placeholder={
 								aiSearchEnabled
 									? "Ask about pages, modules, tags, users…"
 									: "Search pages, modules, tags, users…"
 							}
-							className="flex-1 bg-transparent text-[15px] text-text placeholder:text-text-3 focus:outline-none"
+							ref={inputRef}
 							spellCheck={false}
+							value={rawQuery}
+							onChange={(e) => setRawQuery(e.target.value)}
 						/>
 						<IconButton label="Close" title="Close (Esc)" onClick={onClose}>
 							<X size={16} />
@@ -577,10 +577,10 @@ export const QuickSearch = ({ open, onClose }: QuickSearchProps) => {
 					<div className="max-h-[460px] overflow-auto px-1 py-3 text-[13px]">
 						{!activeQueryText && !aiThinking && (
 							<InlineEmpty
-								variant="plain"
 								align="center"
-								pad="xl"
 								className="px-4 py-10"
+								pad="xl"
+								variant="plain"
 							>
 								{aiSearchEnabled
 									? "Search as you type, or press Enter to ask AI for an answer."
@@ -593,7 +593,7 @@ export const QuickSearch = ({ open, onClose }: QuickSearchProps) => {
 						{aiThinking && !hasRenderableResults && <AiSearchLoading />}
 
 						{classicLoading && !hasRenderableResults && !aiThinking && (
-							<InlineEmpty variant="plain" align="center" className="px-4">
+							<InlineEmpty align="center" className="px-4" variant="plain">
 								Searching…
 							</InlineEmpty>
 						)}
@@ -607,7 +607,7 @@ export const QuickSearch = ({ open, onClose }: QuickSearchProps) => {
 						{/* Hybrid: keep classic rows visible while the AI answer is computed. */}
 						{aiThinking && hasRenderableResults && (
 							<div className="mb-2 mx-1 flex items-center gap-2 rounded-lg border border-border bg-surface-2/50 px-3 py-2 text-[12px] text-text-3">
-								<Sparkles size={12} className="animate-pulse text-accent" />
+								<Sparkles className="animate-pulse text-accent" size={12} />
 								Asking AI…
 							</div>
 						)}
@@ -617,7 +617,7 @@ export const QuickSearch = ({ open, onClose }: QuickSearchProps) => {
 								{answer && (
 									<div className="mb-2 mx-1 rounded-lg border border-border bg-surface-2/50 px-3 py-2.5 text-[13px] leading-snug text-text-2">
 										<div className="mb-1 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-text-3">
-											<Sparkles size={11} className="text-accent" />
+											<Sparkles className="text-accent" size={11} />
 											Answer
 										</div>
 										{answer}
@@ -632,7 +632,7 @@ export const QuickSearch = ({ open, onClose }: QuickSearchProps) => {
 											}
 
 											return (
-												<div key={gKey} className="mb-1 last:mb-0">
+												<div className="mb-1 last:mb-0" key={gKey}>
 													<div className="px-3 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-text-3">
 														{GROUP_LABELS[gKey]}
 													</div>
@@ -662,7 +662,7 @@ export const QuickSearch = ({ open, onClose }: QuickSearchProps) => {
 										}
 
 										return (
-											<div key={gKey} className="mb-1 last:mb-0">
+											<div className="mb-1 last:mb-0" key={gKey}>
 												<div className="px-3 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-text-3">
 													{GROUP_LABELS[gKey]}
 												</div>
@@ -716,10 +716,10 @@ export const QuickSearch = ({ open, onClose }: QuickSearchProps) => {
 							emptyGroups &&
 							!answer && (
 								<InlineEmpty
-									variant="plain"
 									align="center"
-									pad="xl"
 									className="px-4 py-8"
+									pad="xl"
+									variant="plain"
 								>
 									No results for “{activeQueryText}”.
 								</InlineEmpty>

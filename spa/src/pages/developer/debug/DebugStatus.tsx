@@ -63,19 +63,19 @@ export const DebugStatus = () => {
 
 	return (
 		<DebugLayout
-			title="Site Status"
-			sub="Directory permissions, content warnings, and PHP server parameters for this install."
 			actions={
 				<Button
 					icon={<Trash2 size={13} />}
-					onClick={() => setConfirmClear(true)}
 					loading={clearCache.isPending}
 					loadingLabel="Clearing…"
+					onClick={() => setConfirmClear(true)}
 				>
 					Clear cache
 				</Button>
 			}
 			query={statusQ}
+			sub="Directory permissions, content warnings, and PHP server parameters for this install."
+			title="Site Status"
 		>
 			<p className="mb-5 text-[12.5px] text-text-3">
 				Critical errors appear in <span className="font-semibold text-danger">red</span>,
@@ -94,8 +94,8 @@ export const DebugStatus = () => {
 							<ul className="divide-y divide-border">
 								{data.warnings.map((w) => (
 									<li
-										key={`${w.parameter}-${w.page_id ?? ""}`}
 										className="flex items-center justify-between gap-4 px-4 py-2.5"
+										key={`${w.parameter}-${w.page_id ?? ""}`}
 									>
 										<div className="min-w-0">
 											<div className="text-[12.5px] font-medium text-text">
@@ -106,8 +106,8 @@ export const DebugStatus = () => {
 													<>
 														Remove links to the admin on{" "}
 														<Link
-															to={pageEditPath(w.page_id)}
 															className="text-accent hover:underline"
+															to={pageEditPath(w.page_id)}
 														>
 															{w.nav_title}
 														</Link>
@@ -133,8 +133,8 @@ export const DebugStatus = () => {
 						<ul className="divide-y divide-border">
 							{data.parameters.map((p) => (
 								<li
-									key={p.parameter}
 									className="flex items-center justify-between gap-4 px-4 py-2.5"
+									key={p.parameter}
 								>
 									<div className="min-w-0">
 										<div className="text-[12.5px] font-medium text-text">
@@ -153,12 +153,12 @@ export const DebugStatus = () => {
 			)}
 
 			<ConfirmDialog
-				open={confirmClear}
-				onOpenChange={setConfirmClear}
-				title="Clear cache?"
-				description="Removes BigTree's cache files. They rebuild on next request — safe, but the first few page loads may be slower."
 				confirmLabel="Clear cache"
+				description="Removes BigTree's cache files. They rebuild on next request — safe, but the first few page loads may be slower."
+				open={confirmClear}
+				title="Clear cache?"
 				onConfirm={() => clearCache.mutate()}
+				onOpenChange={setConfirmClear}
 			/>
 		</DebugLayout>
 	);

@@ -11,14 +11,14 @@ import { loadFieldModule, loadFieldModuleFromSource } from "./fieldModuleLoader"
 interface ModuleFieldProps extends FieldComponentProps {
 	/** URL of the module bundle (extension-delivered, schema.asset_url). */
 	assetUrl?: string;
-	/** Inline source (locally authored, schema.module_source) — run in-context. */
-	source?: string;
 	/**
 	 * Called with the load/render error message, or null on success. Lets the
 	 * live preview surface compile errors; when provided, the failure is shown by
 	 * the caller and this component renders nothing instead of a stub.
 	 */
 	onError?: (message: string | null) => void;
+	/** Inline source (locally authored, schema.module_source) — run in-context. */
+	source?: string;
 }
 
 /**

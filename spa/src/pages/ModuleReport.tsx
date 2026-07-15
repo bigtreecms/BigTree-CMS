@@ -36,7 +36,7 @@ export const ModuleReport = ({ reportId }: ModuleReportProps) => {
 			<PageHead title={report?.title ?? module?.name ?? "Report"} />
 
 			{reportsQuery.isLoading ? (
-				<Loading variant="card" label="Loading report…" />
+				<Loading label="Loading report…" variant="card" />
 			) : !report ? (
 				<EmptyState>That report doesn't exist on this module.</EmptyState>
 			) : (

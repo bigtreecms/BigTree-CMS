@@ -81,37 +81,37 @@ export const LinkField = ({ field, value, onChange, disabled }: FieldComponentPr
 	const placeholder = summary.placeholder ?? "URL, or search pages and files…";
 
 	return (
-		<div ref={containerRef} className="relative">
+		<div className="relative" ref={containerRef}>
 			<div className="relative">
 				{summary.kind === "external" && stored ? (
 					<ExternalLink
-						size={13}
 						className="absolute left-2.5 top-1/2 -translate-y-1/2 text-text-3"
+						size={13}
 					/>
 				) : summary.kind === "ipl" ? (
 					<Newspaper
-						size={13}
 						className="absolute left-2.5 top-1/2 -translate-y-1/2 text-accent"
+						size={13}
 					/>
 				) : summary.kind === "irl" ? (
 					<FileIcon
-						size={13}
 						className="absolute left-2.5 top-1/2 -translate-y-1/2 text-accent"
+						size={13}
 					/>
 				) : (
 					<Search
-						size={13}
 						className="absolute left-2.5 top-1/2 -translate-y-1/2 text-text-3"
+						size={13}
 					/>
 				)}
 
 				<input
-					type="text"
 					aria-label={field.title}
 					className={`${INPUT_CLASS} px-8 `}
-					value={search || displayedInputValue}
-					placeholder={placeholder}
 					disabled={disabled}
+					placeholder={placeholder}
+					type="text"
+					value={search || displayedInputValue}
 					onChange={(e) => {
 						setSearch(e.target.value);
 						setOpen(true);
@@ -124,8 +124,8 @@ export const LinkField = ({ field, value, onChange, disabled }: FieldComponentPr
 
 				{stored && !disabled && (
 					<IconButton
-						label="Clear"
 						className="absolute right-1.5 top-1/2 -translate-y-1/2"
+						label="Clear"
 						onClick={clear}
 					>
 						<X size={12} />
@@ -152,13 +152,13 @@ export const LinkField = ({ field, value, onChange, disabled }: FieldComponentPr
 										{pages.map((page) => (
 											<li key={`p-${page.id}`}>
 												<button
-													type="button"
 													className="flex w-full items-start gap-2 px-3 py-1.5 text-left hover:bg-hover"
+													type="button"
 													onClick={() => pickPage(page)}
 												>
 													<Newspaper
-														size={13}
 														className="mt-0.5 shrink-0 text-accent"
+														size={13}
 													/>
 													<span className="min-w-0">
 														<span className="block truncate text-[12.5px] text-text-2">
@@ -184,13 +184,13 @@ export const LinkField = ({ field, value, onChange, disabled }: FieldComponentPr
 										{resources.map((resource) => (
 											<li key={`r-${resource.id}`}>
 												<button
-													type="button"
 													className="flex w-full items-start gap-2 px-3 py-1.5 text-left hover:bg-hover"
+													type="button"
 													onClick={() => pickResource(resource)}
 												>
 													<FileIcon
-														size={13}
 														className="mt-0.5 shrink-0 text-accent"
+														size={13}
 													/>
 													<span className="min-w-0">
 														<span className="block truncate text-[12.5px] text-text-2">
@@ -218,10 +218,10 @@ export const LinkField = ({ field, value, onChange, disabled }: FieldComponentPr
 
 interface StoredSummary {
 	kind: "empty" | "external" | "ipl" | "irl";
-	/** What to render in the text input when the user isn't actively searching. */
-	urlForInput: string;
 	/** Optional placeholder hint (e.g. "Internal page #123 — search to replace"). */
 	placeholder?: string;
+	/** What to render in the text input when the user isn't actively searching. */
+	urlForInput: string;
 }
 
 const summarizeStored = (raw: string): StoredSummary => {

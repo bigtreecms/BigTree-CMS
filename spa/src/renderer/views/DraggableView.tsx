@@ -77,10 +77,10 @@ export const DraggableView = ({ moduleId, view }: DraggableViewProps) => {
 			<Toolbar
 				search={
 					<SearchInput
+						aria-label={`Search ${view.title.toLowerCase()}`}
+						placeholder={`Search ${view.title.toLowerCase()}…`}
 						value={query}
 						onChange={setQuery}
-						placeholder={`Search ${view.title.toLowerCase()}…`}
-						aria-label={`Search ${view.title.toLowerCase()}`}
 					/>
 				}
 			/>
@@ -93,15 +93,15 @@ export const DraggableView = ({ moduleId, view }: DraggableViewProps) => {
 
 			<Card className="overflow-hidden">
 				<QueryRenderer
-					isLoading={listQuery.isLoading && !listQuery.data}
-					error={listQuery.error}
-					isEmpty={rows.length === 0}
-					loading={<Loading variant="block" label="Loading entries…" />}
 					empty={
 						<div className="p-9 text-center text-[13px] text-text-3">
 							{viewEmptyLabel(debouncedQuery)}
 						</div>
 					}
+					error={listQuery.error}
+					isEmpty={rows.length === 0}
+					isLoading={listQuery.isLoading && !listQuery.data}
+					loading={<Loading label="Loading entries…" variant="block" />}
 				>
 					<ul>
 						{rows.map((r) => {
@@ -112,18 +112,18 @@ export const DraggableView = ({ moduleId, view }: DraggableViewProps) => {
 
 							return (
 								<li
-									key={String(r.id)}
 									className={`flex items-center gap-2 border-b border-border px-3 py-2 text-[13px] last:border-b-0 hover:bg-surface-2 ${statusRowClass(
 										status.key
 									)} ${isDragging ? "bg-accent-soft shadow-md" : ""} ${
 										isOver ? "shadow-[inset_0_2px_0_0_var(--color-accent)]" : ""
 									}`}
 									draggable={canDrag}
-									onDragStart={(e) => drag.onDragStart(e, r.id)}
-									onDragOver={(e) => drag.onDragOver(e, r.id)}
-									onDrop={drag.onDrop}
-									onDragEnd={drag.onDragEnd}
+									key={String(r.id)}
 									onClick={() => openEdit(r.row)}
+									onDragEnd={drag.onDragEnd}
+									onDragOver={(e) => drag.onDragOver(e, r.id)}
+									onDragStart={(e) => drag.onDragStart(e, r.id)}
+									onDrop={drag.onDrop}
 								>
 									<DragHandle
 										enabled={canDrag}
@@ -132,23 +132,23 @@ export const DraggableView = ({ moduleId, view }: DraggableViewProps) => {
 									/>
 
 									<ViewRowCells
+										dim={dim}
 										fieldColumns={fieldColumns}
 										row={r.row}
-										dim={dim}
 									/>
 
-									<ViewStatusBadge row={r.row} className="shrink-0" />
+									<ViewStatusBadge className="shrink-0" row={r.row} />
 
 									<RowActions
-										moduleId={moduleId}
-										viewId={view.id}
-										row={r.row}
+										actionPath={actionPath}
 										builtins={builtins}
+										className={dim}
 										custom={custom}
 										editPath={editPath}
-										actionPath={actionPath}
+										moduleId={moduleId}
+										row={r.row}
+										viewId={view.id}
 										onDelete={requestDelete}
-										className={dim}
 									/>
 								</li>
 							);

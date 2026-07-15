@@ -6,16 +6,22 @@ import { MonoText } from "./MonoText";
 import { Popover } from "./Popover";
 
 export interface ComboboxOption<V extends string | number> {
-	value: V;
 	label: string;
 	/** Optional secondary line shown under the label (e.g. an email address). */
 	sublabel?: string;
+	value: V;
 }
 
 interface ComboboxProps<V extends string | number> {
-	value: ComboboxOption<V> | null;
+	ariaLabel?: string;
+	/** Applied to the outer wrapper — use it to set the width (defaults to full). */
+	className?: string;
+	clearable?: boolean;
+	disabled?: boolean;
+	emptyLabel?: string;
+	id?: string;
+	isLoading?: boolean;
 	onChange: (option: ComboboxOption<V> | null) => void;
-	options: ComboboxOption<V>[];
 	/**
 	 * When provided, the parent owns filtering (typically an async search) and
 	 * `options` is treated as the current result set — the Combobox forwards the
@@ -23,17 +29,11 @@ interface ComboboxProps<V extends string | number> {
 	 * `options` locally against the label and sublabel.
 	 */
 	onSearchChange?: (query: string) => void;
-	isLoading?: boolean;
+	options: ComboboxOption<V>[];
 	/** Trigger text shown when nothing is selected. */
 	placeholder?: string;
 	searchPlaceholder?: string;
-	emptyLabel?: string;
-	clearable?: boolean;
-	disabled?: boolean;
-	id?: string;
-	ariaLabel?: string;
-	/** Applied to the outer wrapper — use it to set the width (defaults to full). */
-	className?: string;
+	value: ComboboxOption<V> | null;
 }
 
 /**
@@ -144,20 +144,19 @@ export const Combobox = <V extends string | number>({
 
 	return (
 		<Popover
-			open={open}
-			onOpenChange={setOpen}
 			className={className ?? "w-full"}
+			open={open}
 			panelClassName="w-full overflow-hidden"
 			trigger={
 				<>
 					<button
-						type="button"
-						id={id}
-						aria-label={ariaLabel}
-						aria-haspopup="listbox"
 						aria-expanded={open}
-						disabled={disabled}
+						aria-haspopup="listbox"
+						aria-label={ariaLabel}
 						className="flex w-full items-center rounded-md border border-border bg-surface py-1.5 pl-3 pr-8 text-left text-[13px] focus:outline-none focus:ring-1 focus:ring-accent-ring disabled:opacity-60"
+						disabled={disabled}
+						id={id}
+						type="button"
 						onClick={() => setOpen((prev) => !prev)}
 					>
 						<span
@@ -171,43 +170,44 @@ export const Combobox = <V extends string | number>({
 					    button — interactive controls must not be nested (a11y). */}
 					{clearable && value && !disabled ? (
 						<IconButton
+							className="absolute right-1.5 top-1/2 -translate-y-1/2"
 							label="Clear selection"
 							size="sm"
 							onClick={clear}
-							className="absolute right-1.5 top-1/2 -translate-y-1/2"
 						>
 							<X size={13} />
 						</IconButton>
 					) : (
 						<ChevronsUpDown
-							size={13}
 							className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-text-3"
+							size={13}
 						/>
 					)}
 				</>
 			}
+			onOpenChange={setOpen}
 		>
 			<div className="relative border-b border-border">
 				<Search
-					size={13}
 					className="absolute left-2.5 top-1/2 -translate-y-1/2 text-text-3"
+					size={13}
 				/>
 				<input
-					ref={inputRef}
+					aria-autocomplete="list"
+					aria-controls={listboxId}
+					aria-expanded={open}
+					aria-label={searchPlaceholder}
 					className="w-full bg-transparent py-2 pl-8 pr-3 text-[13px] text-text outline-none placeholder:text-text-3"
 					placeholder={searchPlaceholder}
-					aria-label={searchPlaceholder}
+					ref={inputRef}
+					role="combobox"
 					value={query}
 					onChange={(e) => updateQuery(e.target.value)}
 					onKeyDown={onKeyDown}
-					role="combobox"
-					aria-controls={listboxId}
-					aria-expanded={open}
-					aria-autocomplete="list"
 				/>
 			</div>
 
-			<ul id={listboxId} role="listbox" className="max-h-64 overflow-y-auto py-1">
+			<ul className="max-h-64 overflow-y-auto py-1" id={listboxId} role="listbox">
 				{isLoading ? (
 					<li className="px-3 py-2 text-[12px] text-text-3">Loading…</li>
 				) : filtered.length === 0 ? (
@@ -218,16 +218,16 @@ export const Combobox = <V extends string | number>({
 						const active = index === activeIndex;
 
 						return (
-							<li key={String(option.value)} role="option" aria-selected={selected}>
+							<li aria-selected={selected} key={String(option.value)} role="option">
 								<button
-									type="button"
 									className={`flex w-full items-center gap-2 px-3 py-1.5 text-left ${active ? "bg-hover" : ""}`}
-									onMouseEnter={() => setActiveIndex(index)}
+									type="button"
 									onClick={() => select(option)}
+									onMouseEnter={() => setActiveIndex(index)}
 								>
 									<Check
-										size={13}
 										className={`shrink-0 ${selected ? "text-accent" : "invisible"}`}
+										size={13}
 									/>
 									<span className="min-w-0 flex-1">
 										<span className="block truncate text-[13px] text-text">

@@ -17,15 +17,15 @@ interface TreeExpanderProps {
 export const TreeExpander = ({ expanded, hasChildren, onToggle }: TreeExpanderProps) =>
 	hasChildren ? (
 		<IconButton
+			ariaExpanded={expanded}
 			label={expanded ? "Collapse" : "Expand"}
 			size="sm"
 			onClick={onToggle}
-			ariaExpanded={expanded}
 		>
 			{expanded ? <ChevronDown size={13} /> : <ChevronRight size={13} />}
 		</IconButton>
 	) : (
-		<span className="inline-block w-[18px]" aria-hidden="true" />
+		<span aria-hidden="true" className="inline-block w-[18px]" />
 	);
 
 interface TreeLoadingRowProps {

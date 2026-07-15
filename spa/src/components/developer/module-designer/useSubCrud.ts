@@ -18,13 +18,13 @@ import { validateRequired, type RequiredRule } from "@/lib/formValidation";
 export const NEW_ROW = "new" as const;
 
 interface UseSubCrudArgs<T, Body, Draft> {
-	moduleId: string;
-	resource: string;
+	createFn: (moduleId: string, body: Body) => Promise<T>;
+	deleteFn: (moduleId: string, sid: string) => Promise<void>;
+	draftFromItem?: (item: T) => Draft;
+	emptyDraft?: (table: string) => Draft;
 	label: string;
 	listFn: (moduleId: string) => Promise<T[]>;
-	createFn: (moduleId: string, body: Body) => Promise<T>;
-	updateFn: (moduleId: string, sid: string, body: Partial<Body>) => Promise<T>;
-	deleteFn: (moduleId: string, sid: string) => Promise<void>;
+	moduleId: string;
 	/**
 	 * Optional draft management. When `emptyDraft` and `draftFromItem` are both
 	 * supplied the hook owns the editor draft state and keeps it in sync with the
@@ -32,8 +32,6 @@ interface UseSubCrudArgs<T, Body, Draft> {
 	 * from `draftFromItem(item)` when an existing row opens.
 	 */
 	moduleTable?: string;
-	emptyDraft?: (table: string) => Draft;
-	draftFromItem?: (item: T) => Draft;
 	/**
 	 * Fired alongside each draft sync — receives the item being edited, or `null`
 	 * when a new row opens. Lets a tab track selection-derived state (e.g.
@@ -41,6 +39,8 @@ interface UseSubCrudArgs<T, Body, Draft> {
 	 * Must be referentially stable (wrap in `useCallback`).
 	 */
 	onSync?: (item: T | null) => void;
+	resource: string;
+	updateFn: (moduleId: string, sid: string, body: Partial<Body>) => Promise<T>;
 }
 
 export const useSubCrud = <T extends { id: string }, Body, Draft = unknown>({

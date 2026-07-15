@@ -3,10 +3,10 @@ import { useMemo } from "react";
 import { Select } from "@/components/ui/Select";
 
 interface TimezoneSelectProps {
-	value: string;
-	onChange: (next: string) => void;
-	id?: string;
 	className?: string;
+	id?: string;
+	onChange: (next: string) => void;
+	value: string;
 }
 
 /**
@@ -22,10 +22,10 @@ export const TimezoneSelect = ({ value, onChange, id, className }: TimezoneSelec
 
 	return (
 		<Select
+			className={className}
 			id={id}
 			value={value}
 			onChange={(e) => onChange(e.target.value)}
-			className={className}
 		>
 			<option value="">Default ({browserDefault})</option>
 
@@ -43,8 +43,8 @@ export const TimezoneSelect = ({ value, onChange, id, className }: TimezoneSelec
 };
 
 interface ZoneEntry {
-	value: string;
 	label: string;
+	value: string;
 }
 
 const groupZones = (zones: string[]): Array<{ continent: string; zones: ZoneEntry[] }> => {

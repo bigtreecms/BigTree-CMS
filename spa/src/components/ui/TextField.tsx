@@ -10,21 +10,21 @@ import { TextInput } from "./TextInput";
  */
 
 interface TextFieldProps {
-	label: string;
-	value: string;
-	onChange: (next: string) => void;
-	hint?: string;
-	error?: string;
-	disabled?: boolean;
-	required?: boolean;
-	type?: string;
-	placeholder?: string;
-	/** Compact vertical padding for space-constrained sections. */
-	dense?: boolean;
-	/** Monospace + slightly smaller text for code/identifier entry. */
-	mono?: boolean;
 	/** Layout-only classes forwarded to the wrapping {@link Field} (e.g. grid spans). */
 	className?: string;
+	/** Compact vertical padding for space-constrained sections. */
+	dense?: boolean;
+	disabled?: boolean;
+	error?: string;
+	hint?: string;
+	label: string;
+	/** Monospace + slightly smaller text for code/identifier entry. */
+	mono?: boolean;
+	onChange: (next: string) => void;
+	placeholder?: string;
+	required?: boolean;
+	type?: string;
+	value: string;
 }
 
 export const TextField = ({
@@ -41,15 +41,15 @@ export const TextField = ({
 	mono,
 	className,
 }: TextFieldProps) => (
-	<Field label={label} hint={hint} error={error} required={required} className={className}>
+	<Field className={className} error={error} hint={hint} label={label} required={required}>
 		<TextInput
+			dense={dense}
+			disabled={disabled}
+			mono={mono}
+			placeholder={placeholder}
 			type={type}
 			value={value}
 			onChange={(e) => onChange(e.target.value)}
-			disabled={disabled}
-			placeholder={placeholder}
-			dense={dense}
-			mono={mono}
 		/>
 	</Field>
 );

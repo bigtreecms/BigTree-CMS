@@ -14,36 +14,36 @@ import type { TemplateResource } from "@/api/endpoints/templates";
  */
 
 export interface CalloutSummary {
-	id: string;
-	name: string;
 	description: string;
-	level: number;
-	position: number;
-	display_field: string;
 	display_default: string;
+	display_field: string;
+	id: string;
+	level: number;
+	name: string;
+	position: number;
 	resources: TemplateResource[];
 }
 
 export interface CalloutGroup {
+	callouts?: string[];
 	id: string;
 	name: string;
-	callouts?: string[];
 }
 
 export interface CalloutEditBody {
-	id?: string;
-	name?: string;
 	description?: string;
-	level?: number;
-	display_field?: string;
 	display_default?: string;
+	display_field?: string;
+	id?: string;
+	level?: number;
+	name?: string;
 	resources?: TemplateResource[];
 }
 
 export interface CalloutGroupEditBody {
+	callouts?: string[];
 	id?: string;
 	name?: string;
-	callouts?: string[];
 }
 
 /** The callout-groups catalog — the same quintet, exposed under `*Group` keys. */

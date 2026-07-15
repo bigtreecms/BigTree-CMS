@@ -99,10 +99,10 @@ export const DebugEmulator = () => {
 
 				return (
 					<Button
-						variant="secondary"
-						size="sm"
-						icon={<Eye size={12} />}
 						disabled={isSelf || emulateMutation.isPending}
+						icon={<Eye size={12} />}
+						size="sm"
+						variant="secondary"
 						onClick={(e) => {
 							e.stopPropagation();
 							emulateDialog.open(row);
@@ -117,15 +117,15 @@ export const DebugEmulator = () => {
 
 	return (
 		<DebugLayout
-			title="User emulator"
 			sub="Assume another user's identity to debug permissions. You drop to their access level until you stop."
+			title="User emulator"
 		>
 			<Toolbar
 				search={
 					<SearchInput
+						placeholder="Search by name, email, company…"
 						value={query}
 						onChange={setQuery}
-						placeholder="Search by name, email, company…"
 					/>
 				}
 			>
@@ -137,11 +137,11 @@ export const DebugEmulator = () => {
 			) : (
 				<DataTable
 					columns={columns}
-					rows={rows}
+					emptyLabel="No users match this search."
 					getRowKey={(row) => row.id}
 					isLoading={listQ.isLoading}
 					loadingLabel="Loading users…"
-					emptyLabel="No users match this search."
+					rows={rows}
 				/>
 			)}
 
@@ -153,9 +153,9 @@ export const DebugEmulator = () => {
 
 			<ConfirmDialog
 				{...emulateDialog.dialogProps}
-				title={`Emulate ${emulateDialog.item?.name || emulateDialog.item?.email}?`}
-				description="You'll be signed in as this user with their exact permissions. A banner stays on screen so you can return to your own account at any time."
 				confirmLabel="Emulate user"
+				description="You'll be signed in as this user with their exact permissions. A banner stays on screen so you can return to your own account at any time."
+				title={`Emulate ${emulateDialog.item?.name || emulateDialog.item?.email}?`}
 				onConfirm={() => {
 					if (emulateDialog.item) {
 						emulateMutation.mutate(emulateDialog.item.id);

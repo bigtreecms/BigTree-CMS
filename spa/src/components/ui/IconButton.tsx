@@ -6,37 +6,37 @@ export type IconButtonTone = "default" | "danger" | "accent" | "success";
 export type IconButtonSize = "sm" | "md";
 
 interface IconButtonProps {
+	/** Expanded state for a disclosure toggle — sets `aria-expanded` (button mode only). */
+	ariaExpanded?: boolean;
 	/** The icon to render — e.g. a lucide `<Trash size={13} />`. */
 	children: ReactNode;
+	/** Extra classes appended after the base/tone classes (layout only — e.g. absolute positioning, a border variant). */
+	className?: string;
+	disabled?: boolean;
+	/** External/absolute URL — renders an `<a>`. */
+	href?: string;
 	/** Accessible name — required, since the control is icon-only. */
 	label: string;
 	onClick?: MouseEventHandler<HTMLButtonElement | HTMLAnchorElement>;
-	/** Internal route — renders a react-router `<Link>` for client-side nav. */
-	to?: string;
-	/** External/absolute URL — renders an `<a>`. */
-	href?: string;
+	/**
+	 * Hit-target density: `md` (default `p-1` — table rows, toolbars) or `sm`
+	 * (`p-0.5` — dense tree expand/collapse chevrons and inline clear toggles).
+	 */
+	size?: IconButtonSize;
 	/** Anchor target (e.g. `_blank`); only used together with `href`. */
 	target?: string;
+	/** Native tooltip; pass when the action benefits from a hover label. */
+	title?: string;
+	/** Internal route — renders a react-router `<Link>` for client-side nav. */
+	to?: string;
 	/**
 	 * Hover color: `default` (neutral text — edit/clear/expand affordances),
 	 * `danger` (destructive remove/delete/reject), `accent` (a primary action),
 	 * `success` (an approve/confirm action, e.g. paired with a `danger` reject).
 	 */
 	tone?: IconButtonTone;
-	/**
-	 * Hit-target density: `md` (default `p-1` — table rows, toolbars) or `sm`
-	 * (`p-0.5` — dense tree expand/collapse chevrons and inline clear toggles).
-	 */
-	size?: IconButtonSize;
-	/** Expanded state for a disclosure toggle — sets `aria-expanded` (button mode only). */
-	ariaExpanded?: boolean;
-	disabled?: boolean;
-	/** Native tooltip; pass when the action benefits from a hover label. */
-	title?: string;
 	/** Native button type — defaults to `button`. Ignored in link mode. */
 	type?: "button" | "submit";
-	/** Extra classes appended after the base/tone classes (layout only — e.g. absolute positioning, a border variant). */
-	className?: string;
 }
 
 /**
@@ -90,7 +90,7 @@ export const IconButton = ({
 
 	if (!disabled && to) {
 		return (
-			<Link to={to} onClick={onClick} aria-label={label} title={title} className={className}>
+			<Link aria-label={label} className={className} title={title} to={to} onClick={onClick}>
 				{children}
 			</Link>
 		);
@@ -99,13 +99,13 @@ export const IconButton = ({
 	if (!disabled && href) {
 		return (
 			<a
-				href={href}
-				target={target}
-				rel={target === "_blank" ? "noopener noreferrer" : undefined}
-				onClick={onClick}
 				aria-label={label}
-				title={title}
 				className={className}
+				href={href}
+				rel={target === "_blank" ? "noopener noreferrer" : undefined}
+				target={target}
+				title={title}
+				onClick={onClick}
 			>
 				{children}
 			</a>
@@ -114,13 +114,13 @@ export const IconButton = ({
 
 	return (
 		<button
+			aria-expanded={ariaExpanded}
+			aria-label={label}
+			className={className}
+			disabled={disabled}
+			title={title}
 			type={type}
 			onClick={onClick}
-			disabled={disabled}
-			aria-label={label}
-			aria-expanded={ariaExpanded}
-			title={title}
-			className={className}
 		>
 			{children}
 		</button>

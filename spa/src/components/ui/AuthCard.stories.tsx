@@ -24,12 +24,12 @@ const meta = {
 		<AuthCard {...args}>
 			<form className="flex flex-col gap-4">
 				<Field label="New password">
-					<TextInput type="password" placeholder="••••••••" />
+					<TextInput placeholder="••••••••" type="password" />
 				</Field>
 				<Field label="Confirm password">
-					<TextInput type="password" placeholder="••••••••" />
+					<TextInput placeholder="••••••••" type="password" />
 				</Field>
-				<Button variant="primary" size="lg" type="submit" className="w-full justify-center">
+				<Button className="w-full justify-center" size="lg" type="submit" variant="primary">
 					Set new password
 				</Button>
 			</form>
@@ -51,9 +51,9 @@ export const ForgotPassword: Story = {
 		<AuthCard {...args}>
 			<form className="flex flex-col gap-4">
 				<Field label="Email address">
-					<TextInput type="email" placeholder="you@example.com" />
+					<TextInput placeholder="you@example.com" type="email" />
 				</Field>
-				<Button variant="primary" size="lg" type="submit" className="w-full justify-center">
+				<Button className="w-full justify-center" size="lg" type="submit" variant="primary">
 					Send reset link
 				</Button>
 			</form>

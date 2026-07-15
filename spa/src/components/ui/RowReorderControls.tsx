@@ -3,9 +3,6 @@ import { ChevronDown, ChevronUp, Trash2 } from "lucide-react";
 import { IconButton } from "@/components/ui/IconButton";
 
 interface RowReorderControlsProps {
-	onMoveUp: () => void;
-	onMoveDown: () => void;
-	onRemove: () => void;
 	/** Disables move-up — the row is already first. */
 	isFirst: boolean;
 	/** Disables move-down — the row is already last. */
@@ -15,6 +12,9 @@ interface RowReorderControlsProps {
 	 * setting"). Defaults to "row".
 	 */
 	itemLabel?: string;
+	onMoveDown: () => void;
+	onMoveUp: () => void;
+	onRemove: () => void;
 }
 
 /**
@@ -33,18 +33,18 @@ export const RowReorderControls = ({
 }: RowReorderControlsProps) => (
 	<div className="flex items-center gap-1">
 		<IconButton
+			disabled={isFirst}
 			label={`Move ${itemLabel} up`}
 			title="Move up"
 			onClick={onMoveUp}
-			disabled={isFirst}
 		>
 			<ChevronUp size={14} />
 		</IconButton>
 		<IconButton
+			disabled={isLast}
 			label={`Move ${itemLabel} down`}
 			title="Move down"
 			onClick={onMoveDown}
-			disabled={isLast}
 		>
 			<ChevronDown size={14} />
 		</IconButton>

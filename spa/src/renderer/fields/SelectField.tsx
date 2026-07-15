@@ -63,8 +63,8 @@ export const SelectField = ({ field, value, onChange, disabled }: FieldComponent
 
 	return (
 		<Select
-			value={toStringValue(value)}
 			disabled={disabled || isLoading}
+			value={toStringValue(value)}
 			onChange={(event) => onChange(event.target.value)}
 		>
 			{isLoading ? (

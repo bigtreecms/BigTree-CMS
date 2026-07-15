@@ -28,13 +28,13 @@ import { INPUT_CLASS, settingsOf, type FieldComponentProps } from "./types";
  * try to re-implement the YouTube/Vimeo oembed lookup client-side).
  */
 interface VideoValue {
-	new?: string;
-	managed?: number | string;
-	service?: string;
+	[key: string]: unknown;
+	embed?: string;
 	id?: string;
 	image?: string;
-	embed?: string;
-	[key: string]: unknown;
+	managed?: number | string;
+	new?: string;
+	service?: string;
 }
 
 export const VideoField = ({ field, value, onChange, disabled }: FieldComponentProps) => {
@@ -72,20 +72,20 @@ export const VideoField = ({ field, value, onChange, disabled }: FieldComponentP
 		<div className="space-y-2">
 			<div className="flex flex-wrap items-center gap-2">
 				<input
-					type="url"
 					aria-label="YouTube or Vimeo URL"
 					className={`${INPUT_CLASS} flex-1`}
-					placeholder="YouTube or Vimeo URL"
-					value={pendingUrl ?? ""}
 					disabled={disabled}
+					placeholder="YouTube or Vimeo URL"
+					type="url"
+					value={pendingUrl ?? ""}
 					onChange={(e) => handleUrlChange(e.target.value)}
 				/>
 				{showBrowse && (
 					<Button
-						variant="secondary"
-						icon={<Search size={13} />}
-						onClick={() => setPickerOpen(true)}
 						disabled={disabled}
+						icon={<Search size={13} />}
+						variant="secondary"
+						onClick={() => setPickerOpen(true)}
 					>
 						Browse media
 					</Button>
@@ -94,30 +94,30 @@ export const VideoField = ({ field, value, onChange, disabled }: FieldComponentP
 
 			{pendingUrl && (
 				<PendingRow
+					disabled={disabled}
 					label="Pending"
 					text={pendingUrl}
 					onClear={handleClear}
-					disabled={disabled}
 				/>
 			)}
 
 			{!pendingUrl && pendingManaged && (
 				<PendingRow
+					disabled={disabled}
 					label="Pending (library)"
 					text={`Resource #${pendingManaged} — will be linked on save`}
 					onClear={handleClear}
-					disabled={disabled}
 				/>
 			)}
 
 			{!pendingUrl && !pendingManaged && hasPersisted && (
-				<CurrentPreview value={current} onClear={handleClear} disabled={disabled} />
+				<CurrentPreview disabled={disabled} value={current} onClear={handleClear} />
 			)}
 
 			<ResourcePicker
 				open={pickerOpen}
-				onOpenChange={setPickerOpen}
 				type="video"
+				onOpenChange={setPickerOpen}
 				onSelect={(resource) => handlePickFromLibrary(resource.id)}
 			/>
 		</div>
@@ -125,15 +125,15 @@ export const VideoField = ({ field, value, onChange, disabled }: FieldComponentP
 };
 
 interface PendingRowProps {
-	label: string;
-	text: string;
-	onClear: () => void;
 	disabled?: boolean;
+	label: string;
+	onClear: () => void;
+	text: string;
 }
 
 const PendingRow = ({ label, text, onClear, disabled }: PendingRowProps) => (
 	<div className="flex items-center gap-2 rounded-md border border-border bg-surface-2 px-3 py-2 text-[12.5px]">
-		<VideoIcon size={14} className="text-text-3" />
+		<VideoIcon className="text-text-3" size={14} />
 		<div className="min-w-0 flex-1">
 			<SectionLabel size="sm">{label}</SectionLabel>
 			<div className="truncate text-text-2" title={text}>
@@ -149,9 +149,9 @@ const PendingRow = ({ label, text, onClear, disabled }: PendingRowProps) => (
 );
 
 interface CurrentPreviewProps {
-	value: VideoValue;
-	onClear: () => void;
 	disabled?: boolean;
+	onClear: () => void;
+	value: VideoValue;
 }
 
 const CurrentPreview = ({ value, onClear, disabled }: CurrentPreviewProps) => {
@@ -169,17 +169,17 @@ const CurrentPreview = ({ value, onClear, disabled }: CurrentPreviewProps) => {
 			<div className="overflow-hidden rounded border border-border bg-black">
 				{src ? (
 					<iframe
-						src={src}
-						title={`${value.service} video ${id}`}
+						allowFullScreen
 						className="block aspect-video h-32 w-56"
 						sandbox="allow-scripts allow-same-origin allow-popups allow-presentation"
-						allowFullScreen
+						src={src}
+						title={`${value.service} video ${id}`}
 					/>
 				) : value.image ? (
 					<img
-						src={String(value.image)}
 						alt=""
 						className="block aspect-video h-32 w-56 object-cover"
+						src={String(value.image)}
 					/>
 				) : (
 					<div className="grid h-32 w-56 place-items-center text-text-3">

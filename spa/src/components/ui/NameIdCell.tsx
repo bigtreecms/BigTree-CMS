@@ -3,24 +3,24 @@ import type { ElementType, ReactNode } from "react";
 import { MonoText } from "./MonoText";
 
 interface NameIdCellProps {
-	/** Bold primary line — the resource's display name. */
-	name: ReactNode;
+	/** Element for the mono ID line. Defaults to `div` (the table-cell default). */
+	as?: ElementType;
 	/**
 	 * Muted monospace second line (ID / route / hash). Mutually exclusive with
 	 * `subtitle` — provide exactly one.
 	 */
 	id?: ReactNode;
+	/** Bold primary line — the resource's display name. */
+	name: ReactNode;
+	/** `title` attribute on the primary line (full text on hover). */
+	nameTitle?: string;
+	/** Override the primary line's classes (e.g. unread `font-semibold`, muted `text-text-2`). */
+	primaryClassName?: string;
 	/**
 	 * Muted non-mono second line (description / path / meta). Mutually exclusive
 	 * with `id` — provide exactly one.
 	 */
 	subtitle?: ReactNode;
-	/** Element for the mono ID line. Defaults to `div` (the table-cell default). */
-	as?: ElementType;
-	/** Override the primary line's classes (e.g. unread `font-semibold`, muted `text-text-2`). */
-	primaryClassName?: string;
-	/** `title` attribute on the primary line (full text on hover). */
-	nameTitle?: string;
 	/** `title` attribute on the subtitle line. */
 	subtitleTitle?: string;
 }

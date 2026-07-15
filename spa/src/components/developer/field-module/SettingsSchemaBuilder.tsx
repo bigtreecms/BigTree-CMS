@@ -12,8 +12,8 @@ import { useListEditor } from "@/hooks/useListEditor";
 import type { LabeledOption } from "@/types/labeled-option";
 
 interface SettingsSchemaBuilderProps {
-	value: SettingDescriptor[];
 	onChange: (next: SettingDescriptor[]) => void;
+	value: SettingDescriptor[];
 }
 
 /** Setting controls a module author can build (the simple, value-bearing set). */
@@ -52,13 +52,13 @@ export const SettingsSchemaBuilder = ({ value, onChange }: SettingsSchemaBuilder
 				const control = descriptor.control;
 
 				return (
-					<div key={index} className="rounded-md border border-border bg-surface-2 p-3">
+					<div className="rounded-md border border-border bg-surface-2 p-3" key={index}>
 						<div className="grid grid-cols-1 gap-3 md:grid-cols-3">
 							<SchemaFieldLabel label="Key">
 								<TextInput
+									placeholder="e.g. placeholder"
 									value={descriptor.id}
 									onChange={(e) => patch(index, { id: e.target.value })}
-									placeholder="e.g. placeholder"
 								/>
 							</SchemaFieldLabel>
 							<SchemaFieldLabel label="Control">
@@ -94,9 +94,9 @@ export const SettingsSchemaBuilder = ({ value, onChange }: SettingsSchemaBuilder
 							<SchemaFieldLabel label="Default (optional)">
 								{control === "bool" ? (
 									<Checkbox
+										checked={!!descriptor.default}
 										className="h-[38px]"
 										label="Checked by default"
-										checked={!!descriptor.default}
 										onChange={(next) => patch(index, { default: next })}
 									/>
 								) : (
@@ -124,17 +124,17 @@ export const SettingsSchemaBuilder = ({ value, onChange }: SettingsSchemaBuilder
 
 							<div className="flex items-end justify-between gap-1 pb-1">
 								<Checkbox
-									label="Required"
 									checked={!!descriptor.required}
+									label="Required"
 									onChange={(next) => patch(index, { required: next })}
 								/>
 								<RowReorderControls
-									onMoveUp={() => move(index, index - 1)}
-									onMoveDown={() => move(index, index + 1)}
-									onRemove={() => remove(index)}
 									isFirst={index === 0}
 									isLast={index === value.length - 1}
 									itemLabel="setting"
+									onMoveDown={() => move(index, index + 1)}
+									onMoveUp={() => move(index, index - 1)}
+									onRemove={() => remove(index)}
 								/>
 							</div>
 						</div>
@@ -143,10 +143,10 @@ export const SettingsSchemaBuilder = ({ value, onChange }: SettingsSchemaBuilder
 							<div className="mt-3 space-y-2 border-t border-border pt-3">
 								<div className="text-[11px] font-medium text-text-3">Options</div>
 								{optionsOf(descriptor).map((option, optionIndex) => (
-									<div key={optionIndex} className="flex items-center gap-2">
+									<div className="flex items-center gap-2" key={optionIndex}>
 										<TextInput
-											value={option.value}
 											placeholder="value"
+											value={option.value}
 											onChange={(e) => {
 												const next = [...optionsOf(descriptor)];
 												next[optionIndex] = {
@@ -157,8 +157,8 @@ export const SettingsSchemaBuilder = ({ value, onChange }: SettingsSchemaBuilder
 											}}
 										/>
 										<TextInput
-											value={option.label}
 											placeholder="label"
+											value={option.label}
 											onChange={(e) => {
 												const next = [...optionsOf(descriptor)];
 												next[optionIndex] = {
@@ -169,6 +169,8 @@ export const SettingsSchemaBuilder = ({ value, onChange }: SettingsSchemaBuilder
 											}}
 										/>
 										<button
+											className="rounded-md border border-border bg-surface p-1.5 text-danger hover:bg-danger/5"
+											title="Remove option"
 											type="button"
 											onClick={() =>
 												patch(index, {
@@ -177,14 +179,13 @@ export const SettingsSchemaBuilder = ({ value, onChange }: SettingsSchemaBuilder
 													),
 												})
 											}
-											className="rounded-md border border-border bg-surface p-1.5 text-danger hover:bg-danger/5"
-											title="Remove option"
 										>
 											<Trash2 size={14} />
 										</button>
 									</div>
 								))}
 								<button
+									className="inline-flex items-center gap-1 rounded-md border border-border bg-surface px-2 py-1 text-[11.5px] text-text-2 hover:bg-hover"
 									type="button"
 									onClick={() =>
 										patch(index, {
@@ -194,7 +195,6 @@ export const SettingsSchemaBuilder = ({ value, onChange }: SettingsSchemaBuilder
 											],
 										})
 									}
-									className="inline-flex items-center gap-1 rounded-md border border-border bg-surface px-2 py-1 text-[11.5px] text-text-2 hover:bg-hover"
 								>
 									<Plus size={13} />
 									Add option
@@ -205,7 +205,7 @@ export const SettingsSchemaBuilder = ({ value, onChange }: SettingsSchemaBuilder
 				);
 			})}
 
-			<Button variant="secondary" icon={<Plus size={14} />} onClick={add}>
+			<Button icon={<Plus size={14} />} variant="secondary" onClick={add}>
 				Add setting
 			</Button>
 		</div>

@@ -12,17 +12,17 @@ import { decodeHtmlEntitiesDom } from "@/lib/html";
  */
 
 export interface CustomViewAction {
+	className?: string;
 	key: string;
 	name: string;
 	route: string;
-	className?: string;
 }
 
 export interface BuiltinViewActionFlags {
-	edit: boolean;
-	delete: boolean;
-	archive: boolean;
 	approve: boolean;
+	archive: boolean;
+	delete: boolean;
+	edit: boolean;
 	feature: boolean;
 }
 
@@ -107,8 +107,8 @@ export const parseViewActions = (
 export type StatusKey = "published" | "pending" | "changed" | "inactive";
 
 export interface ViewStatus {
-	label: string;
 	key: StatusKey;
+	label: string;
 }
 
 export const statusFromRow = (row: Record<string, unknown>): ViewStatus => {

@@ -40,7 +40,7 @@ export const WithDot: Story = {
 	render: () => (
 		<div className="flex flex-wrap gap-2">
 			{TONES.map((tone) => (
-				<Badge key={tone} tone={tone} dot>
+				<Badge dot key={tone} tone={tone}>
 					{tone}
 				</Badge>
 			))}

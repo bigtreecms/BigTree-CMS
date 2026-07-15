@@ -70,11 +70,11 @@ export const Small: Story = {
 export const CustomControl: StoryObj = {
 	render: () => (
 		<Field
-			as="div"
-			label="Icon"
 			required
-			hint="Choose an icon for this field."
+			as="div"
 			error="An icon is required."
+			hint="Choose an icon for this field."
+			label="Icon"
 		>
 			<div className="rounded-md border border-border bg-surface-2 p-2 text-[12px] text-text-3">
 				custom control

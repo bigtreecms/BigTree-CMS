@@ -42,7 +42,7 @@ export const CalloutGroupsControl = ({ descriptor, settings, onPatch }: ControlP
 	const remove = (id: string) => commit(selected.filter((g) => g !== id));
 
 	return (
-		<ControlShell label={descriptor.label} hint={descriptor.hint} note={descriptor.note}>
+		<ControlShell hint={descriptor.hint} label={descriptor.label} note={descriptor.note}>
 			<div className="space-y-1.5 rounded-md border border-border bg-surface-2 p-2">
 				{selected.length === 0 ? (
 					<p className="px-1 text-[11.5px] text-text-3">
@@ -52,8 +52,8 @@ export const CalloutGroupsControl = ({ descriptor, settings, onPatch }: ControlP
 					<ul className="space-y-1">
 						{selected.map((id) => (
 							<li
-								key={id}
 								className="flex items-center justify-between rounded border border-border bg-surface px-2 py-1 text-[12.5px]"
+								key={id}
 							>
 								<span>{labelFor(id)}</span>
 								<IconButton
@@ -72,8 +72,8 @@ export const CalloutGroupsControl = ({ descriptor, settings, onPatch }: ControlP
 					<Select
 						compact
 						className="min-w-0 flex-1"
-						value={toAdd}
 						disabled={groupsQ.isLoading || available.length === 0}
+						value={toAdd}
 						onChange={(e) => setToAdd(e.target.value)}
 					>
 						<option value="">Select a group…</option>
@@ -84,10 +84,10 @@ export const CalloutGroupsControl = ({ descriptor, settings, onPatch }: ControlP
 						))}
 					</Select>
 					<button
-						type="button"
 						className="inline-flex items-center gap-1 rounded border border-border bg-surface px-2 py-1 text-[12px] hover:bg-hover disabled:opacity-50"
-						onClick={add}
 						disabled={!toAdd}
+						type="button"
+						onClick={add}
 					>
 						<Plus size={12} />
 						Add

@@ -43,7 +43,7 @@ export const States: Story = {
 		<div className="flex flex-col gap-3">
 			<TextInput {...args} placeholder="Empty / placeholder" />
 			<TextInput {...args} defaultValue="With a value" />
-			<TextInput {...args} defaultValue="Disabled" disabled />
+			<TextInput {...args} disabled defaultValue="Disabled" />
 		</div>
 	),
 };
@@ -57,10 +57,10 @@ export const Variants: Story = {
 	render: (args) => (
 		<div className="flex flex-col gap-3">
 			<TextInput {...args} defaultValue="Default" />
-			<TextInput {...args} defaultValue="Dense" dense />
-			<TextInput {...args} defaultValue="Compact" compact className="w-full" />
-			<TextInput {...args} defaultValue="module_route" mono />
-			<TextInput {...args} defaultValue="module_route" dense mono />
+			<TextInput {...args} dense defaultValue="Dense" />
+			<TextInput {...args} compact className="w-full" defaultValue="Compact" />
+			<TextInput {...args} mono defaultValue="module_route" />
+			<TextInput {...args} dense mono defaultValue="module_route" />
 		</div>
 	),
 };

@@ -14,44 +14,44 @@ import { UnsavedChangesGuard } from "@/components/ui/UnsavedChangesGuard";
 import { DeveloperSectionNav } from "@/components/developer/DeveloperSectionNav";
 
 interface DetailQueryLike {
-	isLoading: boolean;
 	error: unknown;
+	isLoading: boolean;
 }
 
 interface DeveloperEditLayoutProps {
-	width: "narrow" | "medium" | "wide";
-	/** Breadcrumb section label (e.g. "Callouts"). */
-	section: string;
-	/** Breadcrumb + Back + FormFooter cancelTo path. */
-	listPath: string;
-	isAdd: boolean;
-	title: string;
-	sub?: string;
+	children: ReactNode;
 	/**
 	 * Prefer this over `loading`/`queryError`. On the Add route, loading and
 	 * query error are suppressed; on Edit they come from the query.
 	 * Mutually exclusive with explicit `loading`/`queryError` (use one style).
 	 */
 	detailQuery?: DetailQueryLike;
-	/** Override: pre-derived loading. Prefer `detailQuery` when possible. */
-	loading?: boolean;
-	/** Override: pre-derived query error. Prefer `detailQuery` when possible. */
-	queryError?: unknown;
 	/** Submit hook's general error → Alert. */
 	error?: string | null;
+	/** CalloutEdit / FeedEdit / TemplateEdit pass `false`. Default `true`. */
+	formShellBounded?: boolean;
+	/** Extra PageHead actions rendered before the Back button. */
+	headActions?: ReactNode;
+	isAdd: boolean;
 	isDirty: boolean;
+	/** Breadcrumb + Back + FormFooter cancelTo path. */
+	listPath: string;
+	/** Override: pre-derived loading. Prefer `detailQuery` when possible. */
+	loading?: boolean;
 	/**
 	 * When provided, children are wrapped in FormShell + FormFooter.
 	 * Omit for tabbed editors (ModuleDesignerEdit) that own their own body.
 	 */
 	onSubmit?: (e: FormEvent) => void;
-	submitLabel?: string;
+	/** Override: pre-derived query error. Prefer `detailQuery` when possible. */
+	queryError?: unknown;
 	saving?: boolean;
-	/** CalloutEdit / FeedEdit / TemplateEdit pass `false`. Default `true`. */
-	formShellBounded?: boolean;
-	/** Extra PageHead actions rendered before the Back button. */
-	headActions?: ReactNode;
-	children: ReactNode;
+	/** Breadcrumb section label (e.g. "Callouts"). */
+	section: string;
+	sub?: string;
+	submitLabel?: string;
+	title: string;
+	width: "narrow" | "medium" | "wide";
 }
 
 /**
@@ -88,15 +88,15 @@ export const DeveloperEditLayout = ({
 		onSubmit != null ? (
 			<FormShell
 				bounded={formShellBounded}
-				onSubmit={onSubmit}
 				footer={
 					<FormFooter
 						cancelTo={listPath}
-						submitLabel={submitLabel ?? (isAdd ? "Create" : "Save")}
 						loading={saving}
 						loadingLabel="Saving…"
+						submitLabel={submitLabel ?? (isAdd ? "Create" : "Save")}
 					/>
 				}
+				onSubmit={onSubmit}
 			>
 				{children}
 			</FormShell>
@@ -105,7 +105,7 @@ export const DeveloperEditLayout = ({
 		);
 
 	return (
-		<EditPageGuard width={width} loading={loading} error={queryError}>
+		<EditPageGuard error={queryError} loading={loading} width={width}>
 			<PageContainer width={width}>
 				<Breadcrumb
 					items={[
@@ -116,8 +116,6 @@ export const DeveloperEditLayout = ({
 				/>
 
 				<PageHead
-					title={title}
-					sub={sub}
 					actions={
 						<>
 							{headActions}
@@ -126,12 +124,14 @@ export const DeveloperEditLayout = ({
 							</Button>
 						</>
 					}
+					sub={sub}
+					title={title}
 				/>
 
 				<DeveloperSectionNav />
 
 				{error ? (
-					<Alert tone="danger" className="mb-3">
+					<Alert className="mb-3" tone="danger">
 						{error}
 					</Alert>
 				) : null}

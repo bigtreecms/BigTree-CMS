@@ -50,9 +50,9 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 							{error.message}
 						</pre>
 						<Button
-							variant="secondary"
-							icon={<RotateCcw size={13} />}
 							className="mt-3"
+							icon={<RotateCcw size={13} />}
+							variant="secondary"
 							onClick={() => this.setState({ error: null })}
 						>
 							Try again

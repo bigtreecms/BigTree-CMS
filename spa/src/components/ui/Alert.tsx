@@ -22,16 +22,16 @@ const TONE_CLASS: Record<AlertTone, string> = {
 
 interface AlertProps extends Omit<HTMLAttributes<HTMLDivElement>, "title"> {
 	children: ReactNode;
-	/** Token-mapped tone. Defaults to `danger`. */
-	tone?: AlertTone;
-	/** Leading icon node; the caller sizes it (e.g. `<AlertTriangle size={13} />`). */
-	icon?: ReactNode;
-	/** Bold first line above the body (e.g. "Errors — fix these before installing"). */
-	title?: ReactNode;
-	/** Render the body in `font-mono` — the code/build-error variant. */
-	mono?: boolean;
 	/** Layout-only classes the caller still owns — the spacing (`mb-3`, `mb-2`). */
 	className?: string;
+	/** Leading icon node; the caller sizes it (e.g. `<AlertTriangle size={13} />`). */
+	icon?: ReactNode;
+	/** Render the body in `font-mono` — the code/build-error variant. */
+	mono?: boolean;
+	/** Bold first line above the body (e.g. "Errors — fix these before installing"). */
+	title?: ReactNode;
+	/** Token-mapped tone. Defaults to `danger`. */
+	tone?: AlertTone;
 }
 
 export const Alert = ({
@@ -48,10 +48,10 @@ export const Alert = ({
 	if (title) {
 		return (
 			<div
-				role={role}
 				className={`rounded-md border px-3 py-2 text-[12.5px] ${TONE_CLASS[tone]}${
 					className ? ` ${className}` : ""
 				}`}
+				role={role}
 				{...rest}
 			>
 				<div
@@ -67,10 +67,10 @@ export const Alert = ({
 
 	return (
 		<div
-			role={role}
 			className={`rounded-md border px-3 py-2 text-[12.5px] ${TONE_CLASS[tone]}${
 				icon ? " flex items-center gap-1.5" : ""
 			}${mono ? " font-mono" : ""}${className ? ` ${className}` : ""}`}
+			role={role}
 			{...rest}
 		>
 			{icon}

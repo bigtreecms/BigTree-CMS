@@ -28,8 +28,8 @@ export const Playground: Story = {};
 export const Sizes: Story = {
 	render: () => (
 		<div className="flex w-64 flex-col gap-3">
-			<ProgressBar value={45} size="sm" className="w-full" />
-			<ProgressBar value={45} size="md" className="w-full" />
+			<ProgressBar className="w-full" size="sm" value={45} />
+			<ProgressBar className="w-full" size="md" value={45} />
 		</div>
 	),
 };
@@ -43,7 +43,7 @@ export const Complete: Story = {
 export const InlineMeter: Story = {
 	render: () => (
 		<span className="inline-flex items-center gap-2 text-[12px] text-text-3">
-			<ProgressBar value={72} className="w-24" />
+			<ProgressBar className="w-24" value={72} />
 			72%
 		</span>
 	),

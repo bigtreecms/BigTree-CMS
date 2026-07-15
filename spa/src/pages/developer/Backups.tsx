@@ -47,7 +47,7 @@ export const Backups = () => {
 			width: "minmax(0,1.4fr)",
 			cell: (row) => (
 				<div className="flex items-center gap-2">
-					<Archive size={14} className="shrink-0 text-text-3" />
+					<Archive className="shrink-0 text-text-3" size={14} />
 					<span className="truncate font-mono text-[12px] text-text-2">
 						{row.backup_id}
 					</span>
@@ -87,17 +87,17 @@ export const Backups = () => {
 			cell: (row) => (
 				<div className="flex items-center justify-end gap-1">
 					<a
-						href={row.download_url}
 						className="inline-flex items-center gap-1 rounded-md border border-border bg-surface px-2 py-1 text-[11.5px] font-medium text-text-2 hover:border-border-strong hover:bg-hover"
+						href={row.download_url}
 					>
 						<Download size={12} />
 						Download
 					</a>
 					<IconButton
-						tone="danger"
-						onClick={() => deleteDialog.open(row)}
 						label="Delete backup"
 						title="Delete backup"
+						tone="danger"
+						onClick={() => deleteDialog.open(row)}
 					>
 						<Trash2 size={13} />
 					</IconButton>
@@ -117,19 +117,19 @@ export const Backups = () => {
 			/>
 
 			<PageHead
-				title="Backups"
-				sub="On-demand SQL dumps of the full database. Download links are short-lived and expire."
 				actions={
 					<Button
-						variant="primary"
 						icon={<Plus size={13} />}
-						onClick={() => createMutation.mutate()}
 						loading={createMutation.isPending}
 						loadingLabel="Backing up…"
+						variant="primary"
+						onClick={() => createMutation.mutate()}
 					>
 						New backup
 					</Button>
 				}
+				sub="On-demand SQL dumps of the full database. Download links are short-lived and expire."
+				title="Backups"
 			/>
 
 			<DeveloperSectionNav />
@@ -139,11 +139,11 @@ export const Backups = () => {
 			) : (
 				<DataTable
 					columns={columns}
-					rows={listQ.data ?? []}
+					emptyLabel="No backups yet. Create one to download a snapshot of the database."
 					getRowKey={(row) => row.backup_id}
 					isLoading={listQ.isLoading}
 					loadingLabel="Loading backups…"
-					emptyLabel="No backups yet. Create one to download a snapshot of the database."
+					rows={listQ.data ?? []}
 				/>
 			)}
 
@@ -154,9 +154,9 @@ export const Backups = () => {
 
 			<ConfirmDialog
 				{...deleteDialog.dialogProps}
-				title="Delete backup?"
-				description="This removes the backup file from the server. This can't be undone."
 				confirmLabel="Delete"
+				description="This removes the backup file from the server. This can't be undone."
+				title="Delete backup?"
 				variant="danger"
 				onConfirm={() => {
 					if (deleteDialog.item) {

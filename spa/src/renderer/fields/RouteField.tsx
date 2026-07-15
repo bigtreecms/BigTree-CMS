@@ -21,12 +21,12 @@ export const RouteField = ({ field, value, onChange, disabled }: FieldComponentP
 				/
 			</span>
 			<input
-				type="text"
 				aria-label={field.title}
 				className={`${INPUT_CLASS} flex-1 rounded-none border-0 font-mono text-[12.5px] focus:ring-0`}
-				value={toStringValue(value)}
-				placeholder={source ? `generate automatically from "${source}"` : "url-slug"}
 				disabled={disabled}
+				placeholder={source ? `generate automatically from "${source}"` : "url-slug"}
+				type="text"
+				value={toStringValue(value)}
 				onChange={(event) => onChange(event.target.value)}
 			/>
 		</div>

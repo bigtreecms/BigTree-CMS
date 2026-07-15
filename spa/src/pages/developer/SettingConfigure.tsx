@@ -128,19 +128,21 @@ export const SettingConfigure = () => {
 
 	return (
 		<DeveloperEditLayout
-			width="narrow"
-			section="Settings"
-			listPath="/developer/settings"
+			detailQuery={detailQ}
+			error={error}
 			isAdd={isAdd}
-			title={isEdit ? "Edit setting" : "Add setting"}
+			isDirty={isDirty}
+			listPath="/developer/settings"
+			saving={saving}
+			section="Settings"
 			sub={
 				isEdit
 					? "Edit the definition. Values are edited from the user-facing Settings list."
 					: "Define a new setting. The value-editor opens after creation."
 			}
-			detailQuery={detailQ}
-			error={error}
-			isDirty={isDirty}
+			submitLabel={isEdit ? "Save setting" : "Create setting"}
+			title={isEdit ? "Edit setting" : "Add setting"}
+			width="narrow"
 			onSubmit={(e) =>
 				handleSubmit(
 					e,
@@ -166,29 +168,27 @@ export const SettingConfigure = () => {
 					}
 				)
 			}
-			submitLabel={isEdit ? "Save setting" : "Create setting"}
-			saving={saving}
 		>
 			<div className="space-y-4">
 				<FieldGrid>
 					<TextField
-						label="ID"
-						value={body.id}
-						onChange={(v) => set({ id: v })}
+						required
+						disabled={isEdit}
+						error={fieldErrors.id}
 						hint={
 							isEdit
 								? "Stable storage key, cannot be changed."
 								: "Stable storage key, cannot change later."
 						}
-						error={fieldErrors.id}
-						disabled={isEdit}
-						required
+						label="ID"
+						value={body.id}
+						onChange={(v) => set({ id: v })}
 					/>
 					<TextField
+						error={fieldErrors.name}
 						label="Name"
 						value={body.name ?? ""}
 						onChange={(v) => set({ name: v })}
-						error={fieldErrors.name}
 					/>
 				</FieldGrid>
 
@@ -204,9 +204,9 @@ export const SettingConfigure = () => {
 				<div>
 					<Field className="max-w-sm" label="Field type">
 						<Select
+							disabled={fieldTypesQ.isLoading}
 							value={body.type ?? "text"}
 							onChange={(e) => changeType(e.target.value)}
-							disabled={fieldTypesQ.isLoading}
 						>
 							{fieldTypesQ.isLoading && (
 								<option value={body.type ?? "text"}>Loading field types…</option>
@@ -234,12 +234,12 @@ export const SettingConfigure = () => {
 						<FieldLabel>Field settings</FieldLabel>
 						<div className="rounded-md border border-border bg-surface-2 p-3">
 							<FieldSettingsEditor
+								hideLabel
+								errors={settingsErrors}
 								type={body.type ?? "text"}
 								useCase="settings"
 								value={body.settings}
 								onChange={(v) => set({ settings: v })}
-								hideLabel
-								errors={settingsErrors}
 							/>
 						</div>
 					</div>
@@ -247,18 +247,18 @@ export const SettingConfigure = () => {
 
 				<div className="grid grid-cols-1 gap-3 rounded-md border border-border bg-surface-2 p-3 md:grid-cols-3">
 					<Checkbox
-						label="Encrypted at rest"
 						checked={!!body.encrypted}
+						label="Encrypted at rest"
 						onChange={(encrypted) => set({ encrypted })}
 					/>
 					<Checkbox
-						label="Locked (cannot delete)"
 						checked={!!body.locked}
+						label="Locked (cannot delete)"
 						onChange={(locked) => set({ locked })}
 					/>
 					<Checkbox
-						label="System"
 						checked={!!body.system}
+						label="System"
 						onChange={(system) => set({ system })}
 					/>
 				</div>

@@ -205,13 +205,13 @@ export const PageAdd = () => {
 			<Breadcrumb items={breadcrumbs} />
 
 			<PageHead
-				title={body.nav_title?.trim() || "New subpage"}
-				sub="Configure properties, then add content, SEO, and sharing metadata."
 				actions={
 					<Button icon={<X size={13} />} to={parent > 0 ? pagePath(parent) : "/pages"}>
 						Cancel
 					</Button>
 				}
+				sub="Configure properties, then add content, SEO, and sharing metadata."
+				title={body.nav_title?.trim() || "New subpage"}
 			/>
 
 			<PageSummaryPanel page={parentQuery.data ?? null} />
@@ -219,17 +219,17 @@ export const PageAdd = () => {
 			<PageSectionToolbar active="add" pageId={parent > 0 ? parent : 0} parentId={parent} />
 
 			{error && (
-				<Alert tone="danger" className="mb-3">
+				<Alert className="mb-3" tone="danger">
 					{error}
 				</Alert>
 			)}
 
 			<form
+				className="mb-6 overflow-hidden rounded-lg border border-border bg-surface"
 				onSubmit={(e) => {
 					e.preventDefault();
 					handleSubmit(false);
 				}}
-				className="mb-6 overflow-hidden rounded-lg border border-border bg-surface"
 			>
 				<PageTabStrip value={activeTab} onChange={setActiveTab} />
 
@@ -237,9 +237,9 @@ export const PageAdd = () => {
 					{activeTab === "properties" && (
 						<PropertiesTab
 							body={body}
-							templates={templatesQuery.data ?? []}
-							templateDisabled={templateDisabled}
 							fieldErrors={fieldErrors}
+							templateDisabled={templateDisabled}
+							templates={templatesQuery.data ?? []}
 							onPatch={setBodyPatch}
 						/>
 					)}
@@ -247,12 +247,12 @@ export const PageAdd = () => {
 					{activeTab === "content" && (
 						<ContentTab
 							body={body}
-							template={templateDisabled ? undefined : templateQuery.data}
-							loading={!templateDisabled && templateQuery.isLoading}
-							templateDisabled={templateDisabled}
 							fieldErrors={fieldErrors}
-							onChange={(resources) => setBodyPatch({ resources })}
+							loading={!templateDisabled && templateQuery.isLoading}
 							tags={tagObjects}
+							template={templateDisabled ? undefined : templateQuery.data}
+							templateDisabled={templateDisabled}
+							onChange={(resources) => setBodyPatch({ resources })}
 							onTagsChange={(next) => {
 								setTagObjects(next);
 								setBodyPatch({ tags: next.map((t) => t.id) });
@@ -267,24 +267,25 @@ export const PageAdd = () => {
 					{activeTab === "sharing" && <SharingTab body={body} onPatch={setBodyPatch} />}
 				</div>
 
-				<PageWizardFooter activeTab={activeTab} onSelect={setActiveTab} showNext>
+				<PageWizardFooter showNext activeTab={activeTab} onSelect={setActiveTab}>
 					<Button
-						variant={canPublish ? "secondary" : "primary"}
-						onClick={() => handleSubmit(false)}
 						disabled={!canCreate}
 						loading={createMutation.isPending}
 						loadingLabel="Saving…"
+						variant={canPublish ? "secondary" : "primary"}
+						onClick={() => handleSubmit(false)}
 					>
 						Create
 					</Button>
 
 					{canPublish && (
 						<Button
-							variant="primary"
-							onClick={() => handleSubmit(true)}
+							data-testid="page-create-publish"
 							disabled={!canCreate}
 							loading={createMutation.isPending}
 							loadingLabel="Saving…"
+							variant="primary"
+							onClick={() => handleSubmit(true)}
 						>
 							Create & Publish
 						</Button>

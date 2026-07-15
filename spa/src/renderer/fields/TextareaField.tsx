@@ -14,10 +14,10 @@ export const TextareaField = ({ field, value, onChange, disabled }: FieldCompone
 		<textarea
 			aria-label={field.title}
 			className={`${INPUT_CLASS} font-mono text-[12.5px] leading-relaxed`}
-			rows={rows}
-			maxLength={maxLength}
-			value={toStringValue(value)}
 			disabled={disabled}
+			maxLength={maxLength}
+			rows={rows}
+			value={toStringValue(value)}
 			onChange={(event) => onChange(event.target.value)}
 		/>
 	);

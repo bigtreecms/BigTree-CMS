@@ -17,15 +17,14 @@ import type { ContentAlert } from "@/api/endpoints/dashboard";
  */
 interface ContentAlertsCardProps {
 	alerts: ContentAlert[];
-	loading: boolean;
 	error: unknown;
+	loading: boolean;
 }
 
 export const ContentAlertsCard = ({ alerts, loading, error }: ContentAlertsCardProps) => {
 	return (
 		<DashCard
 			icon={AlertTriangle}
-			title="Content alerts"
 			sub={
 				loading
 					? "Loading…"
@@ -33,28 +32,29 @@ export const ContentAlertsCard = ({ alerts, loading, error }: ContentAlertsCardP
 						? "All tracked pages are within their freshness thresholds."
 						: `${pluralize(alerts.length, "page")} need attention`
 			}
+			title="Content alerts"
 		>
 			<QueryRenderer
-				error={error}
-				isEmpty={alerts.length === 0}
 				empty={
 					<InlineEmpty align="center">
 						You haven't flagged any pages, or all flagged pages are up to date.
 					</InlineEmpty>
 				}
+				error={error}
+				isEmpty={alerts.length === 0}
 			>
 				<ul className="m-0 flex list-none flex-col gap-0.5 p-0">
 					{alerts.map((alert) => (
 						<li
-							key={alert.page_id}
 							className="flex items-center gap-2.5 rounded-md p-2 transition-colors hover:bg-surface-2"
+							key={alert.page_id}
 						>
 							<IconTile size="xs" tone="warn">
 								<Clock size={14} />
 							</IconTile>
 							<Link
-								to={pageEditPath(alert.page_id)}
 								className="block min-w-0 flex-1 text-[12.5px] text-text hover:text-accent"
+								to={pageEditPath(alert.page_id)}
 							>
 								<NameIdCell
 									name={alert.nav_title}

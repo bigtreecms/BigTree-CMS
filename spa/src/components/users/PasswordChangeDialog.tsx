@@ -13,11 +13,11 @@ import { describeApiError } from "@/lib/errorHandling";
 import { toast } from "@/lib/toast";
 
 interface PasswordChangeDialogProps {
-	open: boolean;
 	onOpenChange: (open: boolean) => void;
-	userId: number;
+	open: boolean;
 	/** When true, asks for the user's current password before accepting the new one. */
 	requireCurrent: boolean;
+	userId: number;
 }
 
 /**
@@ -89,21 +89,21 @@ export const PasswordChangeDialog = ({
 
 	return (
 		<Modal
-			open={open}
-			onOpenChange={onOpenChange}
-			title="Change password"
 			description={
 				requireCurrent
 					? "Enter your current password, then choose a new one. You'll stay signed in on this device."
 					: "Choose a new password for this user. They'll need to sign in again."
 			}
+			open={open}
+			title="Change password"
+			onOpenChange={onOpenChange}
 		>
-			<form onSubmit={submit} className="space-y-3">
+			<form className="space-y-3" onSubmit={submit}>
 				{requireCurrent && (
 					<Field label="Current password">
 						<TextInput
-							type="password"
 							autoComplete="current-password"
+							type="password"
 							value={current}
 							onChange={(e) => setCurrent(e.target.value)}
 						/>
@@ -111,21 +111,21 @@ export const PasswordChangeDialog = ({
 				)}
 
 				<Field
-					label="New password"
 					hint="Minimum 8 characters. Site security policy may require more."
+					label="New password"
 				>
 					<div className="relative">
 						<TextInput
-							type={showNext ? "text" : "password"}
 							autoComplete="new-password"
+							className="pr-9"
+							type={showNext ? "text" : "password"}
 							value={next}
 							onChange={(e) => setNext(e.target.value)}
-							className="pr-9"
 						/>
 						<IconButton
-							onClick={() => setShowNext((v) => !v)}
 							className="absolute right-2 top-1/2 -translate-y-1/2"
 							label={showNext ? "Hide password" : "Show password"}
+							onClick={() => setShowNext((v) => !v)}
 						>
 							{showNext ? <EyeOff size={14} /> : <Eye size={14} />}
 						</IconButton>
@@ -134,8 +134,8 @@ export const PasswordChangeDialog = ({
 
 				<Field label="Confirm new password">
 					<TextInput
-						type={showNext ? "text" : "password"}
 						autoComplete="new-password"
+						type={showNext ? "text" : "password"}
 						value={confirm}
 						onChange={(e) => setConfirm(e.target.value)}
 					/>
@@ -148,10 +148,10 @@ export const PasswordChangeDialog = ({
 						Cancel
 					</Button>
 					<Button
-						variant="primary"
-						type="submit"
 						loading={mutation.isPending}
 						loadingLabel="Saving…"
+						type="submit"
+						variant="primary"
 					>
 						Change password
 					</Button>

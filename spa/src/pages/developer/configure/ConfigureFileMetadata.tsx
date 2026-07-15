@@ -141,37 +141,37 @@ export const ConfigureFileMetadata = () => {
 
 	return (
 		<ConfigureLayout
-			title="File metadata"
-			sub="Custom fields collected on file / image / video uploads, surfaced on the Files screen and in the upload field type."
 			actions={
 				<Button
-					variant="primary"
 					icon={<Save size={13} />}
-					onClick={handleSave}
 					loading={saveMutation.isPending}
 					loadingLabel="Saving…"
+					variant="primary"
+					onClick={handleSave}
 				>
 					Save
 				</Button>
 			}
 			query={detailQ}
+			sub="Custom fields collected on file / image / video uploads, surfaced on the Files screen and in the upload field type."
+			title="File metadata"
 		>
 			{generalError && <ErrorPanel message={generalError} />}
 
 			<div className="space-y-4">
 				{BUCKETS.map((b) => (
-					<Card key={b.id} className="p-4">
+					<Card className="p-4" key={b.id}>
 						<div className="mb-3">
 							<div className="text-[13px] font-semibold text-text">{b.label}</div>
 							<div className="text-[11.5px] text-text-3">{b.hint}</div>
 						</div>
 
 						<ResourceDesigner
-							resources={resourcesByBucket[b.id]}
-							onChange={(entries) => setBucket(b.id, entries)}
 							keyField="id"
-							useCase="settings"
+							resources={resourcesByBucket[b.id]}
 							settingsErrors={settingsErrors[b.id]}
+							useCase="settings"
+							onChange={(entries) => setBucket(b.id, entries)}
 						/>
 					</Card>
 				))}

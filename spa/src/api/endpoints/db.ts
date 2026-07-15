@@ -7,7 +7,6 @@ import { api } from "@/api/client";
  */
 
 export interface DbOption {
-	value: string;
 	label: string;
 	/**
 	 * SQL column type (e.g. "varchar", "date", "datetime"). Present on column
@@ -15,6 +14,7 @@ export interface DbOption {
 	 * a filter type. Absent on table options and sorted column options.
 	 */
 	type?: string;
+	value: string;
 }
 
 export const dbApi = {

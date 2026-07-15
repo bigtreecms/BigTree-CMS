@@ -16,8 +16,8 @@ import type { SearchResultGroups } from "@/api/endpoints/search";
 
 /** The terminal `done` payload — mirrors the buffered ChatTurn response. */
 export interface ChatStreamDone {
+	artifacts: SearchResultGroups;
 	conversation_id: number;
-	title: string;
 	message: {
 		id: number;
 		role: "assistant";
@@ -26,11 +26,13 @@ export interface ChatStreamDone {
 		proposals: ChatProposal[];
 		created_at: string;
 	};
-	artifacts: SearchResultGroups;
 	rounds: number;
+	title: string;
 }
 
 export interface ChatStreamHandlers {
+	/** Terminal success — render from this and stop. */
+	onDone: (done: ChatStreamDone) => void;
 	/**
 	 * The turn's conversation id (and title), emitted before any tokens. Lets a
 	 * brand-new thread reconcile if the connection later drops. Not an "answer
@@ -38,14 +40,12 @@ export interface ChatStreamHandlers {
 	 * buffered fallback.
 	 */
 	onMeta?: (meta: { conversation_id: number; title: string }) => void;
-	/** An answer token arrived — append it to the visible draft. */
-	onToken: (text: string) => void;
 	/** Discard the streamed draft: that round became tool calls, not the answer. */
 	onReset: () => void;
+	/** An answer token arrived — append it to the visible draft. */
+	onToken: (text: string) => void;
 	/** A tool ran (name + AIToolResult status). */
 	onTool: (tool: { name: string; status: string }) => void;
-	/** Terminal success — render from this and stop. */
-	onDone: (done: ChatStreamDone) => void;
 }
 
 /** Thrown when the stream can't start or the server sent an `error` event. */
@@ -60,8 +60,8 @@ export class ChatStreamError extends Error {
 }
 
 interface SseEvent {
-	event: string;
 	data: string;
+	event: string;
 }
 
 /** Parse one raw SSE block ("event: x\ndata: y") into its event name + data. */

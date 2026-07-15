@@ -72,7 +72,7 @@ export const Login = () => {
 	const mfaForm = useForm<{ code: string }>({ defaultValues: { code: "" } });
 
 	if (authenticated) {
-		return <Navigate to={destination} replace />;
+		return <Navigate replace to={destination} />;
 	}
 
 	async function onSubmit(values: FormValues) {
@@ -184,22 +184,22 @@ export const Login = () => {
 
 	return (
 		<AuthCard
-			title={enroll ? "Set up two-factor authentication" : "Sign in to BigTree"}
 			subtitle={
 				enroll
 					? "Your organization requires a second factor to sign in."
 					: "Use your admin credentials."
 			}
+			title={enroll ? "Set up two-factor authentication" : "Sign in to BigTree"}
 			wide={!!enroll}
 		>
 			{state?.resetSuccess && !serverError && (
-				<Alert tone="success" className="mb-3">
+				<Alert className="mb-3" tone="success">
 					Password updated. Sign in with your new password.
 				</Alert>
 			)}
 
 			{serverError && (
-				<Alert tone="danger" className="mb-3">
+				<Alert className="mb-3" tone="danger">
 					{serverError}
 				</Alert>
 			)}
@@ -207,60 +207,67 @@ export const Login = () => {
 			{enroll ? (
 				<div className="text-[12.5px]">
 					<TwoFactorEnrollForm
-						setup={enroll.setup}
+						busy={enrollBusy}
+						cancelLabel="Back"
 						code={enrollCode}
-						onCodeChange={setEnrollCode}
+						confirmLabel="Verify & sign in"
+						setup={enroll.setup}
 						onCancel={() => {
 							setEnroll(null);
 							setEnrollCode("");
 							setServerError(null);
 						}}
+						onCodeChange={setEnrollCode}
 						onConfirm={onConfirmEnroll}
-						busy={enrollBusy}
-						confirmLabel="Verify & sign in"
-						cancelLabel="Back"
 					/>
 				</div>
 			) : !mfa ? (
-				<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
-					<Field label="Email" error={form.formState.errors.email?.message}>
+				<form
+					className="space-y-3"
+					data-testid="login-form"
+					onSubmit={form.handleSubmit(onSubmit)}
+				>
+					<Field error={form.formState.errors.email?.message} label="Email">
 						<TextInput
-							type="email"
-							autoComplete="email"
 							autoFocus
+							autoComplete="email"
+							data-testid="login-email"
+							type="email"
 							{...form.register("email")}
 						/>
 					</Field>
 
-					<Field label="Password" error={form.formState.errors.password?.message}>
+					<Field error={form.formState.errors.password?.message} label="Password">
 						<TextInput
-							type="password"
 							autoComplete="current-password"
+							data-testid="login-password"
+							type="password"
 							{...form.register("password")}
 						/>
 					</Field>
 
 					<Link
-						to="/login/forgot"
 						className="block text-right text-[12px] text-text-3 hover:text-text-2"
+						to="/login/forgot"
 					>
 						Forgot password?
 					</Link>
 
 					{!rememberDisabled && (
 						<Checkbox
-							label="Remember me"
 							checked={form.watch("remember") ?? false}
+							label="Remember me"
 							onChange={(checked) => form.setValue("remember", checked)}
 						/>
 					)}
 
 					<Button
-						variant="primary"
+						className="mt-1 w-full justify-center"
+						data-testid="login-submit"
+						disabled={form.formState.isSubmitting}
 						size="lg"
 						type="submit"
-						className="mt-1 w-full justify-center"
-						disabled={form.formState.isSubmitting}
+						variant="primary"
 					>
 						{form.formState.isSubmitting ? "Signing in…" : "Sign in"}
 					</Button>
@@ -273,12 +280,12 @@ export const Login = () => {
 								<span className="h-px flex-1 bg-border" />
 							</div>
 							<Button
-								variant="secondary"
-								size="lg"
 								className="w-full justify-center"
-								icon={<Fingerprint size={14} />}
-								onClick={onPasskeySignIn}
 								disabled={passkeyBusy || form.formState.isSubmitting}
+								icon={<Fingerprint size={14} />}
+								size="lg"
+								variant="secondary"
+								onClick={onPasskeySignIn}
 							>
 								{passkeyBusy
 									? "Waiting for authenticator…"
@@ -288,32 +295,32 @@ export const Login = () => {
 					)}
 				</form>
 			) : (
-				<form onSubmit={mfaForm.handleSubmit(onSubmitMfa)} className="space-y-3">
+				<form className="space-y-3" onSubmit={mfaForm.handleSubmit(onSubmitMfa)}>
 					<p className="text-[12.5px] text-text-2">
 						Enter the 6-digit code from your authenticator app.
 					</p>
 					<input
-						type="text"
-						inputMode="numeric"
-						pattern="[0-9]*"
 						autoFocus
+						inputMode="numeric"
 						maxLength={6}
+						pattern="[0-9]*"
+						type="text"
 						{...mfaForm.register("code", { required: true })}
 						className="w-full rounded-md border border-border bg-surface px-2.5 py-1.5 text-center font-mono text-[14px] tracking-widest outline-none focus:border-accent"
 					/>
 					<Button
-						variant="primary"
-						size="lg"
-						type="submit"
 						className="w-full justify-center"
 						disabled={mfaForm.formState.isSubmitting}
+						size="lg"
+						type="submit"
+						variant="primary"
 					>
 						{mfaForm.formState.isSubmitting ? "Verifying…" : "Verify"}
 					</Button>
 					<button
+						className="w-full text-[12px] text-text-3 hover:text-text-2"
 						type="button"
 						onClick={() => setMfa(null)}
-						className="w-full text-[12px] text-text-3 hover:text-text-2"
 					>
 						Back
 					</button>

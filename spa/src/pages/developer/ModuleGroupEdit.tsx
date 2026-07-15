@@ -19,8 +19,8 @@ import { TextField } from "@/components/ui/TextField";
 
 interface Body {
 	name: string;
-	route: string;
 	position: number;
+	route: string;
 }
 
 export const ModuleGroupEdit = () => {
@@ -52,22 +52,30 @@ export const ModuleGroupEdit = () => {
 	});
 
 	if (!isAdd && !idParam) {
-		return <Navigate to="/developer/module-groups" replace />;
+		return <Navigate replace to="/developer/module-groups" />;
 	}
 
 	return (
 		<DeveloperEditLayout
-			width="narrow"
-			section="Module groups"
-			listPath="/developer/module-groups"
-			isAdd={isAdd}
-			title={isAdd ? "Add module group" : body.name || idParam || "Edit module group"}
 			detailQuery={detailQ}
 			error={error}
+			isAdd={isAdd}
 			isDirty={isDirty}
+			listPath="/developer/module-groups"
+			section="Module groups"
+			title={isAdd ? "Add module group" : body.name || idParam || "Edit module group"}
+			width="narrow"
 		>
 			{/* FormShell stays here: ModuleGroupModulesList sits outside the form. */}
 			<FormShell
+				footer={
+					<FormFooter
+						cancelTo="/developer/module-groups"
+						loading={saving}
+						loadingLabel="Saving…"
+						submitLabel={isAdd ? "Create group" : "Save group"}
+					/>
+				}
 				onSubmit={(e) =>
 					handleSubmit(
 						e,
@@ -76,30 +84,22 @@ export const ModuleGroupEdit = () => {
 						() => save(body)
 					)
 				}
-				footer={
-					<FormFooter
-						cancelTo="/developer/module-groups"
-						submitLabel={isAdd ? "Create group" : "Save group"}
-						loading={saving}
-						loadingLabel="Saving…"
-					/>
-				}
 			>
 				<div className="space-y-4">
 					<TextField
+						required
+						error={fieldErrors.name}
 						label="Name"
 						value={body.name}
 						onChange={(v) => set({ name: v })}
-						error={fieldErrors.name}
-						required
 					/>
 					<FieldGrid>
 						<TextField
+							error={fieldErrors.route}
+							hint="Used on the Modules tab URL."
 							label="Route"
 							value={body.route}
 							onChange={(v) => set({ route: v })}
-							hint="Used on the Modules tab URL."
-							error={fieldErrors.route}
 						/>
 						<TextField
 							label="Position"

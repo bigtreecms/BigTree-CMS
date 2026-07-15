@@ -30,17 +30,17 @@ import { toast } from "@/lib/toast";
  */
 
 interface ComposeMessageProps {
-	open: boolean;
-	onOpenChange: (open: boolean) => void;
 	currentUserId: number;
+	onOpenChange: (open: boolean) => void;
+	open: boolean;
 	/** Pre-populate from this thread when present. */
 	replyTo?: Message | null;
 }
 
 interface UserChip {
+	email: string;
 	id: number;
 	name: string;
-	email: string;
 }
 
 export const ComposeMessage = ({
@@ -131,35 +131,35 @@ export const ComposeMessage = ({
 
 	return (
 		<SlideOver
-			open={open}
-			onOpenChange={onOpenChange}
-			title={replyTo ? "Reply to message" : "New message"}
 			description={
 				replyTo
 					? "Your reply is threaded to the original message."
 					: "Pick recipients, write your subject and body, then send."
 			}
-			width="md"
 			footer={
 				<div className="flex items-center justify-end gap-2">
 					<Button
+						disabled={sendMutation.isPending}
 						variant="secondary"
 						onClick={() => onOpenChange(false)}
-						disabled={sendMutation.isPending}
 					>
 						Cancel
 					</Button>
 					<Button
-						variant="primary"
-						onClick={() => sendMutation.mutate()}
 						disabled={!canSend}
 						loading={sendMutation.isPending}
 						loadingLabel="Sending…"
+						variant="primary"
+						onClick={() => sendMutation.mutate()}
 					>
 						Send message
 					</Button>
 				</div>
 			}
+			open={open}
+			title={replyTo ? "Reply to message" : "New message"}
+			width="md"
+			onOpenChange={onOpenChange}
 		>
 			<div className="space-y-4">
 				{generalError && <Alert tone="danger">{generalError}</Alert>}
@@ -183,12 +183,12 @@ export const ComposeMessage = ({
 
 					<div className="relative">
 						<Search
-							size={13}
 							className="absolute left-3 top-1/2 -translate-y-1/2 text-text-3"
+							size={13}
 						/>
 						<input
-							id="compose-recipient-search"
 							className="w-full rounded-md border border-border bg-surface py-1.5 pl-9 pr-3 text-[13px] placeholder:text-text-3 focus:outline-none focus:ring-1 focus:ring-accent-ring"
+							id="compose-recipient-search"
 							placeholder="Search users by name or email…"
 							value={search}
 							onChange={(e) => setSearch(e.target.value)}
@@ -214,8 +214,8 @@ export const ComposeMessage = ({
 										.map((u) => (
 											<li key={u.id}>
 												<button
-													type="button"
 													className="flex w-full flex-col items-start gap-0.5 px-3 py-1.5 text-left hover:bg-hover"
+													type="button"
 													onClick={() =>
 														addRecipient({
 															id: u.id,
@@ -243,19 +243,19 @@ export const ComposeMessage = ({
 
 				<Field label="Subject">
 					<TextInput
+						maxLength={255}
 						value={subject}
 						onChange={(e) => setSubject(e.target.value)}
-						maxLength={255}
 					/>
 				</Field>
 
 				<Field label="Message">
 					<TextArea
-						rows={10}
 						className="leading-relaxed"
+						placeholder="Plain text. A small set of inline HTML (a, b, em, p) is preserved by the server."
+						rows={10}
 						value={body}
 						onChange={(e) => setBody(e.target.value)}
-						placeholder="Plain text. A small set of inline HTML (a, b, em, p) is preserved by the server."
 					/>
 				</Field>
 			</div>

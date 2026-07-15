@@ -196,9 +196,9 @@ export const ConfigureCloudStorage = () => {
 
 	return (
 		<ConfigureLayout
-			title="Cloud storage"
-			sub="Credentials for the storage backend BigTree uploads files to, plus default-service selection and bucket / CloudFront wiring."
 			query={detailQ}
+			sub="Credentials for the storage backend BigTree uploads files to, plus default-service selection and bucket / CloudFront wiring."
+			title="Cloud storage"
 		>
 			{detailQ.data && (
 				<>
@@ -212,8 +212,6 @@ export const ConfigureCloudStorage = () => {
 							<div className="sm:flex-1">
 								<SelectField
 									label="Service"
-									value={defaultService}
-									onChange={setDefaultService}
 									options={[
 										{ value: "local", label: "Local storage" },
 										...(detailQ.data.providers.amazon.active
@@ -231,6 +229,8 @@ export const ConfigureCloudStorage = () => {
 											? [{ value: "google", label: "Google Cloud Storage" }]
 											: []),
 									]}
+									value={defaultService}
+									onChange={setDefaultService}
 								/>
 							</div>
 
@@ -245,12 +245,12 @@ export const ConfigureCloudStorage = () => {
 							</div>
 
 							<Button
-								variant="primary"
 								className="w-full justify-center sm:w-auto sm:justify-start"
 								icon={<Save size={13} />}
-								onClick={() => saveDefaultMutation.mutate()}
 								loading={saveDefaultMutation.isPending}
 								loadingLabel="Saving…"
+								variant="primary"
+								onClick={() => saveDefaultMutation.mutate()}
 							>
 								Update default
 							</Button>
@@ -280,12 +280,12 @@ export const ConfigureCloudStorage = () => {
 								</Field>
 								<SelectField
 									label="Serve CloudFront over SSL"
-									value={cloudfront.ssl}
-									onChange={(v) => setCloudfront((c) => ({ ...c, ssl: v }))}
 									options={[
 										{ value: "", label: "No" },
 										{ value: "on", label: "Yes" },
 									]}
+									value={cloudfront.ssl}
+									onChange={(v) => setCloudfront((c) => ({ ...c, ssl: v }))}
 								/>
 							</div>
 						)}
@@ -297,29 +297,24 @@ export const ConfigureCloudStorage = () => {
 					</Card>
 
 					<ProviderCard
-						title="Amazon S3"
 						active={detailQ.data.providers.amazon.active}
-						onSave={() =>
-							saveProviderMutation.mutate({ provider: "amazon", body: drafts.amazon })
-						}
-						saving={saveProviderMutation.isPending}
 						footnote={
 							defaultService === "amazon" ? (
 								<Button
-									variant="secondary"
-									size="sm"
 									disabled={recacheMutation.isPending}
-									onClick={() => recacheMutation.mutate()}
 									icon={
 										<RefreshCw
-											size={13}
 											className={
 												recacheMutation.isPending
 													? "animate-spin"
 													: undefined
 											}
+											size={13}
 										/>
 									}
+									size="sm"
+									variant="secondary"
+									onClick={() => recacheMutation.mutate()}
 								>
 									{recacheMutation.isPending
 										? `Recaching… ${recacheProgress ?? 0} cached`
@@ -327,12 +322,17 @@ export const ConfigureCloudStorage = () => {
 								</Button>
 							) : undefined
 						}
+						saving={saveProviderMutation.isPending}
+						title="Amazon S3"
+						onSave={() =>
+							saveProviderMutation.mutate({ provider: "amazon", body: drafts.amazon })
+						}
 					>
 						<SelectField
 							label="AWS region"
+							options={AWS_REGIONS}
 							value={(drafts.amazon.region as string) ?? "us-east-1"}
 							onChange={(v) => update("amazon", "region", v)}
-							options={AWS_REGIONS}
 						/>
 
 						<Field label="Access key ID">
@@ -344,39 +344,39 @@ export const ConfigureCloudStorage = () => {
 
 						<Field label="Secret access key">
 							<TextInput
-								type="password"
-								value={(drafts.amazon.secret as string) ?? ""}
+								autoComplete="off"
 								placeholder={
 									drafts.amazon.secret_set
 										? "•••••••• (stored, leave blank to keep)"
 										: ""
 								}
+								type="password"
+								value={(drafts.amazon.secret as string) ?? ""}
 								onChange={(e) => update("amazon", "secret", e.target.value)}
-								autoComplete="off"
 							/>
 						</Field>
 					</ProviderCard>
 
 					<ProviderCard
-						title="Rackspace Cloud Files"
 						active={detailQ.data.providers.rackspace.active}
+						saving={saveProviderMutation.isPending}
+						title="Rackspace Cloud Files"
 						onSave={() =>
 							saveProviderMutation.mutate({
 								provider: "rackspace",
 								body: drafts.rackspace,
 							})
 						}
-						saving={saveProviderMutation.isPending}
 					>
 						<Field label="API key">
 							<TextInput
-								type="password"
-								value={(drafts.rackspace.api_key as string) ?? ""}
+								autoComplete="off"
 								placeholder={
 									drafts.rackspace.api_key_set ? "•••••••• (stored)" : ""
 								}
+								type="password"
+								value={(drafts.rackspace.api_key as string) ?? ""}
 								onChange={(e) => update("rackspace", "api_key", e.target.value)}
-								autoComplete="off"
 							/>
 						</Field>
 						<Field label="Username">
@@ -387,30 +387,30 @@ export const ConfigureCloudStorage = () => {
 						</Field>
 						<SelectField
 							label="Region"
+							options={RACKSPACE_REGIONS}
 							value={(drafts.rackspace.region as string) ?? "ORD"}
 							onChange={(v) => update("rackspace", "region", v)}
-							options={RACKSPACE_REGIONS}
 						/>
 					</ProviderCard>
 
 					<ProviderCard
-						title="Google Cloud Storage"
 						active={detailQ.data.providers.google.active}
-						onSave={() =>
-							saveProviderMutation.mutate({ provider: "google", body: drafts.google })
-						}
-						saving={saveProviderMutation.isPending}
 						footnote={
 							<Button
-								variant="link"
-								size="sm"
 								disabled={googleOAuthMutation.isPending}
-								onClick={() => googleOAuthMutation.mutate()}
 								loading={googleOAuthMutation.isPending}
 								loadingLabel="Starting…"
+								size="sm"
+								variant="link"
+								onClick={() => googleOAuthMutation.mutate()}
 							>
 								Complete activation (Google OAuth)
 							</Button>
+						}
+						saving={saveProviderMutation.isPending}
+						title="Google Cloud Storage"
+						onSave={() =>
+							saveProviderMutation.mutate({ provider: "google", body: drafts.google })
 						}
 					>
 						<Field label="Project ID">
@@ -427,13 +427,13 @@ export const ConfigureCloudStorage = () => {
 						</Field>
 						<Field label="Client secret">
 							<TextInput
-								type="password"
-								value={(drafts.google.client_secret as string) ?? ""}
+								autoComplete="off"
 								placeholder={
 									drafts.google.client_secret_set ? "•••••••• (stored)" : ""
 								}
+								type="password"
+								value={(drafts.google.client_secret as string) ?? ""}
 								onChange={(e) => update("google", "client_secret", e.target.value)}
-								autoComplete="off"
 							/>
 						</Field>
 						<Field label="Certificate email (optional)">
@@ -449,12 +449,12 @@ export const ConfigureCloudStorage = () => {
 								<UploadButton
 									accept=".json,.p12,application/json"
 									disabled={googleKeyMutation.isPending}
-									onSelect={(file) => googleKeyMutation.mutate(file)}
 									label={
 										googleKeyMutation.isPending
 											? "Uploading…"
 											: "Upload private key"
 									}
+									onSelect={(file) => googleKeyMutation.mutate(file)}
 								/>
 
 								<span className="text-[12px] text-text-3">
@@ -472,12 +472,12 @@ export const ConfigureCloudStorage = () => {
 };
 
 interface ProviderCardProps {
-	title: string;
 	active: boolean;
-	saving: boolean;
-	onSave: () => void;
-	footnote?: React.ReactNode;
 	children: React.ReactNode;
+	footnote?: React.ReactNode;
+	onSave: () => void;
+	saving: boolean;
+	title: string;
 }
 
 const ProviderCard = ({ title, active, saving, onSave, footnote, children }: ProviderCardProps) => (
@@ -497,13 +497,13 @@ const ProviderCard = ({ title, active, saving, onSave, footnote, children }: Pro
 			{footnote ? <p className="text-[11.5px] text-text-3">{footnote}</p> : <span />}
 
 			<Button
-				variant="secondary"
-				size="sm"
-				onClick={onSave}
 				disabled={saving}
+				icon={<Save size={13} />}
 				loading={saving}
 				loadingLabel="Saving…"
-				icon={<Save size={13} />}
+				size="sm"
+				variant="secondary"
+				onClick={onSave}
 			>
 				Save credentials
 			</Button>

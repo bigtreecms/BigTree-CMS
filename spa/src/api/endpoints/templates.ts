@@ -15,21 +15,21 @@ import type { ModuleFormField } from "@/api/endpoints/modules";
 
 export interface TemplateResource {
 	id: string;
-	type: string;
-	title: string;
-	subtitle: string;
 	settings: Record<string, unknown>;
+	subtitle: string;
+	title: string;
+	type: string;
 }
 
 export interface TemplateSummary {
+	hooks?: unknown;
 	id: string;
-	name: string;
-	module: string;
 	level: number;
-	routed: boolean;
+	module: string;
+	name: string;
 	position: number;
 	resources: TemplateResource[];
-	hooks?: unknown;
+	routed: boolean;
 }
 
 /**
@@ -45,13 +45,13 @@ export const resourceToFormField = (r: TemplateResource): ModuleFormField => ({
 });
 
 export interface TemplateEditBody {
-	id?: string;
-	name?: string;
-	module?: string;
-	level?: number;
-	routed?: boolean;
-	resources?: TemplateResource[];
 	hooks?: unknown;
+	id?: string;
+	level?: number;
+	module?: string;
+	name?: string;
+	resources?: TemplateResource[];
+	routed?: boolean;
 }
 
 export const templatesApi = {

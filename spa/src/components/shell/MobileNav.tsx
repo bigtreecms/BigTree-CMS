@@ -41,9 +41,9 @@ export const MobileNav = ({ siteName, wwwRoot }: MobileNavProps) => {
 		<Dialog.Root open={open} onOpenChange={setOpen}>
 			<Dialog.Trigger asChild>
 				<button
-					type="button"
 					aria-label="Open navigation"
 					className="grid size-[30px] cursor-pointer place-items-center rounded-md text-text-2 transition-colors hover:bg-hover hover:text-text lg:hidden"
+					type="button"
 				>
 					<Menu size={18} />
 				</button>
@@ -56,11 +56,11 @@ export const MobileNav = ({ siteName, wwwRoot }: MobileNavProps) => {
 						<Dialog.Title className="flex items-center gap-2.5 text-[14px] font-semibold tracking-[-0.01em] text-text">
 							<IconTile size="xs" tone="brand">
 								<svg
-									width="14"
+									aria-hidden="true"
+									fill="currentColor"
 									height="14"
 									viewBox="0 0 24 24"
-									fill="currentColor"
-									aria-hidden="true"
+									width="14"
 								>
 									<path d="M12 2 4 12h4v8h8v-8h4L12 2Z" />
 								</svg>
@@ -69,8 +69,8 @@ export const MobileNav = ({ siteName, wwwRoot }: MobileNavProps) => {
 						</Dialog.Title>
 
 						<Dialog.Close
-							className="rounded-md p-1 text-text-3 hover:bg-hover hover:text-text"
 							aria-label="Close navigation"
+							className="rounded-md p-1 text-text-3 hover:bg-hover hover:text-text"
 						>
 							<X size={16} />
 						</Dialog.Close>
@@ -82,13 +82,13 @@ export const MobileNav = ({ siteName, wwwRoot }: MobileNavProps) => {
 						</p>
 						{dashboardItems.map(({ label, to, icon: Icon }) => (
 							<NavLink
+								className={({ isActive }) => linkClass(isActive)}
+								end={to === "/dashboard"}
 								key={to}
 								to={to}
-								end={to === "/dashboard"}
 								onClick={close}
-								className={({ isActive }) => linkClass(isActive)}
 							>
-								<Icon size={16} className="shrink-0" />
+								<Icon className="shrink-0" size={16} />
 								<span>{label}</span>
 							</NavLink>
 						))}
@@ -97,25 +97,25 @@ export const MobileNav = ({ siteName, wwwRoot }: MobileNavProps) => {
 
 						{tabs.map(({ id, label, path, icon: Icon }) => (
 							<NavLink
+								className={({ isActive }) => linkClass(isActive)}
 								key={id}
 								to={path}
 								onClick={close}
-								className={({ isActive }) => linkClass(isActive)}
 							>
-								<Icon size={16} className="shrink-0" />
+								<Icon className="shrink-0" size={16} />
 								<span>{label}</span>
 							</NavLink>
 						))}
 					</nav>
 
 					<a
-						href={wwwRoot}
-						target="_blank"
-						rel="noopener noreferrer"
-						onClick={close}
 						className="flex items-center gap-2 border-t border-border px-4 py-3 text-[13px] text-text-2 transition-colors hover:bg-hover hover:text-text"
+						href={wwwRoot}
+						rel="noopener noreferrer"
+						target="_blank"
+						onClick={close}
 					>
-						<ExternalLink size={14} className="shrink-0" />
+						<ExternalLink className="shrink-0" size={14} />
 						<span>View site</span>
 					</a>
 				</Dialog.Content>

@@ -19,8 +19,8 @@ import { TextInput } from "./inputs";
  */
 
 interface FormHooksEditorProps {
-	value: Record<string, unknown> | unknown[];
 	onChange: (next: Record<string, unknown>) => void;
+	value: Record<string, unknown> | unknown[];
 }
 
 type HookKey = "edit" | "pre" | "post" | "publish";
@@ -86,7 +86,7 @@ export const FormHooksEditor = ({ value, onChange }: FormHooksEditorProps) => {
 	return (
 		<div>
 			<FieldLabel>Hooks</FieldLabel>
-			<Button variant="secondary" icon={<Zap size={13} />} onClick={() => setOpen(true)}>
+			<Button icon={<Zap size={13} />} variant="secondary" onClick={() => setOpen(true)}>
 				Manage Hooks
 				{activeCount > 0 && (
 					<span className="rounded bg-accent-soft px-1.5 py-0.5 text-[10.5px] font-medium text-accent">
@@ -99,9 +99,6 @@ export const FormHooksEditor = ({ value, onChange }: FormHooksEditorProps) => {
 			</span>
 
 			<SlideOver
-				open={open}
-				onOpenChange={setOpen}
-				title="Manage Hooks"
 				description="Enter the name of a PHP function to call at each stage of the form lifecycle. Leave a field blank to skip that hook."
 				footer={
 					<div className="flex justify-end">
@@ -110,16 +107,19 @@ export const FormHooksEditor = ({ value, onChange }: FormHooksEditorProps) => {
 						</Button>
 					</div>
 				}
+				open={open}
+				title="Manage Hooks"
+				onOpenChange={setOpen}
 			>
 				<div className="space-y-4">
 					{HOOK_FIELDS.map((field) => (
 						<TextInput
+							mono
+							hint={field.note}
 							key={field.key}
 							label={field.label}
 							value={hookValue(record, field.key)}
 							onChange={(v) => setHook(field.key, v)}
-							hint={field.note}
-							mono
 						/>
 					))}
 				</div>

@@ -22,7 +22,7 @@ export const ModuleDesigner = () => {
 			key: "name",
 			header: "Name",
 			width: "minmax(0,2fr)",
-			cell: (row) => <NameIdCell name={row.name} id={row.id} />,
+			cell: (row) => <NameIdCell id={row.id} name={row.name} />,
 		},
 		{
 			key: "group",
@@ -52,29 +52,29 @@ export const ModuleDesigner = () => {
 
 	return (
 		<DeveloperListPage<ModuleSummary>
-			title="Modules"
-			countNoun="module"
-			route="/developer/modules"
 			addLabel="New module"
-			loadingLabel="Loading modules…"
-			emptyLabel="No modules defined yet."
-			queryKey={queryKeys.modules.list()}
-			invalidateKey={["modules"]}
-			list={() => modulesApi.list()}
-			remove={(id) => modulesApi.delete(id)}
+			columns={columns}
+			confirmDescription="This removes the module and all of its actions, forms, views, reports and embed forms. Content rows in the module's table are left intact."
+			confirmLabel="Delete module"
+			countNoun="module"
+			deleteButtonLabel="Delete module"
+			deleteSuccessMessage="Module deleted"
 			deriveRows={(data) =>
 				[...data].sort((a, b) =>
 					a.name.localeCompare(b.name, undefined, { sensitivity: "base" })
 				)
 			}
-			columns={columns}
+			emptyLabel="No modules defined yet."
 			getRowKey={(row) => row.id}
-			deleteButtonLabel="Delete module"
-			deleteSuccessMessage="Module deleted"
+			invalidateKey={["modules"]}
+			list={() => modulesApi.list()}
+			loadingLabel="Loading modules…"
+			queryKey={queryKeys.modules.list()}
+			remove={(id) => modulesApi.delete(id)}
+			route="/developer/modules"
 			rowLabel={(row) => row.name}
-			confirmLabel="Delete module"
-			confirmDescription="This removes the module and all of its actions, forms, views, reports and embed forms. Content rows in the module's table are left intact."
 			rowPath={(row) => moduleDetailPath(row.id)}
+			title="Modules"
 		/>
 	);
 };

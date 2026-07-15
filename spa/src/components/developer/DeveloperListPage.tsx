@@ -18,44 +18,44 @@ import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 import { useToastMutation } from "@/hooks/useToastMutation";
 
 export interface DeveloperListPageProps<T> {
-	/** Plural display name — used for the breadcrumb and page title (e.g. "Callouts"). */
-	title: string;
-	/** Singular noun pluralized against the row count for the subtitle (e.g. "callout"). */
-	countNoun: string;
-	/** Route base — the Add button links to `${route}/add` and rows to `${route}/${id}/edit`. */
-	route: string;
 	/** Add-button label (e.g. "Add callout"). */
 	addLabel: string;
-	loadingLabel: string;
-	emptyLabel: string;
-
-	queryKey: readonly unknown[];
-	invalidateKey: readonly unknown[];
-	list: () => Promise<T[]>;
-	remove: (id: string) => Promise<void>;
-	/** Optional derivation from the raw list response (e.g. FieldTypes' registry map → rows). */
-	deriveRows?: (data: T[]) => T[];
-
 	/** Columns WITHOUT the trailing actions column — the component appends it. */
 	columns: DataTableColumn<T>[];
-	getRowKey: (row: T) => string;
-
-	/** Title/label for the row delete IconButton (e.g. "Delete callout"). */
-	deleteButtonLabel: string;
-	/** Toast shown after a successful delete (e.g. "Callout deleted"). */
-	deleteSuccessMessage: string;
-	/** Confirm-dialog title noun for a row (e.g. `(row) => row.name`). */
-	rowLabel: (row: T) => string;
+	confirmDescription: string;
 	/** Confirm-dialog primary button label (e.g. "Delete callout" or just "Delete"). */
 	confirmLabel: string;
-	confirmDescription: string;
+	/** Singular noun pluralized against the row count for the subtitle (e.g. "callout"). */
+	countNoun: string;
+	/** Title/label for the row delete IconButton (e.g. "Delete callout"). */
+	deleteButtonLabel: string;
+
+	/** Toast shown after a successful delete (e.g. "Callout deleted"). */
+	deleteSuccessMessage: string;
+	/** Optional derivation from the raw list response (e.g. FieldTypes' registry map → rows). */
+	deriveRows?: (data: T[]) => T[];
+	emptyLabel: string;
+	getRowKey: (row: T) => string;
+	invalidateKey: readonly unknown[];
+
+	list: () => Promise<T[]>;
+	loadingLabel: string;
 
 	/** Optional reorder handler — passed straight through to DataTable. */
 	onReorder?: (orderedKeys: Array<string | number>) => void;
-	/** Escape slot rendered inside PageHead's actions, before the Add button. */
-	toolbar?: ReactNode;
+	queryKey: readonly unknown[];
+	remove: (id: string) => Promise<void>;
+	/** Route base — the Add button links to `${route}/add` and rows to `${route}/${id}/edit`. */
+	route: string;
+	/** Confirm-dialog title noun for a row (e.g. `(row) => row.name`). */
+	rowLabel: (row: T) => string;
+
 	/** Override the row-click destination. Defaults to `${route}/${key}/edit`. */
 	rowPath?: (row: T) => string;
+	/** Plural display name — used for the breadcrumb and page title (e.g. "Callouts"). */
+	title: string;
+	/** Escape slot rendered inside PageHead's actions, before the Add button. */
+	toolbar?: ReactNode;
 }
 
 /**
@@ -117,13 +117,13 @@ export const DeveloperListPage = <T,>({
 			align: "right",
 			cell: (row) => (
 				<IconButton
+					label={deleteButtonLabel}
+					title={deleteButtonLabel}
 					tone="danger"
 					onClick={(e) => {
 						e.stopPropagation();
 						deleteDialog.open(row);
 					}}
-					title={deleteButtonLabel}
-					label={deleteButtonLabel}
 				>
 					<Trash size={13} />
 				</IconButton>
@@ -136,27 +136,28 @@ export const DeveloperListPage = <T,>({
 			<Breadcrumb items={[{ label: "Developer", to: "/developer" }, { label: title }]} />
 
 			<PageHead
-				title={title}
-				sub={pluralize(rows.length, countNoun)}
 				actions={
 					<>
 						{toolbar}
-						<Button variant="primary" icon={<Plus size={13} />} to={`${route}/add`}>
+						<Button icon={<Plus size={13} />} to={`${route}/add`} variant="primary">
 							{addLabel}
 						</Button>
 					</>
 				}
+				sub={pluralize(rows.length, countNoun)}
+				title={title}
 			/>
 
 			<DeveloperSectionNav />
 
 			<DataTable<T>
 				columns={allColumns}
-				rows={rows}
+				emptyLabel={emptyLabel}
 				getRowKey={getRowKey}
 				isLoading={query.isLoading}
 				loadingLabel={loadingLabel}
-				emptyLabel={emptyLabel}
+				rows={rows}
+				onReorder={onReorder}
 				onRowClick={(row) =>
 					navigate(
 						rowPath
@@ -164,15 +165,14 @@ export const DeveloperListPage = <T,>({
 							: `${route}/${encodeURIComponent(getRowKey(row))}/edit`
 					)
 				}
-				onReorder={onReorder}
 			/>
 
 			{deleteDialog.item && (
 				<ConfirmDialog
 					{...deleteDialog.dialogProps}
-					title={`Delete "${rowLabel(deleteDialog.item)}"?`}
-					description={confirmDescription}
 					confirmLabel={confirmLabel}
+					description={confirmDescription}
+					title={`Delete "${rowLabel(deleteDialog.item)}"?`}
 					variant="danger"
 					onConfirm={() => deleteMutation.mutate(getRowKey(deleteDialog.item!))}
 				/>

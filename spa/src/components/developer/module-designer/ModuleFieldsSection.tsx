@@ -9,12 +9,12 @@ import type { ModuleFormField } from "@/api/endpoints/modules";
 import { FormHooksEditor } from "./FormHooksEditor";
 
 interface ModuleFieldsSectionProps {
-	fields: ModuleFormField[];
-	onFieldsChange: (next: ModuleFormField[]) => void;
-	settingsErrors: Record<number, Record<string, string>>;
 	columnsTable: string;
+	fields: ModuleFormField[];
 	hooks: Record<string, unknown> | unknown[];
+	onFieldsChange: (next: ModuleFormField[]) => void;
 	onHooksChange: (next: Record<string, unknown>) => void;
+	settingsErrors: Record<number, Record<string, string>>;
 }
 
 /**
@@ -35,12 +35,12 @@ export const ModuleFieldsSection = ({
 		<div>
 			<SectionLabel className="mb-2">Fields</SectionLabel>
 			<ResourceDesigner
-				resources={fields as unknown as ResourceEntry[]}
-				onChange={(next) => onFieldsChange(toModuleFormFields(next))}
-				keyField="column"
-				useCase="modules"
 				columnsTable={columnsTable}
+				keyField="column"
+				resources={fields as unknown as ResourceEntry[]}
 				settingsErrors={settingsErrors}
+				useCase="modules"
+				onChange={(next) => onFieldsChange(toModuleFormFields(next))}
 			/>
 		</div>
 

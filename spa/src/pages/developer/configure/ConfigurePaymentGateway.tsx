@@ -143,32 +143,32 @@ export const ConfigurePaymentGateway = () => {
 
 	return (
 		<ConfigureLayout
-			title="Payment gateway"
-			sub="Credentials for the payment provider that module forms (and BigTreePaymentGateway) charge through."
 			query={detailQ}
+			sub="Credentials for the payment provider that module forms (and BigTreePaymentGateway) charge through."
+			title="Payment gateway"
 		>
 			{draft && (
 				<FormShell
-					onSubmit={onSubmit}
 					footer={
 						<Button
-							variant="primary"
-							type="submit"
 							icon={<Save size={13} />}
 							loading={saveMutation.isPending}
 							loadingLabel="Saving…"
+							type="submit"
+							variant="primary"
 						>
 							Save
 						</Button>
 					}
+					onSubmit={onSubmit}
 				>
 					{generalError && <ErrorPanel message={generalError} />}
 
 					<SelectField
 						label="Gateway"
+						options={GATEWAYS.map((g) => ({ value: g.id, label: g.label }))}
 						value={draft.service}
 						onChange={(v) => setDraft({ ...draft, service: v as PaymentGatewayId })}
-						options={GATEWAYS.map((g) => ({ value: g.id, label: g.label }))}
 					/>
 
 					{fields.length > 0 && (
@@ -185,12 +185,12 @@ export const ConfigurePaymentGateway = () => {
 										<UploadButton
 											accept=".pem,.crt,application/x-pem-file"
 											disabled={certMutation.isPending}
-											onSelect={(file) => certMutation.mutate(file)}
 											label={
 												certMutation.isPending
 													? "Uploading…"
 													: "Upload certificate"
 											}
+											onSelect={(file) => certMutation.mutate(file)}
 										/>
 
 										<span className="text-[12px] text-text-3">

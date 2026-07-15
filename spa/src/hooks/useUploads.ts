@@ -6,22 +6,22 @@ import { apiBase } from "@/lib/adminBoot";
 export type UploadStatus = "pending" | "uploading" | "done" | "error" | "canceled";
 
 export interface UploadItem {
-	id: number;
-	file: File;
-	progress: number;
-	status: UploadStatus;
 	error?: string;
+	file: File;
+	id: number;
+	progress: number;
 	/** API-decoded response body once the upload finishes successfully. */
 	result?: unknown;
+	status: UploadStatus;
 }
 
 export interface UploadOptions {
-	/** API path relative to {@link apiBase}, e.g. "/resources". */
-	path: string;
-	/** Form field name carrying the file. Defaults to "file". */
-	fieldName?: string;
 	/** Extra form fields to send alongside the file. */
 	extra?: Record<string, string | number | boolean | undefined | null>;
+	/** Form field name carrying the file. Defaults to "file". */
+	fieldName?: string;
+	/** API path relative to {@link apiBase}, e.g. "/resources". */
+	path: string;
 }
 
 /**

@@ -22,8 +22,8 @@ import { settingsOf, type FieldComponentProps } from "./types";
  *   - disable_remove:   if truthy, hides the Remove link on the Current row
  */
 interface UploadFieldSettings {
-	valid_extensions?: string;
 	disable_remove?: boolean | string | number;
+	valid_extensions?: string;
 }
 
 export const UploadField = ({ field, value, onChange, disabled }: FieldComponentProps) => {
@@ -52,50 +52,50 @@ export const UploadField = ({ field, value, onChange, disabled }: FieldComponent
 		<div className="space-y-2">
 			<div className="flex flex-wrap items-center gap-2">
 				<Button
-					variant="secondary"
-					icon={<UploadIcon size={13} />}
-					onClick={filePicker.open}
 					disabled={disabled || Boolean(inFlight)}
+					icon={<UploadIcon size={13} />}
+					variant="secondary"
+					onClick={filePicker.open}
 				>
 					{currentPath ? "Replace file" : "Choose file"}
 				</Button>
 				{inFlight && (
 					<span className="inline-flex items-center gap-2 text-[12px] text-text-3">
 						<ProgressBar
-							value={inFlight.progress}
-							label="Upload progress"
 							className="w-24"
+							label="Upload progress"
+							value={inFlight.progress}
 						/>
 						{inFlight.progress}%
 					</span>
 				)}
 				<input
-					ref={filePicker.inputRef}
-					type="file"
+					accept={settings.valid_extensions || undefined}
 					aria-label={field.title}
 					className="hidden"
-					accept={settings.valid_extensions || undefined}
+					ref={filePicker.inputRef}
+					type="file"
 					onChange={filePicker.onChange}
 				/>
 			</div>
 
 			{currentPath && (
 				<div className="flex items-center gap-2 rounded-md border border-border bg-surface-2 px-3 py-2 text-[12.5px]">
-					<FileIcon size={14} className="text-text-3" />
+					<FileIcon className="text-text-3" size={14} />
 					<a
-						href={currentPath}
-						target="_blank"
-						rel="noopener noreferrer"
 						className="min-w-0 truncate text-accent hover:underline"
+						href={currentPath}
+						rel="noopener noreferrer"
+						target="_blank"
 						title={currentPath}
 					>
 						{filenameFromPath(currentPath)}
 					</a>
 					{showRemove && !disabled && (
 						<IconButton
+							className="ml-auto"
 							label="Remove file"
 							tone="danger"
-							className="ml-auto"
 							onClick={() => onChange("")}
 						>
 							<X size={13} />

@@ -2,13 +2,13 @@ import { Button } from "./Button";
 import { Modal } from "./Modal";
 
 interface ConfirmDialogProps {
-	open: boolean;
-	onOpenChange: (open: boolean) => void;
-	title: string;
-	description: string;
-	confirmLabel: string;
 	cancelLabel?: string;
+	confirmLabel: string;
+	description: string;
 	onConfirm: () => void;
+	onOpenChange: (open: boolean) => void;
+	open: boolean;
+	title: string;
 	variant?: "default" | "danger";
 }
 
@@ -29,9 +29,6 @@ export const ConfirmDialog = ({
 
 	return (
 		<Modal
-			open={open}
-			onOpenChange={onOpenChange}
-			title={title}
 			description={description}
 			footer={
 				<>
@@ -47,6 +44,9 @@ export const ConfirmDialog = ({
 					</Button>
 				</>
 			}
+			open={open}
+			title={title}
+			onOpenChange={onOpenChange}
 		/>
 	);
 };

@@ -21,8 +21,8 @@ import { apiBase } from "@/lib/adminBoot";
 
 interface RefreshResponse {
 	access_token: string;
-	refresh_token: string;
 	expires_in: number;
+	refresh_token: string;
 	user: AuthUser;
 }
 
@@ -30,16 +30,16 @@ interface RefreshResponse {
 let refreshPromise: Promise<boolean> | null = null;
 
 export interface ApiCallOptions {
-	method?: "GET" | "POST" | "PATCH" | "DELETE" | "PUT";
 	body?: unknown;
 	headers?: Record<string, string>;
+	method?: "GET" | "POST" | "PATCH" | "DELETE" | "PUT";
 	query?: Record<string, string | number | boolean | undefined | null>;
+	/** AbortSignal for cancellation (TanStack Query passes this). */
+	signal?: AbortSignal;
 	/** Skip the access-token header (used by /auth/login itself). */
 	skipAuth?: boolean;
 	/** Skip the refresh-on-401 retry (used by /auth/refresh to avoid loops). */
 	skipRefresh?: boolean;
-	/** AbortSignal for cancellation (TanStack Query passes this). */
-	signal?: AbortSignal;
 	/**
 	 * When true, the promise resolves with the full envelope { data, meta }
 	 * instead of just the data. Useful for paginated endpoints.

@@ -32,8 +32,6 @@ const meta = {
 				</Button>
 				<SlideOver
 					{...args}
-					open={open}
-					onOpenChange={setOpen}
 					footer={
 						<div className="flex justify-end gap-2">
 							<Button variant="secondary" onClick={() => setOpen(false)}>
@@ -44,6 +42,8 @@ const meta = {
 							</Button>
 						</div>
 					}
+					open={open}
+					onOpenChange={setOpen}
 				>
 					<div className="flex flex-col gap-4">
 						<Field label="Title">

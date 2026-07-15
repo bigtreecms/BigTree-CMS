@@ -10,43 +10,43 @@ import { api } from "@/api/client";
 
 export interface Extension {
 	id: string;
+	installed_at: string | null;
+	manifest: Record<string, unknown>;
 	name: string;
 	version: string;
-	manifest: Record<string, unknown>;
-	installed_at: string | null;
 }
 
 /** Per-extension result of the registry version check (GET /extensions/updates). */
 export interface ExtensionUpdate {
-	id: string;
-	name: string;
-	version: string;
-	update_available: boolean;
 	available_version: string | null;
 	compatibility: string | null;
+	id: string;
+	name: string;
+	update_available: boolean;
+	version: string;
 }
 
 /** Result of an in-place upgrade (POST /extensions/{id}/upgrade). */
 export interface ExtensionUpgradeResult {
 	id: string;
-	version: string;
 	/** Captured output of the extension's optional update.php, if any. */
 	output: string;
+	version: string;
 }
 
 /** Result of staging an uploaded package (POST /extensions/install/unpack). */
 export interface ExtensionInstallPreview {
+	/** Blocking problems (e.g. unwritable path). Install is disabled while non-empty. */
+	errors: string[];
 	manifest: {
 		id: string;
 		title: string;
 		version: string;
 		author: { name?: string } | null;
 	};
+	ready: boolean;
 	/** Non-blocking notes (e.g. a file/table will be overwritten). */
 	warnings: string[];
-	/** Blocking problems (e.g. unwritable path). Install is disabled while non-empty. */
-	errors: string[];
-	ready: boolean;
 }
 
 /** Result of committing the staged package (POST /extensions/install/process). */
@@ -94,45 +94,45 @@ export const extensionsApi = {
 };
 
 export interface ExtensionLicenseCatalog {
-	"Open Source": Record<string, string>;
 	"Closed Source": Record<string, string>;
+	"Open Source": Record<string, string>;
 }
 
 /** Components the wizard sends to /build/inspect (and a subset of /build). */
 export interface ExtensionInspectBody {
-	id?: string;
-	modules?: string[];
-	templates?: string[];
 	callouts?: string[];
-	settings?: string[];
 	feeds?: string[];
 	field_types?: string[];
+	id?: string;
+	modules?: string[];
+	settings?: string[];
+	templates?: string[];
 }
 
 export interface ExtensionBuildInspect {
-	module_groups: string[];
 	field_types: string[];
-	tables: string[];
 	files: string[];
+	module_groups: string[];
+	tables: string[];
 }
 
 export interface ExtensionBuildBody extends ExtensionInspectBody {
-	title: string;
-	version?: string;
+	author?: { name?: string; email?: string; url?: string };
 	compatibility?: string;
 	description?: string;
+	files?: string[];
 	keywords?: string[];
-	author?: { name?: string; email?: string; url?: string };
-	licenses?: string[];
 	license?: string;
 	license_name?: string;
 	license_url?: string;
+	licenses?: string[];
 	module_groups?: string[];
 	tables?: string[];
-	files?: string[];
+	title: string;
+	version?: string;
 }
 
 export interface ExtensionBuildResult {
-	id: string;
 	download_url: string;
+	id: string;
 }

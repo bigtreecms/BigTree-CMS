@@ -45,11 +45,11 @@ export const ForgotPassword = () => {
 
 	return (
 		<AuthCard
-			title="Reset your password"
 			subtitle="We'll email you a link to choose a new one."
+			title="Reset your password"
 		>
 			{serverError && (
-				<Alert tone="danger" className="mb-3">
+				<Alert className="mb-3" tone="danger">
 					{serverError}
 				</Alert>
 			)}
@@ -61,36 +61,36 @@ export const ForgotPassword = () => {
 						one hour.
 					</p>
 					<Link
-						to="/login"
 						className="block w-full rounded-md border border-border bg-surface px-3 py-2 text-center text-[13px] hover:bg-hover"
+						to="/login"
 					>
 						Back to sign in
 					</Link>
 				</div>
 			) : (
-				<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
-					<Field label="Email" error={form.formState.errors.email?.message}>
+				<form className="space-y-3" onSubmit={form.handleSubmit(onSubmit)}>
+					<Field error={form.formState.errors.email?.message} label="Email">
 						<TextInput
-							type="email"
-							autoComplete="email"
 							autoFocus
+							autoComplete="email"
+							type="email"
 							{...form.register("email")}
 						/>
 					</Field>
 
 					<Button
-						variant="primary"
-						size="lg"
-						type="submit"
 						className="mt-1 w-full justify-center"
 						disabled={form.formState.isSubmitting}
+						size="lg"
+						type="submit"
+						variant="primary"
 					>
 						{form.formState.isSubmitting ? "Sending…" : "Email me a reset link"}
 					</Button>
 
 					<Link
-						to="/login"
 						className="block text-center text-[12px] text-text-3 hover:text-text-2"
+						to="/login"
 					>
 						Back to sign in
 					</Link>

@@ -222,14 +222,14 @@ export const RunMigrations = () => {
 	return (
 		<PageContainer width="narrow">
 			<PageHead
-				title="Database update required"
 				sub="This BigTree install has pending schema migrations. Developers must apply them before using the admin."
+				title="Database update required"
 			/>
 
 			<Card className="overflow-hidden">
 				<CardHeader>
 					<div className="flex items-center gap-2">
-						<Database size={15} className="text-accent" />
+						<Database className="text-accent" size={15} />
 						<SectionLabel size="sm">Pending migrations</SectionLabel>
 					</div>
 				</CardHeader>
@@ -258,7 +258,7 @@ export const RunMigrations = () => {
 
 					{stage === "ready" && (
 						<div className="flex items-start gap-2 rounded-lg border border-warn/40 bg-warn-bg/30 p-3 text-[12.5px] text-text-2">
-							<AlertTriangle size={15} className="mt-0.5 shrink-0 text-warn" />
+							<AlertTriangle className="mt-0.5 shrink-0 text-warn" size={15} />
 							Starting migrations…
 						</div>
 					)}
@@ -321,8 +321,8 @@ export const RunMigrations = () => {
 						)}
 
 						<Button
-							variant="secondary"
 							icon={<LogOut size={13} />}
+							variant="secondary"
 							onClick={() => void logout()}
 						>
 							Log out

@@ -5,17 +5,17 @@ import { FieldRow } from "@/renderer/forms/FieldRow";
 import { columnToFormField, type RepeaterColumn } from "./fieldHelpers";
 
 interface RepeaterColumnFieldsProps {
+	/** Raw repeater columns; mapped via {@link columnToFormField} when `fields` is absent. */
+	columns?: RepeaterColumn[];
+	disabled?: boolean;
 	/**
 	 * Pre-mapped form fields. When provided, wins over `columns` — use for
 	 * Callouts (resourceToFormField) and Declarative (descriptor → ModuleFormField).
 	 */
 	fields?: ModuleFormField[];
-	/** Raw repeater columns; mapped via {@link columnToFormField} when `fields` is absent. */
-	columns?: RepeaterColumn[];
 	/** Read a column/field's stored cell value. */
 	getValue: (columnId: string) => unknown;
 	onColumnChange: (columnId: string, next: unknown) => void;
-	disabled?: boolean;
 }
 
 /**
@@ -36,12 +36,12 @@ export const RepeaterColumnFields = ({
 	return (
 		<>
 			{resolved.map((subField) => (
-				<FieldRow key={subField.column} field={subField}>
+				<FieldRow field={subField} key={subField.column}>
 					<FieldRenderer
+						disabled={disabled}
 						field={subField}
 						value={getValue(subField.column)}
 						onChange={(next) => onColumnChange(subField.column, next)}
-						disabled={disabled}
 					/>
 				</FieldRow>
 			))}

@@ -44,6 +44,6 @@ export const WithTrailing: Story = {
 	args: {
 		icon: <LayoutGrid size={13} />,
 		label: "Live site",
-		trailing: <ExternalLink size={12} className="text-text-3" />,
+		trailing: <ExternalLink className="text-text-3" size={12} />,
 	},
 };

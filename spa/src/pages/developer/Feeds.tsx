@@ -13,7 +13,7 @@ const columns: DataTableColumn<FeedSummary>[] = [
 		key: "name",
 		header: "Name",
 		width: "minmax(0,1.5fr)",
-		cell: (row) => <NameIdCell name={row.name} id={row.id} />,
+		cell: (row) => <NameIdCell id={row.id} name={row.name} />,
 	},
 	{
 		key: "type",
@@ -35,22 +35,22 @@ const columns: DataTableColumn<FeedSummary>[] = [
 
 export const Feeds = () => (
 	<DeveloperListPage<FeedSummary>
-		title="Feeds"
-		countNoun="feed"
-		route="/developer/feeds"
 		addLabel="Add feed"
-		loadingLabel="Loading feeds…"
-		emptyLabel="No feeds yet."
-		queryKey={queryKeys.feeds.list()}
-		invalidateKey={queryKeys.feeds.root()}
-		list={() => feedsApi.list()}
-		remove={(id) => feedsApi.delete(id)}
 		columns={columns}
-		getRowKey={(row) => row.id}
+		confirmDescription="The public URL backed by this feed will stop responding immediately."
+		confirmLabel="Delete feed"
+		countNoun="feed"
 		deleteButtonLabel="Delete feed"
 		deleteSuccessMessage="Feed deleted"
+		emptyLabel="No feeds yet."
+		getRowKey={(row) => row.id}
+		invalidateKey={queryKeys.feeds.root()}
+		list={() => feedsApi.list()}
+		loadingLabel="Loading feeds…"
+		queryKey={queryKeys.feeds.list()}
+		remove={(id) => feedsApi.delete(id)}
+		route="/developer/feeds"
 		rowLabel={(row) => row.name}
-		confirmLabel="Delete feed"
-		confirmDescription="The public URL backed by this feed will stop responding immediately."
+		title="Feeds"
 	/>
 );

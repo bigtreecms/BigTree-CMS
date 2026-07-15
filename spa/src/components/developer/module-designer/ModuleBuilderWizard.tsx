@@ -35,9 +35,9 @@ import { CheckboxInput, SelectInput, TextInput } from "./inputs";
  */
 
 interface FieldRow {
-	uid: number;
 	title: string;
 	type: string;
+	uid: number;
 }
 
 let rowCounter = 0;
@@ -165,56 +165,56 @@ export const ModuleBuilderWizard = () => {
 	];
 
 	return (
-		<form onSubmit={handleSubmit} className="space-y-4">
+		<form className="space-y-4" onSubmit={handleSubmit}>
 			{generalError && <Alert tone="danger">{generalError}</Alert>}
 
 			<Card className="space-y-4 p-4">
 				<FieldGrid>
 					<TextInput
+						required
+						error={fieldErrors.name}
+						hint="For example, News."
 						label="Name"
 						value={name}
 						onChange={setName}
-						error={fieldErrors.name}
-						hint="For example, News."
-						required
 					/>
 					<SelectInput
 						label="Group"
+						options={groupOptions}
 						value={group}
 						onChange={setGroup}
-						options={groupOptions}
 					/>
 					<TextInput
+						mono
+						required
+						error={fieldErrors.table}
+						hint="A new MySQL table to create. Letters, numbers, underscores."
 						label="Table name"
 						value={table}
 						onChange={setTable}
-						error={fieldErrors.table}
-						hint="A new MySQL table to create. Letters, numbers, underscores."
-						required
-						mono
 					/>
 					<TextInput
+						mono
+						error={fieldErrors.class}
+						hint="Optional custom module class."
 						label="Handler class"
 						value={className}
 						onChange={setClassName}
-						error={fieldErrors.class}
-						hint="Optional custom module class."
-						mono
 					/>
 					<TextInput
+						mono
+						error={fieldErrors.route}
+						hint="URL slug. Auto-generated from the name when left blank."
 						label="Route"
 						value={route}
 						onChange={setRoute}
-						hint="URL slug. Auto-generated from the name when left blank."
-						error={fieldErrors.route}
-						mono
 					/>
 				</FieldGrid>
 
 				<IconPicker
+					hint="Shown beside the module in the admin navigation."
 					value={icon}
 					onChange={setIcon}
-					hint="Shown beside the module in the admin navigation."
 				/>
 			</Card>
 
@@ -222,9 +222,9 @@ export const ModuleBuilderWizard = () => {
 				<div className="flex items-center justify-between">
 					<span className="text-[13px] font-semibold text-text">Fields</span>
 					<button
+						className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-2.5 py-1.5 text-[12px] hover:bg-hover"
 						type="button"
 						onClick={addRow}
-						className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-2.5 py-1.5 text-[12px] hover:bg-hover"
 					>
 						<Plus size={13} />
 						Add field
@@ -244,7 +244,7 @@ export const ModuleBuilderWizard = () => {
 
 				<ul className="space-y-2">
 					{rows.map((r) => (
-						<li key={r.uid} className="flex items-end gap-2">
+						<li className="flex items-end gap-2" key={r.uid}>
 							<div className="flex-1">
 								<TextInput
 									label="Title"
@@ -255,22 +255,22 @@ export const ModuleBuilderWizard = () => {
 							<div className="w-48">
 								<SelectInput
 									label="Type"
-									value={r.type}
-									onChange={(v) => setRow(r.uid, { type: v })}
 									options={
 										typeOptions.length > 0
 											? typeOptions
 											: [{ value: "text", label: "Text" }]
 									}
+									value={r.type}
+									onChange={(v) => setRow(r.uid, { type: v })}
 								/>
 							</div>
 							<button
+								aria-label="Remove field"
+								className="mb-1 rounded p-2 text-text-3 hover:bg-hover hover:text-danger disabled:opacity-30"
+								disabled={rows.length === 1}
+								title="Remove field"
 								type="button"
 								onClick={() => removeRow(r.uid)}
-								disabled={rows.length === 1}
-								className="mb-1 rounded p-2 text-text-3 hover:bg-hover hover:text-danger disabled:opacity-30"
-								title="Remove field"
-								aria-label="Remove field"
 							>
 								<Trash size={14} />
 							</button>
@@ -283,23 +283,23 @@ export const ModuleBuilderWizard = () => {
 				<FieldGrid>
 					<SelectInput
 						label="Landing view type"
+						options={VIEW_TYPE_OPTIONS}
 						value={viewType}
 						onChange={(v) =>
 							setViewType(v === "draggable" ? "draggable" : "searchable")
 						}
-						options={VIEW_TYPE_OPTIONS}
 					/>
 					<TextInput
+						hint="Singular, e.g. Article. Derived from the name when blank."
 						label="Item title"
 						value={itemTitle}
 						onChange={setItemTitle}
-						hint="Singular, e.g. Article. Derived from the name when blank."
 					/>
 					<TextInput
+						hint="Plural, e.g. Articles. Derived from the name when blank."
 						label="View title"
 						value={viewTitle}
 						onChange={setViewTitle}
-						hint="Plural, e.g. Articles. Derived from the name when blank."
 					/>
 				</FieldGrid>
 
@@ -309,18 +309,18 @@ export const ModuleBuilderWizard = () => {
 						Each adds a status column to the table and an action to the landing view.
 					</p>
 					<CheckboxInput
-						label="Approvable (adds an approved column)"
 						checked={actions.approve}
+						label="Approvable (adds an approved column)"
 						onChange={(v) => setActions((p) => ({ ...p, approve: v }))}
 					/>
 					<CheckboxInput
-						label="Featurable (adds a featured column)"
 						checked={actions.feature}
+						label="Featurable (adds a featured column)"
 						onChange={(v) => setActions((p) => ({ ...p, feature: v }))}
 					/>
 					<CheckboxInput
-						label="Archivable (adds an archived column)"
 						checked={actions.archive}
+						label="Archivable (adds an archived column)"
 						onChange={(v) => setActions((p) => ({ ...p, archive: v }))}
 					/>
 				</div>
@@ -328,11 +328,11 @@ export const ModuleBuilderWizard = () => {
 
 			<div className="flex justify-end">
 				<Button
-					variant="primary"
-					type="submit"
 					icon={<Save size={13} />}
 					loading={scaffoldMutation.isPending}
 					loadingLabel="Building…"
+					type="submit"
+					variant="primary"
 				>
 					Build module
 				</Button>

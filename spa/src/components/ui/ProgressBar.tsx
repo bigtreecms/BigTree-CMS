@@ -2,24 +2,24 @@ export type ProgressBarTone = "accent" | "success";
 export type ProgressBarSize = "sm" | "md";
 
 interface ProgressBarProps {
-	/** Completion percent — clamped to the 0–100 range. */
-	value: number;
-	/** Track height: `sm` (h-1.5, default) or `md` (h-2). */
-	size?: ProgressBarSize;
-	/** Fill color. Defaults to `accent`; use `success` for a completed bar. */
-	tone?: ProgressBarTone;
-	/**
-	 * Accessible name for the bar (sets `aria-label`). Defaults to `"Progress"`;
-	 * pass something specific (e.g. `"Upload progress"`) when the context isn't
-	 * obvious from surrounding text — a `progressbar` role must have a name.
-	 */
-	label?: string;
 	/**
 	 * Layout-only classes for the track — pass a width here, since the track has
 	 * none of its own (e.g. `w-24` for an inline upload meter, `w-full` for a
 	 * block bar, `flex-1` to fill a flex row).
 	 */
 	className?: string;
+	/**
+	 * Accessible name for the bar (sets `aria-label`). Defaults to `"Progress"`;
+	 * pass something specific (e.g. `"Upload progress"`) when the context isn't
+	 * obvious from surrounding text — a `progressbar` role must have a name.
+	 */
+	label?: string;
+	/** Track height: `sm` (h-1.5, default) or `md` (h-2). */
+	size?: ProgressBarSize;
+	/** Fill color. Defaults to `accent`; use `success` for a completed bar. */
+	tone?: ProgressBarTone;
+	/** Completion percent — clamped to the 0–100 range. */
+	value: number;
 }
 
 /**
@@ -51,14 +51,14 @@ export const ProgressBar = ({
 
 	return (
 		<div
-			role="progressbar"
 			aria-label={label}
-			aria-valuenow={Math.round(percent)}
-			aria-valuemin={0}
 			aria-valuemax={100}
+			aria-valuemin={0}
+			aria-valuenow={Math.round(percent)}
 			className={`relative overflow-hidden rounded-full bg-surface-2 ${sizeClassName[size]}${
 				className ? ` ${className}` : ""
 			}`}
+			role="progressbar"
 		>
 			<span
 				className={`absolute inset-y-0 left-0 rounded-full transition-[width] ${toneClassName[tone]}`}

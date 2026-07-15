@@ -19,7 +19,7 @@ export const Toaster = () => {
 	return (
 		<div className="pointer-events-none fixed right-6 top-20 z-200 flex flex-col gap-3">
 			{items.map((t) => (
-				<ToastCard key={t.id} item={t} />
+				<ToastCard item={t} key={t.id} />
 			))}
 		</div>
 	);
@@ -55,7 +55,7 @@ const ToastCard = ({ item }: ToastCardProps) => {
 				<div
 					className={`mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full ${palette.iconBg}`}
 				>
-					<Icon size={15} className={palette.iconFg} />
+					<Icon className={palette.iconFg} size={15} />
 				</div>
 
 				<div className="min-w-0 flex-1 text-[13px]">
@@ -67,12 +67,12 @@ const ToastCard = ({ item }: ToastCardProps) => {
 
 					{item.actionLabel && item.onAction && (
 						<button
+							className={`mt-1 hover:underline ${palette.iconFg}`}
 							type="button"
 							onClick={() => {
 								item.onAction?.();
 								dismiss(item.id);
 							}}
-							className={`mt-1 hover:underline ${palette.iconFg}`}
 						>
 							{item.actionLabel}
 						</button>
@@ -81,10 +81,10 @@ const ToastCard = ({ item }: ToastCardProps) => {
 			</div>
 
 			<button
+				aria-label="Close notification"
+				className="relative mt-2 mr-2 text-text-3 before:absolute before:-inset-3 before:content-[''] hover:text-text"
 				type="button"
 				onClick={() => dismiss(item.id)}
-				className="relative mt-2 mr-2 text-text-3 before:absolute before:-inset-3 before:content-[''] hover:text-text"
-				aria-label="Close notification"
 			>
 				<X size={16} />
 			</button>
@@ -94,9 +94,9 @@ const ToastCard = ({ item }: ToastCardProps) => {
 
 interface Palette {
 	bar: string;
+	icon: typeof Check;
 	iconBg: string;
 	iconFg: string;
-	icon: typeof Check;
 }
 
 const paletteFor = (variant: ToastVariant): Palette => {

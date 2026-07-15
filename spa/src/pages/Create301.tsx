@@ -75,22 +75,30 @@ export const Create301 = () => {
 			/>
 
 			<PageHead
-				title="Add 301 redirect"
-				sub="Send an old URL to a new destination."
 				actions={
 					<Button icon={<ChevronLeft size={13} />} to="/dashboard/404s/301">
 						Back
 					</Button>
 				}
+				sub="Send an old URL to a new destination."
+				title="Add 301 redirect"
 			/>
 
 			{error && (
-				<Alert tone="danger" className="mb-3">
+				<Alert className="mb-3" tone="danger">
 					{error}
 				</Alert>
 			)}
 
 			<FormShell
+				footer={
+					<FormFooter
+						cancelTo="/dashboard/404s/301"
+						loading={createMutation.isPending}
+						loadingLabel="Creating…"
+						submitLabel="Create redirect"
+					/>
+				}
 				onSubmit={(e) =>
 					handleSubmit(
 						e,
@@ -102,44 +110,36 @@ export const Create301 = () => {
 						() => createMutation.mutate()
 					)
 				}
-				footer={
-					<FormFooter
-						cancelTo="/dashboard/404s/301"
-						submitLabel="Create redirect"
-						loading={createMutation.isPending}
-						loadingLabel="Creating…"
-					/>
-				}
 			>
 				<div className="space-y-4">
 					{multisite && (
 						<SelectField
 							label="Site"
-							value={siteKey || sites[0]?.key || ""}
-							onChange={setSiteKey}
 							options={sites.map((site) => ({
 								value: site.key,
 								label: site.domain || site.key,
 							}))}
+							value={siteKey || sites[0]?.key || ""}
+							onChange={setSiteKey}
 						/>
 					)}
 
 					<TextField
+						required
+						error={fieldErrors.from}
+						hint="A full URL or just the path after your domain (e.g. /old-page/)."
 						label="From"
 						value={from}
 						onChange={setFrom}
-						hint="A full URL or just the path after your domain (e.g. /old-page/)."
-						error={fieldErrors.from}
-						required
 					/>
 
 					<TextField
+						required
+						error={fieldErrors.to}
+						hint="The destination — a full URL including http:// or an internal page."
 						label="To"
 						value={to}
 						onChange={setTo}
-						hint="The destination — a full URL including http:// or an internal page."
-						error={fieldErrors.to}
-						required
 					/>
 				</div>
 			</FormShell>

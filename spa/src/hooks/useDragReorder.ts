@@ -18,11 +18,11 @@ import { useCallback, useState } from "react";
  */
 export interface DragReorderApi<Id extends string | number> {
 	dragId: Id | null;
-	overId: Id | null;
-	onDragStart: (e: React.DragEvent, id: Id) => void;
-	onDragOver: (e: React.DragEvent, id: Id) => void;
-	onDrop: (e: React.DragEvent) => void;
 	onDragEnd: () => void;
+	onDragOver: (e: React.DragEvent, id: Id) => void;
+	onDragStart: (e: React.DragEvent, id: Id) => void;
+	onDrop: (e: React.DragEvent) => void;
+	overId: Id | null;
 }
 
 /**

@@ -12,10 +12,13 @@ const PAD_CLASS: Record<Pad, string> = {
 };
 
 interface InlineEmptyProps extends HTMLAttributes<HTMLDivElement> {
-	/** Optional leading icon (sized 20, `text-text-4`); switches to a horizontal row. */
-	icon?: LucideIcon;
 	/** Text alignment of the message. `start` (default) for notes, `center` for empty lists. */
 	align?: "start" | "center";
+	children: ReactNode;
+	/** Fill the parent's height (`min-h-[110px] h-full`) — for dashboard columns that must align. */
+	fill?: boolean;
+	/** Optional leading icon (sized 20, `text-text-4`); switches to a horizontal row. */
+	icon?: LucideIcon;
 	/** Inner padding scale. Defaults to `lg` (the dominant empty-list size). */
 	pad?: Pad;
 	/**
@@ -23,9 +26,6 @@ interface InlineEmptyProps extends HTMLAttributes<HTMLDivElement> {
 	 * centered muted text for status notes (search empty, analytics empty, …).
 	 */
 	variant?: Variant;
-	/** Fill the parent's height (`min-h-[110px] h-full`) — for dashboard columns that must align. */
-	fill?: boolean;
-	children: ReactNode;
 }
 
 /**
@@ -59,7 +59,7 @@ export const InlineEmpty = ({
 
 	return (
 		<div className={`${shell} ${PAD_CLASS[pad]} ${layout}${fillClass}${extra}`} {...rest}>
-			{Icon ? <Icon size={20} className="shrink-0 text-text-4" /> : null}
+			{Icon ? <Icon className="shrink-0 text-text-4" size={20} /> : null}
 			{Icon ? <span>{children}</span> : children}
 		</div>
 	);

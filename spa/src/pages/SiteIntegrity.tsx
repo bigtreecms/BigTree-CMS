@@ -111,8 +111,6 @@ export const SiteIntegrity = () => {
 			/>
 
 			<PageHead
-				title="Site Integrity"
-				sub="Scan every page and module entry for broken links and missing images."
 				actions={
 					showResults ? (
 						<>
@@ -123,9 +121,9 @@ export const SiteIntegrity = () => {
 							) : null}
 
 							<Button
+								disabled={exporting || scan.findings.length === 0}
 								icon={<Download size={13} />}
 								onClick={handleExport}
-								disabled={exporting || scan.findings.length === 0}
 							>
 								{exporting ? "Exporting…" : "Export CSV"}
 							</Button>
@@ -139,49 +137,51 @@ export const SiteIntegrity = () => {
 						</>
 					) : undefined
 				}
+				sub="Scan every page and module entry for broken links and missing images."
+				title="Site Integrity"
 			/>
 
 			{!showResults ? (
 				<StartPanel
-					loading={stateQuery.isLoading}
 					error={stateQuery.error}
 					hasSession={hasSession}
-					onStart={(external) => scan.start(external)}
-					onResume={() => scan.start(resumeExternal)}
+					loading={stateQuery.isLoading}
 					onReset={() => setConfirmReset(true)}
+					onResume={() => scan.start(resumeExternal)}
+					onStart={(external) => scan.start(external)}
 				/>
 			) : (
 				<ScanResults
-					phase={scan.phase}
-					percent={percent}
 					completed={scan.completed}
-					total={scan.total}
 					currentLabel={scan.currentLabel}
 					external={scan.external}
 					findings={scan.findings}
+					percent={percent}
+					phase={scan.phase}
+					total={scan.total}
 				/>
 			)}
 
 			<ConfirmDialog
-				open={confirmReset}
-				onOpenChange={setConfirmReset}
-				title="Reset integrity session?"
-				description="Discards the current scan and any saved progress so the next run starts fresh."
 				confirmLabel="Reset"
+				description="Discards the current scan and any saved progress so the next run starts fresh."
+				open={confirmReset}
+				title="Reset integrity session?"
 				variant="danger"
 				onConfirm={handleReset}
+				onOpenChange={setConfirmReset}
 			/>
 		</PageContainer>
 	);
 };
 
 interface StartPanelProps {
-	loading: boolean;
 	error: unknown;
 	hasSession: boolean;
-	onStart: (external: boolean) => void;
-	onResume: () => void;
+	loading: boolean;
 	onReset: () => void;
+	onResume: () => void;
+	onStart: (external: boolean) => void;
 }
 
 const StartPanel = ({
@@ -204,7 +204,7 @@ const StartPanel = ({
 		return (
 			<Card className="p-6">
 				<div className="mb-1 flex items-center gap-2 text-[14px] font-semibold text-text">
-					<ShieldCheck size={16} className="text-accent" />
+					<ShieldCheck className="text-accent" size={16} />
 					An integrity check is already in progress
 				</div>
 				<p className="mb-4 text-[13px] leading-relaxed text-text-3">
@@ -214,7 +214,7 @@ const StartPanel = ({
 					<Button variant="primary" onClick={onResume}>
 						Resume session
 					</Button>
-					<Button variant="secondary" icon={<RotateCcw size={14} />} onClick={onReset}>
+					<Button icon={<RotateCcw size={14} />} variant="secondary" onClick={onReset}>
 						Reset
 					</Button>
 				</div>
@@ -229,7 +229,7 @@ const StartPanel = ({
 				images and alerts you to their presence.
 			</p>
 			<div className="mb-5 flex items-start gap-2 text-[12.5px] leading-relaxed text-text-3">
-				<AlertTriangle size={14} className="mt-0.5 shrink-0 text-warn" />
+				<AlertTriangle className="mt-0.5 shrink-0 text-warn" size={14} />
 				<p>
 					Including external links takes <strong>significantly longer</strong> and may
 					report <strong>false positives</strong>.
@@ -237,15 +237,15 @@ const StartPanel = ({
 			</div>
 			<div className="flex flex-wrap gap-2">
 				<Button
-					variant="primary"
 					icon={<Server size={14} />}
+					variant="primary"
 					onClick={() => onStart(false)}
 				>
 					Only internal links
 				</Button>
 				<Button
-					variant="secondary"
 					icon={<Globe size={14} />}
+					variant="secondary"
 					onClick={() => onStart(true)}
 				>
 					Include external links
@@ -256,13 +256,13 @@ const StartPanel = ({
 };
 
 interface ScanResultsProps {
-	phase: string;
-	percent: number;
 	completed: number;
-	total: number;
 	currentLabel: string;
 	external: boolean;
 	findings: ScanFinding[];
+	percent: number;
+	phase: string;
+	total: number;
 }
 
 const ScanResults = ({
@@ -293,11 +293,11 @@ const ScanResults = ({
 					</span>
 				</div>
 				<ProgressBar
-					value={percent}
+					className="w-full"
+					label="Scan progress"
 					size="md"
 					tone={done ? "success" : "accent"}
-					label="Scan progress"
-					className="w-full"
+					value={percent}
 				/>
 				<div className="mt-2 text-[11.5px] text-text-3">
 					External link checking {external ? "enabled" : "disabled"}.
@@ -307,7 +307,7 @@ const ScanResults = ({
 			{findings.length === 0 ? (
 				done ? (
 					<div className="flex items-center gap-2 rounded-lg border border-border bg-surface p-4 text-[12.5px] text-text-2">
-						<CheckCircle2 size={15} className="text-success" />
+						<CheckCircle2 className="text-success" size={15} />
 						No broken links or images were found.
 					</div>
 				) : (
@@ -319,14 +319,14 @@ const ScanResults = ({
 				<div className="overflow-hidden rounded-lg border border-border bg-surface">
 					<SectionLabel
 						as="header"
-						size="sm"
 						className="border-b border-border bg-surface-2 px-3 py-2"
+						size="sm"
 					>
 						{pluralize(findings.length, "issue")} found
 					</SectionLabel>
 					<ul className="divide-y divide-border">
 						{findings.map((finding) => (
-							<FindingRow key={finding.key} finding={finding} />
+							<FindingRow finding={finding} key={finding.key} />
 						))}
 					</ul>
 				</div>
@@ -352,8 +352,8 @@ const FindingRow = ({ finding }: { finding: ScanFinding }) => {
 				</div>
 			</div>
 			<Link
-				to={finding.editTo}
 				className="mt-0.5 shrink-0 rounded-md border border-border px-2 py-1 text-[11.5px] font-medium text-text-2 transition-colors hover:border-border-strong hover:bg-hover"
+				to={finding.editTo}
 			>
 				Edit
 			</Link>

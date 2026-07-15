@@ -16,12 +16,12 @@ export const RadioField = ({ field, value, onChange, disabled }: FieldComponentP
 		<div className="flex flex-wrap gap-x-5 gap-y-2">
 			{items.map((item, index) => (
 				<Radio
-					key={`${field.column}-${index}`}
-					name={field.column}
-					value={item.value}
-					label={item.label}
 					checked={selected === item.value}
 					disabled={disabled}
+					key={`${field.column}-${index}`}
+					label={item.label}
+					name={field.column}
+					value={item.value}
 					onChange={() => onChange(item.value)}
 				/>
 			))}

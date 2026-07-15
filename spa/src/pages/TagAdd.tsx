@@ -126,47 +126,46 @@ export const TagAdd = () => {
 			<Breadcrumb items={[{ label: "Tags", to: "/tags" }, { label: "Add Tag" }]} />
 
 			<PageHead
-				title="Add tag"
-				sub="Create a tag, optionally merging existing tags into it."
 				actions={
 					<Button icon={<ChevronLeft size={13} />} to="/tags">
 						Back to list
 					</Button>
 				}
+				sub="Create a tag, optionally merging existing tags into it."
+				title="Add tag"
 			/>
 
 			<SubNav<"list" | "add">
 				className="mb-4"
-				value="add"
-				onChange={(v) => navigate(v === "add" ? "/tags/add" : "/tags")}
 				items={[
 					{ value: "list", label: "View Tags" },
 					{ value: "add", label: "Add Tag", icon: <Plus size={13} /> },
 				]}
+				value="add"
+				onChange={(v) => navigate(v === "add" ? "/tags/add" : "/tags")}
 			/>
 
 			{error && (
-				<Alert tone="danger" className="mb-3">
+				<Alert className="mb-3" tone="danger">
 					{error}
 				</Alert>
 			)}
 
 			<FormShell
-				onSubmit={submit}
 				footer={
 					<FormFooter
 						cancelTo="/tags"
-						submitIcon={<Plus size={13} />}
-						submitLabel={checking ? "Checking…" : "Create tag"}
 						disabled={normalized === "" || duplicate || checking}
 						loading={createMutation.isPending}
 						loadingLabel="Creating…"
+						submitIcon={<Plus size={13} />}
+						submitLabel={checking ? "Checking…" : "Create tag"}
 					/>
 				}
+				onSubmit={submit}
 			>
 				<div className="space-y-4">
 					<Field
-						label="Tag name"
 						error={
 							duplicate ? `A tag named “${normalized}” already exists.` : undefined
 						}
@@ -175,8 +174,11 @@ export const TagAdd = () => {
 								? undefined
 								: "Only letters and numbers are kept — the name is normalized on save."
 						}
+						label="Tag name"
 					>
 						<TextInput
+							autoFocus
+							aria-invalid={duplicate}
 							className={duplicate ? "border-danger focus:ring-danger/40" : undefined}
 							placeholder="e.g. announcements"
 							value={name}
@@ -184,8 +186,6 @@ export const TagAdd = () => {
 								setName(e.target.value);
 								setError(null);
 							}}
-							aria-invalid={duplicate}
-							autoFocus
 						/>
 					</Field>
 
@@ -196,9 +196,9 @@ export const TagAdd = () => {
 						</label>
 						<TagInput
 							multiple
+							placeholder="Type to search for tags to merge…"
 							value={mergeTags}
 							onChange={setMergeTags}
-							placeholder="Type to search for tags to merge…"
 						/>
 						<p className="mt-1.5 text-[11.5px] text-text-3">
 							Relations pointing at these tags will be re-pointed to the new tag, then

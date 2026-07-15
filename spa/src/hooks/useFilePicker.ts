@@ -1,12 +1,12 @@
 import { useCallback, useRef, type ChangeEvent, type RefObject } from "react";
 
 export interface UseFilePickerResult {
-	/** Open the native file picker. */
-	open: () => void;
 	/** Attach to a hidden `<input type="file" />`. */
 	inputRef: RefObject<HTMLInputElement>;
 	/** Wire to the input's `onChange`. Resets the input after pick. */
 	onChange: (e: ChangeEvent<HTMLInputElement>) => void;
+	/** Open the native file picker. */
+	open: () => void;
 }
 
 /**

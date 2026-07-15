@@ -14,8 +14,8 @@ import { formatNumber } from "@/lib/number";
 
 interface TrafficCardProps {
 	data: AnalyticsResponse | undefined;
-	loading: boolean;
 	error: unknown;
+	loading: boolean;
 }
 
 export const TrafficCard = ({ data, loading, error }: TrafficCardProps) => {
@@ -32,9 +32,6 @@ export const TrafficCard = ({ data, loading, error }: TrafficCardProps) => {
 
 	return (
 		<DashCard
-			icon={Activity}
-			title="Recent traffic"
-			sub="Visits in the past two weeks"
 			action={
 				series && (
 					<div className="flex items-center gap-3">
@@ -44,8 +41,8 @@ export const TrafficCard = ({ data, loading, error }: TrafficCardProps) => {
 						</span>
 						{admin && (
 							<Button
-								variant="secondary"
 								size="sm"
+								variant="secondary"
 								onClick={() => navigate("/analytics")}
 							>
 								<ExternalLink size={12} />
@@ -55,16 +52,19 @@ export const TrafficCard = ({ data, loading, error }: TrafficCardProps) => {
 					</div>
 				)
 			}
+			icon={Activity}
+			sub="Visits in the past two weeks"
+			title="Recent traffic"
 		>
 			<QueryRenderer
-				isLoading={loading}
-				error={error}
-				isEmpty={!series || series.length === 0}
 				empty={
 					<InlineEmpty icon={Activity}>
 						No traffic data yet — check back after the next cache refresh.
 					</InlineEmpty>
 				}
+				error={error}
+				isEmpty={!series || series.length === 0}
+				isLoading={loading}
 			>
 				<TrafficBars series={series!} />
 			</QueryRenderer>

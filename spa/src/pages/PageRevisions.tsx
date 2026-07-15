@@ -89,7 +89,7 @@ export const PageRevisions = () => {
 	});
 
 	if (!valid) {
-		return <Navigate to="/pages" replace />;
+		return <Navigate replace to="/pages" />;
 	}
 
 	if (pageQuery.isLoading || !pageQuery.data) {
@@ -126,37 +126,37 @@ export const PageRevisions = () => {
 			<Breadcrumb items={breadcrumbs} />
 
 			<PageHead
-				title={`Revisions for ${page.nav_title || "page"}`}
-				sub={page.path}
 				actions={
 					<Button icon={<ChevronLeft size={13} />} to={pageEditPath(page.id)}>
 						Back to editor
 					</Button>
 				}
+				sub={page.path}
+				title={`Revisions for ${page.nav_title || "page"}`}
 			/>
 
 			<Card className="mb-4 p-4">
-				<SectionLabel as="h2" size="md" className="mb-2">
+				<SectionLabel as="h2" className="mb-2" size="md">
 					Save current version as revision
 				</SectionLabel>
 				<div className="flex flex-wrap items-end gap-2">
 					<Field
 						className="min-w-[280px] flex-1"
-						label="Short description"
 						inlineHint="(what's special about this version?)"
+						label="Short description"
 					>
 						<TextInput
+							placeholder="Optional"
 							value={description}
 							onChange={(e) => setDescription(e.target.value)}
-							placeholder="Optional"
 						/>
 					</Field>
 					<Button
-						variant="primary"
 						icon={<Save size={13} />}
-						onClick={() => saveMutation.mutate()}
 						loading={saveMutation.isPending}
 						loadingLabel="Saving…"
+						variant="primary"
+						onClick={() => saveMutation.mutate()}
 					>
 						Save revision
 					</Button>
@@ -164,18 +164,18 @@ export const PageRevisions = () => {
 			</Card>
 
 			<RevisionSection
-				title="Saved revisions"
+				showDescription
 				empty="No saved revisions yet. Use the form above to create one."
 				revisions={saved}
-				showDescription
+				title="Saved revisions"
 				onDelete={deleteDialog.open}
 				onRestore={restoreDialog.open}
 			/>
 
 			<RevisionSection
-				title="Auto-saved revisions"
 				empty="No auto-saved revisions on file."
 				revisions={unsaved}
+				title="Auto-saved revisions"
 				onDelete={deleteDialog.open}
 				onRestore={restoreDialog.open}
 			/>
@@ -183,9 +183,9 @@ export const PageRevisions = () => {
 			{deleteDialog.item && (
 				<ConfirmDialog
 					{...deleteDialog.dialogProps}
-					title="Delete revision?"
-					description={`This will permanently remove the snapshot from ${deleteDialog.item.updated_at}.`}
 					confirmLabel="Delete revision"
+					description={`This will permanently remove the snapshot from ${deleteDialog.item.updated_at}.`}
+					title="Delete revision?"
 					variant="danger"
 					onConfirm={() => deleteMutation.mutate(deleteDialog.item!)}
 				/>
@@ -194,9 +194,9 @@ export const PageRevisions = () => {
 			{restoreDialog.item && (
 				<ConfirmDialog
 					{...restoreDialog.dialogProps}
-					title="Restore this revision?"
-					description={`The live page will be overwritten with the version from ${restoreDialog.item.updated_at}. The current version is snapshotted first, so you can undo this.`}
 					confirmLabel="Restore revision"
+					description={`The live page will be overwritten with the version from ${restoreDialog.item.updated_at}. The current version is snapshotted first, so you can undo this.`}
+					title="Restore this revision?"
 					onConfirm={() => restoreMutation.mutate(restoreDialog.item!)}
 				/>
 			)}
@@ -205,12 +205,12 @@ export const PageRevisions = () => {
 };
 
 interface RevisionSectionProps {
-	title: string;
 	empty: string;
-	revisions: PageRevision[];
-	showDescription?: boolean;
 	onDelete: (rev: PageRevision) => void;
 	onRestore: (rev: PageRevision) => void;
+	revisions: PageRevision[];
+	showDescription?: boolean;
+	title: string;
 }
 
 const RevisionSection = ({
@@ -222,7 +222,7 @@ const RevisionSection = ({
 	onRestore,
 }: RevisionSectionProps) => (
 	<section className="mb-4">
-		<SectionLabel as="h2" size="md" className="mb-2">
+		<SectionLabel as="h2" className="mb-2" size="md">
 			{title}
 		</SectionLabel>
 		{revisions.length === 0 ? (
@@ -231,8 +231,8 @@ const RevisionSection = ({
 			<ul className="divide-y divide-border overflow-hidden rounded-md border border-border bg-surface">
 				{revisions.map((rev) => (
 					<li
-						key={rev.id}
 						className="grid grid-cols-[minmax(0,1fr)_140px_90px] items-center gap-3 px-3 py-2 text-[12.5px]"
+						key={rev.id}
 					>
 						<div className="min-w-0">
 							<div className="truncate text-text-2">
@@ -249,18 +249,18 @@ const RevisionSection = ({
 						</div>
 						<div className="flex justify-end gap-1">
 							<IconButton
+								label="Restore revision"
+								title="Restore revision"
 								tone="accent"
 								onClick={() => onRestore(rev)}
-								title="Restore revision"
-								label="Restore revision"
 							>
 								<RotateCcw size={13} />
 							</IconButton>
 							<IconButton
+								label="Delete revision"
+								title="Delete revision"
 								tone="danger"
 								onClick={() => onDelete(rev)}
-								title="Delete revision"
-								label="Delete revision"
 							>
 								<Trash size={13} />
 							</IconButton>

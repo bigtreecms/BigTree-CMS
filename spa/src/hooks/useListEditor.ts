@@ -13,14 +13,14 @@
  * builders wrote as `move(index, dir)`), guarding out-of-range targets.
  */
 export interface ListEditor<T> {
-	/** Shallow-merge `patch` into the object row at `index`. */
-	update: (index: number, patch: Partial<T>) => void;
-	/** Replace the whole item at `index` (for primitive/opaque rows). */
-	replace: (index: number, item: T) => void;
-	remove: (index: number) => void;
 	add: (item: T) => void;
 	/** Reorder the item at `from` to `to`; no-op if either index is out of range. */
 	move: (from: number, to: number) => void;
+	remove: (index: number) => void;
+	/** Replace the whole item at `index` (for primitive/opaque rows). */
+	replace: (index: number, item: T) => void;
+	/** Shallow-merge `patch` into the object row at `index`. */
+	update: (index: number, patch: Partial<T>) => void;
 }
 
 export const useListEditor = <T>(value: T[], onChange: (next: T[]) => void): ListEditor<T> => {

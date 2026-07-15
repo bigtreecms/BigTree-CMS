@@ -8,11 +8,11 @@ import type { ModuleFormField } from "@/api/endpoints/modules";
  * wrapping FieldRow.
  */
 export interface FieldComponentProps {
-	field: ModuleFormField;
-	value: unknown;
-	onChange: (next: unknown) => void;
 	disabled?: boolean;
 	error?: string;
+	field: ModuleFormField;
+	onChange: (next: unknown) => void;
+	value: unknown;
 }
 
 /**

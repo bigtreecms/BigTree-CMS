@@ -83,12 +83,12 @@ export const DebugSecurity = () => {
 
 	return (
 		<DebugLayout
-			title="Security policy"
-			sub="Brute-force protection, password requirements, and login IP restrictions."
 			query={detailQ}
+			sub="Brute-force protection, password requirements, and login IP restrictions."
+			title="Security policy"
 		>
 			{generalError && (
-				<Alert tone="danger" className="mb-3">
+				<Alert className="mb-3" tone="danger">
 					{generalError}
 				</Alert>
 			)}
@@ -96,18 +96,18 @@ export const DebugSecurity = () => {
 			{draft && (
 				<FormShell
 					bounded={false}
-					onSubmit={onSubmit}
 					footer={
 						<Button
-							variant="primary"
-							type="submit"
 							icon={<Save size={13} />}
 							loading={saveMutation.isPending}
 							loadingLabel="Saving…"
+							type="submit"
+							variant="primary"
 						>
 							Save policy
 						</Button>
 					}
+					onSubmit={onSubmit}
 				>
 					<div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
 						<div className="space-y-5">
@@ -194,23 +194,23 @@ export const DebugSecurity = () => {
 
 								<div className="space-y-2">
 									<Checkbox
-										label="Require mixed-case characters"
 										checked={!!draft.password.mixedcase}
+										label="Require mixed-case characters"
 										onChange={(on) => togglePassword("mixedcase", on)}
 									/>
 									<Checkbox
-										label="Require numbers"
 										checked={!!draft.password.numbers}
+										label="Require numbers"
 										onChange={(on) => togglePassword("numbers", on)}
 									/>
 									<Checkbox
-										label="Require non-alphanumeric characters (e.g. $ # ^ *)"
 										checked={!!draft.password.nonalphanumeric}
+										label="Require non-alphanumeric characters (e.g. $ # ^ *)"
 										onChange={(on) => togglePassword("nonalphanumeric", on)}
 									/>
 									<Checkbox
-										label="Email invitations for users to set their initial password"
 										checked={!!draft.password.invitations}
+										label="Email invitations for users to set their initial password"
 										onChange={(on) => togglePassword("invitations", on)}
 									/>
 								</div>
@@ -232,13 +232,13 @@ export const DebugSecurity = () => {
 
 								<div className="space-y-2">
 									<Checkbox
-										label="Enable two-factor authentication (Google Authenticator)"
 										checked={draft.two_factor === "google"}
+										label="Enable two-factor authentication (Google Authenticator)"
 										onChange={(on) => toggle("two_factor", on, "google")}
 									/>
 									<Checkbox
-										label='Disable "Remember Me"'
 										checked={!!draft.remember_disabled}
+										label='Disable "Remember Me"'
 										onChange={(on) => toggle("remember_disabled", on)}
 									/>
 								</div>
@@ -314,7 +314,7 @@ const UnbanPanel = () => {
 	return (
 		<Card className="mt-6 overflow-hidden">
 			<CardHeader>
-				<SectionLabel size="sm" icon={<ShieldOff size={13} />}>
+				<SectionLabel icon={<ShieldOff size={13} />} size="sm">
 					Lift a login ban
 				</SectionLabel>
 			</CardHeader>
@@ -340,11 +340,11 @@ const UnbanPanel = () => {
 						</Field>
 					</div>
 					<Button
-						type="submit"
-						variant="secondary"
 						className="mb-px"
 						disabled={!ip.trim()}
 						loading={unbanIP.isPending}
+						type="submit"
+						variant="secondary"
 					>
 						Unban
 					</Button>
@@ -371,11 +371,11 @@ const UnbanPanel = () => {
 						</Field>
 					</div>
 					<Button
-						type="submit"
-						variant="secondary"
 						className="mb-px"
 						disabled={!userId.trim()}
 						loading={unbanUser.isPending}
+						type="submit"
+						variant="secondary"
 					>
 						Unban
 					</Button>

@@ -31,12 +31,12 @@ export const ListMakerControl = ({ descriptor, settings, onPatch }: ControlProps
 	const remove = list.remove;
 
 	return (
-		<ControlShell label={descriptor.label} hint={descriptor.hint} note={descriptor.note}>
+		<ControlShell hint={descriptor.hint} label={descriptor.label} note={descriptor.note}>
 			<div className="space-y-1.5 rounded-md border border-border bg-surface-2 p-2">
 				{rows.length > 0 && (
 					<div className="flex gap-2 px-1 text-[10.5px] font-medium uppercase tracking-wide text-text-3">
 						{columns.map((c) => (
-							<span key={c} className="flex-1">
+							<span className="flex-1" key={c}>
 								{c}
 							</span>
 						))}
@@ -44,29 +44,29 @@ export const ListMakerControl = ({ descriptor, settings, onPatch }: ControlProps
 					</div>
 				)}
 				{rows.map((row, index) => (
-					<div key={index} className="flex items-center gap-2">
+					<div className="flex items-center gap-2" key={index}>
 						{keys.map((key) => (
 							<TextInput
-								key={key}
 								compact
-								className="min-w-0 flex-1"
 								aria-label={key}
+								className="min-w-0 flex-1"
+								key={key}
 								value={row[key] ?? ""}
 								onChange={(e) => update(index, key, e.target.value)}
 							/>
 						))}
 						<IconButton
+							label="Remove option"
 							tone="danger"
 							onClick={() => remove(index)}
-							label="Remove option"
 						>
 							<Trash size={13} />
 						</IconButton>
 					</div>
 				))}
 				<button
-					type="button"
 					className="inline-flex items-center gap-1 rounded border border-border bg-surface px-2 py-1 text-[12px] hover:bg-hover"
+					type="button"
 					onClick={add}
 				>
 					<Plus size={12} />

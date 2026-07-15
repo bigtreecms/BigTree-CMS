@@ -17,12 +17,12 @@ import { LEVEL } from "@/lib/permissions";
 
 /** The 8 top-level navigation tabs from the prototype. Order matches the original. */
 interface Tab {
+	icon: LucideIcon;
 	id: string;
 	label: string;
-	path: string;
-	icon: LucideIcon;
 	/** Minimum `user.level` required to see this tab. Mirrors `_nav-tree.php`. */
 	level: number;
+	path: string;
 }
 
 export const TABS: Tab[] = [
@@ -69,8 +69,6 @@ export const TabNav = () => {
 					<DashboardTab key={id} />
 				) : (
 					<NavLink
-						key={id}
-						to={path}
 						className={({ isActive }) =>
 							[
 								"flex items-center gap-1.5 px-3 py-2.5 text-[13px] font-medium transition-colors",
@@ -80,6 +78,8 @@ export const TabNav = () => {
 									: "border-transparent text-text-3 hover:text-text",
 							].join(" ")
 						}
+						key={id}
+						to={path}
 					>
 						<Icon size={14} />
 						<span>{label}</span>

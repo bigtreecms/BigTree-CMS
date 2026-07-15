@@ -138,11 +138,11 @@ export const Profile = () => {
 			icon: <User size={13} />,
 			content: (
 				<AccountTab
-					me={me}
 					form={form}
+					me={me}
+					saving={updateMutation.isPending}
 					onChange={setForm}
 					onSubmit={submit}
-					saving={updateMutation.isPending}
 				/>
 			),
 		},
@@ -159,17 +159,15 @@ export const Profile = () => {
 			<Breadcrumb items={[{ label: "Profile" }]} />
 
 			<PageHead
-				title="Profile"
-				sub="Manage your account details, passkeys, and password."
 				actions={
 					tab === "account" ? (
 						<Button
-							variant="primary"
-							type="submit"
 							form="profile-form"
 							icon={<Save size={13} />}
 							loading={updateMutation.isPending}
 							loadingLabel="Saving…"
+							type="submit"
+							variant="primary"
 						>
 							Save
 						</Button>
@@ -179,15 +177,17 @@ export const Profile = () => {
 						</Button>
 					)
 				}
+				sub="Manage your account details, passkeys, and password."
+				title="Profile"
 			/>
 
 			<TabbedEditor tabs={tabs} value={tab} onChange={(v) => setTab(v as TabValue)} />
 
 			<PasswordChangeDialog
 				open={passwordOpen}
-				onOpenChange={setPasswordOpen}
-				userId={me.id}
 				requireCurrent={true}
+				userId={me.id}
+				onOpenChange={setPasswordOpen}
 			/>
 
 			<UnsavedChangesGuard isDirty={isDirty} />
@@ -196,8 +196,8 @@ export const Profile = () => {
 };
 
 interface AccountTabProps {
-	me: UserDetail;
 	form: UpdateUserPayload;
+	me: UserDetail;
 	onChange: (next: UpdateUserPayload) => void;
 	onSubmit: (event: React.FormEvent) => void;
 	saving: boolean;
@@ -223,9 +223,9 @@ const AccountTab = ({ me, form, onChange, onSubmit }: AccountTabProps) => (
 			/>
 
 			<TextField
+				required
 				label="Email"
 				type="email"
-				required
 				value={form.email ?? ""}
 				onChange={(email) => onChange({ ...form, email })}
 			/>
@@ -244,10 +244,10 @@ const AccountTab = ({ me, form, onChange, onSubmit }: AccountTabProps) => (
 			</Field>
 
 			<Checkbox
-				label="Send me a daily digest email"
 				checked={form.daily_digest ?? false}
-				onChange={(daily_digest) => onChange({ ...form, daily_digest })}
 				className="md:col-span-2"
+				label="Send me a daily digest email"
+				onChange={(daily_digest) => onChange({ ...form, daily_digest })}
 			/>
 		</div>
 	</Card>
@@ -262,7 +262,7 @@ const SecurityTab = ({ me, onChangePassword }: SecurityTabProps) => (
 	<div className="space-y-4">
 		<Card>
 			<CardHeader className="flex items-center gap-2">
-				<Key size={14} className="text-text-3" />
+				<Key className="text-text-3" size={14} />
 				<SectionLabel as="h3">Password</SectionLabel>
 			</CardHeader>
 			<div className="flex items-center justify-between gap-3 p-4 text-[12.5px]">
@@ -270,9 +270,9 @@ const SecurityTab = ({ me, onChangePassword }: SecurityTabProps) => (
 					Change the password you use to sign in with email + password.
 				</span>
 				<Button
-					variant="secondary"
 					className="shrink-0"
 					icon={<Key size={13} />}
+					variant="secondary"
 					onClick={onChangePassword}
 				>
 					Change password

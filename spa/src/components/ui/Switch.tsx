@@ -1,11 +1,11 @@
 interface SwitchProps {
-	on: boolean;
-	onChange: (next: boolean) => void;
-	/** Accessible name — these are icon-free, so a label is required. */
-	label: string;
-	disabled?: boolean;
 	/** Layout-only classes appended to the button (e.g. margins). */
 	className?: string;
+	disabled?: boolean;
+	/** Accessible name — these are icon-free, so a label is required. */
+	label: string;
+	on: boolean;
+	onChange: (next: boolean) => void;
 }
 
 /**
@@ -17,15 +17,15 @@ interface SwitchProps {
  */
 export const Switch = ({ on, onChange, label, disabled, className }: SwitchProps) => (
 	<button
-		type="button"
+		aria-label={label}
+		aria-pressed={on}
 		className={`inline-flex h-5 w-9 items-center rounded-full border border-border bg-surface p-0.5 transition-colors data-[on=true]:bg-accent disabled:cursor-not-allowed disabled:opacity-50${
 			className ? ` ${className}` : ""
 		}`}
 		data-on={on}
-		onClick={() => onChange(!on)}
-		aria-label={label}
-		aria-pressed={on}
 		disabled={disabled}
+		type="button"
+		onClick={() => onChange(!on)}
 	>
 		<span
 			className="inline-block size-3.5 rounded-full bg-white shadow transition-transform data-[on=true]:translate-x-4"

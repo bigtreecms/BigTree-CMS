@@ -33,10 +33,10 @@ import type { FieldComponentProps } from "@/renderer/fields/types";
 export type FieldRenderKind = "core-component";
 
 export interface FieldRegistryEntry {
-	/** How the input renders. */
-	render: FieldRenderKind;
 	/** Renders the field input for the given controlled props. */
 	component: (props: FieldComponentProps) => ReactElement;
+	/** How the input renders. */
+	render: FieldRenderKind;
 }
 
 const registry = new Map<string, FieldRegistryEntry>();

@@ -11,24 +11,24 @@ import { JsonFallbackControl } from "./field-settings/JsonFallbackControl";
 import { controlRegistry } from "./field-settings/registry";
 
 interface FieldSettingsEditorProps {
-	/** Field type id (e.g. "text", "image", "list"). */
-	type: string;
-	/** Host use_case — drives context-specific settings (templates vs callouts …). */
-	useCase: FieldUseCase;
-	value: Record<string, unknown> | unknown[] | undefined;
-	onChange: (next: Record<string, unknown>) => void;
-	/**
-	 * Suppress the internal "Field settings" heading (and its top margin) for
-	 * callers that supply their own grouping heading outside this control — e.g.
-	 * a bordered box whose title should sit above the box, not inside it.
-	 */
-	hideLabel?: boolean;
 	/**
 	 * Required-setting errors keyed by descriptor id (from
 	 * `validateFieldSettings`). Rendered inline beneath the matching control so
 	 * the validation message lands next to the offending setting.
 	 */
 	errors?: Record<string, string>;
+	/**
+	 * Suppress the internal "Field settings" heading (and its top margin) for
+	 * callers that supply their own grouping heading outside this control — e.g.
+	 * a bordered box whose title should sit above the box, not inside it.
+	 */
+	hideLabel?: boolean;
+	onChange: (next: Record<string, unknown>) => void;
+	/** Field type id (e.g. "text", "image", "list"). */
+	type: string;
+	/** Host use_case — drives context-specific settings (templates vs callouts …). */
+	useCase: FieldUseCase;
+	value: Record<string, unknown> | unknown[] | undefined;
 }
 
 const toObject = (value: unknown): Record<string, unknown> =>
@@ -88,8 +88,8 @@ export const FieldSettingsEditor = ({
 					{label}
 					{!useFallback && (
 						<button
-							type="button"
 							className="text-[11px] text-text-3 underline hover:text-text-2"
+							type="button"
 							onClick={() => setShowJson(false)}
 						>
 							Use settings form
@@ -127,19 +127,19 @@ export const FieldSettingsEditor = ({
 					const error = errors?.[descriptor.id];
 
 					return (
-						<Field as="div" key={descriptor.id} error={error}>
+						<Field as="div" error={error} key={descriptor.id}>
 							<Control
 								descriptor={descriptor}
 								settings={settings}
-								onPatch={onPatch}
 								useCase={useCase}
+								onPatch={onPatch}
 							/>
 						</Field>
 					);
 				})}
 			<button
-				type="button"
 				className="text-[11px] text-text-3 underline hover:text-text-2"
+				type="button"
 				onClick={() => setShowJson(true)}
 			>
 				Edit as JSON

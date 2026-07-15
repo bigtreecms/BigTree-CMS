@@ -14,7 +14,6 @@ export const BoolControl = ({ descriptor, settings, onPatch }: ControlProps) => 
 		<Checkbox
 			align="start"
 			checked={checked}
-			onChange={(next) => onPatch({ [descriptor.id]: next ? "on" : "" })}
 			label={
 				<>
 					{descriptor.label}
@@ -26,6 +25,7 @@ export const BoolControl = ({ descriptor, settings, onPatch }: ControlProps) => 
 					)}
 				</>
 			}
+			onChange={(next) => onPatch({ [descriptor.id]: next ? "on" : "" })}
 		/>
 	);
 };

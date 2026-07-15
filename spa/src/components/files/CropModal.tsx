@@ -10,8 +10,8 @@ import { resourcesApi, type ResourceDetail } from "@/api/endpoints/resources";
 import { useImageCrop } from "@/hooks/useImageCrop";
 
 interface CropModalProps {
-	open: boolean;
 	onOpenChange: (open: boolean) => void;
+	open: boolean;
 	resource: ResourceDetail;
 }
 
@@ -71,37 +71,37 @@ export const CropModal = ({ open, onOpenChange, resource }: CropModalProps) => {
 
 	return (
 		<Modal
-			open={open}
-			onOpenChange={onOpenChange}
-			title={`Crop "${resource.name}"`}
-			description="Drag inside the image to position the crop. Scroll or use the slider to zoom."
-			size="xl"
-			layout="bars"
-			scrim="dark"
 			showClose
+			description="Drag inside the image to position the crop. Scroll or use the slider to zoom."
 			footer={
 				<div className="flex justify-end gap-2">
 					<Button variant="secondary" onClick={() => onOpenChange(false)}>
 						Cancel
 					</Button>
 					<Button
-						variant="primary"
 						disabled={!validCrop}
 						loading={cropMutation.isPending}
 						loadingLabel="Saving…"
+						variant="primary"
 						onClick={() => cropMutation.mutate()}
 					>
 						Save crop
 					</Button>
 				</div>
 			}
+			layout="bars"
+			open={open}
+			scrim="dark"
+			size="xl"
+			title={`Crop "${resource.name}"`}
+			onOpenChange={onOpenChange}
 		>
 			<div className="grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_260px]">
-				<ImageCropStage image={resource.file} aspect={aspect} controller={imageCrop} />
+				<ImageCropStage aspect={aspect} controller={imageCrop} image={resource.file} />
 
 				<aside className="space-y-4 border-t border-border bg-surface-2 p-4 md:border-l md:border-t-0">
-					<div role="group" aria-label="Aspect ratio">
-						<SectionLabel size="sm" className="mb-1 block">
+					<div aria-label="Aspect ratio" role="group">
+						<SectionLabel className="mb-1 block" size="sm">
 							Aspect ratio
 						</SectionLabel>
 						<div className="flex flex-wrap gap-1">
@@ -115,14 +115,14 @@ export const CropModal = ({ open, onOpenChange, resource }: CropModalProps) => {
 								] as const
 							).map(([label, value]) => (
 								<button
-									key={label}
-									type="button"
-									onClick={() => setAspect(value)}
 									className={`rounded-md border px-2 py-1 text-[11.5px] ${
 										aspect === value
 											? "border-accent bg-accent-soft text-accent"
 											: "border-border bg-surface text-text-2 hover:bg-hover"
 									}`}
+									key={label}
+									type="button"
+									onClick={() => setAspect(value)}
 								>
 									{label}
 								</button>
@@ -133,61 +133,61 @@ export const CropModal = ({ open, onOpenChange, resource }: CropModalProps) => {
 					<div>
 						<SectionLabel
 							as="label"
+							className="mb-1 block"
 							htmlFor="crop-zoom"
 							size="sm"
-							className="mb-1 block"
 						>
 							Zoom
 						</SectionLabel>
 						<input
+							className="w-full accent-accent"
 							id="crop-zoom"
-							type="range"
-							min={1}
 							max={4}
+							min={1}
 							step={0.05}
+							type="range"
 							value={imageCrop.zoom}
 							onChange={(e) => imageCrop.setZoom(parseFloat(e.target.value))}
-							className="w-full accent-accent"
 						/>
 					</div>
 
 					<div className="grid grid-cols-2 gap-2">
 						<label className="block">
-							<SectionLabel size="sm" className="mb-1 block">
+							<SectionLabel className="mb-1 block" size="sm">
 								Width
 							</SectionLabel>
 							<TextInput
-								type="number"
-								min={1}
-								inputMode="numeric"
 								compact
 								className="w-full"
-								value={targetWidth}
-								onChange={(e) => setTargetWidth(e.target.value)}
+								inputMode="numeric"
+								min={1}
 								placeholder={
 									imageCrop.areaPixels
 										? String(Math.round(imageCrop.areaPixels.width))
 										: ""
 								}
+								type="number"
+								value={targetWidth}
+								onChange={(e) => setTargetWidth(e.target.value)}
 							/>
 						</label>
 						<label className="block">
-							<SectionLabel size="sm" className="mb-1 block">
+							<SectionLabel className="mb-1 block" size="sm">
 								Height
 							</SectionLabel>
 							<TextInput
-								type="number"
-								min={1}
-								inputMode="numeric"
 								compact
 								className="w-full"
-								value={targetHeight}
-								onChange={(e) => setTargetHeight(e.target.value)}
+								inputMode="numeric"
+								min={1}
 								placeholder={
 									imageCrop.areaPixels
 										? String(Math.round(imageCrop.areaPixels.height))
 										: ""
 								}
+								type="number"
+								value={targetHeight}
+								onChange={(e) => setTargetHeight(e.target.value)}
 							/>
 						</label>
 					</div>
@@ -196,15 +196,15 @@ export const CropModal = ({ open, onOpenChange, resource }: CropModalProps) => {
 					</p>
 
 					<label className="block">
-						<SectionLabel size="sm" className="mb-1 block">
+						<SectionLabel className="mb-1 block" size="sm">
 							Filename prefix
 						</SectionLabel>
 						<TextInput
 							compact
 							className="w-full"
+							maxLength={64}
 							value={prefix}
 							onChange={(e) => setPrefix(e.target.value)}
-							maxLength={64}
 						/>
 					</label>
 				</aside>

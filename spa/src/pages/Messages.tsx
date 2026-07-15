@@ -89,17 +89,17 @@ export const Messages = () => {
 			<Breadcrumb items={[{ label: "Messages" }]} />
 
 			<PageHead
-				title="Messages"
-				sub={total === 1 ? "1 message" : `${formatNumber(total)} messages`}
 				actions={
 					<Button
-						variant="primary"
 						icon={<Plus size={13} />}
+						variant="primary"
 						onClick={() => setComposeOpen(true)}
 					>
 						New message
 					</Button>
 				}
+				sub={total === 1 ? "1 message" : `${formatNumber(total)} messages`}
+				title="Messages"
 			/>
 
 			<div className="mb-3">
@@ -115,11 +115,11 @@ export const Messages = () => {
 
 			<DataTable<Message>
 				columns={columns}
-				rows={rows}
+				emptyLabel={folder === "in" ? "No messages in your inbox." : "No sent messages."}
 				getRowKey={(row) => row.id}
 				isLoading={query.isLoading || (query.isFetching && !query.data)}
 				loadingLabel="Loading messages…"
-				emptyLabel={folder === "in" ? "No messages in your inbox." : "No sent messages."}
+				rows={rows}
 				onRowClick={(row) => navigate(`/messages/${row.id}`)}
 			/>
 
@@ -128,9 +128,9 @@ export const Messages = () => {
 			</div>
 
 			<ComposeMessage
+				currentUserId={currentUserId}
 				open={composeOpen}
 				onOpenChange={setComposeOpen}
-				currentUserId={currentUserId}
 			/>
 		</PageContainer>
 	);

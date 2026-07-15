@@ -5,15 +5,15 @@ import { Field, type FieldSize } from "./Field";
 import { TextArea } from "./TextArea";
 
 interface JsonFieldProps {
-	/** Visible label. Omit for an unlabeled editor (supply `aria-label` on the textarea via a wrapper). */
-	label?: ReactNode;
-	value: unknown;
-	onChange: (next: Record<string, unknown>) => void;
 	hint?: string;
-	rows?: number;
 	/** Override the validation error shown when the value is not a JSON object. */
 	invalidMessage?: string;
+	/** Visible label. Omit for an unlabeled editor (supply `aria-label` on the textarea via a wrapper). */
+	label?: ReactNode;
+	onChange: (next: Record<string, unknown>) => void;
+	rows?: number;
 	size?: FieldSize;
+	value: unknown;
 }
 
 /**
@@ -32,15 +32,15 @@ export const JsonField = ({
 	const { draft, error, setDraft, commit } = useJsonDraft(value, onChange, invalidMessage);
 
 	return (
-		<Field label={label} hint={hint} error={error ?? undefined} size={size}>
+		<Field error={error ?? undefined} hint={hint} label={label} size={size}>
 			<TextArea
 				mono
-				rows={rows}
-				value={draft}
-				onChange={(e) => setDraft(e.target.value)}
-				onBlur={commit}
-				spellCheck={false}
 				className="leading-relaxed"
+				rows={rows}
+				spellCheck={false}
+				value={draft}
+				onBlur={commit}
+				onChange={(e) => setDraft(e.target.value)}
 			/>
 		</Field>
 	);

@@ -65,9 +65,9 @@ export const ModuleGroupModulesList = ({ groupId }: ModuleGroupModulesListProps)
 		if (query.isLoading) {
 			return (
 				<Loading
-					variant="block"
 					className="rounded-md border border-border bg-surface"
 					label="Loading modules…"
+					variant="block"
 				/>
 			);
 		}
@@ -88,7 +88,7 @@ export const ModuleGroupModulesList = ({ groupId }: ModuleGroupModulesListProps)
 
 					return (
 						<li
-							key={module.id}
+							draggable
 							className={`flex items-center gap-2 rounded-md border border-border bg-surface px-3 py-2 transition-colors ${
 								drag.dragId === module.id ? "bg-accent-soft shadow-md" : ""
 							} ${
@@ -96,19 +96,19 @@ export const ModuleGroupModulesList = ({ groupId }: ModuleGroupModulesListProps)
 									? "shadow-[inset_0_2px_0_0_var(--color-accent)]"
 									: ""
 							}`}
-							draggable
-							onDragStart={(e) => drag.onDragStart(e, module.id)}
-							onDragOver={(e) => drag.onDragOver(e, module.id)}
-							onDrop={drag.onDrop}
+							key={module.id}
 							onDragEnd={drag.onDragEnd}
+							onDragOver={(e) => drag.onDragOver(e, module.id)}
+							onDragStart={(e) => drag.onDragStart(e, module.id)}
+							onDrop={drag.onDrop}
 						>
 							<DragHandle />
-							<IconTile size="xs" tone="accent" className="shrink-0">
+							<IconTile className="shrink-0" size="xs" tone="accent">
 								<Icon size={15} />
 							</IconTile>
 							<Link
-								to={moduleDetailPath(module.id)}
 								className="min-w-0 flex-1 truncate text-[12.5px] font-medium text-text hover:text-accent"
+								to={moduleDetailPath(module.id)}
 							>
 								{module.name}
 							</Link>

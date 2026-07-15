@@ -1,9 +1,9 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface PagerProps {
+	onChange: (page: number) => void;
 	page: number;
 	totalPages: number;
-	onChange: (page: number) => void;
 }
 
 /**
@@ -42,11 +42,11 @@ export const Pager = ({ page, totalPages, onChange }: PagerProps) => {
 	return (
 		<div className="inline-flex items-center gap-0.5 rounded-md border border-border bg-surface p-0.5 text-[12px]">
 			<button
-				type="button"
+				aria-label="Previous page"
 				className="flex h-6 min-w-7 items-center justify-center rounded px-1.5 text-text-2 transition hover:bg-hover active:scale-[0.96] disabled:cursor-not-allowed disabled:text-text-4 disabled:hover:bg-transparent disabled:active:scale-100"
 				disabled={page === 1}
+				type="button"
 				onClick={() => onChange(page - 1)}
-				aria-label="Previous page"
 			>
 				<ChevronLeft size={13} />
 			</button>
@@ -55,8 +55,8 @@ export const Pager = ({ page, totalPages, onChange }: PagerProps) => {
 				if (p === "...") {
 					return (
 						<span
-							key={`e${idx}`}
 							className="flex h-6 min-w-4 items-center justify-center text-text-4"
+							key={`e${idx}`}
 						>
 							…
 						</span>
@@ -65,13 +65,13 @@ export const Pager = ({ page, totalPages, onChange }: PagerProps) => {
 
 				return (
 					<button
-						key={p}
-						type="button"
 						className={`flex h-6 min-w-7 items-center justify-center rounded px-1.5 tabular-nums transition active:scale-[0.96] ${
 							p === page
 								? "bg-accent font-semibold text-accent-fg"
 								: "text-text-2 hover:bg-hover"
 						}`}
+						key={p}
+						type="button"
 						onClick={() => onChange(p as number)}
 					>
 						{p}
@@ -80,11 +80,11 @@ export const Pager = ({ page, totalPages, onChange }: PagerProps) => {
 			})}
 
 			<button
-				type="button"
+				aria-label="Next page"
 				className="flex h-6 min-w-7 items-center justify-center rounded px-1.5 text-text-2 transition hover:bg-hover active:scale-[0.96] disabled:cursor-not-allowed disabled:text-text-4 disabled:hover:bg-transparent disabled:active:scale-100"
 				disabled={page === totalPages}
+				type="button"
 				onClick={() => onChange(page + 1)}
-				aria-label="Next page"
 			>
 				<ChevronRight size={13} />
 			</button>

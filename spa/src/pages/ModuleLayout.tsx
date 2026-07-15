@@ -12,14 +12,14 @@ import { queryKeys } from "@/lib/queryKeys";
 import { modulesApi, type ModuleAction, type ModuleSummary } from "@/api/endpoints/modules";
 
 interface ModuleContextValue {
-	/** Internal slug id — used for every API call. */
-	moduleId: string;
-	module: ModuleSummary | undefined;
 	actions: ModuleAction[];
 	/** Conventional add/edit form actions, for view-row links. */
 	addAction: ModuleAction | undefined;
 	editAction: ModuleAction | undefined;
 	isLoading: boolean;
+	module: ModuleSummary | undefined;
+	/** Internal slug id — used for every API call. */
+	moduleId: string;
 }
 
 const ModuleContext = createContext<ModuleContextValue | null>(null);
@@ -96,7 +96,7 @@ export const ModuleLayout = () => {
 
 	// The list resolved but no module owns this route → 404 to the module index.
 	if (listQuery.isSuccess && !resolved) {
-		return <Navigate to="/modules" replace />;
+		return <Navigate replace to="/modules" />;
 	}
 
 	const module = moduleQuery.data ?? resolved;

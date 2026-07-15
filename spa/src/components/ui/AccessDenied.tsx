@@ -6,8 +6,8 @@ import { hasLevel } from "@/lib/permissions";
 import { Card } from "@/components/ui/Card";
 
 interface AccessDeniedProps {
-	title?: string;
 	message?: string;
+	title?: string;
 }
 
 /**
@@ -20,7 +20,7 @@ export const AccessDenied = ({
 	message = "You don't have permission to view this section.",
 }: AccessDeniedProps) => {
 	return (
-		<div className="mx-auto max-w-screen-2xl px-6 py-12">
+		<div className="mx-auto max-w-screen-2xl px-6 py-12" data-testid="access-denied">
 			<Card className="mx-auto flex max-w-md flex-col items-center p-8 text-center">
 				<div className="mb-3 flex size-12 items-center justify-center rounded-full bg-danger/10 text-danger">
 					<ShieldAlert size={22} />
@@ -34,9 +34,9 @@ export const AccessDenied = ({
 };
 
 interface RequireLevelProps {
-	level: number;
-	fallback?: ReactNode;
 	children: ReactNode;
+	fallback?: ReactNode;
+	level: number;
 }
 
 /**

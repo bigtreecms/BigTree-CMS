@@ -26,16 +26,16 @@ import { api } from "@/api/client";
 export type ModuleEntryRow = Record<string, unknown> & { id: number | string };
 
 export interface ModuleEntriesListResponse {
-	view: { id: string | null; title: string };
+	// Grouped/images-grouped only: maps the cached `group_field` value (often a
+	// foreign-key id) to the display title resolved from the view's `other_table`.
+	groups?: Record<string, string>;
 	items: ModuleEntryRow[];
 	meta: {
 		page: number;
 		per_page: number;
 		pages: number;
 	};
-	// Grouped/images-grouped only: maps the cached `group_field` value (often a
-	// foreign-key id) to the display title resolved from the view's `other_table`.
-	groups?: Record<string, string>;
+	view: { id: string | null; title: string };
 }
 
 export interface ModuleEntriesListParams {
@@ -46,7 +46,18 @@ export interface ModuleEntriesListParams {
 }
 
 export interface ModuleEntryDetail {
+	// mtm / tags / open_graph etc. live alongside `item` — kept loose for the
+	// form runtime to interpret.
+	[key: string]: unknown;
+	/** Columns whose draft value differs from the published content. */
+	changed_fields?: string[];
 	item: ModuleEntryRow;
+	/** Published (live) column values before the pending overlay; null for new drafts. */
+	original?: Record<string, unknown> | null;
+	/** User id of whoever created the pending change (null when not pending). */
+	owner?: number | null;
+	/** Display name of the pending change's owner, for attribution. */
+	owner_name?: string | null;
 	/**
 	 * Pending-change state of the entry:
 	 *   "published" — live row, no queued change
@@ -54,17 +65,6 @@ export interface ModuleEntryDetail {
 	 *   "pending"   — a never-published new draft (no live counterpart)
 	 */
 	status?: "published" | "updated" | "pending";
-	/** Published (live) column values before the pending overlay; null for new drafts. */
-	original?: Record<string, unknown> | null;
-	/** Columns whose draft value differs from the published content. */
-	changed_fields?: string[];
-	/** User id of whoever created the pending change (null when not pending). */
-	owner?: number | null;
-	/** Display name of the pending change's owner, for attribution. */
-	owner_name?: string | null;
-	// mtm / tags / open_graph etc. live alongside `item` — kept loose for the
-	// form runtime to interpret.
-	[key: string]: unknown;
 }
 
 /**
@@ -85,8 +85,8 @@ const viewQuery = (viewId?: string) => (viewId ? { view: viewId } : undefined);
  * the screen was reached — pass whichever one applies.
  */
 export interface EntryTableRef {
-	view?: string;
 	form?: string;
+	view?: string;
 }
 
 const refQuery = (ref?: EntryTableRef) => {
@@ -185,7 +185,7 @@ export const autoModulesApi = {
 };
 
 export interface ModuleEntryFlagToggleResponse {
-	id: number;
 	column: "archived" | "approved" | "featured";
+	id: number;
 	value: "" | "on";
 }

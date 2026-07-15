@@ -3,19 +3,19 @@ import type { ReactNode } from "react";
 import { EmptyState } from "./EmptyState";
 
 interface LoadingTextProps {
-	/** The loading message. Defaults to "Loading…". `children` overrides it. */
-	label?: ReactNode;
-	/** `md` (default) is `text-[12.5px]`; `sm` is `text-[11.5px]`. */
-	size?: "sm" | "md";
 	/**
 	 * Wrap the text in the dashed `surface-2` box used for in-field async
 	 * placeholders (the compact `EmptyState size="sm"` container). Bare muted
 	 * text otherwise.
 	 */
 	boxed?: boolean;
+	children?: ReactNode;
 	/** Layout-only classes appended to the wrapper. */
 	className?: string;
-	children?: ReactNode;
+	/** The loading message. Defaults to "Loading…". `children` overrides it. */
+	label?: ReactNode;
+	/** `md` (default) is `text-[12.5px]`; `sm` is `text-[11.5px]`. */
+	size?: "sm" | "md";
 }
 
 /**
@@ -35,7 +35,7 @@ export const LoadingText = ({
 
 	if (boxed) {
 		return (
-			<EmptyState dashed size="sm" role="status" className={className}>
+			<EmptyState dashed className={className} role="status" size="sm">
 				{content}
 			</EmptyState>
 		);
@@ -45,7 +45,7 @@ export const LoadingText = ({
 	const extra = className ? ` ${className}` : "";
 
 	return (
-		<span role="status" className={`text-text-3 ${textSize}${extra}`}>
+		<span className={`text-text-3 ${textSize}${extra}`} role="status">
 			{content}
 		</span>
 	);

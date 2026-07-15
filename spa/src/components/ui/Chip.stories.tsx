@@ -46,8 +46,8 @@ export const FilterRow: Story = {
 			<div className="flex flex-wrap gap-2">
 				{filters.map((f) => (
 					<Chip
-						key={f}
 						active={selected.includes(f.toLowerCase())}
+						key={f}
 						onClick={() => toggle(f.toLowerCase())}
 					>
 						{f}

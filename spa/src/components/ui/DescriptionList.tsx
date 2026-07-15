@@ -10,13 +10,13 @@ export interface DescriptionListItem {
 }
 
 interface DescriptionListProps {
-	items: DescriptionListItem[];
-	/** Label-column width in px. Default 120. */
-	labelWidth?: number;
 	/** Wrap in the bordered `surface-2` card treatment (vs. a bare in-flow grid). */
 	boxed?: boolean;
 	/** Layout-only classes appended to the `<dl>`. */
 	className?: string;
+	items: DescriptionListItem[];
+	/** Label-column width in px. Default 120. */
+	labelWidth?: number;
 }
 
 /**
@@ -42,7 +42,7 @@ export const DescriptionList = ({
 			style={{ gridTemplateColumns: `${labelWidth}px minmax(0, 1fr)` }}
 		>
 			{items.map((item, i) => (
-				<div key={i} className="contents">
+				<div className="contents" key={i}>
 					<dt className="text-text-3">{item.label}</dt>
 					<dd
 						className={`min-w-0 text-text-2${item.valueClassName ? ` ${item.valueClassName}` : ""}`}

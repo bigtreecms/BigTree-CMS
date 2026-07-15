@@ -3,14 +3,12 @@ import { X } from "lucide-react";
 import type { ReactNode } from "react";
 
 interface ModalProps {
-	open: boolean;
-	onOpenChange: (open: boolean) => void;
-	title: string;
-	description?: string;
 	children?: ReactNode;
+	/** Appended to Dialog.Content (layout only — can't override size/base). */
+	className?: string;
+	description?: string;
 	/** Footer content. In `bars` layout it sits in a bottom surface-2 bar; in `card` layout it is right-aligned beneath the body. */
 	footer?: ReactNode;
-	size?: "sm" | "md" | "lg" | "xl";
 	/**
 	 * "card" (default): title/description and body share one padded surface — for
 	 *   confirm and form dialogs.
@@ -19,12 +17,14 @@ interface ModalProps {
 	 *   full-bleed content like image croppers (caller owns the body's padding).
 	 */
 	layout?: "card" | "bars";
-	/** Show a close (X) button in the header. Only applies to `bars` layout. */
-	showClose?: boolean;
+	onOpenChange: (open: boolean) => void;
+	open: boolean;
 	/** Darker scrim for media/cropping dialogs that need image focus. */
 	scrim?: "default" | "dark";
-	/** Appended to Dialog.Content (layout only — can't override size/base). */
-	className?: string;
+	/** Show a close (X) button in the header. Only applies to `bars` layout. */
+	showClose?: boolean;
+	size?: "sm" | "md" | "lg" | "xl";
+	title: string;
 }
 
 const SIZES: Record<NonNullable<ModalProps["size"]>, string> = {
@@ -63,8 +63,8 @@ export const Modal = ({
 
 	const closeButton = showClose && (
 		<Dialog.Close
-			className="relative rounded-md p-1 text-text-3 before:absolute before:-inset-2 before:content-[''] hover:bg-hover hover:text-text"
 			aria-label="Close"
+			className="relative rounded-md p-1 text-text-3 before:absolute before:-inset-2 before:content-[''] hover:bg-hover hover:text-text"
 		>
 			<X size={16} />
 		</Dialog.Close>

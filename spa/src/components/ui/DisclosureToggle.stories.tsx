@@ -28,11 +28,11 @@ const Interactive = ({ size }: { size?: number }) => {
 
 	return (
 		<DisclosureToggle
-			open={open}
-			onToggle={() => setOpen((v) => !v)}
-			label="Host API reference"
-			size={size}
 			className="gap-1.5 text-[12px] font-medium text-text-2"
+			label="Host API reference"
+			open={open}
+			size={size}
+			onToggle={() => setOpen((v) => !v)}
 		/>
 	);
 };

@@ -5,11 +5,11 @@ import { ActionModulePreview } from "./ActionModulePreview";
 import { ACTION_HOST_API_REFERENCE } from "./starterTemplate";
 
 interface ActionModuleEditorProps {
-	value: string;
-	onChange: (next: string) => void;
 	/** Action name + route — used to populate the live preview's host.context. */
 	name: string;
+	onChange: (next: string) => void;
 	route: string;
+	value: string;
 }
 
 /**
@@ -24,14 +24,14 @@ export const ActionModuleEditor = ({ value, onChange, name, route }: ActionModul
 	<div className="space-y-3">
 		<CodeSourceEditor
 			label="Action code"
+			reference={ACTION_HOST_API_REFERENCE}
 			value={value}
 			onChange={onChange}
-			reference={ACTION_HOST_API_REFERENCE}
 		/>
 
 		<div>
 			<SectionLabel className="mb-2">Live preview</SectionLabel>
-			<ActionModulePreview source={value} name={name} route={route} />
+			<ActionModulePreview name={name} route={route} source={value} />
 		</div>
 	</div>
 );

@@ -17,24 +17,24 @@ export const HOST_CONTRACT_VERSION = 1;
 
 /** Everything the host hands a module on render / update. */
 export interface FieldHost {
+	disabled: boolean;
 	/** Mount point the module renders into and owns. */
 	element: HTMLElement;
-	/** Current controlled value. */
-	value: unknown;
+	error?: string;
 	/** Field config: key, title, settings, required, … */
 	field: ModuleFormField;
-	disabled: boolean;
-	error?: string;
 	/** Push a new value up to the form. */
 	onChange: (next: unknown) => void;
+	/** Current controlled value. */
+	value: unknown;
 }
 
 /** Handle the module returns from render() so the host can update / tear down. */
 export interface FieldInstance {
-	/** Called when value / disabled / error change without a remount. */
-	update?: (host: FieldHost) => void;
 	/** Called on unmount; the module should remove what it added to `element`. */
 	destroy?: () => void;
+	/** Called when value / disabled / error change without a remount. */
+	update?: (host: FieldHost) => void;
 }
 
 /** The default export of a field-type module bundle. */

@@ -17,8 +17,8 @@ import { isRecord } from "@/renderer/fields/fieldHelpers";
 
 /** A repeater row: an ephemeral UI `uid` paired with the row's data payload. */
 export interface RepeaterRow<T> {
-	uid: string;
 	data: T;
+	uid: string;
 }
 
 // Monotonic across every repeater instance on the page — uids only need to be
@@ -57,25 +57,25 @@ const rowsDataEqual = <T>(a: RepeaterRow<T>[], b: RepeaterRow<T>[]): boolean => 
 };
 
 interface UseRepeaterRowsArgs {
-	/** The controlled field value (an array of row data; anything else → `[]`). */
-	value: unknown;
+	/** Upper bound on the row count (`0` = unlimited). */
+	max?: number;
 	/** Field `onChange` — receives the uid-stripped `data[]`. */
 	onChange: (next: unknown) => void;
 	/** Prefix letter for generated uids (purely cosmetic; e.g. `"m"`/`"c"`/`"g"`). */
 	uidPrefix: string;
-	/** Upper bound on the row count (`0` = unlimited). */
-	max?: number;
+	/** The controlled field value (an array of row data; anything else → `[]`). */
+	value: unknown;
 }
 
 export interface UseRepeaterRowsReturn<T> {
-	rows: RepeaterRow<T>[];
-	isExpanded: (uid: string) => boolean;
-	toggleExpanded: (uid: string) => void;
-	atLimit: boolean;
 	/** Append a new row with `data`, auto-expanding it. No-op at the limit. */
 	add: (data: T) => void;
-	remove: (uid: string) => void;
+	atLimit: boolean;
+	isExpanded: (uid: string) => boolean;
 	move: (index: number, direction: "up" | "down") => void;
+	remove: (uid: string) => void;
+	rows: RepeaterRow<T>[];
+	toggleExpanded: (uid: string) => void;
 	/** Shallow-merge `patch` into the row's data. */
 	update: (uid: string, patch: Partial<T>) => void;
 	/** Replace the row's data via an updater (for nested merges). */

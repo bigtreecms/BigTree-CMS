@@ -15,5 +15,5 @@ interface StatusBadgeProps {
 export const StatusBadge = ({ status }: StatusBadgeProps) => {
 	const v = PAGE_STATUS_VARIANTS[status];
 
-	return <UIStatusBadge tone={v.tone} label={v.label} dot />;
+	return <UIStatusBadge dot label={v.label} tone={v.tone} />;
 };

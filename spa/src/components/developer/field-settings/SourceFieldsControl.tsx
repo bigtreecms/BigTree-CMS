@@ -35,30 +35,30 @@ export const SourceFieldsControl = ({ descriptor, settings, onPatch }: ControlPr
 	};
 
 	return (
-		<ControlShell label={descriptor.label} hint={descriptor.hint} note={descriptor.note}>
+		<ControlShell hint={descriptor.hint} label={descriptor.label} note={descriptor.note}>
 			<div className="space-y-1.5">
 				{rows.map((row, index) => (
-					<div key={index} className="flex items-center gap-2">
+					<div className="flex items-center gap-2" key={index}>
 						<TextInput
 							compact
-							className="min-w-0 flex-1"
 							aria-label="Column name"
+							className="min-w-0 flex-1"
 							placeholder="Column name"
 							value={row}
 							onChange={(e) => update(index, e.target.value)}
 						/>
 						<IconButton
+							label="Remove source field"
 							tone="danger"
 							onClick={() => remove(index)}
-							label="Remove source field"
 						>
 							<Trash size={13} />
 						</IconButton>
 					</div>
 				))}
 				<button
-					type="button"
 					className="inline-flex items-center gap-1 rounded border border-border bg-surface px-2 py-1 text-[12px] hover:bg-hover"
+					type="button"
 					onClick={add}
 				>
 					<Plus size={12} />

@@ -46,7 +46,7 @@ export const Disabled: Story = {
 export const WithDelete: Story = {
 	args: {
 		extra: (
-			<Button variant="dangerGhost" icon={<Trash2 size={13} />}>
+			<Button icon={<Trash2 size={13} />} variant="dangerGhost">
 				Delete
 			</Button>
 		),

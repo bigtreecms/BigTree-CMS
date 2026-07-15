@@ -38,17 +38,17 @@ export const FileUsageList = ({ isLoading, usages }: FileUsageListProps) => {
 
 						return (
 							<li
-								key={`${usage.location}-${usage.title}-${index}`}
 								className={`grid grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)_120px] items-center gap-2 px-3 py-1.5 text-[12px] ${
 									dimmed ? "opacity-60" : ""
 								}`}
+								key={`${usage.location}-${usage.title}-${index}`}
 							>
 								<span className="truncate text-text-2">{usage.location}</span>
 								<span className="truncate">
 									{path ? (
 										<Link
-											to={path}
 											className="text-accent hover:underline"
+											to={path}
 											onClick={(event) => event.stopPropagation()}
 										>
 											{usage.title}
@@ -59,8 +59,8 @@ export const FileUsageList = ({ isLoading, usages }: FileUsageListProps) => {
 								</span>
 								<span className="text-right">
 									<StatusBadge
-										tone={RESOURCE_USAGE_STATUS_VARIANTS[usage.status].tone}
 										label={RESOURCE_USAGE_STATUS_VARIANTS[usage.status].label}
+										tone={RESOURCE_USAGE_STATUS_VARIANTS[usage.status].tone}
 									/>
 								</span>
 							</li>

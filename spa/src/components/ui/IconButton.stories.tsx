@@ -36,16 +36,16 @@ export const Playground: Story = {};
 export const Tones: Story = {
 	render: () => (
 		<div className="flex items-center gap-2">
-			<IconButton label="Edit" tone="default" title="Edit">
+			<IconButton label="Edit" title="Edit" tone="default">
 				<Pencil size={13} />
 			</IconButton>
-			<IconButton label="Remove" tone="danger" title="Remove">
+			<IconButton label="Remove" title="Remove" tone="danger">
 				<Trash size={13} />
 			</IconButton>
-			<IconButton label="Expand" tone="accent" title="Expand">
+			<IconButton label="Expand" title="Expand" tone="accent">
 				<ChevronDown size={13} />
 			</IconButton>
-			<IconButton label="Approve" tone="success" title="Approve">
+			<IconButton label="Approve" title="Approve" tone="success">
 				<Check size={13} />
 			</IconButton>
 		</div>
@@ -59,13 +59,13 @@ export const Tones: Story = {
 export const Small: Story = {
 	render: () => (
 		<div className="flex items-center gap-2">
-			<IconButton label="Expand" size="sm" tone="default" title="Expand">
+			<IconButton label="Expand" size="sm" title="Expand" tone="default">
 				<ChevronDown size={13} />
 			</IconButton>
-			<IconButton label="Clear" size="sm" tone="default" title="Clear">
+			<IconButton label="Clear" size="sm" title="Clear" tone="default">
 				<X size={13} />
 			</IconButton>
-			<IconButton label="Remove" size="sm" tone="danger" title="Remove">
+			<IconButton label="Remove" size="sm" title="Remove" tone="danger">
 				<Trash size={13} />
 			</IconButton>
 		</div>
@@ -80,15 +80,15 @@ export const Small: Story = {
 export const AsLink: Story = {
 	render: () => (
 		<div className="flex items-center gap-2">
-			<IconButton label="Edit" tone="default" to="/pages" title="Edit">
+			<IconButton label="Edit" title="Edit" to="/pages" tone="default">
 				<Pencil size={13} />
 			</IconButton>
 			<IconButton
-				label="Open docs"
-				tone="accent"
 				href="https://www.bigtreecms.org"
+				label="Open docs"
 				target="_blank"
 				title="Open docs"
+				tone="accent"
 			>
 				<ExternalLink size={13} />
 			</IconButton>
@@ -107,9 +107,9 @@ export const Positioned: Story = {
 		<div className="relative w-56 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] text-text-2">
 			Search term
 			<IconButton
+				className="absolute right-2 top-1/2 -translate-y-1/2"
 				label="Clear"
 				tone="default"
-				className="absolute right-2 top-1/2 -translate-y-1/2"
 			>
 				<X size={14} />
 			</IconButton>

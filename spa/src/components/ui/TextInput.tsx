@@ -7,8 +7,6 @@ import { forwardRef, type InputHTMLAttributes } from "react";
  * utility through source order — see the note on {@link inputClass}.
  */
 export interface InputClassOptions {
-	/** Compact vertical padding (`py-1.5`) for space-constrained sections. */
-	dense?: boolean;
 	/**
 	 * The tightest tier — `px-2 py-1 text-[12.5px]`, and **no width** (callers
 	 * supply `w-44` / `flex-1` / auto via `className`). For the dense grid/toolbar
@@ -16,6 +14,8 @@ export interface InputClassOptions {
 	 * selects sit inline at a smaller size than a normal form field.
 	 */
 	compact?: boolean;
+	/** Compact vertical padding (`py-1.5`) for space-constrained sections. */
+	dense?: boolean;
 	/** Monospace + slightly smaller text for code/identifier entry. Combines with `compact`. */
 	mono?: boolean;
 }
@@ -64,9 +64,9 @@ export const TextInput = forwardRef<HTMLInputElement, TextInputProps>(
 
 		return (
 			<input
+				className={className ? `${base} ${className}` : base}
 				ref={ref}
 				type={type}
-				className={className ? `${base} ${className}` : base}
 				{...rest}
 			/>
 		);

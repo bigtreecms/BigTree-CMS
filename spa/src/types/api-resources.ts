@@ -8,42 +8,42 @@
 
 export interface ResourceFolder {
 	id: number;
-	parent: number;
 	name: string;
+	parent: number;
 	updated_at?: string;
 }
 
 export interface ResourceFile {
-	id: number;
-	folder: number;
-	name: string;
-	type: string;
-	file: string;
-	thumbs?: Record<string, string>;
-	is_image: boolean;
-	width?: number;
-	height?: number;
-	size?: number;
-	date?: string;
 	creator?: number;
+	date?: string;
+	file: string;
+	folder: number;
+	height?: number;
+	id: number;
+	is_image: boolean;
+	name: string;
+	size?: number;
+	thumbs?: Record<string, string>;
+	type: string;
+	width?: number;
 }
 
 export interface LockOwner {
+	email: string;
 	id: number;
 	name: string;
-	email: string;
 }
 
 export interface LockInfo {
-	lock_id: number;
 	expires_at: string;
+	lock_id: number;
 }
 
 export interface PendingChangeRef {
-	id: number;
-	table: string;
-	item_id: string;
-	user: number;
 	date: string;
+	id: number;
+	item_id: string;
+	table: string;
 	type: "EDIT" | "NEW";
+	user: number;
 }

@@ -14,15 +14,15 @@ import type { ModuleFormField } from "./modules";
  */
 
 export interface EmbedFormConfig {
+	css: string;
+	default_pending: boolean;
+	fields: ModuleFormField[];
 	id: string;
 	module: string;
-	title: string;
-	table: string;
-	fields: ModuleFormField[];
-	css: string;
-	thank_you_message: string;
 	redirect_url: string;
-	default_pending: boolean;
+	table: string;
+	thank_you_message: string;
+	title: string;
 }
 
 export interface EmbedFormSubmitRequest {
@@ -31,9 +31,9 @@ export interface EmbedFormSubmitRequest {
 
 export interface EmbedFormSubmitResponse {
 	id: number | string;
+	redirect_url: string;
 	status: "published" | "pending";
 	thank_you_message: string;
-	redirect_url: string;
 }
 
 export const embedFormsApi = {

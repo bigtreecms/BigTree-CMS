@@ -31,12 +31,12 @@ import { MobileNav } from "./MobileNav";
  */
 
 interface TopBarProps {
-	dark: boolean;
-	onToggleDark: () => void;
-	onOpenSearch: () => void;
 	/** Whether the AI assistant is enabled for this user (Configure → AI). */
 	aiChatEnabled: boolean;
+	dark: boolean;
 	onOpenChat: () => void;
+	onOpenSearch: () => void;
+	onToggleDark: () => void;
 }
 
 export const TopBar = ({
@@ -76,11 +76,11 @@ export const TopBar = ({
 			<div className="flex shrink-0 items-center gap-2.5">
 				<IconTile size="xs" tone="brand">
 					<svg
-						width="14"
+						aria-hidden="true"
+						fill="currentColor"
 						height="14"
 						viewBox="0 0 24 24"
-						fill="currentColor"
-						aria-hidden="true"
+						width="14"
 					>
 						<path d="M12 2 4 12h4v8h8v-8h4L12 2Z" />
 					</svg>
@@ -91,10 +91,10 @@ export const TopBar = ({
 			<div className="hidden h-[22px] w-px bg-border sm:block" />
 
 			<a
-				href={wwwRoot}
-				target="_blank"
-				rel="noopener noreferrer"
 				className="hidden shrink-0 cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-md border border-border bg-surface px-2.5 py-1 text-[12.5px] text-text-2 transition-colors hover:border-border-strong hover:bg-hover sm:inline-flex"
+				href={wwwRoot}
+				rel="noopener noreferrer"
+				target="_blank"
 			>
 				<ExternalLink size={13} />
 				<span>View site</span>
@@ -103,9 +103,9 @@ export const TopBar = ({
 			<div className="flex-1" />
 
 			<button
+				className="hidden w-60 cursor-text items-center gap-2 rounded-md border border-border bg-surface-2 px-2.5 py-1.5 text-[12.5px] text-text-3 transition-colors hover:border-border-strong sm:flex"
 				type="button"
 				onClick={onOpenSearch}
-				className="hidden w-60 cursor-text items-center gap-2 rounded-md border border-border bg-surface-2 px-2.5 py-1.5 text-[12.5px] text-text-3 transition-colors hover:border-border-strong sm:flex"
 			>
 				<Search size={13} />
 				<span>Search pages, modules…</span>
@@ -115,41 +115,41 @@ export const TopBar = ({
 			</button>
 
 			<button
-				type="button"
-				onClick={onOpenSearch}
-				title="Search"
 				aria-label="Search"
 				className="grid size-[30px] cursor-pointer place-items-center rounded-md bg-transparent text-text-2 transition-colors hover:bg-hover hover:text-text sm:hidden"
+				title="Search"
+				type="button"
+				onClick={onOpenSearch}
 			>
 				<Search size={15} />
 			</button>
 
 			{aiChatEnabled && (
 				<button
-					type="button"
-					onClick={onOpenChat}
-					title="AI assistant"
 					aria-label="AI assistant"
 					className="grid size-[30px] cursor-pointer place-items-center rounded-md bg-transparent text-accent transition-colors hover:bg-accent/10"
+					title="AI assistant"
+					type="button"
+					onClick={onOpenChat}
 				>
 					<Sparkles size={15} />
 				</button>
 			)}
 
 			<button
+				className="grid size-[30px] cursor-pointer place-items-center rounded-md bg-transparent text-text-2 transition-colors hover:bg-hover hover:text-text"
+				title={dark ? "Light mode" : "Dark mode"}
 				type="button"
 				onClick={onToggleDark}
-				title={dark ? "Light mode" : "Dark mode"}
-				className="grid size-[30px] cursor-pointer place-items-center rounded-md bg-transparent text-text-2 transition-colors hover:bg-hover hover:text-text"
 			>
 				{dark ? <Sun size={15} /> : <Moon size={15} />}
 			</button>
 
 			<button
-				type="button"
-				title={unread > 0 ? pluralize(unread, "unread message") : "Messages"}
-				onClick={() => navigate("/messages")}
 				className="relative grid size-[30px] cursor-pointer place-items-center rounded-md bg-transparent text-text-2 transition-colors hover:bg-hover hover:text-text"
+				title={unread > 0 ? pluralize(unread, "unread message") : "Messages"}
+				type="button"
+				onClick={() => navigate("/messages")}
 			>
 				<Bell size={15} />
 				{unread > 0 && (
@@ -162,21 +162,21 @@ export const TopBar = ({
 			<DropdownMenu.Root>
 				<DropdownMenu.Trigger asChild>
 					<button
-						type="button"
-						title="Account"
 						className="flex cursor-pointer items-center gap-2 rounded-md py-1 pl-1 pr-2 transition-colors hover:bg-hover"
+						title="Account"
+						type="button"
 					>
 						<Avatar name={user?.name} size={24} />
 						<span className="text-[13px] font-medium">
 							{user?.name?.split(" ")[0] ?? "User"}
 						</span>
-						<ChevronDown size={12} className="text-text-3" />
+						<ChevronDown className="text-text-3" size={12} />
 					</button>
 				</DropdownMenu.Trigger>
 				<DropdownMenu.Portal>
 					<DropdownMenu.Content
-						className="min-w-56 rounded-md border border-border bg-surface p-1 shadow-md z-50"
 						align="end"
+						className="min-w-56 rounded-md border border-border bg-surface p-1 shadow-md z-50"
 						sideOffset={6}
 					>
 						<div className="px-3 py-2 border-b border-border">
@@ -185,8 +185,8 @@ export const TopBar = ({
 						</div>
 						<DropdownMenu.Item asChild>
 							<Link
-								to="/profile"
 								className="flex cursor-pointer select-none items-center gap-2 rounded px-3 py-1.5 text-[13px] text-text-2 outline-none transition-colors hover:bg-hover hover:text-text data-highlighted:bg-hover data-highlighted:text-text"
+								to="/profile"
 							>
 								<User size={14} />
 								<span>Profile</span>

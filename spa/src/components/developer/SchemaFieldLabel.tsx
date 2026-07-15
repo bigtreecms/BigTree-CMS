@@ -3,8 +3,8 @@ import type { ReactNode } from "react";
 import { FieldLabel } from "@/components/ui/Field";
 
 interface SchemaFieldLabelProps {
-	label: string;
 	children: ReactNode;
+	label: string;
 }
 
 /**

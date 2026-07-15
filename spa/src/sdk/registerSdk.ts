@@ -11,10 +11,10 @@ import * as BigTreeUI from "./ui";
  * look and behave native. See spa/.custom-module-actions-design.md.
  */
 export interface BigTreeSdkGlobals {
+	"@bigtree/fields": typeof BigTreeFields;
+	"@bigtree/ui": typeof BigTreeUI;
 	react: typeof React;
 	"react/jsx-runtime": typeof ReactJSXRuntime;
-	"@bigtree/ui": typeof BigTreeUI;
-	"@bigtree/fields": typeof BigTreeFields;
 }
 
 declare global {

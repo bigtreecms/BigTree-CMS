@@ -12,8 +12,8 @@ import { InlineEmpty } from "@/components/ui/InlineEmpty";
 import { SectionLabel } from "@/components/ui/SectionLabel";
 
 interface AccessLevelsDialogProps {
-	open: boolean;
 	onOpenChange: (open: boolean) => void;
+	open: boolean;
 	/** Page whose access is being inspected (null hides the dialog). */
 	pageId: number | null;
 }
@@ -32,30 +32,30 @@ export const AccessLevelsDialog = ({ open, onOpenChange, pageId }: AccessLevelsD
 
 	return (
 		<SlideOver
-			open={open}
-			onOpenChange={onOpenChange}
-			title="Access levels"
 			description="Who can edit or publish this page. Change access in each user's editor."
+			open={open}
+			title="Access levels"
+			onOpenChange={onOpenChange}
 		>
 			{query.isLoading ? (
-				<Loading variant="block" className="h-32" />
+				<Loading className="h-32" variant="block" />
 			) : query.error ? (
 				<Alert tone="danger">Could not load access levels.</Alert>
 			) : (
 				<div className="space-y-5">
 					<UserList
-						title="Publishers"
-						icon={<ShieldCheck size={13} />}
-						hint="Can edit and make changes live."
-						users={query.data?.publishers ?? []}
 						empty="No one can publish this page."
+						hint="Can edit and make changes live."
+						icon={<ShieldCheck size={13} />}
+						title="Publishers"
+						users={query.data?.publishers ?? []}
 					/>
 					<UserList
-						title="Editors"
-						icon={<UserPen size={13} />}
-						hint="Can edit; changes await publisher approval."
-						users={query.data?.editors ?? []}
 						empty="No editor-level users for this page."
+						hint="Can edit; changes await publisher approval."
+						icon={<UserPen size={13} />}
+						title="Editors"
+						users={query.data?.editors ?? []}
 					/>
 				</div>
 			)}
@@ -64,16 +64,16 @@ export const AccessLevelsDialog = ({ open, onOpenChange, pageId }: AccessLevelsD
 };
 
 interface UserListProps {
-	title: string;
-	icon: React.ReactNode;
-	hint: string;
-	users: PageAccessUser[];
 	empty: string;
+	hint: string;
+	icon: React.ReactNode;
+	title: string;
+	users: PageAccessUser[];
 }
 
 const UserList = ({ title, icon, hint, users, empty }: UserListProps) => (
 	<section>
-		<SectionLabel as="h3" icon={icon} className="mb-0.5">
+		<SectionLabel as="h3" className="mb-0.5" icon={icon}>
 			{title}
 			<span className="tabular-nums">({users.length})</span>
 		</SectionLabel>
@@ -84,7 +84,7 @@ const UserList = ({ title, icon, hint, users, empty }: UserListProps) => (
 		) : (
 			<ul className="divide-y divide-border rounded-md border border-border bg-surface">
 				{users.map((user) => (
-					<li key={user.id} className="flex items-center gap-2.5 px-3 py-2">
+					<li className="flex items-center gap-2.5 px-3 py-2" key={user.id}>
 						<GravatarAvatar email={user.email} name={user.name} size={24} />
 						<div className="min-w-0">
 							<div className="truncate text-[12.5px] font-medium">{user.name}</div>

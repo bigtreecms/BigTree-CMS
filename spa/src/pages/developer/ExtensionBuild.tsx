@@ -35,11 +35,11 @@ import { TextInput } from "@/components/developer/module-designer/inputs";
 type Step = "details" | "components" | "files" | "review";
 
 interface Picked {
-	modules: Set<string>;
-	templates: Set<string>;
 	callouts: Set<string>;
-	settings: Set<string>;
 	feeds: Set<string>;
+	modules: Set<string>;
+	settings: Set<string>;
+	templates: Set<string>;
 }
 
 const STEPS: { id: Step; label: string }[] = [
@@ -228,13 +228,13 @@ export const ExtensionBuild = () => {
 			/>
 
 			<PageHead
-				title="Build extension"
-				sub="Package modules, templates, and other components into a distributable extension."
 				actions={
 					<Button icon={<ChevronLeft size={13} />} to="/developer/extensions">
 						Back
 					</Button>
 				}
+				sub="Package modules, templates, and other components into a distributable extension."
+				title="Build extension"
 			/>
 
 			<DeveloperSectionNav />
@@ -242,10 +242,10 @@ export const ExtensionBuild = () => {
 			<ol className="mb-4 flex flex-wrap gap-2 text-[12px]">
 				{STEPS.map((s, i) => (
 					<li
-						key={s.id}
 						className={`rounded-full px-2.5 py-1 ${
 							s.id === step ? "bg-accent text-accent-fg" : "bg-surface-2 text-text-3"
 						}`}
+						key={s.id}
 					>
 						{i + 1}. {s.label}
 					</li>
@@ -253,7 +253,7 @@ export const ExtensionBuild = () => {
 			</ol>
 
 			{error && (
-				<Alert tone="danger" className="mb-3">
+				<Alert className="mb-3" tone="danger">
 					{error}
 				</Alert>
 			)}
@@ -261,7 +261,7 @@ export const ExtensionBuild = () => {
 			{result ? (
 				<Card className="space-y-4 p-5">
 					<div className="flex items-center gap-2 text-text">
-						<Package size={18} className="text-text-3" />
+						<Package className="text-text-3" size={18} />
 						<span className="text-[14px] font-semibold">
 							Built “{result.id}” successfully
 						</span>
@@ -273,12 +273,12 @@ export const ExtensionBuild = () => {
 					<div className="flex gap-2">
 						<Button
 							href={result.download_url}
-							variant="primary"
 							icon={<Download size={13} />}
+							variant="primary"
 						>
 							Download package
 						</Button>
-						<Button variant="secondary" to="/developer/extensions">
+						<Button to="/developer/extensions" variant="secondary">
 							Done
 						</Button>
 					</div>
@@ -289,41 +289,41 @@ export const ExtensionBuild = () => {
 						<div className="space-y-4">
 							<FieldGrid>
 								<TextInput
+									mono
+									required
+									error={detailsError.id}
+									hint="e.g. com.fastspot.news"
 									label="Extension ID"
 									value={id}
 									onChange={setId}
-									error={detailsError.id}
-									hint="e.g. com.fastspot.news"
-									required
-									mono
 								/>
 								<TextInput
+									required
+									error={detailsError.title}
 									label="Title"
 									value={title}
 									onChange={setTitle}
-									error={detailsError.title}
-									required
 								/>
 								<TextInput label="Version" value={version} onChange={setVersion} />
 								<TextInput
+									hint="e.g. 4.5+"
 									label="BigTree compatibility"
 									value={compatibility}
 									onChange={setCompatibility}
-									hint="e.g. 4.5+"
 								/>
 							</FieldGrid>
 							<Field label="Description">
 								<TextArea
+									rows={2}
 									value={description}
 									onChange={(e) => setDescription(e.target.value)}
-									rows={2}
 								/>
 							</Field>
 							<TextInput
+								hint="Separate with commas."
 								label="Keywords"
 								value={keywords}
 								onChange={setKeywords}
-								hint="Separate with commas."
 							/>
 							<div className="grid grid-cols-1 gap-4 md:grid-cols-3">
 								<TextInput
@@ -351,9 +351,9 @@ export const ExtensionBuild = () => {
 											{Object.keys(licensesQ.data["Open Source"]).map(
 												(name) => (
 													<Checkbox
+														checked={openLicenses.has(name)}
 														key={name}
 														label={name}
-														checked={openLicenses.has(name)}
 														onChange={() => toggleLicense(name)}
 													/>
 												)
@@ -366,10 +366,10 @@ export const ExtensionBuild = () => {
 											{Object.keys(licensesQ.data["Closed Source"]).map(
 												(name) => (
 													<Radio
-														key={name}
-														name="closed-license"
-														label={name}
 														checked={closedLicense === name}
+														key={name}
+														label={name}
+														name="closed-license"
 														onChange={() => setClosedLicense(name)}
 													/>
 												)
@@ -390,45 +390,45 @@ export const ExtensionBuild = () => {
 					{step === "components" && (
 						<div className="space-y-5">
 							<ComponentChecklist
-								title="Modules"
 								items={(modulesQ.data ?? []).map((m) => ({
 									id: m.id,
 									name: m.name,
 								}))}
 								picked={picked.modules}
+								title="Modules"
 								onToggle={(v) => toggle("modules", v)}
 							/>
 							<ComponentChecklist
-								title="Templates"
 								items={(templatesQ.data ?? []).map((t) => ({
 									id: t.id,
 									name: t.name,
 								}))}
 								picked={picked.templates}
+								title="Templates"
 								onToggle={(v) => toggle("templates", v)}
 							/>
 							<ComponentChecklist
-								title="Callouts"
 								items={(calloutsQ.data ?? []).map((c) => ({
 									id: c.id,
 									name: c.name,
 								}))}
 								picked={picked.callouts}
+								title="Callouts"
 								onToggle={(v) => toggle("callouts", v)}
 							/>
 							<ComponentChecklist
-								title="Settings"
 								items={(settingsQ.data?.data ?? []).map((s) => ({
 									id: s.id,
 									name: s.name,
 								}))}
 								picked={picked.settings}
+								title="Settings"
 								onToggle={(v) => toggle("settings", v)}
 							/>
 							<ComponentChecklist
-								title="Feeds"
 								items={(feedsQ.data ?? []).map((f) => ({ id: f.id, name: f.name }))}
 								picked={picked.feeds}
+								title="Feeds"
 								onToggle={(v) => toggle("feeds", v)}
 							/>
 
@@ -442,8 +442,8 @@ export const ExtensionBuild = () => {
 									Back
 								</Button>
 								<Button
-									variant="primary"
 									disabled={totalPicked === 0 || inspectMutation.isPending}
+									variant="primary"
 									onClick={() => inspectMutation.mutate()}
 								>
 									{inspectMutation.isPending
@@ -457,19 +457,19 @@ export const ExtensionBuild = () => {
 					{step === "files" && inspect && (
 						<div className="space-y-5">
 							<TrimList
-								title="Tables"
 								all={inspect.tables}
+								empty="No tables inferred."
 								kept={keptTables}
 								setKept={setKeptTables}
-								empty="No tables inferred."
+								title="Tables"
 							/>
 							<TrimList
-								title="Files"
+								mono
 								all={inspect.files}
+								empty="No files inferred."
 								kept={keptFiles}
 								setKept={setKeptFiles}
-								empty="No files inferred."
-								mono
+								title="Files"
 							/>
 
 							<div className="flex justify-between">
@@ -486,7 +486,6 @@ export const ExtensionBuild = () => {
 					{step === "review" && (
 						<div className="space-y-4">
 							<DescriptionList
-								labelWidth={140}
 								items={[
 									{ label: "ID", value: id, valueClassName: "font-mono" },
 									{ label: "Title", value: title },
@@ -495,6 +494,7 @@ export const ExtensionBuild = () => {
 									{ label: "Tables", value: keptTables.size },
 									{ label: "Files", value: keptFiles.size },
 								]}
+								labelWidth={140}
 							/>
 
 							<div className="rounded-md border border-warn/40 bg-warn/5 px-3 py-2 text-[12px] text-text-2">
@@ -509,9 +509,9 @@ export const ExtensionBuild = () => {
 									Back
 								</Button>
 								<Button
-									variant="primary"
 									loading={buildMutation.isPending}
 									loadingLabel="Building…"
+									variant="primary"
 									onClick={doBuild}
 								>
 									Build extension
@@ -549,11 +549,11 @@ const ComponentChecklist = ({
 			<div className="grid grid-cols-1 gap-1 sm:grid-cols-2">
 				{items.map((it) => (
 					<Checkbox
-						key={it.id}
-						className="min-w-0"
-						labelClassName="min-w-0 truncate"
-						label={it.name}
 						checked={picked.has(it.id)}
+						className="min-w-0"
+						key={it.id}
+						label={it.name}
+						labelClassName="min-w-0 truncate"
 						onChange={() => onToggle(it.id)}
 					/>
 				))}
@@ -588,9 +588,9 @@ const TrimList = ({
 				{all.map((item) => (
 					<li key={item}>
 						<Checkbox
-							labelClassName={`min-w-0 truncate text-[12px]${mono ? " font-mono" : ""}`}
-							label={item}
 							checked={kept.has(item)}
+							label={item}
+							labelClassName={`min-w-0 truncate text-[12px]${mono ? " font-mono" : ""}`}
 							onChange={() => {
 								const next = new Set(kept);
 

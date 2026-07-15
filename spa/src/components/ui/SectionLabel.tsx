@@ -3,20 +3,20 @@ import type { ElementType, HTMLAttributes, ReactNode } from "react";
 export type SectionLabelSize = "xs" | "sm" | "md";
 
 interface SectionLabelProps extends HTMLAttributes<HTMLElement> {
-	/** Forward `for` attribute when rendered as a `<label>`. */
-	htmlFor?: string;
-	children: ReactNode;
-	/** Text size: `xs` (text-[10.5px]), `sm` (text-[11px]), or `md` (text-[12px], default). */
-	size?: SectionLabelSize;
+	/** Trailing content (a count, an action) pushed to the right edge of the row. */
+	actions?: ReactNode;
 	/**
 	 * Element to render. Defaults to `div`; pass a heading (`h3`/`h4`) when the
 	 * label introduces a `section` so it carries semantic weight for assistive tech.
 	 */
 	as?: ElementType;
+	children: ReactNode;
+	/** Forward `for` attribute when rendered as a `<label>`. */
+	htmlFor?: string;
 	/** Leading icon node; switches the box to a `flex` row so the icon and text align. */
 	icon?: ReactNode;
-	/** Trailing content (a count, an action) pushed to the right edge of the row. */
-	actions?: ReactNode;
+	/** Text size: `xs` (text-[10.5px]), `sm` (text-[11px]), or `md` (text-[12px], default). */
+	size?: SectionLabelSize;
 }
 
 /**

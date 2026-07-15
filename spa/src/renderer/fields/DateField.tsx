@@ -38,12 +38,12 @@ export const DateLikeField = ({ field, value, onChange, disabled, kind }: DateLi
 
 	return (
 		<input
-			type={inputType}
-			className={INPUT_CLASS}
-			value={toDateInputValue(value, kind)}
-			disabled={disabled}
-			onChange={(event) => onChange(event.target.value)}
 			aria-label={field.title}
+			className={INPUT_CLASS}
+			disabled={disabled}
+			type={inputType}
+			value={toDateInputValue(value, kind)}
+			onChange={(event) => onChange(event.target.value)}
 		/>
 	);
 };

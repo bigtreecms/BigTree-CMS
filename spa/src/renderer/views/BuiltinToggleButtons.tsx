@@ -22,10 +22,10 @@ import type { BuiltinViewActionFlags } from "./viewHelpers";
  * Server enforces publisher permission; the toast surfaces 403s.
  */
 interface BuiltinToggleButtonsProps {
-	moduleId: string;
-	viewId: string;
-	row: ModuleEntryRow;
 	builtins: BuiltinViewActionFlags;
+	moduleId: string;
+	row: ModuleEntryRow;
+	viewId: string;
 }
 
 const isOn = (raw: unknown): boolean => raw === "on" || raw === true || raw === 1 || raw === "1";
@@ -92,9 +92,9 @@ export const BuiltinToggleButtons = ({
 		<>
 			{builtins.archive && (
 				<IconButton
+					disabled={!canMutate || archiveMutation.isPending}
 					label={archived ? "Restore" : "Archive"}
 					title={archived ? "Restore" : "Archive"}
-					disabled={!canMutate || archiveMutation.isPending}
 					onClick={(e) => {
 						e.stopPropagation();
 						archiveMutation.mutate();
@@ -106,9 +106,9 @@ export const BuiltinToggleButtons = ({
 
 			{builtins.feature && (
 				<IconButton
+					disabled={!canMutate || featureMutation.isPending}
 					label={featured ? "Unfeature" : "Feature"}
 					title={featured ? "Unfeature" : "Feature"}
-					disabled={!canMutate || featureMutation.isPending}
 					onClick={(e) => {
 						e.stopPropagation();
 						featureMutation.mutate();
@@ -120,9 +120,9 @@ export const BuiltinToggleButtons = ({
 
 			{builtins.approve && (
 				<IconButton
+					disabled={!canMutate || approveMutation.isPending}
 					label={approved ? "Unapprove" : "Approve"}
 					title={approved ? "Unapprove" : "Approve"}
-					disabled={!canMutate || approveMutation.isPending}
 					onClick={(e) => {
 						e.stopPropagation();
 						approveMutation.mutate();

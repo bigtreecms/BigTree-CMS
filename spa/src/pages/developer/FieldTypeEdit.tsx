@@ -131,7 +131,7 @@ export const FieldTypeEdit = () => {
 	const isDirty = useDirtyTracker({ body, mode }, seeded) && !saveMutation.isPending;
 
 	if (!isAdd && !idParam) {
-		return <Navigate to="/developer/field-types" replace />;
+		return <Navigate replace to="/developer/field-types" />;
 	}
 
 	const set = (patch: Partial<FieldTypeCreateBody>) => setBody((prev) => ({ ...prev, ...patch }));
@@ -191,36 +191,36 @@ export const FieldTypeEdit = () => {
 
 	return (
 		<DeveloperEditLayout
-			width="narrow"
-			section="Field types"
-			listPath="/developer/field-types"
-			isAdd={isAdd}
-			title={title}
-			sub="Compose a custom field type from built-in primitives (declarative), or write a JavaScript module that draws it in the SPA."
 			detailQuery={detailQ}
 			error={generalError}
+			isAdd={isAdd}
 			isDirty={isDirty}
-			onSubmit={onFormSubmit}
-			submitLabel={isAdd ? "Create field type" : "Save"}
+			listPath="/developer/field-types"
 			saving={saveMutation.isPending}
+			section="Field types"
+			sub="Compose a custom field type from built-in primitives (declarative), or write a JavaScript module that draws it in the SPA."
+			submitLabel={isAdd ? "Create field type" : "Save"}
+			title={title}
+			width="narrow"
+			onSubmit={onFormSubmit}
 		>
 			<div className="space-y-4">
 				<FieldGrid>
 					<TextField
+						required
+						disabled={!isAdd}
+						error={fieldErrors.id}
+						hint="A unique identifier (letters, numbers, - or _)."
 						label="ID"
 						value={body.id ?? ""}
 						onChange={(v) => set({ id: v })}
-						hint="A unique identifier (letters, numbers, - or _)."
-						error={fieldErrors.id}
-						disabled={!isAdd}
-						required
 					/>
 					<TextField
+						required
+						error={fieldErrors.name}
 						label="Name"
 						value={body.name ?? ""}
 						onChange={(v) => set({ name: v })}
-						error={fieldErrors.name}
-						required
 					/>
 				</FieldGrid>
 
@@ -229,9 +229,9 @@ export const FieldTypeEdit = () => {
 					<div className="flex flex-wrap gap-3 rounded-md border border-border bg-surface-2 p-3">
 						{USE_CASES.map((u) => (
 							<Checkbox
+								checked={selectedUseCases.has(u.value)}
 								key={u.value}
 								label={u.label}
-								checked={selectedUseCases.has(u.value)}
 								onChange={() => toggleUseCase(u.value)}
 							/>
 						))}
@@ -250,10 +250,8 @@ export const FieldTypeEdit = () => {
 					<SectionLabel className="mb-2">Rendering</SectionLabel>
 					<div className="flex flex-col gap-2 rounded-md border border-border bg-surface-2 p-3">
 						<Radio
-							name="render-mode"
 							align="start"
 							checked={mode === "declarative"}
-							onChange={() => setMode("declarative")}
 							label={
 								<>
 									<span className="font-medium">Declarative</span> — compose this
@@ -261,11 +259,21 @@ export const FieldTypeEdit = () => {
 									SPA.
 								</>
 							}
+							name="render-mode"
+							onChange={() => setMode("declarative")}
 						/>
 						<Radio
-							name="render-mode"
 							align="start"
 							checked={mode === "module"}
+							label={
+								<>
+									<span className="font-medium">JavaScript module</span> — write
+									code that draws the field. Runs locally in the SPA; you
+									implicitly trust your own code (distribution trust is handled
+									when packaging an extension).
+								</>
+							}
+							name="render-mode"
 							onChange={() => {
 								setMode("module");
 
@@ -279,14 +287,6 @@ export const FieldTypeEdit = () => {
 									});
 								}
 							}}
-							label={
-								<>
-									<span className="font-medium">JavaScript module</span> — write
-									code that draws the field. Runs locally in the SPA; you
-									implicitly trust your own code (distribution trust is handled
-									when packaging an extension).
-								</>
-							}
 						/>
 					</div>
 				</div>
@@ -301,16 +301,16 @@ export const FieldTypeEdit = () => {
 					</div>
 				) : (
 					<ModuleSourceEditor
+						name={body.name ?? ""}
+						settingsParseError={settingsParseError}
+						settingsSchema={body.settings_schema ?? []}
+						typeId={body.id ?? ""}
 						value={body.module_source ?? ""}
 						onChange={(v) => set({ module_source: v })}
-						settingsSchema={body.settings_schema ?? []}
 						onSettingsSchemaChange={(next) => {
 							setSettingsParseError(false);
 							set({ settings_schema: next });
 						}}
-						settingsParseError={settingsParseError}
-						typeId={body.id ?? ""}
-						name={body.name ?? ""}
 					/>
 				)}
 			</div>

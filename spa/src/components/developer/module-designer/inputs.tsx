@@ -16,49 +16,49 @@ import type { LabeledOption } from "@/types/labeled-option";
  */
 
 interface TextInputProps {
-	label: string;
-	value: string;
-	onChange: (next: string) => void;
-	hint?: string;
-	error?: string;
 	disabled?: boolean;
-	required?: boolean;
-	placeholder?: string;
+	error?: string;
+	hint?: string;
+	label: string;
 	mono?: boolean;
+	onChange: (next: string) => void;
+	placeholder?: string;
+	required?: boolean;
+	value: string;
 }
 
 export const TextInput = (props: TextInputProps) => <TextField dense {...props} />;
 
 interface SelectInputProps {
+	disabled?: boolean;
+	error?: string;
+	hint?: string;
 	label: string;
-	value: string;
 	onChange: (next: string) => void;
 	options: LabeledOption[];
-	hint?: string;
-	error?: string;
-	disabled?: boolean;
+	value: string;
 }
 
 export const SelectInput = (props: SelectInputProps) => <SelectField dense {...props} />;
 
 interface CheckboxInputProps {
-	label: string;
 	checked: boolean;
-	onChange: (next: boolean) => void;
 	disabled?: boolean;
+	label: string;
+	onChange: (next: boolean) => void;
 }
 
 export const CheckboxInput = ({ label, checked, onChange, disabled }: CheckboxInputProps) => (
-	<Checkbox label={label} checked={checked} onChange={onChange} disabled={disabled} />
+	<Checkbox checked={checked} disabled={disabled} label={label} onChange={onChange} />
 );
 
 interface TextareaInputProps {
+	hint?: string;
 	label: string;
-	value: string;
+	mono?: boolean;
 	onChange: (next: string) => void;
 	rows?: number;
-	hint?: string;
-	mono?: boolean;
+	value: string;
 }
 
 export const TextareaInput = ({
@@ -69,24 +69,24 @@ export const TextareaInput = ({
 	hint,
 	mono,
 }: TextareaInputProps) => (
-	<Field label={label} hint={hint}>
+	<Field hint={hint} label={label}>
 		<TextArea
+			className="leading-relaxed"
 			mono={mono}
 			rows={rows}
+			spellCheck={false}
 			value={value}
 			onChange={(e) => onChange(e.target.value)}
-			spellCheck={false}
-			className="leading-relaxed"
 		/>
 	</Field>
 );
 
 interface JsonInputProps {
-	label: string;
-	value: unknown;
-	onChange: (next: Record<string, unknown>) => void;
 	hint?: string;
+	label: string;
+	onChange: (next: Record<string, unknown>) => void;
 	rows?: number;
+	value: unknown;
 }
 
 /**
@@ -96,14 +96,14 @@ interface JsonInputProps {
  */
 export const JsonInput = ({ label, value, onChange, hint, rows = 5 }: JsonInputProps) => (
 	<JsonField
+		hint={hint}
 		label={
 			<>
 				{label} <span className="text-text-3">(JSON)</span>
 			</>
 		}
+		rows={rows}
 		value={value}
 		onChange={onChange}
-		hint={hint}
-		rows={rows}
 	/>
 );

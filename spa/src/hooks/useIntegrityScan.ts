@@ -13,13 +13,13 @@ import { queryKeys } from "@/lib/queryKeys";
 
 /** A single broken link/image, resolved with where it lives and how to fix it. */
 export interface ScanFinding {
+	editTo: string;
+	field: string;
 	key: string;
 	location: "Page" | "Module";
 	source: string;
 	type: IntegrityError["type"];
-	field: string;
 	url: string;
-	editTo: string;
 }
 
 export type ScanPhase = "idle" | "scanning" | "paused" | "done";

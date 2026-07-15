@@ -31,7 +31,7 @@ const SearchSlot = () => {
 	const [value, setValue] = useState("");
 
 	return (
-		<SearchInput value={value} onChange={setValue} placeholder="Search…" aria-label="Search" />
+		<SearchInput aria-label="Search" placeholder="Search…" value={value} onChange={setValue} />
 	);
 };
 

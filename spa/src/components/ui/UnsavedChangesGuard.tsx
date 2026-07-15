@@ -28,7 +28,16 @@ export const UnsavedChangesGuard = ({ isDirty }: UnsavedChangesGuardProps) => {
 
 	return (
 		<ConfirmDialog
+			cancelLabel="Stay"
+			confirmLabel="Leave page"
+			description="You have unsaved changes that will be lost if you leave this page."
 			open={blocker.state === "blocked"}
+			title="Discard unsaved changes?"
+			variant="danger"
+			onConfirm={() => {
+				confirmingRef.current = true;
+				blocker.proceed?.();
+			}}
 			onOpenChange={(open) => {
 				if (open) {
 					return;
@@ -43,15 +52,6 @@ export const UnsavedChangesGuard = ({ isDirty }: UnsavedChangesGuardProps) => {
 				if (blocker.state === "blocked") {
 					blocker.reset();
 				}
-			}}
-			title="Discard unsaved changes?"
-			description="You have unsaved changes that will be lost if you leave this page."
-			confirmLabel="Leave page"
-			cancelLabel="Stay"
-			variant="danger"
-			onConfirm={() => {
-				confirmingRef.current = true;
-				blocker.proceed?.();
 			}}
 		/>
 	);

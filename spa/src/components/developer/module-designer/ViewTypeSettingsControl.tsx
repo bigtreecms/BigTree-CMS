@@ -17,11 +17,11 @@ import { CheckboxInput, SelectInput, TextInput } from "./inputs";
  * (sort_column, per_page, filter) are never dropped.
  */
 interface ViewTypeSettingsControlProps {
-	type: string;
+	onChange: (next: Record<string, unknown>) => void;
+	settings: Record<string, unknown>;
 	/** The view's data table; column pickers stay disabled until one is chosen. */
 	table: string;
-	settings: Record<string, unknown>;
-	onChange: (next: Record<string, unknown>) => void;
+	type: string;
 }
 
 const str = (value: unknown): string => (value == null ? "" : String(value));
@@ -65,8 +65,8 @@ export const ViewTypeSettingsControl = ({
 
 	const draggable = (note?: string) => (
 		<CheckboxInput
-			label={`Draggable${note ? ` ${note}` : ""}`}
 			checked={truthy(settings.draggable)}
+			label={`Draggable${note ? ` ${note}` : ""}`}
 			onChange={(v) => setKey("draggable", v)}
 		/>
 	);
@@ -76,17 +76,17 @@ export const ViewTypeSettingsControl = ({
 			<SectionLabel>Grouping parameters</SectionLabel>
 			<FieldGrid>
 				<DataTableSelect
+					hint="Optional table whose rows name the groups."
 					label="Other table"
 					value={otherTable}
 					onChange={(v) => setKey("other_table", v)}
-					hint="Optional table whose rows name the groups."
 				/>
 				<DataColumnSelect
+					hint="Column on the other table used as the group label."
 					label="Title field"
 					table={otherTable}
 					value={str(settings.title_field)}
 					onChange={(v) => setKey("title_field", v)}
-					hint="Column on the other table used as the group label."
 				/>
 				{withSortField && (
 					<>
@@ -98,19 +98,19 @@ export const ViewTypeSettingsControl = ({
 						/>
 						<SelectInput
 							label="Sort direction"
+							options={OT_SORT_DIR}
 							value={str(settings.ot_sort_direction) || "ASC"}
 							onChange={(v) => setKey("ot_sort_direction", v)}
-							options={OT_SORT_DIR}
 						/>
 					</>
 				)}
 			</FieldGrid>
 			<TextInput
+				mono
+				hint="PHP: $item is the group data, set $value to the displayed name."
 				label="Group name parser"
 				value={str(settings.group_parser)}
 				onChange={(v) => setKey("group_parser", v)}
-				hint="PHP: $item is the group data, set $value to the displayed name."
-				mono
 			/>
 		</div>
 	);
@@ -118,11 +118,11 @@ export const ViewTypeSettingsControl = ({
 	if (type === "nested") {
 		return (
 			<DataColumnSelect
+				hint='The self-referencing parent column (e.g. "parent").'
 				label="Nesting column"
 				table={table}
 				value={str(settings.nesting_column)}
 				onChange={(v) => setKey("nesting_column", v)}
-				hint='The self-referencing parent column (e.g. "parent").'
 			/>
 		);
 	}
@@ -139,11 +139,11 @@ export const ViewTypeSettingsControl = ({
 						onChange={(v) => setKey("group_field", v)}
 					/>
 					<DataColumnSelect
+						hint="Used when the view is not draggable."
 						label="Sort inside groups"
 						table={table}
 						value={str(settings.sort)}
 						onChange={(v) => setKey("sort", v)}
-						hint="Used when the view is not draggable."
 					/>
 				</FieldGrid>
 				{groupingParams(true)}
@@ -165,10 +165,10 @@ export const ViewTypeSettingsControl = ({
 						onChange={(v) => setKey("image", v)}
 					/>
 					<TextInput
+						hint='For thumbnails, e.g. "thumb_".'
 						label="Image prefix"
 						value={str(settings.prefix)}
 						onChange={(v) => setKey("prefix", v)}
-						hint='For thumbnails, e.g. "thumb_".'
 					/>
 					{grouped && (
 						<DataColumnSelect
@@ -180,9 +180,9 @@ export const ViewTypeSettingsControl = ({
 					)}
 					<SelectInput
 						label="Sort direction"
+						options={IMAGE_SORT}
 						value={str(settings.sort) || "DESC"}
 						onChange={(v) => setKey("sort", v)}
-						options={IMAGE_SORT}
 					/>
 				</FieldGrid>
 				{grouped && groupingParams(false)}

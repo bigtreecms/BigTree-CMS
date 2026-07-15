@@ -14,12 +14,12 @@ import { IconButton } from "@/components/ui/IconButton";
 import { SearchInput } from "@/components/ui/SearchInput";
 
 interface MovePageDialogProps {
-	open: boolean;
-	onOpenChange: (open: boolean) => void;
-	/** Page being moved (null hides the dialog). */
-	page: { id: number; nav_title: string; parent: number } | null;
 	/** Query key invalidated on success (typically the parent list query). */
 	invalidateKey: readonly unknown[];
+	onOpenChange: (open: boolean) => void;
+	open: boolean;
+	/** Page being moved (null hides the dialog). */
+	page: { id: number; nav_title: string; parent: number } | null;
 }
 
 /**
@@ -114,11 +114,7 @@ export const MovePageDialog = ({
 
 	return (
 		<SlideOver
-			open={open && page !== null}
-			onOpenChange={onOpenChange}
-			title={page ? `Move “${page.nav_title}”` : "Move page"}
 			description="Pick a new parent. Top-level pages live at the site root."
-			width="md"
 			footer={
 				<div className="flex items-center justify-between gap-2">
 					<div className="min-w-0 truncate text-[12px] text-text-3">
@@ -138,44 +134,48 @@ export const MovePageDialog = ({
 							Cancel
 						</Button>
 						<Button
-							variant="primary"
-							onClick={() => target && moveMutation.mutate({ parent: target.id })}
 							disabled={!target}
 							loading={moveMutation.isPending}
 							loadingLabel="Moving…"
+							variant="primary"
+							onClick={() => target && moveMutation.mutate({ parent: target.id })}
 						>
 							Move page
 						</Button>
 					</div>
 				</div>
 			}
+			open={open && page !== null}
+			title={page ? `Move “${page.nav_title}”` : "Move page"}
+			width="md"
+			onOpenChange={onOpenChange}
 		>
 			<div className="space-y-3">
 				<SearchInput
+					aria-label="Search pages"
+					placeholder="Search pages…"
 					value={search}
 					onChange={setSearch}
-					placeholder="Search pages…"
-					aria-label="Search pages"
 				/>
 
 				{!isSearching && (
 					<nav className="flex flex-wrap items-center gap-1 text-[12px] text-text-3">
 						<button
-							type="button"
 							className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 hover:bg-hover hover:text-text"
+							type="button"
 							onClick={() => navigateCrumb(-1)}
 						>
 							<Home size={12} />
 							Top level
 						</button>
 						{crumbs.map((c, index) => (
-							<span key={c.id} className="flex items-center gap-1">
+							<span className="flex items-center gap-1" key={c.id}>
 								<ChevronRight size={12} />
 								<button
-									type="button"
 									className="rounded px-1.5 py-0.5 hover:bg-hover hover:text-text disabled:hover:bg-transparent"
-									onClick={() => navigateCrumb(index)}
 									disabled={index === crumbs.length - 1}
+									type="button"
+									onClick={() => navigateCrumb(index)}
 								>
 									{c.nav_title}
 								</button>
@@ -186,14 +186,14 @@ export const MovePageDialog = ({
 
 				{!isSearching && (
 					<button
-						type="button"
 						className="flex w-full items-center justify-between rounded-md border border-border bg-surface px-3 py-2 text-left text-[12.5px] hover:bg-hover"
+						type="button"
 						onClick={() => {
 							setTarget({ id: 0, nav_title: "Top level" });
 						}}
 					>
 						<span className="flex items-center gap-2">
-							<Home size={14} className="text-accent" />
+							<Home className="text-accent" size={14} />
 							Top level
 						</span>
 						{target?.id === 0 && (
@@ -224,11 +224,11 @@ export const MovePageDialog = ({
 								"has_children" in row && (row as PageListRow).has_children;
 
 							return (
-								<li key={id} className="border-b border-border last:border-b-0">
+								<li className="border-b border-border last:border-b-0" key={id}>
 									<div className="flex items-center justify-between gap-2 px-3 py-2 text-[12.5px] hover:bg-hover">
 										<button
-											type="button"
 											className="flex min-w-0 flex-1 items-center gap-2 text-left"
+											type="button"
 											onClick={() => {
 												setTarget({ id, nav_title: title });
 
@@ -237,7 +237,7 @@ export const MovePageDialog = ({
 												}
 											}}
 										>
-											<Folder size={14} className="text-accent" />
+											<Folder className="text-accent" size={14} />
 											<span className="truncate text-text-2">{title}</span>
 										</button>
 
@@ -249,9 +249,9 @@ export const MovePageDialog = ({
 											)}
 											{!isSearching && hasChildren && (
 												<IconButton
-													onClick={() => drillInto(row as PageListRow)}
-													title="Open subpages"
 													label="Open subpages"
+													title="Open subpages"
+													onClick={() => drillInto(row as PageListRow)}
 												>
 													<ChevronRight size={13} />
 												</IconButton>

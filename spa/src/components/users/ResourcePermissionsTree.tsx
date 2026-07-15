@@ -13,8 +13,8 @@ import { TreeExpander, TreeLoadingRow } from "./PermissionTreeParts";
 import { RESOURCE_PERMISSION_OPTIONS } from "./permissionOptions";
 
 interface ResourcePermissionsTreeProps {
-	value: UserPermissions["resources"];
 	onChange: (next: UserPermissions["resources"]) => void;
+	value: UserPermissions["resources"];
 }
 
 /**
@@ -32,7 +32,7 @@ export const ResourcePermissionsTree = ({ value, onChange }: ResourcePermissions
 			<PermissionTreeHeader columns="minmax(0,1fr) repeat(4, 80px)">
 				<div>Folder</div>
 				{RESOURCE_PERMISSION_OPTIONS.map((opt) => (
-					<div key={opt.value} className="text-center">
+					<div className="text-center" key={opt.value}>
 						{opt.label}
 					</div>
 				))}
@@ -40,13 +40,13 @@ export const ResourcePermissionsTree = ({ value, onChange }: ResourcePermissions
 
 			<div className="border-x border-b border-border">
 				<FolderRow
+					hideInheritForRoot
+					initiallyExpanded
+					depth={0}
 					id={0}
 					name="Home Folder"
-					depth={0}
-					initiallyExpanded
-					value={value}
 					setPerm={setPerm}
-					hideInheritForRoot
+					value={value}
 				/>
 			</div>
 		</div>
@@ -54,19 +54,19 @@ export const ResourcePermissionsTree = ({ value, onChange }: ResourcePermissions
 };
 
 interface FolderRowProps {
-	id: number;
-	name: string;
 	depth: number;
-	initiallyExpanded?: boolean;
-	value: UserPermissions["resources"];
-	setPerm: (id: string, perm: PermissionCode) => void;
-	hideInheritForRoot?: boolean;
 	/**
 	 * Server-computed flag from `GET /resource-folders`. `false` collapses the
 	 * row to a leaf-aligned spacer; `undefined` (synthetic root) keeps the
 	 * expander since we never know the root's children up-front.
 	 */
 	hasChildren?: boolean;
+	hideInheritForRoot?: boolean;
+	id: number;
+	initiallyExpanded?: boolean;
+	name: string;
+	setPerm: (id: string, perm: PermissionCode) => void;
+	value: UserPermissions["resources"];
 }
 
 const FolderRow = ({
@@ -100,30 +100,30 @@ const FolderRow = ({
 
 				<PermissionRadios
 					name={`folder-perm-${id}`}
-					value={current}
-					onChange={(next) => setPerm(idKey, next)}
 					options={
 						hideInheritForRoot
 							? RESOURCE_PERMISSION_OPTIONS.filter((o) => o.value !== "i")
 							: RESOURCE_PERMISSION_OPTIONS
 					}
+					value={current}
+					onChange={(next) => setPerm(idKey, next)}
 				/>
 
 				{hideInheritForRoot && <span aria-hidden="true" />}
 			</PermissionRow>
 
 			{showExpander && expanded && (
-				<FolderChildren parent={id} depth={depth + 1} value={value} setPerm={setPerm} />
+				<FolderChildren depth={depth + 1} parent={id} setPerm={setPerm} value={value} />
 			)}
 		</div>
 	);
 };
 
 interface FolderChildrenProps {
-	parent: number;
 	depth: number;
-	value: UserPermissions["resources"];
+	parent: number;
 	setPerm: (id: string, perm: PermissionCode) => void;
+	value: UserPermissions["resources"];
 }
 
 const FolderChildren = ({ parent, depth, value, setPerm }: FolderChildrenProps) => {
@@ -146,13 +146,13 @@ const FolderChildren = ({ parent, depth, value, setPerm }: FolderChildrenProps) 
 		<Fragment>
 			{rows.map((row: ResourceFolderRow) => (
 				<FolderRow
-					key={row.id}
-					id={row.id}
-					name={row.name}
 					depth={depth}
-					value={value}
-					setPerm={setPerm}
 					hasChildren={row.has_children}
+					id={row.id}
+					key={row.id}
+					name={row.name}
+					setPerm={setPerm}
+					value={value}
 				/>
 			))}
 		</Fragment>

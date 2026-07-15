@@ -15,12 +15,12 @@ import { SectionLabel } from "@/components/ui/SectionLabel";
  * current type — e.g. when switching rss ↔ custom — are preserved.
  */
 interface FeedSettingsControlProps {
-	/** Feed type: "custom" | "rss" | "rss2". */
-	type: string;
+	onChange: (next: Record<string, unknown>) => void;
+	settings: Record<string, unknown>;
 	/** Source table; column pickers stay disabled until one is chosen. */
 	table: string;
-	settings: Record<string, unknown>;
-	onChange: (next: Record<string, unknown>) => void;
+	/** Feed type: "custom" | "rss" | "rss2". */
+	type: string;
 }
 
 const str = (value: unknown): string => (value == null ? "" : String(value));
@@ -35,20 +35,20 @@ export const FeedSettingsControl = ({
 
 	const text = (key: string, label: string, hint?: string) => (
 		<TextField
+			hint={hint}
 			label={label}
 			value={str(settings[key])}
 			onChange={(v) => set({ [key]: v })}
-			hint={hint}
 		/>
 	);
 
 	const column = (key: string, label: string, hint?: string) => (
 		<DataColumnSelect
+			hint={hint}
 			label={label}
 			table={table}
 			value={str(settings[key])}
 			onChange={(v) => set({ [key]: v })}
-			hint={hint}
 		/>
 	);
 

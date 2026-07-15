@@ -224,8 +224,8 @@ export const DebugUpgrade = () => {
 
 	return (
 		<DebugLayout
-			title="System upgrade"
 			sub="Check for new BigTree releases and run the core + database upgrade."
+			title="System upgrade"
 		>
 			{checkQ.isLoading && <p className="text-[12.5px] text-text-3">Checking for updates…</p>}
 
@@ -269,7 +269,7 @@ export const DebugUpgrade = () => {
 					{data.migrations_pending && (
 						<div className="mb-4 flex flex-col gap-3 rounded-lg border border-warn/40 bg-warn-bg/30 p-3 text-[12.5px] text-text-2">
 							<div className="flex items-start gap-2">
-								<AlertTriangle size={15} className="mt-0.5 shrink-0 text-warn" />
+								<AlertTriangle className="mt-0.5 shrink-0 text-warn" size={15} />
 								<div>
 									<p className="font-medium text-text">
 										Database migrations are pending
@@ -297,12 +297,12 @@ export const DebugUpgrade = () => {
 								</div>
 							</div>
 							<div className="flex flex-wrap gap-2">
-								<Button variant="primary" to="/developer/migrations">
+								<Button to="/developer/migrations" variant="primary">
 									Run migrations
 								</Button>
 								<Button
-									variant="secondary"
 									disabled={busy}
+									variant="secondary"
 									onClick={() => void runMigrations()}
 								>
 									Run here
@@ -313,7 +313,7 @@ export const DebugUpgrade = () => {
 
 					{data.config_ignored && (
 						<div className="mb-4 flex items-start gap-2 rounded-lg border border-warn/40 bg-warn-bg/30 p-3 text-[12.5px] text-text-2">
-							<AlertTriangle size={15} className="mt-0.5 shrink-0 text-warn" />
+							<AlertTriangle className="mt-0.5 shrink-0 text-warn" size={15} />
 							Updates are disabled in this install's configuration (
 							<code>ignore_admin_updates</code>).
 						</div>
@@ -321,7 +321,7 @@ export const DebugUpgrade = () => {
 
 					{!data.method && (
 						<div className="mb-4 flex items-start gap-2 rounded-lg border border-warn/40 bg-warn-bg/30 p-3 text-[12.5px] text-text-2">
-							<AlertTriangle size={15} className="mt-0.5 shrink-0 text-warn" />
+							<AlertTriangle className="mt-0.5 shrink-0 text-warn" size={15} />
 							The web server can't write to <code>/core/</code> via local, FTP, or
 							SFTP. Automatic upgrades are unavailable — you'll need to upgrade
 							manually.
@@ -372,16 +372,16 @@ export const DebugUpgrade = () => {
 										</Field>
 										<Field label={`${method} password`}>
 											<TextInput
-												type="password"
 												autoComplete="off"
+												type="password"
 												value={password}
 												onChange={(e) => setPassword(e.target.value)}
 											/>
 										</Field>
 										<Button
-											variant="primary"
-											type="submit"
 											disabled={!username}
+											type="submit"
+											variant="primary"
 										>
 											Install
 										</Button>
@@ -405,7 +405,7 @@ export const DebugUpgrade = () => {
 												onChange={(e) => setFtpRoot(e.target.value)}
 											/>
 										</Field>
-										<Button variant="primary" type="submit" disabled={!ftpRoot}>
+										<Button disabled={!ftpRoot} type="submit" variant="primary">
 											Set directory & install
 										</Button>
 									</form>
@@ -422,13 +422,13 @@ export const DebugUpgrade = () => {
 
 					{stage === "complete" && (
 						<div className="mt-4 flex items-center gap-2 rounded-lg border border-success/40 bg-surface p-4 text-[13px] font-medium text-text">
-							<CheckCircle2 size={16} className="text-success" />
+							<CheckCircle2 className="text-success" size={16} />
 							Upgrade complete. Reload the admin to pick up the new version.
 						</div>
 					)}
 
 					{stage === "error" && error && (
-						<Alert tone="danger" title="Upgrade failed" className="mt-4">
+						<Alert className="mt-4" title="Upgrade failed" tone="danger">
 							<div className="text-text-2">{error}</div>
 						</Alert>
 					)}
@@ -447,7 +447,7 @@ const UpdateList = ({ data, onInstall }: UpdateListProps) => {
 	if (data.updates.length === 0) {
 		return (
 			<div className="flex items-center gap-2 rounded-lg border border-border bg-surface p-4 text-[12.5px] text-text-3">
-				<CheckCircle2 size={14} className="text-success" />
+				<CheckCircle2 className="text-success" size={14} />
 				You're running the latest release. No updates are available.
 			</div>
 		);
@@ -457,8 +457,8 @@ const UpdateList = ({ data, onInstall }: UpdateListProps) => {
 		<div className="space-y-3">
 			{data.updates.map((update) => (
 				<Card
-					key={update.type + update.version}
 					className="flex items-start justify-between gap-4 p-4"
+					key={update.type + update.version}
 				>
 					<div className="min-w-0">
 						<div className="text-[13.5px] font-semibold text-text">
@@ -474,9 +474,9 @@ const UpdateList = ({ data, onInstall }: UpdateListProps) => {
 
 					{update.installable ? (
 						<Button
-							variant="primary"
-							icon={<Download size={13} />}
 							className="shrink-0"
+							icon={<Download size={13} />}
+							variant="primary"
 							onClick={() => onInstall(update)}
 						>
 							Install {update.version}

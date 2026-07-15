@@ -30,28 +30,28 @@ import { create } from "zustand";
  */
 
 export interface AuthUser {
-	id: number;
 	email: string;
-	name: string;
-	level: number;
-	timezone?: string;
 	/** Server-driven capability flags (e.g. AI search when Configure → AI enables it). */
 	features?: {
 		ai_search?: boolean;
 		ai_chat?: boolean;
 	};
+	id: number;
+	level: number;
 	/**
 	 * Developer-only: true when core revision scripts still need to run.
 	 * The SPA forces /developer/migrations until this clears.
 	 */
 	migrations_pending?: boolean;
+	name: string;
+	timezone?: string;
 }
 
 /** Identity of the developer currently emulating another user. */
 export interface EmulatedBy {
+	email: string;
 	id: number;
 	name: string;
-	email: string;
 }
 
 const STORAGE_KEY = "bigtree:auth";
@@ -61,10 +61,10 @@ const ORIGIN_STORAGE_KEY = "bigtree:auth:origin";
 
 interface PersistedAuth {
 	accessToken: string;
-	refreshToken: string;
-	expiresAt: number; // epoch ms
-	user: AuthUser;
 	emulatedBy?: EmulatedBy | null;
+	expiresAt: number; // epoch ms
+	refreshToken: string;
+	user: AuthUser;
 }
 
 function loadPersisted(): PersistedAuth | null {
@@ -112,23 +112,25 @@ function saveOrigin(p: PersistedAuth | null): void {
 
 interface AuthState {
 	accessToken: string | null;
-	refreshToken: string | null;
-	expiresAt: number | null;
-	user: AuthUser | null;
-	/** Set while a developer is emulating another user; null otherwise. */
-	emulatedBy: EmulatedBy | null;
-	/**
-	 * True until the initial localStorage read + optional refresh probe completes.
-	 * Route guards key off this to avoid flashing the login screen.
-	 */
-	hydrating: boolean;
+	clear: () => void;
 	/**
 	 * Set when the API rejects a request with the "developer_mode" code — the
 	 * admin is in maintenance and limited to developers. Not persisted; the
 	 * Shell renders a lockout screen while this is true.
 	 */
 	developerLockout: boolean;
+	/** Set while a developer is emulating another user; null otherwise. */
+	emulatedBy: EmulatedBy | null;
+	expiresAt: number | null;
+	/**
+	 * True until the initial localStorage read + optional refresh probe completes.
+	 * Route guards key off this to avoid flashing the login screen.
+	 */
+	hydrating: boolean;
+	refreshToken: string | null;
 
+	setDeveloperLockout: (locked: boolean) => void;
+	setHydrated: () => void;
 	setSession: (access: string, refresh: string, expiresInSeconds: number, user: AuthUser) => void;
 	/** Update the cached user without touching tokens (e.g. after /auth/me). */
 	setUser: (user: AuthUser) => void;
@@ -145,9 +147,7 @@ interface AuthState {
 	) => void;
 	/** Restore the developer's parked session. No-op if not emulating. */
 	stopEmulation: () => void;
-	clear: () => void;
-	setHydrated: () => void;
-	setDeveloperLockout: (locked: boolean) => void;
+	user: AuthUser | null;
 }
 
 const initial = loadPersisted();

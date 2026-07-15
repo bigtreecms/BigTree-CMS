@@ -178,7 +178,7 @@ jobs:
             || { echo "One or more API tests failed"; exit 1; }
 
   smoke:
-    name: API smoke tests (auth)
+    name: API smoke tests (P0 matrix)
     runs-on: ubuntu-latest
     services:
       mysql:
@@ -209,9 +209,14 @@ jobs:
       # dereferences: settings_key (AES_DECRYPT of settings — core/inc/bigtree/
       # cms.php) and api.jwt_secret (JWT signing — AuthService::issueTokens).
       # Both are dummy CI values; roots point at the local php -S server.
+      #
+      # Phase 2 also needs:
+      #   - custom/json-db/ for templates/modules/settings definitions
+      #   - site/files/resources (+ temporary) for resource upload smoke
       - name: Write CI env files
         run: |
-          mkdir -p custom/inc/required cache
+          mkdir -p custom/inc/required cache custom/json-db \
+            site/files/resources site/files/temporary site/files/pages
           touch cache/composer-check.flag
           cat > custom/environment.php <<'PHP'
           <?php
@@ -273,12 +278,17 @@ jobs:
             fi
             sleep 1
           done
-      - name: Run auth smoke tests
+      # Phase 2: full P0 HTTP matrix (auth + tags + pages + users + settings +
+      # scaffolded modules + templates + resources + page-sites). Fail-fast so the
+      # first red domain is obvious in the log; run-all also continues when
+      # BIGTREE_SMOKE_FAIL_FAST=0 for local debugging.
+      - name: Run P0 API smoke matrix
         env:
           BIGTREE_API_BASE: http://127.0.0.1:8080/admin/api/v1
           BIGTREE_TEST_EMAIL: smoke@ci.local
           BIGTREE_TEST_PASSWORD: SmokeTest-CI-2026!
-        run: bash core/inc/bigtree/api/_smoke/auth.sh
+          BIGTREE_SMOKE_FAIL_FAST: "1"
+        run: bash core/inc/bigtree/api/_smoke/run-all.sh
       # SPA cutover: admin HTML is served from core/admin/dist (committed).
       - name: Smoke SPA index + asset rewrite + classic redirect
         run: |
@@ -304,3 +314,117 @@ jobs:
       - name: Dump PHP server log on failure
         if: failure()
         run: cat /tmp/php-smoke.log || true
+
+  e2e:
+    name: SPA Playwright E2E (critical journeys)
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: bigtree_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -proot"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.2"
+          extensions: mysqli, gd, json
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: spa/.nvmrc
+          cache: npm
+          cache-dependency-path: spa/package-lock.json
+      - name: Load schema
+        run: mysql -h 127.0.0.1 -P 3306 -uroot -proot bigtree_test < core/setup/base.sql
+      - name: Write CI env files
+        run: |
+          mkdir -p custom/inc/required cache custom/json-db \
+            site/files/resources site/files/temporary site/files/pages
+          touch cache/composer-check.flag
+          cat > custom/environment.php <<'PHP'
+          <?php
+          $bigtree["config"]["debug"] = false;
+          $bigtree["config"]["domain"] = "http://127.0.0.1:8080/";
+          $bigtree["config"]["www_root"] = "http://127.0.0.1:8080/";
+          $bigtree["config"]["static_root"] = "http://127.0.0.1:8080/";
+          $bigtree["config"]["admin_root"] = "http://127.0.0.1:8080/admin/";
+          $bigtree["config"]["sql_interface"] = "mysqli";
+          $bigtree["config"]["settings_key"] = "ci-smoke-settings-key-aaaaaaaaaaaaaaaa";
+          $bigtree["config"]["api"]["jwt_secret"] = "ci-smoke-jwt-secret-at-least-32-bytes-long";
+          $bigtree["config"]["db"]["host"] = "127.0.0.1";
+          $bigtree["config"]["db"]["name"] = "bigtree_test";
+          $bigtree["config"]["db"]["user"] = "root";
+          $bigtree["config"]["db"]["password"] = "root";
+          $bigtree["config"]["db"]["port"] = 3306;
+          $bigtree["config"]["db"]["socket"] = null;
+          $bigtree["config"]["db_write"]["host"] = "127.0.0.1";
+          $bigtree["config"]["db_write"]["name"] = "bigtree_test";
+          $bigtree["config"]["db_write"]["user"] = "root";
+          $bigtree["config"]["db_write"]["password"] = "root";
+          $bigtree["config"]["db_write"]["port"] = 3306;
+          $bigtree["config"]["db_write"]["socket"] = null;
+          PHP
+          cat > custom/settings.php <<'PHP'
+          <?php
+          PHP
+      - name: Seed e2e admin user
+        env:
+          E2E_EMAIL: smoke@ci.local
+          E2E_PASSWORD: SmokeTest-CI-2026!
+        run: |
+          HASH=$(php -r 'echo password_hash(getenv("E2E_PASSWORD"), PASSWORD_DEFAULT);')
+          mysql -h 127.0.0.1 -P 3306 -uroot -proot bigtree_test \
+            -e "INSERT INTO bigtree_users (email,password,new_hash,\`2fa_secret\`,\`2fa_login_token\`,name,company,level,permissions,alerts,daily_digest,timezone,change_password_hash,token_version) VALUES ('${E2E_EMAIL}','${HASH}','on','','','E2E CI','',2,'{}','','','UTC','',1) ON DUPLICATE KEY UPDATE password=VALUES(password), new_hash='on', level=2, token_version=1;"
+          # Homepage row so pages tree / permissions have a parent to attach to
+          mysql -h 127.0.0.1 -P 3306 -uroot -proot bigtree_test -e \
+            "INSERT IGNORE INTO bigtree_pages (id,trunk,parent,in_nav,nav_title,route,path,title,meta_keywords,meta_description,seo_invisible,template,external,new_window,resources,archived,archived_inherited,max_age,last_edited_by,ga_page_views,position,created_at,updated_at) VALUES (0,'',-1,'on','Home','','','Home','','','','content','','','{}','','',0,1,0,0,NOW(),NOW()), (1,'',0,'on','About','about','about','About','','','','content','','','{}','','',0,1,0,0,NOW(),NOW());" \
+            || true
+      - name: Start PHP server
+        run: |
+          REPO_ROOT="$(pwd)/" php -S 127.0.0.1:8080 \
+            core/inc/bigtree/api/_smoke/ci-router.php > /tmp/php-e2e.log 2>&1 &
+          for i in $(seq 1 30); do
+            if [ "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8080/admin/api/v1/auth/login-policy)" = "200" ]; then
+              echo "Server ready after ${i}s"
+              break
+            fi
+            if [ "$i" -eq 30 ]; then
+              cat /tmp/php-e2e.log
+              exit 1
+            fi
+            sleep 1
+          done
+      - name: Install SPA deps + Playwright Chromium
+        working-directory: spa
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+      - name: Run Playwright critical journeys
+        working-directory: spa
+        env:
+          E2E_BASE_URL: http://127.0.0.1:8080/admin
+          E2E_API_BASE: http://127.0.0.1:8080/admin/api/v1
+          E2E_EMAIL: smoke@ci.local
+          E2E_PASSWORD: SmokeTest-CI-2026!
+          CI: "true"
+        run: npm run test:e2e
+      - name: Dump PHP log on failure
+        if: failure()
+        run: cat /tmp/php-e2e.log || true
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: |
+            spa/test-results
+            spa/playwright-report
+          if-no-files-found: ignore
+          retention-days: 7

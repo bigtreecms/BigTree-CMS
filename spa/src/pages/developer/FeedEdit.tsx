@@ -75,7 +75,7 @@ export const FeedEdit = () => {
 	);
 
 	if (!isAdd && !idParam) {
-		return <Navigate to="/developer/feeds" replace />;
+		return <Navigate replace to="/developer/feeds" />;
 	}
 
 	const feedType = body.type ?? "custom";
@@ -83,15 +83,17 @@ export const FeedEdit = () => {
 
 	return (
 		<DeveloperEditLayout
-			width="medium"
-			section="Feeds"
-			listPath="/developer/feeds"
-			isAdd={isAdd}
-			title={title}
 			detailQuery={detailQ}
 			error={submit.error}
-			isDirty={isDirty}
 			formShellBounded={false}
+			isAdd={isAdd}
+			isDirty={isDirty}
+			listPath="/developer/feeds"
+			saving={saving}
+			section="Feeds"
+			submitLabel={isAdd ? "Create feed" : "Save feed"}
+			title={title}
+			width="medium"
 			onSubmit={submit.buildSubmit({
 				required: [
 					{ field: "id", label: "ID", value: body.id },
@@ -101,38 +103,36 @@ export const FeedEdit = () => {
 				save: () => save(body),
 				saving,
 			})}
-			submitLabel={isAdd ? "Create feed" : "Save feed"}
-			saving={saving}
 		>
 			<div className="space-y-4">
 				<FieldGrid>
 					<TextField
+						required
+						disabled={!isAdd}
+						error={submit.fieldErrors.id}
+						hint="Becomes the public path under /feeds/{id}/."
 						label="ID / route"
 						value={body.id ?? ""}
 						onChange={(v) => set({ id: v })}
-						hint="Becomes the public path under /feeds/{id}/."
-						error={submit.fieldErrors.id}
-						disabled={!isAdd}
-						required
 					/>
 					<TextField
+						required
+						error={submit.fieldErrors.name}
 						label="Name"
 						value={body.name ?? ""}
 						onChange={(v) => set({ name: v })}
-						error={submit.fieldErrors.name}
-						required
 					/>
 					<DataTableSelect
+						hint="Database table the feed pulls rows from."
 						label="Source table"
 						value={body.table ?? ""}
 						onChange={(v) => set({ table: v })}
-						hint="Database table the feed pulls rows from."
 					/>
 					<SelectField
 						label="Type"
+						options={FEED_TYPES}
 						value={feedType}
 						onChange={(v) => set({ type: v })}
-						options={FEED_TYPES}
 					/>
 				</FieldGrid>
 
@@ -145,9 +145,9 @@ export const FeedEdit = () => {
 				<div>
 					<SectionLabel className="mb-2">Feed settings</SectionLabel>
 					<FeedSettingsControl
-						type={feedType}
-						table={body.table ?? ""}
 						settings={asObject(body.settings)}
+						table={body.table ?? ""}
+						type={feedType}
 						onChange={(next) => set({ settings: next })}
 					/>
 				</div>
@@ -156,13 +156,13 @@ export const FeedEdit = () => {
 					<div>
 						<SectionLabel className="mb-2">Output fields</SectionLabel>
 						<ResourceDesigner
+							keyField="column"
 							resources={(body.fields ?? []) as unknown as ResourceEntry[]}
+							settingsErrors={submit.settingsErrors}
+							useCase="feeds"
 							onChange={(next) =>
 								set({ fields: next as unknown as ModuleFormField[] })
 							}
-							keyField="column"
-							useCase="feeds"
-							settingsErrors={submit.settingsErrors}
 						/>
 					</div>
 				)}

@@ -62,23 +62,25 @@ export const CalloutEdit = () => {
 	);
 
 	if (!isAdd && !idParam) {
-		return <Navigate to="/developer/callouts" replace />;
+		return <Navigate replace to="/developer/callouts" />;
 	}
 
 	const title = isAdd ? "Add callout" : body.name || idParam || "Edit callout";
 
 	return (
 		<DeveloperEditLayout
-			width="medium"
-			section="Callouts"
-			listPath="/developer/callouts"
-			isAdd={isAdd}
-			title={title}
-			sub={isAdd ? "Define a new callout type." : "Editing callout definition."}
 			detailQuery={detailQ}
 			error={submit.error}
-			isDirty={isDirty}
 			formShellBounded={false}
+			isAdd={isAdd}
+			isDirty={isDirty}
+			listPath="/developer/callouts"
+			saving={saving}
+			section="Callouts"
+			sub={isAdd ? "Define a new callout type." : "Editing callout definition."}
+			submitLabel={isAdd ? "Create callout" : "Save callout"}
+			title={title}
+			width="medium"
 			onSubmit={submit.buildSubmit({
 				required: [
 					{ field: "id", label: "ID", value: body.id },
@@ -88,26 +90,24 @@ export const CalloutEdit = () => {
 				save: () => save(body),
 				saving,
 			})}
-			submitLabel={isAdd ? "Create callout" : "Save callout"}
-			saving={saving}
 		>
 			<div className="space-y-4">
 				<FieldGrid>
 					<TextField
+						required
+						disabled={!isAdd}
+						error={submit.fieldErrors.id}
+						hint="Lowercase, hyphens or underscores. Cannot change after create."
 						label="ID"
 						value={body.id ?? ""}
 						onChange={(v) => set({ id: v })}
-						hint="Lowercase, hyphens or underscores. Cannot change after create."
-						error={submit.fieldErrors.id}
-						disabled={!isAdd}
-						required
 					/>
 					<TextField
+						required
+						error={submit.fieldErrors.name}
 						label="Name"
 						value={body.name ?? ""}
 						onChange={(v) => set({ name: v })}
-						error={submit.fieldErrors.name}
-						required
 					/>
 				</FieldGrid>
 
@@ -120,33 +120,33 @@ export const CalloutEdit = () => {
 				<FieldGrid>
 					<SelectField
 						label="Minimum user level"
-						value={String(body.level ?? 0)}
-						onChange={(v) => set({ level: Number(v) })}
 						options={[
 							{ value: "0", label: "Editor (0)" },
 							{ value: "1", label: "Admin (1)" },
 							{ value: "2", label: "Developer (2)" },
 						]}
+						value={String(body.level ?? 0)}
+						onChange={(v) => set({ level: Number(v) })}
 					/>
 					<TextField
+						hint="Fallback shown when display_field is empty."
 						label="Default title text"
 						value={body.display_default ?? ""}
 						onChange={(v) => set({ display_default: v })}
-						hint="Fallback shown when display_field is empty."
 					/>
 				</FieldGrid>
 
 				<div>
 					<SectionLabel className="mb-2">Fields</SectionLabel>
 					<ResourceDesigner
+						displayFieldId={body.display_field}
+						keyField="id"
 						resources={(body.resources ?? []) as unknown as ResourceEntry[]}
+						settingsErrors={submit.settingsErrors}
+						useCase="callouts"
 						onChange={(next) =>
 							set({ resources: next as unknown as TemplateResource[] })
 						}
-						keyField="id"
-						useCase="callouts"
-						settingsErrors={submit.settingsErrors}
-						displayFieldId={body.display_field}
 						onSetDisplayField={(id) =>
 							set({ display_field: id === body.display_field ? "" : id })
 						}

@@ -5,13 +5,13 @@ import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { Loading } from "@/components/ui/Loading";
 
 interface EditPageGuardProps {
-	/** Content width tier, passed straight through to `PageContainer`. */
-	width?: "wide" | "medium" | "narrow" | "xwide";
-	/** True while the record is loading (edit mode). Gate on `!isAdd`. */
-	loading?: boolean;
+	children: ReactNode;
 	/** The detail query's error, if any. Pass a falsy value in add mode. */
 	error?: unknown;
-	children: ReactNode;
+	/** True while the record is loading (edit mode). Gate on `!isAdd`. */
+	loading?: boolean;
+	/** Content width tier, passed straight through to `PageContainer`. */
+	width?: "wide" | "medium" | "narrow" | "xwide";
 }
 
 /**

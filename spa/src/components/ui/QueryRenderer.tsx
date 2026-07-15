@@ -2,12 +2,12 @@ import { Loading } from "@/components/ui/Loading";
 import { describeApiError } from "@/lib/errorHandling";
 
 interface QueryRendererProps {
-	isLoading?: boolean;
+	children: React.ReactNode;
+	empty?: React.ReactNode;
 	error?: unknown;
 	isEmpty?: boolean;
-	empty?: React.ReactNode;
+	isLoading?: boolean;
 	loading?: React.ReactNode;
-	children: React.ReactNode;
 }
 
 export const QueryRenderer = ({

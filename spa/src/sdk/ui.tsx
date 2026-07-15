@@ -12,9 +12,9 @@ import type { ButtonHTMLAttributes, CSSProperties, ReactNode } from "react";
 
 interface StackProps {
 	children: ReactNode;
+	className?: string;
 	/** Vertical gap in px (default 16). */
 	gap?: number;
-	className?: string;
 }
 
 /** Vertical flex column. */
@@ -22,7 +22,7 @@ export const Stack = ({ children, gap = 16, className = "" }: StackProps) => {
 	const style: CSSProperties = { display: "flex", flexDirection: "column", gap };
 
 	return (
-		<div style={style} className={className}>
+		<div className={className} style={style}>
 			{children}
 		</div>
 	);
@@ -30,9 +30,9 @@ export const Stack = ({ children, gap = 16, className = "" }: StackProps) => {
 
 interface RowProps {
 	children: ReactNode;
+	className?: string;
 	/** Horizontal gap in px (default 8). */
 	gap?: number;
-	className?: string;
 }
 
 /** Horizontal flex row, vertically centered. */
@@ -40,7 +40,7 @@ export const Row = ({ children, gap = 8, className = "" }: RowProps) => {
 	const style: CSSProperties = { display: "flex", alignItems: "center", gap };
 
 	return (
-		<div style={style} className={className}>
+		<div className={className} style={style}>
 			{children}
 		</div>
 	);
@@ -58,8 +58,8 @@ const BUTTON_SECONDARY =
 /** Primary / secondary action button. */
 export const Button = ({ variant = "primary", className = "", type, ...props }: ButtonProps) => (
 	<button
-		type={type ?? "button"}
 		className={`${variant === "primary" ? BUTTON_PRIMARY : BUTTON_SECONDARY} ${className}`}
+		type={type ?? "button"}
 		{...props}
 	/>
 );

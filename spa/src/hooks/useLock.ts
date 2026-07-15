@@ -7,39 +7,39 @@ import type { LockConflictDetails } from "@/api/endpoints/locks";
 import type { LockOwner } from "@/types/api-resources";
 
 interface UseLockOptions {
-	/** Logical record being locked, e.g. "bigtree_pages" or "module:14". */
-	table: string;
-	/** Numeric or string id of the record being locked. */
-	itemId: string | number;
-	/** Title surfaced to the user holding a conflicting lock. */
-	title?: string;
 	/** If false the hook stays dormant — useful while data is still loading. */
 	enabled?: boolean;
+	/** Numeric or string id of the record being locked. */
+	itemId: string | number;
 	/** Refresh interval in ms (default 2 minutes; server stale threshold is 5). */
 	refreshIntervalMs?: number;
+	/** Logical record being locked, e.g. "bigtree_pages" or "module:14". */
+	table: string;
+	/** Title surfaced to the user holding a conflicting lock. */
+	title?: string;
 }
 
 export interface UseLockResult {
 	/** True once we hold the lock. */
 	acquired: boolean;
-	/** True when the server rejected acquire because someone else holds it. */
-	ownedByOther: boolean;
-	/** When ownedByOther: who has it (and when they last touched it). */
-	lockOwner: LockOwner | null;
-	/** Last-accessed timestamp of the conflicting lock, if any. */
-	lockedAt: string | null;
 	/** Generic acquire error message (network, server, etc.). */
 	error: string | null;
-	/** Manually release. Called automatically on unmount. */
-	release: () => Promise<void>;
-	/** Try to take the lock again (re-acquires without forcing). */
-	retry: () => void;
 	/**
 	 * Forcibly take over a lock held by another user, mirroring the legacy
 	 * admin's "Unlock" button. Re-runs acquisition with `force`, which evicts
 	 * the current holder and grants us the lock.
 	 */
 	forceUnlock: () => void;
+	/** Last-accessed timestamp of the conflicting lock, if any. */
+	lockedAt: string | null;
+	/** When ownedByOther: who has it (and when they last touched it). */
+	lockOwner: LockOwner | null;
+	/** True when the server rejected acquire because someone else holds it. */
+	ownedByOther: boolean;
+	/** Manually release. Called automatically on unmount. */
+	release: () => Promise<void>;
+	/** Try to take the lock again (re-acquires without forcing). */
+	retry: () => void;
 }
 
 /**

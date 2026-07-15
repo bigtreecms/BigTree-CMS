@@ -47,7 +47,7 @@ export const Shell = () => {
 		return (
 			<div className="grid min-h-screen place-items-center bg-bg px-4">
 				<div className="w-full max-w-[420px] rounded-lg border border-border bg-surface p-6 text-center shadow-md">
-					<IconTile tone="info" size="lg" radius="full" className="mx-auto mb-3">
+					<IconTile className="mx-auto mb-3" radius="full" size="lg" tone="info">
 						<Wrench size={18} />
 					</IconTile>
 					<h1 className="mb-1 text-[15px] font-semibold tracking-[-0.01em]">
@@ -68,11 +68,11 @@ export const Shell = () => {
 	return (
 		<div className="flex min-h-screen flex-col">
 			<TopBar
-				dark={dark}
-				onToggleDark={() => setDark((d) => !d)}
-				onOpenSearch={() => setSearchOpen(true)}
 				aiChatEnabled={aiChatEnabled}
+				dark={dark}
 				onOpenChat={() => setChatOpen(true)}
+				onOpenSearch={() => setSearchOpen(true)}
+				onToggleDark={() => setDark((d) => !d)}
 			/>
 			<TabNav />
 			<EmulationBanner />

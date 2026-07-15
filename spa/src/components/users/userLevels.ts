@@ -4,10 +4,10 @@ import { isDeveloper, type Level } from "@/lib/permissions";
 import type { LabeledOption } from "@/types/labeled-option";
 
 export interface UserLevel {
-	value: Level;
-	label: UserLevelLabel;
 	/** Explains the level under the "User level" select on the add / edit forms. */
 	hint: string;
+	label: UserLevelLabel;
+	value: Level;
 }
 
 /**

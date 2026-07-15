@@ -40,11 +40,11 @@ import { userLevelHint, userLevelOptions } from "@/components/users/userLevels";
 
 // Types
 interface User {
-	id: number;
-	first: string;
-	last: string;
-	email: string;
 	company: string;
+	email: string;
+	first: string;
+	id: number;
+	last: string;
 	level: UserLevelLabel;
 }
 
@@ -79,7 +79,7 @@ interface LevelBadgeProps {
 const LevelBadge = ({ level }: LevelBadgeProps) => {
 	if (level === "Developer") {
 		return (
-			<Badge tone="accent" icon={<Key size={9} />}>
+			<Badge icon={<Key size={9} />} tone="accent">
 				Developer
 			</Badge>
 		);
@@ -87,7 +87,7 @@ const LevelBadge = ({ level }: LevelBadgeProps) => {
 
 	if (level === "Administrator") {
 		return (
-			<Badge tone="info" dot>
+			<Badge dot tone="info">
 				Administrator
 			</Badge>
 		);
@@ -201,7 +201,7 @@ export const Users = () => {
 
 	const sortCaret = (key: SortKey) => {
 		if (sort.key !== key) {
-			return <ChevronDown size={10} className="opacity-40" />;
+			return <ChevronDown className="opacity-40" size={10} />;
 		}
 
 		if (sort.dir === "asc") {
@@ -287,17 +287,11 @@ export const Users = () => {
 			/>
 
 			<PageHead
-				title="Users"
-				sub={
-					view === "add"
-						? "Create a new admin account."
-						: `${totalFromServer} accounts have access to this site.`
-				}
 				actions={
 					view === "list" ? (
 						<Button
-							variant="primary"
 							icon={<Plus size={13} />}
+							variant="primary"
 							onClick={() => setView("add")}
 						>
 							Add user
@@ -308,16 +302,22 @@ export const Users = () => {
 						</Button>
 					)
 				}
+				sub={
+					view === "add"
+						? "Create a new admin account."
+						: `${totalFromServer} accounts have access to this site.`
+				}
+				title="Users"
 			/>
 
 			<SubNav<View>
 				className="mb-4"
-				value={view}
-				onChange={setView}
 				items={[
 					{ value: "list", label: "View Users" },
 					{ value: "add", label: "Add User", icon: <Plus size={13} /> },
 				]}
+				value={view}
+				onChange={setView}
 			/>
 
 			{view === "list" && (
@@ -325,9 +325,9 @@ export const Users = () => {
 					<Toolbar
 						search={
 							<SearchInput
+								placeholder="Search by name, email, company…"
 								value={query}
 								onChange={setQuery}
-								placeholder="Search by name, email, company…"
 							/>
 						}
 					>
@@ -345,29 +345,29 @@ export const Users = () => {
 						{/* Head */}
 						<div className="hidden md:grid grid-cols-[minmax(0,1.3fr)_minmax(0,1.7fr)_minmax(0,1.4fr)_140px_74px] items-center gap-4 border-b border-border bg-surface-2 px-3.5 py-2 text-[10.5px] font-semibold uppercase tracking-[0.06em] text-text-3">
 							<button
-								type="button"
 								className="flex items-center gap-1 text-left hover:text-text"
+								type="button"
 								onClick={() => toggleSort("name")}
 							>
 								Name {sortCaret("name")}
 							</button>
 							<button
-								type="button"
 								className="flex items-center gap-1 text-left hover:text-text"
+								type="button"
 								onClick={() => toggleSort("email")}
 							>
 								Email {sortCaret("email")}
 							</button>
 							<button
-								type="button"
 								className="flex items-center gap-1 text-left hover:text-text"
+								type="button"
 								onClick={() => toggleSort("company")}
 							>
 								Company {sortCaret("company")}
 							</button>
 							<button
-								type="button"
 								className="flex items-center gap-1 text-left hover:text-text"
+								type="button"
 								onClick={() => toggleSort("level")}
 							>
 								User level {sortCaret("level")}
@@ -376,7 +376,7 @@ export const Users = () => {
 						</div>
 
 						{isLoading && !isPlaceholderData ? (
-							<Loading variant="block" label="Loading users…" />
+							<Loading label="Loading users…" variant="block" />
 						) : pageRows.length === 0 ? (
 							<div className="p-9 text-center text-[13px] text-text-3">
 								No users match “{query}”.
@@ -385,6 +385,7 @@ export const Users = () => {
 							pageRows.map((u) => {
 								return (
 									<div
+										className="grid grid-cols-1 gap-x-4 border-b border-border px-3.5 py-2 text-[13px] last:border-b-0 hover:bg-surface-2 cursor-pointer md:grid-cols-[minmax(0,1.3fr)_minmax(0,1.7fr)_minmax(0,1.4fr)_140px_74px] md:items-center md:py-1.5"
 										key={u.id}
 										role="button"
 										tabIndex={0}
@@ -395,7 +396,6 @@ export const Users = () => {
 												navigate(`/users/${u.id}/edit`);
 											}
 										}}
-										className="grid grid-cols-1 gap-x-4 border-b border-border px-3.5 py-2 text-[13px] last:border-b-0 hover:bg-surface-2 cursor-pointer md:grid-cols-[minmax(0,1.3fr)_minmax(0,1.7fr)_minmax(0,1.4fr)_140px_74px] md:items-center md:py-1.5"
 									>
 										{/* Name + Avatar */}
 										<div className="flex items-center gap-3 md:gap-2.5">
@@ -429,8 +429,8 @@ export const Users = () => {
 										{/* Actions */}
 										<div className="flex items-center justify-end gap-1 pl-11 md:pl-0">
 											<IconButton
-												title="Edit"
 												label="Edit"
+												title="Edit"
 												onClick={(e) => {
 													e.stopPropagation();
 													navigate(`/users/${u.id}/edit`);
@@ -439,9 +439,9 @@ export const Users = () => {
 												<Edit size={15} />
 											</IconButton>
 											<IconButton
-												tone="danger"
-												title="Delete"
 												label="Delete"
+												title="Delete"
+												tone="danger"
 												onClick={(e) => {
 													e.stopPropagation();
 													deleteDialog.open(u);
@@ -470,53 +470,53 @@ export const Users = () => {
 			)}
 
 			{view === "add" && (
-				<Card as="form" onSubmit={submitAddUser} className="max-w-2xl">
+				<Card as="form" className="max-w-2xl" onSubmit={submitAddUser}>
 					<CardHeader className="flex items-baseline justify-between rounded-t-xl text-[12.5px]">
 						<span className="font-semibold">Account details</span>
 						<span className="text-text-3">Required fields marked with *</span>
 					</CardHeader>
 
 					<div className="grid grid-cols-1 gap-x-6 gap-y-4 p-4 md:grid-cols-2">
-						<Field label="First name" required>
+						<Field required label="First name">
 							<TextInput
+								placeholder="e.g. Alex"
 								ref={firstRef}
 								value={first}
 								onChange={(e) => setFirst(e.target.value)}
-								placeholder="e.g. Alex"
 							/>
 						</Field>
 						<TextField
-							label="Last name"
 							required
+							label="Last name"
+							placeholder="e.g. Chen"
 							value={last}
 							onChange={setLast}
-							placeholder="e.g. Chen"
 						/>
 
 						<TextField
-							className="md:col-span-2"
-							label="Email address"
 							required
+							className="md:col-span-2"
+							hint="Used for login and password-reset emails."
+							label="Email address"
+							placeholder="name@northwind-energy.local"
 							type="email"
 							value={email}
 							onChange={setEmail}
-							placeholder="name@northwind-energy.local"
-							hint="Used for login and password-reset emails."
 						/>
 
 						<TextField
 							label="Company / Team"
+							placeholder="e.g. Northwind Digital Team"
 							value={company}
 							onChange={setCompany}
-							placeholder="e.g. Northwind Digital Team"
 						/>
 
 						<SelectField
+							hint={userLevelHint(level)}
 							label="User level"
+							options={userLevelOptions(currentUser)}
 							value={String(level)}
 							onChange={(next) => setLevel(Number(next))}
-							options={userLevelOptions(currentUser)}
-							hint={userLevelHint(level)}
 						/>
 
 						<Field label="Timezone">
@@ -525,8 +525,8 @@ export const Users = () => {
 
 						<div className="md:col-span-2">
 							<Checkbox
-								label="Send daily digest email"
 								checked={dailyDigest}
+								label="Send daily digest email"
 								onChange={setDailyDigest}
 							/>
 						</div>
@@ -535,9 +535,9 @@ export const Users = () => {
 					<div className="mx-4 mb-4 rounded-lg border border-border bg-surface-2 p-3">
 						<div className="flex items-center gap-3">
 							<Switch
+								label="Send invite email"
 								on={sendInvite}
 								onChange={setSendInvite}
-								label="Send invite email"
 							/>
 							<div className="flex-1">
 								<div className="text-[12.5px] font-medium">
@@ -552,13 +552,13 @@ export const Users = () => {
 						</div>
 
 						{!sendInvite && (
-							<Field label="Initial password" className="mt-3">
+							<Field className="mt-3" label="Initial password">
 								<TextInput
-									type="password"
 									autoComplete="new-password"
+									placeholder="At least 8 characters"
+									type="password"
 									value={password}
 									onChange={(e) => setPassword(e.target.value)}
-									placeholder="At least 8 characters"
 								/>
 							</Field>
 						)}
@@ -569,12 +569,12 @@ export const Users = () => {
 							Cancel
 						</Button>
 						<Button
-							variant="primary"
-							type="submit"
 							disabled={!validAdd}
+							icon={<Plus size={14} />}
 							loading={createUserMutation.isPending}
 							loadingLabel="Creating…"
-							icon={<Plus size={14} />}
+							type="submit"
+							variant="primary"
 						>
 							Create user
 						</Button>
@@ -586,9 +586,9 @@ export const Users = () => {
 			{deleteDialog.item && (
 				<ConfirmDialog
 					{...deleteDialog.dialogProps}
-					title="Delete user?"
-					description="This will revoke admin access immediately. Page revisions authored by this user remain attributed to them."
 					confirmLabel="Delete user"
+					description="This will revoke admin access immediately. Page revisions authored by this user remain attributed to them."
+					title="Delete user?"
 					variant="danger"
 					onConfirm={() => handleDelete(deleteDialog.item!)}
 				/>

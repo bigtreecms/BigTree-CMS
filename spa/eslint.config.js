@@ -6,6 +6,7 @@ import prettierPlugin from "eslint-plugin-prettier";
 import configPrettier from "eslint-config-prettier";
 import storybook from "eslint-plugin-storybook";
 import betterTailwind from "eslint-plugin-better-tailwindcss";
+import perfectionist from "eslint-plugin-perfectionist";
 
 export default tseslint.config(
 	js.configs.recommended,
@@ -60,6 +61,35 @@ export default tseslint.config(
 			// Replace arbitrary/legacy utilities with their canonical Tailwind
 			// equivalent (e.g. `h-[22px]` → `h-5.5`, `flex-shrink-0` → `shrink-0`).
 			"better-tailwindcss/enforce-canonical-classes": "error",
+		},
+	},
+	{
+		files: ["**/*.{ts,tsx}"],
+		plugins: {
+			perfectionist,
+		},
+		rules: {
+			// Sort JSX props: shorthand booleans first, event handlers last,
+			// everything else natural-alphabetical in between.
+			"perfectionist/sort-jsx-props": [
+				"error",
+				{
+					type: "natural",
+					order: "asc",
+					customGroups: [
+						{ groupName: "callback", elementNamePattern: "^on[A-Z]" },
+					],
+					groups: ["shorthand-prop", "unknown", "callback"],
+				},
+			],
+			// Sort interface / type-literal members natural-alphabetical.
+			"perfectionist/sort-interfaces": [
+				"error",
+				{
+					type: "natural",
+					order: "asc",
+				},
+			],
 		},
 	},
 	{

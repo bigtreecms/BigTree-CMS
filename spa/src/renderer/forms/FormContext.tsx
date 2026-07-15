@@ -7,10 +7,10 @@ import { createContext, useContext } from "react";
  * by OneToManyField (same). Optional for fields that don't need it.
  */
 export interface FormRenderContextValue {
-	moduleId: string;
-	formId: string;
 	/** Numeric entry id when editing; null when creating a fresh row. */
 	entryId: number | null;
+	formId: string;
+	moduleId: string;
 }
 
 const FormRenderContext = createContext<FormRenderContextValue | null>(null);

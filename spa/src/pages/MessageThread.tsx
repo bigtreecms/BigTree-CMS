@@ -67,7 +67,7 @@ export const MessageThread = () => {
 	}, [messageQ.data?.id]);
 
 	if (!valid) {
-		return <Navigate to="/messages" replace />;
+		return <Navigate replace to="/messages" />;
 	}
 
 	if (messageQ.isLoading || !messageQ.data) {
@@ -102,22 +102,22 @@ export const MessageThread = () => {
 			/>
 
 			<PageHead
-				title={message.subject || "(no subject)"}
-				sub={`From ${message.sender_name ?? `#${message.sender}`} · ${message.date}`}
 				actions={
 					<>
 						<Button icon={<ChevronLeft size={13} />} to="/messages">
 							Inbox
 						</Button>
 						<Button
-							variant="primary"
 							icon={<Reply size={13} />}
+							variant="primary"
 							onClick={() => setComposeOpen(true)}
 						>
 							Reply
 						</Button>
 					</>
 				}
+				sub={`From ${message.sender_name ?? `#${message.sender}`} · ${message.date}`}
+				title={message.subject || "(no subject)"}
 			/>
 
 			<DescriptionList
@@ -141,8 +141,8 @@ export const MessageThread = () => {
 									label: "In reply to",
 									value: (
 										<Link
-											to={`/messages/${message.response_to}`}
 											className="text-accent hover:underline"
+											to={`/messages/${message.response_to}`}
 										>
 											Message #{message.response_to}
 										</Link>
@@ -155,17 +155,17 @@ export const MessageThread = () => {
 
 			<Card
 				as="article"
-				padding="sm"
 				className="text-[13.5px] leading-relaxed text-text"
 				/* Sanitised server-side; only inline tags survive. */
 				dangerouslySetInnerHTML={{ __html: sanitizeHtml(html) }}
+				padding="sm"
 			/>
 
 			<ComposeMessage
-				open={composeOpen}
-				onOpenChange={setComposeOpen}
 				currentUserId={currentUserId}
+				open={composeOpen}
 				replyTo={message}
+				onOpenChange={setComposeOpen}
 			/>
 		</PageContainer>
 	);

@@ -78,18 +78,18 @@ export const PasskeysPanel = () => {
 		<Card>
 			<CardHeader className="flex items-center justify-between">
 				<div className="flex items-center gap-2">
-					<Key size={14} className="text-text-3" />
+					<Key className="text-text-3" size={14} />
 					<SectionLabel as="h3">Passkeys</SectionLabel>
 				</div>
 				{supported && !addPrompt.open && (
 					<Button
-						variant="secondary"
+						disabled={registerMutation.isPending}
 						icon={<Plus size={13} />}
+						variant="secondary"
 						onClick={() => {
 							addPrompt.show();
 							setDraftName(guessDefaultName());
 						}}
-						disabled={registerMutation.isPending}
 					>
 						Add passkey
 					</Button>
@@ -107,11 +107,11 @@ export const PasskeysPanel = () => {
 					<div className="mb-4 rounded-md border border-border bg-surface-2 p-3">
 						<Field label="Passkey name">
 							<TextInput
-								value={draftName}
-								onChange={(e) => setDraftName(e.target.value)}
-								placeholder="e.g. MacBook Touch ID, YubiKey 5"
 								autoFocus
 								disabled={registerMutation.isPending}
+								placeholder="e.g. MacBook Touch ID, YubiKey 5"
+								value={draftName}
+								onChange={(e) => setDraftName(e.target.value)}
 							/>
 							<span className="mt-1 block text-[11.5px] text-text-3">
 								Just for your reference — pick a name you'll recognise later.
@@ -119,19 +119,19 @@ export const PasskeysPanel = () => {
 						</Field>
 						<div className="mt-3 flex justify-end gap-2">
 							<Button
+								disabled={registerMutation.isPending}
 								variant="secondary"
 								onClick={() => {
 									addPrompt.hide();
 									setDraftName("");
 								}}
-								disabled={registerMutation.isPending}
 							>
 								Cancel
 							</Button>
 							<Button
+								disabled={registerMutation.isPending}
 								variant="primary"
 								onClick={handleRegister}
-								disabled={registerMutation.isPending}
 							>
 								{registerMutation.isPending
 									? "Waiting for authenticator…"
@@ -151,10 +151,10 @@ export const PasskeysPanel = () => {
 					<ul className="divide-y divide-border overflow-hidden rounded-md border border-border">
 						{passkeysQuery.data!.map((p) => (
 							<li
-								key={p.id}
 								className="grid grid-cols-[auto_minmax(0,1fr)_minmax(0,1fr)_auto] items-center gap-3 px-3 py-2 text-[12.5px]"
+								key={p.id}
 							>
-								<Fingerprint size={16} className="text-accent" />
+								<Fingerprint className="text-accent" size={16} />
 								<NameIdCell
 									name={p.name}
 									primaryClassName="truncate text-text-2"
@@ -164,10 +164,10 @@ export const PasskeysPanel = () => {
 									{p.last_used ? `Last used ${p.last_used}` : "Never used"}
 								</div>
 								<IconButton
-									tone="danger"
-									onClick={() => deleteDialog.open(p)}
 									label="Remove passkey"
 									title="Remove passkey"
+									tone="danger"
+									onClick={() => deleteDialog.open(p)}
 								>
 									<Trash size={13} />
 								</IconButton>
@@ -180,9 +180,9 @@ export const PasskeysPanel = () => {
 			{deleteDialog.item && (
 				<ConfirmDialog
 					{...deleteDialog.dialogProps}
-					title={`Remove “${deleteDialog.item.name}”?`}
-					description="You won't be able to sign in with this passkey anymore. Other sign-in methods continue to work."
 					confirmLabel="Remove passkey"
+					description="You won't be able to sign in with this passkey anymore. Other sign-in methods continue to work."
+					title={`Remove “${deleteDialog.item.name}”?`}
 					variant="danger"
 					onConfirm={() => deleteMutation.mutate(deleteDialog.item!)}
 				/>

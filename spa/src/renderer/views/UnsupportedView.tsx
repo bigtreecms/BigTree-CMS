@@ -33,9 +33,9 @@ export const UnsupportedView = ({ view }: UnsupportedViewProps) => {
 					</SectionLabel>
 					<ul className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-[12.5px] text-text-2 sm:grid-cols-3">
 						{columns.map(([key, field]) => (
-							<li key={key} className="truncate">
+							<li className="truncate" key={key}>
 								<span className="font-medium">{field.title}</span>
-								<MonoText truncate={false} className="ml-1">
+								<MonoText className="ml-1" truncate={false}>
 									{key}
 								</MonoText>
 							</li>

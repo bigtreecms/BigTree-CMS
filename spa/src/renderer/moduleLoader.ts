@@ -8,17 +8,17 @@
  */
 
 export interface ModuleLoaderOptions<T> {
+	/** Optional transform before blob-import (e.g. Sucrase for action TSX). */
+	compile?: (source: string) => Promise<string>;
 	hostContractVersion: number;
 	isModule: (value: unknown) => value is T;
 	/** Human noun for error messages, e.g. "Field" / "Action". */
 	typeName: string;
-	/** Optional transform before blob-import (e.g. Sucrase for action TSX). */
-	compile?: (source: string) => Promise<string>;
 }
 
 export interface ModuleLoader<T> {
-	loadFromUrl: (assetUrl: string) => Promise<T>;
 	loadFromSource: (source: string) => Promise<T>;
+	loadFromUrl: (assetUrl: string) => Promise<T>;
 }
 
 export const createModuleLoader = <T extends { contractVersion: number }>(

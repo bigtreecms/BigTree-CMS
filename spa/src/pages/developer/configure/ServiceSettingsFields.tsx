@@ -7,8 +7,8 @@ import type { LabeledOption } from "@/types/labeled-option";
 export interface ServiceSettingField {
 	key: string;
 	label: string;
-	type?: "select";
 	options?: LabeledOption[];
+	type?: "select";
 }
 
 /** Secret-ish keys are rendered masked and get a "stored, leave blank to keep" hint. */
@@ -17,8 +17,8 @@ export const isMaskedKey = (key: string): boolean =>
 
 interface ServiceSettingsFieldsProps {
 	fields: ServiceSettingField[];
-	settings: Record<string, unknown>;
 	onChange: (key: string, value: string) => void;
+	settings: Record<string, unknown>;
 }
 
 /**
@@ -43,9 +43,9 @@ export const ServiceSettingsFields = ({
 					<SelectField
 						key={f.key}
 						label={f.label}
+						options={f.options}
 						value={value}
 						onChange={(v) => onChange(f.key, v)}
-						options={f.options}
 					/>
 				);
 			}
@@ -53,13 +53,13 @@ export const ServiceSettingsFields = ({
 			return (
 				<Field key={f.key} label={f.label}>
 					<TextInput
-						type={masked ? "password" : "text"}
-						value={value}
+						autoComplete="off"
 						placeholder={
 							masked && isSet ? "•••••••• (stored, leave blank to keep)" : ""
 						}
+						type={masked ? "password" : "text"}
+						value={value}
 						onChange={(e) => onChange(f.key, e.target.value)}
-						autoComplete="off"
 					/>
 				</Field>
 			);

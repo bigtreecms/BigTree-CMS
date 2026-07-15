@@ -93,19 +93,19 @@ export const ModuleEmbedFormsTab = ({ moduleId, moduleTable }: ModuleEmbedFormsT
 	return (
 		<div className="space-y-3">
 			<SubList
-				isLoading={crud.isLoading}
-				loadingLabel="Loading embed forms…"
 				emptyLabel="No embed forms yet. Embed forms render standalone on third-party pages."
 				isEmpty={crud.items.length === 0}
+				isLoading={crud.isLoading}
+				loadingLabel="Loading embed forms…"
 			>
 				{crud.items.map((f) => (
 					<SubRow
-						key={f.id}
-						title={f.title}
-						subtitle={f.table}
 						badge={`${Array.isArray(f.fields) ? f.fields.length : 0} fields`}
-						onEdit={() => crud.startEdit(f.id)}
+						key={f.id}
+						subtitle={f.table}
+						title={f.title}
 						onDelete={() => deleteDialog.open(f)}
+						onEdit={() => crud.startEdit(f.id)}
 					/>
 				))}
 			</SubList>
@@ -116,6 +116,8 @@ export const ModuleEmbedFormsTab = ({ moduleId, moduleTable }: ModuleEmbedFormsT
 
 			{crud.editingId !== null && (
 				<EditorCard
+					saveLabel={crud.editingId === NEW_ROW ? "Create embed form" : "Save embed form"}
+					saving={crud.saving}
 					title={editorTitle}
 					onClose={crud.cancel}
 					onSave={() => {
@@ -130,30 +132,28 @@ export const ModuleEmbedFormsTab = ({ moduleId, moduleTable }: ModuleEmbedFormsT
 							Object.keys(sErrors).length > 0
 						);
 					}}
-					saving={crud.saving}
-					saveLabel={crud.editingId === NEW_ROW ? "Create embed form" : "Save embed form"}
 				>
 					<FieldGrid>
 						<TextInput
+							required
+							error={crud.fieldErrors.title}
 							label="Title"
 							value={draft.title}
 							onChange={(v) => setDraft((p) => ({ ...p, title: v }))}
-							error={crud.fieldErrors.title}
-							required
 						/>
 						<DataTableSelect
+							required
+							error={crud.fieldErrors.table}
 							label="Data table"
 							value={draft.table}
 							onChange={(v) => setDraft((p) => ({ ...p, table: v }))}
-							error={crud.fieldErrors.table}
-							required
 						/>
 						<TextInput
+							mono
+							hint="Where to send the visitor after submission."
 							label="Redirect URL"
 							value={draft.redirect_url}
 							onChange={(v) => setDraft((p) => ({ ...p, redirect_url: v }))}
-							hint="Where to send the visitor after submission."
-							mono
 						/>
 						<TextInput
 							label="Default position"
@@ -163,43 +163,43 @@ export const ModuleEmbedFormsTab = ({ moduleId, moduleTable }: ModuleEmbedFormsT
 					</FieldGrid>
 
 					<CheckboxInput
-						label="Submissions start as pending changes"
 						checked={draft.default_pending}
+						label="Submissions start as pending changes"
 						onChange={(v) => setDraft((p) => ({ ...p, default_pending: v }))}
 					/>
 
 					<TextareaInput
 						label="Thank-you message"
+						rows={3}
 						value={draft.thank_you_message}
 						onChange={(v) => setDraft((p) => ({ ...p, thank_you_message: v }))}
-						rows={3}
 					/>
 
 					<TextareaInput
-						label="CSS hooks"
-						value={draft.css}
-						onChange={(v) => setDraft((p) => ({ ...p, css: v }))}
-						rows={3}
 						mono
 						hint="Stylesheet URL or inline CSS applied to the embedded form."
+						label="CSS hooks"
+						rows={3}
+						value={draft.css}
+						onChange={(v) => setDraft((p) => ({ ...p, css: v }))}
 					/>
 
 					<ModuleFieldsSection
-						fields={draft.fields}
-						onFieldsChange={(next) => setDraft((p) => ({ ...p, fields: next }))}
-						settingsErrors={settingsErrors}
 						columnsTable={draft.table}
+						fields={draft.fields}
 						hooks={draft.hooks}
+						settingsErrors={settingsErrors}
+						onFieldsChange={(next) => setDraft((p) => ({ ...p, fields: next }))}
 						onHooksChange={(v) => setDraft((p) => ({ ...p, hooks: v }))}
 					/>
 				</EditorCard>
 			)}
 
 			<SubDeleteDialog
-				dialog={deleteDialog}
-				noun="embed form"
-				labelFor={(f) => f.title}
 				description="Any third-party page embedding this form will stop working. Submitted entries are left intact."
+				dialog={deleteDialog}
+				labelFor={(f) => f.title}
+				noun="embed form"
 				onConfirm={(id) => crud.remove(id)}
 			/>
 		</div>

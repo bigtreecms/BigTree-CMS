@@ -19,8 +19,8 @@ export const TrafficBars = ({ series }: TrafficBarsProps) => {
 
 				return (
 					<div
-						key={d.date}
 						className="group flex min-w-0 flex-col"
+						key={d.date}
 						title={`${formatNumber(d.visits)} visits on ${d.date}`}
 					>
 						<div className="relative flex flex-1 items-end">

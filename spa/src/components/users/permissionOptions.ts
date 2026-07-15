@@ -1,8 +1,8 @@
 import type { PermissionCode } from "@/api/endpoints/users";
 
 export interface PermissionOption {
-	value: PermissionCode;
 	label: string;
+	value: PermissionCode;
 }
 
 export const PAGE_PERMISSION_OPTIONS: PermissionOption[] = [

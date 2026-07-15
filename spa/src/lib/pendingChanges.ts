@@ -2,11 +2,11 @@ import type { PendingChange } from "@/api/endpoints/dashboard";
 
 /** A bucket of pending changes sharing a module/table category. */
 export interface PendingChangeGroup {
+	changes: PendingChange[];
 	key: string;
 	label: string;
-	table: string;
 	module: string | null;
-	changes: PendingChange[];
+	table: string;
 }
 
 /**

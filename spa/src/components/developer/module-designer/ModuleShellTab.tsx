@@ -33,9 +33,9 @@ import { CheckboxInput, SelectInput, TextInput } from "./inputs";
 const NEW_GROUP_OPTION = "__create_new_group__";
 
 interface ModuleShellTabProps {
+	module: ModuleSummary | null;
 	/** null in add mode. */
 	moduleId: string | null;
-	module: ModuleSummary | null;
 }
 
 type ShellState = {
@@ -180,44 +180,44 @@ export const ModuleShellTab = ({ moduleId, module }: ModuleShellTabProps) => {
 
 	return (
 		<>
-			<form onSubmit={handleSubmit} className="space-y-4">
+			<form className="space-y-4" onSubmit={handleSubmit}>
 				{generalError && <Alert tone="danger">{generalError}</Alert>}
 
 				<Card className="space-y-4 p-4">
 					<FieldGrid>
 						<TextInput
+							required
+							error={fieldErrors.name}
 							label="Name"
 							value={state.name}
 							onChange={(v) => set({ name: v })}
-							error={fieldErrors.name}
-							required
 						/>
 						<SelectInput
 							label="Group"
+							options={groupOptions}
 							value={newGroup.open ? NEW_GROUP_OPTION : state.group}
 							onChange={onGroupChange}
-							options={groupOptions}
 						/>
 						<TextInput
+							mono
+							error={fieldErrors.route}
+							hint="URL slug. Auto-generated from the name when left blank."
 							label="Route"
 							value={state.route}
 							onChange={(v) => set({ route: v })}
-							hint="URL slug. Auto-generated from the name when left blank."
-							error={fieldErrors.route}
-							mono
 						/>
 						<DataTableSelect
+							hint="MySQL table backing this module's entries."
 							label="Data table"
 							value={state.table}
 							onChange={(v) => set({ table: v })}
-							hint="MySQL table backing this module's entries."
 						/>
 						<TextInput
+							mono
+							hint="Optional custom module class."
 							label="Handler class"
 							value={state.class}
 							onChange={(v) => set({ class: v })}
-							hint="Optional custom module class."
-							mono
 						/>
 					</FieldGrid>
 					{newGroup.open && (
@@ -230,11 +230,11 @@ export const ModuleShellTab = ({ moduleId, module }: ModuleShellTabProps) => {
 								/>
 							</div>
 							<Button
-								variant="primary"
 								disabled={!newGroupName.trim()}
-								onClick={() => createGroupMutation.mutate(newGroupName.trim())}
 								loading={createGroupMutation.isPending}
 								loadingLabel="Creating…"
+								variant="primary"
+								onClick={() => createGroupMutation.mutate(newGroupName.trim())}
 							>
 								Create group
 							</Button>
@@ -251,45 +251,45 @@ export const ModuleShellTab = ({ moduleId, module }: ModuleShellTabProps) => {
 					)}
 
 					<IconPicker
+						hint="Shown beside the module in the admin navigation."
 						value={state.icon}
 						onChange={(v) => set({ icon: v })}
-						hint="Shown beside the module in the admin navigation."
 					/>
 				</Card>
 
 				<Card className="space-y-3 p-4">
 					<CheckboxInput
-						label="Group-based permissions (per-category access)"
 						checked={Boolean(state.gbp.enabled)}
+						label="Group-based permissions (per-category access)"
 						onChange={(v) => setGbp({ enabled: v })}
 					/>
 					{state.gbp.enabled && (
 						<FieldGrid>
 							<DataTableSelect
+								hint="Table whose rows act as permission categories."
 								label="Category table"
 								value={state.gbp.other_table ?? ""}
 								onChange={(v) => setGbp({ other_table: v })}
-								hint="Table whose rows act as permission categories."
 							/>
 							<TextInput
+								mono
+								hint="Column on the category table used as its label."
 								label="Title field"
 								value={state.gbp.title_field ?? ""}
 								onChange={(v) => setGbp({ title_field: v })}
-								hint="Column on the category table used as its label."
-								mono
 							/>
 							<TextInput
+								hint="Shown in the user permission tree."
 								label="Permission group name"
 								value={state.gbp.name ?? ""}
 								onChange={(v) => setGbp({ name: v })}
-								hint="Shown in the user permission tree."
 							/>
 							<TextInput
+								mono
+								hint="Optional PHP parser for category labels."
 								label="Item parser"
 								value={state.gbp.item_parser ?? ""}
 								onChange={(v) => setGbp({ item_parser: v })}
-								hint="Optional PHP parser for category labels."
-								mono
 							/>
 						</FieldGrid>
 					)}
@@ -297,11 +297,11 @@ export const ModuleShellTab = ({ moduleId, module }: ModuleShellTabProps) => {
 
 				<div className="flex justify-end">
 					<Button
-						variant="primary"
-						type="submit"
 						icon={<Save size={13} />}
 						loading={saveMutation.isPending}
 						loadingLabel="Saving…"
+						type="submit"
+						variant="primary"
 					>
 						{isAdd ? "Create module" : "Save module"}
 					</Button>

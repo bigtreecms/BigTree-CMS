@@ -8,14 +8,14 @@ import { TextInput } from "@/components/ui/TextInput";
 import { resourceFoldersApi, type ResourceFolderRow } from "@/api/endpoints/resource-folders";
 
 interface FolderEditorProps {
-	open: boolean;
-	onOpenChange: (open: boolean) => void;
-	/** Parent folder id for creates; ignored for renames. 0 = home. */
-	parentId: number;
 	/** When set, the SlideOver renames this folder instead of creating a new one. */
 	folder?: ResourceFolderRow | null;
 	/** Query key to invalidate on success — typically the folder-contents key. */
 	invalidateKey: readonly unknown[];
+	onOpenChange: (open: boolean) => void;
+	open: boolean;
+	/** Parent folder id for creates; ignored for renames. 0 = home. */
+	parentId: number;
 }
 
 /**
@@ -86,29 +86,31 @@ export const FolderEditor = ({
 
 	return (
 		<SlideOver
-			open={open}
-			onOpenChange={onOpenChange}
-			title={isRename ? "Rename folder" : "New folder"}
 			description={
 				isRename
 					? `Rename “${folder?.name}”.`
 					: "Folders inherit permissions from their parent."
 			}
-			width="sm"
 			footer={
 				<div className="flex justify-end gap-2">
 					<Button variant="secondary" onClick={() => onOpenChange(false)}>
 						Cancel
 					</Button>
-					<Button variant="primary" disabled={!valid || pending} onClick={submit}>
+					<Button disabled={!valid || pending} variant="primary" onClick={submit}>
 						{pending ? "Saving…" : isRename ? "Rename" : "Create"}
 					</Button>
 				</div>
 			}
+			open={open}
+			title={isRename ? "Rename folder" : "New folder"}
+			width="sm"
+			onOpenChange={onOpenChange}
 		>
 			<Field label="Name">
 				<TextInput
 					autoFocus
+					maxLength={255}
+					placeholder="e.g. Press releases"
 					value={name}
 					onChange={(e) => setName(e.target.value)}
 					onKeyDown={(e) => {
@@ -117,8 +119,6 @@ export const FolderEditor = ({
 							submit();
 						}
 					}}
-					placeholder="e.g. Press releases"
-					maxLength={255}
 				/>
 			</Field>
 		</SlideOver>

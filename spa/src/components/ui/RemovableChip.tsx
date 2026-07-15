@@ -1,12 +1,12 @@
 import { X } from "lucide-react";
 
 interface RemovableChipProps {
+	/** Layout-only classes for the wrapper (e.g. `shrink-0`). */
+	className?: string;
+	disabled?: boolean;
 	/** Visible text; also used for the remove button's accessible name (`Remove {label}`). */
 	label: string;
 	onRemove: () => void;
-	disabled?: boolean;
-	/** Layout-only classes for the wrapper (e.g. `shrink-0`). */
-	className?: string;
 }
 
 /**
@@ -24,11 +24,11 @@ export const RemovableChip = ({ label, onRemove, disabled, className }: Removabl
 	>
 		{label}
 		<button
-			type="button"
-			className="rounded p-0.5 text-accent hover:bg-accent/15 disabled:opacity-40"
-			onClick={onRemove}
-			disabled={disabled}
 			aria-label={`Remove ${label}`}
+			className="rounded p-0.5 text-accent hover:bg-accent/15 disabled:opacity-40"
+			disabled={disabled}
+			type="button"
+			onClick={onRemove}
 		>
 			<X size={11} />
 		</button>

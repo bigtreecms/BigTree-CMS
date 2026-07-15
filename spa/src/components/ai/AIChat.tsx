@@ -26,8 +26,8 @@ import { ConversationList } from "./ConversationList";
  */
 
 interface AIChatProps {
-	open: boolean;
 	onClose: () => void;
+	open: boolean;
 }
 
 const PENDING_ID = "pending";
@@ -327,7 +327,7 @@ export const AIChat = ({ open, onClose }: AIChatProps) => {
 				>
 					{/* Header */}
 					<div className="flex items-center gap-2 border-b border-border px-4 py-3">
-						<Sparkles size={16} className="text-accent" />
+						<Sparkles className="text-accent" size={16} />
 						<Dialog.Title className="flex-1 text-[14px] font-semibold tracking-[-0.01em]">
 							{view === "history" ? "Conversations" : "Assistant"}
 						</Dialog.Title>
@@ -336,9 +336,9 @@ export const AIChat = ({ open, onClose }: AIChatProps) => {
 							<Plus size={16} />
 						</IconButton>
 						<IconButton
+							ariaExpanded={view === "history"}
 							label="Conversation history"
 							title="History"
-							ariaExpanded={view === "history"}
 							onClick={() => setView((v) => (v === "history" ? "chat" : "history"))}
 						>
 							<History size={15} />
@@ -352,25 +352,25 @@ export const AIChat = ({ open, onClose }: AIChatProps) => {
 						<div className="flex-1 overflow-auto">
 							<ConversationList
 								activeId={conversationId}
-								onSelect={(id) => void openConversation(id)}
 								onDelete={(id) => deleteMutation.mutate(id)}
+								onSelect={(id) => void openConversation(id)}
 							/>
 						</div>
 					) : (
 						<>
-							<div ref={scrollRef} className="flex-1 space-y-4 overflow-auto p-4 ">
+							<div className="flex-1 space-y-4 overflow-auto p-4 " ref={scrollRef}>
 								{loadingConversation && (
-									<InlineEmpty variant="plain" align="center" className="py-8">
+									<InlineEmpty align="center" className="py-8" variant="plain">
 										Loading conversation…
 									</InlineEmpty>
 								)}
 
 								{!loadingConversation && entries.length === 0 && (
 									<InlineEmpty
-										variant="plain"
 										align="center"
-										pad="xl"
 										className="py-12"
+										pad="xl"
+										variant="plain"
 									>
 										Ask about your pages, modules, entries, tags, or users.
 									</InlineEmpty>
@@ -378,12 +378,12 @@ export const AIChat = ({ open, onClose }: AIChatProps) => {
 
 								{entries.map((entry) => (
 									<ChatMessageView
-										key={entry.id}
-										entry={entry}
-										onNavigate={onClose}
-										onApproveProposal={(id) => approveMutation.mutate(id)}
-										onRejectProposal={(id) => rejectMutation.mutate(id)}
 										busyProposalId={busyProposalId}
+										entry={entry}
+										key={entry.id}
+										onApproveProposal={(id) => approveMutation.mutate(id)}
+										onNavigate={onClose}
+										onRejectProposal={(id) => rejectMutation.mutate(id)}
 									/>
 								))}
 
@@ -398,24 +398,24 @@ export const AIChat = ({ open, onClose }: AIChatProps) => {
 							<div className="border-t border-border p-3">
 								<div className="flex items-end gap-2 rounded-xl border border-border bg-surface-2/50 px-3 py-2 focus-within:border-border-strong">
 									<textarea
+										className="max-h-32 flex-1 resize-none bg-transparent text-[13px] text-text placeholder:text-text-3 focus:outline-none"
+										placeholder="Ask the assistant…"
 										ref={inputRef}
+										rows={1}
+										spellCheck={false}
 										value={input}
 										onChange={(e) => setInput(e.target.value)}
 										onKeyDown={onComposerKey}
-										rows={1}
-										placeholder="Ask the assistant…"
-										className="max-h-32 flex-1 resize-none bg-transparent text-[13px] text-text placeholder:text-text-3 focus:outline-none"
-										spellCheck={false}
 									/>
 									<IconButton
-										label="Send"
-										title="Send (Enter)"
-										tone="accent"
 										disabled={
 											input.trim() === "" ||
 											sendMutation.isPending ||
 											streaming
 										}
+										label="Send"
+										title="Send (Enter)"
+										tone="accent"
 										onClick={() => void send()}
 									>
 										<Send size={15} />
