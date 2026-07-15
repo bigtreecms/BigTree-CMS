@@ -340,3 +340,149 @@
 			parity_delete_users($dev_id);
 		}
 	}
+
+	// The assistant's create-page validation defaults a missing template to the
+	// same one the "Add page" screen preselects (first non-routed template),
+	// rather than staging an empty template — which is only valid for external
+	// links the assistant can't create.
+	function test_parity_pages_ai_validate_defaults_template() {
+		if (!parity_db_available()) {
+			return;
+		}
+
+		$svc = new PageService();
+		$dev_id = parity_seed_user(["level" => 2]);
+		$user = (object)["id" => $dev_id, "level" => 2, "permissions" => []];
+
+		try {
+			$templates = BigTreeJSONDB::getAll("templates", "position", "DESC");
+			T::ok(!empty($templates), "site has templates to default to");
+
+			$expected = "";
+
+			foreach ($templates as $t) {
+				if (empty($t["routed"])) {
+					$expected = (string)$t["id"];
+
+					break;
+				}
+			}
+
+			if ($expected === "") {
+				$expected = (string)$templates[0]["id"];
+			}
+
+			// Supply content for the default template's required field(s) so the
+			// validation focuses on the template default, not the required check.
+			$content = [];
+			$default_resources = BigTreeJSONDB::get("templates", $expected)["resources"] ?? [];
+
+			foreach ($default_resources as $r) {
+				$content[(string)$r["id"]] = "Filled by parity test";
+			}
+
+			$res = $svc->aiValidatePageCreate([
+				"parent" => 0,
+				"nav_title" => "AI Default Template Page",
+				"content" => $content,
+			], $user);
+
+			T::ok(!empty($res["ok"]), "validation ok without a template");
+			T::equals($res["payload"]["template"], $expected, "payload defaults to preselected template");
+			T::equals($res["preview"]["template"], $expected, "preview shows defaulted template");
+			T::ok($res["payload"]["template"] !== "", "template is not left blank");
+		} finally {
+			parity_delete_users($dev_id);
+		}
+	}
+
+	// A template with required content fields can't be staged empty: the assistant's
+	// validation returns a recoverable error naming the missing fields (mirroring the
+	// "Add page" screen's required check), and only stages once content is supplied —
+	// which is then carried on the payload for the eventual write.
+	function test_parity_pages_ai_validate_requires_template_content() {
+		if (!parity_db_available()) {
+			return;
+		}
+
+		$svc = new PageService();
+		$dev_id = parity_seed_user(["level" => 2]);
+		$user = (object)["id" => $dev_id, "level" => 2, "permissions" => []];
+
+		try {
+			// Find a template with at least one required simple field to exercise the
+			// gate (the stock "content" template's page_header is required).
+			$target = null;
+			$required_id = null;
+
+			foreach (BigTreeJSONDB::getAll("templates", "position", "DESC") as $t) {
+				foreach (($t["resources"] ?? []) as $r) {
+					$rules = (string)(($r["settings"]["validation"] ?? ""));
+
+					if (strpos($rules, "required") !== false) {
+						$target = (string)$t["id"];
+						$required_id = (string)$r["id"];
+
+						break 2;
+					}
+				}
+			}
+
+			if ($target === null) {
+				T::ok(true, "no required-field template installed — enforcement path not exercised");
+
+				return;
+			}
+
+			// No content → recoverable error, nothing staged.
+			$missing = $svc->aiValidatePageCreate([
+				"parent" => 0,
+				"nav_title" => "AI Needs Content Page",
+				"template" => $target,
+			], $user);
+
+			T::ok(isset($missing["error"]), "missing required content is an error");
+			T::ok(empty($missing["ok"]), "not staged when required content missing");
+			T::ok(strpos((string)$missing["error"], "required") !== false, "error mentions required fields");
+
+			// Content supplied → validates, and the content rides on the payload.
+			$ok = $svc->aiValidatePageCreate([
+				"parent" => 0,
+				"nav_title" => "AI Needs Content Page",
+				"template" => $target,
+				"content" => [$required_id => "<p>Assistant-authored content</p>"],
+			], $user);
+
+			T::ok(!empty($ok["ok"]), "validates once required content is supplied");
+			T::equals(
+				$ok["payload"]["resources"][$required_id],
+				"<p>Assistant-authored content</p>",
+				"content carried on the payload for the write"
+			);
+			T::ok(!empty($ok["preview"]["fields"]), "preview lists the content fields");
+
+			// Approving the proposal writes the content onto the live page (dev is a
+			// publisher) — the whole point of collecting it up front.
+			$created = $svc->aiCreatePage($ok["payload"], $user);
+			$page_id = (int)($created["page_id"] ?? 0);
+
+			try {
+				T::equals($created["mode"], "published", "publisher writes live");
+				T::ok($page_id > 0, "live page id returned");
+
+				$row = SQL::fetch("SELECT template, resources FROM bigtree_pages WHERE id = ?", $page_id);
+				T::equals($row["template"], $target, "row stored the template");
+
+				$stored = json_decode((string)$row["resources"], true);
+				T::equals(
+					$stored[$required_id] ?? null,
+					"<p>Assistant-authored content</p>",
+					"content persisted to the page's resources"
+				);
+			} finally {
+				parity_delete_page($page_id);
+			}
+		} finally {
+			parity_delete_users($dev_id);
+		}
+	}

@@ -56,7 +56,15 @@
 						],
 						"template" => [
 							"type" => "string",
-							"description" => "Optional template id for the page. Must be an existing template.",
+							"description" => "Optional template id for the page. Must be an existing template. "
+								. "If omitted, the site's default template is used automatically.",
+						],
+						"content" => [
+							"type" => "object",
+							"description" => "Content for the template's fields, keyed by field id "
+								. "(e.g. {\"page_header\": \"...\", \"page_content\": \"<p>…</p>\"}). Only simple "
+								. "text/html fields can be set. The template's required fields must be filled; "
+								. "if you don't know them, call this once without content to be told which fields exist.",
 						],
 						"in_nav" => [
 							"type" => "boolean",

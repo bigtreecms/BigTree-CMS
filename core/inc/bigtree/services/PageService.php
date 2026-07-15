@@ -29,6 +29,16 @@
 	 *  - Multi-site path collision dance
 	 */
 	class PageService implements PageToolBackend {
+		// Template resource types the assistant is allowed to set when creating a page:
+		// plain scalar values it can synthesize safely. Everything else (uploads,
+		// matrices, relationships, callouts, routes) is omitted from the AI schema and
+		// rejected if supplied — mirrors AutoModuleService's AI_SIMPLE_FIELD_TYPES.
+		private const AI_SIMPLE_RESOURCE_TYPES = [
+			"text", "textarea", "html", "htmleditor", "simple-editor", "code",
+			"number", "currency", "phone", "email", "color",
+			"date", "datetime", "time", "select", "radio", "checkbox", "list",
+		];
+
 		// Content columns snapshotted into bigtree_page_revisions (restoreRevision
 		// update map + insertRevisionSnapshot share this list; per-map extras stay
 		// explicit at each call site).
@@ -334,9 +344,42 @@
 			$rank = PermissionService::userPageLevel($user, $parent);
 			$template = trim((string)($args["template"] ?? ""));
 
-			if ($template !== "" && !BigTreeJSONDB::exists("templates", $template)) {
+			if ($template !== "") {
+				if (!BigTreeJSONDB::exists("templates", $template)) {
 
-				return ["error" => "Template \"{$template}\" does not exist."];
+					return ["error" => "Template \"{$template}\" does not exist."];
+				}
+			} else {
+				// No template given. A blank template is only valid for an external
+				// link, which the assistant can't create — so default to the same
+				// template the admin's "Add page" screen would preselect: the first
+				// flexible (non-routed) template, falling back to the first template.
+				$template = $this->aiDefaultTemplate();
+			}
+
+			// Collect the page's content for the template's simple fields. Complex
+			// fields (uploads, matrices, relationships) are omitted from the schema and
+			// rejected if supplied — the assistant never fabricates a file reference.
+			$schema = $this->aiTemplateResourceSchema($template);
+			$provided = is_array($args["content"] ?? null) ? $args["content"] : [];
+			$sifted = $this->aiSiftResourceContent($schema, $provided);
+
+			if (isset($sifted["error"])) {
+
+				return $sifted;
+			}
+
+			$resources = $sifted["data"];
+			$missing = $this->aiMissingRequiredResources($schema, $resources);
+
+			// A required template field with no content mirrors the "Add page" screen's
+			// own required check — surface the settable fields so the model can fill
+			// them in (or ask the user) and retry, rather than staging an empty page.
+			if ($missing) {
+
+				return ["error" => "The “{$template}” template needs content for these required fields before the page "
+					. "can be created: " . implode(", ", $missing) . ". Settable fields: "
+					. $this->aiDescribeResourceSchema($schema)];
 			}
 
 			$title = trim((string)($args["title"] ?? "")) ?: $nav_title;
@@ -358,6 +401,7 @@
 				"route" => $route,
 				"template" => $template,
 				"in_nav" => $in_nav,
+				"resources" => $resources,
 			];
 
 			$preview = [
@@ -369,6 +413,7 @@
 				"route" => $route,
 				"path" => "/" . $path,
 				"in_nav" => $in_nav,
+				"fields" => $this->aiPreviewResourceContent($schema, $resources),
 				"mode" => $can_publish ? "published" : "pending",
 			];
 
@@ -383,6 +428,180 @@
 				"preview" => $preview,
 				"payload" => $payload,
 			];
+		}
+
+		/**
+		 * The template the "Add page" UI preselects: the first flexible (non-routed)
+		 * template, falling back to the first template overall. Templates are read in
+		 * the same position-DESC order the admin list uses. Returns "" only when no
+		 * templates exist at all.
+		 *
+		 * @return string
+		 */
+		private function aiDefaultTemplate(): string {
+			$templates = BigTreeJSONDB::getAll("templates", "position", "DESC");
+
+			if (!$templates) {
+
+				return "";
+			}
+
+			foreach ($templates as $template) {
+				if (empty($template["routed"])) {
+
+					return (string)$template["id"];
+				}
+			}
+
+			return (string)$templates[0]["id"];
+		}
+
+		/**
+		 * The AI-settable content schema for a template: its simple scalar resources,
+		 * keyed by resource id. Complex resources are dropped (never offered to the
+		 * model, never accepted). `required` is read from the legacy `settings.validation`
+		 * rule string — the same source the "Add page" screen validates against.
+		 *
+		 * @return array<string,array<string,mixed>>
+		 */
+		private function aiTemplateResourceSchema(string $template): array {
+			$row = $template !== "" ? BigTreeJSONDB::get("templates", $template) : null;
+
+			if (!$row) {
+
+				return [];
+			}
+
+			$schema = [];
+
+			foreach ((array)($row["resources"] ?? []) as $resource) {
+				$id = (string)($resource["id"] ?? "");
+				$type = (string)($resource["type"] ?? "text");
+
+				if ($id === "" || !in_array($type, self::AI_SIMPLE_RESOURCE_TYPES, true)) {
+
+					continue;
+				}
+
+				$settings = is_array($resource["settings"] ?? null) ? $resource["settings"] : [];
+				$rules = is_string($settings["validation"] ?? null)
+					? preg_split("/\s+/", trim($settings["validation"]), -1, PREG_SPLIT_NO_EMPTY)
+					: [];
+
+				$schema[$id] = [
+					"id" => $id,
+					"type" => $type,
+					"title" => (string)($resource["title"] ?? $id),
+					"required" => in_array("required", $rules ?: [], true),
+				];
+			}
+
+			return $schema;
+		}
+
+		/**
+		 * Keep only the provided content that maps to a settable simple resource; reject
+		 * a value that is a list/object where a scalar is expected.
+		 *
+		 * @param array<string,array<string,mixed>> $schema
+		 * @param array<string,mixed> $provided
+		 * @return array<string,mixed> ["data" => array] or ["error" => string]
+		 */
+		private function aiSiftResourceContent(array $schema, array $provided): array {
+			$data = [];
+
+			foreach ($provided as $id => $value) {
+				$id = (string)$id;
+
+				// Unknown ids are ignored (they'd never persist); only real complex
+				// fields are surfaced as an error below.
+				if (!isset($schema[$id])) {
+
+					continue;
+				}
+
+				if (is_array($value)) {
+
+					return ["error" => "Field \"{$id}\" expects a simple value, not a list or object."];
+				}
+
+				if ($schema[$id]["type"] === "checkbox") {
+					$data[$id] = !empty($value) && $value !== "false" ? "on" : "";
+				} else {
+					$data[$id] = is_bool($value) ? ($value ? "1" : "0") : (string)$value;
+				}
+			}
+
+			return ["data" => $data];
+		}
+
+		/**
+		 * Required schema resources absent (or empty) in the sifted content. Returns the
+		 * field titles for a human-readable error.
+		 *
+		 * @param array<string,array<string,mixed>> $schema
+		 * @param array<string,mixed> $data
+		 * @return list<string>
+		 */
+		private function aiMissingRequiredResources(array $schema, array $data): array {
+			$missing = [];
+
+			foreach ($schema as $id => $field) {
+				if (!empty($field["required"]) && (!array_key_exists($id, $data) || $data[$id] === "")) {
+					$missing[] = (string)$field["title"];
+				}
+			}
+
+			return $missing;
+		}
+
+		/**
+		 * A one-line human description of the settable content fields for a
+		 * schema-discovery error message.
+		 *
+		 * @param array<string,array<string,mixed>> $schema
+		 */
+		private function aiDescribeResourceSchema(array $schema): string {
+			if (!$schema) {
+
+				return "(this template has no content fields the assistant can set)";
+			}
+
+			$parts = [];
+
+			foreach ($schema as $id => $field) {
+				$parts[] = $id . " (" . $field["type"] . ($field["required"] ? ", required" : "") . ")";
+			}
+
+			return implode(", ", $parts);
+		}
+
+		/**
+		 * Field-level preview rows for a proposal card: the content being set on each
+		 * template resource (rendered by ProposalCard's generic `fields` list).
+		 *
+		 * @param array<string,array<string,mixed>> $schema
+		 * @param array<string,mixed> $data
+		 * @return list<array<string,mixed>>
+		 */
+		private function aiPreviewResourceContent(array $schema, array $data): array {
+			$out = [];
+
+			foreach ($data as $id => $value) {
+				$string = is_scalar($value) ? (string)$value : (string)json_encode($value);
+
+				if (mb_strlen($string) > 200) {
+					$string = mb_substr($string, 0, 199) . "…";
+				}
+
+				$out[] = [
+					"column" => $id,
+					"title" => (string)($schema[$id]["title"] ?? $id),
+					"to" => $string,
+				];
+			}
+
+			return $out;
 		}
 
 		/**
