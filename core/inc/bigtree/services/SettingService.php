@@ -256,8 +256,16 @@
 			$id = BigTreeCMS::extensionSettingCheck($id);
 			$setting = BigTreeJSONDB::get("settings", $id);
 
+			// Internal (bigtree-internal-*) settings and any value written straight
+			// to bigtree_settings have no JSONDB definition. Fall back to the SQL
+			// row so those settings still resolve (matching the legacy
+			// BigTreeCMS::getSetting behavior, which read purely from SQL).
 			if (!$setting) {
-				return false;
+				$setting = SQL::fetch("SELECT * FROM bigtree_settings WHERE id = ?", $id);
+
+				if (!$setting) {
+					return false;
+				}
 			}
 
 			if ($setting["encrypted"]) {

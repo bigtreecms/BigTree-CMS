@@ -71,7 +71,10 @@
 				// Allow a true re-run after someone rewound bigtree-internal-revision
 				// below this N (e.g. testing) — reset the in-flight marker so finish()
 				// can complete again. Do not touch rows still ahead of the floor.
-				if ((int)$existing["success"] === 1 && $floor < $revision) {
+				// Bounded to real (<= BIGTREE_REVISION) revisions: the floor caps at
+				// BIGTREE_REVISION, so for a higher revision $floor < $revision is
+				// always true and would wrongly re-arm an already-applied row.
+				if ((int)$existing["success"] === 1 && $revision <= BIGTREE_REVISION && $floor < $revision) {
 					SQL::query(
 						"UPDATE bigtree_migrations
 							SET success = 0, checksum = ?, applied_at = NOW(), duration_ms = NULL
@@ -124,14 +127,18 @@
 		 * Advance bigtree-internal-revision to $revision if higher (never lower).
 		 */
 		private static function advanceInternalRevisionTo(int $revision): void {
+			// Clamp to the on-disk ceiling BEFORE comparing to the current floor.
+			// Clamping afterwards would let an out-of-range revision collapse to
+			// BIGTREE_REVISION and then be written below a higher floor, lowering
+			// the integer — which this method must never do.
+			if ($revision > BIGTREE_REVISION) {
+				$revision = BIGTREE_REVISION;
+			}
+
 			$current = (int)BigTreeCMS::getSetting("bigtree-internal-revision");
 
 			if ($revision <= $current) {
 				return;
-			}
-
-			if ($revision > BIGTREE_REVISION) {
-				$revision = BIGTREE_REVISION;
 			}
 
 			SettingService::updateInternalValue("bigtree-internal-revision", $revision);
