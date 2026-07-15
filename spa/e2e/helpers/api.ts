@@ -6,8 +6,8 @@ import { e2eApiBase, e2eEmail, e2ePassword } from "./env";
 
 export interface ApiSession {
 	accessToken: string;
-	userId: number;
 	level: number;
+	userId: number;
 }
 
 async function request(
@@ -47,10 +47,7 @@ async function request(
 	return { status: res.status, json };
 }
 
-export async function apiLogin(
-	email = e2eEmail(),
-	password = e2ePassword()
-): Promise<ApiSession> {
+export async function apiLogin(email = e2eEmail(), password = e2ePassword()): Promise<ApiSession> {
 	// Retry once after a short wait if rate-limited (serial suite can burst).
 	for (let attempt = 0; attempt < 3; attempt++) {
 		const { status, json } = await request("POST", "/auth/login", {
@@ -113,11 +110,7 @@ export async function apiDeleteUser(session: ApiSession, id: number) {
 	await apiJson(session, "DELETE", `/users/${id}`);
 }
 
-export async function apiCreateSetting(
-	session: ApiSession,
-	id: string,
-	name: string
-) {
+export async function apiCreateSetting(session: ApiSession, id: string, name: string) {
 	const { status, data } = await apiJson(session, "POST", "/settings", {
 		id,
 		name,

@@ -201,7 +201,12 @@ test("8. developer: create and delete template", async ({ page }) => {
 
 	// Redirect to list or edit
 	await expect(page).toHaveURL(/\/developer\/templates/, { timeout: 15_000 });
-	await expect(page.getByText(tid).or(page.getByText(`E2E Template ${tid}`)).first()).toBeVisible({
+	await expect(
+		page
+			.getByText(tid)
+			.or(page.getByText(`E2E Template ${tid}`))
+			.first()
+	).toBeVisible({
 		timeout: 15_000,
 	});
 
@@ -263,7 +268,9 @@ test("9. pending: editor draft appears for admin", async ({ page }) => {
 		const rows = Array.isArray(list.data) ? list.data : [];
 		for (const row of rows) {
 			if (Number(row.user) === created.id) {
-				await apiJson(admin, "POST", `/pending-changes/${row.id}/reject`).catch(() => undefined);
+				await apiJson(admin, "POST", `/pending-changes/${row.id}/reject`).catch(
+					() => undefined
+				);
 			}
 		}
 		await apiDeleteUser(admin, created.id);
@@ -292,6 +299,10 @@ test("10. 404s: create 301 redirect", async ({ page }) => {
 	await page.waitForURL(/\/dashboard\/404s\/301/, { timeout: 15_000 });
 	const slug = from.replace(/^\//, "");
 	await expect(
-		page.getByText(from).or(page.getByText(slug)).or(page.getByText(/Redirect/i)).first()
+		page
+			.getByText(from)
+			.or(page.getByText(slug))
+			.or(page.getByText(/Redirect/i))
+			.first()
 	).toBeVisible({ timeout: 15_000 });
 });

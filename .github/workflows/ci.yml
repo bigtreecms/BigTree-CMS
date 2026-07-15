@@ -387,6 +387,17 @@ jobs:
           mysql -h 127.0.0.1 -P 3306 -uroot -proot bigtree_test -e \
             "INSERT IGNORE INTO bigtree_pages (id,trunk,parent,in_nav,nav_title,route,path,title,meta_keywords,meta_description,seo_invisible,template,external,new_window,resources,archived,archived_inherited,max_age,last_edited_by,ga_page_views,position,created_at,updated_at) VALUES (0,'',-1,'on','Home','','','Home','','','','content','','','{}','','',0,1,0,0,NOW(),NOW()), (1,'',0,'on','About','about','about','About','','','','content','','','{}','','',0,1,0,0,NOW(),NOW());" \
             || true
+          # Mark the schema as fully migrated. The e2e user is a level-2 developer,
+          # and ProtectedRoute forces developers to /developer/migrations whenever
+          # the live migration queue is non-empty. A fresh test DB has no
+          # bigtree-internal-revision setting (treated as revision 0), so without
+          # this every revision script would be "pending" and login #1 would land
+          # on the migration gate instead of the dashboard. Setting it to the
+          # current BIGTREE_REVISION empties the queue. The value is stored as the
+          # JSON encoding of the integer (a bare number), matching SettingService.
+          REV=$(php -r 'include "core/version.php"; echo (int)BIGTREE_REVISION;')
+          mysql -h 127.0.0.1 -P 3306 -uroot -proot bigtree_test -e \
+            "INSERT INTO bigtree_settings (id,value,encrypted) VALUES ('bigtree-internal-revision','${REV}','') ON DUPLICATE KEY UPDATE value=VALUES(value), encrypted='';"
       - name: Start PHP server
         run: |
           REPO_ROOT="$(pwd)/" php -S 127.0.0.1:8080 \

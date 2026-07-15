@@ -76,6 +76,9 @@ export async function uiLogout(page: Page): Promise<void> {
 	});
 	await page.goto("/login");
 	await expect(
-		page.getByTestId("login-email").or(page.getByLabel(/^Email$/i)).first()
+		page
+			.getByTestId("login-email")
+			.or(page.getByLabel(/^Email$/i))
+			.first()
 	).toBeVisible();
 }

@@ -21,8 +21,7 @@ import { defineConfig, devices } from "@playwright/test";
 
 const useVite = process.env.E2E_USE_VITE === "1" || process.env.E2E_USE_VITE === "true";
 const baseURL =
-	process.env.E2E_BASE_URL ??
-	(useVite ? "http://127.0.0.1:5173" : "http://127.0.0.1:8080/admin");
+	process.env.E2E_BASE_URL ?? (useVite ? "http://127.0.0.1:5173" : "http://127.0.0.1:8080/admin");
 
 export default defineConfig({
 	testDir: "./e2e",

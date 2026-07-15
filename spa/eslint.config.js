@@ -76,9 +76,7 @@ export default tseslint.config(
 				{
 					type: "natural",
 					order: "asc",
-					customGroups: [
-						{ groupName: "callback", elementNamePattern: "^on[A-Z]" },
-					],
+					customGroups: [{ groupName: "callback", elementNamePattern: "^on[A-Z]" }],
 					groups: ["shorthand-prop", "unknown", "callback"],
 				},
 			],
@@ -96,10 +94,18 @@ export default tseslint.config(
 		files: ["**/*.{ts,tsx}"],
 		languageOptions: {
 			parserOptions: {
-				project: ["./tsconfig.app.json", "./tsconfig.node.json"],
+				project: ["./tsconfig.app.json", "./tsconfig.node.json", "./tsconfig.e2e.json"],
 				tsconfigRootDir: import.meta.dirname,
 			},
 		},
 	},
-	storybook.configs["flat/recommended"]
+	storybook.configs["flat/recommended"],
+	{
+		// E2E setup/teardown helpers talk to the REST API and legitimately handle
+		// untyped JSON responses; `any` is expected here.
+		files: ["e2e/**/*.{ts,tsx}"],
+		rules: {
+			"@typescript-eslint/no-explicit-any": "off",
+		},
+	}
 );
