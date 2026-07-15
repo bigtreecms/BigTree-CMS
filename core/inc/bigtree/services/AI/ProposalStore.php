@@ -1,0 +1,242 @@
+<?php
+	namespace BigTree\Services\AI;
+
+	use SQL;
+
+	/**
+	 * The server-side store for staged mutations (Phase 3).
+	 *
+	 * A mutating tool never changes the CMS during a chat turn. Instead it validates
+	 * the request, writes a *proposal* here (status "pending"), and returns its id as
+	 * an AIToolResult::proposal(...). The SPA renders that as a confirmation card; the
+	 * change happens only when the user approves, at which point the acting service
+	 * re-checks permission and executes from the stored, validated payload — never
+	 * from anything the model round-tripped.
+	 *
+	 * Proposals are per-user and per-conversation. A non-owner load returns null so
+	 * approve/reject 404 without leaking that the row exists, and each proposal has a
+	 * short TTL so a stale card can't be approved into a live change days later.
+	 */
+	class ProposalStore {
+		const TABLE = "bigtree_ai_proposals";
+
+		const PENDING = "pending";
+		const APPROVED = "approved";
+		const REJECTED = "rejected";
+		const EXPIRED = "expired";
+
+		// How long a staged proposal stays approvable. Long enough for a real
+		// review, short enough that permission checks at approval reflect roughly
+		// the same authorization landscape as when it was staged.
+		const TTL_SECONDS = 86400;
+
+		/** @var bool Memoized table-existence probe (once per request). */
+		private static $table_ready = false;
+
+		/**
+		 * Stage a validated mutation. Returns the stored row (including its id) so the
+		 * caller can hand the id to the model and the SPA.
+		 *
+		 * @param object|array $user
+		 * @param array<string,mixed> $payload Validated, execute-ready arguments.
+		 * @param array<string,mixed> $preview Human/SPA-facing diff or field summary.
+		 * @return array<string,mixed>
+		 */
+		public function create($user, int $conversation_id, string $tool, string $summary, array $preview, array $payload): array {
+			$this->ensureTable();
+
+			$id = self::newId();
+			$now = time();
+			$created_at = date("Y-m-d H:i:s", $now);
+			$expires_at = date("Y-m-d H:i:s", $now + self::TTL_SECONDS);
+
+			$row = [
+				"id" => $id,
+				"conversation" => $conversation_id,
+				"user" => (int)$this->userId($user),
+				"tool" => $tool,
+				"summary" => $summary,
+				"preview" => json_encode($preview),
+				"payload" => json_encode($payload),
+				"status" => self::PENDING,
+				"result" => null,
+				"created_at" => $created_at,
+				"expires_at" => $expires_at,
+			];
+
+			SQL::insert(self::TABLE, $row);
+
+			return $row;
+		}
+
+		/**
+		 * Load a proposal only if it belongs to $user; a non-owner (or missing row)
+		 * returns null so callers 404 without leaking existence. Also lazily flips a
+		 * pending-but-expired proposal to "expired" so it can never be approved.
+		 *
+		 * @param object|array $user
+		 * @return array<string,mixed>|null
+		 */
+		public function loadOwned(string $id, $user): ?array {
+			$this->ensureTable();
+
+			if ($id === "") {
+
+				return null;
+			}
+
+			$row = SQL::fetch("SELECT * FROM " . self::TABLE . " WHERE id = ?", $id);
+
+			if (!$row) {
+
+				return null;
+			}
+
+			if ((int)$row["user"] !== (int)$this->userId($user)) {
+
+				return null;
+			}
+
+			if ($row["status"] === self::PENDING && $this->isExpired($row)) {
+				SQL::update(self::TABLE, $id, ["status" => self::EXPIRED]);
+				$row["status"] = self::EXPIRED;
+			}
+
+			return $row;
+		}
+
+		/**
+		 * Every proposal in a conversation, oldest first, presented for the SPA. Used
+		 * on conversation reload so approved/rejected cards keep their resolved state.
+		 *
+		 * @return list<array<string,mixed>>
+		 */
+		public function listForConversation(int $conversation_id): array {
+			$this->ensureTable();
+
+			$rows = SQL::fetchAll(
+				"SELECT * FROM " . self::TABLE . " WHERE conversation = ? ORDER BY created_at ASC, id ASC",
+				$conversation_id
+			);
+
+			return array_map(function ($row) {
+
+				return $this->present($row);
+			}, $rows);
+		}
+
+		/**
+		 * Record the outcome of a resolved proposal.
+		 *
+		 * @param array<string,mixed>|null $result
+		 */
+		public function markResolved(string $id, string $status, ?array $result = null): void {
+			SQL::update(self::TABLE, $id, [
+				"status" => $status,
+				"result" => $result !== null ? json_encode($result) : null,
+			]);
+		}
+
+		public function isExpired(array $row): bool {
+			$expires = strtotime((string)($row["expires_at"] ?? ""));
+
+			return $expires !== false && $expires < time();
+		}
+
+		/**
+		 * Shape a stored row for the wire: decode the JSON columns, drop the raw
+		 * execute payload (never needed by the SPA), keep summary + preview + status.
+		 *
+		 * @param array<string,mixed> $row
+		 * @return array<string,mixed>
+		 */
+		public function present(array $row): array {
+			$preview = json_decode((string)($row["preview"] ?? ""), true);
+			$result = json_decode((string)($row["result"] ?? ""), true);
+
+			return [
+				"proposal_id" => (string)$row["id"],
+				"tool" => (string)($row["tool"] ?? ""),
+				"summary" => (string)($row["summary"] ?? ""),
+				"preview" => is_array($preview) ? $preview : [],
+				"status" => (string)($row["status"] ?? ""),
+				"result" => is_array($result) ? $result : null,
+				"created_at" => $row["created_at"] ?? null,
+				"expires_at" => $row["expires_at"] ?? null,
+			];
+		}
+
+		/**
+		 * @param array<string,mixed> $row
+		 * @return array<string,mixed>
+		 */
+		public function decodePayload(array $row): array {
+			$payload = json_decode((string)($row["payload"] ?? ""), true);
+
+			return is_array($payload) ? $payload : [];
+		}
+
+		private static function newId(): string {
+
+			return "prop-" . bin2hex(random_bytes(16));
+		}
+
+		/**
+		 * @param object|array $user
+		 */
+		private function userId($user): int {
+			if (is_object($user)) {
+
+				return (int)($user->id ?? 0);
+			}
+
+			if (is_array($user)) {
+
+				return (int)($user["id"] ?? 0);
+			}
+
+			return 0;
+		}
+
+		/**
+		 * Create the proposal table if missing (memoized). Canonical DDL lives here so
+		 * revision 509 and a first live proposal agree on the schema.
+		 */
+		public function ensureTable(): void {
+			if (self::$table_ready) {
+
+				return;
+			}
+
+			if (!SQL::tableExists(self::TABLE)) {
+				self::ensureTables();
+			}
+
+			self::$table_ready = true;
+		}
+
+		/**
+		 * Idempotent CREATE TABLE (IF NOT EXISTS); called by revision 509 and
+		 * ensureTable().
+		 */
+		public static function ensureTables(): void {
+			SQL::query(
+				"CREATE TABLE IF NOT EXISTS `" . self::TABLE . "` (
+					`id` VARCHAR(64) NOT NULL,
+					`conversation` BIGINT UNSIGNED NOT NULL,
+					`user` INT UNSIGNED NOT NULL DEFAULT 0,
+					`tool` VARCHAR(64) NOT NULL,
+					`summary` MEDIUMTEXT NULL,
+					`preview` MEDIUMTEXT NULL,
+					`payload` MEDIUMTEXT NULL,
+					`status` VARCHAR(16) NOT NULL DEFAULT 'pending',
+					`result` MEDIUMTEXT NULL,
+					`created_at` DATETIME NOT NULL,
+					`expires_at` DATETIME NOT NULL,
+					PRIMARY KEY (`id`),
+					KEY `conversation` (`conversation`, `created_at`),
+					KEY `user_status` (`user`, `status`)
+				) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"
+			);
+		}
+	}

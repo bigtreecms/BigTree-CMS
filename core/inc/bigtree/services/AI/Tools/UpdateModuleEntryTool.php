@@ -1,0 +1,70 @@
+<?php
+	namespace BigTree\Services\AI\Tools;
+
+	use BigTree\Services\AI\AIToolContext;
+	use BigTree\Services\AI\AIToolResult;
+	use BigTree\Services\AI\ProposalStore;
+
+	/**
+	 * Two-phase edit of a module entry. Only simple scalar fields are settable and the
+	 * per-entry group-based-permission check is applied at both validation and
+	 * approval. On approval a publisher writes live, an editor submits a pending
+	 * change. Writes nothing during the turn.
+	 */
+	class UpdateModuleEntryTool extends AbstractMutatingTool {
+		/** @var ModuleEntryToolBackend */
+		private $backend;
+
+		public function __construct(ModuleEntryToolBackend $backend, ProposalStore $proposals) {
+			parent::__construct($proposals);
+			$this->backend = $backend;
+		}
+
+		public function name(): string {
+
+			return "update_module_entry";
+		}
+
+		public function definition($user): array {
+
+			return $this->functionDefinition(
+				$this->name(),
+				"Propose editing an entry in a module. Requires approval. Provide the module id, the entry id, "
+					. "and a \"data\" object of the fields to change.",
+				[
+					"type" => "object",
+					"properties" => [
+						"module_id" => [
+							"type" => "string",
+							"description" => "Id of the module (required).",
+						],
+						"entry_id" => [
+							"type" => "integer",
+							"description" => "Id of the entry to edit (required).",
+						],
+						"data" => [
+							"type" => "object",
+							"description" => "Changed field values keyed by column name (only the module form's simple fields).",
+						],
+					],
+					"required" => ["module_id", "entry_id"],
+				]
+			);
+		}
+
+		public function execute(array $args, AIToolContext $context): AIToolResult {
+			if (trim((string)($args["module_id"] ?? "")) === "") {
+
+				return AIToolResult::error("A module_id is required.");
+			}
+
+			if ((int)($args["entry_id"] ?? 0) < 1) {
+
+				return AIToolResult::error("An entry_id is required.");
+			}
+
+			$validation = $this->backend->aiValidateEntryUpdate($args, $context->user);
+
+			return $this->stageFromValidation($validation, $context, $this->name());
+		}
+	}

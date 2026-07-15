@@ -5,6 +5,7 @@ import { TopBar } from "./TopBar";
 import { TabNav } from "./TabNav";
 import { EmulationBanner } from "./EmulationBanner";
 import { QuickSearch } from "./QuickSearch";
+import { AIChat } from "@/components/ai/AIChat";
 import { Toaster } from "@/components/ui/Toaster";
 import { Button } from "@/components/ui/Button";
 import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
@@ -21,8 +22,10 @@ import { useAuthStore } from "@/auth/store";
 export const Shell = () => {
 	const [dark, setDark] = useState(() => resolveInitialTheme() === "dark");
 	const [searchOpen, setSearchOpen] = useState(false);
+	const [chatOpen, setChatOpen] = useState(false);
 	const { pathname } = useLocation();
 	const developerLockout = useAuthStore((s) => s.developerLockout);
+	const aiChatEnabled = useAuthStore((s) => !!s.user?.features?.ai_chat);
 
 	useEffect(() => {
 		applyTheme(dark ? "dark" : "light");
@@ -68,6 +71,8 @@ export const Shell = () => {
 				dark={dark}
 				onToggleDark={() => setDark((d) => !d)}
 				onOpenSearch={() => setSearchOpen(true)}
+				aiChatEnabled={aiChatEnabled}
+				onOpenChat={() => setChatOpen(true)}
 			/>
 			<TabNav />
 			<EmulationBanner />
@@ -78,6 +83,8 @@ export const Shell = () => {
 			</main>
 
 			<QuickSearch open={searchOpen} onClose={() => setSearchOpen(false)} />
+
+			{aiChatEnabled && <AIChat open={chatOpen} onClose={() => setChatOpen(false)} />}
 
 			<Toaster />
 		</div>

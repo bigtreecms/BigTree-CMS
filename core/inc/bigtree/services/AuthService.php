@@ -1136,6 +1136,7 @@
 				"timezone" => $user["timezone"] ?? "",
 				"features" => [
 					"ai_search" => $ai->isFeatureEnabled("search"),
+					"ai_chat" => $ai->isFeatureEnabled("chat"),
 				],
 				"migrations_pending" => $migrations_pending,
 			];

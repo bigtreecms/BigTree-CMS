@@ -26,7 +26,7 @@ interface AiDraft {
 	embedding_api_key: string;
 	model: string;
 	embedding_model: string;
-	features: { search: boolean; embeddings: boolean };
+	features: { search: boolean; chat: boolean; embeddings: boolean };
 	api_key_set: boolean;
 	embedding_api_key_set: boolean;
 	api_key_clear: boolean;
@@ -108,6 +108,7 @@ export const ConfigureAI = () => {
 			embedding_model: data.embedding_model ?? "",
 			features: {
 				search: !!data.features?.search,
+				chat: !!data.features?.chat,
 				embeddings: !!data.features?.embeddings,
 			},
 			api_key_set: !!data.api_key_set,
@@ -295,6 +296,7 @@ export const ConfigureAI = () => {
 								embedding_key_required: service !== "" && service !== "openai",
 								features: {
 									search: service === "" ? false : draft.features.search,
+									chat: service === "" ? false : draft.features.chat,
 									embeddings:
 										service === "" || embModels.length === 0
 											? false
@@ -457,6 +459,24 @@ export const ConfigureAI = () => {
 									When enabled, the admin ⌘K search becomes conversational — the
 									model uses tools against pages, modules, tags, and users instead
 									of a simple database match.
+								</p>
+
+								<Checkbox
+									label="Enable AI assistant"
+									checked={draft.features.chat}
+									disabled={!canEnableSearch}
+									onChange={(checked) =>
+										setDraft({
+											...draft,
+											features: { ...draft.features, chat: checked },
+										})
+									}
+								/>
+
+								<p className="mt-2 mb-3 text-[12px] text-text-3">
+									Adds a chat assistant to the admin bar. It answers questions and
+									finds content using the same permission-aware tools as AI search
+									— each user only sees what their access level allows.
 								</p>
 
 								<Checkbox

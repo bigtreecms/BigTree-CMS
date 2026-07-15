@@ -11,6 +11,7 @@
 	use BigTree\Api\Exceptions\BadRequestException;
 	use BigTree\Api\Exceptions\ConflictException;
 	use BigTree\Api\Exceptions\NotFoundException;
+	use BigTree\Services\AI\Tools\ModuleToolBackend;
 	use BigTreeCMS;
 	use BigTreeJSONDB;
 	use BigTree;
@@ -21,7 +22,7 @@
 	 * exposed read-only in v1; their schemas are complex enough that creation/edit
 	 * via API is a follow-on (the developer UI still creates them).
 	 */
-	class ModuleService {
+	class ModuleService implements ModuleToolBackend {
 		use ModuleSubResourceSupport;
 		use ModuleFormFieldsSupport;
 
@@ -1170,6 +1171,104 @@
 		 * are already validated/normalized by the caller; class/table/group/icon/gbp
 		 * are read from $d with the same defaults both paths previously inlined.
 		 */
+		// — AI tool seam (ModuleToolBackend) —
+		//
+		// Developer-only two-phase creation of a bare module record (no table DDL),
+		// reusing the same route validation + insert map as create(). Developer level
+		// is re-checked at validation and approval.
+
+		/**
+		 * @param array<string,mixed> $args
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 */
+		public function aiValidateModuleCreate(array $args, $user): array {
+			if (PermissionService::level($user) < 2) {
+
+				return ["denied" => "Only developers can create modules."];
+			}
+
+			$name = trim((string)($args["name"] ?? ""));
+
+			if ($name === "") {
+
+				return ["error" => "A module name is required."];
+			}
+
+			$route = trim((string)($args["route"] ?? "")) ?: BigTreeCMS::urlify($name);
+
+			if (!Sanitize::isValidId((string)$route, 127, "-")) {
+
+				return ["error" => "The module route must be alphanumeric (dashes allowed) and ≤ 127 characters."];
+			}
+
+			$route = $this->uniqueModuleRoute($route);
+			$group = trim((string)($args["group"] ?? ""));
+
+			if ($group !== "" && !BigTreeJSONDB::exists("module-groups", $group)) {
+
+				return ["error" => "Module group \"{$group}\" does not exist."];
+			}
+
+			$payload = [
+				"name" => $name,
+				"route" => $route,
+				"group" => $group !== "" ? $group : null,
+				"class" => trim((string)($args["class"] ?? "")),
+				"icon" => trim((string)($args["icon"] ?? "")),
+			];
+
+			return [
+				"ok" => true,
+				"summary" => "Create a new module “{$name}” (route {$route}). No database table is created — "
+					. "add one in the Module Designer if the module stores its own entries.",
+				"preview" => [
+					"action" => "create_module",
+					"name" => $name,
+					"route" => $route,
+					"group" => $group,
+					"class" => $payload["class"],
+					"icon" => $payload["icon"],
+				],
+				"payload" => $payload,
+			];
+		}
+
+		/**
+		 * @param array<string,mixed> $payload
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 */
+		public function aiCreateModule(array $payload, $user): array {
+			if (PermissionService::level($user) < 2) {
+				throw new AuthorizationException("Only developers can create modules.");
+			}
+
+			$name = trim((string)($payload["name"] ?? ""));
+			$route = trim((string)($payload["route"] ?? ""));
+
+			if ($name === "" || $route === "" || !Sanitize::isValidId($route, 127, "-")) {
+
+				return ["mode" => "error", "message" => "That module can no longer be created."];
+			}
+
+			// Re-derive a unique route in case one was taken since validation.
+			$route = $this->uniqueModuleRoute($route);
+			$id = BigTreeJSONDB::insert("modules", $this->moduleInsertMap([
+				"group" => $payload["group"] ?? null,
+				"class" => (string)($payload["class"] ?? ""),
+				"table" => "",
+				"icon" => (string)($payload["icon"] ?? ""),
+			], $name, $route));
+
+			return [
+				"mode" => "created",
+				"id" => (string)$id,
+				"name" => $name,
+				"route" => $route,
+			];
+		}
+
 		private function moduleInsertMap(array $d, string $name, string $route): array {
 
 			return [

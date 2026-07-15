@@ -6,7 +6,17 @@ import { messagesApi } from "@/api/endpoints/dashboard";
 import { pluralize } from "@/lib/number";
 import { queryKeys } from "@/lib/queryKeys";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
-import { Bell, ChevronDown, ExternalLink, LogOut, Moon, Search, Sun, User } from "lucide-react";
+import {
+	Bell,
+	ChevronDown,
+	ExternalLink,
+	LogOut,
+	Moon,
+	Search,
+	Sparkles,
+	Sun,
+	User,
+} from "lucide-react";
 import { useAuthStore } from "@/auth/store";
 import { Avatar } from "@/components/ui/Avatar";
 import { IconTile } from "@/components/ui/IconTile";
@@ -24,9 +34,18 @@ interface TopBarProps {
 	dark: boolean;
 	onToggleDark: () => void;
 	onOpenSearch: () => void;
+	/** Whether the AI assistant is enabled for this user (Configure → AI). */
+	aiChatEnabled: boolean;
+	onOpenChat: () => void;
 }
 
-export const TopBar = ({ dark, onToggleDark, onOpenSearch }: TopBarProps) => {
+export const TopBar = ({
+	dark,
+	onToggleDark,
+	onOpenSearch,
+	aiChatEnabled,
+	onOpenChat,
+}: TopBarProps) => {
 	const navigate = useNavigate();
 	const user = useAuthStore((s) => s.user);
 
@@ -104,6 +123,18 @@ export const TopBar = ({ dark, onToggleDark, onOpenSearch }: TopBarProps) => {
 			>
 				<Search size={15} />
 			</button>
+
+			{aiChatEnabled && (
+				<button
+					type="button"
+					onClick={onOpenChat}
+					title="AI assistant"
+					aria-label="AI assistant"
+					className="grid size-[30px] cursor-pointer place-items-center rounded-md bg-transparent text-accent transition-colors hover:bg-accent/10"
+				>
+					<Sparkles size={15} />
+				</button>
+			)}
 
 			<button
 				type="button"

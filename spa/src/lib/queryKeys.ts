@@ -229,6 +229,7 @@ export const queryKeys = {
 			tableFilter?: unknown;
 			start?: unknown;
 			end?: unknown;
+			via?: unknown;
 			page?: number;
 		}) => ["audit", params] as const,
 	},
@@ -237,6 +238,12 @@ export const queryKeys = {
 		/** `opts` distinguishes the federated searches that ask for different types/limits. */
 		results: (q: string, opts?: { types?: string[]; limit?: number }) =>
 			opts ? (["search", q, opts] as const) : (["search", q] as const),
+	},
+
+	ai: {
+		root: () => ["ai"] as const,
+		conversations: () => ["ai", "conversations"] as const,
+		conversation: (id: number) => ["ai", "conversation", id] as const,
 	},
 
 	mediaPresets: {

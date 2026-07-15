@@ -117,7 +117,8 @@ CREATE TABLE `bigtree_audit_trail_context` (
 	`user_agent` VARCHAR(255) DEFAULT NULL,
 	`request_id` CHAR(32) DEFAULT NULL,
 	`method` VARCHAR(8) DEFAULT NULL,
-	`path` VARCHAR(255) DEFAULT NULL
+	`path` VARCHAR(255) DEFAULT NULL,
+	`via` VARCHAR(32) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Migration ledger (017 Phase 1). No FK by design — it references revision files, not rows.

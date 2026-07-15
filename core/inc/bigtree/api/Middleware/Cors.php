@@ -6,33 +6,20 @@
 
 	class Cors {
 		public function handle(Request $request, callable $next) {
-			$origin = $request->header("origin");
-			$allowed = $this->allowedOrigins();
-
-			// An exact origin match may carry credentials. A wildcard ("*") match may
-			// NOT: per the Fetch spec, "Access-Control-Allow-Origin: *" is incompatible
-			// with credentials, and reflecting an arbitrary origin *with* credentials
-			// would let any site make authenticated cross-origin calls. So wildcard
-			// configs serve the literal "*" and omit credentials.
-			$exact_match = $origin && in_array($origin, $allowed, true);
-			$wildcard = in_array("*", $allowed, true);
-			$is_allowed = $exact_match || ($origin && $wildcard);
-			$allow_origin = $exact_match ? $origin : "*";
+			$cors = self::headersFor($request);
 
 			if ($request->method === "OPTIONS") {
 				$response = Response::raw(204, []);
 				$response->is_envelope = false;
 				$response->body = null;
 
-				if ($is_allowed) {
-					$response->header("Access-Control-Allow-Origin", $allow_origin)
-						->header("Access-Control-Allow-Methods", "GET, POST, PATCH, PUT, DELETE, OPTIONS")
+				if ($cors) {
+					$response->header("Access-Control-Allow-Methods", "GET, POST, PATCH, PUT, DELETE, OPTIONS")
 						->header("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Request-Id, If-None-Match")
 						->header("Access-Control-Max-Age", "600");
 
-					if ($exact_match) {
-						$response->header("Access-Control-Allow-Credentials", "true")
-							->header("Vary", "Origin");
+					foreach ($cors as $name => $value) {
+						$response->header($name, $value);
 					}
 				}
 
@@ -41,19 +28,51 @@
 
 			$response = $next($request);
 
-			if ($is_allowed) {
-				$response->header("Access-Control-Allow-Origin", $allow_origin);
-
-				if ($exact_match) {
-					$response->header("Access-Control-Allow-Credentials", "true")
-						->header("Vary", "Origin");
-				}
+			foreach ($cors as $name => $value) {
+				$response->header($name, $value);
 			}
 
 			return $response;
 		}
 
-		private function allowedOrigins() {
+		/**
+		 * The response-time CORS headers to apply for $request, or [] when the origin
+		 * isn't allowed. Shared by handle() and by streaming endpoints that emit their
+		 * own headers (bypassing the Kernel's Response::send tail), so the same
+		 * allow-decision governs both.
+		 *
+		 * An exact origin match may carry credentials. A wildcard ("*") match may NOT:
+		 * per the Fetch spec, "Access-Control-Allow-Origin: *" is incompatible with
+		 * credentials, and reflecting an arbitrary origin *with* credentials would let
+		 * any site make authenticated cross-origin calls. So wildcard configs serve
+		 * the literal "*" and omit credentials.
+		 *
+		 * @return array<string,string>
+		 */
+		public static function headersFor(Request $request): array {
+			$origin = $request->header("origin");
+			$allowed = self::allowedOrigins();
+
+			$exact_match = $origin && in_array($origin, $allowed, true);
+			$wildcard = in_array("*", $allowed, true);
+			$is_allowed = $exact_match || ($origin && $wildcard);
+
+			if (!$is_allowed) {
+
+				return [];
+			}
+
+			$headers = ["Access-Control-Allow-Origin" => $exact_match ? $origin : "*"];
+
+			if ($exact_match) {
+				$headers["Access-Control-Allow-Credentials"] = "true";
+				$headers["Vary"] = "Origin";
+			}
+
+			return $headers;
+		}
+
+		private static function allowedOrigins() {
 			global $bigtree;
 			$origins = [];
 			$root = rtrim($bigtree["config"]["www_root"] ?? "", "/");

@@ -142,6 +142,7 @@ export interface AiConfig {
 	embedding_model: string;
 	features: {
 		search: boolean;
+		chat: boolean;
 		embeddings: boolean;
 	};
 	configured: boolean;
@@ -278,7 +279,7 @@ export const configureApi = {
 			embedding_api_key_clear?: boolean;
 			model: string;
 			embedding_model: string;
-			features: { search: boolean; embeddings: boolean };
+			features: { search: boolean; chat: boolean; embeddings: boolean };
 		}) => api.put<AiConfig>("/system/configure/ai", body),
 		/** One page of a batched embeddings rebuild (page 0 = probe). */
 		reindexEmbeddings: (page = 0) =>

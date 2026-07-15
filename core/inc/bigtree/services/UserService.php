@@ -11,6 +11,7 @@
 	use BigTree\Api\Exceptions\BadRequestException;
 	use BigTree\Api\Exceptions\ConflictException;
 	use BigTree\Api\Exceptions\AuthorizationException;
+	use BigTree\Services\AI\Tools\UserToolBackend;
 	use BigTree;
 	use SQL;
 
@@ -23,7 +24,7 @@
 	 *  - cannot delete yourself
 	 *  - self-update cannot raise your own level
 	 */
-	class UserService {
+	class UserService implements UserToolBackend {
 		public function list(Request $request) {
 			$q = $request->queryString("q");
 
@@ -270,5 +271,236 @@
 			}
 
 			return $result;
+		}
+
+		// — AI tool seam (UserToolBackend) —
+		//
+		// Intentionally narrow: administrators can create basic editor accounts and
+		// edit profile fields. Level, permissions, and passwords are never touched by
+		// the assistant (privilege changes are an explicit non-tool), a new account is
+		// always level 0, and a user outranking the actor can't be edited. Every guard
+		// is re-checked at approval, never trusted from the model or the stored payload.
+
+		/**
+		 * @param array<string,mixed> $args
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 */
+		public function aiValidateUserCreate(array $args, $user): array {
+			if (PermissionService::level($user) < 1) {
+
+				return ["denied" => "Only administrators can create users."];
+			}
+
+			$email = trim((string)($args["email"] ?? ""));
+
+			if ($email === "" || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+
+				return ["error" => "A valid email address is required."];
+			}
+
+			if (SQL::exists("bigtree_users", ["email" => $email])) {
+
+				return ["error" => "A user with the email {$email} already exists."];
+			}
+
+			$name = trim((string)($args["name"] ?? ""));
+			$company = trim((string)($args["company"] ?? ""));
+			$timezone = trim((string)($args["timezone"] ?? ""));
+
+			return [
+				"ok" => true,
+				"summary" => "Create a new editor account for " . ($name !== "" ? "{$name} ({$email})" : $email)
+					. ". They'll be an editor (level 0) and will need a password set separately.",
+				"preview" => [
+					"action" => "create_user",
+					"email" => $email,
+					"name" => $name,
+					"company" => $company,
+					"timezone" => $timezone,
+					"level" => 0,
+				],
+				"payload" => [
+					"email" => $email,
+					"name" => $name,
+					"company" => $company,
+					"timezone" => $timezone,
+				],
+			];
+		}
+
+		/**
+		 * @param array<string,mixed> $payload
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 */
+		public function aiCreateUser(array $payload, $user): array {
+			if (PermissionService::level($user) < 1) {
+				throw new AuthorizationException("Only administrators can create users.");
+			}
+
+			$email = trim((string)($payload["email"] ?? ""));
+
+			if ($email === "" || SQL::exists("bigtree_users", ["email" => $email])) {
+
+				return ["mode" => "error", "message" => "That email address is no longer available."];
+			}
+
+			// Always level 0, no password, no permissions — the assistant never grants
+			// privileges. A password is set out of band (reset flow / admin UI).
+			$id = (int)SQL::insert("bigtree_users", [
+				"email" => BigTree::safeEncode($email),
+				"level" => 0,
+				"name" => BigTree::safeEncode((string)($payload["name"] ?? "")),
+				"company" => BigTree::safeEncode((string)($payload["company"] ?? "")),
+				"daily_digest" => "",
+				"alerts" => [],
+				"permissions" => [],
+				"timezone" => (string)($payload["timezone"] ?? ""),
+			]);
+
+			return [
+				"mode" => "created",
+				"user_id" => $id,
+				"email" => $email,
+				"note" => "The account was created at editor level with no password; set one via the users screen.",
+			];
+		}
+
+		/**
+		 * @param array<string,mixed> $args
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 */
+		public function aiValidateUserUpdate(array $args, $user): array {
+			if (PermissionService::level($user) < 1) {
+
+				return ["denied" => "Only administrators can edit users."];
+			}
+
+			$id = (int)($args["user_id"] ?? 0);
+
+			if ($id < 1) {
+
+				return ["error" => "A user_id is required."];
+			}
+
+			$target = SQL::fetch("SELECT id, email, name, company, level, timezone FROM bigtree_users WHERE id = ?", $id);
+
+			if (!$target) {
+
+				return ["error" => "User {$id} does not exist."];
+			}
+
+			if ((int)$target["level"] > PermissionService::level($user)) {
+
+				return ["denied" => "You cannot edit a user whose level is higher than yours."];
+			}
+
+			$changes = [];
+			$diff = [];
+
+			foreach (["name", "company", "timezone"] as $field) {
+				if (!array_key_exists($field, $args)) {
+
+					continue;
+				}
+
+				$new = trim((string)$args[$field]);
+
+				if ($new !== (string)($target[$field] ?? "")) {
+					$changes[$field] = $new;
+					$diff[$field] = ["from" => (string)($target[$field] ?? ""), "to" => $new];
+				}
+			}
+
+			if (array_key_exists("email", $args)) {
+				$email = trim((string)$args["email"]);
+
+				if ($email === "" || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+
+					return ["error" => "The email address is not valid."];
+				}
+
+				if ($email !== (string)$target["email"]) {
+					if (SQL::exists("bigtree_users", "email = ? AND id != ?", $email, $id)) {
+
+						return ["error" => "Another user already uses the email {$email}."];
+					}
+
+					$changes["email"] = $email;
+					$diff["email"] = ["from" => (string)$target["email"], "to" => $email];
+				}
+			}
+
+			if (!$changes) {
+
+				return ["error" => "No profile changes were supplied — nothing to update."];
+			}
+
+			$label = trim((string)$target["name"]) ?: (string)$target["email"];
+
+			return [
+				"ok" => true,
+				"summary" => "Update the profile for {$label}. (Level and permissions are never changed by the assistant.)",
+				"preview" => [
+					"action" => "update_user",
+					"user_id" => $id,
+					"user_label" => $label,
+					"changes" => $diff,
+				],
+				"payload" => [
+					"user_id" => $id,
+					"changes" => $changes,
+				],
+			];
+		}
+
+		/**
+		 * @param array<string,mixed> $payload
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 */
+		public function aiUpdateUser(array $payload, $user): array {
+			if (PermissionService::level($user) < 1) {
+				throw new AuthorizationException("Only administrators can edit users.");
+			}
+
+			$id = (int)($payload["user_id"] ?? 0);
+			$target = $id > 0 ? SQL::fetch("SELECT id, level FROM bigtree_users WHERE id = ?", $id) : null;
+
+			if (!$target) {
+
+				return ["mode" => "error", "message" => "That user no longer exists."];
+			}
+
+			if ((int)$target["level"] > PermissionService::level($user)) {
+				throw new AuthorizationException("Cannot modify a user with a higher level");
+			}
+
+			$changes = is_array($payload["changes"] ?? null) ? $payload["changes"] : [];
+			$update = [];
+
+			foreach (["name", "company", "email"] as $field) {
+				if (array_key_exists($field, $changes)) {
+					$update[$field] = BigTree::safeEncode((string)$changes[$field]);
+				}
+			}
+
+			if (array_key_exists("timezone", $changes)) {
+				$update["timezone"] = (string)$changes["timezone"];
+			}
+
+			// Guard: level and permissions are never writable through this path.
+			unset($update["level"], $update["permissions"]);
+
+			if ($update) {
+				SQL::update("bigtree_users", $id, $update);
+			}
+
+			return [
+				"mode" => "updated",
+				"user_id" => $id,
+			];
 		}
 	}

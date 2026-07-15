@@ -381,6 +381,280 @@
 		}
 
 		/**
+		 * Streaming counterpart to chat(). Opens a streaming request to the provider,
+		 * forwards each text token to $on_delta as it arrives, and returns the same
+		 * normalized {content, tool_calls, raw} shape once the stream completes — so a
+		 * caller (AgentLoop) can treat a streamed round exactly like a buffered one.
+		 *
+		 * Returns false on failure ($this->Error set), identical to chat().
+		 *
+		 * @param list<array<string,mixed>> $messages
+		 * @param list<array<string,mixed>> $tools
+		 * @param array<string,mixed> $options
+		 * @param callable $on_delta fn(string $text_chunk): void
+		 * @return array{content:?string,tool_calls:list<array<string,mixed>>,raw:mixed}|false
+		 */
+		public function chatStream(array $messages, array $tools, array $options, callable $on_delta) {
+			$this->Error = false;
+
+			if (!$this->isConfigured()) {
+				$this->Error = "AI service is not configured.";
+
+				return false;
+			}
+
+			$accumulator = new \BigTree\Services\AI\StreamAccumulator($this->Service, $on_delta);
+
+			if ($this->Service === "anthropic") {
+				$request = $this->anthropicStreamRequest($messages, $tools, $options);
+			} else {
+				$request = $this->openAiStreamRequest($messages, $tools, $options);
+			}
+
+			$ok = $this->streamRequest(
+				$request["url"],
+				$request["body"],
+				$request["headers"],
+				function (string $line) use ($accumulator): void {
+					$accumulator->feedLine($line);
+				},
+				(int)($options["timeout"] ?? 60)
+			);
+
+			if (!$ok) {
+
+				return false;
+			}
+
+			return $accumulator->result();
+		}
+
+		/**
+		 * Build the streaming request tuple for the OpenAI-compatible providers.
+		 *
+		 * @param list<array<string,mixed>> $messages
+		 * @param list<array<string,mixed>> $tools
+		 * @param array<string,mixed> $options
+		 * @return array{url:string,body:array<string,mixed>,headers:list<string>}
+		 */
+		private function openAiStreamRequest(array $messages, array $tools, array $options): array {
+			$body = [
+				"model" => $this->Model,
+				"messages" => $messages,
+				"stream" => true,
+			];
+
+			if (!empty($options["max_tokens"])) {
+				$body["max_tokens"] = (int)$options["max_tokens"];
+			}
+
+			if (array_key_exists("temperature", $options)) {
+				$body["temperature"] = (float)$options["temperature"];
+			}
+
+			if ($tools) {
+				$body["tools"] = $tools;
+				$body["tool_choice"] = $options["tool_choice"] ?? "auto";
+			}
+
+			return [
+				"url" => self::ENDPOINTS[$this->Service],
+				"body" => $body,
+				"headers" => [
+					"Authorization: Bearer " . $this->Settings["api_key"],
+					"Content-Type: application/json",
+					"Accept: text/event-stream",
+				],
+			];
+		}
+
+		/**
+		 * Build the streaming request tuple for Anthropic. Reuses the same
+		 * message/tool mapping as the buffered path by delegating to chatAnthropic's
+		 * shaping — kept inline here (with stream:true) to avoid disturbing the
+		 * tested buffered method.
+		 *
+		 * @param list<array<string,mixed>> $messages
+		 * @param list<array<string,mixed>> $tools
+		 * @param array<string,mixed> $options
+		 * @return array{url:string,body:array<string,mixed>,headers:list<string>}
+		 */
+		private function anthropicStreamRequest(array $messages, array $tools, array $options): array {
+			$system = "";
+			$anthropic_messages = [];
+
+			foreach ($messages as $msg) {
+				$role = (string)($msg["role"] ?? "user");
+
+				if ($role === "system") {
+					$system .= ($system === "" ? "" : "\n\n") . (string)($msg["content"] ?? "");
+
+					continue;
+				}
+
+				if ($role === "tool") {
+					$anthropic_messages[] = [
+						"role" => "user",
+						"content" => [[
+							"type" => "tool_result",
+							"tool_use_id" => (string)($msg["tool_call_id"] ?? ""),
+							"content" => is_string($msg["content"] ?? null)
+								? $msg["content"]
+								: json_encode($msg["content"] ?? new stdClass()),
+						]],
+					];
+
+					continue;
+				}
+
+				if ($role === "assistant" && !empty($msg["tool_calls"])) {
+					$content_blocks = [];
+
+					if (!empty($msg["content"])) {
+						$content_blocks[] = ["type" => "text", "text" => (string)$msg["content"]];
+					}
+
+					foreach ($msg["tool_calls"] as $call) {
+						$fn = $call["function"] ?? $call;
+						$args_raw = $fn["arguments"] ?? ($call["arguments"] ?? []);
+						$args = is_string($args_raw) ? json_decode($args_raw, true) : $args_raw;
+
+						if (!is_array($args)) {
+							$args = [];
+						}
+
+						$content_blocks[] = [
+							"type" => "tool_use",
+							"id" => (string)($call["id"] ?? ""),
+							"name" => (string)($fn["name"] ?? $call["name"] ?? ""),
+							"input" => $args === [] ? new stdClass() : $args,
+						];
+					}
+
+					$anthropic_messages[] = ["role" => "assistant", "content" => $content_blocks];
+
+					continue;
+				}
+
+				$anthropic_messages[] = [
+					"role" => $role === "assistant" ? "assistant" : "user",
+					"content" => (string)($msg["content"] ?? ""),
+				];
+			}
+
+			$anthropic_messages = $this->mergeAnthropicMessages($anthropic_messages);
+
+			$body = [
+				"model" => $this->Model,
+				"max_tokens" => (int)($options["max_tokens"] ?? 2048),
+				"messages" => $anthropic_messages,
+				"stream" => true,
+			];
+
+			if ($system !== "") {
+				$body["system"] = $system;
+			}
+
+			if (array_key_exists("temperature", $options)) {
+				$body["temperature"] = (float)$options["temperature"];
+			}
+
+			if ($tools) {
+				$body["tools"] = array_map(function ($tool) {
+					$fn = $tool["function"] ?? $tool;
+
+					return [
+						"name" => (string)($fn["name"] ?? ""),
+						"description" => (string)($fn["description"] ?? ""),
+						"input_schema" => $fn["parameters"] ?? ["type" => "object", "properties" => new stdClass()],
+					];
+				}, $tools);
+			}
+
+			return [
+				"url" => self::ENDPOINTS["anthropic"],
+				"body" => $body,
+				"headers" => [
+					"x-api-key: " . $this->Settings["api_key"],
+					"anthropic-version: 2023-06-01",
+					"Content-Type: application/json",
+					"Accept: text/event-stream",
+				],
+			];
+		}
+
+		/**
+		 * POST $body as JSON and stream the SSE response, invoking $on_line once per
+		 * newline-delimited line via a curl write callback (no full-body buffering).
+		 * Returns true on a 2xx stream, false otherwise ($this->Error set).
+		 *
+		 * @param array<string,mixed> $body
+		 * @param list<string> $headers
+		 * @param callable $on_line fn(string $line): void
+		 */
+		private function streamRequest(string $url, array $body, array $headers, callable $on_line, int $timeout = 60): bool {
+			$payload = json_encode($body);
+
+			if ($payload === false) {
+				$this->Error = "Failed to encode request body.";
+
+				return false;
+			}
+
+			if (!function_exists("curl_init")) {
+				$this->Error = "Streaming requires the cURL extension.";
+
+				return false;
+			}
+
+			$buffer = "";
+			$ch = curl_init($url);
+			curl_setopt_array($ch, [
+				CURLOPT_POST => true,
+				CURLOPT_POSTFIELDS => $payload,
+				CURLOPT_HTTPHEADER => $headers,
+				CURLOPT_TIMEOUT => $timeout,
+				CURLOPT_CONNECTTIMEOUT => 5,
+				CURLOPT_RETURNTRANSFER => false,
+				CURLOPT_WRITEFUNCTION => function ($handle, string $chunk) use (&$buffer, $on_line): int {
+					$buffer .= $chunk;
+
+					while (($nl = strpos($buffer, "\n")) !== false) {
+						$line = substr($buffer, 0, $nl);
+						$buffer = substr($buffer, $nl + 1);
+						$on_line(rtrim($line, "\r"));
+					}
+
+					return strlen($chunk);
+				},
+			]);
+
+			$ok = curl_exec($ch);
+			$code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
+			$curl_error = curl_error($ch);
+			curl_close($ch);
+
+			// Flush any trailing partial line the stream didn't terminate with \n.
+			if ($buffer !== "") {
+				$on_line(rtrim($buffer, "\r"));
+			}
+
+			if ($ok === false) {
+				$this->Error = $curl_error !== "" ? $curl_error : "AI stream connection failed.";
+
+				return false;
+			}
+
+			if ($code < 200 || $code >= 300) {
+				$this->Error = "AI provider error (HTTP $code).";
+
+				return false;
+			}
+
+			return true;
+		}
+
+		/**
 		 * xAI and OpenAI share the Chat Completions shape.
 		 *
 		 * @param list<array<string,mixed>> $messages

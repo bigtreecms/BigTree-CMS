@@ -1,0 +1,104 @@
+import { api } from "@/api/client";
+import type { SearchResultGroups } from "@/api/endpoints/search";
+
+/**
+ * Client for the AI assistant chat endpoints (AIChatService, Phase 2).
+ * Only available when features.ai_chat is true on the auth user.
+ */
+
+/** One tool the model ran during a turn — rendered as a "Searching pages…" row. */
+export interface ChatToolActivity {
+	name: string;
+	arguments: Record<string, unknown>;
+	/** AIToolResult status: ok | denied | needs_input | proposal | error. */
+	status: string;
+}
+
+export type ProposalStatus = "pending" | "approved" | "rejected" | "expired";
+
+/**
+ * A staged mutation (Phase 3) the assistant produced during a turn. Nothing has
+ * changed in the CMS — the user reviews the summary/preview and approves or rejects
+ * it. Status is mutable and refreshed on conversation reload.
+ */
+export interface ChatProposal {
+	proposal_id: string;
+	/** Tool that produced it, e.g. "create_page". */
+	tool: string;
+	summary: string;
+	/** Field/diff preview for the card (shape varies by tool). */
+	preview: Record<string, unknown>;
+	status: ProposalStatus;
+	/** Outcome once approved (e.g. { mode, page_id } for create_page); null until then. */
+	result: Record<string, unknown> | null;
+}
+
+/** A persisted assistant/user message. */
+export interface ChatMessage {
+	id: number;
+	role: "user" | "assistant";
+	content: string;
+	tool_activity: ChatToolActivity[];
+	proposals: ChatProposal[];
+	created_at: string | null;
+}
+
+/** Response from POST /ai/chat: the assistant turn plus navigable artifacts. */
+export interface ChatTurn {
+	conversation_id: number;
+	title: string;
+	message: {
+		id: number;
+		role: "assistant";
+		content: string;
+		tool_activity: ChatToolActivity[];
+		proposals: ChatProposal[];
+		created_at: string;
+	};
+	/** Same group shapes as federated search, for deep-linking (never seen by the model). */
+	artifacts: SearchResultGroups;
+}
+
+/** Response from approving/rejecting a proposal: the proposal in its resolved state. */
+export interface ProposalResolution {
+	proposal: ChatProposal;
+}
+
+export interface ConversationSummary {
+	id: number;
+	title: string;
+	created_at: string | null;
+	updated_at: string | null;
+}
+
+export interface ConversationDetail {
+	conversation: ConversationSummary;
+	messages: ChatMessage[];
+}
+
+export const aiApi = {
+	/**
+	 * Send one message. Omit conversation_id to start a new conversation; the
+	 * response carries the (possibly newly created) conversation_id to reuse.
+	 */
+	chat: (message: string, conversationId?: number) =>
+		api.post<ChatTurn>("/ai/chat", {
+			message,
+			conversation_id: conversationId,
+		}),
+
+	/** The signed-in user's conversations, most-recent first (first page). */
+	listConversations: () => api.get<ConversationSummary[]>("/ai/conversations"),
+
+	getConversation: (id: number) => api.get<ConversationDetail>(`/ai/conversations/${id}`),
+
+	deleteConversation: (id: number) => api.delete<void>(`/ai/conversations/${id}`),
+
+	/** Approve a staged proposal — runs the change server-side (permission re-checked). */
+	approveProposal: (id: string) =>
+		api.post<ProposalResolution>(`/ai/proposals/${encodeURIComponent(id)}/approve`),
+
+	/** Reject a staged proposal — discards it without running anything. */
+	rejectProposal: (id: string) =>
+		api.post<ProposalResolution>(`/ai/proposals/${encodeURIComponent(id)}/reject`),
+};

@@ -35,6 +35,9 @@
 					"request_id" => substr((string)($context["request_id"] ?? ""), 0, 32),
 					"method" => substr((string)($context["method"] ?? ""), 0, 8),
 					"path" => substr((string)($context["path"] ?? ""), 0, 255),
+					// Source marker: null for ordinary REST changes, "ai_assistant"
+					// for a change made through an approved AI proposal.
+					"via" => ($context["via"] ?? "") !== "" ? substr((string)$context["via"], 0, 32) : null,
 				]);
 			}
 
@@ -71,19 +74,35 @@
 
 			if (!empty($request->query["end"])) { $where[] = "a.date <= ?"; $args[] = $request->query["end"]; }
 
+			// Filter by change source (e.g. via=ai_assistant to show only AI-approved
+			// changes). Joined against the context table, so it forces the join in.
+			$filter_via = !empty($request->query["via"]) ? (string)$request->query["via"] : "";
+
+			$via_join = ($include_context || $filter_via !== "")
+				? " LEFT JOIN bigtree_audit_trail_context c ON c.audit_id = a.id"
+				: "";
+
+			if ($filter_via !== "") {
+				$where[] = "c.via = ?";
+				$args[] = $filter_via;
+			}
+
 			$sql_where = $where ? " WHERE " . implode(" AND ", $where) : "";
 
 			$select = $include_context
-				? "SELECT a.*, u.name AS user_name, u.email AS user_email, c.ip, c.user_agent, c.request_id, c.method, c.path FROM bigtree_audit_trail a LEFT JOIN bigtree_users u ON u.id = a.user LEFT JOIN bigtree_audit_trail_context c ON c.audit_id = a.id"
+				? "SELECT a.*, u.name AS user_name, u.email AS user_email, c.ip, c.user_agent, c.request_id, c.method, c.path, c.via FROM bigtree_audit_trail a LEFT JOIN bigtree_users u ON u.id = a.user" . $via_join
 				: "SELECT a.*, u.name AS user_name, u.email AS user_email FROM bigtree_audit_trail a LEFT JOIN bigtree_users u ON u.id = a.user";
 
 			// Actors whose account was deleted no longer join to bigtree_users;
 			// fall back to the cached name/email captured at deletion time.
 			$deleted_users = BigTreeCMS::getSetting("bigtree-internal-deleted-users") ?: [];
 
+			// The count must share the via join so a via filter narrows the total too.
+			$count_join = $filter_via !== "" ? $via_join : "";
+
 			return Pagination::paginate(
 				$request,
-				"SELECT COUNT(*) FROM bigtree_audit_trail a" . $sql_where,
+				"SELECT COUNT(*) FROM bigtree_audit_trail a" . $count_join . $sql_where,
 				$select . $sql_where . " ORDER BY a.date DESC, a.id DESC",
 				$args,
 				function ($r) use ($include_context, $deleted_users) {
@@ -113,6 +132,7 @@
 							"request_id" => $r["request_id"] ?? null,
 							"method" => $r["method"] ?? null,
 							"path" => $r["path"] ?? null,
+							"via" => $r["via"] ?? null,
 						];
 					}
 

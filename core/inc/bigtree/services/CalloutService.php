@@ -6,9 +6,14 @@
 	use BigTree\Api\JsonStore;
 	use BigTree\Api\Request;
 	use BigTree\Api\Response;
+	use BigTree\Api\Resources;
+	use BigTree\Api\Exceptions\AuthorizationException;
+	use BigTree\Services\AI\Tools\CalloutToolBackend;
+	use BigTree;
+	use BigTreeCMS;
 	use BigTreeJSONDB;
 
-	class CalloutService {
+	class CalloutService implements CalloutToolBackend {
 		// Column => transform verb (see FieldSpec). Create/update both use this map.
 		private const FIELDS = [
 			"name" => "encode",
@@ -153,6 +158,135 @@
 			$sort_direction = $sort_pieces[1] ?? "";
 
 			return BigTreeJSONDB::getAll("callouts", $sort_column, $sort_direction ?: "ASC");
+		}
+
+		// — AI tool seam (CalloutToolBackend) —
+		//
+		// Developer-only two-phase callout creation, shaped exactly like the REST
+		// create path (FieldSpec/Resources cleaning) but packaged without a Request.
+		// Developer level is re-checked at validation and approval.
+
+		/**
+		 * @param array<string,mixed> $args
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 */
+		public function aiValidateCalloutCreate(array $args, $user): array {
+			if (PermissionService::level($user) < 2) {
+
+				return ["denied" => "Only developers can create callouts."];
+			}
+
+			$id = trim((string)($args["id"] ?? ""));
+
+			if ($id === "") {
+
+				return ["error" => "A callout id is required (a short lowercase identifier)."];
+			}
+
+			$id = BigTreeCMS::urlify($id);
+
+			if (BigTreeJSONDB::exists("callouts", $id)) {
+
+				return ["error" => "A callout with the id \"{$id}\" already exists."];
+			}
+
+			$name = trim((string)($args["name"] ?? "")) ?: $id;
+			$fields = Resources::clean($this->aiCalloutFields($args["fields"] ?? []));
+
+			$payload = [
+				"id" => $id,
+				"name" => $name,
+				"description" => trim((string)($args["description"] ?? "")),
+				"level" => (int)($args["level"] ?? 0),
+				"display_field" => trim((string)($args["display_field"] ?? "")),
+				"resources" => $fields,
+			];
+
+			return [
+				"ok" => true,
+				"summary" => "Create a new callout “{$name}” (id {$id}) with " . count($fields) . " field(s).",
+				"preview" => [
+					"action" => "create_callout",
+					"id" => $id,
+					"name" => $name,
+					"level" => (int)($args["level"] ?? 0),
+					"fields" => array_map(function (array $f): array {
+
+						return [
+							"id" => (string)($f["id"] ?? ""),
+							"type" => (string)($f["type"] ?? ""),
+							"title" => (string)($f["title"] ?? ""),
+						];
+					}, $fields),
+				],
+				"payload" => $payload,
+			];
+		}
+
+		/**
+		 * @param array<string,mixed> $payload
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 */
+		public function aiCreateCallout(array $payload, $user): array {
+			if (PermissionService::level($user) < 2) {
+				throw new AuthorizationException("Only developers can create callouts.");
+			}
+
+			$id = (string)($payload["id"] ?? "");
+
+			if ($id === "" || BigTreeJSONDB::exists("callouts", $id)) {
+
+				return ["mode" => "error", "message" => "That callout id is no longer available."];
+			}
+
+			$insert = [
+				"id" => $id,
+				"name" => BigTree::safeEncode((string)($payload["name"] ?? $id)),
+				"description" => BigTree::safeEncode((string)($payload["description"] ?? "")),
+				"level" => (int)($payload["level"] ?? 0),
+				"resources" => Resources::clean(is_array($payload["resources"] ?? null) ? $payload["resources"] : []),
+				"display_field" => (string)($payload["display_field"] ?? ""),
+				"display_default" => "",
+				"position" => 0,
+			];
+
+			BigTreeJSONDB::incrementPosition("callouts");
+			BigTreeJSONDB::insert("callouts", $insert);
+
+			return [
+				"mode" => "created",
+				"id" => $id,
+				"name" => (string)($payload["name"] ?? $id),
+			];
+		}
+
+		/**
+		 * Normalize the model's proposed callout fields into the canonical resource
+		 * shape before cleaning.
+		 *
+		 * @param mixed $fields
+		 * @return list<array<string,mixed>>
+		 */
+		private function aiCalloutFields($fields): array {
+			$rows = [];
+
+			foreach ((array)$fields as $field) {
+				if (!is_array($field)) {
+
+					continue;
+				}
+
+				$rows[] = [
+					"id" => BigTreeCMS::urlify((string)($field["id"] ?? "")),
+					"type" => (string)($field["type"] ?? "text"),
+					"title" => (string)($field["title"] ?? ""),
+					"subtitle" => (string)($field["subtitle"] ?? ""),
+				];
+			}
+
+			return $rows;
 		}
 
 	}

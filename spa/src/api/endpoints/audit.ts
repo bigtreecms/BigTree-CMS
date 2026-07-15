@@ -15,6 +15,8 @@ export interface AuditContext {
 	request_id: string | null;
 	method: string | null;
 	path: string | null;
+	/** Change source: null for ordinary REST changes, "ai_assistant" for AI-approved ones. */
+	via: string | null;
 }
 
 export interface AuditEntry {
@@ -35,6 +37,8 @@ export interface AuditListParams {
 	entry?: string;
 	start?: string;
 	end?: string;
+	/** Filter by change source, e.g. "ai_assistant" for AI-approved changes only. */
+	via?: string;
 	include?: string;
 	page?: number;
 	per_page?: number;
@@ -48,6 +52,7 @@ export const auditApi = {
 			entry: params.entry,
 			start: params.start,
 			end: params.end,
+			via: params.via,
 			include: params.include,
 			page: params.page,
 			per_page: params.per_page,

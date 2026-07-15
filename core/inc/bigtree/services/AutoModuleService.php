@@ -9,6 +9,7 @@
 	use BigTree\Api\Exceptions\BadRequestException;
 	use BigTree\Api\Exceptions\NotFoundException;
 	use BigTree\Api\Exceptions\AuthorizationException;
+	use BigTree\Services\AI\Tools\ModuleEntryToolBackend;
 	use BigTreeAutoModule;
 	use BigTreeJSONDB;
 	use BigTreeCMS;
@@ -21,8 +22,18 @@
 	 * Per-row gbp permission is enforced in this service, since it depends on the
 	 * loaded row. Module-level access is enforced upstream by Permission middleware.
 	 */
-	class AutoModuleService {
+	class AutoModuleService implements ModuleEntryToolBackend {
 		use ModuleSubResourceSupport;
+
+		// Module form field types the assistant is allowed to set: plain scalar values
+		// it can synthesize safely. Everything else (uploads, matrices, relationships,
+		// geocoding, routes, callouts) is omitted from the AI schema and rejected if
+		// supplied — the assistant never fabricates a file reference or a relation row.
+		private const AI_SIMPLE_FIELD_TYPES = [
+			"text", "textarea", "html", "htmleditor", "simple-editor", "code",
+			"number", "currency", "phone", "email", "color",
+			"date", "datetime", "time", "select", "radio", "checkbox", "list",
+		];
 
 		public function list(Request $request) {
 			$module_id = $request->routeParam("id");
@@ -883,5 +894,463 @@
 			}
 
 			throw new NotFoundException("No view/table resolvable for module {$module["id"]}", "no_view");
+		}
+
+		// — AI tool seam (ModuleEntryToolBackend) —
+		//
+		// The assistant creates/updates module entries through BigTreeAutoModule (same
+		// as create()/update()), but only the module form's simple scalar fields, and
+		// always two-phase. Access is re-checked here — module edit to stage, publisher
+		// to write live, per-row gbp on update — never in the model.
+
+		/**
+		 * @param array<string,mixed> $args
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 */
+		public function aiValidateEntryCreate(array $args, $user): array {
+			$module_id = (string)($args["module_id"] ?? "");
+			$resolved = $this->aiResolveModuleForm($module_id);
+
+			if (isset($resolved["error"])) {
+
+				return $resolved;
+			}
+
+			$module = $resolved["module"];
+			$table = $resolved["table"];
+			$schema = $resolved["schema"];
+
+			if (PermissionService::userModuleLevel($user, $module["id"]) === "n"
+				|| !PermissionService::userHasModuleAccess($user, $module["id"], "e")) {
+
+				return ["denied" => "You do not have permission to add entries to this module."];
+			}
+
+			$provided = is_array($args["data"] ?? null) ? $args["data"] : [];
+
+			// No data → hand back the settable fields so the model can fill them in and
+			// retry (this doubles as schema discovery).
+			if (!$provided) {
+
+				return ["error" => "Provide a \"data\" object with the entry's field values. Settable fields: "
+					. $this->aiDescribeSchema($schema)];
+			}
+
+			$sifted = $this->aiSiftEntryData($schema, $provided);
+
+			if (isset($sifted["error"])) {
+
+				return $sifted;
+			}
+
+			$data = $sifted["data"];
+			$missing = $this->aiMissingRequired($schema, $data);
+
+			if ($missing) {
+
+				return ["error" => "These required fields are missing: " . implode(", ", $missing) . "."];
+			}
+
+			$rank = PermissionService::userModuleLevel($user, $module["id"]);
+			$can_publish = PermissionService::isPublisher($user, $rank);
+			$name = (string)($module["name"] ?? $module["id"]);
+
+			$mode_note = $can_publish
+				? " It will be published live once you approve."
+				: " It will be queued as a pending entry for a publisher to review.";
+
+			return [
+				"ok" => true,
+				"summary" => "Create a new entry in the “{$name}” module." . $mode_note,
+				"preview" => [
+					"action" => "create_module_entry",
+					"module" => $name,
+					"fields" => $this->aiPreviewEntryData($schema, $data),
+					"mode" => $can_publish ? "published" : "pending",
+				],
+				"payload" => [
+					"module_id" => (string)$module["id"],
+					"table" => $table,
+					"data" => $data,
+				],
+			];
+		}
+
+		/**
+		 * @param array<string,mixed> $payload
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 */
+		public function aiCreateEntry(array $payload, $user): array {
+			$module_id = (string)($payload["module_id"] ?? "");
+			$table = (string)($payload["table"] ?? "");
+			$data = is_array($payload["data"] ?? null) ? $payload["data"] : [];
+
+			if (!PermissionService::userHasModuleAccess($user, $module_id, "e")) {
+				throw new AuthorizationException("Insufficient module permission to create entry (e required)");
+			}
+
+			$rank = PermissionService::userModuleLevel($user, $module_id);
+			$can_publish = PermissionService::isPublisher($user, $rank);
+			$this->bindLegacyAdmin($user);
+
+			if ($can_publish) {
+				$id = BigTreeAutoModule::createItem($table, $data, [], [], null, []);
+				$this->trackModuleResources($table, (int)$id, $data);
+				Hooks::fire("module_entry.created", [
+					"module" => $module_id, "table" => $table, "id" => (int)$id, "via" => "ai_assistant",
+				]);
+
+				return ["mode" => "published", "module" => $module_id, "entry_id" => (int)$id];
+			}
+
+			$pending_id = BigTreeAutoModule::createPendingItem($module_id, $table, $data, [], [], null, false, []);
+			$this->trackModuleResources($table, "p".$pending_id, $data);
+			Hooks::fire("module_entry.pending_created", [
+				"module" => $module_id, "table" => $table, "pending_id" => (int)$pending_id, "via" => "ai_assistant",
+			]);
+
+			return ["mode" => "pending", "module" => $module_id, "pending_id" => (int)$pending_id];
+		}
+
+		/**
+		 * @param array<string,mixed> $args
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 */
+		public function aiValidateEntryUpdate(array $args, $user): array {
+			$module_id = (string)($args["module_id"] ?? "");
+			$resolved = $this->aiResolveModuleForm($module_id);
+
+			if (isset($resolved["error"])) {
+
+				return $resolved;
+			}
+
+			$module = $resolved["module"];
+			$table = $resolved["table"];
+			$schema = $resolved["schema"];
+
+			$entry_id = (int)($args["entry_id"] ?? 0);
+
+			if ($entry_id < 1) {
+
+				return ["error" => "An entry_id is required to edit a module entry."];
+			}
+
+			if (!PermissionService::userHasModuleAccess($user, $module["id"], "e")) {
+
+				return ["denied" => "You do not have permission to edit entries in this module."];
+			}
+
+			$item = BigTreeAutoModule::getItem($table, $entry_id);
+			$row = is_array($item) ? ($item["item"] ?? []) : [];
+
+			if (!$row) {
+
+				return ["error" => "Entry {$entry_id} does not exist in this module."];
+			}
+
+			// Per-row group-based-permission check (assertCanEditRow's non-throwing core).
+			if (PermissionService::userRowLevel($user, $module, $row) === "n") {
+
+				return ["denied" => "You do not have permission to edit this specific entry."];
+			}
+
+			$provided = is_array($args["data"] ?? null) ? $args["data"] : [];
+
+			if (!$provided) {
+
+				return ["error" => "Provide a \"data\" object with the fields to change. Settable fields: "
+					. $this->aiDescribeSchema($schema)];
+			}
+
+			$sifted = $this->aiSiftEntryData($schema, $provided);
+
+			if (isset($sifted["error"])) {
+
+				return $sifted;
+			}
+
+			$data = $sifted["data"];
+
+			if (!$data) {
+
+				return ["error" => "No settable fields were supplied — nothing to update."];
+			}
+
+			$rank = PermissionService::userModuleLevel($user, $module["id"]);
+			$can_publish = PermissionService::isPublisher($user, $rank);
+			$name = (string)($module["name"] ?? $module["id"]);
+
+			$mode_note = $can_publish
+				? " It will be published live once you approve."
+				: " It will be queued as a pending change for a publisher to review.";
+
+			return [
+				"ok" => true,
+				"summary" => "Update entry #{$entry_id} in the “{$name}” module." . $mode_note,
+				"preview" => [
+					"action" => "update_module_entry",
+					"module" => $name,
+					"entry_id" => $entry_id,
+					"fields" => $this->aiPreviewEntryData($schema, $data, $row),
+					"mode" => $can_publish ? "published" : "pending",
+				],
+				"payload" => [
+					"module_id" => (string)$module["id"],
+					"table" => $table,
+					"entry_id" => $entry_id,
+					"data" => $data,
+				],
+			];
+		}
+
+		/**
+		 * @param array<string,mixed> $payload
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 */
+		public function aiUpdateEntry(array $payload, $user): array {
+			$module_id = (string)($payload["module_id"] ?? "");
+			$table = (string)($payload["table"] ?? "");
+			$entry_id = (int)($payload["entry_id"] ?? 0);
+			$data = is_array($payload["data"] ?? null) ? $payload["data"] : [];
+
+			if (!PermissionService::userHasModuleAccess($user, $module_id, "e")) {
+				throw new AuthorizationException("Insufficient module permission to edit entry (e required)");
+			}
+
+			$module = BigTreeJSONDB::get("modules", $module_id);
+			$item = BigTreeAutoModule::getItem($table, $entry_id);
+			$row = is_array($item) ? ($item["item"] ?? []) : [];
+
+			if (!$module || !$row) {
+
+				return ["mode" => "error", "message" => "That entry no longer exists."];
+			}
+
+			PermissionService::assertCanEditRow($user, $module, $row);
+
+			$rank = PermissionService::userModuleLevel($user, $module_id);
+			$can_publish = PermissionService::isPublisher($user, $rank);
+			$this->bindLegacyAdmin($user);
+
+			if ($can_publish) {
+				// Drop any outstanding draft's allocations before re-scanning the live row.
+				$pending_change_id = SQL::fetchSingle(
+					"SELECT id FROM bigtree_pending_changes WHERE `table` = ? AND item_id = ?", $table, $entry_id
+				);
+
+				if ($pending_change_id) {
+					ResourceAllocationService::deallocateResources($table, "p".$pending_change_id);
+				}
+
+				BigTreeAutoModule::updateItem($table, $entry_id, $data, [], [], []);
+				$this->trackModuleResources($table, $entry_id, $data);
+				Hooks::fire("module_entry.updated", [
+					"module" => $module_id, "table" => $table, "id" => $entry_id, "via" => "ai_assistant",
+				]);
+
+				return ["mode" => "published", "module" => $module_id, "entry_id" => $entry_id];
+			}
+
+			$change_allocation_id = BigTreeAutoModule::submitChange($module_id, $table, $entry_id, $data, [], [], null, []);
+			$this->trackModuleResources($table, "p".$change_allocation_id, $data);
+			Hooks::fire("module_entry.pending_updated", [
+				"module" => $module_id, "table" => $table, "id" => $entry_id, "via" => "ai_assistant",
+			]);
+
+			return ["mode" => "pending", "module" => $module_id, "entry_id" => $entry_id];
+		}
+
+		/**
+		 * Resolve a module id to its record, default form table, and the AI-settable
+		 * field schema. Returns ["error" => string] when the module or a usable form
+		 * can't be found.
+		 *
+		 * @return array<string,mixed>
+		 */
+		private function aiResolveModuleForm(string $module_id): array {
+			if ($module_id === "") {
+
+				return ["error" => "A module_id is required."];
+			}
+
+			$module = BigTreeJSONDB::get("modules", $module_id);
+
+			if (!$module) {
+				$module = BigTreeJSONDB::get("modules", $module_id, "route");
+			}
+
+			if (!$module) {
+
+				return ["error" => "Module \"{$module_id}\" does not exist."];
+			}
+
+			$forms = is_array($module["forms"] ?? null) ? $module["forms"] : [];
+			$form = $forms[0] ?? null;
+			$table = (string)($form["table"] ?? $module["table"] ?? "");
+
+			if ($table === "") {
+
+				return ["error" => "This module has no editable entry form."];
+			}
+
+			return [
+				"module" => $module,
+				"table" => $table,
+				"schema" => $this->aiEntrySchema($form),
+			];
+		}
+
+		/**
+		 * The AI-settable field schema for a module form: simple scalar fields only,
+		 * keyed by column.
+		 *
+		 * @param array<string,mixed>|null $form
+		 * @return array<string,array<string,mixed>>
+		 */
+		private function aiEntrySchema(?array $form): array {
+			$schema = [];
+
+			foreach ((array)($form["fields"] ?? []) as $field) {
+				$column = (string)($field["column"] ?? "");
+				$type = (string)($field["type"] ?? "text");
+
+				if ($column === "" || !in_array($type, self::AI_SIMPLE_FIELD_TYPES, true)) {
+
+					continue;
+				}
+
+				$settings = is_array($field["settings"] ?? null) ? $field["settings"] : [];
+				$schema[$column] = [
+					"column" => $column,
+					"type" => $type,
+					"title" => (string)($field["title"] ?? $column),
+					"required" => !empty($settings["required"]),
+				];
+			}
+
+			return $schema;
+		}
+
+		/**
+		 * Keep only the provided values that map to a settable simple field; reject any
+		 * column that is a real form field of a complex type the assistant can't set.
+		 *
+		 * @param array<string,array<string,mixed>> $schema
+		 * @param array<string,mixed> $provided
+		 * @return array<string,mixed> ["data" => array] or ["error" => string]
+		 */
+		private function aiSiftEntryData(array $schema, array $provided): array {
+			$data = [];
+
+			foreach ($provided as $column => $value) {
+				$column = (string)$column;
+
+				if (!isset($schema[$column])) {
+
+					// Unknown columns are ignored (they'd never persist); only surface a
+					// column the model likely expected to work but can't.
+					continue;
+				}
+
+				if (is_array($value)) {
+
+					return ["error" => "Field \"{$column}\" expects a simple value, not a list or object."];
+				}
+
+				if ($schema[$column]["type"] === "checkbox") {
+					$data[$column] = !empty($value) && $value !== "false" && $value !== "0" ? "on" : "";
+				} else {
+					$data[$column] = is_bool($value) ? ($value ? "1" : "0") : (string)$value;
+				}
+			}
+
+			return ["data" => $data];
+		}
+
+		/**
+		 * Required schema columns absent (or empty) in the sifted data.
+		 *
+		 * @param array<string,array<string,mixed>> $schema
+		 * @param array<string,mixed> $data
+		 * @return list<string>
+		 */
+		private function aiMissingRequired(array $schema, array $data): array {
+			$missing = [];
+
+			foreach ($schema as $column => $field) {
+				if (!empty($field["required"]) && (!array_key_exists($column, $data) || $data[$column] === "")) {
+					$missing[] = $column;
+				}
+			}
+
+			return $missing;
+		}
+
+		/**
+		 * A one-line human description of the settable fields for a schema-discovery
+		 * error message.
+		 *
+		 * @param array<string,array<string,mixed>> $schema
+		 */
+		private function aiDescribeSchema(array $schema): string {
+			if (!$schema) {
+
+				return "(this module form has no fields the assistant can set)";
+			}
+
+			$parts = [];
+
+			foreach ($schema as $column => $field) {
+				$parts[] = $column . " (" . $field["type"] . ($field["required"] ? ", required" : "") . ")";
+			}
+
+			return implode(", ", $parts);
+		}
+
+		/**
+		 * Field-level preview for a proposal card: the value being set, and (on update)
+		 * the value it replaces.
+		 *
+		 * @param array<string,array<string,mixed>> $schema
+		 * @param array<string,mixed> $data
+		 * @param array<string,mixed> $existing
+		 * @return list<array<string,mixed>>
+		 */
+		private function aiPreviewEntryData(array $schema, array $data, array $existing = []): array {
+			$out = [];
+
+			foreach ($data as $column => $value) {
+				$entry = [
+					"column" => $column,
+					"title" => (string)($schema[$column]["title"] ?? $column),
+					"to" => $this->aiPreviewScalar($value),
+				];
+
+				if ($existing) {
+					$entry["from"] = $this->aiPreviewScalar($existing[$column] ?? "");
+				}
+
+				$out[] = $entry;
+			}
+
+			return $out;
+		}
+
+		/**
+		 * @param mixed $value
+		 */
+		private function aiPreviewScalar($value): string {
+			$string = is_scalar($value) ? (string)$value : (string)json_encode($value);
+
+			if (mb_strlen($string) > 200) {
+				$string = mb_substr($string, 0, 199) . "…";
+			}
+
+			return $string;
 		}
 	}

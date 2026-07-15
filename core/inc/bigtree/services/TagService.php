@@ -7,11 +7,13 @@
 	use BigTree\Api\Request;
 	use BigTree\Api\Response;
 	use BigTree\Api\Exceptions\BadRequestException;
+	use BigTree\Api\Exceptions\AuthorizationException;
+	use BigTree\Services\AI\Tools\TagToolBackend;
 	use BigTreeCMS;
 	use BigTree;
 	use SQL;
 
-	class TagService {
+	class TagService implements TagToolBackend {
 		public function list(Request $request) {
 			$q = $request->queryString("q");
 
@@ -157,5 +159,176 @@
 		private function present(array $row) {
 
 			return self::presentRow($row);
+		}
+
+		// — AI tool seam (TagToolBackend) —
+		//
+		// The add_tags assistant tool tags a page: an administrator action (matching
+		// can_manage_tags) that also requires edit access to the page. Missing tags are
+		// created and linked into bigtree_tags_rel exactly as the page editor does.
+
+		/**
+		 * @param array<string,mixed> $args
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 */
+		public function aiValidateAddTags(array $args, $user): array {
+			if (PermissionService::level($user) < 1) {
+
+				return ["denied" => "Only administrators can manage tags."];
+			}
+
+			$page_id = (int)($args["page_id"] ?? 0);
+
+			if ($page_id < 1) {
+
+				return ["error" => "A page id is required to add tags."];
+			}
+
+			$page = SQL::fetch("SELECT id, nav_title, title FROM bigtree_pages WHERE id = ?", $page_id);
+
+			if (!$page) {
+
+				return ["error" => "Page {$page_id} does not exist."];
+			}
+
+			if (!PermissionService::userHasPageAccess($user, $page_id, "e")) {
+
+				return ["denied" => "You do not have permission to edit this page."];
+			}
+
+			$names = $this->aiNormalizeTagNames($args["tags"] ?? []);
+
+			if (!$names) {
+
+				return ["error" => "Provide one or more tags to add."];
+			}
+
+			// Which tags already exist vs. would be newly created — surfaced in the
+			// preview so the user sees exactly what a new tag would introduce.
+			$new = [];
+			$existing = [];
+
+			foreach ($names as $name) {
+				if (SQL::fetch("SELECT id FROM bigtree_tags WHERE tag = ?", $name)) {
+					$existing[] = $name;
+				} else {
+					$new[] = $name;
+				}
+			}
+
+			$title = trim((string)$page["nav_title"]) ?: trim((string)$page["title"]) ?: "page #{$page_id}";
+
+			return [
+				"ok" => true,
+				"summary" => "Add " . count($names) . " tag(s) to page “{$title}”"
+					. ($new ? " (" . count($new) . " new)." : "."),
+				"preview" => [
+					"action" => "add_tags",
+					"page_id" => $page_id,
+					"page_title" => $title,
+					"tags" => $names,
+					"new_tags" => $new,
+					"existing_tags" => $existing,
+				],
+				"payload" => [
+					"page_id" => $page_id,
+					"tags" => $names,
+				],
+			];
+		}
+
+		/**
+		 * @param array<string,mixed> $payload
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 */
+		public function aiAddTags(array $payload, $user): array {
+			if (PermissionService::level($user) < 1) {
+				throw new AuthorizationException("Only administrators can manage tags.");
+			}
+
+			$page_id = (int)($payload["page_id"] ?? 0);
+
+			if (!PermissionService::userHasPageAccess($user, $page_id, "e")) {
+				throw new AuthorizationException("Insufficient page permission to tag page (e required)");
+			}
+
+			if (!SQL::exists("bigtree_pages", $page_id)) {
+
+				return ["mode" => "error", "message" => "Page no longer exists."];
+			}
+
+			$names = $this->aiNormalizeTagNames($payload["tags"] ?? []);
+			$added = [];
+
+			foreach ($names as $name) {
+				$tag_id = $this->aiFindOrCreateTag($name);
+				$already = SQL::fetchSingle(
+					"SELECT id FROM bigtree_tags_rel WHERE `table` = 'bigtree_pages' AND entry = ? AND tag = ?",
+					(string)$page_id,
+					$tag_id
+				);
+
+				if ($already) {
+
+					continue;
+				}
+
+				SQL::insert("bigtree_tags_rel", [
+					"table" => "bigtree_pages",
+					"entry" => (string)$page_id,
+					"tag" => $tag_id,
+				]);
+				$this->recomputeUsage($tag_id);
+				$added[] = $name;
+			}
+
+			return [
+				"mode" => "tagged",
+				"page_id" => $page_id,
+				"added" => $added,
+			];
+		}
+
+		/**
+		 * Normalize the model's proposed tag names the same way create() does, dropping
+		 * empties and duplicates while preserving order.
+		 *
+		 * @param mixed $tags
+		 * @return list<string>
+		 */
+		private function aiNormalizeTagNames($tags): array {
+			$out = [];
+
+			foreach ((array)$tags as $tag) {
+				$name = $this->normalize((string)$tag);
+
+				if ($name !== "" && !in_array($name, $out, true)) {
+					$out[] = $name;
+				}
+			}
+
+			return $out;
+		}
+
+		/**
+		 * Return the id of an existing tag (by normalized name) or create it, mirroring
+		 * create(). $name is already normalized.
+		 */
+		private function aiFindOrCreateTag(string $name): int {
+			$existing = SQL::fetchSingle("SELECT id FROM bigtree_tags WHERE tag = ?", $name);
+
+			if ($existing) {
+
+				return (int)$existing;
+			}
+
+			return (int)SQL::insert("bigtree_tags", [
+				"tag" => $name,
+				"metaphone" => metaphone($name),
+				"route" => $this->uniqueRoute(BigTreeCMS::urlify($name)),
+				"usage_count" => 0,
+			]);
 		}
 	}

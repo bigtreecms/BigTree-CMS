@@ -12,6 +12,7 @@
 	use BigTree\Api\Exceptions\BadRequestException;
 	use BigTree\Api\Exceptions\NotFoundException;
 	use BigTree\Api\Exceptions\AuthorizationException;
+	use BigTree\Services\AI\Tools\PageToolBackend;
 	use BigTreeCMS;
 	use BigTree;
 	use SQL;
@@ -27,7 +28,7 @@
 	 *  - Template publish hooks (extension surface; needs lifecycle middleware)
 	 *  - Multi-site path collision dance
 	 */
-	class PageService {
+	class PageService implements PageToolBackend {
 		// Content columns snapshotted into bigtree_page_revisions (restoreRevision
 		// update map + insertRevisionSnapshot share this list; per-map extras stay
 		// explicit at each call site).
@@ -231,6 +232,497 @@
 			}
 
 			return Response::created($this->performCreate($d, $request->user), null);
+		}
+
+		// — AI tool seam (PageToolBackend) —
+		//
+		// The create_page assistant tool drives page creation through the same
+		// enforce/publisher/pending-change logic as create() above; these methods just
+		// package it without a Request so the tool (validate) and the proposal approval
+		// (execute) can reuse it. Permission is checked here, never in the model.
+
+		/**
+		 * Subtrees the user may create a page under, for a create_page needs_input
+		 * prompt. Administrators/developers get the site root plus current top-level
+		 * pages; an editor gets the pages they hold an explicit editor/publisher grant
+		 * on (root is deliberately withheld from non-admins).
+		 *
+		 * @param object|array $user
+		 * @return list<array{id:int,title:string,path:string}>
+		 */
+		public function aiWritableParents($user): array {
+			$out = [];
+
+			if (PermissionService::level($user) >= 1) {
+				$out[] = ["id" => 0, "title" => "Top level (site root)", "path" => ""];
+
+				$rows = SQL::fetchAll(
+					"SELECT id, nav_title, title, path FROM bigtree_pages
+						WHERE parent = 0 AND archived = '' ORDER BY position DESC, id ASC LIMIT 25"
+				);
+
+				foreach ($rows as $row) {
+					$out[] = $this->writableParentRow($row);
+				}
+
+				return $out;
+			}
+
+			$permissions = Json::decode(is_object($user) ? ($user->permissions ?? []) : ($user["permissions"] ?? []));
+			$page_perms = is_array($permissions["page"] ?? null) ? $permissions["page"] : [];
+
+			foreach ($page_perms as $page_id => $rank) {
+				if ((int)$page_id === 0 || !in_array($rank, ["e", "p"], true)) {
+
+					continue;
+				}
+
+				$row = SQL::fetch(
+					"SELECT id, nav_title, title, path FROM bigtree_pages WHERE id = ? AND archived = ''",
+					(int)$page_id
+				);
+
+				if ($row) {
+					$out[] = $this->writableParentRow($row);
+				}
+			}
+
+			return $out;
+		}
+
+		/**
+		 * @param array<string,mixed> $row
+		 * @return array{id:int,title:string,path:string}
+		 */
+		private function writableParentRow(array $row): array {
+			$title = trim((string)($row["nav_title"] ?? "")) ?: trim((string)($row["title"] ?? "")) ?: ("Page #" . (int)$row["id"]);
+
+			return [
+				"id" => (int)$row["id"],
+				"title" => $title,
+				"path" => (string)($row["path"] ?? ""),
+			];
+		}
+
+		/**
+		 * Validate a proposed page creation without writing anything.
+		 *
+		 * @param array<string,mixed> $args
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 */
+		public function aiValidatePageCreate(array $args, $user): array {
+			$nav_title = trim((string)($args["nav_title"] ?? ""));
+
+			if ($nav_title === "") {
+
+				return ["error" => "nav_title is required."];
+			}
+
+			$parent = (int)($args["parent"] ?? 0);
+
+			if ($parent > 0 && !SQL::exists("bigtree_pages", $parent)) {
+
+				return ["error" => "Parent page {$parent} does not exist."];
+			}
+
+			if (!PermissionService::userHasPageAccess($user, $parent, "e")) {
+
+				return ["denied" => "You do not have permission to create a page here."];
+			}
+
+			$rank = PermissionService::userPageLevel($user, $parent);
+			$template = trim((string)($args["template"] ?? ""));
+
+			if ($template !== "" && !BigTreeJSONDB::exists("templates", $template)) {
+
+				return ["error" => "Template \"{$template}\" does not exist."];
+			}
+
+			$title = trim((string)($args["title"] ?? "")) ?: $nav_title;
+			$route = $this->uniqueRoute($parent, BigTreeCMS::urlify($nav_title));
+			$parent_path = $parent ? (string)SQL::fetchSingle("SELECT path FROM bigtree_pages WHERE id = ?", $parent) : "";
+			$path = ($parent_path ? $parent_path . "/" : "") . $route;
+
+			$can_publish = PermissionService::isPublisher($user, $rank);
+			$parent_title = $parent
+				? (trim((string)SQL::fetchSingle("SELECT nav_title FROM bigtree_pages WHERE id = ?", $parent)) ?: "page #{$parent}")
+				: "the site root";
+
+			$in_nav = array_key_exists("in_nav", $args) ? (bool)$args["in_nav"] : true;
+
+			$payload = [
+				"parent" => $parent,
+				"nav_title" => $nav_title,
+				"title" => $title,
+				"route" => $route,
+				"template" => $template,
+				"in_nav" => $in_nav,
+			];
+
+			$preview = [
+				"nav_title" => $nav_title,
+				"title" => $title,
+				"template" => $template,
+				"parent_id" => $parent,
+				"parent_title" => $parent_title,
+				"route" => $route,
+				"path" => "/" . $path,
+				"in_nav" => $in_nav,
+				"mode" => $can_publish ? "published" : "pending",
+			];
+
+			$mode_note = $can_publish
+				? " It will be published live once you approve."
+				: " It will be queued as a pending change for a publisher to review.";
+			$summary = "Create page “{$nav_title}” under {$parent_title}." . $mode_note;
+
+			return [
+				"ok" => true,
+				"summary" => $summary,
+				"preview" => $preview,
+				"payload" => $payload,
+			];
+		}
+
+		/**
+		 * Execute an approved page creation from a stored, validated payload. Re-checks
+		 * permission at approval time and honors the publisher/editor split.
+		 *
+		 * @param array<string,mixed> $payload
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 */
+		public function aiCreatePage(array $payload, $user): array {
+			$parent = (int)($payload["parent"] ?? 0);
+
+			if (!PermissionService::userHasPageAccess($user, $parent, "e")) {
+				throw new AuthorizationException("Insufficient page permission to create child page (e required)");
+			}
+
+			$rank = PermissionService::userPageLevel($user, $parent);
+			$can_publish = PermissionService::isPublisher($user, $rank);
+			$nav_title = (string)($payload["nav_title"] ?? "");
+
+			if (!$can_publish) {
+				$pending_id = $this->writePendingPageChange($user, "NEW", $parent, $payload);
+
+				Hooks::fire("page.pending_created", [
+					"parent" => $parent, "pending_change_id" => (int)$pending_id, "via" => "ai_assistant",
+				]);
+
+				return [
+					"mode" => "pending",
+					"title" => $nav_title,
+					"pending_change_id" => (int)$pending_id,
+				];
+			}
+
+			$page = $this->performCreate($payload, $user);
+
+			return [
+				"mode" => "published",
+				"title" => $nav_title,
+				"page_id" => (int)($page["id"] ?? 0),
+				"path" => "/" . (string)($page["path"] ?? ""),
+			];
+		}
+
+		/**
+		 * The page tree around $parent for the get_page_tree read tool: the parent's
+		 * viewable children plus whether this user may create/edit under it. Children
+		 * the user cannot even view are omitted (they should never surface to the model).
+		 *
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 */
+		public function aiPageTree(int $parent, $user): array {
+			if ($parent > 0 && !SQL::exists("bigtree_pages", $parent)) {
+
+				return ["error" => "Page {$parent} does not exist."];
+			}
+
+			if (!PermissionService::userHasPageAccess($user, $parent, "v")) {
+
+				return ["error" => "You do not have access to view this part of the tree."];
+			}
+
+			$parent_row = $parent > 0
+				? SQL::fetch("SELECT id, nav_title, title, path FROM bigtree_pages WHERE id = ?", $parent)
+				: ["id" => 0, "nav_title" => "Top level (site root)", "title" => "", "path" => ""];
+
+			$rows = SQL::fetchAll(
+				"SELECT id, nav_title, title, path, in_nav, archived, template FROM bigtree_pages
+					WHERE parent = ? ORDER BY position DESC, id ASC LIMIT 200",
+				$parent
+			);
+
+			$children = [];
+
+			foreach ($rows as $row) {
+				if (!PermissionService::userHasPageAccess($user, (int)$row["id"], "v")) {
+
+					continue;
+				}
+
+				$children[] = [
+					"id" => (int)$row["id"],
+					"nav_title" => Sanitize::decodeEntities($row["nav_title"]) ?: Sanitize::decodeEntities($row["title"]),
+					"path" => "/" . (string)$row["path"],
+					"in_nav" => Flag::isOn($row["in_nav"]),
+					"archived" => Flag::isOn($row["archived"]),
+					"template" => (string)$row["template"],
+					"has_children" => (int)SQL::fetchSingle("SELECT COUNT(*) FROM bigtree_pages WHERE parent = ?", (int)$row["id"]) > 0,
+					"can_edit" => PermissionService::userHasPageAccess($user, (int)$row["id"], "e"),
+				];
+			}
+
+			$can_create = PermissionService::userHasPageAccess($user, $parent, "e");
+
+			return [
+				"parent" => [
+					"id" => (int)$parent_row["id"],
+					"nav_title" => $parent > 0
+						? (Sanitize::decodeEntities($parent_row["nav_title"]) ?: Sanitize::decodeEntities($parent_row["title"]))
+						: "Top level (site root)",
+					"path" => $parent > 0 ? "/" . (string)$parent_row["path"] : "",
+				],
+				"children" => $children,
+				"can_create_here" => $can_create,
+				"can_edit_here" => $parent > 0 && $can_create,
+			];
+		}
+
+		/**
+		 * Validate a proposed page edit without writing anything: existence, edit
+		 * access, and (where supplied) template existence. Builds a payload of only the
+		 * fields the model actually changed so approval replays a minimal diff.
+		 *
+		 * @param array<string,mixed> $args
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 */
+		public function aiValidatePageUpdate(array $args, $user): array {
+			$id = (int)($args["id"] ?? 0);
+
+			if ($id < 1) {
+
+				return ["error" => "A page id is required to edit a page."];
+			}
+
+			$page = SQL::fetch("SELECT * FROM bigtree_pages WHERE id = ?", $id);
+
+			if (!$page) {
+
+				return ["error" => "Page {$id} does not exist."];
+			}
+
+			if (!PermissionService::userHasPageAccess($user, $id, "e")) {
+
+				return ["denied" => "You do not have permission to edit this page."];
+			}
+
+			// Only the plain content fields the assistant is allowed to touch. Resource
+			// (template field) editing is deliberately out of scope for the assistant.
+			$editable = ["nav_title", "title", "meta_description", "meta_keywords", "in_nav", "seo_invisible", "template", "route"];
+			$changes = [];
+			$diff = [];
+
+			foreach ($editable as $field) {
+				if (!array_key_exists($field, $args)) {
+
+					continue;
+				}
+
+				if ($field === "template") {
+					$template = trim((string)$args["template"]);
+
+					if ($template !== "" && !BigTreeJSONDB::exists("templates", $template)) {
+
+						return ["error" => "Template \"{$template}\" does not exist."];
+					}
+				}
+
+				if (in_array($field, ["in_nav", "seo_invisible"], true)) {
+					$new = (bool)$args[$field];
+					$old = Flag::isOn($page[$field]);
+				} else {
+					$new = trim((string)$args[$field]);
+					$old = Sanitize::decodeEntities((string)$page[$field]);
+				}
+
+				if ($new === $old) {
+
+					continue;
+				}
+
+				$changes[$field] = $new;
+				$diff[$field] = ["from" => $old, "to" => $new];
+			}
+
+			if (!$changes) {
+
+				return ["error" => "No changes were supplied — nothing to update."];
+			}
+
+			$rank = PermissionService::userPageLevel($user, $id);
+			$can_publish = PermissionService::isPublisher($user, $rank);
+			$title = trim((string)$page["nav_title"]) ?: trim((string)$page["title"]) ?: "page #{$id}";
+
+			$mode_note = $can_publish
+				? " It will be published live once you approve."
+				: " It will be queued as a pending change for a publisher to review.";
+			$summary = "Update page “{$title}”." . $mode_note;
+
+			return [
+				"ok" => true,
+				"summary" => $summary,
+				"preview" => [
+					"page_id" => $id,
+					"page_title" => $title,
+					"changes" => $diff,
+					"mode" => $can_publish ? "published" : "pending",
+				],
+				"payload" => [
+					"id" => $id,
+					"changes" => $changes,
+				],
+			];
+		}
+
+		/**
+		 * Execute an approved page edit from a stored, validated payload. Re-checks edit
+		 * access, then publishes live for a publisher or queues an EDIT pending change.
+		 *
+		 * @param array<string,mixed> $payload
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 */
+		public function aiUpdatePage(array $payload, $user): array {
+			$id = (int)($payload["id"] ?? 0);
+			$changes = is_array($payload["changes"] ?? null) ? $payload["changes"] : [];
+
+			if (!PermissionService::userHasPageAccess($user, $id, "e")) {
+				throw new AuthorizationException("Insufficient page permission to edit page (e required)");
+			}
+
+			$page = SQL::fetch("SELECT * FROM bigtree_pages WHERE id = ?", $id);
+
+			if (!$page) {
+
+				return ["mode" => "error", "message" => "Page no longer exists."];
+			}
+
+			$rank = PermissionService::userPageLevel($user, $id);
+			$can_publish = PermissionService::isPublisher($user, $rank);
+			$title = trim((string)$page["nav_title"]) ?: ("page #{$id}");
+
+			if (!$can_publish) {
+				$pending_id = $this->writePendingPageChange($user, "EDIT", $id, $changes);
+
+				Hooks::fire("page.pending_updated", [
+					"id" => $id, "pending_change_id" => (int)$pending_id, "via" => "ai_assistant",
+				]);
+
+				return [
+					"mode" => "pending",
+					"title" => $title,
+					"pending_change_id" => (int)$pending_id,
+				];
+			}
+
+			$this->performUpdate($id, $page, $changes, $user);
+
+			return [
+				"mode" => "published",
+				"title" => $title,
+				"page_id" => $id,
+			];
+		}
+
+		/**
+		 * Validate a proposed page archive: existence and publisher access (archiving is
+		 * a publish-level action, so an editor cannot stage it even as a pending change).
+		 *
+		 * @param array<string,mixed> $args
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 */
+		public function aiValidatePageArchive(array $args, $user): array {
+			$id = (int)($args["id"] ?? 0);
+
+			if ($id < 1) {
+
+				return ["error" => "A page id is required to archive a page."];
+			}
+
+			$page = SQL::fetch("SELECT id, nav_title, title, path, archived FROM bigtree_pages WHERE id = ?", $id);
+
+			if (!$page) {
+
+				return ["error" => "Page {$id} does not exist."];
+			}
+
+			if (Flag::isOn($page["archived"])) {
+
+				return ["error" => "That page is already archived."];
+			}
+
+			if (!PermissionService::userHasPageAccess($user, $id, "p")) {
+
+				return ["denied" => "Archiving a page requires publisher access, which you do not have on this page."];
+			}
+
+			$title = trim((string)$page["nav_title"]) ?: trim((string)$page["title"]) ?: "page #{$id}";
+
+			return [
+				"ok" => true,
+				"summary" => "Archive page “{$title}” (and any pages beneath it). It will be hidden from the site until unarchived.",
+				"preview" => [
+					"page_id" => $id,
+					"page_title" => $title,
+					"path" => "/" . (string)$page["path"],
+					"action" => "archive",
+				],
+				"payload" => [
+					"id" => $id,
+				],
+			];
+		}
+
+		/**
+		 * Execute an approved page archive from a stored, validated payload. Re-checks
+		 * publisher access and archives the page and its descendants live.
+		 *
+		 * @param array<string,mixed> $payload
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 */
+		public function aiArchivePage(array $payload, $user): array {
+			$id = (int)($payload["id"] ?? 0);
+
+			if (!PermissionService::userHasPageAccess($user, $id, "p")) {
+				throw new AuthorizationException("Insufficient page permission to archive page (p required)");
+			}
+
+			$page = SQL::fetch("SELECT id, nav_title FROM bigtree_pages WHERE id = ?", $id);
+
+			if (!$page) {
+
+				return ["mode" => "error", "message" => "Page no longer exists."];
+			}
+
+			SQL::update("bigtree_pages", $id, ["archived" => "on", "updated_at" => "NOW()"]);
+			$this->setArchivedInherited($id, "on");
+			EmbeddingService::deletePage($id);
+
+			Hooks::fire("page.archived", ["id" => $id, "via" => "ai_assistant"]);
+
+			return [
+				"mode" => "archived",
+				"title" => trim((string)$page["nav_title"]) ?: ("page #{$id}"),
+				"page_id" => $id,
+			];
 		}
 
 		// Live page insert, shared by create() (publish path) and the pending-change

@@ -12,6 +12,7 @@
 	use BigTree\Api\Upload;
 	use BigTree\Api\Exceptions\BadRequestException;
 	use BigTree\Api\Exceptions\AuthorizationException;
+	use BigTree\Services\AI\Tools\ResourceToolBackend;
 	use BigTree;
 	use BigTreeAutoModule;
 	use BigTreeCMS;
@@ -32,7 +33,7 @@
 	 * Allocations track which content row currently uses which resource (so we can
 	 * cleanly find orphans and tell editors what would break if they delete a resource).
 	 */
-	class ResourceService {
+	class ResourceService implements ResourceToolBackend {
 		// — Folders —
 
 		public function listFolders(Request $request) {
@@ -386,6 +387,116 @@
 			}));
 
 			return Response::ok(array_map([$this, "presentResource"], $rows));
+		}
+
+		// — AI tool seam (ResourceToolBackend) —
+		//
+		// Read-only browse + search for the media library, gated on folder rank ≥ e and
+		// filtered to folders the user can access. Compact rows only (no crop/thumb
+		// maps) — the assistant just needs to find and reference files.
+
+		/**
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 */
+		public function aiListResources(int $folder, int $limit, $user): array {
+			if (!PermissionService::userHasFolderAccess($user, $folder, "e")) {
+
+				return ["denied" => "You do not have access to that media folder."];
+			}
+
+			$folders = SQL::fetchAll(
+				"SELECT id, parent, name FROM bigtree_resource_folders WHERE parent = ? ORDER BY name LIMIT 200",
+				$folder
+			);
+			$folders = array_values(array_filter($folders, function ($f) use ($user) {
+
+				return PermissionService::userFolderLevel($user, (int)$f["id"]) !== "n";
+			}));
+
+			$resources = SQL::fetchAll(
+				"SELECT id, folder, file, name, type, mimetype, is_image, is_video, height, width, size, date
+				 FROM bigtree_resources WHERE folder = ? ORDER BY date DESC LIMIT ?",
+				$folder ?: null,
+				max(1, $limit)
+			);
+
+			return [
+				"folder" => $folder,
+				"folders" => array_map(function ($f): array {
+
+					return [
+						"id" => (int)$f["id"],
+						"name" => (string)$f["name"],
+					];
+				}, $folders),
+				"resources" => array_map(function ($r): array {
+
+					return $this->aiPresentResource($r);
+				}, $resources),
+			];
+		}
+
+		/**
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 */
+		public function aiSearchFiles(string $query, int $limit, $user): array {
+			$query = trim($query);
+
+			if ($query === "") {
+
+				return ["resources" => []];
+			}
+
+			$like = Sanitize::likeTerm($query);
+			$rows = SQL::fetchAll(
+				"SELECT id, folder, file, name, type, mimetype, is_image, is_video, height, width, size, date
+				 FROM bigtree_resources WHERE name LIKE ? OR file LIKE ? ORDER BY date DESC LIMIT 100",
+				$like, $like
+			);
+
+			$out = [];
+
+			foreach ($rows as $r) {
+				if (!PermissionService::userHasFolderAccess($user, (int)$r["folder"], "e")) {
+
+					continue;
+				}
+
+				$out[] = $this->aiPresentResource($r);
+
+				if (count($out) >= max(1, $limit)) {
+
+					break;
+				}
+			}
+
+			return ["resources" => $out];
+		}
+
+		/**
+		 * Compact resource row for the assistant: identity + type + dimensions, no crop
+		 * or thumbnail maps.
+		 *
+		 * @param array<string,mixed> $r
+		 * @return array<string,mixed>
+		 */
+		private function aiPresentResource(array $r): array {
+
+			return [
+				"id" => (int)$r["id"],
+				"folder" => $r["folder"] !== null ? (int)$r["folder"] : 0,
+				"name" => (string)$r["name"],
+				"file" => (string)$r["file"],
+				"type" => (string)$r["type"],
+				"mimetype" => (string)$r["mimetype"],
+				"is_image" => Flag::isOn($r["is_image"]),
+				"is_video" => Flag::isOn($r["is_video"]),
+				"width" => $r["width"] !== null ? (int)$r["width"] : null,
+				"height" => $r["height"] !== null ? (int)$r["height"] : null,
+				"size" => $r["size"] !== null ? (int)$r["size"] : null,
+			];
 		}
 
 		// — Upload (multipart) —

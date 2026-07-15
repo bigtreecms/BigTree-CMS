@@ -7,6 +7,19 @@
 	use BigTree\Api\Json;
 	use BigTree\Api\Flag;
 	use BigTree\Api\Exceptions\BadRequestException;
+	use BigTree\Services\AI\AIToolContext;
+	use BigTree\Services\AI\AIToolRegistry;
+	use BigTree\Services\AI\AIToolResult;
+	use BigTree\Services\AI\AgentLoop;
+	use BigTree\Services\AI\Tools\SearchToolBackend;
+	use BigTree\Services\AI\Tools\SearchPagesTool;
+	use BigTree\Services\AI\Tools\SearchModulesTool;
+	use BigTree\Services\AI\Tools\SearchModuleEntriesTool;
+	use BigTree\Services\AI\Tools\SearchTagsTool;
+	use BigTree\Services\AI\Tools\SearchUsersTool;
+	use BigTree\Services\AI\Tools\SemanticSearchTool;
+	use BigTree\Services\AI\Tools\GetPageTool;
+	use BigTree\Services\AI\Tools\GetModuleEntryTool;
 	use BigTreeJSONDB;
 	use BigTreeAI;
 	use BigTreeCMS;
@@ -33,7 +46,7 @@
 	 * When AI search is enabled (Configure → AI), POST /search/ai runs an agent
 	 * loop over the same domain tools plus get_page / get_module_entry.
 	 */
-	class SearchService {
+	class SearchService implements SearchToolBackend {
 		const DEFAULT_PER_DOMAIN = 10;
 		const MODULE_ENTRY_CAP = 5;
 		const AI_MAX_ROUNDS = 4;
@@ -195,84 +208,31 @@
 				],
 			];
 
-			$tools = $this->aiToolDefinitions(EmbeddingService::isEnabled());
-			$answer = null;
-			$rounds = 0;
+			// One tool system: build the per-user registry and drive it through the
+			// generic agent loop. The registry filters tools to what this user may
+			// use, so e.g. an editor is never even offered search_tags / search_users.
+			$registry = $this->buildAiSearchRegistry(EmbeddingService::isEnabled());
+			$tool_context = new AIToolContext($user, $limit);
+			$loop = new AgentLoop($ai, $registry, self::AI_MAX_ROUNDS);
 
-			while ($rounds < self::AI_MAX_ROUNDS) {
-				$rounds++;
-				$result = $ai->chat($messages, $tools, [
-					"max_tokens" => 1024,
-					"temperature" => 0.2,
-				]);
+			$run = $loop->run($messages, $tool_context, [
+				"max_tokens" => 1024,
+				"temperature" => 0.2,
+				"final_max_tokens" => 512,
+			], function (AIToolResult $tool_result) use (&$collected): void {
+				// Navigable entities the tool touched feed the SPA result set;
+				// the model only ever sees toModelPayload().
+				$this->mergeToolArtifacts($collected, $tool_result->artifacts);
+			});
 
-				if ($result === false) {
-					throw new BadRequestException(
-						$ai->Error ?: "AI request failed",
-						"ai_provider_error"
-					);
-				}
-
-				$tool_calls = $result["tool_calls"] ?? [];
-
-				if (!$tool_calls) {
-					$answer = $result["content"];
-
-					break;
-				}
-
-				// Append assistant turn (OpenAI-shaped tool_calls for re-feed).
-				$openai_calls = $result["raw"]["_openai_tool_calls"] ?? null;
-
-				if ($openai_calls === null) {
-					$openai_calls = [];
-
-					foreach ($tool_calls as $call) {
-						$openai_calls[] = [
-							"id" => $call["id"],
-							"type" => "function",
-							"function" => [
-								"name" => $call["name"],
-								"arguments" => json_encode($call["arguments"] ?? new \stdClass()),
-							],
-						];
-					}
-				}
-
-				$messages[] = [
-					"role" => "assistant",
-					"content" => $result["content"],
-					"tool_calls" => $openai_calls,
-				];
-
-				foreach ($tool_calls as $call) {
-					$payload = $this->executeAiTool(
-						(string)($call["name"] ?? ""),
-						is_array($call["arguments"] ?? null) ? $call["arguments"] : [],
-						$user,
-						$limit,
-						$collected
-					);
-
-					$messages[] = [
-						"role" => "tool",
-						"tool_call_id" => (string)($call["id"] ?? ""),
-						"content" => json_encode($payload),
-					];
-				}
+			// Surface a provider failure that produced no answer at all (mirrors the
+			// old behavior of throwing on the first failed round).
+			if ($run["answer"] === null && $run["error"] !== null) {
+				throw new BadRequestException($run["error"], "ai_provider_error");
 			}
 
-			// If we exhausted rounds without a final content turn, ask once more without tools.
-			if ($answer === null && $rounds >= self::AI_MAX_ROUNDS) {
-				$final = $ai->chat($messages, [], [
-					"max_tokens" => 512,
-					"temperature" => 0.2,
-				]);
-
-				if ($final !== false) {
-					$answer = $final["content"];
-				}
-			}
+			$answer = $run["answer"];
+			$rounds = $run["rounds"];
 
 			// Always return every group key (even empty arrays) so JSON encodes as an
 			// object `{ pages: [], ... }` — a PHP empty list becomes `[]` and breaks the SPA.
@@ -748,13 +708,13 @@
 
 		// — per-domain searchers —
 
-		private function searchPages($q, $limit, $user) {
+		public function searchPages($q, $limit, $user): array {
 			// Delegate to PageService so federated search and GET /pages/search
 			// share the overfetch-then-filter semantics and the same presenter.
 			return (new PageService())->searchRows($q, $user, (int)$limit);
 		}
 
-		private function searchTags($q, $limit) {
+		public function searchTags($q, $limit): array {
 			$like = Sanitize::likeTerm($q, true);
 			$limit = max(1, (int)$limit);
 			// Federated search also matches metaphone — richer than TagService::search.
@@ -768,7 +728,7 @@
 			return array_map([TagService::class, "presentRow"], $rows);
 		}
 
-		private function searchUsers($q, $limit) {
+		public function searchUsers($q, $limit): array {
 			$like = Sanitize::likeTerm($q);
 			$limit = max(1, (int)$limit);
 			$rows = SQL::fetchAll(
@@ -789,7 +749,7 @@
 			}, $rows);
 		}
 
-		private function searchModules($q, $limit, $user) {
+		public function searchModules($q, $limit, $user): array {
 			$all = BigTreeJSONDB::getAll("modules", "name", "ASC");
 			$ql = strtolower($q);
 			$kept = [];
@@ -820,7 +780,7 @@
 			return $kept;
 		}
 
-		private function searchModuleEntries($q, $limit_per_module, $user, int $max_modules = 25) {
+		public function searchModuleEntries($q, $limit_per_module, $user, int $max_modules = 25): array {
 			$all = BigTreeJSONDB::getAll("modules");
 			$results = [];
 			// Cap how many modules we sweep to keep latency bounded. The seed sweep
@@ -931,7 +891,7 @@
 		 *
 		 * @return list<string>
 		 */
-		private function extractKeywords(string $q): array {
+		public function extractKeywords(string $q): array {
 			$stop = [
 				"a", "an", "the", "and", "or", "but", "if", "then", "so", "to", "of", "in",
 				"on", "at", "for", "from", "by", "with", "about", "as", "into", "like",
@@ -1043,6 +1003,7 @@
 			$level = (int)$user->level;
 			$can_users = $level >= 1 ? "yes" : "no";
 			$can_tags = $level >= 1 ? "yes" : "no";
+			$safety = implode("\n", \BigTree\Services\AI\PromptGuard::safetyRules());
 
 			return <<<PROMPT
 You are the BigTree CMS admin search assistant. Help editors find pages, modules, module entries (e.g. news articles), tags, and users.
@@ -1057,6 +1018,8 @@ Rules:
 - Can search users: {$can_users}. Can search tags: {$can_tags}.
 - Write a brief plain-text answer (1–3 sentences). No markdown headings.
 - If truly nothing matches after tools + baseline, say so and suggest simpler keywords.
+
+{$safety}
 PROMPT;
 		}
 
@@ -1084,239 +1047,45 @@ PROMPT;
 		}
 
 		/**
-		 * @return list<array<string,mixed>>
+		 * Registry of read-only search tools for an agent loop, filtered per user.
+		 * semantic_search is only registered when the vector index is available.
+		 * Public so the chat driver (AIChatService) offers the same read tools; the
+		 * backend seam is $this (SearchService implements SearchToolBackend).
 		 */
-		private function aiToolDefinitions(bool $include_semantic = false): array {
-			$query_props = [
-				"type" => "object",
-				"properties" => [
-					"query" => [
-						"type" => "string",
-						"description" => "Search keywords or natural language phrase.",
-					],
-				],
-				"required" => ["query"],
-			];
-
-			$tools = [
-				[
-					"type" => "function",
-					"function" => [
-						"name" => "search_pages",
-						"description" => "Search CMS pages by title / nav title.",
-						"parameters" => $query_props,
-					],
-				],
-				[
-					"type" => "function",
-					"function" => [
-						"name" => "search_modules",
-						"description" => "Search module definitions the user can access.",
-						"parameters" => $query_props,
-					],
-				],
-				[
-					"type" => "function",
-					"function" => [
-						"name" => "search_module_entries",
-						"description" => "Search content rows inside modules the user can access.",
-						"parameters" => $query_props,
-					],
-				],
-				[
-					"type" => "function",
-					"function" => [
-						"name" => "search_tags",
-						"description" => "Search content tags (administrators).",
-						"parameters" => $query_props,
-					],
-				],
-				[
-					"type" => "function",
-					"function" => [
-						"name" => "search_users",
-						"description" => "Search admin users by name, email, or company (administrators).",
-						"parameters" => $query_props,
-					],
-				],
-			];
+		public function buildAiSearchRegistry(bool $include_semantic): AIToolRegistry {
+			$registry = new AIToolRegistry();
+			$registry->register(new SearchPagesTool($this));
+			$registry->register(new SearchModulesTool($this));
+			$registry->register(new SearchModuleEntriesTool($this));
+			$registry->register(new SearchTagsTool($this));
+			$registry->register(new SearchUsersTool($this));
 
 			if ($include_semantic) {
-				$tools[] = [
-					"type" => "function",
-					"function" => [
-						"name" => "semantic_search",
-						"description" => "Vector/semantic search across pages and module content (aboutness / paraphrase). Prefer for natural-language meaning queries.",
-						"parameters" => $query_props,
-					],
-				];
+				$registry->register(new SemanticSearchTool($this));
 			}
 
-			$tools[] = [
-				"type" => "function",
-				"function" => [
-					"name" => "get_page",
-					"description" => "Fetch a single page's metadata and plain-text content snippet.",
-					"parameters" => [
-						"type" => "object",
-						"properties" => [
-							"id" => [
-								"type" => "integer",
-								"description" => "Page id.",
-							],
-						],
-						"required" => ["id"],
-					],
-				],
-			];
-			$tools[] = [
-				"type" => "function",
-				"function" => [
-					"name" => "get_module_entry",
-					"description" => "Fetch a single module entry by module id and entry id.",
-					"parameters" => [
-						"type" => "object",
-						"properties" => [
-							"module_id" => [
-								"type" => "string",
-								"description" => "Module id (string, e.g. modules-…).",
-							],
-							"entry_id" => [
-								"type" => "integer",
-								"description" => "Entry row id in the module table.",
-							],
-						],
-						"required" => ["module_id", "entry_id"],
-					],
-				],
-			];
+			$registry->register(new GetPageTool($this));
+			$registry->register(new GetModuleEntryTool($this));
 
-			return $tools;
+			return $registry;
 		}
 
 		/**
-		 * @param array<string,mixed> $args
+		 * Merge a tool's navigable artifacts into the collected SPA result set using
+		 * the same id-dedupe / entry-group semantics as classic search.
+		 *
 		 * @param array<string,list<mixed>> $collected
-		 * @return array<string,mixed>
+		 * @param array<string,list<array<string,mixed>>> $artifacts
 		 */
-		private function executeAiTool(string $name, array $args, $user, int $limit, array &$collected): array {
-			$query = trim((string)($args["query"] ?? ""));
-			// If the model still passes a full sentence, reduce to keywords.
-			$search_terms = $this->extractKeywords($query);
-			$tool_queries = $search_terms ?: ($query !== "" ? [$query] : []);
+		private function mergeToolArtifacts(array &$collected, array $artifacts): void {
+			foreach (["pages", "modules", "tags", "users"] as $group) {
+				if (!empty($artifacts[$group])) {
+					$this->mergeCollected($collected, $group, $artifacts[$group], "id");
+				}
+			}
 
-			switch ($name) {
-				case "search_pages":
-					if (!$tool_queries) {
-						return ["error" => "query required"];
-					}
-
-					$rows = [];
-
-					foreach ($tool_queries as $term) {
-						$found = $this->searchPages($term, $limit, $user);
-						$this->mergeCollected($collected, "pages", $found, "id");
-						$rows = array_merge($rows, $found);
-					}
-
-					return ["pages" => $this->uniqueById($rows)];
-
-				case "search_modules":
-					if (!$tool_queries) {
-						return ["error" => "query required"];
-					}
-
-					$rows = [];
-
-					foreach ($tool_queries as $term) {
-						$found = $this->searchModules($term, $limit, $user);
-						$this->mergeCollected($collected, "modules", $found, "id");
-						$rows = array_merge($rows, $found);
-					}
-
-					return ["modules" => $this->uniqueById($rows)];
-
-				case "search_module_entries":
-					if (!$tool_queries) {
-						return ["error" => "query required"];
-					}
-
-					$rows = [];
-
-					foreach ($tool_queries as $term) {
-						$found = $this->searchModuleEntries($term, $limit, $user);
-						$this->mergeEntryGroups($collected, $found);
-						$rows = array_merge($rows, $found);
-					}
-
-					return ["entries" => $rows];
-
-				case "search_tags":
-					if ((int)$user->level < 1) {
-						return ["error" => "not permitted"];
-					}
-
-					if (!$tool_queries) {
-						return ["error" => "query required"];
-					}
-
-					$rows = [];
-
-					foreach ($tool_queries as $term) {
-						$found = $this->searchTags($term, $limit);
-						$this->mergeCollected($collected, "tags", $found, "id");
-						$rows = array_merge($rows, $found);
-					}
-
-					return ["tags" => $this->uniqueById($rows)];
-
-				case "search_users":
-					if ((int)$user->level < 1) {
-						return ["error" => "not permitted"];
-					}
-
-					if (!$tool_queries) {
-						return ["error" => "query required"];
-					}
-
-					$rows = [];
-
-					foreach ($tool_queries as $term) {
-						$found = $this->searchUsers($term, $limit);
-						$this->mergeCollected($collected, "users", $found, "id");
-						$rows = array_merge($rows, $found);
-					}
-
-					return ["users" => $this->uniqueById($rows)];
-
-				case "semantic_search":
-					if (!EmbeddingService::isEnabled()) {
-						return ["error" => "semantic search not enabled"];
-					}
-
-					if ($query === "") {
-						return ["error" => "query required"];
-					}
-
-					$hits = EmbeddingService::search($query, $limit, $user);
-					$this->mergeCollected($collected, "pages", $hits["pages"] ?? [], "id");
-					$this->mergeEntryGroups($collected, $hits["entries"] ?? []);
-
-					return $hits;
-
-				case "get_page":
-					return $this->toolGetPage((int)($args["id"] ?? 0), $user, $collected);
-
-				case "get_module_entry":
-					return $this->toolGetModuleEntry(
-						(string)($args["module_id"] ?? ""),
-						(int)($args["entry_id"] ?? 0),
-						$user,
-						$collected
-					);
-
-				default:
-					return ["error" => "unknown tool"];
+			if (!empty($artifacts["entries"])) {
+				$this->mergeEntryGroups($collected, $artifacts["entries"]);
 			}
 		}
 
@@ -1502,7 +1271,17 @@ PROMPT;
 		 * @param array<string,list<mixed>> $collected
 		 * @return array<string,mixed>
 		 */
-		private function toolGetPage(int $id, $user, array &$collected): array {
+		/**
+		 * Backend seam (SearchToolBackend): fetch a single page for get_page. Returns
+		 * ["error" => …] or ["payload" => <detail for model>, "artifact" => <navigable row>].
+		 * The driver merges the artifact into the collected result set.
+		 *
+		 * @param object|array $user
+		 * @return array{error?:string,payload?:array,artifact?:array}
+		 */
+		public function getPageDetail($id, $user): array {
+			$id = (int)$id;
+
 			if ($id < 1) {
 				return ["error" => "invalid id"];
 			}
@@ -1522,32 +1301,38 @@ PROMPT;
 			}
 
 			$snippet = $this->plainTextFromResources($page["resources"] ?? "");
-			$row = [
-				"id" => (int)$page["id"],
-				"nav_title" => $page["nav_title"],
-				"path" => $page["path"],
-				"archived" => Flag::isOn($page["archived"] ?? ""),
-			];
-			$this->mergeCollected($collected, "pages", [$row], "id");
+			$archived = Flag::isOn($page["archived"] ?? "");
 
 			return [
-				"id" => (int)$page["id"],
-				"nav_title" => $page["nav_title"],
-				"title" => $page["title"],
-				"path" => $page["path"],
-				"meta_description" => $page["meta_description"],
-				"template" => $page["template"],
-				"archived" => $row["archived"],
-				"content_text" => $snippet,
+				"payload" => [
+					"id" => (int)$page["id"],
+					"nav_title" => $page["nav_title"],
+					"title" => $page["title"],
+					"path" => $page["path"],
+					"meta_description" => $page["meta_description"],
+					"template" => $page["template"],
+					"archived" => $archived,
+					"content_text" => $snippet,
+				],
+				"artifact" => [
+					"id" => (int)$page["id"],
+					"nav_title" => $page["nav_title"],
+					"path" => $page["path"],
+					"archived" => $archived,
+				],
 			];
 		}
 
 		/**
-		 * @param array<string,list<mixed>> $collected
-		 * @return array<string,mixed>
+		 * Backend seam (SearchToolBackend): fetch a single module entry for
+		 * get_module_entry. Returns ["error" => …] or ["payload" => …, "artifact" => <entry group>].
+		 *
+		 * @param object|array $user
+		 * @return array{error?:string,payload?:array,artifact?:array}
 		 */
-		private function toolGetModuleEntry(string $module_id, int $entry_id, $user, array &$collected): array {
-			$module_id = trim($module_id);
+		public function getModuleEntryDetail($module_id, $entry_id, $user): array {
+			$module_id = trim((string)$module_id);
+			$entry_id = (int)$entry_id;
 
 			if ($module_id === "" || $entry_id < 1) {
 				return ["error" => "invalid ids"];
@@ -1623,12 +1408,24 @@ PROMPT;
 					"column1" => $safe["title"] ?? $safe["id"] ?? (string)$entry_id,
 				]],
 			];
-			$this->mergeEntryGroups($collected, [$group]);
-
 			return [
-				"module" => $group["module"],
-				"entry" => $safe,
+				"payload" => [
+					"module" => $group["module"],
+					"entry" => $safe,
+				],
+				"artifact" => $group,
 			];
+		}
+
+		/**
+		 * Backend seam (SearchToolBackend): vector/semantic search for semantic_search.
+		 *
+		 * @param object|array $user
+		 * @return array{pages?:list,entries?:list,settings?:list}
+		 */
+		public function semanticSearch($q, $limit, $user): array {
+
+			return EmbeddingService::search((string)$q, (int)$limit, $user);
 		}
 
 		private function plainTextFromResources($resources): string {

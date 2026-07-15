@@ -6,6 +6,7 @@ import { DebugLayout } from "@/components/developer/DebugLayout";
 import { TableSelect } from "@/components/developer/TableSelect";
 import { UserSelect } from "@/components/users/UserSelect";
 import { Badge } from "@/components/ui/Badge";
+import { Sparkles } from "lucide-react";
 import { DescriptionList } from "@/components/ui/DescriptionList";
 import { MonoText } from "@/components/ui/MonoText";
 import { FieldLabel } from "@/components/ui/Field";
@@ -41,21 +42,25 @@ export const DebugAudit = () => {
 	const [tableFilter, setTableFilter] = useState<string | null>(searchParams.get("table"));
 	const [start, setStart] = useState("");
 	const [end, setEnd] = useState("");
+	const [via, setVia] = useState<"" | "ai_assistant">(
+		searchParams.get("via") === "ai_assistant" ? "ai_assistant" : ""
+	);
 	const [page, setPage] = useState(1);
 	const [detail, setDetail] = useState<AuditEntry | null>(null);
 
 	useEffect(() => {
 		setPage(1);
-	}, [userFilter, tableFilter, start, end]);
+	}, [userFilter, tableFilter, start, end, via]);
 
 	const listQ = useQuery({
-		queryKey: queryKeys.audit.list({ userFilter, tableFilter, start, end, page }),
+		queryKey: queryKeys.audit.list({ userFilter, tableFilter, start, end, via, page }),
 		queryFn: () =>
 			auditApi.list({
 				user: userFilter ?? undefined,
 				table: tableFilter || undefined,
 				start: start || undefined,
 				end: end || undefined,
+				via: via || undefined,
 				include: "context",
 				page,
 				per_page: PER_PAGE,
@@ -105,8 +110,22 @@ export const DebugAudit = () => {
 		{
 			key: "type",
 			header: "Action",
-			width: "150px",
-			cell: (row) => <Badge bordered>{humanizeType(row.type)}</Badge>,
+			width: "190px",
+			cell: (row) => (
+				<div className="flex items-center gap-1.5">
+					<Badge bordered>{humanizeType(row.type)}</Badge>
+					{row.context?.via === "ai_assistant" && (
+						<Badge
+							tone="accent"
+							size="sm"
+							icon={<Sparkles size={9} />}
+							title="Approved via the AI assistant"
+						>
+							AI
+						</Badge>
+					)}
+				</div>
+			),
 		},
 	];
 
@@ -168,6 +187,24 @@ export const DebugAudit = () => {
 					/>
 				</div>
 
+				<div>
+					<FieldLabel as="label" htmlFor="audit-via" size="sm" tone="muted">
+						Source
+					</FieldLabel>
+					<select
+						id="audit-via"
+						value={via}
+						onChange={(e) =>
+							setVia(e.target.value === "ai_assistant" ? "ai_assistant" : "")
+						}
+						className="h-8 rounded-md border border-border bg-surface px-2 text-[13px] text-text focus:border-border-strong focus:outline-none"
+						aria-label="Filter by change source"
+					>
+						<option value="">Any source</option>
+						<option value="ai_assistant">AI assistant</option>
+					</select>
+				</div>
+
 				<div className="flex-1" />
 
 				<span className="text-[12px] text-text-3 tabular-nums">{total} entries</span>
@@ -215,6 +252,9 @@ export const DebugAudit = () => {
 							{ label: "Table", value: detail.table, valueClassName: "font-mono" },
 							{ label: "Entry", value: detail.entry, valueClassName: "font-mono" },
 							{ label: "Action", value: humanizeType(detail.type) },
+							...(detail.context?.via === "ai_assistant"
+								? [{ label: "Source", value: "AI assistant (approved proposal)" }]
+								: []),
 							...(detail.context
 								? [
 										{

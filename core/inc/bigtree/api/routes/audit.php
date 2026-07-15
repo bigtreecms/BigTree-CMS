@@ -11,6 +11,7 @@
 				"entry" => "string|max:255",
 				"start" => "string|max:32",
 				"end" => "string|max:32",
+				"via" => "string|max:32",
 				"include" => "string|max:32",
 				"page" => "int",
 				"per_page" => "int",

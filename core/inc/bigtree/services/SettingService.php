@@ -9,6 +9,7 @@
 	use BigTree\Api\Exceptions\BadRequestException;
 	use BigTree\Api\Exceptions\ConflictException;
 	use BigTree\Api\Exceptions\AuthorizationException;
+	use BigTree\Services\AI\Tools\SettingToolBackend;
 	use BigTreeCMS;
 	use BigTreeJSONDB;
 	use BigTree;
@@ -25,7 +26,7 @@
 	 *  - level:1 can update VALUES of any setting; level:2 can change DEFINITIONS.
 	 *  - bigtree-internal-* settings are hidden from list and not writable via this API.
 	 */
-	class SettingService {
+	class SettingService implements SettingToolBackend {
 		public function list(Request $request) {
 			$q = $request->queryString("q");
 			$include_encrypted = !empty($request->query["include_encrypted"]) && (int)$request->user->level >= 2;
@@ -321,5 +322,177 @@
 			$cached = max(1, (int) $v);
 
 			return $cached;
+		}
+
+		// — AI tool seam (SettingToolBackend) —
+		//
+		// The assistant reads and writes setting VALUES only (never definitions), for
+		// administrators (level ≥ 1), and refuses internal/encrypted/locked settings —
+		// the same guardrails the REST routes enforce, packaged without a Request. The
+		// write reuses setValue() so allocation + embedding indexing come for free.
+
+		/**
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 */
+		public function aiGetSettings(string $query, int $limit, $user): array {
+			if (PermissionService::level($user) < 1) {
+
+				return ["denied" => "Only administrators can read settings."];
+			}
+
+			$query = strtolower(trim($query));
+			$defs = BigTreeJSONDB::getAll("settings");
+			$out = [];
+
+			foreach ($defs as $def) {
+				if (strpos($def["id"] ?? "", "bigtree-internal-") === 0) {
+
+					continue;
+				}
+
+				if ($query !== "") {
+					$hay = strtolower(($def["id"] ?? "") . " " . ($def["name"] ?? "") . " " . ($def["description"] ?? ""));
+
+					if (strpos($hay, $query) === false) {
+
+						continue;
+					}
+				}
+
+				// Encrypted values are never surfaced to the model.
+				$out[] = $this->present($def, false);
+
+				if (count($out) >= max(1, $limit)) {
+
+					break;
+				}
+			}
+
+			return ["settings" => $out];
+		}
+
+		/**
+		 * @param array<string,mixed> $args
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 */
+		public function aiValidateSettingUpdate(array $args, $user): array {
+			if (PermissionService::level($user) < 1) {
+
+				return ["denied" => "Only administrators can change settings."];
+			}
+
+			$id = trim((string)($args["id"] ?? ""));
+
+			if ($id === "") {
+
+				return ["error" => "A setting id is required."];
+			}
+
+			if (strpos($id, "bigtree-internal-") === 0) {
+
+				return ["denied" => "Internal BigTree settings cannot be changed via the assistant."];
+			}
+
+			$def = BigTreeJSONDB::get("settings", $id);
+
+			if (!$def) {
+
+				return ["error" => "Setting \"{$id}\" does not exist."];
+			}
+
+			if (!empty($def["encrypted"])) {
+
+				return ["denied" => "That setting is encrypted and cannot be changed via the assistant."];
+			}
+
+			if (!empty($def["locked"])) {
+
+				return ["denied" => "That setting is locked and cannot be changed via the assistant."];
+			}
+
+			if (!array_key_exists("value", $args)) {
+
+				return ["error" => "A new value is required."];
+			}
+
+			$name = (string)($def["name"] ?? $id);
+			$current_raw = SQL::fetchSingle("SELECT value FROM bigtree_settings WHERE id = ?", $id);
+			$current = is_string($current_raw) ? json_decode($current_raw, true) : null;
+
+			return [
+				"ok" => true,
+				"summary" => "Change the value of the “{$name}” setting.",
+				"preview" => [
+					"action" => "update_setting",
+					"id" => $id,
+					"name" => $name,
+					"type" => (string)($def["type"] ?? "text"),
+					"from" => $this->aiSettingPreviewValue($current),
+					"to" => $this->aiSettingPreviewValue($args["value"]),
+				],
+				"payload" => [
+					"id" => $id,
+					"value" => $args["value"],
+				],
+			];
+		}
+
+		/**
+		 * @param array<string,mixed> $payload
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 */
+		public function aiUpdateSetting(array $payload, $user): array {
+			if (PermissionService::level($user) < 1) {
+				throw new AuthorizationException("Only administrators can change settings.");
+			}
+
+			$id = (string)($payload["id"] ?? "");
+			$def = $id !== "" ? BigTreeJSONDB::get("settings", $id) : null;
+
+			if (!$def || strpos($id, "bigtree-internal-") === 0) {
+
+				return ["mode" => "error", "message" => "That setting is no longer available."];
+			}
+
+			if (!empty($def["encrypted"]) || !empty($def["locked"])) {
+
+				return ["mode" => "error", "message" => "That setting can no longer be changed."];
+			}
+
+			$this->setValue($id, $def, $payload["value"] ?? null);
+
+			return [
+				"mode" => "updated",
+				"id" => $id,
+				"name" => (string)($def["name"] ?? $id),
+			];
+		}
+
+		/**
+		 * A short, model/SPA-safe rendering of a setting value for a proposal preview:
+		 * scalars pass through, structured values are compacted and length-capped.
+		 *
+		 * @param mixed $value
+		 */
+		private function aiSettingPreviewValue($value): string {
+			if ($value === null) {
+
+				return "";
+			}
+
+			if (is_scalar($value)) {
+				$string = (string)$value;
+			} else {
+				$string = (string)json_encode($value);
+			}
+
+			if (mb_strlen($string) > 200) {
+				$string = mb_substr($string, 0, 199) . "…";
+			}
+
+			return $string;
 		}
 	}

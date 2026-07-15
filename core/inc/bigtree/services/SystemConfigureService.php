@@ -686,13 +686,15 @@
 
 			$features_in = is_array($body["features"] ?? null) ? $body["features"] : [];
 			$search_enabled = !empty($features_in["search"]);
+			$chat_enabled = !empty($features_in["chat"]);
 			$embeddings_enabled = !empty($features_in["embeddings"]);
 
-			// Search can only be on when the stack is fully configured after save.
+			// Search + chat can only be on when the stack is fully configured after save.
 			$would_be_configured = $service !== "" && $api_key !== "" && $model !== "";
 
 			if (!$would_be_configured) {
 				$search_enabled = false;
+				$chat_enabled = false;
 			}
 
 			// Embeddings always use OpenAI: dedicated key, or chat key when service is openai.
@@ -723,6 +725,7 @@
 				"embedding_api_key" => $embedding_api_key,
 				"features" => [
 					"search" => $search_enabled,
+					"chat" => $chat_enabled,
 					"embeddings" => $embeddings_enabled,
 				],
 			];
@@ -784,6 +787,7 @@
 				"embedding_model" => $embedding_model,
 				"features" => [
 					"search" => !empty($features["search"]) && $configured,
+					"chat" => !empty($features["chat"]) && $configured,
 					"embeddings" => !empty($features["embeddings"]) && $can_embed,
 				],
 				"configured" => $configured,

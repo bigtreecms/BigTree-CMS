@@ -38,6 +38,7 @@ export interface AuthUser {
 	/** Server-driven capability flags (e.g. AI search when Configure → AI enables it). */
 	features?: {
 		ai_search?: boolean;
+		ai_chat?: boolean;
 	};
 	/**
 	 * Developer-only: true when core revision scripts still need to run.
