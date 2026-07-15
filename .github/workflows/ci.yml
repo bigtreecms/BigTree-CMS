@@ -119,9 +119,13 @@ jobs:
       #     and die()s with "BigTree has updated your composer.json file" before any
       #     test runs.
       #   - custom/inc/required/, or bootstrap.php:200 opendir()s a missing dir.
+      #   - custom/json-db/, or BigTreeJSONDB::save() (json-db.php:182) can't
+      #     file_put_contents the store files — reads treat a missing dir as an
+      #     empty store, so ModuleViewServiceTest inserts, silently fails to
+      #     persist, then fails its reload assertion.
       - name: Write CI env files
         run: |
-          mkdir -p custom/inc/required cache
+          mkdir -p custom/inc/required cache custom/json-db
           touch cache/composer-check.flag
           cat > custom/environment.php <<'PHP'
           <?php
