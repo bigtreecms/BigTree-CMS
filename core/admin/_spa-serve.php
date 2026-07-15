@@ -50,15 +50,10 @@
 			return $admin_path . "/pages/" . rawurlencode($subpath[2]) . "/edit";
 		}
 
-		// Classic: pages/add/{parent} → SPA: pages/add/{parent}
-		if (
-			($subpath[0] ?? "") === "pages"
-			&& ($subpath[1] ?? "") === "add"
-			&& isset($subpath[2])
-			&& $subpath[2] !== ""
-		) {
-			return $admin_path . "/pages/add/" . rawurlencode($subpath[2]);
-		}
+		// Note: classic `pages/add/{parent}` is byte-for-byte identical to the SPA
+		// route, so it must NOT be "redirected" — emitting a Location back to the
+		// same URL produced an infinite 302 loop (ERR_TOO_MANY_REDIRECTS). Falling
+		// through serves the SPA index and React Router handles the route.
 
 		return null;
 	}

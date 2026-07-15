@@ -34,7 +34,8 @@ test.beforeEach(async () => {
 	const { execSync } = await import("node:child_process");
 	const { resolve, dirname } = await import("node:path");
 	const { fileURLToPath } = await import("node:url");
-	const root = resolve(dirname(fileURLToPath(import.meta.url)), "../../..");
+	// This spec lives at spa/e2e/*.spec.ts, so the repo root is two levels up.
+	const root = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 
 	try {
 		execSync(
