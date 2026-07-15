@@ -60,7 +60,7 @@ test("2. pages: create & publish child page", async ({ page }) => {
 	await uiLogin(page);
 	const title = unique("E2EPage");
 
-	await page.goto("/pages/add/0");
+	await page.goto("pages/add/0");
 	// Properties fields use placeholder association (not html-for labels).
 	const navTitle = page.getByPlaceholder(/Shown in site nav/i);
 	await expect(navTitle).toBeVisible({ timeout: 15_000 });
@@ -82,7 +82,7 @@ test("3. tags: add tag appears in list", async ({ page }) => {
 	// Client normalize strips non-alnum; avoid hyphens in the typed name.
 	const name = `E2ETag${Date.now().toString(36)}`;
 
-	await page.goto("/tags/add");
+	await page.goto("tags/add");
 	await expect(page.getByRole("heading", { name: /Add tag/i })).toBeVisible();
 	await page.getByLabel(/Tag name/i).fill(name);
 	await page.getByRole("button", { name: /Create tag/i }).click();
@@ -109,7 +109,7 @@ test("4. users: editor cannot open developer", async ({ page }) => {
 
 	try {
 		await uiLogin(page, email, password);
-		await page.goto("/developer");
+		await page.goto("developer");
 		await expect(page.getByTestId("access-denied").first()).toBeVisible({ timeout: 15_000 });
 	} finally {
 		await apiDeleteUser(admin, created.id);
@@ -124,7 +124,7 @@ test("5. settings: edit value and reload", async ({ page }) => {
 
 	try {
 		await uiLogin(page);
-		await page.goto(`/settings/${encodeURIComponent(sid)}/edit`);
+		await page.goto(`settings/${encodeURIComponent(sid)}/edit`);
 		await expect(page.getByRole("heading", { name: /E2E Setting/i })).toBeVisible({
 			timeout: 15_000,
 		});
@@ -137,7 +137,7 @@ test("5. settings: edit value and reload", async ({ page }) => {
 
 		// Wait for navigation back to list or toast
 		await page.waitForTimeout(800);
-		await page.goto(`/settings/${encodeURIComponent(sid)}/edit`);
+		await page.goto(`settings/${encodeURIComponent(sid)}/edit`);
 		await expect(page.locator('input[type="text"], textarea').first()).toHaveValue(
 			"Hello from E2E",
 			{ timeout: 15_000 }
@@ -161,7 +161,7 @@ test("6. modules: open scaffolded module view", async ({ page }) => {
 
 	try {
 		await uiLogin(page);
-		await page.goto(`/modules/${route}`);
+		await page.goto(`modules/${route}`);
 		await expect(page).toHaveURL(new RegExp(`/modules/${route}`), { timeout: 15_000 });
 		// Module layout should show an action named after the scaffolded module.
 		await expect(page.getByText(new RegExp(`E2E Mod|Add |View `, "i")).first()).toBeVisible({
@@ -176,7 +176,7 @@ test("6. modules: open scaffolded module view", async ({ page }) => {
 
 test("7. files: browser loads root", async ({ page }) => {
 	await uiLogin(page);
-	await page.goto("/files");
+	await page.goto("files");
 	await expect(page.getByRole("heading").first()).toBeVisible({ timeout: 15_000 });
 	await expect(page.getByText(/Upload|Drop|folder|Files|Resources|No /i).first()).toBeVisible({
 		timeout: 10_000,
@@ -189,7 +189,7 @@ test("8. developer: create and delete template", async ({ page }) => {
 	await uiLogin(page);
 	const tid = `zze2e${Date.now().toString(36)}`.slice(0, 30);
 
-	await page.goto("/developer/templates/add");
+	await page.goto("developer/templates/add");
 	await expect(page.getByRole("heading", { name: /Add template/i })).toBeVisible({
 		timeout: 15_000,
 	});
@@ -240,7 +240,7 @@ test("9. pending: editor draft appears for admin", async ({ page }) => {
 
 	try {
 		await uiLogin(page, email, password);
-		await page.goto("/pages/add/1");
+		await page.goto("pages/add/1");
 
 		const navTitle = page.getByPlaceholder(/Shown in site nav/i);
 		await expect(navTitle).toBeVisible({ timeout: 15_000 });
@@ -251,7 +251,7 @@ test("9. pending: editor draft appears for admin", async ({ page }) => {
 
 		await uiLogout(page);
 		await uiLogin(page, e2eEmail(), e2ePassword());
-		await page.goto("/pending-changes");
+		await page.goto("pending-changes");
 		await expect(page.getByRole("heading", { name: /Pending/i }).first()).toBeVisible({
 			timeout: 15_000,
 		});
@@ -283,7 +283,7 @@ test("10. 404s: create 301 redirect", async ({ page }) => {
 	await uiLogin(page);
 	const from = `/e2e-gone-${Date.now().toString(36)}`;
 
-	await page.goto("/dashboard/404s/301/add");
+	await page.goto("dashboard/404s/301/add");
 	await expect(page.getByRole("heading", { name: /301|redirect/i }).first()).toBeVisible({
 		timeout: 15_000,
 	});

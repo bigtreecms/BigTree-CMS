@@ -20,8 +20,14 @@ import { defineConfig, devices } from "@playwright/test";
  */
 
 const useVite = process.env.E2E_USE_VITE === "1" || process.env.E2E_USE_VITE === "true";
-const baseURL =
+const rawBaseURL =
 	process.env.E2E_BASE_URL ?? (useVite ? "http://127.0.0.1:5173" : "http://127.0.0.1:8080/admin");
+// Tests navigate with SPA-relative paths (e.g. `page.goto("dashboard")`) so the
+// `/admin` basename in production/CI is preserved. `new URL(path, base)` only
+// keeps the base's trailing path segment when the base ends in a slash — without
+// it, `new URL("dashboard", ".../admin")` drops `/admin` and the SPA (basename
+// `/admin`) never matches the route. Guarantee the trailing slash here.
+const baseURL = rawBaseURL.endsWith("/") ? rawBaseURL : `${rawBaseURL}/`;
 
 export default defineConfig({
 	testDir: "./e2e",

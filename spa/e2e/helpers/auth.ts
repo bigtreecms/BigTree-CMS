@@ -56,11 +56,11 @@ export async function uiLogin(
 	};
 
 	// Ensure we are on the app origin before writing localStorage.
-	await page.goto("/login");
+	await page.goto("login");
 	await page.evaluate((auth) => {
 		localStorage.setItem("bigtree:auth", JSON.stringify(auth));
 	}, payload);
-	await page.goto("/dashboard");
+	await page.goto("dashboard");
 
 	const dashboard = page
 		.getByTestId("dashboard-page")
@@ -74,7 +74,7 @@ export async function uiLogout(page: Page): Promise<void> {
 		localStorage.removeItem("bigtree:auth:origin");
 		sessionStorage.clear();
 	});
-	await page.goto("/login");
+	await page.goto("login");
 	await expect(
 		page
 			.getByTestId("login-email")
