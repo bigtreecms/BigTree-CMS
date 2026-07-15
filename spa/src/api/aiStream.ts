@@ -31,6 +31,13 @@ export interface ChatStreamDone {
 }
 
 export interface ChatStreamHandlers {
+	/**
+	 * The turn's conversation id (and title), emitted before any tokens. Lets a
+	 * brand-new thread reconcile if the connection later drops. Not an "answer
+	 * received" signal — arriving before content, it must not suppress the
+	 * buffered fallback.
+	 */
+	onMeta?: (meta: { conversation_id: number; title: string }) => void;
 	/** An answer token arrived — append it to the visible draft. */
 	onToken: (text: string) => void;
 	/** Discard the streamed draft: that round became tool calls, not the answer. */
@@ -134,7 +141,13 @@ export const streamChat = async (
 			}
 		}
 
-		if (evt.event === "token") {
+		if (evt.event === "meta") {
+			const m = data as { conversation_id?: number; title?: string };
+			handlers.onMeta?.({
+				conversation_id: Number(m?.conversation_id ?? 0),
+				title: String(m?.title ?? ""),
+			});
+		} else if (evt.event === "token") {
 			handlers.onToken(String((data as { text?: string })?.text ?? ""));
 		} else if (evt.event === "reset") {
 			handlers.onReset();

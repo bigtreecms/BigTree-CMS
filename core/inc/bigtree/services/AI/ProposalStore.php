@@ -21,9 +21,15 @@
 		const TABLE = "bigtree_ai_proposals";
 
 		const PENDING = "pending";
+		const APPROVING = "approving";
 		const APPROVED = "approved";
 		const REJECTED = "rejected";
 		const EXPIRED = "expired";
+
+		// Rows this many days past expiry are opportunistically purged on create()
+		// so the table stays bounded while recently resolved cards remain renderable
+		// in conversation history.
+		const PURGE_AFTER_DAYS = 30;
 
 		// How long a staged proposal stays approvable. Long enough for a real
 		// review, short enough that permission checks at approval reflect roughly
@@ -66,7 +72,68 @@
 
 			SQL::insert(self::TABLE, $row);
 
+			$this->purgeExpired();
+
 			return $row;
+		}
+
+		/**
+		 * Opportunistically delete proposals well past expiry so the table stays
+		 * bounded. Best-effort and once-ish per request (piggybacks on create()); a
+		 * failure here must never fail the staging that triggered it.
+		 */
+		private function purgeExpired(): void {
+			try {
+				SQL::query(
+					"DELETE FROM " . self::TABLE . " WHERE expires_at < (NOW() - INTERVAL " . (int)self::PURGE_AFTER_DAYS . " DAY)"
+				);
+			} catch (\Throwable $e) {
+				// Housekeeping is best-effort; swallow so a staged mutation still returns.
+			}
+		}
+
+		/**
+		 * Claim a pending proposal with a compare-and-set so two concurrent approvals
+		 * (double-click, two tabs, a retried request) can't both execute. Flips
+		 * pending → $to only if the row is still pending; returns whether exactly one
+		 * row changed. A false return means someone else already resolved it.
+		 */
+		public function claimPending(string $id, string $to = self::APPROVING): bool {
+			$this->ensureTable();
+
+			$result = SQL::query(
+				"UPDATE " . self::TABLE . " SET status = ? WHERE id = ? AND status = ?",
+				$to,
+				$id,
+				self::PENDING
+			);
+
+			return $result->rows() === 1;
+		}
+
+		/**
+		 * Return a proposal claimed with claimPending() back to pending — used when
+		 * executing an approved mutation throws, so a revoked permission (403) leaves
+		 * the proposal approvable again rather than stranded in the "approving" state.
+		 */
+		public function restorePending(string $id): void {
+			SQL::query(
+				"UPDATE " . self::TABLE . " SET status = ? WHERE id = ? AND status = ?",
+				self::PENDING,
+				$id,
+				self::APPROVING
+			);
+		}
+
+		/**
+		 * Delete every proposal scoped to a conversation. Called when the conversation
+		 * itself is deleted so a stale pending card can't be approved into a live change
+		 * after its entire context is gone, and resolved rows don't leak forever.
+		 */
+		public function deleteForConversation(int $conversation_id): void {
+			$this->ensureTable();
+
+			SQL::query("DELETE FROM " . self::TABLE . " WHERE conversation = ?", $conversation_id);
 		}
 
 		/**

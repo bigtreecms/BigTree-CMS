@@ -110,6 +110,52 @@
 		}
 	}
 
+	if (!class_exists("FakeExtensionUnavailableTool")) {
+		/**
+		 * An approvable extension tool whose coarse gate is closed (isAvailable ===
+		 * false) — models a user whose access was revoked between staging and approval.
+		 * executeApproved records if it (wrongly) runs so the test can assert it didn't.
+		 */
+		class FakeExtensionUnavailableTool implements AIToolInterface, ApprovableTool {
+			/** @var array<string,mixed>|null */
+			public static $approved_with = null;
+
+			public function name(): string {
+
+				return "ext_revoked";
+			}
+
+			public function kind(): string {
+
+				return "mutate";
+			}
+
+			public function isAvailable($user): bool {
+
+				return false;
+			}
+
+			public function definition($user): array {
+
+				return [
+					"type" => "function",
+					"function" => ["name" => "ext_revoked", "description" => "x", "parameters" => ["type" => "object", "properties" => new stdClass()]],
+				];
+			}
+
+			public function execute(array $args, AIToolContext $context): AIToolResult {
+
+				return AIToolResult::proposal("Revoked", [], "prop-fake");
+			}
+
+			public function executeApproved(array $payload, $user): array {
+				self::$approved_with = $payload;
+
+				return ["status" => "sent"];
+			}
+		}
+	}
+
 	function ext_tools_fixture_file(): string {
 		$dir = sys_get_temp_dir() . "/bigtree-ai-ext-" . getmypid();
 
@@ -213,4 +259,28 @@ PHP);
 
 		T::equals($out["status"], "sent", "executeApproved returns its outcome");
 		T::equals(FakeExtensionMutatingTool::$approved_with["to"], "grandma", "approval runs from the stored payload");
+	}
+
+	function test_extension_approval_rechecks_availability() {
+		FakeExtensionMutatingTool::$approved_with = null;
+
+		// A revoked coarse gate: the approving user no longer has access to the tool.
+		$revoked = new FakeExtensionUnavailableTool();
+
+		T::throws(function () use ($revoked) {
+			\BigTree\Services\AIChatService::dispatchApprovable($revoked, ["to" => "grandma"], ai_fake_user(0));
+		}, \BigTree\Api\Exceptions\AuthorizationException::class, "approval refuses a tool whose isAvailable() is false");
+
+		T::equals(FakeExtensionUnavailableTool::$approved_with, null, "executeApproved never runs when unavailable");
+
+		// The happy path still dispatches when available.
+		$ok = \BigTree\Services\AIChatService::dispatchApprovable(new FakeExtensionMutatingTool(), ["to" => "grandma"], ai_fake_user(0));
+		T::equals($ok["status"], "sent", "an available approvable tool still executes at approval");
+	}
+
+	function test_extension_approval_unknown_tool_rejected() {
+		// A null instance (registry couldn't resolve the tool) is a 400, not a no-op.
+		T::throws(function () {
+			\BigTree\Services\AIChatService::dispatchApprovable(null, [], ai_fake_user(1));
+		}, \BigTree\Api\Exceptions\BadRequestException::class, "an unresolved proposal tool is rejected");
 	}

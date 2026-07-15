@@ -195,11 +195,21 @@ export const AIChat = ({ open, onClose }: AIChatProps) => {
 			received = true;
 		};
 
+		// The conversation id the server assigns this turn, captured from the early
+		// `meta` event (before any tokens). Kept local — not pushed into state — so a
+		// clean provider failure that rolls the new conversation back doesn't leave a
+		// dangling id on the buffered-fallback path. Used only to reconcile a
+		// mid-stream drop after content already arrived.
+		let streamConversationId: number | null = null;
+
 		try {
 			await streamChat(
 				text,
 				conversationId ?? undefined,
 				{
+					onMeta: (meta) => {
+						streamConversationId = meta.conversation_id || null;
+					},
 					onToken: (chunk) => {
 						markReceived();
 						updatePending((e) => ({ ...e, content: e.content + chunk }));
@@ -238,8 +248,24 @@ export const AIChat = ({ open, onClose }: AIChatProps) => {
 			if (!received) {
 				sendMutation.mutate(text);
 			} else {
-				setError(err instanceof Error ? err.message : "The assistant could not respond.");
-				setEntries((prev) => prev.filter((e) => e.id !== PENDING_ID));
+				// Content arrived, then the connection dropped — the server likely
+				// persisted this turn. Rather than silently discard the pending entry
+				// (which for a brand-new thread would strand the turn and fork a second
+				// conversation on the next send), reconcile from the server. Always
+				// refresh the history list; refetch the thread if we know its id.
+				void queryClient.invalidateQueries({ queryKey: queryKeys.ai.conversations() });
+
+				const reconcileId = conversationId ?? streamConversationId;
+
+				if (reconcileId !== null) {
+					setConversationId(reconcileId);
+					void openConversation(reconcileId);
+				} else {
+					setError(
+						err instanceof Error ? err.message : "The assistant could not respond."
+					);
+					setEntries((prev) => prev.filter((e) => e.id !== PENDING_ID));
+				}
 			}
 		} finally {
 			if (abortRef.current === controller) {

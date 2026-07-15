@@ -13,6 +13,13 @@
 	 * executeApproved() runs from the stored, validated payload captured when the
 	 * proposal was staged — never anything the model round-tripped — and MUST
 	 * re-check permission server-side. The model is never the enforcement layer.
+	 *
+	 * Before dispatching, AIChatService::executeExtensionProposal re-checks the
+	 * tool's coarse isAvailable($user) gate (the same one AIToolRegistry applies on
+	 * the turn path) and refuses if it now returns false. That is defense-in-depth
+	 * for a revoked level, NOT a replacement for the object-scoped re-check
+	 * executeApproved() still owns — a tool that writes a specific page/entry/user
+	 * must re-verify permission on that object here.
 	 */
 	interface ApprovableTool {
 		/**

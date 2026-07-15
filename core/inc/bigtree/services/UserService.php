@@ -423,7 +423,9 @@
 				}
 
 				if ($email !== (string)$target["email"]) {
-					if (SQL::exists("bigtree_users", "email = ? AND id != ?", $email, $id)) {
+					// SQL::exists can't express "another row", so check for a clash directly
+					// (matches the approval-time re-check in aiUpdateUser).
+					if (SQL::fetchSingle("SELECT id FROM bigtree_users WHERE email = ? AND id != ?", $email, $id)) {
 
 						return ["error" => "Another user already uses the email {$email}."];
 					}
@@ -479,6 +481,26 @@
 			}
 
 			$changes = is_array($payload["changes"] ?? null) ? $payload["changes"] : [];
+
+			// Re-validate a staged email at approval time — another account may have
+			// claimed it during the proposal's TTL. Never trust the guard the staging
+			// pass made; the create path does the same.
+			if (array_key_exists("email", $changes)) {
+				$email = trim((string)$changes["email"]);
+
+				if ($email === "" || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+
+					return ["mode" => "error", "message" => "That email address is not valid."];
+				}
+
+				// SQL::exists can't express "another row" (its 3rd arg is an ignored id,
+				// not a bound param), so check for a clashing row directly.
+				if (SQL::fetchSingle("SELECT id FROM bigtree_users WHERE email = ? AND id != ?", $email, $id)) {
+
+					return ["mode" => "error", "message" => "That email address is no longer available."];
+				}
+			}
+
 			$update = [];
 
 			foreach (["name", "company", "email"] as $field) {

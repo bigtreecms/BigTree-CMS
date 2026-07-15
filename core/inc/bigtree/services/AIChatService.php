@@ -4,6 +4,7 @@
 	use BigTree\Api\Request;
 	use BigTree\Api\Response;
 	use BigTree\Api\Pagination;
+	use BigTree\Api\Exceptions\AuthorizationException;
 	use BigTree\Api\Exceptions\BadRequestException;
 	use BigTree\Api\Exceptions\NotFoundException;
 	use BigTree\Services\AI\AIToolContext;
@@ -65,6 +66,9 @@
 		const TITLE_MAX = 120;
 		const TOOL_LIMIT = 8;
 		const MAX_ROUNDS = 5;
+		// The default per-request provider timeout (mirrors ai.php's cURL default).
+		// Used only to size the PHP execution budget for a full multi-round turn.
+		const PROVIDER_TIMEOUT_SECONDS = 60;
 		// A conversation is a bounded context window; cap turns so history replay
 		// (and its token cost) can't grow without limit.
 		const MAX_MESSAGES_PER_CONVERSATION = 100;
@@ -83,6 +87,7 @@
 		 * Body: { message: string, conversation_id?: int }
 		 */
 		public function chat(Request $request) {
+			$this->extendExecutionBudget();
 			$turn = $this->setupTurn($request);
 			$loop = new AgentLoop($turn["ai"], $turn["registry"], self::MAX_ROUNDS);
 
@@ -139,9 +144,20 @@
 		 * Kernel's JSON envelope (as Response::stream does for downloads).
 		 */
 		public function chatStream(Request $request) {
+			$this->extendExecutionBudget();
 			$turn = $this->setupTurn($request);
 
 			$this->beginEventStream($request);
+
+			// Emit the conversation id up front so a client that started a brand-new
+			// thread can reconcile even if the connection drops before `done` — without
+			// this it still has conversationId === null and a retry would fork a second
+			// conversation, stranding the persisted turn. Sent before any tokens so it
+			// never counts as "answer received" for the client's fallback decision.
+			$this->sse("meta", [
+				"conversation_id" => $turn["conversation_id"],
+				"title" => (string)$turn["conversation"]["title"],
+			]);
 
 			$loop = new AgentLoop($turn["ai"], $turn["registry"], self::MAX_ROUNDS);
 			$artifacts = $this->emptyArtifacts();
@@ -191,6 +207,20 @@
 			]);
 
 			exit;
+		}
+
+		/**
+		 * Raise the PHP execution time limit to cover a full multi-round turn. A turn
+		 * can legitimately run every round to the provider timeout plus a final
+		 * synthesis call, which exceeds a typical max_execution_time; without this a
+		 * long-but-valid turn is killed mid-flight. No-op under CLI (limit already 0).
+		 */
+		private function extendExecutionBudget(): void {
+			// Rounds + final call, each up to the provider timeout, plus slack for the
+			// tool DB work between calls.
+			$budget = (self::MAX_ROUNDS + 1) * self::PROVIDER_TIMEOUT_SECONDS + 30;
+
+			set_time_limit($budget);
 		}
 
 		/**
@@ -515,6 +545,11 @@
 			SQL::query("DELETE FROM " . self::MESSAGES_TABLE . " WHERE conversation = ?", (int)$conversation["id"]);
 			SQL::delete(self::CONVERSATIONS_TABLE, (int)$conversation["id"]);
 
+			// Drop the conversation's staged proposals too — a pending one must not
+			// survive the deletion of its entire context and stay approvable, and
+			// resolved outcomes already live in the audit trail.
+			(new ProposalStore())->deleteForConversation((int)$conversation["id"]);
+
 			return Response::noContent();
 		}
 
@@ -539,8 +574,24 @@
 
 			$this->assertPending($proposal);
 
+			// Claim the proposal before executing so two concurrent approvals can't both
+			// pass the pending check and run the mutation twice. A lost race means it was
+			// already resolved (or rejected) out from under us.
+			if (!$store->claimPending($id)) {
+				throw new BadRequestException("This proposal has already been resolved.", "proposal_resolved");
+			}
+
 			$payload = $store->decodePayload($proposal);
-			$result = $this->executeProposal((string)$proposal["tool"], $payload, $request->user);
+
+			try {
+				$result = $this->executeProposal((string)$proposal["tool"], $payload, $request->user);
+			} catch (\Throwable $e) {
+				// A revoked permission (403) or any execution failure leaves the proposal
+				// approvable again rather than stranded mid-claim.
+				$store->restorePending($id);
+
+				throw $e;
+			}
 
 			$store->markResolved($id, ProposalStore::APPROVED, $result);
 
@@ -569,7 +620,11 @@
 			}
 
 			$this->assertPending($proposal);
-			$store->markResolved($id, ProposalStore::REJECTED);
+
+			// Same compare-and-set as approve so an approve/reject race resolves once.
+			if (!$store->claimPending($id, ProposalStore::REJECTED)) {
+				throw new BadRequestException("This proposal has already been resolved.", "proposal_resolved");
+			}
 
 			return Response::ok([
 				"proposal" => $store->present($store->loadOwned($id, $request->user)),
@@ -671,7 +726,29 @@
 		private function executeExtensionProposal(string $tool, array $payload, $user): array {
 			$instance = $this->buildRegistry(new ProposalStore())->get($tool);
 
+			return self::dispatchApprovable($instance, $payload, $user);
+		}
+
+		/**
+		 * Dispatch a resolved extension tool for an approved proposal, applying the
+		 * coarse availability gate first. Static + public so the approval gate can be
+		 * exercised with a fixture tool without standing up the full registry.
+		 *
+		 * @param mixed $instance The registry-resolved tool (or null for an unknown one).
+		 * @param array<string,mixed> $payload
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 */
+		public static function dispatchApprovable($instance, array $payload, $user): array {
 			if ($instance instanceof \BigTree\Services\AI\Tools\ApprovableTool) {
+				// Defense-in-depth: mirror AIToolRegistry::execute's turn-path gate so an
+				// extension that forgets its object-scoped re-check still can't hand a
+				// level-0 editor a one-click write after their access was revoked. This is
+				// the coarse level gate, not a substitute for the documented per-object
+				// re-check inside executeApproved.
+				if (!$instance->isAvailable($user)) {
+					throw new AuthorizationException("You no longer have access to this action.");
+				}
 
 				return $instance->executeApproved($payload, $user);
 			}
@@ -838,8 +915,8 @@
 		}
 
 		/**
-		 * Identity + capability-aware system prompt. Made static + public so tests
-		 * can assert its contents without a request.
+		 * Identity + capability-aware system prompt. Public so tests can assert its
+		 * contents without driving a full request.
 		 *
 		 * @param object|array $user
 		 */

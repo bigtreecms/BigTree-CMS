@@ -598,3 +598,48 @@
 			SQL::query("DELETE FROM bigtree_users WHERE id = ?", $target_id);
 		}
 	}
+
+	function test_userservice_ai_update_user_rechecks_email_at_approval() {
+		if (!_userservice_db_available()) {
+
+			return;
+		}
+
+		$svc = new UserService();
+		$taken = "zz_taken_" . uniqid() . "@test.local";
+		$other_id = _userservice_seed(["email" => $taken, "level" => 0]);
+		$target_id = _userservice_seed(["level" => 0]);
+		$original_email = _userservice_col($target_id, "email");
+		$actor = (object)["id" => 999999, "level" => 2, "permissions" => []];
+
+		try {
+			// A payload staged before $taken existed must not write a duplicate email
+			// once another account holds it — the collision is re-checked at approval.
+			$collision = $svc->aiUpdateUser([
+				"user_id" => $target_id,
+				"changes" => ["email" => $taken],
+			], $actor);
+
+			T::equals($collision["mode"], "error", "email collision at approval returns mode:error");
+			T::ok(strpos($collision["message"], "no longer available") !== false, "message mirrors the create path");
+			T::equals(_userservice_col($target_id, "email"), $original_email, "target email is left unchanged on collision");
+
+			// A malformed email is also rejected rather than written blind.
+			$invalid = $svc->aiUpdateUser([
+				"user_id" => $target_id,
+				"changes" => ["email" => "not-an-email"],
+			], $actor);
+			T::equals($invalid["mode"], "error", "invalid email at approval returns mode:error");
+
+			// A free address still applies, so the re-check doesn't block valid updates.
+			$fresh = "zz_fresh_" . uniqid() . "@test.local";
+			$ok = $svc->aiUpdateUser([
+				"user_id" => $target_id,
+				"changes" => ["email" => $fresh],
+			], $actor);
+			T::equals($ok["mode"], "updated", "a still-available email applies");
+			T::equals(_userservice_col($target_id, "email"), $fresh, "the new email was written");
+		} finally {
+			SQL::query("DELETE FROM bigtree_users WHERE id IN (?, ?)", $target_id, $other_id);
+		}
+	}

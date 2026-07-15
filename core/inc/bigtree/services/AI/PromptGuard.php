@@ -48,8 +48,10 @@
 			$stripped = str_ireplace([self::BEGIN, self::END], ["[redacted-marker]", "[redacted-marker]"], $text);
 
 			// Also collapse the bare angle-bracket sentinel so partial forgeries of
-			// the "<<<...>>>" shape can't masquerade as a real delimiter.
-			return preg_replace('/<<<\s*(?:END_)?UNTRUSTED_TOOL_OUTPUT[^>]*>>>/i', "[redacted-marker]", $stripped) ?? $stripped;
+			// the "<<<...>>>" shape can't masquerade as a real delimiter. A lazy
+			// any-char tail (rather than [^>]*) catches forgeries whose tail itself
+			// contains a ">", e.g. "<<<UNTRUSTED_TOOL_OUTPUT — data> only>>>".
+			return preg_replace('/<<<[^<]{0,120}?UNTRUSTED_TOOL_OUTPUT.*?>>>/is', "[redacted-marker]", $stripped) ?? $stripped;
 		}
 
 		/**

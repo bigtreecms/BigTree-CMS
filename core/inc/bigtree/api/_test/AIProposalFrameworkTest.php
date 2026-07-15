@@ -235,3 +235,90 @@
 		T::ok($store->isExpired(["expires_at" => date("Y-m-d H:i:s", time() - 60)]), "past expiry is expired");
 		T::ok(!$store->isExpired(["expires_at" => date("Y-m-d H:i:s", time() + 3600)]), "future expiry is not expired");
 	}
+
+	/** True when the proposals table is reachable in this harness. */
+	function _proposalstore_db_available(): bool {
+		try {
+			(new ProposalStore())->ensureTable();
+
+			return true;
+		} catch (\Throwable $e) {
+			echo "  (skipped — database unavailable in this harness: " . $e->getMessage() . ")\n";
+
+			return false;
+		}
+	}
+
+	function test_proposal_claim_is_single_winner() {
+		if (!_proposalstore_db_available()) {
+
+			return;
+		}
+
+		$store = new ProposalStore();
+		$user = ["id" => 987654];
+		$row = $store->create($user, 987654001, "create_page", "Create page.", [], ["parent" => 0]);
+		$id = (string)$row["id"];
+
+		try {
+			T::ok($store->claimPending($id), "first claim wins");
+			T::ok(!$store->claimPending($id), "second claim on the same row loses (already claimed)");
+
+			// The row is now in the transient 'approving' state.
+			$after = $store->loadOwned($id, $user);
+			T::equals($after["status"], ProposalStore::APPROVING, "claimed row is in the approving state");
+
+			// Restoring it (the execute-throws path) makes it approvable again.
+			$store->restorePending($id);
+			$restored = $store->loadOwned($id, $user);
+			T::equals($restored["status"], ProposalStore::PENDING, "restorePending returns the row to pending");
+			T::ok($store->claimPending($id), "a restored row can be claimed again");
+		} finally {
+			SQL::query("DELETE FROM " . ProposalStore::TABLE . " WHERE id = ?", $id);
+		}
+	}
+
+	function test_proposal_reject_claim_is_single_winner() {
+		if (!_proposalstore_db_available()) {
+
+			return;
+		}
+
+		$store = new ProposalStore();
+		$user = ["id" => 987655];
+		$row = $store->create($user, 987655001, "create_page", "Create page.", [], ["parent" => 0]);
+		$id = (string)$row["id"];
+
+		try {
+			T::ok($store->claimPending($id, ProposalStore::REJECTED), "reject claim wins on a pending row");
+			T::ok(!$store->claimPending($id, ProposalStore::REJECTED), "a second reject claim loses");
+			T::ok(!$store->claimPending($id), "an approve claim also loses once rejected");
+			T::equals($store->loadOwned($id, $user)["status"], ProposalStore::REJECTED, "row settled as rejected");
+		} finally {
+			SQL::query("DELETE FROM " . ProposalStore::TABLE . " WHERE id = ?", $id);
+		}
+	}
+
+	function test_proposal_delete_for_conversation_cascades() {
+		if (!_proposalstore_db_available()) {
+
+			return;
+		}
+
+		$store = new ProposalStore();
+		$user = ["id" => 987656];
+		$conversation = 987656001;
+		$a = $store->create($user, $conversation, "create_page", "A", [], []);
+		$b = $store->create($user, $conversation, "create_page", "B", [], []);
+		$other = $store->create($user, 987656002, "create_page", "Other", [], []);
+
+		try {
+			$store->deleteForConversation($conversation);
+
+			T::equals($store->loadOwned((string)$a["id"], $user), null, "deleted conversation's proposal is gone (approve would 404)");
+			T::equals($store->loadOwned((string)$b["id"], $user), null, "all of the conversation's proposals are removed");
+			T::ok($store->loadOwned((string)$other["id"], $user) !== null, "a proposal in another conversation is untouched");
+		} finally {
+			SQL::query("DELETE FROM " . ProposalStore::TABLE . " WHERE user = ?", 987656);
+		}
+	}
