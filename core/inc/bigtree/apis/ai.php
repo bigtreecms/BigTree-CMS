@@ -12,19 +12,25 @@
 		/** @var array<string, list<array{id:string,label:string}>> */
 		const MODELS = [
 			"xai" => [
-				["id" => "grok-4-latest", "label" => "Grok 4"],
-				["id" => "grok-3", "label" => "Grok 3"],
-				["id" => "grok-3-mini", "label" => "Grok 3 Mini"],
+				["id" => "grok-4.5", "label" => "Grok 4.5 (grok-4.5)"],
+				["id" => "grok-4-latest", "label" => "Grok 4 latest alias (grok-4-latest)"],
+				["id" => "grok-3", "label" => "Grok 3 (grok-3)"],
+				["id" => "grok-3-mini", "label" => "Grok 3 Mini (grok-3-mini)"],
 			],
 			"openai" => [
-				["id" => "gpt-4.1", "label" => "GPT-4.1"],
-				["id" => "gpt-4.1-mini", "label" => "GPT-4.1 Mini"],
-				["id" => "gpt-4o", "label" => "GPT-4o"],
+				["id" => "gpt-5.6-sol", "label" => "GPT-5.6 Sol — flagship (gpt-5.6-sol)"],
+				["id" => "gpt-5.6-terra", "label" => "GPT-5.6 Terra — balanced (gpt-5.6-terra)"],
+				["id" => "gpt-5.6-luna", "label" => "GPT-5.6 Luna — fastest (gpt-5.6-luna)"],
+				["id" => "gpt-5.4", "label" => "GPT-5.4 (gpt-5.4)"],
+				["id" => "gpt-5.4-mini", "label" => "GPT-5.4 Mini (gpt-5.4-mini)"],
+				["id" => "gpt-5.4-nano", "label" => "GPT-5.4 Nano (gpt-5.4-nano)"],
+				["id" => "gpt-5", "label" => "GPT-5 (gpt-5)"],
+				["id" => "gpt-4.1", "label" => "GPT-4.1 (gpt-4.1)"],
 			],
 			"anthropic" => [
-				["id" => "claude-sonnet-5", "label" => "Claude Sonnet 5"],
-				["id" => "claude-opus-4-8", "label" => "Claude Opus 4.8"],
-				["id" => "claude-haiku-4-5", "label" => "Claude Haiku 4.5"],
+				["id" => "claude-sonnet-5", "label" => "Claude Sonnet 5 (claude-sonnet-5)"],
+				["id" => "claude-opus-4-8", "label" => "Claude Opus 4.8 (claude-opus-4-8)"],
+				["id" => "claude-haiku-4-5", "label" => "Claude Haiku 4.5 (claude-haiku-4-5)"],
 			],
 		];
 

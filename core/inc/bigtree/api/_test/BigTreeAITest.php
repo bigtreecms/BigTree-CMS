@@ -4,6 +4,7 @@
 	 */
 
 	function test_bigtree_ai_model_allowlists() {
+		T::ok(BigTreeAI::isValidModel("xai", "grok-4.5"), "xAI grok-4.5 is allowlisted");
 		T::ok(BigTreeAI::isValidModel("xai", "grok-4-latest"), "xAI grok-4-latest is allowlisted");
 		T::ok(BigTreeAI::isValidModel("openai", "gpt-4.1"), "OpenAI gpt-4.1 is allowlisted");
 		T::ok(BigTreeAI::isValidModel("anthropic", "claude-sonnet-5"), "Anthropic sonnet is allowlisted");
@@ -12,7 +13,7 @@
 
 		$xai = BigTreeAI::modelsForService("xai");
 		T::ok(is_array($xai) && count($xai) >= 1, "xAI model list is non-empty");
-		T::equals($xai[0]["id"] ?? null, "grok-4-latest", "first xAI model is grok-4-latest");
+		T::equals($xai[0]["id"] ?? null, "grok-4.5", "first xAI model is grok-4.5");
 	}
 
 	function test_bigtree_ai_services_constant() {
