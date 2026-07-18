@@ -308,10 +308,20 @@
 			$company = trim((string)($args["company"] ?? ""));
 			$timezone = trim((string)($args["timezone"] ?? ""));
 
+			// An invalid tz identifier is stored happily but breaks any date-rendering
+			// path that constructs a DateTimeZone from it — catch it while the model
+			// can still correct itself.
+			if ($timezone !== "" && !in_array($timezone, timezone_identifiers_list(), true)) {
+
+				return ["error" => "\"{$timezone}\" is not a valid timezone identifier. Use an IANA name "
+					. "like \"America/New_York\" or \"Europe/London\"."];
+			}
+
 			return [
 				"ok" => true,
 				"summary" => "Create a new editor account for " . ($name !== "" ? "{$name} ({$email})" : $email)
-					. ". They'll be an editor (level 0) and will need a password set separately.",
+					. ". They'll be an editor (level 0) with no permissions granted. They cannot log in until a "
+					. "password is set — approving this sends them an email invite to choose one.",
 				"preview" => [
 					"action" => "create_user",
 					"email" => $email,
@@ -319,6 +329,8 @@
 					"company" => $company,
 					"timezone" => $timezone,
 					"level" => 0,
+					"sends_invite_email" => true,
+					"note" => "Cannot log in until a password is set; an invite email will be sent to {$email} on approval.",
 				],
 				"payload" => [
 					"email" => $email,
@@ -346,8 +358,17 @@
 				return ["mode" => "error", "message" => "That email address is no longer available."];
 			}
 
+			$timezone = (string)($payload["timezone"] ?? "");
+
+			// Re-check at approval — the payload is stored between staging and
+			// approval and is never trusted on the way back out.
+			if ($timezone !== "" && !in_array($timezone, timezone_identifiers_list(), true)) {
+
+				return ["mode" => "error", "message" => "\"{$timezone}\" is not a valid timezone identifier."];
+			}
+
 			// Always level 0, no password, no permissions — the assistant never grants
-			// privileges. A password is set out of band (reset flow / admin UI).
+			// privileges. The password is set by the invitee through the reset flow.
 			$id = (int)SQL::insert("bigtree_users", [
 				"email" => BigTree::safeEncode($email),
 				"level" => 0,
@@ -356,14 +377,24 @@
 				"daily_digest" => "",
 				"alerts" => [],
 				"permissions" => [],
-				"timezone" => (string)($payload["timezone"] ?? ""),
+				"timezone" => $timezone,
 			]);
+
+			// Without this the account predictably sits unusable — it has no password
+			// and nothing tells the person it exists. A mail failure is reported but
+			// never unwinds the account that was just created.
+			$invited = AuthService::sendAccountInvite($id);
 
 			return [
 				"mode" => "created",
 				"user_id" => $id,
 				"email" => $email,
-				"note" => "The account was created at editor level with no password; set one via the users screen.",
+				"invite_sent" => $invited,
+				"note" => $invited
+					? "The account was created at editor level with no permissions. An invite email was sent to "
+						. "{$email} with a link to set a password (valid for 7 days)."
+					: "The account was created at editor level with no permissions, but the invite email could not be "
+						. "sent. Set a password via the users screen, or have them use \"forgot password\".",
 			];
 		}
 

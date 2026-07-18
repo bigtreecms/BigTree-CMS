@@ -68,6 +68,22 @@
 				return ["mode" => "published", "title" => "X", "page_id" => 1];
 			}
 
+			/** @var array<string,mixed> */
+			public $content_validation = ["ok" => true, "summary" => "Update page content.", "preview" => [], "payload" => []];
+			/** @var array<string,mixed>|null */
+			public $content_updated = null;
+
+			public function aiValidatePageContentUpdate(array $args, $user): array {
+
+				return $this->content_validation;
+			}
+
+			public function aiUpdatePageContent(array $payload, $user): array {
+				$this->content_updated = $payload;
+
+				return ["mode" => "published", "title" => "X", "page_id" => 1];
+			}
+
 			public function aiValidatePageArchive(array $args, $user): array {
 
 				return $this->archive_validation;
@@ -77,6 +93,37 @@
 				$this->archived = $payload;
 
 				return ["mode" => "archived", "title" => "X", "page_id" => 1];
+			}
+
+			/** @var array<string,mixed> */
+			public $unarchive_validation = ["ok" => true, "summary" => "Restore page.", "preview" => [], "payload" => []];
+			/** @var array<string,mixed> */
+			public $move_validation = ["ok" => true, "summary" => "Move page.", "preview" => [], "payload" => []];
+			/** @var array<string,mixed>|null */
+			public $unarchived = null;
+			/** @var array<string,mixed>|null */
+			public $moved = null;
+
+			public function aiValidatePageUnarchive(array $args, $user): array {
+
+				return $this->unarchive_validation;
+			}
+
+			public function aiUnarchivePage(array $payload, $user): array {
+				$this->unarchived = $payload;
+
+				return ["mode" => "unarchived", "title" => "X", "page_id" => 1];
+			}
+
+			public function aiValidatePageMove(array $args, $user): array {
+
+				return $this->move_validation;
+			}
+
+			public function aiMovePage(array $payload, $user): array {
+				$this->moved = $payload;
+
+				return ["mode" => "moved", "title" => "X", "page_id" => 1, "path" => "/new/path"];
 			}
 		}
 	}

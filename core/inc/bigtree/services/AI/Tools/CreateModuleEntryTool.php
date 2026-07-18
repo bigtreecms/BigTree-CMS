@@ -43,6 +43,11 @@
 							"type" => "object",
 							"description" => "Field values keyed by column name. Only the module form's simple fields can be set.",
 						],
+						"form" => [
+							"type" => "string",
+							"description" => "Optional form id, for a module that has more than one entry form. "
+								. "If the module has several and you omit this, you'll be asked which to use.",
+						],
 					],
 					"required" => ["module_id"],
 				]

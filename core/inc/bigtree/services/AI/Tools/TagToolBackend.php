@@ -31,4 +31,25 @@
 		 * @throws \BigTree\Api\Exceptions\AuthorizationException
 		 */
 		public function aiAddTags(array $payload, $user): array;
+
+		/**
+		 * Validate removing tags from a page or module entry. Returns denied | error |
+		 * ok+summary+preview+payload.
+		 *
+		 * @param array<string,mixed> $args
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 */
+		public function aiValidateRemoveTags(array $args, $user): array;
+
+		/**
+		 * Apply an approved tag removal. Detaches only — the tag rows survive.
+		 * Re-checks edit access on the target.
+		 *
+		 * @param array<string,mixed> $payload
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 * @throws \BigTree\Api\Exceptions\AuthorizationException
+		 */
+		public function aiRemoveTags(array $payload, $user): array;
 	}

@@ -936,6 +936,27 @@
 			return BigTreeJSONDB::getAll("field-types", $sort_column, $sort_direction ?: "ASC");
 		}
 
+		/**
+		 * The ids of every field type installed for a use case — the core defaults
+		 * plus any custom types registered for it.
+		 *
+		 * $use_case is one of "modules", "templates", "callouts", "settings".
+		 * Returns [] for an unknown use case, which callers should treat as
+		 * "can't validate" rather than "nothing is valid".
+		 *
+		 * @return list<string>
+		 */
+		public static function availableFieldTypeIds($use_case) {
+			$types = self::getCachedFieldTypes();
+
+			if (!isset($types[$use_case]) || !is_array($types[$use_case])) {
+
+				return [];
+			}
+
+			return array_map("strval", array_keys($types[$use_case]));
+		}
+
 		public static function getCachedFieldTypes($split = false) {
 			$types["modules"] = $types["templates"] = $types["callouts"] = $types["settings"] = [
 				"default" => [

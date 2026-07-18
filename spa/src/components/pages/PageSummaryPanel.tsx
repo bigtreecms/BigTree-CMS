@@ -3,6 +3,7 @@ import { useQuery, type UseQueryResult } from "@tanstack/react-query";
 import { ChevronRight, ExternalLink, HelpCircle } from "lucide-react";
 
 import { pagesApi, type PageDetail, type PageSeoRating } from "@/api/endpoints/pages";
+import { siteApi } from "@/api/endpoints/system";
 import { queryKeys } from "@/lib/queryKeys";
 import { Badge, type BadgeTone } from "@/components/ui/Badge";
 import { IconButton } from "@/components/ui/IconButton";
@@ -30,8 +31,9 @@ import { formatNumber } from "@/lib/number";
 interface PageSummaryPanelProps {
 	defaultOpen?: boolean;
 	/**
-	 * Override the displayed live URL. Default uses page.path (which is the
-	 * site-relative path from PageService); the API doesn't expose www_root.
+	 * Override the displayed live URL. Default uses page.path (the site-relative
+	 * path from PageService), resolved against `www_root` from GET /system/site
+	 * so subpath installs (e.g. `/remaster/`) link correctly.
 	 */
 	liveUrl?: string;
 	page: PageDetail | null;
@@ -94,7 +96,24 @@ export const PageSummaryPanel = ({ page, liveUrl, defaultOpen = false }: PageSum
 	const status = useMemo(() => deriveStatus(page), [page]);
 	const ageDays = useMemo(() => (page ? daysSince(page.updated_at) : null), [page]);
 
-	const url = liveUrl ?? (page ? page.path : "");
+	// Site's public root (full URL with trailing slash, e.g.
+	// "https://bigtree.com/remaster/"). Shared with TopBar's cached query.
+	const siteQuery = useQuery({
+		queryKey: queryKeys.system.site(),
+		queryFn: () => siteApi.get(),
+		staleTime: Infinity,
+	});
+	const wwwRoot = siteQuery.data?.www_root ?? "";
+
+	const path = liveUrl ?? (page ? page.path : "");
+	// Display the site-relative path; link out to the fully-qualified public URL
+	// so subpath installs aren't dropped to the domain root.
+	const relativePath = path.replace(/^\//, "");
+	const href = /^https?:\/\//i.test(path)
+		? path
+		: wwwRoot
+			? wwwRoot.replace(/\/$/, "") + "/" + relativePath
+			: "/" + relativePath;
 
 	// Score is computed server-side; only fetch once the panel is open and we have
 	// a saved page (id > 0) to rate.
@@ -199,15 +218,15 @@ export const PageSummaryPanel = ({ page, liveUrl, defaultOpen = false }: PageSum
 					</Prop>
 
 					<Prop label="Live URL" span={2}>
-						{url ? (
+						{path ? (
 							<a
 								className="inline-flex min-w-0 items-center gap-1 truncate text-[14px] font-medium text-accent hover:underline"
-								href={"/" + url.replace(/^\//, "")}
+								href={href}
 								rel="noopener noreferrer"
 								target="_blank"
-								title={url}
+								title={href}
 							>
-								<span className="truncate">/{url.replace(/^\//, "")}</span>
+								<span className="truncate">/{relativePath}</span>
 								<ExternalLink className="shrink-0" size={11} />
 							</a>
 						) : (

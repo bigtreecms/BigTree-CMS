@@ -643,13 +643,125 @@
 			// chosen id on create or re-key an existing row on update.
 			unset($data["id"]);
 
-			$this->applyGeocoding($module, $table, $data);
-			$this->applyRoute($module, $table, $data, $route_exclude_id);
+			$this->applyEntryProcessors($module, $table, $data, $route_exclude_id);
 
 			$user_level = PermissionService::userModuleLevel($request->user, $module_id);
 			$can_publish = PermissionService::isPublisher($request->user, $user_level);
 
 			return [$data, $mtm, $tags, $og, $publish, $user_level, $can_publish];
+		}
+
+		/**
+		 * Run every server-side entry field processor over $data before it is
+		 * persisted. Request-free so both the REST write path (prepareEntryWrite)
+		 * and the AI execute path (aiCreateEntry/aiUpdateEntry) share one
+		 * implementation — the AI path skipped these entirely before, producing
+		 * entries with no route and no coordinates.
+		 *
+		 * $route_exclude_id is the live row id to exclude from the route-uniqueness
+		 * check (0 on create).
+		 */
+		private function applyEntryProcessors(array $module, string $table, array &$data, int $route_exclude_id): void {
+			$this->applyGeocoding($module, $table, $data);
+			$this->applyRoute($module, $table, $data, $route_exclude_id);
+		}
+
+		/**
+		 * The AI equivalent of the processor pass prepareEntryWrite runs, adapted to
+		 * two differences in the AI path:
+		 *
+		 *  1. The model only ever submits the sifted *simple* fields — `route` and
+		 *     `geocoding` are deliberately not AI-settable — so applyRoute would
+		 *     never fire (it skips route columns absent from the data). The route
+		 *     column is seeded here so generation-from-source triggers.
+		 *  2. An AI update is a partial write, whereas the REST path always receives
+		 *     the whole form body. Running the processors over the partial set alone
+		 *     would geocode a fragment of an address, or regenerate a route from only
+		 *     the columns that happened to change. So the processors run over the
+		 *     live row merged with the changes, and only the *derived* columns are
+		 *     copied back onto the data actually written.
+		 *
+		 * @param array<string,mixed> $data the sifted values being written (mutated)
+		 * @param array<string,mixed> $row the existing live row, or [] on create
+		 */
+		private function aiApplyEntryProcessors(array $module, string $table, array &$data, array $row, int $exclude_id): void {
+			$form = $this->formForTable($module, $table);
+
+			if (!$form) {
+				return;
+			}
+
+			$is_create = !$row;
+			$merged = array_merge($row, $data);
+			$derived = [];
+
+			foreach ((array)($form["fields"] ?? []) as $field) {
+				$type = (string)($field["type"] ?? "");
+
+				if ($type === "geocoding") {
+					$derived[] = "latitude";
+					$derived[] = "longitude";
+
+					continue;
+				}
+
+				if ($type !== "route") {
+					continue;
+				}
+
+				$column = (string)($field["column"] ?? "");
+
+				if ($column === "") {
+					continue;
+				}
+
+				$settings = is_array($field["settings"] ?? null) ? $field["settings"] : [];
+
+				// On update, leave the stored route alone unless one of its source
+				// columns is actually changing — an unrelated edit must not re-route
+				// (and so 404) a live entry. keep_original means never regenerate.
+				if (!$is_create && (!empty($settings["keep_original"]) || !$this->routeSourceIsChanging($settings, $data))) {
+					continue;
+				}
+
+				$merged[$column] = "";
+				$derived[] = $column;
+			}
+
+			if (!$derived) {
+				return;
+			}
+
+			$this->applyEntryProcessors($module, $table, $merged, $exclude_id);
+
+			foreach ($derived as $column) {
+				if (array_key_exists($column, $merged)) {
+					$data[$column] = $merged[$column];
+				}
+			}
+		}
+
+		/**
+		 * True when any of a route field's configured source columns appears in the
+		 * data being written — the "regenerate when the inputs change" signal.
+		 *
+		 * @param array<string,mixed> $settings
+		 * @param array<string,mixed> $data
+		 */
+		private function routeSourceIsChanging(array $settings, array $data): bool {
+			$source = $settings["source"] ?? "";
+			$source_fields = is_array($source) ? $source : [$source];
+
+			foreach ($source_fields as $source_field) {
+				$source_field = trim((string)$source_field);
+
+				if ($source_field !== "" && array_key_exists($source_field, $data)) {
+
+					return true;
+				}
+			}
+
+			return false;
 		}
 
 		/** The module form whose `table` matches $table, or null — the find-form-by-table scan the field processors share. */
@@ -910,9 +1022,9 @@
 		 */
 		public function aiValidateEntryCreate(array $args, $user): array {
 			$module_id = (string)($args["module_id"] ?? "");
-			$resolved = $this->aiResolveModuleForm($module_id);
+			$resolved = $this->aiResolveModuleForm($module_id, (string)($args["form"] ?? ""));
 
-			if (isset($resolved["error"])) {
+			if (isset($resolved["error"]) || !empty($resolved["ambiguous_form"])) {
 
 				return $resolved;
 			}
@@ -955,20 +1067,45 @@
 			$rank = PermissionService::userModuleLevel($user, $module["id"]);
 			$can_publish = PermissionService::isPublisher($user, $rank);
 			$name = (string)($module["name"] ?? $module["id"]);
+			$blocked = $resolved["blocked_required"];
+
+			// This form requires at least one field the assistant can't author. A
+			// publisher's approval would put an incomplete record straight onto the
+			// live site, so refuse; a non-publisher's write only ever lands in the
+			// pending queue, where a human completes it before it goes live — allow
+			// that, but say plainly what will still be missing.
+			if ($blocked && $can_publish) {
+
+				return ["error" => "This module requires fields the assistant can't fill in: "
+					. implode(", ", $blocked) . ". Create this entry in the admin UI instead."];
+			}
 
 			$mode_note = $can_publish
 				? " It will be published live once you approve."
 				: " It will be queued as a pending entry for a publisher to review.";
 
+			if ($blocked) {
+				$mode_note .= " Note that " . implode(", ", $blocked)
+					. " " . (count($blocked) === 1 ? "is required but cannot" : "are required but cannot")
+					. " be set by the assistant — a publisher must fill "
+					. (count($blocked) === 1 ? "it" : "them") . " in before this entry can go live.";
+			}
+
+			$preview = [
+				"action" => "create_module_entry",
+				"module" => $name,
+				"fields" => $this->aiPreviewEntryData($schema, $data),
+				"mode" => $can_publish ? "published" : "pending",
+			];
+
+			if ($blocked) {
+				$preview["incomplete_required"] = $blocked;
+			}
+
 			return [
 				"ok" => true,
 				"summary" => "Create a new entry in the “{$name}” module." . $mode_note,
-				"preview" => [
-					"action" => "create_module_entry",
-					"module" => $name,
-					"fields" => $this->aiPreviewEntryData($schema, $data),
-					"mode" => $can_publish ? "published" : "pending",
-				],
+				"preview" => $preview,
 				"payload" => [
 					"module_id" => (string)$module["id"],
 					"table" => $table,
@@ -990,6 +1127,18 @@
 			if (!PermissionService::userHasModuleAccess($user, $module_id, "e")) {
 				throw new AuthorizationException("Insufficient module permission to create entry (e required)");
 			}
+
+			$module = BigTreeJSONDB::get("modules", $module_id);
+
+			if (!$module) {
+
+				return ["mode" => "error", "message" => "That module no longer exists."];
+			}
+
+			// Route/geocoding are derived server-side, never supplied by the model.
+			// Run them here (at approval) rather than at staging so route uniqueness
+			// is evaluated against the table as it stands at write time.
+			$this->aiApplyEntryProcessors($module, $table, $data, [], 0);
 
 			$rank = PermissionService::userModuleLevel($user, $module_id);
 			$can_publish = PermissionService::isPublisher($user, $rank);
@@ -1021,9 +1170,9 @@
 		 */
 		public function aiValidateEntryUpdate(array $args, $user): array {
 			$module_id = (string)($args["module_id"] ?? "");
-			$resolved = $this->aiResolveModuleForm($module_id);
+			$resolved = $this->aiResolveModuleForm($module_id, (string)($args["form"] ?? ""));
 
-			if (isset($resolved["error"])) {
+			if (isset($resolved["error"]) || !empty($resolved["ambiguous_form"])) {
 
 				return $resolved;
 			}
@@ -1133,6 +1282,11 @@
 
 			PermissionService::assertCanEditRow($user, $module, $row);
 
+			// Same derived-field pass as create, but the route is only regenerated
+			// when one of its source columns is among the fields being changed —
+			// otherwise an unrelated edit would silently re-route the entry.
+			$this->aiApplyEntryProcessors($module, $table, $data, $row, $entry_id);
+
 			$rank = PermissionService::userModuleLevel($user, $module_id);
 			$can_publish = PermissionService::isPublisher($user, $rank);
 			$this->bindLegacyAdmin($user);
@@ -1165,6 +1319,300 @@
 			return ["mode" => "pending", "module" => $module_id, "entry_id" => $entry_id];
 		}
 
+		// The boolean columns set_module_entry_flag can flip, mapped to how they read
+		// in a proposal summary. Mirrors the legacy archive/approve/feature actions.
+		private const AI_ENTRY_FLAGS = [
+			"archived" => ["on" => "Archive", "off" => "Restore"],
+			"featured" => ["on" => "Feature", "off" => "Un-feature"],
+			"approved" => ["on" => "Approve", "off" => "Un-approve"],
+		];
+
+		/**
+		 * Validate flipping one of a module entry's boolean flags (archived, featured,
+		 * approved). Publisher-only, per-row, mirroring toggleFlag's gate.
+		 *
+		 * @param array<string,mixed> $args
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 */
+		public function aiValidateEntryFlag(array $args, $user): array {
+			$flag = strtolower(trim((string)($args["flag"] ?? "")));
+
+			if (!isset(self::AI_ENTRY_FLAGS[$flag])) {
+
+				return ["error" => "flag must be one of: " . implode(", ", array_keys(self::AI_ENTRY_FLAGS)) . "."];
+			}
+
+			if (!array_key_exists("value", $args)) {
+
+				return ["error" => "A value (true to set the flag, false to clear it) is required."];
+			}
+
+			$resolved = $this->aiResolveEntryForWrite($args, $user);
+
+			if (isset($resolved["error"]) || isset($resolved["denied"])) {
+
+				return $resolved;
+			}
+
+			$module = $resolved["module"];
+			$table = $resolved["table"];
+			$entry_id = $resolved["entry_id"];
+			$row = $resolved["row"];
+
+			// Not every module table carries all three legacy flag columns; setting one
+			// that doesn't exist would fail at the UPDATE with an opaque SQL error.
+			$description = SQL::describeTable($table);
+
+			if (!$description || !isset($description["columns"][$flag])) {
+
+				return ["error" => "Entries in this module have no \"{$flag}\" flag."];
+			}
+
+			// Publisher-only, matching the REST toggle. userRowLevel folds in the admin
+			// bypass, so the strict "p" comparison is the whole check.
+			if (PermissionService::userRowLevel($user, $module, $row) !== "p") {
+
+				return ["denied" => "Changing this requires publisher access on this entry, which you do not have."];
+			}
+
+			$value = !empty($args["value"]) && $args["value"] !== "false";
+			$current = (string)($row[$flag] ?? "") !== "";
+
+			if ($value === $current) {
+
+				return ["error" => "That entry is already " . ($value ? "" : "not ") . $flag . "."];
+			}
+
+			$name = (string)($module["name"] ?? $module["id"]);
+			$verb = $value ? self::AI_ENTRY_FLAGS[$flag]["on"] : self::AI_ENTRY_FLAGS[$flag]["off"];
+			$label = $this->aiEntryLabel($row, $entry_id);
+
+			return [
+				"ok" => true,
+				"summary" => "{$verb} “{$label}” in the “{$name}” module. This takes effect live once you approve.",
+				"preview" => [
+					"action" => "set_module_entry_flag",
+					"module" => $name,
+					"entry_id" => $entry_id,
+					"entry" => $label,
+					"flag" => $flag,
+					"from" => $current,
+					"to" => $value,
+				],
+				"payload" => [
+					"module_id" => (string)$module["id"],
+					"table" => $table,
+					"entry_id" => $entry_id,
+					"flag" => $flag,
+					"value" => $value,
+				],
+			];
+		}
+
+		/**
+		 * Execute an approved flag change. Re-checks publisher access on the row.
+		 *
+		 * @param array<string,mixed> $payload
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 */
+		public function aiSetEntryFlag(array $payload, $user): array {
+			$module_id = (string)($payload["module_id"] ?? "");
+			$table = (string)($payload["table"] ?? "");
+			$entry_id = (int)($payload["entry_id"] ?? 0);
+			$flag = (string)($payload["flag"] ?? "");
+
+			if (!isset(self::AI_ENTRY_FLAGS[$flag])) {
+
+				return ["mode" => "error", "message" => "That flag can no longer be changed."];
+			}
+
+			$module = BigTreeJSONDB::get("modules", $module_id);
+			$item = BigTreeAutoModule::getItem($table, $entry_id);
+			$row = is_array($item) ? ($item["item"] ?? []) : [];
+
+			if (!$module || !$row) {
+
+				return ["mode" => "error", "message" => "That entry no longer exists."];
+			}
+
+			if (PermissionService::userRowLevel($user, $module, $row) !== "p") {
+				throw new AuthorizationException("Publisher access required to change entry flags");
+			}
+
+			$next = !empty($payload["value"]) ? "on" : "";
+			SQL::update($table, $entry_id, [$flag => $next]);
+			BigTreeAutoModule::recacheItem($entry_id, $table);
+
+			Hooks::fire("module_entry.{$flag}", [
+				"module" => $module_id, "table" => $table, "id" => $entry_id, "value" => $next, "via" => "ai_assistant",
+			]);
+
+			return [
+				"mode" => "updated",
+				"module" => $module_id,
+				"entry_id" => $entry_id,
+				"flag" => $flag,
+				"value" => $next !== "",
+			];
+		}
+
+		/**
+		 * Validate deleting a module entry. Publisher-only and irreversible, so the
+		 * proposal spells out what is being destroyed rather than just naming an id.
+		 *
+		 * @param array<string,mixed> $args
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 */
+		public function aiValidateEntryDelete(array $args, $user): array {
+			$resolved = $this->aiResolveEntryForWrite($args, $user);
+
+			if (isset($resolved["error"]) || isset($resolved["denied"])) {
+
+				return $resolved;
+			}
+
+			$module = $resolved["module"];
+			$row = $resolved["row"];
+			$entry_id = $resolved["entry_id"];
+
+			if (PermissionService::userRowLevel($user, $module, $row) !== "p") {
+
+				return ["denied" => "Deleting an entry requires publisher access on it, which you do not have."];
+			}
+
+			$name = (string)($module["name"] ?? $module["id"]);
+			$label = $this->aiEntryLabel($row, $entry_id);
+
+			return [
+				"ok" => true,
+				"summary" => "Permanently delete “{$label}” (entry #{$entry_id}) from the “{$name}” module. "
+					. "This cannot be undone.",
+				"preview" => [
+					"action" => "delete_module_entry",
+					"module" => $name,
+					"entry_id" => $entry_id,
+					"entry" => $label,
+					"destructive" => true,
+				],
+				"payload" => [
+					"module_id" => (string)$module["id"],
+					"table" => $resolved["table"],
+					"entry_id" => $entry_id,
+				],
+			];
+		}
+
+		/**
+		 * Execute an approved entry delete, reusing the same deallocation the REST
+		 * delete does so no orphaned resource allocations are left behind.
+		 *
+		 * @param array<string,mixed> $payload
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 */
+		public function aiDeleteEntry(array $payload, $user): array {
+			$module_id = (string)($payload["module_id"] ?? "");
+			$table = (string)($payload["table"] ?? "");
+			$entry_id = (int)($payload["entry_id"] ?? 0);
+
+			$module = BigTreeJSONDB::get("modules", $module_id);
+			$item = BigTreeAutoModule::getItem($table, $entry_id);
+			$row = is_array($item) ? ($item["item"] ?? []) : [];
+
+			if (!$module || !$row) {
+
+				return ["mode" => "error", "message" => "That entry no longer exists (it may already have been deleted)."];
+			}
+
+			if (PermissionService::userRowLevel($user, $module, $row) !== "p") {
+				throw new AuthorizationException("Publisher access required to delete an entry");
+			}
+
+			$this->bindLegacyAdmin($user);
+			BigTreeAutoModule::deleteItem($table, $entry_id);
+			ResourceAllocationService::deallocateResources($table, $entry_id);
+
+			// Drop allocations for any outstanding draft of the deleted row too.
+			$pending_change_id = SQL::fetchSingle(
+				"SELECT id FROM bigtree_pending_changes WHERE `table` = ? AND item_id = ?", $table, $entry_id
+			);
+
+			if ($pending_change_id) {
+				ResourceAllocationService::deallocateResources($table, "p".$pending_change_id);
+			}
+
+			Hooks::fire("module_entry.deleted", [
+				"module" => $module_id, "table" => $table, "id" => $entry_id, "via" => "ai_assistant",
+			]);
+
+			return ["mode" => "deleted", "module" => $module_id, "entry_id" => $entry_id];
+		}
+
+		/**
+		 * Shared lookup for the entry-level lifecycle tools: resolve the module, its
+		 * table, and the live row, enforcing module access along the way.
+		 *
+		 * @param array<string,mixed> $args
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 */
+		private function aiResolveEntryForWrite(array $args, $user): array {
+			$module_id = (string)($args["module_id"] ?? "");
+			$resolved = $this->aiResolveModuleForm($module_id, (string)($args["form"] ?? ""));
+
+			if (isset($resolved["error"]) || !empty($resolved["ambiguous_form"])) {
+
+				return $resolved;
+			}
+
+			$module = $resolved["module"];
+			$table = $resolved["table"];
+			$entry_id = (int)($args["entry_id"] ?? 0);
+
+			if ($entry_id < 1) {
+
+				return ["error" => "An entry_id is required."];
+			}
+
+			if (!PermissionService::userHasModuleAccess($user, (string)$module["id"], "e")) {
+
+				return ["denied" => "You do not have permission to change entries in this module."];
+			}
+
+			$item = BigTreeAutoModule::getItem($table, $entry_id);
+			$row = is_array($item) ? ($item["item"] ?? []) : [];
+
+			if (!$row) {
+
+				return ["error" => "Entry {$entry_id} does not exist in this module."];
+			}
+
+			return ["module" => $module, "table" => $table, "entry_id" => $entry_id, "row" => $row];
+		}
+
+		/**
+		 * A human label for an entry in a proposal — the first title-ish column that
+		 * has a value, falling back to the id. Approving "delete entry #418" without
+		 * knowing what #418 is would be approving blind.
+		 *
+		 * @param array<string,mixed> $row
+		 */
+		private function aiEntryLabel(array $row, int $entry_id): string {
+			foreach (["title", "name", "headline", "nav_title", "subject"] as $column) {
+				$value = trim((string)($row[$column] ?? ""));
+
+				if ($value !== "") {
+
+					return mb_strlen($value) > 100 ? mb_substr($value, 0, 99) . "…" : $value;
+				}
+			}
+
+			return "entry #{$entry_id}";
+		}
+
 		/**
 		 * Resolve a module id to its record, default form table, and the AI-settable
 		 * field schema. Returns ["error" => string] when the module or a usable form
@@ -1172,7 +1620,7 @@
 		 *
 		 * @return array<string,mixed>
 		 */
-		private function aiResolveModuleForm(string $module_id): array {
+		private function aiResolveModuleForm(string $module_id, string $form_id = ""): array {
 			if ($module_id === "") {
 
 				return ["error" => "A module_id is required."];
@@ -1189,8 +1637,48 @@
 				return ["error" => "Module \"{$module_id}\" does not exist."];
 			}
 
-			$forms = is_array($module["forms"] ?? null) ? $module["forms"] : [];
-			$form = $forms[0] ?? null;
+			$forms = array_values(is_array($module["forms"] ?? null) ? $module["forms"] : []);
+			$form_id = trim($form_id);
+
+			if ($form_id !== "") {
+				$form = null;
+
+				foreach ($forms as $candidate) {
+					if ((string)($candidate["id"] ?? "") === $form_id) {
+						$form = $candidate;
+
+						break;
+					}
+				}
+
+				if (!$form) {
+
+					return ["error" => "Form \"{$form_id}\" does not belong to this module. Available forms: "
+						. $this->aiDescribeForms($forms) . "."];
+				}
+			} else {
+				// This module has more than one form, each with its own table — picking
+				// the first would silently validate and write against the wrong one.
+				// Surface the choice instead (the tools turn this into needs_input).
+				if (count($forms) > 1) {
+
+					return [
+						"ambiguous_form" => true,
+						"module" => $module,
+						"forms" => array_map(function (array $f): array {
+
+							return [
+								"id" => (string)($f["id"] ?? ""),
+								"title" => (string)($f["title"] ?? $f["id"] ?? ""),
+								"table" => (string)($f["table"] ?? ""),
+							];
+						}, $forms),
+					];
+				}
+
+				$form = $forms[0] ?? null;
+			}
+
 			$table = (string)($form["table"] ?? $module["table"] ?? "");
 
 			if ($table === "") {
@@ -1201,8 +1689,140 @@
 			return [
 				"module" => $module,
 				"table" => $table,
+				"form" => $form,
 				"schema" => $this->aiEntrySchema($form),
+				"blocked_required" => $this->aiRequiredUnsettableFields($form),
 			];
+		}
+
+		/**
+		 * A one-line "id (Title)" list of a module's forms for an error message.
+		 *
+		 * @param list<array<string,mixed>> $forms
+		 */
+		private function aiDescribeForms(array $forms): string {
+			$parts = [];
+
+			foreach ($forms as $form) {
+				$id = (string)($form["id"] ?? "");
+				$title = (string)($form["title"] ?? "");
+				$parts[] = $title !== "" ? "{$id} ({$title})" : $id;
+			}
+
+			return $parts ? implode(", ", $parts) : "(none)";
+		}
+
+		/**
+		 * The full field list for a module's entry form — every field, with its type,
+		 * whether it's required, and whether the assistant can actually set it.
+		 *
+		 * Previously the settable-field list only ever appeared inside an error
+		 * string, so the model had to burn a failed call to discover the schema, and
+		 * fields it could never fill were invisible until a write was refused.
+		 *
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 */
+		public function aiModuleSchema(string $module_id, string $form_id, $user): array {
+			$resolved = $this->aiResolveModuleForm($module_id, $form_id);
+
+			if (isset($resolved["error"])) {
+
+				return $resolved;
+			}
+
+			if (!empty($resolved["ambiguous_form"])) {
+
+				return $resolved;
+			}
+
+			$module = $resolved["module"];
+
+			if (PermissionService::userModuleLevel($user, (string)$module["id"]) === "n") {
+
+				return ["denied" => "You do not have access to this module."];
+			}
+
+			$fields = [];
+
+			foreach ((array)($resolved["form"]["fields"] ?? []) as $field) {
+				$column = (string)($field["column"] ?? "");
+
+				if ($column === "") {
+					continue;
+				}
+
+				$type = (string)($field["type"] ?? "text");
+				$settings = is_array($field["settings"] ?? null) ? $field["settings"] : [];
+				$settable = in_array($type, self::AI_SIMPLE_FIELD_TYPES, true);
+				$derived = $type === "route" || $type === "geocoding";
+
+				$entry = [
+					"column" => $column,
+					"title" => (string)($field["title"] ?? $column),
+					"type" => $type,
+					"required" => !empty($settings["required"]),
+					"assistant_can_set" => $settable,
+				];
+
+				if (!$settable) {
+					$entry["reason"] = $derived
+						? "Generated automatically when the entry is saved."
+						: "This field type can't be authored by the assistant — it must be filled in the admin UI.";
+				}
+
+				$fields[] = $entry;
+			}
+
+			return ["schema" => [
+				"module_id" => (string)$module["id"],
+				"module_name" => (string)($module["name"] ?? $module["id"]),
+				"form_id" => (string)($resolved["form"]["id"] ?? ""),
+				"table" => $resolved["table"],
+				"fields" => $fields,
+				"blocked_required" => $resolved["blocked_required"],
+				"your_access_level" => PermissionService::userModuleLevel($user, (string)$module["id"]),
+			]];
+		}
+
+		/**
+		 * Required form fields whose type the assistant cannot author (uploads,
+		 * media, relationships, matrices, callouts…). aiEntrySchema drops these
+		 * before the required check runs, so without this scan an AI-created entry
+		 * passes validation while being exactly the record the admin UI's own
+		 * required check would refuse to save.
+		 *
+		 * Returned as "Title (column)" strings for a human-readable error.
+		 *
+		 * @param array<string,mixed>|null $form
+		 * @return list<string>
+		 */
+		private function aiRequiredUnsettableFields(?array $form): array {
+			$blocked = [];
+
+			foreach ((array)($form["fields"] ?? []) as $field) {
+				$column = (string)($field["column"] ?? "");
+				$type = (string)($field["type"] ?? "text");
+				$settings = is_array($field["settings"] ?? null) ? $field["settings"] : [];
+
+				if ($column === "" || empty($settings["required"])) {
+					continue;
+				}
+
+				if (in_array($type, self::AI_SIMPLE_FIELD_TYPES, true)) {
+					continue;
+				}
+
+				// Derived server-side by applyEntryProcessors — required or not, the
+				// model is not expected to supply them and they will be populated.
+				if ($type === "route" || $type === "geocoding") {
+					continue;
+				}
+
+				$blocked[] = (string)($field["title"] ?? $column) . " ({$column}, {$type})";
+			}
+
+			return $blocked;
 		}
 
 		/**

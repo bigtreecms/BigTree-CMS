@@ -46,6 +46,11 @@
 							"type" => "object",
 							"description" => "Changed field values keyed by column name (only the module form's simple fields).",
 						],
+						"form" => [
+							"type" => "string",
+							"description" => "Optional form id, for a module that has more than one entry form. "
+								. "If the module has several and you omit this, you'll be asked which to use.",
+						],
 					],
 					"required" => ["module_id", "entry_id"],
 				]

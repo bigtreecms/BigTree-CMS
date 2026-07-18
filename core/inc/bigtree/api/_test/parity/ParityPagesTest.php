@@ -411,20 +411,28 @@
 
 		try {
 			// Find a template with at least one required simple field to exercise the
-			// gate (the stock "content" template's page_header is required).
+			// gate (the stock "content" template's page_header is required). Collect
+			// *every* required id, not just the first — the gate reports all of them,
+			// so supplying one of several would never satisfy it.
 			$target = null;
-			$required_id = null;
+			$required_ids = [];
 
 			foreach (BigTreeJSONDB::getAll("templates", "position", "DESC") as $t) {
+				$found = [];
+
 				foreach (($t["resources"] ?? []) as $r) {
 					$rules = (string)(($r["settings"]["validation"] ?? ""));
 
 					if (strpos($rules, "required") !== false) {
-						$target = (string)$t["id"];
-						$required_id = (string)$r["id"];
-
-						break 2;
+						$found[] = (string)$r["id"];
 					}
+				}
+
+				if ($found) {
+					$target = (string)$t["id"];
+					$required_ids = $found;
+
+					break;
 				}
 			}
 
@@ -433,6 +441,9 @@
 
 				return;
 			}
+
+			$required_id = $required_ids[0];
+			$content = array_fill_keys($required_ids, "<p>Assistant-authored content</p>");
 
 			// No content → recoverable error, nothing staged.
 			$missing = $svc->aiValidatePageCreate([
@@ -450,7 +461,7 @@
 				"parent" => 0,
 				"nav_title" => "AI Needs Content Page",
 				"template" => $target,
-				"content" => [$required_id => "<p>Assistant-authored content</p>"],
+				"content" => $content,
 			], $user);
 
 			T::ok(!empty($ok["ok"]), "validates once required content is supplied");

@@ -1178,6 +1178,97 @@
 		// is re-checked at validation and approval.
 
 		/**
+		 * Read one module's definition and, importantly, what it's still missing.
+		 *
+		 * The assistant previously had no way to see a module's shape — it discovered
+		 * fields only by triggering an error, and had no way at all to tell that a
+		 * module it had just created was an unusable shell. This makes both visible.
+		 *
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 */
+		public function aiGetModule(string $module_id, $user): array {
+			if (trim($module_id) === "") {
+
+				return ["error" => "A module_id is required."];
+			}
+
+			$module = BigTreeJSONDB::get("modules", $module_id);
+
+			if (!$module) {
+				$module = BigTreeJSONDB::get("modules", $module_id, "route");
+			}
+
+			if (!$module) {
+
+				return ["error" => "Module \"{$module_id}\" does not exist."];
+			}
+
+			if (PermissionService::userModuleLevel($user, (string)$module["id"]) === "n") {
+
+				return ["denied" => "You do not have access to this module."];
+			}
+
+			$forms = is_array($module["forms"] ?? null) ? $module["forms"] : [];
+			$views = is_array($module["views"] ?? null) ? $module["views"] : [];
+			$actions = is_array($module["actions"] ?? null) ? $module["actions"] : [];
+			$table = (string)($module["table"] ?? "");
+
+			if ($table === "" && $forms) {
+				$table = (string)($forms[0]["table"] ?? "");
+			}
+
+			$missing = [];
+
+			if ($table === "") {
+				$missing[] = "a database table";
+			}
+
+			if (!$forms) {
+				$missing[] = "an entry form";
+			}
+
+			if (!$views) {
+				$missing[] = "a view (landing screen)";
+			}
+
+			if (!$actions) {
+				$missing[] = "at least one action";
+			}
+
+			return ["module" => [
+				"id" => (string)$module["id"],
+				"name" => (string)($module["name"] ?? $module["id"]),
+				"route" => (string)($module["route"] ?? ""),
+				"group" => $this->groupName($module),
+				"class" => (string)($module["class"] ?? ""),
+				"icon" => (string)($module["icon"] ?? ""),
+				"table" => $table,
+				"forms" => array_map(function (array $f): array {
+
+					return [
+						"id" => (string)($f["id"] ?? ""),
+						"title" => (string)($f["title"] ?? ""),
+						"table" => (string)($f["table"] ?? ""),
+						"field_count" => is_array($f["fields"] ?? null) ? count($f["fields"]) : 0,
+					];
+				}, array_values($forms)),
+				"views" => array_map(function (array $v): array {
+
+					return [
+						"id" => (string)($v["id"] ?? ""),
+						"title" => (string)($v["title"] ?? ""),
+						"table" => (string)($v["table"] ?? ""),
+					];
+				}, array_values($views)),
+				"action_count" => count($actions),
+				"your_access_level" => PermissionService::userModuleLevel($user, (string)$module["id"]),
+				"is_complete" => !$missing,
+				"missing_setup" => $missing,
+			]];
+		}
+
+		/**
 		 * @param array<string,mixed> $args
 		 * @param object|array $user
 		 * @return array<string,mixed>
@@ -1210,18 +1301,30 @@
 				return ["error" => "Module group \"{$group}\" does not exist."];
 			}
 
+			$class = trim((string)($args["class"] ?? ""));
+
+			// A typo'd class name used to be stored verbatim, leaving a module wired to
+			// a class that doesn't exist. The class is created by the Module Designer,
+			// not here, so the only valid values are "" or a class that already exists.
+			if ($class !== "" && !$this->moduleClassExists($class)) {
+
+				return ["error" => "There is no module class named \"{$class}\". Leave `class` empty — the Module "
+					. "Designer creates the class when you add a table and forms to the module."];
+			}
+
 			$payload = [
 				"name" => $name,
 				"route" => $route,
 				"group" => $group !== "" ? $group : null,
-				"class" => trim((string)($args["class"] ?? "")),
+				"class" => $class,
 				"icon" => trim((string)($args["icon"] ?? "")),
 			];
 
 			return [
 				"ok" => true,
-				"summary" => "Create a new module “{$name}” (route {$route}). No database table is created — "
-					. "add one in the Module Designer if the module stores its own entries.",
+				"summary" => "Create a new module “{$name}” (route {$route}). This creates the module record only — "
+					. "it will appear in the admin navigation but have no database table, forms, views or actions "
+					. "until they're added in the Module Designer.",
 				"preview" => [
 					"action" => "create_module",
 					"name" => $name,
@@ -1229,6 +1332,7 @@
 					"group" => $group,
 					"class" => $payload["class"],
 					"icon" => $payload["icon"],
+					"remaining_setup" => $this->aiModuleSetupSteps($name),
 				],
 				"payload" => $payload,
 			];
@@ -1266,7 +1370,45 @@
 				"id" => (string)$id,
 				"name" => $name,
 				"route" => $route,
+				"is_complete" => false,
+				"remaining_setup" => $this->aiModuleSetupSteps($name),
+				"note" => "“{$name}” now appears in the admin navigation but is not usable yet — it has no database "
+					. "table, so it has no landing view and entries can't be added to it (including by the "
+					. "assistant). Finish it in Developer → Modules → Module Designer.",
 			];
+		}
+
+		/**
+		 * The concrete setup a bare module record still needs before it works. The
+		 * proposal summary warned that no table is created, but nothing told the user
+		 * (or the model) what "finish it" actually means — so an approved create left
+		 * a module that looks finished in the nav and dead-ends everywhere else.
+		 *
+		 * @return list<string>
+		 */
+		private function aiModuleSetupSteps(string $name): array {
+
+			return [
+				"Create the database table that will hold “{$name}” entries (Module Designer → Table).",
+				"Add an entry form so editors can create and edit entries.",
+				"Add a view so the module has a landing screen listing its entries.",
+				"Add the module's actions (at minimum a default 'view' action) so it's reachable from the nav.",
+			];
+		}
+
+		/**
+		 * Whether a module class name resolves to something real — either a class
+		 * already claimed by an installed module, or a loadable PHP class.
+		 */
+		private function moduleClassExists(string $class): bool {
+			foreach (BigTreeJSONDB::getAll("modules") as $module) {
+				if ((string)($module["class"] ?? "") === $class) {
+
+					return true;
+				}
+			}
+
+			return class_exists($class);
 		}
 
 		private function moduleInsertMap(array $d, string $name, string $route): array {

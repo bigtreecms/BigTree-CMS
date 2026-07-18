@@ -51,7 +51,13 @@
 						],
 						"display_field" => [
 							"type" => "string",
-							"description" => "Optional field id used as the callout's display label.",
+							"description" => "Optional field id used as the callout's display label in the page editor. "
+								. "Must be one of the ids in `fields`; defaults to the first text field.",
+						],
+						"display_default" => [
+							"type" => "string",
+							"description" => "Optional label shown for a callout instance whose display_field is empty "
+								. "(e.g. \"Untitled callout\"). Without it such instances list as blank rows.",
 						],
 						"fields" => [
 							"type" => "array",

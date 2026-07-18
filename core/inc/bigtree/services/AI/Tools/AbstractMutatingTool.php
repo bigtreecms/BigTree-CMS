@@ -54,6 +54,25 @@
 				return AIToolResult::error((string)$validation["error"]);
 			}
 
+			// A module with more than one entry form has no safe default — each form
+			// writes to its own table, so guessing would validate against one and
+			// write to another. The backend hands back the choice; turn it into a
+			// question for the user rather than picking for them.
+			if (!empty($validation["ambiguous_form"])) {
+
+				return AIToolResult::needsInput(
+					"Which form should I use for this module?",
+					array_map(function (array $form): array {
+
+						return [
+							"id" => (string)$form["id"],
+							"label" => (string)($form["title"] !== "" ? $form["title"] : $form["id"]),
+							"description" => "Table: " . (string)$form["table"],
+						];
+					}, is_array($validation["forms"] ?? null) ? $validation["forms"] : [])
+				);
+			}
+
 			$conversation_id = (int)($context->conversation_id !== "" ? $context->conversation_id : 0);
 			$summary = (string)($validation["summary"] ?? "");
 			$preview = is_array($validation["preview"] ?? null) ? $validation["preview"] : [];

@@ -9,6 +9,7 @@
 	use BigTree\Api\ETag;
 	use BigTree\Api\Flag;
 	use BigTree\Api\Resources;
+	use BigTree\Api\TemplateScaffold;
 	use BigTree\Api\Exceptions\AuthorizationException;
 	use BigTree\Services\AI\Tools\TemplateToolBackend;
 	use BigTree;
@@ -66,7 +67,25 @@
 			BigTreeJSONDB::incrementPosition("templates");
 			BigTreeJSONDB::insert("templates", $insert);
 
-			return Response::created($this->present(BigTreeJSONDB::get("templates", $id)), null);
+			// Legacy's developer UI scaffolded the render file on create; without it a
+			// template can be assigned to pages that then render nothing. A write
+			// failure is surfaced on the response but never unwinds the record.
+			$scaffolded = "";
+
+			try {
+				$scaffolded = TemplateScaffold::template(
+					$id,
+					is_array($insert["resources"] ?? null) ? $insert["resources"] : [],
+					!empty($insert["routed"])
+				);
+			} catch (\Throwable $e) {
+				$scaffolded = "";
+			}
+
+			$body = $this->present(BigTreeJSONDB::get("templates", $id));
+			$body["scaffolded_file"] = $scaffolded;
+
+			return Response::created($body, null);
 		}
 
 		public function update(Request $request) {
@@ -186,7 +205,21 @@
 			$level = (int)($args["level"] ?? 0);
 			$routed = !empty($args["routed"]);
 			$fields = $this->aiCleanResourceFields($args["fields"] ?? []);
+			$type_error = $this->aiInvalidFieldTypeError($fields);
 
+			if ($type_error !== null) {
+
+				return ["error" => $type_error];
+			}
+
+			// Fail here rather than half-way through an approved write.
+			if (!TemplateScaffold::templateIsWritable($id, $routed)) {
+
+				return ["error" => "The templates/" . ($routed ? "routed" : "basic") . "/ directory is not writable, "
+					. "so the template's render file can't be created. Fix the directory permissions and try again."];
+			}
+
+			$stub = "templates/" . ($routed ? "routed" : "basic") . "/{$id}.php";
 			$payload = [
 				"id" => $id,
 				"name" => $name,
@@ -197,7 +230,8 @@
 
 			return [
 				"ok" => true,
-				"summary" => "Create a new page template “{$name}” (id {$id}) with " . count($fields) . " field(s).",
+				"summary" => "Create a new page template “{$name}” (id {$id}) with " . count($fields) . " field(s). "
+					. "A starter render file will be created at {$stub}.",
 				"preview" => [
 					"action" => "create_template",
 					"id" => $id,
@@ -205,6 +239,7 @@
 					"level" => $level,
 					"routed" => $routed,
 					"fields" => $this->aiPreviewFields($fields),
+					"creates_file" => $stub,
 				],
 				"payload" => $payload,
 			];
@@ -241,10 +276,27 @@
 			BigTreeJSONDB::incrementPosition("templates");
 			BigTreeJSONDB::insert("templates", $insert);
 
+			$scaffolded = "";
+			$scaffold_error = "";
+
+			try {
+				$scaffolded = TemplateScaffold::template($id, $insert["resources"], !empty($payload["routed"]));
+			} catch (\Throwable $e) {
+				$scaffold_error = $e->getMessage();
+			}
+
 			return [
 				"mode" => "created",
 				"id" => $id,
 				"name" => (string)($payload["name"] ?? $id),
+				"file" => $scaffolded,
+				"note" => $scaffolded !== ""
+					? "A starter render file was created at {$scaffolded} — edit it to control how pages using this "
+						. "template look."
+					: ($scaffold_error !== ""
+						? "The template record was created, but its render file could not be written ({$scaffold_error}). "
+							. "Pages using this template will render nothing until the file exists."
+						: "A render file already existed for this template and was left untouched."),
 			];
 		}
 
@@ -290,6 +342,13 @@
 
 			if (array_key_exists("fields", $args)) {
 				$fields = $this->aiCleanResourceFields($args["fields"]);
+				$type_error = $this->aiInvalidFieldTypeError($fields);
+
+				if ($type_error !== null) {
+
+					return ["error" => $type_error];
+				}
+
 				$changes["resources"] = $fields;
 				$diff["fields"] = [
 					"from" => count(is_array($existing["resources"] ?? null) ? $existing["resources"] : []),
@@ -388,6 +447,48 @@
 			}
 
 			return Resources::clean($rows);
+		}
+
+		/**
+		 * Reject any field whose `type` isn't an installed template field type.
+		 * Nothing checked this before, so a model-invented type ("richtext",
+		 * "wysiwyg") was stored verbatim and rendered as a broken field in the page
+		 * editor — with no error anywhere to explain why.
+		 *
+		 * Returns null when every type is valid, else a recoverable error listing the
+		 * offenders and the types actually available.
+		 *
+		 * @param list<array<string,mixed>> $fields
+		 */
+		private function aiInvalidFieldTypeError(array $fields): ?string {
+			$valid = FieldTypeService::availableFieldTypeIds("templates");
+
+			// An empty catalog means the field-type registry couldn't be resolved —
+			// don't turn that into a refusal of every field.
+			if (!$valid) {
+
+				return null;
+			}
+
+			$bad = [];
+
+			foreach ($fields as $field) {
+				$type = (string)($field["type"] ?? "");
+
+				if ($type !== "" && !in_array($type, $valid, true)) {
+					$bad[] = "\"{$type}\" (field " . (string)($field["id"] ?? "?") . ")";
+				}
+			}
+
+			if (!$bad) {
+
+				return null;
+			}
+
+			sort($valid);
+
+			return "Unknown field type(s): " . implode(", ", array_unique($bad))
+				. ". Available template field types: " . implode(", ", $valid) . ".";
 		}
 
 		/**

@@ -19,9 +19,16 @@
 	use BigTree\Services\AI\Tools\GetMyCapabilitiesTool;
 	use BigTree\Services\AI\Tools\GetPageTreeTool;
 	use BigTree\Services\AI\Tools\UpdatePageTool;
+	use BigTree\Services\AI\Tools\UpdatePageContentTool;
 	use BigTree\Services\AI\Tools\ArchivePageTool;
+	use BigTree\Services\AI\Tools\UnarchivePageTool;
+	use BigTree\Services\AI\Tools\MovePageTool;
+	use BigTree\Services\AI\Tools\SetModuleEntryFlagTool;
+	use BigTree\Services\AI\Tools\DeleteModuleEntryTool;
 	use BigTree\Services\AI\Tools\ListTemplatesTool;
 	use BigTree\Services\AI\Tools\GetTemplateTool;
+	use BigTree\Services\AI\Tools\GetModuleTool;
+	use BigTree\Services\AI\Tools\GetModuleSchemaTool;
 	use BigTree\Services\AI\Tools\CreateTemplateTool;
 	use BigTree\Services\AI\Tools\UpdateTemplateTool;
 	use BigTree\Services\AI\Tools\ListResourcesTool;
@@ -29,10 +36,13 @@
 	use BigTree\Services\AI\Tools\GetSettingsTool;
 	use BigTree\Services\AI\Tools\UpdateSettingTool;
 	use BigTree\Services\AI\Tools\GetPendingChangesTool;
+	use BigTree\Services\AI\Tools\GetPendingChangeTool;
 	use BigTree\Services\AI\Tools\PublishPendingChangeTool;
 	use BigTree\Services\AI\Tools\CreateModuleEntryTool;
 	use BigTree\Services\AI\Tools\UpdateModuleEntryTool;
 	use BigTree\Services\AI\Tools\AddTagsTool;
+	use BigTree\Services\AI\Tools\RemoveTagsTool;
+	use BigTree\Services\AI\Tools\RejectPendingChangeTool;
 	use BigTree\Services\AI\Tools\CreateUserTool;
 	use BigTree\Services\AI\Tools\UpdateUserTool;
 	use BigTree\Services\AI\Tools\CreateCalloutTool;
@@ -451,15 +461,25 @@
 			$registry->register(new SearchFilesTool($resources));
 			$registry->register(new GetSettingsTool($settings));
 			$registry->register(new GetPendingChangesTool($pending));
+			$registry->register(new GetModuleTool($modules));
+			$registry->register(new GetModuleSchemaTool($entries));
+			$registry->register(new GetPendingChangeTool($pending));
 
 			// Two-phase mutating tools.
 			$registry->register(new CreatePageTool($pages, $store));
 			$registry->register(new UpdatePageTool($pages, $store));
+			$registry->register(new UpdatePageContentTool($pages, $store));
 			$registry->register(new ArchivePageTool($pages, $store));
+			$registry->register(new UnarchivePageTool($pages, $store));
+			$registry->register(new MovePageTool($pages, $store));
 			$registry->register(new CreateModuleEntryTool($entries, $store));
 			$registry->register(new UpdateModuleEntryTool($entries, $store));
+			$registry->register(new SetModuleEntryFlagTool($entries, $store));
+			$registry->register(new DeleteModuleEntryTool($entries, $store));
 			$registry->register(new PublishPendingChangeTool($pending, $store));
+			$registry->register(new RejectPendingChangeTool($pending, $store));
 			$registry->register(new AddTagsTool($tags, $store));
+			$registry->register(new RemoveTagsTool($tags, $store));
 			$registry->register(new UpdateSettingTool($settings, $store));
 			$registry->register(new CreateUserTool($users, $store));
 			$registry->register(new UpdateUserTool($users, $store));
@@ -670,8 +690,17 @@
 				case "update_page":
 					return (new PageService())->aiUpdatePage($payload, $user);
 
+				case "update_page_content":
+					return (new PageService())->aiUpdatePageContent($payload, $user);
+
 				case "archive_page":
 					return (new PageService())->aiArchivePage($payload, $user);
+
+				case "unarchive_page":
+					return (new PageService())->aiUnarchivePage($payload, $user);
+
+				case "move_page":
+					return (new PageService())->aiMovePage($payload, $user);
 
 				case "create_module_entry":
 					return (new AutoModuleService())->aiCreateEntry($payload, $user);
@@ -679,11 +708,23 @@
 				case "update_module_entry":
 					return (new AutoModuleService())->aiUpdateEntry($payload, $user);
 
+				case "set_module_entry_flag":
+					return (new AutoModuleService())->aiSetEntryFlag($payload, $user);
+
+				case "delete_module_entry":
+					return (new AutoModuleService())->aiDeleteEntry($payload, $user);
+
 				case "publish_pending_change":
 					return (new PendingChangeService())->aiPublishChange($payload, $user);
 
+				case "reject_pending_change":
+					return (new PendingChangeService())->aiRejectChange($payload, $user);
+
 				case "add_tags":
 					return (new TagService())->aiAddTags($payload, $user);
+
+				case "remove_tags":
+					return (new TagService())->aiRemoveTags($payload, $user);
 
 				case "update_setting":
 					return (new SettingService())->aiUpdateSetting($payload, $user);

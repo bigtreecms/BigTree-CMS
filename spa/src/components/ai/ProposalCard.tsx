@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { Check, CircleCheck, CircleSlash, Clock, FilePlus2, X } from "lucide-react";
+import { Check, CircleCheck, CircleSlash, Clock, FilePlus2, TriangleAlert, X } from "lucide-react";
 
 import type { ChatProposal } from "@/api/endpoints/ai";
 import { pageEditPath } from "@/lib/routes";
@@ -53,6 +53,17 @@ const HIDDEN_KEYS = new Set([
 	"entry_id",
 	"change_id",
 	"user_id",
+	// Rendered as their own affordances (a warning banner) or already implied by
+	// the summary, rather than as anonymous "Key: true" rows.
+	"destructive",
+	"target",
+	"target_title",
+	"module_id",
+	"mine",
+	"is_new_item",
+	"template_changed",
+	"sends_invite_email",
+	"note",
 ]);
 
 const humanize = (key: string): string =>
@@ -171,8 +182,18 @@ const outcomeText = (result: Record<string, unknown> | null): string => {
 			return "Queued as a pending change for a publisher to review.";
 		case "archived":
 			return "Page archived.";
+		case "unarchived":
+			return "Page restored.";
+		case "moved":
+			return result.path ? `Moved to ${String(result.path)}.` : "Page moved.";
+		case "deleted":
+			return "Deleted.";
+		case "rejected":
+			return "Pending change rejected.";
 		case "tagged":
 			return "Tags added.";
+		case "untagged":
+			return "Tags removed.";
 		case "created":
 			return "Created.";
 		case "updated":
@@ -198,6 +219,13 @@ export const ProposalCard = ({
 
 	const rows = previewRows(proposal.preview);
 
+	// Deletions and rejections flag themselves; the required-field list names what
+	// the assistant could not fill. Both are warnings, not table rows.
+	const isDestructive = proposal.preview.destructive === true;
+	const incompleteRequired = Array.isArray(proposal.preview.incomplete_required)
+		? (proposal.preview.incomplete_required as unknown[]).map(String)
+		: [];
+
 	// Deep link to a page the approval touched (created or edited), when we have its id.
 	const pageId =
 		proposal.status === "approved" && typeof proposal.result?.page_id === "number"
@@ -217,6 +245,22 @@ export const ProposalCard = ({
 
 			<div className="px-3 py-2.5">
 				<p className="text-[12.5px] leading-relaxed text-text-2">{proposal.summary}</p>
+
+				{isDestructive && (
+					<p className="mt-2 flex items-start gap-1.5 text-[11.5px] text-warn">
+						<TriangleAlert className="mt-px shrink-0" size={13} />
+						<span>This permanently deletes content and cannot be undone.</span>
+					</p>
+				)}
+
+				{incompleteRequired.length > 0 && (
+					<p className="mt-2 flex items-start gap-1.5 text-[11.5px] text-warn">
+						<TriangleAlert className="mt-px shrink-0" size={13} />
+						<span>
+							Needs a person to fill in afterwards: {incompleteRequired.join(", ")}
+						</span>
+					</p>
+				)}
 
 				{rows.length > 0 && (
 					<dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1">

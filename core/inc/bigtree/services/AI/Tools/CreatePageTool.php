@@ -70,6 +70,28 @@
 							"type" => "boolean",
 							"description" => "Whether the page appears in navigation (default true).",
 						],
+						"meta_description" => [
+							"type" => "string",
+							"description" => "Optional SEO meta description.",
+						],
+						"meta_keywords" => [
+							"type" => "string",
+							"description" => "Optional SEO meta keywords.",
+						],
+						"seo_invisible" => [
+							"type" => "boolean",
+							"description" => "Whether to hide the page from search engines (default false).",
+						],
+						"publish_at" => [
+							"type" => "string",
+							"description" => "Optional date/time the page starts being visible, e.g. \"2026-08-01\" "
+								. "or \"2026-08-01 09:00:00\". Omit for immediately.",
+						],
+						"expire_at" => [
+							"type" => "string",
+							"description" => "Optional date/time the page stops being visible. Must be after "
+								. "publish_at. Omit for never.",
+						],
 					],
 					"required" => ["nav_title"],
 				]

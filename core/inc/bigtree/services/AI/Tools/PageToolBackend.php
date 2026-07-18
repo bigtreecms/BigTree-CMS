@@ -82,6 +82,27 @@
 		public function aiUpdatePage(array $payload, $user): array;
 
 		/**
+		 * Validate an edit to a page's template content (resources), optionally
+		 * switching template in the same proposal. Returns denied | error |
+		 * ok+summary+preview+payload.
+		 *
+		 * @param array<string,mixed> $args
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 */
+		public function aiValidatePageContentUpdate(array $args, $user): array;
+
+		/**
+		 * Apply an approved page-content edit. Re-checks edit access.
+		 *
+		 * @param array<string,mixed> $payload
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 * @throws \BigTree\Api\Exceptions\AuthorizationException
+		 */
+		public function aiUpdatePageContent(array $payload, $user): array;
+
+		/**
 		 * Validate a proposed page archive without writing anything: existence and
 		 * publisher access (archiving is a publish-level action). Same return shape.
 		 *
@@ -101,4 +122,45 @@
 		 * @throws \BigTree\Api\Exceptions\AuthorizationException when permission no longer holds.
 		 */
 		public function aiArchivePage(array $payload, $user): array;
+
+		/**
+		 * Validate restoring an archived page — the inverse of archive. Returns
+		 * denied | error | ok+summary+preview+payload.
+		 *
+		 * @param array<string,mixed> $args
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 */
+		public function aiValidatePageUnarchive(array $args, $user): array;
+
+		/**
+		 * Apply an approved unarchive. Re-checks publisher access.
+		 *
+		 * @param array<string,mixed> $payload
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 * @throws \BigTree\Api\Exceptions\AuthorizationException
+		 */
+		public function aiUnarchivePage(array $payload, $user): array;
+
+		/**
+		 * Validate moving a page to a new parent. Returns denied | error |
+		 * ok+summary+preview+payload.
+		 *
+		 * @param array<string,mixed> $args
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 */
+		public function aiValidatePageMove(array $args, $user): array;
+
+		/**
+		 * Apply an approved move, rewriting the moved subtree's paths. Re-checks
+		 * publisher access on the page and edit access at the destination.
+		 *
+		 * @param array<string,mixed> $payload
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 * @throws \BigTree\Api\Exceptions\AuthorizationException
+		 */
+		public function aiMovePage(array $payload, $user): array;
 	}

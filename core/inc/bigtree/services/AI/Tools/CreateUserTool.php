@@ -29,7 +29,9 @@
 			return $this->functionDefinition(
 				$this->name(),
 				"Propose creating a new editor account (administrators). Requires approval. The account is "
-					. "created as an editor with no elevated permissions and needs a password set separately.",
+					. "created as an editor (level 0) with no elevated permissions and no password — on approval an "
+					. "email invite is sent to the address so they can set one. Notification preferences (daily "
+					. "digest, alerts) are always left off and cannot be set here.",
 				[
 					"type" => "object",
 					"properties" => [

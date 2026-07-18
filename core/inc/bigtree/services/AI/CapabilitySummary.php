@@ -58,7 +58,12 @@
 				"is_administrator" => $level >= 1,
 				"is_developer" => $level >= 2,
 				"can_manage_users" => $level >= 1,
+				// Tagging is split: attaching a tag that already exists is something
+				// any editor can do (matching the page editor), while coining a new
+				// one grows the site's shared vocabulary and stays administrator-only.
 				"can_manage_tags" => $level >= 1,
+				"can_create_tags" => $level >= 1,
+				"can_attach_tags" => true,
 				"can_manage_settings" => $level >= 1,
 				"can_manage_templates" => $level >= 2,
 				"can_manage_modules" => $level >= 2,
@@ -81,7 +86,7 @@
 			} elseif ($caps["is_administrator"]) {
 				$lines[] = "They may manage settings, tags, and users, and content they have page/module permission for. They CANNOT create or edit templates, modules, or callouts — that requires a developer.";
 			} else {
-				$lines[] = "They are a content editor. They may work with pages and module entries they have permission for. They CANNOT manage users, tags, settings, templates, modules, or callouts.";
+				$lines[] = "They are a content editor. They may work with pages and module entries they have permission for, including adding and removing tags that already exist. They CANNOT create new tags, or manage users, settings, templates, modules, or callouts.";
 			}
 
 			$lines[] = "Never claim to have done something the user lacks permission for. If an action needs a higher role, say so plainly and offer an alternative (e.g. saving a draft/pending change, or asking an administrator).";

@@ -27,14 +27,21 @@
 	use BigTree\Services\AI\Tools\GetSettingsTool;
 	use BigTree\Services\AI\Tools\UpdateSettingTool;
 	use BigTree\Services\AI\Tools\GetPendingChangesTool;
+	use BigTree\Services\AI\Tools\GetPendingChangeTool;
 	use BigTree\Services\AI\Tools\PublishPendingChangeTool;
 	use BigTree\Services\AI\Tools\CreateModuleEntryTool;
 	use BigTree\Services\AI\Tools\UpdateModuleEntryTool;
+	use BigTree\Services\AI\Tools\DeleteModuleEntryTool;
+	use BigTree\Services\AI\Tools\SetModuleEntryFlagTool;
 	use BigTree\Services\AI\Tools\AddTagsTool;
+	use BigTree\Services\AI\Tools\RemoveTagsTool;
+	use BigTree\Services\AI\Tools\RejectPendingChangeTool;
 	use BigTree\Services\AI\Tools\CreateUserTool;
 	use BigTree\Services\AI\Tools\UpdateUserTool;
 	use BigTree\Services\AI\Tools\CreateCalloutTool;
 	use BigTree\Services\AI\Tools\CreateModuleTool;
+	use BigTree\Services\AI\Tools\GetModuleTool;
+	use BigTree\Services\AI\Tools\GetModuleSchemaTool;
 	use BigTree\Services\AI\Tools\TemplateToolBackend;
 	use BigTree\Services\AI\Tools\ResourceToolBackend;
 	use BigTree\Services\AI\Tools\SettingToolBackend;
@@ -108,9 +115,18 @@
 			/** @var array<string,mixed> */
 			public $changes = ["pending_changes" => [["id" => 3, "mine" => true, "can_publish" => false]]];
 
+			/** @var array<string,mixed> */
+			public $one_change = ["pending_change" => [
+				"id" => 3, "title" => "Draft", "mine" => true, "can_publish" => false, "is_new_item" => false,
+				"changes" => [["column" => "title", "from" => "Old", "to" => "New"]],
+			]];
+
 			public function aiPendingChanges(int $limit, $user): array { return $this->changes; }
+			public function aiGetPendingChange(int $id, $user): array { return $this->one_change; }
 			public function aiValidatePublishChange(array $args, $user): array { return $this->validation; }
 			public function aiPublishChange(array $payload, $user): array { $this->executed = $payload; return ["mode" => "published"]; }
+			public function aiValidateRejectChange(array $args, $user): array { return $this->validation; }
+			public function aiRejectChange(array $payload, $user): array { $this->executed = $payload; return ["mode" => "rejected"]; }
 		}
 	}
 
@@ -118,10 +134,21 @@
 		class FakeModuleEntryBackend implements ModuleEntryToolBackend {
 			use AiValidatable;
 
+			/** @var array<string,mixed> */
+			public $schema = ["schema" => ["module_id" => "m", "fields" => [
+				["column" => "title", "type" => "text", "required" => true, "assistant_can_set" => true],
+				["column" => "hero", "type" => "upload", "required" => true, "assistant_can_set" => false],
+			]]];
+
+			public function aiModuleSchema(string $module_id, string $form_id, $user): array { return $this->schema; }
 			public function aiValidateEntryCreate(array $args, $user): array { return $this->validation; }
 			public function aiCreateEntry(array $payload, $user): array { $this->executed = $payload; return ["mode" => "published"]; }
 			public function aiValidateEntryUpdate(array $args, $user): array { return $this->validation; }
 			public function aiUpdateEntry(array $payload, $user): array { $this->executed = $payload; return ["mode" => "pending"]; }
+			public function aiValidateEntryFlag(array $args, $user): array { return $this->validation; }
+			public function aiSetEntryFlag(array $payload, $user): array { $this->executed = $payload; return ["mode" => "updated"]; }
+			public function aiValidateEntryDelete(array $args, $user): array { return $this->validation; }
+			public function aiDeleteEntry(array $payload, $user): array { $this->executed = $payload; return ["mode" => "deleted"]; }
 		}
 	}
 
@@ -131,6 +158,8 @@
 
 			public function aiValidateAddTags(array $args, $user): array { return $this->validation; }
 			public function aiAddTags(array $payload, $user): array { $this->executed = $payload; return ["mode" => "tagged"]; }
+			public function aiValidateRemoveTags(array $args, $user): array { return $this->validation; }
+			public function aiRemoveTags(array $payload, $user): array { $this->executed = $payload; return ["mode" => "untagged"]; }
 		}
 	}
 
@@ -161,6 +190,10 @@
 		class FakeModuleBackend implements ModuleToolBackend {
 			use AiValidatable;
 
+			/** @var array<string,mixed> */
+			public $module = ["module" => ["id" => "modules-fake", "name" => "Fake", "is_complete" => false, "missing_setup" => ["a database table"]]];
+
+			public function aiGetModule(string $module_id, $user): array { return $this->module; }
 			public function aiValidateModuleCreate(array $args, $user): array { return $this->validation; }
 			public function aiCreateModule(array $payload, $user): array { $this->executed = $payload; return ["mode" => "created"]; }
 		}
@@ -298,10 +331,9 @@
 	function test_admin_mutating_tools_gate_by_level() {
 		$store = new FakeProposalStore();
 		$setting = new UpdateSettingTool(new FakeSettingBackend(), $store);
-		$tag = new AddTagsTool(new FakeTagBackend(), $store);
 		$create_user = new CreateUserTool(new FakeUserBackend(), $store);
 
-		foreach ([$setting, $tag, $create_user] as $tool) {
+		foreach ([$setting, $create_user] as $tool) {
 			T::ok(!$tool->isAvailable(ai_fake_user(0)), $tool->name() . " hidden from editors");
 			T::ok($tool->isAvailable(ai_fake_user(1)), $tool->name() . " offered to admins");
 		}
@@ -312,13 +344,61 @@
 		T::equals(count($store->created), 0, "nothing staged for a denied editor");
 	}
 
+	function test_tagging_tools_are_offered_to_editors() {
+		$store = new FakeProposalStore();
+
+		// Tagging is deliberately NOT admin-gated at the tool level: attaching an
+		// existing tag is something the page editor already lets any editor do. The
+		// admin-only half — coining a brand-new tag — is enforced in the backend,
+		// where it can tell the two cases apart.
+		foreach ([new AddTagsTool(new FakeTagBackend(), $store), new RemoveTagsTool(new FakeTagBackend(), $store)] as $tool) {
+			T::ok($tool->isAvailable(ai_fake_user(0)), $tool->name() . " offered to editors");
+			T::ok($tool->isAvailable(ai_fake_user(1)), $tool->name() . " offered to admins");
+		}
+	}
+
+	function test_tagging_tools_accept_pages_and_module_entries() {
+		$store = new FakeProposalStore();
+		$add = new AddTagsTool(new FakeTagBackend(), $store);
+		$remove = new RemoveTagsTool(new FakeTagBackend(), $store);
+		$context = new AIToolContext(ai_fake_user(0), 8, "1");
+
+		$page = $add->execute(["page_id" => 3, "tags" => ["news"]], $context);
+		T::equals($page->type, AIToolResult::PROPOSAL, "add_tags stages for a page");
+
+		$entry = $add->execute(["module_id" => "news", "entry_id" => 7, "tags" => ["news"]], $context);
+		T::equals($entry->type, AIToolResult::PROPOSAL, "add_tags stages for a module entry");
+
+		$off = $remove->execute(["page_id" => 3, "tags" => ["news"]], $context);
+		T::equals($off->type, AIToolResult::PROPOSAL, "remove_tags stages");
+
+		// Neither target identified — a recoverable error, not a silent no-op.
+		$neither = $add->execute(["tags" => ["news"]], $context);
+		T::equals($neither->type, AIToolResult::ERROR, "add_tags with no target errors");
+		T::equals(
+			$remove->execute(["tags" => ["news"]], $context)->type,
+			AIToolResult::ERROR,
+			"remove_tags with no target errors"
+		);
+	}
+
+	function test_reject_pending_change_tool() {
+		$store = new FakeProposalStore();
+		$tool = new RejectPendingChangeTool(new FakePendingBackend(), $store);
+
+		// The decline half of the review flow — offered to editors because the backend
+		// also allows a change's own author to withdraw it.
+		T::ok($tool->isAvailable(ai_fake_user(0)), "reject_pending_change offered to editors");
+
+		$staged = $tool->execute(["change_id" => 3], new AIToolContext(ai_fake_user(0), 8, "1"));
+		T::equals($staged->type, AIToolResult::PROPOSAL, "reject_pending_change stages");
+
+		$missing = $tool->execute([], new AIToolContext(ai_fake_user(0), 8, "1"));
+		T::equals($missing->type, AIToolResult::ERROR, "a missing change_id is a recoverable error");
+	}
+
 	function test_admin_mutating_tools_stage_for_admin() {
 		$store = new FakeProposalStore();
-		$tag_backend = new FakeTagBackend();
-		$staged = (new AddTagsTool($tag_backend, $store))
-			->execute(["page_id" => 3, "tags" => ["news"]], new AIToolContext(ai_fake_user(1), 8, "1"));
-		T::equals($staged->type, AIToolResult::PROPOSAL, "admin add_tags stages");
-
 		$user_backend = new FakeUserBackend();
 		$user = (new UpdateUserTool($user_backend, $store))
 			->execute(["user_id" => 9, "name" => "Ada"], new AIToolContext(ai_fake_user(1), 8, "1"));
@@ -364,6 +444,107 @@
 		$mod = (new CreateModuleTool(new FakeModuleBackend(), $store))
 			->execute(["name" => "Press"], new AIToolContext(ai_fake_user(2), 8, "1"));
 		T::equals($mod->type, AIToolResult::PROPOSAL, "create_module stages for a developer");
+	}
+
+	function test_get_module_tool_surfaces_incomplete_setup() {
+		$backend = new FakeModuleBackend();
+		$tool = new GetModuleTool($backend);
+
+		T::equals($tool->kind(), "read", "get_module is a read tool");
+		T::ok($tool->isAvailable(ai_fake_user(0)), "offered to editors — access is re-checked per module");
+
+		$missing = $tool->execute(["module_id" => "modules-fake"], new AIToolContext(ai_fake_user(2), 8));
+		T::equals($missing->type, AIToolResult::OK, "returns the module");
+		T::ok(!$missing->data["module"]["is_complete"], "a shell module reports itself incomplete");
+		T::ok(!empty($missing->data["module"]["missing_setup"]), "and enumerates what it still needs");
+
+		$blank = $tool->execute(["module_id" => "  "], new AIToolContext(ai_fake_user(2), 8));
+		T::equals($blank->type, AIToolResult::ERROR, "a blank module_id is a recoverable error");
+
+		$backend->module = ["denied" => "You do not have access to this module."];
+		$denied = $tool->execute(["module_id" => "modules-fake"], new AIToolContext(ai_fake_user(0), 8));
+		T::equals($denied->type, AIToolResult::DENIED, "a backend denial surfaces as denied, not error");
+	}
+
+	function test_get_pending_change_tool_returns_a_diff() {
+		$backend = new FakePendingBackend();
+		$tool = new GetPendingChangeTool($backend);
+
+		T::equals($tool->kind(), "read", "get_pending_change is a read tool");
+
+		$result = $tool->execute(["change_id" => 3], new AIToolContext(ai_fake_user(0), 8));
+		T::equals($result->type, AIToolResult::OK, "returns the change");
+		T::ok(!empty($result->data["pending_change"]["changes"]), "carries the field-level diff");
+		T::equals(
+			$result->data["pending_change"]["changes"][0]["from"],
+			"Old",
+			"the diff shows the value being replaced"
+		);
+
+		$missing = $tool->execute([], new AIToolContext(ai_fake_user(0), 8));
+		T::equals($missing->type, AIToolResult::ERROR, "a missing change_id is a recoverable error");
+
+		$backend->one_change = ["denied" => "not yours"];
+		$denied = $tool->execute(["change_id" => 9], new AIToolContext(ai_fake_user(0), 8));
+		T::equals($denied->type, AIToolResult::DENIED, "someone else's change is denied, not errored");
+	}
+
+	function test_get_module_schema_tool_flags_unsettable_fields() {
+		$backend = new FakeModuleEntryBackend();
+		$tool = new GetModuleSchemaTool($backend);
+
+		T::equals($tool->kind(), "read", "get_module_schema is a read tool");
+
+		$result = $tool->execute(["module_id" => "news"], new AIToolContext(ai_fake_user(0), 8));
+		T::equals($result->type, AIToolResult::OK, "returns the schema");
+
+		$fields = $result->data["schema"]["fields"];
+		T::ok($fields[0]["assistant_can_set"], "a simple field is marked settable");
+		T::ok(!$fields[1]["assistant_can_set"], "a complex field is marked unsettable");
+		T::ok($fields[1]["required"], "and its requiredness is still visible");
+
+		$blank = $tool->execute(["module_id" => "  "], new AIToolContext(ai_fake_user(0), 8));
+		T::equals($blank->type, AIToolResult::ERROR, "a blank module_id is a recoverable error");
+
+		// A module with several forms asks which to use rather than guessing.
+		$backend->schema = ["ambiguous_form" => true, "forms" => [
+			["id" => "form-a", "title" => "Article", "table" => "t_articles"],
+			["id" => "form-b", "title" => "Press", "table" => "t_press"],
+		]];
+		$ambiguous = $tool->execute(["module_id" => "news"], new AIToolContext(ai_fake_user(0), 8));
+		T::equals($ambiguous->type, AIToolResult::NEEDS_INPUT, "several forms → asks which");
+		T::equals(count($ambiguous->options), 2, "offers both forms");
+		T::equals($ambiguous->options[0]["id"], "form-a", "options carry the form id");
+	}
+
+	function test_entry_tools_ask_which_form_on_a_multi_form_module() {
+		$store = new FakeProposalStore();
+		$backend = new FakeModuleEntryBackend();
+
+		// The backend reports the ambiguity; every entry-mutating tool must turn it
+		// into a question instead of silently writing against the wrong table.
+		$backend->validation = ["ambiguous_form" => true, "forms" => [
+			["id" => "form-a", "title" => "Article", "table" => "t_articles"],
+			["id" => "form-b", "title" => "", "table" => "t_press"],
+		]];
+
+		$create = (new CreateModuleEntryTool($backend, $store))
+			->execute(["module_id" => "news", "data" => ["title" => "x"]], new AIToolContext(ai_fake_user(2), 8, "1"));
+		T::equals($create->type, AIToolResult::NEEDS_INPUT, "create_module_entry asks which form");
+		T::equals(count($store->created), 0, "nothing staged while the form is unresolved");
+		T::equals($create->options[1]["label"], "form-b", "a title-less form falls back to its id as the label");
+
+		$update = (new UpdateModuleEntryTool($backend, $store))
+			->execute(["module_id" => "news", "entry_id" => 4, "data" => ["title" => "x"]], new AIToolContext(ai_fake_user(2), 8, "1"));
+		T::equals($update->type, AIToolResult::NEEDS_INPUT, "update_module_entry asks which form");
+
+		$flag = (new SetModuleEntryFlagTool($backend, $store))
+			->execute(["module_id" => "news", "entry_id" => 4, "flag" => "archived", "value" => true], new AIToolContext(ai_fake_user(2), 8, "1"));
+		T::equals($flag->type, AIToolResult::NEEDS_INPUT, "set_module_entry_flag asks which form");
+
+		$delete = (new DeleteModuleEntryTool($backend, $store))
+			->execute(["module_id" => "news", "entry_id" => 4], new AIToolContext(ai_fake_user(2), 8, "1"));
+		T::equals($delete->type, AIToolResult::NEEDS_INPUT, "delete_module_entry asks which form");
 	}
 
 	// — Registry filtering across the catalog —

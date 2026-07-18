@@ -382,17 +382,43 @@
 					. $this->aiDescribeResourceSchema($schema)];
 			}
 
+			$can_publish = PermissionService::isPublisher($user, $rank);
+			$blocked = $this->aiRequiredUnsettableResources($template);
+
+			// This template requires content the assistant can't author. A publisher's
+			// approval would put a visibly broken page straight onto the live site, so
+			// refuse; a non-publisher's write only ever lands in the pending queue,
+			// where a human completes it before it goes live — allow that, but say
+			// plainly what will still be missing.
+			if ($blocked && $can_publish) {
+
+				return ["error" => "The “{$template}” template requires content the assistant can't provide: "
+					. implode(", ", $blocked) . ". Create this page in the admin UI instead."];
+			}
+
 			$title = trim((string)($args["title"] ?? "")) ?: $nav_title;
 			$route = $this->uniqueRoute($parent, BigTreeCMS::urlify($nav_title));
 			$parent_path = $parent ? (string)SQL::fetchSingle("SELECT path FROM bigtree_pages WHERE id = ?", $parent) : "";
 			$path = ($parent_path ? $parent_path . "/" : "") . $route;
 
-			$can_publish = PermissionService::isPublisher($user, $rank);
 			$parent_title = $parent
 				? (trim((string)SQL::fetchSingle("SELECT nav_title FROM bigtree_pages WHERE id = ?", $parent)) ?: "page #{$parent}")
 				: "the site root";
 
 			$in_nav = array_key_exists("in_nav", $args) ? (bool)$args["in_nav"] : true;
+
+			// SEO and scheduling fields already flow through performCreate and are
+			// settable on update — omitting them here taught the model to create a
+			// page and immediately edit it, spending two approvals on one intent.
+			$meta_description = trim((string)($args["meta_description"] ?? ""));
+			$meta_keywords = trim((string)($args["meta_keywords"] ?? ""));
+			$seo_invisible = array_key_exists("seo_invisible", $args) ? (bool)$args["seo_invisible"] : false;
+			$schedule = $this->aiPageSchedule($args);
+
+			if (isset($schedule["error"])) {
+
+				return $schedule;
+			}
 
 			$payload = [
 				"parent" => $parent,
@@ -401,6 +427,11 @@
 				"route" => $route,
 				"template" => $template,
 				"in_nav" => $in_nav,
+				"meta_description" => $meta_description,
+				"meta_keywords" => $meta_keywords,
+				"seo_invisible" => $seo_invisible,
+				"publish_at" => $schedule["publish_at"],
+				"expire_at" => $schedule["expire_at"],
 				"resources" => $resources,
 			];
 
@@ -417,9 +448,34 @@
 				"mode" => $can_publish ? "published" : "pending",
 			];
 
+			if ($meta_description !== "") {
+				$preview["meta_description"] = $meta_description;
+			}
+
+			if ($seo_invisible) {
+				$preview["seo_invisible"] = true;
+			}
+
+			if ($schedule["publish_at"] !== null) {
+				$preview["publish_at"] = $schedule["publish_at"];
+			}
+
+			if ($schedule["expire_at"] !== null) {
+				$preview["expire_at"] = $schedule["expire_at"];
+			}
+
 			$mode_note = $can_publish
 				? " It will be published live once you approve."
 				: " It will be queued as a pending change for a publisher to review.";
+
+			if ($blocked) {
+				$preview["incomplete_required"] = $blocked;
+				$mode_note .= " Note that " . implode(", ", $blocked)
+					. " " . (count($blocked) === 1 ? "is required but cannot" : "are required but cannot")
+					. " be set by the assistant — a publisher must fill "
+					. (count($blocked) === 1 ? "it" : "them") . " in before this page can go live.";
+			}
+
 			$summary = "Create page “{$nav_title}” under {$parent_title}." . $mode_note;
 
 			return [
@@ -428,6 +484,49 @@
 				"preview" => $preview,
 				"payload" => $payload,
 			];
+		}
+
+		/**
+		 * Normalize the optional publish/expire window on a page proposal.
+		 *
+		 * Both are stored as datetimes; the model tends to emit whatever the user
+		 * said ("next Tuesday"), so anything unparseable is rejected rather than
+		 * silently stored as a zero date that would hide the page forever.
+		 *
+		 * @param array<string,mixed> $args
+		 * @return array<string,mixed> ["publish_at" => ?string, "expire_at" => ?string] or ["error" => string]
+		 */
+		private function aiPageSchedule(array $args): array {
+			$out = ["publish_at" => null, "expire_at" => null];
+
+			foreach (["publish_at", "expire_at"] as $field) {
+				if (!array_key_exists($field, $args)) {
+					continue;
+				}
+
+				$raw = trim((string)$args[$field]);
+
+				if ($raw === "") {
+					continue;
+				}
+
+				$stamp = strtotime($raw);
+
+				if ($stamp === false) {
+
+					return ["error" => "\"{$raw}\" isn't a date I can store for {$field}. Use an explicit date like "
+						. "\"2026-08-01\" or \"2026-08-01 09:00:00\"."];
+				}
+
+				$out[$field] = date("Y-m-d H:i:s", $stamp);
+			}
+
+			if ($out["publish_at"] !== null && $out["expire_at"] !== null && $out["expire_at"] <= $out["publish_at"]) {
+
+				return ["error" => "expire_at ({$out["expire_at"]}) must be after publish_at ({$out["publish_at"]})."];
+			}
+
+			return $out;
 		}
 
 		/**
@@ -497,6 +596,96 @@
 			}
 
 			return $schema;
+		}
+
+		/**
+		 * Required template resources whose type the assistant cannot author.
+		 * aiTemplateResourceSchema drops complex resources before the required check
+		 * runs, so without this scan an AI-created page passes validation while being
+		 * exactly the page the "Add page" screen's own required check would refuse.
+		 *
+		 * Returned as "Title (id, type)" strings for a human-readable error.
+		 *
+		 * $existing is the content the page already carries (empty on create). A
+		 * required complex resource that already has a value is not a gap — this
+		 * matters on a template switch, where the outgoing template may well have
+		 * populated the same resource id.
+		 *
+		 * @param array<string,mixed> $existing
+		 * @return list<string>
+		 */
+		private function aiRequiredUnsettableResources(string $template, array $existing = []): array {
+			$row = $template !== "" ? BigTreeJSONDB::get("templates", $template) : null;
+
+			if (!$row) {
+
+				return [];
+			}
+
+			$blocked = [];
+
+			foreach ((array)($row["resources"] ?? []) as $resource) {
+				$id = (string)($resource["id"] ?? "");
+				$type = (string)($resource["type"] ?? "text");
+
+				if ($id === "" || in_array($type, self::AI_SIMPLE_RESOURCE_TYPES, true)) {
+					continue;
+				}
+
+				$settings = is_array($resource["settings"] ?? null) ? $resource["settings"] : [];
+				$rules = is_string($settings["validation"] ?? null)
+					? preg_split("/\s+/", trim($settings["validation"]), -1, PREG_SPLIT_NO_EMPTY)
+					: [];
+
+				if (!in_array("required", $rules ?: [], true)) {
+					continue;
+				}
+
+				$value = $existing[$id] ?? "";
+
+				if (is_array($value) ? (bool)$value : trim((string)$value) !== "") {
+					continue;
+				}
+
+				$blocked[] = (string)($resource["title"] ?? $id) . " ({$id}, {$type})";
+			}
+
+			return $blocked;
+		}
+
+		/**
+		 * The required content a page would be missing if it were switched to
+		 * $template, judged against the resources it already has stored. Covers both
+		 * halves of the problem: required simple fields the old template never
+		 * populated, and required complex fields the assistant could not fill even
+		 * if asked. Empty means the switch is safe.
+		 *
+		 * @param array<string,mixed> $page the existing page row
+		 * @return list<string>
+		 */
+		private function aiTemplateSwitchGaps(string $template, array $page): array {
+			$existing = Json::decode($page["resources"] ?? "");
+			$existing = is_array($existing) ? $existing : [];
+			$schema = $this->aiTemplateResourceSchema($template);
+			$unmet = [];
+
+			foreach ($schema as $id => $field) {
+				if (empty($field["required"])) {
+					continue;
+				}
+
+				$value = $existing[$id] ?? "";
+
+				if (is_array($value) ? !$value : trim((string)$value) === "") {
+					$unmet[] = (string)$field["title"] . " ({$id})";
+				}
+			}
+
+			foreach ($this->aiRequiredUnsettableResources($template, $existing) as $blocked) {
+				$unmet[] = $blocked;
+			}
+
+			return $unmet;
 		}
 
 		/**
@@ -746,6 +935,7 @@
 			$editable = ["nav_title", "title", "meta_description", "meta_keywords", "in_nav", "seo_invisible", "template", "route"];
 			$changes = [];
 			$diff = [];
+			$title_for_error = trim((string)$page["nav_title"]) ?: trim((string)$page["title"]) ?: "page #{$id}";
 
 			foreach ($editable as $field) {
 				if (!array_key_exists($field, $args)) {
@@ -759,6 +949,21 @@
 					if ($template !== "" && !BigTreeJSONDB::exists("templates", $template)) {
 
 						return ["error" => "Template \"{$template}\" does not exist."];
+					}
+
+					// Switching templates keeps the old template's stored resources and
+					// leaves the new template's own required fields empty — the page
+					// renders broken until a human edits it. Refuse unless the page's
+					// existing content already satisfies the incoming template.
+					if ($template !== "" && $template !== (string)$page["template"]) {
+						$unmet = $this->aiTemplateSwitchGaps($template, $page);
+
+						if ($unmet) {
+
+							return ["error" => "Switching “{$title_for_error}” to the “{$template}” template would leave its "
+								. "required content empty: " . implode(", ", $unmet) . ". Use update_page_content to supply "
+								. "the new template's content in the same edit, or make this change in the admin UI."];
+						}
 					}
 				}
 
@@ -807,6 +1012,214 @@
 					"changes" => $changes,
 				],
 			];
+		}
+
+		/**
+		 * Validate an edit to a page's template content (its resources).
+		 *
+		 * update_page deliberately excludes resources, which left the assistant able to
+		 * author a page's body at creation but never to fix a typo in it afterwards —
+		 * the single biggest editor-facing gap. Content is merged onto what the page
+		 * already has, so a partial edit doesn't wipe untouched fields.
+		 *
+		 * Optionally accepts a `template` switch in the same proposal, which is what
+		 * makes changing template safe: the new template's required content can be
+		 * supplied in the very same edit.
+		 *
+		 * @param array<string,mixed> $args
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 */
+		public function aiValidatePageContentUpdate(array $args, $user): array {
+			$id = (int)($args["id"] ?? 0);
+
+			if ($id < 1) {
+
+				return ["error" => "A page id is required to edit a page's content."];
+			}
+
+			$page = SQL::fetch("SELECT * FROM bigtree_pages WHERE id = ?", $id);
+
+			if (!$page) {
+
+				return ["error" => "Page {$id} does not exist."];
+			}
+
+			if (!PermissionService::userHasPageAccess($user, $id, "e")) {
+
+				return ["denied" => "You do not have permission to edit this page."];
+			}
+
+			$title = trim((string)$page["nav_title"]) ?: trim((string)$page["title"]) ?: "page #{$id}";
+			$current_template = (string)$page["template"];
+			$template = array_key_exists("template", $args) ? trim((string)$args["template"]) : $current_template;
+
+			if ($template === "") {
+				$template = $current_template;
+			}
+
+			if ($template !== $current_template && !BigTreeJSONDB::exists("templates", $template)) {
+
+				return ["error" => "Template \"{$template}\" does not exist."];
+			}
+
+			$schema = $this->aiTemplateResourceSchema($template);
+			$provided = is_array($args["content"] ?? null) ? $args["content"] : [];
+
+			if (!$provided) {
+
+				return ["error" => "Provide a \"content\" object with the fields to change. Settable fields on the "
+					. "“{$template}” template: " . $this->aiDescribeResourceSchema($schema)];
+			}
+
+			$sifted = $this->aiSiftResourceContent($schema, $provided);
+
+			if (isset($sifted["error"])) {
+
+				return $sifted;
+			}
+
+			$changed = $sifted["data"];
+
+			if (!$changed) {
+
+				return ["error" => "None of the supplied fields can be set by the assistant on the “{$template}” "
+					. "template. Settable fields: " . $this->aiDescribeResourceSchema($schema)];
+			}
+
+			$existing = Json::decode($page["resources"] ?? "");
+			$existing = is_array($existing) ? $existing : [];
+
+			// Merge, so an edit to one field doesn't blank every other field the page
+			// carries — including the complex ones the assistant can't even see.
+			$resources = array_merge($existing, $changed);
+			$missing = $this->aiMissingRequiredResources($schema, $resources);
+
+			if ($missing) {
+
+				return ["error" => "The “{$template}” template needs content for these required fields: "
+					. implode(", ", $missing) . "."];
+			}
+
+			$rank = PermissionService::userPageLevel($user, $id);
+			$can_publish = PermissionService::isPublisher($user, $rank);
+
+			// A template switch can still strand required content the assistant can't
+			// author — allow it only when the merged result actually satisfies it.
+			if ($template !== $current_template) {
+				$blocked = $this->aiRequiredUnsettableResources($template, $resources);
+
+				if ($blocked && $can_publish) {
+
+					return ["error" => "Switching “{$title}” to the “{$template}” template would leave required "
+						. "content empty: " . implode(", ", $blocked) . ". Make this change in the admin UI."];
+				}
+			}
+
+			$diff = [];
+
+			foreach ($changed as $field_id => $value) {
+				$diff[] = [
+					"column" => $field_id,
+					"title" => (string)($schema[$field_id]["title"] ?? $field_id),
+					"from" => $this->aiPreviewScalarValue($existing[$field_id] ?? ""),
+					"to" => $this->aiPreviewScalarValue($value),
+				];
+			}
+
+			$mode_note = $can_publish
+				? " It will be published live once you approve."
+				: " It will be queued as a pending change for a publisher to review.";
+			$switch_note = $template !== $current_template
+				? " The page will also switch from the “{$current_template}” template to “{$template}”."
+				: "";
+
+			$payload = [
+				"id" => $id,
+				"resources" => $resources,
+			];
+
+			if ($template !== $current_template) {
+				$payload["template"] = $template;
+			}
+
+			return [
+				"ok" => true,
+				"summary" => "Update the content of “{$title}” (" . count($changed) . " field"
+					. (count($changed) === 1 ? "" : "s") . ")." . $switch_note . $mode_note,
+				"preview" => [
+					"action" => "update_page_content",
+					"page_id" => $id,
+					"page_title" => $title,
+					"template" => $template,
+					"template_changed" => $template !== $current_template,
+					"fields" => $diff,
+					"mode" => $can_publish ? "published" : "pending",
+				],
+				"payload" => $payload,
+			];
+		}
+
+		/**
+		 * Execute an approved page-content edit. Re-checks edit access, then reuses the
+		 * same performUpdate / pending-change split every other page write uses.
+		 *
+		 * @param array<string,mixed> $payload
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 */
+		public function aiUpdatePageContent(array $payload, $user): array {
+			$id = (int)($payload["id"] ?? 0);
+
+			if (!PermissionService::userHasPageAccess($user, $id, "e")) {
+				throw new AuthorizationException("Insufficient page permission to edit page (e required)");
+			}
+
+			$page = SQL::fetch("SELECT * FROM bigtree_pages WHERE id = ?", $id);
+
+			if (!$page) {
+
+				return ["mode" => "error", "message" => "Page no longer exists."];
+			}
+
+			$changes = ["resources" => is_array($payload["resources"] ?? null) ? $payload["resources"] : []];
+
+			if (!empty($payload["template"])) {
+				$changes["template"] = (string)$payload["template"];
+			}
+
+			$rank = PermissionService::userPageLevel($user, $id);
+			$can_publish = PermissionService::isPublisher($user, $rank);
+			$title = trim((string)$page["nav_title"]) ?: ("page #{$id}");
+
+			if (!$can_publish) {
+				$pending_id = $this->writePendingPageChange($user, "EDIT", $id, $changes);
+
+				Hooks::fire("page.pending_updated", [
+					"page" => $id, "pending_change_id" => (int)$pending_id, "via" => "ai_assistant",
+				]);
+
+				return ["mode" => "pending", "page_id" => $id, "title" => $title, "pending_change_id" => (int)$pending_id];
+			}
+
+			$this->performUpdate($id, $page, $changes, $user);
+
+			return ["mode" => "published", "page_id" => $id, "title" => $title];
+		}
+
+		/**
+		 * A short, length-capped rendering of a resource value for a proposal diff.
+		 *
+		 * @param mixed $value
+		 */
+		private function aiPreviewScalarValue($value): string {
+			$string = is_scalar($value) || $value === null ? (string)$value : (string)json_encode($value);
+
+			if (mb_strlen($string) > 200) {
+				$string = mb_substr($string, 0, 199) . "…";
+			}
+
+			return $string;
 		}
 
 		/**
@@ -942,6 +1355,281 @@
 				"title" => trim((string)$page["nav_title"]) ?: ("page #{$id}"),
 				"page_id" => $id,
 			];
+		}
+
+		/**
+		 * Validate un-archiving a page. archive_page shipped without its inverse, so a
+		 * page the assistant archived could only be restored in the admin UI.
+		 *
+		 * @param array<string,mixed> $args
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 */
+		public function aiValidatePageUnarchive(array $args, $user): array {
+			$id = (int)($args["id"] ?? 0);
+
+			if ($id < 1) {
+
+				return ["error" => "A page id is required to unarchive a page."];
+			}
+
+			$page = SQL::fetch("SELECT id, nav_title, title, path, archived, archived_inherited FROM bigtree_pages WHERE id = ?", $id);
+
+			if (!$page) {
+
+				return ["error" => "Page {$id} does not exist."];
+			}
+
+			if (!Flag::isOn($page["archived"]) && !Flag::isOn($page["archived_inherited"])) {
+
+				return ["error" => "That page is not archived."];
+			}
+
+			// A page archived only because an ancestor was archived has no state of its
+			// own to clear — restoring it means restoring the ancestor.
+			if (!Flag::isOn($page["archived"]) && Flag::isOn($page["archived_inherited"])) {
+
+				return ["error" => "That page is archived because a page above it is archived. Unarchive the parent "
+					. "page instead."];
+			}
+
+			if (!PermissionService::userHasPageAccess($user, $id, "p")) {
+
+				return ["denied" => "Unarchiving a page requires publisher access, which you do not have on this page."];
+			}
+
+			$title = trim((string)$page["nav_title"]) ?: trim((string)$page["title"]) ?: "page #{$id}";
+
+			return [
+				"ok" => true,
+				"summary" => "Restore page “{$title}” (and any pages beneath it that were archived along with it). "
+					. "It will be visible on the site again.",
+				"preview" => [
+					"page_id" => $id,
+					"page_title" => $title,
+					"path" => "/" . (string)$page["path"],
+					"action" => "unarchive",
+				],
+				"payload" => ["id" => $id],
+			];
+		}
+
+		/**
+		 * Execute an approved unarchive. Re-checks publisher access.
+		 *
+		 * @param array<string,mixed> $payload
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 */
+		public function aiUnarchivePage(array $payload, $user): array {
+			$id = (int)($payload["id"] ?? 0);
+
+			if (!PermissionService::userHasPageAccess($user, $id, "p")) {
+				throw new AuthorizationException("Insufficient page permission to unarchive page (p required)");
+			}
+
+			$page = SQL::fetch("SELECT id, nav_title FROM bigtree_pages WHERE id = ?", $id);
+
+			if (!$page) {
+
+				return ["mode" => "error", "message" => "Page no longer exists."];
+			}
+
+			SQL::update("bigtree_pages", $id, ["archived" => "", "updated_at" => "NOW()"]);
+			$this->setArchivedInherited($id, "");
+
+			Hooks::fire("page.unarchived", ["id" => $id, "via" => "ai_assistant"]);
+
+			return [
+				"mode" => "unarchived",
+				"title" => trim((string)$page["nav_title"]) ?: ("page #{$id}"),
+				"page_id" => $id,
+			];
+		}
+
+		/**
+		 * Validate moving a page to a new parent.
+		 *
+		 * Moving rewrites the page's path and every descendant's path, so it needs
+		 * publisher access on the page *and* edit access at the destination, and must
+		 * refuse a move into the page's own subtree (which would orphan the branch).
+		 *
+		 * @param array<string,mixed> $args
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 */
+		public function aiValidatePageMove(array $args, $user): array {
+			$id = (int)($args["id"] ?? 0);
+
+			if ($id < 1) {
+
+				return ["error" => "A page id is required to move a page."];
+			}
+
+			if (!array_key_exists("parent", $args)) {
+
+				return ["error" => "A parent is required — the id of the page to move this page under, or 0 for the "
+					. "site root."];
+			}
+
+			$parent = (int)$args["parent"];
+			$page = SQL::fetch("SELECT id, nav_title, title, path, route, parent FROM bigtree_pages WHERE id = ?", $id);
+
+			if (!$page) {
+
+				return ["error" => "Page {$id} does not exist."];
+			}
+
+			if ($parent > 0 && !SQL::exists("bigtree_pages", $parent)) {
+
+				return ["error" => "Parent page {$parent} does not exist."];
+			}
+
+			if ($parent === $id) {
+
+				return ["error" => "A page can't be moved under itself."];
+			}
+
+			if ((int)$page["parent"] === $parent) {
+
+				return ["error" => "That page is already under that parent."];
+			}
+
+			// Moving a page into its own subtree would detach the whole branch from the
+			// tree — the path rewrite would never terminate at the root.
+			if ($parent > 0 && $this->isDescendantOf($parent, $id)) {
+
+				return ["error" => "A page can't be moved underneath one of its own child pages."];
+			}
+
+			if (!PermissionService::userHasPageAccess($user, $id, "p")) {
+
+				return ["denied" => "Moving a page requires publisher access, which you do not have on this page."];
+			}
+
+			if (!PermissionService::userHasPageAccess($user, $parent, "e")) {
+
+				return ["denied" => "You do not have permission to add pages in that location."];
+			}
+
+			$title = trim((string)$page["nav_title"]) ?: trim((string)$page["title"]) ?: "page #{$id}";
+			$route = $this->uniqueRoute($parent, (string)$page["route"], $id);
+			$parent_path = $parent ? (string)SQL::fetchSingle("SELECT path FROM bigtree_pages WHERE id = ?", $parent) : "";
+			$new_path = ($parent_path ? $parent_path . "/" : "") . $route;
+			$parent_title = $parent
+				? (trim((string)SQL::fetchSingle("SELECT nav_title FROM bigtree_pages WHERE id = ?", $parent)) ?: "page #{$parent}")
+				: "the site root";
+			$descendants = (int)SQL::fetchSingle(
+				"SELECT COUNT(*) FROM bigtree_pages WHERE path LIKE ?", $page["path"] . "/%"
+			);
+
+			$note = $descendants > 0
+				? " {$descendants} page" . ($descendants === 1 ? "" : "s") . " beneath it will move too, and every "
+					. "affected URL will change."
+				: " Its URL will change.";
+
+			return [
+				"ok" => true,
+				"summary" => "Move page “{$title}” under {$parent_title}." . $note,
+				"preview" => [
+					"action" => "move_page",
+					"page_id" => $id,
+					"page_title" => $title,
+					"from_path" => "/" . (string)$page["path"],
+					"to_path" => "/" . $new_path,
+					"new_parent_id" => $parent,
+					"new_parent_title" => $parent_title,
+					"descendants_affected" => $descendants,
+				],
+				"payload" => ["id" => $id, "parent" => $parent, "route" => $route],
+			];
+		}
+
+		/**
+		 * Execute an approved move: re-parent the page and rewrite its subtree's paths.
+		 *
+		 * @param array<string,mixed> $payload
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 */
+		public function aiMovePage(array $payload, $user): array {
+			$id = (int)($payload["id"] ?? 0);
+			$parent = (int)($payload["parent"] ?? 0);
+
+			if (!PermissionService::userHasPageAccess($user, $id, "p")) {
+				throw new AuthorizationException("Insufficient page permission to move page (p required)");
+			}
+
+			if (!PermissionService::userHasPageAccess($user, $parent, "e")) {
+				throw new AuthorizationException("Insufficient page permission at the destination (e required)");
+			}
+
+			$page = SQL::fetch("SELECT id, nav_title, path, route, parent, trunk FROM bigtree_pages WHERE id = ?", $id);
+
+			if (!$page) {
+
+				return ["mode" => "error", "message" => "Page no longer exists."];
+			}
+
+			// Re-check the structural guards at approval — the tree may have changed
+			// since the proposal was staged.
+			if ($parent === $id || ($parent > 0 && !SQL::exists("bigtree_pages", $parent))) {
+
+				return ["mode" => "error", "message" => "That destination is no longer valid."];
+			}
+
+			if ($parent > 0 && $this->isDescendantOf($parent, $id)) {
+
+				return ["mode" => "error", "message" => "That destination is now inside the page being moved."];
+			}
+
+			// Re-derive the route against the destination in case it was taken since.
+			$route = $this->uniqueRoute($parent, (string)($payload["route"] ?? $page["route"]), $id);
+			$parent_path = $parent ? (string)SQL::fetchSingle("SELECT path FROM bigtree_pages WHERE id = ?", $parent) : "";
+			$new_path = ($parent_path ? $parent_path . "/" : "") . $route;
+
+			SQL::update("bigtree_pages", $id, [
+				"parent" => $parent,
+				"route" => $route,
+				"path" => $new_path,
+				"updated_at" => "NOW()",
+			]);
+
+			// Descendant paths are stored, not derived — they must be rewritten too, or
+			// the whole subtree 404s. Same helper the REST move uses.
+			$this->repathChildren((string)$page["path"], $new_path);
+
+			// Moving a trunk page changes the multi-site routing map (path-keyed).
+			if (Flag::isOn($page["trunk"])) {
+				$this->invalidateMultiSiteCache();
+			}
+
+			Hooks::fire("page.moved", ["id" => $id, "parent" => $parent, "via" => "ai_assistant"]);
+
+			return [
+				"mode" => "moved",
+				"page_id" => $id,
+				"title" => trim((string)$page["nav_title"]) ?: ("page #{$id}"),
+				"path" => "/" . $new_path,
+			];
+		}
+
+		/** Whether $id sits anywhere beneath $ancestor in the page tree. */
+		private function isDescendantOf(int $id, int $ancestor): bool {
+			$seen = 0;
+
+			while ($id > 0 && $seen < 200) {
+				$id = (int)SQL::fetchSingle("SELECT parent FROM bigtree_pages WHERE id = ?", $id);
+
+				if ($id === $ancestor) {
+
+					return true;
+				}
+
+				$seen++;
+			}
+
+			return false;
 		}
 
 		// Live page insert, shared by create() (publish path) and the pending-change

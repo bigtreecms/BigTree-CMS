@@ -11,6 +11,15 @@
 	 */
 	interface ModuleToolBackend {
 		/**
+		 * Read one module's definition plus what setup it's still missing. Returns
+		 * denied | error | ["module" => [...]].
+		 *
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 */
+		public function aiGetModule(string $module_id, $user): array;
+
+		/**
 		 * Validate a proposed module creation without writing: developer level, a valid
 		 * unique route. Returns denied | error | ok+summary+preview+payload.
 		 *

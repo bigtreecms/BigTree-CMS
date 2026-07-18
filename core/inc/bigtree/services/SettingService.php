@@ -436,6 +436,21 @@
 			}
 
 			$name = (string)($def["name"] ?? $id);
+
+			// Nothing used to check the value against the setting's own field type, so
+			// a select could be set outside its options, a structured setting handed a
+			// scalar, and an image setting given a fabricated path. The REST route is
+			// equally loose, but a model guessing value shapes makes malformed writes
+			// far more likely — and a front-end template that foreachs over a setting
+			// fatals on a scalar.
+			$checked = $this->aiCheckSettingValue($def, $args["value"]);
+
+			if (isset($checked["error"])) {
+
+				return $checked;
+			}
+
+			$value = $checked["value"];
 			$current_raw = SQL::fetchSingle("SELECT value FROM bigtree_settings WHERE id = ?", $id);
 			$current = is_string($current_raw) ? json_decode($current_raw, true) : null;
 
@@ -448,13 +463,141 @@
 					"name" => $name,
 					"type" => (string)($def["type"] ?? "text"),
 					"from" => $this->aiSettingPreviewValue($current),
-					"to" => $this->aiSettingPreviewValue($args["value"]),
+					"to" => $this->aiSettingPreviewValue($value),
 				],
 				"payload" => [
 					"id" => $id,
-					"value" => $args["value"],
+					"value" => $value,
 				],
 			];
+		}
+
+		// Setting field types the assistant must never author: they reference real
+		// uploaded files or carry structure a model would be guessing at. Mirrors the
+		// simple-scalar allowlists in PageService / AutoModuleService.
+		private const AI_UNSETTABLE_SETTING_TYPES = [
+			"upload", "image", "image-reference", "file-reference", "media-gallery",
+			"video", "video-reference", "matrix", "callouts", "one-to-many",
+			"many-to-many", "geocoding", "route",
+		];
+
+		// Types whose stored value is a plain scalar — an array is always wrong.
+		private const AI_SCALAR_SETTING_TYPES = [
+			"text", "textarea", "html", "htmleditor", "simple-editor", "code",
+			"number", "currency", "phone", "email", "color",
+			"date", "datetime", "time", "checkbox", "list", "link",
+		];
+
+		/**
+		 * Validate (and where appropriate coerce) a proposed setting value against the
+		 * setting definition's field type.
+		 *
+		 * Returns ["value" => mixed] with the value to store, or ["error" => string]
+		 * with a recoverable message the model can act on.
+		 *
+		 * @param array<string,mixed> $def
+		 * @param mixed $value
+		 * @return array<string,mixed>
+		 */
+		private function aiCheckSettingValue(array $def, $value): array {
+			$type = (string)($def["type"] ?? "text");
+			$name = (string)($def["name"] ?? $def["id"] ?? "this setting");
+
+			if (in_array($type, self::AI_UNSETTABLE_SETTING_TYPES, true)) {
+
+				return ["error" => "“{$name}” is a {$type} setting — the assistant can't author that kind of value. "
+					. "Change it on the Settings screen in the admin."];
+			}
+
+			if (in_array($type, self::AI_SCALAR_SETTING_TYPES, true) && (is_array($value) || is_object($value))) {
+
+				return ["error" => "“{$name}” is a {$type} setting and expects a single value, not a list or object."];
+			}
+
+			if ($type === "checkbox") {
+
+				return ["value" => (!empty($value) && $value !== "false" && $value !== "0") ? "on" : ""];
+			}
+
+			if ($type === "number" || $type === "currency") {
+				if (!is_numeric($value)) {
+
+					return ["error" => "“{$name}” is a {$type} setting and expects a number — got \""
+						. $this->aiSettingPreviewValue($value) . "\"."];
+				}
+
+				return ["value" => $value + 0];
+			}
+
+			if ($type === "list") {
+
+				return $this->aiCheckListSettingValue($def, $name, $value);
+			}
+
+			// Anything left is a scalar type with no enumerable domain (text, html,
+			// date…) or a type this build doesn't know about — store as given.
+			return ["value" => $value];
+		}
+
+		/**
+		 * Enumerated ("list") settings: the value must be one of the field's options.
+		 *
+		 * Only static and database-populated lists have a domain we can resolve here;
+		 * state/country lists are left to the field type's own rendering, matching how
+		 * loosely the admin treats them.
+		 *
+		 * @param array<string,mixed> $def
+		 * @param mixed $value
+		 * @return array<string,mixed>
+		 */
+		private function aiCheckListSettingValue(array $def, string $name, $value): array {
+			$settings = is_array($def["settings"] ?? null) ? $def["settings"] : [];
+			$list_type = (string)($settings["list_type"] ?? "static");
+			$options = [];
+
+			if ($list_type === "static") {
+				foreach ((array)($settings["list"] ?? []) as $option) {
+					if (is_array($option) && array_key_exists("value", $option)) {
+						$options[] = (string)$option["value"];
+					}
+				}
+			} elseif ($list_type === "db") {
+				$table = (string)($settings["pop-table"] ?? "");
+
+				if ($table === "" || !SQL::tableExists($table)) {
+
+					return ["value" => $value];
+				}
+
+				foreach (SQL::fetchAllSingle("SELECT id FROM `".str_replace("`", "", $table)."`") as $row_id) {
+					$options[] = (string)$row_id;
+				}
+			} else {
+				// state / country / unknown — no locally resolvable domain.
+				return ["value" => $value];
+			}
+
+			if (!$options) {
+
+				return ["value" => $value];
+			}
+
+			$allow_empty = (string)($settings["allow-empty"] ?? "") !== "No";
+
+			if ($allow_empty && (string)$value === "") {
+
+				return ["value" => ""];
+			}
+
+			if (!in_array((string)$value, $options, true)) {
+				$shown = array_slice($options, 0, 20);
+				$suffix = count($options) > count($shown) ? ", …" : "";
+
+				return ["error" => "\"" . $this->aiSettingPreviewValue($value) . "\" is not a valid option for “{$name}”. "
+					. "Valid options: " . implode(", ", $shown) . $suffix . "."];
+			}
+
+			return ["value" => (string)$value];
 		}
 
 		/**
@@ -480,7 +623,17 @@
 				return ["mode" => "error", "message" => "That setting can no longer be changed."];
 			}
 
-			$this->setValue($id, $def, $payload["value"] ?? null);
+			// Re-check at approval: a definition can change between staging and
+			// approval (options edited, type switched), and the same guard that made
+			// the value safe to propose is what makes it safe to write.
+			$checked = $this->aiCheckSettingValue($def, $payload["value"] ?? null);
+
+			if (isset($checked["error"])) {
+
+				return ["mode" => "error", "message" => $checked["error"]];
+			}
+
+			$this->setValue($id, $def, $checked["value"]);
 
 			return [
 				"mode" => "updated",

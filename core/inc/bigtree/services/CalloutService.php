@@ -7,6 +7,7 @@
 	use BigTree\Api\Request;
 	use BigTree\Api\Response;
 	use BigTree\Api\Resources;
+	use BigTree\Api\TemplateScaffold;
 	use BigTree\Api\Exceptions\AuthorizationException;
 	use BigTree\Services\AI\Tools\CalloutToolBackend;
 	use BigTree;
@@ -58,7 +59,24 @@
 			BigTreeJSONDB::incrementPosition("callouts");
 			BigTreeJSONDB::insert("callouts", $insert);
 
-			return Response::created($this->present(BigTreeJSONDB::get("callouts", $id)), null);
+			// Legacy's developer UI scaffolded the render file on create; without it a
+			// callout can be placed on pages that then render nothing. A write failure
+			// is surfaced on the response but never unwinds the record.
+			$scaffolded = "";
+
+			try {
+				$scaffolded = TemplateScaffold::callout(
+					$id,
+					is_array($insert["resources"] ?? null) ? $insert["resources"] : []
+				);
+			} catch (\Throwable $e) {
+				$scaffolded = "";
+			}
+
+			$body = $this->present(BigTreeJSONDB::get("callouts", $id));
+			$body["scaffolded_file"] = $scaffolded;
+
+			return Response::created($body, null);
 		}
 
 		public function update(Request $request) {
@@ -193,24 +211,49 @@
 
 			$name = trim((string)($args["name"] ?? "")) ?: $id;
 			$fields = Resources::clean($this->aiCalloutFields($args["fields"] ?? []));
+			$type_error = $this->aiInvalidFieldTypeError($fields);
 
+			if ($type_error !== null) {
+
+				return ["error" => $type_error];
+			}
+
+			$display_field = $this->aiResolveDisplayField($args["display_field"] ?? "", $fields);
+
+			if (isset($display_field["error"])) {
+
+				return $display_field;
+			}
+
+			// Fail here rather than half-way through an approved write.
+			if (!TemplateScaffold::calloutIsWritable($id)) {
+
+				return ["error" => "The templates/callouts/ directory is not writable, so the callout's render file "
+					. "can't be created. Fix the directory permissions and try again."];
+			}
+
+			$stub = "templates/callouts/{$id}.php";
 			$payload = [
 				"id" => $id,
 				"name" => $name,
 				"description" => trim((string)($args["description"] ?? "")),
 				"level" => (int)($args["level"] ?? 0),
-				"display_field" => trim((string)($args["display_field"] ?? "")),
+				"display_field" => $display_field["value"],
+				"display_default" => trim((string)($args["display_default"] ?? "")),
 				"resources" => $fields,
 			];
 
 			return [
 				"ok" => true,
-				"summary" => "Create a new callout “{$name}” (id {$id}) with " . count($fields) . " field(s).",
+				"summary" => "Create a new callout “{$name}” (id {$id}) with " . count($fields) . " field(s). "
+					. "A starter render file will be created at {$stub}.",
 				"preview" => [
 					"action" => "create_callout",
 					"id" => $id,
 					"name" => $name,
 					"level" => (int)($args["level"] ?? 0),
+					"display_field" => $display_field["value"],
+					"creates_file" => $stub,
 					"fields" => array_map(function (array $f): array {
 
 						return [
@@ -248,17 +291,33 @@
 				"level" => (int)($payload["level"] ?? 0),
 				"resources" => Resources::clean(is_array($payload["resources"] ?? null) ? $payload["resources"] : []),
 				"display_field" => (string)($payload["display_field"] ?? ""),
-				"display_default" => "",
+				"display_default" => BigTree::safeEncode((string)($payload["display_default"] ?? "")),
 				"position" => 0,
 			];
 
 			BigTreeJSONDB::incrementPosition("callouts");
 			BigTreeJSONDB::insert("callouts", $insert);
 
+			$scaffolded = "";
+			$scaffold_error = "";
+
+			try {
+				$scaffolded = TemplateScaffold::callout($id, $insert["resources"]);
+			} catch (\Throwable $e) {
+				$scaffold_error = $e->getMessage();
+			}
+
 			return [
 				"mode" => "created",
 				"id" => $id,
 				"name" => (string)($payload["name"] ?? $id),
+				"file" => $scaffolded,
+				"note" => $scaffolded !== ""
+					? "A starter render file was created at {$scaffolded} — edit it to control how this callout looks."
+					: ($scaffold_error !== ""
+						? "The callout record was created, but its render file could not be written ({$scaffold_error}). "
+							. "Pages using this callout will render nothing until the file exists."
+						: "A render file already existed for this callout and was left untouched."),
 			];
 		}
 
@@ -287,6 +346,92 @@
 			}
 
 			return $rows;
+		}
+
+		/**
+		 * Reject any field whose `type` isn't an installed callout field type — a
+		 * model-invented type was previously stored verbatim and rendered as a broken
+		 * field in the callout editor.
+		 *
+		 * Returns null when every type is valid, else a recoverable error.
+		 *
+		 * @param list<array<string,mixed>> $fields
+		 */
+		private function aiInvalidFieldTypeError(array $fields): ?string {
+			$valid = FieldTypeService::availableFieldTypeIds("callouts");
+
+			// An empty catalog means the registry couldn't be resolved — don't turn
+			// that into a refusal of every field.
+			if (!$valid) {
+
+				return null;
+			}
+
+			$bad = [];
+
+			foreach ($fields as $field) {
+				$type = (string)($field["type"] ?? "");
+
+				if ($type !== "" && !in_array($type, $valid, true)) {
+					$bad[] = "\"{$type}\" (field " . (string)($field["id"] ?? "?") . ")";
+				}
+			}
+
+			if (!$bad) {
+
+				return null;
+			}
+
+			sort($valid);
+
+			return "Unknown field type(s): " . implode(", ", array_unique($bad))
+				. ". Available callout field types: " . implode(", ", $valid) . ".";
+		}
+
+		/**
+		 * Resolve the callout's `display_field` — the field whose value labels each
+		 * callout instance in the page editor.
+		 *
+		 * This was free text that nothing checked, so a model naming a field that
+		 * didn't exist produced callout instances listing as blank rows until a human
+		 * fixed the definition. An unsupplied value now defaults to the first text
+		 * field, matching the developer UI's own convention.
+		 *
+		 * @param mixed $requested
+		 * @param list<array<string,mixed>> $fields
+		 * @return array<string,mixed> ["value" => string] or ["error" => string]
+		 */
+		private function aiResolveDisplayField($requested, array $fields): array {
+			$ids = [];
+
+			foreach ($fields as $field) {
+				$field_id = (string)($field["id"] ?? "");
+
+				if ($field_id !== "") {
+					$ids[] = $field_id;
+				}
+			}
+
+			$requested = trim((string)$requested);
+
+			if ($requested !== "") {
+				if (!in_array($requested, $ids, true)) {
+
+					return ["error" => "display_field \"{$requested}\" is not one of this callout's fields"
+						. ($ids ? " (" . implode(", ", $ids) . ")" : " — the callout has no fields") . "."];
+				}
+
+				return ["value" => $requested];
+			}
+
+			foreach ($fields as $field) {
+				if ((string)($field["type"] ?? "") === "text" && (string)($field["id"] ?? "") !== "") {
+
+					return ["value" => (string)$field["id"]];
+				}
+			}
+
+			return ["value" => $ids ? $ids[0] : ""];
 		}
 
 	}

@@ -2,6 +2,7 @@
 	namespace BigTree\Services;
 
 	use BigTree\Api\Entity;
+	use BigTree\Api\Hooks;
 	use BigTree\Api\Json;
 	use BigTree\Api\Pagination;
 	use BigTree\Api\Request;
@@ -259,6 +260,109 @@
 		}
 
 		/**
+		 * One pending change with the actual field-level diff it would apply.
+		 *
+		 * The list read and the publish preview both showed only title/table/type, so
+		 * an approver confirmed a publish without ever seeing what it would change.
+		 * Visible to the change's own author as well as to its publishers.
+		 *
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 */
+		public function aiGetPendingChange(int $id, $user): array {
+			if ($id < 1) {
+
+				return ["error" => "A pending-change id is required."];
+			}
+
+			$row = SQL::fetch("SELECT * FROM bigtree_pending_changes WHERE id = ?", $id);
+
+			if (!$row) {
+
+				return ["error" => "Pending change {$id} does not exist."];
+			}
+
+			$mine = (int)$row["user"] === (int)(is_object($user) ? $user->id : ($user["id"] ?? 0));
+			$can_publish = $this->isPublisherFor($user, $row);
+
+			if (!$mine && !$can_publish) {
+
+				return ["denied" => "You can only view your own pending changes, or ones you can publish."];
+			}
+
+			return ["pending_change" => [
+				"id" => $id,
+				"title" => (string)$row["title"],
+				"table" => (string)$row["table"],
+				"item_id" => $row["item_id"] !== null ? (int)$row["item_id"] : null,
+				"type" => (string)$row["type"],
+				"module" => (string)$row["module"],
+				"mine" => $mine,
+				"can_publish" => $can_publish,
+				"date" => $row["date"],
+				"is_new_item" => $row["item_id"] === null,
+				"changes" => $this->aiChangeDiff($row),
+			]];
+		}
+
+		/**
+		 * A compact field-level diff for a pending change: each changed field with the
+		 * value it would replace (when the change targets an existing row).
+		 *
+		 * Values are length-capped so a large HTML body can't flood a proposal card
+		 * or a model's context.
+		 *
+		 * @param array<string,mixed> $row a bigtree_pending_changes row
+		 * @return list<array<string,mixed>>
+		 */
+		private function aiChangeDiff(array $row): array {
+			$changes = Json::decode($row["changes"]);
+
+			if (!is_array($changes)) {
+
+				return [];
+			}
+
+			// A NEW change has no live row to compare against.
+			$existing = [];
+
+			if ($row["item_id"] !== null && (string)$row["table"] !== "") {
+				$live = SQL::fetch("SELECT * FROM `" . str_replace("`", "", (string)$row["table"]) . "` WHERE id = ?", (int)$row["item_id"]);
+				$existing = is_array($live) ? $live : [];
+			}
+
+			$out = [];
+
+			foreach ($changes as $column => $value) {
+				$entry = [
+					"column" => (string)$column,
+					"to" => $this->aiDiffValue($value),
+				];
+
+				if ($existing && array_key_exists($column, $existing)) {
+					$entry["from"] = $this->aiDiffValue($existing[$column]);
+				}
+
+				$out[] = $entry;
+			}
+
+			return $out;
+		}
+
+		/**
+		 * @param mixed $value
+		 */
+		private function aiDiffValue($value): string {
+			$string = is_scalar($value) || $value === null ? (string)$value : (string)json_encode($value);
+
+			if (mb_strlen($string) > 200) {
+				$string = mb_substr($string, 0, 199) . "…";
+			}
+
+			return $string;
+		}
+
+		/**
 		 * Validate publishing a pending change without applying it: existence and
 		 * publisher rights. Returns denied | error | ok+summary+preview+payload.
 		 *
@@ -288,19 +392,131 @@
 
 			$title = trim((string)$row["title"]) ?: ("change #{$id}");
 
+			// Without the diff the approver is confirming a publish sight-unseen —
+			// the preview named the change but never said what it would do.
+			$diff = $this->aiChangeDiff($row);
+			$count = count($diff);
+
 			return [
 				"ok" => true,
-				"summary" => "Publish the pending change “{$title}”. It will go live immediately once you approve.",
+				"summary" => "Publish the pending change “{$title}”"
+					. ($count ? " ({$count} field" . ($count === 1 ? "" : "s") . " affected)" : "")
+					. ". It will go live immediately once you approve.",
 				"preview" => [
 					"action" => "publish_pending_change",
 					"change_id" => $id,
 					"title" => $title,
 					"table" => (string)$row["table"],
 					"type" => (string)$row["type"],
+					"is_new_item" => $row["item_id"] === null,
+					"fields" => $diff,
 				],
 				"payload" => [
 					"change_id" => $id,
 				],
+			];
+		}
+
+		/**
+		 * Validate rejecting (discarding) a pending change.
+		 *
+		 * The assistant could publish a change but never decline one, so a reviewer
+		 * could only ever say yes in chat. Allowed for a publisher *or* the change's
+		 * own author — withdrawing your own unpublished draft needs no approval from
+		 * anyone. (The REST reject route is publisher-only; the author case is the
+		 * deliberate difference, and it can only ever discard the author's own work.)
+		 *
+		 * @param array<string,mixed> $args
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 */
+		public function aiValidateRejectChange(array $args, $user): array {
+			$id = (int)($args["change_id"] ?? 0);
+
+			if ($id < 1) {
+
+				return ["error" => "A pending-change id is required."];
+			}
+
+			$row = SQL::fetch("SELECT * FROM bigtree_pending_changes WHERE id = ?", $id);
+
+			if (!$row) {
+
+				return ["error" => "Pending change {$id} does not exist."];
+			}
+
+			$mine = (int)$row["user"] === (int)(is_object($user) ? $user->id : ($user["id"] ?? 0));
+			$can_publish = $this->isPublisherFor($user, $row);
+
+			if (!$mine && !$can_publish) {
+
+				return ["denied" => "You can only reject your own pending changes, or ones you have publisher access to."];
+			}
+
+			$title = trim((string)$row["title"]) ?: ("change #{$id}");
+			$diff = $this->aiChangeDiff($row);
+			$is_new = $row["item_id"] === null;
+
+			// Rejecting a NEW draft throws away content that exists nowhere else;
+			// rejecting an EDIT just drops the proposed changes. Say which.
+			$consequence = $is_new
+				? " The drafted content will be discarded — it has never been published, so it will be lost."
+				: " The live version stays as it is; only the proposed changes are discarded.";
+
+			return [
+				"ok" => true,
+				"summary" => "Reject the pending change “{$title}”." . $consequence . " This cannot be undone.",
+				"preview" => [
+					"action" => "reject_pending_change",
+					"change_id" => $id,
+					"title" => $title,
+					"table" => (string)$row["table"],
+					"type" => (string)$row["type"],
+					"is_new_item" => $is_new,
+					"mine" => $mine,
+					"destructive" => true,
+					"fields" => $diff,
+				],
+				"payload" => ["change_id" => $id],
+			];
+		}
+
+		/**
+		 * Apply an approved rejection: drop the queued change and its draft resource
+		 * allocations, exactly as the REST reject route does. Re-checks rights.
+		 *
+		 * @param array<string,mixed> $payload
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 * @throws AuthorizationException
+		 */
+		public function aiRejectChange(array $payload, $user): array {
+			$id = (int)($payload["change_id"] ?? 0);
+			$row = $id > 0 ? SQL::fetch("SELECT * FROM bigtree_pending_changes WHERE id = ?", $id) : null;
+
+			if (!$row) {
+
+				return ["mode" => "error", "message" => "That pending change no longer exists (it may already have been resolved)."];
+			}
+
+			$mine = (int)$row["user"] === (int)(is_object($user) ? $user->id : ($user["id"] ?? 0));
+
+			if (!$mine && !$this->isPublisherFor($user, $row)) {
+				throw new AuthorizationException("Publisher access required to reject someone else's change");
+			}
+
+			SQL::delete("bigtree_pending_changes", $id);
+			// Discard the draft's resource allocations (mirrors legacy reject-change.php).
+			ResourceAllocationService::deallocateResources($row["table"], "p".$id);
+
+			Hooks::fire("pending_change.rejected", [
+				"id" => $id, "table" => (string)$row["table"], "via" => "ai_assistant",
+			]);
+
+			return [
+				"mode" => "rejected",
+				"change_id" => $id,
+				"title" => trim((string)$row["title"]) ?: ("change #{$id}"),
 			];
 		}
 

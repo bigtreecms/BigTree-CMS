@@ -25,6 +25,16 @@
 		 * @param object|array $user
 		 * @return array<string,mixed>
 		 */
+		/**
+		 * The full field list for a module's entry form — type, requiredness, and
+		 * whether the assistant can set each field. Returns denied | error |
+		 * ["ambiguous_form" => true, "forms" => [...]] | ["schema" => [...]].
+		 *
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 */
+		public function aiModuleSchema(string $module_id, string $form_id, $user): array;
+
 		public function aiValidateEntryCreate(array $args, $user): array;
 
 		/**
@@ -59,4 +69,45 @@
 		 * @throws \BigTree\Api\Exceptions\AuthorizationException
 		 */
 		public function aiUpdateEntry(array $payload, $user): array;
+
+		/**
+		 * Validate flipping an entry's archived/featured/approved flag. Publisher-only
+		 * on the row. Returns denied | error | ok+summary+preview+payload.
+		 *
+		 * @param array<string,mixed> $args
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 */
+		public function aiValidateEntryFlag(array $args, $user): array;
+
+		/**
+		 * Apply an approved flag change. Re-checks publisher access on the row.
+		 *
+		 * @param array<string,mixed> $payload
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 * @throws \BigTree\Api\Exceptions\AuthorizationException
+		 */
+		public function aiSetEntryFlag(array $payload, $user): array;
+
+		/**
+		 * Validate permanently deleting an entry. Publisher-only on the row. Returns
+		 * denied | error | ok+summary+preview+payload.
+		 *
+		 * @param array<string,mixed> $args
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 */
+		public function aiValidateEntryDelete(array $args, $user): array;
+
+		/**
+		 * Apply an approved entry delete, deallocating its resources. Re-checks
+		 * publisher access on the row.
+		 *
+		 * @param array<string,mixed> $payload
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 * @throws \BigTree\Api\Exceptions\AuthorizationException
+		 */
+		public function aiDeleteEntry(array $payload, $user): array;
 	}

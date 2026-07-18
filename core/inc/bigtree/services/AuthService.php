@@ -28,6 +28,7 @@
 		const MFA_PARTIAL_TTL = 300;        // 5 min for the 2fa hand-off token
 		const PASSKEY_CHALLENGE_TTL = 300;  // 5 min
 		const RESET_TOKEN_TTL = 3600;       // 1 hour for password-reset links
+		const INVITE_TOKEN_TTL = 604800;    // 7 days for new-account invites (the invitee isn't waiting on the email)
 
 		// — Public endpoint methods —
 
@@ -666,14 +667,7 @@
 			$user = SQL::fetch("SELECT id, email, password FROM bigtree_users WHERE LOWER(email) = ?", $email);
 
 			if ($user) {
-				// Reset hash is unguessable without knowing the existing password hash + a microsecond timestamp.
-				$hash = md5(md5($user["password"]) . md5(uniqid("bigtree-hash" . microtime(true))));
-				// Append an absolute expiry so the link can't be redeemed forever. The
-				// hash is hex, so the "." separator is unambiguous; the whole string is
-				// both stored and emailed so the lookup still matches exactly.
-				$token = $hash . "." . (time() + self::RESET_TOKEN_TTL);
-				SQL::update("bigtree_users", $user["id"], ["change_password_hash" => $token]);
-				$this->sendResetEmail($user["email"], $token);
+				self::issuePasswordToken($user, self::RESET_TOKEN_TTL);
 			}
 
 			// Constant-ish time: don't reveal whether the email was on file.
@@ -853,7 +847,51 @@
 
 		// — Internal helpers —
 
-		private function sendResetEmail($to, $hash) {
+		/**
+		 * Mint a change-password token for a user row, store it, and email the link.
+		 * Shared by the forgot-password flow and the new-account invite.
+		 *
+		 * The hash is unguessable without knowing the stored password hash *and* a
+		 * microsecond timestamp; an absolute expiry is appended so the link can't be
+		 * redeemed forever. The hash is hex, so "." is an unambiguous separator, and
+		 * the whole string is both stored and emailed so the lookup matches exactly.
+		 *
+		 * @param array $user a row with at least id, email, password
+		 */
+		public static function issuePasswordToken(array $user, $ttl) {
+			$hash = md5(md5((string)($user["password"] ?? "")) . md5(uniqid("bigtree-hash" . microtime(true))));
+			$token = $hash . "." . (time() + (int)$ttl);
+			SQL::update("bigtree_users", $user["id"], ["change_password_hash" => $token]);
+			self::sendResetEmail($user["email"], $token);
+
+			return $token;
+		}
+
+		/**
+		 * Send a brand-new account its password-setup link. Returns false (without
+		 * throwing) when the user can't be found or mail delivery fails — creating the
+		 * account is the caller's primary action and must not be undone by a mail
+		 * problem.
+		 */
+		public static function sendAccountInvite($user_id) {
+			$user = SQL::fetch("SELECT id, email, password FROM bigtree_users WHERE id = ?", (int)$user_id);
+
+			if (!$user) {
+
+				return false;
+			}
+
+			try {
+				self::issuePasswordToken($user, self::INVITE_TOKEN_TTL);
+			} catch (\Throwable $e) {
+
+				return false;
+			}
+
+			return true;
+		}
+
+		private static function sendResetEmail($to, $hash) {
 			global $bigtree;
 
 			$site_title = SQL::fetchSingle("SELECT nav_title FROM bigtree_pages WHERE id = 0") ?: "BigTree";
