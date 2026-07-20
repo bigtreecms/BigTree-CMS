@@ -15,6 +15,7 @@
 	use BigTree;
 	use BigTreeCMS;
 	use BigTreeJSONDB;
+	use SQL;
 
 	class TemplateService implements TemplateToolBackend {
 		// Column => transform verb (see FieldSpec). `routed` is create-only and
@@ -349,11 +350,10 @@
 					return ["error" => $type_error];
 				}
 
+				$before = is_array($existing["resources"] ?? null) ? $existing["resources"] : [];
 				$changes["resources"] = $fields;
-				$diff["fields"] = [
-					"from" => count(is_array($existing["resources"] ?? null) ? $existing["resources"] : []),
-					"to" => count($fields),
-				];
+				$diff["fields"] = ["from" => count($before), "to" => count($fields)];
+				$diff = array_merge($diff, $this->aiTemplateFieldDiff($before, $fields, $id));
 			}
 
 			if (!$changes) {
@@ -377,6 +377,105 @@
 					"changes" => $changes,
 				],
 			];
+		}
+
+		/**
+		 * Describe what replacing a template's field list actually does, by name.
+		 *
+		 * The proposal card is the AI user's only view of this change — REST has an
+		 * editing UI showing the full list, this has a summary line. A bare field
+		 * *count* hid the two things that matter: dropping a field orphans its content
+		 * on every page using the template, and the assistant's field input carries no
+		 * validation settings, so a field that was required silently stops being so.
+		 *
+		 * Rendered through the existing `changes` diff shape, so the card needs no
+		 * new preview handling.
+		 *
+		 * @param list<array<string,mixed>> $before
+		 * @param list<array<string,mixed>> $after
+		 * @return array<string,mixed> Extra `changes` rows.
+		 */
+		private function aiTemplateFieldDiff(array $before, array $after, string $template_id): array {
+			$old = $this->aiIndexResources($before);
+			$new = $this->aiIndexResources($after);
+			$added = array_values(array_diff(array_keys($new), array_keys($old)));
+			$removed = array_values(array_diff(array_keys($old), array_keys($new)));
+			$retyped = [];
+			$unrequired = [];
+
+			foreach ($new as $field_id => $field) {
+				if (!isset($old[$field_id])) {
+
+					continue;
+				}
+
+				$old_type = (string)($old[$field_id]["type"] ?? "");
+				$new_type = (string)($field["type"] ?? "");
+
+				if ($old_type !== $new_type) {
+					$retyped[] = "{$field_id} ({$old_type} → {$new_type})";
+				}
+
+				if ($this->aiResourceIsRequired($old[$field_id]) && !$this->aiResourceIsRequired($field)) {
+					$unrequired[] = $field_id;
+				}
+			}
+
+			$rows = [];
+			$page_count = (int)SQL::fetchSingle("SELECT COUNT(*) FROM bigtree_pages WHERE template = ?", $template_id);
+
+			if ($added) {
+				$rows["fields_added"] = implode(", ", $added);
+			}
+
+			if ($removed) {
+				$rows["fields_removed"] = implode(", ", $removed)
+					. ($page_count > 0
+						? " — existing content in " . (count($removed) === 1 ? "this field" : "these fields")
+							. " is orphaned on " . $page_count . " page" . ($page_count === 1 ? "" : "s")
+						: "");
+			}
+
+			if ($retyped) {
+				$rows["fields_retyped"] = implode(", ", $retyped);
+			}
+
+			if ($unrequired) {
+				$rows["no_longer_required"] = implode(", ", $unrequired)
+					. " — the assistant cannot set validation rules, so these lose their required rule";
+			}
+
+			$rows["pages_using_template"] = $page_count;
+
+			return $rows;
+		}
+
+		/**
+		 * @param list<array<string,mixed>> $resources
+		 * @return array<string,array<string,mixed>>
+		 */
+		private function aiIndexResources(array $resources): array {
+			$indexed = [];
+
+			foreach ($resources as $resource) {
+				$id = is_array($resource) ? (string)($resource["id"] ?? "") : "";
+
+				if ($id !== "") {
+					$indexed[$id] = $resource;
+				}
+			}
+
+			return $indexed;
+		}
+
+		/**
+		 * @param array<string,mixed> $resource
+		 */
+		private function aiResourceIsRequired(array $resource): bool {
+			$settings = is_array($resource["settings"] ?? null) ? $resource["settings"] : [];
+			$validation = (string)($settings["validation"] ?? "");
+
+			return in_array("required", preg_split("/\s+/", trim($validation), -1, PREG_SPLIT_NO_EMPTY) ?: [], true);
 		}
 
 		/**

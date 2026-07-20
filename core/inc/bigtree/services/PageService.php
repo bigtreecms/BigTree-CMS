@@ -344,17 +344,33 @@
 			$rank = PermissionService::userPageLevel($user, $parent);
 			$template = trim((string)($args["template"] ?? ""));
 
+			$external = $this->aiNormalizeExternalLink((string)($args["external"] ?? ""));
+
+			if (isset($external["error"])) {
+
+				return $external;
+			}
+
+			$external = $external["url"];
+
 			if ($template !== "") {
 				if (!BigTreeJSONDB::exists("templates", $template)) {
 
 					return ["error" => "Template \"{$template}\" does not exist."];
 				}
-			} else {
-				// No template given. A blank template is only valid for an external
-				// link, which the assistant can't create — so default to the same
-				// template the admin's "Add page" screen would preselect: the first
-				// flexible (non-routed) template, falling back to the first template.
+			} elseif ($external === "") {
+				// No template and no external link. A blank template is only valid for
+				// an external link, so default to the same template the admin's "Add
+				// page" screen would preselect: the first flexible (non-routed)
+				// template, falling back to the first template.
 				$template = $this->aiDefaultTemplate();
+			}
+
+			$link_error = $this->aiAssertLinkOrTemplate($template, $external);
+
+			if ($link_error !== null) {
+
+				return ["error" => $link_error];
 			}
 
 			// Collect the page's content for the template's simple fields. Complex
@@ -362,6 +378,17 @@
 			// rejected if supplied — the assistant never fabricates a file reference.
 			$schema = $this->aiTemplateResourceSchema($template);
 			$provided = is_array($args["content"] ?? null) ? $args["content"] : [];
+
+			// An external link renders nothing of its own, so it has no template and no
+			// content fields. Supplied content would be silently dropped — say so
+			// instead, since the model has clearly misunderstood what it's creating.
+			if ($external !== "" && $provided) {
+
+				return ["error" => "An external link is just a navigation entry pointing at another site, so it has "
+					. "no content of its own. Drop the content to create the link, or drop the external URL and "
+					. "pick a template to create a real page."];
+			}
+
 			$sifted = $this->aiSiftResourceContent($schema, $provided);
 
 			if (isset($sifted["error"])) {
@@ -370,30 +397,13 @@
 			}
 
 			$resources = $sifted["data"];
-			$missing = $this->aiMissingRequiredResources($schema, $resources);
-
-			// A required template field with no content mirrors the "Add page" screen's
-			// own required check — surface the settable fields so the model can fill
-			// them in (or ask the user) and retry, rather than staging an empty page.
-			if ($missing) {
-
-				return ["error" => "The “{$template}” template needs content for these required fields before the page "
-					. "can be created: " . implode(", ", $missing) . ". Settable fields: "
-					. $this->aiDescribeResourceSchema($schema)];
-			}
-
 			$can_publish = PermissionService::isPublisher($user, $rank);
 			$blocked = $this->aiRequiredUnsettableResources($template);
+			$gate = $this->aiPageCreateGate($template, $resources, $can_publish);
 
-			// This template requires content the assistant can't author. A publisher's
-			// approval would put a visibly broken page straight onto the live site, so
-			// refuse; a non-publisher's write only ever lands in the pending queue,
-			// where a human completes it before it goes live — allow that, but say
-			// plainly what will still be missing.
-			if ($blocked && $can_publish) {
+			if ($gate !== null) {
 
-				return ["error" => "The “{$template}” template requires content the assistant can't provide: "
-					. implode(", ", $blocked) . ". Create this page in the admin UI instead."];
+				return ["error" => $gate];
 			}
 
 			$title = trim((string)($args["title"] ?? "")) ?: $nav_title;
@@ -420,12 +430,40 @@
 				return $schedule;
 			}
 
+			// Tagging at create, so "create a page about X and tag it Y" is one
+			// proposal. Same permission split as add_tags: attaching an existing tag is
+			// editor-level, coining a new one is administrator-only. Names (not ids)
+			// are stored and re-checked at approval, exactly as add_tags does.
+			$tags = new TagService();
+			$tag_names = $tags->aiTagNames($args["tags"] ?? []);
+			$new_tags = $tag_names ? $tags->aiNewTagNames($tag_names) : [];
+
+			if ($new_tags && PermissionService::level($user) < 1) {
+
+				return ["denied" => "Only administrators can create new tags. These don't exist yet: "
+					. implode(", ", $new_tags) . ". You can still use tags that already exist."];
+			}
+
+			$open_graph = [];
+
+			foreach (["og_title" => "title", "og_description" => "description"] as $arg => $key) {
+				$value = trim((string)($args[$arg] ?? ""));
+
+				if ($value !== "") {
+					$open_graph[$key] = $value;
+				}
+			}
+
 			$payload = [
 				"parent" => $parent,
 				"nav_title" => $nav_title,
 				"title" => $title,
 				"route" => $route,
 				"template" => $template,
+				"external" => $external,
+				"new_window" => $external !== "" && !empty($args["new_window"]),
+				"tag_names" => $tag_names,
+				"open_graph" => $open_graph,
 				"in_nav" => $in_nav,
 				"meta_description" => $meta_description,
 				"meta_keywords" => $meta_keywords,
@@ -462,6 +500,22 @@
 
 			if ($schedule["expire_at"] !== null) {
 				$preview["expire_at"] = $schedule["expire_at"];
+			}
+
+			if ($external !== "") {
+				$preview["external"] = $external;
+				$preview["new_window"] = $payload["new_window"];
+			}
+
+			if ($tag_names) {
+				$preview["tags"] = $tag_names;
+				$preview["new_tags"] = $new_tags;
+			}
+
+			foreach (["title" => "og_title", "description" => "og_description"] as $key => $preview_key) {
+				if (isset($open_graph[$key])) {
+					$preview[$preview_key] = $open_graph[$key];
+				}
 			}
 
 			$mode_note = $can_publish
@@ -794,6 +848,41 @@
 		}
 
 		/**
+		 * The data-validity gate for creating a page, shared by staging and approval.
+		 *
+		 * A required template field with no content mirrors the "Add page" screen's own
+		 * required check. A template requiring content the assistant can't author is
+		 * refused outright for a publisher (whose approval lands live) but allowed for a
+		 * non-publisher (whose write only reaches the pending queue). That verdict
+		 * depends on rank, and rank can change during a proposal's 24h life, so it is
+		 * re-asked at approval rather than trusted from staging.
+		 *
+		 * @param array<string,mixed> $resources The sifted content.
+		 * @return string|null An error message, or null when the content still passes.
+		 */
+		private function aiPageCreateGate(string $template, array $resources, bool $can_publish): ?string {
+			$schema = $this->aiTemplateResourceSchema($template);
+			$missing = $this->aiMissingRequiredResources($schema, $resources);
+
+			if ($missing) {
+
+				return "The “{$template}” template needs content for these required fields before the page "
+					. "can be created: " . implode(", ", $missing) . ". Settable fields: "
+					. $this->aiDescribeResourceSchema($schema);
+			}
+
+			$blocked = $this->aiRequiredUnsettableResources($template);
+
+			if ($blocked && $can_publish) {
+
+				return "The “{$template}” template requires content the assistant can't provide: "
+					. implode(", ", $blocked) . ". Create this page in the admin UI instead.";
+			}
+
+			return null;
+		}
+
+		/**
 		 * Execute an approved page creation from a stored, validated payload. Re-checks
 		 * permission at approval time and honors the publisher/editor split.
 		 *
@@ -811,6 +900,43 @@
 			$rank = PermissionService::userPageLevel($user, $parent);
 			$can_publish = PermissionService::isPublisher($user, $rank);
 			$nav_title = (string)($payload["nav_title"] ?? "");
+			$template = (string)($payload["template"] ?? "");
+
+			// The template may have been redefined — or the approver's rank raised —
+			// since this was staged. Re-ask both questions before writing.
+			if ($template !== "" && !BigTreeJSONDB::exists("templates", $template)) {
+
+				return ["mode" => "error", "message" => "The “{$template}” template no longer exists."];
+			}
+
+			if ($template !== "") {
+				$gate = $this->aiPageCreateGate(
+					$template,
+					is_array($payload["resources"] ?? null) ? $payload["resources"] : [],
+					$can_publish
+				);
+
+				if ($gate !== null) {
+
+					return ["mode" => "error", "message" => $gate];
+				}
+			}
+
+			// Tags were staged as names. Re-check the admin gate on any still missing —
+			// a tag that existed at staging may have been deleted since — then resolve
+			// to the ids the write path (and the pending-change replay) expects.
+			$tag_names = is_array($payload["tag_names"] ?? null) ? $payload["tag_names"] : [];
+			unset($payload["tag_names"]);
+
+			if ($tag_names) {
+				$tags = new TagService();
+
+				if ($tags->aiNewTagNames($tag_names) && PermissionService::level($user) < 1) {
+					throw new AuthorizationException("Only administrators can create new tags");
+				}
+
+				$payload["tags"] = $tags->aiResolveTagIds($tag_names);
+			}
 
 			if (!$can_publish) {
 				$pending_id = $this->writePendingPageChange($user, "NEW", $parent, $payload);
@@ -834,6 +960,220 @@
 				"page_id" => (int)($page["id"] ?? 0),
 				"path" => "/" . (string)($page["path"] ?? ""),
 			];
+		}
+
+		/**
+		 * A page's saved and automatic revisions, newest first, for the
+		 * get_page_revisions read tool.
+		 *
+		 * "Undo what was just done to this page" had no AI path even though restoring
+		 * is an ordinary page update underneath. Listing needs only view access, the
+		 * same as the admin's own revisions panel.
+		 *
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 */
+		public function aiPageRevisions(int $page_id, int $limit, $user): array {
+			$page = $page_id > 0 ? SQL::fetch("SELECT id, nav_title, title FROM bigtree_pages WHERE id = ?", $page_id) : null;
+
+			if (!$page) {
+
+				return ["error" => "Page {$page_id} does not exist."];
+			}
+
+			if (!PermissionService::userHasPageAccess($user, $page_id, "v")) {
+
+				return ["denied" => "You do not have permission to view this page."];
+			}
+
+			$limit = max(1, min(50, $limit));
+			$rows = SQL::fetchAll(
+				"SELECT r.id, r.title, r.saved, r.saved_description, r.updated_at, r.author, u.name AS author_name
+				 FROM bigtree_page_revisions r
+				 LEFT JOIN bigtree_users u ON u.id = r.author
+				 WHERE r.page = ? ORDER BY r.updated_at DESC, r.id DESC LIMIT " . $limit,
+				$page_id
+			);
+
+			$revisions = [];
+
+			foreach ($rows as $row) {
+				$revisions[] = [
+					"id" => (int)$row["id"],
+					"title" => (string)$row["title"],
+					// A "saved" revision was deliberately kept by a person and carries a
+					// description; the rest are automatic snapshots taken before a write.
+					"saved" => Flag::isOn($row["saved"]),
+					"description" => (string)($row["saved_description"] ?? ""),
+					"updated_at" => $row["updated_at"],
+					"author_name" => $row["author_name"] !== null ? (string)$row["author_name"] : null,
+				];
+			}
+
+			return [
+				"page_id" => $page_id,
+				"page_title" => trim((string)$page["nav_title"]) ?: trim((string)$page["title"]) ?: "page #{$page_id}",
+				"revisions" => $revisions,
+			];
+		}
+
+		/**
+		 * Validate restoring a page revision. Publisher-only, matching the REST route:
+		 * a restore overwrites the live page's content columns outright, so unlike an
+		 * ordinary edit there is no pending-change form of it.
+		 *
+		 * @param array<string,mixed> $args
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 */
+		public function aiValidateRevisionRestore(array $args, $user): array {
+			$page_id = (int)($args["page_id"] ?? 0);
+			$revision_id = (int)($args["revision_id"] ?? 0);
+			$page = $page_id > 0 ? SQL::fetch("SELECT * FROM bigtree_pages WHERE id = ?", $page_id) : null;
+
+			if (!$page) {
+
+				return ["error" => "Page {$page_id} does not exist."];
+			}
+
+			if (!PermissionService::userHasPageAccess($user, $page_id, "e")) {
+
+				return ["denied" => "You do not have permission to edit this page."];
+			}
+
+			$rank = PermissionService::userPageLevel($user, $page_id);
+
+			// A restore replaces live content wholesale; there's no pending-change
+			// equivalent, so an editor can't stage one the way they can an edit.
+			if (!PermissionService::isPublisher($user, $rank)) {
+
+				return ["denied" => "Restoring a revision publishes it to the live page immediately, so it needs "
+					. "publisher access on this page. Ask a publisher to restore it for you."];
+			}
+
+			$revision = $revision_id > 0
+				? SQL::fetch("SELECT * FROM bigtree_page_revisions WHERE id = ? AND page = ?", $revision_id, $page_id)
+				: null;
+
+			if (!$revision) {
+
+				return ["error" => "Revision {$revision_id} does not belong to page {$page_id}. Use "
+					. "get_page_revisions to list the ones that do."];
+			}
+
+			$title = trim((string)$page["nav_title"]) ?: trim((string)$page["title"]) ?: "page #{$page_id}";
+			$description = trim((string)($revision["saved_description"] ?? ""));
+			$diff = [];
+
+			// Show which content columns the restore would actually change, so this
+			// isn't approved blind — a revision that differs in nothing is worth
+			// seeing as such.
+			foreach (self::REVISION_COLUMNS as $column) {
+				$from = (string)($page[$column] ?? "");
+				$to = (string)($revision[$column] ?? "");
+
+				if ($from !== $to) {
+					$diff[$column] = [
+						"from" => $this->aiPreviewScalarValue($from),
+						"to" => $this->aiPreviewScalarValue($to),
+					];
+				}
+			}
+
+			if (!$diff) {
+
+				return ["error" => "That revision is identical to the page's current content — restoring it would "
+					. "change nothing."];
+			}
+
+			return [
+				"ok" => true,
+				"summary" => "Restore “{$title}” to its revision from {$revision["updated_at"]}"
+					. ($description !== "" ? " (“{$description}”)" : "")
+					. ". This replaces the page's current content live. The current version is snapshotted first, "
+					. "so it can be restored back.",
+				"preview" => [
+					"action" => "restore_page_revision",
+					"page_id" => $page_id,
+					"page_title" => $title,
+					"revision_id" => $revision_id,
+					"revision_date" => $revision["updated_at"],
+					"changes" => $diff,
+					"mode" => "published",
+				],
+				"payload" => [
+					"page_id" => $page_id,
+					"revision_id" => $revision_id,
+				],
+			];
+		}
+
+		/**
+		 * Execute an approved revision restore. Re-checks publisher access and that the
+		 * revision still belongs to the page, then reuses the same
+		 * snapshot-then-overwrite the REST restore route does so the restore is itself
+		 * reversible.
+		 *
+		 * @param array<string,mixed> $payload
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 */
+		public function aiRestoreRevision(array $payload, $user): array {
+			$page_id = (int)($payload["page_id"] ?? 0);
+			$revision_id = (int)($payload["revision_id"] ?? 0);
+
+			if (!PermissionService::userHasPageAccess($user, $page_id, "e")) {
+				throw new AuthorizationException("Insufficient page permission to restore a revision (e required)");
+			}
+
+			$rank = PermissionService::userPageLevel($user, $page_id);
+
+			if (!PermissionService::isPublisher($user, $rank)) {
+				throw new AuthorizationException("Publisher access required to restore a page revision");
+			}
+
+			$page = SQL::fetch("SELECT * FROM bigtree_pages WHERE id = ?", $page_id);
+			$revision = $revision_id > 0
+				? SQL::fetch("SELECT * FROM bigtree_page_revisions WHERE id = ? AND page = ?", $revision_id, $page_id)
+				: null;
+
+			if (!$page || !$revision) {
+
+				return ["mode" => "error", "message" => "That page or revision no longer exists."];
+			}
+
+			// Snapshot the current published state first so the restore can be undone,
+			// exactly as the REST route does.
+			$this->insertRevisionSnapshot($page_id, $page, (int)$this->aiUserId($user));
+
+			$update = [];
+
+			foreach (self::REVISION_COLUMNS as $column) {
+				$update[$column] = $revision[$column];
+			}
+
+			$update["last_edited_by"] = $this->aiUserId($user);
+			$update["updated_at"] = "NOW()";
+			SQL::update("bigtree_pages", $page_id, $update);
+			$this->finishPageWrite($page_id, $update, [], [], $page);
+
+			return [
+				"mode" => "restored",
+				"page_id" => $page_id,
+				"revision_id" => $revision_id,
+				"title" => trim((string)$page["nav_title"]) ?: ("page #{$page_id}"),
+			];
+		}
+
+		/**
+		 * The acting user's id, from either the object or array actor shape the AI
+		 * seam is called with.
+		 *
+		 * @param object|array $user
+		 */
+		private function aiUserId($user): int {
+
+			return (int)(is_object($user) ? ($user->id ?? 0) : ($user["id"] ?? 0));
 		}
 
 		/**
@@ -902,6 +1242,137 @@
 		}
 
 		/**
+		 * Normalize publish_at/expire_at for an *edit*, where an explicitly empty value
+		 * means "clear the schedule" rather than "not supplied".
+		 *
+		 * The ordering rule is checked against the page's resulting state: moving only
+		 * publish_at past an existing expire_at is just as broken as supplying both in
+		 * the wrong order.
+		 *
+		 * @param array<string,mixed> $args
+		 * @param array<string,mixed> $page
+		 * @return array{error?:string,publish_at?:string,expire_at?:string}
+		 */
+		private function aiPageScheduleUpdate(array $args, array $page): array {
+			$out = [];
+
+			foreach (["publish_at", "expire_at"] as $field) {
+				if (!array_key_exists($field, $args)) {
+					$out[$field] = (string)($page[$field] ?? "");
+
+					continue;
+				}
+
+				$raw = trim((string)$args[$field]);
+
+				if ($raw === "") {
+					$out[$field] = "";
+
+					continue;
+				}
+
+				$stamp = strtotime($raw);
+
+				if ($stamp === false) {
+
+					return ["error" => "\"{$raw}\" isn't a date I can store for {$field}. Use an explicit date like "
+						. "\"2026-08-01\" or \"2026-08-01 09:00:00\"."];
+				}
+
+				$out[$field] = date("Y-m-d H:i:s", $stamp);
+			}
+
+			if ($out["publish_at"] !== "" && $out["expire_at"] !== "" && $out["expire_at"] <= $out["publish_at"]) {
+
+				return ["error" => "expire_at ({$out["expire_at"]}) must be after publish_at ({$out["publish_at"]})."];
+			}
+
+			return $out;
+		}
+
+		/**
+		 * The scalar Open Graph subset the assistant may set, before and after an edit.
+		 *
+		 * Only title and description: OG images are file references, which the
+		 * assistant never fabricates. syncOpenGraph replaces the whole row, so the
+		 * existing record is loaded and merged — otherwise setting a title would wipe
+		 * an image someone chose in the admin.
+		 *
+		 * @param array<string,mixed> $args
+		 * @param array<string,mixed> $page
+		 * @return array{from:array<string,string>,to:array<string,string>,stored:array<string,mixed>}
+		 */
+		private function aiPageOpenGraph(array $args, array $page): array {
+			$supplied = array_key_exists("og_title", $args) || array_key_exists("og_description", $args);
+
+			// Only read the OG record when an OG field is actually being edited —
+			// otherwise every plain page edit would pay for a query it never uses.
+			$stored = $supplied ? $this->loadOpenGraph((int)$page["id"]) : null;
+			$stored = is_array($stored) ? $stored : [];
+			$from = [
+				"og_title" => (string)($stored["title"] ?? ""),
+				"og_description" => (string)($stored["description"] ?? ""),
+			];
+			$to = $from;
+
+			foreach (["og_title" => "title", "og_description" => "description"] as $arg => $key) {
+				if (array_key_exists($arg, $args)) {
+					$to[$arg] = trim((string)$args[$arg]);
+					$stored[$key] = $to[$arg];
+				}
+			}
+
+			return ["from" => $from, "to" => $to, "stored" => $stored];
+		}
+
+		/**
+		 * Validate a proposed external link. The assistant may only point a nav entry
+		 * at an absolute http(s) URL — anything else (javascript:, data:, a bare word)
+		 * would either not work or be a vector.
+		 *
+		 * @return array{error?:string,url?:string}
+		 */
+		private function aiNormalizeExternalLink(string $raw): array {
+			$url = trim($raw);
+
+			if ($url === "") {
+
+				return ["url" => ""];
+			}
+
+			$scheme = strtolower((string)parse_url($url, PHP_URL_SCHEME));
+
+			if (!in_array($scheme, ["http", "https"], true) || parse_url($url, PHP_URL_HOST) === null) {
+
+				return ["error" => "\"{$raw}\" isn't a link I can store. Use a full URL starting with http:// or https://."];
+			}
+
+			return ["url" => $url];
+		}
+
+		/**
+		 * A page is either rendered by a template or is a nav entry pointing elsewhere.
+		 * A blank template is only legitimate for an external link — that pairing is
+		 * the one case the create path's default-template rule must not apply to.
+		 *
+		 * @return string|null An error message, or null when the pairing is valid.
+		 */
+		private function aiAssertLinkOrTemplate(string $template, string $external): ?string {
+			if ($external !== "" && $template !== "") {
+
+				return "A page is either a normal page with a template or a link to another site, not both. "
+					. "Clear the template to make this a link, or clear the external URL to keep it a page.";
+			}
+
+			if ($external === "" && $template === "") {
+
+				return "This page needs either a template or an external URL — with neither it would render nothing.";
+			}
+
+			return null;
+		}
+
+		/**
 		 * Validate a proposed page edit without writing anything: existence, edit
 		 * access, and (where supplied) template existence. Builds a payload of only the
 		 * fields the model actually changed so approval replays a minimal diff.
@@ -932,10 +1403,29 @@
 
 			// Only the plain content fields the assistant is allowed to touch. Resource
 			// (template field) editing is deliberately out of scope for the assistant.
-			$editable = ["nav_title", "title", "meta_description", "meta_keywords", "in_nav", "seo_invisible", "template", "route"];
+			//
+			// publish_at/expire_at were settable at create but not here, so the
+			// assistant could schedule a page at birth and never change or clear the
+			// schedule afterwards — an asymmetry the model reliably tripped on.
+			$editable = [
+				"nav_title", "title", "meta_description", "meta_keywords", "in_nav", "seo_invisible",
+				"template", "route", "publish_at", "expire_at", "external", "new_window",
+				"og_title", "og_description",
+			];
 			$changes = [];
 			$diff = [];
 			$title_for_error = trim((string)$page["nav_title"]) ?: trim((string)$page["title"]) ?: "page #{$id}";
+
+			// Dates are normalized (and cross-checked against each other, including
+			// against whichever bound isn't being changed) before the per-field loop.
+			$schedule = $this->aiPageScheduleUpdate($args, $page);
+
+			if (isset($schedule["error"])) {
+
+				return $schedule;
+			}
+
+			$open_graph = $this->aiPageOpenGraph($args, $page);
 
 			foreach ($editable as $field) {
 				if (!array_key_exists($field, $args)) {
@@ -967,9 +1457,28 @@
 					}
 				}
 
-				if (in_array($field, ["in_nav", "seo_invisible"], true)) {
+				if ($field === "external") {
+					$external = $this->aiNormalizeExternalLink((string)$args["external"]);
+
+					if (isset($external["error"])) {
+
+						return $external;
+					}
+
+					$args[$field] = $external["url"];
+				}
+
+				if (in_array($field, ["in_nav", "seo_invisible", "new_window"], true)) {
 					$new = (bool)$args[$field];
 					$old = Flag::isOn($page[$field]);
+				} elseif (in_array($field, ["publish_at", "expire_at"], true)) {
+					// "" clears the schedule; the column is nullable, and a null/""
+					// mismatch would otherwise read as a change on every edit.
+					$new = (string)$schedule[$field];
+					$old = (string)($page[$field] ?? "");
+				} elseif (in_array($field, ["og_title", "og_description"], true)) {
+					$new = (string)$open_graph["to"][$field];
+					$old = (string)$open_graph["from"][$field];
 				} else {
 					$new = trim((string)$args[$field]);
 					$old = Sanitize::decodeEntities((string)$page[$field]);
@@ -984,9 +1493,36 @@
 				$diff[$field] = ["from" => $old, "to" => $new];
 			}
 
+			// A page is either templated or an external link — never both. Enforce the
+			// rule against the page's resulting state, not just what was supplied.
+			$link_error = $this->aiAssertLinkOrTemplate(
+				array_key_exists("template", $changes) ? (string)$changes["template"] : (string)$page["template"],
+				array_key_exists("external", $changes) ? (string)$changes["external"] : (string)$page["external"]
+			);
+
+			if ($link_error !== null) {
+
+				return ["error" => $link_error];
+			}
+
 			if (!$changes) {
 
 				return ["error" => "No changes were supplied — nothing to update."];
+			}
+
+			// og_title/og_description are the assistant's flat spelling of one JSON
+			// record; collapse them into the single `open_graph` key the write path
+			// (and the pending-change replay) understands.
+			if (isset($changes["og_title"]) || isset($changes["og_description"])) {
+				unset($changes["og_title"], $changes["og_description"]);
+				$changes["open_graph"] = $open_graph["stored"];
+			}
+
+			// Nullable datetime columns: "" would store as the zero date.
+			foreach (["publish_at", "expire_at"] as $field) {
+				if (array_key_exists($field, $changes) && $changes[$field] === "") {
+					$changes[$field] = null;
+				}
 			}
 
 			$rank = PermissionService::userPageLevel($user, $id);
@@ -1087,35 +1623,17 @@
 					. "template. Settable fields: " . $this->aiDescribeResourceSchema($schema)];
 			}
 
-			$existing = Json::decode($page["resources"] ?? "");
-			$existing = is_array($existing) ? $existing : [];
-
-			// Merge, so an edit to one field doesn't blank every other field the page
-			// carries — including the complex ones the assistant can't even see.
-			$resources = array_merge($existing, $changed);
-			$missing = $this->aiMissingRequiredResources($schema, $resources);
-
-			if ($missing) {
-
-				return ["error" => "The “{$template}” template needs content for these required fields: "
-					. implode(", ", $missing) . "."];
-			}
-
 			$rank = PermissionService::userPageLevel($user, $id);
 			$can_publish = PermissionService::isPublisher($user, $rank);
+			$merged = $this->aiMergePageContent($page, $changed, $template, $title, $can_publish);
 
-			// A template switch can still strand required content the assistant can't
-			// author — allow it only when the merged result actually satisfies it.
-			if ($template !== $current_template) {
-				$blocked = $this->aiRequiredUnsettableResources($template, $resources);
+			if (isset($merged["error"])) {
 
-				if ($blocked && $can_publish) {
-
-					return ["error" => "Switching “{$title}” to the “{$template}” template would leave required "
-						. "content empty: " . implode(", ", $blocked) . ". Make this change in the admin UI."];
-				}
+				return $merged;
 			}
 
+			$existing = $merged["existing"];
+			$blocked = $merged["blocked"];
 			$diff = [];
 
 			foreach ($changed as $field_id => $value) {
@@ -1130,39 +1648,115 @@
 			$mode_note = $can_publish
 				? " It will be published live once you approve."
 				: " It will be queued as a pending change for a publisher to review.";
+
+			// A non-publisher is allowed to stage a template switch that strands
+			// required content, because the result only ever lands in the pending
+			// queue — but say so plainly, the way the entry tools do, so neither the
+			// approver nor the publisher working the queue is surprised by a page
+			// that can't go live as-is.
+			if ($blocked) {
+				$mode_note .= " Note that " . implode(", ", $blocked)
+					. " " . (count($blocked) === 1 ? "is required but cannot" : "are required but cannot")
+					. " be set by the assistant — a publisher must fill "
+					. (count($blocked) === 1 ? "it" : "them") . " in before this page can go live.";
+			}
+
 			$switch_note = $template !== $current_template
 				? " The page will also switch from the “{$current_template}” template to “{$template}”."
 				: "";
 
+			// Store only the fields the assistant is changing, not the merged blob: the
+			// merge is redone at approval against whatever the page holds then, so an
+			// edit made during the proposal's TTL isn't reverted. See aiUpdatePageContent.
 			$payload = [
 				"id" => $id,
-				"resources" => $resources,
+				"content" => $changed,
 			];
 
 			if ($template !== $current_template) {
 				$payload["template"] = $template;
 			}
 
+			$preview = [
+				"action" => "update_page_content",
+				"page_id" => $id,
+				"page_title" => $title,
+				"template" => $template,
+				"template_changed" => $template !== $current_template,
+				"fields" => $diff,
+				"mode" => $can_publish ? "published" : "pending",
+			];
+
+			if ($blocked) {
+				$preview["incomplete_required"] = $blocked;
+			}
+
 			return [
 				"ok" => true,
 				"summary" => "Update the content of “{$title}” (" . count($changed) . " field"
 					. (count($changed) === 1 ? "" : "s") . ")." . $switch_note . $mode_note,
-				"preview" => [
-					"action" => "update_page_content",
-					"page_id" => $id,
-					"page_title" => $title,
-					"template" => $template,
-					"template_changed" => $template !== $current_template,
-					"fields" => $diff,
-					"mode" => $can_publish ? "published" : "pending",
-				],
+				"preview" => $preview,
 				"payload" => $payload,
 			];
 		}
 
 		/**
-		 * Execute an approved page-content edit. Re-checks edit access, then reuses the
-		 * same performUpdate / pending-change split every other page write uses.
+		 * Merge an assistant's changed content fields onto a page's current resources
+		 * and re-run the content-validity gates on the result. Shared by staging and
+		 * approval so both see the same rules; approval passes the page as it stands at
+		 * approval time, which is the whole point of re-merging there.
+		 *
+		 * Returns ["error" => string] when the merged result isn't valid, otherwise the
+		 * merged resources, the pre-merge values (for diffing) and any required fields
+		 * left empty that the assistant cannot author.
+		 *
+		 * @param array<string,mixed> $page     The page row.
+		 * @param array<string,mixed> $changed  Sifted, settable fields only.
+		 * @return array{error?:string,resources?:array<string,mixed>,existing?:array<string,mixed>,blocked?:list<string>}
+		 */
+		private function aiMergePageContent(array $page, array $changed, string $template, string $title, bool $can_publish): array {
+			$current_template = (string)$page["template"];
+			$schema = $this->aiTemplateResourceSchema($template);
+			$existing = Json::decode($page["resources"] ?? "");
+			$existing = is_array($existing) ? $existing : [];
+
+			// Merge, so an edit to one field doesn't blank every other field the page
+			// carries — including the complex ones the assistant can't even see.
+			$resources = array_merge($existing, $changed);
+			$missing = $this->aiMissingRequiredResources($schema, $resources);
+
+			if ($missing) {
+
+				return ["error" => "The “{$template}” template needs content for these required fields: "
+					. implode(", ", $missing) . "."];
+			}
+
+			$blocked = [];
+
+			// A template switch can still strand required content the assistant can't
+			// author — allow it only when the merged result actually satisfies it.
+			if ($template !== $current_template) {
+				$blocked = $this->aiRequiredUnsettableResources($template, $resources);
+
+				if ($blocked && $can_publish) {
+
+					return ["error" => "Switching “{$title}” to the “{$template}” template would leave required "
+						. "content empty: " . implode(", ", $blocked) . ". Make this change in the admin UI."];
+				}
+			}
+
+			return ["resources" => $resources, "existing" => $existing, "blocked" => $blocked];
+		}
+
+		/**
+		 * Execute an approved page-content edit. Re-checks edit access, re-merges the
+		 * proposal's changed fields onto the page's *current* resources, re-runs the
+		 * content gates on the result, then reuses the same performUpdate /
+		 * pending-change split every other page write uses.
+		 *
+		 * The re-merge matters because proposals live up to 24h: merging at staging time
+		 * and writing the snapshot here would silently revert any edit made to the page
+		 * in between — including fields the assistant never touched.
 		 *
 		 * @param array<string,mixed> $payload
 		 * @param object|array $user
@@ -1182,21 +1776,37 @@
 				return ["mode" => "error", "message" => "Page no longer exists."];
 			}
 
-			$changes = ["resources" => is_array($payload["resources"] ?? null) ? $payload["resources"] : []];
-
-			if (!empty($payload["template"])) {
-				$changes["template"] = (string)$payload["template"];
-			}
-
 			$rank = PermissionService::userPageLevel($user, $id);
 			$can_publish = PermissionService::isPublisher($user, $rank);
 			$title = trim((string)$page["nav_title"]) ?: ("page #{$id}");
+			$template = !empty($payload["template"]) ? (string)$payload["template"] : (string)$page["template"];
+			$changed = is_array($payload["content"] ?? null) ? $payload["content"] : [];
+
+			// The template may have been redefined, or the page re-templated, since
+			// staging; re-check it still exists before merging against its schema.
+			if ($template !== (string)$page["template"] && !BigTreeJSONDB::exists("templates", $template)) {
+
+				return ["mode" => "error", "message" => "The “{$template}” template no longer exists."];
+			}
+
+			$merged = $this->aiMergePageContent($page, $changed, $template, $title, $can_publish);
+
+			if (isset($merged["error"])) {
+
+				return ["mode" => "error", "message" => $merged["error"]];
+			}
+
+			$changes = ["resources" => $merged["resources"]];
+
+			if ($template !== (string)$page["template"]) {
+				$changes["template"] = $template;
+			}
 
 			if (!$can_publish) {
 				$pending_id = $this->writePendingPageChange($user, "EDIT", $id, $changes);
 
 				Hooks::fire("page.pending_updated", [
-					"page" => $id, "pending_change_id" => (int)$pending_id, "via" => "ai_assistant",
+					"id" => $id, "pending_change_id" => (int)$pending_id, "via" => "ai_assistant",
 				]);
 
 				return ["mode" => "pending", "page_id" => $id, "title" => $title, "pending_change_id" => (int)$pending_id];
@@ -1248,6 +1858,26 @@
 			$rank = PermissionService::userPageLevel($user, $id);
 			$can_publish = PermissionService::isPublisher($user, $rank);
 			$title = trim((string)$page["nav_title"]) ?: ("page #{$id}");
+
+			// The template-switch gap check ran at staging only. A template redefined
+			// during the proposal's 24h life — or a page whose content changed since —
+			// could now be switched into a broken state, so re-ask before writing.
+			$template = (string)($changes["template"] ?? "");
+
+			if ($template !== "" && $template !== (string)$page["template"]) {
+				if (!BigTreeJSONDB::exists("templates", $template)) {
+
+					return ["mode" => "error", "message" => "The “{$template}” template no longer exists."];
+				}
+
+				$unmet = $this->aiTemplateSwitchGaps($template, $page);
+
+				if ($unmet) {
+
+					return ["mode" => "error", "message" => "Switching “{$title}” to the “{$template}” template would now "
+						. "leave its required content empty: " . implode(", ", $unmet) . "."];
+				}
+			}
 
 			if (!$can_publish) {
 				$pending_id = $this->writePendingPageChange($user, "EDIT", $id, $changes);
@@ -1876,12 +2506,14 @@
 				$update["resources"] = json_encode($d["resources"]);
 			}
 
-			if (isset($d["publish_at"])) {
-				$update["publish_at"] = $d["publish_at"];
+			// array_key_exists, not isset: an explicit null is how a caller clears a
+			// schedule, and the columns are nullable.
+			if (array_key_exists("publish_at", $d)) {
+				$update["publish_at"] = $d["publish_at"] !== "" ? $d["publish_at"] : null;
 			}
 
-			if (isset($d["expire_at"])) {
-				$update["expire_at"] = $d["expire_at"];
+			if (array_key_exists("expire_at", $d)) {
+				$update["expire_at"] = $d["expire_at"] !== "" ? $d["expire_at"] : null;
 			}
 
 			if (isset($d["max_age"])) {

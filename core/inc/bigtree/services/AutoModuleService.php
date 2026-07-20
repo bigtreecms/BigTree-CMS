@@ -1057,27 +1057,15 @@
 			}
 
 			$data = $sifted["data"];
-			$missing = $this->aiMissingRequired($schema, $data);
-
-			if ($missing) {
-
-				return ["error" => "These required fields are missing: " . implode(", ", $missing) . "."];
-			}
-
 			$rank = PermissionService::userModuleLevel($user, $module["id"]);
 			$can_publish = PermissionService::isPublisher($user, $rank);
 			$name = (string)($module["name"] ?? $module["id"]);
 			$blocked = $resolved["blocked_required"];
+			$gate = $this->aiEntryCreateGate($resolved, $data, $can_publish);
 
-			// This form requires at least one field the assistant can't author. A
-			// publisher's approval would put an incomplete record straight onto the
-			// live site, so refuse; a non-publisher's write only ever lands in the
-			// pending queue, where a human completes it before it goes live — allow
-			// that, but say plainly what will still be missing.
-			if ($blocked && $can_publish) {
+			if ($gate !== null) {
 
-				return ["error" => "This module requires fields the assistant can't fill in: "
-					. implode(", ", $blocked) . ". Create this entry in the admin UI instead."];
+				return ["error" => $gate];
 			}
 
 			$mode_note = $can_publish
@@ -1108,10 +1096,99 @@
 				"preview" => $preview,
 				"payload" => [
 					"module_id" => (string)$module["id"],
+					"form" => (string)($resolved["form"]["id"] ?? ""),
 					"table" => $table,
 					"data" => $data,
 				],
 			];
+		}
+
+		/**
+		 * Resolve an AI-supplied entry id, which may address a pending ("p"-prefixed)
+		 * draft rather than a live row.
+		 *
+		 * The assistant's own editor-level creates land in the pending queue, so
+		 * without this the assistant could create a draft and then be unable to fix it
+		 * — "actually, change the phone number on that draft" had no path, and the id
+		 * scheme was invisible to the model so it couldn't explain why. REST has
+		 * addressed pending entries all along (see parseEntryId / requireEditableEntry);
+		 * this is the same addressing for the tool seam, minus the exceptions.
+		 *
+		 * @return array{error?:string,is_pending?:bool,lookup_id?:string,change_id?:int,row?:array<string,mixed>}
+		 */
+		private function aiResolveEntryRow(string $table, string $raw): array {
+			$raw = trim($raw);
+
+			if ($raw === "") {
+
+				return ["error" => "An entry_id is required."];
+			}
+
+			if (strlen($raw) > 1 && $raw[0] === "p" && ctype_digit(substr($raw, 1))) {
+				$is_pending = true;
+				$lookup_id = $raw;
+				$change_id = (int)substr($raw, 1);
+			} elseif (ctype_digit($raw) && (int)$raw > 0) {
+				$is_pending = false;
+				$lookup_id = (string)(int)$raw;
+				$change_id = 0;
+			} else {
+
+				return ["error" => "\"{$raw}\" isn't an entry id. Use the numeric id of a live entry, or a "
+					. "\"p\"-prefixed id (like \"p12\") for an entry that is still an unpublished draft."];
+			}
+
+			// Only a draft is read through getPendingItem. For a live id it would
+			// overlay any outstanding draft onto the published row, and every caller
+			// here acts on the *published* row: the proposal diff would show the
+			// draft's values as its "from", set_module_entry_flag would read the
+			// draft's flag while writing the live column, and — worst — the per-row
+			// GBP check would run against an unpublished group value, granting access
+			// the published row doesn't.
+			$item = $is_pending
+				? BigTreeAutoModule::getPendingItem($table, $lookup_id)
+				: BigTreeAutoModule::getItem($table, (int)$lookup_id);
+			$row = is_array($item) ? ($item["item"] ?? []) : [];
+
+			if (!$row) {
+
+				return ["error" => "Entry {$raw} does not exist in this module."];
+			}
+
+			return ["is_pending" => $is_pending, "lookup_id" => $lookup_id, "change_id" => $change_id, "row" => $row];
+		}
+
+		/**
+		 * The data-validity gate for creating an entry, shared by staging and approval.
+		 *
+		 * A publisher's write lands straight on the live site, so a form requiring a
+		 * field the assistant can't author must be refused outright; a non-publisher's
+		 * write only ever reaches the pending queue, where a human completes it, so
+		 * that is allowed (and called out in the summary). Because the verdict depends
+		 * on the user's rank, and rank can change during a proposal's 24h life, it has
+		 * to be re-asked at approval rather than trusted from staging.
+		 *
+		 * @param array<string,mixed> $resolved The aiResolveModuleForm result.
+		 * @param array<string,mixed> $data
+		 * @return string|null An error message, or null when the data still passes.
+		 */
+		private function aiEntryCreateGate(array $resolved, array $data, bool $can_publish): ?string {
+			$missing = $this->aiMissingRequired($resolved["schema"], $data);
+
+			if ($missing) {
+
+				return "These required fields are missing: " . implode(", ", $missing) . ".";
+			}
+
+			$blocked = is_array($resolved["blocked_required"] ?? null) ? $resolved["blocked_required"] : [];
+
+			if ($blocked && $can_publish) {
+
+				return "This module requires fields the assistant can't fill in: "
+					. implode(", ", $blocked) . ". Create this entry in the admin UI instead.";
+			}
+
+			return null;
 		}
 
 		/**
@@ -1142,6 +1219,25 @@
 
 			$rank = PermissionService::userModuleLevel($user, $module_id);
 			$can_publish = PermissionService::isPublisher($user, $rank);
+
+			// Re-run the content gate against the approver's *current* rank and the
+			// form as it stands now. Staging may have allowed this as a pending draft
+			// for an editor; if their rank was raised since, approving it would publish
+			// an incomplete record live — refuse instead.
+			$resolved = $this->aiResolveModuleForm($module_id, (string)($payload["form"] ?? ""));
+
+			if (isset($resolved["error"]) || !empty($resolved["ambiguous_form"])) {
+
+				return ["mode" => "error", "message" => "This module's forms have changed since this was proposed — ask again."];
+			}
+
+			$gate = $this->aiEntryCreateGate($resolved, $data, $can_publish);
+
+			if ($gate !== null) {
+
+				return ["mode" => "error", "message" => $gate];
+			}
+
 			$this->bindLegacyAdmin($user);
 
 			if ($can_publish) {
@@ -1181,9 +1277,9 @@
 			$table = $resolved["table"];
 			$schema = $resolved["schema"];
 
-			$entry_id = (int)($args["entry_id"] ?? 0);
+			$entry_id = trim((string)($args["entry_id"] ?? ""));
 
-			if ($entry_id < 1) {
+			if ($entry_id === "") {
 
 				return ["error" => "An entry_id is required to edit a module entry."];
 			}
@@ -1193,13 +1289,15 @@
 				return ["denied" => "You do not have permission to edit entries in this module."];
 			}
 
-			$item = BigTreeAutoModule::getItem($table, $entry_id);
-			$row = is_array($item) ? ($item["item"] ?? []) : [];
+			$resolved_entry = $this->aiResolveEntryRow($table, $entry_id);
 
-			if (!$row) {
+			if (isset($resolved_entry["error"])) {
 
-				return ["error" => "Entry {$entry_id} does not exist in this module."];
+				return $resolved_entry;
 			}
+
+			$row = $resolved_entry["row"];
+			$is_pending = $resolved_entry["is_pending"];
 
 			// Per-row group-based-permission check (assertCanEditRow's non-throwing core).
 			if (PermissionService::userRowLevel($user, $module, $row) === "n") {
@@ -1233,22 +1331,33 @@
 			$can_publish = PermissionService::isPublisher($user, $rank);
 			$name = (string)($module["name"] ?? $module["id"]);
 
-			$mode_note = $can_publish
-				? " It will be published live once you approve."
-				: " It will be queued as a pending change for a publisher to review.";
+			// A draft has no live row to publish over: the edit amends the queued
+			// change itself, whoever approves it. Saying "published live" there would
+			// be a lie, so the note is different.
+			if ($is_pending) {
+				$mode_note = " It will update the existing draft, which still needs a publisher to approve it.";
+			} else {
+				$mode_note = $can_publish
+					? " It will be published live once you approve."
+					: " It will be queued as a pending change for a publisher to review.";
+			}
+
+			$label = $is_pending ? "draft {$entry_id}" : "entry #{$entry_id}";
 
 			return [
 				"ok" => true,
-				"summary" => "Update entry #{$entry_id} in the “{$name}” module." . $mode_note,
+				"summary" => "Update {$label} in the “{$name}” module." . $mode_note,
 				"preview" => [
 					"action" => "update_module_entry",
 					"module" => $name,
 					"entry_id" => $entry_id,
+					"is_draft" => $is_pending,
 					"fields" => $this->aiPreviewEntryData($schema, $data, $row),
-					"mode" => $can_publish ? "published" : "pending",
+					"mode" => $is_pending ? "pending" : ($can_publish ? "published" : "pending"),
 				],
 				"payload" => [
 					"module_id" => (string)$module["id"],
+					"form" => (string)($resolved["form"]["id"] ?? ""),
 					"table" => $table,
 					"entry_id" => $entry_id,
 					"data" => $data,
@@ -1264,7 +1373,7 @@
 		public function aiUpdateEntry(array $payload, $user): array {
 			$module_id = (string)($payload["module_id"] ?? "");
 			$table = (string)($payload["table"] ?? "");
-			$entry_id = (int)($payload["entry_id"] ?? 0);
+			$raw_entry_id = trim((string)($payload["entry_id"] ?? ""));
 			$data = is_array($payload["data"] ?? null) ? $payload["data"] : [];
 
 			if (!PermissionService::userHasModuleAccess($user, $module_id, "e")) {
@@ -1272,24 +1381,41 @@
 			}
 
 			$module = BigTreeJSONDB::get("modules", $module_id);
-			$item = BigTreeAutoModule::getItem($table, $entry_id);
-			$row = is_array($item) ? ($item["item"] ?? []) : [];
+			$resolved_entry = $this->aiResolveEntryRow($table, $raw_entry_id);
 
-			if (!$module || !$row) {
+			if (!$module || isset($resolved_entry["error"])) {
 
 				return ["mode" => "error", "message" => "That entry no longer exists."];
 			}
+
+			$row = $resolved_entry["row"];
+			$is_pending = $resolved_entry["is_pending"];
+			$entry_id = $is_pending ? $raw_entry_id : (int)$raw_entry_id;
 
 			PermissionService::assertCanEditRow($user, $module, $row);
 
 			// Same derived-field pass as create, but the route is only regenerated
 			// when one of its source columns is among the fields being changed —
-			// otherwise an unrelated edit would silently re-route the entry.
-			$this->aiApplyEntryProcessors($module, $table, $data, $row, $entry_id);
+			// otherwise an unrelated edit would silently re-route the entry. A draft
+			// has no live row, so nothing is excluded from the uniqueness check.
+			$this->aiApplyEntryProcessors($module, $table, $data, $row, $is_pending ? 0 : (int)$entry_id);
 
 			$rank = PermissionService::userModuleLevel($user, $module_id);
 			$can_publish = PermissionService::isPublisher($user, $rank);
 			$this->bindLegacyAdmin($user);
+
+			// A draft only exists in the pending queue — there is nothing to publish
+			// over, so even a publisher's edit amends the queued change. submitChange
+			// understands the "p" prefix and updates that row in place.
+			if ($is_pending) {
+				BigTreeAutoModule::submitChange($module_id, $table, $entry_id, $data, [], [], null, []);
+				$this->trackModuleResources($table, $entry_id, $data);
+				Hooks::fire("module_entry.pending_updated", [
+					"module" => $module_id, "table" => $table, "id" => $entry_id, "via" => "ai_assistant",
+				]);
+
+				return ["mode" => "pending", "module" => $module_id, "entry_id" => $entry_id];
+			}
 
 			if ($can_publish) {
 				// Drop any outstanding draft's allocations before re-scanning the live row.
@@ -1359,6 +1485,14 @@
 			$table = $resolved["table"];
 			$entry_id = $resolved["entry_id"];
 			$row = $resolved["row"];
+
+			// Flags live on the published row. An unpublished draft has none, so the
+			// flag would have nothing to write to — say that rather than failing later.
+			if (!empty($resolved["is_pending"])) {
+
+				return ["error" => "{$entry_id} is still an unpublished draft, so it has no {$flag} flag yet. "
+					. "It has to be published before its flags can be changed."];
+			}
 
 			// Not every module table carries all three legacy flag columns; setting one
 			// that doesn't exist would fail at the UPDATE with an opaque SQL error.
@@ -1485,20 +1619,30 @@
 
 			$name = (string)($module["name"] ?? $module["id"]);
 			$label = $this->aiEntryLabel($row, $entry_id);
+			$is_pending = !empty($resolved["is_pending"]);
+
+			// Discarding an unpublished draft removes only the queued change; nothing
+			// was ever live, so it isn't the same act as deleting a published entry.
+			$summary = $is_pending
+				? "Discard the unpublished draft “{$label}” ({$entry_id}) in the “{$name}” module. "
+					. "Nothing was published, so only the draft is removed."
+				: "Permanently delete “{$label}” (entry #{$entry_id}) from the “{$name}” module. "
+					. "This cannot be undone.";
 
 			return [
 				"ok" => true,
-				"summary" => "Permanently delete “{$label}” (entry #{$entry_id}) from the “{$name}” module. "
-					. "This cannot be undone.",
+				"summary" => $summary,
 				"preview" => [
 					"action" => "delete_module_entry",
 					"module" => $name,
 					"entry_id" => $entry_id,
 					"entry" => $label,
+					"is_draft" => $is_pending,
 					"destructive" => true,
 				],
 				"payload" => [
 					"module_id" => (string)$module["id"],
+					"form" => (string)($resolved["form"] ?? ""),
 					"table" => $resolved["table"],
 					"entry_id" => $entry_id,
 				],
@@ -1516,22 +1660,38 @@
 		public function aiDeleteEntry(array $payload, $user): array {
 			$module_id = (string)($payload["module_id"] ?? "");
 			$table = (string)($payload["table"] ?? "");
-			$entry_id = (int)($payload["entry_id"] ?? 0);
+			$raw_entry_id = trim((string)($payload["entry_id"] ?? ""));
 
 			$module = BigTreeJSONDB::get("modules", $module_id);
-			$item = BigTreeAutoModule::getItem($table, $entry_id);
-			$row = is_array($item) ? ($item["item"] ?? []) : [];
+			$resolved_entry = $this->aiResolveEntryRow($table, $raw_entry_id);
 
-			if (!$module || !$row) {
+			if (!$module || isset($resolved_entry["error"])) {
 
 				return ["mode" => "error", "message" => "That entry no longer exists (it may already have been deleted)."];
 			}
+
+			$row = $resolved_entry["row"];
 
 			if (PermissionService::userRowLevel($user, $module, $row) !== "p") {
 				throw new AuthorizationException("Publisher access required to delete an entry");
 			}
 
 			$this->bindLegacyAdmin($user);
+
+			// An unpublished draft exists only as a queued change: drop that row and
+			// its draft allocations. There is no live entry to delete.
+			if ($resolved_entry["is_pending"]) {
+				$change_id = (int)$resolved_entry["change_id"];
+				SQL::delete("bigtree_pending_changes", $change_id);
+				ResourceAllocationService::deallocateResources($table, "p".$change_id);
+				Hooks::fire("module_entry.draft_discarded", [
+					"module" => $module_id, "table" => $table, "id" => $raw_entry_id, "via" => "ai_assistant",
+				]);
+
+				return ["mode" => "deleted", "module" => $module_id, "entry_id" => $raw_entry_id];
+			}
+
+			$entry_id = (int)$raw_entry_id;
 			BigTreeAutoModule::deleteItem($table, $entry_id);
 			ResourceAllocationService::deallocateResources($table, $entry_id);
 
@@ -1570,9 +1730,9 @@
 
 			$module = $resolved["module"];
 			$table = $resolved["table"];
-			$entry_id = (int)($args["entry_id"] ?? 0);
+			$raw_entry_id = trim((string)($args["entry_id"] ?? ""));
 
-			if ($entry_id < 1) {
+			if ($raw_entry_id === "") {
 
 				return ["error" => "An entry_id is required."];
 			}
@@ -1582,15 +1742,24 @@
 				return ["denied" => "You do not have permission to change entries in this module."];
 			}
 
-			$item = BigTreeAutoModule::getItem($table, $entry_id);
-			$row = is_array($item) ? ($item["item"] ?? []) : [];
+			$entry = $this->aiResolveEntryRow($table, $raw_entry_id);
 
-			if (!$row) {
+			if (isset($entry["error"])) {
 
-				return ["error" => "Entry {$entry_id} does not exist in this module."];
+				return $entry;
 			}
 
-			return ["module" => $module, "table" => $table, "entry_id" => $entry_id, "row" => $row];
+			// Live rows keep their integer id (callers pass it to SQL); a draft keeps
+			// its "p"-prefixed string, which is what the pending-change APIs address.
+			return [
+				"module" => $module,
+				"table" => $table,
+				"form" => (string)($resolved["form"]["id"] ?? ""),
+				"entry_id" => $entry["is_pending"] ? $entry["lookup_id"] : (int)$entry["lookup_id"],
+				"is_pending" => $entry["is_pending"],
+				"change_id" => $entry["change_id"],
+				"row" => $entry["row"],
+			];
 		}
 
 		/**
@@ -1599,8 +1768,9 @@
 		 * knowing what #418 is would be approving blind.
 		 *
 		 * @param array<string,mixed> $row
+		 * @param int|string $entry_id A live row id, or a "p"-prefixed draft id.
 		 */
-		private function aiEntryLabel(array $row, int $entry_id): string {
+		private function aiEntryLabel(array $row, $entry_id): string {
 			foreach (["title", "name", "headline", "nav_title", "subject"] as $column) {
 				$value = trim((string)($row[$column] ?? ""));
 
@@ -1616,11 +1786,17 @@
 		/**
 		 * Resolve a module id to its record, default form table, and the AI-settable
 		 * field schema. Returns ["error" => string] when the module or a usable form
-		 * can't be found.
+		 * can't be found, or ["ambiguous_form" => true, "forms" => [...]] when the
+		 * module has several forms and the caller didn't say which — the tools turn
+		 * that into a needs_input question rather than guessing a table.
+		 *
+		 * Public so the tag tools can route through the same resolution: they write a
+		 * relation keyed on the form's table, so picking the first form there would
+		 * attach tags to a table the entry doesn't live in.
 		 *
 		 * @return array<string,mixed>
 		 */
-		private function aiResolveModuleForm(string $module_id, string $form_id = ""): array {
+		public function aiResolveModuleForm(string $module_id, string $form_id = ""): array {
 			if ($module_id === "") {
 
 				return ["error" => "A module_id is required."];

@@ -7,7 +7,9 @@
 
 	/**
 	 * Two-phase edit of an existing page's plain content fields (nav title, page
-	 * title, meta description/keywords, navigation visibility, template, route).
+	 * title, meta description/keywords, navigation visibility, template, route,
+	 * publish/expire scheduling, external-link target, and the scalar Open Graph
+	 * fields).
 	 *
 	 * Like every mutating tool it writes nothing during the turn: it validates the
 	 * requested change against the live page and the user's edit access, stages a
@@ -75,6 +77,35 @@
 						"route" => [
 							"type" => "string",
 							"description" => "New URL route segment for the page.",
+						],
+						"publish_at" => [
+							"type" => "string",
+							"description" => "Date the page should go live, e.g. \"2026-08-01\" or "
+								. "\"2026-08-01 09:00:00\". Pass an empty string to clear the scheduled date.",
+						],
+						"expire_at" => [
+							"type" => "string",
+							"description" => "Date the page should stop being published. Must be after publish_at. "
+								. "Pass an empty string to clear it.",
+						],
+						"external" => [
+							"type" => "string",
+							"description" => "Make this a navigation link to another site: a full http:// or https:// "
+								. "URL. A page is either a normal page with a template or an external link, never "
+								. "both — clear the template when setting this. Pass an empty string to turn a link "
+								. "back into a normal page (you must supply a template in the same edit).",
+						],
+						"new_window" => [
+							"type" => "boolean",
+							"description" => "For an external link, whether it opens in a new window.",
+						],
+						"og_title" => [
+							"type" => "string",
+							"description" => "Open Graph (social sharing) title. Empty string clears it.",
+						],
+						"og_description" => [
+							"type" => "string",
+							"description" => "Open Graph (social sharing) description. Empty string clears it.",
 						],
 					],
 					"required" => ["id"],

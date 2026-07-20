@@ -179,6 +179,107 @@
 		}
 	}
 
+	/**
+	 * A2: proposals live up to 24h. The merge must happen at approval, against the
+	 * page as it stands then — not at staging, which would write a stale snapshot
+	 * over any edit made in between, including fields the assistant never touched.
+	 */
+	function test_parity_ai_page_content_approval_keeps_interim_edits() {
+		if (!parity_db_available()) {
+			return;
+		}
+
+		$required = parity_ai_content_required();
+
+		if (count($required) < 2) {
+			echo "  (skipped — needs a template with two required simple fields)\n";
+
+			return;
+		}
+
+		$svc = new PageService();
+		$dev_id = parity_seed_user(["level" => 2]);
+		$user = (object)["id" => $dev_id, "level" => 2, "permissions" => []];
+		$page_id = 0;
+
+		try {
+			$page_id = parity_ai_content_page($svc, $user, "content", array_fill_keys($required, "<p>Original</p>"));
+			T::ok($page_id > 0, "fixture page created");
+
+			// Stage a change to field A…
+			$validated = $svc->aiValidatePageContentUpdate([
+				"id" => $page_id,
+				"content" => [$required[0] => "<p>Assistant's edit</p>"],
+			], $user);
+			T::ok(!empty($validated["ok"]), "content update validated");
+
+			// …then someone edits field B directly, the way a human in the admin would.
+			$interim = json_decode((string)SQL::fetchSingle("SELECT resources FROM bigtree_pages WHERE id = ?", $page_id), true);
+			$interim[$required[1]] = "<p>Someone else's edit</p>";
+			SQL::update("bigtree_pages", $page_id, ["resources" => json_encode($interim)]);
+
+			$result = $svc->aiUpdatePageContent($validated["payload"], $user);
+			T::equals($result["mode"], "published", "approval still writes live");
+
+			$stored = json_decode((string)SQL::fetchSingle("SELECT resources FROM bigtree_pages WHERE id = ?", $page_id), true);
+			T::equals($stored[$required[0]] ?? null, "<p>Assistant's edit</p>", "the proposed field was applied");
+			T::equals($stored[$required[1]] ?? null, "<p>Someone else's edit</p>", "the interim edit survived approval");
+		} finally {
+			parity_delete_page($page_id);
+			parity_delete_users($dev_id);
+		}
+	}
+
+	/**
+	 * A3/A2: the content gates re-run at approval, not just at staging. If the page
+	 * drifted such that the merged result no longer validates, approval must return
+	 * mode:error rather than writing it — mirroring what settings already do.
+	 */
+	function test_parity_ai_page_content_approval_rechecks_required_fields() {
+		if (!parity_db_available()) {
+			return;
+		}
+
+		$required = parity_ai_content_required();
+
+		if (count($required) < 2) {
+			echo "  (skipped — needs a template with two required simple fields)\n";
+
+			return;
+		}
+
+		$svc = new PageService();
+		$dev_id = parity_seed_user(["level" => 2]);
+		$user = (object)["id" => $dev_id, "level" => 2, "permissions" => []];
+		$page_id = 0;
+
+		try {
+			$page_id = parity_ai_content_page($svc, $user, "content", array_fill_keys($required, "<p>Original</p>"));
+
+			$validated = $svc->aiValidatePageContentUpdate([
+				"id" => $page_id,
+				"content" => [$required[0] => "<p>Assistant's edit</p>"],
+			], $user);
+			T::ok(!empty($validated["ok"]), "content update validated");
+
+			// A required field the proposal doesn't touch is emptied in the meantime,
+			// so the re-merged result is incomplete.
+			$interim = json_decode((string)SQL::fetchSingle("SELECT resources FROM bigtree_pages WHERE id = ?", $page_id), true);
+			$interim[$required[1]] = "";
+			SQL::update("bigtree_pages", $page_id, ["resources" => json_encode($interim)]);
+
+			$result = $svc->aiUpdatePageContent($validated["payload"], $user);
+			T::equals($result["mode"], "error", "approval refuses an incomplete merged result");
+			T::ok(strpos((string)$result["message"], "required") !== false, "the error names the problem");
+
+			$stored = json_decode((string)SQL::fetchSingle("SELECT resources FROM bigtree_pages WHERE id = ?", $page_id), true);
+			T::equals($stored[$required[0]] ?? null, "<p>Original</p>", "nothing was written");
+		} finally {
+			parity_delete_page($page_id);
+			parity_delete_users($dev_id);
+		}
+	}
+
 	function test_parity_ai_page_content_update_queues_pending_for_editor() {
 		if (!parity_db_available()) {
 			return;

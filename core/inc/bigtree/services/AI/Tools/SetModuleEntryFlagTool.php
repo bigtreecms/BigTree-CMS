@@ -42,8 +42,10 @@
 							"description" => "Module id or route (required).",
 						],
 						"entry_id" => [
-							"type" => "integer",
-							"description" => "Id of the entry to change (required).",
+							"type" => "string",
+							"description" => "Id of the entry to change (required). Either the numeric id of a "
+								. "published entry, or a \"p\"-prefixed id like \"p12\" for one that is still an "
+								. "unpublished draft.",
 						],
 						"flag" => [
 							"type" => "string",
@@ -71,7 +73,7 @@
 				return AIToolResult::error("A module_id is required.");
 			}
 
-			if ((int)($args["entry_id"] ?? 0) < 1) {
+			if (trim((string)($args["entry_id"] ?? "")) === "") {
 
 				return AIToolResult::error("An entry_id is required.");
 			}

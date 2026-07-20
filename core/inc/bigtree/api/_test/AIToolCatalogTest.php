@@ -51,6 +51,13 @@
 	use BigTree\Services\AI\Tools\UserToolBackend;
 	use BigTree\Services\AI\Tools\CalloutToolBackend;
 	use BigTree\Services\AI\Tools\ModuleToolBackend;
+	use BigTree\Services\AI\Tools\AuditToolBackend;
+	use BigTree\Services\AI\Tools\GetCalloutTool;
+	use BigTree\Services\AI\Tools\UpdateCalloutTool;
+	use BigTree\Services\AI\Tools\UpdateModuleTool;
+	use BigTree\Services\AI\Tools\GetAuditTrailTool;
+	use BigTree\Services\AI\Tools\GetPageRevisionsTool;
+	use BigTree\Services\AI\Tools\RestorePageRevisionTool;
 
 	// A validation result any *Validate* seam can be scripted to return, plus a captured
 	// "executed payload" so approval-path tests can assert what would be written.
@@ -181,8 +188,16 @@
 		class FakeCalloutBackend implements CalloutToolBackend {
 			use AiValidatable;
 
+			/** @var array<string,mixed> */
+			public $update_validation = ["ok" => true, "summary" => "Update callout.", "preview" => [], "payload" => []];
+			/** @var array<string,mixed> */
+			public $callout = ["callout" => ["id" => "promo", "name" => "Promo", "fields" => [["id" => "headline", "type" => "text", "title" => "Headline", "subtitle" => ""]]]];
+
+			public function aiGetCallout(string $callout_id, $user): array { return $this->callout; }
 			public function aiValidateCalloutCreate(array $args, $user): array { return $this->validation; }
 			public function aiCreateCallout(array $payload, $user): array { $this->executed = $payload; return ["mode" => "created"]; }
+			public function aiValidateCalloutUpdate(array $args, $user): array { return $this->update_validation; }
+			public function aiUpdateCallout(array $payload, $user): array { $this->executed = $payload; return ["mode" => "updated"]; }
 		}
 	}
 
@@ -191,11 +206,15 @@
 			use AiValidatable;
 
 			/** @var array<string,mixed> */
+			public $update_validation = ["ok" => true, "summary" => "Update module.", "preview" => [], "payload" => []];
+			/** @var array<string,mixed> */
 			public $module = ["module" => ["id" => "modules-fake", "name" => "Fake", "is_complete" => false, "missing_setup" => ["a database table"]]];
 
 			public function aiGetModule(string $module_id, $user): array { return $this->module; }
 			public function aiValidateModuleCreate(array $args, $user): array { return $this->validation; }
 			public function aiCreateModule(array $payload, $user): array { $this->executed = $payload; return ["mode" => "created"]; }
+			public function aiValidateModuleUpdate(array $args, $user): array { return $this->update_validation; }
+			public function aiUpdateModule(array $payload, $user): array { $this->executed = $payload; return ["mode" => "updated"]; }
 		}
 	}
 
@@ -211,6 +230,23 @@
 
 		$dev = $tool->execute([], new AIToolContext(ai_fake_user(2), 8))->data;
 		T::ok($dev["capabilities"]["can_manage_templates"], "developer can manage templates");
+
+		// "Can you do X?" is a different question from "may I do X?", and the model
+		// needs a citable answer to it — including for a developer, for whom nothing
+		// is left to blame on permission level.
+		foreach ([$editor, $dev] as $payload) {
+			T::ok(!empty($payload["assistant_cannot"]), "the payload carries the assistant's own limits");
+			T::ok(
+				count($payload["assistant_cannot"]) === count(\BigTree\Services\AI\CapabilitySummary::outOfScope()),
+				"the full declines list is exposed, not a level-filtered subset"
+			);
+		}
+
+		// Each entry maps a capability to where the user should go instead, so the
+		// model can answer with a destination rather than a flat refusal.
+		foreach ($dev["assistant_cannot"] as $capability => $where) {
+			T::ok(is_string($where) && trim($where) !== "", "“{$capability}” points to an admin screen");
+		}
 	}
 
 	function test_get_page_tree_tool() {
@@ -517,6 +553,42 @@
 		T::equals($ambiguous->options[0]["id"], "form-a", "options carry the form id");
 	}
 
+	/**
+	 * A5: the tag tools resolved a module's table by taking forms[0], so on a
+	 * multi-form module the relation could land on a table the entry isn't in — the
+	 * tag never renders with its entry, and remove_tags can't see it. They now route
+	 * through the same resolver as the entry tools and inherit the same question.
+	 */
+	function test_tag_tools_ask_which_form_on_a_multi_form_module() {
+		$store = new FakeProposalStore();
+		$backend = new FakeTagBackend();
+
+		$backend->validation = ["ambiguous_form" => true, "forms" => [
+			["id" => "form-a", "title" => "Article", "table" => "t_articles"],
+			["id" => "form-b", "title" => "Press", "table" => "t_press"],
+		]];
+
+		$add = (new AddTagsTool($backend, $store))
+			->execute(["module_id" => "news", "entry_id" => 4, "tags" => ["x"]], new AIToolContext(ai_fake_user(2), 8, "1"));
+		T::equals($add->type, AIToolResult::NEEDS_INPUT, "add_tags asks which form");
+		T::equals(count($store->created), 0, "nothing staged while the form is unresolved");
+		T::equals($add->options[0]["id"], "form-a", "options carry the form id");
+
+		$remove = (new RemoveTagsTool($backend, $store))
+			->execute(["module_id" => "news", "entry_id" => 4, "tags" => ["x"]], new AIToolContext(ai_fake_user(2), 8, "1"));
+		T::equals($remove->type, AIToolResult::NEEDS_INPUT, "remove_tags asks which form");
+	}
+
+	function test_tag_tools_accept_a_form_argument() {
+		$store = new FakeProposalStore();
+		$backend = new FakeTagBackend();
+
+		foreach ([new AddTagsTool($backend, $store), new RemoveTagsTool($backend, $store)] as $tool) {
+			$properties = $tool->definition(ai_fake_user(2))["function"]["parameters"]["properties"];
+			T::ok(isset($properties["form"]), $tool->name() . " exposes a form argument");
+		}
+	}
+
 	function test_entry_tools_ask_which_form_on_a_multi_form_module() {
 		$store = new FakeProposalStore();
 		$backend = new FakeModuleEntryBackend();
@@ -578,4 +650,128 @@
 
 		$dev = $names(2);
 		T::ok(in_array("create_template", $dev, true), "developer sees create_template");
+	}
+
+	// — Audit #2 phase 4 additions —
+
+	if (!class_exists("FakeAuditBackend")) {
+		class FakeAuditBackend implements AuditToolBackend {
+			/** @var array<string,mixed> */
+			public $entries = ["entries" => [
+				["id" => 1, "table" => "bigtree_pages", "entry" => "12", "type" => "updated",
+					"date" => "2026-07-17 10:00:00", "user_id" => 3, "user_name" => "Tim", "via" => "ai_assistant"],
+			]];
+			/** @var array<string,mixed>|null */
+			public $filters = null;
+
+			public function aiAuditTrail(array $filters, int $limit, $user): array {
+				$this->filters = $filters + ["_limit" => $limit];
+
+				return $this->entries;
+			}
+		}
+	}
+
+	function test_get_callout_tool_reads_a_definition_for_developers() {
+		$backend = new FakeCalloutBackend();
+		$tool = new GetCalloutTool($backend);
+
+		T::equals($tool->kind(), "read", "get_callout is a read tool");
+		T::ok(!$tool->isAvailable(ai_fake_user(1)), "hidden from admins — callouts are a developer surface");
+		T::ok($tool->isAvailable(ai_fake_user(2)), "offered to developers");
+
+		$result = $tool->execute(["callout_id" => "promo"], new AIToolContext(ai_fake_user(2), 8));
+		T::equals($result->type, AIToolResult::OK, "returns the callout");
+		// The whole point: update_callout replaces the field list, so the model has to
+		// be able to see the existing fields before proposing a replacement.
+		T::equals(count($result->data["callout"]["fields"]), 1, "the full field list comes back");
+
+		$blank = $tool->execute(["callout_id" => " "], new AIToolContext(ai_fake_user(2), 8));
+		T::equals($blank->type, AIToolResult::ERROR, "a blank callout_id is a recoverable error");
+	}
+
+	function test_update_callout_tool_stages_a_proposal() {
+		$store = new FakeProposalStore();
+		$backend = new FakeCalloutBackend();
+		$tool = new UpdateCalloutTool($backend, $store);
+
+		T::ok(!$tool->isAvailable(ai_fake_user(1)), "hidden from admins");
+		T::ok($tool->isAvailable(ai_fake_user(2)), "offered to developers");
+
+		$missing = $tool->execute([], new AIToolContext(ai_fake_user(2), 8, "1"));
+		T::equals($missing->type, AIToolResult::ERROR, "a missing id is a recoverable error");
+		T::equals(count($store->created), 0, "nothing staged without an id");
+
+		$result = $tool->execute(["id" => "promo", "name" => "Promo Box"], new AIToolContext(ai_fake_user(2), 8, "1"));
+		T::equals($result->type, AIToolResult::PROPOSAL, "a valid edit stages a proposal");
+		T::equals(count($store->created), 1, "exactly one proposal staged");
+		T::equals($backend->executed, null, "nothing was written during the turn");
+	}
+
+	function test_update_module_tool_stages_a_proposal() {
+		$store = new FakeProposalStore();
+		$backend = new FakeModuleBackend();
+		$tool = new UpdateModuleTool($backend, $store);
+
+		T::ok(!$tool->isAvailable(ai_fake_user(1)), "hidden from admins");
+
+		$missing = $tool->execute([], new AIToolContext(ai_fake_user(2), 8, "1"));
+		T::equals($missing->type, AIToolResult::ERROR, "a missing module_id is a recoverable error");
+
+		$result = $tool->execute(["module_id" => "news", "name" => "Newsroom"], new AIToolContext(ai_fake_user(2), 8, "1"));
+		T::equals($result->type, AIToolResult::PROPOSAL, "a valid edit stages a proposal");
+		T::equals($backend->executed, null, "nothing was written during the turn");
+
+		// Route is deliberately not editable — changing it breaks bookmarked admin
+		// URLs and any hard-coded link.
+		$properties = $tool->definition(ai_fake_user(2))["function"]["parameters"]["properties"];
+		T::ok(!isset($properties["route"]), "route is not offered as an editable property");
+		T::ok(!isset($properties["table"]), "table is not offered — that's Module Designer territory");
+	}
+
+	function test_get_audit_trail_tool_is_admin_gated_and_passes_filters() {
+		$backend = new FakeAuditBackend();
+		$tool = new GetAuditTrailTool($backend);
+
+		T::equals($tool->kind(), "read", "get_audit_trail is a read tool");
+		T::ok(!$tool->isAvailable(ai_fake_user(0)), "hidden from editors — the trail spans every table");
+		T::ok($tool->isAvailable(ai_fake_user(1)), "offered to admins");
+
+		$result = $tool->execute(["via" => "ai_assistant"], new AIToolContext(ai_fake_user(1), 8));
+		T::equals($result->type, AIToolResult::OK, "returns entries");
+		T::equals($backend->filters["via"], "ai_assistant", "the source filter reaches the backend");
+		T::equals($backend->filters["_limit"], 25, "a default limit is applied");
+		T::equals($result->data["entries"][0]["via"], "ai_assistant", "the source is visible on each entry");
+
+		$backend->entries = ["denied" => "Only administrators can read the audit trail."];
+		$denied = $tool->execute([], new AIToolContext(ai_fake_user(0), 8));
+		T::equals($denied->type, AIToolResult::DENIED, "a backend denial surfaces as denied");
+	}
+
+	function test_page_revision_tools_pair_read_with_restore() {
+		$store = new FakeProposalStore();
+		$backend = new FakePageToolBackend();
+		$read = new GetPageRevisionsTool($backend);
+		$restore = new RestorePageRevisionTool($backend, $store);
+
+		T::equals($read->kind(), "read", "get_page_revisions is a read tool");
+		T::ok($read->isAvailable(ai_fake_user(0)), "listing needs only view access, checked per page");
+
+		$listed = $read->execute(["page_id" => 1], new AIToolContext(ai_fake_user(0), 8));
+		T::equals($listed->type, AIToolResult::OK, "revisions come back");
+		T::equals($listed->data["revisions"][0]["id"], 7, "each revision carries the id restore needs");
+
+		$no_page = $read->execute(["page_id" => 0], new AIToolContext(ai_fake_user(0), 8));
+		T::equals($no_page->type, AIToolResult::ERROR, "a missing page_id is a recoverable error");
+
+		// Restore needs both ids; without a revision_id the model should be told to
+		// list them rather than guess one.
+		$partial = $restore->execute(["page_id" => 1], new AIToolContext(ai_fake_user(2), 8, "1"));
+		T::equals($partial->type, AIToolResult::ERROR, "a missing revision_id is a recoverable error");
+		T::ok(strpos($partial->message, "get_page_revisions") !== false, "the error names the tool to call first");
+		T::equals(count($store->created), 0, "nothing staged without a revision id");
+
+		$staged = $restore->execute(["page_id" => 1, "revision_id" => 7], new AIToolContext(ai_fake_user(2), 8, "1"));
+		T::equals($staged->type, AIToolResult::PROPOSAL, "a valid restore stages a proposal");
+		T::equals($backend->restored, null, "nothing was restored during the turn");
 	}

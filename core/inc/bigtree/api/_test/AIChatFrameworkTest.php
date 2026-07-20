@@ -201,6 +201,54 @@
 		T::ok(strpos($dev_prompt, "developer") !== false, "prompt names the developer role");
 	}
 
+	/**
+	 * The prompt said what the user's role allows but never what the assistant
+	 * itself can't do at any level, so the model discovered each wall by failing at
+	 * it mid-conversation — or improvised a workaround. These limits are
+	 * level-independent, so a developer must be told them just as plainly as an
+	 * editor.
+	 */
+	function test_chat_system_prompt_documents_the_out_of_scope_list() {
+		$service = new AIChatService();
+
+		foreach ([0, 1, 2] as $level) {
+			$prompt = $service->systemPrompt(ai_fake_user($level));
+			T::ok(strpos($prompt, "Out of scope") !== false, "level {$level} is told what is out of scope");
+			T::ok(
+				strpos($prompt, "Do not invent a tool, improvise a workaround") !== false,
+				"level {$level} is told not to improvise around a wall"
+			);
+
+			// Every documented decline reaches the prompt, so adding one to the list
+			// is all it takes for the model to know about it.
+			foreach (\BigTree\Services\AI\CapabilitySummary::outOfScope() as $capability => $where) {
+				T::ok(strpos($prompt, $capability) !== false, "level {$level} prompt names: {$capability}");
+			}
+		}
+	}
+
+	/**
+	 * The declines list must stay honest: an entry is a promise the catalog doesn't
+	 * cover it, so nothing on it may name a capability a tool actually provides.
+	 */
+	function test_out_of_scope_list_does_not_contradict_the_catalog() {
+		$declines = \BigTree\Services\AI\CapabilitySummary::outOfScope();
+
+		T::ok(count($declines) > 0, "there is a declines list");
+
+		foreach ($declines as $capability => $where) {
+			T::ok(trim((string)$capability) !== "", "each decline names a capability");
+			T::ok(trim((string)$where) !== "", "each decline points somewhere: {$capability}");
+		}
+
+		// Things the catalog *does* cover must not be listed as impossible. Page
+		// revisions and callout editing were declines before phase 4 built them.
+		$joined = strtolower(implode(" | ", array_keys($declines)));
+		T::ok(strpos($joined, "revision") === false, "restoring revisions is no longer a decline — it has a tool");
+		T::ok(strpos($joined, "external link") === false, "external links are no longer a decline");
+		T::ok(strpos($joined, "tagging") === false, "tagging is not a decline — add_tags/remove_tags exist");
+	}
+
 	function test_prompt_guard_wraps_tool_result() {
 		$wrapped = \BigTree\Services\AI\PromptGuard::wrapToolResult([
 			"status" => "ok",
@@ -264,6 +312,66 @@
 		$u = AIChatService::auditDescriptor("create_user", [], ["mode" => "created", "user_id" => 7]);
 		T::equals($u["table"], "bigtree_users", "create_user audits the users table");
 		T::equals($u["entry"], "7", "entry is the new user id");
+	}
+
+	/**
+	 * The Phase-4 catalog shipped with no descriptor branches at all, so every
+	 * page-content edit, move, entry delete and rejection approved through the
+	 * assistant was invisible in the audit trail. One assertion per tool.
+	 */
+	function test_audit_descriptor_maps_phase_four_tools() {
+		$content = AIChatService::auditDescriptor("update_page_content", [], ["mode" => "published", "page_id" => 12]);
+		T::equals($content["table"], "bigtree_pages", "update_page_content audits the pages table");
+		T::equals($content["type"], "updated", "published content edit is type updated");
+		T::equals($content["entry"], "12", "entry is the page id");
+
+		$pending_content = AIChatService::auditDescriptor("update_page_content", [], ["mode" => "pending", "page_id" => 12]);
+		T::equals($pending_content["type"], "pending-updated", "editor content edit is marked pending-updated");
+
+		$unarchive = AIChatService::auditDescriptor("unarchive_page", [], ["mode" => "unarchived", "page_id" => 5]);
+		T::equals($unarchive["type"], "unarchived", "unarchive_page audits as unarchived");
+		T::equals($unarchive["entry"], "5", "unarchive entry is the page id");
+
+		$move = AIChatService::auditDescriptor("move_page", [], ["mode" => "moved", "page_id" => 6]);
+		T::equals($move["type"], "moved", "move_page audits as moved");
+		T::equals($move["entry"], "6", "move entry is the page id");
+
+		$flag = AIChatService::auditDescriptor("set_module_entry_flag", ["table" => "btx_news", "entry_id" => 4], ["mode" => "updated", "entry_id" => 4]);
+		T::equals($flag["table"], "btx_news", "flag change audits the module's own table");
+		T::equals($flag["type"], "updated", "flag change audits as updated");
+		T::equals($flag["entry"], "4", "flag entry is the entry id");
+
+		// The worst case: after a delete the audit row is the only record left.
+		$delete = AIChatService::auditDescriptor("delete_module_entry", ["table" => "btx_news", "entry_id" => 8], ["mode" => "deleted", "entry_id" => 8]);
+		T::equals($delete["table"], "btx_news", "entry delete audits the module's own table");
+		T::equals($delete["type"], "deleted", "entry delete audits as deleted");
+		T::equals($delete["entry"], "8", "delete entry is the entry id");
+
+		$reject = AIChatService::auditDescriptor("reject_pending_change", ["change_id" => 3], ["mode" => "rejected", "change_id" => 3]);
+		T::equals($reject["table"], "bigtree_pending_changes", "rejection audits the pending changes table");
+		T::equals($reject["type"], "rejected", "rejection audits as rejected");
+		T::equals($reject["entry"], "3", "rejection entry is the change id");
+	}
+
+	/**
+	 * add_tags hardcoded bigtree_pages + page_id, so tagging a module entry wrote a
+	 * row against the wrong table with an empty entry. Both tag tools now take the
+	 * target from the execute result, which already carries it.
+	 */
+	function test_audit_descriptor_follows_the_tag_target_table() {
+		$page = AIChatService::auditDescriptor("add_tags", [], ["mode" => "tagged", "table" => "bigtree_pages", "entry_id" => 15, "page_id" => 15]);
+		T::equals($page["table"], "bigtree_pages", "tagging a page still audits the pages table");
+		T::equals($page["type"], "tagged", "add_tags audits as tagged");
+		T::equals($page["entry"], "15", "page tag entry is the page id");
+
+		$entry = AIChatService::auditDescriptor("add_tags", [], ["mode" => "tagged", "table" => "btx_news", "entry_id" => 22, "page_id" => null]);
+		T::equals($entry["table"], "btx_news", "tagging an entry audits the module's table, not bigtree_pages");
+		T::equals($entry["entry"], "22", "entry tag entry is the entry id, not empty");
+
+		$removed = AIChatService::auditDescriptor("remove_tags", [], ["mode" => "untagged", "table" => "btx_news", "entry_id" => 22, "page_id" => null]);
+		T::equals($removed["table"], "btx_news", "untagging an entry audits the module's table");
+		T::equals($removed["type"], "untagged", "remove_tags audits as untagged");
+		T::equals($removed["entry"], "22", "untag entry is the entry id");
 	}
 
 	function test_audit_descriptor_skips_errors_and_unknowns() {

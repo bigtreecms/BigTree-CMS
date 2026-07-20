@@ -71,6 +71,61 @@
 		}
 
 		/**
+		 * Things the assistant cannot do at ANY permission level, each paired with
+		 * where in the admin the user should go instead.
+		 *
+		 * forUser() answers "what may this user do?"; this answers the different
+		 * question "what can the assistant do at all?" — and the model had no source
+		 * for it. It discovered each wall by failing at it mid-conversation, or worse
+		 * improvised a workaround. Naming them up front turns every gap the catalog
+		 * deliberately doesn't fill into a good answer instead of a failure.
+		 *
+		 * Keep this list honest: an entry here is a promise the catalog doesn't cover
+		 * it. Anything that gains a tool must be removed in the same change.
+		 *
+		 * @return array<string,string> Capability => where to do it instead.
+		 */
+		public static function outOfScope(): array {
+
+			return [
+				"Uploading or managing files, images and video" =>
+					"the Files section, or the upload field on the page or entry itself",
+				"Managing resource folders" => "the Files section",
+				"Changing user levels, permissions or passwords" =>
+					"Users, or the user's own profile screen for their password",
+				"Deleting users, templates, callouts, modules or settings" =>
+					"the relevant Developer or Users screen",
+				"Creating or deleting settings" => "Developer → Settings",
+				"Reading or writing encrypted settings" =>
+					"Developer → Settings — encrypted values are never exposed to the assistant",
+				"Duplicating or reordering pages" => "the page tree in Pages",
+				"Reordering module entries" => "the module's landing view",
+				"Editing a module's tables, forms, views or actions" =>
+					"Developer → Modules → Module Designer",
+				"Changing a module's route" => "Developer → Modules",
+				"Installing, updating or removing extensions" => "Developer → Extensions",
+				"Managing content locks" => "the lock banner on the item being edited",
+				"Editing complex fields — uploads, matrices, relationships, callouts on a page" =>
+					"the page or entry editor; the assistant only sets simple text-like fields",
+			];
+		}
+
+		/**
+		 * The out-of-scope list as prompt lines.
+		 *
+		 * @return list<string>
+		 */
+		public static function outOfScopeLines(): array {
+			$lines = [];
+
+			foreach (self::outOfScope() as $capability => $where) {
+				$lines[] = "- " . $capability . " — point the user to " . $where . ".";
+			}
+
+			return $lines;
+		}
+
+		/**
 		 * Prompt-ready lines describing the user's role and hard limits, for
 		 * inclusion in an assistant system prompt.
 		 *

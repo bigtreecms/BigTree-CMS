@@ -46,7 +46,13 @@
 	use BigTree\Services\AI\Tools\CreateUserTool;
 	use BigTree\Services\AI\Tools\UpdateUserTool;
 	use BigTree\Services\AI\Tools\CreateCalloutTool;
+	use BigTree\Services\AI\Tools\GetCalloutTool;
+	use BigTree\Services\AI\Tools\GetAuditTrailTool;
+	use BigTree\Services\AI\Tools\GetPageRevisionsTool;
+	use BigTree\Services\AI\Tools\RestorePageRevisionTool;
+	use BigTree\Services\AI\Tools\UpdateCalloutTool;
 	use BigTree\Services\AI\Tools\CreateModuleTool;
+	use BigTree\Services\AI\Tools\UpdateModuleTool;
 	use BigTreeAI;
 	use BigTreeCMS;
 	use SQL;
@@ -464,6 +470,9 @@
 			$registry->register(new GetModuleTool($modules));
 			$registry->register(new GetModuleSchemaTool($entries));
 			$registry->register(new GetPendingChangeTool($pending));
+			$registry->register(new GetCalloutTool($callouts));
+			$registry->register(new GetAuditTrailTool(new AuditService()));
+			$registry->register(new GetPageRevisionsTool($pages));
 
 			// Two-phase mutating tools.
 			$registry->register(new CreatePageTool($pages, $store));
@@ -472,6 +481,7 @@
 			$registry->register(new ArchivePageTool($pages, $store));
 			$registry->register(new UnarchivePageTool($pages, $store));
 			$registry->register(new MovePageTool($pages, $store));
+			$registry->register(new RestorePageRevisionTool($pages, $store));
 			$registry->register(new CreateModuleEntryTool($entries, $store));
 			$registry->register(new UpdateModuleEntryTool($entries, $store));
 			$registry->register(new SetModuleEntryFlagTool($entries, $store));
@@ -488,7 +498,9 @@
 			$registry->register(new CreateTemplateTool($templates, $store));
 			$registry->register(new UpdateTemplateTool($templates, $store));
 			$registry->register(new CreateCalloutTool($callouts, $store));
+			$registry->register(new UpdateCalloutTool($callouts, $store));
 			$registry->register(new CreateModuleTool($modules, $store));
+			$registry->register(new UpdateModuleTool($modules, $store));
 
 			// Extension-registered tools (mirror how extensions plug into routes).
 			// Core names always win; each still filters per user and re-checks on
@@ -702,6 +714,9 @@
 				case "move_page":
 					return (new PageService())->aiMovePage($payload, $user);
 
+				case "restore_page_revision":
+					return (new PageService())->aiRestoreRevision($payload, $user);
+
 				case "create_module_entry":
 					return (new AutoModuleService())->aiCreateEntry($payload, $user);
 
@@ -744,8 +759,14 @@
 				case "create_callout":
 					return (new CalloutService())->aiCreateCallout($payload, $user);
 
+				case "update_callout":
+					return (new CalloutService())->aiUpdateCallout($payload, $user);
+
 				case "create_module":
 					return (new ModuleService())->aiCreateModule($payload, $user);
+
+				case "update_module":
+					return (new ModuleService())->aiUpdateModule($payload, $user);
 
 				default:
 
@@ -861,10 +882,20 @@
 					return self::descriptor("bigtree_pages", $pending ? "pending-created" : "created", $result["page_id"] ?? $result["pending_change_id"] ?? "");
 
 				case "update_page":
+				case "update_page_content":
 					return self::descriptor("bigtree_pages", $pending ? "pending-updated" : "updated", $result["page_id"] ?? "");
 
 				case "archive_page":
 					return self::descriptor("bigtree_pages", "archived", $result["page_id"] ?? "");
+
+				case "unarchive_page":
+					return self::descriptor("bigtree_pages", "unarchived", $result["page_id"] ?? "");
+
+				case "move_page":
+					return self::descriptor("bigtree_pages", "moved", $result["page_id"] ?? "");
+
+				case "restore_page_revision":
+					return self::descriptor("bigtree_pages", "revision-restored", $result["page_id"] ?? "");
 
 				case "create_module_entry":
 					return self::descriptor((string)($payload["table"] ?? ""), $pending ? "pending-created" : "created", $result["entry_id"] ?? "");
@@ -872,11 +903,25 @@
 				case "update_module_entry":
 					return self::descriptor((string)($payload["table"] ?? ""), $pending ? "pending-updated" : "updated", $result["entry_id"] ?? "");
 
+				case "set_module_entry_flag":
+					return self::descriptor((string)($payload["table"] ?? ""), "updated", $result["entry_id"] ?? $payload["entry_id"] ?? "");
+
+				case "delete_module_entry":
+					return self::descriptor((string)($payload["table"] ?? ""), "deleted", $result["entry_id"] ?? $payload["entry_id"] ?? "");
+
 				case "publish_pending_change":
 					return self::descriptor("bigtree_pending_changes", "published", $payload["change_id"] ?? "");
 
+				case "reject_pending_change":
+					return self::descriptor("bigtree_pending_changes", "rejected", $result["change_id"] ?? $payload["change_id"] ?? "");
+
+				// Tag tools carry their own target table: tagging a module entry must
+				// audit against that module's table, not bigtree_pages.
 				case "add_tags":
-					return self::descriptor("bigtree_pages", "tagged", $result["page_id"] ?? "");
+					return self::descriptor((string)($result["table"] ?? ""), "tagged", $result["entry_id"] ?? "");
+
+				case "remove_tags":
+					return self::descriptor((string)($result["table"] ?? ""), "untagged", $result["entry_id"] ?? "");
 
 				case "update_setting":
 					return self::descriptor("bigtree_settings", "updated", $result["id"] ?? $payload["id"] ?? "");
@@ -896,8 +941,14 @@
 				case "create_callout":
 					return self::descriptor("bigtree_callouts", "created", $result["id"] ?? $payload["id"] ?? "");
 
+				case "update_callout":
+					return self::descriptor("bigtree_callouts", "updated", $result["id"] ?? $payload["id"] ?? "");
+
 				case "create_module":
 					return self::descriptor("bigtree_modules", "created", $result["id"] ?? "");
+
+				case "update_module":
+					return self::descriptor("bigtree_modules", "updated", $result["id"] ?? $payload["id"] ?? "");
 
 				default:
 
@@ -981,6 +1032,14 @@
 			$lines[] = "- After calling a mutating tool, never say the change is done. Say you have prepared it and ask the user to review and approve the card. If the tool returns needs_input, ask the user the question it provides; if it returns an error listing the fields it needs, gather them and try again.";
 			$lines[] = "- Only propose a change the user actually asked for. Do not invent pages, titles, field values, or other content.";
 			$lines[] = "- If a tool is denied, explain the limit plainly and offer the path that would work (a pending draft, or asking someone with the right access) instead of retrying.";
+			$lines[] = "";
+			$lines[] = "Out of scope — explain, don't attempt:";
+			$lines[] = "These are things you cannot do at any permission level, no matter the user's role. If asked, say plainly that you can't do it and point to where in the admin it's done. Do not invent a tool, improvise a workaround, or use an unrelated tool to approximate it.";
+
+			foreach (CapabilitySummary::outOfScopeLines() as $line) {
+				$lines[] = $line;
+			}
+
 			$lines[] = "";
 
 			foreach (PromptGuard::safetyRules() as $rule) {

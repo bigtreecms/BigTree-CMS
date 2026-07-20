@@ -92,6 +92,30 @@
 							"description" => "Optional date/time the page stops being visible. Must be after "
 								. "publish_at. Omit for never.",
 						],
+						"tags" => [
+							"type" => "array",
+							"description" => "Optional tag names to attach to the new page. Tags that already exist "
+								. "can be used by any editor; creating a brand-new tag requires administrator level.",
+							"items" => ["type" => "string"],
+						],
+						"external" => [
+							"type" => "string",
+							"description" => "Make this a navigation link to another site instead of a real page: a "
+								. "full http:// or https:// URL. Leave the template unset when using this — a page is "
+								. "either a normal page with a template or an external link, never both.",
+						],
+						"new_window" => [
+							"type" => "boolean",
+							"description" => "For an external link, whether it opens in a new window.",
+						],
+						"og_title" => [
+							"type" => "string",
+							"description" => "Optional Open Graph (social sharing) title.",
+						],
+						"og_description" => [
+							"type" => "string",
+							"description" => "Optional Open Graph (social sharing) description.",
+						],
 					],
 					"required" => ["nav_title"],
 				]

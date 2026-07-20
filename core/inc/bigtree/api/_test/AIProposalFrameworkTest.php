@@ -125,6 +125,32 @@
 
 				return ["mode" => "moved", "title" => "X", "page_id" => 1, "path" => "/new/path"];
 			}
+
+			// Audit #2 phase 4 — page revisions.
+			/** @var array<string,mixed> */
+			public $revisions = ["page_id" => 1, "page_title" => "X", "revisions" => [
+				["id" => 7, "title" => "X", "saved" => true, "description" => "Before rewrite", "updated_at" => "2026-07-01 09:00:00", "author_name" => "Tim"],
+			]];
+			/** @var array<string,mixed> */
+			public $restore_validation = ["ok" => true, "summary" => "Restore revision.", "preview" => [], "payload" => []];
+			/** @var array<string,mixed>|null */
+			public $restored = null;
+
+			public function aiPageRevisions(int $page_id, int $limit, $user): array {
+
+				return $this->revisions;
+			}
+
+			public function aiValidateRevisionRestore(array $args, $user): array {
+
+				return $this->restore_validation;
+			}
+
+			public function aiRestoreRevision(array $payload, $user): array {
+				$this->restored = $payload;
+
+				return ["mode" => "restored", "page_id" => 1, "revision_id" => 7, "title" => "X"];
+			}
 		}
 	}
 

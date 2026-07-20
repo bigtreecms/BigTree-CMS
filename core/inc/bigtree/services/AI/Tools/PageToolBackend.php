@@ -163,4 +163,36 @@
 		 * @throws \BigTree\Api\Exceptions\AuthorizationException
 		 */
 		public function aiMovePage(array $payload, $user): array;
+
+		/**
+		 * A page's revisions, newest first. Needs view access only, matching the
+		 * admin's own revisions panel. Returns denied | error |
+		 * ["page_id" => int, "page_title" => string, "revisions" => [...]].
+		 *
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 */
+		public function aiPageRevisions(int $page_id, int $limit, $user): array;
+
+		/**
+		 * Validate restoring a revision onto its page. Publisher-only — a restore
+		 * replaces live content outright and has no pending-change form. Returns
+		 * denied | error | ok+summary+preview+payload.
+		 *
+		 * @param array<string,mixed> $args
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 */
+		public function aiValidateRevisionRestore(array $args, $user): array;
+
+		/**
+		 * Apply an approved restore, snapshotting the current state first so the
+		 * restore is itself reversible. Re-checks publisher access.
+		 *
+		 * @param array<string,mixed> $payload
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 * @throws \BigTree\Api\Exceptions\AuthorizationException
+		 */
+		public function aiRestoreRevision(array $payload, $user): array;
 	}

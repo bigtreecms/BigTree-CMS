@@ -176,6 +176,56 @@
 		// arbitrary table.
 
 		/**
+		 * Normalize a model-supplied tag list to canonical names. Public so other
+		 * services staging a tag-bearing proposal (create_page) apply the same
+		 * normalization the tag tools do rather than inventing their own.
+		 *
+		 * @param mixed $tags
+		 * @return list<string>
+		 */
+		public function aiTagNames($tags): array {
+
+			return $this->aiNormalizeTagNames($tags);
+		}
+
+		/**
+		 * Which of these tag names don't exist yet. Coining a new tag grows the site's
+		 * shared vocabulary and stays administrator-only, so callers gate on this.
+		 *
+		 * @param list<string> $names
+		 * @return list<string>
+		 */
+		public function aiNewTagNames(array $names): array {
+			$new = [];
+
+			foreach ($names as $name) {
+				if (!SQL::fetch("SELECT id FROM bigtree_tags WHERE tag = ?", $name)) {
+					$new[] = $name;
+				}
+			}
+
+			return $new;
+		}
+
+		/**
+		 * Resolve tag names to ids, creating any that don't exist. Callers must have
+		 * already gated new-tag creation on administrator level (see aiNewTagNames);
+		 * this is the write half only.
+		 *
+		 * @param list<string> $names
+		 * @return list<int>
+		 */
+		public function aiResolveTagIds(array $names): array {
+			$ids = [];
+
+			foreach ($names as $name) {
+				$ids[] = $this->aiFindOrCreateTag($name);
+			}
+
+			return $ids;
+		}
+
+		/**
 		 * @param array<string,mixed> $args
 		 * @param object|array $user
 		 * @return array<string,mixed>
@@ -183,7 +233,9 @@
 		public function aiValidateAddTags(array $args, $user): array {
 			$target = $this->aiResolveTagTarget($args, $user);
 
-			if (isset($target["error"]) || isset($target["denied"])) {
+			// A multi-form module has no safe default table; hand the choice back so the
+			// tool can ask which form rather than tagging against the wrong one.
+			if (isset($target["error"]) || isset($target["denied"]) || !empty($target["ambiguous_form"])) {
 
 				return $target;
 			}
@@ -238,6 +290,7 @@
 					"table" => $target["table"],
 					"entry_id" => $target["entry_id"],
 					"module_id" => $target["module_id"],
+					"form" => (string)($target["form_id"] ?? ""),
 					"page_id" => $target["kind"] === "page" ? $target["entry_id"] : 0,
 					"tags" => $names,
 					"creates_tags" => $new,
@@ -319,7 +372,9 @@
 		public function aiValidateRemoveTags(array $args, $user): array {
 			$target = $this->aiResolveTagTarget($args, $user);
 
-			if (isset($target["error"]) || isset($target["denied"])) {
+			// A multi-form module has no safe default table; hand the choice back so the
+			// tool can ask which form rather than tagging against the wrong one.
+			if (isset($target["error"]) || isset($target["denied"]) || !empty($target["ambiguous_form"])) {
 
 				return $target;
 			}
@@ -378,6 +433,7 @@
 					"table" => $target["table"],
 					"entry_id" => $target["entry_id"],
 					"module_id" => $target["module_id"],
+					"form" => (string)($target["form_id"] ?? ""),
 					"page_id" => $target["kind"] === "page" ? $target["entry_id"] : 0,
 					"tags" => $attached,
 				],
@@ -479,20 +535,19 @@
 				return ["error" => "Provide either a page_id, or a module_id and entry_id, to identify what to tag."];
 			}
 
-			$module = BigTreeJSONDB::get("modules", $module_id) ?: BigTreeJSONDB::get("modules", $module_id, "route");
+			// Route through the entry tools' own resolver so a multi-form module asks
+			// which form rather than silently picking the first one's table — the tag
+			// relation is keyed on that table, so a wrong guess attaches the tag to a
+			// row the entry isn't in, and remove_tags then can't see it.
+			$resolved = (new AutoModuleService())->aiResolveModuleForm($module_id, trim((string)($args["form"] ?? "")));
 
-			if (!$module) {
+			if (isset($resolved["error"]) || !empty($resolved["ambiguous_form"])) {
 
-				return ["error" => "Module \"{$module_id}\" does not exist."];
+				return $resolved;
 			}
 
-			$forms = is_array($module["forms"] ?? null) ? $module["forms"] : [];
-			$table = (string)($forms[0]["table"] ?? $module["table"] ?? "");
-
-			if ($table === "") {
-
-				return ["error" => "This module has no entry table, so its entries can't be tagged."];
-			}
+			$module = $resolved["module"];
+			$table = (string)$resolved["table"];
 
 			if (!PermissionService::userHasModuleAccess($user, (string)$module["id"], "e")) {
 
@@ -527,6 +582,7 @@
 				"table" => $table,
 				"entry_id" => $entry_id,
 				"module_id" => (string)$module["id"],
+				"form_id" => (string)($resolved["form"]["id"] ?? ""),
 				"label" => $label !== "" ? $label : "entry #{$entry_id}",
 			];
 		}
@@ -547,6 +603,9 @@
 				"page_id" => (int)($payload["page_id"] ?? 0),
 				"module_id" => (string)($payload["module_id"] ?? ""),
 				"entry_id" => (int)($payload["entry_id"] ?? 0),
+				// The form the proposal was staged against, so approval resolves the
+				// same table rather than re-asking (or re-guessing) which one.
+				"form" => (string)($payload["form"] ?? ""),
 			];
 
 			// A page payload carries page_id == entry_id; don't send both through.
@@ -564,6 +623,13 @@
 			if (isset($target["error"])) {
 
 				return ["mode" => "error", "message" => (string)$target["error"]];
+			}
+
+			// The module's forms changed since staging, so the form this was staged
+			// against no longer identifies one table. Refuse rather than pick.
+			if (!empty($target["ambiguous_form"])) {
+
+				return ["mode" => "error", "message" => "This module's forms have changed since this was proposed — ask again."];
 			}
 
 			return $target;

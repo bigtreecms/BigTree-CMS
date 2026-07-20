@@ -41,6 +41,52 @@
 		T::ok(strpos($blocked[1], "Related") !== false, "flags the relationship field");
 	}
 
+	/**
+	 * A3: the gate's verdict depends on whether the approver can publish, and rank can
+	 * change during a proposal's 24h life. An editor may stage a draft with a blocked
+	 * required field — a human completes it in the pending queue — but if that same
+	 * user is a publisher by the time they approve, the write would land live and
+	 * incomplete. Hence the gate is re-asked at approval, and must answer by rank.
+	 */
+	function test_ai_gate_entry_create_verdict_depends_on_publish_rank() {
+		$svc = new AutoModuleService();
+		$resolved = [
+			"schema" => ["title" => ["title" => "Title", "type" => "text", "required" => true]],
+			"blocked_required" => ["Hero Image (hero, upload)"],
+		];
+		$data = ["title" => "A complete title"];
+
+		T::equals(
+			ai_gate_invoke($svc, "aiEntryCreateGate", [$resolved, $data, false]),
+			null,
+			"an editor may stage a draft with a blocked required field"
+		);
+
+		$publisher = ai_gate_invoke($svc, "aiEntryCreateGate", [$resolved, $data, true]);
+		T::ok(is_string($publisher), "a publisher's write is refused instead of landing live incomplete");
+		T::ok(strpos((string)$publisher, "Hero Image") !== false, "the refusal names the field");
+	}
+
+	function test_ai_gate_entry_create_catches_missing_required_at_either_rank() {
+		$svc = new AutoModuleService();
+		$resolved = [
+			"schema" => ["title" => ["title" => "Title", "type" => "text", "required" => true]],
+			"blocked_required" => [],
+		];
+
+		foreach ([false, true] as $can_publish) {
+			$gate = ai_gate_invoke($svc, "aiEntryCreateGate", [$resolved, [], $can_publish]);
+			T::ok(is_string($gate), "an empty required field is refused regardless of rank");
+			T::ok(strpos((string)$gate, "title") !== false, "the refusal names the missing column");
+		}
+
+		T::equals(
+			ai_gate_invoke($svc, "aiEntryCreateGate", [$resolved, ["title" => "Set"], true]),
+			null,
+			"complete data passes"
+		);
+	}
+
 	function test_ai_gate_entry_ignores_settable_and_optional_fields() {
 		$svc = new AutoModuleService();
 

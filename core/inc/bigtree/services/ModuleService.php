@@ -1273,6 +1273,141 @@
 		 * @param object|array $user
 		 * @return array<string,mixed>
 		 */
+		/**
+		 * Validate an edit to an existing module's presentation: name, group, icon.
+		 *
+		 * Deliberately narrow. Route is excluded because changing it breaks every
+		 * bookmarked admin URL and any hard-coded link, and `class`/`table`/forms/
+		 * views/actions belong to the Module Designer, whose changes are DDL. Renaming
+		 * or regrouping a module is the plain-text edit developers actually ask for.
+		 *
+		 * @param array<string,mixed> $args
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 */
+		public function aiValidateModuleUpdate(array $args, $user): array {
+			if (PermissionService::level($user) < 2) {
+
+				return ["denied" => "Only developers can edit modules."];
+			}
+
+			$module_id = trim((string)($args["module_id"] ?? ""));
+			$module = $module_id !== "" ? BigTreeJSONDB::get("modules", $module_id) : null;
+
+			if (!$module) {
+				$module = $module_id !== "" ? BigTreeJSONDB::get("modules", $module_id, "route") : null;
+			}
+
+			if (!$module) {
+
+				return ["error" => "Module \"{$module_id}\" does not exist."];
+			}
+
+			$changes = [];
+			$diff = [];
+
+			if (array_key_exists("name", $args)) {
+				$name = trim((string)$args["name"]);
+
+				if ($name === "") {
+
+					return ["error" => "A module's name can't be empty."];
+				}
+
+				if ($name !== (string)($module["name"] ?? "")) {
+					$changes["name"] = $name;
+					$diff["name"] = ["from" => (string)($module["name"] ?? ""), "to" => $name];
+				}
+			}
+
+			if (array_key_exists("group", $args)) {
+				$group = trim((string)$args["group"]);
+
+				if ($group !== "" && !BigTreeJSONDB::exists("module-groups", $group)) {
+
+					return ["error" => "Module group \"{$group}\" does not exist."];
+				}
+
+				if ($group !== (string)($module["group"] ?? "")) {
+					$changes["group"] = $group !== "" ? $group : null;
+					$diff["group"] = [
+						"from" => (string)($module["group"] ?? "") ?: "(ungrouped)",
+						"to" => $group ?: "(ungrouped)",
+					];
+				}
+			}
+
+			if (array_key_exists("icon", $args)) {
+				$icon = trim((string)$args["icon"]);
+
+				if ($icon !== (string)($module["icon"] ?? "")) {
+					$changes["icon"] = $icon;
+					$diff["icon"] = ["from" => (string)($module["icon"] ?? ""), "to" => $icon];
+				}
+			}
+
+			if (!$changes) {
+
+				return ["error" => "No changes were supplied — nothing to update."];
+			}
+
+			$name = (string)($module["name"] ?? $module["id"]);
+
+			return [
+				"ok" => true,
+				"summary" => "Update module “{$name}”. Its route, table, forms and views are unchanged.",
+				"preview" => [
+					"action" => "update_module",
+					"id" => (string)$module["id"],
+					"name" => $name,
+					"changes" => $diff,
+				],
+				"payload" => [
+					"id" => (string)$module["id"],
+					"changes" => $changes,
+				],
+			];
+		}
+
+		/**
+		 * Execute an approved module edit. Re-checks developer level and existence.
+		 *
+		 * @param array<string,mixed> $payload
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 */
+		public function aiUpdateModule(array $payload, $user): array {
+			if (PermissionService::level($user) < 2) {
+				throw new AuthorizationException("Only developers can edit modules.");
+			}
+
+			$id = (string)($payload["id"] ?? "");
+			$module = $id !== "" ? BigTreeJSONDB::get("modules", $id) : null;
+
+			if (!$module) {
+
+				return ["mode" => "error", "message" => "That module no longer exists."];
+			}
+
+			$changes = is_array($payload["changes"] ?? null) ? $payload["changes"] : [];
+
+			// A group can be removed by storing null, so the key's presence is what
+			// matters, not its truthiness.
+			foreach (["name", "group", "icon"] as $field) {
+				if (array_key_exists($field, $changes)) {
+					$module[$field] = $field === "group" ? $changes[$field] : BigTree::safeEncode((string)$changes[$field]);
+				}
+			}
+
+			BigTreeJSONDB::update("modules", $id, $module);
+
+			return [
+				"mode" => "updated",
+				"id" => $id,
+				"name" => (string)($module["name"] ?? $id),
+			];
+		}
+
 		public function aiValidateModuleCreate(array $args, $user): array {
 			if (PermissionService::level($user) < 2) {
 

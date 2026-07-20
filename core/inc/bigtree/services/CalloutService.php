@@ -322,6 +322,292 @@
 		}
 
 		/**
+		 * Read one callout's definition, including its full field list.
+		 *
+		 * Pairs with update_callout: supplying `fields` there replaces the whole list,
+		 * so the assistant has to be able to see what's already on the callout before
+		 * proposing a change to it — otherwise "add a field" means guessing the rest.
+		 *
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 */
+		public function aiGetCallout(string $callout_id, $user): array {
+			if (PermissionService::level($user) < 2) {
+
+				return ["denied" => "Only developers can inspect callout definitions."];
+			}
+
+			$callout_id = trim($callout_id);
+			$callout = $callout_id !== "" ? BigTreeJSONDB::get("callouts", $callout_id) : null;
+
+			if (!$callout) {
+
+				return ["error" => "Callout \"{$callout_id}\" does not exist."];
+			}
+
+			$fields = [];
+
+			foreach ((array)($callout["resources"] ?? []) as $resource) {
+				$fields[] = [
+					"id" => (string)($resource["id"] ?? ""),
+					"type" => (string)($resource["type"] ?? ""),
+					"title" => (string)($resource["title"] ?? ""),
+					"subtitle" => (string)($resource["subtitle"] ?? ""),
+				];
+			}
+
+			return [
+				"callout" => [
+					"id" => (string)$callout["id"],
+					"name" => (string)($callout["name"] ?? ""),
+					"description" => (string)($callout["description"] ?? ""),
+					"level" => (int)($callout["level"] ?? 0),
+					"display_field" => (string)($callout["display_field"] ?? ""),
+					"display_default" => (string)($callout["display_default"] ?? ""),
+					"fields" => $fields,
+				],
+			];
+		}
+
+		/**
+		 * Validate an edit to an existing callout: name/description/level/display and,
+		 * most usefully, its field list — "add a field to the promo callout" was the
+		 * most likely developer ask and had no path at all (create only).
+		 *
+		 * Only the keys actually supplied are changed, so a name edit can't silently
+		 * drop the callout's fields. The render file is never touched: it's authored
+		 * code, and rewriting it would discard the developer's markup.
+		 *
+		 * @param array<string,mixed> $args
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 */
+		public function aiValidateCalloutUpdate(array $args, $user): array {
+			if (PermissionService::level($user) < 2) {
+
+				return ["denied" => "Only developers can edit callouts."];
+			}
+
+			$id = trim((string)($args["id"] ?? ""));
+			$existing = $id !== "" ? BigTreeJSONDB::get("callouts", $id) : null;
+
+			if (!$existing) {
+
+				return ["error" => "Callout \"{$id}\" does not exist."];
+			}
+
+			$changes = [];
+			$diff = [];
+
+			foreach (["name", "description", "display_default"] as $field) {
+				if (array_key_exists($field, $args)) {
+					$value = trim((string)$args[$field]);
+
+					if ($value !== (string)($existing[$field] ?? "")) {
+						$changes[$field] = $value;
+						$diff[$field] = ["from" => (string)($existing[$field] ?? ""), "to" => $value];
+					}
+				}
+			}
+
+			if (array_key_exists("level", $args)) {
+				$level = (int)$args["level"];
+
+				if ($level !== (int)($existing["level"] ?? 0)) {
+					$changes["level"] = $level;
+					$diff["level"] = ["from" => (int)($existing["level"] ?? 0), "to" => $level];
+				}
+			}
+
+			$fields = is_array($existing["resources"] ?? null) ? $existing["resources"] : [];
+
+			if (array_key_exists("fields", $args)) {
+				$fields = Resources::clean($this->aiCalloutFields($args["fields"]));
+				$type_error = $this->aiInvalidFieldTypeError($fields);
+
+				if ($type_error !== null) {
+
+					return ["error" => $type_error];
+				}
+
+				$before = is_array($existing["resources"] ?? null) ? $existing["resources"] : [];
+				$changes["resources"] = $fields;
+				$diff = array_merge($diff, $this->aiCalloutFieldDiff($before, $fields));
+			}
+
+			// display_field must name a field that will still exist after this edit,
+			// so it is resolved against the resulting list rather than the stored one.
+			if (array_key_exists("display_field", $args)) {
+				$display_field = $this->aiResolveDisplayField($args["display_field"], $fields);
+
+				if (isset($display_field["error"])) {
+
+					return $display_field;
+				}
+
+				if ($display_field["value"] !== (string)($existing["display_field"] ?? "")) {
+					$changes["display_field"] = $display_field["value"];
+					$diff["display_field"] = [
+						"from" => (string)($existing["display_field"] ?? ""),
+						"to" => $display_field["value"],
+					];
+				}
+			} elseif (isset($changes["resources"])) {
+				// The field list changed under a display_field that wasn't re-stated;
+				// if it named a field that's now gone, the callout would show nothing.
+				$current_display = (string)($existing["display_field"] ?? "");
+				$still_present = false;
+
+				foreach ($fields as $field) {
+					if ((string)($field["id"] ?? "") === $current_display) {
+						$still_present = true;
+
+						break;
+					}
+				}
+
+				if ($current_display !== "" && !$still_present) {
+
+					return ["error" => "This callout's display field is \"{$current_display}\", which isn't in the new "
+						. "field list. Include it, or pass display_field to choose a different one."];
+				}
+			}
+
+			if (!$changes) {
+
+				return ["error" => "No changes were supplied — nothing to update."];
+			}
+
+			$name = (string)($existing["name"] ?? $id);
+
+			return [
+				"ok" => true,
+				"summary" => "Update callout “{$name}” (id {$id}). Its render file is not changed.",
+				"preview" => [
+					"action" => "update_callout",
+					"id" => $id,
+					"name" => $name,
+					"changes" => $diff,
+				],
+				"payload" => [
+					"id" => $id,
+					"changes" => $changes,
+				],
+			];
+		}
+
+		/**
+		 * Name what replacing a callout's field list does, the way update_template
+		 * does: a dropped field orphans its content in every callout instance already
+		 * placed on a page, which a bare count would hide.
+		 *
+		 * @param list<array<string,mixed>> $before
+		 * @param list<array<string,mixed>> $after
+		 * @return array<string,mixed> Extra `changes` rows.
+		 */
+		private function aiCalloutFieldDiff(array $before, array $after): array {
+			$old = [];
+			$new = [];
+
+			foreach ($before as $field) {
+				$old[(string)($field["id"] ?? "")] = $field;
+			}
+
+			foreach ($after as $field) {
+				$new[(string)($field["id"] ?? "")] = $field;
+			}
+
+			unset($old[""], $new[""]);
+
+			$added = array_values(array_diff(array_keys($new), array_keys($old)));
+			$removed = array_values(array_diff(array_keys($old), array_keys($new)));
+			$retyped = [];
+
+			foreach ($new as $field_id => $field) {
+				if (!isset($old[$field_id])) {
+
+					continue;
+				}
+
+				$old_type = (string)($old[$field_id]["type"] ?? "");
+				$new_type = (string)($field["type"] ?? "");
+
+				if ($old_type !== $new_type) {
+					$retyped[] = "{$field_id} ({$old_type} → {$new_type})";
+				}
+			}
+
+			$rows = ["fields" => ["from" => count($old), "to" => count($new)]];
+
+			if ($added) {
+				$rows["fields_added"] = implode(", ", $added);
+			}
+
+			if ($removed) {
+				$rows["fields_removed"] = implode(", ", $removed)
+					. " — existing content in " . (count($removed) === 1 ? "this field" : "these fields")
+					. " is orphaned wherever this callout is already placed";
+			}
+
+			if ($retyped) {
+				$rows["fields_retyped"] = implode(", ", $retyped);
+			}
+
+			return $rows;
+		}
+
+		/**
+		 * Execute an approved callout edit. Re-checks developer level and that the
+		 * callout still exists; the render file is deliberately left alone.
+		 *
+		 * @param array<string,mixed> $payload
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 */
+		public function aiUpdateCallout(array $payload, $user): array {
+			if (PermissionService::level($user) < 2) {
+				throw new AuthorizationException("Only developers can edit callouts.");
+			}
+
+			$id = (string)($payload["id"] ?? "");
+			$existing = $id !== "" ? BigTreeJSONDB::get("callouts", $id) : null;
+
+			if (!$existing) {
+
+				return ["mode" => "error", "message" => "That callout no longer exists."];
+			}
+
+			$changes = is_array($payload["changes"] ?? null) ? $payload["changes"] : [];
+			$update = $existing;
+
+			foreach (["name", "description", "display_default"] as $field) {
+				if (array_key_exists($field, $changes)) {
+					$update[$field] = BigTree::safeEncode((string)$changes[$field]);
+				}
+			}
+
+			if (array_key_exists("level", $changes)) {
+				$update["level"] = (int)$changes["level"];
+			}
+
+			if (array_key_exists("display_field", $changes)) {
+				$update["display_field"] = (string)$changes["display_field"];
+			}
+
+			if (array_key_exists("resources", $changes)) {
+				$update["resources"] = Resources::clean(is_array($changes["resources"]) ? $changes["resources"] : []);
+			}
+
+			BigTreeJSONDB::update("callouts", $id, $update);
+
+			return [
+				"mode" => "updated",
+				"id" => $id,
+				"name" => (string)($update["name"] ?? $id),
+			];
+		}
+
+		/**
 		 * Normalize the model's proposed callout fields into the canonical resource
 		 * shape before cleaning.
 		 *

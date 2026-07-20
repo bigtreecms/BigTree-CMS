@@ -31,12 +31,48 @@
 		return (object)["id" => 1, "level" => $level, "permissions" => []];
 	}
 
-	/** Tool names the approval dispatcher has a branch for. */
-	function ai_wiring_dispatch_branches(): array {
-		$source = file_get_contents(SERVER_ROOT . "core/inc/bigtree/services/AIChatService.php");
-		preg_match_all('/case "([a-z_]+)":/', (string)$source, $matches);
+	/**
+	 * Tool names a given AIChatService method has a `case` branch for. Scoped to the
+	 * method's own line range so executeProposal's branches and auditDescriptor's
+	 * branches can be compared against each other rather than blurred together.
+	 *
+	 * @return list<string>
+	 */
+	function ai_wiring_cases_in(string $method): array {
+		static $lines = null;
+
+		if ($lines === null) {
+			$lines = file(SERVER_ROOT . "core/inc/bigtree/services/AIChatService.php");
+		}
+
+		$reflection = new ReflectionMethod(AIChatService::class, $method);
+		$body = implode("", array_slice(
+			$lines,
+			$reflection->getStartLine() - 1,
+			$reflection->getEndLine() - $reflection->getStartLine() + 1
+		));
+
+		preg_match_all('/case "([a-z_]+)":/', $body, $matches);
 
 		return array_values(array_unique($matches[1]));
+	}
+
+	/** Tool names the approval dispatcher has a branch for. */
+	function ai_wiring_dispatch_branches(): array {
+
+		return ai_wiring_cases_in("executeProposal");
+	}
+
+	/**
+	 * Tools that execute after approval but deliberately write no audit row. Keep
+	 * this list short and justified — anything here is invisible in the audit UI's
+	 * "AI" filter.
+	 *
+	 * @return list<string>
+	 */
+	function ai_wiring_audit_skips(): array {
+
+		return [];
 	}
 
 	function test_ai_registry_builds_for_every_level() {
@@ -103,6 +139,50 @@
 		T::equals($orphaned, [], "no dispatch branch refers to a tool that no longer exists");
 	}
 
+	/**
+	 * The third leg of the seam. A tool can be registered and dispatched and still
+	 * leave no trace: auditDescriptor's `default` returns null and recordApprovalAudit
+	 * silently skips. That is how the whole Phase-4 catalog shipped unaudited.
+	 */
+	function test_every_dispatch_branch_has_an_audit_descriptor() {
+		$audited = ai_wiring_cases_in("auditDescriptor");
+		$skips = ai_wiring_audit_skips();
+		$missing = [];
+
+		// The comparison is source-scraped, so an empty side would pass vacuously.
+		T::ok(count($audited) > 0, "auditDescriptor's branches were parsed");
+		T::ok(count(ai_wiring_dispatch_branches()) > 0, "executeProposal's branches were parsed");
+
+		foreach (ai_wiring_dispatch_branches() as $branch) {
+			if (!in_array($branch, $audited, true) && !in_array($branch, $skips, true)) {
+				$missing[] = $branch;
+			}
+		}
+
+		T::equals($missing, [], "every approved tool writes an audit row (or is on the documented skip list)");
+	}
+
+	function test_audit_descriptors_do_not_outlive_their_tools() {
+		$dispatched = ai_wiring_dispatch_branches();
+		$orphaned = [];
+
+		foreach (ai_wiring_cases_in("auditDescriptor") as $branch) {
+			if (!in_array($branch, $dispatched, true)) {
+				$orphaned[] = $branch;
+			}
+		}
+
+		T::equals($orphaned, [], "no audit descriptor refers to a tool that is no longer dispatched");
+	}
+
+	function test_audit_skip_list_only_names_real_tools() {
+		$dispatched = ai_wiring_dispatch_branches();
+
+		foreach (ai_wiring_audit_skips() as $skip) {
+			T::ok(in_array($skip, $dispatched, true), "audit skip “{$skip}” names a tool that still exists");
+		}
+	}
+
 	function test_new_catalog_tools_are_registered() {
 		$registry = ai_wiring_registry();
 		$developer = ai_wiring_user(2);
@@ -117,6 +197,9 @@
 			"set_module_entry_flag", "delete_module_entry",
 			"remove_tags", "reject_pending_change",
 			"get_module", "get_module_schema", "get_pending_change",
+			// Audit #2 phase 4.
+			"update_callout", "update_module", "get_callout",
+			"get_audit_trail", "get_page_revisions", "restore_page_revision",
 		] as $expected) {
 			T::ok(in_array($expected, $names, true), "{$expected} is registered");
 		}

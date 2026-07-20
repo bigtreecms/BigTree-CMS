@@ -38,4 +38,25 @@
 		 * @throws \BigTree\Api\Exceptions\AuthorizationException
 		 */
 		public function aiCreateModule(array $payload, $user): array;
+
+		/**
+		 * Validate a proposed edit to a module's name/group/icon. Route and the Module
+		 * Designer surface (table/forms/views/actions) are deliberately out of scope.
+		 * Returns denied | error | ok+summary+preview+payload.
+		 *
+		 * @param array<string,mixed> $args
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 */
+		public function aiValidateModuleUpdate(array $args, $user): array;
+
+		/**
+		 * Apply an approved module edit from a stored payload. Re-checks developer.
+		 *
+		 * @param array<string,mixed> $payload
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 * @throws \BigTree\Api\Exceptions\AuthorizationException
+		 */
+		public function aiUpdateModule(array $payload, $user): array;
 	}

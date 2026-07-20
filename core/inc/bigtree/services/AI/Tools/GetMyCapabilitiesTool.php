@@ -39,8 +39,9 @@
 				"function" => [
 					"name" => $this->name(),
 					"description" => "Return the current user's role and what they are allowed to do in the CMS "
-						. "(manage users, tags, settings, templates, modules, callouts). Use this to answer "
-						. "\"what can I do?\" rather than guessing.",
+						. "(manage users, tags, settings, templates, modules, callouts), plus the list of things "
+						. "the assistant cannot do at any level and where in the admin to do them instead. Use "
+						. "this to answer \"what can I do?\" or \"can you do X?\" rather than guessing.",
 					"parameters" => [
 						"type" => "object",
 						"properties" => new \stdClass(),
@@ -54,6 +55,10 @@
 
 			return AIToolResult::ok([
 				"capabilities" => $caps,
+				// Level-independent: what the assistant itself can't do, so the model
+				// can cite the limit and the admin screen rather than discovering the
+				// wall by failing at it mid-conversation.
+				"assistant_cannot" => CapabilitySummary::outOfScope(),
 				"summary" => CapabilitySummary::promptText($context->user),
 			]);
 		}

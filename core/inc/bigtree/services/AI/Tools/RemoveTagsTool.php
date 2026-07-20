@@ -50,6 +50,11 @@
 							"type" => "integer",
 							"description" => "Id of the module entry to untag (with module_id).",
 						],
+						"form" => [
+							"type" => "string",
+							"description" => "Optional form id, for a module that has more than one entry form. "
+								. "If the module has several and you omit this, you'll be asked which to use.",
+						],
 						"tags" => [
 							"type" => "array",
 							"description" => "Tag names to remove.",

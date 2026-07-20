@@ -222,10 +222,36 @@
 		 */
 		public function aiPendingChanges(int $limit, $user): array {
 			$me = (int)(is_object($user) ? ($user->id ?? 0) : ($user["id"] ?? 0));
+			$limit = max(1, $limit);
+			$columns = "id, user, date, title, `table`, item_id, type, module, pending_page_parent";
+
+			// The user's own drafts are selected in SQL, so on a busy site an older one
+			// can't fall out of a fixed scan window and be reported as nonexistent.
+			// Publishability is a permission computation with no SQL equivalent, so
+			// that side still scans — but the cap now bounds results, not visibility
+			// of the rows the user is most likely to be asking about.
 			$rows = SQL::fetchAll(
-				"SELECT id, user, date, title, `table`, item_id, type, module, pending_page_parent
-				 FROM bigtree_pending_changes ORDER BY date DESC, id DESC LIMIT 500"
+				"SELECT {$columns} FROM bigtree_pending_changes WHERE user = ? ORDER BY date DESC, id DESC LIMIT " . $limit,
+				$me
 			);
+
+			$seen = [];
+
+			foreach ($rows as $row) {
+				$seen[(int)$row["id"]] = true;
+			}
+
+			foreach (SQL::fetchAll("SELECT {$columns} FROM bigtree_pending_changes ORDER BY date DESC, id DESC LIMIT 500") as $row) {
+				if (!isset($seen[(int)$row["id"]])) {
+					$rows[] = $row;
+				}
+			}
+
+			// Merged from two queries, so re-sort before the cap is applied.
+			usort($rows, function (array $a, array $b): int {
+
+				return [$b["date"], (int)$b["id"]] <=> [$a["date"], (int)$a["id"]];
+			});
 
 			$out = [];
 
@@ -250,7 +276,7 @@
 					"date" => $row["date"],
 				];
 
-				if (count($out) >= max(1, $limit)) {
+				if (count($out) >= $limit) {
 
 					break;
 				}

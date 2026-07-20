@@ -2,6 +2,7 @@
 	namespace BigTree\Services;
 
 	use BigTree\Api\Pagination;
+	use BigTree\Services\AI\Tools\AuditToolBackend;
 	use BigTree\Api\Request;
 	use BigTree\Api\Response;
 	use BigTree;
@@ -13,7 +14,7 @@
 	 * Uses the existing bigtree_audit_trail schema unchanged; extra request context
 	 * lives in the sibling bigtree_audit_trail_context table.
 	 */
-	class AuditService {
+	class AuditService implements AuditToolBackend {
 		public static function write($table, $entry, $type, $user_id, array $context = []) {
 			if (!$user_id || $table === "") {
 				return null;
@@ -140,5 +141,91 @@
 				},
 				100
 			);
+		}
+
+		// — AI tool seam (AuditToolBackend) —
+		//
+		// Read-only, administrator-gated. "What has the assistant changed this week?"
+		// was only answerable in the Debug UI, which is exactly the question an
+		// AI-assisted workflow needs answered chat-side. Pairs with the descriptor
+		// work that made AI-approved changes show up here at all.
+
+		/**
+		 * Recent audit-trail entries, optionally narrowed to a source (via), a table,
+		 * or a user. Admin-only: the audit trail spans every table on the site, so it
+		 * would otherwise leak the existence and edit history of content the caller
+		 * has no access to.
+		 *
+		 * @param array<string,mixed> $filters
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 */
+		public function aiAuditTrail(array $filters, int $limit, $user): array {
+			if (PermissionService::level($user) < 1) {
+
+				return ["denied" => "Only administrators can read the audit trail."];
+			}
+
+			$where = [];
+			$args = [];
+			$via = trim((string)($filters["via"] ?? ""));
+
+			// The context join is unconditional: `via` is reported on every row, not
+			// only when filtering by it, so the caller can see which changes came
+			// through the assistant without asking twice.
+			if ($via !== "") {
+				$where[] = "c.via = ?";
+				$args[] = $via;
+			}
+
+			if (trim((string)($filters["table"] ?? "")) !== "") {
+				$where[] = "a.`table` = ?";
+				$args[] = trim((string)$filters["table"]);
+			}
+
+			if ((int)($filters["user_id"] ?? 0) > 0) {
+				$where[] = "a.user = ?";
+				$args[] = (int)$filters["user_id"];
+			}
+
+			if (trim((string)($filters["since"] ?? "")) !== "") {
+				$stamp = strtotime((string)$filters["since"]);
+
+				if ($stamp === false) {
+
+					return ["error" => "\"{$filters["since"]}\" isn't a date I can use. Try \"2026-07-01\" or "
+						. "\"-7 days\"."];
+				}
+
+				$where[] = "a.date >= ?";
+				$args[] = date("Y-m-d H:i:s", $stamp);
+			}
+
+			$limit = max(1, min(100, $limit));
+			$sql = "SELECT a.id, a.`table`, a.entry, a.type, a.date, a.user, u.name AS user_name, c.via
+				FROM bigtree_audit_trail a
+				LEFT JOIN bigtree_users u ON u.id = a.user
+				LEFT JOIN bigtree_audit_trail_context c ON c.audit_id = a.id"
+				. ($where ? " WHERE " . implode(" AND ", $where) : "")
+				. " ORDER BY a.date DESC, a.id DESC LIMIT " . $limit;
+
+			$entries = [];
+
+			foreach (SQL::fetchAll($sql, ...$args) as $row) {
+				$entries[] = [
+					"id" => (int)$row["id"],
+					"table" => (string)$row["table"],
+					"entry" => (string)$row["entry"],
+					"type" => (string)$row["type"],
+					"date" => $row["date"],
+					"user_id" => (int)$row["user"],
+					"user_name" => $row["user_name"] !== null ? (string)$row["user_name"] : null,
+					// null for an ordinary change made in the admin or over REST,
+					// "ai_assistant" for one approved through a proposal card.
+					"via" => $row["via"] !== null ? (string)$row["via"] : null,
+				];
+			}
+
+			return ["entries" => $entries];
 		}
 	}
