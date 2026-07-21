@@ -87,6 +87,65 @@
 		);
 	}
 
+	/**
+	 * Create ran a required-field check; update ran none, so setting a required
+	 * column to "" sifted cleanly, staged, and published live for a publisher.
+	 */
+	function test_ai_gate_entry_update_refuses_to_blank_a_required_column() {
+		$svc = new AutoModuleService();
+		$schema = [
+			"title" => ["title" => "Title", "type" => "text", "required" => true],
+			"blurb" => ["title" => "Blurb", "type" => "textarea", "required" => false],
+		];
+		$row = ["title" => "The stored title", "blurb" => "Stored blurb"];
+
+		$blanked = ai_gate_invoke($svc, "aiEntryUpdateGate", [$schema, $row, ["title" => ""]]);
+		T::ok(is_string($blanked), "blanking a required column is refused");
+		T::ok(strpos((string)$blanked, "Title") !== false, "the refusal names the field");
+
+		T::ok(
+			is_string(ai_gate_invoke($svc, "aiEntryUpdateGate", [$schema, $row, ["title" => "   "]])),
+			"whitespace is not a value either"
+		);
+
+		T::equals(
+			ai_gate_invoke($svc, "aiEntryUpdateGate", [$schema, $row, ["blurb" => ""]]),
+			null,
+			"clearing an optional column is fine"
+		);
+
+		T::equals(
+			ai_gate_invoke($svc, "aiEntryUpdateGate", [$schema, $row, ["title" => "A new title"]]),
+			null,
+			"replacing a required column with a real value passes"
+		);
+	}
+
+	/**
+	 * A row that was already missing a required value — imported, or made required
+	 * after the fact — is not this edit's doing. Refusing every unrelated change to
+	 * it would make those rows uneditable through the assistant rather than fixable.
+	 */
+	function test_ai_gate_entry_update_judges_only_the_columns_it_touches() {
+		$svc = new AutoModuleService();
+		$schema = [
+			"title" => ["title" => "Title", "type" => "text", "required" => true],
+			"blurb" => ["title" => "Blurb", "type" => "textarea", "required" => false],
+		];
+		$incomplete = ["title" => "", "blurb" => "Stored blurb"];
+
+		T::equals(
+			ai_gate_invoke($svc, "aiEntryUpdateGate", [$schema, $incomplete, ["blurb" => "New blurb"]]),
+			null,
+			"an unrelated edit to an already-incomplete row is allowed"
+		);
+
+		T::ok(
+			is_string(ai_gate_invoke($svc, "aiEntryUpdateGate", [$schema, $incomplete, ["title" => ""]])),
+			"but re-stating the empty required column is still refused"
+		);
+	}
+
 	function test_ai_gate_entry_ignores_settable_and_optional_fields() {
 		$svc = new AutoModuleService();
 

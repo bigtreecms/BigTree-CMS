@@ -59,4 +59,25 @@
 		 * @throws \BigTree\Api\Exceptions\AuthorizationException
 		 */
 		public function aiUpdateModule(array $payload, $user): array;
+
+		/**
+		 * Validate creating a module group. Developer-only. Gives create_module's and
+		 * update_module's group question an answer other than the groups that already
+		 * exist. Returns denied | error | ok+summary+preview+payload.
+		 *
+		 * @param array<string,mixed> $args
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 */
+		public function aiValidateModuleGroupCreate(array $args, $user): array;
+
+		/**
+		 * Apply an approved module group creation. Re-checks developer level.
+		 *
+		 * @param array<string,mixed> $payload
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 * @throws \BigTree\Api\Exceptions\AuthorizationException
+		 */
+		public function aiCreateModuleGroup(array $payload, $user): array;
 	}

@@ -389,7 +389,7 @@
 					. "pick a template to create a real page."];
 			}
 
-			$sifted = $this->aiSiftResourceContent($schema, $provided);
+			$sifted = $this->aiSiftResourceContent($schema, $provided, $template);
 
 			if (isset($sifted["error"])) {
 
@@ -646,6 +646,10 @@
 					"type" => $type,
 					"title" => (string)($resource["title"] ?? $id),
 					"required" => in_array("required", $rules ?: [], true),
+					// Emptiness is `required`'s business, and the content gates own
+					// that; what's left (numeric, email, link) the write path enforces
+					// and nothing here used to check.
+					"rules" => array_values(array_diff($rules ?: [], ["required"])),
 				];
 			}
 
@@ -746,21 +750,32 @@
 		 * Keep only the provided content that maps to a settable simple resource; reject
 		 * a value that is a list/object where a scalar is expected.
 		 *
+		 * Both kinds of rejection used to be a bare `continue`. A non-required complex
+		 * resource, or a misspelled resource id, was therefore dropped in silence: the
+		 * model believed it had set the value, the user read the model's confirmation,
+		 * and the preview quietly omitted it. A typo deserves a correction loop.
+		 *
 		 * @param array<string,array<string,mixed>> $schema
 		 * @param array<string,mixed> $provided
+		 * @param string $template The template the content belongs to, for naming complex resources.
 		 * @return array<string,mixed> ["data" => array] or ["error" => string]
 		 */
-		private function aiSiftResourceContent(array $schema, array $provided): array {
+		private function aiSiftResourceContent(array $schema, array $provided, string $template = ""): array {
 			$data = [];
+			$complex = $this->aiComplexTemplateResources($schema, $template);
 
 			foreach ($provided as $id => $value) {
 				$id = (string)$id;
 
-				// Unknown ids are ignored (they'd never persist); only real complex
-				// fields are surfaced as an error below.
 				if (!isset($schema[$id])) {
+					if (isset($complex[$id])) {
 
-					continue;
+						return ["error" => "Field \"{$id}\" ({$complex[$id]}) can't be set by the assistant — it needs "
+							. "the page editor in the admin. Settable fields: " . $this->aiDescribeResourceSchema($schema)];
+					}
+
+					return ["error" => "This template has no content field called \"{$id}\". Settable fields: "
+						. $this->aiDescribeResourceSchema($schema)];
 				}
 
 				if (is_array($value)) {
@@ -773,9 +788,85 @@
 				} else {
 					$data[$id] = is_bool($value) ? ($value ? "1" : "0") : (string)$value;
 				}
+
+				$invalid = $this->aiResourceRuleViolation($schema[$id], $data[$id]);
+
+				if ($invalid !== null) {
+
+					return ["error" => $invalid];
+				}
 			}
 
 			return ["data" => $data];
+		}
+
+		/**
+		 * Check one sifted resource value against its non-required validation rules,
+		 * through the same validator the write path uses so the two can't disagree.
+		 * Returns null when the value passes.
+		 *
+		 * @param array<string,mixed> $field The schema entry.
+		 * @param mixed $value
+		 */
+		private function aiResourceRuleViolation(array $field, $value): ?string {
+			$rules = is_array($field["rules"] ?? null) ? $field["rules"] : [];
+
+			if (!$rules || trim((string)$value) === "") {
+
+				return null;
+			}
+
+			$rule_string = implode(" ", $rules);
+
+			if (\BigTreeAutoModule::validate($value, $rule_string)) {
+
+				return null;
+			}
+
+			$title = (string)($field["title"] ?? $field["id"] ?? "This field");
+			// The legacy message opens "This field …"; name the field instead.
+			$reason = preg_replace(
+				"/^This field /",
+				"",
+				\BigTreeAutoModule::validationErrorMessage($value, $rule_string)
+			);
+
+			return "“{$title}” " . $reason . " \"" . $this->aiPreviewScalarValue($value)
+				. "\" would be refused when the page is saved.";
+		}
+
+		/**
+		 * A template's real resources that aren't in the settable schema, mapped to a
+		 * "Title (type)" label — everything the assistant can see exists but cannot
+		 * author. Used to tell a complex resource apart from a misspelling.
+		 *
+		 * @param array<string,array<string,mixed>> $schema
+		 * @return array<string,string>
+		 */
+		private function aiComplexTemplateResources(array $schema, string $template): array {
+			$row = $template !== "" ? BigTreeJSONDB::get("templates", $template) : null;
+
+			if (!$row) {
+
+				return [];
+			}
+
+			$complex = [];
+
+			foreach ((array)($row["resources"] ?? []) as $resource) {
+				$id = (string)($resource["id"] ?? "");
+
+				if ($id === "" || isset($schema[$id])) {
+
+					continue;
+				}
+
+				$type = (string)($resource["type"] ?? "");
+				$title = (string)($resource["title"] ?? $id);
+				$complex[$id] = $type !== "" ? "{$title}, {$type}" : $title;
+			}
+
+			return $complex;
 		}
 
 		/**
@@ -1166,6 +1257,160 @@
 		}
 
 		/**
+		 * Score a page's SEO the way the admin's own rating panel does.
+		 *
+		 * The assistant can edit a page's title, meta description and content but had
+		 * no way to answer "how's the SEO on this page?" — so it either guessed from
+		 * the raw fields or declined. This is the same computation the REST route and
+		 * the legacy admin run, returned verbatim rather than re-derived.
+		 *
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 */
+		public function aiPageSeoRating(int $page_id, $user): array {
+			$page = $page_id > 0 ? SQL::fetch("SELECT * FROM bigtree_pages WHERE id = ?", $page_id) : null;
+
+			if (!$page) {
+
+				return ["error" => "Page {$page_id} does not exist."];
+			}
+
+			if (!PermissionService::userHasPageAccess($user, $page_id, "v")) {
+
+				return ["denied" => "You do not have permission to view this page."];
+			}
+
+			$title = trim((string)$page["nav_title"]) ?: trim((string)$page["title"]) ?: "page #{$page_id}";
+			$content = Json::decode($page["resources"] ?? "");
+			$seo = self::getPageSEORating($page, is_array($content) ? $content : []);
+
+			// Null means the template couldn't be resolved — an external link, or a
+			// template that has since been removed. There is nothing to rate, and
+			// saying so beats reporting a fabricated zero.
+			if (is_null($seo)) {
+
+				return [
+					"page_id" => $page_id,
+					"page_title" => $title,
+					"available" => false,
+					"note" => "This page has no rateable content — it's an external link, or its template no longer "
+						. "exists.",
+				];
+			}
+
+			return [
+				"page_id" => $page_id,
+				"page_title" => $title,
+				"available" => true,
+				"score" => (int)$seo["score"],
+				"recommendations" => array_values($seo["recommendations"]),
+			];
+		}
+
+		/**
+		 * Validate bookmarking the page's current content as a named revision.
+		 *
+		 * The assistant could restore a revision but never create one, so there was no
+		 * way to say "save where this is now, then rewrite the intro" — the safety net
+		 * only existed if someone had already thought to hang it. Publisher-only,
+		 * matching the REST route.
+		 *
+		 * @param array<string,mixed> $args
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 */
+		public function aiValidateSaveRevision(array $args, $user): array {
+			$page_id = (int)($args["page_id"] ?? 0);
+			$page = $page_id > 0 ? SQL::fetch("SELECT * FROM bigtree_pages WHERE id = ?", $page_id) : null;
+
+			if (!$page) {
+
+				return ["error" => "Page {$page_id} does not exist."];
+			}
+
+			if (!PermissionService::userHasPageAccess($user, $page_id, "e")) {
+
+				return ["denied" => "You do not have permission to edit this page."];
+			}
+
+			if (!PermissionService::isPublisher($user, PermissionService::userPageLevel($user, $page_id))) {
+
+				return ["denied" => "Saving a named revision needs publisher access on this page."];
+			}
+
+			$description = trim((string)($args["description"] ?? ""));
+
+			// An unnamed revision is stored as an automatic snapshot, which is exactly
+			// what this tool exists to be distinguishable from.
+			if ($description === "") {
+
+				return ["error" => "A description is required — it's what tells this revision apart from the "
+					. "automatic snapshots in the page's history (e.g. \"before the pricing rewrite\")."];
+			}
+
+			if (mb_strlen($description) > 255) {
+
+				return ["error" => "That description is too long (255 characters maximum)."];
+			}
+
+			$title = trim((string)$page["nav_title"]) ?: trim((string)$page["title"]) ?: "page #{$page_id}";
+
+			return [
+				"ok" => true,
+				"summary" => "Save the current content of “{$title}” as a named revision (“{$description}”). "
+					. "This changes nothing on the live page — it bookmarks what's there now so it can be restored.",
+				"preview" => [
+					"action" => "save_page_revision",
+					"page_id" => $page_id,
+					"page_title" => $title,
+					"description" => $description,
+					"mode" => "published",
+				],
+				"payload" => [
+					"page_id" => $page_id,
+					"description" => $description,
+				],
+			];
+		}
+
+		/**
+		 * Execute an approved named-revision save. Re-checks publisher access and
+		 * reuses the same snapshot helper the REST route does.
+		 *
+		 * @param array<string,mixed> $payload
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 */
+		public function aiSaveRevision(array $payload, $user): array {
+			$page_id = (int)($payload["page_id"] ?? 0);
+			$description = trim((string)($payload["description"] ?? ""));
+
+			if (!PermissionService::userHasPageAccess($user, $page_id, "e")) {
+				throw new AuthorizationException("Insufficient page permission to save a revision (e required)");
+			}
+
+			if (!PermissionService::isPublisher($user, PermissionService::userPageLevel($user, $page_id))) {
+				throw new AuthorizationException("Publisher access required to save a page revision");
+			}
+
+			$page = SQL::fetch("SELECT * FROM bigtree_pages WHERE id = ?", $page_id);
+
+			if (!$page || $description === "") {
+
+				return ["mode" => "error", "message" => "That page no longer exists."];
+			}
+
+			$revision_id = $this->insertRevisionSnapshot($page_id, $page, $this->aiUserId($user), $description);
+
+			return [
+				"mode" => "saved",
+				"page_id" => $page_id,
+				"revision_id" => $revision_id,
+				"description" => $description,
+			];
+		}
+
+		/**
 		 * The acting user's id, from either the object or array actor shape the AI
 		 * seam is called with.
 		 *
@@ -1307,7 +1552,11 @@
 
 			// Only read the OG record when an OG field is actually being edited —
 			// otherwise every plain page edit would pay for a query it never uses.
-			$stored = $supplied ? $this->loadOpenGraph((int)$page["id"]) : null;
+			// A draft carries its OG record on the queue row rather than in the OG
+			// table — there is no page id to look one up by.
+			$stored = $supplied
+				? (array_key_exists("ai_open_graph", $page) ? $page["ai_open_graph"] : $this->loadOpenGraph((int)$page["id"]))
+				: null;
 			$stored = is_array($stored) ? $stored : [];
 			$from = [
 				"og_title" => (string)($stored["title"] ?? ""),
@@ -1323,6 +1572,184 @@
 			}
 
 			return ["from" => $from, "to" => $to, "stored" => $stored];
+		}
+
+		/**
+		 * Resolve an AI-supplied page id, which may address an unpublished NEW draft
+		 * ("p"-prefixed) rather than a live page.
+		 *
+		 * The entry tools have accepted "p123" since audit #1, for exactly the reason
+		 * that applies here: an editor's own create_page lands in the pending queue,
+		 * so "actually, change the header on that draft" had no path — the very
+		 * scenario that motivated draft addressing in the first place. REST has
+		 * addressed page drafts all along (GET/PATCH /pages/pending/{pcid}); this is
+		 * the same addressing for the tool seam.
+		 *
+		 * A draft's permissions are checked against its parent, matching
+		 * updatePending's own enforce() — the page itself doesn't exist yet. Callers
+		 * do that check themselves, against `parent` when `is_pending`.
+		 *
+		 * Public because the read side has to address drafts the same way the write
+		 * side does: SearchService::getPageDetail resolves get_page's id through this,
+		 * so the assistant can read back a draft it is allowed to edit rather than
+		 * being told the id doesn't exist.
+		 *
+		 * @param mixed $raw
+		 * @return array{error?:string,is_pending?:bool,page_id?:int,change_id?:int,parent?:int,page?:array<string,mixed>}
+		 */
+		public function aiResolvePageTarget($raw): array {
+			$raw = trim((string)$raw);
+
+			if ($raw === "") {
+
+				return ["error" => "A page id is required."];
+			}
+
+			if (strlen($raw) > 1 && $raw[0] === "p" && ctype_digit(substr($raw, 1))) {
+				$change_id = (int)substr($raw, 1);
+				$change = SQL::fetch(
+					"SELECT * FROM bigtree_pending_changes WHERE id = ? AND `table` = 'bigtree_pages' AND type = 'NEW'",
+					$change_id
+				);
+
+				if (!$change) {
+
+					return ["error" => "Draft {$raw} does not exist. It may already have been published — if so, use "
+						. "the live page's numeric id."];
+				}
+
+				$changes = Json::decode($change["changes"]);
+				$changes = is_array($changes) ? $changes : [];
+				$open_graph = Json::decode($change["open_graph_changes"] ?? "");
+				$parent = (int)$change["pending_page_parent"];
+
+				return [
+					"is_pending" => true,
+					"page_id" => 0,
+					"change_id" => $change_id,
+					"parent" => $parent,
+					"page" => $this->aiDraftAsPage($changes, $parent, is_array($open_graph) ? $open_graph : []),
+				];
+			}
+
+			if (!ctype_digit($raw) || (int)$raw < 1) {
+
+				return ["error" => "\"{$raw}\" isn't a page id. Use the numeric id of a live page, or a \"p\"-prefixed "
+					. "id (like \"p12\") for a page that is still an unpublished draft."];
+			}
+
+			$page_id = (int)$raw;
+			$page = SQL::fetch("SELECT * FROM bigtree_pages WHERE id = ?", $page_id);
+
+			if (!$page) {
+
+				return ["error" => "Page {$page_id} does not exist."];
+			}
+
+			return [
+				"is_pending" => false,
+				"page_id" => $page_id,
+				"change_id" => 0,
+				"parent" => (int)$page["parent"],
+				"page" => $page,
+			];
+		}
+
+		/**
+		 * Shape a NEW draft's stored `changes` blob like a live page row, so the
+		 * validation path can diff and gate a draft with the same code that handles a
+		 * published page. Every column the AI update path reads is defaulted — the
+		 * blob only carries what was actually submitted.
+		 *
+		 * `resources` is re-encoded because the blob stores it as an array while the
+		 * live column (and everything that reads it) is JSON.
+		 *
+		 * @param array<string,mixed> $changes
+		 * @param array<string,mixed> $open_graph
+		 * @return array<string,mixed>
+		 */
+		private function aiDraftAsPage(array $changes, int $parent, array $open_graph): array {
+			$resources = $changes["resources"] ?? [];
+
+			return [
+				"id" => 0,
+				"parent" => $parent,
+				"nav_title" => (string)($changes["nav_title"] ?? ""),
+				"title" => (string)($changes["title"] ?? ""),
+				"route" => (string)($changes["route"] ?? ""),
+				"meta_description" => (string)($changes["meta_description"] ?? ""),
+				"meta_keywords" => (string)($changes["meta_keywords"] ?? ""),
+				"in_nav" => (string)($changes["in_nav"] ?? ""),
+				"seo_invisible" => (string)($changes["seo_invisible"] ?? ""),
+				"new_window" => (string)($changes["new_window"] ?? ""),
+				"template" => (string)($changes["template"] ?? ""),
+				"external" => (string)($changes["external"] ?? ""),
+				"publish_at" => $changes["publish_at"] ?? null,
+				"expire_at" => $changes["expire_at"] ?? null,
+				"resources" => is_string($resources) ? $resources : (string)json_encode($resources),
+				// Read by aiPageOpenGraph in place of a loadOpenGraph() lookup: a draft
+				// has no page id to look one up by, its OG lives on the change row.
+				"ai_open_graph" => $open_graph,
+			];
+		}
+
+		/**
+		 * Amend a NEW page draft in place: merge the approved changes into its stored
+		 * blob and re-stamp the queue row. Mirrors stampPendingNew, but merging rather
+		 * than replacing, because the assistant only ever supplies the fields it is
+		 * actually changing.
+		 *
+		 * @param array<string,mixed> $changes
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 */
+		private function aiAmendPageDraft(int $change_id, array $changes, $user): array {
+			$change = SQL::fetch(
+				"SELECT * FROM bigtree_pending_changes WHERE id = ? AND `table` = 'bigtree_pages' AND type = 'NEW'",
+				$change_id
+			);
+
+			if (!$change) {
+
+				return ["mode" => "error", "message" => "That draft no longer exists — it may already have been "
+					. "published."];
+			}
+
+			$parent = (int)$change["pending_page_parent"];
+
+			if (!PermissionService::userHasPageAccess($user, $parent, "e")) {
+				throw new AuthorizationException("Insufficient page permission to edit draft (e required)");
+			}
+
+			$stored = Json::decode($change["changes"]);
+			$stored = is_array($stored) ? $stored : [];
+
+			// open_graph lives in its own column on the queue row, exactly as it does
+			// when the draft is first written.
+			$row = ["user" => $this->aiUserId($user), "date" => "NOW()"];
+
+			if (array_key_exists("open_graph", $changes)) {
+				$row["open_graph_changes"] = $changes["open_graph"];
+				unset($changes["open_graph"]);
+			}
+
+			$merged = array_merge($stored, $changes);
+			$merged["parent"] = $parent;
+			$row["changes"] = $merged;
+
+			SQL::update("bigtree_pending_changes", $change_id, $row);
+			$this->allocatePageResources("p".$change_id, (string)($merged["template"] ?? ""), $merged);
+
+			Hooks::fire("page.pending_updated", [
+				"pending_change_id" => $change_id, "parent" => $parent, "via" => "ai_assistant",
+			]);
+
+			return [
+				"mode" => "pending",
+				"page_id" => 0,
+				"pending_change_id" => $change_id,
+				"title" => (string)($merged["nav_title"] ?? "draft"),
+			];
 		}
 
 		/**
@@ -1382,23 +1809,24 @@
 		 * @return array<string,mixed>
 		 */
 		public function aiValidatePageUpdate(array $args, $user): array {
-			$id = (int)($args["id"] ?? 0);
+			$target = $this->aiResolvePageTarget($args["id"] ?? "");
 
-			if ($id < 1) {
+			if (isset($target["error"])) {
 
-				return ["error" => "A page id is required to edit a page."];
+				return $target;
 			}
 
-			$page = SQL::fetch("SELECT * FROM bigtree_pages WHERE id = ?", $id);
+			$page = $target["page"];
+			$is_pending = $target["is_pending"];
+			$id = $target["page_id"];
 
-			if (!$page) {
+			// A draft has no page of its own to hold permissions; its parent is what
+			// grants the right to edit it, matching updatePending's own check.
+			if (!PermissionService::userHasPageAccess($user, $is_pending ? $target["parent"] : $id, "e")) {
 
-				return ["error" => "Page {$id} does not exist."];
-			}
-
-			if (!PermissionService::userHasPageAccess($user, $id, "e")) {
-
-				return ["denied" => "You do not have permission to edit this page."];
+				return ["denied" => $is_pending
+					? "You do not have permission to edit drafts under this page."
+					: "You do not have permission to edit this page."];
 			}
 
 			// Only the plain content fields the assistant is allowed to touch. Resource
@@ -1468,6 +1896,33 @@
 					$args[$field] = $external["url"];
 				}
 
+				// nav_title is what the nav, the breadcrumb and the pending-change card
+				// all render, and nothing falls back to it — "" is a legitimate-looking
+				// diff that leaves a live page labelled by nothing at all. REST's create
+				// requires it; so does editing it.
+				if ($field === "nav_title" && trim((string)$args[$field]) === "") {
+
+					return ["error" => "A page's navigation title can't be empty — it's what the site's navigation and "
+						. "breadcrumbs display. Supply a nav_title, or use in_nav to hide the page from navigation "
+						. "instead."];
+				}
+
+				// The write path uniquifies the route but never sanitizes it, so "About
+				// Us!" would be stored with its space and punctuation intact. Create
+				// derives routes through urlify; an edit has to normalize the same way,
+				// and the diff then shows what will actually be stored.
+				if ($field === "route") {
+					$route = BigTreeCMS::urlify(trim((string)$args[$field]));
+
+					if ($route === "") {
+
+						return ["error" => "\"" . trim((string)$args[$field]) . "\" doesn't contain any characters that "
+							. "can be used in a URL. Supply a route made of letters, numbers or hyphens."];
+					}
+
+					$args[$field] = $route;
+				}
+
 				if (in_array($field, ["in_nav", "seo_invisible", "new_window"], true)) {
 					$new = (bool)$args[$field];
 					$old = Flag::isOn($page[$field]);
@@ -1525,26 +1980,38 @@
 				}
 			}
 
-			$rank = PermissionService::userPageLevel($user, $id);
+			$rank = PermissionService::userPageLevel($user, $is_pending ? $target["parent"] : $id);
 			$can_publish = PermissionService::isPublisher($user, $rank);
-			$title = trim((string)$page["nav_title"]) ?: trim((string)$page["title"]) ?: "page #{$id}";
+			$reference = $is_pending ? "p" . $target["change_id"] : (string)$id;
+			$title = trim((string)$page["nav_title"]) ?: trim((string)$page["title"])
+				?: ($is_pending ? "draft {$reference}" : "page #{$id}");
 
-			$mode_note = $can_publish
-				? " It will be published live once you approve."
-				: " It will be queued as a pending change for a publisher to review.";
-			$summary = "Update page “{$title}”." . $mode_note;
+			// A draft has no live page to publish over: the edit amends the queued
+			// change itself, whoever approves it. Saying "published live" there would
+			// be a lie, so the note is different.
+			if ($is_pending) {
+				$mode_note = " It will update the existing draft, which still needs a publisher to approve it.";
+			} else {
+				$mode_note = $can_publish
+					? " It will be published live once you approve."
+					: " It will be queued as a pending change for a publisher to review.";
+			}
+
+			$summary = ($is_pending ? "Update draft “{$title}”." : "Update page “{$title}”.") . $mode_note;
 
 			return [
 				"ok" => true,
 				"summary" => $summary,
 				"preview" => [
 					"page_id" => $id,
+					"page_reference" => $reference,
 					"page_title" => $title,
+					"is_draft" => $is_pending,
 					"changes" => $diff,
-					"mode" => $can_publish ? "published" : "pending",
+					"mode" => $is_pending ? "pending" : ($can_publish ? "published" : "pending"),
 				],
 				"payload" => [
-					"id" => $id,
+					"id" => $reference,
 					"changes" => $changes,
 				],
 			];
@@ -1567,26 +2034,27 @@
 		 * @return array<string,mixed>
 		 */
 		public function aiValidatePageContentUpdate(array $args, $user): array {
-			$id = (int)($args["id"] ?? 0);
+			$target = $this->aiResolvePageTarget($args["id"] ?? "");
 
-			if ($id < 1) {
+			if (isset($target["error"])) {
 
-				return ["error" => "A page id is required to edit a page's content."];
+				return $target;
 			}
 
-			$page = SQL::fetch("SELECT * FROM bigtree_pages WHERE id = ?", $id);
+			$page = $target["page"];
+			$is_pending = $target["is_pending"];
+			$id = $target["page_id"];
+			$reference = $is_pending ? "p" . $target["change_id"] : (string)$id;
 
-			if (!$page) {
+			if (!PermissionService::userHasPageAccess($user, $is_pending ? $target["parent"] : $id, "e")) {
 
-				return ["error" => "Page {$id} does not exist."];
+				return ["denied" => $is_pending
+					? "You do not have permission to edit drafts under this page."
+					: "You do not have permission to edit this page."];
 			}
 
-			if (!PermissionService::userHasPageAccess($user, $id, "e")) {
-
-				return ["denied" => "You do not have permission to edit this page."];
-			}
-
-			$title = trim((string)$page["nav_title"]) ?: trim((string)$page["title"]) ?: "page #{$id}";
+			$title = trim((string)$page["nav_title"]) ?: trim((string)$page["title"])
+				?: ($is_pending ? "draft {$reference}" : "page #{$id}");
 			$current_template = (string)$page["template"];
 			$template = array_key_exists("template", $args) ? trim((string)$args["template"]) : $current_template;
 
@@ -1608,7 +2076,7 @@
 					. "“{$template}” template: " . $this->aiDescribeResourceSchema($schema)];
 			}
 
-			$sifted = $this->aiSiftResourceContent($schema, $provided);
+			$sifted = $this->aiSiftResourceContent($schema, $provided, $template);
 
 			if (isset($sifted["error"])) {
 
@@ -1623,7 +2091,7 @@
 					. "template. Settable fields: " . $this->aiDescribeResourceSchema($schema)];
 			}
 
-			$rank = PermissionService::userPageLevel($user, $id);
+			$rank = PermissionService::userPageLevel($user, $is_pending ? $target["parent"] : $id);
 			$can_publish = PermissionService::isPublisher($user, $rank);
 			$merged = $this->aiMergePageContent($page, $changed, $template, $title, $can_publish);
 
@@ -1645,9 +2113,15 @@
 				];
 			}
 
-			$mode_note = $can_publish
-				? " It will be published live once you approve."
-				: " It will be queued as a pending change for a publisher to review.";
+			// A draft has no live page to publish over, so its edit amends the queued
+			// change itself regardless of who approves it.
+			if ($is_pending) {
+				$mode_note = " It will update the existing draft, which still needs a publisher to approve it.";
+			} else {
+				$mode_note = $can_publish
+					? " It will be published live once you approve."
+					: " It will be queued as a pending change for a publisher to review.";
+			}
 
 			// A non-publisher is allowed to stage a template switch that strands
 			// required content, because the result only ever lands in the pending
@@ -1669,7 +2143,7 @@
 			// merge is redone at approval against whatever the page holds then, so an
 			// edit made during the proposal's TTL isn't reverted. See aiUpdatePageContent.
 			$payload = [
-				"id" => $id,
+				"id" => $reference,
 				"content" => $changed,
 			];
 
@@ -1680,11 +2154,13 @@
 			$preview = [
 				"action" => "update_page_content",
 				"page_id" => $id,
+				"page_reference" => $reference,
 				"page_title" => $title,
+				"is_draft" => $is_pending,
 				"template" => $template,
 				"template_changed" => $template !== $current_template,
 				"fields" => $diff,
-				"mode" => $can_publish ? "published" : "pending",
+				"mode" => $is_pending ? "pending" : ($can_publish ? "published" : "pending"),
 			];
 
 			if ($blocked) {
@@ -1763,22 +2239,42 @@
 		 * @return array<string,mixed>
 		 */
 		public function aiUpdatePageContent(array $payload, $user): array {
-			$id = (int)($payload["id"] ?? 0);
+			$reference = trim((string)($payload["id"] ?? ""));
+			$is_pending = strlen($reference) > 1 && $reference[0] === "p" && ctype_digit(substr($reference, 1));
+			$id = $is_pending ? 0 : (int)$reference;
 
-			if (!PermissionService::userHasPageAccess($user, $id, "e")) {
-				throw new AuthorizationException("Insufficient page permission to edit page (e required)");
+			// A draft's content is re-merged against the queued change as it stands now,
+			// for the same reason a live page's is: the draft may have been edited in
+			// the admin during the proposal's life.
+			if ($is_pending) {
+				$target = $this->aiResolvePageTarget($reference);
+
+				if (isset($target["error"])) {
+
+					return ["mode" => "error", "message" => $target["error"]];
+				}
+
+				$page = $target["page"];
+
+				if (!PermissionService::userHasPageAccess($user, $target["parent"], "e")) {
+					throw new AuthorizationException("Insufficient page permission to edit draft (e required)");
+				}
+			} else {
+				if (!PermissionService::userHasPageAccess($user, $id, "e")) {
+					throw new AuthorizationException("Insufficient page permission to edit page (e required)");
+				}
+
+				$page = SQL::fetch("SELECT * FROM bigtree_pages WHERE id = ?", $id);
 			}
-
-			$page = SQL::fetch("SELECT * FROM bigtree_pages WHERE id = ?", $id);
 
 			if (!$page) {
 
 				return ["mode" => "error", "message" => "Page no longer exists."];
 			}
 
-			$rank = PermissionService::userPageLevel($user, $id);
+			$rank = PermissionService::userPageLevel($user, $is_pending ? $target["parent"] : $id);
 			$can_publish = PermissionService::isPublisher($user, $rank);
-			$title = trim((string)$page["nav_title"]) ?: ("page #{$id}");
+			$title = trim((string)$page["nav_title"]) ?: ($is_pending ? "draft {$reference}" : "page #{$id}");
 			$template = !empty($payload["template"]) ? (string)$payload["template"] : (string)$page["template"];
 			$changed = is_array($payload["content"] ?? null) ? $payload["content"] : [];
 
@@ -1800,6 +2296,11 @@
 
 			if ($template !== (string)$page["template"]) {
 				$changes["template"] = $template;
+			}
+
+			if ($is_pending) {
+
+				return $this->aiAmendPageDraft((int)substr($reference, 1), $changes, $user);
 			}
 
 			if (!$can_publish) {
@@ -1841,8 +2342,17 @@
 		 * @return array<string,mixed>
 		 */
 		public function aiUpdatePage(array $payload, $user): array {
-			$id = (int)($payload["id"] ?? 0);
+			$reference = trim((string)($payload["id"] ?? ""));
 			$changes = is_array($payload["changes"] ?? null) ? $payload["changes"] : [];
+
+			// A draft edit amends the queued change in place — there is no live page to
+			// publish over, so the publisher/editor split below doesn't apply.
+			if (strlen($reference) > 1 && $reference[0] === "p" && ctype_digit(substr($reference, 1))) {
+
+				return $this->aiAmendPageDraft((int)substr($reference, 1), $changes, $user);
+			}
+
+			$id = (int)$reference;
 
 			if (!PermissionService::userHasPageAccess($user, $id, "e")) {
 				throw new AuthorizationException("Insufficient page permission to edit page (e required)");

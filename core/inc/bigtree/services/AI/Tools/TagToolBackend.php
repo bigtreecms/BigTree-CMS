@@ -52,4 +52,48 @@
 		 * @throws \BigTree\Api\Exceptions\AuthorizationException
 		 */
 		public function aiRemoveTags(array $payload, $user): array;
+
+		/**
+		 * Validate merging tags into one. Administrator-only: this manages the site's
+		 * shared vocabulary rather than one record's tags, and it deletes tag rows.
+		 * Returns denied | error | ok+summary+preview+payload.
+		 *
+		 * @param array<string,mixed> $args
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 */
+		public function aiValidateTagMerge(array $args, $user): array;
+
+		/**
+		 * Apply an approved tag merge: rewrite the relations, delete the merged tags,
+		 * recount usage. Re-checks administrator level.
+		 *
+		 * @param array<string,mixed> $payload
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 * @throws \BigTree\Api\Exceptions\AuthorizationException
+		 */
+		public function aiMergeTags(array $payload, $user): array;
+
+		/**
+		 * Validate renaming a tag. Administrator-only. A rename onto an existing name
+		 * is refused and pointed at merge_tags. Returns denied | error |
+		 * ok+summary+preview+payload.
+		 *
+		 * @param array<string,mixed> $args
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 */
+		public function aiValidateTagRename(array $args, $user): array;
+
+		/**
+		 * Apply an approved tag rename. Re-checks administrator level and that the
+		 * new name is still free.
+		 *
+		 * @param array<string,mixed> $payload
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 * @throws \BigTree\Api\Exceptions\AuthorizationException
+		 */
+		public function aiRenameTag(array $payload, $user): array;
 	}

@@ -1049,7 +1049,7 @@
 					. $this->aiDescribeSchema($schema)];
 			}
 
-			$sifted = $this->aiSiftEntryData($schema, $provided);
+			$sifted = $this->aiSiftEntryData($schema, $provided, is_array($resolved["form"] ?? null) ? $resolved["form"] : null);
 
 			if (isset($sifted["error"])) {
 
@@ -1192,6 +1192,50 @@
 		}
 
 		/**
+		 * The data-validity gate for *editing* an entry, shared by staging and approval.
+		 *
+		 * Create ran a required-field check; update ran none at all, so setting a
+		 * required column to "" sifted cleanly, staged, and published live for a
+		 * publisher. The page-content path solved the same problem by merging the
+		 * stored row with the proposed changes and re-gating (aiMergePageContent);
+		 * this is that check for entries.
+		 *
+		 * Only columns the edit actually touches are judged. A row that was already
+		 * missing a required value — imported, or made required after the fact — is
+		 * not this edit's doing, and refusing every unrelated change to it would make
+		 * those rows uneditable through the assistant rather than fixable.
+		 *
+		 * @param array<string,array<string,mixed>> $schema
+		 * @param array<string,mixed> $row The stored entry.
+		 * @param array<string,mixed> $data The sifted changes.
+		 * @return string|null An error message, or null when the edit still passes.
+		 */
+		private function aiEntryUpdateGate(array $schema, array $row, array $data): ?string {
+			$merged = array_merge($row, $data);
+			$blanked = [];
+
+			foreach ($schema as $id => $field) {
+				if (empty($field["required"]) || !array_key_exists($id, $data)) {
+
+					continue;
+				}
+
+				$value = $merged[$id] ?? "";
+
+				if (is_array($value) ? !$value : trim((string)$value) === "") {
+					$blanked[] = (string)($field["title"] ?? $id);
+				}
+			}
+
+			if (!$blanked) {
+
+				return null;
+			}
+
+			return "These fields are required and can't be left empty: " . implode(", ", $blanked) . ".";
+		}
+
+		/**
 		 * @param array<string,mixed> $payload
 		 * @param object|array $user
 		 * @return array<string,mixed>
@@ -1313,7 +1357,7 @@
 					. $this->aiDescribeSchema($schema)];
 			}
 
-			$sifted = $this->aiSiftEntryData($schema, $provided);
+			$sifted = $this->aiSiftEntryData($schema, $provided, is_array($resolved["form"] ?? null) ? $resolved["form"] : null);
 
 			if (isset($sifted["error"])) {
 
@@ -1325,6 +1369,13 @@
 			if (!$data) {
 
 				return ["error" => "No settable fields were supplied — nothing to update."];
+			}
+
+			$gate = $this->aiEntryUpdateGate($schema, $row, $data);
+
+			if ($gate !== null) {
+
+				return ["error" => $gate];
 			}
 
 			$rank = PermissionService::userModuleLevel($user, $module["id"]);
@@ -1399,6 +1450,22 @@
 			// otherwise an unrelated edit would silently re-route the entry. A draft
 			// has no live row, so nothing is excluded from the uniqueness check.
 			$this->aiApplyEntryProcessors($module, $table, $data, $row, $is_pending ? 0 : (int)$entry_id);
+
+			// Re-gated against the form as it stands now: a column made required during
+			// the proposal's 24h life would otherwise be blanked by approving it.
+			$resolved_form = $this->aiResolveModuleForm($module_id, (string)($payload["form"] ?? ""));
+
+			if (isset($resolved_form["error"]) || !empty($resolved_form["ambiguous_form"])) {
+
+				return ["mode" => "error", "message" => "This module's forms have changed since this was proposed — ask again."];
+			}
+
+			$gate = $this->aiEntryUpdateGate($resolved_form["schema"], $row, $data);
+
+			if ($gate !== null) {
+
+				return ["mode" => "error", "message" => $gate];
+			}
 
 			$rank = PermissionService::userModuleLevel($user, $module_id);
 			$can_publish = PermissionService::isPublisher($user, $rank);
@@ -2021,11 +2088,20 @@
 				}
 
 				$settings = is_array($field["settings"] ?? null) ? $field["settings"] : [];
+
+				// The form editor stores rules as a whitespace list ("required email")
+				// in `validation`, which FieldProcessingService enforces at write time.
+				// Only `required` was read here, and only from its own key — so a field
+				// made required through the rule string wasn't gated at all, and
+				// numeric/email/link were never checked before the write refused them.
+				$rules = $this->aiValidationRules($settings);
+
 				$schema[$column] = [
 					"column" => $column,
 					"type" => $type,
 					"title" => (string)($field["title"] ?? $column),
-					"required" => !empty($settings["required"]),
+					"required" => !empty($settings["required"]) || in_array("required", $rules, true),
+					"rules" => array_values(array_diff($rules, ["required"])),
 				];
 			}
 
@@ -2036,21 +2112,34 @@
 		 * Keep only the provided values that map to a settable simple field; reject any
 		 * column that is a real form field of a complex type the assistant can't set.
 		 *
+		 * Both kinds of rejection used to be a bare `continue`, which is how the
+		 * silence happened: a value for a non-required complex field (an upload, a
+		 * matrix) or for a misspelled column was dropped without a word, so the model
+		 * reported setting it, the user believed the model, and the preview quietly
+		 * omitted it. A typo deserves a correction loop, not a no-op.
+		 *
 		 * @param array<string,array<string,mixed>> $schema
 		 * @param array<string,mixed> $provided
+		 * @param array<string,mixed>|null $form The resolved form, for naming complex fields.
 		 * @return array<string,mixed> ["data" => array] or ["error" => string]
 		 */
-		private function aiSiftEntryData(array $schema, array $provided): array {
+		private function aiSiftEntryData(array $schema, array $provided, ?array $form = null): array {
 			$data = [];
+			$complex = $this->aiComplexEntryColumns($schema, $form);
 
 			foreach ($provided as $column => $value) {
 				$column = (string)$column;
 
 				if (!isset($schema[$column])) {
+					if (isset($complex[$column])) {
 
-					// Unknown columns are ignored (they'd never persist); only surface a
-					// column the model likely expected to work but can't.
-					continue;
+						return ["error" => "Field \"{$column}\" ({$complex[$column]}) can't be set by the assistant — "
+							. "it needs the module's own editor in the admin. Settable fields: "
+							. $this->aiDescribeSchema($schema)];
+					}
+
+					return ["error" => "This form has no field called \"{$column}\". Settable fields: "
+						. $this->aiDescribeSchema($schema)];
 				}
 
 				if (is_array($value)) {
@@ -2063,9 +2152,97 @@
 				} else {
 					$data[$column] = is_bool($value) ? ($value ? "1" : "0") : (string)$value;
 				}
+
+				// `required` is deliberately excluded from these rules and left to the
+				// create/update gates, which know whether an empty value is this edit's
+				// doing. What's left (numeric, email, link) the write path would refuse
+				// outright, so catching it here turns a dead end into a correction.
+				$invalid = $this->aiRuleViolation($schema[$column], $data[$column]);
+
+				if ($invalid !== null) {
+
+					return ["error" => $invalid];
+				}
 			}
 
 			return ["data" => $data];
+		}
+
+		/**
+		 * The whitespace-separated rule list a field's settings carry.
+		 *
+		 * @param array<string,mixed> $settings
+		 * @return list<string>
+		 */
+		private function aiValidationRules(array $settings): array {
+			$validation = (string)($settings["validation"] ?? "");
+
+			return preg_split("/\s+/", trim($validation), -1, PREG_SPLIT_NO_EMPTY) ?: [];
+		}
+
+		/**
+		 * Check one sifted value against its field's non-required rules, using the same
+		 * validator the write path uses so the two can't disagree. Returns null when
+		 * the value passes.
+		 *
+		 * @param array<string,mixed> $field The schema entry.
+		 * @param mixed $value
+		 */
+		private function aiRuleViolation(array $field, $value): ?string {
+			$rules = is_array($field["rules"] ?? null) ? $field["rules"] : [];
+
+			// An empty optional value has nothing to validate — only `required`, which
+			// isn't in this list, has anything to say about emptiness.
+			if (!$rules || trim((string)$value) === "") {
+
+				return null;
+			}
+
+			$rule_string = implode(" ", $rules);
+
+			if (BigTreeAutoModule::validate($value, $rule_string)) {
+
+				return null;
+			}
+
+			$title = (string)($field["title"] ?? $field["column"] ?? "This field");
+			// The legacy message opens "This field …"; name the field instead.
+			$reason = preg_replace(
+				"/^This field /",
+				"",
+				BigTreeAutoModule::validationErrorMessage($value, $rule_string)
+			);
+
+			return "“{$title}” " . $reason . " \"" . $this->aiPreviewScalar($value)
+				. "\" would be refused when the entry is saved.";
+		}
+
+		/**
+		 * The form's real columns that aren't in the settable schema, mapped to a
+		 * "Title (type)" label — everything the assistant can see exists but cannot
+		 * author. Used to tell a complex field apart from a misspelling.
+		 *
+		 * @param array<string,array<string,mixed>> $schema
+		 * @param array<string,mixed>|null $form
+		 * @return array<string,string>
+		 */
+		private function aiComplexEntryColumns(array $schema, ?array $form): array {
+			$complex = [];
+
+			foreach ((array)($form["fields"] ?? []) as $field) {
+				$column = (string)($field["column"] ?? "");
+
+				if ($column === "" || isset($schema[$column])) {
+
+					continue;
+				}
+
+				$type = (string)($field["type"] ?? "");
+				$title = (string)($field["title"] ?? $column);
+				$complex[$column] = $type !== "" ? "{$title}, {$type}" : $title;
+			}
+
+			return $complex;
 		}
 
 		/**

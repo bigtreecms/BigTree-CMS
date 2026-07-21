@@ -213,3 +213,136 @@
 			parity_delete_tags($tag_id);
 		}
 	}
+
+	/**
+	 * Audit #3 (B3): the AI tag-hygiene seam, against the same backend the REST
+	 * merge route uses.
+	 *
+	 * add_tags/remove_tags manage which tags a record carries; merge and rename
+	 * manage the vocabulary itself. The capability summary already implied the
+	 * assistant could do this, so the model could promise a merge it couldn't do.
+	 */
+	function test_parity_ai_merge_tags_moves_records_and_deletes_the_source() {
+		if (!parity_db_available()) {
+			return;
+		}
+
+		$svc = new TagService();
+		$admin_id = parity_seed_user(["level" => 1]);
+		$admin = (object)["id" => $admin_id, "level" => 1, "permissions" => []];
+		$ids = [];
+
+		try {
+			$a = parity_data($svc->create(parity_request(1, 1, [], ["tag" => "Parity AI Keep"])));
+			$b = parity_data($svc->create(parity_request(1, 1, [], ["tag" => "Parity AI Merge"])));
+			$ids = [(int)$a["id"], (int)$b["id"]];
+
+			$page_id = (int)SQL::fetchSingle("SELECT id FROM bigtree_pages WHERE id > 0 ORDER BY id ASC LIMIT 1");
+
+			if ($page_id < 1) {
+				echo "  (skipped — need a page for the relation fixture)\n";
+
+				return;
+			}
+
+			SQL::insert("bigtree_tags_rel", ["table" => "bigtree_pages", "tag" => $ids[1], "entry" => (string)$page_id]);
+
+			// Tags are addressable by name, which is what the model actually has.
+			$validated = $svc->aiValidateTagMerge([
+				"into" => "parity ai keep",
+				"from" => ["parity ai merge"],
+			], $admin);
+
+			T::ok(!empty($validated["ok"]), "the merge validates by tag name");
+			T::equals($validated["preview"]["records_moved"], 1, "the card states how many records move");
+			T::ok(
+				strpos((string)$validated["summary"], "can't be undone") !== false,
+				"the summary says the merge is irreversible"
+			);
+
+			$result = $svc->aiMergeTags($validated["payload"], $admin);
+
+			T::equals($result["mode"], "merged", "the merge applies");
+			T::ok(!SQL::exists("bigtree_tags", $ids[1]), "the merged tag is deleted");
+			T::ok(SQL::exists("bigtree_tags", $ids[0]), "the surviving tag remains");
+
+			$moved = (int)SQL::fetchSingle(
+				"SELECT COUNT(*) FROM bigtree_tags_rel WHERE tag = ? AND entry = ?", $ids[0], (string)$page_id
+			);
+			T::equals($moved, 1, "the tagged record moved to the surviving tag");
+			T::equals(
+				(int)SQL::fetchSingle("SELECT usage_count FROM bigtree_tags WHERE id = ?", $ids[0]),
+				1,
+				"usage_count was recomputed"
+			);
+
+			$ids[1] = 0;
+
+			// Merging a tag into itself would delete it and orphan what it carried.
+			$self = $svc->aiValidateTagMerge(["into" => "parity ai keep", "from" => ["parity ai keep"]], $admin);
+			T::ok(isset($self["error"]), "merging a tag into itself is refused");
+
+			$unknown = $svc->aiValidateTagMerge(["into" => "parity ai keep", "from" => ["no such tag"]], $admin);
+			T::ok(isset($unknown["error"]), "an unknown source tag is a recoverable error");
+		} finally {
+			SQL::query("DELETE FROM bigtree_tags_rel WHERE tag IN (?, ?)", $ids[0] ?? 0, $ids[1] ?? 0);
+
+			foreach ($ids as $id) {
+				if ($id) {
+					parity_delete_tags($id);
+				}
+			}
+
+			parity_delete_users($admin_id);
+		}
+	}
+
+	function test_parity_ai_rename_tag_refuses_a_collision() {
+		if (!parity_db_available()) {
+			return;
+		}
+
+		$svc = new TagService();
+		$admin_id = parity_seed_user(["level" => 1]);
+		$admin = (object)["id" => $admin_id, "level" => 1, "permissions" => []];
+		$editor_id = parity_seed_user(["level" => 0]);
+		$editor = (object)["id" => $editor_id, "level" => 0, "permissions" => []];
+		$ids = [];
+
+		try {
+			$a = parity_data($svc->create(parity_request(1, 1, [], ["tag" => "Parity AI Rename"])));
+			$b = parity_data($svc->create(parity_request(1, 1, [], ["tag" => "Parity AI Taken"])));
+			$ids = [(int)$a["id"], (int)$b["id"]];
+
+			$denied = $svc->aiValidateTagRename(["tag" => "parity ai rename", "name" => "X"], $editor);
+			T::ok(isset($denied["denied"]), "an editor cannot rename tags");
+
+			// A rename onto an existing name is a merge in disguise — refusing it
+			// beats leaving two tags sharing one name.
+			$collision = $svc->aiValidateTagRename([
+				"tag" => "parity ai rename",
+				"name" => "Parity AI Taken",
+			], $admin);
+			T::ok(isset($collision["error"]), "renaming onto an existing tag is refused");
+			T::ok(strpos((string)$collision["error"], "merge_tags") !== false, "and points at merge_tags instead");
+
+			$validated = $svc->aiValidateTagRename([
+				"tag" => "parity ai rename",
+				"name" => "Parity AI Renamed",
+			], $admin);
+			T::ok(!empty($validated["ok"]), "a free name validates");
+
+			$result = $svc->aiRenameTag($validated["payload"], $admin);
+			T::equals($result["mode"], "renamed", "the rename applies");
+
+			$stored = SQL::fetch("SELECT * FROM bigtree_tags WHERE id = ?", $ids[0]);
+			T::equals($stored["tag"], "parity ai renamed", "the tag was renamed (normalized)");
+			T::ok((string)$stored["route"] !== "", "its public route was regenerated");
+		} finally {
+			foreach ($ids as $id) {
+				parity_delete_tags($id);
+			}
+
+			parity_delete_users($admin_id, $editor_id);
+		}
+	}

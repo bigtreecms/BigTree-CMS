@@ -59,4 +59,25 @@
 		 * @throws \BigTree\Api\Exceptions\AuthorizationException
 		 */
 		public function aiUpdateCallout(array $payload, $user): array;
+
+		/**
+		 * Validate creating a callout group. Developer-only. Gives create_callout's
+		 * group question an answer other than the groups that already exist.
+		 * Returns denied | error | ok+summary+preview+payload.
+		 *
+		 * @param array<string,mixed> $args
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 */
+		public function aiValidateCalloutGroupCreate(array $args, $user): array;
+
+		/**
+		 * Apply an approved callout group creation. Re-checks developer level.
+		 *
+		 * @param array<string,mixed> $payload
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 * @throws \BigTree\Api\Exceptions\AuthorizationException
+		 */
+		public function aiCreateCalloutGroup(array $payload, $user): array;
 	}

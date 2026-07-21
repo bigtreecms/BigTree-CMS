@@ -195,4 +195,36 @@
 		 * @throws \BigTree\Api\Exceptions\AuthorizationException
 		 */
 		public function aiRestoreRevision(array $payload, $user): array;
+
+		/**
+		 * Score a page's SEO with the admin's own algorithm. View access only.
+		 * Returns denied | error | the rating (which may report available=false when
+		 * the page has no rateable template).
+		 *
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 */
+		public function aiPageSeoRating(int $page_id, $user): array;
+
+		/**
+		 * Validate bookmarking a page's current content as a named revision.
+		 * Publisher-only, matching the REST route. Returns denied | error |
+		 * ok+summary+preview+payload.
+		 *
+		 * @param array<string,mixed> $args
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 */
+		public function aiValidateSaveRevision(array $args, $user): array;
+
+		/**
+		 * Apply an approved named-revision save. Changes nothing on the live page.
+		 * Re-checks publisher access.
+		 *
+		 * @param array<string,mixed> $payload
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 * @throws \BigTree\Api\Exceptions\AuthorizationException
+		 */
+		public function aiSaveRevision(array $payload, $user): array;
 	}

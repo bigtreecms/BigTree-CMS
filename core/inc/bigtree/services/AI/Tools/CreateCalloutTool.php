@@ -49,6 +49,12 @@
 							"type" => "integer",
 							"description" => "Minimum admin level allowed to use the callout (0 editor, 1 admin, 2 developer).",
 						],
+						"group" => [
+							"type" => "string",
+							"description" => "Optional callout group (id or name) to add the callout to. A page region "
+								. "restricted to a group only offers callouts in that group, so an ungrouped callout "
+								. "won't appear there. Use create_callout_group if the group doesn't exist yet.",
+						],
 						"display_field" => [
 							"type" => "string",
 							"description" => "Optional field id used as the callout's display label in the page editor. "
@@ -69,6 +75,11 @@
 									"type" => ["type" => "string"],
 									"title" => ["type" => "string"],
 									"subtitle" => ["type" => "string"],
+									"required" => [
+										"type" => "boolean",
+										"description" => "Whether an editor placing this callout must fill this field "
+											. "in. Any other field configuration is set in Developer → Callouts.",
+									],
 								],
 								"required" => ["id", "type", "title"],
 							],

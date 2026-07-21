@@ -8,7 +8,9 @@
 	/**
 	 * Developer-only two-phase edit of a page template's name, minimum level, or
 	 * fields. Passing "fields" replaces the template's field list wholesale, so the
-	 * preview shows the before/after field counts. Writes nothing until approved.
+	 * preview shows the before/after field counts; a field carried over by id keeps
+	 * the settings the assistant's field shape can't express. Writes nothing until
+	 * approved.
 	 */
 	class UpdateTemplateTool extends AbstractDeveloperTool {
 		/** @var TemplateToolBackend */
@@ -29,7 +31,9 @@
 			return $this->functionDefinition(
 				$this->name(),
 				"Propose editing an existing page template (developer only). Requires approval. Only include the "
-					. "properties you want to change; passing \"fields\" replaces the whole field list.",
+					. "properties you want to change. Supplying \"fields\" REPLACES the whole field list, so include "
+					. "every field the template should end up with — use get_template first if you don't know them. "
+					. "Fields you carry over keep their existing configuration.",
 				[
 					"type" => "object",
 					"properties" => [
@@ -47,16 +51,28 @@
 						],
 						"fields" => [
 							"type" => "array",
-							"description" => "Replacement field list (replaces all existing fields).",
+							"description" => "The template's complete new field list — any field you omit is removed, "
+								. "orphaning its content on every page using the template. A field you carry over by "
+								. "id keeps the configuration set in Developer → Templates (validation rules, list "
+								. "options, image sizes), so restate only what you are changing.",
 							"items" => [
 								"type" => "object",
 								"properties" => [
 									"id" => ["type" => "string"],
-									"type" => ["type" => "string"],
-									"title" => ["type" => "string"],
+									"type" => [
+										"type" => "string",
+										"description" => "Omit to keep an existing field's type. Changing it discards "
+											. "the configuration set for the old type.",
+									],
+									"title" => ["type" => "string", "description" => "Omit to keep an existing field's label."],
 									"subtitle" => ["type" => "string"],
+									"required" => [
+										"type" => "boolean",
+										"description" => "Applies to newly added fields only; an existing field keeps "
+											. "the validation rules set in Developer → Templates.",
+									],
 								],
-								"required" => ["id", "type", "title"],
+								"required" => ["id"],
 							],
 						],
 					],

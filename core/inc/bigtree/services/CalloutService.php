@@ -210,7 +210,7 @@
 			}
 
 			$name = trim((string)($args["name"] ?? "")) ?: $id;
-			$fields = Resources::clean($this->aiCalloutFields($args["fields"] ?? []));
+			$fields = $this->aiCalloutFields($args["fields"] ?? []);
 			$type_error = $this->aiInvalidFieldTypeError($fields);
 
 			if ($type_error !== null) {
@@ -223,6 +223,13 @@
 			if (isset($display_field["error"])) {
 
 				return $display_field;
+			}
+
+			$group = $this->aiResolveCalloutGroup($args["group"] ?? "");
+
+			if (isset($group["needs_input"])) {
+
+				return $group;
 			}
 
 			// Fail here rather than half-way through an approved write.
@@ -241,18 +248,27 @@
 				"display_field" => $display_field["value"],
 				"display_default" => trim((string)($args["display_default"] ?? "")),
 				"resources" => $fields,
+				"group" => $group["id"],
 			];
+
+			// A callout outside every group is invisible in a callouts field restricted
+			// to one — it "exists" and is unusable exactly where it was wanted. Say so
+			// on the card rather than letting the developer discover it later.
+			$group_note = $group["id"] !== ""
+				? " It will be added to the “{$group["name"]}” callout group."
+				: " It won't belong to any callout group, so a page region restricted to a group won't offer it.";
 
 			return [
 				"ok" => true,
 				"summary" => "Create a new callout “{$name}” (id {$id}) with " . count($fields) . " field(s). "
-					. "A starter render file will be created at {$stub}.",
+					. "A starter render file will be created at {$stub}." . $group_note,
 				"preview" => [
 					"action" => "create_callout",
 					"id" => $id,
 					"name" => $name,
 					"level" => (int)($args["level"] ?? 0),
 					"display_field" => $display_field["value"],
+					"group" => $group["id"] !== "" ? $group["name"] : "(none)",
 					"creates_file" => $stub,
 					"fields" => array_map(function (array $f): array {
 
@@ -298,6 +314,9 @@
 			BigTreeJSONDB::incrementPosition("callouts");
 			BigTreeJSONDB::insert("callouts", $insert);
 
+			$group_id = (string)($payload["group"] ?? "");
+			$grouped = $this->aiAddCalloutToGroup($group_id, $id);
+
 			$scaffolded = "";
 			$scaffold_error = "";
 
@@ -312,12 +331,16 @@
 				"id" => $id,
 				"name" => (string)($payload["name"] ?? $id),
 				"file" => $scaffolded,
-				"note" => $scaffolded !== ""
+				"group" => $grouped ? $group_id : "",
+				"note" => ($scaffolded !== ""
 					? "A starter render file was created at {$scaffolded} — edit it to control how this callout looks."
 					: ($scaffold_error !== ""
 						? "The callout record was created, but its render file could not be written ({$scaffold_error}). "
 							. "Pages using this callout will render nothing until the file exists."
-						: "A render file already existed for this callout and was left untouched."),
+						: "A render file already existed for this callout and was left untouched."))
+					. ($group_id !== "" && !$grouped
+						? " The callout group it was meant to join no longer exists, so it was created ungrouped."
+						: ""),
 			];
 		}
 
@@ -348,11 +371,18 @@
 			$fields = [];
 
 			foreach ((array)($callout["resources"] ?? []) as $resource) {
+				$settings = is_array($resource["settings"] ?? null) ? $resource["settings"] : [];
+
 				$fields[] = [
 					"id" => (string)($resource["id"] ?? ""),
 					"type" => (string)($resource["type"] ?? ""),
 					"title" => (string)($resource["title"] ?? ""),
 					"subtitle" => (string)($resource["subtitle"] ?? ""),
+					// Read-only: update_callout preserves a retained field's settings
+					// rather than accepting them back, but the assistant still has to be
+					// able to see that a field carries configuration it isn't editing.
+					"settings" => $settings,
+					"required" => $this->aiResourceIsRequired(is_array($resource) ? $resource : []),
 				];
 			}
 
@@ -422,7 +452,8 @@
 			$fields = is_array($existing["resources"] ?? null) ? $existing["resources"] : [];
 
 			if (array_key_exists("fields", $args)) {
-				$fields = Resources::clean($this->aiCalloutFields($args["fields"]));
+				$before = is_array($existing["resources"] ?? null) ? $existing["resources"] : [];
+				$fields = $this->aiCalloutFields($args["fields"], $before);
 				$type_error = $this->aiInvalidFieldTypeError($fields);
 
 				if ($type_error !== null) {
@@ -430,8 +461,9 @@
 					return ["error" => $type_error];
 				}
 
-				$before = is_array($existing["resources"] ?? null) ? $existing["resources"] : [];
-				$changes["resources"] = $fields;
+				// The raw list is staged, not the merged one: the callout's fields can be
+				// edited during the proposal's TTL, so the merge is redone at approval.
+				$changes["fields"] = $args["fields"];
 				$diff = array_merge($diff, $this->aiCalloutFieldDiff($before, $fields));
 			}
 
@@ -452,7 +484,7 @@
 						"to" => $display_field["value"],
 					];
 				}
-			} elseif (isset($changes["resources"])) {
+			} elseif (array_key_exists("fields", $changes)) {
 				// The field list changed under a display_field that wasn't re-stated;
 				// if it named a field that's now gone, the callout would show nothing.
 				$current_display = (string)($existing["display_field"] ?? "");
@@ -522,9 +554,14 @@
 			$added = array_values(array_diff(array_keys($new), array_keys($old)));
 			$removed = array_values(array_diff(array_keys($old), array_keys($new)));
 			$retyped = [];
+			$newly_required = [];
+			$unrequired = [];
 
 			foreach ($new as $field_id => $field) {
 				if (!isset($old[$field_id])) {
+					if ($this->aiResourceIsRequired($field)) {
+						$newly_required[] = $field_id;
+					}
 
 					continue;
 				}
@@ -534,6 +571,10 @@
 
 				if ($old_type !== $new_type) {
 					$retyped[] = "{$field_id} ({$old_type} → {$new_type})";
+				}
+
+				if ($this->aiResourceIsRequired($old[$field_id]) && !$this->aiResourceIsRequired($field)) {
+					$unrequired[] = $field_id;
 				}
 			}
 
@@ -551,6 +592,15 @@
 
 			if ($retyped) {
 				$rows["fields_retyped"] = implode(", ", $retyped);
+			}
+
+			if ($newly_required) {
+				$rows["now_required"] = implode(", ", $newly_required);
+			}
+
+			if ($unrequired) {
+				$rows["no_longer_required"] = implode(", ", $unrequired)
+					. " — changing a field's type discards the settings configured for its old type";
 			}
 
 			return $rows;
@@ -594,7 +644,14 @@
 				$update["display_field"] = (string)$changes["display_field"];
 			}
 
-			if (array_key_exists("resources", $changes)) {
+			// Re-merged against the callout as it stands now, so field settings edited in
+			// the admin during the proposal's TTL survive the approval.
+			if (array_key_exists("fields", $changes)) {
+				$update["resources"] = $this->aiCalloutFields(
+					$changes["fields"],
+					is_array($existing["resources"] ?? null) ? $existing["resources"] : []
+				);
+			} elseif (array_key_exists("resources", $changes)) {
 				$update["resources"] = Resources::clean(is_array($changes["resources"]) ? $changes["resources"] : []);
 			}
 
@@ -608,30 +665,189 @@
 		}
 
 		/**
-		 * Normalize the model's proposed callout fields into the canonical resource
-		 * shape before cleaning.
+		 * Resolve a requested callout group by id or name.
 		 *
-		 * @param mixed $fields
-		 * @return list<array<string,mixed>>
+		 * create_callout had no group support at all, so an AI-created callout was
+		 * orphaned from every group — and a page whose callouts field is restricted to
+		 * a group would never offer it. A name that matches nothing returns the
+		 * choice rather than an error, because "put it in the sidebar group" is a
+		 * reasonable ask that shouldn't dead-end on an id the model can't know.
+		 *
+		 * @param mixed $requested
+		 * @return array{id:string,name:string}|array{needs_input:array<string,mixed>}
 		 */
-		private function aiCalloutFields($fields): array {
-			$rows = [];
+		private function aiResolveCalloutGroup($requested): array {
+			$requested = trim((string)$requested);
 
-			foreach ((array)$fields as $field) {
-				if (!is_array($field)) {
+			if ($requested === "") {
 
-					continue;
-				}
-
-				$rows[] = [
-					"id" => BigTreeCMS::urlify((string)($field["id"] ?? "")),
-					"type" => (string)($field["type"] ?? "text"),
-					"title" => (string)($field["title"] ?? ""),
-					"subtitle" => (string)($field["subtitle"] ?? ""),
-				];
+				return ["id" => "", "name" => ""];
 			}
 
-			return $rows;
+			$groups = BigTreeJSONDB::getAll("callout-groups");
+
+			foreach ($groups as $group) {
+				$id = (string)($group["id"] ?? "");
+				$name = (string)($group["name"] ?? "");
+
+				if ($id === $requested || strcasecmp($name, $requested) === 0) {
+
+					return ["id" => $id, "name" => $name !== "" ? $name : $id];
+				}
+			}
+
+			$options = array_map(function (array $group): array {
+
+				return [
+					"id" => (string)($group["id"] ?? ""),
+					"label" => (string)($group["name"] ?? $group["id"] ?? ""),
+					"description" => count((array)($group["callouts"] ?? [])) . " callout(s)",
+				];
+			}, $groups);
+
+			$options[] = [
+				"id" => "",
+				"label" => "No group",
+				"description" => "Create the callout ungrouped (group-restricted page regions won't offer it)",
+			];
+
+			return ["needs_input" => [
+				"question" => "There's no callout group called “{$requested}”. Which group should this callout go in? "
+					. "(create_callout_group can make a new one.)",
+				"options" => $options,
+			]];
+		}
+
+		/**
+		 * Validate creating a callout group. Developer-only, like every callout write.
+		 *
+		 * Exists to unblock create_callout's group question: without it the only
+		 * answers to "which group?" are the ones that already exist, which is a
+		 * dead end the moment the answer is "a new one".
+		 *
+		 * @param array<string,mixed> $args
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 */
+		public function aiValidateCalloutGroupCreate(array $args, $user): array {
+			if (PermissionService::level($user) < 2) {
+
+				return ["denied" => "Only developers can create callout groups."];
+			}
+
+			$name = trim((string)($args["name"] ?? ""));
+
+			if ($name === "") {
+
+				return ["error" => "A callout group name is required (e.g. \"Sidebar\")."];
+			}
+
+			foreach (BigTreeJSONDB::getAll("callout-groups") as $group) {
+				if (strcasecmp((string)($group["name"] ?? ""), $name) === 0) {
+
+					return ["error" => "A callout group called “{$name}” already exists."];
+				}
+			}
+
+			return [
+				"ok" => true,
+				"summary" => "Create a new callout group “{$name}”. It starts empty — callouts are added to it as "
+					. "they're created.",
+				"preview" => [
+					"action" => "create_callout_group",
+					"name" => $name,
+				],
+				"payload" => ["name" => $name],
+			];
+		}
+
+		/**
+		 * Execute an approved callout group creation. Re-checks developer level and
+		 * that the name is still free.
+		 *
+		 * @param array<string,mixed> $payload
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 */
+		public function aiCreateCalloutGroup(array $payload, $user): array {
+			if (PermissionService::level($user) < 2) {
+				throw new AuthorizationException("Only developers can create callout groups.");
+			}
+
+			$name = trim((string)($payload["name"] ?? ""));
+
+			if ($name === "") {
+
+				return ["mode" => "error", "message" => "That callout group can no longer be created."];
+			}
+
+			foreach (BigTreeJSONDB::getAll("callout-groups") as $group) {
+				if (strcasecmp((string)($group["name"] ?? ""), $name) === 0) {
+
+					return ["mode" => "error", "message" => "A callout group called “{$name}” already exists."];
+				}
+			}
+
+			$id = BigTreeJSONDB::insert("callout-groups", [
+				"name" => BigTree::safeEncode($name),
+				"callouts" => [],
+			]);
+
+			return ["mode" => "created", "id" => (string)$id, "name" => $name];
+		}
+
+		/**
+		 * Append a newly created callout to its group's `callouts` list.
+		 *
+		 * Re-resolved at approval: the group can be renamed or deleted during the
+		 * proposal's TTL, and a stale id would otherwise write a dangling membership.
+		 */
+		private function aiAddCalloutToGroup(string $group_id, string $callout_id): bool {
+			if ($group_id === "" || !BigTreeJSONDB::exists("callout-groups", $group_id)) {
+
+				return false;
+			}
+
+			$group = BigTreeJSONDB::get("callout-groups", $group_id);
+			$callouts = array_values(array_filter((array)($group["callouts"] ?? []), "is_string"));
+
+			if (in_array($callout_id, $callouts, true)) {
+
+				return true;
+			}
+
+			$callouts[] = $callout_id;
+			$group["callouts"] = $callouts;
+			BigTreeJSONDB::update("callout-groups", $group_id, $group);
+
+			return true;
+		}
+
+		/**
+		 * Normalize the model's proposed callout fields into the canonical resource
+		 * shape, merged against what the callout already stores so a field the model
+		 * copied over unchanged keeps its settings.
+		 *
+		 * @param mixed $fields
+		 * @param list<array<string,mixed>> $existing Stored resources ([] when creating).
+		 * @return list<array<string,mixed>>
+		 */
+		private function aiCalloutFields($fields, array $existing = []): array {
+
+			return Resources::mergeAiFields($fields, $existing);
+		}
+
+		/**
+		 * Whether a callout resource carries the legacy `required` validation rule —
+		 * the same rule string the template resources and the page editor use.
+		 *
+		 * @param array<string,mixed> $resource
+		 */
+		private function aiResourceIsRequired(array $resource): bool {
+			$settings = is_array($resource["settings"] ?? null) ? $resource["settings"] : [];
+			$validation = (string)($settings["validation"] ?? "");
+
+			return in_array("required", preg_split("/\s+/", trim($validation), -1, PREG_SPLIT_NO_EMPTY) ?: [], true);
 		}
 
 		/**

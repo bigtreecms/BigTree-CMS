@@ -60,6 +60,12 @@
 									"type" => ["type" => "string", "description" => "Field type (e.g. text, textarea, html, image)."],
 									"title" => ["type" => "string", "description" => "Field label."],
 									"subtitle" => ["type" => "string", "description" => "Optional help text."],
+									"required" => [
+										"type" => "boolean",
+										"description" => "Whether a page using this template must fill this field in. "
+											. "Any other field configuration (list options, image sizes, subfields) is "
+											. "set in Developer → Templates.",
+									],
 								],
 								"required" => ["id", "type", "title"],
 							],

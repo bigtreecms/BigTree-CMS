@@ -342,7 +342,8 @@
 			}
 
 			if (array_key_exists("fields", $args)) {
-				$fields = $this->aiCleanResourceFields($args["fields"]);
+				$before = is_array($existing["resources"] ?? null) ? $existing["resources"] : [];
+				$fields = $this->aiCleanResourceFields($args["fields"], $before);
 				$type_error = $this->aiInvalidFieldTypeError($fields);
 
 				if ($type_error !== null) {
@@ -350,8 +351,9 @@
 					return ["error" => $type_error];
 				}
 
-				$before = is_array($existing["resources"] ?? null) ? $existing["resources"] : [];
-				$changes["resources"] = $fields;
+				// The raw list is what's staged: the stored resources can change during
+				// the proposal's TTL, so the merge is redone against them at approval.
+				$changes["fields"] = $args["fields"];
 				$diff["fields"] = ["from" => count($before), "to" => count($fields)];
 				$diff = array_merge($diff, $this->aiTemplateFieldDiff($before, $fields, $id));
 			}
@@ -385,8 +387,8 @@
 		 * The proposal card is the AI user's only view of this change — REST has an
 		 * editing UI showing the full list, this has a summary line. A bare field
 		 * *count* hid the two things that matter: dropping a field orphans its content
-		 * on every page using the template, and the assistant's field input carries no
-		 * validation settings, so a field that was required silently stops being so.
+		 * on every page using the template, and retyping one discards the settings
+		 * configured for its old type, which can include its required rule.
 		 *
 		 * Rendered through the existing `changes` diff shape, so the card needs no
 		 * new preview handling.
@@ -402,9 +404,13 @@
 			$removed = array_values(array_diff(array_keys($old), array_keys($new)));
 			$retyped = [];
 			$unrequired = [];
+			$newly_required = [];
 
 			foreach ($new as $field_id => $field) {
 				if (!isset($old[$field_id])) {
+					if ($this->aiResourceIsRequired($field)) {
+						$newly_required[] = $field_id;
+					}
 
 					continue;
 				}
@@ -440,9 +446,13 @@
 				$rows["fields_retyped"] = implode(", ", $retyped);
 			}
 
+			if ($newly_required) {
+				$rows["now_required"] = implode(", ", $newly_required);
+			}
+
 			if ($unrequired) {
 				$rows["no_longer_required"] = implode(", ", $unrequired)
-					. " — the assistant cannot set validation rules, so these lose their required rule";
+					. " — changing a field's type discards the settings configured for its old type";
 			}
 
 			$rows["pages_using_template"] = $page_count;
@@ -507,7 +517,15 @@
 				$next["level"] = (int)$changes["level"];
 			}
 
-			if (array_key_exists("resources", $changes)) {
+			// Re-merged here rather than reused from the proposal: the template's fields
+			// may have been edited in the admin during the proposal's TTL, and those
+			// settings have to survive the approval too.
+			if (array_key_exists("fields", $changes)) {
+				$next["resources"] = $this->aiCleanResourceFields(
+					$changes["fields"],
+					is_array($existing["resources"] ?? null) ? $existing["resources"] : []
+				);
+			} elseif (array_key_exists("resources", $changes)) {
 				$next["resources"] = Resources::clean(is_array($changes["resources"]) ? $changes["resources"] : []);
 			}
 
@@ -522,30 +540,17 @@
 
 		/**
 		 * Normalize the model's proposed template fields into the canonical resource
-		 * shape (id, type, title, subtitle) before cleaning. Fields without an id are
+		 * shape, merged against what the template already stores so that a field the
+		 * model copied over unchanged keeps its settings. Fields without an id are
 		 * dropped by Resources::clean.
 		 *
 		 * @param mixed $fields
+		 * @param list<array<string,mixed>> $existing Stored resources ([] when creating).
 		 * @return list<array<string,mixed>>
 		 */
-		private function aiCleanResourceFields($fields): array {
-			$rows = [];
+		private function aiCleanResourceFields($fields, array $existing = []): array {
 
-			foreach ((array)$fields as $field) {
-				if (!is_array($field)) {
-
-					continue;
-				}
-
-				$rows[] = [
-					"id" => BigTreeCMS::urlify((string)($field["id"] ?? "")),
-					"type" => (string)($field["type"] ?? "text"),
-					"title" => (string)($field["title"] ?? ""),
-					"subtitle" => (string)($field["subtitle"] ?? ""),
-				];
-			}
-
-			return Resources::clean($rows);
+			return Resources::mergeAiFields($fields, $existing);
 		}
 
 		/**

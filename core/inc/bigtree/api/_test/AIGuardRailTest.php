@@ -96,6 +96,53 @@
 		T::equals(ai_guard_invoke($svc, "aiCheckSettingValue", [$number, "42"])["value"], 42, "numeric string coerced");
 	}
 
+	/**
+	 * A6: date/datetime/time and email settings fell through to "store as given",
+	 * so "next Tuesday" landed verbatim in a date setting — the page-schedule path
+	 * rejects exactly that with a helpful message, and so should this.
+	 */
+	function test_ai_guard_setting_normalizes_dates_and_validates_email() {
+		$svc = new SettingService();
+
+		$date = ["id" => "zz-date", "name" => "Guard Date", "type" => "date", "settings" => []];
+		$vague = ai_guard_invoke($svc, "aiCheckSettingValue", [$date, "sometime next Tuesday-ish"]);
+		T::ok(isset($vague["error"]), "an unparseable date is refused rather than stored verbatim");
+		T::ok(strpos($vague["error"], "Guard Date") !== false, "the error names the setting");
+
+		T::equals(
+			ai_guard_invoke($svc, "aiCheckSettingValue", [$date, "2030-08-01"])["value"],
+			"2030-08-01",
+			"an explicit date is stored normalized"
+		);
+
+		$datetime = ["id" => "zz-dt", "name" => "Guard DateTime", "type" => "datetime", "settings" => []];
+		T::equals(
+			ai_guard_invoke($svc, "aiCheckSettingValue", [$datetime, "2030-08-01 09:30"])["value"],
+			"2030-08-01 09:30:00",
+			"a datetime is normalized to the stored format"
+		);
+
+		$time = ["id" => "zz-time", "name" => "Guard Time", "type" => "time", "settings" => []];
+		T::ok(
+			isset(ai_guard_invoke($svc, "aiCheckSettingValue", [$time, "half past nine-ish"])["error"]),
+			"an unparseable time is refused"
+		);
+
+		// Clearing a date setting stays legal — emptiness isn't this check's business.
+		T::equals(ai_guard_invoke($svc, "aiCheckSettingValue", [$date, ""])["value"], "", "a date can still be cleared");
+
+		$email = ["id" => "zz-email", "name" => "Guard Email", "type" => "email", "settings" => []];
+		T::ok(
+			isset(ai_guard_invoke($svc, "aiCheckSettingValue", [$email, "not an address"])["error"]),
+			"an invalid email is refused"
+		);
+		T::equals(
+			ai_guard_invoke($svc, "aiCheckSettingValue", [$email, "hi@example.com"])["value"],
+			"hi@example.com",
+			"a valid email is accepted"
+		);
+	}
+
 	function test_ai_guard_callout_display_field_must_exist() {
 		$svc = new CalloutService();
 		$fields = [

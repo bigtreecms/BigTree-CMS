@@ -534,8 +534,45 @@
 				return $this->aiCheckListSettingValue($def, $name, $value);
 			}
 
-			// Anything left is a scalar type with no enumerable domain (text, html,
-			// date…) or a type this build doesn't know about — store as given.
+			// Scalar-but-shaped types. These fell through to "store as given", so
+			// "next Tuesday" landed verbatim in a date setting — the page-schedule path
+			// rejects exactly that with a helpful message, and so should this.
+			$date_formats = ["date" => "Y-m-d", "datetime" => "Y-m-d H:i:s", "time" => "H:i:s"];
+
+			if (isset($date_formats[$type])) {
+				$raw = trim((string)$value);
+
+				if ($raw === "") {
+
+					return ["value" => ""];
+				}
+
+				$stamp = strtotime($raw);
+
+				if ($stamp === false) {
+
+					return ["error" => "“{$name}” is a {$type} setting and \"{$raw}\" isn't a {$type} I can store. "
+						. "Use an explicit value like \"" . date($date_formats[$type]) . "\"."];
+				}
+
+				return ["value" => date($date_formats[$type], $stamp)];
+			}
+
+			if ($type === "email") {
+				$raw = trim((string)$value);
+
+				if ($raw !== "" && !filter_var($raw, FILTER_VALIDATE_EMAIL)) {
+
+					return ["error" => "“{$name}” is an email setting and \"{$raw}\" isn't a valid email address."];
+				}
+
+				return ["value" => $raw];
+			}
+
+			// Anything left is a scalar type with no enumerable domain (text, html…)
+			// or a type this build doesn't know about — store as given. Phone and
+			// colour are deliberately not policed: their formats are conventions
+			// rather than rules, and a false rejection is worse than a loose value.
 			return ["value" => $value];
 		}
 

@@ -247,6 +247,28 @@
 		T::ok(strpos($joined, "revision") === false, "restoring revisions is no longer a decline — it has a tool");
 		T::ok(strpos($joined, "external link") === false, "external links are no longer a decline");
 		T::ok(strpos($joined, "tagging") === false, "tagging is not a decline — add_tags/remove_tags exist");
+
+		// Audit #3 (B2): the list's own contract is that a real, likely-to-be-asked
+		// capability has either a tool or a line. These are the walls the model was
+		// otherwise rediscovering by failing.
+		$declined_families = [
+			"deleting a page" => "delete a page",
+			"deleting tags" => "delete a tag",
+			"404" => "404 monitoring",
+			"feeds" => "feeds",
+			"field types" => "custom field types",
+			"messages" => "internal messages",
+			"system maintenance" => "cache/backup/upgrade operations",
+		];
+
+		foreach ($declined_families as $needle => $label) {
+			T::ok(strpos($joined, $needle) !== false, "the list documents the wall for {$label}");
+		}
+
+		// …and conversely, nothing built in this audit may be listed as impossible.
+		foreach (["creating a redirect", "merging tags", "renaming a tag", "seo rating"] as $built) {
+			T::ok(strpos($joined, $built) === false, "\"{$built}\" has a tool and must not be declined");
+		}
 	}
 
 	function test_prompt_guard_wraps_tool_result() {

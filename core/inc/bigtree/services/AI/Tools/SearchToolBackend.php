@@ -46,6 +46,12 @@
 		public function semanticSearch($q, $limit, $user): array;
 
 		/**
+		 * Fetch one page for get_page. The id may be a live page's numeric id or a
+		 * "p"-prefixed pending-change id addressing an unpublished draft, matching
+		 * what update_page accepts. A draft resolves no artifact — there is no live
+		 * page to navigate to.
+		 *
+		 * @param mixed $id
 		 * @param object|array $user
 		 * @return array{error?:string,payload?:array,artifact?:array}
 		 */

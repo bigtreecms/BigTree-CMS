@@ -675,4 +675,289 @@
 				"usage_count" => 0,
 			]);
 		}
+
+		// — tag record management (merge / rename) —
+		//
+		// add_tags/remove_tags manage which tags a *record* carries; these manage the
+		// tag vocabulary itself. Tag hygiene ("we have both 'e-mail' and 'email'") is
+		// a natural language task the catalog previously only claimed to cover:
+		// can_manage_tags read as full management while the catalog offered attach and
+		// detach alone. Administrator-only, like tag creation, and two-phase because a
+		// merge deletes tag rows and rewrites every relation pointing at them.
+
+		/**
+		 * Resolve a model-supplied tag reference (name or numeric id) to its row.
+		 *
+		 * @param mixed $reference
+		 * @return array<string,mixed>|null
+		 */
+		private function aiFindTag($reference): ?array {
+			$reference = trim((string)$reference);
+
+			if ($reference === "") {
+
+				return null;
+			}
+
+			if (ctype_digit($reference)) {
+				$row = SQL::fetch("SELECT * FROM bigtree_tags WHERE id = ?", (int)$reference);
+
+				if ($row) {
+
+					return $row;
+				}
+			}
+
+			$row = SQL::fetch("SELECT * FROM bigtree_tags WHERE tag = ?", $this->normalize($reference));
+
+			return $row ?: null;
+		}
+
+		/**
+		 * Validate merging one or more tags into another. Administrator-only.
+		 *
+		 * @param array<string,mixed> $args
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 */
+		public function aiValidateTagMerge(array $args, $user): array {
+			if (PermissionService::level($user) < 1) {
+
+				return ["denied" => "Only administrators can merge tags."];
+			}
+
+			$into = $this->aiFindTag($args["into"] ?? "");
+
+			if (!$into) {
+
+				return ["error" => "There's no tag matching \"" . trim((string)($args["into"] ?? "")) . "\" to merge "
+					. "into. Use search_tags to find the tag you mean."];
+			}
+
+			$from = [];
+			$unknown = [];
+
+			foreach ((array)($args["from"] ?? []) as $reference) {
+				$row = $this->aiFindTag($reference);
+
+				if (!$row) {
+					$unknown[] = trim((string)$reference);
+
+					continue;
+				}
+
+				// Merging a tag into itself would delete it and orphan every relation
+				// the merge was supposed to preserve.
+				if ((int)$row["id"] === (int)$into["id"]) {
+
+					return ["error" => "\"{$into["tag"]}\" can't be merged into itself."];
+				}
+
+				$from[(int)$row["id"]] = $row;
+			}
+
+			if ($unknown) {
+
+				return ["error" => "No tag matches: " . implode(", ", $unknown) . ". Use search_tags to check the "
+					. "names first."];
+			}
+
+			if (!$from) {
+
+				return ["error" => "Provide the tag(s) to merge in `from`."];
+			}
+
+			$names = [];
+			$moving = 0;
+
+			foreach ($from as $row) {
+				$names[] = (string)$row["tag"];
+				$moving += (int)SQL::fetchSingle("SELECT COUNT(*) FROM bigtree_tags_rel WHERE tag = ?", (int)$row["id"]);
+			}
+
+			return [
+				"ok" => true,
+				"summary" => "Merge " . implode(", ", array_map(function (string $n): string {
+
+					return "“{$n}”";
+				}, $names)) . " into “{$into["tag"]}”. " . ($moving === 1 ? "1 tagged record moves" : "{$moving} tagged "
+					. "records move") . " across, and the merged tag" . (count($names) === 1 ? " is" : "s are")
+					. " deleted. This can't be undone.",
+				"preview" => [
+					"action" => "merge_tags",
+					"into" => (string)$into["tag"],
+					"from" => $names,
+					"records_moved" => $moving,
+					"mode" => "published",
+				],
+				"payload" => [
+					"into" => (int)$into["id"],
+					"from" => array_keys($from),
+				],
+			];
+		}
+
+		/**
+		 * Execute an approved tag merge. Re-checks administrator level and re-reads
+		 * every tag, then performs the same relation rewrite + delete + usage recount
+		 * the REST merge route does.
+		 *
+		 * @param array<string,mixed> $payload
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 */
+		public function aiMergeTags(array $payload, $user): array {
+			if (PermissionService::level($user) < 1) {
+				throw new AuthorizationException("Only administrators can merge tags.");
+			}
+
+			$into = (int)($payload["into"] ?? 0);
+			$target = $into > 0 ? SQL::fetch("SELECT * FROM bigtree_tags WHERE id = ?", $into) : null;
+
+			if (!$target) {
+
+				return ["mode" => "error", "message" => "The tag being merged into no longer exists."];
+			}
+
+			$merged = [];
+
+			foreach ((array)($payload["from"] ?? []) as $tag_id) {
+				$tag_id = (int)$tag_id;
+
+				if ($tag_id < 1 || $tag_id === $into) {
+
+					continue;
+				}
+
+				$row = SQL::fetch("SELECT * FROM bigtree_tags WHERE id = ?", $tag_id);
+
+				if (!$row) {
+
+					continue;
+				}
+
+				SQL::query("UPDATE bigtree_tags_rel SET tag = ? WHERE tag = ?", $into, $tag_id);
+				SQL::delete("bigtree_tags", $tag_id);
+				$merged[] = (string)$row["tag"];
+			}
+
+			if (!$merged) {
+
+				return ["mode" => "error", "message" => "Those tags no longer exist — nothing was merged."];
+			}
+
+			$this->recomputeUsage($into);
+
+			return [
+				"mode" => "merged",
+				"tag_id" => $into,
+				"tag" => (string)$target["tag"],
+				"merged" => $merged,
+			];
+		}
+
+		/**
+		 * Validate renaming a tag. Administrator-only. A rename that collides with an
+		 * existing tag is a merge in disguise, so it is refused and pointed at
+		 * merge_tags rather than silently producing two tags with the same name.
+		 *
+		 * @param array<string,mixed> $args
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 */
+		public function aiValidateTagRename(array $args, $user): array {
+			if (PermissionService::level($user) < 1) {
+
+				return ["denied" => "Only administrators can rename tags."];
+			}
+
+			$tag = $this->aiFindTag($args["tag"] ?? "");
+
+			if (!$tag) {
+
+				return ["error" => "There's no tag matching \"" . trim((string)($args["tag"] ?? "")) . "\". Use "
+					. "search_tags to find it."];
+			}
+
+			$name = $this->normalize((string)($args["name"] ?? ""));
+
+			if ($name === "") {
+
+				return ["error" => "A new tag name is required (letters, numbers and spaces)."];
+			}
+
+			if ($name === (string)$tag["tag"]) {
+
+				return ["error" => "“{$name}” is already this tag's name — nothing to change."];
+			}
+
+			$collision = SQL::fetch("SELECT * FROM bigtree_tags WHERE tag = ? AND id != ?", $name, (int)$tag["id"]);
+
+			if ($collision) {
+
+				return ["error" => "A tag called “{$name}” already exists. Renaming this one onto it would leave two "
+					. "tags with the same name — use merge_tags to combine them instead."];
+			}
+
+			$usage = (int)($tag["usage_count"] ?? 0);
+
+			return [
+				"ok" => true,
+				"summary" => "Rename the tag “{$tag["tag"]}” to “{$name}”"
+					. ($usage > 0 ? ", affecting {$usage} tagged record" . ($usage === 1 ? "" : "s") : "")
+					. ". Its public URL changes with it.",
+				"preview" => [
+					"action" => "rename_tag",
+					"changes" => ["tag" => ["from" => (string)$tag["tag"], "to" => $name]],
+					"tagged_records" => $usage,
+					"mode" => "published",
+				],
+				"payload" => [
+					"tag_id" => (int)$tag["id"],
+					"name" => $name,
+				],
+			];
+		}
+
+		/**
+		 * Execute an approved tag rename. Re-checks administrator level, that the tag
+		 * still exists, and that the name is still free.
+		 *
+		 * @param array<string,mixed> $payload
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 */
+		public function aiRenameTag(array $payload, $user): array {
+			if (PermissionService::level($user) < 1) {
+				throw new AuthorizationException("Only administrators can rename tags.");
+			}
+
+			$tag_id = (int)($payload["tag_id"] ?? 0);
+			$name = $this->normalize((string)($payload["name"] ?? ""));
+			$tag = $tag_id > 0 ? SQL::fetch("SELECT * FROM bigtree_tags WHERE id = ?", $tag_id) : null;
+
+			if (!$tag || $name === "") {
+
+				return ["mode" => "error", "message" => "That tag no longer exists."];
+			}
+
+			if (SQL::fetch("SELECT id FROM bigtree_tags WHERE tag = ? AND id != ?", $name, $tag_id)) {
+
+				return ["mode" => "error", "message" => "A tag called “{$name}” has been created since this was "
+					. "proposed — use merge_tags instead."];
+			}
+
+			SQL::update("bigtree_tags", $tag_id, [
+				"tag" => $name,
+				"metaphone" => metaphone($name),
+				"route" => $this->uniqueRoute(BigTreeCMS::urlify($name)),
+			]);
+
+			return [
+				"mode" => "renamed",
+				"tag_id" => $tag_id,
+				"from" => (string)$tag["tag"],
+				"tag" => $name,
+			];
+		}
 	}

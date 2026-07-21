@@ -10,6 +10,7 @@
 	 */
 
 	use BigTree\Services\PageService;
+	use BigTree\Services\SearchService;
 
 	/** Stage and approve a page create, returning the new page id. */
 	function parity_surface_create(PageService $svc, $user, array $args): array {
@@ -97,6 +98,210 @@
 		} finally {
 			parity_delete_page($page_id);
 			parity_delete_users($user_id);
+		}
+	}
+
+	/**
+	 * A3: update_page treated `route` as plain text.
+	 *
+	 * The value went straight to uniqueRoute(), which uniquifies but does not
+	 * sanitize, so "About Us!" was stored complete with its space and punctuation.
+	 * Create derives routes through urlify; an edit has to normalize the same way,
+	 * and the proposal card has to show what will actually be stored.
+	 */
+	function test_parity_ai_update_page_urlifies_a_supplied_route() {
+		if (!parity_db_available()) {
+			return;
+		}
+
+		$svc = new PageService();
+		[$user_id, $user] = parity_surface_user();
+		$page_id = 0;
+
+		try {
+			$result = parity_surface_create($svc, $user, [
+				"parent" => 0,
+				"nav_title" => "AI Route " . bin2hex(random_bytes(3)),
+				"content" => parity_surface_default_content(),
+			]);
+			$page_id = $result["page_id"];
+			T::ok($page_id > 0, "fixture page created");
+
+			$validated = $svc->aiValidatePageUpdate(["id" => $page_id, "route" => "About Us!"], $user);
+
+			T::ok(!empty($validated["ok"]), "the route change validates");
+			T::equals($validated["preview"]["changes"]["route"]["to"], "about-us", "the diff shows the normalized route");
+
+			$svc->aiUpdatePage($validated["payload"], $user);
+
+			$stored = (string)SQL::fetchSingle("SELECT route FROM bigtree_pages WHERE id = ?", $page_id);
+			T::ok(strpos($stored, "about-us") === 0, "the stored route is urlified (got \"{$stored}\")");
+			T::ok(strpos($stored, " ") === false, "no whitespace survives into the route");
+			T::ok(strpos($stored, "!") === false, "no punctuation survives into the route");
+
+			// A route made only of characters urlify strips leaves nothing to store.
+			$empty = $svc->aiValidatePageUpdate(["id" => $page_id, "route" => "!!!"], $user);
+			T::ok(isset($empty["error"]), "a route that urlifies to nothing is refused");
+		} finally {
+			parity_delete_page($page_id);
+			parity_delete_users($user_id);
+		}
+	}
+
+	/**
+	 * A3: nav_title is what the nav, the breadcrumb and the pending-change card all
+	 * render, and nothing falls back to it — "" was a legitimate-looking diff that
+	 * left a live page labelled by nothing at all.
+	 */
+	function test_parity_ai_update_page_refuses_an_empty_nav_title() {
+		if (!parity_db_available()) {
+			return;
+		}
+
+		$svc = new PageService();
+		[$user_id, $user] = parity_surface_user();
+		$page_id = 0;
+
+		try {
+			$result = parity_surface_create($svc, $user, [
+				"parent" => 0,
+				"nav_title" => "AI Nav Title " . bin2hex(random_bytes(3)),
+				"content" => parity_surface_default_content(),
+			]);
+			$page_id = $result["page_id"];
+			T::ok($page_id > 0, "fixture page created");
+
+			foreach (["", "   "] as $blank) {
+				$validated = $svc->aiValidatePageUpdate(["id" => $page_id, "nav_title" => $blank], $user);
+				T::ok(isset($validated["error"]), "an empty nav_title is refused");
+			}
+
+			$renamed = $svc->aiValidatePageUpdate(["id" => $page_id, "nav_title" => "zz Renamed"], $user);
+			T::ok(!empty($renamed["ok"]), "a real nav_title still validates");
+		} finally {
+			parity_delete_page($page_id);
+			parity_delete_users($user_id);
+		}
+	}
+
+	/**
+	 * B1: page tools can address an unpublished NEW draft by "p{change_id}".
+	 *
+	 * An editor's own create_page always lands in the pending queue, and the page
+	 * tools took integer live ids only — so "actually, change the header on that
+	 * draft" was a dead end, the exact scenario that motivated draft addressing for
+	 * module entries in the first place. The edit must amend the queued change in
+	 * place and write nothing live.
+	 */
+	function test_parity_ai_can_amend_its_own_page_draft() {
+		if (!parity_db_available()) {
+			return;
+		}
+
+		$svc = new PageService();
+		$editor_id = parity_seed_user(["level" => 0, "permissions" => ["page" => [0 => "e"]]]);
+		$editor = (object)["id" => $editor_id, "level" => 0, "permissions" => ["page" => [0 => "e"]]];
+		[$publisher_id, $publisher] = parity_surface_user();
+		$change_id = 0;
+		$live_page_id = 0;
+
+		try {
+			$created = parity_surface_create($svc, $editor, [
+				"parent" => 0,
+				"nav_title" => "AI Draft Page " . bin2hex(random_bytes(3)),
+				"content" => parity_surface_default_content(),
+			]);
+
+			$change_id = (int)($created["created"]["pending_change_id"] ?? 0);
+
+			if ($change_id < 1) {
+				echo "  (skipped — editor's create did not land as a draft)\n";
+
+				return;
+			}
+
+			$draft_id = "p" . $change_id;
+
+			$validated = $svc->aiValidatePageUpdate([
+				"id" => $draft_id,
+				"nav_title" => "zz Draft Renamed",
+			], $editor);
+
+			T::ok(!empty($validated["ok"]), "the draft edit validates");
+			T::ok(!empty($validated["preview"]["is_draft"]), "the preview says it's a draft");
+			T::ok(
+				strpos((string)$validated["summary"], "draft") !== false,
+				"the summary says the draft is being updated, not published"
+			);
+
+			$result = $svc->aiUpdatePage($validated["payload"], $editor);
+
+			T::equals($result["mode"], "pending", "approving amends the draft rather than publishing");
+			T::equals((int)$result["pending_change_id"], $change_id, "it amends the same queued change");
+
+			$stored = SQL::fetch("SELECT * FROM bigtree_pending_changes WHERE id = ?", $change_id);
+			$changes = json_decode((string)$stored["changes"], true);
+			T::equals($changes["nav_title"], "zz Draft Renamed", "the draft's nav_title was amended");
+			T::ok(isset($changes["resources"]), "the draft's untouched content survived the amend");
+
+			// Nothing may have been written live by any of this.
+			$live = (int)SQL::fetchSingle(
+				"SELECT COUNT(*) FROM bigtree_pages WHERE nav_title = ?", "zz Draft Renamed"
+			);
+			T::equals($live, 0, "no live page was created or written");
+
+			// The read side has to address the draft the same way the write side does:
+			// being able to edit an id that get_page reports as nonexistent is the
+			// asymmetry draft addressing exists to remove.
+			$detail = (new SearchService())->getPageDetail($draft_id, $editor);
+
+			T::ok(!isset($detail["error"]), "get_page can read the draft back");
+			T::ok(!empty($detail["payload"]["is_draft"]), "the payload marks it as a draft");
+			T::equals($detail["payload"]["id"], $draft_id, "it reads back under the same p-prefixed id");
+			T::equals(
+				(int)$detail["payload"]["pending_change_id"], $change_id, "it names the queued change"
+			);
+			T::equals(
+				$detail["payload"]["nav_title"], "zz Draft Renamed", "it reflects the amended nav_title"
+			);
+			T::ok(!isset($detail["artifact"]), "a draft resolves no artifact — there's no live page to link to");
+
+			// A live page still reads exactly as it did before drafts were addressable.
+			$live_page_id = parity_surface_create($svc, $publisher, [
+				"parent" => 0,
+				"nav_title" => "zz AI Live Read " . bin2hex(random_bytes(3)),
+				"content" => parity_surface_default_content(),
+			])["page_id"];
+
+			T::ok($live_page_id > 0, "a live page was created to read back");
+
+			$live_detail = (new SearchService())->getPageDetail($live_page_id, $publisher);
+
+			T::ok(!isset($live_detail["error"]), "a live page still reads by numeric id");
+			T::equals((int)$live_detail["payload"]["id"], $live_page_id, "under its numeric id");
+			T::ok(empty($live_detail["payload"]["is_draft"]), "and is not marked a draft");
+			T::ok(isset($live_detail["artifact"]), "and still carries its navigable artifact");
+
+			// A draft that doesn't exist is a recoverable error, not a crash — on both
+			// the read and the write side.
+			$missing = $svc->aiValidatePageUpdate(["id" => "p99999999", "nav_title" => "x"], $editor);
+			T::ok(isset($missing["error"]), "an unknown draft id is a recoverable error");
+			T::ok(
+				isset((new SearchService())->getPageDetail("p99999999", $editor)["error"]),
+				"and get_page reports it too rather than crashing"
+			);
+
+			foreach (["px", "12x", "p"] as $bad) {
+				$rejected = $svc->aiValidatePageUpdate(["id" => $bad, "nav_title" => "x"], $editor);
+				T::ok(isset($rejected["error"]), "\"{$bad}\" is refused as a page id");
+
+				$read = (new SearchService())->getPageDetail($bad, $editor);
+				T::ok(isset($read["error"]), "\"{$bad}\" is refused by get_page too");
+			}
+		} finally {
+			parity_delete_pending($change_id);
+			parity_delete_page($live_page_id);
+			parity_delete_users($editor_id, $publisher_id);
 		}
 	}
 

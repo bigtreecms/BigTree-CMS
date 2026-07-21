@@ -374,11 +374,14 @@
 
 			// Supply content for the default template's required field(s) so the
 			// validation focuses on the template default, not the required check.
+			// Only the fields the assistant can actually set: supplying a complex one
+			// (an image, a callouts region) is a recoverable error in its own right.
+			$schema_ref = new ReflectionMethod(PageService::class, "aiTemplateResourceSchema");
+			$schema_ref->setAccessible(true);
 			$content = [];
-			$default_resources = BigTreeJSONDB::get("templates", $expected)["resources"] ?? [];
 
-			foreach ($default_resources as $r) {
-				$content[(string)$r["id"]] = "Filled by parity test";
+			foreach ($schema_ref->invoke($svc, $expected) as $resource_id => $resource) {
+				$content[(string)$resource_id] = "Filled by parity test";
 			}
 
 			$res = $svc->aiValidatePageCreate([

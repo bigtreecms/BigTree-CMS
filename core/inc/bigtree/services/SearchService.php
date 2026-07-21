@@ -1258,36 +1258,61 @@ PROMPT;
 		 * ["error" => …] or ["payload" => <detail for model>, "artifact" => <navigable row>].
 		 * The driver merges the artifact into the collected result set.
 		 *
+		 * The id may address an unpublished NEW draft as "p{change_id}", the same
+		 * addressing update_page and update_page_content accept. Without it the
+		 * assistant could edit a draft it had just created but never read it back —
+		 * get_page would answer "not found" for an id it had itself been handed.
+		 *
+		 * @param mixed $id
 		 * @param object|array $user
 		 * @return array{error?:string,payload?:array,artifact?:array}
 		 */
 		public function getPageDetail($id, $user): array {
-			$id = (int)$id;
+			$target = (new PageService())->aiResolvePageTarget($id);
 
-			if ($id < 1) {
-				return ["error" => "invalid id"];
+			if (isset($target["error"])) {
+				return ["error" => $target["error"]];
 			}
 
-			if (!PermissionService::userHasPageAccess($user, $id, "v")) {
+			// A draft has no page of its own to hold permissions; its parent grants the
+			// right to see it, matching the write path's own check.
+			$permission_id = $target["is_pending"] ? (int)$target["parent"] : (int)$target["page_id"];
+
+			if (!PermissionService::userHasPageAccess($user, $permission_id, "v")) {
 				return ["error" => "not permitted"];
 			}
 
-			$page = SQL::fetch(
-				"SELECT id, nav_title, title, path, meta_description, template, resources, archived
-				 FROM bigtree_pages WHERE id = ?",
-				$id
-			);
+			$page = $target["page"];
+			$snippet = $this->plainTextFromResources($page["resources"] ?? "");
 
-			if (!$page) {
-				return ["error" => "not found"];
+			if ($target["is_pending"]) {
+				$reference = "p".$target["change_id"];
+
+				// No artifact: artifacts are navigable rows, and a draft has no live page
+				// to navigate to — emitting one with id 0 would render a broken link.
+				return ["payload" => [
+					"id" => $reference,
+					"is_draft" => true,
+					"pending_change_id" => (int)$target["change_id"],
+					"parent" => (int)$target["parent"],
+					"nav_title" => $page["nav_title"],
+					"title" => $page["title"],
+					"route" => $page["route"],
+					"meta_description" => $page["meta_description"],
+					"template" => $page["template"],
+					"archived" => false,
+					"content_text" => $snippet,
+					"note" => "This page is still an unpublished draft awaiting approval — it has no live URL yet. "
+						. "Edit it with this same \"{$reference}\" id.",
+				]];
 			}
 
-			$snippet = $this->plainTextFromResources($page["resources"] ?? "");
 			$archived = Flag::isOn($page["archived"] ?? "");
 
 			return [
 				"payload" => [
 					"id" => (int)$page["id"],
+					"is_draft" => false,
 					"nav_title" => $page["nav_title"],
 					"title" => $page["title"],
 					"path" => $page["path"],

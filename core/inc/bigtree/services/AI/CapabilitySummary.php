@@ -61,6 +61,11 @@
 				// Tagging is split: attaching a tag that already exists is something
 				// any editor can do (matching the page editor), while coining a new
 				// one grows the site's shared vocabulary and stays administrator-only.
+				//
+				// "Manage" here means create, merge and rename — deleting a tag record
+				// is still admin-UI-only, and outOfScope() says so, because this key
+				// read as full management back when the catalog only offered attach
+				// and detach.
 				"can_manage_tags" => $level >= 1,
 				"can_create_tags" => $level >= 1,
 				"can_attach_tags" => true,
@@ -107,6 +112,23 @@
 				"Managing content locks" => "the lock banner on the item being edited",
 				"Editing complex fields — uploads, matrices, relationships, callouts on a page" =>
 					"the page or entry editor; the assistant only sets simple text-like fields",
+				// Deleting a page is a guaranteed ask ("delete the old pricing page") and
+				// archiving is the reversible answer to it, so the line steers rather
+				// than just refusing.
+				"Deleting a page" =>
+					"the page tree in Pages — the assistant can archive a page instead, which takes it off the "
+						. "site reversibly",
+				"Deleting tags" => "Settings → Tags — the assistant can merge or rename tags, but not delete them",
+				"Editing 404 monitoring, or removing redirects" =>
+					"Developer → 404s — the assistant can create a redirect but not manage the log",
+				"Creating, editing or deleting feeds" => "Developer → Feeds",
+				"Creating or editing custom field types" => "Developer → Field Types",
+				"Reading or sending internal messages" => "the Messages section",
+				"Renaming, reordering or deleting module and callout groups" =>
+					"Developer → Modules and Developer → Callouts — the assistant can create a group, but not "
+						. "change one afterwards",
+				"System maintenance — clearing caches, backups, upgrades, security policy, IP bans" =>
+					"Developer → System",
 			];
 		}
 

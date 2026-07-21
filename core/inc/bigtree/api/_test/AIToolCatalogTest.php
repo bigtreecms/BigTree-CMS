@@ -167,6 +167,17 @@
 			public function aiAddTags(array $payload, $user): array { $this->executed = $payload; return ["mode" => "tagged"]; }
 			public function aiValidateRemoveTags(array $args, $user): array { return $this->validation; }
 			public function aiRemoveTags(array $payload, $user): array { $this->executed = $payload; return ["mode" => "untagged"]; }
+
+			// Audit #3 (B3) — tag record management.
+			/** @var array<string,mixed> */
+			public $merge_validation = ["ok" => true, "summary" => "Merge tags.", "preview" => [], "payload" => []];
+			/** @var array<string,mixed> */
+			public $rename_validation = ["ok" => true, "summary" => "Rename tag.", "preview" => [], "payload" => []];
+
+			public function aiValidateTagMerge(array $args, $user): array { return $this->merge_validation; }
+			public function aiMergeTags(array $payload, $user): array { $this->executed = $payload; return ["mode" => "merged"]; }
+			public function aiValidateTagRename(array $args, $user): array { return $this->rename_validation; }
+			public function aiRenameTag(array $payload, $user): array { $this->executed = $payload; return ["mode" => "renamed"]; }
 		}
 	}
 
@@ -198,6 +209,12 @@
 			public function aiCreateCallout(array $payload, $user): array { $this->executed = $payload; return ["mode" => "created"]; }
 			public function aiValidateCalloutUpdate(array $args, $user): array { return $this->update_validation; }
 			public function aiUpdateCallout(array $payload, $user): array { $this->executed = $payload; return ["mode" => "updated"]; }
+
+			/** @var array<string,mixed> */
+			public $group_validation = ["ok" => true, "summary" => "Create callout group.", "preview" => [], "payload" => []];
+
+			public function aiValidateCalloutGroupCreate(array $args, $user): array { return $this->group_validation; }
+			public function aiCreateCalloutGroup(array $payload, $user): array { $this->executed = $payload; return ["mode" => "created"]; }
 		}
 	}
 
@@ -215,6 +232,12 @@
 			public function aiCreateModule(array $payload, $user): array { $this->executed = $payload; return ["mode" => "created"]; }
 			public function aiValidateModuleUpdate(array $args, $user): array { return $this->update_validation; }
 			public function aiUpdateModule(array $payload, $user): array { $this->executed = $payload; return ["mode" => "updated"]; }
+
+			/** @var array<string,mixed> */
+			public $group_validation = ["ok" => true, "summary" => "Create module group.", "preview" => [], "payload" => []];
+
+			public function aiValidateModuleGroupCreate(array $args, $user): array { return $this->group_validation; }
+			public function aiCreateModuleGroup(array $payload, $user): array { $this->executed = $payload; return ["mode" => "created"]; }
 		}
 	}
 

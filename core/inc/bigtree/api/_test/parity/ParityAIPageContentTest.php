@@ -164,12 +164,27 @@
 			T::ok(isset($none["error"]), "no content is a recoverable error");
 			T::ok(strpos($none["error"], "Settable fields") !== false, "it lists the settable fields");
 
-			// Only fields the assistant can't set → refused rather than a silent no-op.
+			// A4: a complex field the assistant can't author is named, with a pointer at
+			// the editor that can — previously it was dropped in silence, so the model
+			// reported setting it and the preview quietly omitted it.
 			$complex = $svc->aiValidatePageContentUpdate([
 				"id" => $page_id,
 				"content" => ["page_image" => "files/invented.jpg"],
 			], $user);
-			T::ok(isset($complex["error"]), "a complex-only edit is refused, not silently dropped");
+			T::ok(isset($complex["error"]), "a complex field is refused, not silently dropped");
+			T::ok(strpos($complex["error"], "page_image") !== false, "the error names the field");
+			T::ok(strpos($complex["error"], "image") !== false, "and its type");
+			T::ok(strpos($complex["error"], "Settable fields") !== false, "and lists what can be set instead");
+
+			// A4: a misspelled id is a typo worth a correction loop, not a no-op that
+			// carries the rest of the edit through as though it had worked.
+			$typo = $svc->aiValidatePageContentUpdate([
+				"id" => $page_id,
+				"content" => [$required[0] => "<p>Fine</p>", "page_headr" => "Typo"],
+			], $user);
+			T::ok(isset($typo["error"]), "an unknown content field is refused");
+			T::ok(strpos($typo["error"], "page_headr") !== false, "the error quotes the misspelled id");
+			T::ok(strpos($typo["error"], "Settable fields") !== false, "and lists the real ones");
 
 			$missing = $svc->aiValidatePageContentUpdate(["id" => 99999999, "content" => ["x" => "y"]], $user);
 			T::ok(isset($missing["error"]), "a nonexistent page is an error");

@@ -151,6 +151,33 @@
 
 				return ["mode" => "restored", "page_id" => 1, "revision_id" => 7, "title" => "X"];
 			}
+
+			// Audit #3 (B3) — SEO rating read and the named-revision save.
+			/** @var array<string,mixed> */
+			public $seo_rating = [
+				"page_id" => 1, "page_title" => "X", "available" => true, "score" => 74,
+				"recommendations" => ["Add a meta description."],
+			];
+			/** @var array<string,mixed> */
+			public $save_revision_validation = ["ok" => true, "summary" => "Save revision.", "preview" => [], "payload" => []];
+			/** @var array<string,mixed>|null */
+			public $saved_revision = null;
+
+			public function aiPageSeoRating(int $page_id, $user): array {
+
+				return $this->seo_rating;
+			}
+
+			public function aiValidateSaveRevision(array $args, $user): array {
+
+				return $this->save_revision_validation;
+			}
+
+			public function aiSaveRevision(array $payload, $user): array {
+				$this->saved_revision = $payload;
+
+				return ["mode" => "saved", "page_id" => 1, "revision_id" => 9, "description" => "Before rewrite"];
+			}
 		}
 	}
 

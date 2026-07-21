@@ -36,7 +36,8 @@
 				"Propose editing an existing callout (developer only). Requires approval. Only include the "
 					. "properties you want to change. Supplying `fields` REPLACES the callout's whole field list, "
 					. "so include every field it should end up with — use get_callout first if you don't know "
-					. "them. The callout's render file is not changed.",
+					. "them. Fields you carry over keep their existing configuration. The callout's render file "
+					. "is not changed.",
 				[
 					"type" => "object",
 					"properties" => [
@@ -68,16 +69,27 @@
 						"fields" => [
 							"type" => "array",
 							"description" => "The callout's complete new field list. Replaces the existing one — any "
-								. "field you omit is removed, orphaning its content wherever the callout is placed.",
+								. "field you omit is removed, orphaning its content wherever the callout is placed. "
+								. "A field you carry over by id keeps the configuration set in Developer → Callouts, "
+								. "so restate only what you are changing.",
 							"items" => [
 								"type" => "object",
 								"properties" => [
 									"id" => ["type" => "string"],
-									"type" => ["type" => "string"],
-									"title" => ["type" => "string"],
+									"type" => [
+										"type" => "string",
+										"description" => "Omit to keep an existing field's type. Changing it discards "
+											. "the configuration set for the old type.",
+									],
+									"title" => ["type" => "string", "description" => "Omit to keep an existing field's label."],
 									"subtitle" => ["type" => "string"],
+									"required" => [
+										"type" => "boolean",
+										"description" => "Applies to newly added fields only; an existing field keeps "
+											. "the validation rules set in Developer → Callouts.",
+									],
 								],
-								"required" => ["id", "type", "title"],
+								"required" => ["id"],
 							],
 						],
 					],

@@ -44,8 +44,10 @@
 					"type" => "object",
 					"properties" => [
 						"id" => [
-							"type" => "integer",
-							"description" => "Id of the page whose content to edit (required).",
+							"type" => "string",
+							"description" => "Id of the page whose content to edit (required). Use the numeric id of a live page, or a "
+								. "\"p\"-prefixed id (like \"p12\") to edit a page that is still an unpublished "
+								. "draft — get_pending_changes lists those.",
 						],
 						"content" => [
 							"type" => "object",
@@ -66,7 +68,7 @@
 		}
 
 		public function execute(array $args, AIToolContext $context): AIToolResult {
-			if ((int)($args["id"] ?? 0) < 1) {
+			if (trim((string)($args["id"] ?? "")) === "") {
 
 				return AIToolResult::error("A page id is required to edit a page's content.");
 			}

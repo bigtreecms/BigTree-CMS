@@ -9,6 +9,8 @@
 	use BigTree\Api\Response;
 	use BigTree\Api\Upload;
 	use BigTree\Api\Exceptions\BadRequestException;
+	use BigTree\Api\Exceptions\AuthorizationException;
+	use BigTree\Services\AI\Tools\RedirectToolBackend;
 	use BigTree;
 	use SQL;
 	use BigTreeCMS;
@@ -17,7 +19,7 @@
 	 * Manage the bigtree_404s table: 404 log, 301 redirects, ignored URLs.
 	 * type filter: 404 | 301 | ignored
 	 */
-	class FourOhFourService {
+	class FourOhFourService implements RedirectToolBackend {
 		public function list(Request $request) {
 			$type = $request->query["type"] ?? "404";
 			$site_key = $request->query["site_key"] ?? null;
@@ -357,5 +359,118 @@
 
 				if ($actor_id !== null) { AuditService::write("bigtree_404s", sqlid(), "created", $actor_id); }
 			}
+		}
+
+		// — AI tool seam (RedirectToolBackend) —
+		//
+		// "Redirect /old-pricing to /pricing" is a routine editor ask that had no tool
+		// and no decline line, so the model rediscovered the wall by failing. The
+		// write is complete by construction — a source and a destination is the whole
+		// record — and goes through create301 so the source is parsed and the
+		// destination converted to an internal-page link exactly as the REST route
+		// does. Administrator-only, matching the admin UI's own placement under
+		// Developer → 404s.
+
+		/**
+		 * Validate a proposed 301 redirect without writing.
+		 *
+		 * @param array<string,mixed> $args
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 */
+		public function aiValidateRedirectCreate(array $args, $user): array {
+			if (PermissionService::level($user) < 1) {
+
+				return ["denied" => "Only administrators can create redirects."];
+			}
+
+			$from = trim((string)($args["from"] ?? ""));
+			$to = trim((string)($args["to"] ?? ""));
+
+			if ($from === "" || $to === "") {
+
+				return ["error" => "Both `from` (the old path that should redirect) and `to` (where it should go) "
+					. "are required."];
+			}
+
+			$site_key = trim((string)($args["site_key"] ?? "")) ?: null;
+			$parsed = self::parse404SourceURL($from, $site_key);
+			$source = (string)$parsed["url"];
+
+			// The site root strips to nothing, and a redirect from "" would capture
+			// every unmatched request on the site.
+			if ($source === "") {
+
+				return ["error" => "\"{$from}\" doesn't name a path that can be redirected. Give the old path as it "
+					. "appeared on the site (e.g. \"/old-pricing\" or a full URL)."];
+			}
+
+			$existing = self::getExisting404($source, $parsed["get_vars"], $parsed["site_key"]);
+			$previous = $existing ? (string)($existing["redirect_url"] ?? "") : "";
+
+			return [
+				"ok" => true,
+				"summary" => "Redirect /{$source} to {$to}."
+					. ($previous !== ""
+						? " This replaces the existing redirect to {$previous}."
+						: ($existing
+							? " This URL is already in the 404 log; it becomes a 301 redirect."
+							: "")),
+				"preview" => [
+					"action" => "create_redirect",
+					"from" => "/" . $source,
+					"to" => $to,
+					"replaces" => $previous,
+					"mode" => "published",
+				],
+				"payload" => [
+					"from" => $from,
+					"to" => $to,
+					"site_key" => $site_key,
+				],
+			];
+		}
+
+		/**
+		 * Execute an approved redirect. Re-checks administrator level and reuses
+		 * create301, so the redirect is shaped exactly like one made in the admin.
+		 *
+		 * @param array<string,mixed> $payload
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 */
+		public function aiCreateRedirect(array $payload, $user): array {
+			if (PermissionService::level($user) < 1) {
+				throw new AuthorizationException("Only administrators can create redirects.");
+			}
+
+			$from = trim((string)($payload["from"] ?? ""));
+			$to = trim((string)($payload["to"] ?? ""));
+			$site_key = ($payload["site_key"] ?? null) !== null ? (string)$payload["site_key"] : null;
+
+			if ($from === "" || $to === "") {
+
+				return ["mode" => "error", "message" => "That redirect can no longer be created."];
+			}
+
+			$actor_id = 0;
+
+			if (is_object($user)) {
+				$actor_id = (int)($user->id ?? 0);
+			} elseif (is_array($user)) {
+				$actor_id = (int)($user["id"] ?? 0);
+			}
+
+			self::create301($from, $to, $site_key, $actor_id ?: null);
+
+			$parsed = self::parse404SourceURL($from, $site_key);
+			$row = self::getExisting404($parsed["url"], $parsed["get_vars"], $parsed["site_key"]);
+
+			return [
+				"mode" => "created",
+				"id" => (int)($row["id"] ?? 0),
+				"from" => "/" . (string)$parsed["url"],
+				"to" => (string)($row["redirect_url"] ?? $to),
+			];
 		}
 	}

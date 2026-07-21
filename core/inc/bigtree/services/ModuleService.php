@@ -1269,11 +1269,6 @@
 		}
 
 		/**
-		 * @param array<string,mixed> $args
-		 * @param object|array $user
-		 * @return array<string,mixed>
-		 */
-		/**
 		 * Validate an edit to an existing module's presentation: name, group, icon.
 		 *
 		 * Deliberately narrow. Route is excluded because changing it breaks every
@@ -1321,12 +1316,14 @@
 			}
 
 			if (array_key_exists("group", $args)) {
-				$group = trim((string)$args["group"]);
+				$resolved_group = $this->aiResolveModuleGroup($args["group"]);
 
-				if ($group !== "" && !BigTreeJSONDB::exists("module-groups", $group)) {
+				if (isset($resolved_group["needs_input"])) {
 
-					return ["error" => "Module group \"{$group}\" does not exist."];
+					return $resolved_group;
 				}
+
+				$group = $resolved_group["id"];
 
 				if ($group !== (string)($module["group"] ?? "")) {
 					$changes["group"] = $group !== "" ? $group : null;
@@ -1408,6 +1405,19 @@
 			];
 		}
 
+		/**
+		 * Validate creating a module record. Developer-only.
+		 *
+		 * This creates the module *record* alone — no table, forms, views or actions,
+		 * all of which are the Module Designer's DDL-bearing work. The proposal says
+		 * so, and the result carries the remaining setup steps, because an approved
+		 * create otherwise leaves something that looks finished in the nav and
+		 * dead-ends everywhere else.
+		 *
+		 * @param array<string,mixed> $args
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 */
 		public function aiValidateModuleCreate(array $args, $user): array {
 			if (PermissionService::level($user) < 2) {
 
@@ -1429,12 +1439,14 @@
 			}
 
 			$route = $this->uniqueModuleRoute($route);
-			$group = trim((string)($args["group"] ?? ""));
+			$resolved_group = $this->aiResolveModuleGroup($args["group"] ?? "");
 
-			if ($group !== "" && !BigTreeJSONDB::exists("module-groups", $group)) {
+			if (isset($resolved_group["needs_input"])) {
 
-				return ["error" => "Module group \"{$group}\" does not exist."];
+				return $resolved_group;
 			}
+
+			$group = $resolved_group["id"];
 
 			$class = trim((string)($args["class"] ?? ""));
 
@@ -1511,6 +1523,134 @@
 					. "table, so it has no landing view and entries can't be added to it (including by the "
 					. "assistant). Finish it in Developer → Modules → Module Designer.",
 			];
+		}
+
+		/**
+		 * Resolve a requested module group by id or name.
+		 *
+		 * A group the model named but couldn't identify was a flat "does not exist"
+		 * error with no way forward — there was no path to create one and no decline
+		 * line saying so, so the model rediscovered the wall by failing. Hand back the
+		 * choice instead.
+		 *
+		 * @param mixed $requested
+		 * @return array{id:string,name:string}|array{needs_input:array<string,mixed>}
+		 */
+		private function aiResolveModuleGroup($requested): array {
+			$requested = trim((string)$requested);
+
+			if ($requested === "") {
+
+				return ["id" => "", "name" => ""];
+			}
+
+			$groups = BigTreeJSONDB::getAll("module-groups");
+
+			foreach ($groups as $group) {
+				$id = (string)($group["id"] ?? "");
+				$name = (string)($group["name"] ?? "");
+
+				if ($id === $requested || strcasecmp($name, $requested) === 0) {
+
+					return ["id" => $id, "name" => $name !== "" ? $name : $id];
+				}
+			}
+
+			$options = array_map(function (array $group): array {
+
+				return [
+					"id" => (string)($group["id"] ?? ""),
+					"label" => (string)($group["name"] ?? $group["id"] ?? ""),
+					"description" => "Existing module group",
+				];
+			}, $groups);
+
+			$options[] = [
+				"id" => "",
+				"label" => "No group",
+				"description" => "Leave the module ungrouped in the admin navigation",
+			];
+
+			return ["needs_input" => [
+				"question" => "There's no module group called “{$requested}”. Which group should this module go in? "
+					. "(create_module_group can make a new one.)",
+				"options" => $options,
+			]];
+		}
+
+		/**
+		 * Validate creating a module group. Developer-only, matching the module writes.
+		 *
+		 * @param array<string,mixed> $args
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 */
+		public function aiValidateModuleGroupCreate(array $args, $user): array {
+			if (PermissionService::level($user) < 2) {
+
+				return ["denied" => "Only developers can create module groups."];
+			}
+
+			$name = trim((string)($args["name"] ?? ""));
+
+			if ($name === "") {
+
+				return ["error" => "A module group name is required (e.g. \"Content\")."];
+			}
+
+			foreach (BigTreeJSONDB::getAll("module-groups") as $group) {
+				if (strcasecmp((string)($group["name"] ?? ""), $name) === 0) {
+
+					return ["error" => "A module group called “{$name}” already exists."];
+				}
+			}
+
+			return [
+				"ok" => true,
+				"summary" => "Create a new module group “{$name}”. It starts empty — modules are moved into it with "
+					. "update_module.",
+				"preview" => [
+					"action" => "create_module_group",
+					"name" => $name,
+				],
+				"payload" => ["name" => $name],
+			];
+		}
+
+		/**
+		 * Execute an approved module group creation. Re-checks developer level and
+		 * that the name is still free.
+		 *
+		 * @param array<string,mixed> $payload
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 */
+		public function aiCreateModuleGroup(array $payload, $user): array {
+			if (PermissionService::level($user) < 2) {
+				throw new AuthorizationException("Only developers can create module groups.");
+			}
+
+			$name = trim((string)($payload["name"] ?? ""));
+
+			if ($name === "") {
+
+				return ["mode" => "error", "message" => "That module group can no longer be created."];
+			}
+
+			foreach (BigTreeJSONDB::getAll("module-groups") as $group) {
+				if (strcasecmp((string)($group["name"] ?? ""), $name) === 0) {
+
+					return ["mode" => "error", "message" => "A module group called “{$name}” already exists."];
+				}
+			}
+
+			$id = BigTreeJSONDB::insert("module-groups", [
+				"name" => BigTree::safeEncode($name),
+				"route" => BigTreeCMS::urlify($name),
+				"position" => 0,
+			]);
+
+			return ["mode" => "created", "id" => (string)$id, "name" => $name];
 		}
 
 		/**

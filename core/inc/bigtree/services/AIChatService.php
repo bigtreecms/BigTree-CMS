@@ -53,6 +53,13 @@
 	use BigTree\Services\AI\Tools\UpdateCalloutTool;
 	use BigTree\Services\AI\Tools\CreateModuleTool;
 	use BigTree\Services\AI\Tools\UpdateModuleTool;
+	use BigTree\Services\AI\Tools\GetPageSeoRatingTool;
+	use BigTree\Services\AI\Tools\SavePageRevisionTool;
+	use BigTree\Services\AI\Tools\MergeTagsTool;
+	use BigTree\Services\AI\Tools\RenameTagTool;
+	use BigTree\Services\AI\Tools\CreateRedirectTool;
+	use BigTree\Services\AI\Tools\CreateCalloutGroupTool;
+	use BigTree\Services\AI\Tools\CreateModuleGroupTool;
 	use BigTreeAI;
 	use BigTreeCMS;
 	use SQL;
@@ -473,6 +480,7 @@
 			$registry->register(new GetCalloutTool($callouts));
 			$registry->register(new GetAuditTrailTool(new AuditService()));
 			$registry->register(new GetPageRevisionsTool($pages));
+			$registry->register(new GetPageSeoRatingTool($pages));
 
 			// Two-phase mutating tools.
 			$registry->register(new CreatePageTool($pages, $store));
@@ -482,6 +490,7 @@
 			$registry->register(new UnarchivePageTool($pages, $store));
 			$registry->register(new MovePageTool($pages, $store));
 			$registry->register(new RestorePageRevisionTool($pages, $store));
+			$registry->register(new SavePageRevisionTool($pages, $store));
 			$registry->register(new CreateModuleEntryTool($entries, $store));
 			$registry->register(new UpdateModuleEntryTool($entries, $store));
 			$registry->register(new SetModuleEntryFlagTool($entries, $store));
@@ -490,6 +499,9 @@
 			$registry->register(new RejectPendingChangeTool($pending, $store));
 			$registry->register(new AddTagsTool($tags, $store));
 			$registry->register(new RemoveTagsTool($tags, $store));
+			$registry->register(new MergeTagsTool($tags, $store));
+			$registry->register(new RenameTagTool($tags, $store));
+			$registry->register(new CreateRedirectTool(new FourOhFourService(), $store));
 			$registry->register(new UpdateSettingTool($settings, $store));
 			$registry->register(new CreateUserTool($users, $store));
 			$registry->register(new UpdateUserTool($users, $store));
@@ -499,8 +511,10 @@
 			$registry->register(new UpdateTemplateTool($templates, $store));
 			$registry->register(new CreateCalloutTool($callouts, $store));
 			$registry->register(new UpdateCalloutTool($callouts, $store));
+			$registry->register(new CreateCalloutGroupTool($callouts, $store));
 			$registry->register(new CreateModuleTool($modules, $store));
 			$registry->register(new UpdateModuleTool($modules, $store));
+			$registry->register(new CreateModuleGroupTool($modules, $store));
 
 			// Extension-registered tools (mirror how extensions plug into routes).
 			// Core names always win; each still filters per user and re-checks on
@@ -717,6 +731,9 @@
 				case "restore_page_revision":
 					return (new PageService())->aiRestoreRevision($payload, $user);
 
+				case "save_page_revision":
+					return (new PageService())->aiSaveRevision($payload, $user);
+
 				case "create_module_entry":
 					return (new AutoModuleService())->aiCreateEntry($payload, $user);
 
@@ -741,6 +758,15 @@
 				case "remove_tags":
 					return (new TagService())->aiRemoveTags($payload, $user);
 
+				case "merge_tags":
+					return (new TagService())->aiMergeTags($payload, $user);
+
+				case "rename_tag":
+					return (new TagService())->aiRenameTag($payload, $user);
+
+				case "create_redirect":
+					return (new FourOhFourService())->aiCreateRedirect($payload, $user);
+
 				case "update_setting":
 					return (new SettingService())->aiUpdateSetting($payload, $user);
 
@@ -762,11 +788,17 @@
 				case "update_callout":
 					return (new CalloutService())->aiUpdateCallout($payload, $user);
 
+				case "create_callout_group":
+					return (new CalloutService())->aiCreateCalloutGroup($payload, $user);
+
 				case "create_module":
 					return (new ModuleService())->aiCreateModule($payload, $user);
 
 				case "update_module":
 					return (new ModuleService())->aiUpdateModule($payload, $user);
+
+				case "create_module_group":
+					return (new ModuleService())->aiCreateModuleGroup($payload, $user);
 
 				default:
 
@@ -897,6 +929,11 @@
 				case "restore_page_revision":
 					return self::descriptor("bigtree_pages", "revision-restored", $result["page_id"] ?? "");
 
+				// The live page is untouched — what changed is its revision history, so
+				// the audit row records the snapshot, not an edit to the page.
+				case "save_page_revision":
+					return self::descriptor("bigtree_page_revisions", "created", $result["revision_id"] ?? "");
+
 				case "create_module_entry":
 					return self::descriptor((string)($payload["table"] ?? ""), $pending ? "pending-created" : "created", $result["entry_id"] ?? "");
 
@@ -923,6 +960,17 @@
 				case "remove_tags":
 					return self::descriptor((string)($result["table"] ?? ""), "untagged", $result["entry_id"] ?? "");
 
+				// merge/rename act on the tag vocabulary itself, so they audit against
+				// the surviving tag row rather than against a tagged record.
+				case "merge_tags":
+					return self::descriptor("bigtree_tags", "merged", $result["tag_id"] ?? $payload["into"] ?? "");
+
+				case "rename_tag":
+					return self::descriptor("bigtree_tags", "updated", $result["tag_id"] ?? $payload["tag_id"] ?? "");
+
+				case "create_redirect":
+					return self::descriptor("bigtree_404s", "created", $result["id"] ?? "");
+
 				case "update_setting":
 					return self::descriptor("bigtree_settings", "updated", $result["id"] ?? $payload["id"] ?? "");
 
@@ -944,11 +992,17 @@
 				case "update_callout":
 					return self::descriptor("bigtree_callouts", "updated", $result["id"] ?? $payload["id"] ?? "");
 
+				case "create_callout_group":
+					return self::descriptor("bigtree_callout_groups", "created", $result["id"] ?? "");
+
 				case "create_module":
 					return self::descriptor("bigtree_modules", "created", $result["id"] ?? "");
 
 				case "update_module":
 					return self::descriptor("bigtree_modules", "updated", $result["id"] ?? $payload["id"] ?? "");
+
+				case "create_module_group":
+					return self::descriptor("bigtree_module_groups", "created", $result["id"] ?? "");
 
 				default:
 

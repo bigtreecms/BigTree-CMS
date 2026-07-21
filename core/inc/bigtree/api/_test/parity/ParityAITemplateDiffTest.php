@@ -54,12 +54,13 @@
 		}
 
 		$before = [
-			parity_template_resource("body", "html", true),
+			parity_template_resource("body", "text", true),
 			parity_template_resource("blurb", "text"),
 		];
 
-		// The assistant's field input carries no settings, so "body" keeps its name
-		// and type but silently loses its required rule; "blurb" changes type.
+		// A retype discards the settings configured for the old field type, so "body"
+		// loses its required rule on the way from text to html; "blurb" changes type
+		// without carrying one.
 		$after = [
 			parity_template_resource("body", "html"),
 			parity_template_resource("blurb", "textarea"),

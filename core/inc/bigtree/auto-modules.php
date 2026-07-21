@@ -178,12 +178,30 @@
 			}
 
 			// Run parsers
+			//
+			// A pending item is built from a change's `changes` blob, which carries only
+			// the columns that were actually edited — so a parser on an untouched column
+			// has no value to read. Skip it: the field loop below already renders an
+			// absent column as blank, and that is the honest result. Running the parser
+			// on a null/"" placeholder instead would fabricate data — a date parser
+			// (`date("Y-m-d", strtotime($value))`) turns nothing into 1970-01-01, which
+			// then shows in the admin's draft listing as if it were the entry's date.
 			foreach ($parsers as $key => $parser) {
+				if (!isset($item[$key])) {
+
+					continue;
+				}
+
 				$item[$key] = BigTree::runParser($item,$item[$key],$parser);
 			}
 
-			// Run pop lists
+			// Run pop lists — same reasoning: an absent column has no id to look up.
 			foreach ($poplists as $key => $pop) {
+				if (!isset($item[$key])) {
+
+					continue;
+				}
+
 				$f = SQL::fetch("SELECT `".$pop["description"]."` FROM `".$pop["table"]."` WHERE id = ?", $item[$key]);
 
 				if (is_array($f)) {

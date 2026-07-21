@@ -41,6 +41,7 @@
 		 *
 		 * @param array<string,mixed> $validation One of:
 		 *   ["denied" => string] | ["error" => string] |
+		 *   ["needs_input" => ["question" => string, "options" => list<array>]] |
 		 *   ["ok" => true, "summary" => string, "preview" => array, "payload" => array]
 		 */
 		protected function stageFromValidation(array $validation, AIToolContext $context, string $tool): AIToolResult {
@@ -70,6 +71,17 @@
 							"description" => "Table: " . (string)$form["table"],
 						];
 					}, is_array($validation["forms"] ?? null) ? $validation["forms"] : [])
+				);
+			}
+
+			// The general form of the same idea: a backend that can't proceed without a
+			// choice hands back the question and its options rather than guessing or
+			// failing with a wall the model has to rediscover ("group does not exist").
+			if (is_array($validation["needs_input"] ?? null)) {
+
+				return AIToolResult::needsInput(
+					(string)($validation["needs_input"]["question"] ?? "I need a bit more information."),
+					is_array($validation["needs_input"]["options"] ?? null) ? $validation["needs_input"]["options"] : []
 				);
 			}
 

@@ -238,6 +238,173 @@
 		}
 	}
 
+	/**
+	 * Mark one News form column required for the duration of a test, returning a
+	 * closure that puts the module definition back exactly as it was.
+	 */
+	function parity_require_news_column(string $column): callable {
+		$module_id = parity_news_module_id();
+		$original = BigTreeJSONDB::get("modules", $module_id);
+		$patched = $original;
+
+		foreach ($patched["forms"] as $form_key => $form) {
+			foreach ($form["fields"] as $field_key => $field) {
+				if ((string)($field["column"] ?? "") === $column) {
+					$patched["forms"][$form_key]["fields"][$field_key]["settings"]["required"] = "on";
+				}
+			}
+		}
+
+		BigTreeJSONDB::update("modules", $module_id, $patched);
+
+		return function () use ($module_id, $original): void {
+			BigTreeJSONDB::update("modules", $module_id, $original);
+		};
+	}
+
+	/**
+	 * A2: update_module_entry could blank a required column.
+	 *
+	 * aiValidateEntryCreate gated on required fields; the update path ran no such
+	 * check, so setting a required column to "" sifted cleanly, staged, and — for a
+	 * publisher — published live.
+	 */
+	function test_parity_ai_entry_update_refuses_to_blank_a_required_column() {
+		if (!parity_ai_processors_ready()) {
+			return;
+		}
+
+		$svc = new AutoModuleService();
+		$dev_id = parity_seed_user(["level" => 2]);
+		$dev = (object)["id" => $dev_id, "level" => 2, "permissions" => []];
+		$entry_id = 0;
+		$restore = null;
+
+		try {
+			$created = parity_ai_create_entry($svc, $dev, ["title" => "zz Blankable", "blurb" => "Present"]);
+			$entry_id = (int)$created["id"];
+			T::ok($entry_id > 0, "live entry created");
+
+			$restore = parity_require_news_column("blurb");
+
+			$blanking = $svc->aiValidateEntryUpdate([
+				"module_id" => parity_news_module_id(),
+				"entry_id" => (string)$entry_id,
+				"data" => ["blurb" => ""],
+			], $dev);
+
+			T::ok(isset($blanking["error"]), "blanking a required column is refused at staging");
+			T::ok(strpos((string)$blanking["error"], "Blurb") !== false, "the refusal names the field");
+
+			// An unrelated edit to the same entry is still allowed.
+			$unrelated = $svc->aiValidateEntryUpdate([
+				"module_id" => parity_news_module_id(),
+				"entry_id" => (string)$entry_id,
+				"data" => ["title" => "zz Blankable Renamed"],
+			], $dev);
+
+			T::ok(!empty($unrelated["ok"]), "an edit that leaves the required column alone still validates");
+		} finally {
+			if ($restore !== null) {
+				$restore();
+			}
+
+			parity_delete_news_entries($entry_id);
+			parity_delete_users($dev_id);
+		}
+	}
+
+	/**
+	 * The gate runs again at approval, against the form as it stands then: a column
+	 * made required during the proposal's 24h life would otherwise be blanked by
+	 * approving a proposal that was legitimate when it was staged.
+	 */
+	function test_parity_ai_entry_update_re_gates_required_columns_at_approval() {
+		if (!parity_ai_processors_ready()) {
+			return;
+		}
+
+		$svc = new AutoModuleService();
+		$dev_id = parity_seed_user(["level" => 2]);
+		$dev = (object)["id" => $dev_id, "level" => 2, "permissions" => []];
+		$entry_id = 0;
+		$restore = null;
+
+		try {
+			$created = parity_ai_create_entry($svc, $dev, ["title" => "zz Drifting", "blurb" => "Present"]);
+			$entry_id = (int)$created["id"];
+			T::ok($entry_id > 0, "live entry created");
+
+			// Staged while the column is still optional — a legitimate proposal.
+			$validated = $svc->aiValidateEntryUpdate([
+				"module_id" => parity_news_module_id(),
+				"entry_id" => (string)$entry_id,
+				"data" => ["blurb" => ""],
+			], $dev);
+
+			T::ok(!empty($validated["ok"]), "clearing an optional column stages fine");
+
+			// The form changes under the waiting proposal.
+			$restore = parity_require_news_column("blurb");
+
+			$approved = $svc->aiUpdateEntry($validated["payload"], $dev);
+
+			T::equals($approved["mode"], "error", "approval refuses the now-invalid write");
+			T::ok(strpos((string)$approved["message"], "Blurb") !== false, "and names the field");
+
+			$stored = SQL::fetchSingle("SELECT blurb FROM timber_news WHERE id = ?", $entry_id);
+			T::equals($stored, "Present", "the live row was not blanked");
+		} finally {
+			if ($restore !== null) {
+				$restore();
+			}
+
+			parity_delete_news_entries($entry_id);
+			parity_delete_users($dev_id);
+		}
+	}
+
+	/**
+	 * A4: a value the sift can't place used to be dropped with a bare `continue`.
+	 *
+	 * A complex field (an upload, a matrix) and a misspelled column were treated
+	 * identically and silently: the model believed it had set the value, the user
+	 * read the model's confirmation, and the preview quietly omitted it. The two
+	 * cases now say different, actionable things.
+	 */
+	function test_parity_ai_entry_data_names_complex_and_unknown_columns() {
+		if (!parity_ai_processors_ready()) {
+			return;
+		}
+
+		$svc = new AutoModuleService();
+		$dev_id = parity_seed_user(["level" => 2]);
+		$dev = (object)["id" => $dev_id, "level" => 2, "permissions" => []];
+
+		try {
+			// `image` is a real News field the assistant can't author.
+			$complex = $svc->aiValidateEntryCreate([
+				"module_id" => parity_news_module_id(),
+				"data" => ["title" => "zz Complex", "image" => "files/invented.jpg"],
+			], $dev);
+
+			T::ok(isset($complex["error"]), "a complex column is refused, not silently dropped");
+			T::ok(strpos((string)$complex["error"], "image") !== false, "the error names the field");
+			T::ok(strpos((string)$complex["error"], "Settable fields") !== false, "and lists what can be set");
+
+			$typo = $svc->aiValidateEntryCreate([
+				"module_id" => parity_news_module_id(),
+				"data" => ["title" => "zz Typo", "titel" => "Misspelled"],
+			], $dev);
+
+			T::ok(isset($typo["error"]), "an unknown column is refused");
+			T::ok(strpos((string)$typo["error"], "titel") !== false, "the error quotes the misspelled column");
+			T::ok(strpos((string)$typo["error"], "no field") !== false, "and says it doesn't exist");
+		} finally {
+			parity_delete_users($dev_id);
+		}
+	}
+
 	function test_parity_ai_rejects_a_malformed_entry_id() {
 		if (!parity_ai_processors_ready()) {
 			return;
