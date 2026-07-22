@@ -768,7 +768,6 @@
 		 */
 		private function aiTemplateSwitchGaps(string $template, array $page): array {
 			$existing = Json::decode($page["resources"] ?? "");
-			$existing = is_array($existing) ? $existing : [];
 			$schema = $this->aiTemplateResourceSchema($template);
 			$unmet = [];
 
@@ -1345,7 +1344,7 @@
 
 			$title = trim((string)$page["nav_title"]) ?: trim((string)$page["title"]) ?: "page #{$page_id}";
 			$content = Json::decode($page["resources"] ?? "");
-			$seo = self::getPageSEORating($page, is_array($content) ? $content : []);
+			$seo = self::getPageSEORating($page, $content);
 
 			// Null means the template couldn't be resolved — an external link, or a
 			// template that has since been removed. There is nothing to rate, and
@@ -1692,7 +1691,7 @@
 					"SELECT tags_changes FROM bigtree_pending_changes WHERE id = ?",
 					(int)$target["change_id"]
 				));
-				$ids = array_values(array_map("intval", is_array($stored) ? $stored : []));
+				$ids = array_values(array_map("intval", $stored));
 
 				if (!$ids) {
 
@@ -1762,7 +1761,6 @@
 				}
 
 				$changes = Json::decode($change["changes"]);
-				$changes = is_array($changes) ? $changes : [];
 				$open_graph = Json::decode($change["open_graph_changes"] ?? "");
 				$parent = (int)$change["pending_page_parent"];
 
@@ -1771,7 +1769,7 @@
 					"page_id" => 0,
 					"change_id" => $change_id,
 					"parent" => $parent,
-					"page" => $this->aiDraftAsPage($changes, $parent, is_array($open_graph) ? $open_graph : []),
+					"page" => $this->aiDraftAsPage($changes, $parent, $open_graph),
 				];
 			}
 
@@ -1866,7 +1864,6 @@
 			}
 
 			$stored = Json::decode($change["changes"]);
-			$stored = is_array($stored) ? $stored : [];
 
 			// open_graph lives in its own column on the queue row, exactly as it does
 			// when the draft is first written.
@@ -2364,7 +2361,6 @@
 			$current_template = (string)$page["template"];
 			$schema = $this->aiTemplateResourceSchema($template);
 			$existing = Json::decode($page["resources"] ?? "");
-			$existing = is_array($existing) ? $existing : [];
 
 			// Merge, so an edit to one field doesn't blank every other field the page
 			// carries — including the complex ones the assistant can't even see.

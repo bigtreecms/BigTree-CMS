@@ -1184,8 +1184,8 @@
 				$open_graph = Json::decode($change["open_graph_changes"]);
 
 				return [
-					"tags" => is_array($tags) ? array_values(array_map("intval", $tags)) : [],
-					"open_graph" => is_array($open_graph) ? $open_graph : [],
+					"tags" => array_values(array_map("intval", $tags)),
+					"open_graph" => $open_graph,
 				];
 			}
 

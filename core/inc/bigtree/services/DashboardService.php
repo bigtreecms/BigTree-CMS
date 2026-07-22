@@ -141,7 +141,7 @@
 			$alerts = Json::decode(SQL::fetchSingle("SELECT alerts FROM bigtree_users WHERE id = ?", $user_id));
 			$watched = [];
 
-			foreach ((is_array($alerts) ? $alerts : []) as $page_id => $threshold) {
+			foreach ($alerts as $page_id => $threshold) {
 				$threshold = (int)$threshold;
 
 				if ($threshold <= 0 || count($watched) >= $limit) {

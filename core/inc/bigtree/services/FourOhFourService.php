@@ -457,7 +457,7 @@
 		 * moment it's hit.
 		 *
 		 * @param array<string,mixed> $parsed The result of parse404SourceURL for `from`.
-		 * @return array{error?:string,warning:string}
+		 * @return array{error:string}|array{warning:string}
 		 */
 		private function aiCheckRedirectDestination(string $to, array $parsed): array {
 			$is_absolute = preg_match('#^https?://#i', $to) === 1;

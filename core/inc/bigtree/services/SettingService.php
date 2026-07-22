@@ -516,7 +516,7 @@
 
 			if ($type === "checkbox") {
 
-				return ["value" => (!empty($value) && $value !== "false" && $value !== "0") ? "on" : ""];
+				return ["value" => (!empty($value) && $value !== "false") ? "on" : ""];
 			}
 
 			if ($type === "number" || $type === "currency") {

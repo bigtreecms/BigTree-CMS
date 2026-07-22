@@ -359,11 +359,6 @@
 		private function aiChangeDiff(array $row): array {
 			$changes = Json::decode($row["changes"]);
 
-			if (!is_array($changes)) {
-
-				return [];
-			}
-
 			// A NEW change has no live row to compare against.
 			$existing = [];
 
