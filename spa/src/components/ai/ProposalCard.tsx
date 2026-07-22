@@ -167,6 +167,9 @@ const STATUS_META: Record<
 	approved: { icon: CircleCheck, label: "Approved", className: "text-success" },
 	rejected: { icon: CircleSlash, label: "Rejected", className: "text-text-3" },
 	expired: { icon: CircleSlash, label: "Expired", className: "text-warn" },
+	// An approval that ran and refused. Deliberately not a success badge: the
+	// change did not happen, nothing was audited, and the card stays approvable.
+	failed: { icon: TriangleAlert, label: "Not applied", className: "text-warn" },
 };
 
 /** Post-approval one-liner describing what actually happened server-side. */
@@ -215,7 +218,9 @@ export const ProposalCard = ({
 	const navigate = useNavigate();
 	const status = STATUS_META[proposal.status] ?? STATUS_META.pending;
 	const StatusIcon = status.icon;
-	const isPending = proposal.status === "pending";
+	// A failed approval keeps its buttons: the server leaves it claimable so the
+	// user can fix the cause (or just try again) rather than being stranded.
+	const isPending = proposal.status === "pending" || proposal.status === "failed";
 
 	const rows = previewRows(proposal.preview);
 
@@ -287,6 +292,13 @@ export const ProposalCard = ({
 				{proposal.status === "approved" && (
 					<p className="mt-2 text-[11.5px] text-success">
 						{outcomeText(proposal.result)}
+					</p>
+				)}
+
+				{proposal.status === "failed" && (
+					<p className="mt-2 flex items-start gap-1.5 text-[11.5px] text-warn">
+						<TriangleAlert className="mt-px shrink-0" size={13} />
+						<span>{outcomeText(proposal.result)}</span>
 					</p>
 				)}
 

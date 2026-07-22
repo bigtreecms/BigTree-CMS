@@ -111,7 +111,7 @@
 			Entity::assertExists("bigtree_tags", $into, "Target tag");
 
 			foreach ($from as $tag_id) {
-				SQL::query("UPDATE bigtree_tags_rel SET tag = ? WHERE tag = ?", $into, $tag_id);
+				$this->retargetTagRelations($tag_id, $into);
 				SQL::delete("bigtree_tags", $tag_id);
 			}
 
@@ -150,6 +150,28 @@
 			}
 
 			return $route;
+		}
+
+		/**
+		 * Point every relation on $from at $into, dropping the ones that would
+		 * collide.
+		 *
+		 * A blind `UPDATE bigtree_tags_rel SET tag = ?` gives any record that carried
+		 * *both* tags two identical relation rows: there is no unique key on
+		 * (table, entry, tag), nothing that reads the relations uses DISTINCT, so the
+		 * tag renders twice on the front end, and recomputeUsage counts rows rather
+		 * than records so the usage count is permanently wrong. aiAddTags has always
+		 * checked for the collision; merging has to as well.
+		 */
+		private function retargetTagRelations(int $from, int $into): void {
+			SQL::query(
+				"DELETE r FROM bigtree_tags_rel r
+				 JOIN bigtree_tags_rel keep ON keep.`table` = r.`table` AND keep.entry = r.entry AND keep.tag = ?
+				 WHERE r.tag = ?",
+				$into,
+				$from
+			);
+			SQL::query("UPDATE bigtree_tags_rel SET tag = ? WHERE tag = ?", $into, $from);
 		}
 
 		private function recomputeUsage($id) {
@@ -270,11 +292,13 @@
 			}
 
 			$label = $target["label"];
+			$can_publish = !empty($target["can_publish"]);
 
 			return [
 				"ok" => true,
 				"summary" => "Add " . count($names) . " tag(s) to “{$label}”"
-					. ($new ? " (" . count($new) . " new)." : "."),
+					. ($new ? " (" . count($new) . " new)." : ".")
+					. $this->aiTagModeNote($can_publish, $target["kind"]),
 				"preview" => [
 					"action" => "add_tags",
 					"target" => $target["kind"],
@@ -285,6 +309,7 @@
 					"tags" => $names,
 					"new_tags" => $new,
 					"existing_tags" => $existing,
+					"mode" => $can_publish ? "published" : "pending",
 				],
 				"payload" => [
 					"table" => $target["table"],
@@ -295,6 +320,7 @@
 					"tags" => $names,
 					"creates_tags" => $new,
 				],
+				"lock" => $this->aiTagLock($target),
 			];
 		}
 
@@ -321,6 +347,27 @@
 						throw new AuthorizationException("Only administrators can create new tags");
 					}
 				}
+			}
+
+			// A non-publisher's tag change is queued, exactly as their edit to any
+			// other field of the same page or entry would be.
+			if (empty($target["can_publish"])) {
+				$ids = $this->aiCurrentTagIds($target);
+				$added = [];
+
+				foreach ($names as $name) {
+					$tag_id = $this->aiFindOrCreateTag($name);
+
+					if (in_array($tag_id, $ids, true)) {
+
+						continue;
+					}
+
+					$ids[] = $tag_id;
+					$added[] = $name;
+				}
+
+				return $this->aiQueueTagChange($target, $ids, $user, "added", $added);
 			}
 
 			$added = [];
@@ -410,6 +457,7 @@
 			}
 
 			$label = $target["label"];
+			$can_publish = !empty($target["can_publish"]);
 			$note = $not_attached
 				? " (" . implode(", ", $not_attached) . " " . (count($not_attached) === 1 ? "isn't" : "aren't")
 					. " on it and will be ignored)"
@@ -418,7 +466,8 @@
 			return [
 				"ok" => true,
 				"summary" => "Remove " . count($attached) . " tag(s) from “{$label}”" . $note
-					. ". The tags themselves are not deleted.",
+					. ". The tags themselves are not deleted."
+					. $this->aiTagModeNote($can_publish, $target["kind"]),
 				"preview" => [
 					"action" => "remove_tags",
 					"target" => $target["kind"],
@@ -428,6 +477,7 @@
 					"entry_id" => $target["entry_id"],
 					"tags" => $attached,
 					"ignored" => $not_attached,
+					"mode" => $can_publish ? "published" : "pending",
 				],
 				"payload" => [
 					"table" => $target["table"],
@@ -437,6 +487,7 @@
 					"page_id" => $target["kind"] === "page" ? $target["entry_id"] : 0,
 					"tags" => $attached,
 				],
+				"lock" => $this->aiTagLock($target),
 			];
 		}
 
@@ -455,9 +506,33 @@
 				return $target;
 			}
 
+			$names = $this->aiNormalizeTagNames($payload["tags"] ?? []);
+
+			// A non-publisher's tag change is queued, exactly as their edit to any
+			// other field of the same page or entry would be.
+			if (empty($target["can_publish"])) {
+				$ids = $this->aiCurrentTagIds($target);
+				$removed = [];
+
+				foreach ($names as $name) {
+					$tag_id = (int)SQL::fetchSingle("SELECT id FROM bigtree_tags WHERE tag = ?", $name);
+					$position = $tag_id ? array_search($tag_id, $ids, true) : false;
+
+					if ($position === false) {
+
+						continue;
+					}
+
+					unset($ids[$position]);
+					$removed[] = $name;
+				}
+
+				return $this->aiQueueTagChange($target, array_values($ids), $user, "removed", $removed);
+			}
+
 			$removed = [];
 
-			foreach ($this->aiNormalizeTagNames($payload["tags"] ?? []) as $name) {
+			foreach ($names as $name) {
 				$tag_id = (int)SQL::fetchSingle("SELECT id FROM bigtree_tags WHERE tag = ?", $name);
 
 				if (!$tag_id) {
@@ -482,6 +557,71 @@
 				"entry_id" => $target["entry_id"],
 				"page_id" => $target["table"] === "bigtree_pages" ? $target["entry_id"] : null,
 				"removed" => $removed,
+			];
+		}
+
+		/**
+		 * The "…once you approve" / "…for a publisher to review" tail every other
+		 * content proposal's summary carries, for a tag write.
+		 */
+		private function aiTagModeNote(bool $can_publish, string $kind): string {
+			if ($can_publish) {
+
+				return " The change goes live once you approve.";
+			}
+
+			return " It will be queued as a pending change on this {$kind} for a publisher to review — the live "
+				. ($kind === "page" ? "page" : "entry") . "'s tags are untouched until then.";
+		}
+
+		/**
+		 * The target's effective tag ids right now: what an outstanding pending change
+		 * stages if it stages any, otherwise what is live. A queued tag write merges
+		 * into this set rather than replacing it, because the pending change carries
+		 * the *complete* resulting set (that is what the publish path replays).
+		 *
+		 * @param array<string,mixed> $target An aiResolveTagTarget result.
+		 * @return list<int>
+		 */
+		private function aiCurrentTagIds(array $target): array {
+			if ($target["table"] === "bigtree_pages") {
+
+				return (new PageService())->aiPageTagIds((int)$target["entry_id"]);
+			}
+
+			return (new AutoModuleService())->aiEntryTagIds((string)$target["table"], (int)$target["entry_id"]);
+		}
+
+		/**
+		 * Stage a resulting tag set as a pending change on the page or entry it
+		 * belongs to, and shape the same result the live path returns.
+		 *
+		 * @param array<string,mixed> $target An aiResolveTagTarget result.
+		 * @param list<int> $tag_ids The complete resulting tag set.
+		 * @param list<string> $names The tags this proposal actually moved.
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 */
+		private function aiQueueTagChange(array $target, array $tag_ids, $user, string $verb, array $names): array {
+			if ($target["table"] === "bigtree_pages") {
+				$change_id = (new PageService())->aiQueuePageTagChange((int)$target["entry_id"], $tag_ids, $user);
+			} else {
+				$change_id = (new AutoModuleService())->aiQueueEntryTagChange(
+					(string)$target["module_id"],
+					(string)$target["table"],
+					(int)$target["entry_id"],
+					$tag_ids,
+					$user
+				);
+			}
+
+			return [
+				"mode" => "pending",
+				"table" => $target["table"],
+				"entry_id" => $target["entry_id"],
+				"page_id" => $target["table"] === "bigtree_pages" ? $target["entry_id"] : null,
+				"pending_change_id" => $change_id,
+				$verb => $names,
 			];
 		}
 
@@ -526,6 +666,9 @@
 					"table" => "bigtree_pages",
 					"entry_id" => $page_id,
 					"module_id" => "",
+					// Tags are live, public-facing content, so a non-publisher's tag
+					// change has to go through the queue like every other content write.
+					"can_publish" => PermissionService::userHasPageAccess($user, $page_id, "p"),
 					"label" => trim((string)$page["nav_title"]) ?: trim((string)$page["title"]) ?: "page #{$page_id}",
 				];
 			}
@@ -583,8 +726,44 @@
 				"entry_id" => $entry_id,
 				"module_id" => (string)$module["id"],
 				"form_id" => (string)($resolved["form"]["id"] ?? ""),
+				// Per-row, not best-of-any-group — same rule the entry write seams use.
+				"can_publish" => PermissionService::isPublisher(
+					$user,
+					PermissionService::userEntryLevel($user, $module, $row)
+				),
 				"label" => $label !== "" ? $label : "entry #{$entry_id}",
 			];
+		}
+
+		/**
+		 * The concurrent-edit lock descriptor for a tag target. Tags are edited from
+		 * the page and entry editors' own chips, so a tag write lands in the same
+		 * form someone may have open — the editor's next save rewrites the whole set.
+		 *
+		 * @param array<string,mixed> $target An aiResolveTagTarget result.
+		 * @return array<string,mixed>
+		 */
+		private function aiTagLock(array $target): array {
+			$entry_id = (string)($target["entry_id"] ?? "");
+
+			if ($entry_id === "" || $entry_id === "0") {
+
+				return [];
+			}
+
+			if (($target["kind"] ?? "") === "page") {
+
+				return ["table" => "bigtree_pages", "id" => $entry_id];
+			}
+
+			$module_id = (string)($target["module_id"] ?? "");
+
+			if ($module_id === "") {
+
+				return [];
+			}
+
+			return ["table" => "module:{$module_id}", "id" => $entry_id];
 		}
 
 		/**
@@ -836,7 +1015,7 @@
 					continue;
 				}
 
-				SQL::query("UPDATE bigtree_tags_rel SET tag = ? WHERE tag = ?", $into, $tag_id);
+				$this->retargetTagRelations($tag_id, $into);
 				SQL::delete("bigtree_tags", $tag_id);
 				$merged[] = (string)$row["tag"];
 			}
@@ -891,6 +1070,12 @@
 				return ["error" => "“{$name}” is already this tag's name — nothing to change."];
 			}
 
+			// routes/tags.php declares tag as max:255; nothing on the AI path checked it.
+			if (mb_strlen($name) > 255) {
+
+				return ["error" => "A tag name holds at most 255 characters (this one is " . mb_strlen($name) . ")."];
+			}
+
 			$collision = SQL::fetch("SELECT * FROM bigtree_tags WHERE tag = ? AND id != ?", $name, (int)$tag["id"]);
 
 			if ($collision) {
@@ -916,6 +1101,12 @@
 					"tag_id" => (int)$tag["id"],
 					"name" => $name,
 				],
+				"fingerprint" => [
+					"type" => "row",
+					"table" => "bigtree_tags",
+					"id" => (int)$tag["id"],
+					"columns" => ["tag", "route"],
+				],
 			];
 		}
 
@@ -939,6 +1130,12 @@
 			if (!$tag || $name === "") {
 
 				return ["mode" => "error", "message" => "That tag no longer exists."];
+			}
+
+			// Re-checked at approval like every other staged value.
+			if (mb_strlen($name) > 255) {
+
+				return ["mode" => "error", "message" => "A tag name holds at most 255 characters."];
 			}
 
 			if (SQL::fetch("SELECT id FROM bigtree_tags WHERE tag = ? AND id != ?", $name, $tag_id)) {

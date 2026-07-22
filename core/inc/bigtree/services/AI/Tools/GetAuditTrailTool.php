@@ -13,7 +13,8 @@
 	 * which is exactly the question an AI-assisted workflow needs answered chat-side.
 	 * Pass via="ai_assistant" for changes approved through a proposal card.
 	 *
-	 * Administrator-only: the trail spans every table on the site, so a lower-level
+	 * Developer-only (matching `GET /audit`): the trail spans every table on the
+	 * site, so a lower-level
 	 * read would leak the existence and edit history of content the caller can't see.
 	 */
 	class GetAuditTrailTool extends AbstractReadTool {
@@ -31,7 +32,9 @@
 
 		public function isAvailable($user): bool {
 
-			return CapabilitySummary::level($user) >= 1;
+			// Matches `GET /audit`'s declared level (routes/audit.php), not the
+			// administrator gate this used to carry — see AuditService::aiAuditTrail.
+			return CapabilitySummary::level($user) >= 2;
 		}
 
 		public function definition($user): array {
@@ -40,7 +43,7 @@
 				$this->name(),
 				"Look up recent changes recorded in the audit trail: what was changed, by whom, when, and "
 					. "whether it came through the assistant. Use via=\"ai_assistant\" to list only changes the "
-					. "user approved from a proposal card. Administrator only.",
+					. "user approved from a proposal card. Developer only.",
 				[
 					"type" => "object",
 					"properties" => [

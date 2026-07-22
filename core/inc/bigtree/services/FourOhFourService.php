@@ -348,7 +348,11 @@
 			}
 
 			if ($existing) {
-				sqlquery("UPDATE bigtree_404s SET `redirect_url` = '$to' WHERE id = '".$existing["id"]."'");
+				// `ignored` is cleared in the same write REST's setRedirect does it in:
+				// a row that redirects at request time but is still flagged ignored is
+				// bucketed as type "ignored" by present() and never appears in the 301
+				// list, so the redirect exists and is invisible to whoever made it.
+				sqlquery("UPDATE bigtree_404s SET `redirect_url` = '$to', `ignored` = '' WHERE id = '".$existing["id"]."'");
 				if ($actor_id !== null) { AuditService::write("bigtree_404s", $existing["id"], "updated", $actor_id); }
 			} else {
 				if (!is_null($site_key)) {
@@ -393,7 +397,14 @@
 					. "are required."];
 			}
 
-			$site_key = trim((string)($args["site_key"] ?? "")) ?: null;
+			$resolved_key = $this->aiResolveSiteKey($from, trim((string)($args["site_key"] ?? "")));
+
+			if (isset($resolved_key["needs_input"])) {
+
+				return $resolved_key;
+			}
+
+			$site_key = $resolved_key["site_key"];
 			$parsed = self::parse404SourceURL($from, $site_key);
 			$source = (string)$parsed["url"];
 
@@ -445,6 +456,67 @@
 					"site_key" => $site_key,
 				],
 			];
+		}
+
+		/**
+		 * Resolve which site a redirect belongs to.
+		 *
+		 * On a multi-site install `site_key` is not optional in practice: the front-end
+		 * 404 handler requires an exact match when BIGTREE_SITE_KEY is defined
+		 * (cms.php), so a row stored with site_key NULL never fires — and the assistant
+		 * reported "created" regardless. parse404SourceURL only auto-detects the key
+		 * when it is handed a non-null one, so a full URL is matched against the
+		 * configured domains here; anything else asks, because the model has no other
+		 * way to discover the keys (`pages/sites` has no tool).
+		 *
+		 * A single-site install always resolves to null and never asks.
+		 *
+		 * @return array{site_key?:string|null,needs_input?:array<string,mixed>}
+		 */
+		private function aiResolveSiteKey(string $from, string $requested): array {
+			global $bigtree;
+
+			$sites = is_array($bigtree["config"]["sites"] ?? null) ? $bigtree["config"]["sites"] : [];
+
+			if (!$sites) {
+
+				return ["site_key" => null];
+			}
+
+			if ($requested !== "" && array_key_exists($requested, $sites)) {
+
+				return ["site_key" => $requested];
+			}
+
+			if ($requested === "") {
+				$host = parse_url($from, PHP_URL_HOST);
+
+				if ($host) {
+					foreach ($sites as $key => $site) {
+						if (parse_url((string)($site["domain"] ?? ""), PHP_URL_HOST) === $host) {
+
+							return ["site_key" => (string)$key];
+						}
+					}
+				}
+			}
+
+			$options = [];
+
+			foreach ($sites as $key => $site) {
+				$options[] = [
+					"id" => (string)$key,
+					"label" => (string)($site["name"] ?? $key),
+					"description" => (string)($site["domain"] ?? ""),
+				];
+			}
+
+			return ["needs_input" => [
+				"question" => $requested !== ""
+					? "\"{$requested}\" isn't one of this install's sites. Which site is this redirect for?"
+					: "This install serves more than one site. Which one is this redirect for?",
+				"options" => $options,
+			]];
 		}
 
 		/**
@@ -527,6 +599,18 @@
 
 				return ["mode" => "error", "message" => "That redirect can no longer be created."];
 			}
+
+			// The configured sites can change during the proposal's life, and a key
+			// that no longer names one would write a row the front end never matches.
+			$resolved_key = $this->aiResolveSiteKey($from, (string)$site_key);
+
+			if (isset($resolved_key["needs_input"])) {
+
+				return ["mode" => "error", "message" => "This install's sites have changed since this was proposed — "
+					. "ask again."];
+			}
+
+			$site_key = $resolved_key["site_key"];
 
 			// Re-check shape and self-reference at approval — the payload is stored
 			// between staging and approval and is never trusted on the way back out.

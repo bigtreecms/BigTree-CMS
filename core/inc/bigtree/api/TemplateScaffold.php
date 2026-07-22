@@ -5,7 +5,9 @@
 	 * Writes the front-end stub file a newly created template or callout renders
 	 * from.
 	 *
-	 * Templates render from `templates/basic|routed/{id}.php` and callouts from
+	 * A basic template renders from `templates/basic/{id}.php`; a *routed* template
+	 * is a directory, `templates/routed/{id}/default.php`, with a sibling file per
+	 * route segment (this is what legacy's developer UI wrote). Callouts render from
 	 * `templates/callouts/{id}.php`. Legacy BigTree's developer UI scaffolded these
 	 * on create; the REST/SPA rewrite dropped that, so a template could be created
 	 * and immediately assigned to pages that then rendered *nothing* — with no error
@@ -25,9 +27,24 @@
 		 * @throws \RuntimeException when the target directory or file isn't writable
 		 */
 		public static function template(string $id, array $resources, bool $routed): string {
-			$relative = "templates/" . ($routed ? "routed" : "basic") . "/" . self::safeId($id) . ".php";
+			return self::write(self::templatePath($id, $routed), self::templateBody($resources, $routed));
+		}
 
-			return self::write($relative, self::templateBody($resources, $routed));
+		/**
+		 * Where a template's stub belongs.
+		 *
+		 * A routed template gets `routed/{id}/default.php`, not `routed/{id}.php`.
+		 * The flat form does render (through the fallback in utils.php), but it makes
+		 * the stub's own comment — "add sibling files in this directory to handle
+		 * sub-routes" — false, and following it collides with the routed-template
+		 * namespace: `routed/{id}/` is exactly where those siblings go.
+		 */
+		public static function templatePath(string $id, bool $routed): string {
+			$safe = self::safeId($id);
+
+			return $routed
+				? "templates/routed/{$safe}/default.php"
+				: "templates/basic/{$safe}.php";
 		}
 
 		/**
@@ -49,7 +66,7 @@
 		 */
 		public static function templateIsWritable(string $id, bool $routed): bool {
 
-			return self::isWritable("templates/" . ($routed ? "routed" : "basic") . "/" . self::safeId($id) . ".php");
+			return self::isWritable(self::templatePath($id, $routed));
 		}
 
 		/** Whether a stub can be written for a callout. */
@@ -80,7 +97,15 @@
 
 			$directory = dirname($path);
 
-			return is_dir($directory) && is_writable($directory);
+			// A routed template's directory doesn't exist yet on first creation; what
+			// matters then is whether its parent can be written into.
+			if (!is_dir($directory)) {
+				$parent = dirname($directory);
+
+				return is_dir($parent) && is_writable($parent);
+			}
+
+			return is_writable($directory);
 		}
 
 		/**
@@ -123,7 +148,7 @@
 				// A routed template's file is its default (no-subpage) view; the
 				// developer adds sibling files for each route segment.
 				$out .= "<?php\n\t// Routed template — this file handles the template's root URL.\n"
-					. "\t// Add sibling files in this directory to handle sub-routes.\n?>\n";
+					. "\t// Add sibling files in this directory (one per route segment) to handle sub-routes.\n?>\n";
 			}
 
 			if (!$resources) {

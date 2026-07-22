@@ -337,6 +337,22 @@
 				throw new BadRequestException("Field `$column` is not a list field", "invalid_field_type");
 			}
 
+			return Response::ok(["options" => $this->resolveListOptions($field, $column)]);
+		}
+
+		/**
+		 * The option set behind a `list` field, whatever populates it (static list,
+		 * database table, state or country).
+		 *
+		 * Request-free so the AI schema seams can publish the same options the admin
+		 * offers, and so the entry sift can reject a value that isn't one of them —
+		 * a `db`-populated list stores a *foreign row id*, so a model writing
+		 * "Portland" sifted clean and then resolved to blank in every view.
+		 *
+		 * @param array<string,mixed> $field  A form field definition.
+		 * @return list<array{value:string,label:string}>
+		 */
+		public function resolveListOptions(array $field, string $column): array {
 			$settings = is_array($field["settings"] ?? null) ? $field["settings"] : [];
 			$list_type = (string)($settings["list_type"] ?? "static");
 			$options = [];
@@ -364,7 +380,7 @@
 				}
 			}
 
-			return Response::ok(["options" => $options]);
+			return $options;
 		}
 
 		/** Run the validated SELECT behind a db-populated list. */

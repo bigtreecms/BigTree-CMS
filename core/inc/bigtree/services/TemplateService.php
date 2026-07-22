@@ -188,14 +188,24 @@
 				return ["denied" => "Only developers can create templates."];
 			}
 
-			$id = trim((string)($args["id"] ?? ""));
+			$raw_id = trim((string)($args["id"] ?? ""));
 
-			if ($id === "") {
+			if ($raw_id === "") {
 
 				return ["error" => "A template id is required (a short lowercase identifier, e.g. \"landing-page\")."];
 			}
 
-			$id = BigTreeCMS::urlify($id);
+			// Checked *after* urlify, not before: urlify returns "" for input with no
+			// slug-able characters, so the emptiness check on the raw string let a
+			// nonsense id stage with a nonsense summary and then die at approval with
+			// "That template id is no longer available."
+			$id = BigTreeCMS::urlify($raw_id);
+
+			if ($id === "") {
+
+				return ["error" => "\"{$raw_id}\" doesn't contain any characters usable in a template id. Use a short "
+					. "identifier made of letters, numbers or hyphens (e.g. \"landing-page\")."];
+			}
 
 			if (BigTreeJSONDB::exists("templates", $id)) {
 
@@ -215,7 +225,8 @@
 					. "\"{$level}\" would make the template unusable by everyone."];
 			}
 			$fields = $this->aiCleanResourceFields($args["fields"] ?? []);
-			$type_error = $this->aiInvalidFieldTypeError($fields);
+			$type_error = $this->aiInvalidFieldTypeError($fields)
+				?? Resources::aiUnconfigurableFieldError($args["fields"] ?? [], [], "template");
 
 			if ($type_error !== null) {
 
@@ -229,7 +240,10 @@
 					. "so the template's render file can't be created. Fix the directory permissions and try again."];
 			}
 
-			$stub = "templates/" . ($routed ? "routed" : "basic") . "/{$id}.php";
+			// Asked of the scaffold rather than rebuilt here, so the path on the card
+			// is exactly the path that will be written (a routed template's stub lives
+			// at routed/{id}/default.php).
+			$stub = TemplateScaffold::templatePath($id, $routed);
 			$payload = [
 				"id" => $id,
 				"name" => $name,
@@ -281,11 +295,23 @@
 				return ["mode" => "error", "message" => "A template's level must be 0, 1 or 2."];
 			}
 
+			// An extension registering (or un-registering) a field type inside the
+			// proposal's 24h TTL can change this verdict, so it is re-asked here like
+			// every other staged value.
+			$resources = is_array($payload["resources"] ?? null) ? $payload["resources"] : [];
+			$type_error = $this->aiInvalidFieldTypeError($resources)
+				?? Resources::aiUnconfigurableFieldError($resources, [], "template");
+
+			if ($type_error !== null) {
+
+				return ["mode" => "error", "message" => $type_error];
+			}
+
 			$insert = [
 				"id" => $id,
 				"name" => BigTree::safeEncode((string)($payload["name"] ?? $id)),
 				"module" => "",
-				"resources" => Resources::clean(is_array($payload["resources"] ?? null) ? $payload["resources"] : []),
+				"resources" => Resources::clean($resources),
 				"level" => $level,
 				"routed" => Flag::checkbox(!empty($payload["routed"])),
 				"hooks" => [],
@@ -370,7 +396,8 @@
 			if (array_key_exists("fields", $args)) {
 				$before = is_array($existing["resources"] ?? null) ? $existing["resources"] : [];
 				$fields = $this->aiCleanResourceFields($args["fields"], $before);
-				$type_error = $this->aiInvalidFieldTypeError($fields);
+				$type_error = $this->aiInvalidFieldTypeError($fields)
+					?? Resources::aiUnconfigurableFieldError($args["fields"], $before, "template");
 
 				if ($type_error !== null) {
 
@@ -404,6 +431,9 @@
 					"id" => $id,
 					"changes" => $changes,
 				],
+				// The whole record: an edit to the field list staged against one
+				// definition must not be applied to a different one.
+				"fingerprint" => ["type" => "json_record", "store" => "templates", "id" => $id],
 			];
 		}
 
@@ -554,12 +584,31 @@
 			// may have been edited in the admin during the proposal's TTL, and those
 			// settings have to survive the approval too.
 			if (array_key_exists("fields", $changes)) {
-				$next["resources"] = $this->aiCleanResourceFields(
-					$changes["fields"],
-					is_array($existing["resources"] ?? null) ? $existing["resources"] : []
-				);
+				$before = is_array($existing["resources"] ?? null) ? $existing["resources"] : [];
+				$merged = $this->aiCleanResourceFields($changes["fields"], $before);
+
+				// Only the staging pass used to check the types, so an extension
+				// uninstalled inside the TTL wrote its now-unknown type verbatim.
+				$type_error = $this->aiInvalidFieldTypeError($merged)
+					?? Resources::aiUnconfigurableFieldError($changes["fields"], $before, "template");
+
+				if ($type_error !== null) {
+
+					return ["mode" => "error", "message" => $type_error];
+				}
+
+				$next["resources"] = $merged;
 			} elseif (array_key_exists("resources", $changes)) {
-				$next["resources"] = Resources::clean(is_array($changes["resources"]) ? $changes["resources"] : []);
+				$resources = is_array($changes["resources"]) ? $changes["resources"] : [];
+				$type_error = $this->aiInvalidFieldTypeError($resources)
+					?? Resources::aiUnconfigurableFieldError($resources, [], "template");
+
+				if ($type_error !== null) {
+
+					return ["mode" => "error", "message" => $type_error];
+				}
+
+				$next["resources"] = Resources::clean($resources);
 			}
 
 			BigTreeJSONDB::update("templates", $id, $next);

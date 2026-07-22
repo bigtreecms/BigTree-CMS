@@ -19,6 +19,16 @@
 		public function aiGetCallout(string $callout_id, $user): array;
 
 		/**
+		 * Every callout and callout group, so the model can name a real one before
+		 * calling get_callout / update_callout, or a real group before create_callout.
+		 * Returns denied | ["callouts" => [...], "groups" => [...]].
+		 *
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 */
+		public function aiListCallouts($user): array;
+
+		/**
 		 * Validate a proposed callout creation without writing: developer level and id
 		 * availability. Returns denied | error | ok+summary+preview+payload.
 		 *

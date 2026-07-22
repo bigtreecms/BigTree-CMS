@@ -117,6 +117,13 @@
 					"the relevant Developer screen — the assistant can create and edit these, but not reorder them",
 				"Editing a module's tables, forms, views or actions" =>
 					"Developer → Modules → Module Designer",
+				// The line above is about *editing* a report's definition and says
+				// nothing about running one, so "export the events module to CSV" hit
+				// no tool and no wall — and the model improvised a five-row
+				// search_module_entries sweep and presented it as the report.
+				"Running or exporting a module's reports" =>
+					"the module's Reports action in the admin — the assistant can list entries with "
+						. "list_module_entries, but cannot run or export a report",
 				// create_module makes a bare record; the table/columns/forms/views are
 				// DDL with heavy shape-guessing, which every prior audit declined.
 				"Creating a module's database table, forms and views (scaffolding)" =>
@@ -124,8 +131,20 @@
 						. "cannot build its table or screens",
 				"Managing a module's embedded forms" => "Developer → Modules → Module Designer",
 				"Changing a module's route" => "Developer → Modules",
+				// aiGetTemplate returns both, and POST /templates accepts both, but
+				// aiCreateTemplate hardcodes them — read-only for values writable
+				// elsewhere, with nothing saying so.
+				"Binding a template to a module, or configuring its publish hooks" =>
+					"Developer → Templates — the assistant can create and edit a template's fields, but not its "
+						. "module binding or hooks",
 				"Installing, updating or removing extensions" => "Developer → Extensions",
-				"Managing content locks" => "the lock banner on the item being edited",
+				// The assistant can't take, hold or release a lock — but it does read
+				// them, and says so on the proposal when someone else is holding one.
+				// The old line ("the lock banner on the item being edited") read as if
+				// locks were simply none of its business, which stopped being true.
+				"Taking over or releasing another user's content lock" =>
+					"the lock banner on the item being edited — the assistant will tell you when someone else has "
+						. "an item open, but approving is what takes it over",
 				"Editing complex fields — uploads, matrices, relationships, callouts on a page" =>
 					"the page or entry editor; the assistant only sets simple text-like fields",
 				// Deleting a page is a guaranteed ask ("delete the old pricing page") and
@@ -143,6 +162,12 @@
 				"Renaming, reordering or deleting module and callout groups" =>
 					"Developer → Modules and Developer → Callouts — the assistant can create a group, but not "
 						. "change one afterwards",
+				// Group *membership* is a different thing from the group record: the
+				// assistant can file a callout in a group at create or update, but
+				// cannot rearrange a group's contents.
+				"Reordering the callouts inside a group, or moving a module between groups" =>
+					"Developer → Callouts and Developer → Modules — the assistant can put a callout in a group "
+						. "with create_callout or update_callout, but not reorder or regroup beyond that",
 				"System maintenance — clearing caches, backups, upgrades, security policy, IP bans" =>
 					"Developer → System",
 				"Configuring integrations — email, geocoding, cloud storage, analytics, payments, media presets, "

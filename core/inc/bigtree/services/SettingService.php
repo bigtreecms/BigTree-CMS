@@ -369,6 +369,15 @@
 					continue;
 				}
 
+				// list() hides system settings unless ?include_system=1 is asked for;
+				// the read tool has no such argument, so it takes list()'s default and
+				// doesn't hand the model the plaintext value of every service endpoint
+				// and feature switch an extension registered.
+				if (!empty($def["system"])) {
+
+					continue;
+				}
+
 				if ($query !== "") {
 					$hay = strtolower(($def["id"] ?? "") . " " . ($def["name"] ?? "") . " " . ($def["description"] ?? ""));
 
@@ -430,6 +439,16 @@
 				return ["denied" => "That setting is locked and cannot be changed via the assistant."];
 			}
 
+			// REST refuses outright on the value-only branch this tool is the analogue
+			// of (see update()'s "System settings cannot be modified"), and the admin UI
+			// won't offer the field either — so the assistant must not be the one
+			// surface that writes it.
+			if (!empty($def["system"])) {
+
+				return ["denied" => "That is a system setting and cannot be changed via the assistant. Change it in "
+					. "Developer → Settings."];
+			}
+
 			if (!array_key_exists("value", $args)) {
 
 				return ["error" => "A new value is required."];
@@ -469,6 +488,11 @@
 					"id" => $id,
 					"value" => $value,
 				],
+				// The definition, not the value: a setting retyped or flagged system
+				// inside the TTL must not take a value staged against the old shape.
+				"fingerprint" => ["type" => "json_record", "store" => "settings", "id" => $id],
+				// The pair SettingEdit's useLock call passes.
+				"lock" => ["table" => "config:settings", "id" => $id],
 			];
 		}
 
@@ -655,7 +679,9 @@
 				return ["mode" => "error", "message" => "That setting is no longer available."];
 			}
 
-			if (!empty($def["encrypted"]) || !empty($def["locked"])) {
+			// A definition can gain any of these flags inside the proposal's 24h TTL,
+			// so they are re-asked here rather than trusted from staging.
+			if (!empty($def["encrypted"]) || !empty($def["locked"]) || !empty($def["system"])) {
 
 				return ["mode" => "error", "message" => "That setting can no longer be changed."];
 			}

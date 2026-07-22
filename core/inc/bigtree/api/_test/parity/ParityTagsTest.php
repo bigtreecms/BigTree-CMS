@@ -175,7 +175,20 @@
 			$usage = (int)SQL::fetchSingle("SELECT usage_count FROM bigtree_tags WHERE id = ?", $ids[0]);
 			$rel_count = (int)SQL::fetchSingle("SELECT COUNT(*) FROM bigtree_tags_rel WHERE tag = ?", $ids[0]);
 			T::equals($usage, $rel_count, "usage_count matches rel rows after merge");
-			T::ok($rel_count >= 2, "survivor has retargeted relations");
+
+			// The fixture gave page0 BOTH tags, so retargeting B→A collides there.
+			// A blind UPDATE left two identical rows on page0 — the tag rendered
+			// twice on the front end and the usage count was permanently one high.
+			// This asserts per-record uniqueness, which is what the comment above
+			// the fixture always described.
+			T::equals($rel_count, 2, "survivor has exactly one relation per record");
+
+			$per_record = (int)SQL::fetchSingle(
+				"SELECT COUNT(*) FROM bigtree_tags_rel WHERE tag = ? AND `table` = 'bigtree_pages' AND entry = ?",
+				$ids[0],
+				(string)$page_ids[0]
+			);
+			T::equals($per_record, 1, "the record that carried both tags has one relation, not two");
 
 			$ids[1] = 0; // already deleted
 		} finally {

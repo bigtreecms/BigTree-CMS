@@ -7,6 +7,7 @@
 	use BigTree\Api\Pagination;
 	use BigTree\Api\Request;
 	use BigTree\Api\Response;
+	use BigTree\Api\Sanitize;
 	use BigTree\Api\Exceptions\AuthorizationException;
 	use BigTree\Api\Exceptions\BadRequestException;
 	use BigTree\Services\AI\Tools\PendingChangeToolBackend;
@@ -358,18 +359,32 @@
 		 */
 		private function aiChangeDiff(array $row): array {
 			$changes = Json::decode($row["changes"]);
+			$table = (string)$row["table"];
+			$is_page = $table === "bigtree_pages";
 
 			// A NEW change has no live row to compare against.
 			$existing = [];
 
-			if ($row["item_id"] !== null && (string)$row["table"] !== "") {
-				$live = SQL::fetch("SELECT * FROM `" . str_replace("`", "", (string)$row["table"]) . "` WHERE id = ?", (int)$row["item_id"]);
+			if ($row["item_id"] !== null && $table !== "") {
+				$live = SQL::fetch("SELECT * FROM `" . str_replace("`", "", $table) . "` WHERE id = ?", (int)$row["item_id"]);
 				$existing = is_array($live) ? $live : [];
 			}
 
 			$out = [];
 
 			foreach ($changes as $column => $value) {
+				// Page tags ride inside `changes` as a raw array of numeric ids, which
+				// tells an approver nothing about what is being published.
+				if ($is_page && $column === "tags") {
+					$out[] = [
+						"column" => "tags",
+						"to" => implode(", ", $this->aiTagNamesFor($value)),
+						"from" => implode(", ", $this->aiLiveTagNames($table, (int)$row["item_id"])),
+					];
+
+					continue;
+				}
+
 				$entry = [
 					"column" => (string)$column,
 					"to" => $this->aiDiffValue($value),
@@ -382,7 +397,88 @@
 				$out[] = $entry;
 			}
 
+			// The other three change columns were decoded by nobody. For a *module
+			// entry* tags and Open Graph live exclusively there, so a draft whose only
+			// change was its tag set read as "0 fields affected" and the approver
+			// published a tag rewrite sight-unseen.
+			$tags_changes = Json::decode($row["tags_changes"] ?? "");
+
+			if (!$is_page && $tags_changes) {
+				$out[] = [
+					"column" => "tags",
+					"to" => implode(", ", $this->aiTagNamesFor($tags_changes)),
+					"from" => implode(", ", $this->aiLiveTagNames($table, (int)$row["item_id"])),
+				];
+			}
+
+			$open_graph = Json::decode($row["open_graph_changes"] ?? "");
+
+			foreach (["title" => "og_title", "description" => "og_description"] as $key => $label) {
+				if (array_key_exists($key, $open_graph)) {
+					$out[] = ["column" => $label, "to" => $this->aiDiffValue($open_graph[$key])];
+				}
+			}
+
+			$mtm = Json::decode($row["mtm_changes"] ?? "");
+
+			foreach ($mtm as $relation) {
+				if (!is_array($relation)) {
+
+					continue;
+				}
+
+				$out[] = [
+					"column" => (string)($relation["table"] ?? "related records"),
+					"to" => count((array)($relation["data"] ?? [])) . " linked record(s)",
+				];
+			}
+
 			return $out;
+		}
+
+		/**
+		 * Resolve a list of tag ids to their names, so a diff reads as words rather
+		 * than as a bare array of integers.
+		 *
+		 * @param mixed $ids
+		 * @return list<string>
+		 */
+		private function aiTagNamesFor($ids): array {
+			$ids = array_values(array_filter(array_map("intval", (array)$ids)));
+
+			if (!$ids) {
+
+				return [];
+			}
+
+			$names = SQL::fetchAllSingle(
+				"SELECT tag FROM bigtree_tags WHERE id IN (" . Sanitize::placeholders($ids) . ") ORDER BY tag",
+				...$ids
+			);
+
+			return array_values(array_map("strval", $names ?: []));
+		}
+
+		/**
+		 * The tag names currently attached to the live record a change targets.
+		 *
+		 * @return list<string>
+		 */
+		private function aiLiveTagNames(string $table, int $entry_id): array {
+			if ($table === "" || $entry_id < 1) {
+
+				return [];
+			}
+
+			$names = SQL::fetchAllSingle(
+				"SELECT t.tag FROM bigtree_tags_rel r
+				 JOIN bigtree_tags t ON t.id = r.tag
+				 WHERE r.`table` = ? AND r.entry = ? ORDER BY t.tag",
+				$table,
+				(string)$entry_id
+			);
+
+			return array_values(array_map("strval", $names ?: []));
 		}
 
 		/**
@@ -450,6 +546,10 @@
 				"payload" => [
 					"change_id" => $id,
 				],
+				// Pending changes collapse in place, so the blob this card diffed can be
+				// wholly rewritten before the publisher clicks Approve — publishing
+				// content they never saw, under an audit row saying they approved it.
+				"fingerprint" => ["type" => "pending_change", "id" => $id],
 			];
 		}
 
@@ -514,6 +614,9 @@
 					"fields" => $diff,
 				],
 				"payload" => ["change_id" => $id],
+				// The mirror of publish's problem: a stale reject discards work newer
+				// than the card described.
+				"fingerprint" => ["type" => "pending_change", "id" => $id],
 			];
 		}
 

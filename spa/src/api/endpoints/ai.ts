@@ -14,7 +14,12 @@ export interface ChatToolActivity {
 	status: string;
 }
 
-export type ProposalStatus = "pending" | "approved" | "rejected" | "expired";
+/**
+ * "failed" is an approval that ran (or was refused before running) and did not
+ * apply — a stale target, or an approval-time re-validation that came back
+ * `mode: error`. It stays approvable so the user can retry once the cause is fixed.
+ */
+export type ProposalStatus = "pending" | "approved" | "rejected" | "expired" | "failed";
 
 /**
  * A staged mutation (Phase 3) the assistant produced during a turn. Nothing has

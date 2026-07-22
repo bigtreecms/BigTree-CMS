@@ -92,17 +92,55 @@
 		return $names;
 	}
 
-	/** family => the tool that covers it. */
+	/**
+	 * family => the tool that covers it, or a per-verb map when the family has both
+	 * read and write endpoints.
+	 *
+	 * The per-verb form exists because a single tool name hid a real gap: `callouts`
+	 * and `modules/entries` were both marked COVERED by a *write* tool while their
+	 * read endpoints (`GET /callouts`, `GET /modules/{id}/entries`) had no tool at
+	 * all — the model could create a callout but never list one, and could edit an
+	 * entry but never list a module's entries. Naming the tool per verb makes that
+	 * kind of hole fail the test instead of hiding behind a create tool.
+	 *
+	 * A verb whose endpoint is deliberately unavailable takes a "declined: <phrase>"
+	 * value, checked against outOfScope() exactly as ai_contract_declined() is.
+	 */
 	function ai_contract_covered(): array {
 
 		return [
 			"404s/redirect" => "create_redirect",
 			"dashboard/content-alerts" => "get_content_alerts",
-			"callouts" => "create_callout",
-			"callout-groups" => "create_callout_group",
-			"module-groups" => "create_module_group",
-			"modules" => "create_module",
-			"modules/entries" => "create_module_entry",
+			"callouts" => [
+				"GET" => "list_callouts",
+				"POST" => "create_callout",
+				"PATCH" => "update_callout",
+				"DELETE" => "declined: deleting users, templates, callouts, modules or settings",
+			],
+			"callout-groups" => [
+				"GET" => "list_callouts",
+				"POST" => "create_callout_group",
+				"PATCH" => "declined: renaming, reordering or deleting module and callout groups",
+				"DELETE" => "declined: renaming, reordering or deleting module and callout groups",
+			],
+			"module-groups" => [
+				"GET" => "get_module",
+				"POST" => "create_module_group",
+				"PATCH" => "declined: renaming, reordering or deleting module and callout groups",
+				"DELETE" => "declined: renaming, reordering or deleting module and callout groups",
+			],
+			"modules" => [
+				"GET" => "get_module",
+				"POST" => "create_module",
+				"PATCH" => "update_module",
+				"DELETE" => "declined: deleting users, templates, callouts, modules or settings",
+			],
+			"modules/entries" => [
+				"GET" => "list_module_entries",
+				"POST" => "create_module_entry",
+				"PATCH" => "update_module_entry",
+				"DELETE" => "delete_module_entry",
+			],
 			"pages" => "create_page",
 			"pages/archive" => "archive_page",
 			"pages/unarchive" => "unarchive_page",
@@ -121,7 +159,12 @@
 			"tags" => "add_tags",
 			"tags/merge" => "merge_tags",
 			"tags/search" => "search_tags",
-			"templates" => "create_template",
+			"templates" => [
+				"GET" => "list_templates",
+				"POST" => "create_template",
+				"PATCH" => "update_template",
+				"DELETE" => "declined: deleting users, templates, callouts, modules or settings",
+			],
 			"users" => "create_user",
 			"audit" => "get_audit_trail",
 			"audit/tables" => "get_audit_trail",
@@ -151,7 +194,10 @@
 			"modules/scaffold" => "scaffolding",
 			"modules/actions" => "tables, forms, views or actions",
 			"modules/views" => "tables, forms, views or actions",
-			"modules/reports" => "tables, forms, views or actions",
+			// Audit #5: the "editing …" line says nothing about *running* a report,
+			// which is a module-view-level read any editor has — so the family needs
+			// its own decline wording, not the editing one.
+			"modules/reports" => "running or exporting a module's reports",
 			"modules/gbp-categories" => "tables, forms, views or actions",
 			"modules/embed-forms" => "embedded forms",
 			"embed-forms" => "embedded forms",
@@ -216,8 +262,11 @@
 			"auth/refresh" => "session/authentication plumbing",
 			"auth/reset-password" => "session/authentication plumbing",
 			"users/me" => "the acting user's own profile — get_my_capabilities covers what the model needs",
-			"locks" => "content locks — held by the editing UI, not by a chat turn",
-			"locks/refresh" => "content locks — held by the editing UI, not by a chat turn",
+			// The assistant reads locks (ContentLock puts "someone else has this open"
+			// on the proposal card) but never holds one: a lock belongs to an editing
+			// session, and a chat turn has none to tie its lifetime to.
+			"locks" => "content locks — read on the proposal card, but held by the editing UI, not by a chat turn",
+			"locks/refresh" => "content locks — read on the proposal card, but held by the editing UI, not by a chat turn",
 			"openapi.json" => "the API's own schema document",
 			"dashboard/summary" => "an SPA render aggregate with no single capability behind it",
 			"pages/access-levels" => "a permission read the tools resolve server-side themselves",
@@ -257,6 +306,50 @@
 		T::equals(implode(", ", $double), "", "no family is classified two ways at once");
 	}
 
+	/**
+	 * A per-verb coverage map must actually cover every verb the family declares.
+	 *
+	 * Without this, adding `GET /callouts/{id}/instances` to a family whose map only
+	 * names GET/POST/PATCH/DELETE would still pass — the map would just be silently
+	 * incomplete, which is the same failure the family map itself exists to prevent,
+	 * one level down.
+	 */
+	function test_per_verb_coverage_maps_name_every_verb() {
+		$families = ai_contract_route_families();
+		$gaps = [];
+		$stale = [];
+
+		foreach (ai_contract_covered() as $family => $coverage) {
+			if (!is_array($coverage)) {
+
+				continue;
+			}
+
+			$verbs = [];
+
+			foreach ($families[$family] ?? [] as $endpoint) {
+				$verbs[] = strtok($endpoint, " ");
+			}
+
+			$verbs = array_values(array_unique($verbs));
+
+			foreach ($verbs as $verb) {
+				if (!isset($coverage[$verb])) {
+					$gaps[] = "{$family} {$verb}";
+				}
+			}
+
+			foreach (array_keys($coverage) as $verb) {
+				if (!in_array($verb, $verbs, true)) {
+					$stale[] = "{$family} {$verb}";
+				}
+			}
+		}
+
+		T::equals(implode(", ", $gaps), "", "every verb of a per-verb family names a tool or a decline");
+		T::equals(implode(", ", $stale), "", "no per-verb entry names a verb the family no longer declares");
+	}
+
 	function test_route_family_classifications_are_not_stale() {
 		$families = ai_contract_route_families();
 		$tools = ai_contract_tool_names();
@@ -265,8 +358,20 @@
 		// A classification pointing at a tool that no longer exists, or wording that
 		// has been removed from the declines list, is worse than no classification —
 		// it reads as a decision that was made and is silently no longer true.
-		foreach (ai_contract_covered() as $family => $tool) {
-			T::ok(in_array($tool, $tools, true), "{$family} is covered by the registered tool {$tool}");
+		foreach (ai_contract_covered() as $family => $coverage) {
+			foreach (is_array($coverage) ? $coverage : ["*" => $coverage] as $verb => $tool) {
+				if (strpos($tool, "declined:") === 0) {
+					$phrase = trim(substr($tool, strlen("declined:")));
+					T::ok(
+						strpos($declines, $phrase) !== false,
+						"{$family} {$verb} is declined by wording matching \"{$phrase}\""
+					);
+
+					continue;
+				}
+
+				T::ok(in_array($tool, $tools, true), "{$family} {$verb} is covered by the registered tool {$tool}");
+			}
 		}
 
 		foreach (ai_contract_declined() as $family => $phrase) {

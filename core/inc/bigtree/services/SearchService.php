@@ -731,8 +731,11 @@
 		public function searchUsers($q, $limit): array {
 			$like = Sanitize::likeTerm($q);
 			$limit = max(1, (int)$limit);
+			// company/timezone/daily_digest are all writable through the user tools but
+			// appeared in no read payload — and `company` was matched on in the WHERE
+			// while never being shown, so a hit on it looked like a false positive.
 			$rows = SQL::fetchAll(
-				"SELECT id, name, email, level FROM bigtree_users
+				"SELECT id, name, email, level, company, timezone, daily_digest FROM bigtree_users
 				 WHERE name LIKE ? OR email LIKE ? OR company LIKE ?
 				 ORDER BY name ASC LIMIT $limit",
 				$like, $like, $like
@@ -745,6 +748,9 @@
 					"name" => $r["name"],
 					"email" => $r["email"],
 					"level" => (int)$r["level"],
+					"company" => (string)($r["company"] ?? ""),
+					"timezone" => (string)($r["timezone"] ?? ""),
+					"daily_digest" => (string)($r["daily_digest"] ?? "") !== "",
 				];
 			}, $rows);
 		}
@@ -815,9 +821,29 @@
 					continue;
 				}
 
-				$items = array_slice($search["results"] ?? [], 0, self::MODULE_ENTRY_CAP);
+				// Per-row group-based permission, the way REST's own list does it
+				// (userRowLevel !== "n"). Module-level "v" was the only check, so a GBP
+				// editor scoped to one group saw every other group's rows in search
+				// results — filtered before the cap, so the cap counts rows they may
+				// actually see.
+				$visible = [];
+				// Same guard REST's list uses: per-row filtering only means anything on
+				// a group-based module for a non-admin.
+				$filter_rows = !empty($m["gbp"]["enabled"]) && PermissionService::level($user) === 0;
 
-				if (!$items) {
+				foreach ($search["results"] ?? [] as $item) {
+					if ($filter_rows && PermissionService::userRowLevel($user, $m, is_array($item) ? $item : []) === "n") {
+						continue;
+					}
+
+					$visible[] = $item;
+
+					if (count($visible) >= self::MODULE_ENTRY_CAP) {
+						break;
+					}
+				}
+
+				if (!$visible) {
 					continue;
 				}
 
@@ -827,7 +853,9 @@
 						"name" => $m["name"] ?? "",
 						"route" => $m["route"] ?? "",
 					],
-					"items" => array_values($items),
+					"items" => array_values($visible),
+					// The model had no way to know it was only shown the first few.
+					"truncated" => count($search["results"] ?? []) > count($visible),
 				];
 			}
 
@@ -1291,6 +1319,11 @@ PROMPT;
 			// just to read the diff's `from` values.
 			$fields = $pages->aiPageDetailFields($target);
 
+			// The keyed, markup-preserving content map update_page_content writes to.
+			// content_text alone (strip_tags'd, unkeyed, concatenated) meant every AI
+			// copy edit was proposed blind and flattened the HTML it replaced.
+			$content = $pages->aiPageContentFields($target);
+
 			if ($target["is_pending"]) {
 				$reference = "p".$target["change_id"];
 
@@ -1301,7 +1334,7 @@ PROMPT;
 					"is_draft" => true,
 					"pending_change_id" => (int)$target["change_id"],
 					"parent" => (int)$target["parent"],
-				], $fields, [
+				], $fields, $content, [
 					"archived" => false,
 					"content_text" => $snippet,
 					"note" => "This page is still an unpublished draft awaiting approval — it has no live URL yet. "
@@ -1316,7 +1349,7 @@ PROMPT;
 					"id" => (int)$page["id"],
 					"is_draft" => false,
 					"path" => $page["path"],
-				], $fields, [
+				], $fields, $content, [
 					"archived" => $archived,
 					"content_text" => $snippet,
 				]),
@@ -1340,7 +1373,7 @@ PROMPT;
 		 * @param object|array $user
 		 * @return array{error?:string,payload?:array,artifact?:array}
 		 */
-		public function getModuleEntryDetail($module_id, $entry_id, $user): array {
+		public function getModuleEntryDetail($module_id, $entry_id, $user, string $form_id = ""): array {
 			$module_id = trim((string)$module_id);
 			$entry_id = trim((string)$entry_id);
 
@@ -1358,13 +1391,23 @@ PROMPT;
 				return ["error" => "module not found"];
 			}
 
-			$table = "";
+			// The write tools refuse to guess on a multi-form module (each form has its
+			// own table); reading used to take the primary view's table regardless, so
+			// "update location #7 then read it back" returned *event* #7 and presented
+			// it as the row that had just been edited.
+			$auto_modules = new AutoModuleService();
+			$resolved_form = $auto_modules->aiResolveModuleForm($module_id, $form_id);
 
-			if (!empty($module["table"])) {
-				$table = (string)$module["table"];
+			if (!empty($resolved_form["ambiguous_form"])) {
+				return $resolved_form;
+			}
+
+			if (isset($resolved_form["error"])) {
+				$table = !empty($module["table"])
+					? (string)$module["table"]
+					: (string)($this->primaryViewForModule($module)["table"] ?? "");
 			} else {
-				$view = $this->primaryViewForModule($module);
-				$table = (string)($view["table"] ?? "");
+				$table = (string)$resolved_form["table"];
 			}
 
 			if ($table === "") {
@@ -1381,7 +1424,7 @@ PROMPT;
 			// name something that no longer exists, which is a lookup failure rather
 			// than a bad id.
 			try {
-				$resolved = (new AutoModuleService())->aiResolveEntryRow($table, $entry_id);
+				$resolved = $auto_modules->aiResolveEntryRow($table, $entry_id);
 			} catch (\Throwable $e) {
 				return ["error" => "lookup failed"];
 			}
@@ -1392,6 +1435,14 @@ PROMPT;
 
 			$row = $resolved["row"];
 			$is_pending = !empty($resolved["is_pending"]);
+
+			// Per-row group-based permission. Module-level "v" was the only check, so a
+			// GBP editor scoped to one group could read every column of any other
+			// group's row — REST asserts per row (AutoModuleService::get). Writing was
+			// correctly blocked all along; reading was not.
+			if (PermissionService::userEntryLevel($user, $module, $row) === "n") {
+				return ["error" => "not permitted"];
+			}
 
 			// Flatten to scalars/strings for the model; drop huge blobs.
 			$safe = [];
@@ -1420,21 +1471,33 @@ PROMPT;
 				"route" => $module["route"] ?? "",
 			];
 
+			// Tags and Open Graph are writable on both entry tools but lived nowhere in
+			// the read payload, so "what is this entry tagged?" had no answer and every
+			// OG edit was made blind.
+			$relations = $auto_modules->aiEntryRelationDetail(
+				$table,
+				(string)$resolved["lookup_id"],
+				$is_pending
+			);
+
 			// No artifact for a draft: artifacts are navigable rows, and an
 			// unpublished entry has no live row to navigate to — the same reason
 			// getPageDetail withholds one for a page draft.
 			if ($is_pending) {
 				$reference = (string)$resolved["lookup_id"];
 
-				return ["payload" => [
+				return ["payload" => array_merge([
 					"module" => $module_summary,
 					"id" => $reference,
 					"is_draft" => true,
 					"pending_change_id" => (int)$resolved["change_id"],
+					"form" => (string)($resolved_form["form"]["id"] ?? ""),
+					"table" => $table,
 					"entry" => $safe,
+				], $relations, [
 					"note" => "This entry is still an unpublished draft awaiting approval — these are the draft's "
 						. "values, not a live row. Edit it with this same \"{$reference}\" id.",
-				]];
+				])];
 			}
 
 			$group = [
@@ -1446,12 +1509,14 @@ PROMPT;
 			];
 
 			return [
-				"payload" => [
+				"payload" => array_merge([
 					"module" => $module_summary,
 					"id" => (int)$entry_id,
 					"is_draft" => false,
+					"form" => (string)($resolved_form["form"]["id"] ?? ""),
+					"table" => $table,
 					"entry" => $safe,
-				],
+				], $relations),
 				"artifact" => $group,
 			];
 		}

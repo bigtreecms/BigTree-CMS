@@ -391,16 +391,21 @@
 
 		// — AI tool seam (ResourceToolBackend) —
 		//
-		// Read-only browse + search for the media library, gated on folder rank ≥ e and
+		// Read-only browse + search for the media library, gated on folder rank ≥ v and
 		// filtered to folders the user can access. Compact rows only (no crop/thumb
 		// maps) — the assistant just needs to find and reference files.
+		//
+		// `v`, not `e`: these are reads, and REST's own search filters on
+		// `userFolderLevel(...) !== "n"`. Requiring edit told a view-only editor "You
+		// do not have access to that media folder" about a folder they can see in the
+		// Files section.
 
 		/**
 		 * @param object|array $user
 		 * @return array<string,mixed>
 		 */
 		public function aiListResources(int $folder, int $limit, $user): array {
-			if (!PermissionService::userHasFolderAccess($user, $folder, "e")) {
+			if (!PermissionService::userHasFolderAccess($user, $folder, "v")) {
 
 				return ["denied" => "You do not have access to that media folder."];
 			}
@@ -459,7 +464,7 @@
 			$out = [];
 
 			foreach ($rows as $r) {
-				if (!PermissionService::userHasFolderAccess($user, (int)$r["folder"], "e")) {
+				if (!PermissionService::userHasFolderAccess($user, (int)$r["folder"], "v")) {
 
 					continue;
 				}

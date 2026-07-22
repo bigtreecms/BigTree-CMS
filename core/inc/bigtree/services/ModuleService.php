@@ -1363,6 +1363,7 @@
 					"id" => (string)$module["id"],
 					"changes" => $changes,
 				],
+				"fingerprint" => ["type" => "json_record", "store" => "modules", "id" => (string)$module["id"]],
 			];
 		}
 

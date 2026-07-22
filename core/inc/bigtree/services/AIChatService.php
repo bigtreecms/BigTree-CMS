@@ -14,7 +14,9 @@
 	use BigTree\Services\AI\CapabilitySummary;
 	use BigTree\Services\AI\ExtensionTools;
 	use BigTree\Services\AI\PromptGuard;
+	use BigTree\Services\AI\ProposalFingerprint;
 	use BigTree\Services\AI\ProposalStore;
+	use BigTree\Services\AI\Tools\AbstractMutatingTool;
 	use BigTree\Services\AI\Tools\CreatePageTool;
 	use BigTree\Services\AI\Tools\GetMyCapabilitiesTool;
 	use BigTree\Services\AI\Tools\GetPageTreeTool;
@@ -47,6 +49,8 @@
 	use BigTree\Services\AI\Tools\UpdateUserTool;
 	use BigTree\Services\AI\Tools\CreateCalloutTool;
 	use BigTree\Services\AI\Tools\GetCalloutTool;
+	use BigTree\Services\AI\Tools\ListCalloutsTool;
+	use BigTree\Services\AI\Tools\ListModuleEntriesTool;
 	use BigTree\Services\AI\Tools\GetAuditTrailTool;
 	use BigTree\Services\AI\Tools\GetContentAlertsTool;
 	use BigTree\Services\AI\Tools\GetPageRevisionsTool;
@@ -96,6 +100,11 @@
 		// A conversation is a bounded context window; cap turns so history replay
 		// (and its token cost) can't grow without limit.
 		const MAX_MESSAGES_PER_CONVERSATION = 100;
+		// The same idea applied to the tool-call replay note (buildModelMessages):
+		// enough calls to cover what a follow-up turn refers back to, each argument
+		// blob short enough that a proposed page body can't crowd the list out.
+		const REPLAYED_TOOL_CALLS = 40;
+		const REPLAYED_ARGUMENT_CHARS = 200;
 
 		// Per-user fixed-window throttle on the paid loop (own key, same shape as
 		// SearchService::throttleAiSearch).
@@ -477,8 +486,10 @@
 			$registry->register(new GetPendingChangesTool($pending));
 			$registry->register(new GetModuleTool($modules));
 			$registry->register(new GetModuleSchemaTool($entries));
+			$registry->register(new ListModuleEntriesTool($entries));
 			$registry->register(new GetPendingChangeTool($pending));
 			$registry->register(new GetCalloutTool($callouts));
+			$registry->register(new ListCalloutsTool($callouts));
 			$registry->register(new GetAuditTrailTool(new AuditService()));
 			$registry->register(new GetPageRevisionsTool($pages));
 			$registry->register(new GetPageSeoRatingTool($pages));
@@ -630,6 +641,14 @@
 			}
 
 			$payload = $store->decodePayload($proposal);
+			$stale = self::stalenessError($payload);
+			unset($payload[AbstractMutatingTool::FINGERPRINT_KEY]);
+
+			if ($stale !== null) {
+				// The record moved under the card. Recorded as failed (not approved)
+				// so the user sees why and can ask again — see markApprovalFailed.
+				return $this->markApprovalFailed($store, $id, $request->user, $stale);
+			}
 
 			try {
 				$result = $this->executeProposal((string)$proposal["tool"], $payload, $request->user);
@@ -639,6 +658,16 @@
 				$store->restorePending($id);
 
 				throw $e;
+			}
+
+			// About twenty approval-time re-validation branches signal refusal by
+			// returning ["mode" => "error"] rather than throwing. Recording those as
+			// APPROVED put a green badge on a change that never happened, left it
+			// unretryable, and — since auditDescriptor skips mode=error — recorded it
+			// nowhere at all.
+			if ((string)($result["mode"] ?? "") === "error") {
+
+				return $this->markApprovalFailed($store, $id, $request->user, $result);
 			}
 
 			$store->markResolved($id, ProposalStore::APPROVED, $result);
@@ -674,21 +703,86 @@
 				throw new BadRequestException("This proposal has already been resolved.", "proposal_resolved");
 			}
 
+			// "What did the assistant try that we said no to?" had no answer outside
+			// the conversation itself. Nothing changed, so the row records the refusal
+			// rather than a change — same via=ai_assistant tag, best-effort.
+			$this->recordAudit($request, "bigtree_ai_proposals", $id, "proposal-rejected");
+
 			return Response::ok([
 				"proposal" => $store->present($store->loadOwned($id, $request->user)),
 			]);
 		}
 
 		/**
+		 * Record an approval that ran but refused, or was refused before running.
+		 *
+		 * The proposal keeps its error on the card and stays claimable, so the user
+		 * can fix the cause (or simply ask the assistant again) rather than being
+		 * stranded by a card that says "Approved" over a change that never happened.
+		 * No audit row is written — nothing changed.
+		 *
+		 * @param array<string,mixed> $result
+		 * @param object|array $user
+		 */
+		private function markApprovalFailed(ProposalStore $store, string $id, $user, array $result): Response {
+			$store->markResolved($id, ProposalStore::FAILED, $result);
+
+			return Response::ok([
+				"proposal" => $store->present($store->loadOwned($id, $user)),
+			]);
+		}
+
+		/**
+		 * Compare a staged fingerprint against the record as it stands now.
+		 *
+		 * Returns null when the proposal still describes reality (or carries no
+		 * fingerprint at all), otherwise the ["mode" => "error"] result to record.
+		 * Public-static-adjacent by way of being pure over the payload, so the
+		 * framework tests can exercise it without a request.
+		 *
+		 * @param array<string,mixed> $payload
+		 * @return array<string,mixed>|null
+		 */
+		public static function stalenessError(array $payload): ?array {
+			$staged = $payload[AbstractMutatingTool::FINGERPRINT_KEY] ?? null;
+
+			if (!is_array($staged) || !is_array($staged["descriptor"] ?? null)) {
+
+				return null;
+			}
+
+			$expected = (string)($staged["hash"] ?? "");
+
+			// An empty staged hash means the descriptor wasn't fingerprintable when it
+			// was staged; there is nothing to compare it against.
+			if ($expected === "") {
+
+				return null;
+			}
+
+			if (ProposalFingerprint::compute($staged["descriptor"]) === $expected) {
+
+				return null;
+			}
+
+			return [
+				"mode" => "error",
+				"message" => "This has changed since it was proposed, so the change described on this card no longer "
+					. "matches what's stored. Ask again to see the current state.",
+			];
+		}
+
+		/**
 		 * Guard that a proposal is still actionable; a resolved or expired one can't be
-		 * approved or rejected again.
+		 * approved or rejected again. A *failed* approval stays actionable so it can be
+		 * retried once its cause is fixed.
 		 *
 		 * @param array<string,mixed> $proposal
 		 */
 		private function assertPending(array $proposal): void {
 			$status = (string)($proposal["status"] ?? "");
 
-			if ($status === ProposalStore::PENDING) {
+			if (in_array($status, ProposalStore::ACTIONABLE, true)) {
 
 				return;
 			}
@@ -868,11 +962,21 @@
 				return;
 			}
 
+			$this->recordAudit($request, $descriptor["table"], $descriptor["entry"], $descriptor["type"]);
+		}
+
+		/**
+		 * One audit write tagged via=ai_assistant, with the acting request's context.
+		 * Best-effort: an audit hiccup must not fail (or unwind) what already happened.
+		 *
+		 * @param int|string $entry
+		 */
+		private function recordAudit(Request $request, string $table, $entry, string $type): void {
 			try {
 				AuditService::write(
-					$descriptor["table"],
-					$descriptor["entry"],
-					$descriptor["type"],
+					$table,
+					$entry,
+					$type,
 					(int)$this->userId($request->user),
 					[
 						"ip" => $request->ip,
@@ -884,7 +988,7 @@
 					]
 				);
 			} catch (\Throwable $e) {
-				@error_log("[BigTree AI] audit write for approved proposal failed: " . $e->getMessage());
+				@error_log("[BigTree AI] audit write failed: " . $e->getMessage());
 			}
 		}
 
@@ -911,12 +1015,30 @@
 			// mark the type so the audit row reflects that.
 			$pending = $mode === "pending";
 
+			// Developer objects audit under their *JSON-DB store* name ("templates",
+			// "callouts", "callout-groups", "modules", "module-groups") — the same
+			// strings routes/templates.php and friends declare. This used to write
+			// "bigtree_templates" and so on: SQL tables that were dropped at revision
+			// 401, and which AuditService::list filters on by literal equality — so
+			// "who changed the landing-page template?" returned the admin's edits and
+			// silently omitted every AI one.
+
 			switch ($tool) {
 				case "create_page":
 					return self::descriptor("bigtree_pages", $pending ? "pending-created" : "created", $result["page_id"] ?? $result["pending_change_id"] ?? "");
 
 				case "update_page":
 				case "update_page_content":
+					// Amending a queued draft returns page_id 0 — there is no live page.
+					// `??` doesn't skip 0, so every AI draft amendment used to audit
+					// against page #0, which is untraceable and accretes bogus rows.
+					// REST's PATCH /pages/pending/{pcid} audits the change row; so does
+					// this now.
+					if ((int)($result["page_id"] ?? 0) === 0 && !empty($result["pending_change_id"])) {
+
+						return self::descriptor("bigtree_pending_changes", "updated", $result["pending_change_id"]);
+					}
+
 					return self::descriptor("bigtree_pages", $pending ? "pending-updated" : "updated", $result["page_id"] ?? "");
 
 				case "archive_page":
@@ -983,28 +1105,28 @@
 					return self::descriptor("bigtree_users", "updated", $result["user_id"] ?? $payload["user_id"] ?? "");
 
 				case "create_template":
-					return self::descriptor("bigtree_templates", "created", $result["id"] ?? $payload["id"] ?? "");
+					return self::descriptor("templates", "created", $result["id"] ?? $payload["id"] ?? "");
 
 				case "update_template":
-					return self::descriptor("bigtree_templates", "updated", $result["id"] ?? $payload["id"] ?? "");
+					return self::descriptor("templates", "updated", $result["id"] ?? $payload["id"] ?? "");
 
 				case "create_callout":
-					return self::descriptor("bigtree_callouts", "created", $result["id"] ?? $payload["id"] ?? "");
+					return self::descriptor("callouts", "created", $result["id"] ?? $payload["id"] ?? "");
 
 				case "update_callout":
-					return self::descriptor("bigtree_callouts", "updated", $result["id"] ?? $payload["id"] ?? "");
+					return self::descriptor("callouts", "updated", $result["id"] ?? $payload["id"] ?? "");
 
 				case "create_callout_group":
-					return self::descriptor("bigtree_callout_groups", "created", $result["id"] ?? "");
+					return self::descriptor("callout-groups", "created", $result["id"] ?? "");
 
 				case "create_module":
-					return self::descriptor("bigtree_modules", "created", $result["id"] ?? "");
+					return self::descriptor("modules", "created", $result["id"] ?? "");
 
 				case "update_module":
-					return self::descriptor("bigtree_modules", "updated", $result["id"] ?? $payload["id"] ?? "");
+					return self::descriptor("modules", "updated", $result["id"] ?? $payload["id"] ?? "");
 
 				case "create_module_group":
-					return self::descriptor("bigtree_module_groups", "created", $result["id"] ?? "");
+					return self::descriptor("module-groups", "created", $result["id"] ?? "");
 
 				default:
 
@@ -1029,9 +1151,17 @@
 
 		/**
 		 * Rebuild the model's message array: the system prompt, the conversation's
-		 * plain user/assistant turns (tool call/result turns are NOT replayed —
-		 * they are heavy and reference data that may be stale), then the new turn.
-		 * Pure so it can be unit-tested without a DB.
+		 * plain user/assistant turns, a compact note naming the tools already run,
+		 * then the new turn. Pure so it can be unit-tested without a DB.
+		 *
+		 * Tool *results* are still not replayed — they are heavy, and a value read an
+		 * hour ago may since have changed, which is exactly the staleness the whole
+		 * approval path exists to prevent. But dropping the calls as well left a
+		 * follow-up turn with no record of the ids it had already resolved: "make that
+		 * shorter" arrived with the page's number nowhere in context, so the model
+		 * re-ran the same searches and occasionally proposed against the wrong target.
+		 * The arguments are small, carry the ids, and are as true a week later as they
+		 * were at the time — they say what was *asked for*, not what was found.
 		 *
 		 * @param list<array<string,mixed>> $history_rows
 		 * @return list<array<string,mixed>>
@@ -1054,12 +1184,139 @@
 				}
 			}
 
+			// One consolidated note rather than one per assistant turn: the model reads
+			// it as a reference list, and a long conversation doesn't accumulate a
+			// system message between every pair of turns.
+			$replay = self::toolCallReplay($history_rows);
+
+			if ($replay !== "") {
+				$messages[] = [
+					"role" => "system",
+					"content" => $replay,
+				];
+			}
+
 			$messages[] = [
 				"role" => "user",
 				"content" => $new_message,
 			];
 
 			return $messages;
+		}
+
+		/**
+		 * The "tools you already ran" note, or "" when this conversation has run none.
+		 *
+		 * Deduplicated (the same lookup repeated across turns is one line) and capped
+		 * at the most recent REPLAYED_TOOL_CALLS, since the recent end of a
+		 * conversation is what a follow-up refers to.
+		 *
+		 * @param list<array<string,mixed>> $history_rows
+		 */
+		private static function toolCallReplay(array $history_rows): string {
+			$lines = [];
+
+			foreach ($history_rows as $row) {
+				if (empty($row["tool_calls"])) {
+					continue;
+				}
+
+				$calls = json_decode((string)$row["tool_calls"], true);
+
+				foreach (is_array($calls) ? $calls : [] as $call) {
+					if (!is_array($call)) {
+						continue;
+					}
+
+					$name = (string)($call["name"] ?? "");
+
+					if ($name === "") {
+						continue;
+					}
+
+					$line = "- " . $name . " " . self::replayArguments($call["arguments"] ?? [])
+						. self::replayStatus((string)($call["status"] ?? ""));
+					// Keyed by the line itself so a repeated identical call collapses
+					// while a same-tool call on a different id stays.
+					$lines[$line] = true;
+				}
+			}
+
+			if (!$lines) {
+
+				return "";
+			}
+
+			$lines = array_keys($lines);
+
+			if (count($lines) > self::REPLAYED_TOOL_CALLS) {
+				$lines = array_slice($lines, -self::REPLAYED_TOOL_CALLS);
+			}
+
+			// Fenced: the arguments are model-authored and routinely quote whatever the
+			// user typed, so replaying them raw inside a *system* message would promote
+			// user prose to system authority once a turn. The list is a reference, not
+			// an instruction, and the fence is the same one wrapToolResult teaches.
+			return "Tools you have already run in this conversation, with the arguments you passed. "
+				. "Their results are NOT replayed: use these to recall the ids you resolved earlier rather than "
+				. "searching for them again, but re-read anything whose current value matters before proposing "
+				. "a change to it.\n"
+				. PromptGuard::BEGIN . "\n"
+				. PromptGuard::neutralize(implode("\n", $lines)) . "\n"
+				. PromptGuard::END;
+		}
+
+		/**
+		 * A call's arguments as compact JSON, truncated so one long text argument (a
+		 * page body the assistant proposed) can't crowd out the rest of the list.
+		 *
+		 * @param mixed $arguments
+		 */
+		private static function replayArguments($arguments): string {
+			if (!is_array($arguments) || !$arguments) {
+
+				return "{}";
+			}
+
+			$json = json_encode($arguments, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+
+			if (!is_string($json)) {
+
+				return "{}";
+			}
+
+			if (mb_strlen($json) > self::REPLAYED_ARGUMENT_CHARS) {
+				$json = mb_substr($json, 0, self::REPLAYED_ARGUMENT_CHARS) . "…";
+			}
+
+			return $json;
+		}
+
+		/**
+		 * Only non-"ok" outcomes are worth carrying: a denial the model has forgotten
+		 * is a denial it retries, and a staged proposal explains why the same edit
+		 * shouldn't be proposed twice. A plain successful read needs no annotation.
+		 */
+		private static function replayStatus(string $status): string {
+			switch ($status) {
+				case AIToolResult::DENIED:
+
+					return " → denied";
+
+				case AIToolResult::ERROR:
+
+					return " → failed";
+
+				case AIToolResult::NEEDS_INPUT:
+
+					return " → needed more information";
+
+				case AIToolResult::PROPOSAL:
+
+					return " → staged a proposal for the user to approve";
+			}
+
+			return "";
 		}
 
 		/**

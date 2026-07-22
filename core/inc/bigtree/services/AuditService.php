@@ -152,18 +152,21 @@
 
 		/**
 		 * Recent audit-trail entries, optionally narrowed to a source (via), a table,
-		 * or a user. Admin-only: the audit trail spans every table on the site, so it
+		 * or a user. Developer-only, matching `GET /audit`'s own declared level: the
+		 * audit trail spans every table on the site (including bigtree_users), so it
 		 * would otherwise leak the existence and edit history of content the caller
-		 * has no access to.
+		 * has no access to. This seam used to gate at 1, making it the one place an AI
+		 * tool was looser than the route it mirrors — an administrator 403'd by the
+		 * audit screen could read the whole trail by asking the assistant.
 		 *
 		 * @param array<string,mixed> $filters
 		 * @param object|array $user
 		 * @return array<string,mixed>
 		 */
 		public function aiAuditTrail(array $filters, int $limit, $user): array {
-			if (PermissionService::level($user) < 1) {
+			if (PermissionService::level($user) < 2) {
 
-				return ["denied" => "Only administrators can read the audit trail."];
+				return ["denied" => "Only developers can read the audit trail."];
 			}
 
 			$where = [];

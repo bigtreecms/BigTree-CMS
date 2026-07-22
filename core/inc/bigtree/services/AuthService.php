@@ -851,18 +851,23 @@
 		 * Mint a change-password token for a user row, store it, and email the link.
 		 * Shared by the forgot-password flow and the new-account invite.
 		 *
-		 * The hash is unguessable without knowing the stored password hash *and* a
-		 * microsecond timestamp; an absolute expiry is appended so the link can't be
-		 * redeemed forever. The hash is hex, so "." is an unambiguous separator, and
-		 * the whole string is both stored and emailed so the lookup matches exactly.
+		 * The hash is CSPRNG output, not a derivation. It used to be
+		 * md5(md5($user["password"]) . md5(uniqid(...))) — for an AI-created (or
+		 * otherwise password-less) account `password` is "", so md5("") is a known
+		 * constant and the whole token reduced to a function of the creation instant.
+		 * Legacy used BigTree::randomString(64) for exactly this reason. An absolute
+		 * expiry is appended so the link can't be redeemed forever; the hash is hex,
+		 * so "." is an unambiguous separator, and the whole string is both stored and
+		 * emailed so the lookup matches exactly.
 		 *
 		 * @param array $user a row with at least id, email, password
+		 * @param string $template Which email to send: "reset" or "invite".
 		 */
-		public static function issuePasswordToken(array $user, $ttl) {
-			$hash = md5(md5((string)($user["password"] ?? "")) . md5(uniqid("bigtree-hash" . microtime(true))));
+		public static function issuePasswordToken(array $user, $ttl, string $template = "reset") {
+			$hash = bin2hex(random_bytes(32));
 			$token = $hash . "." . (time() + (int)$ttl);
 			SQL::update("bigtree_users", $user["id"], ["change_password_hash" => $token]);
-			self::sendResetEmail($user["email"], $token);
+			self::sendResetEmail($user["email"], $token, $template);
 
 			return $token;
 		}
@@ -882,7 +887,11 @@
 			}
 
 			try {
-				self::issuePasswordToken($user, self::INVITE_TOKEN_TTL);
+				// The invite template, not the reset one: every AI-created user was
+				// being told to "reset" a password they had never had, while
+				// core/admin/email/welcome.html — what legacy sends an invitee — went
+				// unused.
+				self::issuePasswordToken($user, self::INVITE_TOKEN_TTL, "invite");
 			} catch (\Throwable $e) {
 
 				return false;
@@ -891,10 +900,13 @@
 			return true;
 		}
 
-		private static function sendResetEmail($to, $hash) {
+		private static function sendResetEmail($to, $hash, string $template = "reset") {
 			global $bigtree;
 
+			$is_invite = $template === "invite";
+			$subject = $is_invite ? "Welcome to " : "Reset Your Password";
 			$site_title = SQL::fetchSingle("SELECT nav_title FROM bigtree_pages WHERE id = 0") ?: "BigTree";
+			$subject = $is_invite ? $subject . $site_title : $subject;
 			$admin_root = ($bigtree["config"]["force_secure_login"] ?? false)
 				? str_replace("http://", "https://", ADMIN_ROOT)
 				: ADMIN_ROOT;
@@ -906,8 +918,12 @@
 				?: ($admin_root . "spa/login/reset/{token}");
 			$reset_url = str_replace("{token}", $hash, $reset_url);
 
-			$tmpl = BigTree::path("admin/email/reset-password.html");
-			$html = file_exists($tmpl) ? file_get_contents($tmpl) : "<p>Reset your password: <a href='{reset_link}'>{reset_link}</a></p>";
+			$tmpl = BigTree::path($is_invite ? "admin/email/welcome.html" : "admin/email/reset-password.html");
+			$html = file_exists($tmpl)
+				? file_get_contents($tmpl)
+				: ($is_invite
+					? "<p>Set your password: <a href='{reset_link}'>{reset_link}</a></p>"
+					: "<p>Reset your password: <a href='{reset_link}'>{reset_link}</a></p>");
 			$html = str_ireplace([
 				"{www_root}", "{admin_root}", "{site_title}", "{reset_link}",
 			], [
@@ -920,7 +936,7 @@
 				if (!empty($es->Settings["bigtree_from"])) {
 					$host = $_SERVER["HTTP_HOST"] ?? str_replace(["http://www.", "https://www.", "http://", "https://"], "", DOMAIN);
 					$reply_to = "no-reply@" . str_replace("www.", "", $host);
-					$es->sendEmail("Reset Your Password", $html, $to, $es->Settings["bigtree_from"], "BigTree CMS", $reply_to);
+					$es->sendEmail($subject, $html, $to, $es->Settings["bigtree_from"], "BigTree CMS", $reply_to);
 
 					return;
 				}
@@ -928,7 +944,7 @@
 				// fall through to BigTree::sendEmail
 			}
 
-			BigTree::sendEmail($to, "Reset Your Password", $html);
+			BigTree::sendEmail($to, $subject, $html);
 		}
 
 		private function verifyPassword(array $user, $password) {

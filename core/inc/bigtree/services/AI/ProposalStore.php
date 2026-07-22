@@ -26,6 +26,17 @@
 		const REJECTED = "rejected";
 		const EXPIRED = "expired";
 
+		// An approval that ran and came back ["mode" => "error"]. Roughly twenty
+		// approval-time re-validation branches return that instead of throwing, and
+		// they were all recorded as APPROVED — a green badge over a change that never
+		// happened, with no audit row and no way to retry. A failed proposal keeps its
+		// error on the card and stays claimable so the user can fix the cause and
+		// approve again.
+		const FAILED = "failed";
+
+		/** Statuses an approve/reject may still act on. */
+		const ACTIONABLE = [self::PENDING, self::FAILED];
+
 		// Rows this many days past expiry are opportunistically purged on create()
 		// so the table stays bounded while recently resolved cards remain renderable
 		// in conversation history.
@@ -93,19 +104,21 @@
 		}
 
 		/**
-		 * Claim a pending proposal with a compare-and-set so two concurrent approvals
-		 * (double-click, two tabs, a retried request) can't both execute. Flips
-		 * pending → $to only if the row is still pending; returns whether exactly one
-		 * row changed. A false return means someone else already resolved it.
+		 * Claim an actionable proposal with a compare-and-set so two concurrent
+		 * approvals (double-click, two tabs, a retried request) can't both execute.
+		 * Flips pending/failed → $to only if the row is still actionable; returns
+		 * whether exactly one row changed. A false return means someone else already
+		 * resolved it.
 		 */
 		public function claimPending(string $id, string $to = self::APPROVING): bool {
 			$this->ensureTable();
 
 			$result = SQL::query(
-				"UPDATE " . self::TABLE . " SET status = ? WHERE id = ? AND status = ?",
+				"UPDATE " . self::TABLE . " SET status = ? WHERE id = ? AND status IN (?, ?)",
 				$to,
 				$id,
-				self::PENDING
+				self::PENDING,
+				self::FAILED
 			);
 
 			return $result->rows() === 1;
@@ -164,7 +177,7 @@
 				return null;
 			}
 
-			if ($row["status"] === self::PENDING && $this->isExpired($row)) {
+			if (in_array($row["status"], self::ACTIONABLE, true) && $this->isExpired($row)) {
 				SQL::update(self::TABLE, $id, ["status" => self::EXPIRED]);
 				$row["status"] = self::EXPIRED;
 			}

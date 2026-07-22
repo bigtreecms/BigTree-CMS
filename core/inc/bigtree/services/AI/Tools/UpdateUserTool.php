@@ -54,6 +54,16 @@
 							"type" => "string",
 							"description" => "New IANA timezone identifier (e.g. America/New_York).",
 						],
+						"daily_digest" => [
+							"type" => "boolean",
+							"description" => "Whether this user receives the daily content digest email.",
+						],
+						"alerts" => [
+							"type" => "object",
+							"description" => "Content-alert thresholds: page id => number of days after which that "
+								. "page (and everything under it) is flagged stale for this user. Replaces the whole "
+								. "map — read the current one with get_content_alerts first.",
+						],
 					],
 					"required" => ["user_id"],
 				]

@@ -103,6 +103,35 @@
 			return $direct ?: "n";
 		}
 
+		/**
+		 * The rank that governs writing a *specific* entry in a module.
+		 *
+		 * userModuleLevel returns the best of a user's group grants, which is the
+		 * right answer for "may this user open the module at all" and the wrong one
+		 * for "may this user publish this row": a user granted `p` on group 9 and `e`
+		 * on group 3 would publish group-3 rows live, where the admin UI (legacy
+		 * getAccessLevel) forces a pending change. Falls back to the module-wide rank
+		 * for modules that don't use group-based permissions at all.
+		 *
+		 * @param array $module The module record.
+		 * @param array $row    The row being written — on create, the proposed data.
+		 */
+		public static function userEntryLevel($user, array $module, array $row) {
+			$gbp = is_array($module["gbp"] ?? null) ? $module["gbp"] : [];
+			$group_field = (string)($gbp["group_field"] ?? "");
+
+			// Only per-row when the row actually says which group it is in. A create
+			// whose data omits the group field, or a module with no group field
+			// configured, has nothing per-row to judge — falling through to
+			// userRowLevel there would drop the group grants entirely and lock the
+			// user out of a write they have always been allowed to make.
+			if (!empty($gbp["enabled"]) && $group_field !== "" && isset($row[$group_field])) {
+				return self::userRowLevel($user, $module, $row);
+			}
+
+			return self::userModuleLevel($user, $module["id"] ?? "");
+		}
+
 		public static function userHasPageAccess($user, $page_id, $min = "v") {
 			$rank = self::userPageLevel($user, (int)$page_id);
 

@@ -195,14 +195,23 @@
 				return ["denied" => "Only developers can create callouts."];
 			}
 
-			$id = trim((string)($args["id"] ?? ""));
+			$raw_id = trim((string)($args["id"] ?? ""));
 
-			if ($id === "") {
+			if ($raw_id === "") {
 
 				return ["error" => "A callout id is required (a short lowercase identifier)."];
 			}
 
-			$id = BigTreeCMS::urlify($id);
+			// Checked after urlify, for the same reason the template path does it: an
+			// id with no slug-able characters urlifies to "" and would otherwise stage
+			// happily and die at approval.
+			$id = BigTreeCMS::urlify($raw_id);
+
+			if ($id === "") {
+
+				return ["error" => "\"{$raw_id}\" doesn't contain any characters usable in a callout id. Use a short "
+					. "identifier made of letters, numbers or hyphens."];
+			}
 
 			if (BigTreeJSONDB::exists("callouts", $id)) {
 
@@ -210,8 +219,20 @@
 			}
 
 			$name = trim((string)($args["name"] ?? "")) ?: $id;
+			$level = (int)($args["level"] ?? 0);
+
+			// REST declares level as in:0,1,2 (routes/callouts.php). Anything else
+			// compares as higher-than-everyone, so the callout is offered to nobody —
+			// including its author. Same clamp templates got in audit #4.
+			if ($level < 0 || $level > 2) {
+
+				return ["error" => "A callout's level must be 0 (any editor), 1 (administrators) or 2 (developers). "
+					. "\"{$level}\" would make the callout usable by nobody."];
+			}
+
 			$fields = $this->aiCalloutFields($args["fields"] ?? []);
-			$type_error = $this->aiInvalidFieldTypeError($fields);
+			$type_error = $this->aiInvalidFieldTypeError($fields)
+				?? Resources::aiUnconfigurableFieldError($args["fields"] ?? [], [], "callout");
 
 			if ($type_error !== null) {
 
@@ -244,7 +265,7 @@
 				"id" => $id,
 				"name" => $name,
 				"description" => trim((string)($args["description"] ?? "")),
-				"level" => (int)($args["level"] ?? 0),
+				"level" => $level,
 				"display_field" => $display_field["value"],
 				"display_default" => trim((string)($args["display_default"] ?? "")),
 				"resources" => $fields,
@@ -266,7 +287,7 @@
 					"action" => "create_callout",
 					"id" => $id,
 					"name" => $name,
-					"level" => (int)($args["level"] ?? 0),
+					"level" => $level,
 					"display_field" => $display_field["value"],
 					"group" => $group["id"] !== "" ? $group["name"] : "(none)",
 					"creates_file" => $stub,
@@ -300,12 +321,29 @@
 				return ["mode" => "error", "message" => "That callout id is no longer available."];
 			}
 
+			$level = (int)($payload["level"] ?? 0);
+
+			// Re-checked at approval like every other staged value.
+			if ($level < 0 || $level > 2) {
+
+				return ["mode" => "error", "message" => "A callout's level must be 0, 1 or 2."];
+			}
+
+			$resources = is_array($payload["resources"] ?? null) ? $payload["resources"] : [];
+			$type_error = $this->aiInvalidFieldTypeError($resources)
+				?? Resources::aiUnconfigurableFieldError($resources, [], "callout");
+
+			if ($type_error !== null) {
+
+				return ["mode" => "error", "message" => $type_error];
+			}
+
 			$insert = [
 				"id" => $id,
 				"name" => BigTree::safeEncode((string)($payload["name"] ?? $id)),
 				"description" => BigTree::safeEncode((string)($payload["description"] ?? "")),
-				"level" => (int)($payload["level"] ?? 0),
-				"resources" => Resources::clean(is_array($payload["resources"] ?? null) ? $payload["resources"] : []),
+				"level" => $level,
+				"resources" => Resources::clean($resources),
 				"display_field" => (string)($payload["display_field"] ?? ""),
 				"display_default" => BigTree::safeEncode((string)($payload["display_default"] ?? "")),
 				"position" => 0,
@@ -395,8 +433,83 @@
 					"display_field" => (string)($callout["display_field"] ?? ""),
 					"display_default" => (string)($callout["display_default"] ?? ""),
 					"fields" => $fields,
+					// create_callout can file a callout in a group but nothing could read
+					// which groups a callout is in, so membership was write-only.
+					"groups" => $this->aiCalloutGroupsFor((string)$callout["id"]),
 				],
 			];
+		}
+
+		/**
+		 * The callout groups a callout belongs to, as {id, name}.
+		 *
+		 * @return list<array<string,string>>
+		 */
+		private function aiCalloutGroupsFor(string $callout_id): array {
+			$groups = [];
+
+			foreach (BigTreeJSONDB::getAll("callout-groups", "name") as $group) {
+				$members = array_map("strval", (array)($group["callouts"] ?? []));
+
+				if (in_array($callout_id, $members, true)) {
+					$groups[] = [
+						"id" => (string)($group["id"] ?? ""),
+						"name" => (string)($group["name"] ?? $group["id"] ?? ""),
+					];
+				}
+			}
+
+			return $groups;
+		}
+
+		/**
+		 * Every callout and callout group the assistant can name.
+		 *
+		 * list_templates exists precisely so the model can name a real template; the
+		 * callout surface had no equivalent, so get_callout needed a guessed id and
+		 * create_callout's `group` argument had nothing to enumerate — which made its
+		 * needs_input branch the normal path rather than the exception.
+		 *
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 */
+		public function aiListCallouts($user): array {
+			if (PermissionService::level($user) < 2) {
+
+				return ["denied" => "Only developers can list callouts."];
+			}
+
+			$membership = [];
+
+			$groups = array_map(function (array $group) use (&$membership): array {
+				$id = (string)($group["id"] ?? "");
+				$members = array_map("strval", (array)($group["callouts"] ?? []));
+
+				foreach ($members as $callout_id) {
+					$membership[$callout_id][] = $id;
+				}
+
+				return [
+					"id" => $id,
+					"name" => (string)($group["name"] ?? $id),
+					"callouts" => $members,
+				];
+			}, BigTreeJSONDB::getAll("callout-groups", "name"));
+
+			$callouts = array_map(function (array $callout) use ($membership): array {
+				$id = (string)($callout["id"] ?? "");
+
+				return [
+					"id" => $id,
+					"name" => (string)($callout["name"] ?? $id),
+					"description" => (string)($callout["description"] ?? ""),
+					"level" => (int)($callout["level"] ?? 0),
+					"field_count" => is_array($callout["resources"] ?? null) ? count($callout["resources"]) : 0,
+					"groups" => $membership[$id] ?? [],
+				];
+			}, BigTreeJSONDB::getAll("callouts", "position", "DESC"));
+
+			return ["callouts" => $callouts, "groups" => $groups];
 		}
 
 		/**
@@ -443,6 +556,13 @@
 			if (array_key_exists("level", $args)) {
 				$level = (int)$args["level"];
 
+				// Same constraint the create path enforces.
+				if ($level < 0 || $level > 2) {
+
+					return ["error" => "A callout's level must be 0 (any editor), 1 (administrators) or "
+						. "2 (developers). \"{$level}\" would make the callout usable by nobody."];
+				}
+
 				if ($level !== (int)($existing["level"] ?? 0)) {
 					$changes["level"] = $level;
 					$diff["level"] = ["from" => (int)($existing["level"] ?? 0), "to" => $level];
@@ -454,7 +574,8 @@
 			if (array_key_exists("fields", $args)) {
 				$before = is_array($existing["resources"] ?? null) ? $existing["resources"] : [];
 				$fields = $this->aiCalloutFields($args["fields"], $before);
-				$type_error = $this->aiInvalidFieldTypeError($fields);
+				$type_error = $this->aiInvalidFieldTypeError($fields)
+					?? Resources::aiUnconfigurableFieldError($args["fields"], $before, "callout");
 
 				if ($type_error !== null) {
 
@@ -505,6 +626,27 @@
 				}
 			}
 
+			// Group membership was settable at create and nowhere afterwards, so
+			// "actually, put the promo callout in the sidebar group" had no path.
+			if (array_key_exists("group", $args)) {
+				$group = $this->aiResolveCalloutGroup($args["group"]);
+
+				if (isset($group["needs_input"])) {
+
+					return $group;
+				}
+
+				$current = array_column($this->aiCalloutGroupsFor($id), "id");
+
+				if ($group["id"] === "" ? (bool)$current : !in_array($group["id"], $current, true)) {
+					$changes["group"] = $group["id"];
+					$diff["group"] = [
+						"from" => $current ? implode(", ", $current) : "(none)",
+						"to" => $group["id"] !== "" ? $group["name"] : "(none)",
+					];
+				}
+			}
+
 			if (!$changes) {
 
 				return ["error" => "No changes were supplied — nothing to update."];
@@ -525,6 +667,7 @@
 					"id" => $id,
 					"changes" => $changes,
 				],
+				"fingerprint" => ["type" => "json_record", "store" => "callouts", "id" => $id],
 			];
 		}
 
@@ -637,31 +780,115 @@
 			}
 
 			if (array_key_exists("level", $changes)) {
-				$update["level"] = (int)$changes["level"];
-			}
+				$level = (int)$changes["level"];
 
-			if (array_key_exists("display_field", $changes)) {
-				$update["display_field"] = (string)$changes["display_field"];
+				if ($level < 0 || $level > 2) {
+
+					return ["mode" => "error", "message" => "A callout's level must be 0, 1 or 2."];
+				}
+
+				$update["level"] = $level;
 			}
 
 			// Re-merged against the callout as it stands now, so field settings edited in
 			// the admin during the proposal's TTL survive the approval.
 			if (array_key_exists("fields", $changes)) {
-				$update["resources"] = $this->aiCalloutFields(
-					$changes["fields"],
-					is_array($existing["resources"] ?? null) ? $existing["resources"] : []
-				);
+				$before = is_array($existing["resources"] ?? null) ? $existing["resources"] : [];
+				$merged = $this->aiCalloutFields($changes["fields"], $before);
+
+				// Only the staging pass used to check the types, so an extension
+				// uninstalled inside the TTL wrote its now-unknown type verbatim.
+				$type_error = $this->aiInvalidFieldTypeError($merged)
+					?? Resources::aiUnconfigurableFieldError($changes["fields"], $before, "callout");
+
+				if ($type_error !== null) {
+
+					return ["mode" => "error", "message" => $type_error];
+				}
+
+				$update["resources"] = $merged;
 			} elseif (array_key_exists("resources", $changes)) {
-				$update["resources"] = Resources::clean(is_array($changes["resources"]) ? $changes["resources"] : []);
+				$resources = is_array($changes["resources"]) ? $changes["resources"] : [];
+				$type_error = $this->aiInvalidFieldTypeError($resources)
+					?? Resources::aiUnconfigurableFieldError($resources, [], "callout");
+
+				if ($type_error !== null) {
+
+					return ["mode" => "error", "message" => $type_error];
+				}
+
+				$update["resources"] = Resources::clean($resources);
+			}
+
+			// display_field has to name a field that exists in the *resulting* list.
+			// Staging checked that; approval used to write the staged string blind, so
+			// approving a field-list edit and then a display_field edit staged before
+			// it left the callout pointing at a field that no longer exists — every
+			// placed instance then lists as a blank row. Done after the field merge so
+			// it judges the list actually being written.
+			if (array_key_exists("display_field", $changes)) {
+				$display_field = $this->aiResolveDisplayField(
+					$changes["display_field"],
+					is_array($update["resources"] ?? null) ? $update["resources"] : []
+				);
+
+				if (isset($display_field["error"])) {
+
+					return ["mode" => "error", "message" => (string)$display_field["error"]];
+				}
+
+				$update["display_field"] = $display_field["value"];
 			}
 
 			BigTreeJSONDB::update("callouts", $id, $update);
+
+			// Membership lives on the *group* records, so it is applied after the
+			// callout itself and re-resolved here (a group can vanish inside the TTL).
+			$group_note = "";
+
+			if (array_key_exists("group", $changes)) {
+				$group_id = (string)$changes["group"];
+				$this->aiRemoveCalloutFromGroups($id, $group_id);
+
+				if ($group_id !== "" && !$this->aiAddCalloutToGroup($group_id, $id)) {
+					$group_note = " The callout group it was meant to join no longer exists, so it is now ungrouped.";
+				}
+			}
 
 			return [
 				"mode" => "updated",
 				"id" => $id,
 				"name" => (string)($update["name"] ?? $id),
+				"note" => $group_note !== "" ? trim($group_note) : null,
 			];
+		}
+
+		/**
+		 * Drop a callout from every group except $keep. Moving a callout into a group
+		 * means moving it *out* of the others — leaving it in both would offer the
+		 * same callout twice in a region restricted to one of them.
+		 */
+		private function aiRemoveCalloutFromGroups(string $callout_id, string $keep): void {
+			foreach (BigTreeJSONDB::getAll("callout-groups") as $group) {
+				$group_id = (string)($group["id"] ?? "");
+
+				if ($group_id === $keep) {
+
+					continue;
+				}
+
+				$callouts = array_values(array_filter((array)($group["callouts"] ?? []), "is_string"));
+				$position = array_search($callout_id, $callouts, true);
+
+				if ($position === false) {
+
+					continue;
+				}
+
+				unset($callouts[$position]);
+				$group["callouts"] = array_values($callouts);
+				BigTreeJSONDB::update("callout-groups", $group_id, $group);
+			}
 		}
 
 		/**

@@ -4,6 +4,8 @@
 	use BigTree\Services\AI\AIToolContext;
 	use BigTree\Services\AI\AIToolInterface;
 	use BigTree\Services\AI\AIToolResult;
+	use BigTree\Services\AI\ContentLock;
+	use BigTree\Services\AI\ProposalFingerprint;
 	use BigTree\Services\AI\ProposalStore;
 
 	/**
@@ -15,6 +17,12 @@
 	 * kind() is fixed to "mutate" so a driver can tell these apart from read tools.
 	 */
 	abstract class AbstractMutatingTool implements AIToolInterface {
+		/**
+		 * Reserved payload key carrying the staged staleness fingerprint. Stripped
+		 * before the payload reaches an execute seam, so no seam has to know about it.
+		 */
+		const FINGERPRINT_KEY = "__fingerprint__";
+
 		/** @var ProposalStore */
 		protected $proposals;
 
@@ -89,6 +97,26 @@
 			$summary = (string)($validation["summary"] ?? "");
 			$preview = is_array($validation["preview"] ?? null) ? $validation["preview"] : [];
 			$payload = is_array($validation["payload"] ?? null) ? $validation["payload"] : [];
+
+			// A backend may name the record's concurrent-edit lock; say so on the card
+			// if someone else is holding it. Resolved here rather than per seam for the
+			// same reason the fingerprint is, and folded into the summary so both the
+			// user reading the card and the model reading the tool result see it.
+			// See ContentLock for why this warns rather than refuses.
+			$summary .= ContentLock::note($validation["lock"] ?? null, $context->user);
+
+			// A backend may describe what its proposal is *about*; hash it now so the
+			// approval can tell whether the card still describes the record. Done once
+			// here rather than per seam so the check can't drift tool by tool. See
+			// ProposalFingerprint and AIChatService::assertNotStale.
+			$fingerprint = $validation["fingerprint"] ?? null;
+
+			if (is_array($fingerprint) && $fingerprint) {
+				$payload[self::FINGERPRINT_KEY] = [
+					"descriptor" => $fingerprint,
+					"hash" => ProposalFingerprint::compute($fingerprint),
+				];
+			}
 
 			$proposal = $this->proposals->create($context->user, $conversation_id, $tool, $summary, $preview, $payload);
 

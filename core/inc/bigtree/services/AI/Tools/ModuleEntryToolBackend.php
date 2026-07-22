@@ -35,6 +35,16 @@
 		 */
 		public function aiModuleSchema(string $module_id, string $form_id, $user): array;
 
+		/**
+		 * List a module's entries, newest first, filtered per row on a group-based
+		 * module. Returns denied | error | ["ambiguous_form" => true, "forms" => [...]]
+		 * | the entry window plus `has_more`.
+		 *
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 */
+		public function aiListEntries(string $module_id, string $form_id, int $limit, int $offset, $user): array;
+
 		public function aiValidateEntryCreate(array $args, $user): array;
 
 		/**

@@ -6,6 +6,7 @@
 	use BigTree\Api\Pagination;
 	use BigTree\Api\Request;
 	use BigTree\Api\Response;
+	use BigTree\Api\Sanitize;
 	use BigTree\Api\Exceptions\BadRequestException;
 	use BigTree\Api\Exceptions\NotFoundException;
 	use BigTree\Api\Exceptions\AuthorizationException;
@@ -197,11 +198,13 @@
 		}
 
 		public function update(Request $request) {
-			[$module_id, $raw_id, $module, $table, $is_pending, $lookup_id, $pending_change_id] = $this->requireEditableEntry($request);
+			[$module_id, $raw_id, $module, $table, $is_pending, $lookup_id, $pending_change_id, $row]
+				= $this->requireEditableEntry($request);
 
 			// A pending entry has no live row yet, so there is nothing to exclude from
 			// the uniqueness check; a numeric id excludes its own live row.
-			[$data, $mtm, $tags, $og, $publish, $user_level, $can_publish] = $this->prepareEntryWrite($request, $module, $table, $is_pending ? 0 : (int)$lookup_id);
+			[$data, $mtm, $tags, $og, $publish, $user_level, $can_publish]
+				= $this->prepareEntryWrite($request, $module, $table, $is_pending ? 0 : (int)$lookup_id, $row);
 
 			// Publishers/admins write live only when they explicitly publish; without
 			// the flag they (like editors) submit a pending change.
@@ -601,9 +604,11 @@
 				throw new NotFoundException("Entry $raw_id not found");
 			}
 
-			PermissionService::assertCanEditRow($request->user, $module, $existing["item"] ?? []);
+			$row = is_array($existing["item"] ?? null) ? $existing["item"] : [];
 
-			return [$module_id, $raw_id, $module, $table, $is_pending, $lookup_id, $pending_change_id];
+			PermissionService::assertCanEditRow($request->user, $module, $row);
+
+			return [$module_id, $raw_id, $module, $table, $is_pending, $lookup_id, $pending_change_id, $row];
 		}
 
 		/**
@@ -627,9 +632,18 @@
 		 * and resolve the caller's module level + publish capability.
 		 * $route_exclude_id is the live row id to exclude from the route-uniqueness
 		 * check (0 on create or when editing a pending entry that has no live row).
+		 * $row is the stored row being edited, [] on create (where the submitted data
+		 * is itself the prospective row) — it decides which group's rank governs
+		 * publishing on a group-based module.
 		 * Returns [$data, $mtm, $tags, $og, $publish, $user_level, $can_publish].
 		 */
-		private function prepareEntryWrite(Request $request, array $module, string $table, int $route_exclude_id): array {
+		private function prepareEntryWrite(
+			Request $request,
+			array $module,
+			string $table,
+			int $route_exclude_id,
+			array $row = []
+		): array {
 			$module_id = $request->routeParam("id");
 			$data = $request->body;
 			$mtm = $this->validateMtm($module, $table, (array)($data["__mtm__"] ?? []));
@@ -645,7 +659,9 @@
 
 			$this->applyEntryProcessors($module, $table, $data, $route_exclude_id);
 
-			$user_level = PermissionService::userModuleLevel($request->user, $module_id);
+			// Per-row rather than best-of-any-group: a user granted `p` on one group
+			// and `e` on another must not publish live in the group they only edit.
+			$user_level = PermissionService::userEntryLevel($request->user, $module, $row ?: $data);
 			$can_publish = PermissionService::isPublisher($request->user, $user_level);
 
 			return [$data, $mtm, $tags, $og, $publish, $user_level, $can_publish];
@@ -1057,7 +1073,16 @@
 			}
 
 			$data = $sifted["data"];
-			$rank = PermissionService::userModuleLevel($user, $module["id"]);
+			$group_error = $this->aiGroupFieldViolation($module, $data, [], $user);
+
+			if ($group_error !== null) {
+
+				return ["error" => $group_error];
+			}
+
+			// The proposed data is the prospective row, so a group-based module judges
+			// publish rights against the group this entry is actually being filed in.
+			$rank = PermissionService::userEntryLevel($user, $module, $data);
 
 			// A publisher can deliberately queue work for someone else's review, the
 			// way REST's __publish__ flag lets them. Because a draft is exactly the
@@ -1161,19 +1186,25 @@
 		 * $prefer_change reads an outstanding draft's staged values instead of the
 		 * live row's, so amending a draft doesn't revert the tags staged on it.
 		 *
-		 * @return array{tags:list<int>,open_graph:array<string,mixed>}
+		 * The same argument applies to the queue row's own `changes` and `mtm_changes`
+		 * columns, which submitChange also replaces wholesale — they are returned so
+		 * the caller can merge underneath rather than clobber a draft that already has
+		 * other fields (and other relations) queued in it.
+		 *
+		 * @return array{tags:list<int>,open_graph:array<string,mixed>,changes:array<string,mixed>,mtm:array}
 		 */
 		private function aiExistingEntryRelations(string $table, string $entry_id, bool $is_pending, bool $prefer_change): array {
 			$change = null;
 
 			if ($is_pending) {
 				$change = SQL::fetch(
-					"SELECT tags_changes, open_graph_changes FROM bigtree_pending_changes WHERE id = ?",
+					"SELECT changes, mtm_changes, tags_changes, open_graph_changes FROM bigtree_pending_changes WHERE id = ?",
 					(int)ltrim($entry_id, "p")
 				);
 			} elseif ($prefer_change) {
 				$change = SQL::fetch(
-					"SELECT tags_changes, open_graph_changes FROM bigtree_pending_changes WHERE `table` = ? AND item_id = ?",
+					"SELECT changes, mtm_changes, tags_changes, open_graph_changes
+					 FROM bigtree_pending_changes WHERE `table` = ? AND item_id = ?",
 					$table,
 					(int)$entry_id
 				);
@@ -1186,6 +1217,8 @@
 				return [
 					"tags" => array_values(array_map("intval", $tags)),
 					"open_graph" => $open_graph,
+					"changes" => Json::decode($change["changes"]),
+					"mtm" => Json::decode($change["mtm_changes"]),
 				];
 			}
 
@@ -1193,7 +1226,7 @@
 			// the live row itself carries.
 			if ($is_pending) {
 
-				return ["tags" => [], "open_graph" => []];
+				return ["tags" => [], "open_graph" => [], "changes" => [], "mtm" => []];
 			}
 
 			$tags = SQL::fetchAllSingle(
@@ -1211,7 +1244,185 @@
 			return [
 				"tags" => array_values(array_map("intval", $tags ?: [])),
 				"open_graph" => $og_row ? array_map("strval", $og_row) : [],
+				"changes" => [],
+				"mtm" => [],
 			];
+		}
+
+		/**
+		 * An entry's effective tag ids: what an outstanding change stages if there is
+		 * one, otherwise what is live. The tag tools merge into this set.
+		 *
+		 * @return list<int>
+		 */
+		public function aiEntryTagIds(string $table, int $entry_id): array {
+
+			return $this->aiExistingEntryRelations($table, (string)$entry_id, false, true)["tags"];
+		}
+
+		// How many entries list_module_entries returns at most. The model can page
+		// with `offset`; the payload always says whether there are more.
+		private const AI_ENTRY_LIST_CAP = 50;
+
+		/**
+		 * List a module's entries, newest first.
+		 *
+		 * There was no way to do this at all: search_module_entries requires a query,
+		 * sweeps every accessible module, and slices to five rows per module with no
+		 * truncation note — so "list the ten most recent news posts" was unanswerable
+		 * and the model didn't know it had only seen five. `GET /modules/{id}/entries`
+		 * has had this all along.
+		 *
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 */
+		public function aiListEntries(string $module_id, string $form_id, int $limit, int $offset, $user): array {
+			$resolved = $this->aiResolveModuleForm($module_id, $form_id);
+
+			if (isset($resolved["error"]) || !empty($resolved["ambiguous_form"])) {
+
+				return $resolved;
+			}
+
+			$module = $resolved["module"];
+			$table = (string)$resolved["table"];
+
+			if (!PermissionService::userHasModuleAccess($user, (string)$module["id"], "v")) {
+
+				return ["denied" => "You do not have permission to view entries in this module."];
+			}
+
+			if (!preg_match('/^[A-Za-z0-9_]+$/', $table) || !SQL::tableExists($table)) {
+
+				return ["error" => "This module's entry table is not readable."];
+			}
+
+			$limit = max(1, min(self::AI_ENTRY_LIST_CAP, $limit));
+			$offset = max(0, $offset);
+			$schema = $resolved["schema"];
+			$filter_rows = !empty($module["gbp"]["enabled"]) && PermissionService::level($user) === 0;
+
+			// One row past the window, so "there are more" is a fact rather than a
+			// guess. On a group-based module the per-row filter can eat into the
+			// window, so the offset can't be pushed into SQL: over-fetch, filter, and
+			// slice here instead.
+			if ($filter_rows) {
+				$rows = SQL::fetchAll(
+					"SELECT * FROM `{$table}` ORDER BY id DESC LIMIT " . (int)(($offset + $limit + 1) * 4)
+				);
+				$rows = array_values(array_filter($rows, function ($row) use ($user, $module) {
+
+					return PermissionService::userRowLevel($user, $module, is_array($row) ? $row : []) !== "n";
+				}));
+				$window = array_slice($rows, $offset, $limit + 1);
+			} else {
+				$window = SQL::fetchAll(
+					"SELECT * FROM `{$table}` ORDER BY id DESC LIMIT " . (int)$offset . ", " . (int)($limit + 1)
+				);
+			}
+
+			$more = count($window) > $limit;
+			$window = array_slice($window, 0, $limit);
+
+			// Only the columns the model can actually reason about (and write back),
+			// plus the id — a full row dump would be mostly blobs.
+			$columns = array_merge(["id"], array_keys($schema));
+			$entries = array_map(function ($row) use ($columns) {
+				$out = [];
+
+				foreach ($columns as $column) {
+					if (!array_key_exists($column, $row)) {
+
+						continue;
+					}
+
+					$value = $row[$column];
+					$text = is_scalar($value) || $value === null ? (string)$value : (string)json_encode($value);
+					$out[$column] = mb_strlen($text) > 300 ? mb_substr($text, 0, 299) . "…" : $text;
+				}
+
+				return $out;
+			}, $window);
+
+			return [
+				"module" => [
+					"id" => (string)$module["id"],
+					"name" => (string)($module["name"] ?? $module["id"]),
+				],
+				"form" => (string)($resolved["form"]["id"] ?? ""),
+				"table" => $table,
+				"offset" => $offset,
+				"limit" => $limit,
+				"has_more" => $more,
+				"entries" => $entries,
+			];
+		}
+
+		/**
+		 * The read half of what the entry write tools can set beside the row itself:
+		 * an entry's tag names and its Open Graph title/description.
+		 *
+		 * Both are writable through create/update_module_entry and neither appeared in
+		 * any read payload, so the model could set a social title but never see one —
+		 * and "what is this tagged?" had no answer at all.
+		 *
+		 * @return array{tags:list<string>,open_graph:array<string,string>}
+		 */
+		public function aiEntryRelationDetail(string $table, string $entry_id, bool $is_pending): array {
+			$relations = $this->aiExistingEntryRelations($table, $entry_id, $is_pending, $is_pending);
+			$names = [];
+
+			if ($relations["tags"]) {
+				$ids = $relations["tags"];
+				$names = SQL::fetchAllSingle(
+					"SELECT tag FROM bigtree_tags WHERE id IN (" . Sanitize::placeholders($ids) . ") ORDER BY tag",
+					...$ids
+				);
+			}
+
+			return [
+				"tags" => array_values(array_map("strval", $names ?: [])),
+				"open_graph" => [
+					"og_title" => (string)($relations["open_graph"]["title"] ?? ""),
+					"og_description" => (string)($relations["open_graph"]["description"] ?? ""),
+				],
+			];
+		}
+
+		/**
+		 * Queue an entry's new tag set as a pending change rather than writing
+		 * bigtree_tags_rel live — the tag half of the same non-publisher rule every
+		 * other entry write already follows. Everything else already queued on the
+		 * change row is carried forward, because submitChange replaces it wholesale.
+		 *
+		 * @param list<int> $tag_ids The complete resulting tag set.
+		 * @param object|array $user
+		 */
+		public function aiQueueEntryTagChange(string $module_id, string $table, int $entry_id, array $tag_ids, $user): int {
+			if (!PermissionService::userHasModuleAccess($user, $module_id, "e")) {
+				throw new AuthorizationException("Insufficient module permission to tag entry (e required)");
+			}
+
+			$existing = $this->aiExistingEntryRelations($table, (string)$entry_id, false, true);
+
+			$this->bindLegacyAdmin($user);
+
+			$change_id = BigTreeAutoModule::submitChange(
+				$module_id,
+				$table,
+				$entry_id,
+				$existing["changes"],
+				$existing["mtm"],
+				array_values(array_map("intval", $tag_ids)),
+				null,
+				$existing["open_graph"]
+			);
+
+			Hooks::fire("module_entry.pending_updated", [
+				"module" => $module_id, "table" => $table, "id" => $entry_id, "via" => "ai_assistant",
+			]);
+
+			return (int)$change_id;
 		}
 
 		/**
@@ -1294,6 +1505,46 @@
 			}
 
 			return ["is_pending" => $is_pending, "lookup_id" => $lookup_id, "change_id" => $change_id, "row" => $row];
+		}
+
+		/**
+		 * Refuse a write that would file an entry in a group the user has no grant on.
+		 *
+		 * Nothing validated a *new* `group_field` value: the permission pre-check runs
+		 * against the row as it stands, so an editor could move an entry into a group
+		 * they have no access to (or, on create, file it straight into one). Nothing
+		 * marks the column special either, so the model will happily set it. Shared by
+		 * staging and approval.
+		 *
+		 * @param array<string,mixed> $module
+		 * @param array<string,mixed> $data The sifted changes.
+		 * @param array<string,mixed> $row  The stored row, [] on create.
+		 * @return string|null An error message, or null when the write is acceptable.
+		 */
+		private function aiGroupFieldViolation(array $module, array $data, array $row, $user): ?string {
+			$gbp = is_array($module["gbp"] ?? null) ? $module["gbp"] : [];
+			$group_field = (string)($gbp["group_field"] ?? "");
+
+			if (empty($gbp["enabled"]) || $group_field === "" || !array_key_exists($group_field, $data)) {
+
+				return null;
+			}
+
+			// Unchanged is not this write's doing.
+			if ($row && (string)($row[$group_field] ?? "") === (string)$data[$group_field]) {
+
+				return null;
+			}
+
+			$prospective = array_merge($row, $data);
+
+			if (in_array(PermissionService::userRowLevel($user, $module, $prospective), ["e", "p"], true)) {
+
+				return null;
+			}
+
+			return "You don't have access to the group this would file the entry in (\"{$group_field}\" = "
+				. "\"" . (string)$data[$group_field] . "\"), so it would become an entry you can't edit.";
 		}
 
 		/**
@@ -1394,12 +1645,46 @@
 				return ["mode" => "error", "message" => "That module no longer exists."];
 			}
 
+			// The form is re-resolved before anything is written, both to re-run the
+			// gates against it and because `table` is re-derived from the module rather
+			// than trusted from the stored payload.
+			$resolved = $this->aiResolveModuleForm($module_id, (string)($payload["form"] ?? ""));
+
+			if (isset($resolved["error"]) || !empty($resolved["ambiguous_form"])
+				|| (string)$resolved["table"] !== $table) {
+
+				return ["mode" => "error", "message" => "This module's forms have changed since this was proposed — ask again."];
+			}
+
+			// Re-sifted against the schema as it stands now: a column removed or
+			// retyped during the proposal's 24h life must not be written blind.
+			$sifted = $this->aiSiftEntryData(
+				$resolved["schema"],
+				$data,
+				is_array($resolved["form"] ?? null) ? $resolved["form"] : null
+			);
+
+			if (isset($sifted["error"])) {
+
+				return ["mode" => "error", "message" => (string)$sifted["error"]];
+			}
+
+			$data = $sifted["data"];
+			$group_error = $this->aiGroupFieldViolation($module, $data, [], $user);
+
+			if ($group_error !== null) {
+
+				return ["mode" => "error", "message" => $group_error];
+			}
+
 			// Route/geocoding are derived server-side, never supplied by the model.
 			// Run them here (at approval) rather than at staging so route uniqueness
 			// is evaluated against the table as it stands at write time.
 			$this->aiApplyEntryProcessors($module, $table, $data, [], 0);
 
-			$rank = PermissionService::userModuleLevel($user, $module_id);
+			// The data being written is the prospective row, so a group-based module
+			// judges publish rights against the group it is actually being filed in.
+			$rank = PermissionService::userEntryLevel($user, $module, $data);
 			// An explicit "save as draft" forces the pending path however senior the
 			// approver is.
 			$can_publish = PermissionService::isPublisher($user, $rank) && empty($payload["save_as_draft"]);
@@ -1408,13 +1693,6 @@
 			// form as it stands now. Staging may have allowed this as a pending draft
 			// for an editor; if their rank was raised since, approving it would publish
 			// an incomplete record live — refuse instead.
-			$resolved = $this->aiResolveModuleForm($module_id, (string)($payload["form"] ?? ""));
-
-			if (isset($resolved["error"]) || !empty($resolved["ambiguous_form"])) {
-
-				return ["mode" => "error", "message" => "This module's forms have changed since this was proposed — ask again."];
-			}
-
 			$gate = $this->aiEntryCreateGate($resolved, $data, $can_publish);
 
 			if ($gate !== null) {
@@ -1443,8 +1721,25 @@
 
 			$this->bindLegacyAdmin($user);
 
+			// The same normalization PendingChangeService runs before the identical
+			// write. Without it a publisher's create hit strict-mode MySQL with a
+			// model-shaped date ("March 3rd, 2027") and failed, while the *same*
+			// proposal approved by an editor queued, got sanitized at publish, and
+			// worked — the outcome depended on who clicked Approve.
+			$data = BigTreeAutoModule::sanitizeData($table, $data);
+
 			if ($can_publish) {
 				$id = BigTreeAutoModule::createItem($table, $data, [], $tag_ids, null, $open_graph);
+
+				// createItem returns false on a failed query. Casting that to 0 told the
+				// user their entry was published, with entry_id 0 and a resource
+				// allocation written against entry 0.
+				if (!$id) {
+
+					return ["mode" => "error", "message" => "The entry could not be saved — the database rejected the "
+						. "values. Check the field values and try again."];
+				}
+
 				$this->trackModuleResources($table, (int)$id, $data);
 				Hooks::fire("module_entry.created", [
 					"module" => $module_id, "table" => $table, "id" => (int)$id, "via" => "ai_assistant",
@@ -1504,10 +1799,29 @@
 			$row = $resolved_entry["row"];
 			$is_pending = $resolved_entry["is_pending"];
 
-			// Per-row group-based-permission check (assertCanEditRow's non-throwing core).
+			// Per-row group-based-permission check (assertCanEditRow's non-throwing
+			// core). Deliberately against the *published* row — an unpublished group
+			// value must not grant access the live row doesn't.
 			if (PermissionService::userRowLevel($user, $module, $row) === "n") {
 
 				return ["denied" => "You do not have permission to edit this specific entry."];
+			}
+
+			// Publish rights come from *this row's* rank, not the best of the user's
+			// group grants — see PermissionService::userEntryLevel.
+			$rank = PermissionService::userEntryLevel($user, $module, $row);
+			$save_as_draft = !empty($args["save_as_draft"]);
+			$can_publish = PermissionService::isPublisher($user, $rank) && !$save_as_draft;
+
+			// When this edit is going to join an existing queued draft, that draft is
+			// what is being edited — gate and diff against it so the card's `from`
+			// values describe what the approver will actually replace.
+			if (!$is_pending && !$can_publish) {
+				$queued = $this->aiExistingEntryRelations($table, (string)$entry_id, false, true);
+
+				if ($queued["changes"]) {
+					$row = array_merge($row, $queued["changes"]);
+				}
 			}
 
 			$provided = is_array($args["data"] ?? null) ? $args["data"] : [];
@@ -1535,6 +1849,13 @@
 				return ["error" => "No settable fields were supplied — nothing to update."];
 			}
 
+			$group_error = $this->aiGroupFieldViolation($module, $data, $resolved_entry["row"], $user);
+
+			if ($group_error !== null) {
+
+				return ["error" => $group_error];
+			}
+
 			$gate = $this->aiEntryUpdateGate($schema, $row, $data);
 
 			if ($gate !== null) {
@@ -1542,9 +1863,8 @@
 				return ["error" => $gate];
 			}
 
-			$rank = PermissionService::userModuleLevel($user, $module["id"]);
-			$save_as_draft = !empty($args["save_as_draft"]);
-			$can_publish = PermissionService::isPublisher($user, $rank) && !$save_as_draft;
+			// $rank / $save_as_draft / $can_publish are resolved above the overlay,
+			// because the overlay decision depends on them.
 			$name = (string)($module["name"] ?? $module["id"]);
 
 			// A draft has no live row to publish over: the edit amends the queued
@@ -1595,6 +1915,12 @@
 					"open_graph" => $open_graph,
 					"save_as_draft" => $save_as_draft,
 				],
+				// Only the columns this edit touches: the card's `from` values came
+				// from them, so if they moved the card no longer describes the row.
+				"fingerprint" => $is_pending
+					? ["type" => "pending_change", "id" => (int)$resolved_entry["change_id"]]
+					: ($data ? ["type" => "entry", "table" => $table, "id" => $entry_id, "columns" => array_keys($data)] : []),
+				"lock" => $this->aiEntryLock($module, $entry_id, $is_pending),
 			];
 		}
 
@@ -1627,6 +1953,38 @@
 
 			PermissionService::assertCanEditRow($user, $module, $row);
 
+			// Re-resolved before anything is written: `table` is re-derived from the
+			// module rather than trusted from the stored payload, and the schema below
+			// has to be the one that exists now.
+			$resolved_form = $this->aiResolveModuleForm($module_id, (string)($payload["form"] ?? ""));
+
+			if (isset($resolved_form["error"]) || !empty($resolved_form["ambiguous_form"])
+				|| (string)$resolved_form["table"] !== $table) {
+
+				return ["mode" => "error", "message" => "This module's forms have changed since this was proposed — ask again."];
+			}
+
+			// Re-sifted against the schema as it stands now, so a column removed or
+			// retyped during the proposal's 24h life isn't written blind.
+			$sifted = $this->aiSiftEntryData(
+				$resolved_form["schema"],
+				$data,
+				is_array($resolved_form["form"] ?? null) ? $resolved_form["form"] : null
+			);
+
+			if (isset($sifted["error"])) {
+
+				return ["mode" => "error", "message" => (string)$sifted["error"]];
+			}
+
+			$data = $sifted["data"];
+			$group_error = $this->aiGroupFieldViolation($module, $data, $row, $user);
+
+			if ($group_error !== null) {
+
+				return ["mode" => "error", "message" => $group_error];
+			}
+
 			// Same derived-field pass as create, but the route is only regenerated
 			// when one of its source columns is among the fields being changed —
 			// otherwise an unrelated edit would silently re-route the entry. A draft
@@ -1635,13 +1993,6 @@
 
 			// Re-gated against the form as it stands now: a column made required during
 			// the proposal's 24h life would otherwise be blanked by approving it.
-			$resolved_form = $this->aiResolveModuleForm($module_id, (string)($payload["form"] ?? ""));
-
-			if (isset($resolved_form["error"]) || !empty($resolved_form["ambiguous_form"])) {
-
-				return ["mode" => "error", "message" => "This module's forms have changed since this was proposed — ask again."];
-			}
-
 			$gate = $this->aiEntryUpdateGate($resolved_form["schema"], $row, $data);
 
 			if ($gate !== null) {
@@ -1649,7 +2000,11 @@
 				return ["mode" => "error", "message" => $gate];
 			}
 
-			$rank = PermissionService::userModuleLevel($user, $module_id);
+			// Publish rights come from *this row's* rank, not the best of the user's
+			// group grants — see PermissionService::userEntryLevel. Judged against the
+			// stored row: a user must not gain publish rights by moving a row into a
+			// group they happen to publish in.
+			$rank = PermissionService::userEntryLevel($user, $module, $row);
 			// An explicit "save as draft" forces the pending path however senior the
 			// approver is.
 			$can_publish = PermissionService::isPublisher($user, $rank) && empty($payload["save_as_draft"]);
@@ -1670,14 +2025,30 @@
 			$staged_og = is_array($payload["open_graph"] ?? null) ? $payload["open_graph"] : [];
 			$open_graph = $staged_og ? array_merge($existing["open_graph"], $staged_og) : $existing["open_graph"];
 
+			// submitChange replaces the queue row's `changes` and `mtm_changes` blobs
+			// outright. REST survives that because its client PATCHes the whole form
+			// body, so the replacement is a superset — the assistant hands over only
+			// the columns it is changing, so without merging underneath, an AI edit
+			// destroys every other field already queued in the same draft. Merged
+			// after the processors and the gate so both still judge only this edit.
+			$queued = is_array($existing["changes"] ?? null) ? $existing["changes"] : [];
+			$write_data = $queued ? array_merge($queued, $data) : $data;
+			$mtm = is_array($existing["mtm"] ?? null) ? $existing["mtm"] : [];
+
+			// The same normalization PendingChangeService runs before the identical
+			// write, so a model-shaped value doesn't succeed or fail depending on who
+			// approves it (an editor's queued write is sanitized at publish either way).
+			$data = BigTreeAutoModule::sanitizeData($table, $data);
+			$write_data = BigTreeAutoModule::sanitizeData($table, $write_data);
+
 			// A draft only exists in the pending queue — there is nothing to publish
 			// over, so even a publisher's edit amends the queued change. submitChange
 			// understands the "p" prefix and updates that row in place.
 			if ($is_pending) {
 				BigTreeAutoModule::submitChange(
-					$module_id, $table, $entry_id, $data, [], $existing["tags"], null, $open_graph
+					$module_id, $table, $entry_id, $write_data, $mtm, $existing["tags"], null, $open_graph
 				);
-				$this->trackModuleResources($table, $entry_id, $data);
+				$this->trackModuleResources($table, $entry_id, $write_data);
 				Hooks::fire("module_entry.pending_updated", [
 					"module" => $module_id, "table" => $table, "id" => $entry_id, "via" => "ai_assistant",
 				]);
@@ -1705,9 +2076,9 @@
 			}
 
 			$change_allocation_id = BigTreeAutoModule::submitChange(
-				$module_id, $table, $entry_id, $data, [], $existing["tags"], null, $open_graph
+				$module_id, $table, $entry_id, $write_data, $mtm, $existing["tags"], null, $open_graph
 			);
-			$this->trackModuleResources($table, "p".$change_allocation_id, $data);
+			$this->trackModuleResources($table, "p".$change_allocation_id, $write_data);
 			Hooks::fire("module_entry.pending_updated", [
 				"module" => $module_id, "table" => $table, "id" => $entry_id, "via" => "ai_assistant",
 			]);
@@ -1806,11 +2177,16 @@
 				],
 				"payload" => [
 					"module_id" => (string)$module["id"],
+					// Carried so approval can re-resolve the same form rather than
+					// trusting (or re-guessing) which table this entry lives in.
+					"form" => (string)($resolved["form"] ?? ""),
 					"table" => $table,
 					"entry_id" => $entry_id,
 					"flag" => $flag,
 					"value" => $value,
 				],
+				"fingerprint" => ["type" => "entry", "table" => $table, "id" => $entry_id, "columns" => [$flag]],
+				"lock" => $this->aiEntryLock($module, $entry_id, false),
 			];
 		}
 
@@ -1833,12 +2209,36 @@
 			}
 
 			$module = BigTreeJSONDB::get("modules", $module_id);
+
+			if (!$module) {
+
+				return ["mode" => "error", "message" => "That module no longer exists."];
+			}
+
+			// The table is re-derived from the module rather than trusted from the
+			// stored payload, the way every other entry seam does it.
+			$resolved = $this->aiResolveModuleForm($module_id, (string)($payload["form"] ?? ""));
+
+			if (isset($resolved["error"]) || !empty($resolved["ambiguous_form"])
+				|| (string)$resolved["table"] !== $table) {
+
+				return ["mode" => "error", "message" => "This module's forms have changed since this was proposed — ask again."];
+			}
+
 			$item = BigTreeAutoModule::getItem($table, $entry_id);
 			$row = is_array($item) ? ($item["item"] ?? []) : [];
 
-			if (!$module || !$row) {
+			if (!$row) {
 
 				return ["mode" => "error", "message" => "That entry no longer exists."];
+			}
+
+			// The flag column can be dropped from the table during the proposal's life.
+			$description = SQL::describeTable($table);
+
+			if (!$description || !isset($description["columns"][$flag])) {
+
+				return ["mode" => "error", "message" => "Entries in this module no longer have a \"{$flag}\" flag."];
 			}
 
 			if (PermissionService::userRowLevel($user, $module, $row) !== "p") {
@@ -1916,6 +2316,14 @@
 					"table" => $resolved["table"],
 					"entry_id" => $entry_id,
 				],
+				// A delete is irreversible, so the whole record is fingerprinted: if
+				// anything about it moved, the thing being destroyed isn't the thing
+				// the card described.
+				"fingerprint" => $is_pending
+					? ["type" => "pending_change", "id" => (int)$resolved["change_id"]]
+					: ["type" => "entry", "table" => $resolved["table"], "id" => $entry_id,
+						"columns" => array_keys($row)],
+				"lock" => $this->aiEntryLock($module, $entry_id, $is_pending),
 			];
 		}
 
@@ -1933,9 +2341,25 @@
 			$raw_entry_id = trim((string)($payload["entry_id"] ?? ""));
 
 			$module = BigTreeJSONDB::get("modules", $module_id);
+
+			if (!$module) {
+
+				return ["mode" => "error", "message" => "That module no longer exists."];
+			}
+
+			// The table is re-derived from the module rather than trusted from the
+			// stored payload — a delete is the last place to guess at which one.
+			$resolved_form = $this->aiResolveModuleForm($module_id, (string)($payload["form"] ?? ""));
+
+			if (isset($resolved_form["error"]) || !empty($resolved_form["ambiguous_form"])
+				|| (string)$resolved_form["table"] !== $table) {
+
+				return ["mode" => "error", "message" => "This module's forms have changed since this was proposed — ask again."];
+			}
+
 			$resolved_entry = $this->aiResolveEntryRow($table, $raw_entry_id);
 
-			if (!$module || isset($resolved_entry["error"])) {
+			if (isset($resolved_entry["error"])) {
 
 				return ["mode" => "error", "message" => "That entry no longer exists (it may already have been deleted)."];
 			}
@@ -2030,6 +2454,26 @@
 				"change_id" => $entry["change_id"],
 				"row" => $entry["row"],
 			];
+		}
+
+		/**
+		 * The concurrent-edit lock descriptor for an entry, in the shape
+		 * ModuleEntryEdit's useLock call passes ("module:{id}" keyed by entry id).
+		 * Empty for a draft: the entry editor locks the live row, and a draft has none.
+		 *
+		 * @param array<string,mixed> $module
+		 * @param int|string $entry_id
+		 * @return array<string,mixed>
+		 */
+		private function aiEntryLock(array $module, $entry_id, bool $is_pending): array {
+			$module_id = (string)($module["id"] ?? "");
+
+			if ($is_pending || $module_id === "" || (string)$entry_id === "") {
+
+				return [];
+			}
+
+			return ["table" => "module:{$module_id}", "id" => (string)$entry_id];
 		}
 
 		/**
@@ -2207,8 +2651,13 @@
 					"column" => $column,
 					"title" => (string)($field["title"] ?? $column),
 					"type" => $type,
-					"required" => !empty($settings["required"]),
+					// BigTree's canonical required signal is the `validation` rule
+					// string, not the `required` key — read both, or this reports
+					// required: false for a field the create gate then rejects.
+					"required" => !empty($settings["required"])
+						|| in_array("required", $this->aiValidationRules($settings), true),
 					"assistant_can_set" => $settable,
+					"options" => $settable ? $this->aiFieldOptions($field, $type, $column) : [],
 				];
 
 				if (!$settable) {
@@ -2251,7 +2700,14 @@
 				$type = (string)($field["type"] ?? "text");
 				$settings = is_array($field["settings"] ?? null) ? $field["settings"] : [];
 
-				if ($column === "" || empty($settings["required"])) {
+				// A field made required through the `validation` rule string — which is
+				// how every pre-SPA module spells it — was invisible here, so
+				// blocked_required came back empty and aiEntryCreateGate let a
+				// publisher publish an entry the admin's own validator refuses.
+				$required = !empty($settings["required"])
+					|| in_array("required", $this->aiValidationRules($settings), true);
+
+				if ($column === "" || !$required) {
 					continue;
 				}
 
@@ -2305,10 +2761,39 @@
 					"title" => (string)($field["title"] ?? $column),
 					"required" => !empty($settings["required"]) || in_array("required", $rules, true),
 					"rules" => array_values(array_diff($rules, ["required"])),
+					// The option set, when there is one. Neither schema emitted it and
+					// the sift accepted any string, so a `db`-populated list — whose
+					// stored value is a *foreign row id* — silently took the label the
+					// model wrote and resolved to blank everywhere it was rendered.
+					"options" => $this->aiFieldOptions($field, $type, $column),
 				];
 			}
 
 			return $schema;
+		}
+
+		/**
+		 * The resolved option set for a field that has one, as {value, label}. Empty
+		 * for any other field type, and for a list whose options can't be resolved
+		 * (a misconfigured `db` list) — that is the admin's problem to report, not a
+		 * reason to refuse every write.
+		 *
+		 * @param array<string,mixed> $field
+		 * @return list<array{value:string,label:string}>
+		 */
+		private function aiFieldOptions(array $field, string $type, string $column): array {
+			if ($type !== "list") {
+
+				return [];
+			}
+
+			try {
+
+				return (new ModuleFormService())->resolveListOptions($field, $column);
+			} catch (\Throwable $e) {
+
+				return [];
+			}
 		}
 
 		/**
@@ -2356,6 +2841,13 @@
 					$data[$column] = is_bool($value) ? ($value ? "1" : "0") : (string)$value;
 				}
 
+				$out_of_domain = $this->aiOptionViolation($schema[$column], $data[$column]);
+
+				if ($out_of_domain !== null) {
+
+					return ["error" => $out_of_domain];
+				}
+
 				// `required` is deliberately excluded from these rules and left to the
 				// create/update gates, which know whether an empty value is this edit's
 				// doing. What's left (numeric, email, link) the write path would refuse
@@ -2369,6 +2861,57 @@
 			}
 
 			return ["data" => $data];
+		}
+
+		/**
+		 * Reject a value that isn't one of a list field's options.
+		 *
+		 * The option set was never exposed and never checked, so the model wrote
+		 * whatever read well — which for a `db`-populated list (whose stored value is
+		 * a foreign row id) meant the view cache resolved it through
+		 * other_table.title_field to nothing at all. A label the user would recognise
+		 * is matched back to its value rather than refused outright.
+		 *
+		 * @param array<string,mixed> $field The schema entry.
+		 * @return string|null An error message, or null when the value is acceptable.
+		 */
+		private function aiOptionViolation(array $field, string &$value): ?string {
+			$options = is_array($field["options"] ?? null) ? $field["options"] : [];
+
+			// No options resolved (or a misconfigured db list) means nothing to check.
+			// An empty value is `required`'s business, and the gates own that.
+			if (!$options || $value === "") {
+
+				return null;
+			}
+
+			$values = array_map("strval", array_column($options, "value"));
+
+			if (in_array($value, $values, true)) {
+
+				return null;
+			}
+
+			// The model naturally writes the label ("Portland"); accept it and store
+			// the value the admin would have stored.
+			foreach ($options as $option) {
+				if (strcasecmp((string)($option["label"] ?? ""), $value) === 0) {
+					$value = (string)$option["value"];
+
+					return null;
+				}
+			}
+
+			$listed = array_map(function (array $option): string {
+				$label = (string)($option["label"] ?? "");
+				$option_value = (string)($option["value"] ?? "");
+
+				return $label !== "" && $label !== $option_value ? "{$label} ({$option_value})" : $option_value;
+			}, array_slice($options, 0, 30));
+
+			return "\"{$value}\" isn't one of the options for \"" . (string)($field["title"] ?? $field["column"])
+				. "\". Choose one of: " . implode(", ", $listed)
+				. (count($options) > 30 ? ", …" : "") . ".";
 		}
 
 		/**

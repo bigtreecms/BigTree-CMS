@@ -162,6 +162,105 @@
 		T::equals($missing, [], "every approved tool writes an audit row (or is on the documented skip list)");
 	}
 
+	/**
+	 * Every table name auditDescriptor emits must be one some REST route audits
+	 * under, or a table that really exists.
+	 *
+	 * Audit #5 found five that were neither: `bigtree_templates`, `bigtree_callouts`,
+	 * `bigtree_callout_groups`, `bigtree_modules`, `bigtree_module_groups` — SQL
+	 * tables dropped at revision 401, while every other writer audits under the
+	 * JSON-DB store name ("templates", "callouts", …). AuditService::list filters on
+	 * literal equality, so "who changed the landing-page template?" returned the
+	 * admin's edits and silently omitted every AI one.
+	 *
+	 * @return list<string>
+	 */
+	function ai_wiring_route_audit_tables(): array {
+		static $tables = null;
+
+		if ($tables !== null) {
+
+			return $tables;
+		}
+
+		$tables = [];
+
+		foreach (glob(SERVER_ROOT . "core/inc/bigtree/api/routes/*.php") ?: [] as $file) {
+			preg_match_all('/"audit"\s*=>\s*\[\s*"table"\s*=>\s*"([^"]+)"/', (string)file_get_contents($file), $matches);
+
+			foreach ($matches[1] as $table) {
+				$tables[] = $table;
+			}
+		}
+
+		$tables = array_values(array_unique($tables));
+
+		return $tables;
+	}
+
+	/** The literal table strings auditDescriptor's own body emits. */
+	function ai_wiring_descriptor_tables(): array {
+		static $lines = null;
+
+		if ($lines === null) {
+			$lines = file(SERVER_ROOT . "core/inc/bigtree/services/AIChatService.php");
+		}
+
+		$reflection = new ReflectionMethod(AIChatService::class, "auditDescriptor");
+		$body = implode("", array_slice(
+			$lines,
+			$reflection->getStartLine() - 1,
+			$reflection->getEndLine() - $reflection->getStartLine() + 1
+		));
+
+		preg_match_all('/self::descriptor\("([^"]+)"/', $body, $matches);
+
+		return array_values(array_unique($matches[1]));
+	}
+
+	function test_audit_descriptor_tables_match_the_rest_routes() {
+		$declared = ai_wiring_route_audit_tables();
+		$emitted = ai_wiring_descriptor_tables();
+
+		T::ok(count($declared) > 0, "route audit tables were parsed");
+		T::ok(count($emitted) > 0, "auditDescriptor's tables were parsed");
+
+		// A descriptor may legitimately name a table no route audits (the AI path
+		// writes some rows REST has no endpoint for) — but only when the table is
+		// real. What must never happen is a name that is neither a route's audit
+		// table nor an actual table, because it silently partitions the trail.
+		$orphans = [];
+
+		foreach ($emitted as $table) {
+			if (in_array($table, $declared, true)) {
+
+				continue;
+			}
+
+			if (SQL::tableExists($table)) {
+
+				continue;
+			}
+
+			$orphans[] = $table;
+		}
+
+		T::equals(
+			implode(", ", $orphans),
+			"",
+			"every auditDescriptor table is a route's audit table or a real table"
+		);
+
+		// Spot-check the five the audit named, so a revert is caught by name.
+		foreach (["templates", "callouts", "callout-groups", "modules", "module-groups"] as $store) {
+			T::ok(in_array($store, $emitted, true), "developer objects audit under the JSON-DB name “{$store}”");
+		}
+
+		foreach (["bigtree_templates", "bigtree_callouts", "bigtree_modules"] as $dropped) {
+			T::ok(!in_array($dropped, $emitted, true), "nothing audits under the dropped table “{$dropped}”");
+		}
+	}
+
 	function test_audit_descriptors_do_not_outlive_their_tools() {
 		$dispatched = ai_wiring_dispatch_branches();
 		$orphaned = [];

@@ -286,6 +286,74 @@
 		 * @param object|array $user
 		 * @return array<string,mixed>
 		 */
+		// Column caps, mirroring what routes/users.php declares. Nothing on the AI
+		// path checked them, so a 900-character model-generated name was accepted
+		// where both the API and the UI refuse it.
+		private const AI_USER_MAX_LENGTHS = [
+			"email" => 255,
+			"name" => 255,
+			"company" => 255,
+			"timezone" => 64,
+		];
+
+		/**
+		 * The first over-length user field, as a recoverable error. Shared by staging
+		 * and approval so a stored payload can't slip past.
+		 *
+		 * @param array<string,mixed> $fields
+		 */
+		private function aiUserLengthError(array $fields): ?string {
+			foreach (self::AI_USER_MAX_LENGTHS as $field => $max) {
+				if (!array_key_exists($field, $fields)) {
+
+					continue;
+				}
+
+				$length = mb_strlen((string)$fields[$field]);
+
+				if ($length > $max) {
+
+					return "The user's {$field} is {$length} characters, but the field holds at most {$max}.";
+				}
+			}
+
+			return null;
+		}
+
+		/**
+		 * Normalize a proposed notification preference set.
+		 *
+		 * `alerts` is a page-id => max-age map the dashboard's content alerts read
+		 * (DashboardService::aiContentAlerts). get_content_alerts could already report
+		 * a user's thresholds while nothing could set them, which made the catalog
+		 * contradict itself — read-only for a preference `PATCH /users/{id}` accepts.
+		 *
+		 * @param mixed $alerts
+		 * @return array{error?:string,alerts?:array<string,int>}
+		 */
+		private function aiNormalizeAlerts($alerts): array {
+			if (!is_array($alerts)) {
+
+				return ["error" => "alerts must be an object mapping page ids to a number of days."];
+			}
+
+			$out = [];
+
+			foreach ($alerts as $page_id => $days) {
+				$page_id = (int)$page_id;
+				$days = (int)$days;
+
+				if ($page_id < 0 || $days < 0) {
+
+					return ["error" => "alerts must map real page ids to a non-negative number of days."];
+				}
+
+				$out[(string)$page_id] = $days;
+			}
+
+			return ["alerts" => $out];
+		}
+
 		public function aiValidateUserCreate(array $args, $user): array {
 			if (PermissionService::level($user) < 1) {
 
@@ -325,6 +393,18 @@
 
 				return ["error" => "\"{$timezone}\" is not a valid timezone identifier. Use an IANA name "
 					. "like \"America/New_York\" or \"Europe/London\"."];
+			}
+
+			$too_long = $this->aiUserLengthError([
+				"email" => $email,
+				"name" => $name,
+				"company" => $company,
+				"timezone" => $timezone,
+			]);
+
+			if ($too_long !== null) {
+
+				return ["error" => $too_long];
 			}
 
 			return [
@@ -384,6 +464,18 @@
 				return ["mode" => "error", "message" => "A name is required for a new user account."];
 			}
 
+			$too_long = $this->aiUserLengthError([
+				"email" => $email,
+				"name" => $name,
+				"company" => (string)($payload["company"] ?? ""),
+				"timezone" => $timezone,
+			]);
+
+			if ($too_long !== null) {
+
+				return ["mode" => "error", "message" => $too_long];
+			}
+
 			// Always level 0, no password, no permissions — the assistant never grants
 			// privileges. The password is set by the invitee through the reset flow.
 			$id = (int)SQL::insert("bigtree_users", [
@@ -433,7 +525,10 @@
 				return ["error" => "A user_id is required."];
 			}
 
-			$target = SQL::fetch("SELECT id, email, name, company, level, timezone FROM bigtree_users WHERE id = ?", $id);
+			$target = SQL::fetch(
+				"SELECT id, email, name, company, level, timezone, daily_digest, alerts FROM bigtree_users WHERE id = ?",
+				$id
+			);
 
 			if (!$target) {
 
@@ -501,6 +596,46 @@
 				}
 			}
 
+			// Notification preferences. Both are simple typed values `PATCH /users/{id}`
+			// already accepts, and get_content_alerts reads them back — so leaving them
+			// unwritable made the catalog contradict itself: the assistant could report
+			// a user's alert thresholds and then tell them to change it "in the admin".
+			if (array_key_exists("daily_digest", $args)) {
+				$digest = !empty($args["daily_digest"]) && $args["daily_digest"] !== "false";
+				$current = (string)($target["daily_digest"] ?? "") !== "";
+
+				if ($digest !== $current) {
+					$changes["daily_digest"] = $digest;
+					$diff["daily_digest"] = ["from" => $current ? "on" : "off", "to" => $digest ? "on" : "off"];
+				}
+			}
+
+			if (array_key_exists("alerts", $args)) {
+				$alerts = $this->aiNormalizeAlerts($args["alerts"]);
+
+				if (isset($alerts["error"])) {
+
+					return $alerts;
+				}
+
+				$current = Json::decode($target["alerts"] ?? "");
+
+				if ($alerts["alerts"] != $current) {
+					$changes["alerts"] = $alerts["alerts"];
+					$diff["alerts"] = [
+						"from" => count($current) . " page alert(s)",
+						"to" => count($alerts["alerts"]) . " page alert(s)",
+					];
+				}
+			}
+
+			$too_long = $this->aiUserLengthError($changes);
+
+			if ($too_long !== null) {
+
+				return ["error" => $too_long];
+			}
+
 			if (!$changes) {
 
 				return ["error" => "No profile changes were supplied — nothing to update."];
@@ -520,6 +655,12 @@
 				"payload" => [
 					"user_id" => $id,
 					"changes" => $changes,
+				],
+				"fingerprint" => [
+					"type" => "row",
+					"table" => "bigtree_users",
+					"id" => $id,
+					"columns" => array_keys($changes),
 				],
 			];
 		}
@@ -583,6 +724,13 @@
 				}
 			}
 
+			$too_long = $this->aiUserLengthError($changes);
+
+			if ($too_long !== null) {
+
+				return ["mode" => "error", "message" => $too_long];
+			}
+
 			$update = [];
 
 			foreach (["name", "company", "email"] as $field) {
@@ -593,6 +741,21 @@
 
 			if (array_key_exists("timezone", $changes)) {
 				$update["timezone"] = (string)$changes["timezone"];
+			}
+
+			if (array_key_exists("daily_digest", $changes)) {
+				$update["daily_digest"] = !empty($changes["daily_digest"]) ? "on" : "";
+			}
+
+			if (array_key_exists("alerts", $changes)) {
+				$alerts = $this->aiNormalizeAlerts($changes["alerts"]);
+
+				if (isset($alerts["error"])) {
+
+					return ["mode" => "error", "message" => (string)$alerts["error"]];
+				}
+
+				$update["alerts"] = $alerts["alerts"];
 			}
 
 			// The allow-list above is the guard: level and permissions are never

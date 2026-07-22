@@ -63,11 +63,16 @@
 		 * back flagged, annotated and without an artifact (there is no live row to
 		 * navigate to).
 		 *
+		 * $form_id names which of a multi-form module's forms (and therefore which
+		 * table) to read from; omitting it on such a module returns the same
+		 * `ambiguous_form` choice the write tools return, rather than silently reading
+		 * a different table's row with the same id.
+		 *
 		 * @param mixed $entry_id
 		 * @param object|array $user
-		 * @return array{error?:string,payload?:array,artifact?:array}
+		 * @return array{error?:string,ambiguous_form?:bool,forms?:list,payload?:array,artifact?:array}
 		 */
-		public function getModuleEntryDetail($module_id, $entry_id, $user): array;
+		public function getModuleEntryDetail($module_id, $entry_id, $user, string $form_id = ""): array;
 
 		/**
 		 * Reduce a conversational phrase to content keywords.

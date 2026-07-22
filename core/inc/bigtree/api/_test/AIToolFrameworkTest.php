@@ -59,7 +59,7 @@
 				return ["error" => "not found"];
 			}
 
-			public function getModuleEntryDetail($module_id, $entry_id, $user): array {
+			public function getModuleEntryDetail($module_id, $entry_id, $user, string $form_id = ""): array {
 
 				return ["error" => "not found"];
 			}

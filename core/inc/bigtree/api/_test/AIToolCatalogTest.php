@@ -148,6 +148,9 @@
 			]]];
 
 			public function aiModuleSchema(string $module_id, string $form_id, $user): array { return $this->schema; }
+			public function aiListEntries(string $module_id, string $form_id, int $limit, int $offset, $user): array {
+				return ["module" => ["id" => $module_id], "entries" => [], "has_more" => false];
+			}
 			public function aiValidateEntryCreate(array $args, $user): array { return $this->validation; }
 			public function aiCreateEntry(array $payload, $user): array { $this->executed = $payload; return ["mode" => "published"]; }
 			public function aiValidateEntryUpdate(array $args, $user): array { return $this->validation; }
@@ -205,6 +208,7 @@
 			public $callout = ["callout" => ["id" => "promo", "name" => "Promo", "fields" => [["id" => "headline", "type" => "text", "title" => "Headline", "subtitle" => ""]]]];
 
 			public function aiGetCallout(string $callout_id, $user): array { return $this->callout; }
+			public function aiListCallouts($user): array { return ["callouts" => [], "groups" => []]; }
 			public function aiValidateCalloutCreate(array $args, $user): array { return $this->validation; }
 			public function aiCreateCallout(array $payload, $user): array { $this->executed = $payload; return ["mode" => "created"]; }
 			public function aiValidateCalloutUpdate(array $args, $user): array { return $this->update_validation; }
@@ -752,21 +756,24 @@
 		T::ok(!isset($properties["table"]), "table is not offered — that's Module Designer territory");
 	}
 
-	function test_get_audit_trail_tool_is_admin_gated_and_passes_filters() {
+	function test_get_audit_trail_tool_is_developer_gated_and_passes_filters() {
 		$backend = new FakeAuditBackend();
 		$tool = new GetAuditTrailTool($backend);
 
 		T::equals($tool->kind(), "read", "get_audit_trail is a read tool");
 		T::ok(!$tool->isAvailable(ai_fake_user(0)), "hidden from editors — the trail spans every table");
-		T::ok($tool->isAvailable(ai_fake_user(1)), "offered to admins");
+		// Audit #5 C2: `GET /audit` declares level 2, and this seam gating at 1 was
+		// the one place an AI tool was looser than the route it mirrors.
+		T::ok(!$tool->isAvailable(ai_fake_user(1)), "hidden from administrators too, matching GET /audit");
+		T::ok($tool->isAvailable(ai_fake_user(2)), "offered to developers");
 
-		$result = $tool->execute(["via" => "ai_assistant"], new AIToolContext(ai_fake_user(1), 8));
+		$result = $tool->execute(["via" => "ai_assistant"], new AIToolContext(ai_fake_user(2), 8));
 		T::equals($result->type, AIToolResult::OK, "returns entries");
 		T::equals($backend->filters["via"], "ai_assistant", "the source filter reaches the backend");
 		T::equals($backend->filters["_limit"], 25, "a default limit is applied");
 		T::equals($result->data["entries"][0]["via"], "ai_assistant", "the source is visible on each entry");
 
-		$backend->entries = ["denied" => "Only administrators can read the audit trail."];
+		$backend->entries = ["denied" => "Only developers can read the audit trail."];
 		$denied = $tool->execute([], new AIToolContext(ai_fake_user(0), 8));
 		T::equals($denied->type, AIToolResult::DENIED, "a backend denial surfaces as denied");
 	}

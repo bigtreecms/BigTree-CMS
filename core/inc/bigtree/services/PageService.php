@@ -269,6 +269,45 @@
 			"og_title", "og_description", "max_age",
 		];
 
+		// Column caps, mirroring what routes/pages.php declares. Nothing on the AI
+		// path checked any of them, so a 900-character model-generated "name" was
+		// accepted where both the API and the UI refuse it — and MySQL then truncates
+		// silently (or errors in strict mode).
+		private const AI_PAGE_MAX_LENGTHS = [
+			"nav_title" => 1024,
+			"title" => 1024,
+			"route" => 1024,
+			"external" => 1024,
+			"template" => 255,
+			"publish_at" => 32,
+			"expire_at" => 32,
+		];
+
+		/**
+		 * The first over-length field in a set of page values, as a recoverable error.
+		 * Shared by staging and approval, so a stored payload can't slip past.
+		 *
+		 * @param array<string,mixed> $fields
+		 */
+		private function aiPageLengthError(array $fields): ?string {
+			foreach (self::AI_PAGE_MAX_LENGTHS as $field => $max) {
+				if (!array_key_exists($field, $fields)) {
+
+					continue;
+				}
+
+				$length = mb_strlen((string)$fields[$field]);
+
+				if ($length > $max) {
+
+					return "The page's {$field} is {$length} characters, but the field holds at most {$max}. "
+						. "Shorten it and try again.";
+				}
+			}
+
+			return null;
+		}
+
 		/**
 		 * Subtrees the user may create a page under, for a create_page needs_input
 		 * prompt. Administrators/developers get the site root plus current top-level
@@ -348,10 +387,23 @@
 			}
 
 			$parent = (int)($args["parent"] ?? 0);
+			$parent_row = $parent > 0
+				? SQL::fetch("SELECT nav_title, path, archived FROM bigtree_pages WHERE id = ?", $parent)
+				: null;
 
-			if ($parent > 0 && !SQL::exists("bigtree_pages", $parent)) {
+			if ($parent > 0 && !$parent_row) {
 
 				return ["error" => "Parent page {$parent} does not exist."];
+			}
+
+			// aiWritableParents deliberately offers unarchived parents only, but
+			// nothing stopped an explicit archived id — and performCreate writes
+			// archived = "", producing a live page inside an archived branch that the
+			// parent's own archive never sweeps.
+			if ($parent_row && Flag::isOn($parent_row["archived"])) {
+
+				return ["error" => "Page {$parent} is archived, so a new page under it would be live inside a "
+					. "hidden branch. Unarchive it first, or pick a different parent."];
 			}
 
 			if (!PermissionService::userHasPageAccess($user, $parent, "e")) {
@@ -434,12 +486,28 @@
 			}
 
 			$title = trim((string)($args["title"] ?? "")) ?: $nav_title;
-			$route = $this->uniqueRoute($parent, BigTreeCMS::urlify($nav_title));
-			$parent_path = $parent ? (string)SQL::fetchSingle("SELECT path FROM bigtree_pages WHERE id = ?", $parent) : "";
+
+			// `POST /pages` accepts a route and performCreate honours it; only the tool
+			// hard-coded urlify(nav_title), so "create Q3 2026 Results at /results"
+			// cost two approvals with no explanation of why.
+			$requested_route = trim((string)($args["route"] ?? ""));
+
+			if ($requested_route !== "" && BigTreeCMS::urlify($requested_route) === "") {
+
+				return ["error" => "\"{$requested_route}\" doesn't contain any characters that can be used in a URL. "
+					. "Supply a route made of letters, numbers or hyphens, or leave it out to derive one from the "
+					. "navigation title."];
+			}
+
+			$route = $this->uniqueRoute(
+				$parent,
+				BigTreeCMS::urlify($requested_route !== "" ? $requested_route : $nav_title)
+			);
+			$parent_path = $parent_row ? (string)$parent_row["path"] : "";
 			$path = ($parent_path ? $parent_path . "/" : "") . $route;
 
-			$parent_title = $parent
-				? (trim((string)SQL::fetchSingle("SELECT nav_title FROM bigtree_pages WHERE id = ?", $parent)) ?: "page #{$parent}")
+			$parent_title = $parent_row
+				? (trim((string)$parent_row["nav_title"]) ?: "page #{$parent}")
 				: "the site root";
 
 			$in_nav = array_key_exists("in_nav", $args) ? (bool)$args["in_nav"] : true;
@@ -484,6 +552,21 @@
 				if ($value !== "") {
 					$open_graph[$key] = $value;
 				}
+			}
+
+			$too_long = $this->aiPageLengthError([
+				"nav_title" => $nav_title,
+				"title" => $title,
+				"route" => $route,
+				"external" => $external,
+				"template" => $template,
+				"publish_at" => (string)$schedule["publish_at"],
+				"expire_at" => (string)$schedule["expire_at"],
+			]);
+
+			if ($too_long !== null) {
+
+				return ["error" => $too_long];
 			}
 
 			$payload = [
@@ -1258,6 +1341,7 @@
 					"page_id" => $page_id,
 					"revision_id" => $revision_id,
 				],
+				"lock" => $this->aiPageLock($page_id),
 			];
 		}
 
@@ -1677,6 +1761,56 @@
 			];
 		}
 
+		// Per-field cap on the content map get_page returns. Generous enough for a
+		// real body field, bounded enough that a page full of long-form HTML can't
+		// blow the model's context on a single read.
+		private const AI_CONTENT_FIELD_CAP = 6000;
+
+		/**
+		 * The read half of update_page_content: the page's settable content fields,
+		 * keyed by the same resource ids the write path takes, with their markup
+		 * intact.
+		 *
+		 * get_page only ever returned `content_text` — strip_tags'd, unkeyed,
+		 * concatenated and truncated — so "fix the typo in the About page's intro"
+		 * gave the model neither the field id nor the markup, and any correction it
+		 * proposed replaced rich HTML with plain text. The merge in
+		 * aiValidatePageContentUpdate only guards *other* fields, so it accepted that
+		 * happily.
+		 *
+		 * Complex resources are deliberately absent: they aren't settable either, and
+		 * showing them would invite the model to try.
+		 *
+		 * @param array<string,mixed> $target An aiResolvePageTarget result.
+		 * @return array{content:array<string,string>,content_truncated:list<string>}
+		 */
+		public function aiPageContentFields(array $target): array {
+			$page = $target["page"];
+			$schema = $this->aiTemplateResourceSchema((string)($page["template"] ?? ""));
+			$stored = Json::decode($page["resources"] ?? "");
+			$content = [];
+			$truncated = [];
+
+			foreach ($schema as $id => $field) {
+				if (!array_key_exists($id, $stored)) {
+
+					continue;
+				}
+
+				$value = $stored[$id];
+				$text = is_scalar($value) || $value === null ? (string)$value : (string)json_encode($value);
+
+				if (mb_strlen($text) > self::AI_CONTENT_FIELD_CAP) {
+					$text = mb_substr($text, 0, self::AI_CONTENT_FIELD_CAP) . "…";
+					$truncated[] = $id;
+				}
+
+				$content[$id] = $text;
+			}
+
+			return ["content" => $content, "content_truncated" => $truncated];
+		}
+
 		/**
 		 * A page's current tag names. Nothing listed them before, so the assistant
 		 * could attach and remove tags without ever being able to say which a page
@@ -1714,6 +1848,188 @@
 			);
 
 			return array_values(array_map("strval", $names ?: []));
+		}
+
+		/**
+		 * The outstanding queued EDIT change for a live page, if it has one.
+		 *
+		 * @return array<string,mixed>|null
+		 */
+		private function aiPendingEditChange(int $page_id): ?array {
+			if ($page_id < 1) {
+
+				return null;
+			}
+
+			$change = SQL::fetch(
+				"SELECT * FROM bigtree_pending_changes WHERE `table` = 'bigtree_pages' AND item_id = ? AND type = 'EDIT'",
+				$page_id
+			);
+
+			return $change ?: null;
+		}
+
+		/**
+		 * Overlay a page's queued EDIT draft onto its raw row, so an assistant edit
+		 * that will land in that same draft diffs against what is actually queued
+		 * rather than against the published page.
+		 *
+		 * The admin does this for its own edit screen (applyPendingOverlay) because
+		 * the SPA has to edit the draft, not the live content. The AI path needs it
+		 * for the same reason plus a sharper one: it submits a partial body, so a
+		 * preview built from the live row reports `from` values the approver will
+		 * never actually see replaced, and a content merge built from the live row
+		 * would revert the draft's body.
+		 *
+		 * @param array<string,mixed> $page   The live page row.
+		 * @param array<string,mixed> $change A bigtree_pending_changes row.
+		 * @return array<string,mixed>
+		 */
+		private function aiOverlayPendingEdit(array $page, array $change): array {
+			$changes = Json::decode($change["changes"]);
+			$overlay_fields = [
+				"nav_title", "title", "route", "in_nav", "template", "external", "new_window",
+				"meta_keywords", "meta_description", "seo_invisible", "publish_at", "expire_at",
+				"max_age", "trunk", "resources",
+			];
+
+			foreach ($overlay_fields as $field) {
+				if (!array_key_exists($field, $changes)) {
+
+					continue;
+				}
+
+				// The live column is JSON while the blob stores an array; everything
+				// downstream reads it through Json::decode, which takes either.
+				$page[$field] = $changes[$field];
+			}
+
+			// Open Graph rides in its own column (and inside the blob when the
+			// assistant staged it). Only override the live record when the draft
+			// really carries one — aiPageOpenGraph falls back to loadOpenGraph.
+			$open_graph = array_key_exists("open_graph", $changes)
+				? Json::decode($changes["open_graph"])
+				: Json::decode($change["open_graph_changes"] ?? "");
+
+			if ($open_graph) {
+				$page["ai_open_graph"] = $open_graph;
+			}
+
+			return $page;
+		}
+
+		/**
+		 * The staleness descriptor for a page edit: the queued draft when the edit is
+		 * amending one, otherwise the live page's own columns.
+		 *
+		 * A draft is fingerprinted whole (its blob is a single column that collapses
+		 * in place); a live page only by the columns the edit touches.
+		 *
+		 * @param array<string,mixed> $target An aiResolvePageTarget result.
+		 * @param list<string> $columns
+		 * @return array<string,mixed>
+		 */
+		private function aiPageFingerprint(array $target, array $columns): array {
+			if (!empty($target["is_pending"])) {
+
+				return ["type" => "pending_change", "id" => (int)$target["change_id"]];
+			}
+
+			$columns = array_values(array_filter($columns, function (string $column): bool {
+
+				// open_graph rides beside the row rather than in it; it has no column
+				// here and the OG write path merges rather than replaces anyway.
+				return $column !== "open_graph";
+			}));
+
+			if (!$columns) {
+
+				return [];
+			}
+
+			return ["type" => "page", "id" => (int)$target["page_id"], "columns" => $columns];
+		}
+
+		/**
+		 * The concurrent-edit lock descriptor for a page, in the shape PageEdit's
+		 * useLock call passes. Empty for a draft, which has no live row to lock and
+		 * which the page editor deliberately doesn't lock either.
+		 *
+		 * @param array<string,mixed>|int $target An aiResolvePageTarget result, or a page id.
+		 * @return array<string,mixed>
+		 */
+		private function aiPageLock($target): array {
+			if (is_array($target)) {
+				if (!empty($target["is_pending"])) {
+
+					return [];
+				}
+
+				$page_id = (int)$target["page_id"];
+			} else {
+				$page_id = (int)$target;
+			}
+
+			if ($page_id < 1) {
+
+				return [];
+			}
+
+			return ["table" => "bigtree_pages", "id" => $page_id];
+		}
+
+		/**
+		 * A page's effective tag ids: what a queued draft stages if it stages any,
+		 * otherwise what is live. The tag tools merge into this set.
+		 *
+		 * @return list<int>
+		 */
+		public function aiPageTagIds(int $page_id): array {
+			$change = $this->aiPendingEditChange($page_id);
+
+			if ($change) {
+				$changes = Json::decode($change["changes"]);
+
+				if (array_key_exists("tags", $changes)) {
+
+					return array_values(array_map("intval", (array)$changes["tags"]));
+				}
+			}
+
+			$ids = SQL::fetchAllSingle(
+				"SELECT tag FROM bigtree_tags_rel WHERE `table` = 'bigtree_pages' AND entry = ?",
+				$page_id
+			);
+
+			return array_values(array_map("intval", $ids ?: []));
+		}
+
+		/**
+		 * Queue a page's new tag set as a pending change rather than writing
+		 * bigtree_tags_rel live.
+		 *
+		 * Tags are public-facing content (they drive the tag landing pages), and the
+		 * admin's own editor puts an editor's tag edit in the queue like every other
+		 * field. add_tags/remove_tags wrote straight through, which was the assistant's
+		 * one way for a non-publisher to change the live site.
+		 *
+		 * @param list<int> $tag_ids The complete resulting tag set.
+		 * @param object|array $user
+		 */
+		public function aiQueuePageTagChange(int $page_id, array $tag_ids, $user): int {
+			if (!PermissionService::userHasPageAccess($user, $page_id, "e")) {
+				throw new AuthorizationException("Insufficient page permission to tag page (e required)");
+			}
+
+			$pending_id = $this->writePendingPageChange($user, "EDIT", $page_id, [
+				"tags" => array_values(array_map("intval", $tag_ids)),
+			]);
+
+			Hooks::fire("page.pending_updated", [
+				"id" => $page_id, "pending_change_id" => (int)$pending_id, "via" => "ai_assistant",
+			]);
+
+			return (int)$pending_id;
 		}
 
 		/**
@@ -1970,6 +2286,21 @@
 					: "You do not have permission to edit this page."];
 			}
 
+			$rank = PermissionService::userPageLevel($user, $is_pending ? $target["parent"] : $id);
+			$save_as_draft = !empty($args["save_as_draft"]);
+			$can_publish = PermissionService::isPublisher($user, $rank) && !$save_as_draft;
+
+			// When the edit is going to land in an existing queued draft, that draft
+			// is what is being edited — diff against it so the card's `from` values
+			// describe the thing the approver will actually change.
+			if (!$is_pending && !$can_publish) {
+				$queued = $this->aiPendingEditChange($id);
+
+				if ($queued) {
+					$page = $this->aiOverlayPendingEdit($page, $queued);
+				}
+			}
+
 			$editable = self::AI_PAGE_FIELDS;
 			$changes = [];
 			$diff = [];
@@ -2112,6 +2443,13 @@
 				return ["error" => "No changes were supplied — nothing to update."];
 			}
 
+			$too_long = $this->aiPageLengthError($changes);
+
+			if ($too_long !== null) {
+
+				return ["error" => $too_long];
+			}
+
 			// og_title/og_description are the assistant's flat spelling of one JSON
 			// record; collapse them into the single `open_graph` key the write path
 			// (and the pending-change replay) understands.
@@ -2127,9 +2465,6 @@
 				}
 			}
 
-			$rank = PermissionService::userPageLevel($user, $is_pending ? $target["parent"] : $id);
-			$save_as_draft = !empty($args["save_as_draft"]);
-			$can_publish = PermissionService::isPublisher($user, $rank) && !$save_as_draft;
 			$reference = $is_pending ? "p" . $target["change_id"] : (string)$id;
 			$title = trim((string)$page["nav_title"]) ?: trim((string)$page["title"])
 				?: ($is_pending ? "draft {$reference}" : "page #{$id}");
@@ -2172,6 +2507,10 @@
 					"changes" => $changes,
 					"save_as_draft" => $save_as_draft,
 				],
+				// Only the columns this edit touches, so an unrelated change elsewhere
+				// on the page doesn't needlessly invalidate a correct proposal.
+				"fingerprint" => $this->aiPageFingerprint($target, array_keys($changes)),
+				"lock" => $this->aiPageLock($target),
 			];
 		}
 
@@ -2209,6 +2548,21 @@
 				return ["denied" => $is_pending
 					? "You do not have permission to edit drafts under this page."
 					: "You do not have permission to edit this page."];
+			}
+
+			$rank = PermissionService::userPageLevel($user, $is_pending ? $target["parent"] : $id);
+			$save_as_draft = !empty($args["save_as_draft"]);
+			$can_publish = PermissionService::isPublisher($user, $rank) && !$save_as_draft;
+
+			// An edit bound for an existing queued draft merges onto that draft's
+			// content, not the published page's — otherwise the draft's body is
+			// silently reverted to what is live.
+			if (!$is_pending && !$can_publish) {
+				$queued = $this->aiPendingEditChange($id);
+
+				if ($queued) {
+					$page = $this->aiOverlayPendingEdit($page, $queued);
+				}
 			}
 
 			$title = trim((string)$page["nav_title"]) ?: trim((string)$page["title"])
@@ -2249,9 +2603,6 @@
 					. "template. Settable fields: " . $this->aiDescribeResourceSchema($schema)];
 			}
 
-			$rank = PermissionService::userPageLevel($user, $is_pending ? $target["parent"] : $id);
-			$save_as_draft = !empty($args["save_as_draft"]);
-			$can_publish = PermissionService::isPublisher($user, $rank) && !$save_as_draft;
 			$merged = $this->aiMergePageContent($page, $changed, $template, $title, $can_publish);
 
 			if (isset($merged["error"])) {
@@ -2340,6 +2691,8 @@
 					. (count($changed) === 1 ? "" : "s") . ")." . $switch_note . $mode_note,
 				"preview" => $preview,
 				"payload" => $payload,
+				"fingerprint" => $this->aiPageFingerprint($target, ["resources", "template"]),
+				"lock" => $this->aiPageLock($target),
 			];
 		}
 
@@ -2443,6 +2796,18 @@
 			// approver is (and relaxes the blocked-required gate inside the merge, the
 			// same way it does for an editor).
 			$can_publish = PermissionService::isPublisher($user, $rank) && empty($payload["save_as_draft"]);
+
+			// Same overlay the staging pass applied: a queued edit is merged onto the
+			// draft it is joining, so approving it doesn't revert the draft's body to
+			// whatever is published.
+			if (!$is_pending && !$can_publish) {
+				$queued = $this->aiPendingEditChange($id);
+
+				if ($queued) {
+					$page = $this->aiOverlayPendingEdit($page, $queued);
+				}
+			}
+
 			$title = trim((string)$page["nav_title"]) ?: ($is_pending ? "draft {$reference}" : "page #{$id}");
 			$template = !empty($payload["template"]) ? (string)$payload["template"] : (string)$page["template"];
 			$changed = is_array($payload["content"] ?? null) ? $payload["content"] : [];
@@ -2501,6 +2866,13 @@
 		 * @return string|null An error message, or null when the changes still pass.
 		 */
 		private function aiPageChangeValueError(array $changes): ?string {
+			$too_long = $this->aiPageLengthError($changes);
+
+			if ($too_long !== null) {
+
+				return $too_long;
+			}
+
 			if (array_key_exists("max_age", $changes) && (int)$changes["max_age"] < 0) {
 
 				return "max_age is a number of days and can't be negative.";
@@ -2513,6 +2885,35 @@
 			}
 
 			return null;
+		}
+
+		/**
+		 * Approval-time re-check of the staged values whose rule is about the page's
+		 * *resulting state* rather than the value alone.
+		 *
+		 * aiValidatePageUpdate enforces "templated or external link, never both" and
+		 * normalizes the link; neither was re-asked at approval, so a page converted
+		 * from a link to a template inside the proposal's 24h life ended up with both
+		 * set.
+		 *
+		 * @param array<string,mixed> $changes
+		 * @param array<string,mixed> $page The page (or draft) as it stands now.
+		 * @return string|null An error message, or null when the changes still pass.
+		 */
+		private function aiPageChangeStateError(array $changes, array $page): ?string {
+			if (array_key_exists("external", $changes)) {
+				$external = $this->aiNormalizeExternalLink((string)$changes["external"]);
+
+				if (isset($external["error"])) {
+
+					return (string)$external["error"];
+				}
+			}
+
+			return $this->aiAssertLinkOrTemplate(
+				array_key_exists("template", $changes) ? (string)$changes["template"] : (string)($page["template"] ?? ""),
+				array_key_exists("external", $changes) ? (string)$changes["external"] : (string)($page["external"] ?? "")
+			);
 		}
 
 		/**
@@ -2551,25 +2952,36 @@
 				return ["mode" => "error", "message" => $invalid];
 			}
 
-			// A draft edit amends the queued change in place — there is no live page to
-			// publish over, so the publisher/editor split below doesn't apply.
-			if (strlen($reference) > 1 && $reference[0] === "p" && ctype_digit(substr($reference, 1))) {
+			// Resolved up front (rather than after the draft split) because the
+			// state-dependent rules below need the record either way.
+			$target = $this->aiResolvePageTarget($reference);
 
-				return $this->aiAmendPageDraft((int)substr($reference, 1), $changes, $user);
+			if (isset($target["error"])) {
+
+				return ["mode" => "error", "message" => (string)$target["error"]];
 			}
 
-			$id = (int)$reference;
+			$invalid = $this->aiPageChangeStateError($changes, $target["page"]);
+
+			if ($invalid !== null) {
+
+				return ["mode" => "error", "message" => $invalid];
+			}
+
+			// A draft edit amends the queued change in place — there is no live page to
+			// publish over, so the publisher/editor split below doesn't apply.
+			if (!empty($target["is_pending"])) {
+
+				return $this->aiAmendPageDraft((int)$target["change_id"], $changes, $user);
+			}
+
+			$id = (int)$target["page_id"];
 
 			if (!PermissionService::userHasPageAccess($user, $id, "e")) {
 				throw new AuthorizationException("Insufficient page permission to edit page (e required)");
 			}
 
-			$page = SQL::fetch("SELECT * FROM bigtree_pages WHERE id = ?", $id);
-
-			if (!$page) {
-
-				return ["mode" => "error", "message" => "Page no longer exists."];
-			}
+			$page = $target["page"];
 
 			$rank = PermissionService::userPageLevel($user, $id);
 			// An explicit "save as draft" forces the pending path however senior the
@@ -2667,6 +3079,7 @@
 				"payload" => [
 					"id" => $id,
 				],
+				"lock" => $this->aiPageLock($id),
 			];
 		}
 
@@ -2759,6 +3172,7 @@
 					"action" => "unarchive",
 				],
 				"payload" => ["id" => $id],
+				"lock" => $this->aiPageLock($id),
 			];
 		}
 
@@ -2776,7 +3190,7 @@
 				throw new AuthorizationException("Insufficient page permission to unarchive page (p required)");
 			}
 
-			$page = SQL::fetch("SELECT id, nav_title FROM bigtree_pages WHERE id = ?", $id);
+			$page = SQL::fetch("SELECT * FROM bigtree_pages WHERE id = ?", $id);
 
 			if (!$page) {
 
@@ -2785,6 +3199,15 @@
 
 			SQL::update("bigtree_pages", $id, ["archived" => "", "updated_at" => "NOW()"]);
 			$this->setArchivedInherited($id, "");
+
+			// aiArchivePage deletes the page from the vector index, so without this an
+			// archive → unarchive round trip through the assistant left the page
+			// permanently missing from semantic_search. REST's unarchive() has always
+			// re-indexed.
+			$page["archived"] = "";
+			EmbeddingService::deferIndex(function () use ($page) {
+				EmbeddingService::indexPage($page);
+			});
 
 			Hooks::fire("page.unarchived", ["id" => $id, "via" => "ai_assistant"]);
 
@@ -2890,6 +3313,7 @@
 					"descendants_affected" => $descendants,
 				],
 				"payload" => ["id" => $id, "parent" => $parent, "route" => $route],
+				"lock" => $this->aiPageLock($id),
 			];
 		}
 
@@ -3346,16 +3770,33 @@
 			$row["item_id"] = $item_or_parent;
 			$row["pending_page_parent"] = 0;
 
-			$existing = SQL::fetchSingle(
-				"SELECT id FROM bigtree_pending_changes WHERE `table` = 'bigtree_pages' AND item_id = ? AND type = 'EDIT'",
-				$item_or_parent
-			);
+			$existing = $this->aiPendingEditChange($item_or_parent);
 
 			if ($existing) {
-				SQL::update("bigtree_pending_changes", (int)$existing, $row);
-				$this->allocatePageResources("p".(int)$existing, $changes["template"] ?? "", $changes);
+				// Merge rather than replace. The SPA loads a page with its pending
+				// overlay applied and PATCHes the whole body back, so its blob is a
+				// superset and merging is a no-op for it — but the assistant diffs
+				// against the row and submits only the fields it is changing, so a
+				// wholesale replacement would drop every other field already queued
+				// in the same draft.
+				$stored = Json::decode($existing["changes"]);
+				$changes = array_merge($stored, $changes);
+				$row["changes"] = $changes;
 
-				return (int)$existing;
+				// tags/open_graph live in their own columns and mean nothing unless
+				// the caller actually supplied them; leave whatever is queued alone.
+				if (!array_key_exists("tags", $d)) {
+					unset($row["tags_changes"]);
+				}
+
+				if (!array_key_exists("open_graph", $d)) {
+					unset($row["open_graph_changes"]);
+				}
+
+				SQL::update("bigtree_pending_changes", (int)$existing["id"], $row);
+				$this->allocatePageResources("p".(int)$existing["id"], $changes["template"] ?? "", $changes);
+
+				return (int)$existing["id"];
 			}
 
 			$change_id = (int)SQL::insert("bigtree_pending_changes", $row);
@@ -3635,6 +4076,11 @@
 			$this->setArchivedInherited($id, "on");
 			EmbeddingService::deletePage((int)$id);
 
+			// These three hooks used to fire on the AI path only, so an extension
+			// listening for page.archived saw assistant-driven archives and missed
+			// every one made in the admin.
+			Hooks::fire("page.archived", ["id" => (int)$id]);
+
 			return Response::noContent();
 		}
 
@@ -3650,6 +4096,8 @@
 					EmbeddingService::indexPage($page);
 				});
 			}
+
+			Hooks::fire("page.unarchived", ["id" => (int)$id]);
 
 			return Response::noContent();
 		}
@@ -3670,6 +4118,8 @@
 
 			// Moving a trunk page changes the multi-site routing map (path-keyed).
 			if (Flag::isOn($page["trunk"])) $this->invalidateMultiSiteCache();
+
+			Hooks::fire("page.moved", ["id" => (int)$id, "parent" => $new_parent, "path" => $new_path]);
 
 			return Response::noContent();
 		}
@@ -4101,15 +4551,71 @@
 			}
 		}
 
+		/**
+		 * Cascade a page's archived state to its whole subtree.
+		 *
+		 * `archived_inherited` is a bookkeeping column — it records *why* a page is
+		 * archived so unarchiving the parent knows which children to release. The
+		 * column the site actually filters on is `archived` (see BigTreeCMS's router
+		 * and getPageIDForPath), so setting only the inherited flag left every
+		 * descendant of an archived page publicly routable. Legacy set both.
+		 *
+		 * Clearing is restricted to rows that were archived *by inheritance*, so a
+		 * child someone archived in its own right isn't resurrected by unarchiving an
+		 * ancestor (mirrors legacy unarchivePageChildren).
+		 */
 		private function setArchivedInherited($parent_id, $value) {
-			$page = SQL::fetch("SELECT path FROM bigtree_pages WHERE id = ?", $parent_id);
-
-			if (!$page) {
+			if (!SQL::exists("bigtree_pages", (int)$parent_id)) {
 				return;
 			}
+
+			if ($value === "on") {
+				$this->archiveDescendants((int)$parent_id);
+
+				return;
+			}
+
+			$this->unarchiveDescendants((int)$parent_id);
+		}
+
+		/**
+		 * Archive every descendant that isn't already archived in its own right,
+		 * walking level by level so an independently-archived branch is skipped
+		 * entirely (legacy archivePageChildren). A branch left alone keeps
+		 * `archived_inherited` empty, which is what makes unarchiving reversible.
+		 */
+		private function archiveDescendants(int $parent_id): void {
+			$children = SQL::fetchAllSingle(
+				"SELECT id FROM bigtree_pages WHERE parent = ? AND archived != 'on'",
+				$parent_id
+			);
+
+			foreach ($children ?: [] as $child) {
+				$this->archiveDescendants((int)$child);
+			}
+
 			SQL::query(
-				"UPDATE bigtree_pages SET archived_inherited = ?, updated_at = NOW() WHERE path LIKE ? AND id != ?",
-				$value, $page["path"] . "/%", $parent_id
+				"UPDATE bigtree_pages SET archived = 'on', archived_inherited = 'on', updated_at = NOW()
+				 WHERE parent = ? AND archived != 'on'",
+				$parent_id
+			);
+		}
+
+		/** The inverse: release only what was archived by inheritance. */
+		private function unarchiveDescendants(int $parent_id): void {
+			$children = SQL::fetchAllSingle(
+				"SELECT id FROM bigtree_pages WHERE parent = ? AND archived_inherited = 'on'",
+				$parent_id
+			);
+
+			foreach ($children ?: [] as $child) {
+				$this->unarchiveDescendants((int)$child);
+			}
+
+			SQL::query(
+				"UPDATE bigtree_pages SET archived = '', archived_inherited = '', updated_at = NOW()
+				 WHERE parent = ? AND archived_inherited = 'on'",
+				$parent_id
 			);
 		}
 

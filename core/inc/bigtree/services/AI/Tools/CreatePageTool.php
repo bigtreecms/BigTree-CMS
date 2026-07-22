@@ -54,6 +54,11 @@
 							"type" => "string",
 							"description" => "Optional page (SEO) title; defaults to the nav title.",
 						],
+						"route" => [
+							"type" => "string",
+							"description" => "Optional URL segment for the page (e.g. \"results\"). Defaults to a "
+								. "slug derived from the nav title, and is uniquified against its siblings either way.",
+						],
 						"template" => [
 							"type" => "string",
 							"description" => "Optional template id for the page. Must be an existing template. "
