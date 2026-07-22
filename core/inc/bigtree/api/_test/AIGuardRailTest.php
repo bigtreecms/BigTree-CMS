@@ -12,6 +12,7 @@
 
 	use BigTree\Services\SettingService;
 	use BigTree\Services\CalloutService;
+	use BigTree\Services\TemplateService;
 	use BigTree\Services\UserService;
 
 	function ai_guard_invoke(object $object, string $method, array $args) {
@@ -197,6 +198,28 @@
 
 		$good = ai_guard_invoke($svc, "aiInvalidFieldTypeError", [[["id" => "heading", "type" => "text"]]]);
 		T::equals($good, null, "installed types pass");
+	}
+
+	/**
+	 * Audit #4 (A6): REST declares level as in:0,1,2, but the AI create path stored
+	 * whatever int arrived. A level of 7 compares as higher than everyone, so the
+	 * template silently becomes unusable rather than erroring anywhere.
+	 */
+	function test_ai_guard_template_level_must_be_zero_to_two() {
+		$svc = new TemplateService();
+		$developer = (object)["id" => 1, "level" => 2, "permissions" => []];
+		$id = "zz-guard-level-" . bin2hex(random_bytes(3));
+
+		$bad = $svc->aiValidateTemplateCreate(["id" => $id, "name" => "Guard Level", "level" => 7], $developer);
+		T::ok(isset($bad["error"]), "an out-of-range level is refused at create");
+		T::ok(strpos($bad["error"], "developers") !== false, "the error explains what the levels mean");
+
+		$negative = $svc->aiValidateTemplateCreate(["id" => $id, "level" => -1], $developer);
+		T::ok(isset($negative["error"]), "a negative level is refused too");
+
+		$approval = $svc->aiCreateTemplate(["id" => $id, "name" => "Guard Level", "level" => 7], $developer);
+		T::equals($approval["mode"], "error", "a stored payload with a bad level is refused at approval");
+		T::ok(!BigTreeJSONDB::exists("templates", $id), "nothing was written");
 	}
 
 	function test_ai_guard_user_create_rejects_bad_timezone() {

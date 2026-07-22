@@ -225,64 +225,79 @@
 			$limit = max(1, $limit);
 			$columns = "id, user, date, title, `table`, item_id, type, module, pending_page_parent";
 
-			// The user's own drafts are selected in SQL, so on a busy site an older one
-			// can't fall out of a fixed scan window and be reported as nonexistent.
-			// Publishability is a permission computation with no SQL equivalent, so
-			// that side still scans — but the cap now bounds results, not visibility
-			// of the rows the user is most likely to be asking about.
-			$rows = SQL::fetchAll(
-				"SELECT {$columns} FROM bigtree_pending_changes WHERE user = ? ORDER BY date DESC, id DESC LIMIT " . $limit,
-				$me
-			);
+			// An administrator or developer can publish every queued change
+			// (isPublisherFor short-circuits on level), so the newest $limit rows are
+			// exactly the answer — no scan and no cap at all.
+			if (PermissionService::level($user) >= 1) {
+				$rows = SQL::fetchAll(
+					"SELECT {$columns} FROM bigtree_pending_changes ORDER BY date DESC, id DESC LIMIT " . $limit
+				);
+				$out = [];
 
-			$seen = [];
-
-			foreach ($rows as $row) {
-				$seen[(int)$row["id"]] = true;
-			}
-
-			foreach (SQL::fetchAll("SELECT {$columns} FROM bigtree_pending_changes ORDER BY date DESC, id DESC LIMIT 500") as $row) {
-				if (!isset($seen[(int)$row["id"]])) {
-					$rows[] = $row;
+				foreach ($rows as $row) {
+					$out[] = $this->aiPresentPendingRow($row, (int)$row["user"] === $me, true);
 				}
+
+				return ["pending_changes" => $out];
 			}
 
-			// Merged from two queries, so re-sort before the cap is applied.
-			usort($rows, function (array $a, array $b): int {
-
-				return [$b["date"], (int)$b["id"]] <=> [$a["date"], (int)$a["id"]];
-			});
-
+			// For an editor, publishability is a per-row permission computation with
+			// no SQL equivalent. It used to be answered by scanning the newest 500
+			// rows, which on a busy queue hid older changes outright. Walk the queue in
+			// pages instead and stop as soon as $limit qualifying rows are collected:
+			// bounded memory, and nothing is invisible just for being old.
 			$out = [];
+			$offset = 0;
 
-			foreach ($rows as $row) {
-				$mine = (int)$row["user"] === $me;
-				$can_publish = $this->isPublisherFor($user, $row);
+			do {
+				$rows = SQL::fetchAll(
+					"SELECT {$columns} FROM bigtree_pending_changes
+					 ORDER BY date DESC, id DESC LIMIT " . self::AI_PENDING_SCAN_BATCH . " OFFSET " . $offset
+				);
 
-				if (!$mine && !$can_publish) {
+				foreach ($rows as $row) {
+					$mine = (int)$row["user"] === $me;
+					$can_publish = $this->isPublisherFor($user, $row);
 
-					continue;
+					if (!$mine && !$can_publish) {
+
+						continue;
+					}
+
+					$out[] = $this->aiPresentPendingRow($row, $mine, $can_publish);
+
+					if (count($out) >= $limit) {
+
+						return ["pending_changes" => $out];
+					}
 				}
 
-				$out[] = [
-					"id" => (int)$row["id"],
-					"title" => (string)$row["title"],
-					"table" => (string)$row["table"],
-					"item_id" => $row["item_id"] !== null ? (int)$row["item_id"] : null,
-					"type" => (string)$row["type"],
-					"module" => (string)$row["module"],
-					"mine" => $mine,
-					"can_publish" => $can_publish,
-					"date" => $row["date"],
-				];
-
-				if (count($out) >= $limit) {
-
-					break;
-				}
-			}
+				$offset += self::AI_PENDING_SCAN_BATCH;
+			} while (count($rows) === self::AI_PENDING_SCAN_BATCH);
 
 			return ["pending_changes" => $out];
+		}
+
+		/** Rows read per pass when walking the queue for an editor. */
+		private const AI_PENDING_SCAN_BATCH = 500;
+
+		/**
+		 * @param array<string,mixed> $row
+		 * @return array<string,mixed>
+		 */
+		private function aiPresentPendingRow(array $row, bool $mine, bool $can_publish): array {
+
+			return [
+				"id" => (int)$row["id"],
+				"title" => (string)$row["title"],
+				"table" => (string)$row["table"],
+				"item_id" => $row["item_id"] !== null ? (int)$row["item_id"] : null,
+				"type" => (string)$row["type"],
+				"module" => (string)$row["module"],
+				"mine" => $mine,
+				"can_publish" => $can_publish,
+				"date" => $row["date"],
+			];
 		}
 
 		/**

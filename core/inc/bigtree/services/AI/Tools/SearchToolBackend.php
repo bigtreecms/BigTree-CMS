@@ -58,6 +58,12 @@
 		public function getPageDetail($id, $user): array;
 
 		/**
+		 * Fetch one module entry. $entry_id accepts a live numeric id or a
+		 * "p"-prefixed draft id, exactly as the entry write tools do; a draft comes
+		 * back flagged, annotated and without an artifact (there is no live row to
+		 * navigate to).
+		 *
+		 * @param mixed $entry_id
 		 * @param object|array $user
 		 * @return array{error?:string,payload?:array,artifact?:array}
 		 */

@@ -61,6 +61,13 @@
 								. "Supply the new template's required fields in `content` — otherwise the switch "
 								. "is refused rather than leaving the page broken.",
 						],
+						"save_as_draft" => [
+							"type" => "boolean",
+							"description" => "Queue this edit as a pending change instead of publishing it. Use when the user asks to "
+								. "draft the change or have someone review it before it goes live — the live page is left "
+								. "untouched. Without this a publisher's approval goes live immediately; an editor's always "
+								. "queues either way.",
+						],
 					],
 					"required" => ["id"],
 				]

@@ -47,7 +47,8 @@
 						],
 						"level" => [
 							"type" => "integer",
-							"description" => "New minimum admin level (0 editor, 1 admin, 2 developer).",
+							"description" => "New minimum admin level. Must be 0 (any editor), 1 (administrators) or "
+								. "2 (developers) — no other value is valid.",
 						],
 						"fields" => [
 							"type" => "array",

@@ -6,6 +6,7 @@
 	use BigTree\Api\Response;
 	use BigTree\Api\Sanitize;
 	use BigTree\Api\Exceptions\BadRequestException;
+	use BigTree\Services\AI\Tools\DashboardToolBackend;
 	use BigTreeGoogleAnalytics4;
 	use BigTreeJSONDB;
 	use SQL;
@@ -23,7 +24,7 @@
 	 *
 	 * One round-trip → snappy initial render.
 	 */
-	class DashboardService {
+	class DashboardService implements DashboardToolBackend {
 		public function summary(Request $request) {
 			$me = $request->user;
 			$me_id = (int)$me->id;
@@ -86,6 +87,102 @@
 		public function integrity(Request $request) {
 
 			return Response::ok($this->integrityStats(true));
+		}
+
+		// — AI tool seam (DashboardToolBackend) —
+		//
+		// Read-only and level-0, matching the dashboard panel this mirrors. The one
+		// difference: the dashboard renders for its own owner, whereas a tool result
+		// is read back by a model, so every row is filtered through the caller's page
+		// view access rather than assumed visible.
+
+		/**
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 */
+		public function aiContentAlerts($user, int $limit): array {
+			$limit = max(1, min(100, $limit));
+
+			// The site-wide rule: a page carrying its own max_age that hasn't been
+			// touched in that many days.
+			$rows = SQL::fetchAll(
+				"SELECT id, nav_title, path, updated_at, max_age,
+				        DATEDIFF(NOW(), updated_at) AS age_days
+				 FROM bigtree_pages
+				 WHERE max_age > 0 AND archived = '' AND DATEDIFF(NOW(), updated_at) > max_age
+				 ORDER BY age_days DESC"
+			);
+			$stale = [];
+
+			foreach ($rows as $row) {
+				if (count($stale) >= $limit) {
+
+					break;
+				}
+
+				if (!PermissionService::userHasPageAccess($user, (int)$row["id"], "v")) {
+
+					continue;
+				}
+
+				$stale[] = [
+					"page_id" => (int)$row["id"],
+					"nav_title" => Sanitize::decodeEntities($row["nav_title"]),
+					"path" => "/" . (string)$row["path"],
+					"updated_at" => $row["updated_at"],
+					"age_days" => (int)$row["age_days"],
+					"max_age_days" => (int)$row["max_age"],
+				];
+			}
+
+			// The caller's own watch list, which is what GET /dashboard/content-alerts
+			// returns. Keyed by page id → threshold in days.
+			$user_id = is_object($user) ? (int)($user->id ?? 0) : (int)($user["id"] ?? 0);
+			$alerts = Json::decode(SQL::fetchSingle("SELECT alerts FROM bigtree_users WHERE id = ?", $user_id));
+			$watched = [];
+
+			foreach ((is_array($alerts) ? $alerts : []) as $page_id => $threshold) {
+				$threshold = (int)$threshold;
+
+				if ($threshold <= 0 || count($watched) >= $limit) {
+
+					continue;
+				}
+
+				if (!PermissionService::userHasPageAccess($user, (int)$page_id, "v")) {
+
+					continue;
+				}
+
+				$row = SQL::fetch(
+					"SELECT id, nav_title, path, updated_at, DATEDIFF(NOW(), updated_at) AS age_days
+					 FROM bigtree_pages
+					 WHERE id = ? AND DATEDIFF(NOW(), updated_at) >= ?",
+					(int)$page_id,
+					$threshold
+				);
+
+				if ($row) {
+					$watched[] = [
+						"page_id" => (int)$row["id"],
+						"nav_title" => Sanitize::decodeEntities($row["nav_title"]),
+						"path" => "/" . (string)$row["path"],
+						"updated_at" => $row["updated_at"],
+						"age_days" => (int)$row["age_days"],
+						"threshold_days" => $threshold,
+					];
+				}
+			}
+
+			return [
+				"stale" => $stale,
+				"watched" => $watched,
+				"note" => (!$stale && !$watched)
+					? "No content is currently flagged as stale. A page is only tracked once it has a max_age "
+						. "(set it with update_page) or a personal alert threshold set in the admin."
+					: "\"stale\" is the site-wide rule (a page past its own max_age); \"watched\" is your personal "
+						. "alert list. Both are filtered to pages you can view.",
+			];
 		}
 
 		// — internals —

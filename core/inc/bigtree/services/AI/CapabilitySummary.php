@@ -72,6 +72,9 @@
 				"can_manage_settings" => $level >= 1,
 				"can_manage_templates" => $level >= 2,
 				"can_manage_modules" => $level >= 2,
+				// create_redirect is administrator-gated like the rest, but the map the
+				// SPA and the tests read had no key for it at all.
+				"can_create_redirects" => $level >= 1,
 			];
 		}
 
@@ -98,6 +101,11 @@
 				"Managing resource folders" => "the Files section",
 				"Changing user levels, permissions or passwords" =>
 					"Users, or the user's own profile screen for their password",
+				// The line above reads as being about privileges; authentication
+				// credentials are a separate category and the assistant declines all
+				// of it explicitly.
+				"Managing two-factor authentication or passkeys" =>
+					"the user's own profile screen — the assistant never touches authentication credentials",
 				"Deleting users, templates, callouts, modules or settings" =>
 					"the relevant Developer or Users screen",
 				"Creating or deleting settings" => "Developer → Settings",
@@ -105,8 +113,16 @@
 					"Developer → Settings — encrypted values are never exposed to the assistant",
 				"Duplicating or reordering pages" => "the page tree in Pages",
 				"Reordering module entries" => "the module's landing view",
+				"Reordering templates, callouts or modules" =>
+					"the relevant Developer screen — the assistant can create and edit these, but not reorder them",
 				"Editing a module's tables, forms, views or actions" =>
 					"Developer → Modules → Module Designer",
+				// create_module makes a bare record; the table/columns/forms/views are
+				// DDL with heavy shape-guessing, which every prior audit declined.
+				"Creating a module's database table, forms and views (scaffolding)" =>
+					"Developer → Modules → Module Designer — the assistant can create the module record, but "
+						. "cannot build its table or screens",
+				"Managing a module's embedded forms" => "Developer → Modules → Module Designer",
 				"Changing a module's route" => "Developer → Modules",
 				"Installing, updating or removing extensions" => "Developer → Extensions",
 				"Managing content locks" => "the lock banner on the item being edited",
@@ -129,6 +145,14 @@
 						. "change one afterwards",
 				"System maintenance — clearing caches, backups, upgrades, security policy, IP bans" =>
 					"Developer → System",
+				"Configuring integrations — email, geocoding, cloud storage, analytics, payments, media presets, "
+					. "and the AI assistant's own settings" => "Developer → System",
+				"Running integrity scans, or configuring analytics" =>
+					"the Dashboard — the assistant can list stale content with get_content_alerts, but not scan "
+						. "the site or set analytics up",
+				"Deleting a page revision" =>
+					"the page's revisions panel — the assistant can list, save and restore revisions, but not "
+						. "delete one",
 			];
 		}
 

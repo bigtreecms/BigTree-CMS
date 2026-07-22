@@ -405,8 +405,30 @@
 					. "appeared on the site (e.g. \"/old-pricing\" or a full URL)."];
 			}
 
+			$destination = $this->aiCheckRedirectDestination($to, $parsed);
+
+			if (isset($destination["error"])) {
+
+				return $destination;
+			}
+
 			$existing = self::getExisting404($source, $parsed["get_vars"], $parsed["site_key"]);
 			$previous = $existing ? (string)($existing["redirect_url"] ?? "") : "";
+
+			$preview = [
+				"action" => "create_redirect",
+				"from" => "/" . $source,
+				"to" => $to,
+				"replaces" => $previous,
+				"mode" => "published",
+			];
+
+			// Not a refusal: a destination can legitimately be a module route, a
+			// scheduled page or a path served outside BigTree. Surfacing it lets the
+			// human approving the proposal catch a typo the shape check can't.
+			if ($destination["warning"] !== "") {
+				$preview["warning"] = $destination["warning"];
+			}
 
 			return [
 				"ok" => true,
@@ -416,19 +438,72 @@
 						: ($existing
 							? " This URL is already in the 404 log; it becomes a 301 redirect."
 							: "")),
-				"preview" => [
-					"action" => "create_redirect",
-					"from" => "/" . $source,
-					"to" => $to,
-					"replaces" => $previous,
-					"mode" => "published",
-				],
+				"preview" => $preview,
 				"payload" => [
 					"from" => $from,
 					"to" => $to,
 					"site_key" => $site_key,
 				],
 			];
+		}
+
+		/**
+		 * Shape- and loop-check a proposed redirect destination.
+		 *
+		 * REST is equally loose here, but a model guessing formats makes a malformed
+		 * write far more likely, and this write goes live on approval with no pending
+		 * queue and no human between: a bare phrase like "pricing page" would be
+		 * served verbatim as a 301 Location, and from == to is an infinite loop the
+		 * moment it's hit.
+		 *
+		 * @param array<string,mixed> $parsed The result of parse404SourceURL for `from`.
+		 * @return array{error?:string,warning:string}
+		 */
+		private function aiCheckRedirectDestination(string $to, array $parsed): array {
+			$is_absolute = preg_match('#^https?://#i', $to) === 1;
+			$is_root_relative = substr($to, 0, 1) === "/";
+			$is_ipl = strpos($to, "{wwwroot}") === 0 || strpos($to, "ipl://") === 0;
+
+			if (!$is_absolute && !$is_root_relative && !$is_ipl) {
+
+				return ["error" => "\"{$to}\" isn't a URL the browser can be sent to. Give the destination as a "
+					. "site-relative path starting with \"/\" (e.g. \"/pricing\") or a full URL "
+					. "(e.g. \"https://example.com/pricing\")."];
+			}
+
+			// parse_url returns null for a missing component and false for a URL it
+			// can't parse at all — "https://" hits the second.
+			if ($is_absolute && !parse_url($to, PHP_URL_HOST)) {
+
+				return ["error" => "\"{$to}\" is not a valid URL — it has no domain."];
+			}
+
+			// Normalize the destination the same way the source was so the comparison
+			// is like for like: "/old", "old" and "https://site.com/old" all collapse
+			// to the same stored path.
+			$destination = self::parse404SourceURL($to, $parsed["site_key"]);
+
+			if ($destination["url"] === $parsed["url"] && $destination["get_vars"] === $parsed["get_vars"]) {
+
+				return ["error" => "That redirect points at itself — \"{$to}\" resolves to the same path it's "
+					. "redirecting from, which would loop forever. Give a different destination."];
+			}
+
+			$warning = "";
+			$is_internal = !$is_absolute || strpos($to, WWW_ROOT) === 0;
+
+			// Only meaningful for internal destinations — an external URL is nothing
+			// this install can check.
+			if ($is_internal) {
+				$path = (string)$destination["url"];
+
+				if ($path !== "" && !SQL::fetchSingle("SELECT id FROM bigtree_pages WHERE path = ?", $path)) {
+					$warning = "No page exists at /{$path}. If that's a module route or a page that isn't published "
+						. "yet this is fine — otherwise the redirect will land on a 404.";
+				}
+			}
+
+			return ["warning" => $warning];
 		}
 
 		/**
@@ -453,6 +528,23 @@
 				return ["mode" => "error", "message" => "That redirect can no longer be created."];
 			}
 
+			// Re-check shape and self-reference at approval — the payload is stored
+			// between staging and approval and is never trusted on the way back out.
+			$approval_parsed = self::parse404SourceURL($from, $site_key);
+
+			if ((string)$approval_parsed["url"] === "") {
+
+				return ["mode" => "error", "message" => "That redirect's source is no longer a path that can be "
+					. "redirected."];
+			}
+
+			$destination = $this->aiCheckRedirectDestination($to, $approval_parsed);
+
+			if (isset($destination["error"])) {
+
+				return ["mode" => "error", "message" => $destination["error"]];
+			}
+
 			$actor_id = 0;
 
 			if (is_object($user)) {
@@ -463,13 +555,16 @@
 
 			self::create301($from, $to, $site_key, $actor_id ?: null);
 
-			$parsed = self::parse404SourceURL($from, $site_key);
-			$row = self::getExisting404($parsed["url"], $parsed["get_vars"], $parsed["site_key"]);
+			$row = self::getExisting404(
+				$approval_parsed["url"],
+				$approval_parsed["get_vars"],
+				$approval_parsed["site_key"]
+			);
 
 			return [
 				"mode" => "created",
 				"id" => (int)($row["id"] ?? 0),
-				"from" => "/" . (string)$parsed["url"],
+				"from" => "/" . (string)$approval_parsed["url"],
 				"to" => (string)($row["redirect_url"] ?? $to),
 			];
 		}

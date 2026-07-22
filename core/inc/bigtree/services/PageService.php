@@ -252,6 +252,24 @@
 		// (execute) can reuse it. Permission is checked here, never in the model.
 
 		/**
+		 * The scalar page fields the assistant can write with update_page — and,
+		 * because get_page reads back exactly this list (aiPageDetailFields), the
+		 * fields it can read. Keeping one list is the point: the read payload used to
+		 * carry six fields against a write surface of fourteen, so "is this page
+		 * hidden from search?" or "when does it expire?" could only be answered by
+		 * proposing an edit and reading the staged diff's `from` values.
+		 *
+		 * Resource (template field) editing is deliberately absent — that is
+		 * update_page_content's job. `trunk` is deliberately absent too: dev-only and
+		 * multi-site-structural.
+		 */
+		public const AI_PAGE_FIELDS = [
+			"nav_title", "title", "meta_description", "meta_keywords", "in_nav", "seo_invisible",
+			"template", "route", "publish_at", "expire_at", "external", "new_window",
+			"og_title", "og_description", "max_age",
+		];
+
+		/**
 		 * Subtrees the user may create a page under, for a create_page needs_input
 		 * prompt. Administrators/developers get the site root plus current top-level
 		 * pages; an editor gets the pages they hold an explicit editor/publisher grant
@@ -397,7 +415,16 @@
 			}
 
 			$resources = $sifted["data"];
-			$can_publish = PermissionService::isPublisher($user, $rank);
+
+			// "Draft this, marketing reviews it Friday" had no path: the mode was
+			// derived purely from rank, so a publisher's approval always went live —
+			// the opposite of the framework's own propose-then-approve ethos. REST has
+			// carried an explicit publish flag all along. Because the draft path is
+			// exactly the "a human completes this" case, the blocked-required-fields
+			// refusal relaxes to the same warning an editor gets (it keys off
+			// $can_publish below).
+			$save_as_draft = !empty($args["save_as_draft"]);
+			$can_publish = PermissionService::isPublisher($user, $rank) && !$save_as_draft;
 			$blocked = $this->aiRequiredUnsettableResources($template);
 			$gate = $this->aiPageCreateGate($template, $resources, $can_publish);
 
@@ -423,6 +450,11 @@
 			$meta_description = trim((string)($args["meta_description"] ?? ""));
 			$meta_keywords = trim((string)($args["meta_keywords"] ?? ""));
 			$seo_invisible = array_key_exists("seo_invisible", $args) ? (bool)$args["seo_invisible"] : false;
+
+			// Drives the dashboard's content-staleness alerts, which get_content_alerts
+			// now reads — settable so the model can both see stale content and fix the
+			// tracking on it. REST declares it int|min:0; 0 means "never goes stale".
+			$max_age = max(0, (int)($args["max_age"] ?? 0));
 			$schedule = $this->aiPageSchedule($args);
 
 			if (isset($schedule["error"])) {
@@ -468,9 +500,11 @@
 				"meta_description" => $meta_description,
 				"meta_keywords" => $meta_keywords,
 				"seo_invisible" => $seo_invisible,
+				"max_age" => $max_age,
 				"publish_at" => $schedule["publish_at"],
 				"expire_at" => $schedule["expire_at"],
 				"resources" => $resources,
+				"save_as_draft" => $save_as_draft,
 			];
 
 			$preview = [
@@ -492,6 +526,10 @@
 
 			if ($seo_invisible) {
 				$preview["seo_invisible"] = true;
+			}
+
+			if ($max_age > 0) {
+				$preview["max_age"] = $max_age;
 			}
 
 			if ($schedule["publish_at"] !== null) {
@@ -520,7 +558,14 @@
 
 			$mode_note = $can_publish
 				? " It will be published live once you approve."
-				: " It will be queued as a pending change for a publisher to review.";
+				: ($save_as_draft
+					? " As asked, it will be saved as a draft in the pending queue rather than published — a "
+						. "publisher can review and publish it later."
+					: " It will be queued as a pending change for a publisher to review.");
+
+			if ($save_as_draft) {
+				$preview["save_as_draft"] = true;
+			}
 
 			if ($blocked) {
 				$preview["incomplete_required"] = $blocked;
@@ -989,7 +1034,14 @@
 			}
 
 			$rank = PermissionService::userPageLevel($user, $parent);
-			$can_publish = PermissionService::isPublisher($user, $rank);
+
+			// An explicit "save as draft" forces the pending path however senior the
+			// approver is. Stripped from the payload before it's written: everything
+			// left in it is replayed onto the page row.
+			$save_as_draft = !empty($payload["save_as_draft"]);
+			unset($payload["save_as_draft"]);
+
+			$can_publish = PermissionService::isPublisher($user, $rank) && !$save_as_draft;
 			$nav_title = (string)($payload["nav_title"] ?? "");
 			$template = (string)($payload["template"] ?? "");
 
@@ -1011,6 +1063,17 @@
 
 					return ["mode" => "error", "message" => $gate];
 				}
+			}
+
+			// Re-checked at approval like every other staged value — the payload sits
+			// in the proposal store for up to 24h and is never trusted on the way back
+			// out. The create payload spells these fields flat, so the same guard the
+			// update path runs over its `changes` map applies directly.
+			$invalid = $this->aiPageChangeValueError($payload);
+
+			if ($invalid !== null) {
+
+				return ["mode" => "error", "message" => $invalid];
 			}
 
 			// Tags were staged as names. Re-check the admin gate on any still missing —
@@ -1575,6 +1638,86 @@
 		}
 
 		/**
+		 * The read half of AI_PAGE_FIELDS: every scalar update_page can write, plus
+		 * the page's current tag names, shaped for get_page's payload.
+		 *
+		 * Takes an aiResolvePageTarget result rather than a bare row because a draft
+		 * carries its Open Graph and tags on the queue row, not in the OG/tag tables —
+		 * there is no page id to look either up by.
+		 *
+		 * @param array<string,mixed> $target
+		 * @return array<string,mixed>
+		 */
+		public function aiPageDetailFields(array $target): array {
+			$page = $target["page"];
+			$is_pending = !empty($target["is_pending"]);
+
+			if (array_key_exists("ai_open_graph", $page)) {
+				$open_graph = is_array($page["ai_open_graph"]) ? $page["ai_open_graph"] : [];
+			} else {
+				$open_graph = $is_pending ? [] : ($this->loadOpenGraph((int)$page["id"]) ?: []);
+			}
+
+			return [
+				"nav_title" => Sanitize::decodeEntities((string)$page["nav_title"]),
+				"title" => Sanitize::decodeEntities((string)$page["title"]),
+				"meta_description" => Sanitize::decodeEntities((string)($page["meta_description"] ?? "")),
+				"meta_keywords" => Sanitize::decodeEntities((string)($page["meta_keywords"] ?? "")),
+				"in_nav" => Flag::isOn($page["in_nav"] ?? ""),
+				"seo_invisible" => Flag::isOn($page["seo_invisible"] ?? ""),
+				"template" => (string)($page["template"] ?? ""),
+				"route" => (string)($page["route"] ?? ""),
+				"publish_at" => (string)($page["publish_at"] ?? ""),
+				"expire_at" => (string)($page["expire_at"] ?? ""),
+				"external" => (string)($page["external"] ?? ""),
+				"new_window" => Flag::isOn($page["new_window"] ?? ""),
+				"og_title" => (string)($open_graph["title"] ?? ""),
+				"og_description" => (string)($open_graph["description"] ?? ""),
+				"max_age" => (int)($page["max_age"] ?? 0),
+				"tags" => $this->aiPageTagNames($target),
+			];
+		}
+
+		/**
+		 * A page's current tag names. Nothing listed them before, so the assistant
+		 * could attach and remove tags without ever being able to say which a page
+		 * already had.
+		 *
+		 * @param array<string,mixed> $target An aiResolvePageTarget result.
+		 * @return list<string>
+		 */
+		private function aiPageTagNames(array $target): array {
+			if (!empty($target["is_pending"])) {
+				$stored = Json::decode((string)SQL::fetchSingle(
+					"SELECT tags_changes FROM bigtree_pending_changes WHERE id = ?",
+					(int)$target["change_id"]
+				));
+				$ids = array_values(array_map("intval", is_array($stored) ? $stored : []));
+
+				if (!$ids) {
+
+					return [];
+				}
+
+				$names = SQL::fetchAllSingle(
+					"SELECT tag FROM bigtree_tags WHERE id IN (" . Sanitize::placeholders($ids) . ") ORDER BY tag",
+					...$ids
+				);
+
+				return array_values(array_map("strval", $names ?: []));
+			}
+
+			$names = SQL::fetchAllSingle(
+				"SELECT t.tag FROM bigtree_tags_rel r
+				 JOIN bigtree_tags t ON t.id = r.tag
+				 WHERE r.`table` = 'bigtree_pages' AND r.entry = ? ORDER BY t.tag",
+				(int)$target["page_id"]
+			);
+
+			return array_values(array_map("strval", $names ?: []));
+		}
+
+		/**
 		 * Resolve an AI-supplied page id, which may address an unpublished NEW draft
 		 * ("p"-prefixed) rather than a live page.
 		 *
@@ -1686,6 +1829,7 @@
 				"external" => (string)($changes["external"] ?? ""),
 				"publish_at" => $changes["publish_at"] ?? null,
 				"expire_at" => $changes["expire_at"] ?? null,
+				"max_age" => (int)($changes["max_age"] ?? 0),
 				"resources" => is_string($resources) ? $resources : (string)json_encode($resources),
 				// Read by aiPageOpenGraph in place of a loadOpenGraph() lookup: a draft
 				// has no page id to look one up by, its OG lives on the change row.
@@ -1829,17 +1973,7 @@
 					: "You do not have permission to edit this page."];
 			}
 
-			// Only the plain content fields the assistant is allowed to touch. Resource
-			// (template field) editing is deliberately out of scope for the assistant.
-			//
-			// publish_at/expire_at were settable at create but not here, so the
-			// assistant could schedule a page at birth and never change or clear the
-			// schedule afterwards — an asymmetry the model reliably tripped on.
-			$editable = [
-				"nav_title", "title", "meta_description", "meta_keywords", "in_nav", "seo_invisible",
-				"template", "route", "publish_at", "expire_at", "external", "new_window",
-				"og_title", "og_description",
-			];
+			$editable = self::AI_PAGE_FIELDS;
 			$changes = [];
 			$diff = [];
 			$title_for_error = trim((string)$page["nav_title"]) ?: trim((string)$page["title"]) ?: "page #{$id}";
@@ -1923,9 +2057,25 @@
 					$args[$field] = $route;
 				}
 
+				// REST declares max_age as int|min:0; 0 means "never goes stale".
+				if ($field === "max_age") {
+					$max_age = (int)$args[$field];
+
+					if ($max_age < 0) {
+
+						return ["error" => "max_age is a number of days and can't be negative. Use 0 to stop tracking "
+							. "this page's age."];
+					}
+
+					$args[$field] = $max_age;
+				}
+
 				if (in_array($field, ["in_nav", "seo_invisible", "new_window"], true)) {
 					$new = (bool)$args[$field];
 					$old = Flag::isOn($page[$field]);
+				} elseif ($field === "max_age") {
+					$new = (int)$args[$field];
+					$old = (int)($page[$field] ?? 0);
 				} elseif (in_array($field, ["publish_at", "expire_at"], true)) {
 					// "" clears the schedule; the column is nullable, and a null/""
 					// mismatch would otherwise read as a change on every edit.
@@ -1981,7 +2131,8 @@
 			}
 
 			$rank = PermissionService::userPageLevel($user, $is_pending ? $target["parent"] : $id);
-			$can_publish = PermissionService::isPublisher($user, $rank);
+			$save_as_draft = !empty($args["save_as_draft"]);
+			$can_publish = PermissionService::isPublisher($user, $rank) && !$save_as_draft;
 			$reference = $is_pending ? "p" . $target["change_id"] : (string)$id;
 			$title = trim((string)$page["nav_title"]) ?: trim((string)$page["title"])
 				?: ($is_pending ? "draft {$reference}" : "page #{$id}");
@@ -1994,25 +2145,35 @@
 			} else {
 				$mode_note = $can_publish
 					? " It will be published live once you approve."
-					: " It will be queued as a pending change for a publisher to review.";
+					: ($save_as_draft
+						? " As asked, it will be queued as a pending change rather than published — the live page "
+							. "is untouched until a publisher approves it."
+						: " It will be queued as a pending change for a publisher to review.");
 			}
 
 			$summary = ($is_pending ? "Update draft “{$title}”." : "Update page “{$title}”.") . $mode_note;
 
+			$preview = [
+				"page_id" => $id,
+				"page_reference" => $reference,
+				"page_title" => $title,
+				"is_draft" => $is_pending,
+				"changes" => $diff,
+				"mode" => $is_pending ? "pending" : ($can_publish ? "published" : "pending"),
+			];
+
+			if ($save_as_draft && !$is_pending) {
+				$preview["save_as_draft"] = true;
+			}
+
 			return [
 				"ok" => true,
 				"summary" => $summary,
-				"preview" => [
-					"page_id" => $id,
-					"page_reference" => $reference,
-					"page_title" => $title,
-					"is_draft" => $is_pending,
-					"changes" => $diff,
-					"mode" => $is_pending ? "pending" : ($can_publish ? "published" : "pending"),
-				],
+				"preview" => $preview,
 				"payload" => [
 					"id" => $reference,
 					"changes" => $changes,
+					"save_as_draft" => $save_as_draft,
 				],
 			];
 		}
@@ -2092,7 +2253,8 @@
 			}
 
 			$rank = PermissionService::userPageLevel($user, $is_pending ? $target["parent"] : $id);
-			$can_publish = PermissionService::isPublisher($user, $rank);
+			$save_as_draft = !empty($args["save_as_draft"]);
+			$can_publish = PermissionService::isPublisher($user, $rank) && !$save_as_draft;
 			$merged = $this->aiMergePageContent($page, $changed, $template, $title, $can_publish);
 
 			if (isset($merged["error"])) {
@@ -2120,7 +2282,10 @@
 			} else {
 				$mode_note = $can_publish
 					? " It will be published live once you approve."
-					: " It will be queued as a pending change for a publisher to review.";
+					: ($save_as_draft
+						? " As asked, it will be queued as a pending change rather than published — the live page "
+							. "is untouched until a publisher approves it."
+						: " It will be queued as a pending change for a publisher to review.");
 			}
 
 			// A non-publisher is allowed to stage a template switch that strands
@@ -2145,6 +2310,7 @@
 			$payload = [
 				"id" => $reference,
 				"content" => $changed,
+				"save_as_draft" => $save_as_draft,
 			];
 
 			if ($template !== $current_template) {
@@ -2165,6 +2331,10 @@
 
 			if ($blocked) {
 				$preview["incomplete_required"] = $blocked;
+			}
+
+			if ($save_as_draft && !$is_pending) {
+				$preview["save_as_draft"] = true;
 			}
 
 			return [
@@ -2273,7 +2443,10 @@
 			}
 
 			$rank = PermissionService::userPageLevel($user, $is_pending ? $target["parent"] : $id);
-			$can_publish = PermissionService::isPublisher($user, $rank);
+			// An explicit "save as draft" forces the pending path however senior the
+			// approver is (and relaxes the blocked-required gate inside the merge, the
+			// same way it does for an editor).
+			$can_publish = PermissionService::isPublisher($user, $rank) && empty($payload["save_as_draft"]);
 			$title = trim((string)$page["nav_title"]) ?: ($is_pending ? "draft {$reference}" : "page #{$id}");
 			$template = !empty($payload["template"]) ? (string)$payload["template"] : (string)$page["template"];
 			$changed = is_array($payload["content"] ?? null) ? $payload["content"] : [];
@@ -2319,6 +2492,34 @@
 		}
 
 		/**
+		 * Approval-time re-check of the staged page field values that carry their own
+		 * validity rule, shared by the live and draft branches of aiUpdatePage.
+		 *
+		 * Everything a proposal stages is re-asked at approval rather than trusted
+		 * from staging — the payload sits in the store for up to 24h. These two are
+		 * the values whose rule is about the value itself rather than about the
+		 * world around it (permission, template existence, tag existence), so they
+		 * have nowhere else to be re-checked.
+		 *
+		 * @param array<string,mixed> $changes
+		 * @return string|null An error message, or null when the changes still pass.
+		 */
+		private function aiPageChangeValueError(array $changes): ?string {
+			if (array_key_exists("max_age", $changes) && (int)$changes["max_age"] < 0) {
+
+				return "max_age is a number of days and can't be negative.";
+			}
+
+			if (array_key_exists("nav_title", $changes) && trim((string)$changes["nav_title"]) === "") {
+
+				return "A page's navigation title can't be empty — it's what the site's navigation and breadcrumbs "
+					. "display.";
+			}
+
+			return null;
+		}
+
+		/**
 		 * A short, length-capped rendering of a resource value for a proposal diff.
 		 *
 		 * @param mixed $value
@@ -2345,6 +2546,15 @@
 			$reference = trim((string)($payload["id"] ?? ""));
 			$changes = is_array($payload["changes"] ?? null) ? $payload["changes"] : [];
 
+			// Before the draft split, so both paths get it: the stored payload is
+			// never trusted on the way back out, whichever branch consumes it.
+			$invalid = $this->aiPageChangeValueError($changes);
+
+			if ($invalid !== null) {
+
+				return ["mode" => "error", "message" => $invalid];
+			}
+
 			// A draft edit amends the queued change in place — there is no live page to
 			// publish over, so the publisher/editor split below doesn't apply.
 			if (strlen($reference) > 1 && $reference[0] === "p" && ctype_digit(substr($reference, 1))) {
@@ -2366,7 +2576,9 @@
 			}
 
 			$rank = PermissionService::userPageLevel($user, $id);
-			$can_publish = PermissionService::isPublisher($user, $rank);
+			// An explicit "save as draft" forces the pending path however senior the
+			// approver is.
+			$can_publish = PermissionService::isPublisher($user, $rank) && empty($payload["save_as_draft"]);
 			$title = trim((string)$page["nav_title"]) ?: ("page #{$id}");
 
 			// The template-switch gap check ran at staging only. A template redefined

@@ -1268,7 +1268,8 @@ PROMPT;
 		 * @return array{error?:string,payload?:array,artifact?:array}
 		 */
 		public function getPageDetail($id, $user): array {
-			$target = (new PageService())->aiResolvePageTarget($id);
+			$pages = new PageService();
+			$target = $pages->aiResolvePageTarget($id);
 
 			if (isset($target["error"])) {
 				return ["error" => $target["error"]];
@@ -1285,42 +1286,40 @@ PROMPT;
 			$page = $target["page"];
 			$snippet = $this->plainTextFromResources($page["resources"] ?? "");
 
+			// Every scalar update_page can write, so the model can answer "is this page
+			// hidden from search?" or "when does it expire?" without proposing an edit
+			// just to read the diff's `from` values.
+			$fields = $pages->aiPageDetailFields($target);
+
 			if ($target["is_pending"]) {
 				$reference = "p".$target["change_id"];
 
 				// No artifact: artifacts are navigable rows, and a draft has no live page
 				// to navigate to — emitting one with id 0 would render a broken link.
-				return ["payload" => [
+				return ["payload" => array_merge([
 					"id" => $reference,
 					"is_draft" => true,
 					"pending_change_id" => (int)$target["change_id"],
 					"parent" => (int)$target["parent"],
-					"nav_title" => $page["nav_title"],
-					"title" => $page["title"],
-					"route" => $page["route"],
-					"meta_description" => $page["meta_description"],
-					"template" => $page["template"],
+				], $fields, [
 					"archived" => false,
 					"content_text" => $snippet,
 					"note" => "This page is still an unpublished draft awaiting approval — it has no live URL yet. "
 						. "Edit it with this same \"{$reference}\" id.",
-				]];
+				])];
 			}
 
 			$archived = Flag::isOn($page["archived"] ?? "");
 
 			return [
-				"payload" => [
+				"payload" => array_merge([
 					"id" => (int)$page["id"],
 					"is_draft" => false,
-					"nav_title" => $page["nav_title"],
-					"title" => $page["title"],
 					"path" => $page["path"],
-					"meta_description" => $page["meta_description"],
-					"template" => $page["template"],
+				], $fields, [
 					"archived" => $archived,
 					"content_text" => $snippet,
-				],
+				]),
 				"artifact" => [
 					"id" => (int)$page["id"],
 					"nav_title" => $page["nav_title"],
@@ -1334,14 +1333,18 @@ PROMPT;
 		 * Backend seam (SearchToolBackend): fetch a single module entry for
 		 * get_module_entry. Returns ["error" => …] or ["payload" => …, "artifact" => <entry group>].
 		 *
+		 * Accepts the same ids the entry *write* tools do, including a "p"-prefixed
+		 * draft id: casting to int here turned "p12" into 0, so the round trip those
+		 * tools deliberately built ("create a draft, then fix it") had no read half.
+		 *
 		 * @param object|array $user
 		 * @return array{error?:string,payload?:array,artifact?:array}
 		 */
 		public function getModuleEntryDetail($module_id, $entry_id, $user): array {
 			$module_id = trim((string)$module_id);
-			$entry_id = (int)$entry_id;
+			$entry_id = trim((string)$entry_id);
 
-			if ($module_id === "" || $entry_id < 1) {
+			if ($module_id === "" || $entry_id === "") {
 				return ["error" => "invalid ids"];
 			}
 
@@ -1373,15 +1376,22 @@ PROMPT;
 				return ["error" => "invalid module table"];
 			}
 
+			// The same resolver the write tools use, so "12" and "p12" address the
+			// same things here as they do there. Still wrapped: the module's table may
+			// name something that no longer exists, which is a lookup failure rather
+			// than a bad id.
 			try {
-				$row = SQL::fetch("SELECT * FROM `$table` WHERE id = ?", $entry_id);
+				$resolved = (new AutoModuleService())->aiResolveEntryRow($table, $entry_id);
 			} catch (\Throwable $e) {
 				return ["error" => "lookup failed"];
 			}
 
-			if (!$row) {
-				return ["error" => "not found"];
+			if (isset($resolved["error"])) {
+				return ["error" => (string)$resolved["error"]];
 			}
+
+			$row = $resolved["row"];
+			$is_pending = !empty($resolved["is_pending"]);
 
 			// Flatten to scalars/strings for the model; drop huge blobs.
 			$safe = [];
@@ -1404,20 +1414,42 @@ PROMPT;
 			}
 
 			$resolved_id = $this->moduleId($module);
+			$module_summary = [
+				"id" => $resolved_id,
+				"name" => $module["name"] ?? "",
+				"route" => $module["route"] ?? "",
+			];
+
+			// No artifact for a draft: artifacts are navigable rows, and an
+			// unpublished entry has no live row to navigate to — the same reason
+			// getPageDetail withholds one for a page draft.
+			if ($is_pending) {
+				$reference = (string)$resolved["lookup_id"];
+
+				return ["payload" => [
+					"module" => $module_summary,
+					"id" => $reference,
+					"is_draft" => true,
+					"pending_change_id" => (int)$resolved["change_id"],
+					"entry" => $safe,
+					"note" => "This entry is still an unpublished draft awaiting approval — these are the draft's "
+						. "values, not a live row. Edit it with this same \"{$reference}\" id.",
+				]];
+			}
+
 			$group = [
-				"module" => [
-					"id" => $resolved_id,
-					"name" => $module["name"] ?? "",
-					"route" => $module["route"] ?? "",
-				],
+				"module" => $module_summary,
 				"items" => [[
-					"id" => $entry_id,
-					"column1" => $safe["title"] ?? $safe["id"] ?? (string)$entry_id,
+					"id" => (int)$entry_id,
+					"column1" => $safe["title"] ?? $safe["id"] ?? $entry_id,
 				]],
 			];
+
 			return [
 				"payload" => [
-					"module" => $group["module"],
+					"module" => $module_summary,
+					"id" => (int)$entry_id,
+					"is_draft" => false,
 					"entry" => $safe,
 				],
 				"artifact" => $group,

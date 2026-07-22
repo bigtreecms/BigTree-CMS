@@ -244,7 +244,13 @@
 		// Things the catalog *does* cover must not be listed as impossible. Page
 		// revisions and callout editing were declines before phase 4 built them.
 		$joined = strtolower(implode(" | ", array_keys($declines)));
-		T::ok(strpos($joined, "revision") === false, "restoring revisions is no longer a decline — it has a tool");
+
+		// Listing, saving and restoring revisions all have tools; only *deleting* one
+		// is out of scope, so the check has to be about the verb, not the noun.
+		foreach (["restoring a page revision", "saving a page revision", "listing page revisions"] as $covered) {
+			T::ok(strpos($joined, $covered) === false, "\"{$covered}\" isn't declined — it has a tool");
+		}
+
 		T::ok(strpos($joined, "external link") === false, "external links are no longer a decline");
 		T::ok(strpos($joined, "tagging") === false, "tagging is not a decline — add_tags/remove_tags exist");
 
@@ -259,6 +265,16 @@
 			"field types" => "custom field types",
 			"messages" => "internal messages",
 			"system maintenance" => "cache/backup/upgrade operations",
+			// Audit #4 (B3): route families that had gained endpoints without gaining
+			// either a tool or a line. AIRouteFamilyContractTest is the general guard;
+			// these pin the specific wording those walls are declined with.
+			"reordering templates, callouts or modules" => "reordering records themselves",
+			"embedded forms" => "a module's embedded forms",
+			"deleting a page revision" => "revision deletion",
+			"two-factor authentication or passkeys" => "authentication-credential management",
+			"configuring integrations" => "email/geocoding/storage/analytics/payment configuration",
+			"scaffolding" => "building a module's table and screens",
+			"integrity scans" => "running an integrity scan",
 		];
 
 		foreach ($declined_families as $needle => $label) {
@@ -266,8 +282,32 @@
 		}
 
 		// …and conversely, nothing built in this audit may be listed as impossible.
-		foreach (["creating a redirect", "merging tags", "renaming a tag", "seo rating"] as $built) {
-			T::ok(strpos($joined, $built) === false, "\"{$built}\" has a tool and must not be declined");
+		$built = [
+			"creating a redirect", "merging tags", "renaming a tag", "seo rating",
+			// Audit #4 built these; get_content_alerts is named *inside* the integrity
+			// line as the thing the assistant can do, so match on the capability
+			// phrasing a decline would use rather than the tool name.
+			"listing stale content", "saving a page as a draft",
+		];
+
+		foreach ($built as $capability) {
+			T::ok(strpos($joined, $capability) === false, "\"{$capability}\" has a tool and must not be declined");
+		}
+	}
+
+	/**
+	 * Audit #4 (C2): create_redirect is administrator-gated like the other admin
+	 * tools, but the capability map the SPA and these tests read had no key for it,
+	 * so nothing could tell that the wall existed.
+	 */
+	function test_capability_map_covers_every_admin_gated_tool() {
+		$editor = \BigTree\Services\AI\CapabilitySummary::forUser((object)["id" => 1, "level" => 0]);
+		$admin = \BigTree\Services\AI\CapabilitySummary::forUser((object)["id" => 1, "level" => 1]);
+
+		foreach (["can_manage_users", "can_create_tags", "can_manage_settings", "can_create_redirects"] as $key) {
+			T::ok(array_key_exists($key, $editor), "the map has a {$key} key");
+			T::equals($editor[$key], false, "{$key} is false for an editor");
+			T::equals($admin[$key], true, "{$key} is true for an administrator");
 		}
 	}
 

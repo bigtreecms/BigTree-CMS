@@ -44,8 +44,8 @@
 						],
 						"to" => [
 							"type" => "string",
-							"description" => "Where it should go — a path on this site (e.g. \"/pricing\") or a "
-								. "full external URL.",
+							"description" => "Where it should go — a site-relative path starting with \"/\" "
+								. "(e.g. \"/pricing\") or a full http(s) URL. Must differ from `from`.",
 						],
 						"site_key" => [
 							"type" => "string",

@@ -82,6 +82,11 @@
 							"type" => "boolean",
 							"description" => "Whether to hide the page from search engines (default false).",
 						],
+						"max_age" => [
+							"type" => "integer",
+							"description" => "Days after which the page is flagged as stale on the dashboard's "
+								. "content alerts. 0 (the default) never flags it.",
+						],
 						"publish_at" => [
 							"type" => "string",
 							"description" => "Optional date/time the page starts being visible, e.g. \"2026-08-01\" "
@@ -115,6 +120,12 @@
 						"og_description" => [
 							"type" => "string",
 							"description" => "Optional Open Graph (social sharing) description.",
+						],
+						"save_as_draft" => [
+							"type" => "boolean",
+							"description" => "Save this as a draft in the pending queue instead of publishing it. Use when the user "
+								. "asks to draft the page or have someone review it before it goes live. Without this a "
+								. "publisher's approval goes live immediately; an editor's always queues either way.",
 						],
 					],
 					"required" => ["nav_title"],

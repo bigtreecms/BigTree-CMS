@@ -308,6 +308,16 @@
 			$company = trim((string)($args["company"] ?? ""));
 			$timezone = trim((string)($args["timezone"] ?? ""));
 
+			// REST's own POST /users declares name as required, and every label
+			// fallback downstream (audit rows, pending-change attribution, the users
+			// list) degrades to the bare email without it — an AI-created account
+			// would be the only kind with no name at all.
+			if ($name === "") {
+
+				return ["error" => "A name is required for a new user account — it's what the users list, audit "
+					. "entries and pending-change attribution display."];
+			}
+
 			// An invalid tz identifier is stored happily but breaks any date-rendering
 			// path that constructs a DateTimeZone from it — catch it while the model
 			// can still correct itself.
@@ -319,7 +329,7 @@
 
 			return [
 				"ok" => true,
-				"summary" => "Create a new editor account for " . ($name !== "" ? "{$name} ({$email})" : $email)
+				"summary" => "Create a new editor account for {$name} ({$email})"
 					. ". They'll be an editor (level 0) with no permissions granted. They cannot log in until a "
 					. "password is set — approving this sends them an email invite to choose one.",
 				"preview" => [
@@ -367,12 +377,19 @@
 				return ["mode" => "error", "message" => "\"{$timezone}\" is not a valid timezone identifier."];
 			}
 
+			$name = trim((string)($payload["name"] ?? ""));
+
+			if ($name === "") {
+
+				return ["mode" => "error", "message" => "A name is required for a new user account."];
+			}
+
 			// Always level 0, no password, no permissions — the assistant never grants
 			// privileges. The password is set by the invitee through the reset flow.
 			$id = (int)SQL::insert("bigtree_users", [
 				"email" => BigTree::safeEncode($email),
 				"level" => 0,
-				"name" => BigTree::safeEncode((string)($payload["name"] ?? "")),
+				"name" => BigTree::safeEncode($name),
 				"company" => BigTree::safeEncode((string)($payload["company"] ?? "")),
 				"daily_digest" => "",
 				"alerts" => [],
@@ -438,6 +455,24 @@
 				}
 
 				$new = trim((string)$args[$field]);
+
+				// Same reasoning as the create path: name is what every label
+				// fallback renders, so an edit can't blank it out. (company is
+				// genuinely optional and may be cleared.)
+				if ($field === "name" && $new === "") {
+
+					return ["error" => "A user's name can't be blanked — it's what the users list, audit entries and "
+						. "pending-change attribution display."];
+				}
+
+				// The create path validates timezone identifiers because an invalid one
+				// is stored happily and then breaks any date-rendering path that builds
+				// a DateTimeZone from it. The update path has to do the same.
+				if ($field === "timezone" && $new !== "" && !in_array($new, timezone_identifiers_list(), true)) {
+
+					return ["error" => "\"{$new}\" is not a valid timezone identifier. Use an IANA name "
+						. "like \"America/New_York\" or \"Europe/London\"."];
+				}
 
 				if ($new !== (string)($target[$field] ?? "")) {
 					$changes[$field] = $new;
@@ -529,6 +564,22 @@
 				if (SQL::fetchSingle("SELECT id FROM bigtree_users WHERE email = ? AND id != ?", $email, $id)) {
 
 					return ["mode" => "error", "message" => "That email address is no longer available."];
+				}
+			}
+
+			// Both re-checked at approval for the same reason the email is: the payload
+			// sits for up to 24h and is never trusted on the way back out.
+			if (array_key_exists("name", $changes) && trim((string)$changes["name"]) === "") {
+
+				return ["mode" => "error", "message" => "A user's name can't be blanked."];
+			}
+
+			if (array_key_exists("timezone", $changes)) {
+				$timezone = (string)$changes["timezone"];
+
+				if ($timezone !== "" && !in_array($timezone, timezone_identifiers_list(), true)) {
+
+					return ["mode" => "error", "message" => "\"{$timezone}\" is not a valid timezone identifier."];
 				}
 			}
 

@@ -1058,7 +1058,13 @@
 
 			$data = $sifted["data"];
 			$rank = PermissionService::userModuleLevel($user, $module["id"]);
-			$can_publish = PermissionService::isPublisher($user, $rank);
+
+			// A publisher can deliberately queue work for someone else's review, the
+			// way REST's __publish__ flag lets them. Because a draft is exactly the
+			// "a human completes this" case, the blocked-required refusal relaxes to
+			// the editor-style warning (aiEntryCreateGate keys off $can_publish).
+			$save_as_draft = !empty($args["save_as_draft"]);
+			$can_publish = PermissionService::isPublisher($user, $rank) && !$save_as_draft;
 			$name = (string)($module["name"] ?? $module["id"]);
 			$blocked = $resolved["blocked_required"];
 			$gate = $this->aiEntryCreateGate($resolved, $data, $can_publish);
@@ -1068,9 +1074,30 @@
 				return ["error" => $gate];
 			}
 
+			// Tagging at create, mirroring create_page's `tags`. Without it an editor
+			// couldn't tag a new entry at all: their create lands as pending draft
+			// "p{id}", and add_tags only accepts a live entry — so "create this and
+			// tag it" couldn't complete until a publisher approved, by which point the
+			// tagging intent was lost. Names (not ids) are staged and re-checked at
+			// approval, exactly as add_tags and create_page do.
+			$tags = new TagService();
+			$tag_names = $tags->aiTagNames($args["tags"] ?? []);
+			$new_tags = $tag_names ? $tags->aiNewTagNames($tag_names) : [];
+
+			if ($new_tags && PermissionService::level($user) < 1) {
+
+				return ["denied" => "Only administrators can create new tags. These don't exist yet: "
+					. implode(", ", $new_tags) . ". You can still use tags that already exist."];
+			}
+
+			$open_graph = $this->aiEntryOpenGraph($args);
+
 			$mode_note = $can_publish
 				? " It will be published live once you approve."
-				: " It will be queued as a pending entry for a publisher to review.";
+				: ($save_as_draft
+					? " As asked, it will be saved as a draft in the pending queue rather than published — a "
+						. "publisher can review and publish it later."
+					: " It will be queued as a pending entry for a publisher to review.");
 
 			if ($blocked) {
 				$mode_note .= " Note that " . implode(", ", $blocked)
@@ -1090,6 +1117,21 @@
 				$preview["incomplete_required"] = $blocked;
 			}
 
+			if ($save_as_draft) {
+				$preview["save_as_draft"] = true;
+			}
+
+			if ($tag_names) {
+				$preview["tags"] = $tag_names;
+				$preview["new_tags"] = $new_tags;
+			}
+
+			foreach (["title" => "og_title", "description" => "og_description"] as $key => $preview_key) {
+				if (isset($open_graph[$key])) {
+					$preview[$preview_key] = $open_graph[$key];
+				}
+			}
+
 			return [
 				"ok" => true,
 				"summary" => "Create a new entry in the “{$name}” module." . $mode_note,
@@ -1099,8 +1141,99 @@
 					"form" => (string)($resolved["form"]["id"] ?? ""),
 					"table" => $table,
 					"data" => $data,
+					"tag_names" => $tag_names,
+					"open_graph" => $open_graph,
+					"save_as_draft" => $save_as_draft,
 				],
 			];
+		}
+
+		/**
+		 * The tags and Open Graph record an AI entry edit has to carry forward.
+		 *
+		 * updateItem/submitChange treat their $tags and $open_graph arguments as the
+		 * complete new set: an empty array deletes the row's tag relations outright
+		 * and blanks its Open Graph record. REST can pass [] safely because its client
+		 * always submits the whole form body — an AI edit is a partial write of a few
+		 * scalar fields, so passing [] there silently destroyed everything the edit
+		 * wasn't about.
+		 *
+		 * $prefer_change reads an outstanding draft's staged values instead of the
+		 * live row's, so amending a draft doesn't revert the tags staged on it.
+		 *
+		 * @return array{tags:list<int>,open_graph:array<string,mixed>}
+		 */
+		private function aiExistingEntryRelations(string $table, string $entry_id, bool $is_pending, bool $prefer_change): array {
+			$change = null;
+
+			if ($is_pending) {
+				$change = SQL::fetch(
+					"SELECT tags_changes, open_graph_changes FROM bigtree_pending_changes WHERE id = ?",
+					(int)ltrim($entry_id, "p")
+				);
+			} elseif ($prefer_change) {
+				$change = SQL::fetch(
+					"SELECT tags_changes, open_graph_changes FROM bigtree_pending_changes WHERE `table` = ? AND item_id = ?",
+					$table,
+					(int)$entry_id
+				);
+			}
+
+			if ($change) {
+				$tags = Json::decode($change["tags_changes"]);
+				$open_graph = Json::decode($change["open_graph_changes"]);
+
+				return [
+					"tags" => is_array($tags) ? array_values(array_map("intval", $tags)) : [],
+					"open_graph" => is_array($open_graph) ? $open_graph : [],
+				];
+			}
+
+			// A draft with no change row left (or a live row): fall back to whatever
+			// the live row itself carries.
+			if ($is_pending) {
+
+				return ["tags" => [], "open_graph" => []];
+			}
+
+			$tags = SQL::fetchAllSingle(
+				"SELECT tag FROM bigtree_tags_rel WHERE `table` = ? AND entry = ?",
+				$table,
+				(int)$entry_id
+			);
+			$og_row = SQL::fetch(
+				"SELECT title, description, type, image, image_width, image_height
+				 FROM bigtree_open_graph WHERE `table` = ? AND entry = ?",
+				$table,
+				(int)$entry_id
+			);
+
+			return [
+				"tags" => array_values(array_map("intval", $tags ?: [])),
+				"open_graph" => $og_row ? array_map("strval", $og_row) : [],
+			];
+		}
+
+		/**
+		 * The assistant's flat og_title/og_description args as the `open_graph` record
+		 * the entry write path stores — the same two scalars create_page already
+		 * carries, and the same shape BigTreeAdmin::handleOpenGraph reads.
+		 *
+		 * @param array<string,mixed> $args
+		 * @return array<string,string>
+		 */
+		private function aiEntryOpenGraph(array $args): array {
+			$open_graph = [];
+
+			foreach (["og_title" => "title", "og_description" => "description"] as $arg => $key) {
+				$value = trim((string)($args[$arg] ?? ""));
+
+				if ($value !== "") {
+					$open_graph[$key] = $value;
+				}
+			}
+
+			return $open_graph;
 		}
 
 		/**
@@ -1114,9 +1247,14 @@
 		 * addressed pending entries all along (see parseEntryId / requireEditableEntry);
 		 * this is the same addressing for the tool seam, minus the exceptions.
 		 *
+		 * Public because the *read* seam needs it too: get_module_entry casting to int
+		 * turned "p12" into 0, so the model could edit a draft it could never look at
+		 * (SearchService::getModuleEntryDetail, mirroring how getPageDetail reuses
+		 * PageService::aiResolvePageTarget).
+		 *
 		 * @return array{error?:string,is_pending?:bool,lookup_id?:string,change_id?:int,row?:array<string,mixed>}
 		 */
-		private function aiResolveEntryRow(string $table, string $raw): array {
+		public function aiResolveEntryRow(string $table, string $raw): array {
 			$raw = trim($raw);
 
 			if ($raw === "") {
@@ -1262,7 +1400,9 @@
 			$this->aiApplyEntryProcessors($module, $table, $data, [], 0);
 
 			$rank = PermissionService::userModuleLevel($user, $module_id);
-			$can_publish = PermissionService::isPublisher($user, $rank);
+			// An explicit "save as draft" forces the pending path however senior the
+			// approver is.
+			$can_publish = PermissionService::isPublisher($user, $rank) && empty($payload["save_as_draft"]);
 
 			// Re-run the content gate against the approver's *current* rank and the
 			// form as it stands now. Staging may have allowed this as a pending draft
@@ -1282,10 +1422,29 @@
 				return ["mode" => "error", "message" => $gate];
 			}
 
+			// Tags were staged as names. Re-check the admin gate on any still missing —
+			// a tag that existed at staging may have been deleted since — then resolve
+			// to the ids the write path expects. On the pending path they ride the
+			// change's own tags_changes, which applyPendingChange replays on publish.
+			$tag_names = is_array($payload["tag_names"] ?? null) ? $payload["tag_names"] : [];
+			$tag_ids = [];
+
+			if ($tag_names) {
+				$tags = new TagService();
+
+				if ($tags->aiNewTagNames($tag_names) && PermissionService::level($user) < 1) {
+					throw new AuthorizationException("Only administrators can create new tags");
+				}
+
+				$tag_ids = $tags->aiResolveTagIds($tag_names);
+			}
+
+			$open_graph = is_array($payload["open_graph"] ?? null) ? $payload["open_graph"] : [];
+
 			$this->bindLegacyAdmin($user);
 
 			if ($can_publish) {
-				$id = BigTreeAutoModule::createItem($table, $data, [], [], null, []);
+				$id = BigTreeAutoModule::createItem($table, $data, [], $tag_ids, null, $open_graph);
 				$this->trackModuleResources($table, (int)$id, $data);
 				Hooks::fire("module_entry.created", [
 					"module" => $module_id, "table" => $table, "id" => (int)$id, "via" => "ai_assistant",
@@ -1294,7 +1453,9 @@
 				return ["mode" => "published", "module" => $module_id, "entry_id" => (int)$id];
 			}
 
-			$pending_id = BigTreeAutoModule::createPendingItem($module_id, $table, $data, [], [], null, false, []);
+			$pending_id = BigTreeAutoModule::createPendingItem(
+				$module_id, $table, $data, [], $tag_ids, null, false, $open_graph
+			);
 			$this->trackModuleResources($table, "p".$pending_id, $data);
 			Hooks::fire("module_entry.pending_created", [
 				"module" => $module_id, "table" => $table, "pending_id" => (int)$pending_id, "via" => "ai_assistant",
@@ -1350,8 +1511,11 @@
 			}
 
 			$provided = is_array($args["data"] ?? null) ? $args["data"] : [];
+			$open_graph = $this->aiEntryOpenGraph($args);
 
-			if (!$provided) {
+			// Open Graph lives beside the row rather than in it, so "just fix the
+			// social title" is a legitimate edit with no `data` at all.
+			if (!$provided && !$open_graph) {
 
 				return ["error" => "Provide a \"data\" object with the fields to change. Settable fields: "
 					. $this->aiDescribeSchema($schema)];
@@ -1366,7 +1530,7 @@
 
 			$data = $sifted["data"];
 
-			if (!$data) {
+			if (!$data && !$open_graph) {
 
 				return ["error" => "No settable fields were supplied — nothing to update."];
 			}
@@ -1379,7 +1543,8 @@
 			}
 
 			$rank = PermissionService::userModuleLevel($user, $module["id"]);
-			$can_publish = PermissionService::isPublisher($user, $rank);
+			$save_as_draft = !empty($args["save_as_draft"]);
+			$can_publish = PermissionService::isPublisher($user, $rank) && !$save_as_draft;
 			$name = (string)($module["name"] ?? $module["id"]);
 
 			// A draft has no live row to publish over: the edit amends the queued
@@ -1390,28 +1555,45 @@
 			} else {
 				$mode_note = $can_publish
 					? " It will be published live once you approve."
-					: " It will be queued as a pending change for a publisher to review.";
+					: ($save_as_draft
+						? " As asked, it will be queued as a pending change rather than published — the live entry "
+							. "is untouched until a publisher approves it."
+						: " It will be queued as a pending change for a publisher to review.");
 			}
 
 			$label = $is_pending ? "draft {$entry_id}" : "entry #{$entry_id}";
 
+			$preview = [
+				"action" => "update_module_entry",
+				"module" => $name,
+				"entry_id" => $entry_id,
+				"is_draft" => $is_pending,
+				"fields" => $this->aiPreviewEntryData($schema, $data, $row),
+				"mode" => $is_pending ? "pending" : ($can_publish ? "published" : "pending"),
+			];
+
+			if ($save_as_draft && !$is_pending) {
+				$preview["save_as_draft"] = true;
+			}
+
+			foreach (["title" => "og_title", "description" => "og_description"] as $key => $preview_key) {
+				if (isset($open_graph[$key])) {
+					$preview[$preview_key] = $open_graph[$key];
+				}
+			}
+
 			return [
 				"ok" => true,
 				"summary" => "Update {$label} in the “{$name}” module." . $mode_note,
-				"preview" => [
-					"action" => "update_module_entry",
-					"module" => $name,
-					"entry_id" => $entry_id,
-					"is_draft" => $is_pending,
-					"fields" => $this->aiPreviewEntryData($schema, $data, $row),
-					"mode" => $is_pending ? "pending" : ($can_publish ? "published" : "pending"),
-				],
+				"preview" => $preview,
 				"payload" => [
 					"module_id" => (string)$module["id"],
 					"form" => (string)($resolved["form"]["id"] ?? ""),
 					"table" => $table,
 					"entry_id" => $entry_id,
 					"data" => $data,
+					"open_graph" => $open_graph,
+					"save_as_draft" => $save_as_draft,
 				],
 			];
 		}
@@ -1468,14 +1650,33 @@
 			}
 
 			$rank = PermissionService::userModuleLevel($user, $module_id);
-			$can_publish = PermissionService::isPublisher($user, $rank);
+			// An explicit "save as draft" forces the pending path however senior the
+			// approver is.
+			$can_publish = PermissionService::isPublisher($user, $rank) && empty($payload["save_as_draft"]);
 			$this->bindLegacyAdmin($user);
+
+			// The write calls below replace the entry's tags and Open Graph wholesale,
+			// so an edit that says nothing about them has to hand back what's already
+			// there or it deletes them.
+			$existing = $this->aiExistingEntryRelations(
+				$table,
+				(string)$entry_id,
+				$is_pending,
+				!$can_publish
+			);
+
+			// A staged og_title/og_description edits the record rather than replacing
+			// it — the image and type the assistant can't author must survive.
+			$staged_og = is_array($payload["open_graph"] ?? null) ? $payload["open_graph"] : [];
+			$open_graph = $staged_og ? array_merge($existing["open_graph"], $staged_og) : $existing["open_graph"];
 
 			// A draft only exists in the pending queue — there is nothing to publish
 			// over, so even a publisher's edit amends the queued change. submitChange
 			// understands the "p" prefix and updates that row in place.
 			if ($is_pending) {
-				BigTreeAutoModule::submitChange($module_id, $table, $entry_id, $data, [], [], null, []);
+				BigTreeAutoModule::submitChange(
+					$module_id, $table, $entry_id, $data, [], $existing["tags"], null, $open_graph
+				);
 				$this->trackModuleResources($table, $entry_id, $data);
 				Hooks::fire("module_entry.pending_updated", [
 					"module" => $module_id, "table" => $table, "id" => $entry_id, "via" => "ai_assistant",
@@ -1494,7 +1695,7 @@
 					ResourceAllocationService::deallocateResources($table, "p".$pending_change_id);
 				}
 
-				BigTreeAutoModule::updateItem($table, $entry_id, $data, [], [], []);
+				BigTreeAutoModule::updateItem($table, $entry_id, $data, [], $existing["tags"], $open_graph);
 				$this->trackModuleResources($table, $entry_id, $data);
 				Hooks::fire("module_entry.updated", [
 					"module" => $module_id, "table" => $table, "id" => $entry_id, "via" => "ai_assistant",
@@ -1503,7 +1704,9 @@
 				return ["mode" => "published", "module" => $module_id, "entry_id" => $entry_id];
 			}
 
-			$change_allocation_id = BigTreeAutoModule::submitChange($module_id, $table, $entry_id, $data, [], [], null, []);
+			$change_allocation_id = BigTreeAutoModule::submitChange(
+				$module_id, $table, $entry_id, $data, [], $existing["tags"], null, $open_graph
+			);
 			$this->trackModuleResources($table, "p".$change_allocation_id, $data);
 			Hooks::fire("module_entry.pending_updated", [
 				"module" => $module_id, "table" => $table, "id" => $entry_id, "via" => "ai_assistant",

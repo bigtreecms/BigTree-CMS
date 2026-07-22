@@ -40,7 +40,7 @@
 						],
 						"name" => [
 							"type" => "string",
-							"description" => "New full name.",
+							"description" => "New full name (cannot be blanked).",
 						],
 						"email" => [
 							"type" => "string",
@@ -52,7 +52,7 @@
 						],
 						"timezone" => [
 							"type" => "string",
-							"description" => "New timezone identifier.",
+							"description" => "New IANA timezone identifier (e.g. America/New_York).",
 						],
 					],
 					"required" => ["user_id"],

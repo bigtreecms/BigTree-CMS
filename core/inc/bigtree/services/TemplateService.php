@@ -205,6 +205,15 @@
 			$name = trim((string)($args["name"] ?? "")) ?: $id;
 			$level = (int)($args["level"] ?? 0);
 			$routed = !empty($args["routed"]);
+
+			// REST declares level as in:0,1,2. Anything else compares as
+			// higher-than-everyone in the level checks, so the template silently
+			// becomes unusable by every user rather than erroring anywhere.
+			if ($level < 0 || $level > 2) {
+
+				return ["error" => "A template's level must be 0 (any editor), 1 (administrators) or 2 (developers). "
+					. "\"{$level}\" would make the template unusable by everyone."];
+			}
 			$fields = $this->aiCleanResourceFields($args["fields"] ?? []);
 			$type_error = $this->aiInvalidFieldTypeError($fields);
 
@@ -263,12 +272,21 @@
 				return ["mode" => "error", "message" => "That template id is no longer available."];
 			}
 
+			$level = (int)($payload["level"] ?? 0);
+
+			// Re-checked at approval like every other staged value — the payload sits
+			// between staging and approval and isn't trusted on the way back out.
+			if ($level < 0 || $level > 2) {
+
+				return ["mode" => "error", "message" => "A template's level must be 0, 1 or 2."];
+			}
+
 			$insert = [
 				"id" => $id,
 				"name" => BigTree::safeEncode((string)($payload["name"] ?? $id)),
 				"module" => "",
 				"resources" => Resources::clean(is_array($payload["resources"] ?? null) ? $payload["resources"] : []),
-				"level" => (int)($payload["level"] ?? 0),
+				"level" => $level,
 				"routed" => Flag::checkbox(!empty($payload["routed"])),
 				"hooks" => [],
 				"position" => 0,
@@ -334,6 +352,14 @@
 
 			if (array_key_exists("level", $args)) {
 				$level = (int)$args["level"];
+
+				// Same constraint the create path enforces — an out-of-range level
+				// leaves the template usable by nobody without erroring anywhere.
+				if ($level < 0 || $level > 2) {
+
+					return ["error" => "A template's level must be 0 (any editor), 1 (administrators) or "
+						. "2 (developers). \"{$level}\" would make the template unusable by everyone."];
+				}
 
 				if ($level !== (int)($existing["level"] ?? 0)) {
 					$changes["level"] = $level;
@@ -514,7 +540,14 @@
 			}
 
 			if (array_key_exists("level", $changes)) {
-				$next["level"] = (int)$changes["level"];
+				$level = (int)$changes["level"];
+
+				if ($level < 0 || $level > 2) {
+
+					return ["mode" => "error", "message" => "A template's level must be 0, 1 or 2."];
+				}
+
+				$next["level"] = $level;
 			}
 
 			// Re-merged here rather than reused from the proposal: the template's fields

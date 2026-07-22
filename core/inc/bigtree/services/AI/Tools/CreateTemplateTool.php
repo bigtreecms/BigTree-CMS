@@ -44,7 +44,8 @@
 						],
 						"level" => [
 							"type" => "integer",
-							"description" => "Minimum admin level allowed to use the template (0 editor, 1 admin, 2 developer).",
+							"description" => "Minimum admin level allowed to use the template. Must be 0 (any editor, "
+								. "the default), 1 (administrators) or 2 (developers) — no other value is valid.",
 						],
 						"routed" => [
 							"type" => "boolean",

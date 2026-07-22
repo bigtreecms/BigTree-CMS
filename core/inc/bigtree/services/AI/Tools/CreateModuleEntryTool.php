@@ -48,6 +48,26 @@
 							"description" => "Optional form id, for a module that has more than one entry form. "
 								. "If the module has several and you omit this, you'll be asked which to use.",
 						],
+						"tags" => [
+							"type" => "array",
+							"description" => "Optional tag names to attach to the new entry. Tags that already exist "
+								. "can be used by any editor; creating a brand-new tag requires administrator level.",
+							"items" => ["type" => "string"],
+						],
+						"og_title" => [
+							"type" => "string",
+							"description" => "Optional Open Graph (social sharing) title.",
+						],
+						"og_description" => [
+							"type" => "string",
+							"description" => "Optional Open Graph (social sharing) description.",
+						],
+						"save_as_draft" => [
+							"type" => "boolean",
+							"description" => "Save this as a draft in the pending queue instead of publishing it. Use when the user "
+								. "asks to draft the entry or have someone review it before it goes live. Without this a "
+								. "publisher's approval goes live immediately; an editor's always queues either way.",
+						],
 					],
 					"required" => ["module_id"],
 				]

@@ -53,6 +53,21 @@
 							"description" => "Optional form id, for a module that has more than one entry form. "
 								. "If the module has several and you omit this, you'll be asked which to use.",
 						],
+						"og_title" => [
+							"type" => "string",
+							"description" => "New Open Graph (social sharing) title for the entry.",
+						],
+						"og_description" => [
+							"type" => "string",
+							"description" => "New Open Graph (social sharing) description for the entry.",
+						],
+						"save_as_draft" => [
+							"type" => "boolean",
+							"description" => "Queue this edit as a pending change instead of publishing it. Use when the user asks to "
+								. "draft the change or have someone review it before it goes live — the live entry is left "
+								. "untouched. Without this a publisher's approval goes live immediately; an editor's always "
+								. "queues either way.",
+						],
 					],
 					"required" => ["module_id", "entry_id"],
 				]

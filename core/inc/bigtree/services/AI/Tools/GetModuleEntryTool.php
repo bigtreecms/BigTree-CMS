@@ -23,8 +23,9 @@
 							"description" => "Module id (string, e.g. modules-…).",
 						],
 						"entry_id" => [
-							"type" => "integer",
-							"description" => "Entry row id in the module table.",
+							"type" => "string",
+							"description" => "Entry row id in the module table. Use a \"p\"-prefixed id (like "
+								. "\"p12\") to read an entry that is still an unpublished draft.",
 						],
 					],
 					"required" => ["module_id", "entry_id"],
@@ -34,7 +35,8 @@
 
 		public function execute(array $args, AIToolContext $context): AIToolResult {
 			$module_id = (string)($args["module_id"] ?? "");
-			$entry_id = (int)($args["entry_id"] ?? 0);
+			// Not cast to int: "p12" addresses a draft, and the backend resolves both.
+			$entry_id = trim((string)($args["entry_id"] ?? ""));
 			$detail = $this->backend->getModuleEntryDetail($module_id, $entry_id, $context->user);
 
 			if (isset($detail["error"])) {

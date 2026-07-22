@@ -41,7 +41,8 @@
 						],
 						"name" => [
 							"type" => "string",
-							"description" => "The user's full name.",
+							"description" => "The user's full name (required — it's what the users list and audit "
+								. "entries display).",
 						],
 						"company" => [
 							"type" => "string",
@@ -49,10 +50,10 @@
 						],
 						"timezone" => [
 							"type" => "string",
-							"description" => "Optional timezone identifier (e.g. America/New_York).",
+							"description" => "Optional IANA timezone identifier (e.g. America/New_York).",
 						],
 					],
-					"required" => ["email"],
+					"required" => ["email", "name"],
 				]
 			);
 		}
