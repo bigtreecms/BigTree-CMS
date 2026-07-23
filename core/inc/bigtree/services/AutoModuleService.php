@@ -236,7 +236,10 @@
 				}
 
 				BigTreeAutoModule::updateItem($table, $entry_id, $data, $mtm, $tags, $og);
-				$this->trackModuleResources($table, $entry_id, $data);
+				// Allocated from the written row, not the request body: a body that
+				// doesn't restate every field would otherwise drop the allocations for
+				// the fields it omitted.
+				$this->trackLiveEntryResources($table, (int)$entry_id);
 
 				return $this->respondUpdated($module_id, $table, $entry_id);
 			}
@@ -526,6 +529,33 @@
 		}
 
 		/**
+		 * Re-scan a *live* entry's resource allocations from the row as it now stands.
+		 *
+		 * allocateResources DELETEs every allocation row for (table, entry) before
+		 * re-inserting whatever the data it was handed references, so allocating from
+		 * a partial change set deletes the allocations for every field the write
+		 * didn't mention: an entry whose hero image and PDF weren't part of a title
+		 * edit drops both to zero usage in Files, where anyone can then delete them
+		 * while they're still live on the site. (With an OG-only edit the change set
+		 * is empty, and *every* allocation goes.)
+		 *
+		 * Read raw rather than through getItem, which untranslates irl:// links into
+		 * real URLs that the resource scanner can no longer recognize. This is the
+		 * entry-side twin of PageService::finishPageWrite's re-fetch.
+		 */
+		private function trackLiveEntryResources(string $table, int $entry_id): void {
+			$fresh = SQL::fetch("SELECT * FROM `{$table}` WHERE id = ?", $entry_id);
+
+			if (!$fresh) {
+
+				return;
+			}
+
+			unset($fresh["id"]);
+			$this->trackModuleResources($table, $entry_id, $fresh);
+		}
+
+		/**
 		 * Validate the client-supplied __mtm__ descriptor against the module's form
 		 * definition. The legacy admin builds the table/column identifiers server-side
 		 * from trusted form settings (many-to-many/process.php); the API trusts the
@@ -733,10 +763,18 @@
 
 				$settings = is_array($field["settings"] ?? null) ? $field["settings"] : [];
 
-				// On update, leave the stored route alone unless one of its source
-				// columns is actually changing — an unrelated edit must not re-route
-				// (and so 404) a live entry. keep_original means never regenerate.
-				if (!$is_create && (!empty($settings["keep_original"]) || !$this->routeSourceIsChanging($settings, $data))) {
+				// On update the stored route is left alone, full stop. The SPA submits
+				// the slug it loaded and never regenerates it, so an editor renaming
+				// an entry keeps its URL — and it has to, because entries have no
+				// route history and no redirect: a regenerated slug 404s every link to
+				// the old one, on the site and everywhere off it. (This used to
+				// regenerate whenever a source column changed, which made "fix the
+				// typo in the headline" silently move the article.)
+				//
+				// The assistant can't set a route column directly either — `route` is
+				// a derived type, excluded from the settable schema — so an entry's
+				// URL is only ever changed by a human in the admin, deliberately.
+				if (!$is_create) {
 					continue;
 				}
 
@@ -755,29 +793,6 @@
 					$data[$column] = $merged[$column];
 				}
 			}
-		}
-
-		/**
-		 * True when any of a route field's configured source columns appears in the
-		 * data being written — the "regenerate when the inputs change" signal.
-		 *
-		 * @param array<string,mixed> $settings
-		 * @param array<string,mixed> $data
-		 */
-		private function routeSourceIsChanging(array $settings, array $data): bool {
-			$source = $settings["source"] ?? "";
-			$source_fields = is_array($source) ? $source : [$source];
-
-			foreach ($source_fields as $source_field) {
-				$source_field = trim((string)$source_field);
-
-				if ($source_field !== "" && array_key_exists($source_field, $data)) {
-
-					return true;
-				}
-			}
-
-			return false;
 		}
 
 		/** The module form whose `table` matches $table, or null — the find-form-by-table scan the field processors share. */
@@ -1116,6 +1131,16 @@
 			}
 
 			$open_graph = $this->aiEntryOpenGraph($args);
+			$relation_error = $this->aiFormRelationError(
+				is_array($resolved["form"] ?? null) ? $resolved["form"] : null,
+				$tag_names,
+				$open_graph
+			);
+
+			if ($relation_error !== null) {
+
+				return ["error" => $relation_error];
+			}
 
 			$mode_note = $can_publish
 				? " It will be published live once you approve."
@@ -1246,6 +1271,144 @@
 				"open_graph" => $og_row ? array_map("strval", $og_row) : [],
 				"changes" => [],
 				"mtm" => [],
+			];
+		}
+
+		/**
+		 * The staleness descriptor for an entry edit.
+		 *
+		 * Two holes this closes. An edit bound for a queued draft — which the staging
+		 * pass diffs against — has to fingerprint that *draft*, not the live row, or a
+		 * wholesale rewrite of the draft slips straight past stalenessError. And an
+		 * edit with no column changes at all (an Open Graph-only edit, the commonest
+		 * single-field entry edit the assistant makes) produced an empty descriptor,
+		 * which is never compared — no staleness protection whatsoever.
+		 *
+		 * @param int $change_id Non-zero when the target *is* a draft.
+		 * @param list<string> $columns
+		 * @return array<string,mixed>
+		 */
+		private function aiEntryFingerprint(
+			string $table,
+			string $entry_id,
+			int $change_id,
+			array $columns,
+			bool $touches_open_graph
+		): array {
+			if ($change_id > 0) {
+
+				return ["type" => "pending_change", "id" => $change_id];
+			}
+
+			$queued = $this->aiEntryPendingChange($table, (int)$entry_id);
+			$parts = $queued ? [["type" => "pending_change", "id" => (int)$queued["id"]]] : [];
+
+			if ($touches_open_graph) {
+				$parts[] = ["type" => "open_graph", "table" => $table, "id" => $entry_id];
+			}
+
+			if ($columns) {
+				$parts[] = ["type" => "entry", "table" => $table, "id" => $entry_id, "columns" => $columns];
+			}
+
+			if (!$parts) {
+
+				return [];
+			}
+
+			return count($parts) === 1 ? $parts[0] : ["type" => "composite", "parts" => $parts];
+		}
+
+		/**
+		 * Refuse tags or Open Graph on a form that doesn't offer them.
+		 *
+		 * A module form opts into each with its own `tagging` / `open_graph` flag, and
+		 * FormRenderer only sends `__tags__` / `__open_graph__` when it does. Nothing
+		 * on the AI path read those flags, so the assistant could write tag relations
+		 * and OG rows against a form whose editor screen has no section for either —
+		 * data no admin screen exposes, and none can clean up.
+		 *
+		 * @param array<string,mixed>|null $form The resolved module form.
+		 * @param list<string> $tag_names
+		 * @param array<string,mixed> $open_graph
+		 */
+		private function aiFormRelationError(?array $form, array $tag_names, array $open_graph): ?string {
+			if ($tag_names && empty($form["tagging"])) {
+
+				return "This module's form doesn't have tagging enabled, so tags set here would be invisible in the "
+					. "admin and unremovable. Turn tagging on for the form in Developer → Modules first.";
+			}
+
+			if ($open_graph && empty($form["open_graph"])) {
+
+				return "This module's form doesn't have Open Graph enabled, so a social title or description set "
+					. "here would be invisible in the admin and unremovable. Turn Open Graph on for the form in "
+					. "Developer → Modules first.";
+			}
+
+			return null;
+		}
+
+		/**
+		 * The outstanding queued change for a live entry, if it has one.
+		 *
+		 * @return array<string,mixed>|null
+		 */
+		private function aiEntryPendingChange(string $table, int $entry_id): ?array {
+			if ($entry_id < 1) {
+
+				return null;
+			}
+
+			$change = SQL::fetch(
+				"SELECT * FROM bigtree_pending_changes WHERE `table` = ? AND item_id = ?",
+				$table,
+				$entry_id
+			);
+
+			return $change ?: null;
+		}
+
+		/**
+		 * What to tell the approver about a queued draft their publish will carry
+		 * forward. Empty when there is no draft.
+		 *
+		 * Publishing an entry deletes its queued change (updateItem), so somebody
+		 * else's unreviewed work goes live with the edit — a consequence the approver
+		 * has to see on the card rather than discover afterwards.
+		 *
+		 * @param array<string,mixed>|null $change A bigtree_pending_changes row.
+		 * @return array<string,mixed>
+		 */
+		private function aiEntryDraftDisclosure(?array $change): array {
+			if (!$change) {
+
+				return [];
+			}
+
+			$owner_id = !empty($change["user"]) ? (int)$change["user"] : 0;
+			$owner = $owner_id
+				? (string)SQL::fetchSingle("SELECT name FROM bigtree_users WHERE id = ?", $owner_id)
+				: "";
+			$fields = array_keys(Json::decode($change["changes"]));
+
+			if (Json::decode($change["tags_changes"] ?? "")) {
+				$fields[] = "tags";
+			}
+
+			if (Json::decode($change["open_graph_changes"] ?? "")) {
+				$fields[] = "open_graph";
+			}
+
+			$whose = $owner !== "" ? "{$owner}’s" : "an";
+
+			return [
+				"pending_change_id" => (int)$change["id"],
+				"owner" => $owner_id ?: null,
+				"owner_name" => $owner !== "" ? $owner : null,
+				"fields" => array_values(array_unique($fields)),
+				"note" => "This entry has {$whose} unpublished draft. Publishing will publish that draft too"
+					. ($fields ? " (" . implode(", ", array_unique($fields)) . ")" : "") . ".",
 			];
 		}
 
@@ -1525,7 +1688,28 @@
 			$gbp = is_array($module["gbp"] ?? null) ? $module["gbp"] : [];
 			$group_field = (string)($gbp["group_field"] ?? "");
 
-			if (empty($gbp["enabled"]) || $group_field === "" || !array_key_exists($group_field, $data)) {
+			if (empty($gbp["enabled"]) || $group_field === "") {
+
+				return null;
+			}
+
+			// An entry with no group value is filtered out of getFilterQuery for every
+			// group-scoped editor, so it is published and then invisible — to the
+			// people meant to maintain it, and to the assistant on a later turn. The
+			// old guard only ran when the column was already in the write, so a create
+			// that simply omitted it sailed through.
+			$prospective_group = array_key_exists($group_field, $data)
+				? (string)$data[$group_field]
+				: (string)($row[$group_field] ?? "");
+
+			if (trim($prospective_group) === "") {
+
+				return "This module uses group-based permissions keyed on \"{$group_field}\", and this entry has no "
+					. "value there — it would be published and then invisible to every group-scoped editor. Set "
+					. "\"{$group_field}\" and try again.";
+			}
+
+			if (!array_key_exists($group_field, $data)) {
 
 				return null;
 			}
@@ -1719,6 +1903,19 @@
 
 			$open_graph = is_array($payload["open_graph"] ?? null) ? $payload["open_graph"] : [];
 
+			// Re-asked at approval: the form's tagging / Open Graph flags can be turned
+			// off inside the proposal's 24h life.
+			$relation_error = $this->aiFormRelationError(
+				is_array($resolved["form"] ?? null) ? $resolved["form"] : null,
+				$tag_names,
+				$open_graph
+			);
+
+			if ($relation_error !== null) {
+
+				return ["mode" => "error", "message" => $relation_error];
+			}
+
 			$this->bindLegacyAdmin($user);
 
 			// The same normalization PendingChangeService runs before the identical
@@ -1815,17 +2012,32 @@
 
 			// When this edit is going to join an existing queued draft, that draft is
 			// what is being edited — gate and diff against it so the card's `from`
-			// values describe what the approver will actually replace.
-			if (!$is_pending && !$can_publish) {
-				$queued = $this->aiExistingEntryRelations($table, (string)$entry_id, false, true);
+			// values describe what the approver will actually replace. This holds for
+			// a publisher too: their approval publishes the draft along with the edit
+			// rather than destroying it, so the draft's values are what the change is
+			// measured from either way.
+			$queued_change = $is_pending ? null : $this->aiEntryPendingChange($table, (int)$entry_id);
 
-				if ($queued["changes"]) {
-					$row = array_merge($row, $queued["changes"]);
+			if ($queued_change) {
+				$queued_changes = Json::decode($queued_change["changes"]);
+
+				if ($queued_changes) {
+					$row = array_merge($row, $queued_changes);
 				}
 			}
 
 			$provided = is_array($args["data"] ?? null) ? $args["data"] : [];
 			$open_graph = $this->aiEntryOpenGraph($args);
+			$relation_error = $this->aiFormRelationError(
+				is_array($resolved["form"] ?? null) ? $resolved["form"] : null,
+				[],
+				$open_graph
+			);
+
+			if ($relation_error !== null) {
+
+				return ["error" => $relation_error];
+			}
 
 			// Open Graph lives beside the row rather than in it, so "just fix the
 			// social title" is a legitimate edit with no `data` at all.
@@ -1881,6 +2093,14 @@
 						: " It will be queued as a pending change for a publisher to review.");
 			}
 
+			// A publisher's approval carries the queued draft live with it; say whose
+			// work that is rather than letting them find out afterwards.
+			$draft = $can_publish ? $this->aiEntryDraftDisclosure($queued_change) : [];
+
+			if ($draft) {
+				$mode_note .= " " . $draft["note"];
+			}
+
 			$label = $is_pending ? "draft {$entry_id}" : "entry #{$entry_id}";
 
 			$preview = [
@@ -1891,6 +2111,10 @@
 				"fields" => $this->aiPreviewEntryData($schema, $data, $row),
 				"mode" => $is_pending ? "pending" : ($can_publish ? "published" : "pending"),
 			];
+
+			if ($draft) {
+				$preview["publishes_draft"] = $draft;
+			}
 
 			if ($save_as_draft && !$is_pending) {
 				$preview["save_as_draft"] = true;
@@ -1917,9 +2141,13 @@
 				],
 				// Only the columns this edit touches: the card's `from` values came
 				// from them, so if they moved the card no longer describes the row.
-				"fingerprint" => $is_pending
-					? ["type" => "pending_change", "id" => (int)$resolved_entry["change_id"]]
-					: ($data ? ["type" => "entry", "table" => $table, "id" => $entry_id, "columns" => array_keys($data)] : []),
+				"fingerprint" => $this->aiEntryFingerprint(
+					$table,
+					(string)$entry_id,
+					$is_pending ? (int)$resolved_entry["change_id"] : 0,
+					array_keys($data),
+					(bool)$open_graph
+				),
 				"lock" => $this->aiEntryLock($module, $entry_id, $is_pending),
 			];
 		}
@@ -2020,9 +2248,45 @@
 				!$can_publish
 			);
 
+			// A publisher's approval publishes any queued draft along with the edit
+			// rather than destroying it — updateItem deletes the change row either
+			// way, so writing only this edit's fields would annihilate the rest of
+			// somebody else's draft. Folded in *on top of* the live relations rather
+			// than instead of them: a draft that staged no tags, or no Open Graph,
+			// must not blank the live ones on its way through.
+			$draft = (!$is_pending && $can_publish)
+				? $this->aiEntryPendingChange($table, (int)$entry_id)
+				: null;
+
+			if ($draft) {
+				$existing["changes"] = Json::decode($draft["changes"]);
+				$existing["mtm"] = Json::decode($draft["mtm_changes"]);
+				$draft_tags = Json::decode($draft["tags_changes"]);
+				$draft_og = Json::decode($draft["open_graph_changes"]);
+
+				if ($draft_tags) {
+					$existing["tags"] = array_values(array_map("intval", $draft_tags));
+				}
+
+				if ($draft_og) {
+					$existing["open_graph"] = array_merge($existing["open_graph"], $draft_og);
+				}
+			}
+
 			// A staged og_title/og_description edits the record rather than replacing
 			// it — the image and type the assistant can't author must survive.
 			$staged_og = is_array($payload["open_graph"] ?? null) ? $payload["open_graph"] : [];
+			$relation_error = $this->aiFormRelationError(
+				is_array($resolved_form["form"] ?? null) ? $resolved_form["form"] : null,
+				[],
+				$staged_og
+			);
+
+			if ($relation_error !== null) {
+
+				return ["mode" => "error", "message" => $relation_error];
+			}
+
 			$open_graph = $staged_og ? array_merge($existing["open_graph"], $staged_og) : $existing["open_graph"];
 
 			// submitChange replaces the queue row's `changes` and `mtm_changes` blobs
@@ -2066,8 +2330,14 @@
 					ResourceAllocationService::deallocateResources($table, "p".$pending_change_id);
 				}
 
-				BigTreeAutoModule::updateItem($table, $entry_id, $data, [], $existing["tags"], $open_graph);
-				$this->trackModuleResources($table, $entry_id, $data);
+				// updateItem destroys any queued change for this row, so the draft this
+				// edit was merged onto is published with it ($write_data) rather than
+				// discarded — the same thing ModuleEntryEdit does by loading the draft
+				// and PATCHing it back.
+				BigTreeAutoModule::updateItem($table, $entry_id, $write_data, $mtm, $existing["tags"], $open_graph);
+				// Allocated from the written row, not this partial change set, which
+				// would delete the allocations for every field the edit didn't mention.
+				$this->trackLiveEntryResources($table, (int)$entry_id);
 				Hooks::fire("module_entry.updated", [
 					"module" => $module_id, "table" => $table, "id" => $entry_id, "via" => "ai_assistant",
 				]);
@@ -2374,9 +2644,16 @@
 
 			// An unpublished draft exists only as a queued change: drop that row and
 			// its draft allocations. There is no live entry to delete.
+			//
+			// Routed through deletePendingItem rather than a raw SQL::delete, which is
+			// what DELETE /auto-modules/… uses: a draft is written into the module's
+			// view cache on creation (cacheNewItem), and cacheViewData never rebuilds
+			// a non-empty view, so deleting only the change row left the module's
+			// landing view showing a dead "Pending" row forever. It also writes the
+			// audit entry the raw delete skipped.
 			if ($resolved_entry["is_pending"]) {
 				$change_id = (int)$resolved_entry["change_id"];
-				SQL::delete("bigtree_pending_changes", $change_id);
+				BigTreeAutoModule::deletePendingItem($table, $change_id);
 				ResourceAllocationService::deallocateResources($table, "p".$change_id);
 				Hooks::fire("module_entry.draft_discarded", [
 					"module" => $module_id, "table" => $table, "id" => $raw_entry_id, "via" => "ai_assistant",
@@ -2468,7 +2745,13 @@
 		private function aiEntryLock(array $module, $entry_id, bool $is_pending): array {
 			$module_id = (string)($module["id"] ?? "");
 
-			if ($is_pending || $module_id === "" || (string)$entry_id === "") {
+			// A draft is locked exactly like a live entry: ModuleEntryEdit calls
+			// useLock({table: `module:${id}`, itemId: entryId}) with whatever id is in
+			// the URL, and a draft's id is the "p"-prefixed one. Bailing on $is_pending
+			// meant the one case where two people are most likely to be working the
+			// same record — an editor's draft and the publisher reviewing it — was the
+			// one case the card said nothing about.
+			if ($module_id === "" || (string)$entry_id === "") {
 
 				return [];
 			}
@@ -2634,6 +2917,8 @@
 			}
 
 			$fields = [];
+			$gbp = is_array($module["gbp"] ?? null) ? $module["gbp"] : [];
+			$group_column = !empty($gbp["enabled"]) ? (string)($gbp["group_field"] ?? "") : "";
 
 			foreach ((array)($resolved["form"]["fields"] ?? []) as $field) {
 				$column = (string)($field["column"] ?? "");
@@ -2651,6 +2936,12 @@
 					"column" => $column,
 					"title" => (string)($field["title"] ?? $column),
 					"type" => $type,
+					// Under group-based permissions this column decides who can see
+					// and edit the entry at all. Nothing marked it, so the model
+					// treated it as an ordinary field and could publish an entry with
+					// it empty — invisible afterwards to every group-scoped editor,
+					// including the assistant on a later turn.
+					"is_group_column" => $column === $group_column,
 					// BigTree's canonical required signal is the `validation` rule
 					// string, not the `required` key — read both, or this reports
 					// required: false for a field the create gate then rejects.
@@ -2676,6 +2967,11 @@
 				"table" => $resolved["table"],
 				"fields" => $fields,
 				"blocked_required" => $resolved["blocked_required"],
+				"group_column" => $group_column,
+				"group_column_note" => $group_column !== ""
+					? "This module uses group-based permissions keyed on \"{$group_column}\". Every entry must "
+						. "carry a value there — an entry without one is hidden from every group-scoped editor."
+					: "",
 				"your_access_level" => PermissionService::userModuleLevel($user, (string)$module["id"]),
 			]];
 		}

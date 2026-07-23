@@ -57,10 +57,25 @@
 							"items" => [
 								"type" => "object",
 								"properties" => [
-									"id" => ["type" => "string", "description" => "Field id (lowercase)."],
+									"id" => [
+										"type" => "string",
+										"description" => "Field id — letters, numbers and underscores only, starting with a "
+											. "letter or underscore (e.g. \"page_header\"). Used exactly as given: it is the key "
+											. "the field's content is stored under, and it becomes a PHP variable in the "
+											. "template's render file.",
+									],
 									"type" => ["type" => "string", "description" => "Field type (e.g. text, textarea, html, image)."],
 									"title" => ["type" => "string", "description" => "Field label."],
 									"subtitle" => ["type" => "string", "description" => "Optional help text."],
+									"options" => [
+										"type" => "array",
+										"description" => "Choices for a \"list\" field, in order. Strings, or "
+											. "{value, description} objects when the stored value differs from the "
+											. "label. A list field with no options renders as an empty select — and "
+											. "if it is also required, nobody can save the record at all — so this "
+											. "is required when type is \"list\".",
+										"items" => ["type" => "string"],
+									],
 									"required" => [
 										"type" => "boolean",
 										"description" => "Whether a page using this template must fill this field in. "

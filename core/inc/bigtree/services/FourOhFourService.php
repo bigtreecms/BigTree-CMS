@@ -423,6 +423,13 @@
 				return $destination;
 			}
 
+			$live = $this->aiRedirectSourceIsLive($source, (string)$parsed["site_key"]);
+
+			if ($live !== null) {
+
+				return ["error" => $live];
+			}
+
 			$existing = self::getExisting404($source, $parsed["get_vars"], $parsed["site_key"]);
 			$previous = $existing ? (string)($existing["redirect_url"] ?? "") : "";
 
@@ -430,6 +437,10 @@
 				"action" => "create_redirect",
 				"from" => "/" . $source,
 				"to" => $to,
+				// On a multi-site install the redirect only fires for one site, and
+				// the card never said which — so an approver on a five-site install
+				// could not tell what they were approving.
+				"site" => $site_key !== null ? (string)$site_key : "",
 				"replaces" => $previous,
 				"mode" => "published",
 			];
@@ -443,7 +454,8 @@
 
 			return [
 				"ok" => true,
-				"summary" => "Redirect /{$source} to {$to}."
+				"summary" => "Redirect /{$source} to {$to}"
+					. ($site_key !== null ? " on the “{$site_key}” site." : ".")
 					. ($previous !== ""
 						? " This replaces the existing redirect to {$previous}."
 						: ($existing
@@ -579,6 +591,33 @@
 		}
 
 		/**
+		 * Refuse a redirect whose source is a page that still resolves.
+		 *
+		 * handle404 only runs *after* routing fails (cms.php:1632), so a redirect from
+		 * a live page's own path can never fire — it is a row that looks like it did
+		 * something and never will. Says how to actually move the page instead.
+		 *
+		 * Returns null when the source is genuinely unrouted.
+		 */
+		private function aiRedirectSourceIsLive(string $source, string $site_key): ?string {
+			$page = SQL::fetch(
+				"SELECT id, nav_title, archived FROM bigtree_pages WHERE path = ?",
+				$source
+			);
+
+			if (!$page || \BigTree\Api\Flag::isOn($page["archived"])) {
+
+				return null;
+			}
+
+			$title = trim((string)$page["nav_title"]) ?: "page #" . (int)$page["id"];
+
+			return "/{$source} is a live page (“{$title}”), so a redirect from it would never fire — BigTree only "
+				. "looks at redirects once a URL fails to route. To move that page's URL, change its route with "
+				. "update_page or move it with move_page: either one leaves the redirect behind automatically.";
+		}
+
+		/**
 		 * Execute an approved redirect. Re-checks administrator level and reuses
 		 * create301, so the redirect is shaped exactly like one made in the admin.
 		 *
@@ -627,6 +666,15 @@
 			if (isset($destination["error"])) {
 
 				return ["mode" => "error", "message" => $destination["error"]];
+			}
+
+			// A page can be created at the source path inside the proposal's 24h life,
+			// which would make the redirect dead on arrival.
+			$live = $this->aiRedirectSourceIsLive((string)$approval_parsed["url"], (string)$site_key);
+
+			if ($live !== null) {
+
+				return ["mode" => "error", "message" => $live];
 			}
 
 			$actor_id = 0;

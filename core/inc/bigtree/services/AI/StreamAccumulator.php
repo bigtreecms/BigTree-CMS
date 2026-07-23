@@ -42,6 +42,9 @@
 		/** @var bool Set once a terminal marker ([DONE] / message_stop) is seen. */
 		private $done = false;
 
+		/** @var bool Set when a tool call's argument fragment never formed valid JSON. */
+		private $truncated_arguments = false;
+
 		/**
 		 * @param string $service openai|xai|anthropic
 		 * @param callable $on_delta fn(string $text_chunk): void
@@ -54,6 +57,36 @@
 		public function isDone(): bool {
 
 			return $this->done;
+		}
+
+		/**
+		 * Whether the assembled turn is trustworthy: the provider sent its terminal
+		 * marker, and every tool call's arguments parsed.
+		 *
+		 * Nothing in production asked this — chatStream returned result() whenever
+		 * curl reported a 2xx — so a connection dropped mid-stream handed back the
+		 * partial text as the authoritative answer, and a tool call cut mid-arguments
+		 * degraded to one with no arguments at all. Call result() first: the argument
+		 * check is made there.
+		 */
+		public function isComplete(): bool {
+
+			return $this->done && !$this->truncated_arguments;
+		}
+
+		/** Why isComplete() is false, for the caller's error message. */
+		public function incompleteReason(): string {
+			if ($this->truncated_arguments) {
+
+				return "The response was cut off part-way through a tool call.";
+			}
+
+			if (!$this->done) {
+
+				return "The response was cut off before it finished.";
+			}
+
+			return "";
 		}
 
 		/**
@@ -218,6 +251,12 @@
 				$args = $args_raw !== "" ? json_decode($args_raw, true) : [];
 
 				if (!is_array($args)) {
+					// A fragment that never formed valid JSON means the stream was cut
+					// mid-arguments. Silently degrading it to {} produced a tool call
+					// with every argument dropped — "update page 42, changing nothing"
+					// — which validates as a different request than the one the model
+					// actually made. Recorded so chatStream can refuse the whole turn.
+					$this->truncated_arguments = true;
 					$args = [];
 				}
 

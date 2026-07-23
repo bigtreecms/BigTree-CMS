@@ -7,9 +7,19 @@ import type { SearchResultGroups } from "@/api/endpoints/search";
  */
 
 /** One tool the model ran during a turn — rendered as a "Searching pages…" row. */
+export interface ChatToolChoice {
+	description?: string;
+	id?: string;
+	label: string;
+}
+
 export interface ChatToolActivity {
 	arguments: Record<string, unknown>;
 	name: string;
+	/** Choices offered alongside `question`, when status is "needs_input". */
+	options?: ChatToolChoice[];
+	/** The question to put to the user, when status is "needs_input". */
+	question?: string;
 	/** AIToolResult status: ok | denied | needs_input | proposal | error. */
 	status: string;
 }

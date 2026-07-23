@@ -56,6 +56,11 @@
 							"type" => "string",
 							"description" => "Filter to one database table, e.g. \"bigtree_pages\".",
 						],
+						"entry" => [
+							"type" => "string",
+							"description" => "Filter to one record's id within that table, e.g. \"42\" for page 42. "
+								. "Use with `table` to answer \"what has happened to this page?\".",
+						],
 						"user_id" => [
 							"type" => "integer",
 							"description" => "Filter to changes made by one user.",

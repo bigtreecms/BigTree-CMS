@@ -118,6 +118,19 @@
 				// Existing entry — apply the change in place. updateItem deletes the
 				// pending change row itself once the live row is updated.
 				$item_id = (int)$row["item_id"];
+
+				// …but only if the entry is still there. updateItem's UPDATE matches no
+				// rows against a deleted entry, deletes the change anyway, and reports
+				// success — so "publish this change" destroyed the change and said it
+				// had published it.
+				if (!SQL::fetchSingle("SELECT id FROM `" . $row["table"] . "` WHERE id = ?", $item_id)) {
+
+					throw new BadRequestException(
+						"The entry this change belongs to has been deleted, so the change can't be published.",
+						"entry_deleted"
+					);
+				}
+
 				BigTreeAutoModule::updateItem($row["table"], $item_id, $changes, $mtm_changes, $tags_changes, $open_graph_changes);
 			} else {
 				// New entry — promote the pending change to a real row. publishPendingItem

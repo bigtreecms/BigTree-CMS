@@ -175,6 +175,18 @@
 			global $bigtree;
 			$json = json_encode($value);
 
+			// A setting definition can exist with no value row — the definition is
+			// JSON-DB, the value is SQL, and only create() writes both. Without this
+			// the UPDATE matched nothing, the value was never stored, and the caller
+			// (including an AI approval) was told "updated".
+			if (!SQL::exists("bigtree_settings", $id)) {
+				SQL::insert("bigtree_settings", [
+					"id" => $id,
+					"encrypted" => !empty($def["encrypted"]) ? "on" : "",
+					"value" => "",
+				]);
+			}
+
 			if (!empty($def["encrypted"])) {
 				$key = $bigtree["config"]["settings_key"] ?? "";
 				SQL::query("UPDATE bigtree_settings SET value = AES_ENCRYPT(?, ?) WHERE id = ?", $json, $key, $id);
@@ -490,7 +502,17 @@
 				],
 				// The definition, not the value: a setting retyped or flagged system
 				// inside the TTL must not take a value staged against the old shape.
-				"fingerprint" => ["type" => "json_record", "store" => "settings", "id" => $id],
+				// The stored *value*, not the definition. Hashing the definition meant
+				// the check only noticed a developer retyping the setting — a
+				// concurrent value edit was clobbered silently, and settings have
+				// neither a pending queue nor history to recover it from.
+				"fingerprint" => [
+					"type" => "composite",
+					"parts" => [
+						["type" => "setting_value", "id" => $id],
+						["type" => "json_record", "store" => "settings", "id" => $id],
+					],
+				],
 				// The pair SettingEdit's useLock call passes.
 				"lock" => ["table" => "config:settings", "id" => $id],
 			];
@@ -531,6 +553,13 @@
 
 				return ["error" => "“{$name}” is a {$type} setting — the assistant can't author that kind of value. "
 					. "Change it on the Settings screen in the admin."];
+			}
+
+			$rule_error = $this->aiSettingRuleViolation($def, $name, $value);
+
+			if ($rule_error !== null) {
+
+				return ["error" => $rule_error];
 			}
 
 			if (in_array($type, self::AI_SCALAR_SETTING_TYPES, true) && (is_array($value) || is_object($value))) {
@@ -598,6 +627,60 @@
 			// colour are deliberately not policed: their formats are conventions
 			// rather than rules, and a false rejection is worse than a loose value.
 			return ["value" => $value];
+		}
+
+		/**
+		 * Check a proposed value against the setting definition's own `validation`
+		 * rule string, the way SettingEdit does before it saves and the way every
+		 * other AI write path does (AutoModuleService::aiRuleViolation).
+		 *
+		 * A setting definition carries the same whitespace-separated rule list a form
+		 * field does — "required", "numeric", "link" — and nothing on this path read
+		 * it, so the assistant could blank a required setting or write "about a
+		 * hundred" into a numeric one and have it stored.
+		 *
+		 * @param array<string,mixed> $def
+		 * @param mixed $value
+		 * @return string|null An error, or null when the value passes.
+		 */
+		private function aiSettingRuleViolation(array $def, string $name, $value): ?string {
+			$settings = is_array($def["settings"] ?? null) ? $def["settings"] : [];
+			$validation = trim((string)($settings["validation"] ?? ""));
+			$rules = $validation !== "" ? preg_split("/\s+/", $validation, -1, PREG_SPLIT_NO_EMPTY) : [];
+			$rules = $rules ?: [];
+			$required = !empty($settings["required"]) || in_array("required", $rules, true);
+			$empty = is_array($value) ? $value === [] : trim((string)$value) === "";
+
+			if ($required && $empty) {
+
+				return "“{$name}” is a required setting, so it can't be cleared. Supply a value, or change the "
+					. "requirement in Developer → Settings.";
+			}
+
+			$rules = array_values(array_diff($rules, ["required"]));
+
+			// An empty optional value has nothing left to validate — only `required`
+			// has anything to say about emptiness.
+			if (!$rules || $empty || is_array($value)) {
+
+				return null;
+			}
+
+			$rule_string = implode(" ", $rules);
+
+			if (\BigTreeAutoModule::validate($value, $rule_string)) {
+
+				return null;
+			}
+
+			// The legacy message opens "This field …"; name the setting instead.
+			$reason = preg_replace(
+				"/^This field /",
+				"",
+				\BigTreeAutoModule::validationErrorMessage($value, $rule_string)
+			);
+
+			return "“{$name}” " . $reason . " \"" . $this->aiSettingPreviewValue($value) . "\" would be refused.";
 		}
 
 		/**

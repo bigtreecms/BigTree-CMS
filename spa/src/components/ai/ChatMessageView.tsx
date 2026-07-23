@@ -23,6 +23,8 @@ interface ChatMessageViewProps {
 	entry: ChatEntry;
 	/** Approve a staged proposal by id. */
 	onApproveProposal: (id: string) => void;
+	/** Send a needs_input choice back as the next message. */
+	onChooseOption?: (choice: string) => void;
 	/** Close the panel after following an artifact link. */
 	onNavigate: () => void;
 	/** Reject a staged proposal by id. */
@@ -43,6 +45,7 @@ export const ChatMessageView = ({
 	onApproveProposal,
 	onRejectProposal,
 	busyProposalId,
+	onChooseOption,
 }: ChatMessageViewProps) => {
 	if (entry.role === "user") {
 		return (
@@ -66,7 +69,11 @@ export const ChatMessageView = ({
 				{activity.length > 0 && (
 					<div className="mb-1.5 flex flex-col gap-0.5">
 						{activity.map((a, i) => (
-							<ToolActivityRow activity={a} key={`${a.name}-${i}`} />
+							<ToolActivityRow
+								activity={a}
+								key={`${a.name}-${i}`}
+								onChoose={onChooseOption}
+							/>
 						))}
 					</div>
 				)}

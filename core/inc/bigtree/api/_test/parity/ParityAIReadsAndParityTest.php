@@ -99,6 +99,7 @@
 		$entry_id = 0;
 		$tag_id = 0;
 		$tag = "zz audit five entry";
+		$restore = parity_enable_news_relations();
 
 		try {
 			$tag_id = (int)SQL::insert("bigtree_tags", [
@@ -132,6 +133,7 @@
 			);
 			T::equals($payload["table"], "timber_news", "the payload names the table it read from");
 		} finally {
+			$restore();
 			parity_delete_news_entries($entry_id);
 			parity_delete_tags($tag_id);
 			parity_delete_users($dev_id);
@@ -446,11 +448,55 @@
 
 			$row = SQL::fetch("SELECT daily_digest, alerts FROM bigtree_users WHERE id = ?", $target_id);
 			T::equals((string)$row["daily_digest"], "on", "the digest flag was written");
-			T::equals(json_decode((string)$row["alerts"], true), ["0" => 30], "the alert thresholds were written");
+			// Stored in the encoding the rest of the system reads: a page-id => "on"
+			// subscription map, never a number of days (the threshold is the page's
+			// own max_age). Anything else is reverted by the next human save.
+			T::equals(json_decode((string)$row["alerts"], true), ["0" => "on"], "the subscription was written as \"on\"");
+
+			// Adding one page must not wipe the subscriptions already there.
+			$page_id = parity_seed_page(["nav_title" => "ZZ Alert Target"]);
+
+			try {
+				$add = $svc->aiValidateUserUpdate([
+					"user_id" => $target_id,
+					"alerts" => [(string)$page_id => true],
+				], $admin);
+
+				T::ok(!empty($add["ok"]), "adding a single page alert validates");
+				$svc->aiUpdateUser($add["payload"], $admin);
+				T::equals(
+					json_decode((string)SQL::fetchSingle("SELECT alerts FROM bigtree_users WHERE id = ?", $target_id), true),
+					["0" => "on", (string)$page_id => "on"],
+					"the new subscription is merged into the existing map, not substituted for it"
+				);
+
+				// …and false removes just that one.
+				$remove = $svc->aiValidateUserUpdate([
+					"user_id" => $target_id,
+					"alerts" => [(string)$page_id => false],
+				], $admin);
+
+				T::ok(!empty($remove["ok"]), "removing a single page alert validates");
+				$svc->aiUpdateUser($remove["payload"], $admin);
+				T::equals(
+					json_decode((string)SQL::fetchSingle("SELECT alerts FROM bigtree_users WHERE id = ?", $target_id), true),
+					["0" => "on"],
+					"false removes only the page it names"
+				);
+			} finally {
+				parity_delete_page($page_id);
+			}
 
 			// A bad shape is a correction, not a silent no-op.
 			$bad = $svc->aiValidateUserUpdate(["user_id" => $target_id, "alerts" => "everything"], $admin);
 			T::ok(isset($bad["error"]), "a malformed alerts value is refused");
+
+			// A subscription to a page that doesn't exist would never match anything.
+			$ghost = $svc->aiValidateUserUpdate([
+				"user_id" => $target_id,
+				"alerts" => ["99999999" => true],
+			], $admin);
+			T::ok(isset($ghost["error"]), "a subscription to a non-existent page is refused");
 		} finally {
 			parity_delete_users($target_id);
 		}

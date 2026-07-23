@@ -50,38 +50,109 @@
 		}
 
 		public function contentAlerts(Request $request) {
-			$me_id = (int)$request->user->id;
-			$alerts_json = SQL::fetchSingle("SELECT alerts FROM bigtree_users WHERE id = ?", $me_id);
-			$alerts = Json::decode($alerts_json);
-			$out = [];
 
-			foreach ($alerts as $page_id => $days_threshold) {
-				$days_threshold = (int)$days_threshold;
+			return Response::ok($this->contentAlertRows((int)$request->user->id));
+		}
 
-				if ($days_threshold <= 0) {
+		/**
+		 * The stale pages a user is subscribed to, mirroring
+		 * BigTreeAdmin::getContentAlerts.
+		 *
+		 * `bigtree_users.alerts` is a page-id => "on" *subscription* map: the
+		 * threshold is each page's own `max_age`, and subscribing to a page subscribes
+		 * to everything beneath it (a path-prefix walk); page id 0 means the whole
+		 * tree. This used to cast the flag to a number of days and skip anything <= 0
+		 * — and `(int)"on"` is 0, so every alert a human had ever configured was
+		 * filtered out and the caller was told nothing was stale.
+		 *
+		 * @return list<array<string,mixed>>
+		 */
+		private function contentAlertRows(int $user_id): array {
+			$alerts = Json::decode(SQL::fetchSingle("SELECT alerts FROM bigtree_users WHERE id = ?", $user_id));
+			$subscribed = [];
+
+			foreach ($alerts as $page_id => $flag) {
+				// Any truthy flag counts: legacy stores "on", the SPA sends booleans,
+				// and a leftover threshold number still means "watching this".
+				if (!is_numeric($page_id) || !self::alertFlagIsOn($flag)) {
+
 					continue;
 				}
-				$row = SQL::fetch(
-					"SELECT id, nav_title, path, updated_at,
-					        DATEDIFF(NOW(), updated_at) AS age_days
-					 FROM bigtree_pages
-					 WHERE id = ? AND DATEDIFF(NOW(), updated_at) >= ?",
-					(int)$page_id, $days_threshold
-				);
 
-				if ($row) {
-					$out[] = [
-						"page_id" => (int)$row["id"],
-						"nav_title" => Sanitize::decodeEntities($row["nav_title"]),
-						"path" => $row["path"],
-						"updated_at" => $row["updated_at"],
-						"age_days" => (int)$row["age_days"],
-						"threshold_days" => $days_threshold,
-					];
-				}
+				$subscribed[] = (int)$page_id;
 			}
 
-			return Response::ok($out);
+			if (!$subscribed) {
+
+				return [];
+			}
+
+			$select = "SELECT id, nav_title, path, updated_at, max_age,
+			                  DATEDIFF(NOW(), updated_at) AS age_days
+			           FROM bigtree_pages
+			           WHERE max_age > 0 AND archived = '' AND DATEDIFF(NOW(), updated_at) > max_age";
+
+			if (in_array(0, $subscribed, true)) {
+				// The whole tree — no path filtering needed.
+				$rows = SQL::fetchAll($select . " ORDER BY age_days DESC");
+			} else {
+				$paths = SQL::fetchAllSingle(
+					"SELECT path FROM bigtree_pages WHERE id IN (" . implode(",", array_map("intval", $subscribed)) . ")"
+				);
+
+				if (!$paths) {
+
+					return [];
+				}
+
+				$conditions = [];
+				$parameters = [];
+
+				foreach ($paths as $path) {
+					$conditions[] = "(path = ? OR path LIKE ?)";
+					$parameters[] = $path;
+					$parameters[] = $path . "/%";
+				}
+
+				$rows = SQL::fetchAll(...array_merge(
+					[$select . " AND (" . implode(" OR ", $conditions) . ") ORDER BY age_days DESC"],
+					$parameters
+				));
+			}
+
+			$out = [];
+
+			foreach ($rows as $row) {
+				$out[] = [
+					"page_id" => (int)$row["id"],
+					"nav_title" => Sanitize::decodeEntities($row["nav_title"]),
+					"path" => $row["path"],
+					"updated_at" => $row["updated_at"],
+					"age_days" => (int)$row["age_days"],
+					"threshold_days" => (int)$row["max_age"],
+				];
+			}
+
+			return $out;
+		}
+
+		/**
+		 * Whether an alerts-map value counts as a subscription. See contentAlertRows.
+		 *
+		 * @param mixed $flag
+		 */
+		private static function alertFlagIsOn($flag): bool {
+			if (is_bool($flag)) {
+
+				return $flag;
+			}
+
+			if (is_int($flag) || is_float($flag)) {
+
+				return (float)$flag != 0.0;
+			}
+
+			return !in_array(strtolower(trim((string)$flag)), ["", "0", "false", "no", "off"], true);
 		}
 
 		public function integrity(Request $request) {
@@ -135,43 +206,24 @@
 				];
 			}
 
-			// The caller's own watch list, which is what GET /dashboard/content-alerts
-			// returns. Keyed by page id → threshold in days.
+			// The caller's own watch list — exactly what GET /dashboard/content-alerts
+			// and the digest mailer return, filtered to what this caller can see.
 			$user_id = is_object($user) ? (int)($user->id ?? 0) : (int)($user["id"] ?? 0);
-			$alerts = Json::decode(SQL::fetchSingle("SELECT alerts FROM bigtree_users WHERE id = ?", $user_id));
 			$watched = [];
 
-			foreach ($alerts as $page_id => $threshold) {
-				$threshold = (int)$threshold;
+			foreach ($this->contentAlertRows($user_id) as $row) {
+				if (count($watched) >= $limit) {
 
-				if ($threshold <= 0 || count($watched) >= $limit) {
+					break;
+				}
+
+				if (!PermissionService::userHasPageAccess($user, (int)$row["page_id"], "v")) {
 
 					continue;
 				}
 
-				if (!PermissionService::userHasPageAccess($user, (int)$page_id, "v")) {
-
-					continue;
-				}
-
-				$row = SQL::fetch(
-					"SELECT id, nav_title, path, updated_at, DATEDIFF(NOW(), updated_at) AS age_days
-					 FROM bigtree_pages
-					 WHERE id = ? AND DATEDIFF(NOW(), updated_at) >= ?",
-					(int)$page_id,
-					$threshold
-				);
-
-				if ($row) {
-					$watched[] = [
-						"page_id" => (int)$row["id"],
-						"nav_title" => Sanitize::decodeEntities($row["nav_title"]),
-						"path" => "/" . (string)$row["path"],
-						"updated_at" => $row["updated_at"],
-						"age_days" => (int)$row["age_days"],
-						"threshold_days" => $threshold,
-					];
-				}
+				$row["path"] = "/" . ltrim((string)$row["path"], "/");
+				$watched[] = $row;
 			}
 
 			return [
@@ -179,9 +231,10 @@
 				"watched" => $watched,
 				"note" => (!$stale && !$watched)
 					? "No content is currently flagged as stale. A page is only tracked once it has a max_age "
-						. "(set it with update_page) or a personal alert threshold set in the admin."
-					: "\"stale\" is the site-wide rule (a page past its own max_age); \"watched\" is your personal "
-						. "alert list. Both are filtered to pages you can view.",
+						. "(set it with update_page); \"watched\" additionally needs a subscription to that page "
+						. "(or one of its ancestors) in the user's alert list."
+					: "\"stale\" is the site-wide rule (a page past its own max_age); \"watched\" is the same rule "
+						. "narrowed to your personal alert subscriptions. Both are filtered to pages you can view.",
 			];
 		}
 

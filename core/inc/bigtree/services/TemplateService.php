@@ -29,12 +29,19 @@
 		];
 
 		public function list(Request $request) {
-			$mtime_path = SERVER_ROOT . "core/setup/json-db/templates.json";
-			$custom_mtime_path = SERVER_ROOT . "custom/setup/json-db/templates.json";
-			$etag = ETag::fromMtimes(array_filter([$mtime_path, file_exists($custom_mtime_path) ? $custom_mtime_path : null]));
+			// Hashed against the live JSONDB file BigTreeJSONDB actually reads and
+			// writes (json-db.php:13), not the install-time setup seed. The seed is
+			// never touched by a write, so its mtime produced an ETag that never
+			// changed — with cacheFor(60) on top, the SPA served a stale template list
+			// indefinitely after any create, update or AI approval. FieldTypeService
+			// documents and avoids this same trap.
+			$live = SERVER_ROOT . "custom/json-db/templates.json";
+			$etag = ETag::fromMtimes(array_filter([file_exists($live) ? $live : null]));
 
 			if (ETag::check($request, $etag)) {
-				return Response::notModified($etag);
+				// no-cache so the browser revalidates against the ETag every time
+				// rather than sitting on a stale 60-second window.
+				return Response::notModified($etag)->noCache();
 			}
 
 			$rows = BigTreeJSONDB::getAll("templates", "position", "DESC");
@@ -42,7 +49,7 @@
 
 			return Response::ok($items)
 				->header("ETag", $etag)
-				->cacheFor(60);
+				->noCache();
 		}
 
 		public function get(Request $request) {
@@ -182,6 +189,43 @@
 		 * @param object|array $user
 		 * @return array<string,mixed>
 		 */
+		/**
+		 * The column caps routes/templates.php declares. Enforced here too: nothing in
+		 * the AI seams checked them, so a 400-character id passed validation, inserted
+		 * the record, then failed the render-file write — leaving a template that
+		 * renders nothing and a proposal reported as successful.
+		 */
+		private const AI_TEMPLATE_MAX_LENGTHS = [
+			"id" => 127,
+			"name" => 255,
+			"module" => 255,
+		];
+
+		/**
+		 * The first over-length template value, as a recoverable error. Shared by
+		 * staging and approval so a stored payload can't slip past.
+		 *
+		 * @param array<string,mixed> $fields
+		 */
+		private function aiTemplateLengthError(array $fields): ?string {
+			foreach (self::AI_TEMPLATE_MAX_LENGTHS as $field => $max) {
+				if (!array_key_exists($field, $fields)) {
+
+					continue;
+				}
+
+				$length = mb_strlen((string)$fields[$field]);
+
+				if ($length > $max) {
+
+					return "The template's {$field} is {$length} characters, but the field holds at most {$max}. "
+						. "Shorten it and try again.";
+				}
+			}
+
+			return null;
+		}
+
 		public function aiValidateTemplateCreate(array $args, $user): array {
 			if (PermissionService::level($user) < 2) {
 
@@ -225,7 +269,8 @@
 					. "\"{$level}\" would make the template unusable by everyone."];
 			}
 			$fields = $this->aiCleanResourceFields($args["fields"] ?? []);
-			$type_error = $this->aiInvalidFieldTypeError($fields)
+			$type_error = Resources::aiFieldIdError($args["fields"] ?? [], "template")
+				?? $this->aiInvalidFieldTypeError($fields)
 				?? Resources::aiUnconfigurableFieldError($args["fields"] ?? [], [], "template");
 
 			if ($type_error !== null) {
@@ -251,6 +296,13 @@
 				"routed" => $routed,
 				"resources" => $fields,
 			];
+
+			$too_long = $this->aiTemplateLengthError($payload);
+
+			if ($too_long !== null) {
+
+				return ["error" => $too_long];
+			}
 
 			return [
 				"ok" => true,
@@ -299,12 +351,21 @@
 			// proposal's 24h TTL can change this verdict, so it is re-asked here like
 			// every other staged value.
 			$resources = is_array($payload["resources"] ?? null) ? $payload["resources"] : [];
-			$type_error = $this->aiInvalidFieldTypeError($resources)
+			$type_error = Resources::aiFieldIdError($resources, "template")
+				?? $this->aiInvalidFieldTypeError($resources)
 				?? Resources::aiUnconfigurableFieldError($resources, [], "template");
 
 			if ($type_error !== null) {
 
 				return ["mode" => "error", "message" => $type_error];
+			}
+
+			// Re-asked at approval like every other staged value.
+			$too_long = $this->aiTemplateLengthError($payload);
+
+			if ($too_long !== null) {
+
+				return ["mode" => "error", "message" => $too_long];
 			}
 
 			$insert = [
@@ -396,7 +457,8 @@
 			if (array_key_exists("fields", $args)) {
 				$before = is_array($existing["resources"] ?? null) ? $existing["resources"] : [];
 				$fields = $this->aiCleanResourceFields($args["fields"], $before);
-				$type_error = $this->aiInvalidFieldTypeError($fields)
+				$type_error = Resources::aiFieldIdError($args["fields"], "template")
+					?? $this->aiInvalidFieldTypeError($fields)
 					?? Resources::aiUnconfigurableFieldError($args["fields"], $before, "template");
 
 				if ($type_error !== null) {
@@ -414,6 +476,13 @@
 			if (!$changes) {
 
 				return ["error" => "No changes were supplied — nothing to update."];
+			}
+
+			$too_long = $this->aiTemplateLengthError($changes);
+
+			if ($too_long !== null) {
+
+				return ["error" => $too_long];
 			}
 
 			$name = (string)($existing["name"] ?? $id);
@@ -569,6 +638,14 @@
 				$next["name"] = BigTree::safeEncode((string)$changes["name"]);
 			}
 
+			// Re-asked at approval like every other staged value.
+			$too_long = $this->aiTemplateLengthError($changes);
+
+			if ($too_long !== null) {
+
+				return ["mode" => "error", "message" => $too_long];
+			}
+
 			if (array_key_exists("level", $changes)) {
 				$level = (int)$changes["level"];
 
@@ -589,7 +666,8 @@
 
 				// Only the staging pass used to check the types, so an extension
 				// uninstalled inside the TTL wrote its now-unknown type verbatim.
-				$type_error = $this->aiInvalidFieldTypeError($merged)
+				$type_error = Resources::aiFieldIdError($changes["fields"], "template")
+					?? $this->aiInvalidFieldTypeError($merged)
 					?? Resources::aiUnconfigurableFieldError($changes["fields"], $before, "template");
 
 				if ($type_error !== null) {
@@ -599,16 +677,24 @@
 
 				$next["resources"] = $merged;
 			} elseif (array_key_exists("resources", $changes)) {
+				// A payload carrying `resources` rather than `fields` — nothing stages
+				// one today, but if anything ever does it must go through the same
+				// merge, not straight to clean(): clean() rebuilds each field from
+				// what it was handed, so a payload that restated a field without its
+				// settings would silently strip the configuration a human set.
+				$before = is_array($existing["resources"] ?? null) ? $existing["resources"] : [];
 				$resources = is_array($changes["resources"]) ? $changes["resources"] : [];
-				$type_error = $this->aiInvalidFieldTypeError($resources)
-					?? Resources::aiUnconfigurableFieldError($resources, [], "template");
+				$merged = $this->aiCleanResourceFields($resources, $before);
+				$type_error = Resources::aiFieldIdError($resources, "template")
+					?? $this->aiInvalidFieldTypeError($merged)
+					?? Resources::aiUnconfigurableFieldError($resources, $before, "template");
 
 				if ($type_error !== null) {
 
 					return ["mode" => "error", "message" => $type_error];
 				}
 
-				$next["resources"] = Resources::clean($resources);
+				$next["resources"] = $merged;
 			}
 
 			BigTreeJSONDB::update("templates", $id, $next);
@@ -632,7 +718,7 @@
 		 */
 		private function aiCleanResourceFields($fields, array $existing = []): array {
 
-			return Resources::mergeAiFields($fields, $existing);
+			return Resources::mergeAiFields($fields, $existing, "template");
 		}
 
 		/**

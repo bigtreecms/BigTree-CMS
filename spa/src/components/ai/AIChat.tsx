@@ -6,7 +6,7 @@ import { History, Plus, Send, Sparkles, X } from "lucide-react";
 import { aiApi, type ChatProposal } from "@/api/endpoints/ai";
 import { streamChat, type ChatStreamDone } from "@/api/aiStream";
 import { queryKeys } from "@/lib/queryKeys";
-import { describeApiError } from "@/lib/errorHandling";
+import { describeApiError, isNotFound } from "@/lib/errorHandling";
 import { IconButton } from "@/components/ui/IconButton";
 import { InlineEmpty } from "@/components/ui/InlineEmpty";
 import { ChatMessageView, type ChatEntry } from "./ChatMessageView";
@@ -129,13 +129,60 @@ export const AIChat = ({ open, onClose }: AIChatProps) => {
 		);
 	};
 
+	/**
+	 * Re-read the conversation's proposals and fold their current state into the
+	 * rendered cards. Cheaper and less jarring than reloading the whole thread: the
+	 * messages haven't changed, only what became of the cards attached to them.
+	 */
+	const refreshProposals = async () => {
+		if (conversationId === null) {
+			return;
+		}
+
+		try {
+			const detail = await aiApi.getConversation(conversationId);
+			const byId = new Map(
+				detail.messages.flatMap((m) => (m.proposals ?? []).map((p) => [p.proposal_id, p]))
+			);
+
+			setEntries((prev) =>
+				prev.map((entry) =>
+					entry.proposals
+						? {
+								...entry,
+								proposals: entry.proposals.map((p) => byId.get(p.proposal_id) ?? p),
+							}
+						: entry
+				)
+			);
+		} catch {
+			// Best-effort: a refresh failure leaves the cards as they were.
+		}
+	};
+
 	const approveMutation = useMutation({
 		mutationFn: (id: string) => aiApi.approveProposal(id),
 		onMutate: (id) => {
 			setBusyProposalId(id);
 			setError(null);
 		},
-		onSuccess: (data) => applyProposal(data.proposal),
+		onSuccess: (data) => {
+			applyProposal(data.proposal);
+			// Approving one card can invalidate its siblings: they were staged against
+			// the same record, and the fingerprint check will now refuse them. Reload
+			// the thread so every card shows its real state rather than a stale
+			// "awaiting your approval" on something that can no longer be approved.
+			void refreshProposals();
+			// An approval writes to the CMS, and any screen behind the panel is now
+			// showing pre-approval data — a page tree without the page just created, a
+			// template list without the template. Which screen that is depends on the
+			// tool, so everything outside the assistant's own queries is marked stale
+			// rather than enumerating targets a new tool would silently fall outside
+			// of. Approvals are rare and user-initiated; only mounted queries refetch.
+			void queryClient.invalidateQueries({
+				predicate: (query) => query.queryKey[0] !== "ai",
+			});
+		},
 		onError: (err) => setError(describeApiError(err, "The change could not be applied.")),
 		onSettled: () => setBusyProposalId(null),
 	});
@@ -166,8 +213,8 @@ export const AIChat = ({ open, onClose }: AIChatProps) => {
 	const updatePending = (fn: (entry: ChatEntry) => ChatEntry) =>
 		setEntries((prev) => prev.map((e) => (e.id === PENDING_ID ? fn(e) : e)));
 
-	const send = async () => {
-		const text = input.trim();
+	const send = async (override?: string) => {
+		const text = (override ?? input).trim();
 
 		if (text === "" || sendMutation.isPending || streaming) {
 			return;
@@ -297,7 +344,17 @@ export const AIChat = ({ open, onClose }: AIChatProps) => {
 				}))
 			);
 		} catch (err) {
-			setError(describeApiError(err, "Could not load that conversation."));
+			// A conversation the server deleted — a provider failure on a brand-new
+			// thread rolls the row back — leaves the client holding a dead id that
+			// every later send 404s against, permanently. Drop it and start fresh.
+			if (isNotFound(err)) {
+				setConversationId(null);
+				setEntries([]);
+				void queryClient.invalidateQueries({ queryKey: queryKeys.ai.conversations() });
+				setError("That conversation is no longer available.");
+			} else {
+				setError(describeApiError(err, "Could not load that conversation."));
+			}
 		} finally {
 			setLoadingConversation(false);
 		}
@@ -382,6 +439,7 @@ export const AIChat = ({ open, onClose }: AIChatProps) => {
 										entry={entry}
 										key={entry.id}
 										onApproveProposal={(id) => approveMutation.mutate(id)}
+										onChooseOption={(choice) => void send(choice)}
 										onNavigate={onClose}
 										onRejectProposal={(id) => rejectMutation.mutate(id)}
 									/>

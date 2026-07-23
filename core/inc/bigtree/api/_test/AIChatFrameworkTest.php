@@ -501,7 +501,23 @@
 
 	function test_audit_descriptor_skips_errors_and_unknowns() {
 		T::equals(AIChatService::auditDescriptor("create_page", [], ["mode" => "error", "message" => "gone"]), null, "error outcome is not audited");
-		T::equals(AIChatService::auditDescriptor("ext_send_postcard", [], ["mode" => "sent"]), null, "extension/unknown tool has no core descriptor");
+
+		// An extension tool's approval is audited too — it writes to the CMS through
+		// the same approval flow, and falling out of the switch left it recorded
+		// nowhere at all, so no row for it could ever carry via=ai_assistant.
+		$extension = AIChatService::auditDescriptor("ext_send_postcard", [], ["mode" => "sent"]);
+		T::equals($extension["table"], "bigtree_ai_proposals", "an extension approval audits against the proposal");
+		T::equals($extension["type"], "extension-approved", "and says what kind of row it is");
+		T::equals($extension["entry"], "ext_send_postcard", "naming the tool that ran");
+
+		// An extension that names its own target audits there instead.
+		$named = AIChatService::auditDescriptor(
+			"ext_send_postcard",
+			[],
+			["mode" => "sent", "audit_table" => "ext_postcards", "audit_entry" => 9]
+		);
+		T::equals($named["table"], "ext_postcards", "an extension may name its own audit table");
+		T::equals($named["entry"], "9", "and its own entry");
 		T::equals(AIChatService::auditDescriptor("create_module_entry", ["table" => ""], ["mode" => "published", "entry_id" => 1]), null, "an unknown table is not audited");
 	}
 

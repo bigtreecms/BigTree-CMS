@@ -413,10 +413,16 @@
 		$resources = $bigtree["resources"];
 		$callouts = $bigtree["callouts"];
 
-		// Quick access to resources
+		// Quick access to resources. Field ids that collide with the render scope's
+		// own names are skipped: a field called "page" or "resources" would otherwise
+		// replace $page/$resources for the whole template, so every other field in the
+		// file silently reads as empty. Only "_"-prefixed keys and "bigtree" were
+		// guarded before.
+		$bigtree["reserved_resource_keys"] = ["bigtree", "page", "cms", "admin", "db", "resources", "callouts", "nav"];
+
 		if (is_array($bigtree["resources"])) {
 			foreach ($bigtree["resources"] as $key => $val) {
-				if (substr($key,0,1) != "_" && $key != "bigtree") { // Don't allow for SESSION or COOKIE injection and don't overwrite $bigtree
+				if (substr($key,0,1) != "_" && !in_array($key, $bigtree["reserved_resource_keys"], true)) { // Don't allow for SESSION or COOKIE injection and don't overwrite the render scope
 					$$key = $bigtree["resources"][$key];
 				}
 			}

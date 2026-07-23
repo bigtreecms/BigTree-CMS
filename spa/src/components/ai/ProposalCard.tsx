@@ -63,7 +63,15 @@ const HIDDEN_KEYS = new Set([
 	"is_new_item",
 	"template_changed",
 	"sends_invite_email",
+	"grants_permissions",
 	"note",
+	// Rendered as dedicated blocks below, not as anonymous key/value rows.
+	"warning",
+	"remaining_setup",
+	"ignored",
+	"publishes_draft",
+	"content_lock",
+	"incomplete_required",
 ]);
 
 const humanize = (key: string): string =>
@@ -143,12 +151,38 @@ const previewRows = (preview: Record<string, unknown>): Row[] => {
 		rows.push({ label: "Tags", to: displayValue(preview.tags) });
 	}
 
+	// merge_tags names the tags about to be destroyed in a top-level `from` array —
+	// the single most important thing on that card, and it had no renderer at all,
+	// so an irreversible merge was approved without naming what it consumed.
+	if (Array.isArray(preview.from)) {
+		rows.push({ label: "Merging", to: displayValue(preview.from) });
+	}
+
+	if (typeof preview.into === "string" && preview.into !== "") {
+		rows.push({ label: "Into", to: preview.into });
+	}
+
+	// A top-level from/to pair — update_setting and set_module_entry_flag emit the
+	// two keys side by side rather than nested under `changes`, so the generic scan
+	// below rendered them as two unrelated rows ("From: on", "To: ") instead of one
+	// before/after.
+	const hasTopLevelDiff = "to" in preview && !Array.isArray(preview.to);
+
+	if (hasTopLevelDiff) {
+		rows.push({
+			label: typeof preview.field === "string" && preview.field !== "" ? humanize(preview.field) : "Value",
+			from: "from" in preview && !Array.isArray(preview.from) ? displayValue(preview.from) : undefined,
+			to: displayValue(preview.to),
+		});
+	}
+
 	for (const [key, value] of Object.entries(preview)) {
 		if (
 			HIDDEN_KEYS.has(key) ||
 			isDiff(value) ||
 			Array.isArray(value) ||
-			typeof value === "object"
+			typeof value === "object" ||
+			(hasTopLevelDiff && (key === "from" || key === "to" || key === "field"))
 		) {
 			continue;
 		}
@@ -201,6 +235,14 @@ const outcomeText = (result: Record<string, unknown> | null): string => {
 			return "Created.";
 		case "updated":
 			return "Updated.";
+		case "restored":
+			return "Restored.";
+		case "merged":
+			return result.tag ? `Merged into “${String(result.tag)}”.` : "Tags merged.";
+		case "renamed":
+			return result.tag ? `Renamed to “${String(result.tag)}”.` : "Renamed.";
+		case "saved":
+			return "Saved.";
 		case "error":
 			return String(result.message ?? "That change could no longer be applied.");
 		default:
@@ -229,6 +271,29 @@ export const ProposalCard = ({
 	const isDestructive = proposal.preview.destructive === true;
 	const incompleteRequired = Array.isArray(proposal.preview.incomplete_required)
 		? (proposal.preview.incomplete_required as unknown[]).map(String)
+		: [];
+
+	// Keys that carry a consequence rather than a value. Rendered as their own
+	// blocks: as plain preview rows they were single-line truncated inside a 440px
+	// panel, which clipped exactly the part that mattered — or, for the ones with no
+	// renderer at all, dropped silently.
+	const warning =
+		typeof proposal.preview.warning === "string" ? proposal.preview.warning : "";
+	const publishesDraft =
+		typeof (proposal.preview.publishes_draft as Record<string, unknown> | undefined)?.note ===
+		"string"
+			? String((proposal.preview.publishes_draft as Record<string, unknown>).note)
+			: null;
+	const lockValue = proposal.preview.content_lock as Record<string, unknown> | undefined;
+	const contentLock =
+		lockValue && typeof lockValue.holder === "string"
+			? { holder: lockValue.holder, kind: String(lockValue.kind ?? "item") }
+			: null;
+	const ignored = Array.isArray(proposal.preview.ignored)
+		? (proposal.preview.ignored as unknown[]).map(String)
+		: [];
+	const remainingSetup = Array.isArray(proposal.preview.remaining_setup)
+		? (proposal.preview.remaining_setup as unknown[]).map(String)
 		: [];
 
 	// Deep link to a page the approval touched (created or edited), when we have its id.
@@ -267,12 +332,53 @@ export const ProposalCard = ({
 					</p>
 				)}
 
+				{warning !== "" && (
+					<p className="mt-2 flex items-start gap-1.5 whitespace-pre-wrap break-words text-[11.5px] text-warn">
+						<TriangleAlert className="mt-px shrink-0" size={13} />
+						<span>{warning}</span>
+					</p>
+				)}
+
+				{publishesDraft !== null && (
+					<p className="mt-2 flex items-start gap-1.5 whitespace-pre-wrap break-words text-[11.5px] text-warn">
+						<TriangleAlert className="mt-px shrink-0" size={13} />
+						<span>{publishesDraft}</span>
+					</p>
+				)}
+
+				{contentLock !== null && (
+					<p className="mt-2 flex items-start gap-1.5 whitespace-pre-wrap break-words text-[11.5px] text-warn">
+						<TriangleAlert className="mt-px shrink-0" size={13} />
+						<span>
+							{contentLock.holder} has this {contentLock.kind} open in the editor right
+							now — if they save after this is approved, their copy wins.
+						</span>
+					</p>
+				)}
+
+				{ignored.length > 0 && (
+					<p className="mt-2 text-[11.5px] text-text-3">
+						Ignored (not applicable): {ignored.join(", ")}
+					</p>
+				)}
+
+				{remainingSetup.length > 0 && (
+					<div className="mt-2">
+						<p className="text-[11px] text-text-3">Still to do by hand:</p>
+						<ul className="mt-1 list-disc space-y-0.5 pl-4 text-[11.5px] text-text-2">
+							{remainingSetup.map((step, i) => (
+								<li key={i}>{step}</li>
+							))}
+						</ul>
+					</div>
+				)}
+
 				{rows.length > 0 && (
 					<dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1">
 						{rows.map((row, i) => (
 							<div className="contents" key={`${row.label}-${i}`}>
 								<dt className="text-[11px] text-text-3">{row.label}</dt>
-								<dd className="truncate text-[11.5px] text-text">
+								<dd className="max-h-40 overflow-y-auto whitespace-pre-wrap break-words text-[11.5px] text-text">
 									{row.from !== undefined ? (
 										<>
 											<span className="text-text-3 line-through">

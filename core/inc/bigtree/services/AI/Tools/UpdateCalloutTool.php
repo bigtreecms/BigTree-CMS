@@ -75,7 +75,12 @@
 							"items" => [
 								"type" => "object",
 								"properties" => [
-									"id" => ["type" => "string"],
+									"id" => [
+										"type" => "string",
+										"description" => "Field id — letters, numbers, underscores and hyphens only (e.g. "
+											. "\"headline\"). Used exactly as given: it is the key the field's content is "
+											. "stored under.",
+									],
 									"type" => [
 										"type" => "string",
 										"description" => "Omit to keep an existing field's type. Changing it discards "
@@ -83,6 +88,15 @@
 									],
 									"title" => ["type" => "string", "description" => "Omit to keep an existing field's label."],
 									"subtitle" => ["type" => "string"],
+									"options" => [
+										"type" => "array",
+										"description" => "Choices for a \"list\" field, in order. Strings, or "
+											. "{value, description} objects when the stored value differs from the "
+											. "label. A list field with no options renders as an empty select — and "
+											. "if it is also required, nobody can save the record at all — so this "
+											. "is required when type is \"list\".",
+										"items" => ["type" => "string"],
+									],
 									"required" => [
 										"type" => "boolean",
 										"description" => "Applies to newly added fields only; an existing field keeps "

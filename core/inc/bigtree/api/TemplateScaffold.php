@@ -13,10 +13,12 @@
 	 * and immediately assigned to pages that then rendered *nothing* — with no error
 	 * to explain why. This restores the behavior for every creation path.
 	 *
-	 * A template's resources are exposed to its file as bare variables ($page_header);
-	 * a callout's are exposed as $callout["field_id"]. The stubs echo each defined
-	 * field so a new template/callout renders something meaningful immediately and
-	 * shows the developer the variable names to work with.
+	 * A template's resources are exposed to its file as bare variables ($page_header)
+	 * and as $resources["page_header"]; a callout's are exposed as $callout["field_id"].
+	 * The stubs echo each defined field so a new template/callout renders something
+	 * meaningful immediately and shows the developer the variable names to work with.
+	 * Every stub written here must be loadable PHP — the router includes it directly,
+	 * so a parse error in it 500s every page on the template.
 	 */
 	class TemplateScaffold {
 		/**
@@ -141,7 +143,7 @@
 		/**
 		 * @param list<array<string,mixed>> $resources
 		 */
-		private static function templateBody(array $resources, bool $routed): string {
+		public static function templateBody(array $resources, bool $routed): string {
 			$out = "";
 
 			if ($routed) {
@@ -173,9 +175,35 @@
 			return $out;
 		}
 
+		/**
+		 * Render-scope names a template field must never be scaffolded as a bare
+		 * variable, because router.php has already bound them to something else and
+		 * the stub would echo the wrong thing (or a whole object).
+		 */
+		private const RESERVED_VARIABLES = ["page", "cms", "resources", "callouts", "bigtree", "admin", "db", "nav"];
+
+		/**
+		 * How a template field is read inside a stub.
+		 *
+		 * router.php exposes resources both as bare variables ($page_header) and as
+		 * $resources["page_header"], so the bare form is used when — and only when —
+		 * the id is a valid PHP label that shadows nothing. Anything else falls back
+		 * to the array form: `<?=$page-header?>` is a fatal parse/constant error, and
+		 * because the stub is included directly by the router it would take down every
+		 * page on the template rather than just rendering the field wrong.
+		 */
+		private static function accessor(string $id): string {
+			if (preg_match("/^[A-Za-z_][A-Za-z0-9_]*$/", $id) && !in_array($id, self::RESERVED_VARIABLES, true)) {
+
+				return '$' . $id;
+			}
+
+			return '$resources[' . var_export($id, true) . ']';
+		}
+
 		/** One resource's markup inside a template stub. */
 		private static function templateField(string $id, string $type, string $title): string {
-			$variable = '$' . $id;
+			$variable = self::accessor($id);
 			$label = self::comment($title);
 
 			if ($type === "image") {
@@ -205,7 +233,7 @@
 		/**
 		 * @param list<array<string,mixed>> $resources
 		 */
-		private static function calloutBody(array $resources): string {
+		public static function calloutBody(array $resources): string {
 			if (!$resources) {
 
 				return "<div class=\"callout\">\n\t<!-- This callout has no fields yet. -->\n</div>\n";
@@ -222,7 +250,7 @@
 
 				$type = (string)($resource["type"] ?? "text");
 				$label = self::comment((string)($resource["title"] ?? $id));
-				$accessor = '$callout["' . $id . '"]';
+				$accessor = '$callout[' . var_export($id, true) . ']';
 
 				if ($type === "image") {
 					$out .= "\t<!-- {$label} -->\n"

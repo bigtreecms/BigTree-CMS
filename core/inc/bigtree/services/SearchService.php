@@ -1311,6 +1311,13 @@ PROMPT;
 				return ["error" => "not permitted"];
 			}
 
+			// A live page with a queued draft is read *through* that draft, exactly as
+			// the admin's edit screen reads it — otherwise the model proposes against
+			// published copy the approver isn't looking at, and its card's `from`
+			// values contradict what they see. The draft is disclosed alongside.
+			$overlaid = $pages->aiApplyPendingToTarget($target);
+			$target = $overlaid["target"];
+			$pending = $overlaid["pending"];
 			$page = $target["page"];
 			$snippet = $this->plainTextFromResources($page["resources"] ?? "");
 
@@ -1348,11 +1355,12 @@ PROMPT;
 				"payload" => array_merge([
 					"id" => (int)$page["id"],
 					"is_draft" => false,
+					"has_pending_change" => false,
 					"path" => $page["path"],
 				], $fields, $content, [
 					"archived" => $archived,
 					"content_text" => $snippet,
-				]),
+				], $pending),
 				"artifact" => [
 					"id" => (int)$page["id"],
 					"nav_title" => $page["nav_title"],

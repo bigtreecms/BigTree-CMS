@@ -115,7 +115,15 @@
 		}
 	}
 
-	function test_parity_ai_entry_update_regenerates_route_when_source_changes() {
+	/**
+	 * B11: renaming an entry must NOT re-slug it.
+	 *
+	 * The SPA submits the slug it loaded and never regenerates one, so an editor
+	 * renaming an entry keeps its URL. The AI path used to regenerate whenever a
+	 * source column changed — and entries have no route history and no redirect, so
+	 * "fix the typo in the headline" silently 404'd every link to the article.
+	 */
+	function test_parity_ai_entry_update_keeps_the_route_when_the_title_changes() {
 		if (!parity_ai_processors_ready()) {
 			return;
 		}
@@ -145,7 +153,21 @@
 
 			$row = SQL::fetch("SELECT title, route FROM timber_news WHERE id = ?", $created["id"]);
 			T::equals($row["title"], $new_title, "title updated");
-			T::equals($row["route"], BigTreeCMS::urlify($new_title), "route re-derived because its source column changed");
+			T::equals(
+				$row["route"],
+				BigTreeCMS::urlify("AI Original Title " . $suffix),
+				"the live entry keeps its original route — nothing linking to it breaks"
+			);
+
+			// `route` is a derived field type the assistant can't author either, so
+			// an entry's URL only ever moves when a human moves it in the admin.
+			$reslug = $svc->aiValidateEntryUpdate([
+				"module_id" => parity_news_module_id(),
+				"entry_id" => $created["id"],
+				"data" => ["route" => "ai-deliberate-route"],
+			], $user);
+
+			T::ok(isset($reslug["error"]), "the assistant can't set a route column directly either");
 		} finally {
 			parity_delete_news_entries((int)$created["id"]);
 			parity_delete_users($dev_id);

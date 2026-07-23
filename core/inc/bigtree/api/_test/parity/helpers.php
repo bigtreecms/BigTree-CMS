@@ -114,6 +114,38 @@
 		return $prefix . "-" . strtolower(bin2hex(random_bytes(4)));
 	}
 
+	/**
+	 * Insert a throwaway live page directly, supplying every NOT NULL / no-default
+	 * column. For fixtures that just need a real page id to point at.
+	 */
+	function parity_seed_page(array $overrides = []): int {
+		$route = parity_unique_route();
+		$id = SQL::insert("bigtree_pages", array_merge([
+			"parent" => 0,
+			"nav_title" => "ZZ Parity Page",
+			"title" => "ZZ Parity Page",
+			"trunk" => "",
+			"in_nav" => "on",
+			"route" => $route,
+			"path" => $route,
+			"meta_keywords" => "",
+			"meta_description" => "",
+			"seo_invisible" => "",
+			"external" => "",
+			"template" => "",
+			"resources" => "",
+			"archived" => "",
+			"archived_inherited" => "",
+			"max_age" => 0,
+			"last_edited_by" => 0,
+			"ga_page_views" => 0,
+			"created_at" => "NOW()",
+			"updated_at" => "NOW()",
+		], $overrides));
+
+		return (int)$id;
+	}
+
 	/** Delete a live page if it still exists (ignores missing). */
 	function parity_delete_page(int $id): void {
 		if ($id < 1) {
@@ -138,6 +170,32 @@
 		} catch (Throwable $e) {
 			// best-effort cleanup
 		}
+	}
+
+	/**
+	 * Turn the News form's tagging and Open Graph sections on for the duration of a
+	 * test, returning a closure that puts the module definition back.
+	 *
+	 * A form opts into each with its own flag, and both the SPA's FormRenderer and
+	 * (since audit #6 B5) the AI write path refuse to touch a relation the form
+	 * doesn't offer — so any fixture that tags an entry has to enable it first, the
+	 * same way a developer would.
+	 */
+	function parity_enable_news_relations(): callable {
+		$module_id = parity_news_module_id();
+		$original = BigTreeJSONDB::get("modules", $module_id);
+		$patched = $original;
+
+		foreach ($patched["forms"] as $form_key => $form) {
+			$patched["forms"][$form_key]["tagging"] = "on";
+			$patched["forms"][$form_key]["open_graph"] = "on";
+		}
+
+		BigTreeJSONDB::update("modules", $module_id, $patched);
+
+		return function () use ($module_id, $original): void {
+			BigTreeJSONDB::update("modules", $module_id, $original);
+		};
 	}
 
 	/** Delete pending changes by id list. */

@@ -1341,6 +1341,17 @@
 					"page_id" => $page_id,
 					"revision_id" => $revision_id,
 				],
+				// The restore is a blind SQL::update over REVISION_COLUMNS, so both
+				// ends have to be watched: the page whose content it replaces, and the
+				// revision row it replaces it *with*.
+				"fingerprint" => [
+					"type" => "composite",
+					"parts" => [
+						["type" => "page", "id" => $page_id, "columns" => self::REVISION_COLUMNS],
+						["type" => "row", "table" => "bigtree_page_revisions", "id" => $revision_id,
+							"columns" => self::REVISION_COLUMNS],
+					],
+				],
 				"lock" => $this->aiPageLock($page_id),
 			];
 		}
@@ -1516,6 +1527,11 @@
 					"page_id" => $page_id,
 					"description" => $description,
 				],
+				// "Bookmark what's there now" only means anything if what's there now
+				// is still what the card described — a snapshot taken after a rewrite
+				// preserves the rewrite, which is the opposite of the intent.
+				"fingerprint" => ["type" => "page", "id" => $page_id, "columns" => self::REVISION_COLUMNS],
+				"lock" => $this->aiPageLock($page_id),
 			];
 		}
 
@@ -1731,6 +1747,53 @@
 		 * @param array<string,mixed> $target
 		 * @return array<string,mixed>
 		 */
+		/**
+		 * A resolved page target with its queued draft applied, plus a description of
+		 * that draft for the reader.
+		 *
+		 * get_page used to return published copy with no overlay and no mention that a
+		 * draft existed — so the model proposed edits against content the approver
+		 * wasn't looking at, and produced cards whose `from` values contradicted the
+		 * admin screen. GET /pages/{id}?pending=true has always overlaid and reported
+		 * `changes_applied` / `changed_fields` / `pending_owner`; this is that, for the
+		 * read the assistant actually uses.
+		 *
+		 * @param array<string,mixed> $target An aiResolvePageTarget result.
+		 * @return array{target:array<string,mixed>,pending:array<string,mixed>}
+		 */
+		public function aiApplyPendingToTarget(array $target): array {
+			if (!empty($target["is_pending"])) {
+
+				return ["target" => $target, "pending" => []];
+			}
+
+			$page_id = (int)($target["page_id"] ?? 0);
+			$change = $this->aiPendingEditChange($page_id);
+
+			if (!$change) {
+
+				return ["target" => $target, "pending" => []];
+			}
+
+			$disclosure = $this->aiPendingDraftDisclosure($change);
+			$target["page"] = $this->aiOverlayPendingEdit($target["page"], $change);
+
+			return [
+				"target" => $target,
+				"pending" => [
+					"has_pending_change" => true,
+					"pending_change_id" => (int)$disclosure["pending_change_id"],
+					"pending_owner" => $disclosure["owner"],
+					"pending_owner_name" => $disclosure["owner_name"],
+					"pending_changed_fields" => $disclosure["fields"],
+					"pending_note" => "The values below include an unpublished draft"
+						. ($disclosure["owner_name"] !== null ? " by {$disclosure["owner_name"]}" : "")
+						. ", which is what the admin's edit screen shows and what an edit to this page will "
+						. "change. The published page still has the previous values.",
+				],
+			];
+		}
+
 		public function aiPageDetailFields(array $target): array {
 			$page = $target["page"];
 			$is_pending = !empty($target["is_pending"]);
@@ -1754,8 +1817,12 @@
 				"expire_at" => (string)($page["expire_at"] ?? ""),
 				"external" => (string)($page["external"] ?? ""),
 				"new_window" => Flag::isOn($page["new_window"] ?? ""),
-				"og_title" => (string)($open_graph["title"] ?? ""),
-				"og_description" => (string)($open_graph["description"] ?? ""),
+				// Decoded like every sibling above. Left encoded, an apostrophe in a
+				// social title read back as "&#39;" — entity soup in get_page, and a
+				// false diff on the next update_page card, which compares the decoded
+				// value the model sends against this one.
+				"og_title" => Sanitize::decodeEntities((string)($open_graph["title"] ?? "")),
+				"og_description" => Sanitize::decodeEntities((string)($open_graph["description"] ?? "")),
 				"max_age" => (int)($page["max_age"] ?? 0),
 				"tags" => $this->aiPageTagNames($target),
 			];
@@ -1919,6 +1986,100 @@
 		}
 
 		/**
+		 * The change set to actually publish when a live page edit lands on a page
+		 * that already carries somebody's queued draft.
+		 *
+		 * Publishing deletes every queued change for the page (performUpdate), so
+		 * writing only the assistant's fields would annihilate the rest of the draft
+		 * — another user's title, body, tags and OG rewrite gone with no warning and
+		 * no audit row naming the loss. The admin never does this: PageEdit loads the
+		 * page *with* its pending overlay applied and PATCHes the whole body back, so
+		 * a publisher's save publishes the draft rather than discarding it. This is
+		 * that behavior for the assistant's partial edits — the draft underneath, the
+		 * proposal's own changes on top.
+		 *
+		 * @param array<string,mixed> $changes The assistant's staged change set.
+		 * @return array<string,mixed>
+		 */
+		private function aiCarryPendingDraft(int $page_id, array $changes): array {
+			$change = $this->aiPendingEditChange($page_id);
+
+			if (!$change) {
+
+				return $changes;
+			}
+
+			$queued = Json::decode($change["changes"]);
+
+			// Belongs to a NEW draft's blob, never to an EDIT publish.
+			unset($queued["parent"]);
+
+			// Tags and Open Graph ride in their own columns; performUpdate reads them
+			// off the change set, and only when the key is present.
+			$tags = Json::decode($change["tags_changes"] ?? "");
+
+			if ($tags && !array_key_exists("tags", $queued)) {
+				$queued["tags"] = $tags;
+			}
+
+			$open_graph = Json::decode($change["open_graph_changes"] ?? "");
+
+			if ($open_graph && !array_key_exists("open_graph", $queued)) {
+				$queued["open_graph"] = $open_graph;
+			}
+
+			return array_merge($queued, $changes);
+		}
+
+		/**
+		 * What to tell the approver about a queued draft their publish will carry
+		 * forward. Empty when there is no draft.
+		 *
+		 * Publishing somebody else's unreviewed work is a consequence the approver
+		 * has to see on the card, not discover afterwards.
+		 *
+		 * @param array<string,mixed>|null $change A bigtree_pending_changes row.
+		 * @return array<string,mixed>
+		 */
+		private function aiPendingDraftDisclosure(?array $change): array {
+			if (!$change) {
+
+				return [];
+			}
+
+			$owner_id = !empty($change["user"]) ? (int)$change["user"] : 0;
+			$owner = $owner_id
+				? (string)SQL::fetchSingle("SELECT name FROM bigtree_users WHERE id = ?", $owner_id)
+				: "";
+			$fields = array_values(array_filter(
+				array_keys(Json::decode($change["changes"])),
+				function (string $field): bool {
+
+					return $field !== "parent";
+				}
+			));
+
+			if (Json::decode($change["tags_changes"] ?? "")) {
+				$fields[] = "tags";
+			}
+
+			if (Json::decode($change["open_graph_changes"] ?? "")) {
+				$fields[] = "open_graph";
+			}
+
+			$whose = $owner !== "" ? "{$owner}’s" : "an";
+
+			return [
+				"pending_change_id" => (int)$change["id"],
+				"owner" => $owner_id ?: null,
+				"owner_name" => $owner !== "" ? $owner : null,
+				"fields" => array_values(array_unique($fields)),
+				"note" => "This page has {$whose} unpublished draft. Publishing will publish that draft too"
+					. ($fields ? " (" . implode(", ", array_unique($fields)) . ")" : "") . ".",
+			];
+		}
+
+		/**
 		 * The staleness descriptor for a page edit: the queued draft when the edit is
 		 * amending one, otherwise the live page's own columns.
 		 *
@@ -1935,19 +2096,38 @@
 				return ["type" => "pending_change", "id" => (int)$target["change_id"]];
 			}
 
+			$page_id = (int)$target["page_id"];
+			// An edit bound for a live page whose queued draft it will land in (or
+			// publish) is measured against that draft — aiValidatePageUpdate overlays
+			// it — so the draft is what has to be watched for movement. Fingerprinting
+			// the live row instead let a wholesale rewrite of the draft slip straight
+			// past stalenessError, which is the one case the check exists for.
+			$queued = $this->aiPendingEditChange($page_id);
+			$parts = $queued ? [["type" => "pending_change", "id" => (int)$queued["id"]]] : [];
+
+			// open_graph rides beside the row rather than in it, so it has no column to
+			// hash — it gets its own descriptor. Without one, an OG-only edit (the
+			// commonest single-field page edit the assistant makes) staged no
+			// fingerprint at all.
+			if (in_array("open_graph", $columns, true)) {
+				$parts[] = ["type" => "open_graph", "table" => "bigtree_pages", "id" => (string)$page_id];
+			}
+
 			$columns = array_values(array_filter($columns, function (string $column): bool {
 
-				// open_graph rides beside the row rather than in it; it has no column
-				// here and the OG write path merges rather than replaces anyway.
 				return $column !== "open_graph";
 			}));
 
-			if (!$columns) {
+			if ($columns) {
+				$parts[] = ["type" => "page", "id" => $page_id, "columns" => $columns];
+			}
+
+			if (!$parts) {
 
 				return [];
 			}
 
-			return ["type" => "page", "id" => (int)$target["page_id"], "columns" => $columns];
+			return count($parts) === 1 ? $parts[0] : ["type" => "composite", "parts" => $parts];
 		}
 
 		/**
@@ -2241,7 +2421,19 @@
 		 *
 		 * @return string|null An error message, or null when the pairing is valid.
 		 */
-		private function aiAssertLinkOrTemplate(string $template, string $external): ?string {
+		private function aiAssertLinkOrTemplate(string $template, string $external, bool $pre_existing = false): ?string {
+			// A page created in the admin can already hold both: PageAdd defaults a
+			// template regardless of `external` and submits the pair, and PageEdit only
+			// disables the select. Judging the resulting state unconditionally meant
+			// update_page refused *every* edit to such a page — a meta-description fix
+			// blocked by a state the edit didn't create and can't be asked to repair.
+			// So a pre-existing conflict the edit doesn't touch is left alone; an edit
+			// that supplies either field is still held to the rule.
+			if ($pre_existing) {
+
+				return null;
+			}
+
 			if ($external !== "" && $template !== "") {
 
 				return "A page is either a normal page with a template or a link to another site, not both. "
@@ -2293,12 +2485,14 @@
 			// When the edit is going to land in an existing queued draft, that draft
 			// is what is being edited — diff against it so the card's `from` values
 			// describe the thing the approver will actually change.
-			if (!$is_pending && !$can_publish) {
-				$queued = $this->aiPendingEditChange($id);
+			//
+			// This holds for a publisher too: their approval publishes the draft
+			// along with the edit (aiCarryPendingDraft), so the draft's values are
+			// what the change is measured from either way.
+			$queued = $is_pending ? null : $this->aiPendingEditChange($id);
 
-				if ($queued) {
-					$page = $this->aiOverlayPendingEdit($page, $queued);
-				}
+			if ($queued) {
+				$page = $this->aiOverlayPendingEdit($page, $queued);
 			}
 
 			$editable = self::AI_PAGE_FIELDS;
@@ -2426,11 +2620,13 @@
 				$diff[$field] = ["from" => $old, "to" => $new];
 			}
 
-			// A page is either templated or an external link — never both. Enforce the
-			// rule against the page's resulting state, not just what was supplied.
+			// A page is either templated or an external link — never both. Enforced
+			// against the page's resulting state, but only when this edit is what
+			// produces it: see aiAssertLinkOrTemplate.
 			$link_error = $this->aiAssertLinkOrTemplate(
 				array_key_exists("template", $changes) ? (string)$changes["template"] : (string)$page["template"],
-				array_key_exists("external", $changes) ? (string)$changes["external"] : (string)$page["external"]
+				array_key_exists("external", $changes) ? (string)$changes["external"] : (string)$page["external"],
+				!array_key_exists("template", $changes) && !array_key_exists("external", $changes)
 			);
 
 			if ($link_error !== null) {
@@ -2483,6 +2679,14 @@
 						: " It will be queued as a pending change for a publisher to review.");
 			}
 
+			// A publisher's approval carries the queued draft live with it; say whose
+			// work that is rather than letting them find out afterwards.
+			$draft = $can_publish ? $this->aiPendingDraftDisclosure($queued) : [];
+
+			if ($draft) {
+				$mode_note .= " " . $draft["note"];
+			}
+
 			$summary = ($is_pending ? "Update draft “{$title}”." : "Update page “{$title}”.") . $mode_note;
 
 			$preview = [
@@ -2493,6 +2697,10 @@
 				"changes" => $diff,
 				"mode" => $is_pending ? "pending" : ($can_publish ? "published" : "pending"),
 			];
+
+			if ($draft) {
+				$preview["publishes_draft"] = $draft;
+			}
 
 			if ($save_as_draft && !$is_pending) {
 				$preview["save_as_draft"] = true;
@@ -2556,13 +2764,12 @@
 
 			// An edit bound for an existing queued draft merges onto that draft's
 			// content, not the published page's — otherwise the draft's body is
-			// silently reverted to what is live.
-			if (!$is_pending && !$can_publish) {
-				$queued = $this->aiPendingEditChange($id);
+			// silently reverted to what is live. A publisher's approval publishes the
+			// draft with the edit (aiCarryPendingDraft), so it merges onto it too.
+			$queued = $is_pending ? null : $this->aiPendingEditChange($id);
 
-				if ($queued) {
-					$page = $this->aiOverlayPendingEdit($page, $queued);
-				}
+			if ($queued) {
+				$page = $this->aiOverlayPendingEdit($page, $queued);
 			}
 
 			$title = trim((string)$page["nav_title"]) ?: trim((string)$page["title"])
@@ -2577,6 +2784,18 @@
 			if ($template !== $current_template && !BigTreeJSONDB::exists("templates", $template)) {
 
 				return ["error" => "Template \"{$template}\" does not exist."];
+			}
+
+			// The other half of the "templated or external link, never both" rule.
+			// update_page enforces it; this one didn't, so it could put a page into
+			// exactly the state that then blocks every update_page edit to it forever.
+			if ($template !== $current_template) {
+				$link_error = $this->aiAssertLinkOrTemplate($template, (string)($page["external"] ?? ""));
+
+				if ($link_error !== null) {
+
+					return ["error" => $link_error];
+				}
 			}
 
 			$schema = $this->aiTemplateResourceSchema($template);
@@ -2648,6 +2867,14 @@
 					. (count($blocked) === 1 ? "it" : "them") . " in before this page can go live.";
 			}
 
+			// A publisher's approval carries the queued draft live with it; say whose
+			// work that is rather than letting them find out afterwards.
+			$draft = $can_publish ? $this->aiPendingDraftDisclosure($queued) : [];
+
+			if ($draft) {
+				$mode_note .= " " . $draft["note"];
+			}
+
 			$switch_note = $template !== $current_template
 				? " The page will also switch from the “{$current_template}” template to “{$template}”."
 				: "";
@@ -2679,6 +2906,10 @@
 
 			if ($blocked) {
 				$preview["incomplete_required"] = $blocked;
+			}
+
+			if ($draft) {
+				$preview["publishes_draft"] = $draft;
 			}
 
 			if ($save_as_draft && !$is_pending) {
@@ -2799,13 +3030,15 @@
 
 			// Same overlay the staging pass applied: a queued edit is merged onto the
 			// draft it is joining, so approving it doesn't revert the draft's body to
-			// whatever is published.
-			if (!$is_pending && !$can_publish) {
-				$queued = $this->aiPendingEditChange($id);
+			// whatever is published — and a publisher's approval publishes that draft
+			// rather than deleting it (aiCarryPendingDraft below).
+			$queued = $is_pending ? null : $this->aiPendingEditChange($id);
+			// performUpdate compares against the *live* columns (route/path/trunk), so
+			// it keeps the un-overlaid row; only the content merge reads the draft.
+			$live_page = $page;
 
-				if ($queued) {
-					$page = $this->aiOverlayPendingEdit($page, $queued);
-				}
+			if ($queued) {
+				$page = $this->aiOverlayPendingEdit($page, $queued);
 			}
 
 			$title = trim((string)$page["nav_title"]) ?: ($is_pending ? "draft {$reference}" : "page #{$id}");
@@ -2814,9 +3047,18 @@
 
 			// The template may have been redefined, or the page re-templated, since
 			// staging; re-check it still exists before merging against its schema.
-			if ($template !== (string)$page["template"] && !BigTreeJSONDB::exists("templates", $template)) {
+			if ($template !== (string)$page["template"]) {
+				if (!BigTreeJSONDB::exists("templates", $template)) {
 
-				return ["mode" => "error", "message" => "The “{$template}” template no longer exists."];
+					return ["mode" => "error", "message" => "The “{$template}” template no longer exists."];
+				}
+
+				$link_error = $this->aiAssertLinkOrTemplate($template, (string)($page["external"] ?? ""));
+
+				if ($link_error !== null) {
+
+					return ["mode" => "error", "message" => $link_error];
+				}
 			}
 
 			$merged = $this->aiMergePageContent($page, $changed, $template, $title, $can_publish);
@@ -2847,7 +3089,9 @@
 				return ["mode" => "pending", "page_id" => $id, "title" => $title, "pending_change_id" => (int)$pending_id];
 			}
 
-			$this->performUpdate($id, $page, $changes, $user);
+			// Publishing deletes every queued change for the page, so the draft this
+			// edit was merged onto goes live with it rather than being destroyed.
+			$this->performUpdate($id, $live_page, $this->aiCarryPendingDraft($id, $changes), $user);
 
 			return ["mode" => "published", "page_id" => $id, "title" => $title];
 		}
@@ -2912,7 +3156,8 @@
 
 			return $this->aiAssertLinkOrTemplate(
 				array_key_exists("template", $changes) ? (string)$changes["template"] : (string)($page["template"] ?? ""),
-				array_key_exists("external", $changes) ? (string)$changes["external"] : (string)($page["external"] ?? "")
+				array_key_exists("external", $changes) ? (string)$changes["external"] : (string)($page["external"] ?? ""),
+				!array_key_exists("template", $changes) && !array_key_exists("external", $changes)
 			);
 		}
 
@@ -2961,16 +3206,15 @@
 				return ["mode" => "error", "message" => (string)$target["error"]];
 			}
 
-			$invalid = $this->aiPageChangeStateError($changes, $target["page"]);
-
-			if ($invalid !== null) {
-
-				return ["mode" => "error", "message" => $invalid];
-			}
-
 			// A draft edit amends the queued change in place — there is no live page to
 			// publish over, so the publisher/editor split below doesn't apply.
 			if (!empty($target["is_pending"])) {
+				$invalid = $this->aiPageChangeStateError($changes, $target["page"]);
+
+				if ($invalid !== null) {
+
+					return ["mode" => "error", "message" => $invalid];
+				}
 
 				return $this->aiAmendPageDraft((int)$target["change_id"], $changes, $user);
 			}
@@ -2982,6 +3226,26 @@
 			}
 
 			$page = $target["page"];
+
+			// Staging measured the edit against the queued draft (aiValidatePageUpdate),
+			// so the approval-time rules have to see the same state — checking the bare
+			// live row produces refusals ("templated or external link, never both",
+			// "would now leave required content empty") for a state that exists in
+			// neither the draft nor the proposal. performUpdate still gets the
+			// un-overlaid row, which is what it compares route/path/trunk against.
+			$live_page = $page;
+			$queued = $this->aiPendingEditChange($id);
+
+			if ($queued) {
+				$page = $this->aiOverlayPendingEdit($page, $queued);
+			}
+
+			$invalid = $this->aiPageChangeStateError($changes, $page);
+
+			if ($invalid !== null) {
+
+				return ["mode" => "error", "message" => $invalid];
+			}
 
 			$rank = PermissionService::userPageLevel($user, $id);
 			// An explicit "save as draft" forces the pending path however senior the
@@ -3023,7 +3287,9 @@
 				];
 			}
 
-			$this->performUpdate($id, $page, $changes, $user);
+			// Publishing deletes every queued change for the page, so the draft this
+			// edit was measured against goes live with it rather than being destroyed.
+			$this->performUpdate($id, $live_page, $this->aiCarryPendingDraft($id, $changes), $user);
 
 			return [
 				"mode" => "published",
@@ -3079,6 +3345,9 @@
 				"payload" => [
 					"id" => $id,
 				],
+				// Archiving a page that has been archived, unarchived or moved since
+				// the card was drawn is not the archive the approver read.
+				"fingerprint" => ["type" => "page", "id" => $id, "columns" => ["archived", "archived_inherited", "path"]],
 				"lock" => $this->aiPageLock($id),
 			];
 		}
@@ -3172,6 +3441,7 @@
 					"action" => "unarchive",
 				],
 				"payload" => ["id" => $id],
+				"fingerprint" => ["type" => "page", "id" => $id, "columns" => ["archived", "archived_inherited", "path"]],
 				"lock" => $this->aiPageLock($id),
 			];
 		}
@@ -3195,6 +3465,15 @@
 			if (!$page) {
 
 				return ["mode" => "error", "message" => "Page no longer exists."];
+			}
+
+			// Re-asked at approval, like the staging pass asks it: an ancestor archived
+			// inside the proposal's 24h life would otherwise leave a live page sitting
+			// inside a hidden branch, reachable by URL and invisible in the nav.
+			if (!Flag::isOn($page["archived"]) && Flag::isOn($page["archived_inherited"])) {
+
+				return ["mode" => "error", "message" => "That page is now archived because a page above it is "
+					. "archived. Unarchive the parent page instead."];
 			}
 
 			SQL::update("bigtree_pages", $id, ["archived" => "", "updated_at" => "NOW()"]);
@@ -3244,7 +3523,7 @@
 			}
 
 			$parent = (int)$args["parent"];
-			$page = SQL::fetch("SELECT id, nav_title, title, path, route, parent FROM bigtree_pages WHERE id = ?", $id);
+			$page = SQL::fetch("SELECT id, nav_title, title, path, route, parent, in_nav FROM bigtree_pages WHERE id = ?", $id);
 
 			if (!$page) {
 
@@ -3298,6 +3577,18 @@
 				? " {$descendants} page" . ($descendants === 1 ? "" : "s") . " beneath it will move too, and every "
 					. "affected URL will change."
 				: " Its URL will change.";
+			// Every changed URL gets a redirect from its old one, so say so — it is
+			// the difference between "moving this breaks our links" and not.
+			$note .= " A redirect will be left behind for every old URL.";
+
+			// Legacy takes a non-developer's page out of the nav when it lands at top
+			// level; that is a visible, site-wide consequence and belongs on the card.
+			$leaves_nav = (int)($user->level ?? 0) < 2 && $parent === 0 && Flag::isOn($page["in_nav"]);
+
+			if ($leaves_nav) {
+				$note .= " Because it's moving to the top level, it will be hidden from the site navigation — "
+					. "only a developer can put a page in the top-level nav.";
+			}
 
 			return [
 				"ok" => true,
@@ -3311,8 +3602,12 @@
 					"new_parent_id" => $parent,
 					"new_parent_title" => $parent_title,
 					"descendants_affected" => $descendants,
+					"leaves_navigation" => $leaves_nav,
 				],
 				"payload" => ["id" => $id, "parent" => $parent, "route" => $route],
+				// A move rewrites the whole subtree's paths, so a page that has itself
+				// been moved or re-routed since the card was drawn is a different move.
+				"fingerprint" => ["type" => "page", "id" => $id, "columns" => ["parent", "route", "path", "in_nav"]],
 				"lock" => $this->aiPageLock($id),
 			];
 		}
@@ -3360,16 +3655,32 @@
 			$parent_path = $parent ? (string)SQL::fetchSingle("SELECT path FROM bigtree_pages WHERE id = ?", $parent) : "";
 			$new_path = ($parent_path ? $parent_path . "/" : "") . $route;
 
-			SQL::update("bigtree_pages", $id, [
+			$update = [
 				"parent" => $parent,
 				"route" => $route,
 				"path" => $new_path,
 				"updated_at" => "NOW()",
-			]);
+			];
+
+			// A non-developer moving a page to top level takes it out of the nav, as
+			// legacy does (admin.php:9044) — top-level navigation is a developer's
+			// call, and a page that appears there uninvited is a site-wide change
+			// nobody reviewed.
+			if ((int)($user->level ?? 0) < 2 && $parent === 0) {
+				$update["in_nav"] = "";
+			}
+
+			SQL::update("bigtree_pages", $id, $update);
+
+			// Legacy records a redirect from the old URL (admin.php:9053); without it
+			// every existing link to the page — on the site, in email, off-site — 404s.
+			$this->recordRouteHistory((string)$page["path"], $new_path);
 
 			// Descendant paths are stored, not derived — they must be rewritten too, or
-			// the whole subtree 404s. Same helper the REST move uses.
+			// the whole subtree 404s. Same helper the REST move uses; it records each
+			// descendant's redirect and re-indexes it.
 			$this->repathChildren((string)$page["path"], $new_path);
+			$this->reindexPage($id);
 
 			// Moving a trunk page changes the multi-site routing map (path-keyed).
 			if (Flag::isOn($page["trunk"])) {
@@ -3606,6 +3917,11 @@
 		// Live page update, shared by update() (publish path) and the pending-change
 		// publish flow in publishPendingChange(). Returns the presented page payload.
 		private function performUpdate(int $id, array $page, array $d, $user): array {
+			// Snapshot before anything changes. Legacy does this on every page update
+			// (admin.php:8789); nothing on this path did, so restore_page_revision —
+			// a tool we ship — had nothing to restore to after an AI or API rewrite.
+			$this->insertRevisionSnapshot($id, $page, (int)($user->id ?? 0));
+
 			$update = [];
 
 			if (isset($d["nav_title"])) {
@@ -4392,18 +4708,62 @@
 		private function insertRevisionSnapshot(int $id, array $page, int $author, string $desc = ""): int {
 			$row = [
 				"page" => $id,
-				"author" => $author,
+				// A snapshot describes the version being *replaced*, so it is
+				// attributed to whoever last edited that version and carries its
+				// timestamp — not the person triggering the write, which is what
+				// legacy stores (admin.php:8795) and what the revision list reads back
+				// as "who wrote this". An explicitly saved revision is the exception:
+				// its author really is the person saving it.
+				"author" => $desc !== "" ? $author : (int)($page["last_edited_by"] ?? $author),
 				"saved" => Flag::checkbox($desc !== ""),
 				"saved_description" => $desc,
-				"resource_allocation" => "",
+				// The resources the snapshotted version referenced. Stored blank
+				// before, which defeated deleteResource's has_deleted_resources
+				// flagging (admin.php:2862) — a restore then silently produced a page
+				// pointing at files that no longer exist, with nothing marking it.
+				"resource_allocation" => json_encode(array_values(array_map("intval", SQL::fetchAllSingle(
+					"SELECT resource FROM bigtree_resource_allocation WHERE `table` = 'bigtree_pages' AND entry = ?",
+					(string)$id
+				) ?: []))),
 				"has_deleted_resources" => "",
 			];
+
+			if ($desc === "" && !empty($page["updated_at"])) {
+				$row["updated_at"] = $page["updated_at"];
+			}
 
 			foreach (self::REVISION_COLUMNS as $col) {
 				$row[$col] = $page[$col];
 			}
 
-			return (int)SQL::insert("bigtree_page_revisions", $row);
+			$revision_id = (int)SQL::insert("bigtree_page_revisions", $row);
+			$this->pruneAutoRevisions($id);
+
+			return $revision_id;
+		}
+
+		/**
+		 * Keep the auto-revision history bounded, exactly as legacy does
+		 * (admin.php:8803): once a page has more than ten unsaved revisions, drop the
+		 * ones older than a month. Explicitly saved revisions are never pruned.
+		 */
+		private function pruneAutoRevisions(int $id): void {
+			$count = (int)SQL::fetchSingle(
+				"SELECT COUNT(*) FROM bigtree_page_revisions WHERE page = ? AND saved = ''", $id
+			);
+
+			if ($count <= 10) {
+
+				return;
+			}
+
+			SQL::query(
+				"DELETE FROM bigtree_page_revisions
+				 WHERE page = ? AND saved = '' AND updated_at < ?
+				 ORDER BY updated_at ASC LIMIT " . ($count - 10),
+				$id,
+				date("Y-m-d", strtotime("-1 month"))
+			);
 		}
 
 		/**
@@ -4529,7 +4889,48 @@
 			foreach ($descendants as $d) {
 				$updated = $new_path . substr($d["path"], strlen($old_path));
 				SQL::update("bigtree_pages", $d["id"], ["path" => $updated]);
+				// Every descendant's URL just changed too. Legacy wrote a redirect for
+				// each (admin.php:8317); without them a rename or move 404s the entire
+				// subtree for everyone holding an old link.
+				$this->recordRouteHistory((string)$d["path"], $updated);
+				$this->reindexPage((int)$d["id"]);
 			}
+		}
+
+		/**
+		 * Point $old_path at $new_path in bigtree_route_history, so cms.php's resolver
+		 * (cms.php:284, :303) 301s anyone arriving on the old URL.
+		 *
+		 * Drops any redirect that already points AT the new path — something else used
+		 * to live there — and any stale redirect from the old one, matching what
+		 * performUpdate does for a route rename.
+		 */
+		private function recordRouteHistory(string $old_path, string $new_path): void {
+			if ($old_path === "" || $new_path === "" || $old_path === $new_path) {
+
+				return;
+			}
+
+			SQL::query("DELETE FROM bigtree_route_history WHERE old_route = ? OR old_route = ?", $old_path, $new_path);
+			SQL::insert("bigtree_route_history", ["old_route" => $old_path, "new_route" => $new_path]);
+		}
+
+		/**
+		 * Re-embed a page whose stored row changed outside a normal write. The index
+		 * record embeds `path` (EmbeddingService::indexPage), so a page that moves
+		 * without being re-indexed stays searchable under a URL that no longer exists.
+		 */
+		private function reindexPage(int $id): void {
+			$fresh = SQL::fetch("SELECT * FROM bigtree_pages WHERE id = ?", $id);
+
+			if (!$fresh) {
+
+				return;
+			}
+
+			EmbeddingService::deferIndex(function () use ($fresh) {
+				EmbeddingService::indexPage($fresh);
+			});
 		}
 
 		private function cascadeDelete($id, $path) {

@@ -81,6 +81,54 @@
 				return AIToolResult::denied("You do not have access to this action.");
 			}
 
-			return $tool->execute($args, $context);
+			$kind = $tool->kind();
+
+			if (!in_array($kind, self::KINDS, true)) {
+
+				// A typo'd kind is how a tool ends up outside every rule keyed on it.
+				return AIToolResult::error(
+					"Tool \"{$name}\" declares an unknown kind \"{$kind}\" and cannot be run."
+				);
+			}
+
+			$result = $tool->execute($args, $context);
+
+			// kind() is the contract the whole approval model rests on, and until now
+			// nothing in production enforced it — an extension tool could declare
+			// "read" and mutate the CMS mid-turn with no card, no approval, no audit
+			// row and no staleness check. The enforceable half of that contract is the
+			// shape of the result: only a mutating tool may stage a proposal, and a
+			// mutating tool may only ever stage one.
+			if ($result->type === AIToolResult::PROPOSAL && $kind !== "mutate") {
+
+				return AIToolResult::error(
+					"Tool \"{$name}\" staged a change but is declared as a \"{$kind}\" tool."
+				);
+			}
+
+			if ($kind === "mutate" && !in_array($result->type, self::MUTATE_RESULT_TYPES, true)) {
+
+				return AIToolResult::error(
+					"Tool \"{$name}\" is a mutating tool, so it must stage a change for approval rather than "
+						. "returning a result directly."
+				);
+			}
+
+			return $result;
 		}
+
+		/** The kinds a tool may declare. See AIToolInterface::kind(). */
+		private const KINDS = ["read", "mutate", "elicit"];
+
+		/**
+		 * What a "mutate" tool is allowed to return. Anything else means it did its
+		 * work during the turn instead of staging it — the one thing the two-phase
+		 * model exists to prevent.
+		 */
+		private const MUTATE_RESULT_TYPES = [
+			AIToolResult::PROPOSAL,
+			AIToolResult::DENIED,
+			AIToolResult::ERROR,
+			AIToolResult::NEEDS_INPUT,
+		];
 	}

@@ -16,6 +16,12 @@ export function describeApiError(err: unknown, fallback: string): string {
 	return fallback;
 }
 
+/** Whether a thrown value is an API 404. */
+export function isNotFound(err: unknown): boolean {
+
+	return err instanceof ApiError && err.status === 404;
+}
+
 /**
  * Map a thrown value onto form error state: when it's an `ApiError` carrying
  * field errors, push those onto `setFieldErrors` and surface its message;

@@ -3,6 +3,7 @@
 
 	use BigTree\Api\Entity;
 	use BigTree\Api\Flag;
+	use BigTree\Api\Json;
 	use BigTree\Api\Sanitize;
 	use BigTree\Api\Request;
 	use BigTree\Api\Response;
@@ -1236,6 +1237,15 @@
 				$missing[] = "at least one action";
 			}
 
+			// A module nobody holds a grant on is reachable only by administrators and
+			// developers, so "everything is configured" is still not "anyone can use
+			// it" — the checklist said nothing about it, and neither did the create.
+			if (!$this->moduleHasAnyGrant((string)$module["id"])) {
+				$missing[] = "a permission grant for at least one user";
+			}
+
+			$gbp = is_array($module["gbp"] ?? null) ? $module["gbp"] : [];
+
 			return ["module" => [
 				"id" => (string)$module["id"],
 				"name" => (string)($module["name"] ?? $module["id"]),
@@ -1262,6 +1272,10 @@
 					];
 				}, array_values($views)),
 				"action_count" => count($actions),
+				"gbp" => [
+					"enabled" => !empty($gbp["enabled"]),
+					"group_column" => !empty($gbp["enabled"]) ? (string)($gbp["group_field"] ?? "") : "",
+				],
 				"your_access_level" => PermissionService::userModuleLevel($user, (string)$module["id"]),
 				"is_complete" => !$missing,
 				"missing_setup" => $missing,
@@ -1456,8 +1470,9 @@
 			// not here, so the only valid values are "" or a class that already exists.
 			if ($class !== "" && !$this->moduleClassExists($class)) {
 
-				return ["error" => "There is no module class named \"{$class}\". Leave `class` empty — the Module "
-					. "Designer creates the class when you add a table and forms to the module."];
+				return ["error" => "\"{$class}\" isn't available as a module class — it either doesn't exist, or "
+					. "another module already uses it. Leave `class` empty — the Module Designer creates the class "
+					. "when you add a table and forms to the module."];
 			}
 
 			$payload = [
@@ -1504,11 +1519,21 @@
 				return ["mode" => "error", "message" => "That module can no longer be created."];
 			}
 
+			// Re-asked at approval like every other staged value: a class free at
+			// staging can be claimed by another module inside the proposal's 24h life.
+			$class = (string)($payload["class"] ?? "");
+
+			if ($class !== "" && !$this->moduleClassExists($class)) {
+
+				return ["mode" => "error", "message" => "The class \"{$class}\" is no longer available — it either "
+					. "doesn't exist or another module has claimed it since this was proposed."];
+			}
+
 			// Re-derive a unique route in case one was taken since validation.
 			$route = $this->uniqueModuleRoute($route);
 			$id = BigTreeJSONDB::insert("modules", $this->moduleInsertMap([
 				"group" => $payload["group"] ?? null,
-				"class" => (string)($payload["class"] ?? ""),
+				"class" => $class,
 				"table" => "",
 				"icon" => (string)($payload["icon"] ?? ""),
 			], $name, $route));
@@ -1655,6 +1680,24 @@
 		}
 
 		/**
+		 * Whether any user holds a module-level or group-level grant on this module.
+		 * Administrators and developers see every module regardless, so this is about
+		 * whether the module is reachable by the editors it was built for.
+		 */
+		private function moduleHasAnyGrant(string $module_id): bool {
+			foreach (SQL::fetchAllSingle("SELECT permissions FROM bigtree_users WHERE level = 0") as $stored) {
+				$permissions = Json::decode($stored);
+
+				if (!empty($permissions["module"][$module_id]) || !empty($permissions["module_gbp"][$module_id])) {
+
+					return true;
+				}
+			}
+
+			return false;
+		}
+
+		/**
 		 * The concrete setup a bare module record still needs before it works. The
 		 * proposal summary warned that no table is created, but nothing told the user
 		 * (or the model) what "finish it" actually means — so an approved create left
@@ -1669,18 +1712,45 @@
 				"Add an entry form so editors can create and edit entries.",
 				"Add a view so the module has a landing screen listing its entries.",
 				"Add the module's actions (at minimum a default 'view' action) so it's reachable from the nav.",
+				"Grant users access to it — a module nobody holds a permission on is invisible to everyone "
+					. "except administrators and developers (Users → a user → Module Permissions).",
+				"Add the module's class if it needs one (Module Designer → Class), so custom logic and the "
+					. "module's own API have somewhere to live.",
+				// The assistant deliberately has no `gbp` argument: enabling group-based
+				// permissions is several interdependent choices (which column groups
+				// entries, which table supplies the groups, how each is titled) and
+				// getting it wrong hides every existing entry from every scoped editor.
+				// Naming it here is the honest version — the user is told the option
+				// exists and where it lives, rather than being offered a write that
+				// can't be previewed.
+				"Decide whether entries should be scoped per editor group (Module Designer → Group Based "
+					. "Permissions). The assistant can't configure this — but once it's on, every entry needs a "
+					. "value in the group column or it's invisible to the editors it belongs to.",
 			];
 		}
 
 		/**
-		 * Whether a module class name resolves to something real — either a class
-		 * already claimed by an installed module, or a loadable PHP class.
+		 * Whether a module class name is usable for the module being created or
+		 * edited: a loadable PHP class that no *other* module has already claimed.
+		 *
+		 * A class already in use is the opposite of valid — two modules sharing one
+		 * class means the second one's entries route through the first one's logic —
+		 * and the Module Designer refuses it for exactly that reason. This used to
+		 * treat that case as proof the class existed, so a claimed class was the one
+		 * thing guaranteed to pass.
+		 *
+		 * @param string $except_module_id Module allowed to already hold the class.
 		 */
-		private function moduleClassExists(string $class): bool {
+		private function moduleClassExists(string $class, string $except_module_id = ""): bool {
 			foreach (BigTreeJSONDB::getAll("modules") as $module) {
-				if ((string)($module["class"] ?? "") === $class) {
+				if ((string)($module["class"] ?? "") !== $class) {
 
-					return true;
+					continue;
+				}
+
+				if ((string)($module["id"] ?? "") !== $except_module_id) {
+
+					return false;
 				}
 			}
 

@@ -15,6 +15,7 @@
 	use BigTree\Services\AI\ExtensionTools;
 	use BigTree\Services\AI\PromptGuard;
 	use BigTree\Services\AI\ProposalFingerprint;
+	use BigTree\Services\AI\ContentLock;
 	use BigTree\Services\AI\ProposalStore;
 	use BigTree\Services\AI\Tools\AbstractMutatingTool;
 	use BigTree\Services\AI\Tools\CreatePageTool;
@@ -195,6 +196,25 @@
 			$loop = new AgentLoop($turn["ai"], $turn["registry"], self::MAX_ROUNDS);
 			$artifacts = $this->emptyArtifacts();
 			$proposals = [];
+			$persisted = null;
+
+			// A client that closes the tab mid-stream kills PHP at the next sse()
+			// write. Anything the turn had already staged survived that: proposals
+			// with no message anywhere in the conversation to explain them — invisible
+			// in the UI and approvable through the API for the next 24 hours. Clean
+			// them up on the way out, exactly as a provider failure does.
+			register_shutdown_function(function () use (&$persisted, &$proposals, $turn): void {
+				if ($persisted !== null) {
+
+					return;
+				}
+
+				try {
+					$this->rollbackFailedTurn($proposals, $turn["new_conversation"], $turn["conversation_id"]);
+				} catch (\Throwable $e) {
+					// Shutdown is best-effort; never surface anything from here.
+				}
+			});
 
 			$run = $loop->runStreaming($turn["messages"], $turn["context"], [
 				"max_tokens" => 1024,
@@ -211,12 +231,19 @@
 					$this->sse("tool", [
 						"name" => (string)($event["name"] ?? ""),
 						"status" => (string)($event["status"] ?? ""),
+						// A needs_input call carries the question the user has to
+						// answer; without it the client can only show "needs more
+						// detail" and hope the model repeats itself.
+						"question" => (string)($event["question"] ?? ""),
+						"options" => is_array($event["options"] ?? null) ? $event["options"] : [],
 					]);
 				}
 			}, $this->turnCollector($artifacts, $proposals));
 
 			if ($run["answer"] === null && $run["error"] !== null) {
 				$this->rollbackFailedTurn($proposals, $turn["new_conversation"], $turn["conversation_id"]);
+				$proposals = [];
+				$persisted = ["rolled_back" => true];
 				$this->sse("error", ["message" => (string)$run["error"]]);
 
 				exit;
@@ -329,7 +356,12 @@
 				"conversation" => $conversation,
 				"conversation_id" => $conversation_id,
 				"new_conversation" => $new_conversation,
-				"messages" => self::buildModelMessages($this->systemPrompt($user), $history, $message),
+				"messages" => self::buildModelMessages(
+					$this->systemPrompt($user),
+					$history,
+					$message,
+					$store->listForConversation($conversation_id)
+				),
 				"store" => $store,
 				"registry" => $this->buildRegistry($store),
 				"context" => new AIToolContext($user, self::TOOL_LIMIT, (string)$conversation_id),
@@ -642,7 +674,11 @@
 
 			$payload = $store->decodePayload($proposal);
 			$stale = self::stalenessError($payload);
-			unset($payload[AbstractMutatingTool::FINGERPRINT_KEY]);
+			// Re-asked now rather than replayed from staging: the card's lock note was
+			// a snapshot taken up to 24 hours ago, and both "they've since opened it"
+			// and "they've since closed it" are answers the approver deserves.
+			$lock_note = ContentLock::note($payload[AbstractMutatingTool::LOCK_KEY] ?? null, $request->user);
+			unset($payload[AbstractMutatingTool::FINGERPRINT_KEY], $payload[AbstractMutatingTool::LOCK_KEY]);
 
 			if ($stale !== null) {
 				// The record moved under the card. Recorded as failed (not approved)
@@ -668,6 +704,10 @@
 			if ((string)($result["mode"] ?? "") === "error") {
 
 				return $this->markApprovalFailed($store, $id, $request->user, $result);
+			}
+
+			if ($lock_note !== "") {
+				$result["content_lock_note"] = trim($lock_note);
 			}
 
 			$store->markResolved($id, ProposalStore::APPROVED, $result);
@@ -916,6 +956,16 @@
 		private function executeExtensionProposal(string $tool, array $payload, $user): array {
 			$instance = $this->buildRegistry(new ProposalStore())->get($tool);
 
+			// An extension uninstalled between staging and approval leaves a proposal
+			// nothing can resolve. Throwing here restored it to `pending`, so it sat in
+			// the user's list forever, un-approvable and un-clearable. Reported as a
+			// failed approval instead: the card shows why, and it can be rejected.
+			if (!($instance instanceof \BigTree\Services\AI\Tools\ApprovableTool)) {
+
+				return ["mode" => "error", "message" => "The tool that staged this change (\"{$tool}\") is no longer "
+					. "installed, so it can't be applied. Reject this proposal and ask again."];
+			}
+
 			return self::dispatchApprovable($instance, $payload, $user);
 		}
 
@@ -1130,7 +1180,21 @@
 
 				default:
 
-					return null;
+					// An extension tool's approval. It used to fall out here and be
+					// recorded nowhere, so a third-party tool could write to the CMS
+					// through the approval flow and leave no trace at all — and no row
+					// could ever carry via=ai_assistant for it. An extension may name
+					// its own table/entry in the result; anything it doesn't name
+					// audits against the proposal itself, which is always traceable.
+					$table = trim((string)($result["audit_table"] ?? ""));
+					$entry = $result["audit_entry"] ?? ($result["id"] ?? $result["entry_id"] ?? "");
+
+					if ($table !== "") {
+
+						return self::descriptor($table, $pending ? "pending-updated" : "updated", $entry);
+					}
+
+					return self::descriptor("bigtree_ai_proposals", "extension-approved", $tool);
 			}
 		}
 
@@ -1166,7 +1230,12 @@
 		 * @param list<array<string,mixed>> $history_rows
 		 * @return list<array<string,mixed>>
 		 */
-		public static function buildModelMessages(string $system_prompt, array $history_rows, string $new_message): array {
+		public static function buildModelMessages(
+			string $system_prompt,
+			array $history_rows,
+			string $new_message,
+			array $proposals = []
+		): array {
 			$messages = [[
 				"role" => "system",
 				"content" => $system_prompt,
@@ -1196,12 +1265,87 @@
 				];
 			}
 
+			$outcomes = self::proposalOutcomeReplay($proposals);
+
+			if ($outcomes !== "") {
+				$messages[] = [
+					"role" => "system",
+					"content" => $outcomes,
+				];
+			}
+
 			$messages[] = [
 				"role" => "user",
 				"content" => $new_message,
 			];
 
 			return $messages;
+		}
+
+		/**
+		 * What became of the changes this conversation staged, or "" when it staged
+		 * none.
+		 *
+		 * The tool replay says only "staged a proposal". Whether the user approved it,
+		 * rejected it, or it failed — and the id it created — was invisible to every
+		 * later turn, so the model re-proposed work already done, or referred to a page
+		 * it had created and could not name.
+		 *
+		 * @param list<array<string,mixed>> $proposals ProposalStore::present rows.
+		 */
+		private static function proposalOutcomeReplay(array $proposals): string {
+			$lines = [];
+
+			foreach ($proposals as $proposal) {
+				$status = (string)($proposal["status"] ?? "");
+				$tool = (string)($proposal["tool"] ?? "");
+
+				if ($tool === "" || $status === "" || $status === ProposalStore::PENDING) {
+
+					continue;
+				}
+
+				$line = "- " . $tool . " → " . $status;
+				$result = is_array($proposal["result"] ?? null) ? $proposal["result"] : [];
+
+				// The ids a create produced are the whole point: a follow-up turn that
+				// wants to edit "the page you just made" has no other way to name it.
+				$ids = [];
+
+				foreach (["page_id", "entry_id", "pending_change_id", "revision_id", "id", "user_id"] as $key) {
+					if (!empty($result[$key])) {
+						$ids[] = $key . "=" . (string)$result[$key];
+					}
+				}
+
+				if ($ids) {
+					$line .= " (" . implode(", ", $ids) . ")";
+				}
+
+				if ($status === ProposalStore::FAILED && !empty($result["message"])) {
+					$line .= " — " . mb_substr((string)$result["message"], 0, 200);
+				}
+
+				$lines[] = $line;
+			}
+
+			if (!$lines) {
+
+				return "";
+			}
+
+			if (count($lines) > self::REPLAYED_TOOL_CALLS) {
+				$lines = array_slice($lines, -self::REPLAYED_TOOL_CALLS);
+			}
+
+			// Fenced for the same reason the tool replay is: a failure message can
+			// quote content the user or a third party wrote.
+			return "Changes you staged earlier in this conversation, and what became of them. An approved change "
+				. "has already been applied — do not propose it again. A rejected one was declined by the user: "
+				. "ask before re-proposing it.\n"
+				. PromptGuard::BEGIN . "\n"
+				. PromptGuard::neutralize(implode("\n", $lines)) . "\n"
+				. PromptGuard::END;
 		}
 
 		/**

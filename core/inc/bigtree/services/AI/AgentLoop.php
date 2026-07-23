@@ -29,10 +29,57 @@
 		/** @var int */
 		private $max_rounds;
 
+		/**
+		 * How many tool calls one turn may make in total, across every round.
+		 *
+		 * max_rounds bounds the *conversation* with the model, not the work: a single
+		 * round can ask for any number of parallel calls, so a loop that fans out ten
+		 * calls a round was unbounded in the only dimension that costs anything. This
+		 * is the backstop, deliberately well above what a legitimate turn needs.
+		 */
+		const MAX_TOOL_CALLS = 40;
+
+		/**
+		 * How many proposals one turn may stage. A turn that stages dozens of cards
+		 * is a runaway, not a plan — and every one of them is a live, approvable
+		 * write sitting in the user's queue for 24 hours.
+		 */
+		const MAX_PROPOSALS = 10;
+
 		public function __construct(BigTreeAI $ai, AIToolRegistry $registry, int $max_rounds = self::DEFAULT_MAX_ROUNDS) {
 			$this->ai = $ai;
 			$this->registry = $registry;
 			$this->max_rounds = max(1, $max_rounds);
+		}
+
+		/**
+		 * Whether a turn has hit either per-turn cap, given what it has run so far.
+		 * Returns the refusal to hand the model, or null when there is room.
+		 *
+		 * @param list<array<string,mixed>> $tool_activity
+		 */
+		private static function capReached(array $tool_activity): ?string {
+			if (count($tool_activity) >= self::MAX_TOOL_CALLS) {
+
+				return "This turn has already used its limit of " . self::MAX_TOOL_CALLS . " tool calls. Summarize "
+					. "what you have so far and stop.";
+			}
+
+			$proposals = 0;
+
+			foreach ($tool_activity as $activity) {
+				if ((string)($activity["status"] ?? "") === AIToolResult::PROPOSAL) {
+					$proposals++;
+				}
+			}
+
+			if ($proposals >= self::MAX_PROPOSALS) {
+
+				return "This turn has already staged its limit of " . self::MAX_PROPOSALS . " changes for approval. "
+					. "Tell the user what is waiting for them and stop.";
+			}
+
+			return null;
 		}
 
 		/**
@@ -85,13 +132,12 @@
 				foreach ($tool_calls as $call) {
 					$name = (string)($call["name"] ?? "");
 					$args = is_array($call["arguments"] ?? null) ? $call["arguments"] : [];
-					$tool_result = $this->registry->execute($name, $args, $context);
+					$capped = self::capReached($tool_activity);
+					$tool_result = $capped !== null
+						? AIToolResult::error($capped)
+						: $this->registry->execute($name, $args, $context);
 
-					$tool_activity[] = [
-						"name" => $name,
-						"arguments" => $args,
-						"status" => $tool_result->type,
-					];
+					$tool_activity[] = self::activityFor($name, $args, $tool_result);
 
 					if ($on_tool_result !== null) {
 						$on_tool_result($tool_result, $call);
@@ -107,9 +153,17 @@
 				}
 			}
 
-			// Exhausted rounds without a final text turn — ask once more with no
-			// tools so the model has to answer from what it already gathered.
-			if ($answer === null && $error === null && $rounds >= $this->max_rounds) {
+			// No text to show — either the rounds ran out before a final turn, or a
+			// round produced neither tool calls nor content (the providers normalize
+			// empty content to null). Ask once more with no tools so the model has to
+			// answer from what it already gathered.
+			//
+			// This used to be gated on $rounds >= max_rounds, so a round-1 empty break
+			// wasn't covered: the turn was persisted and returned as a *successful*
+			// empty answer, which the client rendered as a blank assistant bubble —
+			// sitting above a ProposalCard with nothing explaining what the user was
+			// being asked to approve.
+			if (self::isBlank($answer) && $error === null) {
 				$final = $this->ai->chat($messages, [], [
 					"max_tokens" => (int)($options["final_max_tokens"] ?? 512),
 					"temperature" => $chat_options["temperature"],
@@ -122,6 +176,8 @@
 				}
 			}
 
+			[$answer, $error] = self::resolveBlankAnswer($answer, $error);
+
 			return [
 				"answer" => $answer !== null ? (string)$answer : null,
 				"rounds" => $rounds,
@@ -129,6 +185,64 @@
 				"tool_activity" => $tool_activity,
 				"error" => $error,
 			];
+		}
+
+		/**
+		 * One tool call's record, as persisted and streamed.
+		 *
+		 * A needs_input result carries the question and its options through to the
+		 * client, which renders them as choice chips — AIToolResult has described that
+		 * affordance since it was written, but nothing outside the model ever received
+		 * the fields, so the user was left reading the model's paraphrase of a question
+		 * it had already been handed verbatim.
+		 *
+		 * @param array<string,mixed> $args
+		 * @return array<string,mixed>
+		 */
+		private static function activityFor(string $name, array $args, AIToolResult $result): array {
+			$activity = ["name" => $name, "arguments" => $args, "status" => $result->type];
+
+			if ($result->type === AIToolResult::NEEDS_INPUT) {
+				$payload = $result->toModelPayload();
+				$activity["question"] = (string)($payload["question"] ?? "");
+				$activity["options"] = is_array($payload["options"] ?? null) ? $payload["options"] : [];
+			}
+
+			return $activity;
+		}
+
+		/**
+		 * Whether a model turn produced no visible text. Covers both shapes a provider
+		 * can hand back for "said nothing": null (the normalized form) and "".
+		 *
+		 * @param mixed $answer
+		 */
+		private static function isBlank($answer): bool {
+
+			return $answer === null || trim((string)$answer) === "";
+		}
+
+		/**
+		 * The final verdict on a turn with no text: an error, never a successful blank
+		 * answer. Both drivers only raise when `error !== null`, so leaving a blank
+		 * answer here is what let an empty assistant bubble be persisted and returned
+		 * as a normal, successful reply.
+		 *
+		 * @param mixed $answer
+		 * @return array{0:?string,1:?string}
+		 */
+		private static function resolveBlankAnswer($answer, ?string $error): array {
+			if ($error !== null) {
+
+				return [self::isBlank($answer) ? null : (string)$answer, $error];
+			}
+
+			if (self::isBlank($answer)) {
+
+				return [null, "The assistant produced no response. Try asking again."];
+			}
+
+			return [(string)$answer, null];
 		}
 
 		/**
@@ -201,9 +315,12 @@
 				foreach ($tool_calls as $call) {
 					$name = (string)($call["name"] ?? "");
 					$args = is_array($call["arguments"] ?? null) ? $call["arguments"] : [];
-					$tool_result = $this->registry->execute($name, $args, $context);
+					$capped = self::capReached($tool_activity);
+					$tool_result = $capped !== null
+						? AIToolResult::error($capped)
+						: $this->registry->execute($name, $args, $context);
 
-					$activity = ["name" => $name, "arguments" => $args, "status" => $tool_result->type];
+					$activity = self::activityFor($name, $args, $tool_result);
 					$tool_activity[] = $activity;
 					$emit(["type" => "tool"] + $activity);
 
@@ -219,8 +336,8 @@
 				}
 			}
 
-			// Exhausted rounds without a text answer — stream one more no-tools call.
-			if ($answer === null && $error === null && $rounds >= $this->max_rounds) {
+			// No text to show — see run() for why this isn't gated on round count.
+			if (self::isBlank($answer) && $error === null) {
 				$final = $this->ai->chatStream($messages, [], [
 					"max_tokens" => (int)($options["final_max_tokens"] ?? 512),
 					"temperature" => $chat_options["temperature"],
@@ -234,6 +351,8 @@
 					$error = $this->ai->Error ?: $error;
 				}
 			}
+
+			[$answer, $error] = self::resolveBlankAnswer($answer, $error);
 
 			return [
 				"answer" => $answer !== null ? (string)$answer : null,

@@ -91,6 +91,9 @@
 		$tag = "zz ai entry tag " . bin2hex(random_bytes(3));
 		$tag_id = (int)SQL::insert("bigtree_tags", ["tag" => $tag, "route" => str_replace(" ", "-", $tag), "usage_count" => 0]);
 		$change_id = 0;
+		// Tagging and Open Graph are per-form opt-ins; the AI path refuses a relation
+		// the form doesn't offer, exactly as the editor screen hides it.
+		$restore = parity_enable_news_relations();
 
 		try {
 			// Coining a brand-new tag stays administrator-only, as it is on create_page.
@@ -136,6 +139,7 @@
 			$staged_og = json_decode((string)$row["open_graph_changes"], true);
 			T::equals($staged_og["title"] ?? null, "Social Title", "the OG record rides the draft too");
 		} finally {
+			$restore();
 			parity_delete_pending($change_id);
 			parity_delete_tags($tag_id);
 			parity_delete_users($editor_id);
@@ -157,6 +161,7 @@
 		$tag = "zz ai keep tag " . bin2hex(random_bytes(3));
 		$tag_id = (int)SQL::insert("bigtree_tags", ["tag" => $tag, "route" => str_replace(" ", "-", $tag), "usage_count" => 0]);
 		$entry_id = 0;
+		$restore = parity_enable_news_relations();
 
 		try {
 			$validated = $svc->aiValidateEntryCreate([
@@ -225,6 +230,7 @@
 				"an unrelated edit keeps the entry's Open Graph record"
 			);
 		} finally {
+			$restore();
 			SQL::query("DELETE FROM bigtree_tags_rel WHERE `table` = 'timber_news' AND entry = ?", $entry_id);
 			SQL::query("DELETE FROM bigtree_open_graph WHERE `table` = 'timber_news' AND entry = ?", $entry_id);
 			parity_delete_news_entries($entry_id);

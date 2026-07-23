@@ -2,7 +2,6 @@
 	namespace BigTree\Api;
 
 	use BigTree;
-	use BigTreeCMS;
 
 	/**
 	 * Shared cleaning for the resources array carried by callouts and templates
@@ -58,16 +57,19 @@
 		 * the model merely copied over unchanged, including the `required` rules the
 		 * page and entry gates depend on. So a retained field now keeps its stored
 		 * record and only takes the keys the proposal actually supplied; a genuinely
-		 * new field starts bare apart from an optional `required`.
+		 * new field starts bare apart from the few settings the assistant *can* express
+		 * (see aiFieldSettings).
 		 *
 		 * Retyping a field drops its settings deliberately — they are configuration
 		 * for the *old* field type — and the caller's field diff discloses the retype.
 		 *
 		 * @param mixed $fields Raw AI-proposed field list.
 		 * @param array $existing Stored resources to merge against ([] when creating).
+		 * @param string $surface "template" or "callout" — decides which context default
+		 *                        a required `directory` setting inherits.
 		 * @return array The cleaned, canonically-shaped resources list.
 		 */
-		public static function mergeAiFields($fields, array $existing = []): array {
+		public static function mergeAiFields($fields, array $existing = [], string $surface = "template"): array {
 			$stored = [];
 
 			foreach ($existing as $resource) {
@@ -85,7 +87,7 @@
 					continue;
 				}
 
-				$id = BigTreeCMS::urlify((string)($field["id"] ?? ""));
+				$id = self::aiFieldId($field);
 				$prior = $stored[$id] ?? null;
 
 				// An omitted type means "leave this field as it is", not "make it text" —
@@ -110,7 +112,7 @@
 						"type" => $type,
 						"title" => (string)($field["title"] ?? ""),
 						"subtitle" => (string)($field["subtitle"] ?? ""),
-						"settings" => self::aiFieldSettings($field),
+						"settings" => self::aiFieldSettings($field, $type, $surface),
 					];
 				}
 
@@ -121,23 +123,166 @@
 		}
 
 		/**
-		 * Field types the assistant may not author from scratch. Their draw.php
-		 * hard-requires structured settings the AI field shape cannot express —
-		 * `matrix` bails without `settings["columns"]`, `one-to-many` without
-		 * `settings["table"]` / `settings["title_column"]` — so an AI-authored one
-		 * renders as nothing in the editor, and if it is also required, makes the
-		 * page or entry unsaveable by anybody.
-		 *
-		 * The field *type* has been validated since audit #1; this is the settings
-		 * half of the same rule, and the analogue of SettingService's
-		 * AI_UNSETTABLE_SETTING_TYPES for field *definitions* rather than values.
+		 * What a field id may contain. The REST path stores whatever the developer
+		 * typed (`Resources::clean` only safe-encodes it) and the SPA's ResourceDesigner
+		 * preserves it verbatim, so this is a validation rule, never a transformation:
+		 * a field id is the key page and entry content is *stored under*, and rewriting
+		 * it orphans every value already saved beneath the old key.
 		 */
-		public const AI_UNCONFIGURABLE_FIELD_TYPES = ["matrix", "one-to-many"];
+		public const AI_FIELD_ID_PATTERN = "/^[A-Za-z0-9_-]+$/";
 
 		/**
-		 * Reject any proposed field of an unconfigurable type, unless it is being
-		 * retained by id with its stored settings intact (which mergeAiFields keeps
-		 * byte-identical, so it still renders exactly as a human configured it).
+		 * Template fields are additionally exposed to the render file as bare PHP
+		 * variables ($page_header), so a template field id must also be a valid PHP
+		 * label — `page-header` would scaffold `<?=$page-header?>`, which is a fatal
+		 * error that takes down every page on the template.
+		 */
+		public const AI_TEMPLATE_FIELD_ID_PATTERN = "/^[A-Za-z_][A-Za-z0-9_]*$/";
+
+		/**
+		 * Field ids a callout may never use, because the placed instance stores them
+		 * itself. A callout instance is `{type: "quote", headline: "…"}`, so a field
+		 * called `type` overwrites the instance's own type key: draw.php:36-40 then
+		 * `continue`s past the instance — every placed callout's content silently
+		 * disappears from the page — and TemplateScaffold builds an include path out
+		 * of editor text. Legacy refused this explicitly (admin.php:998, :8255); the
+		 * shared cleaner dropped the guard on the way to the REST rewrite.
+		 */
+		public const RESERVED_CALLOUT_FIELD_IDS = ["type"];
+
+		/**
+		 * The reserved ids present in a resources list, if any. Shared by the REST and
+		 * AI callout write paths.
+		 *
+		 * @param mixed $resources
+		 * @return list<string>
+		 */
+		public static function reservedCalloutFieldIds($resources): array {
+			$found = [];
+
+			foreach ((array)$resources as $resource) {
+				if (!is_array($resource)) {
+
+					continue;
+				}
+
+				$id = strtolower(trim((string)($resource["id"] ?? "")));
+
+				if (in_array($id, self::RESERVED_CALLOUT_FIELD_IDS, true)) {
+					$found[] = $id;
+				}
+			}
+
+			return array_values(array_unique($found));
+		}
+
+		/**
+		 * A proposed field's id, exactly as supplied. Deliberately not urlified: this
+		 * used to run through BigTreeCMS::urlify, which strips underscores to hyphens,
+		 * so every shipped template's fields (page_header, page_content, …) missed the
+		 * stored-record lookup below — silently retyping them to text, discarding their
+		 * settings, bypassing the unconfigurable-type guard, and writing back an id no
+		 * stored content lived under.
+		 *
+		 * @param array<string,mixed> $field
+		 */
+		private static function aiFieldId(array $field): string {
+
+			return trim((string)($field["id"] ?? ""));
+		}
+
+		/**
+		 * Reject any proposed field whose id isn't usable, naming the offenders so the
+		 * model can correct itself on the next round.
+		 *
+		 * Returns null when every id is acceptable.
+		 *
+		 * @param mixed $fields Raw AI-proposed field list.
+		 * @param string $surface "template" or "callout" — template ids are held to the
+		 *                        stricter PHP-label rule.
+		 */
+		public static function aiFieldIdError($fields, string $surface = "template"): ?string {
+			$pattern = $surface === "callout" ? self::AI_FIELD_ID_PATTERN : self::AI_TEMPLATE_FIELD_ID_PATTERN;
+			$bad = [];
+
+			foreach ((array)$fields as $field) {
+				if (!is_array($field)) {
+
+					continue;
+				}
+
+				$id = self::aiFieldId($field);
+
+				if ($id === "") {
+					$bad[] = "(empty)";
+
+					continue;
+				}
+
+				if (!preg_match($pattern, $id)) {
+					$bad[] = "\"{$id}\"";
+				}
+			}
+
+			if ($surface === "callout") {
+				$reserved = self::reservedCalloutFieldIds($fields);
+
+				if ($reserved) {
+
+					return "A callout field can't be called \"" . implode("\" or \"", $reserved) . "\" — that name is "
+						. "used by the placed callout itself, and taking it makes every callout of this type render "
+						. "as nothing. Pick another id (e.g. \"callout_type\").";
+				}
+			}
+
+			if (!$bad) {
+
+				return null;
+			}
+
+			$rule = $surface === "callout"
+				? "letters, numbers, underscores and hyphens"
+				: "letters, numbers and underscores, starting with a letter or underscore";
+
+			return "The field id " . implode(" and ", array_unique($bad)) . " isn't usable — a field id may contain "
+				. "only {$rule}. Field ids are the keys content is stored under, so they're used as supplied rather "
+				. "than corrected. Choose a different id (e.g. \"page_header\") and try again.";
+		}
+
+		/**
+		 * Settings a field type's draw.php hard-requires to render anything at all,
+		 * beyond what its own `settings_schema` marks `required`.
+		 *
+		 * `matrix` bails without `settings["columns"]`, `one-to-many` without
+		 * `settings["table"]` / `settings["title_column"]`, and `list` renders an empty
+		 * select without `settings["list"]` — so an AI-authored one renders as nothing
+		 * in the editor, and if it is also required, makes the page or entry
+		 * unsaveable by anybody.
+		 *
+		 * The field *type* has been validated since audit #1; this is the settings half
+		 * of the same rule, and the analogue of SettingService's
+		 * AI_UNSETTABLE_SETTING_TYPES for field *definitions* rather than values. It is
+		 * deliberately a small supplement to the schema-derived rule below rather than
+		 * the whole rule: a static blocklist is what left `list` unguarded.
+		 */
+		public const AI_RENDER_REQUIRED_SETTINGS = [
+			"matrix" => ["columns"],
+			"one-to-many" => ["table", "title_column"],
+			"list" => ["list"],
+		];
+
+		/** How a surface name maps onto a field-type schema's use case. */
+		private const SURFACE_USE_CASES = ["template" => "templates", "callout" => "callouts"];
+
+		/**
+		 * Reject any proposed field that would be stored incompletely — either because
+		 * its type needs structured configuration the assistant can't express, or
+		 * because its own settings_schema marks a setting required and nothing filled
+		 * it in.
+		 *
+		 * A field retained by id with its stored settings intact is always fine:
+		 * mergeAiFields keeps that record byte-identical, so it still renders exactly
+		 * as a human configured it.
 		 *
 		 * Returns null when every field is acceptable.
 		 *
@@ -157,6 +302,7 @@
 			}
 
 			$bad = [];
+			$fixable = [];
 
 			foreach ((array)$fields as $field) {
 				if (!is_array($field)) {
@@ -164,16 +310,11 @@
 					continue;
 				}
 
-				$id = BigTreeCMS::urlify((string)($field["id"] ?? ""));
+				$id = self::aiFieldId($field);
 				$prior = $stored[$id] ?? null;
 				$type = array_key_exists("type", $field)
 					? (string)$field["type"]
 					: (string)($prior["type"] ?? "text");
-
-				if (!in_array($type, self::AI_UNCONFIGURABLE_FIELD_TYPES, true)) {
-
-					continue;
-				}
 
 				// Same retain condition mergeAiFields uses: an unchanged field keeps
 				// its stored record, settings and all.
@@ -182,7 +323,31 @@
 					continue;
 				}
 
+				$settings = self::aiFieldSettings($field, $type, $surface);
+				$missing = self::aiMissingSettings($type, $settings, $surface);
+
+				if (!$missing) {
+
+					continue;
+				}
+
+				// `list` is the one the assistant can fix by itself, so it gets a
+				// correction to act on rather than a refusal to work around.
+				if ($type === "list" && $missing === ["list"]) {
+					$fixable[] = "\"{$id}\"";
+
+					continue;
+				}
+
 				$bad[] = "\"{$id}\" ({$type})";
+			}
+
+			if ($fixable) {
+
+				return "The " . implode(" and ", array_unique($fixable)) . " list field"
+					. (count($fixable) === 1 ? "" : "s") . " " . (count($fixable) === 1 ? "has" : "have")
+					. " no choices, so " . (count($fixable) === 1 ? "it" : "they") . " would render as an empty "
+					. "select. Supply them as \"options\", e.g. \"options\": [\"Small\", \"Medium\", \"Large\"].";
 			}
 
 			if (!$bad) {
@@ -198,29 +363,137 @@
 		}
 
 		/**
-		 * The settings a new AI-authored field may carry. `required` is the only one:
-		 * without it an assistant-created template could never have a required field,
-		 * while every other setting (list options, image presets, subfields) is
-		 * structured configuration that belongs to the admin field editor.
+		 * Which of a field type's must-have settings the supplied settings don't
+		 * cover: the render-blocking ones above, plus everything the type's own
+		 * `settings_schema` marks `required`.
 		 *
-		 * Stored as the legacy `validation` rule string, the same source
-		 * PageService's required-field gates read.
+		 * Deriving the second half from the schema rather than from a hardcoded list
+		 * is the point — it is the server-side equivalent of the SPA's
+		 * `field-settings/validate.ts`, so a field type added later (or by an
+		 * extension) is covered without anyone remembering to update a list here.
+		 *
+		 * @param array<string,mixed> $settings The settings the field would be stored with.
+		 * @return list<string>
+		 */
+		private static function aiMissingSettings(string $type, array $settings, string $surface): array {
+			$needed = self::AI_RENDER_REQUIRED_SETTINGS[$type] ?? [];
+
+			foreach (\BigTree\Services\FieldTypeService::settingsSchema($type) as $descriptor) {
+				$setting_id = (string)($descriptor["id"] ?? "");
+
+				// A `_`-prefixed descriptor is a composite editor control (image
+				// options), not a stored setting of its own.
+				if ($setting_id === "" || $setting_id[0] === "_" || empty($descriptor["required"])) {
+
+					continue;
+				}
+
+				$needed[] = $setting_id;
+			}
+
+			$missing = [];
+
+			foreach (array_unique($needed) as $setting_id) {
+				$value = $settings[$setting_id] ?? null;
+
+				if ($value === null || $value === "" || $value === []) {
+					$missing[] = $setting_id;
+				}
+			}
+
+			return $missing;
+		}
+
+		/**
+		 * The settings a new AI-authored field is stored with.
+		 *
+		 * Deliberately narrow. `required` and list `options` are the two the assistant
+		 * can express meaningfully; a `directory` is inherited from the field type's
+		 * own context default, exactly as the admin's DirectoryControl seeds it, so an
+		 * AI-authored upload doesn't silently dump files in the site root. Everything
+		 * else (image presets, matrix subfields, db-populated lists) is structured
+		 * configuration that belongs to the admin field editor, and a field that needs
+		 * one is refused rather than written half-configured.
 		 *
 		 * @param array $field One raw AI-proposed field.
 		 * @return array The settings array for a newly created field.
 		 */
-		private static function aiFieldSettings(array $field): array {
+		private static function aiFieldSettings(array $field, string $type = "", string $surface = "template"): array {
+			$settings = [];
 			$required = $field["required"] ?? false;
 
 			if (is_string($required)) {
 				$required = !in_array(strtolower(trim($required)), ["", "0", "false", "no"], true);
 			}
 
-			if (!$required) {
+			if ($required) {
+				// Stored as the legacy `validation` rule string, the same source
+				// PageService's required-field gates read.
+				$settings["validation"] = "required";
+			}
+
+			$options = self::aiListOptions($field["options"] ?? null);
+
+			if ($options) {
+				$settings["list_type"] = "static";
+				$settings["list"] = $options;
+			}
+
+			// Mirrors spa/src/components/developer/field-settings/DirectoryControl.tsx,
+			// which seeds the same per-context default on mount.
+			$use_case = self::SURFACE_USE_CASES[$surface] ?? "templates";
+
+			foreach (\BigTree\Services\FieldTypeService::settingsSchema($type) as $descriptor) {
+				if ((string)($descriptor["control"] ?? "") !== "directory" || empty($descriptor["required"])) {
+
+					continue;
+				}
+
+				$default = (string)($descriptor["context_defaults"][$use_case] ?? "");
+
+				if ($default !== "") {
+					$settings[(string)$descriptor["id"]] = $default;
+				}
+			}
+
+			return $settings;
+		}
+
+		/**
+		 * Normalize a proposed set of list choices into the {value, description} rows
+		 * the `list` field type's static list stores.
+		 *
+		 * Accepts the two shapes a model naturally produces: a flat list of strings,
+		 * or objects carrying an explicit value and label.
+		 *
+		 * @param mixed $options
+		 * @return list<array{value:string,description:string}>
+		 */
+		private static function aiListOptions($options): array {
+			if (!is_array($options)) {
 
 				return [];
 			}
 
-			return ["validation" => "required"];
+			$rows = [];
+
+			foreach ($options as $option) {
+				if (is_array($option)) {
+					$value = trim((string)($option["value"] ?? $option["description"] ?? $option["label"] ?? ""));
+					$description = trim((string)($option["description"] ?? $option["label"] ?? $option["value"] ?? ""));
+				} else {
+					$value = trim((string)$option);
+					$description = $value;
+				}
+
+				if ($value === "" && $description === "") {
+
+					continue;
+				}
+
+				$rows[] = ["value" => $value, "description" => $description !== "" ? $description : $value];
+			}
+
+			return $rows;
 		}
 	}

@@ -432,7 +432,19 @@
 				return false;
 			}
 
-			return $accumulator->result();
+			$result = $accumulator->result();
+
+			// A 2xx from curl only says the connection was accepted, not that the
+			// stream finished. Without this a truncated response was handed back as
+			// the authoritative answer — a half-written sentence presented as the
+			// model's reply, or a tool call whose arguments were silently dropped.
+			if (!$accumulator->isComplete()) {
+				$this->Error = $accumulator->incompleteReason() . " Try again.";
+
+				return false;
+			}
+
+			return $result;
 		}
 
 		/**

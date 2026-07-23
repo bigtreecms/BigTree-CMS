@@ -186,6 +186,14 @@
 				$args[] = trim((string)$filters["table"]);
 			}
 
+			// GET /audit has always accepted this; the AI read didn't, so "what has
+			// happened to page 42?" could only be answered by pulling the whole table
+			// and hoping the row was inside the limit.
+			if (trim((string)($filters["entry"] ?? "")) !== "") {
+				$where[] = "a.entry = ?";
+				$args[] = trim((string)$filters["entry"]);
+			}
+
 			if ((int)($filters["user_id"] ?? 0) > 0) {
 				$where[] = "a.user = ?";
 				$args[] = (int)$filters["user_id"];

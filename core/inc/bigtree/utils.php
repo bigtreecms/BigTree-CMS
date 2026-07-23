@@ -66,7 +66,15 @@
 				}
 			}
 
-			return array_filter($array);
+			return array_filter($array, function ($value): bool {
+
+				// The string "0" is a legitimate stored setting value — a list option
+				// whose value is "0" is the common case — but array_filter's default
+				// callback treats it as empty, so every such option was silently
+				// dropped from the field it belonged to. Everything else keeps the
+				// long-standing "drop empty leaves" behavior.
+				return $value === "0" || (bool)$value;
+			});
 		}
 
 		/*

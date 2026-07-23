@@ -863,11 +863,14 @@
 		 * @param array $user a row with at least id, email, password
 		 * @param string $template Which email to send: "reset" or "invite".
 		 */
-		public static function issuePasswordToken(array $user, $ttl, string $template = "reset") {
+		public static function issuePasswordToken(array $user, $ttl, string $template = "reset", string $person = "") {
 			$hash = bin2hex(random_bytes(32));
 			$token = $hash . "." . (time() + (int)$ttl);
 			SQL::update("bigtree_users", $user["id"], ["change_password_hash" => $token]);
-			self::sendResetEmail($user["email"], $token, $template);
+
+			if (!self::sendResetEmail($user["email"], $token, $template, $person)) {
+				throw new \RuntimeException("The password email could not be sent.");
+			}
 
 			return $token;
 		}
@@ -878,7 +881,7 @@
 		 * account is the caller's primary action and must not be undone by a mail
 		 * problem.
 		 */
-		public static function sendAccountInvite($user_id) {
+		public static function sendAccountInvite($user_id, string $invited_by = "") {
 			$user = SQL::fetch("SELECT id, email, password FROM bigtree_users WHERE id = ?", (int)$user_id);
 
 			if (!$user) {
@@ -891,7 +894,7 @@
 				// being told to "reset" a password they had never had, while
 				// core/admin/email/welcome.html — what legacy sends an invitee — went
 				// unused.
-				self::issuePasswordToken($user, self::INVITE_TOKEN_TTL, "invite");
+				self::issuePasswordToken($user, self::INVITE_TOKEN_TTL, "invite", $invited_by);
 			} catch (\Throwable $e) {
 
 				return false;
@@ -900,7 +903,16 @@
 			return true;
 		}
 
-		private static function sendResetEmail($to, $hash, string $template = "reset") {
+		/**
+		 * Deliver a password-setup or password-reset email. Returns whether it was
+		 * handed to a mailer successfully — the callers report that to the user, and
+		 * reporting "invite sent" for a mail that silently failed leaves an account
+		 * nobody can get into and nobody knows about.
+		 *
+		 * @param string $person Who created the account, for the invite template's
+		 *                       {person} placeholder.
+		 */
+		private static function sendResetEmail($to, $hash, string $template = "reset", string $person = ""): bool {
 			global $bigtree;
 
 			$is_invite = $template === "invite";
@@ -924,10 +936,13 @@
 				: ($is_invite
 					? "<p>Set your password: <a href='{reset_link}'>{reset_link}</a></p>"
 					: "<p>Reset your password: <a href='{reset_link}'>{reset_link}</a></p>");
+			// welcome.html carries a fifth placeholder the reset template doesn't —
+			// who created the account. Left unsubstituted it rendered as a literal
+			// "{person}" in the one email a new user ever receives.
 			$html = str_ireplace([
-				"{www_root}", "{admin_root}", "{site_title}", "{reset_link}",
+				"{www_root}", "{admin_root}", "{site_title}", "{reset_link}", "{person}",
 			], [
-				WWW_ROOT, ADMIN_ROOT, $site_title, $reset_url,
+				WWW_ROOT, ADMIN_ROOT, $site_title, $reset_url, $person !== "" ? $person : "an administrator",
 			], $html);
 
 			try {
@@ -936,15 +951,16 @@
 				if (!empty($es->Settings["bigtree_from"])) {
 					$host = $_SERVER["HTTP_HOST"] ?? str_replace(["http://www.", "https://www.", "http://", "https://"], "", DOMAIN);
 					$reply_to = "no-reply@" . str_replace("www.", "", $host);
-					$es->sendEmail($subject, $html, $to, $es->Settings["bigtree_from"], "BigTree CMS", $reply_to);
 
-					return;
+					return (bool)$es->sendEmail(
+						$subject, $html, $to, $es->Settings["bigtree_from"], "BigTree CMS", $reply_to
+					);
 				}
 			} catch (\Throwable $e) {
 				// fall through to BigTree::sendEmail
 			}
 
-			BigTree::sendEmail($to, $subject, $html);
+			return (bool)BigTree::sendEmail($to, $subject, $html);
 		}
 
 		private function verifyPassword(array $user, $password) {

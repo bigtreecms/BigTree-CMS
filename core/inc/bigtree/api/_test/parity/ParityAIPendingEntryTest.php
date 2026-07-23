@@ -169,15 +169,15 @@
 	}
 
 	/**
-	 * Addressing a LIVE entry must keep reading the published row, even when that
-	 * entry has an outstanding draft against it.
+	 * Addressing a LIVE entry resolves the *published* row — the per-row GBP check
+	 * must never run against an unpublished group value — but the proposal's diff is
+	 * measured against the queued draft when there is one, because approving it
+	 * publishes that draft rather than destroying it (see aiEntryPendingChange).
 	 *
-	 * getPendingItem overlays a draft onto the live row, so routing live ids through
-	 * it would make the proposal diff show the draft's values as its "from" while the
-	 * write goes to the published row — and, worse, run the per-row GBP check against
-	 * an unpublished group value.
+	 * The card has to say so too: publishing somebody else's unreviewed work is a
+	 * consequence the approver sees up front, not afterwards.
 	 */
-	function test_parity_ai_live_entry_reads_published_values_not_a_draft() {
+	function test_parity_ai_live_entry_publish_carries_the_queued_draft() {
 		if (!parity_ai_processors_ready()) {
 			return;
 		}
@@ -211,8 +211,9 @@
 			);
 			T::ok($change_id > 0, "a draft exists against the live entry");
 
-			// A publisher now edits the same live entry. The diff must be against what
-			// is actually published, not against the pending draft.
+			// A publisher now edits the same live entry. Their approval publishes the
+			// queued draft along with the edit, so the diff is measured against the
+			// draft — which is what the row will actually be changing from.
 			$validated = $svc->aiValidateEntryUpdate([
 				"module_id" => parity_news_module_id(),
 				"entry_id" => (string)$entry_id,
@@ -230,7 +231,36 @@
 				}
 			}
 
-			T::equals($from, "zz Published Title", "the diff's from-value is the published title, not the draft's");
+			T::equals($from, "zz Draft Title", "the diff's from-value is the draft the publish will carry forward");
+
+			$disclosure = $validated["preview"]["publishes_draft"] ?? [];
+
+			T::ok(!empty($disclosure), "the card discloses the draft that will be published");
+			T::equals((int)($disclosure["pending_change_id"] ?? 0), $change_id, "it names the draft's change id");
+			T::ok(
+				in_array("title", (array)($disclosure["fields"] ?? []), true),
+				"it lists the draft's changed fields"
+			);
+			T::ok(
+				strpos((string)$validated["summary"], "unpublished draft") !== false,
+				"the summary warns that approving publishes the draft too"
+			);
+
+			// The published row must end up with both edits: the publisher's title
+			// wins, and the rest of the draft is carried forward rather than dropped.
+			$published = $svc->aiUpdateEntry($validated["payload"], $dev);
+
+			T::equals($published["mode"] ?? "", "published", "the publisher's approval publishes live");
+			T::equals(
+				SQL::fetchSingle("SELECT title FROM timber_news WHERE id = ?", $entry_id),
+				"zz Publisher Title",
+				"the publisher's own value wins over the draft's"
+			);
+			T::equals(
+				(int)SQL::fetchSingle("SELECT COUNT(*) FROM bigtree_pending_changes WHERE id = ?", $change_id),
+				0,
+				"the draft is consumed by the publish rather than left queued"
+			);
 		} finally {
 			parity_delete_pending($change_id);
 			parity_delete_news_entries($entry_id);

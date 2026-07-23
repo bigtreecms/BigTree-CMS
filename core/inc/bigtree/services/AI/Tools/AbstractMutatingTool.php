@@ -23,6 +23,14 @@
 		 */
 		const FINGERPRINT_KEY = "__fingerprint__";
 
+		/**
+		 * Reserved payload key carrying the staged content-lock descriptor, so the
+		 * approval can re-ask who holds the record rather than replaying a snapshot
+		 * taken up to 24 hours earlier. Stripped before the payload reaches an execute
+		 * seam, like the fingerprint.
+		 */
+		const LOCK_KEY = "__lock__";
+
 		/** @var ProposalStore */
 		protected $proposals;
 
@@ -103,7 +111,26 @@
 			// same reason the fingerprint is, and folded into the summary so both the
 			// user reading the card and the model reading the tool result see it.
 			// See ContentLock for why this warns rather than refuses.
-			$summary .= ContentLock::note($validation["lock"] ?? null, $context->user);
+			$lock = $validation["lock"] ?? null;
+			$holder = ContentLock::heldBy($lock, $context->user);
+
+			if ($holder !== null) {
+				$summary .= ContentLock::note($lock, $context->user);
+				// Also delivered as its own field, so the card can render it as a
+				// warning rather than leaving it buried in a paragraph of summary
+				// text that ProposalCard single-line truncates.
+				$preview["content_lock"] = [
+					"holder" => $holder,
+					"kind" => ContentLock::kindOf($lock),
+				];
+			}
+
+			// Stored so the approval can re-ask. The staged note is a snapshot from up
+			// to 24 hours before the approve click, which is exactly long enough for
+			// the answer to have changed in either direction.
+			if (is_array($lock) && $lock) {
+				$payload[self::LOCK_KEY] = $lock;
+			}
 
 			// A backend may describe what its proposal is *about*; hash it now so the
 			// approval can tell whether the card still describes the record. Done once
@@ -112,6 +139,22 @@
 			$fingerprint = $validation["fingerprint"] ?? null;
 
 			if (is_array($fingerprint) && $fingerprint) {
+				// A descriptor that can't be hashed is not an opt-out — a seam that
+				// wants no staleness check emits no descriptor at all. Refusing here
+				// means a malformed one (a misspelled type, a missing table) surfaces
+				// as a failed tool call rather than as a card that quietly protects
+				// nothing: the typo recurs identically at approval, so the comparison
+				// would pass and the staleness check would never fire.
+				$unsupported = ProposalFingerprint::unsupportedReason($fingerprint);
+
+				if ($unsupported !== null) {
+
+					return AIToolResult::error(
+						"This change could not be staged safely: {$unsupported}. This is a problem with the "
+							. "\"{$tool}\" tool itself — report it rather than retrying."
+					);
+				}
+
 				$payload[self::FINGERPRINT_KEY] = [
 					"descriptor" => $fingerprint,
 					"hash" => ProposalFingerprint::compute($fingerprint),

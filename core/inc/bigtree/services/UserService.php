@@ -92,9 +92,22 @@
 			}
 
 			$id = (int)SQL::insert("bigtree_users", $insert);
-			$user = SQL::fetch("SELECT * FROM bigtree_users WHERE id = ?", $id);
 
-			return Response::created($this->presentFull($user, $request), null);
+			// An account created without a password can't be logged into and nothing
+			// tells the person it exists. The SPA has always toasted "invitation
+			// sent"; nothing here ever sent one, which left the AI tool as the only
+			// path that actually invites anybody.
+			$invited = false;
+
+			if (empty($insert["password"])) {
+				$invited = AuthService::sendAccountInvite($id, trim((string)($request->user->name ?? "")));
+			}
+
+			$user = SQL::fetch("SELECT * FROM bigtree_users WHERE id = ?", $id);
+			$body = $this->presentFull($user, $request);
+			$body["invite_sent"] = $invited;
+
+			return Response::created($body, null);
 		}
 
 		public function update(Request $request) {
@@ -321,37 +334,129 @@
 		}
 
 		/**
-		 * Normalize a proposed notification preference set.
+		 * Merge a proposed content-alert subscription change into a user's stored map.
 		 *
-		 * `alerts` is a page-id => max-age map the dashboard's content alerts read
-		 * (DashboardService::aiContentAlerts). get_content_alerts could already report
-		 * a user's thresholds while nothing could set them, which made the catalog
-		 * contradict itself — read-only for a preference `PATCH /users/{id}` accepts.
+		 * `bigtree_users.alerts` is a page-id => "on" *subscription* map, not a
+		 * threshold map: subscribing to a page subscribes to everything beneath it,
+		 * and how stale is too stale comes from each page's own `max_age`. Page id 0
+		 * means the whole tree. That is what the digest mailer reads
+		 * (BigTreeAdmin::getContentAlerts), what PATCH /users/{id} stores, and what
+		 * the SPA's permissions tree renders.
 		 *
-		 * @param mixed $alerts
-		 * @return array{error?:string,alerts?:array<string,int>}
+		 * This used to coerce the value to a number of days, which stored units
+		 * nothing in the system interprets — the next human save silently reverted it
+		 * — and replaced the whole map, so "add page 40 to my alerts" wiped every
+		 * other subscription the user had. It merges now; `false` removes.
+		 *
+		 * @param mixed $alerts Page id => boolean-ish subscription flag.
+		 * @param array<string|int,mixed> $current The user's stored alerts map.
+		 * @return array{error?:string,alerts?:array<string,string>,added?:list<int>,removed?:list<int>}
 		 */
-		private function aiNormalizeAlerts($alerts): array {
+		private function aiNormalizeAlerts($alerts, array $current = []): array {
 			if (!is_array($alerts)) {
 
-				return ["error" => "alerts must be an object mapping page ids to a number of days."];
+				return ["error" => "alerts must be an object mapping page ids to true (subscribe) or false "
+					. "(unsubscribe), e.g. {\"40\": true}."];
 			}
 
 			$out = [];
 
-			foreach ($alerts as $page_id => $days) {
-				$page_id = (int)$page_id;
-				$days = (int)$days;
-
-				if ($page_id < 0 || $days < 0) {
-
-					return ["error" => "alerts must map real page ids to a non-negative number of days."];
+			// Start from what is stored so a partial change is a merge, not a replace.
+			foreach ($current as $page_id => $flag) {
+				if (self::alertIsOn($flag)) {
+					$out[(string)(int)$page_id] = "on";
 				}
-
-				$out[(string)$page_id] = $days;
 			}
 
-			return ["alerts" => $out];
+			$added = [];
+			$removed = [];
+
+			foreach ($alerts as $page_id => $flag) {
+				if (!is_numeric($page_id) || (int)$page_id < 0) {
+
+					return ["error" => "alerts keys must be page ids (use 0 for the whole page tree)."];
+				}
+
+				$page_id = (int)$page_id;
+				$key = (string)$page_id;
+
+				// A page id has to exist, or the subscription is dead weight nothing
+				// will ever match. 0 is the documented "whole tree" key, not a page.
+				if ($page_id > 0 && !SQL::fetchSingle("SELECT id FROM bigtree_pages WHERE id = ?", $page_id)) {
+
+					return ["error" => "There is no page with id {$page_id}, so it can't be added to the alert list."];
+				}
+
+				if (self::alertIsOn($flag)) {
+					if (!isset($out[$key])) {
+						$added[] = $page_id;
+					}
+
+					$out[$key] = "on";
+				} else {
+					if (isset($out[$key])) {
+						$removed[] = $page_id;
+					}
+
+					unset($out[$key]);
+				}
+			}
+
+			return ["alerts" => $out, "added" => $added, "removed" => $removed];
+		}
+
+		/**
+		 * A subscription set rendered for a proposal diff. Names the pages rather than
+		 * counting them, so the approver can see which subscription is being added or
+		 * dropped.
+		 *
+		 * @param list<int|string> $page_ids
+		 */
+		private function aiDescribeAlerts(array $page_ids): string {
+			if (!$page_ids) {
+
+				return "none";
+			}
+
+			$names = [];
+
+			foreach ($page_ids as $page_id) {
+				$page_id = (int)$page_id;
+
+				if ($page_id === 0) {
+					$names[] = "the whole page tree";
+
+					continue;
+				}
+
+				$title = SQL::fetchSingle("SELECT nav_title FROM bigtree_pages WHERE id = ?", $page_id);
+				$names[] = $title !== null && $title !== ""
+					? Sanitize::decodeEntities((string)$title) . " (#{$page_id})"
+					: "page #{$page_id}";
+			}
+
+			return implode(", ", $names);
+		}
+
+		/**
+		 * Whether a stored/proposed alerts value counts as subscribed. Legacy writes
+		 * the string "on"; the SPA sends booleans; a threshold number from before this
+		 * was a subscription map still reads as "yes, watching".
+		 *
+		 * @param mixed $flag
+		 */
+		private static function alertIsOn($flag): bool {
+			if (is_bool($flag)) {
+
+				return $flag;
+			}
+
+			if (is_int($flag) || is_float($flag)) {
+
+				return (float)$flag != 0.0;
+			}
+
+			return !in_array(strtolower(trim((string)$flag)), ["", "0", "false", "no", "off"], true);
 		}
 
 		public function aiValidateUserCreate(array $args, $user): array {
@@ -411,7 +516,9 @@
 				"ok" => true,
 				"summary" => "Create a new editor account for {$name} ({$email})"
 					. ". They'll be an editor (level 0) with no permissions granted. They cannot log in until a "
-					. "password is set — approving this sends them an email invite to choose one.",
+					. "password is set — approving this sends them an email invite to choose one. With no "
+					. "permissions the account signs in to an empty admin: someone will need to grant page or "
+					. "module access before they can do anything.",
 				"preview" => [
 					"action" => "create_user",
 					"email" => $email,
@@ -420,7 +527,10 @@
 					"timezone" => $timezone,
 					"level" => 0,
 					"sends_invite_email" => true,
-					"note" => "Cannot log in until a password is set; an invite email will be sent to {$email} on approval.",
+					"grants_permissions" => false,
+					"note" => "Cannot log in until a password is set; an invite email will be sent to {$email} on "
+						. "approval. The account is created with no permissions, so it will see an empty admin "
+						. "until someone grants it access — the assistant never grants permissions.",
 				],
 				"payload" => [
 					"email" => $email,
@@ -492,18 +602,22 @@
 			// Without this the account predictably sits unusable — it has no password
 			// and nothing tells the person it exists. A mail failure is reported but
 			// never unwinds the account that was just created.
-			$invited = AuthService::sendAccountInvite($id);
+			// welcome.html names who created the account; without it the one email a
+			// new user ever gets renders a literal "{person}".
+			$invited = AuthService::sendAccountInvite($id, trim((string)($user->name ?? "")));
 
 			return [
 				"mode" => "created",
 				"user_id" => $id,
 				"email" => $email,
 				"invite_sent" => $invited,
-				"note" => $invited
+				"note" => ($invited
 					? "The account was created at editor level with no permissions. An invite email was sent to "
 						. "{$email} with a link to set a password (valid for 7 days)."
 					: "The account was created at editor level with no permissions, but the invite email could not be "
-						. "sent. Set a password via the users screen, or have them use \"forgot password\".",
+						. "sent. Set a password via the users screen, or have them use \"forgot password\".")
+					. " Until someone grants them page or module access, they'll sign in to an empty admin — the "
+					. "assistant never grants permissions.",
 			];
 		}
 
@@ -611,20 +725,26 @@
 			}
 
 			if (array_key_exists("alerts", $args)) {
-				$alerts = $this->aiNormalizeAlerts($args["alerts"]);
+				$current = Json::decode($target["alerts"] ?? "");
+				$alerts = $this->aiNormalizeAlerts($args["alerts"], $current);
 
 				if (isset($alerts["error"])) {
 
 					return $alerts;
 				}
 
-				$current = Json::decode($target["alerts"] ?? "");
-
 				if ($alerts["alerts"] != $current) {
-					$changes["alerts"] = $alerts["alerts"];
+					// The merge is redone at approval against the map as it stands
+					// then, so the request is staged rather than its result.
+					$changes["alerts"] = $args["alerts"];
 					$diff["alerts"] = [
-						"from" => count($current) . " page alert(s)",
-						"to" => count($alerts["alerts"]) . " page alert(s)",
+						// Which pages, not just how many — a count says nothing about
+						// what the approver is actually signing off on.
+						"from" => $this->aiDescribeAlerts(array_keys(array_filter($current, function ($flag): bool {
+
+							return self::alertIsOn($flag);
+						}))),
+						"to" => $this->aiDescribeAlerts(array_keys($alerts["alerts"])),
 					];
 				}
 			}
@@ -748,7 +868,13 @@
 			}
 
 			if (array_key_exists("alerts", $changes)) {
-				$alerts = $this->aiNormalizeAlerts($changes["alerts"]);
+				// Re-merged against the map as it stands now: the user may have
+				// changed their own subscriptions inside the proposal's 24h life, and
+				// replaying a stale merged map would revert them.
+				$alerts = $this->aiNormalizeAlerts(
+					$changes["alerts"],
+					Json::decode(SQL::fetchSingle("SELECT alerts FROM bigtree_users WHERE id = ?", $id))
+				);
 
 				if (isset($alerts["error"])) {
 

@@ -174,6 +174,51 @@
 			SQL::query("UPDATE bigtree_tags_rel SET tag = ? WHERE tag = ?", $into, $from);
 		}
 
+		/**
+		 * Point a merged-away tag id at its replacement inside every queued draft's
+		 * `tags_changes` blob.
+		 *
+		 * A pending change stores tag *ids*, and publishing replays that blob. Merging
+		 * a tag rewrote the live relations and deleted the row but left those blobs
+		 * alone, so approving a draft afterwards re-attached an id that no longer
+		 * exists — a tag relation pointing at nothing, invisible everywhere.
+		 */
+		private function retargetQueuedTagChanges(int $from, int $into): void {
+			$rows = SQL::fetchAll(
+				"SELECT id, tags_changes FROM bigtree_pending_changes WHERE tags_changes IS NOT NULL AND tags_changes != ''"
+			);
+
+			foreach ($rows as $row) {
+				$tags = json_decode((string)$row["tags_changes"], true);
+
+				if (!is_array($tags)) {
+
+					continue;
+				}
+
+				$ids = array_map("intval", $tags);
+
+				if (!in_array($from, $ids, true)) {
+
+					continue;
+				}
+
+				$next = [];
+
+				foreach ($ids as $id) {
+					$id = $id === $from ? $into : $id;
+
+					// The record may already carry the target tag; a merge must not
+					// give it the same relation twice.
+					if (!in_array($id, $next, true)) {
+						$next[] = $id;
+					}
+				}
+
+				SQL::update("bigtree_pending_changes", (int)$row["id"], ["tags_changes" => $next]);
+			}
+		}
+
 		private function recomputeUsage($id) {
 			$count = (int)SQL::fetchSingle("SELECT COUNT(*) FROM bigtree_tags_rel WHERE tag = ?", $id);
 			SQL::update("bigtree_tags", $id, ["usage_count" => $count]);
@@ -320,6 +365,7 @@
 					"tags" => $names,
 					"creates_tags" => $new,
 				],
+				"fingerprint" => $this->aiTagFingerprint($target),
 				"lock" => $this->aiTagLock($target),
 			];
 		}
@@ -487,6 +533,7 @@
 					"page_id" => $target["kind"] === "page" ? $target["entry_id"] : 0,
 					"tags" => $attached,
 				],
+				"fingerprint" => $this->aiTagFingerprint($target),
 				"lock" => $this->aiTagLock($target),
 			];
 		}
@@ -743,6 +790,41 @@
 		 * @param array<string,mixed> $target An aiResolveTagTarget result.
 		 * @return array<string,mixed>
 		 */
+		/**
+		 * The staleness descriptor for a tag change on a page or module entry.
+		 *
+		 * Tags live in bigtree_tags_rel rather than on the record, so a column-based
+		 * descriptor has nothing to say about them — add_tags and remove_tags staged
+		 * no fingerprint at all, and a tag set rewritten by somebody else inside the
+		 * proposal's 24h life was merged into blind. When the change is bound for a
+		 * queued draft, that draft's blob is what moves, so it is what gets watched.
+		 *
+		 * @param array<string,mixed> $target An aiResolveTagTarget result.
+		 * @return array<string,mixed>
+		 */
+		private function aiTagFingerprint(array $target): array {
+			$table = (string)($target["table"] ?? "");
+			$entry_id = (string)($target["entry_id"] ?? "");
+
+			if ($table === "" || $entry_id === "" || $entry_id === "0") {
+
+				return [];
+			}
+
+			$change_id = (int)SQL::fetchSingle(
+				"SELECT id FROM bigtree_pending_changes WHERE `table` = ? AND item_id = ?",
+				$table,
+				$entry_id
+			);
+
+			if ($change_id > 0) {
+
+				return ["type" => "pending_change", "id" => $change_id];
+			}
+
+			return ["type" => "tags", "table" => $table, "id" => $entry_id];
+		}
+
 		private function aiTagLock(array $target): array {
 			$entry_id = (string)($target["entry_id"] ?? "");
 
@@ -878,18 +960,24 @@
 				return null;
 			}
 
-			if (ctype_digit($reference)) {
-				$row = SQL::fetch("SELECT * FROM bigtree_tags WHERE id = ?", (int)$reference);
-
-				if ($row) {
-
-					return $row;
-				}
-			}
-
+			// The *name* is tried first, always. This used to prefer the id reading for
+			// anything numeric, so on a site with year tags "merge 2024 into archive"
+			// resolved 2024 to tag id 2024 — an unrelated tag, then irreversibly
+			// deleted with its relations retargeted. A tag named like a number is far
+			// more likely than a user quoting a raw row id, and merge_tags has no undo.
 			$row = SQL::fetch("SELECT * FROM bigtree_tags WHERE tag = ?", $this->normalize($reference));
 
-			return $row ?: null;
+			if ($row) {
+
+				return $row;
+			}
+
+			if (ctype_digit($reference)) {
+
+				return SQL::fetch("SELECT * FROM bigtree_tags WHERE id = ?", (int)$reference) ?: null;
+			}
+
+			return null;
 		}
 
 		/**
@@ -973,6 +1061,17 @@
 					"into" => (int)$into["id"],
 					"from" => array_keys($from),
 				],
+				// A merge deletes tag rows and retargets every relation pointing at
+				// them, and has no undo — so if any of the tags involved was renamed,
+				// merged or deleted since the card was drawn, this is not that merge.
+				"fingerprint" => [
+					"type" => "composite",
+					"parts" => array_map(function (int $tag_id): array {
+
+						return ["type" => "row", "table" => "bigtree_tags", "id" => $tag_id,
+							"columns" => ["tag", "route", "usage_count"]];
+					}, array_merge([(int)$into["id"]], array_keys($from))),
+				],
 			];
 		}
 
@@ -1016,6 +1115,7 @@
 				}
 
 				$this->retargetTagRelations($tag_id, $into);
+				$this->retargetQueuedTagChanges($tag_id, $into);
 				SQL::delete("bigtree_tags", $tag_id);
 				$merged[] = (string)$row["tag"];
 			}

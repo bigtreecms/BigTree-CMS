@@ -626,18 +626,58 @@
 		}
 
 		private function loadSchemas() {
-			$schemas = include SERVER_ROOT . "core/inc/bigtree/api/field-type-schemas.php";
-			$custom = SERVER_ROOT . "custom/inc/bigtree/api/field-type-schemas.php";
 
-			if (file_exists($custom)) {
-				$overrides = include $custom;
+			return self::schemas();
+		}
 
-				if (is_array($overrides)) {
-					$schemas = array_replace($schemas, $overrides);
+		/**
+		 * Every field type's declared schema, keyed by type id, with any custom
+		 * override applied. Cached for the request.
+		 *
+		 * Static because the schemas are the single source of truth for what a field
+		 * type needs to be configured *completely* — the SPA validates a field against
+		 * its own `settings_schema` (field-settings/validate.ts) and Resources needs
+		 * the same rule server-side, so the AI can't author a field the editor will
+		 * then refuse to save.
+		 *
+		 * @return array<string,array<string,mixed>>
+		 */
+		public static function schemas(): array {
+			static $cache = null;
+
+			if ($cache === null) {
+				$schemas = include SERVER_ROOT . "core/inc/bigtree/api/field-type-schemas.php";
+				$custom = SERVER_ROOT . "custom/inc/bigtree/api/field-type-schemas.php";
+
+				if (file_exists($custom)) {
+					$overrides = include $custom;
+
+					if (is_array($overrides)) {
+						$schemas = array_replace($schemas, $overrides);
+					}
 				}
+
+				$cache = is_array($schemas) ? $schemas : [];
 			}
 
-			return is_array($schemas) ? $schemas : [];
+			return $cache;
+		}
+
+		/**
+		 * One field type's `settings_schema` descriptors ([] when it declares none, or
+		 * isn't a known type).
+		 *
+		 * @return list<array<string,mixed>>
+		 */
+		public static function settingsSchema(string $type): array {
+			$schema = self::schemas()[$type] ?? null;
+
+			if (!is_array($schema) || !is_array($schema["settings_schema"] ?? null)) {
+
+				return [];
+			}
+
+			return array_values(array_filter($schema["settings_schema"], "is_array"));
 		}
 
 		/**

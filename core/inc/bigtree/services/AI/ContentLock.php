@@ -69,7 +69,7 @@
 		 * @param mixed $descriptor
 		 * @param object|array $user
 		 */
-		private static function heldBy($descriptor, $user): ?string {
+		public static function heldBy($descriptor, $user): ?string {
 			if (!is_array($descriptor)) {
 
 				return null;
@@ -116,6 +116,11 @@
 		 * What to call the record in the note. Derived from the lock table so a seam
 		 * emits only the pair it already knows, rather than restating the noun.
 		 */
+		public static function kindOf($descriptor): string {
+
+			return self::kind(is_array($descriptor) ? (string)($descriptor["table"] ?? "") : "");
+		}
+
 		private static function kind(string $table): string {
 			if ($table === "bigtree_pages") {
 

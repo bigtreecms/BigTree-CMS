@@ -143,7 +143,10 @@
 		}, $registry->availableTools(ai_fake_user(0)));
 
 		T::ok(in_array("search_pages", $editor_names, true), "editor sees search_pages");
-		T::ok(!in_array("search_tags", $editor_names, true), "editor does not see search_tags");
+		// Every user may attach an existing tag (can_attach_tags), and GET /tags/search
+		// is level 0, so an editor has to be able to discover the vocabulary. Coining a
+		// new tag is the administrator-only part, and that gate is on add_tags.
+		T::ok(in_array("search_tags", $editor_names, true), "editor sees search_tags");
 		T::ok(!in_array("search_users", $editor_names, true), "editor does not see search_users");
 
 		$admin_names = array_map(function ($t) {
@@ -155,7 +158,12 @@
 		T::ok(in_array("search_users", $admin_names, true), "admin sees search_users");
 
 		$editor_defs = $registry->definitions(ai_fake_user(0));
-		T::equals(count($editor_defs), 1, "editor definitions only include search_pages");
+		$editor_def_names = array_map(function (array $d): string {
+
+			return (string)$d["function"]["name"];
+		}, $editor_defs);
+		sort($editor_def_names);
+		T::equals($editor_def_names, ["search_pages", "search_tags"], "editor definitions exclude search_users");
 		T::equals($editor_defs[0]["function"]["name"], "search_pages", "definition is OpenAI-shaped");
 	}
 
@@ -164,6 +172,7 @@
 		$registry = new AIToolRegistry();
 		$registry->register(new SearchPagesTool($backend));
 		$registry->register(new SearchTagsTool($backend));
+		$registry->register(new SearchUsersTool($backend));
 		$registry->register(new GetPageTool($backend));
 
 		$ctx_editor = new AIToolContext(ai_fake_user(0), 8);
@@ -182,11 +191,14 @@
 		$empty = $registry->execute("search_pages", ["query" => "  "], $ctx_editor);
 		T::equals($empty->toModelPayload()["status"], "error", "empty query errors");
 
-		// Editor is blocked from search_tags at the registry (tool hidden) ...
-		$denied = $registry->execute("search_tags", ["query" => "news"], $ctx_editor);
+		// An editor can read the tag vocabulary — they are allowed to attach tags.
+		$editor_tags = $registry->execute("search_tags", ["query" => "news"], $ctx_editor);
+		T::ok($editor_tags->isOk(), "editor can search tags");
+
+		// A hidden tool is still denied at the registry.
+		$denied = $registry->execute("search_users", ["query" => "bob"], $ctx_editor);
 		T::equals($denied->toModelPayload()["status"], "denied", "registry denies hidden tool");
 
-		// ... but an admin can run it.
 		$ctx_admin = new AIToolContext(ai_fake_user(1), 8);
 		$tags = $registry->execute("search_tags", ["query" => "news"], $ctx_admin);
 		T::ok($tags->isOk(), "admin runs search_tags");

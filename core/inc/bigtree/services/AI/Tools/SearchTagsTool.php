@@ -3,7 +3,6 @@
 
 	use BigTree\Services\AI\AIToolContext;
 	use BigTree\Services\AI\AIToolResult;
-	use BigTree\Services\AI\CapabilitySummary;
 
 	class SearchTagsTool extends AbstractSearchTool {
 		public function name(): string {
@@ -12,28 +11,29 @@
 		}
 
 		/**
-		 * Tags are an administrator concern — hide the tool from editors entirely so
-		 * the model never offers it.
+		 * Available to everyone, matching GET /tags/search (level 0) and the tag
+		 * browser any editor gets in the page editor.
+		 *
+		 * This was administrator-only while `can_attach_tags` is true for every user
+		 * — so an editor was told they may tag things and given no way to discover
+		 * what tags exist. Reading the vocabulary is not the privileged part;
+		 * *coining* a tag is, and that gate lives on add_tags where it belongs.
 		 */
 		public function isAvailable($user): bool {
 
-			return CapabilitySummary::level($user) >= 1;
+			return true;
 		}
 
 		public function definition($user): array {
 
 			return $this->functionDefinition(
 				$this->name(),
-				"Search content tags (administrators).",
+				"Search the site's existing content tags by name.",
 				$this->queryParameters()
 			);
 		}
 
 		public function execute(array $args, AIToolContext $context): AIToolResult {
-			if ($context->userLevel() < 1) {
-				return AIToolResult::denied("Only administrators can search tags.");
-			}
-
 			$terms = $this->queryTerms($args);
 
 			if (!$terms) {

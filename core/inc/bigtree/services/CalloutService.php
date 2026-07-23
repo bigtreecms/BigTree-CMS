@@ -9,6 +9,7 @@
 	use BigTree\Api\Resources;
 	use BigTree\Api\TemplateScaffold;
 	use BigTree\Api\Exceptions\AuthorizationException;
+	use BigTree\Api\Exceptions\BadRequestException;
 	use BigTree\Services\AI\Tools\CalloutToolBackend;
 	use BigTree;
 	use BigTreeCMS;
@@ -45,6 +46,7 @@
 
 		public function create(Request $request) {
 			$d = $request->body;
+			$this->assertNoReservedFieldIds($d["resources"] ?? []);
 			$id = (new JsonStore("callouts", "Callout"))->requireNewId($d);
 
 			// name defaults to the id when the caller omits it.
@@ -84,10 +86,32 @@
 			$existing = Entity::findOrFailJson("callouts", $id, "Callout");
 
 			$d = $request->body;
+			$this->assertNoReservedFieldIds($d["resources"] ?? []);
 			$next = array_merge($existing, FieldSpec::update($d, self::FIELDS));
 			BigTreeJSONDB::update("callouts", $id, $next);
 
 			return Response::ok($this->present(BigTreeJSONDB::get("callouts", $id)));
+		}
+
+		/**
+		 * Refuse a callout whose fields claim an id the placed instance owns. Legacy
+		 * refused this in the developer UI (admin.php:998); the REST rewrite lost the
+		 * guard, and a field called `type` makes every callout of that type render as
+		 * nothing on every page it's placed on.
+		 *
+		 * @param mixed $resources
+		 * @throws BadRequestException
+		 */
+		private function assertNoReservedFieldIds($resources): void {
+			$reserved = Resources::reservedCalloutFieldIds($resources);
+
+			if ($reserved) {
+				throw new BadRequestException(
+					"A callout field can't be named \"" . implode("\" or \"", $reserved) . "\" — that key belongs "
+						. "to the placed callout itself.",
+					"reserved_field_id"
+				);
+			}
 		}
 
 		public function delete(Request $request) {
@@ -185,6 +209,45 @@
 		// Developer level is re-checked at validation and approval.
 
 		/**
+		 * The column caps routes/callouts.php declares. Enforced here too: nothing in
+		 * the AI seams checked them, so a 400-character id passed validation, inserted
+		 * the record, then failed the render-file write — leaving a callout that
+		 * renders nothing and a proposal reported as successful.
+		 */
+		private const AI_CALLOUT_MAX_LENGTHS = [
+			"id" => 127,
+			"name" => 255,
+			"description" => 1024,
+			"display_field" => 255,
+			"display_default" => 255,
+		];
+
+		/**
+		 * The first over-length callout value, as a recoverable error. Shared by
+		 * staging and approval so a stored payload can't slip past.
+		 *
+		 * @param array<string,mixed> $fields
+		 */
+		private function aiCalloutLengthError(array $fields): ?string {
+			foreach (self::AI_CALLOUT_MAX_LENGTHS as $field => $max) {
+				if (!array_key_exists($field, $fields)) {
+
+					continue;
+				}
+
+				$length = mb_strlen((string)$fields[$field]);
+
+				if ($length > $max) {
+
+					return "The callout's {$field} is {$length} characters, but the field holds at most {$max}. "
+						. "Shorten it and try again.";
+				}
+			}
+
+			return null;
+		}
+
+		/**
 		 * @param array<string,mixed> $args
 		 * @param object|array $user
 		 * @return array<string,mixed>
@@ -231,7 +294,8 @@
 			}
 
 			$fields = $this->aiCalloutFields($args["fields"] ?? []);
-			$type_error = $this->aiInvalidFieldTypeError($fields)
+			$type_error = Resources::aiFieldIdError($args["fields"] ?? [], "callout")
+				?? $this->aiInvalidFieldTypeError($fields)
 				?? Resources::aiUnconfigurableFieldError($args["fields"] ?? [], [], "callout");
 
 			if ($type_error !== null) {
@@ -271,6 +335,13 @@
 				"resources" => $fields,
 				"group" => $group["id"],
 			];
+
+			$too_long = $this->aiCalloutLengthError($payload);
+
+			if ($too_long !== null) {
+
+				return ["error" => $too_long];
+			}
 
 			// A callout outside every group is invisible in a callouts field restricted
 			// to one — it "exists" and is unusable exactly where it was wanted. Say so
@@ -330,12 +401,21 @@
 			}
 
 			$resources = is_array($payload["resources"] ?? null) ? $payload["resources"] : [];
-			$type_error = $this->aiInvalidFieldTypeError($resources)
+			$type_error = Resources::aiFieldIdError($resources, "callout")
+				?? $this->aiInvalidFieldTypeError($resources)
 				?? Resources::aiUnconfigurableFieldError($resources, [], "callout");
 
 			if ($type_error !== null) {
 
 				return ["mode" => "error", "message" => $type_error];
+			}
+
+			// Re-asked at approval like every other staged value.
+			$too_long = $this->aiCalloutLengthError($payload);
+
+			if ($too_long !== null) {
+
+				return ["mode" => "error", "message" => $too_long];
 			}
 
 			$insert = [
@@ -574,7 +654,8 @@
 			if (array_key_exists("fields", $args)) {
 				$before = is_array($existing["resources"] ?? null) ? $existing["resources"] : [];
 				$fields = $this->aiCalloutFields($args["fields"], $before);
-				$type_error = $this->aiInvalidFieldTypeError($fields)
+				$type_error = Resources::aiFieldIdError($args["fields"], "callout")
+					?? $this->aiInvalidFieldTypeError($fields)
 					?? Resources::aiUnconfigurableFieldError($args["fields"], $before, "callout");
 
 				if ($type_error !== null) {
@@ -650,6 +731,13 @@
 			if (!$changes) {
 
 				return ["error" => "No changes were supplied — nothing to update."];
+			}
+
+			$too_long = $this->aiCalloutLengthError($changes);
+
+			if ($too_long !== null) {
+
+				return ["error" => $too_long];
 			}
 
 			$name = (string)($existing["name"] ?? $id);
@@ -779,6 +867,14 @@
 				}
 			}
 
+			// Re-asked at approval like every other staged value.
+			$too_long = $this->aiCalloutLengthError($changes);
+
+			if ($too_long !== null) {
+
+				return ["mode" => "error", "message" => $too_long];
+			}
+
 			if (array_key_exists("level", $changes)) {
 				$level = (int)$changes["level"];
 
@@ -798,7 +894,8 @@
 
 				// Only the staging pass used to check the types, so an extension
 				// uninstalled inside the TTL wrote its now-unknown type verbatim.
-				$type_error = $this->aiInvalidFieldTypeError($merged)
+				$type_error = Resources::aiFieldIdError($changes["fields"], "callout")
+					?? $this->aiInvalidFieldTypeError($merged)
 					?? Resources::aiUnconfigurableFieldError($changes["fields"], $before, "callout");
 
 				if ($type_error !== null) {
@@ -808,16 +905,24 @@
 
 				$update["resources"] = $merged;
 			} elseif (array_key_exists("resources", $changes)) {
+				// A payload carrying `resources` rather than `fields` — nothing stages
+				// one today, but if anything ever does it must go through the same
+				// merge, not straight to clean(): clean() rebuilds each field from what
+				// it was handed, so a payload that restated a field without its
+				// settings would silently strip the configuration a human set.
+				$before = is_array($existing["resources"] ?? null) ? $existing["resources"] : [];
 				$resources = is_array($changes["resources"]) ? $changes["resources"] : [];
-				$type_error = $this->aiInvalidFieldTypeError($resources)
-					?? Resources::aiUnconfigurableFieldError($resources, [], "callout");
+				$merged = $this->aiCalloutFields($resources, $before);
+				$type_error = Resources::aiFieldIdError($resources, "callout")
+					?? $this->aiInvalidFieldTypeError($merged)
+					?? Resources::aiUnconfigurableFieldError($resources, $before, "callout");
 
 				if ($type_error !== null) {
 
 					return ["mode" => "error", "message" => $type_error];
 				}
 
-				$update["resources"] = Resources::clean($resources);
+				$update["resources"] = $merged;
 			}
 
 			// display_field has to name a field that exists in the *resulting* list.
@@ -1061,7 +1166,7 @@
 		 */
 		private function aiCalloutFields($fields, array $existing = []): array {
 
-			return Resources::mergeAiFields($fields, $existing);
+			return Resources::mergeAiFields($fields, $existing, "callout");
 		}
 
 		/**

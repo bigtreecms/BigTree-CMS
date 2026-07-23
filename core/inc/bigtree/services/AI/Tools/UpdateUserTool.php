@@ -60,9 +60,11 @@
 						],
 						"alerts" => [
 							"type" => "object",
-							"description" => "Content-alert thresholds: page id => number of days after which that "
-								. "page (and everything under it) is flagged stale for this user. Replaces the whole "
-								. "map — read the current one with get_content_alerts first.",
+							"description" => "Content-alert subscriptions: page id => true to watch that page (and "
+								. "everything under it), false to stop watching it. Use page id 0 for the whole page "
+								. "tree. Merged into the user's existing subscriptions, so send only the pages you "
+								. "are changing. How stale is too stale isn't set here — it comes from each page's "
+								. "own max_age.",
 						],
 					],
 					"required" => ["user_id"],

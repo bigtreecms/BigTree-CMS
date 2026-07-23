@@ -71,6 +71,10 @@
 				"can_attach_tags" => true,
 				"can_manage_settings" => $level >= 1,
 				"can_manage_templates" => $level >= 2,
+				// get_my_capabilities' own description promises callouts; the map never
+				// had a key for them, so "can you edit callouts?" had no answer in the
+				// one place built to answer it.
+				"can_manage_callouts" => $level >= 2,
 				"can_manage_modules" => $level >= 2,
 				// create_redirect is administrator-gated like the rest, but the map the
 				// SPA and the tests read had no key for it at all.
@@ -115,7 +119,12 @@
 				"Reordering module entries" => "the module's landing view",
 				"Reordering templates, callouts or modules" =>
 					"the relevant Developer screen — the assistant can create and edit these, but not reorder them",
-				"Editing a module's tables, forms, views or actions" =>
+				// Group-based permissions belong on this line rather than under user
+				// permissions above: it is part of the module's own definition, and
+				// create_module/update_module deliberately can't express it — turning it
+				// on is several interdependent choices, and getting them wrong hides
+				// every existing entry from every editor scoped to a group.
+				"Editing a module's tables, forms, views or actions, or its group-based permissions" =>
 					"Developer → Modules → Module Designer",
 				// The line above is about *editing* a report's definition and says
 				// nothing about running one, so "export the events module to CSV" hit
@@ -163,11 +172,15 @@
 					"Developer → Modules and Developer → Callouts — the assistant can create a group, but not "
 						. "change one afterwards",
 				// Group *membership* is a different thing from the group record: the
-				// assistant can file a callout in a group at create or update, but
-				// cannot rearrange a group's contents.
-				"Reordering the callouts inside a group, or moving a module between groups" =>
-					"Developer → Callouts and Developer → Modules — the assistant can put a callout in a group "
-						. "with create_callout or update_callout, but not reorder or regroup beyond that",
+				// assistant can file a callout in a group at create or update, and can
+				// move a module between groups with update_module, but cannot
+				// rearrange a group's contents. Listing the module move here as
+				// out-of-scope contradicted update_module's own `group` argument — and
+				// every decline line is spliced into the system prompt beside "do not
+				// improvise a workaround", so the contradiction was load-bearing.
+				"Reordering the callouts inside a group" =>
+					"Developer → Callouts — the assistant can put a callout in a group with create_callout or "
+						. "update_callout, but not reorder a group's contents",
 				"System maintenance — clearing caches, backups, upgrades, security policy, IP bans" =>
 					"Developer → System",
 				"Configuring integrations — email, geocoding, cloud storage, analytics, payments, media presets, "
