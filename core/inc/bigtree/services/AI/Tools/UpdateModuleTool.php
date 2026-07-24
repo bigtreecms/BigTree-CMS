@@ -32,9 +32,10 @@
 
 			return $this->functionDefinition(
 				$this->name(),
-				"Propose renaming a module, moving it to a different group, or changing its icon (developer "
-					. "only). Requires approval. Only include what you want to change. A module's route, database "
-					. "table, forms, views and actions cannot be changed here — those live in the Module Designer.",
+				"Propose renaming a module, moving it to a different group, changing its icon, or pointing it at "
+					. "a different handler class (developer only). Requires approval. Only include what you want to "
+					. "change. A module's route, database table, forms, views and actions cannot be changed here — "
+					. "those live in the Module Designer.",
 				[
 					"type" => "object",
 					"properties" => [
@@ -54,6 +55,12 @@
 						"icon" => [
 							"type" => "string",
 							"description" => "New icon identifier for the admin navigation.",
+						],
+						"class" => [
+							"type" => "string",
+							"description" => "Name of the module class that handles this module's entries. It must "
+								. "already exist and not belong to another module — the Module Designer creates "
+								. "classes, this only re-points an existing one. Pass an empty string to unset it.",
 						],
 					],
 					"required" => ["module_id"],

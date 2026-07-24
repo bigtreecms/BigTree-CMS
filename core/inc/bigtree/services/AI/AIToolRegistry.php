@@ -143,5 +143,8 @@
 			AIToolResult::DENIED,
 			AIToolResult::ERROR,
 			AIToolResult::NEEDS_INPUT,
+			// Nothing was staged and nothing was written: the change this call would
+			// make depends on one that is still on an unapproved card.
+			AIToolResult::NEEDS_PRIOR_CHANGE,
 		];
 	}

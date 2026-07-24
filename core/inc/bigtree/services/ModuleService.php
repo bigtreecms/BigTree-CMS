@@ -1361,16 +1361,44 @@
 				}
 			}
 
+			// Settable on create and nowhere afterwards, with no decline line either, so
+			// "point the Events module at the new handler class" hit no tool and no wall
+			// (audit #9 B1). Unlike the route — which is declined because changing it
+			// breaks every bookmark and hard-coded link — a class change breaks neither,
+			// and the validation the create path uses already exists. The Module
+			// Designer still owns *creating* a class; this only re-points at one.
+			if (array_key_exists("class", $args)) {
+				$class = trim((string)$args["class"]);
+
+				if ($class !== "" && !$this->moduleClassExists($class, (string)$module["id"])) {
+
+					return ["error" => "\"{$class}\" isn't available as a module class — it either doesn't exist, or "
+						. "another module already uses it. The Module Designer creates module classes; this can only "
+						. "point the module at one that already exists."];
+				}
+
+				if ($class !== (string)($module["class"] ?? "")) {
+					$changes["class"] = $class;
+					$diff["class"] = [
+						"from" => (string)($module["class"] ?? "") ?: "(none)",
+						"to" => $class ?: "(none)",
+					];
+				}
+			}
+
 			if (!$changes) {
 
 				return ["error" => "No changes were supplied — nothing to update."];
 			}
 
 			$name = (string)($module["name"] ?? $module["id"]);
+			$class_note = array_key_exists("class", $changes)
+				? " Entries already stored keep their table; only the code that handles them changes."
+				: "";
 
 			return [
 				"ok" => true,
-				"summary" => "Update module “{$name}”. Its route, table, forms and views are unchanged.",
+				"summary" => "Update module “{$name}”. Its route, table, forms and views are unchanged." . $class_note,
 				"preview" => [
 					"action" => "update_module",
 					"id" => (string)$module["id"],
@@ -1407,8 +1435,24 @@
 
 			$changes = is_array($payload["changes"] ?? null) ? $payload["changes"] : [];
 
+			// Re-asked at approval like the create path does: a class free at staging
+			// can be claimed by another module, or removed from the codebase, inside the
+			// proposal's 24h life.
+			if (array_key_exists("class", $changes)) {
+				$class = trim((string)$changes["class"]);
+
+				if ($class !== "" && !$this->moduleClassExists($class, $id)) {
+
+					return ["mode" => "error", "message" => "The class \"{$class}\" is no longer available — it either "
+						. "doesn't exist or another module has claimed it since this was proposed."];
+				}
+
+				$module["class"] = $class;
+			}
+
 			// A group can be removed by storing null, so the key's presence is what
-			// matters, not its truthiness.
+			// matters, not its truthiness. `class` is handled above (it needs the
+			// re-check, and it is not HTML-escaped — it's a PHP class name).
 			foreach (["name", "group", "icon"] as $field) {
 				if (array_key_exists($field, $changes)) {
 					$module[$field] = $field === "group" ? $changes[$field] : BigTree::safeEncode((string)$changes[$field]);
@@ -1617,11 +1661,21 @@
 				"description" => "Leave the module ungrouped in the admin navigation",
 			];
 
-			return ["needs_input" => [
-				"question" => "There's no module group called “{$requested}”. Which group should this module go in? "
-					. "(create_module_group can make a new one.)",
-				"options" => $options,
-			]];
+			return [
+				"needs_input" => [
+					"question" => "There's no module group called “{$requested}”. Which group should this module go in? "
+						. "(create_module_group can make a new one.)",
+					"options" => $options,
+				],
+				// The group may be staged and unapproved rather than absent — see
+				// aiResolveCalloutGroup for the same case (audit #9 A1).
+				"prior_change" => [
+					"tool" => "create_module_group",
+					"value" => $requested,
+					"keys" => ["name"],
+					"label" => "A module group called “{$requested}”",
+				],
+			];
 		}
 
 		/**

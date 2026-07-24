@@ -20,7 +20,11 @@ export interface ChatToolActivity {
 	options?: ChatToolChoice[];
 	/** The question to put to the user, when status is "needs_input". */
 	question?: string;
-	/** AIToolResult status: ok | denied | needs_input | proposal | error. */
+	/**
+	 * AIToolResult status: ok | denied | needs_input | needs_prior_change |
+	 * proposal | error. "needs_prior_change" means nothing was staged — the change
+	 * depends on another proposal the user hasn't approved yet.
+	 */
 	status: string;
 }
 

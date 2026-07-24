@@ -96,6 +96,7 @@
 			"create_user" => [
 				"email" => "search_users", "name" => "search_users", "company" => "search_users",
 				"timezone" => "search_users",
+				"daily_digest" => "search_users", "alerts" => "get_content_alerts",
 			],
 			"update_user" => [
 				"user_id" => "search_users", "email" => "search_users", "name" => "search_users",
@@ -132,10 +133,120 @@
 			],
 			"update_module" => [
 				"module_id" => "get_module", "name" => "get_module", "icon" => "get_module",
-				"group" => "get_module",
+				"group" => "get_module", "class" => "get_module",
 			],
 			"create_module_group" => ["name" => "get_module"],
 		];
+	}
+
+	/**
+	 * Audit #9 E3: create/update tool pairs, and the arguments only one of them has.
+	 *
+	 * B1 (`class` settable on create_module, not on update_module) and B3
+	 * (`daily_digest`/`alerts` settable on update_user, not on create_user) are the
+	 * same shape in both directions, and both were found by reading route files. The
+	 * pairing is knowable without one: for every create/update pair, an argument one
+	 * declares and the other doesn't is either deliberate — and then someone can say
+	 * why — or a hole the model discovers by failing.
+	 *
+	 * Every entry is `create-only: …` / `update-only: …` with the reason. An
+	 * unexplained difference fails.
+	 *
+	 * @return array<string,array{0:string,1:string,2:array<string,string>}>
+	 */
+	function ai_surface_create_update_pairs(): array {
+
+		return [
+			"page" => ["create_page", "update_page", [
+				"parent" => "create-only: a page's location is chosen when it is created; move_page changes it after",
+				"content" => "create-only: update_page_content owns content edits, with its own fingerprint and lock",
+				"tags" => "create-only: add_tags and remove_tags own tag edits on an existing page",
+				"id" => "update-only: names the page being edited",
+			]],
+			"module_entry" => ["create_module_entry", "update_module_entry", [
+				"tags" => "create-only: add_tags and remove_tags own tag edits on an existing entry",
+				"entry_id" => "update-only: names the entry being edited",
+			]],
+			"callout" => ["create_callout", "update_callout", []],
+			"module" => ["create_module", "update_module", [
+				"route" => "create-only: changing a module's route is a named decline (it breaks bookmarks and links)",
+				"module_id" => "update-only: names the module being edited",
+			]],
+			"user" => ["create_user", "update_user", [
+				"user_id" => "update-only: names the user being edited",
+			]],
+			"template" => ["create_template", "update_template", [
+				// TemplateService::FIELDS omits `routed` for the same reason: the flag
+				// decides where the render file lives (templates/routed/{id}/default.php
+				// vs templates/basic/{id}.php), so flipping it orphans the file.
+				"routed" => "create-only: the flag decides where the template's render file is written, so it is "
+					. "fixed at creation — REST's PATCH doesn't rewrite it either",
+			]],
+		];
+	}
+
+	/**
+	 * The inverse of ai_surface_readable_by(): a difference between a create tool and
+	 * its update tool must be a decision someone wrote down.
+	 */
+	function test_create_and_update_tools_are_symmetric_or_explained() {
+		$registry = ai_wiring_registry();
+		$developer = ai_wiring_user(2);
+		$unexplained = [];
+		$stale = [];
+
+		$arguments = function (string $name) use ($registry, $developer): ?array {
+			$tool = $registry->get($name);
+
+			if ($tool === null) {
+
+				return null;
+			}
+
+			$properties = $tool->definition($developer)["function"]["parameters"]["properties"] ?? [];
+
+			return is_array($properties) ? array_keys($properties) : [];
+		};
+
+		foreach (ai_surface_create_update_pairs() as $label => [$create, $update, $reasons]) {
+			$create_args = $arguments($create);
+			$update_args = $arguments($update);
+
+			T::ok($create_args !== null, "{$create} is a registered tool");
+			T::ok($update_args !== null, "{$update} is a registered tool");
+
+			if ($create_args === null || $update_args === null) {
+
+				continue;
+			}
+
+			$asymmetric = array_merge(
+				array_values(array_diff($create_args, $update_args)),
+				array_values(array_diff($update_args, $create_args))
+			);
+
+			foreach ($asymmetric as $argument) {
+				if (!isset($reasons[$argument])) {
+					$unexplained[] = "{$label}.{$argument}";
+				}
+			}
+
+			// And the reasons must not outlive the asymmetry: an argument since added
+			// to the other tool is symmetric now, and its exception has become a note
+			// about a decision that no longer holds.
+			foreach (array_keys($reasons) as $argument) {
+				if (!in_array($argument, $asymmetric, true)) {
+					$stale[] = "{$label}.{$argument}";
+				}
+			}
+		}
+
+		T::equals(
+			implode(", ", $unexplained),
+			"",
+			"every create/update argument difference is declared create-only or update-only with a reason"
+		);
+		T::equals(implode(", ", $stale), "", "no create/update exception describes an asymmetry that no longer exists");
 	}
 
 	/**

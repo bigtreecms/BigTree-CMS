@@ -58,6 +58,13 @@
 			// The positive control the plan generalized: the callout group is re-resolved
 			// at approval and the callout degrades ungrouped-with-note if it's gone.
 			"create_callout" => [CalloutService::class, "aiCreateCallout", ["aiAddCalloutToGroup"]],
+			// The mirror image, once a group could be created with members: each callout
+			// is re-read at approval (a deleted one is dropped with a note rather than
+			// written into the group's list as a member that renders as nothing).
+			"create_callout_group" => [
+				CalloutService::class, "aiCreateCalloutGroup",
+				['BigTreeJSONDB::exists("callouts"', "aiRemoveCalloutFromGroups"],
+			],
 		];
 	}
 
@@ -72,7 +79,6 @@
 
 		return [
 			"create_template" => "self-contained: writes one JSON-DB record; its id is re-checked free at approval",
-			"create_callout_group" => "self-contained: only a name, re-checked for uniqueness and length at approval",
 			"create_module_group" => "self-contained: only a name, re-checked for uniqueness and length at approval",
 			"create_user" => "no container; email uniqueness/format is re-checked at approval",
 		];

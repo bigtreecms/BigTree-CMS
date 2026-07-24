@@ -665,6 +665,14 @@
 
 			$this->assertPending($proposal);
 
+			$payload = $store->decodePayload($proposal);
+
+			// A card that depends on another card refuses until that one is resolved.
+			// Checked before the claim so the proposal stays pending and clickable
+			// after the prerequisite is approved, rather than being spent on a refusal
+			// (audit #9 A3).
+			$this->assertPrerequisiteResolved($store, $payload, $request->user);
+
 			// Claim the proposal before executing so two concurrent approvals can't both
 			// pass the pending check and run the mutation twice. A lost race means it was
 			// already resolved (or rejected) out from under us.
@@ -672,13 +680,16 @@
 				throw new BadRequestException("This proposal has already been resolved.", "proposal_resolved");
 			}
 
-			$payload = $store->decodePayload($proposal);
 			$stale = self::stalenessError($payload);
 			// Re-asked now rather than replayed from staging: the card's lock note was
 			// a snapshot taken up to 24 hours ago, and both "they've since opened it"
 			// and "they've since closed it" are answers the approver deserves.
 			$lock_note = ContentLock::note($payload[AbstractMutatingTool::LOCK_KEY] ?? null, $request->user);
-			unset($payload[AbstractMutatingTool::FINGERPRINT_KEY], $payload[AbstractMutatingTool::LOCK_KEY]);
+			unset(
+				$payload[AbstractMutatingTool::FINGERPRINT_KEY],
+				$payload[AbstractMutatingTool::LOCK_KEY],
+				$payload[AbstractMutatingTool::DEPENDS_ON_KEY]
+			);
 
 			if ($stale !== null) {
 				// The record moved under the card. Recorded as failed (not approved)
@@ -810,6 +821,48 @@
 				"message" => "This has changed since it was proposed, so the change described on this card no longer "
 					. "matches what's stored. Ask again to see the current state.",
 			];
+		}
+
+		/**
+		 * Guard that a proposal whose staging recorded a prerequisite isn't approved
+		 * before it.
+		 *
+		 * Audit #8's container re-checks already made a wrong order *fail* rather than
+		 * write a dangling reference, but the user was given no reason to expect it and
+		 * no hint about which card to click first. Where the two cards are known to be
+		 * related, name the other one instead of letting the write discover it.
+		 *
+		 * Blocks while the prerequisite is still actionable — pending, or failed and
+		 * retryable — because in both cases the thing it would create does not exist.
+		 * A rejected one does not block: the user decided against it, and this change
+		 * may still be what they want (the approval-time container re-checks are what
+		 * catch it if it isn't).
+		 *
+		 * @param array<string,mixed> $payload
+		 * @param object|array $user
+		 */
+		private function assertPrerequisiteResolved(ProposalStore $store, array $payload, $user): void {
+			$depends_on = $payload[AbstractMutatingTool::DEPENDS_ON_KEY] ?? null;
+
+			if (!is_array($depends_on) || (string)($depends_on["id"] ?? "") === "") {
+
+				return;
+			}
+
+			$prerequisite = $store->loadOwned((string)$depends_on["id"], $user);
+
+			if ($prerequisite === null || !in_array($prerequisite["status"], ProposalStore::ACTIONABLE, true)) {
+
+				return;
+			}
+
+			$summary = trim((string)($prerequisite["summary"] ?? "")) ?: (string)$depends_on["tool"];
+
+			throw new BadRequestException(
+				"This change depends on another proposal that hasn't been applied yet: “"
+					. mb_substr($summary, 0, 160) . "”. Approve that one first, then approve this.",
+				"proposal_prerequisite_pending"
+			);
 		}
 
 		/**
@@ -1295,12 +1348,36 @@
 		 */
 		private static function proposalOutcomeReplay(array $proposals): string {
 			$lines = [];
+			$pending = [];
 
 			foreach ($proposals as $proposal) {
 				$status = (string)($proposal["status"] ?? "");
 				$tool = (string)($proposal["tool"] ?? "");
 
-				if ($tool === "" || $status === "" || $status === ProposalStore::PENDING) {
+				if ($tool === "" || $status === "") {
+
+					continue;
+				}
+
+				// Pending rows were skipped, which left the model unable to see the one
+				// fact it needs to sequence a two-step intent: that it has a change
+				// staged and unapproved (audit #9 A1). They are listed separately —
+				// nothing about them has happened, so they must not read like outcomes.
+				if ($status === ProposalStore::PENDING) {
+					// A row only flips to `expired` when someone tries to load it
+					// (loadOwned), so a conversation resumed after the 24h TTL still
+					// reads PENDING here. Listing one would tell the model to wait for a
+					// card that can never be approved — the opposite of the sequencing
+					// this block exists to enable. pendingForConversation() excludes them
+					// for the same reason.
+					if (ProposalStore::isExpired($proposal)) {
+
+						continue;
+					}
+
+					$summary = trim((string)($proposal["summary"] ?? ""));
+					$pending[] = "- " . $tool . ($summary !== "" ? ": " . mb_substr($summary, 0, 160) : "")
+						. " [proposal " . (string)($proposal["proposal_id"] ?? "") . "]";
 
 					continue;
 				}
@@ -1329,7 +1406,7 @@
 				$lines[] = $line;
 			}
 
-			if (!$lines) {
+			if (!$lines && !$pending) {
 
 				return "";
 			}
@@ -1338,14 +1415,34 @@
 				$lines = array_slice($lines, -self::REPLAYED_TOOL_CALLS);
 			}
 
-			// Fenced for the same reason the tool replay is: a failure message can
-			// quote content the user or a third party wrote.
-			return "Changes you staged earlier in this conversation, and what became of them. An approved change "
-				. "has already been applied — do not propose it again. A rejected one was declined by the user: "
-				. "ask before re-proposing it.\n"
-				. PromptGuard::BEGIN . "\n"
-				. PromptGuard::neutralize(implode("\n", $lines)) . "\n"
-				. PromptGuard::END;
+			if (count($pending) > self::REPLAYED_TOOL_CALLS) {
+				$pending = array_slice($pending, -self::REPLAYED_TOOL_CALLS);
+			}
+
+			$note = "";
+
+			if ($lines) {
+				$note .= "Changes you staged earlier in this conversation, and what became of them. An approved change "
+					. "has already been applied — do not propose it again. A rejected one was declined by the user: "
+					. "ask before re-proposing it.\n"
+					. PromptGuard::BEGIN . "\n"
+					. PromptGuard::neutralize(implode("\n", $lines)) . "\n"
+					. PromptGuard::END;
+			}
+
+			if ($pending) {
+				$note .= ($note !== "" ? "\n\n" : "")
+					. "Changes you staged that are still waiting on the user — nothing has been written for any of "
+					. "these, so anything they would create does not exist yet. Do not propose them again, and do not "
+					. "propose a change that depends on one until the user says they've approved it.\n"
+					. PromptGuard::BEGIN . "\n"
+					. PromptGuard::neutralize(implode("\n", $pending)) . "\n"
+					. PromptGuard::END;
+			}
+
+			// Fenced for the same reason the tool replay is: a summary or failure
+			// message can quote content the user or a third party wrote.
+			return $note;
 		}
 
 		/**
@@ -1458,6 +1555,10 @@
 				case AIToolResult::PROPOSAL:
 
 					return " → staged a proposal for the user to approve";
+
+				case AIToolResult::NEEDS_PRIOR_CHANGE:
+
+					return " → blocked: it needs an earlier proposal to be approved first";
 			}
 
 			return "";
@@ -1487,6 +1588,8 @@
 			$lines[] = "Making changes:";
 			$lines[] = "- You cannot change anything directly. Tools that modify the CMS (create/update/archive pages, module entries, tags, settings, users, and developer resources) only PROPOSE a change: the user sees a confirmation card and must approve it before anything happens.";
 			$lines[] = "- After calling a mutating tool, never say the change is done. Say you have prepared it and ask the user to review and approve the card. If the tool returns needs_input, ask the user the question it provides; if it returns an error listing the fields it needs, gather them and try again.";
+			$lines[] = "- A change is only real once the user approves it. If a second change needs the first one to exist — putting a callout in a group you are also proposing, adding an entry to a module you are also proposing, pointing a redirect at a page you are also proposing — propose the first one, say plainly that the second follows once it's approved, and wait. Do not propose both at once and describe them as prepared.";
+			$lines[] = "- If a tool returns needs_prior_change, it means exactly that: the thing you referred to is staged on a card the user hasn't approved yet. Ask them to approve that card, then call the tool again — do not retry it as-is and do not pick a different existing item instead.";
 			$lines[] = "- Only propose a change the user actually asked for. Do not invent pages, titles, field values, or other content.";
 			$lines[] = "- If a tool is denied, explain the limit plainly and offer the path that would work (a pending draft, or asking someone with the right access) instead of retrying.";
 			$lines[] = "";

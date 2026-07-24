@@ -72,6 +72,7 @@ const HIDDEN_KEYS = new Set([
 	"publishes_draft",
 	"content_lock",
 	"incomplete_required",
+	"depends_on",
 ]);
 
 const humanize = (key: string): string =>
@@ -289,6 +290,11 @@ export const ProposalCard = ({
 		lockValue && typeof lockValue.holder === "string"
 			? { holder: lockValue.holder, kind: String(lockValue.kind ?? "item") }
 			: null;
+	// This card refers to something another, still-unapproved card would create.
+	// Approving them out of order is refused server-side, so the order has to be
+	// visible here rather than discovered by clicking.
+	const dependsOn =
+		typeof proposal.preview.depends_on === "string" ? proposal.preview.depends_on : "";
 	const ignored = Array.isArray(proposal.preview.ignored)
 		? (proposal.preview.ignored as unknown[]).map(String)
 		: [];
@@ -353,6 +359,13 @@ export const ProposalCard = ({
 							{contentLock.holder} has this {contentLock.kind} open in the editor right
 							now — if they save after this is approved, their copy wins.
 						</span>
+					</p>
+				)}
+
+				{dependsOn !== "" && (
+					<p className="mt-2 flex items-start gap-1.5 whitespace-pre-wrap break-words text-[11.5px] text-warn">
+						<Clock className="mt-px shrink-0" size={13} />
+						<span>{dependsOn}</span>
 					</p>
 				)}
 

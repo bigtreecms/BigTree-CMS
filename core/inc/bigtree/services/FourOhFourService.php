@@ -452,7 +452,7 @@
 				$preview["warning"] = $destination["warning"];
 			}
 
-			return [
+			$result = [
 				"ok" => true,
 				"summary" => "Redirect /{$source} to {$to}"
 					. ($site_key !== null ? " on the “{$site_key}” site." : ".")
@@ -468,6 +468,15 @@
 					"site_key" => $site_key,
 				],
 			];
+
+			// Carried through so the staging layer can link this card to the pending
+			// proposal that would create the destination page — see
+			// aiCheckRedirectDestination and AbstractMutatingTool::resolvePriorChange.
+			if (isset($destination["prior_change"])) {
+				$result["prior_change"] = $destination["prior_change"];
+			}
+
+			return $result;
 		}
 
 		/**
@@ -574,6 +583,7 @@
 			}
 
 			$warning = "";
+			$prior = [];
 			$is_internal = !$is_absolute || strpos($to, WWW_ROOT) === 0;
 
 			// Only meaningful for internal destinations — an external URL is nothing
@@ -584,10 +594,23 @@
 				if ($path !== "" && !SQL::fetchSingle("SELECT id FROM bigtree_pages WHERE path = ?", $path)) {
 					$warning = "No page exists at /{$path}. If that's a module route or a page that isn't published "
 						. "yet this is fine — otherwise the redirect will land on a 404.";
+					// "Create the new pricing page and point /old-pricing at it" stages
+					// both, and this is the dangerous half: it looks like it worked, and
+					// whether it lands on a real page depends on which card is approved
+					// first. Non-blocking — a redirect to a page that doesn't exist yet
+					// is legitimate — so it is recorded as a dependency rather than
+					// refused (audit #9 A1/A3).
+					$prior = ["prior_change" => [
+						"tool" => "create_page",
+						"value" => $path,
+						"keys" => ["path", "route"],
+						"label" => "The page at /{$path}",
+						"blocking" => false,
+					]];
 				}
 			}
 
-			return ["warning" => $warning];
+			return array_merge(["warning" => $warning], $prior);
 		}
 
 		/**

@@ -512,13 +512,45 @@
 				return ["error" => $too_long];
 			}
 
+			// Both are accepted by POST /users and settable by update_user, so leaving
+			// them off create made "add Dana and put her on the daily digest" two
+			// proposals — and the second could not even be staged until the first was
+			// approved, because the user id doesn't exist until then. That is the
+			// cheapest possible instance of the sequencing problem, so closing it
+			// removes one (audit #9 B3).
+			$digest = !empty($args["daily_digest"]) && $args["daily_digest"] !== "false";
+			$alerts = ["alerts" => []];
+
+			if (array_key_exists("alerts", $args)) {
+				// No stored map to merge into on a create — the same normalizer still
+				// governs which page ids are real and what counts as subscribed.
+				$alerts = $this->aiNormalizeAlerts($args["alerts"]);
+
+				if (isset($alerts["error"])) {
+
+					return $alerts;
+				}
+			}
+
+			$subscribed = array_keys($alerts["alerts"]);
+			$notification_note = "";
+
+			if ($digest) {
+				$notification_note .= " They'll receive the daily content digest email.";
+			}
+
+			if ($subscribed) {
+				$notification_note .= " They'll be subscribed to content alerts for "
+					. $this->aiDescribeAlerts($subscribed) . ".";
+			}
+
 			return [
 				"ok" => true,
 				"summary" => "Create a new editor account for {$name} ({$email})"
 					. ". They'll be an editor (level 0) with no permissions granted. They cannot log in until a "
 					. "password is set — approving this sends them an email invite to choose one. With no "
 					. "permissions the account signs in to an empty admin: someone will need to grant page or "
-					. "module access before they can do anything.",
+					. "module access before they can do anything." . $notification_note,
 				"preview" => [
 					"action" => "create_user",
 					"email" => $email,
@@ -526,6 +558,8 @@
 					"company" => $company,
 					"timezone" => $timezone,
 					"level" => 0,
+					"daily_digest" => $digest ? "on" : "off",
+					"alerts" => $subscribed ? $this->aiDescribeAlerts($subscribed) : "none",
 					"sends_invite_email" => true,
 					"grants_permissions" => false,
 					"note" => "Cannot log in until a password is set; an invite email will be sent to {$email} on "
@@ -537,6 +571,11 @@
 					"name" => $name,
 					"company" => $company,
 					"timezone" => $timezone,
+					"daily_digest" => $digest,
+					// Staged as the *request*, not the normalized result: a page in it
+					// can be deleted inside the proposal's 24h life, so the merge is
+					// redone at approval exactly as update_user's is.
+					"alerts" => array_key_exists("alerts", $args) && is_array($args["alerts"]) ? $args["alerts"] : [],
 				],
 			];
 		}
@@ -586,15 +625,27 @@
 				return ["mode" => "error", "message" => $too_long];
 			}
 
+			// Re-normalized at approval rather than replayed from staging: a page the
+			// subscription named can be deleted inside the proposal's 24h life, and a
+			// dead id is a subscription nothing will ever match.
+			$alerts = $this->aiNormalizeAlerts(is_array($payload["alerts"] ?? null) ? $payload["alerts"] : []);
+
+			if (isset($alerts["error"])) {
+
+				return ["mode" => "error", "message" => (string)$alerts["error"]];
+			}
+
 			// Always level 0, no password, no permissions — the assistant never grants
 			// privileges. The password is set by the invitee through the reset flow.
+			// Notification preferences are the one thing it does set here: they are the
+			// account's own, carry no authority, and REST accepts them on create.
 			$id = (int)SQL::insert("bigtree_users", [
 				"email" => BigTree::safeEncode($email),
 				"level" => 0,
 				"name" => BigTree::safeEncode($name),
 				"company" => BigTree::safeEncode((string)($payload["company"] ?? "")),
-				"daily_digest" => "",
-				"alerts" => [],
+				"daily_digest" => !empty($payload["daily_digest"]) ? "on" : "",
+				"alerts" => $alerts["alerts"],
 				"permissions" => [],
 				"timezone" => $timezone,
 			]);

@@ -31,6 +31,14 @@
 		 */
 		const LOCK_KEY = "__lock__";
 
+		/**
+		 * Reserved payload key naming the still-pending proposal this one depends on,
+		 * so approving them out of order refuses with the prerequisite named rather
+		 * than writing against a container that doesn't exist yet. Stripped before
+		 * dispatch like the fingerprint and the lock.
+		 */
+		const DEPENDS_ON_KEY = "__depends_on__";
+
 		/** @var ProposalStore */
 		protected $proposals;
 
@@ -61,6 +69,24 @@
 		 *   ["ok" => true, "summary" => string, "preview" => array, "payload" => array]
 		 */
 		protected function stageFromValidation(array $validation, AIToolContext $context, string $tool): AIToolResult {
+			$conversation_id = (int)($context->conversation_id !== "" ? $context->conversation_id : 0);
+
+			// Resolved before the error and needs_input branches below, because the
+			// seam attaches the descriptor *alongside* whichever of them it was going
+			// to return: "there is no callout group called Promos" is only the right
+			// answer when nothing in this conversation is already proposing to create
+			// one. See AIToolResult::needsPriorChange.
+			$prior = $this->resolvePriorChange($validation["prior_change"] ?? null, $conversation_id);
+
+			if ($prior !== null && !empty($prior["blocking"])) {
+
+				return AIToolResult::needsPriorChange(
+					$prior["message"],
+					(string)$prior["proposal"]["id"],
+					(string)$prior["proposal"]["tool"]
+				);
+			}
+
 			if (isset($validation["denied"])) {
 
 				return AIToolResult::denied((string)$validation["denied"], is_array($validation["alternatives"] ?? null) ? $validation["alternatives"] : []);
@@ -101,7 +127,6 @@
 				);
 			}
 
-			$conversation_id = (int)($context->conversation_id !== "" ? $context->conversation_id : 0);
 			$summary = (string)($validation["summary"] ?? "");
 			$preview = is_array($validation["preview"] ?? null) ? $validation["preview"] : [];
 			$payload = is_array($validation["payload"] ?? null) ? $validation["payload"] : [];
@@ -161,9 +186,132 @@
 				];
 			}
 
+			// A non-blocking prerequisite: this change *can* be staged against the world
+			// as it stands, but it refers to something another pending proposal would
+			// create (the classic case is a redirect pointing at a page that is itself
+			// still on a card). Both are legitimate; only the order matters, so record
+			// it rather than refusing.
+			if ($prior !== null) {
+				$payload[self::DEPENDS_ON_KEY] = [
+					"id" => (string)$prior["proposal"]["id"],
+					"tool" => (string)$prior["proposal"]["tool"],
+					"summary" => (string)$prior["proposal"]["summary"],
+				];
+				$summary .= " " . $prior["message"];
+				$preview["depends_on"] = $prior["message"];
+			}
+
 			$proposal = $this->proposals->create($context->user, $conversation_id, $tool, $summary, $preview, $payload);
 
 			return AIToolResult::proposal($summary, $preview, (string)$proposal["id"]);
+		}
+
+		/**
+		 * Match a seam's "this needs something that doesn't exist yet" descriptor
+		 * against the conversation's own unapproved proposals.
+		 *
+		 * The seams can't ask this themselves — they are handed args and a user, never
+		 * a conversation — and doing it here rather than per seam keeps one definition
+		 * of what "already proposed" means, the same way the fingerprint and the lock
+		 * are resolved once for the whole catalog.
+		 *
+		 * @param mixed $descriptor ["tools"|"tool" => …, "value" => string, "keys" => list<string>,
+		 *                           "label" => string, "blocking" => bool]
+		 * @return array{proposal:array<string,mixed>,message:string,blocking:bool}|null
+		 */
+		private function resolvePriorChange($descriptor, int $conversation_id): ?array {
+			if (!is_array($descriptor) || !$descriptor || $conversation_id <= 0) {
+
+				return null;
+			}
+
+			$tools = $descriptor["tools"] ?? $descriptor["tool"] ?? [];
+			$tools = array_values(array_filter(array_map("strval", is_array($tools) ? $tools : [$tools])));
+
+			if (!$tools) {
+
+				return null;
+			}
+
+			$value = self::comparableValue($descriptor["value"] ?? "");
+			$keys = is_array($descriptor["keys"] ?? null) ? $descriptor["keys"] : ["name"];
+			$blocking = !array_key_exists("blocking", $descriptor) || !empty($descriptor["blocking"]);
+
+			foreach ($this->proposals->pendingForConversation($conversation_id, $tools) as $row) {
+				if ($value !== "" && !self::proposalDescribes($row, $keys, $value)) {
+
+					continue;
+				}
+
+				$label = trim((string)($descriptor["label"] ?? ""));
+				$summary = trim((string)($row["summary"] ?? ""));
+				$message = $blocking
+					? ($label !== "" ? "{$label} doesn't exist yet" : "What this needs doesn't exist yet")
+						. ", but this conversation has an unapproved proposal that would create it"
+						. ($summary !== "" ? " (“" . self::firstSentence($summary) . "”)" : "")
+						. ". Ask the user to approve that card first, then propose this again — nothing has been "
+						. "written yet."
+					: "Note: this refers to something that doesn't exist yet but is covered by an unapproved "
+						. "proposal in this conversation"
+						. ($summary !== "" ? " (“" . self::firstSentence($summary) . "”)" : "")
+						. ". Approve that one first, or this will point at nothing.";
+
+				return ["proposal" => $row, "message" => $message, "blocking" => $blocking];
+			}
+
+			return null;
+		}
+
+		/**
+		 * Whether a pending proposal is the one that would create $value.
+		 *
+		 * Matched against the payload first and the preview second: the payload is what
+		 * will actually be written, but a derived value the approver was shown (a
+		 * page's full path, say) only exists on the preview.
+		 *
+		 * @param array<string,mixed> $row
+		 * @param list<string> $keys
+		 */
+		private static function proposalDescribes(array $row, array $keys, string $value): bool {
+			$payload = json_decode((string)($row["payload"] ?? ""), true);
+			$preview = json_decode((string)($row["preview"] ?? ""), true);
+			$sources = [is_array($payload) ? $payload : [], is_array($preview) ? $preview : []];
+
+			foreach ($keys as $key) {
+				foreach ($sources as $source) {
+					if (!isset($source[$key]) || is_array($source[$key])) {
+
+						continue;
+					}
+
+					if (self::comparableValue($source[$key]) === $value) {
+
+						return true;
+					}
+				}
+			}
+
+			return false;
+		}
+
+		/**
+		 * Normalize a name or a path for comparison. Case and surrounding slashes are
+		 * the two differences that routinely separate what the model typed from what
+		 * the staged proposal stored ("Promos" vs "promos", "/pricing" vs "pricing").
+		 *
+		 * @param mixed $value
+		 */
+		private static function comparableValue($value): string {
+
+			return mb_strtolower(trim(trim((string)$value), "/"));
+		}
+
+		/** A staged summary's opening sentence, for quoting one card inside another's message. */
+		private static function firstSentence(string $summary): string {
+			$end = mb_strpos($summary, ". ");
+			$sentence = $end === false ? $summary : mb_substr($summary, 0, $end + 1);
+
+			return rtrim(mb_substr(trim($sentence), 0, 160));
 		}
 
 		/**

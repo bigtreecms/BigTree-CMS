@@ -74,22 +74,57 @@
 
 	/** Tool names a developer sees in the real chat registry. */
 	function ai_contract_tool_names(): array {
-		static $names = null;
 
-		if ($names === null) {
+		return array_keys(ai_contract_tool_kinds());
+	}
+
+	/**
+	 * name => kind() for every tool in the real chat registry.
+	 *
+	 * The kind is what makes "a write verb is covered by a read tool" checkable
+	 * rather than a hand-maintained list — see
+	 * test_write_verbs_are_not_covered_by_read_tools.
+	 *
+	 * @return array<string,string>
+	 */
+	function ai_contract_tool_kinds(): array {
+		static $kinds = null;
+
+		if ($kinds === null) {
 			$service = new AIChatService();
 			$build = new ReflectionMethod($service, "buildRegistry");
 			$build->setAccessible(true);
 			$registry = $build->invoke($service, new ProposalStore());
 			$developer = (object)["id" => 1, "level" => 2, "permissions" => []];
-			$names = [];
+			$kinds = [];
 
 			foreach ($registry->availableTools($developer) as $tool) {
-				$names[] = $tool->name();
+				$kinds[$tool->name()] = $tool->kind();
 			}
 		}
 
-		return $names;
+		return $kinds;
+	}
+
+	/** The HTTP verbs that change something. */
+	function ai_contract_write_verbs(): array {
+
+		return ["POST", "PUT", "PATCH", "DELETE"];
+	}
+
+	/**
+	 * The distinct verbs a family declares.
+	 *
+	 * @return list<string>
+	 */
+	function ai_contract_verbs_for(string $family): array {
+		$verbs = [];
+
+		foreach (ai_contract_route_families()[$family] ?? [] as $endpoint) {
+			$verbs[] = strtok($endpoint, " ");
+		}
+
+		return array_values(array_unique($verbs));
 	}
 
 	/**
@@ -141,12 +176,30 @@
 				"PATCH" => "update_module_entry",
 				"DELETE" => "delete_module_entry",
 			],
-			"pages" => "create_page",
+			"pages" => [
+				"GET" => "get_page",
+				"POST" => "create_page",
+				"PATCH" => "update_page",
+				"DELETE" => "declined: deleting a page",
+			],
 			"pages/archive" => "archive_page",
 			"pages/unarchive" => "unarchive_page",
 			"pages/move" => "move_page",
-			"pages/pending" => "get_page",
-			"pages/revisions" => "get_page_revisions",
+			"pages/pending" => [
+				"GET" => "get_pending_change",
+				// The assistant edits a queued change by editing the page: an editor's
+				// update_page / update_page_content collapses onto the existing pending
+				// change rather than creating a second one (writePendingPageChange).
+				"PATCH" => "update_page",
+			],
+			"pages/revisions" => [
+				"GET" => "get_page_revisions",
+				// Two POSTs live here — saving a revision and restoring one — and the
+				// map is one tool per verb; restore_page_revision is covered by the
+				// catalog and asserted by the surface guards.
+				"POST" => "save_page_revision",
+				"DELETE" => "declined: deleting a page revision",
+			],
 			"pages/search" => "search_pages",
 			"pages/seo-rating" => "get_page_seo_rating",
 			"pending-changes" => "get_pending_changes",
@@ -155,8 +208,20 @@
 			"resources/search" => "search_files",
 			"search" => "search_pages",
 			"search/ai" => "semantic_search",
-			"settings" => "update_setting",
-			"tags" => "add_tags",
+			"settings" => [
+				"GET" => "get_settings",
+				"POST" => "declined: creating, deleting or redefining settings",
+				"PATCH" => "update_setting",
+				"DELETE" => "declined: creating, deleting or redefining settings",
+			],
+			"tags" => [
+				"GET" => "search_tags",
+				// A tag record is coined as a side effect of tagging something:
+				// add_tags creates any name that doesn't exist yet, gated to
+				// administrators exactly as POST /tags is.
+				"POST" => "add_tags",
+				"DELETE" => "declined: deleting tags",
+			],
 			"tags/merge" => "merge_tags",
 			"tags/search" => "search_tags",
 			"templates" => [
@@ -165,11 +230,25 @@
 				"PATCH" => "update_template",
 				"DELETE" => "declined: deleting users, templates, callouts, modules or settings",
 			],
-			"users" => "create_user",
+			"users" => [
+				"GET" => "search_users",
+				"POST" => "create_user",
+				"PATCH" => "update_user",
+				"DELETE" => "declined: deleting users, templates, callouts, modules or settings",
+			],
 			"audit" => "get_audit_trail",
 			"audit/tables" => "get_audit_trail",
 			"db/tables" => "get_module_schema",
-			"modules/forms" => "get_module_schema",
+			"modules/forms" => [
+				"GET" => "get_module_schema",
+				// A form's definition is the Module Designer's, and its writes are DDL
+				// over stored entries. These three verbs were classified COVERED by the
+				// read tool above, so the decline that actually applies was never
+				// asserted (audit #9 E1).
+				"POST" => "declined: tables, forms, views or actions",
+				"PATCH" => "declined: tables, forms, views or actions",
+				"DELETE" => "declined: tables, forms, views or actions",
+			],
 		];
 	}
 
@@ -315,7 +394,6 @@
 	 * one level down.
 	 */
 	function test_per_verb_coverage_maps_name_every_verb() {
-		$families = ai_contract_route_families();
 		$gaps = [];
 		$stale = [];
 
@@ -325,13 +403,7 @@
 				continue;
 			}
 
-			$verbs = [];
-
-			foreach ($families[$family] ?? [] as $endpoint) {
-				$verbs[] = strtok($endpoint, " ");
-			}
-
-			$verbs = array_values(array_unique($verbs));
+			$verbs = ai_contract_verbs_for($family);
 
 			foreach ($verbs as $verb) {
 				if (!isset($coverage[$verb])) {
@@ -348,6 +420,72 @@
 
 		T::equals(implode(", ", $gaps), "", "every verb of a per-verb family names a tool or a decline");
 		T::equals(implode(", ", $stale), "", "no per-verb entry names a verb the family no longer declares");
+	}
+
+	/**
+	 * Audit #9 E1: the per-verb form is required, not optional.
+	 *
+	 * Only six families used it, and the leg above only checks families that already
+	 * opted in — so a family mapped to a single tool name was never checked
+	 * verb-by-verb at all. That hid real holes: `modules/forms` had three write verbs
+	 * classified COVERED by a *read* tool, `settings` hid POST and DELETE behind
+	 * update_setting, `tags` hid both writes behind add_tags. Requiring the map
+	 * wherever a family declares more than one verb makes each of those a decision
+	 * someone has to write down.
+	 */
+	function test_multi_verb_families_use_the_per_verb_form() {
+		$scalar = [];
+
+		foreach (ai_contract_covered() as $family => $coverage) {
+			if (is_array($coverage)) {
+
+				continue;
+			}
+
+			if (count(ai_contract_verbs_for($family)) > 1) {
+				$scalar[] = $family;
+			}
+		}
+
+		T::equals(
+			implode(", ", $scalar),
+			"",
+			"every family declaring more than one verb names its coverage per verb"
+		);
+	}
+
+	/**
+	 * Audit #9 E1, second half: a write verb may not be covered by a read tool.
+	 *
+	 * `modules/forms` was the sharpest case — POST, PATCH and DELETE all classified
+	 * COVERED by get_module_schema, so three write endpoints looked accounted for by
+	 * a tool that cannot write anything, and the decline wording that actually
+	 * applies was never asserted. The registry knows each tool's kind(), so this is
+	 * checkable rather than a list someone has to maintain.
+	 */
+	function test_write_verbs_are_not_covered_by_read_tools() {
+		$kinds = ai_contract_tool_kinds();
+		$writes = ai_contract_write_verbs();
+		$wrong = [];
+
+		foreach (ai_contract_covered() as $family => $coverage) {
+			foreach (is_array($coverage) ? $coverage : [] as $verb => $tool) {
+				if (!in_array($verb, $writes, true) || strpos($tool, "declined:") === 0) {
+
+					continue;
+				}
+
+				if (($kinds[$tool] ?? "") === "read") {
+					$wrong[] = "{$family} {$verb} → {$tool}";
+				}
+			}
+		}
+
+		T::equals(
+			implode(", ", $wrong),
+			"",
+			"no write verb is classified as covered by a read-only tool"
+		);
 	}
 
 	function test_route_family_classifications_are_not_stale() {

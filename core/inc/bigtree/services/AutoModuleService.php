@@ -37,6 +37,11 @@
 			"date", "datetime", "time", "select", "radio", "checkbox", "list",
 		];
 
+		// The markup-bearing subset of the above, whose values are tokenized on the way
+		// in. Shared with the page path rather than restated, so the two lists cannot
+		// drift apart — see PageService::aiNormalizeHtmlValue.
+		private const AI_HTML_FIELD_TYPES = PageService::AI_HTML_RESOURCE_TYPES;
+
 		public function list(Request $request) {
 			$module_id = $request->routeParam("id");
 			$module = $this->loadModule($module_id);
@@ -165,6 +170,10 @@
 			$table = $this->resolveTable($module, $request);
 
 			[$data, $mtm, $tags, $og, $publish, $user_level, $can_publish] = $this->prepareEntryWrite($request, $module, $table, 0);
+
+			// Create-only, so it sits here rather than inside prepareEntryWrite (which
+			// update() shares).
+			$this->applyFormDefaultPosition($module, $table, $data);
 
 			// Publishers/admins write live only when they explicitly publish; without
 			// the flag they (like editors) save a pending draft.
@@ -794,6 +803,48 @@
 					$data[$column] = $merged[$column];
 				}
 			}
+		}
+
+		/**
+		 * Seed a new entry's sort column from the form's configured `default_position`.
+		 *
+		 * The setting has been part of the form schema (ModuleFormService, ModuleService)
+		 * and editable in the Module Designer all along, POST/PATCH /modules/{id}/forms
+		 * accept it — and nothing on the new API ever applied it. Only the legacy admin
+		 * form handler did, so an entry created through REST or by the assistant landed
+		 * on the column default instead of the position the form declares, which on a
+		 * positioned view is the difference between "new items go to the top" and "new
+		 * items go wherever" (audit #9 B4/D4).
+		 *
+		 * Create-only, and never over a supplied value: reordering an existing entry is
+		 * the reorder endpoint's job.
+		 *
+		 * @param array<string,mixed> $data Mutated in place.
+		 */
+		private function applyFormDefaultPosition(array $module, string $table, array &$data): void {
+			if (array_key_exists("position", $data) && trim((string)$data["position"]) !== "") {
+
+				return;
+			}
+
+			$form = $this->formForTable($module, $table);
+			$default = $form ? trim((string)($form["default_position"] ?? "")) : "";
+
+			if ($default === "") {
+
+				return;
+			}
+
+			// Not every module table is positioned; writing the column blind would fail
+			// the INSERT with an opaque SQL error.
+			$description = SQL::describeTable($table);
+
+			if (!$description || !isset($description["columns"]["position"])) {
+
+				return;
+			}
+
+			$data["position"] = $default;
 		}
 
 		/** The module form whose `table` matches $table, or null — the find-form-by-table scan the field processors share. */
@@ -1867,6 +1918,11 @@
 			// is evaluated against the table as it stands at write time.
 			$this->aiApplyEntryProcessors($module, $table, $data, [], 0);
 
+			// The same seed REST's create() applies — `position` isn't an AI-settable
+			// field type, so without this an assistant-created entry on a positioned
+			// view ignores the form's configured default.
+			$this->applyFormDefaultPosition($module, $table, $data);
+
 			// The data being written is the prospective row, so a group-based module
 			// judges publish rights against the group it is actually being filed in.
 			$rank = PermissionService::userEntryLevel($user, $module, $data);
@@ -2804,7 +2860,20 @@
 
 			if (!$module) {
 
-				return ["error" => "Module \"{$module_id}\" does not exist."];
+				return [
+					"error" => "Module \"{$module_id}\" does not exist.",
+					// "Create a News module and add the first entry" reaches here with
+					// the module still on an unapproved card. The wall the model reports
+					// should be the sequencing, not a module that "does not exist"
+					// (audit #9 A1). The scaffolding decline still applies once the
+					// module is real — an AI-created module has no table.
+					"prior_change" => [
+						"tool" => "create_module",
+						"value" => $module_id,
+						"keys" => ["name", "route"],
+						"label" => "A module called “{$module_id}”",
+					],
+				];
 			}
 
 			$forms = array_values(is_array($module["forms"] ?? null) ? $module["forms"] : []);
@@ -3124,6 +3193,13 @@
 					$data[$column] = !empty($value) && $value !== "false" ? "on" : "";
 				} else {
 					$data[$column] = is_bool($value) ? ($value ? "1" : "0") : (string)$value;
+				}
+
+				// Internal links and image sources in AI-authored markup become tokens
+				// here, at the sift, so the stored form is the form the approver sees on
+				// the card. Shared with the page-content path (audit #9, Part D).
+				if (in_array((string)$schema[$column]["type"], self::AI_HTML_FIELD_TYPES, true)) {
+					$data[$column] = PageService::aiNormalizeHtmlValue($data[$column]);
 				}
 
 				$out_of_domain = $this->aiOptionViolation($schema[$column], $data[$column]);

@@ -14,6 +14,7 @@
 	use BigTree;
 	use BigTreeCMS;
 	use BigTreeJSONDB;
+	use SQL;
 
 	class CalloutService implements CalloutToolBackend {
 		// Column => transform verb (see FieldSpec). Create/update both use this map.
@@ -226,6 +227,11 @@
 		// two group creators were the only create seams left without a length cap
 		// (audit #7 B4).
 		private const AI_GROUP_NAME_MAX_LENGTH = 255;
+
+		// How far the callout usage scan counts before it stops. A blast-radius figure
+		// on a proposal card only has to answer "a handful or the whole site?", and the
+		// scan is an unindexed LIKE over every page's resource blob on a staging path.
+		private const AI_CALLOUT_USAGE_LIMIT = 200;
 
 		/**
 		 * The first over-length callout value, as a recoverable error. Shared by
@@ -692,7 +698,7 @@
 				// The raw list is staged, not the merged one: the callout's fields can be
 				// edited during the proposal's TTL, so the merge is redone at approval.
 				$changes["fields"] = $args["fields"];
-				$diff = array_merge($diff, $this->aiCalloutFieldDiff($before, $fields));
+				$diff = array_merge($diff, $this->aiCalloutFieldDiff($before, $fields, $id));
 			}
 
 			// display_field must name a field that will still exist after this edit,
@@ -794,7 +800,7 @@
 		 * @param list<array<string,mixed>> $after
 		 * @return array<string,mixed> Extra `changes` rows.
 		 */
-		private function aiCalloutFieldDiff(array $before, array $after): array {
+		private function aiCalloutFieldDiff(array $before, array $after, string $callout_id = ""): array {
 			$old = [];
 			$new = [];
 
@@ -833,9 +839,19 @@
 				if ($this->aiResourceIsRequired($old[$field_id]) && !$this->aiResourceIsRequired($field)) {
 					$unrequired[] = $field_id;
 				}
+
+				// The mirror of the line above, and the case the now_required row was
+				// written for: a field that already exists and has just been made
+				// required is the one every existing placement is most likely to be
+				// holding empty. Only fields *new* to the callout were collected, so the
+				// disclosure never fired for it.
+				if (!$this->aiResourceIsRequired($old[$field_id]) && $this->aiResourceIsRequired($field)) {
+					$newly_required[] = $field_id;
+				}
 			}
 
 			$rows = ["fields" => ["from" => count($old), "to" => count($new)]];
+			$usage = $this->aiCalloutPageUsage($callout_id);
 
 			if ($added) {
 				$rows["fields_added"] = implode(", ", $added);
@@ -844,7 +860,8 @@
 			if ($removed) {
 				$rows["fields_removed"] = implode(", ", $removed)
 					. " — existing content in " . (count($removed) === 1 ? "this field" : "these fields")
-					. " is orphaned wherever this callout is already placed";
+					. " is orphaned wherever this callout is already placed"
+					. ($usage !== "" ? " ({$usage})" : "");
 			}
 
 			if ($retyped) {
@@ -852,7 +869,18 @@
 			}
 
 			if ($newly_required) {
-				$rows["now_required"] = implode(", ", $newly_required);
+				// The template diff had the same silence: a newly required field has no
+				// value on placements that predate it, so the admin's own save refuses
+				// them — including records this edit never touched. Naming the
+				// consequence is the pattern fields_removed already follows. Worded to
+				// hold for both ways a field becomes required: one added to the callout
+				// (empty on every placement by definition) and one that already existed
+				// and was flipped (empty on an unknown share of them).
+				$rows["now_required"] = implode(", ", $newly_required)
+					. " — a placed callout with " . (count($newly_required) === 1 ? "this field" : "these fields")
+					. " empty can't be saved again until " . (count($newly_required) === 1 ? "it is" : "they are")
+					. " filled in, including on pages this edit never touched"
+					. ($usage !== "" ? " ({$usage})" : "");
 			}
 
 			if ($unrequired) {
@@ -860,7 +888,77 @@
 					. " — changing a field's type discards the settings configured for its old type";
 			}
 
+			if ($usage !== "") {
+				$rows["pages_using_callout"] = $usage;
+			}
+
 			return $rows;
+		}
+
+		/**
+		 * Roughly how widely a callout is placed, as a card-ready phrase.
+		 *
+		 * The template diff counts the pages on a template exactly (one indexed column
+		 * compare) and puts the number on the card; the callout diff said only
+		 * "orphaned wherever this callout is already placed" — the abstract consequence
+		 * with no sense of scale, and a callout is typically embedded in far more
+		 * places than a template is applied to. Silence there reads as "small".
+		 *
+		 * Exactness isn't available cheaply: placements live inside the `callouts`
+		 * field's JSON in bigtree_pages.resources and in module entry columns, so a
+		 * real count means walking every page's resource blob and every module table.
+		 * A bounded LIKE over the pages blob is honest about being a floor, costs one
+		 * query, and turns an abstraction into a number (audit #9 C1/D5).
+		 *
+		 * Returns "" when the count can't be taken, so the caller omits the phrase
+		 * rather than claiming zero.
+		 */
+		private function aiCalloutPageUsage(string $callout_id): string {
+			if ($callout_id === "") {
+
+				return "";
+			}
+
+			try {
+				// A placed callout is stored as {"type":"<callout id>", …} inside the
+				// page's resources JSON (see the callouts field type's process.php).
+				// Callout ids are letters, numbers and hyphens, so there is nothing in
+				// one for LIKE to interpret as a wildcard.
+				//
+				// Both spacings have to be matched: the new API writes the column with a
+				// bare json_encode(), the legacy admin writes it through BigTree::json(),
+				// which is JSON_PRETTY_PRINT — so the same placement is stored as
+				// "type":"promo" on one row and "type": "promo" on the next, and real
+				// databases hold a mix. Matching only the compact form under-counted, and
+				// a callout placed solely on legacy-written pages counted zero, which
+				// omits the phrase entirely — the silence this exists to break.
+				$count = (int)SQL::fetchSingle(
+					"SELECT COUNT(*) FROM (SELECT id FROM bigtree_pages WHERE resources LIKE ? OR resources LIKE ? "
+						. "LIMIT " . self::AI_CALLOUT_USAGE_LIMIT . ") counted",
+					'%"type":"' . $callout_id . '"%',
+					'%"type": "' . $callout_id . '"%'
+				);
+			// Deliberately \Exception and not \Throwable: the catch exists for a
+			// database that can't answer (an unindexed scan of a longtext column on a
+			// staging path is the one query here that can time out), and a proposal
+			// should still stage without the figure. Catching Error as well swallowed a
+			// missing `use SQL;` in this file, so the count silently returned "" — the
+			// disclosure reported as absent, which reads as "not used anywhere".
+			} catch (\Exception $e) {
+
+				return "";
+			}
+
+			if ($count === 0) {
+
+				return "";
+			}
+
+			// "at least", never a bare number: module entry columns hold callouts too
+			// and aren't counted, and the scan stops at the cap.
+			return "used on at least {$count} page" . ($count === 1 ? "" : "s")
+				. ($count >= self::AI_CALLOUT_USAGE_LIMIT ? " (counting stopped there)" : "")
+				. "; module entries aren't counted";
 		}
 
 		/**
@@ -1069,11 +1167,24 @@
 				"description" => "Create the callout ungrouped (group-restricted page regions won't offer it)",
 			];
 
-			return ["needs_input" => [
-				"question" => "There's no callout group called “{$requested}”. Which group should this callout go in? "
-					. "(create_callout_group can make a new one.)",
-				"options" => $options,
-			]];
+			return [
+				"needs_input" => [
+					"question" => "There's no callout group called “{$requested}”. Which group should this callout go in? "
+						. "(create_callout_group can make a new one.)",
+					"options" => $options,
+				],
+				// "Create a Promos group and put this callout in it" stages the group,
+				// then arrives here with nothing written — and the question above would
+				// offer the model the groups that already exist, which is the opposite
+				// of what was asked. When the group is already on a card, say so
+				// instead (audit #9 A1).
+				"prior_change" => [
+					"tool" => "create_callout_group",
+					"value" => $requested,
+					"keys" => ["name"],
+					"label" => "A callout group called “{$requested}”",
+				],
+			];
 		}
 
 		/**
@@ -1113,16 +1224,149 @@
 				}
 			}
 
+			$members = $this->aiResolveGroupCallouts($args["callouts"] ?? []);
+
+			if (isset($members["error"])) {
+
+				return $members;
+			}
+
+			$preview = [
+				"action" => "create_callout_group",
+				"name" => $name,
+				"callouts" => $members["labels"] ? implode(", ", $members["labels"]) : "(none — starts empty)",
+			];
+
+			// A callout belongs to one group at a time (aiRemoveCalloutFromGroups keeps
+			// it exclusive), so filling a group silently empties part of another one.
+			// Name what moves rather than letting the developer discover it.
+			if ($members["moves"]) {
+				$preview["moves_out_of"] = implode("; ", $members["moves"]);
+			}
+
+			$summary = "Create a new callout group “{$name}”.";
+
+			if ($members["labels"]) {
+				$summary .= " " . count($members["labels"]) . " callout"
+					. (count($members["labels"]) === 1 ? "" : "s") . " will be put in it: "
+					. implode(", ", $members["labels"]) . ".";
+
+				if ($members["moves"]) {
+					$summary .= " " . implode("; ", $members["moves"]) . ".";
+				}
+			} else {
+				$summary .= " It starts empty — callouts are added to it as they're created.";
+			}
+
 			return [
 				"ok" => true,
-				"summary" => "Create a new callout group “{$name}”. It starts empty — callouts are added to it as "
-					. "they're created.",
-				"preview" => [
-					"action" => "create_callout_group",
-					"name" => $name,
-				],
-				"payload" => ["name" => $name],
+				"summary" => $summary,
+				"preview" => $preview,
+				"payload" => ["name" => $name, "callouts" => $members["ids"]],
 			];
+		}
+
+		/**
+		 * Resolve the callouts a new group should contain, by id or name.
+		 *
+		 * Membership was settable only from the callout's side (create_callout /
+		 * update_callout take a `group`), so "put these four callouts in a new Promos
+		 * group" cost five proposals — and the four edits couldn't even be staged until
+		 * the group's own card was approved, because a staged group has no id. The
+		 * route has accepted `callouts` on POST /callout-groups all along.
+		 *
+		 * @param mixed $requested Callout ids or names.
+		 * @return array{ids:list<string>,labels:list<string>,moves:list<string>}|array<string,mixed>
+		 */
+		private function aiResolveGroupCallouts($requested): array {
+			$empty = ["ids" => [], "labels" => [], "moves" => []];
+
+			if ($requested === null || $requested === "") {
+
+				return $empty;
+			}
+
+			if (!is_array($requested)) {
+
+				return ["error" => "`callouts` must be a list of callout ids or names, e.g. [\"promo\", \"Sidebar "
+					. "Promo\"]."];
+			}
+
+			$callouts = BigTreeJSONDB::getAll("callouts");
+			$ids = [];
+			$labels = [];
+			$moves = [];
+
+			foreach ($requested as $wanted) {
+				$wanted = trim((string)$wanted);
+
+				if ($wanted === "") {
+
+					continue;
+				}
+
+				$match = null;
+
+				foreach ($callouts as $callout) {
+					$id = (string)($callout["id"] ?? "");
+
+					if ($id === $wanted || strcasecmp((string)($callout["name"] ?? ""), $wanted) === 0) {
+						$match = $callout;
+
+						break;
+					}
+				}
+
+				if ($match === null) {
+
+					return [
+						"error" => "There's no callout “{$wanted}”. Available callouts: "
+							. $this->aiDescribeCallouts($callouts) . ".",
+						// It may be staged rather than absent: "create a promo callout
+						// and a Promos group with it in" is the same two-step intent
+						// from the other direction (audit #9 A1).
+						"prior_change" => [
+							"tool" => "create_callout",
+							"value" => $wanted,
+							"keys" => ["id", "name"],
+							"label" => "A callout called “{$wanted}”",
+						],
+					];
+				}
+
+				$id = (string)$match["id"];
+
+				if (in_array($id, $ids, true)) {
+
+					continue;
+				}
+
+				$ids[] = $id;
+				$labels[] = (string)($match["name"] ?? "") !== "" ? "{$match["name"]} ({$id})" : $id;
+
+				foreach ($this->aiCalloutGroupsFor($id) as $group) {
+					$moves[] = "“{$labels[count($labels) - 1]}” moves out of the “{$group["name"]}” group";
+				}
+			}
+
+			return ["ids" => $ids, "labels" => $labels, "moves" => $moves];
+		}
+
+		/**
+		 * A short "Name (id)" list of the callouts that exist, for an error message.
+		 *
+		 * @param list<array<string,mixed>> $callouts
+		 */
+		private function aiDescribeCallouts(array $callouts): string {
+			$parts = [];
+
+			foreach ($callouts as $callout) {
+				$id = (string)($callout["id"] ?? "");
+				$name = (string)($callout["name"] ?? "");
+				$parts[] = $name !== "" ? "{$name} ({$id})" : $id;
+			}
+
+			return $parts ? implode(", ", $parts) : "(none)";
 		}
 
 		/**
@@ -1152,12 +1396,51 @@
 				}
 			}
 
+			// Re-resolved at approval like every other staged reference: a callout can be
+			// deleted inside the proposal's 24h life, and a dead id in a group's list is
+			// a member the group renders as nothing. Missing ones are dropped with a
+			// note rather than refusing the whole group — the same degrade
+			// aiCreateCallout applies to a vanished group.
+			$staged = is_array($payload["callouts"] ?? null) ? $payload["callouts"] : [];
+			$callouts = [];
+			$missing = [];
+
+			foreach ($staged as $callout_id) {
+				$callout_id = (string)$callout_id;
+
+				if ($callout_id === "" || in_array($callout_id, $callouts, true)) {
+
+					continue;
+				}
+
+				if (BigTreeJSONDB::exists("callouts", $callout_id)) {
+					$callouts[] = $callout_id;
+				} else {
+					$missing[] = $callout_id;
+				}
+			}
+
 			$id = BigTreeJSONDB::insert("callout-groups", [
 				"name" => BigTree::safeEncode($name),
-				"callouts" => [],
+				"callouts" => $callouts,
 			]);
 
-			return ["mode" => "created", "id" => (string)$id, "name" => $name];
+			// Membership is exclusive, so a callout joining this group leaves whichever
+			// one it was in. Done after the insert because the new group's id is what
+			// the removal has to preserve.
+			foreach ($callouts as $callout_id) {
+				$this->aiRemoveCalloutFromGroups($callout_id, (string)$id);
+			}
+
+			return [
+				"mode" => "created",
+				"id" => (string)$id,
+				"name" => $name,
+				"callouts" => $callouts,
+				"note" => $missing
+					? "These callouts no longer exist and were left out of the group: " . implode(", ", $missing) . "."
+					: null,
+			];
 		}
 
 		/**

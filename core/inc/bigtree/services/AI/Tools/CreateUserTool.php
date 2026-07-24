@@ -30,8 +30,7 @@
 				$this->name(),
 				"Propose creating a new editor account (administrators). Requires approval. The account is "
 					. "created as an editor (level 0) with no elevated permissions and no password — on approval an "
-					. "email invite is sent to the address so they can set one. Notification preferences (daily "
-					. "digest, alerts) are always left off and cannot be set here.",
+					. "email invite is sent to the address so they can set one.",
 				[
 					"type" => "object",
 					"properties" => [
@@ -51,6 +50,18 @@
 						"timezone" => [
 							"type" => "string",
 							"description" => "Optional IANA timezone identifier (e.g. America/New_York).",
+						],
+						"daily_digest" => [
+							"type" => "boolean",
+							"description" => "Whether the new user receives the daily content digest email "
+								. "(defaults to off).",
+						],
+						"alerts" => [
+							"type" => "object",
+							"description" => "Content-alert subscriptions to start the account with: page id => "
+								. "true to watch that page (and everything under it). Use page id 0 for the whole "
+								. "page tree. How stale is too stale isn't set here — it comes from each page's own "
+								. "max_age.",
 						],
 					],
 					"required" => ["email", "name"],

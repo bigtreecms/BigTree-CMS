@@ -40,6 +40,11 @@
 			"date", "datetime", "time", "select", "radio", "checkbox", "list",
 		];
 
+		// The subset of the above whose values are markup, and so carry links and image
+		// sources that have to be stored as tokens rather than as this environment's
+		// absolute URLs. See aiNormalizeHtmlValue.
+		public const AI_HTML_RESOURCE_TYPES = ["html", "htmleditor", "simple-editor", "code"];
+
 		// Content columns snapshotted into bigtree_page_revisions (restoreRevision
 		// update map + insertRevisionSnapshot share this list; per-map extras stay
 		// explicit at each call site).
@@ -414,7 +419,7 @@
 
 			if ($parent_error !== null) {
 
-				return ["error" => $parent_error];
+				return array_merge(["error" => $parent_error], self::aiPriorPageChange($parent));
 			}
 
 			$parent_row = $parent > 0
@@ -935,6 +940,13 @@
 					$data[$id] = is_bool($value) ? ($value ? "1" : "0") : (string)$value;
 				}
 
+				// Markup the model authored is normalized here, at the sift, so the
+				// tokenized form is what gets staged, previewed and written — the user
+				// approves what will actually be stored.
+				if (in_array((string)$schema[$id]["type"], self::AI_HTML_RESOURCE_TYPES, true)) {
+					$data[$id] = self::aiNormalizeHtmlValue($data[$id]);
+				}
+
 				// Same option-domain check the module-entry sift runs (audit #7 B1),
 				// through the shared helper so the two paths cannot disagree. A matched
 				// label is rewritten to its stored value in place.
@@ -954,6 +966,36 @@
 			}
 
 			return ["data" => $data];
+		}
+
+		/**
+		 * Rewrite internal links and image sources in AI-authored markup to the tokens
+		 * BigTree stores (`ipl://`, `{wwwroot}`).
+		 *
+		 * The legacy admin form pipeline has always run every submitted value through
+		 * LinkService::autoIPL (FieldProcessingService::processField), but neither
+		 * performCreate/performUpdate nor BigTreeAutoModule::createItem/updateItem do —
+		 * so nothing on the new API tokenizes markup. The SPA is largely covered by its
+		 * link picker, which emits `ipl://` directly. The assistant has no picker: it
+		 * writes prose, so it is the writer most likely to embed a raw absolute URL and
+		 * the only one doing it unattended. Untokenized, those links survive only while
+		 * the domain and path stay put, IntegrityService doesn't recognize them as
+		 * internal, and ResourceAllocationService can't associate a referenced file
+		 * with the page (audit #9, Part D).
+		 *
+		 * Deliberately scoped to the AI seams rather than fixed in the shared write
+		 * path: doing it at the sift means the stored form is the form on the proposal
+		 * card, and REST's behaviour is left exactly as it is.
+		 *
+		 * Shared with AutoModuleService's entry sift so the two can't drift.
+		 */
+		public static function aiNormalizeHtmlValue(string $value): string {
+			if (trim($value) === "") {
+
+				return $value;
+			}
+
+			return (string)LinkService::autoIPL($value);
 		}
 
 		/**
@@ -1203,6 +1245,24 @@
 
 					return ["mode" => "error", "message" => $gate];
 				}
+			}
+
+			// performCreate re-runs uniqueRoute() on the way in, and it has to — two
+			// pages under one parent cannot share a route. But creates are deliberately
+			// fingerprint-exempt (audit #8, D4), so nothing compared the route the user
+			// approved against the one that would actually be written: if a sibling took
+			// it inside the 24h TTL — including the other proposal from the same turn —
+			// approval quietly created /pricing-2 while the card said /pricing, and
+			// every link, redirect or reference authored against the previewed path
+			// pointed at a 404. Refuse instead of disclosing after the fact: the model
+			// can re-propose with a route the user can see (audit #9 A4/D1).
+			$staged_route = (string)($payload["route"] ?? "");
+
+			if ($staged_route !== "" && $this->uniqueRoute($parent, $staged_route) !== $staged_route) {
+
+				return ["mode" => "error", "message" => "The route “{$staged_route}” has been taken since this was "
+					. "proposed, so this page would be created at a different address than the one on this card. Ask "
+					. "again to propose it with an available route."];
 			}
 
 			// Re-checked at approval like every other staged value — the payload sits
@@ -3251,6 +3311,32 @@
 		}
 
 		/**
+		 * The sequencing hint that belongs beside a "parent does not exist" refusal.
+		 *
+		 * A page staged for creation has no id until it is approved, so the model has
+		 * nothing to pass as `parent`, and the error alone can't tell "you invented an
+		 * id" apart from "the page you mean is on the card you just showed the user".
+		 * Value-less on purpose: any pending create_page in this conversation is the
+		 * candidate, because an unwritten page has no id to match against. Empty when
+		 * the parent exists (the archived branch above), where the refusal is about the
+		 * parent's state rather than its absence.
+		 *
+		 * @return array<string,mixed> A `prior_change` descriptor to merge into the result, or [].
+		 */
+		private static function aiPriorPageChange(int $parent): array {
+			if ($parent <= 0 || SQL::fetchSingle("SELECT id FROM bigtree_pages WHERE id = ?", $parent)) {
+
+				return [];
+			}
+
+			return ["prior_change" => [
+				"tool" => "create_page",
+				"value" => "",
+				"label" => "The parent page you named",
+			]];
+		}
+
+		/**
 		 * Approval-time re-check of the staged values whose rule is about the page's
 		 * *resulting state* rather than the value alone.
 		 *
@@ -3656,7 +3742,7 @@
 
 			if ($parent_error !== null) {
 
-				return ["error" => $parent_error];
+				return array_merge(["error" => $parent_error], self::aiPriorPageChange($parent));
 			}
 
 			if ($parent === $id) {

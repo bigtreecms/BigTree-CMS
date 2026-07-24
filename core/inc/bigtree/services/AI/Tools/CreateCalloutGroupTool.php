@@ -12,7 +12,12 @@
 	 * the groups that already exist. A page region restricted to a group only offers
 	 * callouts in that group, so without a way to make one, a new callout for a new
 	 * kind of region could be created and still be unusable where it was wanted.
-	 * Developer-only, like every callout write; the group starts empty.
+	 * Developer-only, like every callout write.
+	 *
+	 * The group can be filled at creation. It used to start empty always, so
+	 * "group these four callouts under Promos" was one proposal plus four
+	 * update_callout proposals — and each of those had to wait for the group's own
+	 * approval before it could even be staged, since the group has no id until then.
 	 */
 	class CreateCalloutGroupTool extends AbstractDeveloperTool {
 		/** @var CalloutToolBackend */
@@ -33,14 +38,23 @@
 			return $this->functionDefinition(
 				$this->name(),
 				"Propose creating a new callout group (developer only). Requires approval. Callout groups are how "
-					. "a page region restricts which callouts editors may place in it. The group is created empty; "
-					. "pass its name as create_callout's `group` to put a new callout in it.",
+					. "a page region restricts which callouts editors may place in it. Name the callouts that should "
+					. "be in it, or leave it empty and pass the group's name as create_callout's `group` later. If "
+					. "the user hasn't said which callouts belong in the group, ask them — list_callouts shows what "
+					. "exists.",
 				[
 					"type" => "object",
 					"properties" => [
 						"name" => [
 							"type" => "string",
 							"description" => "Name of the group, e.g. \"Sidebar\" (required).",
+						],
+						"callouts" => [
+							"type" => "array",
+							"items" => ["type" => "string"],
+							"description" => "Callouts to put in the group, by id or name (use list_callouts to see "
+								. "them). A callout belongs to one group at a time, so any listed here leaves the "
+								. "group it is in now — the proposal card says which.",
 						],
 					],
 					"required" => ["name"],

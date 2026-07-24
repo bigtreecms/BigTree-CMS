@@ -186,6 +186,44 @@
 		}
 
 		/**
+		 * Proposals in a conversation that are still waiting on the user, newest
+		 * first, optionally narrowed to a set of tools.
+		 *
+		 * Audit #9 A1: every validate seam reads the database as it stands *now*, so a
+		 * two-step intent ("create a callout group and put this callout in it") had its
+		 * second step validated against a world where the first hadn't happened. This
+		 * is how a seam asks "is the thing I can't find already staged?" — a single
+		 * indexed read on the `conversation` key that exists for listForConversation().
+		 *
+		 * Raw rows (payload included), not present()ed: the caller matches on what the
+		 * pending change would create.
+		 *
+		 * @param list<string>|string|null $tools
+		 * @return list<array<string,mixed>>
+		 */
+		public function pendingForConversation(int $conversation_id, $tools = null): array {
+			$this->ensureTable();
+
+			if ($conversation_id <= 0) {
+
+				return [];
+			}
+
+			$tools = $tools === null ? [] : (is_array($tools) ? array_values($tools) : [$tools]);
+			$sql = "SELECT * FROM " . self::TABLE . " WHERE conversation = ? AND status = ? AND expires_at > NOW()";
+			$args = [$conversation_id, self::PENDING];
+
+			if ($tools) {
+				$sql .= " AND tool IN (" . implode(", ", array_fill(0, count($tools), "?")) . ")";
+				$args = array_merge($args, $tools);
+			}
+
+			$sql .= " ORDER BY created_at DESC, id DESC";
+
+			return SQL::fetchAll(...array_merge([$sql], $args));
+		}
+
+		/**
 		 * Every proposal in a conversation, oldest first, presented for the SPA. Used
 		 * on conversation reload so approved/rejected cards keep their resolved state.
 		 *
@@ -217,7 +255,14 @@
 			]);
 		}
 
-		public function isExpired(array $row): bool {
+		/**
+		 * Whether a row has outlived its TTL. Static so callers holding a presented row
+		 * rather than the store — the model-context replay is the one that matters —
+		 * ask the same question the same way; `$this->isExpired()` still works.
+		 *
+		 * @param array<string,mixed> $row Needs only `expires_at`, which present() carries.
+		 */
+		public static function isExpired(array $row): bool {
 			$expires = strtotime((string)($row["expires_at"] ?? ""));
 
 			return $expires !== false && $expires < time();

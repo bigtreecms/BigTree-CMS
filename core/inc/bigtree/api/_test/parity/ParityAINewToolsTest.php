@@ -256,6 +256,110 @@
 		}
 	}
 
+	/**
+	 * A group can be created with its members named, rather than empty-then-four-edits
+	 * (audit #9 follow-up). Membership is exclusive, so the card has to say what each
+	 * callout is moving out of, and a callout deleted inside the TTL is dropped with a
+	 * note rather than written in as a member that renders as nothing.
+	 */
+	function test_parity_ai_create_callout_group_takes_its_callouts() {
+		if (!parity_db_available()) {
+
+			return;
+		}
+
+		$svc = new CalloutService();
+		[$user_id, $user] = parity_dev_user();
+		$suffix = bin2hex(random_bytes(3));
+		$first = "zzgrp1" . $suffix;
+		$second = "zzgrp2" . $suffix;
+		$doomed = "zzgrp3" . $suffix;
+		$fields = [["id" => "headline", "type" => "text", "title" => "Headline"]];
+		$old_group_id = "";
+		$group_id = "";
+		$second_group_id = "";
+
+		try {
+			parity_seed_callout($first, $fields);
+			parity_seed_callout($second, $fields);
+			parity_seed_callout($doomed, $fields);
+
+			// The first callout starts in a group, so the move is real.
+			$old_group = $svc->aiValidateCalloutGroupCreate(
+				["name" => "zz Old Group {$suffix}", "callouts" => [$first]],
+				$user
+			);
+			T::ok(!empty($old_group["ok"]), "a group with a callout in it validates");
+			$old_group_id = (string)$svc->aiCreateCalloutGroup($old_group["payload"], $user)["id"];
+			T::ok(
+				in_array($first, (array)(BigTreeJSONDB::get("callout-groups", $old_group_id)["callouts"] ?? []), true),
+				"and the callout is stored as a member"
+			);
+
+			$unknown = $svc->aiValidateCalloutGroupCreate(
+				["name" => "zz Unknown {$suffix}", "callouts" => ["no such callout"]],
+				$user
+			);
+			T::ok(isset($unknown["error"]), "an unrecognised callout is refused");
+			T::ok(
+				isset($unknown["prior_change"]),
+				"with the hint that it may be staged rather than absent"
+			);
+
+			$validated = $svc->aiValidateCalloutGroupCreate(
+				["name" => "zz New Group {$suffix}", "callouts" => [$first, $second, $doomed]],
+				$user
+			);
+			T::ok(!empty($validated["ok"]), "a group naming three callouts validates");
+			T::equals(count($validated["payload"]["callouts"]), 3, "all three ride the payload");
+			T::ok(
+				strpos((string)($validated["preview"]["moves_out_of"] ?? ""), "zz Old Group") !== false,
+				"and the card names the group the first callout is leaving"
+			);
+
+			// Deleted between staging and approval — the case the re-read exists for.
+			parity_delete_callout($doomed);
+
+			$created = $svc->aiCreateCalloutGroup($validated["payload"], $user);
+			$group_id = (string)$created["id"];
+			$stored = (array)(BigTreeJSONDB::get("callout-groups", $group_id)["callouts"] ?? []);
+
+			T::equals(count($stored), 2, "the deleted callout is left out of the group");
+			T::ok(in_array($first, $stored, true) && in_array($second, $stored, true), "the surviving two are members");
+			T::ok(
+				strpos((string)($created["note"] ?? ""), $doomed) !== false,
+				"and the outcome names what was dropped"
+			);
+
+			// Exclusive membership: the first callout left its old group.
+			T::ok(
+				!in_array($first, (array)(BigTreeJSONDB::get("callout-groups", $old_group_id)["callouts"] ?? []), true),
+				"the callout was removed from the group it was in before"
+			);
+
+			// An empty group is still the ordinary case.
+			$empty = $svc->aiValidateCalloutGroupCreate(["name" => "zz Empty {$suffix}"], $user);
+			T::ok(!empty($empty["ok"]), "a group with no callouts still validates");
+			T::ok(
+				strpos((string)$empty["summary"], "starts empty") !== false,
+				"and says it starts empty"
+			);
+			$second_group_id = (string)$svc->aiCreateCalloutGroup($empty["payload"], $user)["id"];
+		} finally {
+			parity_delete_callout($first);
+			parity_delete_callout($second);
+			parity_delete_callout($doomed);
+
+			foreach ([$old_group_id, $group_id, $second_group_id] as $id) {
+				if ($id !== "" && BigTreeJSONDB::exists("callout-groups", $id)) {
+					BigTreeJSONDB::delete("callout-groups", $id);
+				}
+			}
+
+			parity_delete_users($user_id);
+		}
+	}
+
 	function test_parity_ai_create_module_group_is_developer_only() {
 		if (!parity_db_available()) {
 			return;

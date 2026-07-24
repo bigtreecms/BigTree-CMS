@@ -23,6 +23,12 @@
 		const PROPOSAL = "proposal";
 		const ERROR = "error";
 
+		// The second half of a two-step intent, arriving before the first half has
+		// been approved. Distinct from ERROR (retrying identically will fail again)
+		// and from NEEDS_INPUT (the options a needs_input would offer are exactly the
+		// ones the user said they didn't want). See AbstractMutatingTool.
+		const NEEDS_PRIOR_CHANGE = "needs_prior_change";
+
 		/** @var string One of the status constants above. */
 		public $type;
 
@@ -50,8 +56,11 @@
 		/** @var array<string,mixed> Preview / diff of a staged mutation (PROPOSAL). */
 		public $preview = [];
 
-		/** @var string Server-stored proposal id the SPA approves (PROPOSAL). */
+		/** @var string Server-stored proposal id the SPA approves (PROPOSAL), or the prerequisite's id (NEEDS_PRIOR_CHANGE). */
 		public $proposal_id = "";
+
+		/** @var string The tool whose pending proposal must be approved first (NEEDS_PRIOR_CHANGE). */
+		public $prior_tool = "";
 
 		private function __construct(string $type) {
 			$this->type = $type;
@@ -116,6 +125,26 @@
 		}
 
 		/**
+		 * This change depends on one that is staged but not yet approved.
+		 *
+		 * Nothing is written during a chat turn, so the container a second call needs
+		 * ("the Promos group", "the News module") does not exist while its own proposal
+		 * is still on screen. Saying so — and naming the card to approve first — is the
+		 * only answer that moves the conversation forward: an error invites an
+		 * identical retry, and the needs_input this replaces offered the model a list
+		 * of the groups that already exist, which is precisely what the user didn't ask
+		 * for.
+		 */
+		public static function needsPriorChange(string $message, string $proposal_id = "", string $prior_tool = ""): self {
+			$result = new self(self::NEEDS_PRIOR_CHANGE);
+			$result->message = $message;
+			$result->proposal_id = $proposal_id;
+			$result->prior_tool = $prior_tool;
+
+			return $result;
+		}
+
+		/**
 		 * A recoverable tool error (bad arguments, not-found). Distinct from denied:
 		 * the model may fix its arguments and try again.
 		 */
@@ -162,6 +191,14 @@
 						"summary" => $this->summary,
 						"proposal_id" => $this->proposal_id,
 						"preview" => $this->preview,
+					];
+
+				case self::NEEDS_PRIOR_CHANGE:
+					return [
+						"status" => self::NEEDS_PRIOR_CHANGE,
+						"message" => $this->message,
+						"pending_proposal_id" => $this->proposal_id,
+						"pending_tool" => $this->prior_tool,
 					];
 
 				default:

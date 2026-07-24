@@ -112,7 +112,15 @@
 					"the user's own profile screen — the assistant never touches authentication credentials",
 				"Deleting users, templates, callouts, modules or settings" =>
 					"the relevant Developer or Users screen",
-				"Creating or deleting settings" => "Developer → Settings",
+				// "Redefining" covers the level-2 definition edit SettingService::update
+				// accepts — name, description, type, options, locked, encrypted, even the
+				// setting's own id. update_setting writes the *value* only, and there is
+				// no tool for the definition: retyping a setting reinterprets every
+				// stored value with no migration, and toggling `encrypted` rewrites the
+				// column. Without this word the wall was undiscoverable (audit #9 B2).
+				"Creating, deleting or redefining settings (changing a setting's name, type, options or "
+					. "encryption)" => "Developer → Settings — the assistant can change a setting's value, "
+						. "but not what the setting is",
 				"Reading or writing encrypted settings" =>
 					"Developer → Settings — encrypted values are never exposed to the assistant",
 				"Duplicating or reordering pages" => "the page tree in Pages",
@@ -179,8 +187,8 @@
 				// every decline line is spliced into the system prompt beside "do not
 				// improvise a workaround", so the contradiction was load-bearing.
 				"Reordering the callouts inside a group" =>
-					"Developer → Callouts — the assistant can put a callout in a group with create_callout or "
-						. "update_callout, but not reorder a group's contents",
+					"Developer → Callouts — the assistant can fill a group when it creates one, and move a callout "
+						. "into a group with create_callout or update_callout, but not reorder a group's contents",
 				"System maintenance — clearing caches, backups, upgrades, security policy, IP bans" =>
 					"Developer → System",
 				"Configuring integrations — email, geocoding, cloud storage, analytics, payments, media presets, "

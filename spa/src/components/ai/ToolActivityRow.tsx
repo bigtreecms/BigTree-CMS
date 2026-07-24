@@ -45,6 +45,10 @@ const statusNote = (status: string): string => {
 		return "— needs more detail";
 	}
 
+	if (status === "needs_prior_change") {
+		return "— waiting on an earlier change";
+	}
+
 	return "";
 };
 

@@ -123,68 +123,250 @@
 	}
 
 	/**
-	 * E7: every body field POST /pages declares is either settable by a page tool or
-	 * named in outOfScope(). Anchored on the pages family because that is where the
-	 * `trunk` decline (C2) has to hold.
+	 * Audit #9 E2: the body-field contract, for every write route the assistant is
+	 * meant to cover — not just `pages`.
+	 *
+	 * Audit #7 shipped this scoped to POST /pages and recorded the general version as
+	 * future work. Audit #9's B1–B3 were all instances of what the general version
+	 * would have caught: a field the route accepts, no tool sets, and no decline
+	 * names — so the model discovers it by failing.
+	 *
+	 * Each field of each route must be exactly one of:
+	 *
+	 *   - settable — declared by one of the route's named tools;
+	 *   - exempt — with the reason written down (a field the tools express
+	 *     differently, or one the server derives);
+	 *   - declined — with a phrase that must actually appear in outOfScope().
+	 *
+	 * Routes whose body is `allow_unknown` with no map (page/entry *content*) are
+	 * absent by construction: their fields are the template's or the form's, and the
+	 * sift seams govern them.
+	 *
+	 * @return array<string,array<string,mixed>>
 	 */
-	function test_pages_body_fields_are_settable_or_declined() {
-		$body = ai_inverse_route_body("POST /pages");
-		T::ok(count($body) > 0, "POST /pages declares a body");
+	function ai_inverse_body_contracts(): array {
 
+		return [
+			"POST /pages" => [
+				"tools" => ["create_page", "update_page", "update_page_content"],
+				"exempt" => [
+					// The tools take page content as `content`, keyed by template
+					// resource id, and sift it against the template's own schema.
+					"resources" => "the tools express page content as `content`, sifted against the template schema",
+					"open_graph" => "expressed as the og_title / og_description arguments rather than an object",
+					"publish" => "the tools invert it as save_as_draft; publishing is decided by rank at approval",
+				],
+				"declined" => [
+					"trunk" => "site trunk",
+				],
+			],
+			"POST /users" => [
+				"tools" => ["create_user", "update_user"],
+				"declined" => [
+					"level" => "levels, permissions or passwords",
+					"password" => "levels, permissions or passwords",
+					"permissions" => "levels, permissions or passwords",
+				],
+			],
+			"PATCH /users/{id:int}" => [
+				"tools" => ["create_user", "update_user"],
+				"declined" => [
+					"level" => "levels, permissions or passwords",
+					"permissions" => "levels, permissions or passwords",
+				],
+			],
+			// Wholly declined: update_setting writes a setting's *value*, and the
+			// definition — name, type, options, locked, encrypted, even the id — is a
+			// schema change over stored values with no migration (audit #9 B2/D3).
+			"POST /settings" => [
+				"tools" => [],
+				"declined_all" => "creating, deleting or redefining settings",
+			],
+			"POST /callouts" => [
+				"tools" => ["create_callout", "update_callout"],
+				"exempt" => [
+					"resources" => "the tools express a callout's fields as `fields`",
+				],
+			],
+			"POST /callout-groups" => [
+				"tools" => ["create_callout_group"],
+				"exempt" => [
+					"id" => "assigned by BigTreeJSONDB::insert; a caller-chosen group id is never accepted",
+				],
+			],
+			"POST /modules" => [
+				"tools" => ["create_module", "update_module"],
+				"declined" => [
+					"table" => "tables, forms, views or actions",
+					"gbp" => "group-based permissions",
+				],
+			],
+			"POST /module-groups" => [
+				"tools" => ["create_module_group"],
+				"exempt" => [
+					"route" => "derived from the group's name; a module group's route is not a thing the assistant picks",
+				],
+			],
+			"POST /templates" => [
+				"tools" => ["create_template", "update_template"],
+				"exempt" => [
+					"resources" => "the tools express a template's fields as `fields`",
+				],
+				"declined" => [
+					"module" => "binding a template to a module",
+					"hooks" => "configuring its publish hooks",
+				],
+			],
+			"POST /404s" => [
+				"tools" => ["create_redirect"],
+			],
+			"POST /tags" => [
+				"tools" => ["add_tags"],
+				"exempt" => [
+					"tag" => "add_tags coins tags as a list under `tags` while tagging something, never as a bare record",
+				],
+			],
+			// The sub-resource writes. Audit #9 listed the top-level families by name
+			// and these fell outside the list, which is the same optionality E1 closed
+			// on the verb map: an action route with a body is a body contract, and a
+			// field it gains should have to be classified like any other.
+			"POST /pages/{id:int}/move" => [
+				"tools" => ["move_page"],
+			],
+			"POST /pages/{id:int}/revisions" => [
+				"tools" => ["save_page_revision"],
+			],
+			"POST /tags/merge" => [
+				"tools" => ["merge_tags"],
+			],
+		];
+	}
+
+	function test_write_route_body_fields_are_settable_exempt_or_declined() {
 		$registry = ai_wiring_registry();
 		$developer = ai_wiring_user(2);
-		$settable = [];
-
-		foreach (["create_page", "update_page", "update_page_content"] as $name) {
-			$tool = $registry->get($name);
-
-			if ($tool === null) {
-
-				continue;
-			}
-
-			$properties = $tool->definition($developer)["function"]["parameters"]["properties"] ?? [];
-
-			foreach (is_array($properties) ? array_keys($properties) : [] as $arg) {
-				$settable[$arg] = true;
-			}
-		}
-
-		// Body fields the assistant deliberately doesn't set and that aren't a named
-		// decline either — routing/relationship plumbing the tools own differently.
-		$exempt = [
-			"parent" => true, "position" => true, "resources" => true, "tags" => true,
-			"publish_now" => true, "return_id" => true,
-			// The assistant expresses Open Graph through the og_title/og_description
-			// args rather than a whole open_graph object.
-			"open_graph" => true,
-		];
-
-		$declines = implode(" ", CapabilitySummary::outOfScopeLines());
+		$declines = strtolower(implode(" | ", array_keys(CapabilitySummary::outOfScope())));
 		$unaccounted = [];
 
-		foreach (array_keys($body) as $field) {
-			if (isset($settable[$field]) || isset($exempt[$field])) {
+		foreach (ai_inverse_body_contracts() as $route => $contract) {
+			$body = ai_inverse_route_body($route);
+			T::ok(count($body) > 0, "{$route} declares a body map");
+
+			$settable = [];
+
+			foreach ($contract["tools"] as $name) {
+				$tool = $registry->get($name);
+				T::ok($tool !== null, "{$route}'s contract names the registered tool {$name}");
+
+				if ($tool === null) {
+
+					continue;
+				}
+
+				$properties = $tool->definition($developer)["function"]["parameters"]["properties"] ?? [];
+
+				foreach (is_array($properties) ? array_keys($properties) : [] as $arg) {
+					$settable[$arg] = true;
+				}
+			}
+
+			$exempt = $contract["exempt"] ?? [];
+			$declined = $contract["declined"] ?? [];
+			$declined_all = (string)($contract["declined_all"] ?? "");
+
+			if ($declined_all !== "") {
+				T::ok(
+					strpos($declines, $declined_all) !== false,
+					"{$route} is declined wholesale by wording matching \"{$declined_all}\""
+				);
 
 				continue;
 			}
 
-			// A field named in a decline line counts as accounted-for.
-			if (stripos($declines, $field) !== false) {
+			foreach (array_keys($body) as $field) {
+				if (isset($settable[$field]) || isset($exempt[$field])) {
 
-				continue;
+					continue;
+				}
+
+				if (isset($declined[$field])) {
+					T::ok(
+						strpos($declines, strtolower($declined[$field])) !== false,
+						"{$route}.{$field} is declined by wording matching \"{$declined[$field]}\""
+					);
+
+					continue;
+				}
+
+				$unaccounted[] = "{$route}.{$field}";
 			}
-
-			$unaccounted[] = $field;
 		}
 
 		T::equals(
 			implode(", ", $unaccounted),
 			"",
-			"every POST /pages body field is settable, exempt, or declined"
+			"every write route's body fields are settable by a tool, exempt with a reason, or declined by name"
 		);
+	}
 
-		// And the specific C2 guarantee: trunk is a real body field, and it is declined.
+	/**
+	 * The map must not outlive the fields it classifies — in either direction. A
+	 * field the route dropped is an entry describing nothing; a field a tool has
+	 * since gained is an exemption (or a decline) recording a decision that has been
+	 * reversed, which is how `create_callout_group.callouts` read for exactly as long
+	 * as it took to add the argument.
+	 */
+	function test_body_contract_has_no_stale_entries() {
+		$registry = ai_wiring_registry();
+		$developer = ai_wiring_user(2);
+		$stale = [];
+		$now_settable = [];
+
+		foreach (ai_inverse_body_contracts() as $route => $contract) {
+			$body = ai_inverse_route_body($route);
+			$classified = array_merge($contract["exempt"] ?? [], $contract["declined"] ?? []);
+			$settable = [];
+
+			foreach ($contract["tools"] as $name) {
+				$tool = $registry->get($name);
+				$properties = $tool !== null
+					? ($tool->definition($developer)["function"]["parameters"]["properties"] ?? [])
+					: [];
+
+				foreach (is_array($properties) ? array_keys($properties) : [] as $arg) {
+					$settable[$arg] = true;
+				}
+			}
+
+			foreach (array_keys($classified) as $field) {
+				if (!isset($body[$field])) {
+					$stale[] = "{$route}.{$field}";
+
+					continue;
+				}
+
+				if (isset($settable[$field])) {
+					$now_settable[] = "{$route}.{$field}";
+				}
+			}
+		}
+
+		T::equals(implode(", ", $stale), "", "no body-contract entry names a field its route no longer declares");
+		T::equals(
+			implode(", ", $now_settable),
+			"",
+			"no field is classified exempt or declined while a tool actually sets it"
+		);
+	}
+
+	/**
+	 * The audit #7 C2 guarantee the pages-scoped version carried, kept explicitly:
+	 * `trunk` is a real POST /pages body field and it is a named decline.
+	 */
+	function test_page_trunk_is_a_real_body_field_and_declined() {
+		$body = ai_inverse_route_body("POST /pages");
+		$declines = implode(" ", CapabilitySummary::outOfScopeLines());
+
 		T::ok(isset($body["trunk"]), "trunk is a POST /pages body field");
 		T::ok(stripos($declines, "trunk") !== false, "and trunk is named in an out-of-scope decline line");
 	}
@@ -205,9 +387,22 @@
 				continue;
 			}
 
-			$offset = $m[0][1];
+			$offset = $m[0][1] + strlen($m[0][0]);
 
-			if (!preg_match('/"body"\s*=>\s*\[(.*?)\]/s', $source, $body_match, 0, $offset)) {
+			// Bounded at the next route declaration. Unbounded, a route with no `body`
+			// map silently borrowed the next route's — which reads as a body contract
+			// that was checked when nothing was (audit #9 E2).
+			$next = preg_match(
+				'/"(?:GET|POST|PUT|PATCH|DELETE) [^"]+"\s*=>\s*\[/',
+				$source,
+				$next_match,
+				PREG_OFFSET_CAPTURE,
+				$offset
+			) ? $next_match[0][1] : strlen($source);
+
+			$block = substr($source, $offset, $next - $offset);
+
+			if (!preg_match('/"body"\s*=>\s*\[(.*?)\]/s', $block, $body_match)) {
 
 				return [];
 			}

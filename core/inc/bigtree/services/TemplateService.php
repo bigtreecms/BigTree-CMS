@@ -567,6 +567,15 @@
 				if ($this->aiResourceIsRequired($old[$field_id]) && !$this->aiResourceIsRequired($field)) {
 					$unrequired[] = $field_id;
 				}
+
+				// The mirror of the line above, and the case the now_required row was
+				// written for: a field that already exists and has just been made
+				// required is the one every existing page is most likely to be holding
+				// empty. Only fields *new* to the template were collected, so the
+				// disclosure never fired for it.
+				if (!$this->aiResourceIsRequired($old[$field_id]) && $this->aiResourceIsRequired($field)) {
+					$newly_required[] = $field_id;
+				}
 			}
 
 			$rows = [];
@@ -589,7 +598,23 @@
 			}
 
 			if ($newly_required) {
-				$rows["now_required"] = implode(", ", $newly_required);
+				// The row named the fields and stopped, saying nothing about what it does
+				// to content that already exists: a page already on this template is now
+				// carrying a required field it has no value for, so the admin's own save
+				// refuses it and update_page_content hits the blocked-required gate on
+				// pages this edit never touched. fields_removed above already models the
+				// right shape — the consequence appended to the value (audit #9 C2).
+				//
+				// Worded to hold for both ways a field becomes required: one added to the
+				// template (empty everywhere by definition) and one that already existed
+				// and was flipped (empty on some unknown share of pages).
+				$rows["now_required"] = implode(", ", $newly_required)
+					. ($page_count > 0
+						? " — " . $page_count . " page" . ($page_count === 1 ? "" : "s")
+							. " already use" . ($page_count === 1 ? "s" : "") . " this template and can't be saved "
+							. "again while " . (count($newly_required) === 1 ? "this field is" : "these fields are")
+							. " empty"
+						: "");
 			}
 
 			if ($unrequired) {
