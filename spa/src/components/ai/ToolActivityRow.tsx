@@ -80,9 +80,7 @@ export const ToolActivityRow = ({ activity, onChoose }: ToolActivityRowProps) =>
 				</span>
 			</div>
 
-			{question !== "" && (
-				<p className="pl-[18px] text-[11.5px] text-text-2">{question}</p>
-			)}
+			{question !== "" && <p className="pl-[18px] text-[11.5px] text-text-2">{question}</p>}
 
 			{options.length > 0 && onChoose && (
 				<div className="flex flex-wrap gap-1 pl-[18px]">
@@ -90,9 +88,9 @@ export const ToolActivityRow = ({ activity, onChoose }: ToolActivityRowProps) =>
 						<button
 							className="rounded-full border border-border bg-surface-2 px-2 py-0.5 text-[11px] text-text-2 transition-colors hover:border-accent/50 hover:text-text"
 							key={option.id ?? `${option.label}-${i}`}
-							onClick={() => onChoose(option.label)}
 							title={option.description}
 							type="button"
+							onClick={() => onChoose(option.label)}
 						>
 							{option.label}
 						</button>

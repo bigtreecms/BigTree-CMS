@@ -350,7 +350,7 @@
 		 *
 		 * @param mixed $alerts Page id => boolean-ish subscription flag.
 		 * @param array<string|int,mixed> $current The user's stored alerts map.
-		 * @return array{error?:string,alerts?:array<string,string>,added?:list<int>,removed?:list<int>}
+		 * @return array{error?:string,alerts?:array<int|string,string>,added?:list<int>,removed?:list<int>}
 		 */
 		private function aiNormalizeAlerts($alerts, array $current = []): array {
 			if (!is_array($alerts)) {

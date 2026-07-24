@@ -171,8 +171,14 @@ const previewRows = (preview: Record<string, unknown>): Row[] => {
 
 	if (hasTopLevelDiff) {
 		rows.push({
-			label: typeof preview.field === "string" && preview.field !== "" ? humanize(preview.field) : "Value",
-			from: "from" in preview && !Array.isArray(preview.from) ? displayValue(preview.from) : undefined,
+			label:
+				typeof preview.field === "string" && preview.field !== ""
+					? humanize(preview.field)
+					: "Value",
+			from:
+				"from" in preview && !Array.isArray(preview.from)
+					? displayValue(preview.from)
+					: undefined,
 			to: displayValue(preview.to),
 		});
 	}
@@ -278,8 +284,7 @@ export const ProposalCard = ({
 	// blocks: as plain preview rows they were single-line truncated inside a 440px
 	// panel, which clipped exactly the part that mattered — or, for the ones with no
 	// renderer at all, dropped silently.
-	const warning =
-		typeof proposal.preview.warning === "string" ? proposal.preview.warning : "";
+	const warning = typeof proposal.preview.warning === "string" ? proposal.preview.warning : "";
 	const publishesDraft =
 		typeof (proposal.preview.publishes_draft as Record<string, unknown> | undefined)?.note ===
 		"string"
@@ -339,31 +344,31 @@ export const ProposalCard = ({
 				)}
 
 				{warning !== "" && (
-					<p className="mt-2 flex items-start gap-1.5 whitespace-pre-wrap break-words text-[11.5px] text-warn">
+					<p className="mt-2 flex items-start gap-1.5 whitespace-pre-wrap wrap-break-word text-[11.5px] text-warn">
 						<TriangleAlert className="mt-px shrink-0" size={13} />
 						<span>{warning}</span>
 					</p>
 				)}
 
 				{publishesDraft !== null && (
-					<p className="mt-2 flex items-start gap-1.5 whitespace-pre-wrap break-words text-[11.5px] text-warn">
+					<p className="mt-2 flex items-start gap-1.5 whitespace-pre-wrap wrap-break-word text-[11.5px] text-warn">
 						<TriangleAlert className="mt-px shrink-0" size={13} />
 						<span>{publishesDraft}</span>
 					</p>
 				)}
 
 				{contentLock !== null && (
-					<p className="mt-2 flex items-start gap-1.5 whitespace-pre-wrap break-words text-[11.5px] text-warn">
+					<p className="mt-2 flex items-start gap-1.5 whitespace-pre-wrap wrap-break-word text-[11.5px] text-warn">
 						<TriangleAlert className="mt-px shrink-0" size={13} />
 						<span>
-							{contentLock.holder} has this {contentLock.kind} open in the editor right
-							now — if they save after this is approved, their copy wins.
+							{contentLock.holder} has this {contentLock.kind} open in the editor
+							right now — if they save after this is approved, their copy wins.
 						</span>
 					</p>
 				)}
 
 				{dependsOn !== "" && (
-					<p className="mt-2 flex items-start gap-1.5 whitespace-pre-wrap break-words text-[11.5px] text-warn">
+					<p className="mt-2 flex items-start gap-1.5 whitespace-pre-wrap wrap-break-word text-[11.5px] text-warn">
 						<Clock className="mt-px shrink-0" size={13} />
 						<span>{dependsOn}</span>
 					</p>
@@ -391,7 +396,7 @@ export const ProposalCard = ({
 						{rows.map((row, i) => (
 							<div className="contents" key={`${row.label}-${i}`}>
 								<dt className="text-[11px] text-text-3">{row.label}</dt>
-								<dd className="max-h-40 overflow-y-auto whitespace-pre-wrap break-words text-[11.5px] text-text">
+								<dd className="max-h-40 overflow-y-auto whitespace-pre-wrap wrap-break-word text-[11.5px] text-text">
 									{row.from !== undefined ? (
 										<>
 											<span className="text-text-3 line-through">

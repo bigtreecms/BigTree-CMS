@@ -196,6 +196,8 @@
 			$loop = new AgentLoop($turn["ai"], $turn["registry"], self::MAX_ROUNDS);
 			$artifacts = $this->emptyArtifacts();
 			$proposals = [];
+
+			/** @var array<string,mixed>|null $persisted Set by reference once the turn is stored (or rolled back). */
 			$persisted = null;
 
 			// A client that closes the tab mid-stream kills PHP at the next sse()

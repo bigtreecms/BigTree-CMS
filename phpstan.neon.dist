@@ -39,3 +39,30 @@ parameters:
             # keep the ignore so future chained code passes, without failing now
             # when it matches nothing.
             reportUnmatched: false
+        # Guard tests assert on constants (ProposalStore::FAILED is not APPROVED,
+        # FAILED is in ACTIONABLE) and on spy objects mutated inside a call
+        # PHPStan can't follow. Those assertions are tautological to static
+        # analysis by construction — that IS the regression they guard: the value
+        # changing is what should break the build. Scoped to the test tree so the
+        # same patterns still fail in real service/API code.
+        -
+            identifier: notIdentical.alwaysTrue
+            paths:
+                - core/inc/bigtree/api/_test
+        -
+            identifier: identical.alwaysFalse
+            paths:
+                - core/inc/bigtree/api/_test
+            reportUnmatched: false
+        -
+            identifier: function.alreadyNarrowedType
+            paths:
+                - core/inc/bigtree/api/_test
+        -
+            identifier: function.impossibleType
+            paths:
+                - core/inc/bigtree/api/_test
+        -
+            identifier: booleanNot.alwaysTrue
+            paths:
+                - core/inc/bigtree/api/_test

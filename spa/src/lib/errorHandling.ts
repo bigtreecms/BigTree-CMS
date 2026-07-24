@@ -18,7 +18,6 @@ export function describeApiError(err: unknown, fallback: string): string {
 
 /** Whether a thrown value is an API 404. */
 export function isNotFound(err: unknown): boolean {
-
 	return err instanceof ApiError && err.status === 404;
 }
 
