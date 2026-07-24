@@ -3,6 +3,7 @@
 
 	use BigTree\Services\AI\AIToolContext;
 	use BigTree\Services\AI\AIToolResult;
+	use BigTree\Services\FieldTypeService;
 
 	/**
 	 * List the site's page templates. Offered to every user so the assistant can name
@@ -36,7 +37,16 @@
 		}
 
 		public function execute(array $args, AIToolContext $context): AIToolResult {
+			$result = ["templates" => $this->backend->aiListTemplates()];
 
-			return AIToolResult::ok(["templates" => $this->backend->aiListTemplates()]);
+			// A developer authoring a template from scratch (create_template) has no
+			// existing one to read via get_template, so surface the valid fields[].type
+			// ids here too — the first proposal names a real type instead of guessing
+			// (B1). Editors only pick a template, so it would be noise for them.
+			if ($context->userLevel() >= 2) {
+				$result["field_types"] = FieldTypeService::aiFieldTypeCatalog("templates");
+			}
+
+			return AIToolResult::ok($result);
 		}
 	}

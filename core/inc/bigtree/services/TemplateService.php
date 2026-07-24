@@ -181,7 +181,12 @@
 				return ["error" => "Template \"{$id}\" does not exist."];
 			}
 
-			return ["template" => $this->present($t)];
+			return [
+				"template" => $this->present($t),
+				// The valid `fields[].type` ids for update_template/create_template, so
+				// the model authors against a real catalog rather than guessing (B1).
+				"field_types" => FieldTypeService::aiFieldTypeCatalog("templates"),
+			];
 		}
 
 		/**

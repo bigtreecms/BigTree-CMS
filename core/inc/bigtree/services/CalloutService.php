@@ -522,6 +522,9 @@
 					// which groups a callout is in, so membership was write-only.
 					"groups" => $this->aiCalloutGroupsFor((string)$callout["id"]),
 				],
+				// The valid `fields[].type` ids for update_callout/create_callout, so the
+				// model authors against a real catalog rather than guessing (B1).
+				"field_types" => FieldTypeService::aiFieldTypeCatalog("callouts"),
 			];
 		}
 
@@ -594,7 +597,14 @@
 				];
 			}, BigTreeJSONDB::getAll("callouts", "position", "DESC"));
 
-			return ["callouts" => $callouts, "groups" => $groups];
+			return [
+				"callouts" => $callouts,
+				"groups" => $groups,
+				// The valid `fields[].type` ids for create_callout, so a callout authored
+				// from scratch (with no existing one to read via get_callout) names a real
+				// type rather than guessing (B1). This seam is developer-gated already.
+				"field_types" => FieldTypeService::aiFieldTypeCatalog("callouts"),
+			];
 		}
 
 		/**

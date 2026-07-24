@@ -1533,10 +1533,22 @@
 					. "doesn't exist or another module has claimed it since this was proposed."];
 			}
 
+			// Re-resolve the group at approval the way create_callout does — a group
+			// free at staging can be deleted inside the proposal's 24h life, which would
+			// otherwise file the module under a dead group id (it renders ungrouped or
+			// under a phantom heading with nothing disclosed). Grouping is cosmetic for a
+			// module, so degrade to ungrouped-with-note rather than refusing the create.
+			$group = trim((string)($payload["group"] ?? ""));
+			$group_missing = $group !== "" && !BigTreeJSONDB::exists("module-groups", $group);
+
+			if ($group_missing) {
+				$group = "";
+			}
+
 			// Re-derive a unique route in case one was taken since validation.
 			$route = $this->uniqueModuleRoute($route);
 			$id = BigTreeJSONDB::insert("modules", $this->moduleInsertMap([
-				"group" => $payload["group"] ?? null,
+				"group" => $group !== "" ? $group : null,
 				"class" => $class,
 				"table" => "",
 				"icon" => (string)($payload["icon"] ?? ""),
@@ -1547,11 +1559,15 @@
 				"id" => (string)$id,
 				"name" => $name,
 				"route" => $route,
+				"group" => $group,
 				"is_complete" => false,
 				"remaining_setup" => $this->aiModuleSetupSteps($name),
 				"note" => "“{$name}” now appears in the admin navigation but is not usable yet — it has no database "
 					. "table, so it has no landing view and entries can't be added to it (including by the "
-					. "assistant). Finish it in Developer → Modules → Module Designer.",
+					. "assistant). Finish it in Developer → Modules → Module Designer."
+					. ($group_missing
+						? " The module group it was meant to join no longer exists, so it was created ungrouped."
+						: ""),
 			];
 		}
 

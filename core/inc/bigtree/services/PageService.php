@@ -407,24 +407,19 @@
 			}
 
 			$parent = (int)($args["parent"] ?? 0);
+
+			// Existence + archived, spelled once and re-run at approval — a parent
+			// deleted or archived inside the proposal's 24h life must refuse there too.
+			$parent_error = $this->aiParentUsableError($parent);
+
+			if ($parent_error !== null) {
+
+				return ["error" => $parent_error];
+			}
+
 			$parent_row = $parent > 0
-				? SQL::fetch("SELECT nav_title, path, archived FROM bigtree_pages WHERE id = ?", $parent)
+				? SQL::fetch("SELECT nav_title, path FROM bigtree_pages WHERE id = ?", $parent)
 				: null;
-
-			if ($parent > 0 && !$parent_row) {
-
-				return ["error" => "Parent page {$parent} does not exist."];
-			}
-
-			// aiWritableParents deliberately offers unarchived parents only, but
-			// nothing stopped an explicit archived id — and performCreate writes
-			// archived = "", producing a live page inside an archived branch that the
-			// parent's own archive never sweeps.
-			if ($parent_row && Flag::isOn($parent_row["archived"])) {
-
-				return ["error" => "Page {$parent} is archived, so a new page under it would be live inside a "
-					. "hidden branch. Unarchive it first, or pick a different parent."];
-			}
 
 			if (!PermissionService::userHasPageAccess($user, $parent, "e")) {
 
@@ -1164,6 +1159,18 @@
 
 			if (!PermissionService::userHasPageAccess($user, $parent, "e")) {
 				throw new AuthorizationException("Insufficient page permission to create child page (e required)");
+			}
+
+			// Re-checked at approval like every other staged reference: the parent may
+			// have been deleted or archived since this was proposed. Without this a
+			// create under a since-archived parent goes live inside a hidden branch
+			// (performCreate writes archived = ""), and one under a deleted parent is
+			// orphaned — precisely the states the staging seam refuses.
+			$parent_error = $this->aiParentUsableError($parent);
+
+			if ($parent_error !== null) {
+
+				return ["mode" => "error", "message" => $parent_error];
 			}
 
 			$rank = PermissionService::userPageLevel($user, $parent);
@@ -3206,6 +3213,44 @@
 		}
 
 		/**
+		 * Whether a parent/destination page can hold a page filed under it.
+		 *
+		 * A create or a move resolves and checks its container at staging, but the
+		 * proposal then sits in the store for up to 24h — the parent can be deleted or
+		 * archived in the meantime. Filing under a deleted id orphans the record; filing
+		 * under an archived one leaves it live inside a hidden branch the archive never
+		 * sweeps (performCreate / the move both write archived = ""). This is the one
+		 * check, spelled once, that both the staging seams and the approval seams run so
+		 * the answer can't drift between them.
+		 *
+		 * @return string|null An error message, or null when the parent is usable
+		 *   (including the site root, which is parent 0).
+		 */
+		private function aiParentUsableError(int $parent): ?string {
+			if ($parent <= 0) {
+
+				return null;
+			}
+
+			$parent_row = SQL::fetch("SELECT archived FROM bigtree_pages WHERE id = ?", $parent);
+
+			if (!$parent_row) {
+
+				return "Parent page {$parent} does not exist.";
+			}
+
+			// aiWritableParents deliberately offers unarchived parents only, but nothing
+			// stops an explicit archived id, and a parent can be archived after staging.
+			if (Flag::isOn($parent_row["archived"])) {
+
+				return "Page {$parent} is archived, so a page filed under it would be live inside a hidden branch "
+					. "that the parent's own archive never sweeps. Unarchive it first, or pick a different parent.";
+			}
+
+			return null;
+		}
+
+		/**
 		 * Approval-time re-check of the staged values whose rule is about the page's
 		 * *resulting state* rather than the value alone.
 		 *
@@ -3604,9 +3649,14 @@
 				return ["error" => "Page {$id} does not exist."];
 			}
 
-			if ($parent > 0 && !SQL::exists("bigtree_pages", $parent)) {
+			// Existence + archived, the same helper create uses. Moving a live page under
+			// an archived parent produces the same "live inside a hidden branch" state a
+			// create does — the subtree keeps archived = "" beneath an archived ancestor.
+			$parent_error = $this->aiParentUsableError($parent);
 
-				return ["error" => "Parent page {$parent} does not exist."];
+			if ($parent_error !== null) {
+
+				return ["error" => $parent_error];
 			}
 
 			if ($parent === $id) {
@@ -3717,6 +3767,16 @@
 			if ($parent === $id || ($parent > 0 && !SQL::exists("bigtree_pages", $parent))) {
 
 				return ["mode" => "error", "message" => "That destination is no longer valid."];
+			}
+
+			// The destination may have been archived since staging — same refusal the
+			// staging seam and create both run, so the moved subtree can't end up live
+			// inside a hidden branch.
+			$parent_error = $this->aiParentUsableError($parent);
+
+			if ($parent_error !== null) {
+
+				return ["mode" => "error", "message" => $parent_error];
 			}
 
 			if ($parent > 0 && $this->isDescendantOf($parent, $id)) {

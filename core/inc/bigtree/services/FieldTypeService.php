@@ -997,6 +997,44 @@
 			return array_map("strval", array_keys($types[$use_case]));
 		}
 
+		/**
+		 * The field types installable for a use case as id/name pairs, sorted by id.
+		 *
+		 * Audit #8 B1: the AI template/callout authoring path had no way to *discover*
+		 * the valid `fields[].type` ids — the field-types route family is declined for
+		 * management, which conflated it with discovery, so the model guessed ids
+		 * ("richtext"? "wysiwyg"?) and learned only from a recoverable error. The read
+		 * seams surface this so the first proposal names a real type. Discovery only —
+		 * it lists what exists, it doesn't manage anything.
+		 *
+		 * @param string $use_case One of "modules", "templates", "callouts", "settings".
+		 * @return list<array{id:string,name:string}>
+		 */
+		public static function aiFieldTypeCatalog($use_case) {
+			$types = self::getCachedFieldTypes();
+
+			if (!isset($types[$use_case]) || !is_array($types[$use_case])) {
+
+				return [];
+			}
+
+			$catalog = [];
+
+			foreach ($types[$use_case] as $id => $definition) {
+				$catalog[] = [
+					"id" => (string)$id,
+					"name" => (string)(is_array($definition) ? ($definition["name"] ?? $id) : $id),
+				];
+			}
+
+			usort($catalog, function (array $a, array $b): int {
+
+				return strcmp($a["id"], $b["id"]);
+			});
+
+			return $catalog;
+		}
+
 		public static function getCachedFieldTypes($split = false) {
 			$types["modules"] = $types["templates"] = $types["callouts"] = $types["settings"] = [
 				"default" => [
