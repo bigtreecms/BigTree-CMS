@@ -1320,7 +1320,9 @@
 			$where = $items = $parsers = $poplists = array();
 
 			// Figure out if we have db populated lists and parsers
-			if ($report["type"] == "view") {
+			// $view and $form are null for a report that isn't backed by one, so
+			// neither can be indexed without checking first.
+			if ($report["type"] == "view" && is_array($view["fields"] ?? null)) {
 				foreach ($view["fields"] as $key => $field) {
 					if ($field["parser"]) {
 						$parsers[$key] = $field["parser"];
@@ -1328,7 +1330,7 @@
 				}
 			}
 
-			if (is_array($form["fields"])) {
+			if (is_array($form["fields"] ?? null)) {
 				foreach ($form["fields"] as $key => $field) {
 					if ($field["type"] == "list" && $field["settings"]["list_type"] == "db") {
 						$poplists[$key] = array("description" => $form["fields"][$key]["settings"]["pop-description"], "table" => $form["fields"][$key]["settings"]["pop-table"]);

@@ -5479,7 +5479,7 @@
 			}
 
 			// Check for an H1
-			if (!$h1_field || $content[$h1_field]) {
+			if (!$h1_field || !empty($content[$h1_field])) {
 				$score += 10;
 			} else {
 				$recommendations[] = "You should enter a page header.";
@@ -5492,9 +5492,13 @@
 				$regular_text = "";
 				$stripped_text = "";
 				foreach ($body_fields as $field) {
-					if (!is_array($content[$field])) {
-						$regular_text .= $content[$field]." ";
-						$stripped_text .= strip_tags($content[$field])." ";
+					// A page saved before the template gained this resource simply has
+					// no entry for it — that scores as empty body copy, not a warning.
+					$body_value = $content[$field] ?? null;
+
+					if (!is_array($body_value)) {
+						$regular_text .= (string)$body_value." ";
+						$stripped_text .= strip_tags((string)$body_value)." ";
 					}
 				}
 				// Check to see if there is any content

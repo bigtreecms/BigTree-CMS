@@ -109,54 +109,16 @@ jobs:
       # imports cleanly with FK checks enabled (no FOREIGN_KEY_CHECKS=0 needed).
       - name: Load schema
         run: mysql -h 127.0.0.1 -P 3306 -uroot -proot bigtree_test < core/setup/base.sql
-      # custom/environment.php + custom/settings.php are gitignored / local-only;
-      # the test runner (core/inc/bigtree/api/_test/run.php) includes them before
-      # bootstrap.php, which needs DB credentials AND a handful of non-DB config
-      # keys it dereferences unconditionally near the top (core/bootstrap.php:6-14:
-      # domain, www_root, admin_root). We also create two filesystem prerequisites
-      # a fresh (gitignored) checkout lacks:
-      #   - cache/composer-check.flag, or bootstrap.php:44-74 re-merges composer.json
-      #     and die()s with "BigTree has updated your composer.json file" before any
-      #     test runs.
-      #   - custom/inc/required/, or bootstrap.php:200 opendir()s a missing dir.
-      #   - custom/json-db/, or BigTreeJSONDB::save() (json-db.php:182) can't
-      #     file_put_contents the store files — reads treat a missing dir as an
-      #     empty store, so ModuleViewServiceTest inserts, silently fails to
-      #     persist, then fails its reload assertion.
-      - name: Write CI env files
-        run: |
-          mkdir -p custom/inc/required cache custom/json-db
-          touch cache/composer-check.flag
-          cat > custom/environment.php <<'PHP'
-          <?php
-          // Non-DB config bootstrap.php reads unconditionally (dummy CI values).
-          $bigtree["config"]["debug"] = false;
-          $bigtree["config"]["domain"] = "http://localhost/";
-          $bigtree["config"]["www_root"] = "http://localhost/";
-          $bigtree["config"]["static_root"] = "http://localhost/";
-          $bigtree["config"]["admin_root"] = "http://localhost/admin/";
-          $bigtree["config"]["sql_interface"] = "mysqli";
-
-          // Read database.
-          $bigtree["config"]["db"]["host"] = "127.0.0.1";
-          $bigtree["config"]["db"]["name"] = "bigtree_test";
-          $bigtree["config"]["db"]["user"] = "root";
-          $bigtree["config"]["db"]["password"] = "root";
-          $bigtree["config"]["db"]["port"] = 3306;
-          $bigtree["config"]["db"]["socket"] = null;
-
-          // Write database (identical block — single-server CI setup).
-          $bigtree["config"]["db_write"]["host"] = "127.0.0.1";
-          $bigtree["config"]["db_write"]["name"] = "bigtree_test";
-          $bigtree["config"]["db_write"]["user"] = "root";
-          $bigtree["config"]["db_write"]["password"] = "root";
-          $bigtree["config"]["db_write"]["port"] = 3306;
-          $bigtree["config"]["db_write"]["socket"] = null;
-          PHP
-          cat > custom/settings.php <<'PHP'
-          <?php
-          // Minimal settings for the API test harness.
-          PHP
+      # A checkout is not a site: /custom, /templates, /site, /cache and
+      # /extensions are all gitignored, and core/setup/install.php is what creates
+      # them, seeds custom/json-db/ from core/setup/json-db/ and renders
+      # custom/settings.php from core/setup/settings.php. scripts/ci-install.sh
+      # mirrors that, which is why it replaced the inline subset this step used to
+      # write — the subset had no seeded templates (every create-page fixture
+      # failed), no settings_key (cms.php warns on every getSetting()) and no
+      # templates/callouts/ (create_callout refuses on an unwritable directory).
+      - name: Install CI site (mirrors core/setup/install.php)
+        run: scripts/ci-install.sh http://localhost/ bigtree_test 3306
       # The test runner SILENTLY SKIPS DB-backed assertions if PHP can't reach
       # the database (measured: 128 pass with no DB vs 141 with the schema, and
       # Failed stays 0 either way). A pass-count floor can't reliably tell those
@@ -204,51 +166,15 @@ jobs:
       - name: Load schema
         run: mysql -h 127.0.0.1 -P 3306 -uroot -proot bigtree_test < core/setup/base.sql
       # Unlike the API test runner (which never boots the HTTP layer), the smoke
-      # server runs the real front controller, so its env needs the standard
-      # bootstrap keys the php job writes PLUS two the login/token path
-      # dereferences: settings_key (AES_DECRYPT of settings — core/inc/bigtree/
-      # cms.php) and api.jwt_secret (JWT signing — AuthService::issueTokens).
-      # Both are dummy CI values; roots point at the local php -S server.
-      #
-      # Phase 2 also needs:
-      #   - custom/json-db/ for templates/modules/settings definitions
-      #   - site/files/resources (+ temporary) for resource upload smoke
-      - name: Write CI env files
-        run: |
-          mkdir -p custom/inc/required cache custom/json-db \
-            site/files/resources site/files/temporary site/files/pages
-          touch cache/composer-check.flag
-          cat > custom/environment.php <<'PHP'
-          <?php
-          $bigtree["config"]["debug"] = false;
-          $bigtree["config"]["domain"] = "http://127.0.0.1:8080/";
-          $bigtree["config"]["www_root"] = "http://127.0.0.1:8080/";
-          $bigtree["config"]["static_root"] = "http://127.0.0.1:8080/";
-          $bigtree["config"]["admin_root"] = "http://127.0.0.1:8080/admin/";
-          $bigtree["config"]["sql_interface"] = "mysqli";
-          $bigtree["config"]["settings_key"] = "ci-smoke-settings-key-aaaaaaaaaaaaaaaa";
-          $bigtree["config"]["api"]["jwt_secret"] = "ci-smoke-jwt-secret-at-least-32-bytes-long";
-
-          // Read database.
-          $bigtree["config"]["db"]["host"] = "127.0.0.1";
-          $bigtree["config"]["db"]["name"] = "bigtree_test";
-          $bigtree["config"]["db"]["user"] = "root";
-          $bigtree["config"]["db"]["password"] = "root";
-          $bigtree["config"]["db"]["port"] = 3306;
-          $bigtree["config"]["db"]["socket"] = null;
-
-          // Write database (identical block — single-server CI setup).
-          $bigtree["config"]["db_write"]["host"] = "127.0.0.1";
-          $bigtree["config"]["db_write"]["name"] = "bigtree_test";
-          $bigtree["config"]["db_write"]["user"] = "root";
-          $bigtree["config"]["db_write"]["password"] = "root";
-          $bigtree["config"]["db_write"]["port"] = 3306;
-          $bigtree["config"]["db_write"]["socket"] = null;
-          PHP
-          cat > custom/settings.php <<'PHP'
-          <?php
-          // Minimal settings for the smoke-test server.
-          PHP
+      # server runs the real front controller, so the roots have to point at the
+      # local php -S server. Everything else — the installer's directory list,
+      # the json-db seed, settings_key and api.jwt_secret — comes from the shared
+      # installer, same as the php job.
+      - name: Install CI site (mirrors core/setup/install.php)
+        env:
+          BIGTREE_CI_SETTINGS_KEY: ci-smoke-settings-key-aaaaaaaaaaaaaaaa
+          BIGTREE_CI_JWT_SECRET: ci-smoke-jwt-secret-at-least-32-bytes-long
+        run: scripts/ci-install.sh http://127.0.0.1:8080/ bigtree_test 3306
       # Seed a level-2 (developer) admin whose password hash comes from the same
       # password_hash(PASSWORD_DEFAULT) AuthService::verifyPassword checks when
       # new_hash = 'on'. All NOT-NULL columns are set.
@@ -344,37 +270,11 @@ jobs:
           cache-dependency-path: spa/package-lock.json
       - name: Load schema
         run: mysql -h 127.0.0.1 -P 3306 -uroot -proot bigtree_test < core/setup/base.sql
-      - name: Write CI env files
-        run: |
-          mkdir -p custom/inc/required cache custom/json-db \
-            site/files/resources site/files/temporary site/files/pages
-          touch cache/composer-check.flag
-          cat > custom/environment.php <<'PHP'
-          <?php
-          $bigtree["config"]["debug"] = false;
-          $bigtree["config"]["domain"] = "http://127.0.0.1:8080/";
-          $bigtree["config"]["www_root"] = "http://127.0.0.1:8080/";
-          $bigtree["config"]["static_root"] = "http://127.0.0.1:8080/";
-          $bigtree["config"]["admin_root"] = "http://127.0.0.1:8080/admin/";
-          $bigtree["config"]["sql_interface"] = "mysqli";
-          $bigtree["config"]["settings_key"] = "ci-smoke-settings-key-aaaaaaaaaaaaaaaa";
-          $bigtree["config"]["api"]["jwt_secret"] = "ci-smoke-jwt-secret-at-least-32-bytes-long";
-          $bigtree["config"]["db"]["host"] = "127.0.0.1";
-          $bigtree["config"]["db"]["name"] = "bigtree_test";
-          $bigtree["config"]["db"]["user"] = "root";
-          $bigtree["config"]["db"]["password"] = "root";
-          $bigtree["config"]["db"]["port"] = 3306;
-          $bigtree["config"]["db"]["socket"] = null;
-          $bigtree["config"]["db_write"]["host"] = "127.0.0.1";
-          $bigtree["config"]["db_write"]["name"] = "bigtree_test";
-          $bigtree["config"]["db_write"]["user"] = "root";
-          $bigtree["config"]["db_write"]["password"] = "root";
-          $bigtree["config"]["db_write"]["port"] = 3306;
-          $bigtree["config"]["db_write"]["socket"] = null;
-          PHP
-          cat > custom/settings.php <<'PHP'
-          <?php
-          PHP
+      - name: Install CI site (mirrors core/setup/install.php)
+        env:
+          BIGTREE_CI_SETTINGS_KEY: ci-smoke-settings-key-aaaaaaaaaaaaaaaa
+          BIGTREE_CI_JWT_SECRET: ci-smoke-jwt-secret-at-least-32-bytes-long
+        run: scripts/ci-install.sh http://127.0.0.1:8080/ bigtree_test 3306
       - name: Seed e2e admin user
         env:
           E2E_EMAIL: smoke@ci.local

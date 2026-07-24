@@ -20,8 +20,10 @@
 	 */
 
 	use BigTree\Services\AIChatService;
+	use BigTree\Services\SearchService;
 	use BigTree\Services\AI\CapabilitySummary;
 	use BigTree\Services\AI\ProposalStore;
+	use BigTree\Services\AI\Tools\SemanticSearchTool;
 
 	/**
 	 * Every endpoint family declared in the route files, as family => list of
@@ -85,6 +87,14 @@
 	 * rather than a hand-maintained list — see
 	 * test_write_verbs_are_not_covered_by_read_tools.
 	 *
+	 * Tools the registry only registers when a runtime feature is on are added
+	 * here regardless: the classification below is a statement about the tool
+	 * catalogue, not about how this particular box happens to be configured.
+	 * semantic_search is registered only when EmbeddingService::isEnabled() (a
+	 * vector table plus the embeddings feature flag), so without this a CI box
+	 * with no index reports search/ai as an unclassified family while a
+	 * developer's machine reports it as covered.
+	 *
 	 * @return array<string,string>
 	 */
 	function ai_contract_tool_kinds(): array {
@@ -101,9 +111,26 @@
 			foreach ($registry->availableTools($developer) as $tool) {
 				$kinds[$tool->name()] = $tool->kind();
 			}
+
+			foreach (ai_contract_conditional_tools() as $tool) {
+				if (!isset($kinds[$tool->name()])) {
+					$kinds[$tool->name()] = $tool->kind();
+				}
+			}
 		}
 
 		return $kinds;
+	}
+
+	/**
+	 * The tools buildRegistry() registers behind a runtime feature check, built
+	 * directly so the contract sees them whether or not the feature is on here.
+	 *
+	 * @return list<\BigTree\Services\AI\AIToolInterface>
+	 */
+	function ai_contract_conditional_tools(): array {
+
+		return [new SemanticSearchTool(new SearchService())];
 	}
 
 	/** The HTTP verbs that change something. */

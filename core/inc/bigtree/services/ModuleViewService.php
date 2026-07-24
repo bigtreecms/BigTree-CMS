@@ -157,6 +157,14 @@
 			$modules = BigTreeJSONDB::getAll("modules");
 
 			foreach ($modules as $module) {
+				// A module with no views at all has no "views" key (rather than an
+				// empty list), which is the normal state for a module created by the
+				// API before its first view is added.
+				if (!is_array($module["views"] ?? null)) {
+
+					continue;
+				}
+
 				foreach ($module["views"] as $view) {
 					if ($view["table"] == $table_name) {
 						if (is_array($view["fields"])) {
