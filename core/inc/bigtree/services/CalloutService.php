@@ -222,6 +222,11 @@
 			"display_default" => 255,
 		];
 
+		// The max:255 the POST /callout-groups route enforces on the group name; the
+		// two group creators were the only create seams left without a length cap
+		// (audit #7 B4).
+		private const AI_GROUP_NAME_MAX_LENGTH = 255;
+
 		/**
 		 * The first over-length callout value, as a recoverable error. Shared by
 		 * staging and approval so a stored payload can't slip past.
@@ -652,6 +657,17 @@
 			$fields = is_array($existing["resources"] ?? null) ? $existing["resources"] : [];
 
 			if (array_key_exists("fields", $args)) {
+
+				// "fields" replaces the whole list, so an empty list empties the callout
+				// and orphans the content stored under its keys everywhere it is used.
+				// Refuse it rather than disclose a total wipe as an ordinary diff.
+				if (is_array($args["fields"]) && !$args["fields"]) {
+
+					return ["error" => "An empty field list would remove every field on the callout and orphan the "
+						. "content stored under them. To keep the callout but change its fields, include the fields it "
+						. "should end up with; to remove every field, do it in Developer → Callouts."];
+				}
+
 				$before = is_array($existing["resources"] ?? null) ? $existing["resources"] : [];
 				$fields = $this->aiCalloutFields($args["fields"], $before);
 				$type_error = Resources::aiFieldIdError($args["fields"], "callout")
@@ -1074,6 +1090,12 @@
 				return ["error" => "A callout group name is required (e.g. \"Sidebar\")."];
 			}
 
+			if (mb_strlen($name) > self::AI_GROUP_NAME_MAX_LENGTH) {
+
+				return ["error" => "The callout group name is " . mb_strlen($name) . " characters, but the field holds "
+					. "at most " . self::AI_GROUP_NAME_MAX_LENGTH . ". Shorten it and try again."];
+			}
+
 			foreach (BigTreeJSONDB::getAll("callout-groups") as $group) {
 				if (strcasecmp((string)($group["name"] ?? ""), $name) === 0) {
 
@@ -1108,7 +1130,7 @@
 
 			$name = trim((string)($payload["name"] ?? ""));
 
-			if ($name === "") {
+			if ($name === "" || mb_strlen($name) > self::AI_GROUP_NAME_MAX_LENGTH) {
 
 				return ["mode" => "error", "message" => "That callout group can no longer be created."];
 			}

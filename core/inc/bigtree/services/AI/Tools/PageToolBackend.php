@@ -17,7 +17,7 @@
 		 * prompt. Root (id 0) is offered only to administrators/developers.
 		 *
 		 * @param object|array $user
-		 * @return list<array{id:int,title:string,path:string}>
+		 * @return array{parents:list<array{id:int,title:string,path:string}>,has_more:bool}
 		 */
 		public function aiWritableParents($user): array;
 
@@ -56,7 +56,7 @@
 		 * @param object|array $user
 		 * @return array<string,mixed>
 		 */
-		public function aiPageTree(int $parent, $user): array;
+		public function aiPageTree(int $parent, $user, int $offset = 0): array;
 
 		/**
 		 * Validate a proposed page edit without writing anything: page existence,

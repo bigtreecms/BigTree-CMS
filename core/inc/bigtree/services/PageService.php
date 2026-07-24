@@ -13,6 +13,7 @@
 	use BigTree\Api\Exceptions\NotFoundException;
 	use BigTree\Api\Exceptions\AuthorizationException;
 	use BigTree\Services\AI\Tools\PageToolBackend;
+	use BigTree\Services\AI\FieldOptionDomain;
 	use BigTreeCMS;
 	use BigTree;
 	use SQL;
@@ -50,6 +51,11 @@
 			"new_window",
 			"resources",
 		];
+
+		// How many viewable children get_page_tree returns in one window. Filtered
+		// before the cap and paired with has_more/offset so a large section can be
+		// walked rather than silently truncated (audit #7 D1).
+		private const AI_PAGE_TREE_CAP = 200;
 
 		public function list(Request $request) {
 			$parent = $request->queryInt("parent");
@@ -314,8 +320,13 @@
 		 * pages; an editor gets the pages they hold an explicit editor/publisher grant
 		 * on (root is deliberately withheld from non-admins).
 		 *
+		 * Returns the choices plus a has_more flag: the top-level list is capped, and
+		 * beyond the cap valid targets would otherwise vanish from the prompt with
+		 * nothing said (audit #7 D2). When truncated the model tells the user they can
+		 * name a parent page directly instead of picking from a partial list.
+		 *
 		 * @param object|array $user
-		 * @return list<array{id:int,title:string,path:string}>
+		 * @return array{parents:list<array{id:int,title:string,path:string}>,has_more:bool}
 		 */
 		public function aiWritableParents($user): array {
 			$out = [];
@@ -323,18 +334,23 @@
 			if (PermissionService::level($user) >= 1) {
 				$out[] = ["id" => 0, "title" => "Top level (site root)", "path" => ""];
 
+				// Over-fetch one past the cap so has_more is a fact, not a guess.
 				$rows = SQL::fetchAll(
-					"SELECT id, nav_title, title, path FROM bigtree_pages
-						WHERE parent = 0 AND archived = '' ORDER BY position DESC, id ASC LIMIT 25"
+					"SELECT id, nav_title, title, path, trunk FROM bigtree_pages
+						WHERE parent = 0 AND archived = '' ORDER BY position DESC, id ASC LIMIT " . (self::AI_PAGE_TREE_CAP + 1)
 				);
+				$more = count($rows) > self::AI_PAGE_TREE_CAP;
+				$rows = array_slice($rows, 0, self::AI_PAGE_TREE_CAP);
 
 				foreach ($rows as $row) {
 					$out[] = $this->writableParentRow($row);
 				}
 
-				return $out;
+				return ["parents" => $out, "has_more" => $more];
 			}
 
+			// An editor's targets come from their own grant map, which is bounded by
+			// their permissions rather than a query cap, so the list is never partial.
 			$permissions = Json::decode(is_object($user) ? ($user->permissions ?? []) : ($user["permissions"] ?? []));
 			$page_perms = is_array($permissions["page"] ?? null) ? $permissions["page"] : [];
 
@@ -345,7 +361,7 @@
 				}
 
 				$row = SQL::fetch(
-					"SELECT id, nav_title, title, path FROM bigtree_pages WHERE id = ? AND archived = ''",
+					"SELECT id, nav_title, title, path, trunk FROM bigtree_pages WHERE id = ? AND archived = ''",
 					(int)$page_id
 				);
 
@@ -354,7 +370,7 @@
 				}
 			}
 
-			return $out;
+			return ["parents" => $out, "has_more" => false];
 		}
 
 		/**
@@ -368,6 +384,10 @@
 				"id" => (int)$row["id"],
 				"title" => $title,
 				"path" => (string)($row["path"] ?? ""),
+				// On a multi-site install a top-level page that is a trunk is a site
+				// root; without this the assistant can't tell one site's "About" from
+				// another's when the user says "create a page under About" (C2).
+				"trunk" => Flag::isOn($row["trunk"] ?? ""),
 			];
 		}
 
@@ -778,6 +798,10 @@
 					// that; what's left (numeric, email, link) the write path enforces
 					// and nothing here used to check.
 					"rules" => array_values(array_diff($rules ?: [], ["required"])),
+					// The option domain for a `list` resource, resolved the same way the
+					// module-entry schema resolves it (audit #7 B1). Without this the
+					// content sift accepted any string into a list field.
+					"options" => FieldOptionDomain::resolve($resource, $type, $id),
 				];
 			}
 
@@ -916,6 +940,16 @@
 					$data[$id] = is_bool($value) ? ($value ? "1" : "0") : (string)$value;
 				}
 
+				// Same option-domain check the module-entry sift runs (audit #7 B1),
+				// through the shared helper so the two paths cannot disagree. A matched
+				// label is rewritten to its stored value in place.
+				$out_of_domain = FieldOptionDomain::violation($schema[$id], $data[$id]);
+
+				if ($out_of_domain !== null) {
+
+					return ["error" => $out_of_domain];
+				}
+
 				$invalid = $this->aiResourceRuleViolation($schema[$id], $data[$id]);
 
 				if ($invalid !== null) {
@@ -1031,7 +1065,24 @@
 			$parts = [];
 
 			foreach ($schema as $id => $field) {
-				$parts[] = $id . " (" . $field["type"] . ($field["required"] ? ", required" : "") . ")";
+				$part = $id . " (" . $field["type"] . ($field["required"] ? ", required" : "") . ")";
+				$options = is_array($field["options"] ?? null) ? $field["options"] : [];
+
+				// A list field carries its option domain (audit #7 B1); naming the
+				// choices here is what lets the model correct an out-of-domain value
+				// from the same error that lists the fields, rather than guessing again.
+				if ($options) {
+					$listed = array_map(function (array $option): string {
+						$label = (string)($option["label"] ?? "");
+						$value = (string)($option["value"] ?? "");
+
+						return $label !== "" && $label !== $value ? "{$label} ({$value})" : $value;
+					}, array_slice($options, 0, 30));
+
+					$part .= ": one of " . implode(", ", $listed) . (count($options) > 30 ? ", …" : "");
+				}
+
+				$parts[] = $part;
 			}
 
 			return implode(", ", $parts);
@@ -1591,7 +1642,7 @@
 		 * @param object|array $user
 		 * @return array<string,mixed>
 		 */
-		public function aiPageTree(int $parent, $user): array {
+		public function aiPageTree(int $parent, $user, int $offset = 0): array {
 			if ($parent > 0 && !SQL::exists("bigtree_pages", $parent)) {
 
 				return ["error" => "Page {$parent} does not exist."];
@@ -1606,19 +1657,32 @@
 				? SQL::fetch("SELECT id, nav_title, title, path FROM bigtree_pages WHERE id = ?", $parent)
 				: ["id" => 0, "nav_title" => "Top level (site root)", "title" => "", "path" => ""];
 
+			$limit = self::AI_PAGE_TREE_CAP;
+			$offset = max(0, $offset);
+
+			// Children the user can't view are dropped, so the cap has to come *after*
+			// the filter — otherwise a page at position 201 that an editor can edit is
+			// invisible, and a section of 200+ children reports a partial list as
+			// complete, prompting a duplicate-page creation. Over-fetch, filter, then
+			// slice one past the window so has_more is a fact, mirroring
+			// list_module_entries (audit #5 C3 / audit #7 D1).
 			$rows = SQL::fetchAll(
-				"SELECT id, nav_title, title, path, in_nav, archived, template FROM bigtree_pages
-					WHERE parent = ? ORDER BY position DESC, id ASC LIMIT 200",
+				"SELECT id, nav_title, title, path, in_nav, archived, `template`, `external`, trunk FROM bigtree_pages
+					WHERE parent = ? ORDER BY position DESC, id ASC LIMIT " . (int)(($offset + $limit + 1) * 4),
 				$parent
 			);
+			$rows = array_values(array_filter($rows, function ($row) use ($user) {
+
+				return PermissionService::userHasPageAccess($user, (int)$row["id"], "v");
+			}));
+			$window = array_slice($rows, $offset, $limit + 1);
+			$more = count($window) > $limit;
+			$window = array_slice($window, 0, $limit);
 
 			$children = [];
 
-			foreach ($rows as $row) {
-				if (!PermissionService::userHasPageAccess($user, (int)$row["id"], "v")) {
-
-					continue;
-				}
+			foreach ($window as $row) {
+				$external = (string)$row["external"];
 
 				$children[] = [
 					"id" => (int)$row["id"],
@@ -1627,6 +1691,13 @@
 					"in_nav" => Flag::isOn($row["in_nav"]),
 					"archived" => Flag::isOn($row["archived"]),
 					"template" => (string)$row["template"],
+					// An external link has no template of its own; without this flag it
+					// is indistinguishable from a page whose template was deleted, and
+					// update_page refuses the two for opposite reasons (D5).
+					"external" => $external !== "" ? $external : null,
+					// Which top-level pages are site trunks, so the assistant can reason
+					// about multi-site structure even though it cannot change it (C2).
+					"trunk" => Flag::isOn($row["trunk"]),
 					"has_children" => (int)SQL::fetchSingle("SELECT COUNT(*) FROM bigtree_pages WHERE parent = ?", (int)$row["id"]) > 0,
 					"can_edit" => PermissionService::userHasPageAccess($user, (int)$row["id"], "e"),
 				];
@@ -1643,6 +1714,9 @@
 					"path" => $parent > 0 ? "/" . (string)$parent_row["path"] : "",
 				],
 				"children" => $children,
+				"offset" => $offset,
+				"limit" => $limit,
+				"has_more" => $more,
 				"can_create_here" => $can_create,
 				"can_edit_here" => $parent > 0 && $can_create,
 			];

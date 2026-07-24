@@ -57,6 +57,13 @@
 							"type" => "integer",
 							"description" => "Minimum admin level allowed to use the callout (0 editor, 1 admin, 2 developer).",
 						],
+						"group" => [
+							"type" => "string",
+							"description" => "Callout group (id or name) to move the callout into. A callout belongs to "
+								. "at most one group, so this moves it out of any group it is currently in. A page "
+								. "region restricted to a group only offers callouts in that group. Use "
+								. "create_callout_group if the group doesn't exist yet.",
+						],
 						"display_field" => [
 							"type" => "string",
 							"description" => "Field id used as the callout's display label in the page editor. Must be "

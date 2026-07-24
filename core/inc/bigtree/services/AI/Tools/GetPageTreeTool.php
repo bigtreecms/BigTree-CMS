@@ -30,13 +30,20 @@
 			return $this->functionDefinition(
 				$this->name(),
 				"List the child pages under a parent page (use parent 0 for the site root), and whether you "
-					. "can create or edit pages there. Use this to explore the site structure or find where a page can go.",
+					. "can create or edit pages there. Use this to explore the site structure or find where a page can go. "
+					. "A large section is returned in pages: if has_more is true, call again with offset advanced by the "
+					. "number of children returned.",
 				[
 					"type" => "object",
 					"properties" => [
 						"parent" => [
 							"type" => "integer",
 							"description" => "Id of the parent page to list children of. 0 (default) is the site root.",
+						],
+						"offset" => [
+							"type" => "integer",
+							"description" => "How many children to skip, for walking a section with more children than fit "
+								. "in one response. 0 (the default) starts at the beginning.",
 						],
 					],
 				]
@@ -45,7 +52,8 @@
 
 		public function execute(array $args, AIToolContext $context): AIToolResult {
 			$parent = (int)($args["parent"] ?? 0);
-			$tree = $this->backend->aiPageTree($parent, $context->user);
+			$offset = max(0, (int)($args["offset"] ?? 0));
+			$tree = $this->backend->aiPageTree($parent, $context->user, $offset);
 
 			if (isset($tree["error"])) {
 

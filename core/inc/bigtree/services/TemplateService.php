@@ -455,6 +455,18 @@
 			}
 
 			if (array_key_exists("fields", $args)) {
+
+				// "fields" replaces the whole list, so an empty list empties the
+				// template and orphans every page's content beneath its keys. That is
+				// almost always a mistake (the model read nothing and sent nothing), so
+				// refuse it rather than disclose a total wipe as an ordinary diff.
+				if (is_array($args["fields"]) && !$args["fields"]) {
+
+					return ["error" => "An empty field list would remove every field on the template and orphan the "
+						. "content stored under them on every page. To keep the template but change its fields, include "
+						. "the fields it should end up with; to remove every field, do it in Developer → Templates."];
+				}
+
 				$before = is_array($existing["resources"] ?? null) ? $existing["resources"] : [];
 				$fields = $this->aiCleanResourceFields($args["fields"], $before);
 				$type_error = Resources::aiFieldIdError($args["fields"], "template")

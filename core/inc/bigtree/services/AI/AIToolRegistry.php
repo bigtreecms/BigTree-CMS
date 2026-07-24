@@ -91,6 +91,19 @@
 				);
 			}
 
+			// Validate the arguments against the tool's own published schema before
+			// dispatch. Every seam used to cast a wrongly-shaped argument to empty —
+			// silent data loss for a replace-semantics argument — so the shape check
+			// lives here, once, ahead of every tool (core and extension). A repairable
+			// stringified object/array is fixed in place; anything else is a
+			// recoverable error the model can act on.
+			$shape_error = AIToolArgs::validate($tool->definition($context->user), $args);
+
+			if ($shape_error !== null) {
+
+				return AIToolResult::error($shape_error);
+			}
+
 			$result = $tool->execute($args, $context);
 
 			// kind() is the contract the whole approval model rests on, and until now

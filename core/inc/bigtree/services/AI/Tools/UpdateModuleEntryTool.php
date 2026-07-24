@@ -47,6 +47,7 @@
 						"data" => [
 							"type" => "object",
 							"description" => "Changed field values keyed by column name (only the module form's simple fields).",
+							"additionalProperties" => ["type" => "string"],
 						],
 						"form" => [
 							"type" => "string",

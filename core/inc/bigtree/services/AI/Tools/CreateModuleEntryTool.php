@@ -42,6 +42,7 @@
 						"data" => [
 							"type" => "object",
 							"description" => "Field values keyed by column name. Only the module form's simple fields can be set.",
+							"additionalProperties" => ["type" => "string"],
 						],
 						"form" => [
 							"type" => "string",

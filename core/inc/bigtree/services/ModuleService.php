@@ -27,6 +27,10 @@
 		use ModuleSubResourceSupport;
 		use ModuleFormFieldsSupport;
 
+		// The max:255 the POST /module-groups route enforces on the group name
+		// (audit #7 B4).
+		private const AI_GROUP_NAME_MAX_LENGTH = 255;
+
 		// The embed-form sub-resource write shape: column => transform verb (see
 		// ModuleSubResourceSupport::buildInsert). `fields` (cleanFormFields) and
 		// `hash` (minted on create) are the per-entity specials and are set by
@@ -1624,6 +1628,12 @@
 				return ["error" => "A module group name is required (e.g. \"Content\")."];
 			}
 
+			if (mb_strlen($name) > self::AI_GROUP_NAME_MAX_LENGTH) {
+
+				return ["error" => "The module group name is " . mb_strlen($name) . " characters, but the field holds "
+					. "at most " . self::AI_GROUP_NAME_MAX_LENGTH . ". Shorten it and try again."];
+			}
+
 			foreach (BigTreeJSONDB::getAll("module-groups") as $group) {
 				if (strcasecmp((string)($group["name"] ?? ""), $name) === 0) {
 
@@ -1658,7 +1668,7 @@
 
 			$name = trim((string)($payload["name"] ?? ""));
 
-			if ($name === "") {
+			if ($name === "" || mb_strlen($name) > self::AI_GROUP_NAME_MAX_LENGTH) {
 
 				return ["mode" => "error", "message" => "That module group can no longer be created."];
 			}
@@ -1672,7 +1682,11 @@
 
 			$id = BigTreeJSONDB::insert("module-groups", [
 				"name" => BigTree::safeEncode($name),
-				"route" => BigTreeCMS::urlify($name),
+				// The name is unique but its slug need not be — "Site Content" and
+				// "Site  Content" both urlify to "site-content" and would collide on the
+				// route the front-end resolves groups by. De-duplicate it the same way
+				// module routes are (audit #7 B5).
+				"route" => $this->uniqueModuleGroupRoute(BigTreeCMS::urlify($name)),
 				"position" => 0,
 			]);
 
@@ -1802,6 +1816,18 @@
 			$x = 2;
 
 			while (BigTreeJSONDB::get("modules", $route, "route")) {
+				$route = $base . "-" . $x++;
+			}
+
+			return $route;
+		}
+
+		/** The module-group equivalent of uniqueModuleRoute (audit #7 B5). */
+		private function uniqueModuleGroupRoute($base) {
+			$route = $base !== "" ? $base : "group";
+			$x = 2;
+
+			while (BigTreeJSONDB::get("module-groups", $route, "route")) {
 				$route = $base . "-" . $x++;
 			}
 

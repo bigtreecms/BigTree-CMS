@@ -54,6 +54,7 @@
 							"description" => "The template fields to change, keyed by field id "
 								. "(e.g. {\"page_content\": \"<p>…</p>\"}). Only simple text/html fields can be set. "
 								. "Fields you omit keep their current values.",
+							"additionalProperties" => ["type" => "string"],
 						],
 						"template" => [
 							"type" => "string",

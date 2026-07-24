@@ -34,6 +34,12 @@
 	 * cleanly find orphans and tell editors what would break if they delete a resource).
 	 */
 	class ResourceService implements ResourceToolBackend {
+		// How many viewable subfolders list_resources returns before marking the
+		// list partial, and how many rows search_files scans before filtering by
+		// folder access (audit #7 D3).
+		private const AI_RESOURCE_FOLDER_CAP = 200;
+		private const AI_FILE_SEARCH_SCAN_CAP = 500;
+
 		// — Folders —
 
 		public function listFolders(Request $request) {
@@ -410,21 +416,35 @@
 				return ["denied" => "You do not have access to that media folder."];
 			}
 
+			$limit = max(1, $limit);
+
+			// Subfolders the user can't see are dropped, so the cap has to come after
+			// the filter or a visible folder past the window vanishes with nothing
+			// saying so (audit #7 D3). Over-fetch, filter, then slice one past the
+			// window for an honest has_more.
 			$folders = SQL::fetchAll(
-				"SELECT id, parent, name FROM bigtree_resource_folders WHERE parent = ? ORDER BY name LIMIT 200",
+				"SELECT id, parent, name FROM bigtree_resource_folders WHERE parent = ? ORDER BY name LIMIT "
+					. (int)((self::AI_RESOURCE_FOLDER_CAP + 1) * 4),
 				$folder
 			);
 			$folders = array_values(array_filter($folders, function ($f) use ($user) {
 
 				return PermissionService::userFolderLevel($user, (int)$f["id"]) !== "n";
 			}));
+			$more_folders = count($folders) > self::AI_RESOURCE_FOLDER_CAP;
+			$folders = array_slice($folders, 0, self::AI_RESOURCE_FOLDER_CAP);
 
+			// Every resource in this folder shares the folder's access (checked above),
+			// so no per-row filter is needed — one past the limit is enough to know
+			// whether the file list was truncated.
 			$resources = SQL::fetchAll(
 				"SELECT id, folder, file, name, type, mimetype, is_image, is_video, height, width, size, date
 				 FROM bigtree_resources WHERE folder = ? ORDER BY date DESC LIMIT ?",
 				$folder ?: null,
-				max(1, $limit)
+				$limit + 1
 			);
+			$more_resources = count($resources) > $limit;
+			$resources = array_slice($resources, 0, $limit);
 
 			return [
 				"folder" => $folder,
@@ -439,6 +459,8 @@
 
 					return $this->aiPresentResource($r);
 				}, $resources),
+				"has_more" => $more_resources,
+				"has_more_folders" => $more_folders,
 			];
 		}
 
@@ -454,14 +476,22 @@
 				return ["resources" => []];
 			}
 
+			$limit = max(1, $limit);
 			$like = Sanitize::likeTerm($query);
+
+			// Rows in folders the user can't view are dropped, so filtering after a
+			// fixed LIMIT 100 could report "no such file" for a match sitting at row
+			// 101 in a folder the user can see (audit #7 D3). Scan a generous window,
+			// filter, then cap — and take one extra so has_more is a fact.
 			$rows = SQL::fetchAll(
 				"SELECT id, folder, file, name, type, mimetype, is_image, is_video, height, width, size, date
-				 FROM bigtree_resources WHERE name LIKE ? OR file LIKE ? ORDER BY date DESC LIMIT 100",
+				 FROM bigtree_resources WHERE name LIKE ? OR file LIKE ? ORDER BY date DESC LIMIT "
+					. self::AI_FILE_SEARCH_SCAN_CAP,
 				$like, $like
 			);
 
 			$out = [];
+			$more = false;
 
 			foreach ($rows as $r) {
 				if (!PermissionService::userHasFolderAccess($user, (int)$r["folder"], "v")) {
@@ -469,15 +499,16 @@
 					continue;
 				}
 
-				$out[] = $this->aiPresentResource($r);
-
-				if (count($out) >= max(1, $limit)) {
+				if (count($out) >= $limit) {
+					$more = true;
 
 					break;
 				}
+
+				$out[] = $this->aiPresentResource($r);
 			}
 
-			return ["resources" => $out];
+			return ["resources" => $out, "has_more" => $more];
 		}
 
 		/**

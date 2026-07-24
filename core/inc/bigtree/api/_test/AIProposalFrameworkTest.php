@@ -25,9 +25,11 @@
 			/** @var array<string,mixed> */
 			public $created = ["mode" => "pending", "title" => "X"];
 
+			public $parents_has_more = false;
+
 			public function aiWritableParents($user): array {
 
-				return $this->parents;
+				return ["parents" => $this->parents, "has_more" => $this->parents_has_more];
 			}
 
 			public function aiValidatePageCreate(array $args, $user): array {
@@ -52,7 +54,7 @@
 			/** @var array<string,mixed>|null */
 			public $archived = null;
 
-			public function aiPageTree(int $parent, $user): array {
+			public function aiPageTree(int $parent, $user, int $offset = 0): array {
 
 				return $this->tree;
 			}
@@ -228,6 +230,23 @@
 		T::equals($result->options[1]["id"], 3, "option carries the parent id");
 		T::equals($result->options[1]["description"], "/blog", "option describes the path");
 		T::equals(count($store->created), 0, "needs_input stages nothing");
+	}
+
+	function test_create_page_needs_input_marks_partial_parent_list() {
+		$backend = new FakePageToolBackend();
+		$backend->parents = [
+			["id" => 0, "title" => "Top level (site root)", "path" => ""],
+			["id" => 3, "title" => "Blog", "path" => "blog"],
+		];
+		$backend->parents_has_more = true;
+		$store = new FakeProposalStore();
+		$tool = create_page_tool($backend, $store);
+
+		$result = $tool->execute(["nav_title" => "New Post"], new AIToolContext(ai_fake_user(1), 8, "5"));
+
+		T::equals($result->type, AIToolResult::NEEDS_INPUT, "no parent → needs_input");
+		T::ok(stripos($result->question, "partial list") !== false, "a truncated parent list says so in the prompt");
+		T::equals(count($result->options), 2, "and still offers the parents it does have");
 	}
 
 	function test_create_page_denied_without_writable_parents() {

@@ -191,6 +191,13 @@
 				"Deleting a page revision" =>
 					"the page's revisions panel — the assistant can list, save and restore revisions, but not "
 						. "delete one",
+				// `trunk` is deliberately absent from every page write tool (dev-only,
+				// multi-site-structural): setting it restructures multi-site routing and
+				// invalidates the path cache. The page tree does surface which pages are
+				// sites (a `trunk` flag) so the assistant can reason about them, but it
+				// cannot set or clear one.
+				"Making a page a site trunk, or changing the multi-site structure" =>
+					"Developer → Pages — the assistant can see which pages are site trunks but cannot set or move one",
 			];
 		}
 

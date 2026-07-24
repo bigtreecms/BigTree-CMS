@@ -556,8 +556,26 @@
 		*/
 
 		public static function deleteItem($table, $id) {
+			// The tags the entry carried, captured before its relation rows go, so
+			// their usage_count can be recomputed once the entry is gone. The page
+			// delete path (PageService::delete) has always cleaned both of these
+			// tables; entry deletion did not, so it orphaned every rel row and left
+			// bigtree_open_graph pointing at a dead entry — and the orphan rel rows
+			// then inflated the usage_count that ranks the assistant's own search_tags.
+			$tags = SQL::fetchAllSingle(
+				"SELECT tag FROM bigtree_tags_rel WHERE `table` = ? AND entry = ?",
+				$table,
+				(string)$id
+			);
+
 			SQL::delete($table, $id);
 			SQL::delete("bigtree_resource_allocation", ["table" => $table, "entry" => $id]);
+			SQL::query("DELETE FROM bigtree_tags_rel WHERE `table` = ? AND entry = ?", $table, (string)$id);
+			SQL::query("DELETE FROM bigtree_open_graph WHERE `table` = ? AND entry = ?", $table, (string)$id);
+
+			if ($tags) {
+				BigTreeAdmin::updateTagReferenceCounts($tags);
+			}
 
 			$pending_change = SQL::fetch("SELECT * FROM bigtree_pending_changes WHERE `table` = ? AND `item_id` = ?", $table, $id);
 

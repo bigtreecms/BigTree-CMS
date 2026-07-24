@@ -372,8 +372,10 @@
 			}
 
 			$query = strtolower(trim($query));
+			$limit = max(1, $limit);
 			$defs = BigTreeJSONDB::getAll("settings");
 			$out = [];
+			$more = false;
 
 			foreach ($defs as $def) {
 				if (strpos($def["id"] ?? "", "bigtree-internal-") === 0) {
@@ -399,16 +401,20 @@
 					}
 				}
 
-				// Encrypted values are never surfaced to the model.
-				$out[] = $this->present($def, false);
-
-				if (count($out) >= max(1, $limit)) {
+				// One qualifying setting past the window means the scan was truncated —
+				// so "is there a setting for X?" can't be answered "no" from a partial
+				// list (audit #7 D4).
+				if (count($out) >= $limit) {
+					$more = true;
 
 					break;
 				}
+
+				// Encrypted values are never surfaced to the model.
+				$out[] = $this->present($def, false);
 			}
 
-			return ["settings" => $out];
+			return ["settings" => $out, "has_more" => $more];
 		}
 
 		/**

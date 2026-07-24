@@ -70,6 +70,7 @@
 								. "(e.g. {\"page_header\": \"...\", \"page_content\": \"<p>…</p>\"}). Only simple "
 								. "text/html fields can be set. The template's required fields must be filled; "
 								. "if you don't know them, call this once without content to be told which fields exist.",
+							"additionalProperties" => ["type" => "string"],
 						],
 						"in_nav" => [
 							"type" => "boolean",
@@ -149,7 +150,8 @@
 			// No parent → ask the user where the page should live, offering only the
 			// subtrees they can actually write to.
 			if (!array_key_exists("parent", $args) || $args["parent"] === null || $args["parent"] === "") {
-				$parents = $this->backend->aiWritableParents($context->user);
+				$writable = $this->backend->aiWritableParents($context->user);
+				$parents = $writable["parents"] ?? [];
 
 				if (!$parents) {
 
@@ -159,8 +161,15 @@
 					);
 				}
 
+				// The top-level list is capped; when it is partial, say so rather than
+				// present a truncated choice list as the whole set (audit #7 D2).
+				$prompt = !empty($writable["has_more"])
+					? "Where should this page be created? This is a partial list — if you don't see the "
+						. "right parent, name the page it should live under and I'll use that."
+					: "Where should this page be created?";
+
 				return AIToolResult::needsInput(
-					"Where should this page be created?",
+					$prompt,
 					array_map(function (array $p): array {
 
 						return [

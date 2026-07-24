@@ -11,6 +11,7 @@
 	use BigTree\Api\Exceptions\NotFoundException;
 	use BigTree\Api\Exceptions\AuthorizationException;
 	use BigTree\Services\AI\Tools\ModuleEntryToolBackend;
+	use BigTree\Services\AI\FieldOptionDomain;
 	use BigTreeAutoModule;
 	use BigTreeJSONDB;
 	use BigTreeCMS;
@@ -2663,17 +2664,13 @@
 			}
 
 			$entry_id = (int)$raw_entry_id;
+
+			// deleteItem now owns the full teardown — the live row, its resource
+			// allocations, its tag relations, its Open Graph row, and the outstanding
+			// draft's change row and allocations — and recomputes the affected tags'
+			// usage_count. The explicit deallocateResources calls that used to live
+			// here duplicated exactly that, so they are gone (audit #7 B3).
 			BigTreeAutoModule::deleteItem($table, $entry_id);
-			ResourceAllocationService::deallocateResources($table, $entry_id);
-
-			// Drop allocations for any outstanding draft of the deleted row too.
-			$pending_change_id = SQL::fetchSingle(
-				"SELECT id FROM bigtree_pending_changes WHERE `table` = ? AND item_id = ?", $table, $entry_id
-			);
-
-			if ($pending_change_id) {
-				ResourceAllocationService::deallocateResources($table, "p".$pending_change_id);
-			}
 
 			Hooks::fire("module_entry.deleted", [
 				"module" => $module_id, "table" => $table, "id" => $entry_id, "via" => "ai_assistant",
@@ -3078,18 +3075,10 @@
 		 * @return list<array{value:string,label:string}>
 		 */
 		private function aiFieldOptions(array $field, string $type, string $column): array {
-			if ($type !== "list") {
 
-				return [];
-			}
-
-			try {
-
-				return (new ModuleFormService())->resolveListOptions($field, $column);
-			} catch (\Throwable $e) {
-
-				return [];
-			}
+			// One implementation, shared with the page-content path (audit #7 B1), so
+			// the two option domains cannot drift apart again.
+			return FieldOptionDomain::resolve($field, $type, $column);
 		}
 
 		/**
@@ -3172,42 +3161,9 @@
 		 * @return string|null An error message, or null when the value is acceptable.
 		 */
 		private function aiOptionViolation(array $field, string &$value): ?string {
-			$options = is_array($field["options"] ?? null) ? $field["options"] : [];
 
-			// No options resolved (or a misconfigured db list) means nothing to check.
-			// An empty value is `required`'s business, and the gates own that.
-			if (!$options || $value === "") {
-
-				return null;
-			}
-
-			$values = array_map("strval", array_column($options, "value"));
-
-			if (in_array($value, $values, true)) {
-
-				return null;
-			}
-
-			// The model naturally writes the label ("Portland"); accept it and store
-			// the value the admin would have stored.
-			foreach ($options as $option) {
-				if (strcasecmp((string)($option["label"] ?? ""), $value) === 0) {
-					$value = (string)$option["value"];
-
-					return null;
-				}
-			}
-
-			$listed = array_map(function (array $option): string {
-				$label = (string)($option["label"] ?? "");
-				$option_value = (string)($option["value"] ?? "");
-
-				return $label !== "" && $label !== $option_value ? "{$label} ({$option_value})" : $option_value;
-			}, array_slice($options, 0, 30));
-
-			return "\"{$value}\" isn't one of the options for \"" . (string)($field["title"] ?? $field["column"])
-				. "\". Choose one of: " . implode(", ", $listed)
-				. (count($options) > 30 ? ", …" : "") . ".";
+			// Shared with the page-content path (audit #7 B1).
+			return FieldOptionDomain::violation($field, $value);
 		}
 
 		/**
