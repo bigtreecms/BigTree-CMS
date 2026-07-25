@@ -12,6 +12,7 @@
 	use BigTree\Api\Exceptions\ConflictException;
 	use BigTree\Api\Exceptions\AuthorizationException;
 	use BigTree\Services\AI\Tools\UserToolBackend;
+	use BigTree\Services\AI\ColumnDomain;
 	use BigTree;
 	use SQL;
 
@@ -310,8 +311,16 @@
 		];
 
 		/**
-		 * The first over-length user field, as a recoverable error. Shared by staging
-		 * and approval so a stored payload can't slip past.
+		 * The first over-length user field, as a recoverable error, plus the storage
+		 * -boundary check that shares its shape: a character the connection can't
+		 * carry. Shared by staging and approval so a stored payload can't slip past.
+		 *
+		 * `bigtree_users` is declared CHARSET=utf8 (utf8mb3), as is the connection, so
+		 * a 4-byte character in a name or a company doesn't error — MySQL cuts the
+		 * value off *at* that character and carries on (audit #10 A2). Tag names are
+		 * not checked here because TagService::normalize strips everything outside
+		 * [a-zA-Z0-9 ] before storage, and redirect URLs are shape-gated by
+		 * aiCheckRedirectDestination.
 		 *
 		 * @param array<string,mixed> $fields
 		 */
@@ -322,11 +331,19 @@
 					continue;
 				}
 
-				$length = mb_strlen((string)$fields[$field]);
+				$value = (string)$fields[$field];
+				$length = mb_strlen($value);
 
 				if ($length > $max) {
 
 					return "The user's {$field} is {$length} characters, but the field holds at most {$max}.";
+				}
+
+				$unrepresentable = ColumnDomain::unrepresentable($field, $value);
+
+				if ($unrepresentable !== null) {
+
+					return $unrepresentable;
 				}
 			}
 

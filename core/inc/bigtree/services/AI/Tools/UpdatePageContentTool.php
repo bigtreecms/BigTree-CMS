@@ -53,7 +53,9 @@
 							"type" => "object",
 							"description" => "The template fields to change, keyed by field id "
 								. "(e.g. {\"page_content\": \"<p>…</p>\"}). Only simple text/html fields can be set. "
-								. "Fields you omit keep their current values.",
+								. "Fields you omit keep their current values, but a field you supply is REPLACED "
+								. "wholesale — never supply a value you only saw in truncated form (get_page lists "
+								. "those in content_truncated).",
 							"additionalProperties" => ["type" => "string"],
 						],
 						"template" => [

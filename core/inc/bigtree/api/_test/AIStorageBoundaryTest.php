@@ -1,0 +1,744 @@
+<?php
+	/**
+	 * Audit #10 guards E2–E4: the storage boundary, the token round trip, and the
+	 * prompt/decline coverage that goes with them.
+	 *
+	 * Audits #1–#9 each validated a proposed value against a *definition* — the form's
+	 * fields, the value's own rule, the row it targets, the type its tool declared,
+	 * the container it files into. Every one of them stops where the value is handed
+	 * to SQL. The connection runs with `sql_mode = ''`, so from that point MySQL's
+	 * answer to "this doesn't fit" is to coerce and carry on: nothing errors, the tool
+	 * reports success, and the row holds something other than what the approver
+	 * approved. These are the legs that make the boundary structural rather than
+	 * remembered.
+	 *
+	 *  - E2 asserts every AI write seam that reaches a real table routes its values
+	 *    through the shared ColumnDomain/TruncatedRead helpers, at staging *and* at
+	 *    approval, plus that AI_PAGE_MAX_LENGTHS still matches the `max:` rules the
+	 *    page routes declare (A4's drift).
+	 *  - E3 asserts the link-token round trip is lossless and that every AI read seam
+	 *    decodes.
+	 *  - E4 asserts the truncation rule and the bulk decline line are actually in the
+	 *    prompt.
+	 */
+
+	use BigTree\Services\AutoModuleService;
+	use BigTree\Services\PageService;
+	use BigTree\Services\SettingService;
+	use BigTree\Services\AI\CapabilitySummary;
+	use BigTree\Services\AI\ColumnDomain;
+
+	// — E2: the column-domain contract —
+
+	/**
+	 * Every AI write seam that hands a model-authored scalar to a real SQL table,
+	 * mapped to the substrings that prove it consults the storage boundary.
+	 *
+	 * Shaped like AISurfaceGuardTest::ai_surface_fingerprinted(): a static map plus
+	 * an enumeration leg, so a new write seam has to be mapped or explicitly exempt.
+	 *
+	 * @return array<string,array{0:string,1:string,2:list<string>}> label => [class, method, contains]
+	 */
+	function ai_storage_write_seams(): array {
+
+		return [
+			// The entry sift hands off to one place; that place does the four checks.
+			"create/update_module_entry (sift)" => [
+				AutoModuleService::class, "aiSiftEntryData", ["aiStorageViolation"],
+			],
+			"create/update_module_entry (boundary)" => [
+				AutoModuleService::class, "aiStorageViolation",
+				[
+					"ColumnDomain::maxLengthViolation",
+					"ColumnDomain::unrepresentable",
+					"ColumnDomain::violation",
+					"TruncatedRead::violation",
+				],
+			],
+			// Page content lands in a longtext JSON blob, so there is no column width to
+			// read — what applies is the field's own maxlength, the characters the
+			// connection can carry, and the truncated-read refusal.
+			"create_page/update_page_content (content)" => [
+				PageService::class, "aiSiftResourceContent",
+				[
+					"ColumnDomain::maxLengthViolation",
+					"ColumnDomain::unrepresentable",
+					"TruncatedRead::violation",
+				],
+			],
+			// The page's own scalar columns: the cap list plus the 4-byte check.
+			"create_page/update_page (fields)" => [
+				PageService::class, "aiPageLengthError",
+				["AI_PAGE_MAX_LENGTHS", "ColumnDomain::unrepresentable"],
+			],
+			// The positive control this whole boundary was generalized from (audit #3).
+			"update_setting" => [
+				SettingService::class, "aiCheckSettingValue", ["strtotime", "FILTER_VALIDATE_EMAIL"],
+			],
+		];
+	}
+
+	/**
+	 * The approval half. A staged value sits in the proposal store for up to 24h and
+	 * is never trusted on the way back out — and a table can be altered inside that
+	 * window, so the storage boundary has to be re-asked, not just re-read.
+	 *
+	 * @return array<string,array{0:string,1:string,2:string}> tool => [class, approval method, sift]
+	 */
+	function ai_storage_approval_seams(): array {
+
+		return [
+			"create_module_entry" => [AutoModuleService::class, "aiCreateEntry", "aiSiftEntryData"],
+			"update_module_entry" => [AutoModuleService::class, "aiUpdateEntry", "aiSiftEntryData"],
+			"create_page" => [PageService::class, "aiCreatePage", "aiSiftResourceContent"],
+			"update_page_content" => [PageService::class, "aiUpdatePageContent", "aiSiftResourceContent"],
+		];
+	}
+
+	/** E2: every write seam consults the storage boundary. */
+	function test_every_write_seam_checks_the_storage_boundary() {
+		$missing = [];
+
+		foreach (ai_storage_write_seams() as $label => [$class, $method, $contains]) {
+			$body = ai_surface_method_body($class, $method);
+			T::ok($body !== "", "{$label}: {$method}'s source was read");
+
+			foreach ($contains as $needle) {
+				if (strpos($body, $needle) === false) {
+					$missing[] = "{$label} is missing “{$needle}”";
+				}
+			}
+		}
+
+		T::equals(implode(", ", $missing), "", "every AI write seam consults the storage boundary");
+	}
+
+	/** E2: and re-consults it at approval, not only at staging. */
+	function test_every_write_seam_re_sifts_at_approval() {
+		$missing = [];
+
+		foreach (ai_storage_approval_seams() as $tool => [$class, $method, $sift]) {
+			$body = ai_surface_method_body($class, $method);
+			T::ok($body !== "", "{$tool}: {$method}'s source was read");
+
+			if (strpos($body, $sift) === false) {
+				$missing[] = "{$tool} ({$method}) never calls {$sift}";
+			}
+		}
+
+		T::equals(implode(", ", $missing), "", "every approval seam re-sifts against the storage boundary");
+	}
+
+	/**
+	 * E2 enumeration: every mutating tool that writes model-authored text into a real
+	 * SQL table is covered by a seam above, or carries an explicit reason.
+	 *
+	 * @return array<string,string>
+	 */
+	function ai_storage_tool_coverage(): array {
+
+		return [
+			"create_module_entry" => "create/update_module_entry (sift)",
+			"update_module_entry" => "create/update_module_entry (sift)",
+			"create_page" => "create_page/update_page (fields)",
+			"update_page" => "create_page/update_page (fields)",
+			"update_page_content" => "create_page/update_page_content (content)",
+			"update_setting" => "update_setting",
+		];
+	}
+
+	/**
+	 * Mutating tools that write no model-authored free text into a SQL column, with
+	 * the reason recorded rather than skipped.
+	 *
+	 * @return array<string,string>
+	 */
+	function ai_storage_tool_exempt(): array {
+
+		return [
+			"archive_page" => "flags only",
+			"unarchive_page" => "flags only",
+			"move_page" => "moves a row; writes no authored value",
+			"delete_module_entry" => "deletes a row",
+			"set_module_entry_flag" => "flags only",
+			"add_tags" => "tag names are capped inline at both passes (audit #5 Phase 4)",
+			"remove_tags" => "detaches existing tags; authors nothing",
+			"merge_tags" => "operates on existing tag records",
+			"rename_tag" => "tag names are capped inline at both passes",
+			"publish_pending_change" => "replays a change written by some other seam",
+			"reject_pending_change" => "deletes a queued change",
+			"save_page_revision" => "snapshots the page as stored",
+			"restore_page_revision" => "replays a stored snapshot",
+			"create_user" => "aiUserLengthError caps and 4-byte-checks every authored field at both passes",
+			"update_user" => "aiUserLengthError caps and 4-byte-checks every authored field at both passes",
+			"create_redirect" => "writes into bigtree_404s' varchar(1024) columns; shape-gated to URLs by aiCheckRedirectDestination",
+			"create_template" => "JSON-DB record, not a SQL column",
+			"update_template" => "JSON-DB record, not a SQL column",
+			"create_callout" => "JSON-DB record, not a SQL column",
+			"update_callout" => "JSON-DB record, not a SQL column",
+			"create_callout_group" => "JSON-DB record; name capped by AI_GROUP_NAME_MAX_LENGTH",
+			"create_module" => "JSON-DB record, not a SQL column",
+			"update_module" => "JSON-DB record, not a SQL column",
+			"create_module_group" => "JSON-DB record; name capped by AI_GROUP_NAME_MAX_LENGTH",
+		];
+	}
+
+	/** E2: a new mutating tool must be covered or explicitly exempt. */
+	function test_every_mutating_tool_is_storage_classified() {
+		$registry = ai_wiring_registry();
+		$developer = ai_wiring_user(2);
+		$covered = ai_storage_tool_coverage();
+		$exempt = ai_storage_tool_exempt();
+		$seams = ai_storage_write_seams();
+		$unclassified = [];
+		$bad_reference = [];
+
+		foreach ($registry->availableTools($developer) as $tool) {
+			if ($tool->kind() === "read") {
+
+				continue;
+			}
+
+			$name = $tool->name();
+
+			if (isset($covered[$name])) {
+				if (!isset($seams[$covered[$name]])) {
+					$bad_reference[] = "{$name} → {$covered[$name]}";
+				}
+
+				continue;
+			}
+
+			if (!isset($exempt[$name])) {
+				$unclassified[] = $name;
+			}
+		}
+
+		T::equals(implode(", ", $unclassified), "", "every mutating tool is storage-covered or explicitly exempt");
+		T::equals(implode(", ", $bad_reference), "", "and every coverage entry names a real write seam");
+	}
+
+	/**
+	 * The `max:` rules a route file declares, as field => cap.
+	 *
+	 * "nav_title" => "required|string|max:1024" — the only place these caps are
+	 * stated for REST, thousands of lines from the consts that mirror them by hand.
+	 *
+	 * @return array<string,int>
+	 */
+	function ai_route_max_rules(string $file): array {
+		$path = __DIR__ . "/../routes/" . $file;
+		T::ok(is_readable($path), "routes/{$file} is readable");
+
+		$source = (string)file_get_contents($path);
+		$declared = [];
+
+		if (preg_match_all('/"([a-z_]+)"\s*=>\s*"([^"]*max:(\d+)[^"]*)"/', $source, $matches, PREG_SET_ORDER)) {
+			foreach ($matches as $match) {
+				$declared[$match[1]] = (int)$match[3];
+			}
+		}
+
+		T::ok(count($declared) > 5, "routes/{$file} declares max: rules we could parse");
+
+		return $declared;
+	}
+
+	/**
+	 * E2/A4: AI_PAGE_MAX_LENGTHS must not drift from what routes/pages.php declares,
+	 * in *either* direction.
+	 *
+	 * The forward leg (the const disagreeing with a rule) is the obvious one. The
+	 * reverse leg is the likelier drift and the one that actually costs data: a page
+	 * route gaining a `max:` for a field the assistant writes, with nothing adding it
+	 * to the const, leaves that field capped for REST and uncapped for the assistant
+	 * — and in non-strict mode MySQL then truncates it in silence.
+	 */
+	function test_page_max_lengths_match_the_route_rules() {
+		$declared = ai_route_max_rules("pages.php");
+		$reflection = new ReflectionClass(PageService::class);
+		$mirrored = $reflection->getConstant("AI_PAGE_MAX_LENGTHS");
+		T::ok(is_array($mirrored), "AI_PAGE_MAX_LENGTHS is readable");
+
+		$drift = [];
+
+		foreach ($mirrored as $field => $max) {
+			if (!isset($declared[$field])) {
+				$drift[] = "{$field} is capped by the assistant but by no page route rule";
+
+				continue;
+			}
+
+			if ($declared[$field] !== (int)$max) {
+				$drift[] = "{$field}: assistant {$max}, route {$declared[$field]}";
+			}
+		}
+
+		T::equals(implode("; ", $drift), "", "AI_PAGE_MAX_LENGTHS matches routes/pages.php");
+
+		// Scoped to AI_PAGE_FIELDS: a cap on a field the assistant can't write is the
+		// route's business alone.
+		$uncapped = [];
+
+		foreach (PageService::AI_PAGE_FIELDS as $field) {
+			if (isset($declared[$field]) && !isset($mirrored[$field])) {
+				$uncapped[] = "{$field} (route says max:{$declared[$field]})";
+			}
+		}
+
+		T::equals(
+			implode(", ", $uncapped),
+			"",
+			"every page field the assistant writes that a route caps is capped by AI_PAGE_MAX_LENGTHS"
+		);
+	}
+
+	/**
+	 * E2/A4: AI_USER_MAX_LENGTHS has exactly the same shape against routes/users.php,
+	 * and had no guard at all.
+	 *
+	 * The reverse leg is derived from create_user's own argument schema rather than a
+	 * hand-listed set, so a new authored string field has to be capped or the leg
+	 * fails — the route file also caps `password` and `per_page`, which the assistant
+	 * never writes.
+	 */
+	function test_user_max_lengths_match_the_route_rules() {
+		$declared = ai_route_max_rules("users.php");
+		$reflection = new ReflectionClass(\BigTree\Services\UserService::class);
+		$mirrored = $reflection->getConstant("AI_USER_MAX_LENGTHS");
+		T::ok(is_array($mirrored), "AI_USER_MAX_LENGTHS is readable");
+
+		$drift = [];
+
+		foreach ($mirrored as $field => $max) {
+			if (!isset($declared[$field])) {
+				$drift[] = "{$field} is capped by the assistant but by no user route rule";
+
+				continue;
+			}
+
+			if ($declared[$field] !== (int)$max) {
+				$drift[] = "{$field}: assistant {$max}, route {$declared[$field]}";
+			}
+		}
+
+		T::equals(implode("; ", $drift), "", "AI_USER_MAX_LENGTHS matches routes/users.php");
+
+		$authored = [];
+
+		foreach (ai_wiring_registry()->availableTools(ai_wiring_user(2)) as $tool) {
+			if ($tool->name() !== "create_user") {
+
+				continue;
+			}
+
+			$properties = $tool->definition(ai_wiring_user(2))["function"]["parameters"]["properties"] ?? [];
+
+			foreach ((array)$properties as $field => $spec) {
+				if ((string)($spec["type"] ?? "") === "string") {
+					$authored[] = (string)$field;
+				}
+			}
+		}
+
+		T::ok($authored !== [], "create_user declares string arguments");
+
+		$uncapped = [];
+
+		foreach ($authored as $field) {
+			if (isset($declared[$field]) && !isset($mirrored[$field])) {
+				$uncapped[] = "{$field} (route says max:{$declared[$field]})";
+			}
+		}
+
+		T::equals(
+			implode(", ", $uncapped),
+			"",
+			"every authored user string field a route caps is capped by AI_USER_MAX_LENGTHS"
+		);
+	}
+
+	/** E2: the column domain judges each type the way MySQL would silently coerce it. */
+	function test_column_domain_refuses_what_mysql_would_coerce() {
+		$field = ["column" => "headline", "type" => "text", "title" => "Headline"];
+
+		// Length: the audit's opening case — a 400-word summary into a varchar(255).
+		$value = str_repeat("a", 300);
+		T::ok(
+			ColumnDomain::violationForColumn(["type" => "varchar", "size" => "255"], $field, $value) !== null,
+			"an over-long value for a varchar(255) is refused"
+		);
+
+		$value = str_repeat("a", 200);
+		T::equals(
+			ColumnDomain::violationForColumn(["type" => "varchar", "size" => "255"], $field, $value),
+			null,
+			"and a value that fits is not"
+		);
+
+		// Dates: "next Tuesday" silently becomes 0000-00-00.
+		$date = ["column" => "starts", "type" => "date", "title" => "Starts"];
+		$value = "next Tuesday";
+		T::equals(
+			ColumnDomain::violationForColumn(["type" => "date"], $date, $value),
+			null,
+			"a resolvable date is accepted"
+		);
+		T::ok(
+			(bool)preg_match('/^\d{4}-\d{2}-\d{2}$/', $value),
+			"and normalized to the column's format (got \"{$value}\")"
+		);
+
+		$value = "sometime soonish";
+		T::ok(
+			ColumnDomain::violationForColumn(["type" => "date"], $date, $value) !== null,
+			"an unparseable date is refused rather than stored as 0000-00-00"
+		);
+
+		// Numbers: a non-numeric string becomes 0.
+		$number = ["column" => "seats", "type" => "number", "title" => "Seats"];
+		$value = "about a hundred";
+		T::ok(
+			ColumnDomain::violationForColumn(["type" => "int", "size" => "11"], $number, $value) !== null,
+			"a non-numeric value for an integer column is refused"
+		);
+
+		$value = "120";
+		T::equals(
+			ColumnDomain::violationForColumn(["type" => "int", "size" => "11"], $number, $value),
+			null,
+			"and a real number is not"
+		);
+
+		// Enums: an out-of-domain value becomes ''.
+		$enum_column = ["type" => "enum", "options" => ["draft", "live"]];
+		$status = ["column" => "status", "type" => "select", "title" => "Status"];
+		$value = "published";
+		T::ok(
+			ColumnDomain::violationForColumn($enum_column, $status, $value) !== null,
+			"a value outside an enum's domain is refused"
+		);
+
+		$value = "Live";
+		T::equals(
+			ColumnDomain::violationForColumn($enum_column, $status, $value),
+			null,
+			"a recognisable label is matched back to its value"
+		);
+		T::equals($value, "live", "and rewritten in place");
+
+		// A checkbox's "on" is never judged as a number, however the column is typed.
+		$checkbox = ["column" => "featured", "type" => "checkbox", "title" => "Featured"];
+		$value = "on";
+		T::equals(
+			ColumnDomain::violationForColumn(["type" => "int", "size" => "1"], $checkbox, $value),
+			null,
+			"a checkbox's \"on\" is not judged against an integer column"
+		);
+	}
+
+	/**
+	 * E2/A2(2): every seam that writes model-authored text into a utf8mb3 column
+	 * checks for characters the connection can't carry.
+	 *
+	 * A separate axis from length, and the exempt list above is about length — so a
+	 * seam can be perfectly capped and still hand MySQL a string it amputates at the
+	 * first emoji. The tables here are the ones base.sql declares CHARSET=utf8;
+	 * module tables inherit the install's default and are covered by the entry sift
+	 * regardless.
+	 *
+	 * @return array<string,array{0:string,1:string,2:string}> table => [class, method, why]
+	 */
+	function ai_utf8mb3_write_seams(): array {
+
+		return [
+			// base.sql:39
+			"bigtree_pages" => [PageService::class, "aiPageLengthError", ""],
+			// base.sql:69
+			"bigtree_users" => [\BigTree\Services\UserService::class, "aiUserLengthError", ""],
+			// Module tables: whatever the install defaults to, so always checked.
+			"module entry tables" => [AutoModuleService::class, "aiStorageViolation", ""],
+			// base.sql:63 — TagService::normalize strips everything outside
+			// [a-zA-Z0-9 ] before storage, so no 4-byte character can reach the column.
+			"bigtree_tags" => [
+				\BigTree\Services\TagService::class, "normalize",
+				"exempt: normalize() strips to [a-zA-Z0-9 ]",
+			],
+			// base.sql:9 — a destination must be an absolute URL, a root-relative path
+			// or an ipl://{wwwroot} token before it is ever stored.
+			"bigtree_404s" => [
+				\BigTree\Services\FourOhFourService::class, "aiCheckRedirectDestination",
+				"exempt: shape-gated to URLs",
+			],
+		];
+	}
+
+	/** E2/A2(2): a utf8mb3 write seam either checks, or records why it needn't. */
+	function test_every_utf8mb3_write_seam_checks_representability() {
+		$missing = [];
+
+		foreach (ai_utf8mb3_write_seams() as $table => [$class, $method, $why]) {
+			$body = ai_surface_method_body($class, $method);
+			T::ok($body !== "", "{$table}: {$method}'s source was read");
+
+			if ($why !== "") {
+				T::ok($why !== "", "{$table} is exempt — {$why}");
+
+				continue;
+			}
+
+			if (strpos($body, "ColumnDomain::unrepresentable") === false) {
+				$missing[] = "{$table} ({$method})";
+			}
+		}
+
+		T::equals(implode(", ", $missing), "", "every utf8mb3 write seam checks for unrepresentable characters");
+	}
+
+	/** E2/A2(2): the tag exemption is only true while normalize really does strip. */
+	function test_tag_names_cannot_carry_a_four_byte_character() {
+		$body = ai_surface_method_body(\BigTree\Services\TagService::class, "normalize");
+
+		T::ok(
+			strpos($body, 'a-zA-Z0-9') !== false,
+			"TagService::normalize still strips to an ASCII-only character class"
+		);
+	}
+
+	/** E2/A2(2): 4-byte characters are named rather than silently amputated. */
+	function test_over_plane_characters_are_refused() {
+		T::ok(
+			ColumnDomain::unrepresentable("Headline", "Spring Gala 🎉 tickets") !== null,
+			"an emoji is refused while the connection is utf8mb3"
+		);
+		T::equals(
+			ColumnDomain::unrepresentable("Headline", "Spring Gala — “tickets”"),
+			null,
+			"em-dashes and curly quotes are 3-byte and pass"
+		);
+		T::equals(
+			ColumnDomain::unrepresentable("Headline", ""),
+			null,
+			"an empty value has nothing to check"
+		);
+	}
+
+	/** E2/A3: the maxlength field setting is enforced somewhere other than the browser. */
+	function test_maxlength_is_enforced_server_side() {
+		T::ok(
+			ColumnDomain::maxLengthViolation("Meta title", 60, str_repeat("a", 61)) !== null,
+			"a value past the field's maxlength is refused"
+		);
+		T::equals(
+			ColumnDomain::maxLengthViolation("Meta title", 60, str_repeat("a", 60)),
+			null,
+			"and a value exactly at it is not"
+		);
+		T::equals(
+			ColumnDomain::maxLengthViolation("Meta title", 0, str_repeat("a", 5000)),
+			null,
+			"a field with no maxlength is uncapped by this check"
+		);
+
+		// Both schemas have to emit it or the sift has nothing to check against.
+		foreach ([
+			"entries" => [AutoModuleService::class, "aiEntrySchema"],
+			"page content" => [PageService::class, "aiTemplateResourceSchema"],
+		] as $label => [$class, $method]) {
+			$body = ai_surface_method_body($class, $method);
+			T::ok(strpos($body, '"maxlength"') !== false, "the {$label} schema emits maxlength");
+		}
+	}
+
+	// — E3: the link-token round trip —
+
+	/**
+	 * E3: decoding a read and re-tokenizing the write is lossless in both directions.
+	 *
+	 * This is the property that makes B3's fix a small change rather than a design
+	 * question: the model can be shown a hard link, edit the prose around it, and have
+	 * the sift put the stored token back exactly as it was.
+	 */
+	function test_link_token_round_trip_is_lossless() {
+		if (!function_exists("parity_db_available") || !parity_db_available()) {
+
+			return;
+		}
+
+		$path = (string)SQL::fetchSingle("SELECT path FROM bigtree_pages WHERE path != '' ORDER BY id ASC LIMIT 1");
+
+		if ($path === "") {
+
+			return;
+		}
+
+		// Start from the URL a human would paste, which is what the model would write.
+		$authored = '<p>Read our <a href="' . WWW_ROOT . $path . '/">pricing page</a> for details.</p>';
+		$stored = PageService::aiNormalizeHtmlValue($authored);
+
+		T::ok(strpos($stored, "ipl://") !== false, "the write tokenizes an internal link");
+
+		$decoded = PageService::aiDenormalizeHtmlValue($stored);
+
+		T::ok(strpos($decoded, "ipl://") === false, "the read decodes it back to a hard link");
+		T::equals($decoded, $authored, "and the decode returns exactly what was authored");
+		T::equals(
+			PageService::aiNormalizeHtmlValue($decoded),
+			$stored,
+			"and re-tokenizing the decoded value reproduces the stored form byte for byte"
+		);
+	}
+
+	/**
+	 * E3: {wwwroot} survives the same round trip.
+	 *
+	 * Byte identity isn't the contract here — replaceHardRoots picks whichever root
+	 * token matches first, so `{wwwroot}` can come back as `{staticroot}` on an
+	 * install where the two are the same URL (this is autoIPL's long-standing
+	 * behaviour, shared with the admin's own form pipeline). What must hold is that
+	 * the link the model read is the link that ends up stored.
+	 */
+	function test_relative_root_round_trip_is_lossless() {
+		$stored = '<p>See <a href="{wwwroot}about/">about us</a>.</p>';
+		$decoded = PageService::aiDenormalizeHtmlValue($stored);
+
+		T::ok(strpos($decoded, "{wwwroot}") === false, "the read expands {wwwroot}");
+
+		$retokenized = PageService::aiNormalizeHtmlValue($decoded);
+
+		T::ok(strpos($retokenized, "http") === false, "the write contracts the hard root back to a token");
+		T::equals(
+			PageService::aiDenormalizeHtmlValue($retokenized),
+			$decoded,
+			"and the stored token resolves to the same link the model was shown"
+		);
+	}
+
+	/**
+	 * E3: every AI read seam that can return a markup-bearing value decodes it.
+	 *
+	 * @return array<string,array{0:string,1:string}>
+	 */
+	function ai_link_decoding_read_seams(): array {
+
+		return [
+			"get_page (content)" => [PageService::class, "aiPageContentFields"],
+			"get_module_entry" => [\BigTree\Services\SearchService::class, "getModuleEntryDetail"],
+			"get_settings" => [SettingService::class, "aiDecodeSettingLinks"],
+			// Not only for readability: TruncatedRead measures a written-back value
+			// against the *decoded* stored value, so a read seam handing back tokens
+			// puts every link-bearing field out of that refusal's reach.
+			"list_module_entries" => [AutoModuleService::class, "aiListEntries"],
+		];
+	}
+
+	/** E3: a read seam added without the decoder fails here. */
+	function test_every_read_seam_decodes_link_tokens() {
+		$missing = [];
+
+		foreach (ai_link_decoding_read_seams() as $label => [$class, $method]) {
+			$body = ai_surface_method_body($class, $method);
+			T::ok($body !== "", "{$label}: {$method}'s source was read");
+
+			if (strpos($body, "aiDenormalizeHtmlValue") === false) {
+				$missing[] = $label;
+			}
+		}
+
+		T::equals(implode(", ", $missing), "", "every AI read seam decodes link tokens");
+	}
+
+	/** E3: the decode runs before the cap, or a decoded link moves where the cut falls. */
+	function test_link_decoding_precedes_the_length_cap() {
+		foreach ([
+			"get_page (content)" => [PageService::class, "aiPageContentFields"],
+			"get_module_entry" => [\BigTree\Services\SearchService::class, "getModuleEntryDetail"],
+			"list_module_entries" => [AutoModuleService::class, "aiListEntries"],
+		] as $label => [$class, $method]) {
+			$body = ai_surface_method_body($class, $method);
+			$decode = strpos($body, "aiDenormalizeHtmlValue");
+			// The *last* cap in the body is the one that applies to the decoded scalar;
+			// getModuleEntryDetail caps the array/JSON branch first, and that branch has
+			// no markup to decode.
+			$cap = strrpos($body, "mb_substr");
+
+			T::ok($decode !== false && $cap !== false, "{$label} both decodes and caps");
+			T::ok($decode < $cap, "{$label} decodes before it caps");
+		}
+	}
+
+	// — E4: prompt and decline coverage —
+
+	/** E4: the truncation rule is actually in the prompt the model reads. */
+	function test_prompt_states_the_truncation_rule() {
+		if (!function_exists("parity_db_available") || !parity_db_available()) {
+
+			return;
+		}
+
+		$prompt = (new \BigTree\Services\AIChatService())->systemPrompt(
+			(object)["id" => 1, "level" => 2, "permissions" => []]
+		);
+
+		T::ok(strpos($prompt, "truncated") !== false, "the prompt uses the word truncated");
+		T::ok(strpos($prompt, "content_truncated") !== false, "and names the page disclosure key");
+		T::ok(strpos($prompt, "fields_truncated") !== false, "and the entry disclosure key");
+		T::ok(
+			strpos($prompt, "discard everything past the cut") !== false,
+			"and states the consequence of writing one back"
+		);
+	}
+
+	/** E4: the bulk wall has a decline line, so a bulk ask can't produce improvisation. */
+	function test_bulk_changes_are_declined_in_words() {
+		$lines = CapabilitySummary::outOfScope();
+		$found = "";
+
+		foreach ($lines as $capability => $instead) {
+			if (stripos($capability, "many records") !== false) {
+				$found = $capability . " → " . $instead;
+
+				break;
+			}
+		}
+
+		T::ok($found !== "", "outOfScope() names applying a change to many records at once");
+		T::ok(
+			stripos($found, "one change at a time") !== false,
+			"and says the assistant proposes one change at a time"
+		);
+		T::ok(
+			stripos($found, "bulk actions") !== false,
+			"and steers to the admin's own bulk actions rather than only refusing"
+		);
+	}
+
+	/** E4: the write tools' own descriptions warn against writing a truncated value back. */
+	function test_write_tool_descriptions_warn_about_truncated_values() {
+		$registry = ai_wiring_registry();
+		$developer = ai_wiring_user(2);
+		$checked = 0;
+
+		foreach ($registry->availableTools($developer) as $tool) {
+			$name = $tool->name();
+
+			if ($name !== "update_module_entry" && $name !== "update_page_content") {
+
+				continue;
+			}
+
+			$definition = $tool->definition($developer);
+			$argument = $name === "update_module_entry" ? "data" : "content";
+			$description = (string)(
+				$definition["function"]["parameters"]["properties"][$argument]["description"] ?? ""
+			);
+
+			T::ok(
+				stripos($description, "truncated") !== false,
+				"{$name}.{$argument} warns against writing a truncated value back"
+			);
+			$checked++;
+		}
+
+		T::equals($checked, 2, "both replace-semantics write tools were checked");
+	}

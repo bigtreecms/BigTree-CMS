@@ -13,7 +13,9 @@
 	use BigTree\Api\Exceptions\NotFoundException;
 	use BigTree\Api\Exceptions\AuthorizationException;
 	use BigTree\Services\AI\Tools\PageToolBackend;
+	use BigTree\Services\AI\ColumnDomain;
 	use BigTree\Services\AI\FieldOptionDomain;
+	use BigTree\Services\AI\TruncatedRead;
 	use BigTreeCMS;
 	use BigTree;
 	use SQL;
@@ -295,7 +297,10 @@
 		];
 
 		/**
-		 * The first over-length field in a set of page values, as a recoverable error.
+		 * The first over-length field in a set of page values, as a recoverable error,
+		 * plus the storage-boundary check that shares its shape: a character the
+		 * connection can't carry.
+		 *
 		 * Shared by staging and approval, so a stored payload can't slip past.
 		 *
 		 * @param array<string,mixed> $fields
@@ -313,6 +318,24 @@
 
 					return "The page's {$field} is {$length} characters, but the field holds at most {$max}. "
 						. "Shorten it and try again.";
+				}
+			}
+
+			// `bigtree_pages` is declared CHARSET=utf8 (utf8mb3), as is the connection, so
+			// a 4-byte character in a title or a meta description doesn't error — MySQL
+			// cuts the value off *at* that character and carries on. Say so rather than
+			// let the model watch its own sentence get amputated (audit #10 A2).
+			foreach (self::AI_PAGE_FIELDS as $field) {
+				if (!array_key_exists($field, $fields) || !is_scalar($fields[$field])) {
+
+					continue;
+				}
+
+				$unrepresentable = ColumnDomain::unrepresentable($field, (string)$fields[$field]);
+
+				if ($unrepresentable !== null) {
+
+					return $unrepresentable;
 				}
 			}
 
@@ -802,6 +825,9 @@
 					// module-entry schema resolves it (audit #7 B1). Without this the
 					// content sift accepted any string into a list field.
 					"options" => FieldOptionDomain::resolve($resource, $type, $id),
+					// The field's own character budget, honoured in the browser by
+					// TextField/TextareaField and by nothing on the server (audit #10 A3).
+					"maxlength" => (int)($settings["maxlength"] ?? 0),
 				];
 			}
 
@@ -909,9 +935,15 @@
 		 * @param array<string,array<string,mixed>> $schema
 		 * @param array<string,mixed> $provided
 		 * @param string $template The template the content belongs to, for naming complex resources.
+		 * @param array<string,mixed> $existing The page's stored content, for the truncated-read refusal.
 		 * @return array<string,mixed> ["data" => array] or ["error" => string]
 		 */
-		private function aiSiftResourceContent(array $schema, array $provided, string $template = ""): array {
+		private function aiSiftResourceContent(
+			array $schema,
+			array $provided,
+			string $template = "",
+			array $existing = []
+		): array {
 			$data = [];
 			$complex = $this->aiComplexTemplateResources($schema, $template);
 
@@ -940,6 +972,11 @@
 					$data[$id] = is_bool($value) ? ($value ? "1" : "0") : (string)$value;
 				}
 
+				// The value as the model wrote it, before tokenization — the form the
+				// truncated-read check has to compare against, because what the read
+				// handed the model was decoded too.
+				$as_written = $data[$id];
+
 				// Markup the model authored is normalized here, at the sift, so the
 				// tokenized form is what gets staged, previewed and written — the user
 				// approves what will actually be stored.
@@ -962,6 +999,42 @@
 				if ($invalid !== null) {
 
 					return ["error" => $invalid];
+				}
+
+				// The storage/read-fidelity boundary (audit #10). Page content lands in
+				// `bigtree_pages.resources`, a longtext JSON blob, so there is no column
+				// domain to check here the way there is for a module entry — what applies
+				// is the field's own maxlength, the characters the connection can carry,
+				// and the refusal to write back a value that came back cut.
+				$title = (string)($schema[$id]["title"] ?? $id);
+				$too_long = ColumnDomain::maxLengthViolation($title, $schema[$id]["maxlength"] ?? 0, $data[$id]);
+
+				if ($too_long !== null) {
+
+					return ["error" => $too_long];
+				}
+
+				$unrepresentable = ColumnDomain::unrepresentable($title, $data[$id]);
+
+				if ($unrepresentable !== null) {
+
+					return ["error" => $unrepresentable];
+				}
+
+				if (array_key_exists($id, $existing) && is_scalar($existing[$id])) {
+					$stored = (string)$existing[$id];
+
+					// Compared in the form the read showed it in: decoded, then capped.
+					if (in_array((string)$schema[$id]["type"], self::AI_LINK_BEARING_TYPES, true)) {
+						$stored = self::aiDenormalizeHtmlValue($stored);
+					}
+
+					$cut = TruncatedRead::violation($title, $as_written, $stored);
+
+					if ($cut !== null) {
+
+						return ["error" => $cut];
+					}
 				}
 			}
 
@@ -996,6 +1069,47 @@
 			}
 
 			return (string)LinkService::autoIPL($value);
+		}
+
+		// The field/resource/setting types whose stored value can carry a link token.
+		// The markup types are AI_HTML_RESOURCE_TYPES; `link` is here because a link
+		// field stores a bare `ipl://…` as its whole value, which
+		// replaceInternalPageLinks handles through its own substr($html, 0, 6) branch.
+		public const AI_LINK_BEARING_TYPES = ["html", "htmleditor", "simple-editor", "code", "link"];
+
+		/**
+		 * The inverse of aiNormalizeHtmlValue, applied on the way *out* to the model.
+		 *
+		 * BigTree stores internal links and file references as opaque tokens —
+		 * `ipl://<base64>` for a page, `irl://<id>//<prefix>` for a resource,
+		 * `{wwwroot}` for a root. The AI write path deliberately produces them
+		 * (aiNormalizeHtmlValue). Nothing on the AI read path ever undid it, so the
+		 * model saw `href="ipl://cGFnZXM6NDI="` and:
+		 *
+		 *  - couldn't answer "does the About page link to the old pricing page?", and
+		 *  - couldn't safely rewrite a field containing one, because the write tools
+		 *    replace the whole field value, so any edit to a paragraph beside a link
+		 *    required reproducing that base64 blob character for character. Models
+		 *    paraphrase, normalize and tidy opaque strings; when one is mangled the
+		 *    link silently breaks, and the proposal diff shows base64 on both sides so
+		 *    the approver cannot see it. That is the one class of AI-caused damage the
+		 *    human approval gate structurally cannot catch.
+		 *
+		 * The round trip is lossless in both directions — the model reads a hard link,
+		 * edits the prose around it, and the sift tokenizes it back on the way in.
+		 * AI-scoped for exactly the reason aiNormalizeHtmlValue is: REST's behaviour is
+		 * left alone (audit #10 B3).
+		 *
+		 * Run this *before* any length cap: a decoded link is longer than its token, so
+		 * decoding after the cut would move where the cut falls.
+		 */
+		public static function aiDenormalizeHtmlValue(string $value): string {
+			if (trim($value) === "") {
+
+				return $value;
+			}
+
+			return (string)BigTreeCMS::replaceInternalPageLinks($value);
 		}
 
 		/**
@@ -1235,11 +1349,23 @@
 			}
 
 			if ($template !== "") {
-				$gate = $this->aiPageCreateGate(
-					$template,
+				// Re-sifted against the template as it stands now: a resource retyped,
+				// given a maxlength or narrowed during the proposal's 24h life must not be
+				// written blind (audit #10's storage boundary, at the approval half of
+				// "never trusted on the way back out").
+				$resifted = $this->aiSiftResourceContent(
+					$this->aiTemplateResourceSchema($template),
 					is_array($payload["resources"] ?? null) ? $payload["resources"] : [],
-					$can_publish
+					$template
 				);
+
+				if (isset($resifted["error"])) {
+
+					return ["mode" => "error", "message" => (string)$resifted["error"]];
+				}
+
+				$payload["resources"] = $resifted["data"];
+				$gate = $this->aiPageCreateGate($template, $payload["resources"], $can_publish);
 
 				if ($gate !== null) {
 
@@ -1972,7 +2098,10 @@
 		// Per-field cap on the content map get_page returns. Generous enough for a
 		// real body field, bounded enough that a page full of long-form HTML can't
 		// blow the model's context on a single read.
-		private const AI_CONTENT_FIELD_CAP = 6000;
+		// Public because the entry read seams read at the same budget now
+		// (AutoModuleService::AI_ENTRY_READ_CAP) and the truncated-read refusal has to
+		// know every cap a value could have come back through.
+		public const AI_CONTENT_FIELD_CAP = 6000;
 
 		/**
 		 * The read half of update_page_content: the page's settable content fields,
@@ -2007,6 +2136,13 @@
 
 				$value = $stored[$id];
 				$text = is_scalar($value) || $value === null ? (string)$value : (string)json_encode($value);
+
+				// Link tokens are decoded here, before the cap — a hard link is longer
+				// than the token it replaces, so decoding afterwards would move where the
+				// cut falls (audit #10 B3).
+				if (in_array((string)$field["type"], self::AI_LINK_BEARING_TYPES, true)) {
+					$text = self::aiDenormalizeHtmlValue($text);
+				}
 
 				if (mb_strlen($text) > self::AI_CONTENT_FIELD_CAP) {
 					$text = mb_substr($text, 0, self::AI_CONTENT_FIELD_CAP) . "…";
@@ -2948,7 +3084,15 @@
 					. "“{$template}” template: " . $this->aiDescribeResourceSchema($schema)];
 			}
 
-			$sifted = $this->aiSiftResourceContent($schema, $provided, $template);
+			// The stored content — overlaid with any queued draft above — is what the
+			// write replaces, so it is what the truncated-read refusal measures against.
+			$stored_content = Json::decode($page["resources"] ?? "");
+			$sifted = $this->aiSiftResourceContent(
+				$schema,
+				$provided,
+				$template,
+				is_array($stored_content) ? $stored_content : []
+			);
 
 			if (isset($sifted["error"])) {
 
@@ -3202,6 +3346,26 @@
 				}
 			}
 
+			// Re-sifted against the template as it stands now, and against the page's
+			// current content: a resource retyped, given a maxlength or narrowed during
+			// the proposal's 24h life must not be written blind, and a body that has
+			// grown past the read cap since staging would now be a truncated-read write.
+			// This is the "never trusted on the way back out" rule applied to the
+			// storage boundary (audit #10).
+			$stored_content = Json::decode($page["resources"] ?? "");
+			$resifted = $this->aiSiftResourceContent(
+				$this->aiTemplateResourceSchema($template),
+				$changed,
+				$template,
+				is_array($stored_content) ? $stored_content : []
+			);
+
+			if (isset($resifted["error"])) {
+
+				return ["mode" => "error", "message" => (string)$resifted["error"]];
+			}
+
+			$changed = $resifted["data"];
 			$merged = $this->aiMergePageContent($page, $changed, $template, $title, $can_publish);
 
 			if (isset($merged["error"])) {

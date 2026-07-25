@@ -50,6 +50,16 @@
 		}
 
 		/**
+		 * Where a callout's render file lives. The counterpart of templatePath(), and
+		 * named for the same reason: a proposal that changes a callout's fields has to
+		 * be able to say which file a developer needs to open.
+		 */
+		public static function calloutPath(string $id): string {
+
+			return "templates/callouts/" . self::safeId($id) . ".php";
+		}
+
+		/**
 		 * Write the stub for a callout. Returns the repo-relative path written, or ""
 		 * when a file already exists there.
 		 *
@@ -57,9 +67,8 @@
 		 * @throws \RuntimeException when the target directory or file isn't writable
 		 */
 		public static function callout(string $id, array $resources): string {
-			$relative = "templates/callouts/" . self::safeId($id) . ".php";
 
-			return self::write($relative, self::calloutBody($resources));
+			return self::write(self::calloutPath($id), self::calloutBody($resources));
 		}
 
 		/**

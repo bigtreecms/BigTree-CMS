@@ -854,7 +854,15 @@
 			$usage = $this->aiCalloutPageUsage($callout_id);
 
 			if ($added) {
-				$rows["fields_added"] = implode(", ", $added);
+				// Same disclosure the template diff carries: create scaffolds a render
+				// file and says so, update deliberately never touches it and said nothing,
+				// so a new field appeared in the editor and never on the site (audit #10
+				// C1).
+				$rows["fields_added"] = implode(", ", $added)
+					. " — the callout's render file isn't changed, so "
+					. (count($added) === 1 ? "a new field won't" : "new fields won't")
+					. " appear on the site until a developer outputs "
+					. (count($added) === 1 ? "it" : "them") . " in " . TemplateScaffold::calloutPath($callout_id);
 			}
 
 			if ($removed) {

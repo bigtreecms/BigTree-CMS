@@ -46,7 +46,9 @@
 						],
 						"data" => [
 							"type" => "object",
-							"description" => "Changed field values keyed by column name (only the module form's simple fields).",
+							"description" => "Changed field values keyed by column name (only the module form's simple "
+								. "fields). Each value REPLACES the whole field, so never supply a value you only saw "
+								. "in truncated form — get_module_entry lists those in fields_truncated.",
 							"additionalProperties" => ["type" => "string"],
 						],
 						"form" => [

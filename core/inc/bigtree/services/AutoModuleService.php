@@ -11,7 +11,9 @@
 	use BigTree\Api\Exceptions\NotFoundException;
 	use BigTree\Api\Exceptions\AuthorizationException;
 	use BigTree\Services\AI\Tools\ModuleEntryToolBackend;
+	use BigTree\Services\AI\ColumnDomain;
 	use BigTree\Services\AI\FieldOptionDomain;
+	use BigTree\Services\AI\TruncatedRead;
 	use BigTreeAutoModule;
 	use BigTreeJSONDB;
 	use BigTreeCMS;
@@ -1132,7 +1134,12 @@
 					. $this->aiDescribeSchema($schema)];
 			}
 
-			$sifted = $this->aiSiftEntryData($schema, $provided, is_array($resolved["form"] ?? null) ? $resolved["form"] : null);
+			$sifted = $this->aiSiftEntryData(
+				$schema,
+				$provided,
+				is_array($resolved["form"] ?? null) ? $resolved["form"] : null,
+				(string)$table
+			);
 
 			if (isset($sifted["error"])) {
 
@@ -1208,6 +1215,21 @@
 					. (count($blocked) === 1 ? "it" : "them") . " in before this entry can go live.";
 			}
 
+			// Columns the *table* requires that the form can't fill. In non-strict mode
+			// they silently take '' or 0 on every write — the admin's own create does
+			// exactly the same thing, because createItem builds its INSERT from the
+			// form's columns too, so this is disclosed rather than refused (audit #10
+			// A1). Refusing would make the assistant the only writer that can't create
+			// an entry on a legacy table.
+			$unsettable_columns = ColumnDomain::unsettableRequiredColumns((string)$table, is_array($resolved["form"] ?? null) ? $resolved["form"] : null);
+
+			if ($unsettable_columns) {
+				$mode_note .= " The table also has " . (count($unsettable_columns) === 1 ? "a column" : "columns")
+					. " the form doesn't cover and the database won't default (" . implode(", ", $unsettable_columns)
+					. "), so " . (count($unsettable_columns) === 1 ? "it" : "they") . " will be stored empty — the same "
+					. "as any entry added through the admin.";
+			}
+
 			$preview = [
 				"action" => "create_module_entry",
 				"module" => $name,
@@ -1217,6 +1239,10 @@
 
 			if ($blocked) {
 				$preview["incomplete_required"] = $blocked;
+			}
+
+			if ($unsettable_columns) {
+				$preview["unsettable_columns"] = $unsettable_columns;
 			}
 
 			if ($save_as_draft) {
@@ -1479,6 +1505,17 @@
 		// with `offset`; the payload always says whether there are more.
 		private const AI_ENTRY_LIST_CAP = 50;
 
+		// Per-value caps on the two entry read seams. Both used to cut silently — no
+		// marker in the payload at all — while update_module_entry replaces the whole
+		// column, which is audit #10's B1. get_module_entry now reads at the same
+		// budget a page body reads at (PageService::AI_CONTENT_FIELD_CAP): there was
+		// never a principled reason for a news body to be shown at one-twelfth of it.
+		// list_module_entries stays short — it is a directory, not an editing read —
+		// and both now say which fields they cut.
+		public const AI_ENTRY_READ_CAP = PageService::AI_CONTENT_FIELD_CAP;
+
+		public const AI_ENTRY_LIST_VALUE_CAP = 300;
+
 		/**
 		 * List a module's entries, newest first.
 		 *
@@ -1542,8 +1579,13 @@
 			// Only the columns the model can actually reason about (and write back),
 			// plus the id — a full row dump would be mostly blobs.
 			$columns = array_merge(["id"], array_keys($schema));
-			$entries = array_map(function ($row) use ($columns) {
+			// Which values were cut, per row. `has_more` says there are more *rows*; it
+			// has never said anything about a row's own values being shown in part, and
+			// the write tools replace a column wholesale (audit #10 B1).
+			$truncated = [];
+			$entries = array_map(function ($row) use ($columns, $schema, &$truncated) {
 				$out = [];
+				$cut = [];
 
 				foreach ($columns as $column) {
 					if (!array_key_exists($column, $row)) {
@@ -1553,11 +1595,32 @@
 
 					$value = $row[$column];
 					$text = is_scalar($value) || $value === null ? (string)$value : (string)json_encode($value);
-					$out[$column] = mb_strlen($text) > 300 ? mb_substr($text, 0, 299) . "…" : $text;
+
+					// Decoded on the same terms get_module_entry decodes on, and before the
+					// cap for the same reason. Not just for readability: TruncatedRead
+					// measures a written-back value against the *decoded* stored value, so a
+					// seam that handed back tokens would put every link-bearing field out of
+					// that refusal's reach.
+					if (in_array((string)($schema[$column]["type"] ?? ""), PageService::AI_LINK_BEARING_TYPES, true)) {
+						$text = PageService::aiDenormalizeHtmlValue($text);
+					}
+
+					// Cut at exactly the cap, not one short of it: TruncatedRead recognises a
+					// written-back value by matching the run of characters the cut ended
+					// with, and an off-by-one there would make the refusal miss.
+					if (mb_strlen($text) > self::AI_ENTRY_LIST_VALUE_CAP) {
+						$text = mb_substr($text, 0, self::AI_ENTRY_LIST_VALUE_CAP) . "…";
+						$cut[] = $column;
+					}
+
+					$out[$column] = $text;
 				}
+
+				$truncated[(string)($row["id"] ?? "")] = $cut;
 
 				return $out;
 			}, $window);
+			$truncated = array_filter($truncated);
 
 			return [
 				"module" => [
@@ -1570,6 +1633,10 @@
 				"limit" => $limit,
 				"has_more" => $more,
 				"entries" => $entries,
+				// entry id => the columns shown only in part. A value listed here is not
+				// one you can edit — read the entry with get_module_entry first.
+				"fields_truncated" => $truncated,
+				"value_cap" => self::AI_ENTRY_LIST_VALUE_CAP,
 			];
 		}
 
@@ -1897,7 +1964,8 @@
 			$sifted = $this->aiSiftEntryData(
 				$resolved["schema"],
 				$data,
-				is_array($resolved["form"] ?? null) ? $resolved["form"] : null
+				is_array($resolved["form"] ?? null) ? $resolved["form"] : null,
+				$table
 			);
 
 			if (isset($sifted["error"])) {
@@ -2104,7 +2172,16 @@
 					. $this->aiDescribeSchema($schema)];
 			}
 
-			$sifted = $this->aiSiftEntryData($schema, $provided, is_array($resolved["form"] ?? null) ? $resolved["form"] : null);
+			// $row is the live row overlaid with any queued draft — the values a write
+			// would actually replace, and therefore what the truncated-read refusal has
+			// to measure against.
+			$sifted = $this->aiSiftEntryData(
+				$schema,
+				$provided,
+				is_array($resolved["form"] ?? null) ? $resolved["form"] : null,
+				(string)$table,
+				is_array($row) ? $row : []
+			);
 
 			if (isset($sifted["error"])) {
 
@@ -2254,7 +2331,9 @@
 			$sifted = $this->aiSiftEntryData(
 				$resolved_form["schema"],
 				$data,
-				is_array($resolved_form["form"] ?? null) ? $resolved_form["form"] : null
+				is_array($resolved_form["form"] ?? null) ? $resolved_form["form"] : null,
+				$table,
+				is_array($row) ? $row : []
 			);
 
 			if (isset($sifted["error"])) {
@@ -2985,6 +3064,11 @@
 			$fields = [];
 			$gbp = is_array($module["gbp"] ?? null) ? $module["gbp"] : [];
 			$group_column = !empty($gbp["enabled"]) ? (string)($gbp["group_field"] ?? "") : "";
+			// The table's real column definitions. Everything before audit #10 described
+			// the *form* and nothing described the storage, so the model had no way to
+			// know a field it was about to fill holds 255 characters — and MySQL, in
+			// non-strict mode, wouldn't tell it either.
+			$columns = ColumnDomain::columns((string)$resolved["table"]);
 
 			foreach ((array)($resolved["form"]["fields"] ?? []) as $field) {
 				$column = (string)($field["column"] ?? "");
@@ -3023,8 +3107,31 @@
 						: "This field type can't be authored by the assistant — it must be filled in the admin UI.";
 				}
 
+				if ($settable) {
+					$maxlength = (int)($settings["maxlength"] ?? 0);
+
+					if ($maxlength > 0) {
+						$entry["maxlength"] = $maxlength;
+					}
+
+					$storage = $this->aiColumnStorage($columns[$column] ?? null);
+
+					if ($storage) {
+						$entry["storage"] = $storage;
+					}
+				}
+
 				$fields[] = $entry;
 			}
+
+			// Columns the *table* insists on that the form can't fill. Named here as
+			// well as on the create proposal, for the reason blocked_required is named
+			// here: the model should learn what it can't set before it proposes, not
+			// from the card it gets back (audit #10 A1).
+			$unsettable_columns = ColumnDomain::unsettableRequiredColumns(
+				(string)$resolved["table"],
+				is_array($resolved["form"] ?? null) ? $resolved["form"] : null
+			);
 
 			return ["schema" => [
 				"module_id" => (string)$module["id"],
@@ -3038,8 +3145,85 @@
 					? "This module uses group-based permissions keyed on \"{$group_column}\". Every entry must "
 						. "carry a value there — an entry without one is hidden from every group-scoped editor."
 					: "",
+				// A view can carry a PHP callback filter that decides, per row, whether an
+				// entry appears in the module's landing list at all. An entry created
+				// through the form that the view then filters out exists, is correct, is
+				// audited — and is invisible to the person who asked for it, who will
+				// reasonably report that the assistant did nothing (audit #10 C3).
+				"view_filter_note" => $this->aiViewFilterNote($module),
+				"unsettable_columns" => $unsettable_columns,
+				"unsettable_columns_note" => $unsettable_columns
+					? "The table has " . (count($unsettable_columns) === 1 ? "a column" : "columns")
+						. " the form doesn't cover and the database won't default, so "
+						. (count($unsettable_columns) === 1 ? "it is" : "they are") . " stored empty on every "
+						. "entry — the same as one added through the admin. Nothing you can set changes that."
+					: "",
 				"your_access_level" => PermissionService::userModuleLevel($user, (string)$module["id"]),
 			]];
+		}
+
+		/**
+		 * The storage facts for one column, as the model needs to see them: how much it
+		 * holds and, for an enum, what it will accept. Empty when the column tells us
+		 * nothing useful (a text blob, or a table we couldn't describe).
+		 *
+		 * @param array<string,mixed>|null $column A describeTable entry.
+		 * @return array<string,mixed>
+		 */
+		private function aiColumnStorage(?array $column): array {
+			if (!$column) {
+
+				return [];
+			}
+
+			$type = strtolower((string)($column["type"] ?? ""));
+			$storage = [];
+
+			if (($type === "varchar" || $type === "char") && (int)($column["size"] ?? 0) > 0) {
+				$storage["max_length"] = (int)$column["size"];
+			}
+
+			if (($type === "enum" || $type === "set") && is_array($column["options"] ?? null)) {
+				$storage["accepts"] = array_values(array_map("strval", $column["options"]));
+			}
+
+			if ($storage) {
+				$storage["column_type"] = $type;
+			}
+
+			return $storage;
+		}
+
+		/**
+		 * A note naming the module's primary view filter, when it has one. Shaped like
+		 * group_column_note: a fact about visibility the schema payload had no way to
+		 * express, stated once rather than discovered after a write.
+		 *
+		 * @param array<string,mixed> $module
+		 */
+		private function aiViewFilterNote(array $module): string {
+			foreach ((array)($module["views"] ?? []) as $view) {
+				if (!is_array($view)) {
+
+					continue;
+				}
+
+				$settings = is_array($view["settings"] ?? null) ? $view["settings"] : [];
+				$filter = trim((string)($settings["filter"] ?? ""));
+
+				if ($filter === "") {
+
+					continue;
+				}
+
+				$title = (string)($view["title"] ?? $view["id"] ?? "");
+
+				return "The " . ($title !== "" ? "“{$title}”" : "module's") . " view runs a per-row filter callback "
+					. "(\"{$filter}\"), so a new entry may not appear in the module's list even though it was saved "
+					. "correctly. Say so if the user reports not seeing it.";
+			}
+
+			return "";
 		}
 
 		/**
@@ -3128,6 +3312,11 @@
 					// stored value is a *foreign row id* — silently took the label the
 					// model wrote and resolved to blank everywhere it was rendered.
 					"options" => $this->aiFieldOptions($field, $type, $column),
+					// The field's own character budget. TextField/TextareaField honour
+					// this in the browser and nothing on the server ever did, so a field
+					// deliberately capped at 60 characters was capped for humans and
+					// uncapped for the assistant (audit #10 A3).
+					"maxlength" => (int)($settings["maxlength"] ?? 0),
 				];
 			}
 
@@ -3163,9 +3352,17 @@
 		 * @param array<string,array<string,mixed>> $schema
 		 * @param array<string,mixed> $provided
 		 * @param array<string,mixed>|null $form The resolved form, for naming complex fields.
+		 * @param string $table The entry table, for the storage-boundary checks.
+		 * @param array<string,mixed> $existing The stored row, for the truncated-read refusal.
 		 * @return array<string,mixed> ["data" => array] or ["error" => string]
 		 */
-		private function aiSiftEntryData(array $schema, array $provided, ?array $form = null): array {
+		private function aiSiftEntryData(
+			array $schema,
+			array $provided,
+			?array $form = null,
+			string $table = "",
+			array $existing = []
+		): array {
 			$data = [];
 			$complex = $this->aiComplexEntryColumns($schema, $form);
 
@@ -3195,6 +3392,10 @@
 					$data[$column] = is_bool($value) ? ($value ? "1" : "0") : (string)$value;
 				}
 
+				// The value as the model wrote it, before tokenization — the form the
+				// truncated-read check compares against, because the read decoded too.
+				$as_written = $data[$column];
+
 				// Internal links and image sources in AI-authored markup become tokens
 				// here, at the sift, so the stored form is the form the approver sees on
 				// the card. Shared with the page-content path (audit #9, Part D).
@@ -3219,9 +3420,87 @@
 
 					return ["error" => $invalid];
 				}
+
+				$storage = $this->aiStorageViolation(
+					$schema[$column],
+					$table,
+					$column,
+					$data[$column],
+					$as_written,
+					array_key_exists($column, $existing) && is_scalar($existing[$column])
+						? (string)$existing[$column]
+						: null
+				);
+
+				if ($storage !== null) {
+
+					return ["error" => $storage];
+				}
 			}
 
 			return ["data" => $data];
+		}
+
+		/**
+		 * The storage-boundary checks, run on a sifted value once its own field rules
+		 * have passed: the field's `maxlength`, characters the connection can't carry,
+		 * the column's real width/type/domain, and the truncated-read refusal.
+		 *
+		 * Everything here is the audit #10 boundary — the point past which MySQL's
+		 * non-strict `sql_mode` stops erroring and starts silently changing the data.
+		 * The value is passed by reference because the column domain normalizes what
+		 * it safely can (a date to the column's format, an enum label to its value)
+		 * rather than refusing it.
+		 *
+		 * @param array<string,mixed> $field The AI schema entry.
+		 * @param string $as_written The value before tokenization, as the model wrote it.
+		 * @param string|null $stored The value already in this column, when there is one.
+		 */
+		private function aiStorageViolation(
+			array $field,
+			string $table,
+			string $column,
+			string &$value,
+			string $as_written,
+			?string $stored
+		): ?string {
+			$title = (string)($field["title"] ?? $column);
+			$too_long = ColumnDomain::maxLengthViolation($title, $field["maxlength"] ?? 0, $value);
+
+			if ($too_long !== null) {
+
+				return $too_long;
+			}
+
+			$unrepresentable = ColumnDomain::unrepresentable($title, $value);
+
+			if ($unrepresentable !== null) {
+
+				return $unrepresentable;
+			}
+
+			if ($table !== "") {
+				$violation = ColumnDomain::violation($table, $column, $field, $value);
+
+				if ($violation !== null) {
+
+					return $violation;
+				}
+			}
+
+			if ($stored !== null) {
+
+				// Compared in the form the read showed it in: link tokens decoded, then
+				// capped. Comparing the tokenized forms would miss every body that
+				// contains a link, which is most of them.
+				if (in_array((string)($field["type"] ?? ""), PageService::AI_LINK_BEARING_TYPES, true)) {
+					$stored = PageService::aiDenormalizeHtmlValue($stored);
+				}
+
+				return TruncatedRead::violation($title, $as_written, $stored);
+			}
+
+			return null;
 		}
 
 		/**

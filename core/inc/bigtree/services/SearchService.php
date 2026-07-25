@@ -1319,7 +1319,7 @@ PROMPT;
 			$target = $overlaid["target"];
 			$pending = $overlaid["pending"];
 			$page = $target["page"];
-			$snippet = $this->plainTextFromResources($page["resources"] ?? "");
+			$snippet = $this->plainTextFromResources($page["resources"] ?? "", $snippet_truncated);
 
 			// Every scalar update_page can write, so the model can answer "is this page
 			// hidden from search?" or "when does it expire?" without proposing an edit
@@ -1344,6 +1344,7 @@ PROMPT;
 				], $fields, $content, [
 					"archived" => false,
 					"content_text" => $snippet,
+					"content_text_truncated" => $snippet_truncated,
 					"note" => "This page is still an unpublished draft awaiting approval — it has no live URL yet. "
 						. "Edit it with this same \"{$reference}\" id.",
 				])];
@@ -1360,6 +1361,7 @@ PROMPT;
 				], $fields, $content, [
 					"archived" => $archived,
 					"content_text" => $snippet,
+					"content_text_truncated" => $snippet_truncated,
 				], $pending),
 				"artifact" => [
 					"id" => (int)$page["id"],
@@ -1453,20 +1455,51 @@ PROMPT;
 			}
 
 			// Flatten to scalars/strings for the model; drop huge blobs.
+			//
+			// Audit #10 B1: this used to cut every column at 500 characters — roughly
+			// seventy words, so essentially every real textarea or html field — with a
+			// bare "…" and *nothing in the payload saying a cut happened*. Since
+			// update_module_entry replaces the column wholesale, "fix the typo in the
+			// second paragraph" then read the body cut off, edited the visible text and
+			// proposed writing that back, deleting the rest of the entry. Pages were
+			// given exactly this protection in audit #5 C4 (a 6,000-character cap and an
+			// explicit content_truncated list); entries got the read-parity half of that
+			// audit and never got the truncation half. They read at the same budget now,
+			// and say what they cut.
 			$safe = [];
+			$truncated = [];
+			$cap = AutoModuleService::AI_ENTRY_READ_CAP;
+			$schema = is_array($resolved_form["schema"] ?? null) ? $resolved_form["schema"] : [];
 
 			foreach ($row as $key => $value) {
 				if (is_array($value) || is_object($value)) {
-					$encoded = json_encode($value);
-					$safe[$key] = mb_substr((string)$encoded, 0, 500);
+					$encoded = (string)json_encode($value);
+
+					if (mb_strlen($encoded) > $cap) {
+						// The array branch had no ellipsis at all, so the model received an
+						// unterminated JSON fragment presented as a complete value.
+						$encoded = mb_substr($encoded, 0, $cap) . "…";
+						$truncated[] = (string)$key;
+					}
+
+					$safe[$key] = $encoded;
 
 					continue;
 				}
 
 				$text = (string)$value;
+				$type = (string)($schema[$key]["type"] ?? "");
 
-				if (mb_strlen($text) > 500) {
-					$text = mb_substr($text, 0, 500) . "…";
+				// Link tokens are decoded before the cap, so the model reads a real URL
+				// rather than an opaque base64 blob it would have to reproduce verbatim to
+				// edit the prose around it (audit #10 B3).
+				if (in_array($type, PageService::AI_LINK_BEARING_TYPES, true)) {
+					$text = PageService::aiDenormalizeHtmlValue($text);
+				}
+
+				if (mb_strlen($text) > $cap) {
+					$text = mb_substr($text, 0, $cap) . "…";
+					$truncated[] = (string)$key;
 				}
 
 				$safe[$key] = $text;
@@ -1502,6 +1535,7 @@ PROMPT;
 					"form" => (string)($resolved_form["form"]["id"] ?? ""),
 					"table" => $table,
 					"entry" => $safe,
+					"fields_truncated" => $truncated,
 				], $relations, [
 					"note" => "This entry is still an unpublished draft awaiting approval — these are the draft's "
 						. "values, not a live row. Edit it with this same \"{$reference}\" id.",
@@ -1524,6 +1558,7 @@ PROMPT;
 					"form" => (string)($resolved_form["form"]["id"] ?? ""),
 					"table" => $table,
 					"entry" => $safe,
+					"fields_truncated" => $truncated,
 				], $relations),
 				"artifact" => $group,
 			];
@@ -1540,7 +1575,24 @@ PROMPT;
 			return EmbeddingService::search((string)$q, (int)$limit, $user);
 		}
 
-		private function plainTextFromResources($resources): string {
+		// The flattened-prose cap on get_page's content_text. Smaller than the keyed
+		// content map's per-field cap on purpose: this is a reading aid, and the
+		// editable copy of the same text is right beside it under `content`.
+		public const AI_SNIPPET_CAP = 2000;
+
+		/**
+		 * A page's resources as one run of plain text, for get_page's content_text.
+		 *
+		 * $truncated reports whether the cap fell, because every other value cap in an
+		 * AI read payload now says so and a silent one here would be the exception the
+		 * E1 guard exists to prevent (audit #10 B1). Writing this value back is not a
+		 * hazard the way a truncated `content` field is — it is strip_tags'd,
+		 * concatenated and keyed to nothing, so no write tool accepts it — but the
+		 * model shouldn't have to guess whether it read the whole page.
+		 */
+		private function plainTextFromResources($resources, bool &$truncated = false): string {
+			$truncated = false;
+
 			if (is_string($resources)) {
 				$decoded = Json::decode($resources);
 			} else {
@@ -1555,8 +1607,10 @@ PROMPT;
 			EmbeddingService::collectPlainText($decoded, $chunks);
 			$text = trim(preg_replace('/\s+/', " ", implode(" ", $chunks)) ?? "");
 
-			if (mb_strlen($text) > 2000) {
-				return mb_substr($text, 0, 2000) . "…";
+			if (mb_strlen($text) > self::AI_SNIPPET_CAP) {
+				$truncated = true;
+
+				return mb_substr($text, 0, self::AI_SNIPPET_CAP) . "…";
 			}
 
 			return $text;

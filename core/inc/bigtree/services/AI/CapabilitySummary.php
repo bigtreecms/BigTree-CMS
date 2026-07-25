@@ -206,6 +206,18 @@
 				// cannot set or clear one.
 				"Making a page a site trunk, or changing the multi-site structure" =>
 					"Developer → Pages — the assistant can see which pages are site trunks but cannot set or move one",
+				// Not a route family, so AIRouteFamilyContractTest structurally cannot
+				// find this wall (audit #9's "running a report" was the first of the
+				// kind). Every mutating tool targets exactly one record: there is no
+				// batch argument, no multi-target proposal, and no grouping in the
+				// proposal store. The only faithful execution of "all forty event pages"
+				// is forty tool calls producing forty cards, which the bounded agent loop
+				// cuts off part-way through with some pages done, some not, and no way to
+				// report which. The line steers rather than just refusing, the way the
+				// page-delete line does (audit #10 C4).
+				"Applying the same change to many records at once" =>
+					"the module's own bulk actions in the admin — the assistant proposes one change at a time, so "
+						. "ask for the specific pages or entries you want changed",
 			];
 		}
 

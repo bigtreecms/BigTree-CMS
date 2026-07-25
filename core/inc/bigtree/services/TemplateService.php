@@ -582,7 +582,20 @@
 			$page_count = (int)SQL::fetchSingle("SELECT COUNT(*) FROM bigtree_pages WHERE template = ?", $template_id);
 
 			if ($added) {
-				$rows["fields_added"] = implode(", ", $added);
+				// Creating a template scaffolds a render file and the proposal says so.
+				// Updating one correctly never touches the file — clobbering a developer's
+				// render code would be far worse — but the proposal never mentioned the
+				// file either, so "add a subtitle field to the article template" produced a
+				// field that appears in the page editor, an editor who fills it in, and a
+				// site that never renders it. fields_removed and now_required already model
+				// the right shape: the consequence appended to the value (audit #10 C1).
+				$existing = BigTreeJSONDB::get("templates", $template_id);
+				$path = TemplateScaffold::templatePath($template_id, !empty($existing["routed"]));
+				$rows["fields_added"] = implode(", ", $added)
+					. " — the template's render file isn't changed, so "
+					. (count($added) === 1 ? "a new field won't" : "new fields won't")
+					. " appear on the site until a developer outputs "
+					. (count($added) === 1 ? "it" : "them") . " in {$path}";
 			}
 
 			if ($removed) {

@@ -100,7 +100,11 @@
 			], $user);
 
 			T::ok(!empty($validated["ok"]), "adding a field validates");
-			T::equals($validated["preview"]["changes"]["fields_added"], "footnote", "the preview names the added field");
+			T::ok(strpos($validated["preview"]["changes"]["fields_added"], "footnote") === 0, "the preview names the added field");
+			T::ok(
+				strpos($validated["preview"]["changes"]["fields_added"], "render file isn't changed") !== false,
+				"and says the render file won't output it (audit #10 C1)"
+			);
 			T::ok(
 				!isset($validated["preview"]["changes"]["no_longer_required"]),
 				"carrying a required field over is not reported as losing its rule"
@@ -249,7 +253,11 @@
 			], $user);
 
 			T::ok(!empty($validated["ok"]), "the field addition validates");
-			T::equals($validated["preview"]["changes"]["fields_added"], "link", "the preview names the added field");
+			T::ok(strpos($validated["preview"]["changes"]["fields_added"], "link") === 0, "the preview names the added field");
+			T::ok(
+				strpos($validated["preview"]["changes"]["fields_added"], "render file isn't changed") !== false,
+				"and says the render file won't output it (audit #10 C1)"
+			);
 			T::ok(!isset($validated["preview"]["changes"]["fields_removed"]), "nothing is reported as removed");
 
 			$result = $svc->aiUpdateCallout($validated["payload"], $user);

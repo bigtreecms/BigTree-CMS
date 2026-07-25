@@ -411,10 +411,43 @@
 				}
 
 				// Encrypted values are never surfaced to the model.
-				$out[] = $this->present($def, false);
+				$out[] = $this->aiDecodeSettingLinks($this->present($def, false));
 			}
 
 			return ["settings" => $out, "has_more" => $more];
+		}
+
+		/**
+		 * Decode BigTree's stored link tokens in a presented setting, for the model's
+		 * eyes only.
+		 *
+		 * `present()` hands back the raw json_decode of the stored value, so an `html`
+		 * or `link` setting reached the model as `ipl://cGFnZXM6NDI=` — unreadable
+		 * ("does this point at the pricing page?" had no answer) and unrewritable,
+		 * since update_setting replaces the value wholesale and the model would have to
+		 * reproduce the base64 character for character. readSetting($id, true) has
+		 * always done exactly this for the front end (SettingService::readSetting);
+		 * the assistant was the one reader that didn't get it (audit #10 B3).
+		 *
+		 * Scoped to the AI seam: `present()` itself is shared with REST, whose clients
+		 * round-trip the stored form through the settings editor and must keep seeing
+		 * it. The write path re-tokenizes via updateInternalValue's autoIPL.
+		 *
+		 * @param array<string,mixed> $setting
+		 * @return array<string,mixed>
+		 */
+		private function aiDecodeSettingLinks(array $setting): array {
+			$type = (string)($setting["type"] ?? "");
+
+			if (!is_string($setting["value"] ?? null)
+				|| !in_array($type, PageService::AI_LINK_BEARING_TYPES, true)) {
+
+				return $setting;
+			}
+
+			$setting["value"] = PageService::aiDenormalizeHtmlValue($setting["value"]);
+
+			return $setting;
 		}
 
 		/**

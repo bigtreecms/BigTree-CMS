@@ -377,6 +377,10 @@
 		 */
 		private static function aiMissingSettings(string $type, array $settings, string $surface): array {
 			$needed = self::AI_RENDER_REQUIRED_SETTINGS[$type] ?? [];
+			// The same mapping aiFieldSettings resolves the seeded defaults through —
+			// read from the one const rather than spelled out again, since a second
+			// hand-written copy of a mapping is the drift audit #10 A4 is about.
+			$use_case = self::SURFACE_USE_CASES[$surface] ?? "templates";
 
 			foreach (\BigTree\Services\FieldTypeService::settingsSchema($type) as $descriptor) {
 				$setting_id = (string)($descriptor["id"] ?? "");
@@ -384,6 +388,24 @@
 				// A `_`-prefixed descriptor is a composite editor control (image
 				// options), not a stored setting of its own.
 				if ($setting_id === "" || $setting_id[0] === "_" || empty($descriptor["required"])) {
+
+					continue;
+				}
+
+				// The two filters the SPA's own validate.ts applies and this didn't, so
+				// the assistant refused to author fields the admin would happily save —
+				// "stricter than the UI for no reason", which the framework otherwise
+				// avoids (audit #10 C2).
+				if (!self::aiSettingIsVisible($descriptor, $settings, $use_case)) {
+
+					continue;
+				}
+
+				// DirectoryControl seeds a context-specific default into storage on
+				// mount, so a required directory with a `context_defaults` fallback is
+				// satisfied before that seed ever runs.
+				if ((string)($descriptor["control"] ?? "") === "directory"
+					&& !empty($descriptor["context_defaults"][$use_case])) {
 
 					continue;
 				}
@@ -402,6 +424,61 @@
 			}
 
 			return $missing;
+		}
+
+		/**
+		 * Whether a settings descriptor is shown at all, given the other settings and
+		 * the host use case. The PHP port of the SPA's
+		 * `developer/field-settings/evaluate.ts` — a required setting hidden behind a
+		 * `show_if` or scoped away by `contexts` is not a setting the author was ever
+		 * asked for, and must not block a write.
+		 *
+		 * @param array<string,mixed> $descriptor
+		 * @param array<string,mixed> $settings
+		 */
+		private static function aiSettingIsVisible(array $descriptor, array $settings, string $use_case): bool {
+			$contexts = $descriptor["contexts"] ?? null;
+
+			if (is_array($contexts) && !in_array($use_case, array_map("strval", $contexts), true)) {
+
+				return false;
+			}
+
+			$condition = is_array($descriptor["show_if"] ?? null) ? $descriptor["show_if"] : null;
+
+			if (!$condition) {
+
+				return true;
+			}
+
+			$value = $settings[(string)($condition["field"] ?? "")] ?? null;
+			$empty = $value === null || $value === "" || $value === [];
+
+			if (!empty($condition["empty"])) {
+
+				return $empty;
+			}
+
+			if (!empty($condition["not_empty"])) {
+
+				return !$empty;
+			}
+
+			if (is_array($condition["in"] ?? null)) {
+
+				return in_array(
+					$value === null ? "" : (string)$value,
+					array_map("strval", $condition["in"]),
+					true
+				);
+			}
+
+			if (array_key_exists("equals", $condition)) {
+
+				return (string)($value ?? "") === (string)$condition["equals"];
+			}
+
+			return true;
 		}
 
 		/**
