@@ -3088,12 +3088,7 @@
 			// The stored content — overlaid with any queued draft above — is what the
 			// write replaces, so it is what the truncated-read refusal measures against.
 			$stored_content = Json::decode($page["resources"] ?? "");
-			$sifted = $this->aiSiftResourceContent(
-				$schema,
-				$provided,
-				$template,
-				is_array($stored_content) ? $stored_content : []
-			);
+			$sifted = $this->aiSiftResourceContent($schema, $provided, $template, $stored_content);
 
 			if (isset($sifted["error"])) {
 
@@ -3358,7 +3353,7 @@
 				$this->aiTemplateResourceSchema($template),
 				$changed,
 				$template,
-				is_array($stored_content) ? $stored_content : []
+				$stored_content
 			);
 
 			if (isset($resifted["error"])) {

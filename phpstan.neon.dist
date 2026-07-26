@@ -66,3 +66,7 @@ parameters:
             identifier: booleanNot.alwaysTrue
             paths:
                 - core/inc/bigtree/api/_test
+        -
+            identifier: greaterOrEqual.alwaysTrue
+            paths:
+                - core/inc/bigtree/api/_test
