@@ -38,6 +38,28 @@ echo BigTree::json(["complete" => true, "response" => "Short migration name (N)"
 
 Do NOT retrofit the historical revisions (≤505); revision 505 backfills them.
 
+## Every revision lands in `base.sql` too — same commit
+
+A revision describes how an EXISTING install gets to the new schema.
+[`core/setup/base.sql`](../../../../setup/base.sql) describes the schema itself. They are two
+statements of one fact, so a revision that creates or alters a table is only half
+written until `base.sql` says the same thing:
+
+1. Add the new table (or the altered column, index, width, charset) to `base.sql`.
+2. Bump the `bigtree-internal-revision` floor `base.sql` seeds to match
+   `BIGTREE_REVISION` in [`core/version.php`](../../../../version.php).
+3. Bump `BIGTREE_REVISION` itself.
+
+A fresh install is installed **up to date** — it should have nothing pending on its
+first admin visit. When the floor lags, that is the visible symptom; the actual bug
+is that `base.sql` has stopped describing the schema the code expects, and every
+fresh install is silently relying on migrations to finish the job. `MigrationRunnerTest`
+asserts the floor matches, which catches step 2 but not step 1 — step 1 is on you.
+
+The single exception is a table the file cannot portably declare:
+`bigtree_ai_embeddings` needs a `VECTOR` column (MySQL 9+ / MariaDB 11.7+), so
+`core/setup/install.php` creates it conditionally. Nothing else gets to be absent.
+
 ## Running migrations
 
 - **Browser**: the legacy AJAX upgrade flow (`scripts.php`) still drives each

@@ -443,9 +443,10 @@
 	 *
 	 * A separate axis from length, and the exempt list above is about length — so a
 	 * seam can be perfectly capped and still hand MySQL a string it amputates at the
-	 * first emoji. The tables here are the ones base.sql declares CHARSET=utf8;
-	 * module tables inherit the install's default and are covered by the entry sift
-	 * regardless.
+	 * first emoji. The tables here are the ones that stay utf8mb3 until revision 512
+	 * converts them (base.sql itself declares utf8mb4 now, so this is about installs
+	 * that upgraded); module tables inherit the install's default and are covered by
+	 * the entry sift regardless.
 	 *
 	 * @return array<string,array{0:string,1:string,2:string}> table => [class, method, why]
 	 */
@@ -509,7 +510,7 @@
 	function test_over_plane_characters_are_refused() {
 		T::ok(
 			ColumnDomain::unrepresentable("Headline", "Spring Gala 🎉 tickets") !== null,
-			"an emoji is refused while the connection is utf8mb3"
+			"an emoji is refused while a target column may still be utf8mb3"
 		);
 		T::equals(
 			ColumnDomain::unrepresentable("Headline", "Spring Gala — “tickets”"),

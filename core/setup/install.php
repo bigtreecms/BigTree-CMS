@@ -232,7 +232,7 @@
 					KEY `source` (`source_type`, `source_id`),
 					KEY `module` (`module_id`),
 					KEY `updated` (`updated_at`)
-				) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+				) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
 			");
 			$table_ready = true;
 
@@ -452,7 +452,12 @@
 			$error = "Could not connect to MySQL server.";
 		} else {
 			// Try to create the database
-			sqlquery("CREATE DATABASE IF NOT EXISTS `$db`");
+			sqlquery("CREATE DATABASE IF NOT EXISTS `$db` CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci");
+			// The database's own default is what every later CREATE TABLE that names
+			// no charset inherits — an extension installer, a developer's SQL, the
+			// output of SQL::compareTables — and the server default is latin1 on
+			// MySQL 5.7. This covers a database that already existed.
+			sqlquery("ALTER DATABASE `$db` CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci");
 			// Try to select it
 			$select = sqlselectdb($db);
 			if (!$select) {

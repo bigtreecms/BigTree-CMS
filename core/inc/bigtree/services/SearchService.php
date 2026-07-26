@@ -1319,6 +1319,13 @@ PROMPT;
 			$target = $overlaid["target"];
 			$pending = $overlaid["pending"];
 			$page = $target["page"];
+
+			// Declared before the call: PHP checks the argument's type BEFORE the callee
+			// assigns to the reference, so an undeclared variable arrives as null and a
+			// `bool &$truncated` parameter rejects it — a TypeError out of every get_page
+			// read. (Found by the Phase 3 sweep for uncaught exceptions the test runner
+			// prints as "!" without counting them as failures.)
+			$snippet_truncated = false;
 			$snippet = $this->plainTextFromResources($page["resources"] ?? "", $snippet_truncated);
 
 			// Every scalar update_page can write, so the model can answer "is this page

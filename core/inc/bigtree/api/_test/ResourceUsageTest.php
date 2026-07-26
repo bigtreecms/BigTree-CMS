@@ -133,7 +133,7 @@
 
 			// A throwaway module table with two live entries. With no matching JSON DB
 			// view, resolveModuleForTable falls back to id=null/name=$table → link=null.
-			SQL::query("CREATE TABLE `$module_table` (`id` int(11) unsigned NOT NULL AUTO_INCREMENT, `title` varchar(255) DEFAULT NULL, PRIMARY KEY (`id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8");
+			SQL::query("CREATE TABLE `$module_table` (`id` int(11) unsigned NOT NULL AUTO_INCREMENT, `title` varchar(255) DEFAULT NULL, PRIMARY KEY (`id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci");
 			$m1 = (int)SQL::insert($module_table, ["title" => "Module Entry Alpha"]);
 			$m2 = (int)SQL::insert($module_table, ["title" => "Module Entry Beta"]);
 

@@ -16,7 +16,10 @@
 			"service" => [UserService::class, "create"],
 			"permission" => ["level" => 1],
 			"body" => [
-				"email" => "required|email|max:255",
+				// 191: `bigtree_users`.`email` is varchar(191) as of revision 512 (it is
+				// indexed, and 191 * 4 bytes is what utf8mb4 leaves room for). Refusing
+				// a longer address here beats MySQL truncating it silently.
+				"email" => "required|email|max:191",
 				"name" => "required|string|max:255",
 				"company" => "string|max:255",
 				"level" => "int|in:0,1,2",
@@ -44,7 +47,7 @@
 			"service" => [UserService::class, "update"],
 			"permission" => ["any" => [["level" => 1], ["self" => "id"]]],
 			"body" => [
-				"email" => "email|max:255",
+				"email" => "email|max:191",
 				"name" => "string|max:255",
 				"company" => "string|max:255",
 				"level" => "int|in:0,1,2",

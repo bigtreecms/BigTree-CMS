@@ -42,6 +42,42 @@
 - FIXED: API auto-module pagination no longer silently used the default 15 rows
   per page unless an admin instance had been constructed first; it now reads
   `bigtree-internal-per-page` via `SettingService::perPage()`.
+- FIXED: `core/setup/base.sql` did not declare the three AI assistant tables
+  (`bigtree_ai_conversations`, `bigtree_ai_messages`, `bigtree_ai_proposals`), and
+  seeded a revision floor of 507 against a code revision of 511 — so a brand new
+  install had five pending revisions on its first admin visit and was relying on
+  revisions 508 and 509 to create tables its schema file should have described.
+  base.sql now declares them and seeds the floor at `BIGTREE_REVISION`; a fresh
+  install has nothing pending. A test asserts the floor keeps matching, and the
+  revisions README states the invariant: a revision that creates or alters a table
+  lands in base.sql in the same commit. (`bigtree_ai_embeddings` remains the one
+  exception — its `VECTOR` column is not portable across supported servers, so
+  `install.php` creates it conditionally.)
+- NEW: utf8mb4 everywhere. Every connection now opens as `utf8mb4` (it used to run
+  `SET NAMES 'utf8'`, i.e. utf8mb3), and **revision 512** converts the whole
+  database — core, module, extension and site tables alike — to
+  `utf8mb4` / `utf8mb4_general_ci`. Before this, any 4-byte character (every emoji,
+  ranges of CJK and mathematical symbols) was silently truncated *at* that
+  character on write, with no error, including in a user's own AI chat messages.
+  The database's own default charset is converted too, not only its tables — that
+  default is what a later `CREATE TABLE` naming no charset inherits, and the
+  installer now names `utf8mb4` when it creates the database. Fresh installs are
+  created in the end state and have nothing to convert.
+- **Behavior note:** revision 512 narrows the indexed `varchar(1024)` columns to
+  `varchar(191)` — a full-column index on `varchar(1024)` is 4096 bytes at utf8mb4,
+  over InnoDB's 3072-byte key prefix limit. It measures each column first and
+  narrows only when every stored value fits; a column that does not fit (and every
+  URL-shaped or free-text one, e.g. `bigtree_404s`.`broken_url`, `bigtree_pages`.`route`,
+  `bigtree_caches`.`key`) keeps its width and gets a 191-character prefix index
+  instead. No value is ever truncated, but **the narrowing is one-way**: rolling the
+  charset back does not restore the width. The API now refuses a user `email`, a
+  setting `id`, or a lock `table`/`item_id` over 191 characters rather than letting
+  MySQL cut it short. `FULLTEXT` (and `SPATIAL`, and vector) indexes are left
+  untouched — only a BTREE index has a key prefix limit to break.
+- **Behavior note:** revision 512 empties `bigtree_caches` and
+  `bigtree_module_view_cache` instead of converting their contents. Both are
+  regenerable caches, and converting a table copies it — this turns the two largest
+  tables in the sweep into instant operations. They refill on demand.
 
 ### 4.6
 

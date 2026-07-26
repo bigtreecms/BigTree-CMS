@@ -321,10 +321,11 @@
 				}
 			}
 
-			// `bigtree_pages` is declared CHARSET=utf8 (utf8mb3), as is the connection, so
-			// a 4-byte character in a title or a meta description doesn't error — MySQL
-			// cuts the value off *at* that character and carries on. Say so rather than
-			// let the model watch its own sentence get amputated (audit #10 A2).
+			// `bigtree_pages` is CHARSET=utf8mb3 until revision 512 converts it, so on an
+			// install that has not upgraded yet a 4-byte character in a title or a meta
+			// description doesn't error — MySQL cuts the value off *at* that character and
+			// carries on. Say so rather than let the model watch its own sentence get
+			// amputated (audit #10 A2).
 			foreach (self::AI_PAGE_FIELDS as $field) {
 				if (!array_key_exists($field, $fields) || !is_scalar($fields[$field])) {
 

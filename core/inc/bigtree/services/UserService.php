@@ -304,7 +304,9 @@
 		// path checked them, so a 900-character model-generated name was accepted
 		// where both the API and the UI refuse it.
 		private const AI_USER_MAX_LENGTHS = [
-			"email" => 255,
+			// 191 matches the column: `email` is indexed, so revision 512 narrowed it
+			// to varchar(191) on the way to utf8mb4 (routes/users.php caps it the same).
+			"email" => 191,
 			"name" => 255,
 			"company" => 255,
 			"timezone" => 64,
@@ -315,9 +317,10 @@
 		 * -boundary check that shares its shape: a character the connection can't
 		 * carry. Shared by staging and approval so a stored payload can't slip past.
 		 *
-		 * `bigtree_users` is declared CHARSET=utf8 (utf8mb3), as is the connection, so
-		 * a 4-byte character in a name or a company doesn't error — MySQL cuts the
-		 * value off *at* that character and carries on (audit #10 A2). Tag names are
+		 * `bigtree_users` is CHARSET=utf8mb3 until revision 512 converts it, so on an
+		 * install that has not upgraded yet a 4-byte character in a name or a company
+		 * doesn't error — MySQL cuts the value off *at* that character and carries on
+		 * (audit #10 A2; the connection itself is utf8mb4 now). Tag names are
 		 * not checked here because TagService::normalize strips everything outside
 		 * [a-zA-Z0-9 ] before storage, and redirect URLs are shape-gated by
 		 * aiCheckRedirectDestination.

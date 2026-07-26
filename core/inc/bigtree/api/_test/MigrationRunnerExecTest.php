@@ -38,10 +38,44 @@
 		}
 	}
 
-	/** Delete every seeded ledger row in the throwaway range. */
+	/**
+	 * bigtree-internal-revision as it stood BEFORE this file's tests ran.
+	 *
+	 * Captured at load (run.php includes every test file before it runs anything) and
+	 * cached, so the value cannot itself be a value a test wrote.
+	 */
+	function _migexec_original_revision(): int {
+		static $original = null;
+
+		if ($original === null) {
+			try {
+				$original = (int)BigTreeCMS::getSetting("bigtree-internal-revision");
+			} catch (\Throwable $e) {
+				$original = 0;
+			}
+		}
+
+		return $original;
+	}
+
+	/** Delete every seeded ledger row in the throwaway range, and put the integer back. */
 	function _migexec_cleanup(): void {
 		SQL::query("DELETE FROM bigtree_migrations WHERE revision >= ?", MIGEXEC_BASE);
+
+		// finish() MIRRORS bigtree-internal-revision, clamped to BIGTREE_REVISION — so
+		// every finish() below, even on a throwaway 930000-range revision, advances the
+		// real setting to the newest revision on disk. Left behind on a developer's
+		// database that is a quiet lie: the next upgrade sees nothing pending and the
+		// newest migration never runs. (Found while shipping revision 512, which the
+		// dev database consequently claimed to have applied.)
+		$original = _migexec_original_revision();
+
+		if ($original > 0 && (int)BigTreeCMS::getSetting("bigtree-internal-revision") !== $original) {
+			BigTreeAdmin::updateInternalSettingValue("bigtree-internal-revision", $original);
+		}
 	}
+
+	_migexec_original_revision();
 
 	/** Absolute path to a throwaway revision file. */
 	function _migexec_revision_path(int $revision): string {

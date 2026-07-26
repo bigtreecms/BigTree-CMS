@@ -313,17 +313,17 @@
 		 * Characters outside the Basic Multilingual Plane — every emoji, and a range of
 		 * CJK and mathematical characters — as a recoverable error, or null.
 		 *
-		 * The connection runs `SET NAMES 'utf8'`, which is utf8mb3, so a 4-byte
-		 * sequence is not representable and MySQL (non-strict) truncates the string
-		 * *at that character*. A model writing a social post or a callout headline
-		 * emits emoji readily and unprompted, and the em-dashes and curly quotes it
-		 * also emits are 3-byte and survive — so the failure is intermittent and looks
-		 * like the model cut its own answer off.
+		 * A utf8mb3 column can't hold a 4-byte sequence, and MySQL (non-strict)
+		 * truncates the string *at that character* rather than erroring. A model
+		 * writing a social post or a callout headline emits emoji readily and
+		 * unprompted, and the em-dashes and curly quotes it also emits are 3-byte and
+		 * survive — so the failure is intermittent and looks like the model cut its own
+		 * answer off.
 		 *
-		 * This is the sift-side half of audit #10's A2. The other half is moving the
-		 * connection (and the schema) to utf8mb4, which is core work planned in
-		 * plans/utf8mb4-migration.md. This check can be dropped once that has landed
-		 * everywhere — but not before, because a site mid-upgrade is a mixed estate.
+		 * This is the sift-side half of audit #10's A2. The other half has landed: the
+		 * connection is utf8mb4 (`SQL::connect`) and revision 512 converts the schema.
+		 * The check stays until every install has RUN 512 — a site mid-upgrade is a
+		 * mixed estate, and this is the only warning its utf8mb3 tables get.
 		 */
 		public static function unrepresentable(string $title, string $value): ?string {
 			if ($value === "" || !preg_match_all('/[\x{10000}-\x{10FFFF}]/u', $value, $matches)) {

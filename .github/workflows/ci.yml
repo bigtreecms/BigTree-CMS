@@ -138,6 +138,129 @@ jobs:
             || { echo "Test runner produced no summary"; exit 1; }
           echo "$OUTPUT" | grep -q 'Failed: 0' \
             || { echo "One or more API tests failed"; exit 1; }
+          # run.php prints an UNCAUGHT exception as "  ! message" and does NOT count
+          # it as a failure — a test that dies before its first assertion looks like
+          # a pass in the summary. Gate on it explicitly.
+          echo "$OUTPUT" | grep -q '^  ! ' \
+            && { echo "A test threw an uncaught exception (see '!' lines above)"; exit 1; }
+          exit 0
+
+  migrated:
+    name: PHP (upgraded install — migrate from pre-512 utf8mb3)
+    # The php job above builds from base.sql, i.e. only ever tests a FRESH install.
+    # This one starts from the frozen pre-512 schema (every core table utf8mb3, every
+    # varchar(1024) indexed in full), runs the real migration runner, and then runs the
+    # same suite — so the two paths are proven to converge rather than assumed to
+    # (plans/utf8mb4-migration.md, V3). Utf8mb4SchemaTest is what asserts the end
+    # state; it skips on an unconverted database, which is why running it HERE matters.
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: bigtree_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -proot"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.2"
+          extensions: mysqli, gd, json
+      # The service container creates bigtree_test at the server default, which is
+      # utf8mb4 on MySQL 8 — so without this the ALTER DATABASE in revision 512 is
+      # never exercised. A pre-512 install's schema default is utf8mb3 (or latin1).
+      - name: Make the starting database utf8mb3, like a pre-512 install
+        run: mysql -h 127.0.0.1 -P 3306 -uroot -proot -e "ALTER DATABASE bigtree_test CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci"
+      - name: Load the frozen pre-512 (utf8mb3) schema
+        run: mysql -h 127.0.0.1 -P 3306 -uroot -proot bigtree_test < core/inc/bigtree/api/_test/fixtures/base-utf8mb3-pre512.sql
+      # A stand-in for a site's own module table, because M1 sweeps everything in the
+      # schema and not just core: one varchar(1024) indexed in full (512 has to narrow
+      # it) and one FULLTEXT index (512 has to leave it alone). A FULLTEXT index
+      # reports no Sub_part on a `text` column, so costing its parts the way a BTREE
+      # part is costed reads as 65535 * 4 bytes, and the "fix" — DROP INDEX, ADD INDEX
+      # (body(191)) — is one MySQL accepts without a word while breaking every
+      # MATCH ... AGAINST on the table.
+      - name: Plant a site table with a FULLTEXT index
+        run: |
+          mysql -h 127.0.0.1 -P 3306 -uroot -proot bigtree_test -e "
+            CREATE TABLE \`zz_site_articles\` (
+              \`id\` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+              \`headline\` VARCHAR(1024) NOT NULL DEFAULT '',
+              \`body\` TEXT NOT NULL,
+              PRIMARY KEY (\`id\`),
+              KEY \`headline\` (\`headline\`),
+              FULLTEXT KEY \`ft_body\` (\`body\`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
+            INSERT INTO \`zz_site_articles\` (\`headline\`, \`body\`) VALUES ('Timber', 'a lumberjack story');"
+      - name: Install CI site (mirrors core/setup/install.php)
+        run: scripts/ci-install.sh http://localhost/ bigtree_test 3306
+      # Guard the guard: if the fixture ever stopped being utf8mb3, this job would
+      # silently become a duplicate of the php job.
+      # NOT LIKE 'utf8mb4%' rather than LIKE 'utf8mb3%': MySQL renamed the collation
+      # from utf8_general_ci to utf8mb3_general_ci mid-8.0, and 5.7 only knows the
+      # former.
+      - name: Assert the starting schema really is not utf8mb4
+        run: |
+          COUNT=$(mysql -h 127.0.0.1 -P 3306 -uroot -proot -N -e \
+            "SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA='bigtree_test' AND TABLE_COLLATION NOT LIKE 'utf8mb4%'")
+          echo "non-utf8mb4 tables before migrating: $COUNT"
+          test "$COUNT" -gt 0 || { echo "fixture is not a pre-512 schema"; exit 1; }
+      - name: Apply pending revisions (508 … 512)
+        run: php core/admin/migrate-run.php
+      - name: Assert nothing is left non-utf8mb4
+        run: |
+          LEFT=$(mysql -h 127.0.0.1 -P 3306 -uroot -proot -N -e \
+            "SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA='bigtree_test' AND TABLE_COLLATION NOT LIKE 'utf8mb4%'")
+          COLS=$(mysql -h 127.0.0.1 -P 3306 -uroot -proot -N -e \
+            "SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='bigtree_test' AND CHARACTER_SET_NAME IS NOT NULL AND CHARACTER_SET_NAME <> 'utf8mb4'")
+          echo "non-utf8mb4 tables: $LEFT, non-utf8mb4 string columns: $COLS"
+          test "$LEFT" = "0" || { echo "revision 512 left a non-utf8mb4 table"; exit 1; }
+          test "$COLS" = "0" || { echo "revision 512 left a non-utf8mb4 column"; exit 1; }
+      # The container, not just the contents: the schema default is what every later
+      # CREATE TABLE that names no charset inherits.
+      - name: Assert the database's own default converted
+        run: |
+          DEFAULT=$(mysql -h 127.0.0.1 -P 3306 -uroot -proot -N -e \
+            "SELECT DEFAULT_CHARACTER_SET_NAME FROM information_schema.SCHEMATA WHERE SCHEMA_NAME='bigtree_test'")
+          echo "database default charset: $DEFAULT"
+          test "$DEFAULT" = "utf8mb4" || { echo "revision 512 left the database default at $DEFAULT"; exit 1; }
+      # The planted site table: the wide indexed varchar narrows, the FULLTEXT index
+      # is untouched. A FULLTEXT that came back as BTREE means the index-cost sweep
+      # started treating non-BTREE indexes as over-limit again.
+      - name: Assert the FULLTEXT index survived and the wide index narrowed
+        run: |
+          FT=$(mysql -h 127.0.0.1 -P 3306 -uroot -proot -N -e \
+            "SELECT INDEX_TYPE FROM information_schema.STATISTICS WHERE TABLE_SCHEMA='bigtree_test' AND TABLE_NAME='zz_site_articles' AND INDEX_NAME='ft_body'")
+          WIDTH=$(mysql -h 127.0.0.1 -P 3306 -uroot -proot -N -e \
+            "SELECT CHARACTER_MAXIMUM_LENGTH FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='bigtree_test' AND TABLE_NAME='zz_site_articles' AND COLUMN_NAME='headline'")
+          echo "ft_body index type: $FT, headline width: $WIDTH"
+          test "$FT" = "FULLTEXT" || { echo "revision 512 downgraded a FULLTEXT index to '$FT'"; exit 1; }
+          test "$WIDTH" = "191" || { echo "revision 512 did not narrow the indexed varchar(1024) (got '$WIDTH')"; exit 1; }
+          mysql -h 127.0.0.1 -P 3306 -uroot -proot bigtree_test -N -e \
+            "SELECT COUNT(*) FROM zz_site_articles WHERE MATCH(body) AGAINST('lumberjack')" \
+            || { echo "MATCH ... AGAINST no longer works on the migrated table"; exit 1; }
+      # Re-running has to be a no-op: every step in 512 is guarded by its own state
+      # check, which is what makes a run interrupted on a large table resumable.
+      - name: Re-run the migration runner (idempotency)
+        run: php core/admin/migrate-run.php
+      - name: Run API test suite against the migrated database
+        run: |
+          OUTPUT=$(php core/inc/bigtree/api/_test/run.php)
+          echo "$OUTPUT"
+          echo "$OUTPUT" | grep -qE 'Passed: [1-9][0-9]+ ' \
+            || { echo "Test runner produced no summary"; exit 1; }
+          echo "$OUTPUT" | grep -q 'Failed: 0' \
+            || { echo "One or more API tests failed"; exit 1; }
+          echo "$OUTPUT" | grep -q '^  ! ' \
+            && { echo "A test threw an uncaught exception (see '!' lines above)"; exit 1; }
+          exit 0
 
   smoke:
     name: API smoke tests (P0 matrix)

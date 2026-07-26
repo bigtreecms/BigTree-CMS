@@ -18,7 +18,9 @@
 			"service" => [SettingService::class, "create"],
 			"permission" => ["level" => 2],
 			"body" => [
-				"id" => "required|string|max:255",
+				// 191: `bigtree_settings`.`id` is the PRIMARY KEY and `extension` is
+				// indexed, so both are varchar(191) as of revision 512.
+				"id" => "required|string|max:191",
 				"name" => "string|max:255",
 				"description" => "string|max:1024",
 				"type" => "string|max:64",
@@ -26,7 +28,7 @@
 				"locked" => "bool",
 				"system" => "bool",
 				"encrypted" => "bool",
-				"extension" => "string|max:255",
+				"extension" => "string|max:191",
 			],
 			"audit" => ["table" => "bigtree_settings", "type" => "created", "entry" => "%id%"],
 		],

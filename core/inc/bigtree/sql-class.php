@@ -79,6 +79,10 @@
 
 			$pointer = fopen($file, "w");
 			fwrite($pointer, "SET SESSION sql_mode = 'NO_AUTO_VALUE_ON_ZERO';\n");
+			// The rows below are written as utf8mb4 literals (that is what the
+			// connection reads them as), so a restore has to be told the same or MySQL
+			// interprets them in its own default and mangles anything non-ASCII.
+			fwrite($pointer, "SET NAMES utf8mb4;\n");
 			fwrite($pointer, "SET foreign_key_checks = 0;\n\n");
 
 			if (!count($tables)) {
@@ -355,8 +359,11 @@
 				$socket
 			);
 
-			// Make sure everything is run in UTF8, turn off strict mode if set
-			static::${$property}->query("SET NAMES 'utf8'");
+			// Make sure everything is run in utf8mb4, turn off strict mode if set.
+			// set_charset rather than "SET NAMES": it also updates the charset mysqli
+			// uses client-side for real_escape_string, which SET NAMES leaves alone —
+			// the two disagreeing is how escaping bugs get in.
+			static::${$property}->set_charset("utf8mb4");
 			static::${$property}->query("SET SESSION sql_mode = ''");
 
 			// Sync MySQL timezone

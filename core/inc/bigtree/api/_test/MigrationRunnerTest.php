@@ -241,3 +241,44 @@
 			_migrunner_cleanup();
 		}
 	}
+
+	/**
+	 * base.sql is the END STATE: a fresh install is installed up to date, not
+	 * installed and then upgraded.
+	 *
+	 * So the revision floor it seeds has to equal BIGTREE_REVISION. When the two
+	 * drift, a brand new install has pending revisions on its first admin visit —
+	 * which is the symptom; the disease is a revision that created or altered a table
+	 * without the same change landing in base.sql, so the file no longer describes the
+	 * schema the code expects. (Found at 512: the floor sat at 507 while revisions
+	 * 508 and 509 created the three AI assistant tables that base.sql never declared.)
+	 *
+	 * A pure file read — no database, so it runs everywhere the suite does.
+	 */
+	function test_base_sql_revision_floor_matches_the_code_revision() {
+		$path = SERVER_ROOT."core/setup/base.sql";
+		$sql = file_get_contents($path);
+
+		T::ok($sql !== false, "core/setup/base.sql is readable");
+
+		if ($sql === false) {
+
+			return;
+		}
+
+		$found = preg_match("/'bigtree-internal-revision'\s*,\s*'(\d+)'/", $sql, $match);
+
+		T::equals($found, 1, "base.sql seeds bigtree-internal-revision");
+
+		if (!$found) {
+
+			return;
+		}
+
+		T::equals(
+			(int)$match[1],
+			BIGTREE_REVISION,
+			"base.sql's revision floor matches BIGTREE_REVISION (add new table DDL to base.sql "
+			."and move the floor in the same commit)"
+		);
+	}

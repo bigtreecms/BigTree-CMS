@@ -6,8 +6,10 @@
 			"service" => [LockService::class, "acquire"],
 			"permission" => ["level" => 0],
 			"body" => [
-				"table" => "required|string|max:255",
-				"item_id" => "required|string|max:255",
+				// 191: `bigtree_locks`.`table` and `item_id` are both indexed, so
+				// revision 512 narrowed them to varchar(191) on the way to utf8mb4.
+				"table" => "required|string|max:191",
+				"item_id" => "required|string|max:191",
 				"title" => "string|max:1024",
 				"force" => "bool",
 			],
