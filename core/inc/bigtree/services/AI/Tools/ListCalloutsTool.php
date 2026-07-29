@@ -3,7 +3,6 @@
 
 	use BigTree\Services\AI\AIToolContext;
 	use BigTree\Services\AI\AIToolResult;
-	use BigTree\Services\AI\CapabilitySummary;
 
 	/**
 	 * List every callout and callout group.
@@ -13,7 +12,8 @@
 	 * id, and create_callout's `group` argument had nothing to enumerate — which made
 	 * its needs_input branch the normal path rather than the exception.
 	 *
-	 * Developer-only, matching the rest of the callout surface.
+	 * Level 0, matching `GET /callouts` — see GetCalloutTool (audit #13 D4). Editing
+	 * a callout is still developer-only.
 	 */
 	class ListCalloutsTool extends AbstractReadTool {
 		/** @var CalloutToolBackend */
@@ -26,11 +26,6 @@
 		public function name(): string {
 
 			return "list_callouts";
-		}
-
-		public function isAvailable($user): bool {
-
-			return CapabilitySummary::level($user) >= 2;
 		}
 
 		public function definition($user): array {

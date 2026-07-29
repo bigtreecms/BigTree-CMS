@@ -42,6 +42,7 @@ import {
 	Coins,
 	CreditCard,
 	Dices,
+	Facebook,
 	FolderTree,
 	HelpCircle,
 	Key,
@@ -63,6 +64,7 @@ import {
 	Ticket,
 	TrafficCone,
 	Trophy,
+	Twitter,
 	Video,
 } from "lucide-react";
 
@@ -72,6 +74,15 @@ import {
  * Both the module `icon` (rendered on the Modules landing) and the module
  * action `class` glyph (rendered in the module sub-nav) draw from this same
  * vocabulary, so the map serves both. Anything unmapped falls back to <Box />.
+ *
+ * This map is presentation only — it turns a slug into a glyph. The *vocabulary*
+ * (which slugs the picker offers) is not hardcoded here anymore: it is served by
+ * `GET /module-icons` from the one PHP source (`BigTree\Api\ModuleIcons`) and
+ * fetched via {@link useModuleIcons}. That is why there is no `MODULE_ICON_SLUGS`
+ * export — the SPA no longer keeps its own copy of the list to drift from core.
+ * Every slug the endpoint can return must have a key here, or it renders as
+ * <Box />; the AIFieldTypeDomain guard asserts this map covers the whole
+ * vocabulary.
  */
 const LEGACY_ICON_MAP: Record<string, LucideIcon> = {
 	// Module / content icons
@@ -153,70 +164,9 @@ const LEGACY_ICON_MAP: Record<string, LucideIcon> = {
 	pallet: Package,
 	camera: Camera,
 	video: Video,
+	twitter: Twitter,
+	facebook: Facebook,
 };
-
-/**
- * The canonical module-icon vocabulary, mirroring `BigTreeAdmin::$IconClasses`
- * (core/inc/bigtree/admin.php). This is the exact set the legacy module
- * designer's icon picker offered, in the same order. The IconPicker renders
- * these as a grid; `iconFor` maps each onto its Lucide approximation.
- */
-export const MODULE_ICON_SLUGS: string[] = [
-	"gear",
-	"truck",
-	"token",
-	"export",
-	"redirect",
-	"help",
-	"error",
-	"ignored",
-	"world",
-	"server",
-	"clock",
-	"network",
-	"car",
-	"key",
-	"folder",
-	"calendar",
-	"search",
-	"setup",
-	"page",
-	"computer",
-	"picture",
-	"news",
-	"events",
-	"blog",
-	"form",
-	"category",
-	"map",
-	"user",
-	"question",
-	"sports",
-	"credit_card",
-	"cart",
-	"cash_register",
-	"lock_key",
-	"bar_graph",
-	"comments",
-	"email",
-	"weather",
-	"pin",
-	"planet",
-	"mug",
-	"atom",
-	"shovel",
-	"cone",
-	"lifesaver",
-	"target",
-	"ribbon",
-	"dice",
-	"ticket",
-	"pallet",
-	"camera",
-	"video",
-	"twitter",
-	"facebook",
-];
 
 export const iconFor = (slug: string | undefined): LucideIcon => {
 	if (!slug) {

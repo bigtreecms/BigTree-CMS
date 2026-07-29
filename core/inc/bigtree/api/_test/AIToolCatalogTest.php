@@ -786,8 +786,11 @@
 		$tool = new GetCalloutTool($backend);
 
 		T::equals($tool->kind(), "read", "get_callout is a read tool");
-		T::ok(!$tool->isAvailable(ai_fake_user(1)), "hidden from admins — callouts are a developer surface");
-		T::ok($tool->isAvailable(ai_fake_user(2)), "offered to developers");
+		// Level 0, at read-parity with `GET /callouts/{id}` (audit #13 D4). The
+		// developer gate it used to carry made it stricter than the route it mirrors,
+		// which was the only such asymmetry in the catalogue.
+		T::ok($tool->isAvailable(ai_fake_user(0)), "offered to editors, like the REST route it mirrors");
+		T::ok($tool->isAvailable(ai_fake_user(2)), "and to developers");
 
 		$result = $tool->execute(["callout_id" => "promo"], new AIToolContext(ai_fake_user(2), 8));
 		T::equals($result->type, AIToolResult::OK, "returns the callout");

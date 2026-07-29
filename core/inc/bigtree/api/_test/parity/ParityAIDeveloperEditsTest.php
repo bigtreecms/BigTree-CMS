@@ -390,8 +390,11 @@
 			$denied = $svc->aiValidateCalloutUpdate(["id" => "anything", "name" => "X"], $admin);
 			T::ok(isset($denied["denied"]), "an admin cannot edit callouts");
 
-			$read_denied = $svc->aiGetCallout("anything", $admin);
-			T::ok(isset($read_denied["denied"]), "an admin cannot read callout definitions either");
+			// Reading is level 0 now, at parity with `GET /callouts/{id}` (audit #13
+			// D4) — so an admin gets a plain "does not exist", not a denial.
+			$read = $svc->aiGetCallout("anything", $admin);
+			T::ok(!isset($read["denied"]), "but reading a callout definition is no longer gated above the REST route");
+			T::ok(isset($read["error"]), "an id that doesn't exist is still a recoverable error");
 		} finally {
 			parity_delete_users($admin_id);
 		}

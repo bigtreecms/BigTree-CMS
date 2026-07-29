@@ -406,6 +406,7 @@
 			// session, and a chat turn has none to tie its lifetime to.
 			"locks" => "content locks — read on the proposal card, but held by the editing UI, not by a chat turn",
 			"locks/refresh" => "content locks — read on the proposal card, but held by the editing UI, not by a chat turn",
+			"module-icons" => "the developer icon picker's fixed vocabulary — an SPA enumeration served from BigTree\\Api\\ModuleIcons, not a capability the assistant drives (it validates an icon through IconDomain instead)",
 			"openapi.json" => "the API's own schema document",
 			"dashboard/summary" => "an SPA render aggregate with no single capability behind it",
 			"pages/access-levels" => "a permission read the tools resolve server-side themselves",

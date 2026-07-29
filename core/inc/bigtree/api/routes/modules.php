@@ -6,6 +6,9 @@
 
 	return [
 		"GET /modules" => ["service" => [ModuleService::class, "list"], "permission" => ["level" => 0]],
+		// The fixed module-icon vocabulary for the SPA icon picker — a distinct
+		// top-level path like /module-groups, not a /modules sub-resource.
+		"GET /module-icons" => ["service" => [ModuleService::class, "listIcons"], "permission" => ["level" => 0]],
 		"GET /modules/{id}" => [
 			"service" => [ModuleService::class, "get"],
 			"permission" => ["level" => 0],

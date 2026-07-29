@@ -3,15 +3,18 @@
 
 	use BigTree\Services\AI\AIToolContext;
 	use BigTree\Services\AI\AIToolResult;
-	use BigTree\Services\AI\CapabilitySummary;
 
 	/**
 	 * Fetch one callout's definition, including its full field list.
 	 *
 	 * Pairs with update_callout, whose `fields` argument replaces the whole list: the
 	 * assistant has to be able to read what a callout already has before proposing a
-	 * change, or "add a field" turns into guessing the rest. Developer-only, matching
-	 * the rest of the callout surface.
+	 * change, or "add a field" turns into guessing the rest.
+	 *
+	 * Level 0, matching `GET /callouts/{id}`. It used to be developer-gated, which
+	 * made it stricter than the REST route it mirrors — the only read tool in the
+	 * catalogue that was, and not a decision anybody made (audit #13 D4). Editing a
+	 * callout is still developer-only.
 	 */
 	class GetCalloutTool extends AbstractReadTool {
 		/** @var CalloutToolBackend */
@@ -24,11 +27,6 @@
 		public function name(): string {
 
 			return "get_callout";
-		}
-
-		public function isAvailable($user): bool {
-
-			return CapabilitySummary::level($user) >= 2;
 		}
 
 		public function definition($user): array {

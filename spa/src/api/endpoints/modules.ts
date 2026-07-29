@@ -418,6 +418,13 @@ export const modulesApi = {
 
 	reorder: (ids: string[]) => api.post<void>("/modules/reorder", { ids }),
 
+	/**
+	 * The fixed module-icon vocabulary for the icon picker. Served from the one
+	 * PHP source (BigTree\Api\ModuleIcons) so the SPA never keeps its own copy of
+	 * the slug list — see useModuleIcons / legacyIcons.
+	 */
+	icons: () => api.get<{ icons: string[] }>("/module-icons"),
+
 	listGroups: () => api.get<ModuleGroup[]>("/module-groups"),
 
 	actions: (id: string) => api.get<ModuleAction[]>(`/modules/${enc(id)}/actions`),

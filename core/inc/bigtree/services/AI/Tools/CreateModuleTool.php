@@ -29,7 +29,9 @@
 			return $this->functionDefinition(
 				$this->name(),
 				"Propose creating a new module (developer only). Requires approval. This creates the module "
-					. "record only — it does not create a database table; use the Module Designer for that.",
+					. "record only — no database table, form, view or actions — so the result is not usable "
+					. "until those are added. Prefer scaffold_module, which proposes the table, form and landing "
+					. "view along with the record; use this one only when the module genuinely is a bare record.",
 				[
 					"type" => "object",
 					"properties" => [
@@ -51,7 +53,7 @@
 						],
 						"icon" => [
 							"type" => "string",
-							"description" => "Optional icon identifier.",
+							"description" => "Optional icon slug for the admin navigation. Must be one of the fixed vocabulary get_module returns as `icon_options` — anything else is refused. Omit for no icon.",
 						],
 					],
 					"required" => ["name"],

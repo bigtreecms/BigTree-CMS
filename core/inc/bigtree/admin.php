@@ -112,7 +112,12 @@
 		];
 
 		// !Icon Classes
-		public static $IconClasses = ["gear", "truck", "token", "export", "redirect", "help", "error", "ignored", "world", "server", "clock", "network", "car", "key", "folder", "calendar", "search", "setup", "page", "computer", "picture", "news", "events", "blog", "form", "category", "map", "user", "question", "sports", "credit_card", "cart", "cash_register", "lock_key", "bar_graph", "comments", "email", "weather", "pin", "planet", "mug", "atom", "shovel", "cone", "lifesaver", "target", "ribbon", "dice", "ticket", "pallet", "camera", "video", "twitter", "facebook"];
+		// The canonical vocabulary lives in \BigTree\Api\ModuleIcons now (data, not
+		// admin behaviour), so reading it no longer drags admin.php into the request.
+		// Kept as a property for any extension or custom admin subclass that still
+		// references BigTreeAdmin::$IconClasses; the class-constant reference is a
+		// valid property default and autoloads ModuleIcons on first parse of admin.php.
+		public static $IconClasses = \BigTree\Api\ModuleIcons::SLUGS;
 		public static $ActionClasses = ["add", "delete", "list", "edit", "refresh", "gear", "truck", "token", "export", "redirect", "help", "error", "ignored", "world", "server", "clock", "network", "car", "key", "folder", "calendar", "search", "setup", "page", "computer", "picture", "news", "events", "blog", "form", "category", "map", "user", "question", "sports", "credit_card", "cart", "cash_register", "lock_key", "bar_graph", "comments", "email", "weather", "pin", "planet", "mug", "atom", "shovel", "cone", "lifesaver", "target", "ribbon", "dice", "ticket", "pallet", "lightning", "camera", "video", "twitter", "facebook"];
 
 		/*

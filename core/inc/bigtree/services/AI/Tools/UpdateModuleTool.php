@@ -54,7 +54,7 @@
 						],
 						"icon" => [
 							"type" => "string",
-							"description" => "New icon identifier for the admin navigation.",
+							"description" => "Optional icon slug for the admin navigation. Must be one of the fixed vocabulary get_module returns as `icon_options` — anything else is refused. Omit for no icon.",
 						],
 						"class" => [
 							"type" => "string",

@@ -42,11 +42,12 @@
 		 * namespace: `routed/{id}/` is exactly where those siblings go.
 		 */
 		public static function templatePath(string $id, bool $routed): string {
-			$safe = self::safeId($id);
+			[$extension, $safe] = self::split($id);
+			$prefix = $extension !== "" ? "extensions/{$extension}/" : "";
 
 			return $routed
-				? "templates/routed/{$safe}/default.php"
-				: "templates/basic/{$safe}.php";
+				? "{$prefix}templates/routed/{$safe}/default.php"
+				: "{$prefix}templates/basic/{$safe}.php";
 		}
 
 		/**
@@ -55,8 +56,10 @@
 		 * be able to say which file a developer needs to open.
 		 */
 		public static function calloutPath(string $id): string {
+			[$extension, $safe] = self::split($id);
+			$prefix = $extension !== "" ? "extensions/{$extension}/" : "";
 
-			return "templates/callouts/" . self::safeId($id) . ".php";
+			return "{$prefix}templates/callouts/{$safe}.php";
 		}
 
 		/**
@@ -83,7 +86,64 @@
 		/** Whether a stub can be written for a callout. */
 		public static function calloutIsWritable(string $id): bool {
 
-			return self::isWritable("templates/callouts/" . self::safeId($id) . ".php");
+			return self::isWritable(self::calloutPath($id));
+		}
+
+		/**
+		 * Split an `{extension}*{local}` id into its two halves, each sanitized for a
+		 * filename, or ["", $id] for a record the site owns.
+		 *
+		 * ExtensionService files an installed extension's templates and callouts into
+		 * the same JSON-DB stores as the site's own, keyed this way, and the packager
+		 * relocates their render files to `extensions/{ext}/templates/…` — which is
+		 * where router.php loads them from. `safeId()` strips the `*` along with every
+		 * other unsafe character, so before audit #13 A3 an extension template resolved
+		 * to `templates/basic/comexampleblogsidebar.php`: a path that has never existed
+		 * and never renders anything. Since audit #10 C1 that path is printed on the
+		 * update proposal as the file a developer has to edit, so following the card
+		 * created a dead file.
+		 *
+		 * The extension half keeps dots (extension ids are reverse-domain) and the
+		 * local half goes through safeId as before; `..` is removed from the extension
+		 * outright rather than merely rejected, so neither half can climb out of the
+		 * directory it names.
+		 *
+		 * @return array{0:string,1:string}
+		 */
+		private static function split(string $id): array {
+			if (strpos($id, "*") === false) {
+
+				return ["", self::safeId($id)];
+			}
+
+			[$extension, $local] = explode("*", $id, 2);
+			$extension = self::safeExtension($extension);
+			$local = self::safeId($local);
+
+			// A namespaced id whose halves don't survive sanitizing isn't an extension
+			// record we can place — fall back to the site layout rather than inventing
+			// an `extensions//` path.
+			if ($extension === "" || $local === "") {
+
+				return ["", self::safeId(str_replace("*", "", $id))];
+			}
+
+			return [$extension, $local];
+		}
+
+		/**
+		 * An extension id reduced to characters that are safe in a directory name.
+		 * Dots are kept — `com.example.blog` is the normal shape — so `..` has to be
+		 * removed explicitly rather than left to the character class.
+		 */
+		private static function safeExtension(string $extension): string {
+			$safe = (string)preg_replace("/[^a-zA-Z0-9._-]/", "", $extension);
+
+			while (strpos($safe, "..") !== false) {
+				$safe = str_replace("..", "", $safe);
+			}
+
+			return trim($safe, ".");
 		}
 
 		/**

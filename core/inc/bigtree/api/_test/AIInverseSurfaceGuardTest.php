@@ -507,3 +507,194 @@
 
 		return [];
 	}
+
+	/**
+	 * Audit #13 guard E3: the extension-ownership contract.
+	 *
+	 * `ExtensionService` files an installed extension's records into the very same
+	 * JSON-DB stores the site's own live in, keyed `{ext}*{local}` with an
+	 * `extension` key — and nothing on the AI surface knew that key existed. Two
+	 * consequences, both invisible from any existing guard because both are about
+	 * what the record *is* rather than what was written into it:
+	 *
+	 *  (a) an upgrade re-imports the extension's manifest over these records
+	 *      (`BigTreeAdmin::installExtension` deletes and re-inserts every one of
+	 *      them), so an approved field addition is reverted at the next upgrade with
+	 *      no warning anywhere;
+	 *  (b) since audit #10 C1 the field diff names the render file to edit, and
+	 *      `TemplateScaffold::safeId()` strips the `*` — so
+	 *      `com.example.blog*sidebar` was reported as
+	 *      `templates/basic/comexampleblogsidebar.php` while the router loads
+	 *      `extensions/com.example.blog/templates/basic/sidebar.php`. The path on the
+	 *      card could never be the file that renders.
+	 *
+	 * The enumeration runs from the namespacing code itself, so a store that starts
+	 * carrying an `extension` key fails here rather than shipping unclassified.
+	 *
+	 * @return array<string,array<string,mixed>>
+	 */
+	function ai_extension_namespaced_stores(): array {
+
+		return [
+			"templates" => [
+				"reads" => [
+					[\BigTree\Services\TemplateService::class, "present"],
+					[\BigTree\Services\TemplateService::class, "aiListTemplates"],
+				],
+				"update_seam" => [\BigTree\Services\TemplateService::class, "aiValidateTemplateUpdate"],
+			],
+			"callouts" => [
+				"reads" => [
+					[\BigTree\Services\CalloutService::class, "present"],
+					[\BigTree\Services\CalloutService::class, "aiGetCallout"],
+				],
+				"update_seam" => [\BigTree\Services\CalloutService::class, "aiValidateCalloutUpdate"],
+			],
+			"modules" => [
+				"reads" => [
+					[\BigTree\Services\ModuleService::class, "present"],
+					[\BigTree\Services\ModuleService::class, "aiGetModule"],
+				],
+				"update_seam" => [\BigTree\Services\ModuleService::class, "aiValidateModuleUpdate"],
+			],
+			// The one store installExtension deliberately does *not* drop on upgrade:
+			// "we don't drop settings because they have user data" (admin.php). A
+			// setting's value is the user's, survives the re-import, and is the only
+			// thing update_setting writes — the definition is declined outright.
+			"settings" => [
+				"exempt" => "an upgrade re-imports every other component but leaves settings alone precisely "
+					. "because they hold user data, and update_setting writes only the value",
+			],
+			"field-types" => [
+				"exempt" => "no tool reads or writes a field-type record; the catalogue lists ids, and an "
+					. "extension-owned id carries its `{ext}*` prefix in plain sight",
+			],
+			"feeds" => [
+				"exempt" => "feeds have no AI surface at all — no read tool, no write tool, no decline line "
+					. "needed because nothing reaches them",
+			],
+			"module-groups" => [
+				"exempt" => "create_module_group coins a new group and there is no update tool, so no edit "
+					. "can be reverted by an upgrade",
+			],
+		];
+	}
+
+	/**
+	 * The JSON-DB stores the extension machinery stamps an `extension` key onto,
+	 * read from the code that does the stamping.
+	 *
+	 * @return list<string>
+	 */
+	function ai_extension_namespaced_store_names(): array {
+		$found = [];
+
+		foreach (["core/inc/bigtree/services/ExtensionService.php", "core/inc/bigtree/admin.php"] as $relative) {
+			$source = (string)file_get_contents(SERVER_ROOT . $relative);
+			preg_match_all('/BigTreeJSONDB::(?:insert|update)\("([a-z-]+)"/', $source, $matches, PREG_OFFSET_CAPTURE);
+
+			foreach ($matches[1] as $hit) {
+				// The `extension` key is set in the same call's argument list; a window
+				// rather than a balanced parse, because the calls are one to five lines.
+				if (strpos(substr($source, (int)$hit[1], 600), '"extension" =>') !== false) {
+					$found[] = (string)$hit[0];
+				}
+			}
+		}
+
+		return array_values(array_unique($found));
+	}
+
+	/**
+	 * E3a: every namespaced store is classified, and the classification doesn't
+	 * outlive the store.
+	 */
+	function test_every_extension_namespaced_store_is_classified() {
+		$stores = ai_extension_namespaced_store_names();
+		$contract = ai_extension_namespaced_stores();
+
+		T::ok(count($stores) >= 6, "the namespaced stores were found (" . implode(", ", $stores) . ")");
+
+		$unclassified = array_values(array_diff($stores, array_keys($contract)));
+		T::equals(
+			implode(", ", $unclassified),
+			"",
+			"every store the extension machinery namespaces is classified as surfaced or exempt"
+		);
+
+		$stale = array_values(array_diff(array_keys($contract), $stores));
+		T::equals(implode(", ", $stale), "", "no classification names a store nothing namespaces");
+	}
+
+	/**
+	 * E3b: a store whose records the assistant can read and edit says who owns them
+	 * — on every read payload, and at the seam that stages the edit.
+	 */
+	function test_extension_owned_records_are_surfaced_and_warned_about() {
+		$missing = [];
+
+		foreach (ai_extension_namespaced_stores() as $store => $entry) {
+			if (isset($entry["exempt"])) {
+				T::ok(trim((string)$entry["exempt"]) !== "", "{$store} states why it needs no surface");
+
+				continue;
+			}
+
+			foreach ((array)($entry["reads"] ?? []) as [$class, $method]) {
+				$body = ai_surface_method_body($class, $method);
+
+				if (strpos($body, '"extension"') === false) {
+					$missing[] = "{$store}: {$class}::{$method} omits the extension key";
+				}
+			}
+
+			[$class, $method] = $entry["update_seam"];
+			$body = ai_surface_method_body($class, $method);
+
+			if (strpos($body, "ExtensionDomain::warning") === false) {
+				$missing[] = "{$store}: {$method} stages an edit without warning that an upgrade reverts it";
+			}
+		}
+
+		T::equals(
+			implode("; ", $missing),
+			"",
+			"every extension-owned record is surfaced on the read side and warned about on the write side"
+		);
+	}
+
+	/**
+	 * E3c: the render-file path an update proposal names is the file the router
+	 * actually loads. `safeId()` stripped the `*` out of `{ext}*{local}`, so the card
+	 * named a file that has never existed and could not be created usefully — a
+	 * developer following it writes a dead file.
+	 */
+	function test_an_extension_namespaced_id_resolves_under_the_extensions_directory() {
+		$scaffold = \BigTree\Api\TemplateScaffold::class;
+
+		T::equals(
+			$scaffold::templatePath("com.example.blog*sidebar", false),
+			"extensions/com.example.blog/templates/basic/sidebar.php",
+			"a basic extension template points at the file router.php includes"
+		);
+		T::equals(
+			$scaffold::templatePath("com.example.blog*listing", true),
+			"extensions/com.example.blog/templates/routed/listing/default.php",
+			"and a routed one at the directory BigTree::route() walks"
+		);
+		T::equals(
+			$scaffold::calloutPath("com.example.blog*promo"),
+			"extensions/com.example.blog/templates/callouts/promo.php",
+			"a callout follows the same layout the packager built"
+		);
+
+		// The site's own records are untouched, and neither half of a namespaced id
+		// can climb out of the directory it names.
+		T::equals($scaffold::templatePath("article", false), "templates/basic/article.php", "a site template is unchanged");
+		T::equals($scaffold::calloutPath("promo"), "templates/callouts/promo.php", "and so is a site callout");
+		T::equals(
+			$scaffold::templatePath("../../etc*../../passwd", false),
+			"extensions/etc/templates/basic/passwd.php",
+			"both halves of a namespaced id are sanitized, not just the local one"
+		);
+	}

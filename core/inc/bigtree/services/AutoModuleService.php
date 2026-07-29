@@ -1227,12 +1227,25 @@
 					. "as any entry added through the admin.";
 			}
 
+			// Audit #13 A1. Said on the card as well as in the result, because the model
+			// is not required to call get_module_schema before a create, and the person
+			// clicking Approve is the one who needs to know the entry won't be live.
+			$approval_note = $this->aiApprovalNote(
+				(string)$table,
+				PermissionService::isPublisher($user, $rank),
+				true
+			);
+
 			$preview = [
 				"action" => "create_module_entry",
 				"module" => $name,
 				"fields" => $this->aiPreviewEntryData($schema, $data),
 				"mode" => $can_publish ? "published" : "pending",
 			];
+
+			if ($approval_note !== "") {
+				$preview["warning"] = $approval_note;
+			}
 
 			if ($blocked) {
 				$preview["incomplete_required"] = $blocked;
@@ -2204,6 +2217,14 @@
 			// proposal approved by an editor queued, got sanitized at publish, and
 			// worked — the outcome depended on who clicked Approve.
 			$data = BigTreeAutoModule::sanitizeData($table, $data);
+			// Re-asked at approval like every other staged fact: the column can be added
+			// to (or dropped from) the table inside the proposal's 24h life, and this is
+			// the sentence that stops "published" being read as "on the site".
+			$approval_note = $this->aiApprovalNote(
+				$table,
+				PermissionService::isPublisher($user, $rank),
+				true
+			);
 
 			if ($can_publish) {
 				$id = BigTreeAutoModule::createItem($table, $data, $mtm, $tag_ids, null, $open_graph);
@@ -2222,7 +2243,10 @@
 					"module" => $module_id, "table" => $table, "id" => (int)$id, "via" => "ai_assistant",
 				]);
 
-				return ["mode" => "published", "module" => $module_id, "entry_id" => (int)$id];
+				return $this->aiWithApprovalNote(
+					["mode" => "published", "module" => $module_id, "entry_id" => (int)$id],
+					$approval_note
+				);
 			}
 
 			$pending_id = BigTreeAutoModule::createPendingItem(
@@ -2233,7 +2257,10 @@
 				"module" => $module_id, "table" => $table, "pending_id" => (int)$pending_id, "via" => "ai_assistant",
 			]);
 
-			return ["mode" => "pending", "module" => $module_id, "pending_id" => (int)$pending_id];
+			return $this->aiWithApprovalNote(
+				["mode" => "pending", "module" => $module_id, "pending_id" => (int)$pending_id],
+				$approval_note
+			);
 		}
 
 		/**
@@ -2404,6 +2431,20 @@
 
 			if ($draft) {
 				$preview["publishes_draft"] = $draft;
+			}
+
+			// Audit #13 A1, on the edit side: an edit to an entry that is still
+			// unapproved changes a record nothing on the site can read, and the card
+			// said so nowhere. Judged against the stored row rather than the draft
+			// overlay — the flag lives on the published row.
+			$approval_note = $this->aiApprovalNote(
+				(string)$table,
+				PermissionService::isPublisher($user, $rank),
+				false
+			);
+
+			if ($approval_note !== "" && (string)($resolved_entry["row"]["approved"] ?? "") !== "on") {
+				$preview["warning"] = $approval_note;
 			}
 
 			if ($save_as_draft && !$is_pending) {
@@ -2614,6 +2655,13 @@
 			$data = BigTreeAutoModule::sanitizeData($table, $data);
 			$write_data = BigTreeAutoModule::sanitizeData($table, $write_data);
 
+			// Re-asked at approval, and only when the row is still unapproved: a
+			// published edit to a record the site can't read is not the "it's live now"
+			// the result otherwise implies (audit #13 A1).
+			$approval_note = (string)($row["approved"] ?? "") !== "on"
+				? $this->aiApprovalNote($table, PermissionService::isPublisher($user, $rank), false)
+				: "";
+
 			// A draft only exists in the pending queue — there is nothing to publish
 			// over, so even a publisher's edit amends the queued change. submitChange
 			// understands the "p" prefix and updates that row in place.
@@ -2626,7 +2674,10 @@
 					"module" => $module_id, "table" => $table, "id" => $entry_id, "via" => "ai_assistant",
 				]);
 
-				return ["mode" => "pending", "module" => $module_id, "entry_id" => $entry_id];
+				return $this->aiWithApprovalNote(
+					["mode" => "pending", "module" => $module_id, "entry_id" => $entry_id],
+					$approval_note
+				);
 			}
 
 			if ($can_publish) {
@@ -2651,7 +2702,10 @@
 					"module" => $module_id, "table" => $table, "id" => $entry_id, "via" => "ai_assistant",
 				]);
 
-				return ["mode" => "published", "module" => $module_id, "entry_id" => $entry_id];
+				return $this->aiWithApprovalNote(
+					["mode" => "published", "module" => $module_id, "entry_id" => $entry_id],
+					$approval_note
+				);
 			}
 
 			$change_allocation_id = BigTreeAutoModule::submitChange(
@@ -2662,7 +2716,28 @@
 				"module" => $module_id, "table" => $table, "id" => $entry_id, "via" => "ai_assistant",
 			]);
 
-			return ["mode" => "pending", "module" => $module_id, "entry_id" => $entry_id];
+			return $this->aiWithApprovalNote(
+				["mode" => "pending", "module" => $module_id, "entry_id" => $entry_id],
+				$approval_note
+			);
+		}
+
+		/**
+		 * Attach an approval note to a write result, when there is one to attach.
+		 *
+		 * Every branch of aiUpdateEntry returns a differently-shaped result and all of
+		 * them owe the same sentence; folding it in here keeps "which branch forgot"
+		 * from being a thing that can happen.
+		 *
+		 * @param array<string,mixed> $result
+		 * @return array<string,mixed>
+		 */
+		private function aiWithApprovalNote(array $result, string $note): array {
+			if ($note !== "") {
+				$result["note"] = $note;
+			}
+
+			return $result;
 		}
 
 		// The boolean columns set_module_entry_flag can flip, mapped to how they read
@@ -3339,6 +3414,15 @@
 				// audited — and is invisible to the person who asked for it, who will
 				// reasonably report that the assistant did nothing (audit #10 C3).
 				"view_filter_note" => $this->aiViewFilterNote($module),
+				// The same shape of fact, one column over (audit #13 A1). The status
+				// columns this module's actions gate, and — when the table really has an
+				// `approved` column — what that means for anything written into it.
+				"status_actions" => ModuleService::aiModuleStatusActions($module),
+				"approval_note" => $this->aiApprovalNote(
+					(string)$resolved["table"],
+					PermissionService::isPublisher($user, PermissionService::userModuleLevel($user, (string)$module["id"])),
+					true
+				),
 				// What a `sub_type` on a text field means. This CMS has no `email` or
 				// `url` field type — the developer's statement that a field holds an
 				// address is a setting on `text`, and until audit #11 A3 nothing on this
@@ -3560,6 +3644,49 @@
 			}
 
 			return "";
+		}
+
+		/**
+		 * The disclosure an `approved` column owes whoever is about to write into it.
+		 *
+		 * Audit #13 A1. A module whose scaffold requested the `approve` action gets
+		 * `approved CHAR(2) NOT NULL` with no default, so a new row is born `""` —
+		 * unapproved — and that is the whole point of the feature: the front end reads
+		 * through `BigTreeModel::getApproved()` / `BigTreeModule::getApproved()`, which
+		 * select `approved = 'on'`, and the admin's own view cache files the row as
+		 * status `i`. The write succeeds, the card goes green, the audit row is
+		 * written, and the press release is not on the site. The user's reasonable
+		 * report is "the assistant did nothing" — exactly what view_filter_note was
+		 * written to prevent, one column over.
+		 *
+		 * Keyed on the *table* rather than on the module's declared actions, because a
+		 * hand-built module with the column and no approve action is gated just the
+		 * same and reads identically to the site.
+		 *
+		 * `set_module_entry_flag` is publisher-only per row, so an editor has no path
+		 * to approval through the assistant at all — say who does rather than offering
+		 * something that will be refused.
+		 *
+		 * @param bool $can_approve Whether this actor is a publisher on the row.
+		 * @param bool $is_new Whether the row is being created (born unapproved) or edited.
+		 */
+		private function aiApprovalNote(string $table, bool $can_approve, bool $is_new): string {
+			$columns = ColumnDomain::columns($table);
+
+			if (!isset($columns["approved"])) {
+
+				return "";
+			}
+
+			return "Entries in this module are approval-gated: the table has an \"approved\" column, and "
+				. ($is_new
+					? "a new entry is created unapproved"
+					: "this entry is not approved yet")
+				. ", so the front end's getApproved() reads leave it off the live site until somebody approves it. "
+				. ($can_approve
+					? "You can approve it with set_module_entry_flag."
+					: "Approving is publisher-only per entry, so a publisher has to do it — the assistant can't "
+						. "on your behalf.");
 		}
 
 		/**

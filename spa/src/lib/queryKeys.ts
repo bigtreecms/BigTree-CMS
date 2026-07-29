@@ -99,6 +99,8 @@ export const queryKeys = {
 		root: () => ["modules"] as const,
 		list: () => ["modules", "list"] as const,
 		detail: (id: string) => ["modules", "detail", id] as const,
+		/** The install-static icon vocabulary served by GET /module-icons. */
+		icons: () => ["modules", "icons"] as const,
 		// Flat keys used by ModuleLayout, ModuleView, ModuleReport, ModuleEntryAdd/Edit
 		actions: (moduleId: string) => ["modules", "actions", moduleId] as const,
 		views: (moduleId: string) => ["modules", "views", moduleId] as const,

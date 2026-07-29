@@ -1992,7 +1992,8 @@
 			// slice one past the window so has_more is a fact, mirroring
 			// list_module_entries (audit #5 C3 / audit #7 D1).
 			$rows = SQL::fetchAll(
-				"SELECT id, nav_title, title, path, in_nav, archived, `template`, `external`, trunk FROM bigtree_pages
+				"SELECT id, nav_title, title, path, in_nav, archived, `template`, `external`, trunk, publish_at
+					FROM bigtree_pages
 					WHERE parent = ? ORDER BY position DESC, id ASC LIMIT " . (int)(($offset + $limit + 1) * 4),
 				$parent
 			);
@@ -2015,6 +2016,13 @@
 					"path" => "/" . (string)$row["path"],
 					"in_nav" => Flag::isOn($row["in_nav"]),
 					"archived" => Flag::isOn($row["archived"]),
+					// The other way a page is off the site. The tree reported `archived`
+					// and said nothing about a publish date still in the future, so a page
+					// cms.php will 404 read here exactly like a live one — the same
+					// omission audit #13 A1 found on module entries, on the surface the
+					// model browses before deciding anything is fine. REST's own page list
+					// has carried this flag all along.
+					"scheduled" => !empty($row["publish_at"]) && $row["publish_at"] > date("Y-m-d H:i:s"),
 					"template" => (string)$row["template"],
 					// An external link has no template of its own; without this flag it
 					// is indistinguishable from a page whose template was deleted, and

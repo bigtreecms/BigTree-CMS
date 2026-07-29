@@ -10,6 +10,7 @@
 	use BigTree\Api\TemplateScaffold;
 	use BigTree\Api\Exceptions\AuthorizationException;
 	use BigTree\Api\Exceptions\BadRequestException;
+	use BigTree\Services\AI\ExtensionDomain;
 	use BigTree\Services\AI\Tools\CalloutToolBackend;
 	use BigTree;
 	use BigTreeCMS;
@@ -188,6 +189,9 @@
 				"display_field" => $c["display_field"] ?? "",
 				"display_default" => $c["display_default"] ?? "",
 				"resources" => $c["resources"] ?? [],
+				// Audit #13 A3, as on templates: an extension-owned callout is stored in
+				// the same place as the site's own and read back indistinguishable from it.
+				"extension" => (string)($c["extension"] ?? ""),
 			];
 		}
 	
@@ -480,15 +484,17 @@
 		 * so the assistant has to be able to see what's already on the callout before
 		 * proposing a change to it — otherwise "add a field" means guessing the rest.
 		 *
-		 * @param object|array $user
+		 * Level 0, matching `GET /callouts/{id}` (audit #13 D4). The developer gate this
+		 * used to carry made the AI read *stricter* than the REST route it mirrors — the
+		 * only place in the catalogue where that was true, and nobody decided it. It
+		 * also put the callout catalogue out of an editor's reach entirely, which is the
+		 * prerequisite for ever making composite content authorable (B1). Writing a
+		 * callout is still developer-only.
+		 *
+		 * @param object|array $user Unused: reading a callout definition is level 0.
 		 * @return array<string,mixed>
 		 */
 		public function aiGetCallout(string $callout_id, $user): array {
-			if (PermissionService::level($user) < 2) {
-
-				return ["denied" => "Only developers can inspect callout definitions."];
-			}
-
 			$callout_id = trim($callout_id);
 			$callout = $callout_id !== "" ? BigTreeJSONDB::get("callouts", $callout_id) : null;
 
@@ -527,6 +533,7 @@
 					// create_callout can file a callout in a group but nothing could read
 					// which groups a callout is in, so membership was write-only.
 					"groups" => $this->aiCalloutGroupsFor((string)$callout["id"]),
+					"extension" => (string)($callout["extension"] ?? ""),
 				],
 				// The valid `fields[].type` ids for update_callout/create_callout, so the
 				// model authors against a real catalog rather than guessing (B1).
@@ -564,15 +571,12 @@
 		 * create_callout's `group` argument had nothing to enumerate — which made its
 		 * needs_input branch the normal path rather than the exception.
 		 *
-		 * @param object|array $user
+		 * Level 0, matching `GET /callouts` — see aiGetCallout (audit #13 D4).
+		 *
+		 * @param object|array $user Unused: listing callout definitions is level 0.
 		 * @return array<string,mixed>
 		 */
 		public function aiListCallouts($user): array {
-			if (PermissionService::level($user) < 2) {
-
-				return ["denied" => "Only developers can list callouts."];
-			}
-
 			$membership = [];
 
 			$groups = array_map(function (array $group) use (&$membership): array {
@@ -773,16 +777,23 @@
 			}
 
 			$name = (string)($existing["name"] ?? $id);
+			$preview = [
+				"action" => "update_callout",
+				"id" => $id,
+				"name" => $name,
+				"changes" => $diff,
+			];
+			$extension_warning = ExtensionDomain::warning($existing, "callout");
+
+			if ($extension_warning !== "") {
+				$preview["warning"] = $extension_warning;
+			}
 
 			return [
 				"ok" => true,
-				"summary" => "Update callout “{$name}” (id {$id}). Its render file is not changed.",
-				"preview" => [
-					"action" => "update_callout",
-					"id" => $id,
-					"name" => $name,
-					"changes" => $diff,
-				],
+				"summary" => "Update callout “{$name}” (id {$id}). Its render file is not changed."
+					. ($extension_warning !== "" ? " " . $extension_warning : ""),
+				"preview" => $preview,
 				"payload" => [
 					"id" => $id,
 					"changes" => $changes,
@@ -1092,11 +1103,16 @@
 				}
 			}
 
+			// Re-asked at approval, and folded in beside the group note rather than
+			// replacing it — both are facts about the record the approver has just
+			// changed (audit #13 A3).
+			$note = trim($group_note . " " . ExtensionDomain::warning($existing, "callout"));
+
 			return [
 				"mode" => "updated",
 				"id" => $id,
 				"name" => (string)($update["name"] ?? $id),
-				"note" => $group_note !== "" ? trim($group_note) : null,
+				"note" => $note !== "" ? $note : null,
 			];
 		}
 

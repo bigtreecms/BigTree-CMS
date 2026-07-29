@@ -1,5 +1,6 @@
 import { FieldLabel } from "@/components/ui/Field";
-import { iconFor, MODULE_ICON_SLUGS } from "@/lib/legacyIcons";
+import { useModuleIcons } from "@/hooks/useModuleIcons";
+import { iconFor } from "@/lib/legacyIcons";
 
 import { IconGridButton } from "./IconGridButton";
 
@@ -14,28 +15,33 @@ interface IconPickerProps {
 /**
  * Visual module-icon picker — the SPA equivalent of the legacy module
  * designer's `developer_icon_list` glyph grid (modules/edit.php). Offers the
- * full `BigTreeAdmin::$IconClasses` vocabulary as a grid of buttons and stores
- * the chosen slug. Glyphs are rendered through `iconFor`'s Lucide map; the
- * stored value is the legacy slug so the public admin renders its own sprite.
+ * module-icon vocabulary (fetched from GET /module-icons, the one core source)
+ * as a grid of buttons and stores the chosen slug. Glyphs are rendered through
+ * `iconFor`'s Lucide map; the stored value is the legacy slug so the public
+ * admin renders its own sprite.
  */
-export const IconPicker = ({ value, onChange, label = "Icon", hint }: IconPickerProps) => (
-	<div>
-		<FieldLabel>{label}</FieldLabel>
-		<div className="flex flex-wrap gap-1.5 rounded-md border border-border bg-surface-2 p-2">
-			{MODULE_ICON_SLUGS.map((slug) => {
-				const isActive = slug === value;
+export const IconPicker = ({ value, onChange, label = "Icon", hint }: IconPickerProps) => {
+	const slugs = useModuleIcons();
 
-				return (
-					<IconGridButton
-						icon={iconFor(slug)}
-						key={slug}
-						label={slug}
-						selected={isActive}
-						onSelect={() => onChange(isActive ? "" : slug)}
-					/>
-				);
-			})}
+	return (
+		<div>
+			<FieldLabel>{label}</FieldLabel>
+			<div className="flex flex-wrap gap-1.5 rounded-md border border-border bg-surface-2 p-2">
+				{slugs.map((slug) => {
+					const isActive = slug === value;
+
+					return (
+						<IconGridButton
+							icon={iconFor(slug)}
+							key={slug}
+							label={slug}
+							selected={isActive}
+							onSelect={() => onChange(isActive ? "" : slug)}
+						/>
+					);
+				})}
+			</div>
+			{hint && <span className="mt-1 block text-[11px] text-text-3">{hint}</span>}
 		</div>
-		{hint && <span className="mt-1 block text-[11px] text-text-3">{hint}</span>}
-	</div>
-);
+	);
+};

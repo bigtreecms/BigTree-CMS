@@ -14,7 +14,10 @@
 	use BigTree\Api\Exceptions\BadRequestException;
 	use BigTree\Api\Exceptions\ConflictException;
 	use BigTree\Api\Exceptions\NotFoundException;
+	use BigTree\Api\ModuleIcons;
+	use BigTree\Services\AI\ExtensionDomain;
 	use BigTree\Services\AI\FieldTypeDomain;
+	use BigTree\Services\AI\IconDomain;
 	use BigTree\Services\AI\Tools\ModuleToolBackend;
 	use BigTreeCMS;
 	use BigTreeJSONDB;
@@ -64,6 +67,19 @@
 			}, array_values($visible));
 
 			return Response::ok($enriched);
+		}
+
+		/**
+		 * GET /module-icons — the fixed module-icon vocabulary, for the SPA's icon
+		 * picker (IconPicker / IconSelect) to render as a grid. A static install-wide
+		 * list served from the one source \BigTree\Api\ModuleIcons, so the picker, the
+		 * AI IconDomain validator and any legacy reader all agree without the SPA
+		 * hand-copying the slugs. Level 0: the vocabulary is not sensitive and is
+		 * needed wherever a module is edited.
+		 */
+		public function listIcons(Request $request): Response {
+
+			return Response::ok(["icons" => ModuleIcons::slugs()]);
 		}
 
 		public function get(Request $request) {
@@ -1580,9 +1596,30 @@
 						"id" => (string)($v["id"] ?? ""),
 						"title" => (string)($v["title"] ?? ""),
 						"table" => (string)($v["table"] ?? ""),
+						// A `draggable` view is hand-ordered — position matters and the
+						// form's default_position applies — and a `searchable` one isn't.
+						// Without the type the two read identically (audit #13 C2).
+						"type" => (string)($v["type"] ?? ""),
 					];
 				}, array_values($views)),
-				"action_count" => count($actions),
+				// The routes, not a count. A number told the model nothing it could act
+				// on, and the actions are where a module says whether its entries are
+				// approval-gated (audit #13 C3).
+				"actions" => array_map(function (array $a): array {
+
+					return [
+						"id" => (string)($a["id"] ?? ""),
+						"name" => (string)($a["name"] ?? ""),
+						"route" => (string)($a["route"] ?? ""),
+						"in_nav" => !empty($a["in_nav"]),
+						"level" => (int)($a["level"] ?? 0),
+					];
+				}, array_values($actions)),
+				// The read side of audit #13 A1: which of this module's entry columns
+				// are status flags, and what each one is called in the admin. An entry
+				// in an `approved`-gated module is invisible on the live site until
+				// somebody approves it, and nothing here used to say so.
+				"status_actions" => self::aiModuleStatusActions($module),
 				"gbp" => [
 					"enabled" => !empty($gbp["enabled"]),
 					"group_column" => !empty($gbp["enabled"]) ? (string)($gbp["group_field"] ?? "") : "",
@@ -1590,6 +1627,13 @@
 				"your_access_level" => PermissionService::userModuleLevel($user, (string)$module["id"]),
 				"is_complete" => !$missing,
 				"missing_setup" => $missing,
+				// The whole vocabulary `icon` is drawn from, so the model picks from a
+				// list the way the developer picks from a grid. Discovery by accident —
+				// copying a slug off whichever module happened to be read — is what this
+				// replaces, and it failed for any subject no existing module shared
+				// (audit #13 A2).
+				"icon_options" => IconDomain::slugs(),
+				"extension" => (string)($module["extension"] ?? ""),
 			]];
 		}
 
@@ -1660,7 +1704,13 @@
 			}
 
 			if (array_key_exists("icon", $args)) {
-				$icon = trim((string)$args["icon"]);
+				$icon = IconDomain::normalize((string)$args["icon"]);
+				$icon_violation = IconDomain::violation($icon);
+
+				if ($icon_violation !== null) {
+
+					return ["error" => $icon_violation];
+				}
 
 				if ($icon !== (string)($module["icon"] ?? "")) {
 					$changes["icon"] = $icon;
@@ -1702,16 +1752,23 @@
 			$class_note = array_key_exists("class", $changes)
 				? " Entries already stored keep their table; only the code that handles them changes."
 				: "";
+			$preview = [
+				"action" => "update_module",
+				"id" => (string)$module["id"],
+				"name" => $name,
+				"changes" => $diff,
+			];
+			$extension_warning = ExtensionDomain::warning($module, "module");
+
+			if ($extension_warning !== "") {
+				$preview["warning"] = $extension_warning;
+			}
 
 			return [
 				"ok" => true,
-				"summary" => "Update module “{$name}”. Its route, table, forms and views are unchanged." . $class_note,
-				"preview" => [
-					"action" => "update_module",
-					"id" => (string)$module["id"],
-					"name" => $name,
-					"changes" => $diff,
-				],
+				"summary" => "Update module “{$name}”. Its route, table, forms and views are unchanged." . $class_note
+					. ($extension_warning !== "" ? " " . $extension_warning : ""),
+				"preview" => $preview,
 				"payload" => [
 					"id" => (string)$module["id"],
 					"changes" => $changes,
@@ -1757,6 +1814,19 @@
 				$module["class"] = $class;
 			}
 
+			// Re-asked at approval like `class` above (audit #13 A2).
+			if (array_key_exists("icon", $changes)) {
+				$icon = IconDomain::normalize((string)$changes["icon"]);
+				$icon_violation = IconDomain::violation($icon);
+
+				if ($icon_violation !== null) {
+
+					return ["mode" => "error", "message" => $icon_violation];
+				}
+
+				$changes["icon"] = $icon;
+			}
+
 			// A group can be removed by storing null, so the key's presence is what
 			// matters, not its truthiness. `class` is handled above (it needs the
 			// re-check, and it is not HTML-escaped — it's a PHP class name).
@@ -1766,13 +1836,21 @@
 				}
 			}
 
+			// Read before the write, from the record as it stands now (audit #13 A3).
+			$extension_warning = ExtensionDomain::warning($module, "module");
 			BigTreeJSONDB::update("modules", $id, $module);
 
-			return [
+			$result = [
 				"mode" => "updated",
 				"id" => $id,
 				"name" => (string)($module["name"] ?? $id),
 			];
+
+			if ($extension_warning !== "") {
+				$result["note"] = $extension_warning;
+			}
+
+			return $result;
 		}
 
 		/**
@@ -1830,12 +1908,23 @@
 					. "when you add a table and forms to the module."];
 			}
 
+			// A closed 54-slug vocabulary the admin picks from a grid, and the model can
+			// only guess at — so the guess is checked here rather than stored and drawn
+			// as a generic box (audit #13 A2).
+			$icon = IconDomain::normalize((string)($args["icon"] ?? ""));
+			$icon_violation = IconDomain::violation($icon);
+
+			if ($icon_violation !== null) {
+
+				return ["error" => $icon_violation];
+			}
+
 			$payload = [
 				"name" => $name,
 				"route" => $route,
 				"group" => $group !== "" ? $group : null,
 				"class" => $class,
-				"icon" => trim((string)($args["icon"] ?? "")),
+				"icon" => $icon,
 			];
 
 			return [
@@ -1896,13 +1985,24 @@
 				$group = "";
 			}
 
+			// Never trusted on the way back out: an extension can't add a slug to the
+			// vocabulary, but a payload can be replayed against a core whose list has
+			// changed, and the check costs nothing (audit #13 A2).
+			$icon = IconDomain::normalize((string)($payload["icon"] ?? ""));
+			$icon_violation = IconDomain::violation($icon);
+
+			if ($icon_violation !== null) {
+
+				return ["mode" => "error", "message" => $icon_violation];
+			}
+
 			// Re-derive a unique route in case one was taken since validation.
 			$route = $this->uniqueModuleRoute($route);
 			$id = BigTreeJSONDB::insert("modules", $this->moduleInsertMap([
 				"group" => $group !== "" ? $group : null,
 				"class" => $class,
 				"table" => "",
-				"icon" => (string)($payload["icon"] ?? ""),
+				"icon" => $icon,
 			], $name, $route));
 
 			return [
@@ -2003,6 +2103,13 @@
 			if ($settings_error !== null) {
 
 				return ["error" => $settings_error];
+			}
+
+			$icon_violation = IconDomain::violation(IconDomain::normalize((string)($args["icon"] ?? "")));
+
+			if ($icon_violation !== null) {
+
+				return ["error" => $icon_violation];
 			}
 
 			$body = $this->aiScaffoldBody($args, $name, $table, (string)$resolved_group["id"]);
@@ -2169,6 +2276,14 @@
 				return ["mode" => "error", "message" => $length_error];
 			}
 
+			$payload["icon"] = IconDomain::normalize((string)($payload["icon"] ?? ""));
+			$icon_violation = IconDomain::violation((string)$payload["icon"]);
+
+			if ($icon_violation !== null) {
+
+				return ["mode" => "error", "message" => $icon_violation];
+			}
+
 			// The container re-check create_module has run since audit #8 A2 and this
 			// never did: a group free at staging can be deleted inside the proposal's
 			// 24h life, which would file the module under a dead id — it renders
@@ -2269,7 +2384,7 @@
 				"item_title" => trim((string)($args["item_title"] ?? "")),
 				"view_title" => trim((string)($args["view_title"] ?? "")),
 				"group" => $group !== "" ? $group : null,
-				"icon" => trim((string)($args["icon"] ?? "")),
+				"icon" => IconDomain::normalize((string)($args["icon"] ?? "")),
 			];
 		}
 
@@ -2477,6 +2592,61 @@
 		}
 
 		/**
+		 * The three status actions a module can carry, mapped to the column each one
+		 * gates. One map, two callers: the scaffold names the columns its DDL is about
+		 * to create, and aiModuleStatusActions names the ones an existing module
+		 * already has — audit #13 A1 exists because the authoring path disclosed the
+		 * approve action and the writing path never mentioned it.
+		 */
+		public const AI_STATUS_ACTION_COLUMNS = [
+			"approve" => "approved",
+			"feature" => "featured",
+			"archive" => "archived",
+		];
+
+		/**
+		 * A module's status actions, keyed by the column each one gates.
+		 *
+		 * Read from both places a module can declare one: its own action list, and the
+		 * `actions` map on any of its views (which is where the scaffold and the legacy
+		 * designer both put approve/feature/archive). Only `approved` decides whether
+		 * an entry is on the live site — `featured` and `archived` default to the
+		 * harmless state — but the model is owed all three, because a column it can't
+		 * see is a column it can't reason about.
+		 *
+		 * @param array<string,mixed> $module
+		 * @return array<string,string> column => action
+		 */
+		public static function aiModuleStatusActions(array $module): array {
+			$found = [];
+
+			foreach ((array)($module["actions"] ?? []) as $action) {
+				$route = is_array($action) ? (string)($action["route"] ?? "") : "";
+
+				if (isset(self::AI_STATUS_ACTION_COLUMNS[$route])) {
+					$found[self::AI_STATUS_ACTION_COLUMNS[$route]] = $route;
+				}
+			}
+
+			foreach ((array)($module["views"] ?? []) as $view) {
+				if (!is_array($view)) {
+
+					continue;
+				}
+
+				foreach ((array)($view["actions"] ?? []) as $action => $enabled) {
+					if (!empty($enabled) && isset(self::AI_STATUS_ACTION_COLUMNS[(string)$action])) {
+						$found[self::AI_STATUS_ACTION_COLUMNS[(string)$action]] = (string)$action;
+					}
+				}
+			}
+
+			ksort($found);
+
+			return $found;
+		}
+
+		/**
 		 * The builtin status columns a scaffold's chosen actions and view type add, so
 		 * the card names every column the DDL will create rather than only the ones the
 		 * model asked for.
@@ -2487,7 +2657,7 @@
 		private function aiScaffoldStatusColumns(array $plan): array {
 			$columns = [];
 
-			foreach (["approve" => "approved", "feature" => "featured", "archive" => "archived"] as $action => $column) {
+			foreach (self::AI_STATUS_ACTION_COLUMNS as $action => $column) {
 				if (!empty($plan["actions"][$action])) {
 					$columns[] = $column;
 				}
@@ -2802,6 +2972,10 @@
 				"icon" => $m["icon"] ?? "",
 				"route" => $m["route"] ?? "",
 				"position" => (int)($m["position"] ?? 0),
+				// Audit #13 A3. A packaged module keeps its own id — only its route is
+				// namespaced — so this key is the only thing that says an upgrade will
+				// re-import it over any edit made here.
+				"extension" => (string)($m["extension"] ?? ""),
 			];
 		}
 	

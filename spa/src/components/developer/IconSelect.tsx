@@ -5,7 +5,8 @@ import { FieldLabel } from "@/components/ui/Field";
 import { IconButton } from "@/components/ui/IconButton";
 import { Popover } from "@/components/ui/Popover";
 
-import { iconFor, MODULE_ICON_SLUGS } from "@/lib/legacyIcons";
+import { useModuleIcons } from "@/hooks/useModuleIcons";
+import { iconFor } from "@/lib/legacyIcons";
 
 import { IconGridButton } from "./IconGridButton";
 
@@ -20,10 +21,10 @@ interface IconSelectProps {
 
 /**
  * Dropdown variant of the module IconPicker — a button trigger showing the
- * chosen glyph, opening a popover grid of the full `BigTreeAdmin::$IconClasses`
- * vocabulary. Used where a full always-on grid is too heavy (e.g. the module
- * action editor). Stores the legacy slug like IconPicker so the public admin
- * renders its own sprite.
+ * chosen glyph, opening a popover grid of the module-icon vocabulary (fetched
+ * from GET /module-icons, the one core source). Used where a full always-on
+ * grid is too heavy (e.g. the module action editor). Stores the legacy slug
+ * like IconPicker so the public admin renders its own sprite.
  */
 export const IconSelect = ({
 	value,
@@ -33,6 +34,7 @@ export const IconSelect = ({
 	placeholder = "Choose an icon…",
 }: IconSelectProps) => {
 	const [open, setOpen] = useState(false);
+	const slugs = useModuleIcons();
 
 	const Selected = value ? iconFor(value) : null;
 
@@ -88,7 +90,7 @@ export const IconSelect = ({
 				onOpenChange={setOpen}
 			>
 				<div className="flex max-h-56 flex-wrap gap-1.5 overflow-y-auto p-2">
-					{MODULE_ICON_SLUGS.map((slug) => {
+					{slugs.map((slug) => {
 						const isActive = slug === value;
 
 						return (

@@ -11,6 +11,7 @@
 	use BigTree\Api\Resources;
 	use BigTree\Api\TemplateScaffold;
 	use BigTree\Api\Exceptions\AuthorizationException;
+	use BigTree\Services\AI\ExtensionDomain;
 	use BigTree\Services\AI\Tools\TemplateToolBackend;
 	use BigTree;
 	use BigTreeCMS;
@@ -133,6 +134,10 @@
 				"position" => (int)($t["position"] ?? 0),
 				"resources" => $t["resources"] ?? [],
 				"hooks" => $t["hooks"] ?? [],
+				// Which extension owns this record, "" when the site does. An
+				// extension-owned template read back as an ordinary one, and every
+				// consequence of that followed from the omission (audit #13 A3).
+				"extension" => (string)($t["extension"] ?? ""),
 			];
 		}
 	
@@ -166,6 +171,7 @@
 					"level" => (int)($t["level"] ?? 0),
 					"routed" => !empty($t["routed"]),
 					"field_count" => is_array($t["resources"] ?? null) ? count($t["resources"]) : 0,
+					"extension" => (string)($t["extension"] ?? ""),
 				];
 			}, $rows);
 		}
@@ -503,16 +509,26 @@
 			}
 
 			$name = (string)($existing["name"] ?? $id);
+			$preview = [
+				"action" => "update_template",
+				"id" => $id,
+				"name" => $name,
+				"changes" => $diff,
+			];
+			// Non-fatal: the developer keeps the edit, they just get to know it is
+			// temporary before they approve it rather than after the next upgrade
+			// (audit #13 A3/D5).
+			$extension_warning = ExtensionDomain::warning($existing, "template");
+
+			if ($extension_warning !== "") {
+				$preview["warning"] = $extension_warning;
+			}
 
 			return [
 				"ok" => true,
-				"summary" => "Update page template “{$name}” (id {$id}).",
-				"preview" => [
-					"action" => "update_template",
-					"id" => $id,
-					"name" => $name,
-					"changes" => $diff,
-				],
+				"summary" => "Update page template “{$name}” (id {$id})."
+					. ($extension_warning !== "" ? " " . $extension_warning : ""),
+				"preview" => $preview,
 				"payload" => [
 					"id" => $id,
 					"changes" => $changes,
@@ -754,11 +770,22 @@
 
 			BigTreeJSONDB::update("templates", $id, $next);
 
-			return [
+			$result = [
 				"mode" => "updated",
 				"id" => $id,
 				"name" => (string)($next["name"] ?? $id),
 			];
+			// Re-asked at approval like every other staged fact: an extension can be
+			// installed over — or uninstalled out from under — this record inside the
+			// proposal's 24h life, so ownership is read from the record as it stands
+			// now rather than from the card (audit #13 A3).
+			$extension_warning = ExtensionDomain::warning($existing, "template");
+
+			if ($extension_warning !== "") {
+				$result["note"] = $extension_warning;
+			}
+
+			return $result;
 		}
 
 		/**
