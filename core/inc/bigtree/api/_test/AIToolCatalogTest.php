@@ -152,6 +152,9 @@
 			public function aiListEntries(string $module_id, string $form_id, int $limit, int $offset, $user): array {
 				return ["module" => ["id" => $module_id], "entries" => [], "has_more" => false];
 			}
+			public function aiRelationOptions(string $module_id, string $form_id, string $column, string $query, int $limit, int $offset, $user): array {
+				return ["module" => ["id" => $module_id], "column" => $column, "options" => [], "has_more" => false];
+			}
 			public function aiValidateEntryCreate(array $args, $user): array { return $this->validation; }
 			public function aiCreateEntry(array $payload, $user): array { $this->executed = $payload; return ["mode" => "published"]; }
 			public function aiValidateEntryUpdate(array $args, $user): array { return $this->validation; }

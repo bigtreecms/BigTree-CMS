@@ -4,14 +4,17 @@
 	use BigTree\Api\Entity;
 	use BigTree\Api\Flag;
 	use BigTree\Api\Json;
+	use BigTree\Api\Resources;
 	use BigTree\Api\Sanitize;
 	use BigTree\Api\Request;
 	use BigTree\Api\Response;
 	use BigTree\Api\ETag;
+	use BigTree\Api\Exceptions\ApiException;
 	use BigTree\Api\Exceptions\AuthorizationException;
 	use BigTree\Api\Exceptions\BadRequestException;
 	use BigTree\Api\Exceptions\ConflictException;
 	use BigTree\Api\Exceptions\NotFoundException;
+	use BigTree\Services\AI\FieldTypeDomain;
 	use BigTree\Services\AI\Tools\ModuleToolBackend;
 	use BigTreeCMS;
 	use BigTreeJSONDB;
@@ -117,9 +120,16 @@
 				throw new ConflictException((string)$plan["conflict"], (string)$plan["code"]);
 			}
 
-			$module_id = $this->performScaffold($plan);
+			$build = $this->performScaffold($plan);
 
-			return Response::created($this->present(BigTreeJSONDB::get("modules", $module_id)), null);
+			// A statement MySQL refused. DDL implicitly commits, so there is nothing to
+			// roll back — the honest answer is a 500 naming the module and table a
+			// developer has to finish or drop, not a 201 over a half-built module.
+			if (isset($build["error"])) {
+				throw new ApiException((string)$build["error"], "scaffold_failed", 500);
+			}
+
+			return Response::created($this->present(BigTreeJSONDB::get("modules", $build["id"])), null);
 		}
 
 		/**
@@ -164,7 +174,14 @@
 
 			// Resolve fields → form-field defs + column DDL, skipping untitled rows and
 			// de-duplicating generated column names (mirrors form-create.php).
-			$reserved = ["id", "position"];
+			//
+			// The three status columns are reserved unconditionally, not just when
+			// their action is on: a field titled "Approved" sanitizes to `approved`,
+			// and the builtin `ADD COLUMN approved CHAR(2)` that follows would fail
+			// against it — leaving an approve button over a VARCHAR with no index. The
+			// action can also be switched on later in the Designer, so the collision
+			// has to be impossible rather than merely unlikely today (audit #12 A1).
+			$reserved = ["id", "position", "approved", "featured", "archived"];
 			$form_fields = [];
 			$column_adds = [];
 			$used_columns = [];
@@ -204,7 +221,15 @@
 					"settings" => is_array($f["settings"] ?? null) ? $f["settings"] : [],
 				];
 
-				$column_adds[] = "ADD COLUMN `$column` " . $this->columnSqlType($type);
+				// Keyed by the field's own index rather than appended, because a
+				// many-to-many has no column: the plan's consumers (the proposal card,
+				// performScaffold's single ALTER) read the two lists together, and a
+				// bare append would slide every later column onto the wrong field.
+				$sql_type = $this->columnSqlType($type);
+
+				if ($sql_type !== "") {
+					$column_adds[count($form_fields) - 1] = "ADD COLUMN `$column` " . $sql_type;
+				}
 			}
 
 			if (count($form_fields) === 0) {
@@ -227,6 +252,15 @@
 			// Singular drives the form ("Add Article"), plural the view ("Viewing Articles").
 			$item_title = trim((string)($d["item_title"] ?? "")) ?: $this->singularize($name);
 			$view_title = trim((string)($d["view_title"] ?? "")) ?: $this->pluralize($name);
+
+			// The last thing MySQL would refuse, asked before anything is built rather
+			// than halfway through building it (audit #12 A1).
+			$budget_error = $this->scaffoldRowBudgetError($form_fields, $actions_in, $view_type);
+
+			if ($budget_error !== null) {
+
+				return $budget_error;
+			}
 
 			// Pass validated class/table through so the shared insert map picks them up.
 			$d["class"] = $class;
@@ -253,10 +287,17 @@
 		 * action. Runs DDL, so it is only ever called with a plan scaffoldPlan()
 		 * returned.
 		 *
+		 * Every statement's result is checked. Until audit #12 none were: the DDL was
+		 * fired and the form, the view and the actions were built over whatever came
+		 * out the other side, so a refused `ALTER` produced a module whose form named
+		 * columns that did not exist. There is no rollback to offer — DDL implicitly
+		 * commits — so a failure stops and reports the module id and table a developer
+		 * has to finish or drop by hand (audit #12 D4).
+		 *
 		 * @param array<string,mixed> $plan
-		 * @return string The new module id.
+		 * @return array{id:string,table:string,error?:string}
 		 */
-		private function performScaffold(array $plan): string {
+		private function performScaffold(array $plan): array {
 			$d = $plan["body"];
 			$name = (string)$plan["name"];
 			$table = (string)$plan["table"];
@@ -271,24 +312,42 @@
 			$module_id = BigTreeJSONDB::insert("modules", $this->moduleInsertMap($d, $name, $route));
 
 			// — Build the table —
-			SQL::query("CREATE TABLE `$table` (`id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT, PRIMARY KEY (`id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci");
-			SQL::query("ALTER TABLE `$table` " . implode(", ", $column_adds));
+			$statements = [
+				"CREATE TABLE `$table` (`id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT, PRIMARY KEY (`id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci",
+				"ALTER TABLE `$table` " . implode(", ", $column_adds),
+			];
 
 			// Builtin status columns for the chosen actions / view type.
 			if (!empty($actions_in["approve"])) {
-				SQL::query("ALTER TABLE `$table` ADD COLUMN `approved` CHAR(2) NOT NULL, ADD INDEX `approved` (`approved`)");
+				$statements[] = "ALTER TABLE `$table` ADD COLUMN `approved` CHAR(2) NOT NULL, ADD INDEX `approved` (`approved`)";
 			}
 
 			if (!empty($actions_in["feature"])) {
-				SQL::query("ALTER TABLE `$table` ADD COLUMN `featured` CHAR(2) NOT NULL, ADD INDEX `featured` (`featured`)");
+				$statements[] = "ALTER TABLE `$table` ADD COLUMN `featured` CHAR(2) NOT NULL, ADD INDEX `featured` (`featured`)";
 			}
 
 			if (!empty($actions_in["archive"])) {
-				SQL::query("ALTER TABLE `$table` ADD COLUMN `archived` CHAR(2) NOT NULL, ADD INDEX `archived` (`archived`)");
+				$statements[] = "ALTER TABLE `$table` ADD COLUMN `archived` CHAR(2) NOT NULL, ADD INDEX `archived` (`archived`)";
 			}
 
 			if ($view_type === "draggable") {
-				SQL::query("ALTER TABLE `$table` ADD COLUMN `position` INT(11) NOT NULL, ADD INDEX `position` (`position`)");
+				$statements[] = "ALTER TABLE `$table` ADD COLUMN `position` INT(11) NOT NULL, ADD INDEX `position` (`position`)";
+			}
+
+			foreach ($statements as $statement) {
+				$failure = $this->runScaffoldStatement($statement);
+
+				if ($failure !== null) {
+
+					return [
+						"id" => (string)$module_id,
+						"table" => $table,
+						"error" => "The module “{$name}” (id {$module_id}) was created, but the database refused a "
+							. "statement while building its table: {$failure}. Nothing further was built — `{$table}` "
+							. "is incomplete and the module has no form, view or actions. Creating a table can't be "
+							. "undone, so a developer has to finish or drop `{$table}` in Developer → Modules.",
+					];
+				}
 			}
 
 			$context = BigTreeJSONDB::getSubset("modules", $module_id);
@@ -298,11 +357,14 @@
 				"title" => BigTree::safeEncode($item_title),
 				"table" => $table,
 				"fields" => $this->cleanFormFields($form_fields),
-				"default_position" => "",
+				// A drag-orderable view is a hand-ordered one, and every entry landing
+				// at position 0 leaves it unordered until someone drags all of it. "top"
+				// is what the legacy designer sets for the same view type (audit #12 A5).
+				"default_position" => $view_type === "draggable" ? "top" : "",
 				"return_view" => null,
 				"return_url" => "",
-				"tagging" => "",
-				"open_graph" => "",
+				"tagging" => Flag::checkbox(!empty($d["tagging"])),
+				"open_graph" => Flag::checkbox(!empty($d["open_graph"])),
 				"hooks" => [],
 			]);
 
@@ -347,7 +409,36 @@
 
 			ModuleViewService::updateModuleViewColumnNumericStatusForTable($table);
 
-			return (string)$module_id;
+			return ["id" => (string)$module_id, "table" => $table];
+		}
+
+		/**
+		 * Run one of the scaffold's DDL statements; the driver's message when it
+		 * failed, or null when it didn't.
+		 *
+		 * Both failure modes are handled deliberately. Since PHP 8.1 mysqli reports by
+		 * exception, so a refused statement throws out of SQL::query; with error
+		 * reporting off it swallows the failure instead — appending the message to
+		 * SQL::$ErrorLog and returning a SQL object regardless, with no exception and
+		 * no false return a caller could check. Neither is loud, so "the query ran" has
+		 * never meant "the column exists".
+		 */
+		private function runScaffoldStatement(string $statement): ?string {
+			$logged = count(SQL::$ErrorLog);
+
+			try {
+				SQL::query($statement);
+			} catch (\Throwable $e) {
+
+				return $e->getMessage();
+			}
+
+			if (count(SQL::$ErrorLog) > $logged) {
+
+				return (string)SQL::$ErrorLog[count(SQL::$ErrorLog) - 1];
+			}
+
+			return null;
 		}
 
 		// Insert a module action via the JSONDB subset, mirroring createAction's
@@ -372,8 +463,30 @@
 			]);
 		}
 
-		// Field type → column SQL type (the exact legacy form-create.php mapping).
+		/**
+		 * Field type → column SQL type (the legacy form-create.php mapping, with the
+		 * default narrowed and the two relation types corrected — see below). An empty
+		 * string means the field needs no column at all.
+		 */
 		private function columnSqlType($type) {
+			// A many-to-many doesn't live in a column: it is a connecting table and two
+			// id columns, and the entry write path takes the column back out of every
+			// row it writes (`aiWithoutMtmColumns`, and `$field["ignore"] = true` in
+			// many-to-many/process.php) precisely because nothing may land there. The
+			// legacy designer created one anyway; it was never written to, and at
+			// utf8mb4 it spent 766 bytes of the row budget on nothing (audit #12 A2).
+			if ($type === "many-to-many") {
+				return "";
+			}
+
+			// A one-to-many *is* a column, but what it holds is a JSON list of ids
+			// rather than a value someone typed — at VARCHAR(191) that is about 45
+			// related entries before the write is refused at the storage boundary. It
+			// is a list, so it is stored like the other lists.
+			if ($type === "one-to-many") {
+				return "TEXT";
+			}
+
 			if (in_array($type, ["textarea", "html", "video"], true)) {
 				return "TEXT";
 			}
@@ -394,7 +507,130 @@
 				return "DATETIME";
 			}
 
-			return "VARCHAR(1024)";
+			// Audit #12 D1. This was VARCHAR(1024), which under utf8mb3 cost 3,074
+			// bytes of the 65,535-byte row definition and left room for 21 columns.
+			// Revision 512 moved every table to utf8mb4 and silently halved that to 15
+			// — fewer fields than a staff directory needs. 191 is the width CLAUDE.md
+			// states for this project and the one the utf8mb4 migration narrowed
+			// everything else to; it takes the budget to 85 columns. A field that needs
+			// more than 191 characters is a `textarea`, whose contents live off-page
+			// and cost ten bytes here.
+			return "VARCHAR(191)";
+		}
+
+		/**
+		 * InnoDB's hard limit on a *table definition*'s row size. Exceeding it is
+		 * `ERROR 1118`, raised by the `ALTER` rather than by any row.
+		 */
+		private const SCAFFOLD_ROW_SIZE_LIMIT = 65535;
+
+		/**
+		 * What each SQL type this scaffold emits contributes to that limit.
+		 *
+		 * Measured against MySQL 9.7 by emitting exactly the DDL performScaffold
+		 * writes and bisecting each type's column count — a `TEXT` is stored off-page
+		 * and costs ten bytes here, not the four kilobytes its contents may occupy.
+		 */
+		private const SCAFFOLD_COLUMN_BYTES = [
+			"TEXT" => 10,
+			"LONGTEXT" => 12,
+			"DATE" => 3,
+			"TIME" => 3,
+			"DATETIME" => 5,
+		];
+
+		/** What one column of this SQL type costs against SCAFFOLD_ROW_SIZE_LIMIT. */
+		private function columnRowCost(string $sql_type): int {
+			$type = strtoupper(trim($sql_type));
+
+			// utf8mb4 is four bytes per character, plus the length prefix a VARCHAR
+			// carries (two bytes once the column can hold more than 255 of them).
+			if (preg_match('/^VARCHAR\((\d+)\)/', $type, $match)) {
+				$bytes = (int)$match[1] * 4;
+
+				return $bytes + ($bytes > 255 ? 2 : 1);
+			}
+
+			if (preg_match('/^CHAR\((\d+)\)/', $type, $match)) {
+
+				return (int)$match[1] * 4;
+			}
+
+			if (strpos($type, "INT") === 0) {
+
+				return 4;
+			}
+
+			return self::SCAFFOLD_COLUMN_BYTES[$type] ?? 8;
+		}
+
+		/**
+		 * Refuse a field list MySQL will refuse, while refusing it still costs nothing
+		 * (audit #12 A1).
+		 *
+		 * `performScaffold` issues every field column as one `ALTER`, so the whole list
+		 * fails as a unit — the table keeps `id` and nothing else while the form, the
+		 * view and the actions are built naming columns that don't exist. This is a
+		 * plan-time refusal, so REST gets a 400 and the assistant gets a recoverable
+		 * error naming how many fields will fit, rather than an irreversible half-build.
+		 *
+		 * @param list<array<string,mixed>> $form_fields
+		 * @param array<string,mixed> $actions_in
+		 * @return array{error:string,code:string}|null
+		 */
+		private function scaffoldRowBudgetError(array $form_fields, array $actions_in, string $view_type): ?array {
+			// `id` and the status columns are all NOT NULL, so they cost their width
+			// and nothing in the null bitmap below.
+			$fixed = $this->columnRowCost("INT");
+
+			foreach (["approve", "feature", "archive"] as $action) {
+				if (!empty($actions_in[$action])) {
+					$fixed += $this->columnRowCost("CHAR(2)");
+				}
+			}
+
+			if ($view_type === "draggable") {
+				$fixed += $this->columnRowCost("INT");
+			}
+
+			$widths = 0;
+			$fits = 0;
+			$columns = 0;
+
+			foreach (array_values($form_fields) as $index => $field) {
+				$sql_type = $this->columnSqlType((string)$field["type"]);
+
+				// A field that gets no column costs nothing and still fits.
+				if ($sql_type !== "") {
+					$widths += $this->columnRowCost($sql_type);
+					$columns++;
+				}
+
+				$count = $index + 1;
+
+				// Every field column is nullable, and MySQL counts one null flag bit per
+				// nullable column toward the same limit.
+				if ($fixed + $widths + (int)ceil($columns / 8) <= self::SCAFFOLD_ROW_SIZE_LIMIT) {
+					$fits = $count;
+				}
+			}
+
+			$total = count($form_fields);
+
+			if ($fits === $total) {
+
+				return null;
+			}
+
+			return [
+				"error" => "This module's {$total} fields need more space than one database row allows — MySQL caps a "
+					. "table definition at " . self::SCAFFOLD_ROW_SIZE_LIMIT . " bytes, and at these field types about "
+					. "{$fits} of them fit"
+					. ($fixed > 4 ? " alongside the status columns the chosen actions and view type add" : "")
+					. ". Use the \"textarea\" type for the long ones — its contents are stored outside the row, so it "
+					. "costs almost nothing — or split this into two modules.",
+				"code" => "row_too_large",
+			];
 		}
 
 		// "Articles" → "Article" for the form item title (legacy designer/form.php).
@@ -1722,6 +1958,17 @@
 				return ["error" => "A module name is required."];
 			}
 
+			// Resolved by id *or* name, and handed back as a choice when neither
+			// matches, exactly as create_module has done since audit #9 — the same
+			// sentence from the user resolved on one tool and stored a dangling string
+			// on the other (audit #12 A3).
+			$resolved_group = $this->aiResolveModuleGroup($args["group"] ?? "");
+
+			if (isset($resolved_group["needs_input"])) {
+
+				return $resolved_group;
+			}
+
 			// Derived rather than demanded: a table name is an implementation detail
 			// the user has no opinion about, and every other create tool derives its id
 			// the same way. An explicit one is still honoured.
@@ -1745,7 +1992,27 @@
 				return ["error" => $type_error];
 			}
 
-			$body = $this->aiScaffoldBody($args, $name, $table);
+			// The settings-completeness half of the same rule (audit #12 A2). A field
+			// type that exists is not yet a field that renders: a `list` with no
+			// options is an empty select nobody can satisfy, a `matrix` with no columns
+			// stores as LONGTEXT and draws nothing, and a relation with no target table
+			// is one RelationDomain will later refuse to write into — describing, to
+			// the model, a field the model itself created three turns earlier.
+			$settings_error = Resources::aiUnconfigurableFieldError($this->aiScaffoldGateFields($fields), [], "module");
+
+			if ($settings_error !== null) {
+
+				return ["error" => $settings_error];
+			}
+
+			$body = $this->aiScaffoldBody($args, $name, $table, (string)$resolved_group["id"]);
+			$length_error = $this->aiScaffoldLengthError($body);
+
+			if ($length_error !== null) {
+
+				return ["error" => $length_error];
+			}
+
 			$plan = $this->scaffoldPlan($body);
 
 			if (isset($plan["error"]) || isset($plan["conflict"])) {
@@ -1759,14 +2026,20 @@
 			// a single CREATE TABLE runs.
 			$columns = [];
 
-			foreach ($plan["column_adds"] as $index => $add) {
-				$field = $plan["form_fields"][$index];
+			foreach ($plan["form_fields"] as $index => $field) {
+				$add = (string)($plan["column_adds"][$index] ?? "");
 				$columns[] = [
 					"title" => (string)$field["title"],
 					// The literal DDL, so the card shows what will run rather than a
-					// description of what will run.
-					"to" => trim((string)preg_replace('/^ADD COLUMN /', "", (string)$add))
-						. " — " . (string)$field["type"] . " field",
+					// description of what will run — and, for the one field type that
+					// gets no DDL, why it doesn't.
+					"to" => ($add !== ""
+						? trim((string)preg_replace('/^ADD COLUMN /', "", $add))
+						: "no column — the relation lives in its connecting table")
+						. " — " . (string)$field["type"] . " field"
+						// Required is the one validation rule this tool sets, and the
+						// approver is the person who'd notice it was wrong (audit #12 A4).
+						. ($this->aiScaffoldFieldIsRequired($field) ? ", required" : ""),
 				];
 			}
 
@@ -1780,32 +2053,71 @@
 				];
 			}
 
+			$unfillable = $this->aiScaffoldUnfillableColumns($plan);
+
+			// The columns the table actually gets, which is not the same as the number of
+			// rows on the card: a many-to-many has no column, and the status columns are
+			// named separately in the same sentence.
+			$column_count = count($plan["column_adds"]);
+			$preview = [
+				"action" => "scaffold_module",
+				"name" => $name,
+				"route" => $plan["route"],
+				"table" => $plan["table"],
+				"fields" => $columns,
+				"form" => $plan["item_title"],
+				"view" => $plan["view_title"],
+				"view_type" => $plan["view_type"],
+				"creates_table" => true,
+				// What the module will and won't be able to be filled with, said on the
+				// card rather than discovered later (audit #12 A5/D5). Refusing these
+				// types outright would make the assistant unable to build the ordinary
+				// module a human would build — most content models have an image on them
+				// — so the honest version is naming them.
+				"warning" => $unfillable
+					? "The assistant can't fill " . $this->aiJoinList($unfillable) . " itself — "
+						. (count($unfillable) === 1 ? "that column takes" : "those columns take")
+						. " content that has to be added in the entry editor. Everything else it can write with "
+						. "create_module_entry."
+					: "",
+				// The card's own irreversibility banner. This is the only proposal in
+				// the catalogue whose effect the assistant cannot walk back: deleting a
+				// module is admin-only, and dropping a table isn't a capability at all.
+				"destructive" => true,
+			];
+
+			// Said only when they're true: every preview key renders as its own row on
+			// the card, and three rows reading "—"/"No" on every scaffold is noise the
+			// approver has to read past to reach the schema.
+			if ((string)$resolved_group["name"] !== "") {
+				$preview["group"] = (string)$resolved_group["name"];
+			}
+
+			if (!empty($body["tagging"])) {
+				$preview["tagging"] = true;
+			}
+
+			if (!empty($body["open_graph"])) {
+				$preview["open_graph"] = true;
+			}
+
 			return [
 				"ok" => true,
 				"summary" => "Scaffold a new module “{$name}” (route {$plan["route"]}): create the table "
-					. "`{$plan["table"]}` with " . count($columns) . " column"
-					. (count($columns) === 1 ? "" : "s")
+					. "`{$plan["table"]}` with {$column_count} column"
+					. ($column_count === 1 ? "" : "s")
 					. ($status_columns ? " plus " . implode(", ", $status_columns) : "")
 					. ", an “{$plan["item_title"]}” add/edit form, and a "
 					. ($plan["view_type"] === "draggable" ? "drag-orderable" : "searchable")
-					. " “{$plan["view_title"]}” landing view. Creating a table is not something the assistant can "
-					. "undo — deleting a module is admin-only.",
-				"preview" => [
-					"action" => "scaffold_module",
-					"name" => $name,
-					"route" => $plan["route"],
-					"table" => $plan["table"],
-					"fields" => $columns,
-					"form" => $plan["item_title"],
-					"view" => $plan["view_title"],
-					"view_type" => $plan["view_type"],
-					"creates_table" => true,
-					// The card's own irreversibility banner. This is the only proposal
-					// in the catalogue whose effect the assistant cannot walk back:
-					// deleting a module is admin-only, and dropping a table isn't a
-					// capability at all.
-					"destructive" => true,
-				],
+					. " “{$plan["view_title"]}” landing view."
+					// Named here as well as in the warning below, because the summary is
+					// what the model reads back and what a one-line notification shows
+					// (audit #12 A5).
+					. ($unfillable
+						? " " . $this->aiJoinList($unfillable) . " can only be filled in the entry editor."
+						: "")
+					. " Creating a table is not something the assistant can undo — deleting a module is admin-only.",
+				"preview" => $preview,
 				"payload" => $body,
 			];
 		}
@@ -1836,6 +2148,40 @@
 				return ["mode" => "error", "message" => $type_error];
 			}
 
+			// Never trusted on the way back out, like every other staged value — and a
+			// field type's settings_schema can gain a required setting inside the
+			// proposal's 24h TTL exactly as the type itself can appear or vanish.
+			$settings_error = Resources::aiUnconfigurableFieldError(
+				$this->aiScaffoldGateFields(is_array($payload["fields"] ?? null) ? $payload["fields"] : []),
+				[],
+				"module"
+			);
+
+			if ($settings_error !== null) {
+
+				return ["mode" => "error", "message" => $settings_error];
+			}
+
+			$length_error = $this->aiScaffoldLengthError($payload);
+
+			if ($length_error !== null) {
+
+				return ["mode" => "error", "message" => $length_error];
+			}
+
+			// The container re-check create_module has run since audit #8 A2 and this
+			// never did: a group free at staging can be deleted inside the proposal's
+			// 24h life, which would file the module under a dead id — it renders
+			// ungrouped or under a phantom heading with nothing disclosed. Grouping is
+			// cosmetic, so degrade to ungrouped-with-a-note rather than refusing a build
+			// the approver has already accepted (audit #12 A3).
+			$group = trim((string)($payload["group"] ?? ""));
+			$group_missing = $group !== "" && !BigTreeJSONDB::exists("module-groups", $group);
+
+			if ($group_missing) {
+				$payload["group"] = null;
+			}
+
 			$plan = $this->scaffoldPlan($payload);
 
 			if (isset($plan["error"]) || isset($plan["conflict"])) {
@@ -1844,7 +2190,20 @@
 					. " — this module can no longer be scaffolded as proposed. Ask again."];
 			}
 
-			$module_id = $this->performScaffold($plan);
+			$build = $this->performScaffold($plan);
+
+			// A statement the database refused. Reported as mode=error so the proposal
+			// lands in FAILED — a retryable card and no audit row — rather than a green
+			// badge over a module whose form names columns that were never created
+			// (audit #12 D4). Retrying then fails at plan time on "a table named X
+			// already exists", which is the legible outcome.
+			if (isset($build["error"])) {
+
+				return ["mode" => "error", "message" => (string)$build["error"]];
+			}
+
+			$module_id = (string)$build["id"];
+			$unfillable = $this->aiScaffoldUnfillableColumns($plan);
 
 			return [
 				"mode" => "created",
@@ -1853,8 +2212,22 @@
 				"route" => (string)$plan["route"],
 				"table" => (string)$plan["table"],
 				"is_complete" => true,
+				// Scoped to what is actually true (audit #12 A5): the note used to
+				// promise create_module_entry could fill the module, which holds for the
+				// text-like and reference columns and not for an image, a gallery or a
+				// matrix.
 				"note" => "“{$plan["name"]}” is ready to use: it has a table, an add/edit form and a landing view, "
-					. "so entries can be added to it now — including with create_module_entry.",
+					. "so entries can be added to it now — including with create_module_entry."
+					. ($unfillable
+						? " " . $this->aiJoinList($unfillable) . " "
+							. (count($unfillable) === 1 ? "is a column" : "are columns")
+							. " the assistant can't fill, so leave "
+							. (count($unfillable) === 1 ? "it" : "them")
+							. " to the entry editor."
+						: "")
+					. ($group_missing
+						? " The module group it was meant to join no longer exists, so it was created ungrouped."
+						: ""),
 			];
 		}
 
@@ -1864,9 +2237,10 @@
 		 * approval re-plans from the same input the card was computed from.
 		 *
 		 * @param array<string,mixed> $args
+		 * @param string $group A module-group id aiResolveModuleGroup already resolved.
 		 * @return array<string,mixed>
 		 */
-		private function aiScaffoldBody(array $args, string $name, string $table): array {
+		private function aiScaffoldBody(array $args, string $name, string $table, string $group): array {
 			$actions = is_array($args["actions"] ?? null) ? $args["actions"] : [];
 
 			return [
@@ -1877,18 +2251,174 @@
 				// exist. A scaffold that named a class would either collide or dangle.
 				"class" => "",
 				"route" => trim((string)($args["route"] ?? "")) ?: BigTreeCMS::urlify($name),
-				"fields" => is_array($args["fields"] ?? null) ? $args["fields"] : [],
+				"fields" => $this->aiScaffoldFields($args["fields"] ?? null),
 				"actions" => [
 					"approve" => !empty($actions["approve"]),
 					"feature" => !empty($actions["feature"]),
 					"archive" => !empty($actions["archive"]),
 				],
+				// Two booleans on a form this tool creates from nothing (audit #12 D6).
+				// The decline that used to cover them — "editing an existing module's
+				// tables, forms, views or actions" — is about restructuring a module that
+				// already holds entries, which is a different act. Without them a
+				// scaffolded module's entries could never be tagged or given OG data by
+				// the assistant, and it had no way to fix that either.
+				"tagging" => !empty($args["tagging"]),
+				"open_graph" => !empty($args["open_graph"]),
 				"view_type" => ($args["view_type"] ?? "searchable") === "draggable" ? "draggable" : "searchable",
 				"item_title" => trim((string)($args["item_title"] ?? "")),
 				"view_title" => trim((string)($args["view_title"] ?? "")),
-				"group" => trim((string)($args["group"] ?? "")) ?: null,
+				"group" => $group !== "" ? $group : null,
 				"icon" => trim((string)($args["icon"] ?? "")),
 			];
+		}
+
+		/**
+		 * The scaffold's fields in the shape the form stores, with each field's
+		 * settings authored through the shared seam (audit #12 A2/A4).
+		 *
+		 * Three things arrive that way rather than being written by hand here: the
+		 * supplied `settings` object, `required` as the legacy `validation` rule string
+		 * the entry gates read, and the per-context upload directory the admin's own
+		 * DirectoryControl seeds — so an AI-authored image field doesn't dump files in
+		 * the site root. It is exactly what create_template and create_callout author
+		 * their fields through.
+		 *
+		 * @param mixed $fields
+		 * @return list<array<string,mixed>>
+		 */
+		private function aiScaffoldFields($fields): array {
+			$out = [];
+
+			foreach (is_array($fields) ? $fields : [] as $field) {
+				if (!is_array($field)) {
+
+					continue;
+				}
+
+				$type = trim((string)($field["type"] ?? "")) ?: "text";
+				$out[] = [
+					"title" => (string)($field["title"] ?? ""),
+					"type" => $type,
+					"subtitle" => (string)($field["subtitle"] ?? ""),
+					"settings" => Resources::aiFieldSettings($field, $type, "module"),
+				];
+			}
+
+			return $out;
+		}
+
+		/**
+		 * Whether a planned field is one an entry must fill in.
+		 *
+		 * Read from the stored shape rather than from the tool's `required` argument,
+		 * because that is the shape the entry gates read it back out of: BigTree's
+		 * canonical required signal is the legacy `validation` rule string, and
+		 * `aiFieldSettings` is what translates the boolean into it.
+		 *
+		 * @param array<string,mixed> $field A planned form field.
+		 */
+		private function aiScaffoldFieldIsRequired(array $field): bool {
+			$settings = is_array($field["settings"] ?? null) ? $field["settings"] : [];
+			$rules = preg_split('/\s+/', trim((string)($settings["validation"] ?? "")));
+
+			return !empty($settings["required"]) || in_array("required", $rules ?: [], true);
+		}
+
+		/**
+		 * The scaffold's field list in the shape the shared field-authoring gate reads.
+		 * A module form field is keyed by a column derived from its title rather than
+		 * by an id, so the title stands in — it is what the approver sees on the card
+		 * and what a developer would look for in the Designer.
+		 *
+		 * @param mixed $fields
+		 * @return list<array<string,mixed>>
+		 */
+		private function aiScaffoldGateFields($fields): array {
+			$out = [];
+
+			foreach (is_array($fields) ? $fields : [] as $field) {
+				if (!is_array($field)) {
+
+					continue;
+				}
+
+				$out[] = array_merge($field, ["id" => trim((string)($field["title"] ?? ""))]);
+			}
+
+			return $out;
+		}
+
+		/**
+		 * The planned columns `create_module_entry` will not be able to fill, by title.
+		 *
+		 * `aiInvalidScaffoldFieldTypeError` accepts any type in the module registry
+		 * while `FieldTypeDomain::isSettable` governs what the entry seams may write,
+		 * and the two sets are not the same — an image, a gallery, a matrix or a
+		 * callouts region is buildable and not fillable. Both halves are correct; what
+		 * was missing is saying so (audit #12 A5).
+		 *
+		 * @param array<string,mixed> $plan
+		 * @return list<string>
+		 */
+		private function aiScaffoldUnfillableColumns(array $plan): array {
+			$titles = [];
+
+			foreach ((array)($plan["form_fields"] ?? []) as $field) {
+				if (!FieldTypeDomain::isSettable((string)($field["type"] ?? ""))) {
+					$titles[] = "“" . (string)($field["title"] ?? $field["column"] ?? "") . "”";
+				}
+			}
+
+			return array_values(array_unique($titles));
+		}
+
+		/** "A", "A and B", "A, B and C" — the list wording every AI seam here uses. */
+		private function aiJoinList(array $items): string {
+			if (count($items) < 2) {
+
+				return (string)($items[0] ?? "");
+			}
+
+			$last = array_pop($items);
+
+			return implode(", ", $items) . " and " . $last;
+		}
+
+		/**
+		 * The caps POST /modules/scaffold declares (routes/modules.php). `table` and
+		 * `route` flow into DDL and URLs, so scaffoldPlan re-checks those itself; the
+		 * other three were enforced only by the router — and the AI path never goes
+		 * through the router (audit #12 A6). They land in the JSON DB rather than a
+		 * varchar so nothing truncates, but a 900-character module name breaks the
+		 * admin navigation, and every other tool mirrors its route's caps at staging
+		 * *and* approval.
+		 */
+		private const AI_SCAFFOLD_MAX_LENGTHS = [
+			"name" => 255,
+			"item_title" => 255,
+			"view_title" => 255,
+			"route" => 127,
+			"table" => 64,
+		];
+
+		/**
+		 * The first over-length scaffold value, as a recoverable error.
+		 *
+		 * @param array<string,mixed> $body A scaffold body in POST /modules/scaffold's shape.
+		 */
+		private function aiScaffoldLengthError(array $body): ?string {
+			foreach (self::AI_SCAFFOLD_MAX_LENGTHS as $field => $max) {
+				$length = mb_strlen(trim((string)($body[$field] ?? "")));
+
+				if ($length > $max) {
+
+					return "The module's {$field} is {$length} characters, but it holds at most {$max}. "
+						. "Shorten it and try again.";
+				}
+			}
+
+			return null;
 		}
 
 		/**
@@ -2326,13 +2856,16 @@
 
 		public static function uniqueModuleActionRoute($module, $route, $action = false) {
 			$module = BigTreeJSONDB::get("modules", $module);
+			// A module with no actions yet is the normal state for the first action a
+			// scaffold inserts, not an error — it just has nothing to collide with.
+			$actions = is_array($module["actions"] ?? null) ? $module["actions"] : [];
 			$oroute = $route;
 			$x = 2;
 
 			do {
 				$exists = false;
 
-				foreach ($module["actions"] as $module_action) {
+				foreach ($actions as $module_action) {
 					if ($module_action["id"] != $action && $module_action["route"] == $route) {
 						$exists = true;
 						$route = $oroute."-".$x;

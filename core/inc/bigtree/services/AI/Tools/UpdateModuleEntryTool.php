@@ -52,7 +52,8 @@
 								. "file that is already in the Files library (get_module_entry names the file each "
 								. "reference currently points at under entry_references); a relationship field takes a "
 								. "list of entry ids (e.g. [\"12\", \"15\"]) — get_module_entry lists the ids each one "
-								. "currently holds under related. Each value REPLACES the whole field, so never supply "
+								. "currently holds under related, and get_relation_options lists the rows it can be "
+								. "linked to. Each value REPLACES the whole field, so never supply "
 								. "a value you only saw in truncated form — get_module_entry lists those in "
 								. "fields_truncated.",
 							// A relationship field's value is a list of ids, so a string is

@@ -65,6 +65,38 @@
 				CalloutService::class, "aiCreateCalloutGroup",
 				['BigTreeJSONDB::exists("callouts"', "aiRemoveCalloutFromGroups"],
 			],
+			// Audit #12 A3: the same module group, on the tool the name-keyed
+			// enumeration below never asked. It files a module under a group exactly as
+			// create_module does — and was written four audits *after* that defect was
+			// found and fixed on create_module, because "scaffold_module" is neither a
+			// create_* nor a move_*.
+			"scaffold_module" => [ModuleService::class, "aiScaffoldModule", ['BigTreeJSONDB::exists("module-groups"']],
+		];
+	}
+
+	/**
+	 * Mutating tools that act on a record that already exists, so there is no
+	 * container to re-read — the third answer, alongside "re-validates one" and
+	 * "references none".
+	 *
+	 * Most targeted mutations answer this by appearing in
+	 * `AISurfaceGuardTest::ai_surface_fingerprinted()`, which is a stronger statement:
+	 * they stamp the target's fingerprint at staging and refuse a stale edit. These
+	 * are the ones that don't fingerprint — each names why the act itself carries no
+	 * new reference.
+	 *
+	 * @return array<string,string>
+	 */
+	function ai_approval_referential_targeted(): array {
+
+		return [
+			"archive_page" => "flips a flag on a page it names; the page itself is re-read at approval",
+			"unarchive_page" => "flips a flag on a page it names; the page itself is re-read at approval",
+			"save_page_revision" => "snapshots the page it names — the snapshot references nothing else",
+			"restore_page_revision" => "replays a stored snapshot onto the page it came from",
+			"add_tags" => "attaches tag names to a page or entry it names; a missing tag is coined, not filed",
+			"remove_tags" => "detaches tag names from a page or entry it names",
+			"merge_tags" => "rewrites tag rows in place; both sides are re-read at approval",
 		];
 	}
 
@@ -114,19 +146,37 @@
 	}
 
 	/**
-	 * The enumeration leg: no create/move tool escapes the decision.
+	 * The enumeration leg: no tool that files a new record escapes the decision.
 	 *
-	 * Every mutating tool named create_* or move_* must either be in the referential
-	 * map (it re-validates a container) or in the exemption list (it references none).
-	 * A new one that is neither fails here — the split A1–A3 closed can't silently
-	 * reopen the next time a create tool lands.
+	 * This used to enumerate *by name* — "every mutating tool called create_* or
+	 * move_*" — which is a guess about what a tool does dressed as a rule about what
+	 * it is called. `scaffold_module` is named neither, so the one tool in the
+	 * catalogue with the least reversible write was the one tool the referential
+	 * contract never asked about, and audit #12 A3 found it filing a module under an
+	 * unresolved, never-re-checked group id: exactly the defect audit #8 A2 had
+	 * already found and fixed on `create_module`.
+	 *
+	 * So it enumerates by behaviour instead, and from the other end. Every mutating
+	 * tool is one of four things, and it must say which:
+	 *
+	 *   - referential-mapped — it files into a container it re-reads at approval;
+	 *   - exempt — it creates something that references no container;
+	 *   - fingerprinted — it targets an existing row, and stamps that row's
+	 *     fingerprint (AISurfaceGuardTest's own map, reused rather than restated);
+	 *   - targeted — it acts on an existing record without fingerprinting, with the
+	 *     reason written down.
+	 *
+	 * A new tool of any shape fails here until someone decides which.
 	 */
-	function test_every_create_or_move_tool_is_classified() {
+	function test_every_mutating_tool_is_referentially_classified() {
 		$registry = ai_wiring_registry();
 		$developer = ai_wiring_user(2);
 		$mapped = ai_approval_referential();
 		$exempt = ai_approval_referential_exempt();
+		$targeted = ai_approval_referential_targeted();
+		$fingerprinted = ai_surface_fingerprinted();
 		$unclassified = [];
+		$double = [];
 
 		foreach ($registry->availableTools($developer) as $tool) {
 			if ($tool->kind() === "read") {
@@ -135,29 +185,37 @@
 			}
 
 			$name = $tool->name();
+			$hits = (int)isset($mapped[$name]) + (int)isset($exempt[$name])
+				+ (int)isset($targeted[$name]) + (int)isset($fingerprinted[$name]);
 
-			if (!preg_match('/^(create|move)_/', $name)) {
-
-				continue;
-			}
-
-			if (!isset($mapped[$name]) && !isset($exempt[$name])) {
+			if ($hits === 0) {
 				$unclassified[] = $name;
+			} elseif ($hits > 1) {
+				$double[] = $name;
 			}
 		}
 
 		T::equals(
 			implode(", ", $unclassified),
 			"",
-			"every create/move tool is either referential-mapped or explicitly exempt"
+			"every mutating tool re-validates a container, references none, or targets an existing record"
+		);
+		T::equals(
+			implode(", ", $double),
+			"",
+			"and no tool is classified two ways at once"
 		);
 	}
 
-	/** Neither map may outlive the tools it describes. */
+	/** None of the three maps may outlive the tools it describes. */
 	function test_referential_maps_have_no_stale_entries() {
 		$dispatched = ai_wiring_dispatch_branches();
 		$stale = array_values(array_diff(
-			array_merge(array_keys(ai_approval_referential()), array_keys(ai_approval_referential_exempt())),
+			array_merge(
+				array_keys(ai_approval_referential()),
+				array_keys(ai_approval_referential_exempt()),
+				array_keys(ai_approval_referential_targeted())
+			),
 			$dispatched
 		));
 

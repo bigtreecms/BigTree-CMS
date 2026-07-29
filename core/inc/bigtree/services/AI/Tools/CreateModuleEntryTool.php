@@ -45,7 +45,8 @@
 								. "image, file or video reference field takes the numeric id of a file that is already in "
 								. "the Files library (find one with search_files or list_resources); a relationship field "
 								. "takes a list of entry ids in the field's own table (e.g. [\"12\", \"15\"]) — find them "
-								. "with list_module_entries or search_module_entries. Composite fields — matrices, "
+								. "with get_relation_options, which lists exactly that field's linkable rows. "
+								. "Composite fields — matrices, "
 								. "callouts, media galleries — can't be set here.",
 							// A relationship field's value is a list of ids, so a string is
 							// not the only shape this object carries (audit #11 B2).

@@ -68,7 +68,7 @@
 			if ($ids === null) {
 
 				return ["error" => "“{$title}” takes a list of entry ids — for example [12, 15]. Find them with "
-					. "list_module_entries or search_module_entries."];
+					. "get_relation_options, which lists this field's own linkable rows."];
 			}
 
 			$bounded = self::boundsViolation($title, $settings, $ids);
@@ -119,7 +119,7 @@
 			if ($ids === null) {
 
 				return ["error" => "“{$title}” takes a list of entry ids — for example [12, 15]. Find them with "
-					. "list_module_entries or search_module_entries."];
+					. "get_relation_options, which lists this field's own linkable rows."];
 			}
 
 			$bounded = self::boundsViolation($title, $settings, $ids);
@@ -249,7 +249,7 @@
 
 				return "names " . (count($unknown) === 1 ? "an entry" : "entries") . " that "
 					. (count($unknown) === 1 ? "doesn't" : "don't") . " exist ("
-					. implode(", ", $unknown) . "). Find real ids with list_module_entries.";
+					. implode(", ", $unknown) . "). Find real ids with get_relation_options.";
 			}
 
 			if ($hidden) {

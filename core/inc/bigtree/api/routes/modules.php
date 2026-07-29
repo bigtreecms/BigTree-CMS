@@ -40,6 +40,8 @@
 				"item_title" => "string|max:255",
 				"view_title" => "string|max:255",
 				"view_type" => "string|max:32",
+				"tagging" => "bool",
+				"open_graph" => "bool",
 			],
 			"allow_unknown" => true,
 			"audit" => ["table" => "modules", "type" => "created", "entry" => "%id%"],

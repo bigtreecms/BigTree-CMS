@@ -3321,6 +3321,13 @@
 				"table" => $resolved["table"],
 				"fields" => $fields,
 				"blocked_required" => $resolved["blocked_required"],
+				// Whether this form carries the two features an entry write can touch
+				// beyond its own columns. Both are per-form switches, and a write to
+				// either is refused on a form that doesn't have it — so the model needs
+				// to read them before it proposes, not learn them from a refusal. They
+				// are also what scaffold_module now sets (audit #12 A5/D6).
+				"tagging" => !empty($resolved["form"]["tagging"]),
+				"open_graph" => !empty($resolved["form"]["open_graph"]),
 				"group_column" => $group_column,
 				"group_column_note" => $group_column !== ""
 					? "This module uses group-based permissions keyed on \"{$group_column}\". Every entry must "
@@ -3347,6 +3354,118 @@
 					: "",
 				"your_access_level" => PermissionService::userModuleLevel($user, (string)$module["id"]),
 			]];
+		}
+
+		/** The most relation candidates one lookup hands back. */
+		private const AI_RELATION_OPTION_CAP = 50;
+
+		/**
+		 * The rows a relation field can be filed against: id and label, from the
+		 * field's *own* target table.
+		 *
+		 * Audit #12 B1. Audit #11 B2 made `one-to-many` and `many-to-many` writable by
+		 * entry id and nothing in the catalogue could produce the ids. A relation's
+		 * target is `settings["table"]` / `settings["mtm-other-table"]`, which is not
+		 * required to be any module's table and in practice usually isn't one
+		 * (`categories`, `regions`, `staff_types`) — so list_module_entries, which
+		 * takes a module id and resolves the table through a form, could never reach
+		 * it. The capability worked only when the target happened to belong to a module
+		 * the actor could view, and nothing maps a table back to a module for the model
+		 * to find out.
+		 *
+		 * Gated at module `v` — the same gate get_module_schema already passes to read
+		 * the field in the first place — and bounded like every other listing seam.
+		 *
+		 * @param object|array|null $user
+		 * @return array<string,mixed>
+		 */
+		public function aiRelationOptions(string $module_id, string $form_id, string $column, string $query, int $limit, int $offset, $user): array {
+			$resolved = $this->aiResolveModuleForm($module_id, $form_id);
+
+			if (isset($resolved["error"]) || !empty($resolved["ambiguous_form"])) {
+
+				return $resolved;
+			}
+
+			$module = $resolved["module"];
+
+			if (!PermissionService::userHasModuleAccess($user, (string)$module["id"], "v")) {
+
+				return ["denied" => "You do not have permission to view this module."];
+			}
+
+			$column = trim($column);
+			$field = null;
+
+			foreach ((array)($resolved["form"]["fields"] ?? []) as $candidate) {
+				if ((string)($candidate["column"] ?? "") === $column) {
+					$field = is_array($candidate) ? $candidate : null;
+
+					break;
+				}
+			}
+
+			if ($field === null) {
+
+				return ["error" => "This form has no field called \"{$column}\". get_module_schema lists the columns "
+					. "this module's entries have."];
+			}
+
+			$type = (string)($field["type"] ?? "");
+
+			if ($type !== "one-to-many" && $type !== "many-to-many") {
+
+				return ["error" => "\"{$column}\" is a {$type} field, not a relationship field — there is no list of "
+					. "entries to choose from. get_module_schema says what it accepts."];
+			}
+
+			$limit = max(1, min(self::AI_RELATION_OPTION_CAP, $limit));
+			$offset = max(0, $offset);
+
+			// The same seam the admin's own relation picker reads through, so the rows
+			// the model is offered are the rows a person would be offered. It validates
+			// the field's identifiers against a real describeTable and refuses a
+			// half-configured field by throwing — which is a recoverable error here,
+			// not a 400 at the top of a request.
+			//
+			// One row past the window, so `has_more` is a fact about the table rather
+			// than about the page size — the filter-before-cap treatment audit #7 D1
+			// gave every other listing seam.
+			try {
+				$options = (new ModuleFormService())->relationOptionsFor($field, $column, [
+					"q" => $query,
+					"limit" => $limit + 1,
+					"offset" => $offset,
+				]);
+			} catch (\Throwable $e) {
+
+				return ["error" => "\"{$column}\" can't be listed: " . $e->getMessage()
+					. ". A developer has to finish the field in Developer → Modules → Module Designer."];
+			}
+
+			$items = is_array($options["items"] ?? null) ? $options["items"] : [];
+			$more = count($items) > $limit;
+
+			return [
+				"module" => [
+					"id" => (string)$module["id"],
+					"name" => (string)($module["name"] ?? $module["id"]),
+				],
+				"form" => (string)($resolved["form"]["id"] ?? ""),
+				"column" => $column,
+				"relation_type" => $type,
+				"title" => (string)($field["title"] ?? $column),
+				"limit" => $limit,
+				"offset" => $offset,
+				"has_more" => $more,
+				// {id, title} pairs. The id is what create_module_entry and
+				// update_module_entry take for this column.
+				"options" => array_slice($items, 0, $limit),
+				"note" => $more
+					? "More rows match than are shown — narrow the list with `query`, or read the next page with "
+						. "`offset` " . ($offset + $limit) . "."
+					: "",
+			];
 		}
 
 		/**

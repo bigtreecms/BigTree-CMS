@@ -222,12 +222,14 @@
 			"modules/entries/archive" => "set_module_entry_flag",
 			"modules/entries/feature" => "set_module_entry_flag",
 			"modules/entries/reorder" => "declined: reordering module entries",
-			// The lookups behind the admin's own relation and list pickers. They are
-			// reads, and the assistant resolves both server-side: a `list` field's
-			// options arrive on the schema through FieldOptionDomain, and a relation's
-			// candidate rows through list_module_entries against the field's own table.
+			// The lookups behind the admin's own relation and list pickers. A `list`
+			// field's options arrive on the schema through FieldOptionDomain; a
+			// relation's candidate rows need a tool of their own, because the target
+			// table belongs to the *field*, not to any module (audit #12 B1). This line
+			// used to name list_module_entries, which cannot reach that table — an
+			// assertion about a capability that did not exist.
 			"modules/forms/list-options" => "get_module_schema",
-			"modules/forms/relation-options" => "list_module_entries",
+			"modules/forms/relation-options" => "get_relation_options",
 			// Audit #11 C1: the endpoint that builds a module's table, form and view.
 			// Declined until the assistant could stage the whole plan for approval.
 			"modules/scaffold" => "scaffold_module",
@@ -474,7 +476,7 @@
 			"modules/entries/archive" => "set_module_entry_flag",
 			"modules/entries/approve" => "set_module_entry_flag",
 			"modules/entries/feature" => "set_module_entry_flag",
-			"modules/forms/relation-options" => "list_module_entries",
+			"modules/forms/relation-options" => "get_relation_options",
 			"modules/forms/list-options" => "get_module_schema",
 			"pages/revisions/restore" => "restore_page_revision",
 			"modules/scaffold" => "scaffold_module",

@@ -48,6 +48,17 @@
 		 */
 		public function aiListEntries(string $module_id, string $form_id, int $limit, int $offset, $user): array;
 
+		/**
+		 * The rows a relationship field can be filed against — id and label, from the
+		 * field's own target table rather than from any module. Returns denied | error
+		 * | ["ambiguous_form" => true, "forms" => [...]] | the option window plus
+		 * `has_more`.
+		 *
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 */
+		public function aiRelationOptions(string $module_id, string $form_id, string $column, string $query, int $limit, int $offset, $user): array;
+
 		public function aiValidateEntryCreate(array $args, $user): array;
 
 		/**

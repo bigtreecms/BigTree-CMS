@@ -196,7 +196,7 @@
 		$prose = RelationDomain::resolveOneToMany($field, ["the blue one"], (object)["level" => 2, "id" => 1]);
 		T::ok(isset($prose["error"]), "a relation named in prose is refused");
 		T::ok(
-			strpos((string)$prose["error"], "list_module_entries") !== false,
+			strpos((string)$prose["error"], "get_relation_options") !== false,
 			"and says where the ids come from"
 		);
 

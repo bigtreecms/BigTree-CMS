@@ -32,6 +32,7 @@
 	use BigTree\Services\AI\Tools\GetTemplateTool;
 	use BigTree\Services\AI\Tools\GetModuleTool;
 	use BigTree\Services\AI\Tools\GetModuleSchemaTool;
+	use BigTree\Services\AI\Tools\GetRelationOptionsTool;
 	use BigTree\Services\AI\Tools\CreateTemplateTool;
 	use BigTree\Services\AI\Tools\UpdateTemplateTool;
 	use BigTree\Services\AI\Tools\ListResourcesTool;
@@ -522,6 +523,7 @@
 			$registry->register(new GetModuleTool($modules));
 			$registry->register(new GetModuleSchemaTool($entries));
 			$registry->register(new ListModuleEntriesTool($entries));
+			$registry->register(new GetRelationOptionsTool($entries));
 			$registry->register(new GetPendingChangeTool($pending));
 			$registry->register(new GetCalloutTool($callouts));
 			$registry->register(new ListCalloutsTool($callouts));

@@ -140,6 +140,10 @@
 			"scaffold_module" => [
 				"name" => "get_module", "route" => "get_module", "group" => "get_module",
 				"icon" => "get_module", "table" => "get_module_schema", "fields" => "get_module_schema",
+				// Audit #12 A5/D6: two per-form switches the scaffold sets, reported on
+				// the schema alongside the fields — an entry write to either is refused
+				// on a form that lacks it, so the model has to be able to read them.
+				"tagging" => "get_module_schema", "open_graph" => "get_module_schema",
 				"view_type" => "exempt: a landing-view shape, and views are the Module Designer's surface",
 				"item_title" => "exempt: the form's own title, set once at build time",
 				"view_title" => "exempt: the landing view's own title, set once at build time",

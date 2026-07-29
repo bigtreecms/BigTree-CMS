@@ -75,10 +75,26 @@
 										"type" => "string",
 										"description" => "Optional help text shown under the field's label.",
 									],
+									"required" => [
+										"type" => "boolean",
+										"description" => "Whether an entry must fill this field in. The one "
+											. "validation rule the assistant sets — a module scaffolded without "
+											. "it has no integrity constraints at all, so empty entries save "
+											. "cleanly.",
+									],
+									"options" => [
+										"type" => "array",
+										"items" => ["type" => "string"],
+										"description" => "The choices for a `list` field, e.g. [\"Small\", "
+											. "\"Medium\", \"Large\"]. Required for a list field — one with no "
+											. "choices renders as an empty select nobody can satisfy.",
+									],
 									"settings" => [
 										"type" => "object",
-										"description" => "Optional per-field settings (a list field's options, an "
-											. "image field's directory, and so on).",
+										"description" => "Optional per-field settings for the types that need "
+											. "configuring: a one-to-many's `table` and `title_column`, a "
+											. "many-to-many's `mtm-*` keys, an image field's `directory`. A list "
+											. "field's choices go in `options` above.",
 									],
 								],
 								"required" => ["title", "type"],
@@ -95,7 +111,8 @@
 						],
 						"group" => [
 							"type" => "string",
-							"description" => "Optional module-group id to file the module under.",
+							"description" => "Optional module group to file the module under — its id or its name "
+								. "(e.g. \"Content\"). You'll be asked which one you meant if it doesn't match.",
 						],
 						"icon" => [
 							"type" => "string",
@@ -115,6 +132,18 @@
 							"type" => "string",
 							"description" => "Plural noun for the landing view (\"Press Releases\"). Derived from "
 								. "the module name when omitted.",
+						],
+						"tagging" => [
+							"type" => "boolean",
+							"description" => "Whether entries can be tagged. Off by default; turn it on when the "
+								. "module's entries should be taggable, since add_tags and create_module_entry's "
+								. "`tags` only work on a form that has it.",
+						],
+						"open_graph" => [
+							"type" => "boolean",
+							"description" => "Whether entries carry Open Graph fields (social title, description, "
+								. "image). Off by default; create_module_entry's og_* arguments only work on a form "
+								. "that has it.",
 						],
 						"actions" => [
 							"type" => "object",

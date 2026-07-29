@@ -270,10 +270,35 @@
 			"matrix" => ["columns"],
 			"one-to-many" => ["table", "title_column"],
 			"list" => ["list"],
+			// Audit #12 A2. `many-to-many` doesn't live in a column at all — it is a
+			// connecting table and two id columns — and none of its settings_schema
+			// descriptors is marked `required`, so the schema-derived leg below finds
+			// nothing to insist on. An m2m with empty settings authored clean, rendered
+			// as nothing, and RelationDomain then refused to write into it.
+			"many-to-many" => [
+				"mtm-connecting-table",
+				"mtm-my-id",
+				"mtm-other-id",
+				"mtm-other-table",
+				"mtm-other-descriptor",
+			],
 		];
 
 		/** How a surface name maps onto a field-type schema's use case. */
-		private const SURFACE_USE_CASES = ["template" => "templates", "callout" => "callouts"];
+		private const SURFACE_USE_CASES = [
+			"template" => "templates",
+			"callout" => "callouts",
+			// Audit #12 A2: the module surface, where scaffold_module authors a form's
+			// field list exactly as create_template authors a template's.
+			"module" => "modules",
+		];
+
+		/** Where a human finishes a field the assistant refused to author half-configured. */
+		private const SURFACE_EDITORS = [
+			"template" => "Developer → Templates",
+			"callout" => "Developer → Callouts",
+			"module" => "Developer → Modules → Module Designer",
+		];
 
 		/**
 		 * Reject any proposed field that would be stored incompletely — either because
@@ -356,7 +381,7 @@
 				return null;
 			}
 
-			$where = $surface === "callout" ? "Developer → Callouts" : "Developer → Templates";
+			$where = self::SURFACE_EDITORS[$surface] ?? self::SURFACE_EDITORS["template"];
 
 			return "A " . implode(" and ", array_unique($bad)) . " field needs structured configuration the "
 				. "assistant can't author — it would render as nothing in the editor. Add "
@@ -493,11 +518,17 @@
 		 * configuration that belongs to the admin field editor, and a field that needs
 		 * one is refused rather than written half-configured.
 		 *
+		 * The module surface is the one exception, and it is deliberate rather than
+		 * loose: `scaffold_module` declares a per-field `settings` object and writes it
+		 * onto the form field, so what the completeness gate above checks has to be
+		 * what the scaffold will actually store. Templates and callouts declare no such
+		 * argument, so the narrow rule stands there.
+		 *
 		 * @param array $field One raw AI-proposed field.
 		 * @return array The settings array for a newly created field.
 		 */
-		private static function aiFieldSettings(array $field, string $type = "", string $surface = "template"): array {
-			$settings = [];
+		public static function aiFieldSettings(array $field, string $type = "", string $surface = "template"): array {
+			$settings = $surface === "module" && is_array($field["settings"] ?? null) ? $field["settings"] : [];
 			$required = $field["required"] ?? false;
 
 			if (is_string($required)) {
@@ -510,7 +541,20 @@
 				$settings["validation"] = "required";
 			}
 
-			$options = self::aiListOptions($field["options"] ?? null);
+			// A static list's choices, from either place the model can put them: the
+			// `options` argument every field-authoring tool declares, or — on the
+			// module surface, which passes a whole settings object through — the
+			// `list` setting itself. Normalizing both matters because the gate above
+			// only asks whether the setting is non-empty: a raw ["Small", "Large"]
+			// satisfied it and then stored rows the Select can't read (audit #12 A2).
+			$supplied = $field["options"] ?? null;
+			$list_type = (string)($settings["list_type"] ?? "");
+
+			if ($supplied === null && ($list_type === "" || $list_type === "static")) {
+				$supplied = $settings["list"] ?? null;
+			}
+
+			$options = self::aiListOptions($supplied);
 
 			if ($options) {
 				$settings["list_type"] = "static";

@@ -141,6 +141,34 @@
 		public function relationOptions(Request $request) {
 			[, , $field, $column] = $this->requireFormField($request);
 
+			return Response::ok($this->relationOptionsFor($field, $column, [
+				"entry" => $request->queryString("entry"),
+				"q" => $request->queryString("q"),
+				"ids" => $request->queryString("ids", "", false),
+			]));
+		}
+
+		/**
+		 * The relation lookup itself, with the Request lifted out (audit #12 B1).
+		 *
+		 * Both callers need exactly this: the SPA's relation picker, and the
+		 * assistant's get_relation_options — which exists because audit #11 B2 made
+		 * relation fields *writable* by entry id while nothing in the catalogue could
+		 * enumerate the ids. A relation's target is `settings["table"]` /
+		 * `settings["mtm-other-table"]`, which is usually a plain lookup table no
+		 * module owns, so list_module_entries could never reach it.
+		 *
+		 * The identifiers here come from the field definition and are validated against
+		 * a real describeTable before any of them reaches SQL — the same reason
+		 * RelationDomain builds its descriptor from the field rather than the model.
+		 *
+		 * @param array<string,mixed> $field  The form field, as stored.
+		 * @param string $column              Its column, for error wording.
+		 * @param array<string,mixed> $params entry / q / ids in the query string's shape,
+		 *                                    plus an optional limit / offset window.
+		 * @return array{items:list<array{id:int,title:string}>,relation:array{type:string,sortable:bool}}
+		 */
+		public function relationOptionsFor(array $field, string $column, array $params): array {
 			$type = (string)($field["type"] ?? "");
 
 			if ($type !== "one-to-many" && $type !== "many-to-many") {
@@ -183,7 +211,7 @@
 			// descriptor when the configured sort references a missing column.
 			$order_by = \BigTree\Api\Sanitize::orderClause($sort, $schema["columns"], $descriptor);
 
-			$entry_raw = $request->queryString("entry");
+			$entry_raw = (string)($params["entry"] ?? "");
 
 			// "Currently linked" mode (MTM only). Query the connecting table to
 			// discover which `other-id`s the entry already has — preserves the
@@ -218,10 +246,8 @@
 				) ?: [];
 
 				if (empty($other_ids)) {
-					return Response::ok([
-						"items" => [],
-						"relation" => ["type" => $type, "sortable" => $sortable],
-					]);
+
+					return ["items" => [], "relation" => ["type" => $type, "sortable" => $sortable]];
 				}
 
 				$other_ids = array_values(array_map("intval", $other_ids));
@@ -247,23 +273,20 @@
 					}
 				}
 
-				return Response::ok([
-					"items" => $items,
-					"relation" => ["type" => $type, "sortable" => $sortable],
-				]);
+				return ["items" => $items, "relation" => ["type" => $type, "sortable" => $sortable]];
 			}
 
 			$where = [];
-			$params = [];
+			$bindings = [];
 
-			$q = $request->queryString("q");
+			$q = (string)($params["q"] ?? "");
 
 			if ($q !== "") {
 				$where[] = "`$descriptor` LIKE ?";
-				$params[] = "%" . $q . "%";
+				$bindings[] = "%" . $q . "%";
 			}
 
-			$ids_raw = $request->queryString("ids", "", false);
+			$ids_raw = (string)($params["ids"] ?? "");
 
 			if ($ids_raw !== "") {
 				$ids = [];
@@ -278,24 +301,31 @@
 
 				if (empty($ids)) {
 					// Asked for specific ids, all invalid — no rows match.
-					return Response::ok([
-						"items" => [],
-						"relation" => ["type" => $type, "sortable" => $sortable],
-					]);
+
+					return ["items" => [], "relation" => ["type" => $type, "sortable" => $sortable]];
 				}
 
 				$placeholders = \BigTree\Api\Sanitize::placeholders($ids);
 				$where[] = "`id` IN ($placeholders)";
 
 				foreach ($ids as $id) {
-					$params[] = $id;
+					$bindings[] = $id;
 				}
 			}
 
 			$where_sql = $where ? "WHERE " . implode(" AND ", $where) : "";
+			// The picker takes the whole first page of a lookup table; a caller that
+			// pages (the assistant, which has to fit its window into a tool result)
+			// asks for its own. Cast rather than bound because LIMIT takes no
+			// placeholder in this driver — and an int cast is exactly as safe.
 			$limit = $ids_raw !== "" ? "" : "LIMIT 250";
+
+			if ($ids_raw === "" && isset($params["limit"])) {
+				$limit = "LIMIT " . max(0, (int)($params["offset"] ?? 0)) . ", " . max(1, (int)$params["limit"]);
+			}
+
 			$sql = "SELECT `id`, `$descriptor` AS `title` FROM `$table` $where_sql ORDER BY $order_by $limit";
-			$rows = SQL::fetchAll($sql, ...$params);
+			$rows = SQL::fetchAll($sql, ...$bindings);
 
 			$items = array_map(function ($row) {
 
@@ -305,13 +335,13 @@
 				];
 			}, $rows ?: []);
 
-			return Response::ok([
+			return [
 				"items" => $items,
 				"relation" => [
 					"type" => $type,
 					"sortable" => $sortable,
 				],
-			]);
+			];
 		}
 
 		/**

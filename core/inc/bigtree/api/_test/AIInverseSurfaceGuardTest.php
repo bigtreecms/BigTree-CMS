@@ -43,6 +43,10 @@
 			"delete_module_entry" => [\BigTree\Services\AutoModuleService::class, "aiValidateEntryDelete"],
 			"create_redirect" => [\BigTree\Services\FourOhFourService::class, "aiValidateRedirectCreate"],
 			"create_module" => [\BigTree\Services\ModuleService::class, "aiValidateModuleCreate"],
+			// Audit #12 C1/E3: absent since the tool landed, which is why nothing asked
+			// the scaffold whether it declared the arguments it reads — or, through the
+			// field-authoring contract that stands on this map, whether it gated them.
+			"scaffold_module" => [\BigTree\Services\ModuleService::class, "aiValidateModuleScaffold"],
 			"update_module" => [\BigTree\Services\ModuleService::class, "aiValidateModuleUpdate"],
 			"create_module_group" => [\BigTree\Services\ModuleService::class, "aiValidateModuleGroupCreate"],
 			"publish_pending_change" => [\BigTree\Services\PendingChangeService::class, "aiValidatePublishChange"],
@@ -201,6 +205,21 @@
 					"gbp" => "group-based permissions",
 				],
 			],
+			// Audit #12 C2. A full body map with no entry here, so `class` and `gbp`
+			// were unclassified and the capabilities A4/A5 found missing were never put
+			// to anyone as a decision. Audit #9's E2 leg made this map mandatory for
+			// action routes with bodies; a whole new route family with a body still
+			// slipped in, which is what the leg below now closes.
+			"POST /modules/scaffold" => [
+				"tools" => ["scaffold_module"],
+				"exempt" => [
+					"class" => "the scaffold deliberately writes no class; the Module Designer owns creating one, "
+						. "and create_module refuses to wire a module to one that doesn't exist",
+				],
+				"declined" => [
+					"gbp" => "group-based permissions",
+				],
+			],
 			"POST /module-groups" => [
 				"tools" => ["create_module_group"],
 				"exempt" => [
@@ -219,6 +238,27 @@
 			],
 			"POST /404s" => [
 				"tools" => ["create_redirect"],
+			],
+			// Setting a redirect on a logged 404 rather than coining one: same act, and
+			// create_redirect expresses the destination as `to`. Surfaced by the E6 leg
+			// below (audit #12 C2) — a body map with no entry, on a route the family
+			// contract already called covered.
+			"POST /404s/{id:int}/redirect" => [
+				"tools" => ["create_redirect"],
+				"exempt" => [
+					"url" => "create_redirect names the destination `to`, and the 404 being redirected is named by "
+						. "`from` rather than by row id",
+				],
+			],
+			// The semantic search endpoint behind semantic_search, which takes the same
+			// two things under the names every read tool uses.
+			"POST /search/ai" => [
+				"tools" => ["semantic_search"],
+				"exempt" => [
+					"q" => "the tool names it `query`, as every other search tool does",
+					"limit" => "the read tools' shared window argument, applied from the tool context rather than "
+						. "declared per tool",
+				],
 			],
 			"POST /tags" => [
 				"tools" => ["add_tags"],
@@ -306,6 +346,54 @@
 			implode(", ", $unaccounted),
 			"",
 			"every write route's body fields are settable by a tool, exempt with a reason, or declined by name"
+		);
+	}
+
+	/**
+	 * Audit #12 C2/E6: the body contract is not optional.
+	 *
+	 * Every route classified COVERED by the route-family contract that declares a
+	 * `body` map must have an entry above. `POST /modules/scaffold` had a twelve-field
+	 * body and no entry for a whole audit cycle — so the fields it accepts were never
+	 * put to anyone as settable, exempt or declined, which is the decision this map
+	 * exists to force. Being in one contract and absent from the other is precisely
+	 * the state that reads as "checked".
+	 */
+	function test_every_covered_route_with_a_body_map_is_classified() {
+		$contracts = ai_inverse_body_contracts();
+		$missing = [];
+
+		foreach (ai_contract_covered() as $family => $coverage) {
+			foreach (ai_contract_route_families()[$family] ?? [] as $endpoint) {
+				$verb = strtok($endpoint, " ");
+
+				if (!in_array($verb, ai_contract_write_verbs(), true)) {
+
+					continue;
+				}
+
+				// A per-verb map can decline the very verb whose body would need
+				// classifying; a declined endpoint has no capability to describe.
+				$named = is_array($coverage) ? (string)($coverage[$verb] ?? "") : (string)$coverage;
+
+				if ($named === "" || strpos($named, "declined:") === 0) {
+
+					continue;
+				}
+
+				if (isset($contracts[$endpoint]) || ai_inverse_route_body($endpoint) === []) {
+
+					continue;
+				}
+
+				$missing[] = $endpoint;
+			}
+		}
+
+		T::equals(
+			implode(", ", array_unique($missing)),
+			"",
+			"every covered write route that declares a body map is classified field by field"
 		);
 	}
 

@@ -96,8 +96,10 @@
 			}
 
 			// Settable despite an `array` value_type: the array holds row ids the
-			// assistant already reads out of list_module_entries, and RelationDomain is
-			// the resolver every seam validates them through (audit #11 B2).
+			// assistant reads out of get_relation_options — the field's own target
+			// table, which audit #12 B1 added because it is usually not a module's —
+			// and RelationDomain is the resolver every seam validates them through
+			// (audit #11 B2).
 			if (in_array($type, self::RELATION_TYPES, true)) {
 
 				return "";
