@@ -29,16 +29,26 @@
 			["column" => "title", "type" => "text", "title" => "Title", "settings" => ["required" => "on"]],
 			["column" => "blurb", "type" => "textarea", "title" => "Blurb", "settings" => []],
 			["column" => "hero", "type" => "upload", "title" => "Hero Image", "settings" => ["required" => "on"]],
+			["column" => "blocks", "type" => "matrix", "title" => "Blocks", "settings" => ["required" => "on"]],
+			// Settable since audit #11: an image reference is a file id the assistant
+			// can look up, and a relationship is a list of entry ids — neither is a
+			// gap a human has to fill, so neither belongs in blocked_required.
+			["column" => "photo", "type" => "image-reference", "title" => "Photo", "settings" => ["required" => "on"]],
 			["column" => "related", "type" => "many-to-many", "title" => "Related", "settings" => ["required" => "on"]],
 		]];
 
 		$blocked = ai_gate_invoke($svc, "aiRequiredUnsettableFields", [$form]);
 
-		T::equals(count($blocked), 2, "both required complex fields flagged");
+		T::equals(count($blocked), 2, "both required unauthorable fields flagged");
 		T::ok(strpos($blocked[0], "Hero Image") !== false, "flags the upload by title");
 		T::ok(strpos($blocked[0], "hero") !== false, "names the column");
 		T::ok(strpos($blocked[0], "upload") !== false, "names the type");
-		T::ok(strpos($blocked[1], "Related") !== false, "flags the relationship field");
+		T::ok(strpos($blocked[1], "Blocks") !== false, "flags the matrix");
+		T::equals(
+			implode(" ", $blocked),
+			$blocked[0] . " " . $blocked[1],
+			"and nothing else — a reference or a relation is a lookup, not a gap"
+		);
 	}
 
 	/**

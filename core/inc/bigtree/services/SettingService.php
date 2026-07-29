@@ -10,6 +10,7 @@
 	use BigTree\Api\Exceptions\ConflictException;
 	use BigTree\Api\Exceptions\AuthorizationException;
 	use BigTree\Services\AI\Tools\SettingToolBackend;
+	use BigTree\Services\AI\FieldTypeDomain;
 	use BigTreeCMS;
 	use BigTreeJSONDB;
 	use BigTree;
@@ -557,21 +558,13 @@
 			];
 		}
 
-		// Setting field types the assistant must never author: they reference real
-		// uploaded files or carry structure a model would be guessing at. Mirrors the
-		// simple-scalar allowlists in PageService / AutoModuleService.
-		private const AI_UNSETTABLE_SETTING_TYPES = [
-			"upload", "image", "image-reference", "file-reference", "media-gallery",
-			"video", "video-reference", "matrix", "callouts", "one-to-many",
-			"many-to-many", "geocoding", "route",
-		];
-
-		// Types whose stored value is a plain scalar — an array is always wrong.
-		private const AI_SCALAR_SETTING_TYPES = [
-			"text", "textarea", "html", "htmleditor", "simple-editor", "code",
-			"number", "currency", "phone", "email", "color",
-			"date", "datetime", "time", "checkbox", "list", "link",
-		];
+		// Which setting types the assistant may author is derived from the field types'
+		// own declared taxonomy (FieldTypeDomain), not from a pair of hand-written
+		// lists. The lists that stood here were a blocklist and an allowlist that had
+		// to be kept in agreement with each other, with the two lists on
+		// PageService/AutoModuleService, and with reality — and were in agreement with
+		// none of the three: between them they named six types this CMS has never had,
+		// and `link` was settable here and refused on pages and entries (audit #11 A2).
 
 		/**
 		 * Validate (and where appropriate coerce) a proposed setting value against the
@@ -588,9 +581,11 @@
 			$type = (string)($def["type"] ?? "text");
 			$name = (string)($def["name"] ?? $def["id"] ?? "this setting");
 
-			if (in_array($type, self::AI_UNSETTABLE_SETTING_TYPES, true)) {
+			$refusal = FieldTypeDomain::refusal($type);
 
-				return ["error" => "“{$name}” is a {$type} setting — the assistant can't author that kind of value. "
+			if ($refusal !== "") {
+
+				return ["error" => "“{$name}” is a {$type} setting — {$refusal} "
 					. "Change it on the Settings screen in the admin."];
 			}
 
@@ -601,7 +596,9 @@
 				return ["error" => $rule_error];
 			}
 
-			if (in_array($type, self::AI_SCALAR_SETTING_TYPES, true) && (is_array($value) || is_object($value))) {
+			// Every settable type's value_type is `string` or `bool`, so a list or an
+			// object is always wrong for one.
+			if (is_array($value) || is_object($value)) {
 
 				return ["error" => "“{$name}” is a {$type} setting and expects a single value, not a list or object."];
 			}
@@ -611,14 +608,11 @@
 				return ["value" => (!empty($value) && $value !== "false") ? "on" : ""];
 			}
 
-			if ($type === "number" || $type === "currency") {
-				if (!is_numeric($value)) {
+			$bad_link = FieldTypeDomain::linkShapeViolation($name, $type, (string)$value);
 
-					return ["error" => "“{$name}” is a {$type} setting and expects a number — got \""
-						. $this->aiSettingPreviewValue($value) . "\"."];
-				}
+			if ($bad_link !== null) {
 
-				return ["value" => $value + 0];
+				return ["error" => $bad_link];
 			}
 
 			if ($type === "list") {
@@ -650,21 +644,15 @@
 				return ["value" => date($date_formats[$type], $stamp)];
 			}
 
-			if ($type === "email") {
-				$raw = trim((string)$value);
-
-				if ($raw !== "" && !filter_var($raw, FILTER_VALIDATE_EMAIL)) {
-
-					return ["error" => "“{$name}” is an email setting and \"{$raw}\" isn't a valid email address."];
-				}
-
-				return ["value" => $raw];
-			}
-
-			// Anything left is a scalar type with no enumerable domain (text, html…)
-			// or a type this build doesn't know about — store as given. Phone and
-			// colour are deliberately not policed: their formats are conventions
-			// rather than rules, and a false rejection is worse than a loose value.
+			// Anything left is a scalar type with no enumerable domain (text, textarea,
+			// html) — store as given.
+			//
+			// There were `number`/`currency` and `email` branches here until audit #11
+			// A3. They keyed off type ids this CMS has never had, so neither could ever
+			// run; what they read as was coverage. Email-ness is a `text` field's
+			// `sub_type` setting and numeric-ness is a `validation` rule, and both are
+			// enforced above by aiSettingRuleViolation, which reads the rule string the
+			// admin's own save reads. One mechanism, and it is the one that works.
 			return ["value" => $value];
 		}
 

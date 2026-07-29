@@ -76,9 +76,23 @@
 				// one place built to answer it.
 				"can_manage_callouts" => $level >= 2,
 				"can_manage_modules" => $level >= 2,
+				// Audit #11 C1: building a new module end to end (table, form, view) is
+				// a capability now, distinct from restructuring one that already exists,
+				// which stays admin-UI-only at every level.
+				"can_scaffold_modules" => $level >= 2,
 				// create_redirect is administrator-gated like the rest, but the map the
 				// SPA and the tests read had no key for it at all.
 				"can_create_redirects" => $level >= 1,
+				// Audit #11 B1. Two different answers that used to be one: the assistant
+				// can point a reference field at a file that already exists (a lookup
+				// against a library it can already enumerate), and cannot create one.
+				"can_attach_existing_files" => true,
+				"can_upload_files" => false,
+				// Audit #11 B2, and the same split one step further out: relating an
+				// entry to rows that already exist is a lookup against ids the
+				// assistant reads from list_module_entries. Building the *structure*
+				// those rows live in — a matrix, a callout, a gallery — is not.
+				"can_relate_entries" => true,
 			];
 		}
 
@@ -100,8 +114,13 @@
 		public static function outOfScope(): array {
 
 			return [
-				"Uploading or managing files, images and video" =>
-					"the Files section, or the upload field on the page or entry itself",
+				// Narrowed in audit #11 B1: the assistant still cannot put a file *into*
+				// the library, but it can point a reference field at one that is already
+				// there, which is what "attach the logo" actually asks for.
+				"Uploading files, images and video, or managing resources" =>
+					"the Files section, or the upload field on the page or entry itself — the assistant can "
+						. "attach a file that is already in the Files library to an image, file or video "
+						. "reference field, but cannot upload a new one",
 				"Managing resource folders" => "the Files section",
 				"Changing user levels, permissions or passwords" =>
 					"Users, or the user's own profile screen for their password",
@@ -132,8 +151,14 @@
 				// create_module/update_module deliberately can't express it — turning it
 				// on is several interdependent choices, and getting them wrong hides
 				// every existing entry from every editor scoped to a group.
-				"Editing a module's tables, forms, views or actions, or its group-based permissions" =>
-					"Developer → Modules → Module Designer",
+				// Scoped to an *existing* module since audit #11 C1: building a new one
+				// is scaffold_module's job now — the whole plan on a proposal card,
+				// developer-only, no DDL until it is approved. Restructuring a module
+				// that already holds entries is ALTER TABLE against real rows, and
+				// stays where it was.
+				"Editing an existing module's tables, forms, views or actions, or its group-based permissions" =>
+					"Developer → Modules → Module Designer — the assistant can build a new module end to end with "
+						. "scaffold_module, but not restructure one that already exists",
 				// The line above is about *editing* a report's definition and says
 				// nothing about running one, so "export the events module to CSV" hit
 				// no tool and no wall — and the model improvised a five-row
@@ -141,11 +166,6 @@
 				"Running or exporting a module's reports" =>
 					"the module's Reports action in the admin — the assistant can list entries with "
 						. "list_module_entries, but cannot run or export a report",
-				// create_module makes a bare record; the table/columns/forms/views are
-				// DDL with heavy shape-guessing, which every prior audit declined.
-				"Creating a module's database table, forms and views (scaffolding)" =>
-					"Developer → Modules → Module Designer — the assistant can create the module record, but "
-						. "cannot build its table or screens",
 				"Managing a module's embedded forms" => "Developer → Modules → Module Designer",
 				"Changing a module's route" => "Developer → Modules",
 				// aiGetTemplate returns both, and POST /templates accepts both, but
@@ -162,8 +182,17 @@
 				"Taking over or releasing another user's content lock" =>
 					"the lock banner on the item being edited — the assistant will tell you when someone else has "
 						. "an item open, but approving is what takes it over",
-				"Editing complex fields — uploads, matrices, relationships, callouts on a page" =>
-					"the page or entry editor; the assistant only sets simple text-like fields",
+				// Split in audit #11 B1/B2. "Complex fields" used to swallow reference
+				// and relationship fields, whose stored values are nothing more than a
+				// bigtree_resources id and a list of entry ids the assistant can
+				// already look up — so on any content model with a required photo the
+				// best it could produce was a draft a human had to finish. Attaching a
+				// file that exists, or relating rows that exist, is a lookup; creating
+				// the file is still an upload, and still declined above.
+				"Editing composite fields — matrices, callouts, media galleries" =>
+					"the page or entry editor; the assistant sets text-like fields, can attach a file that is "
+						. "already in the Files library and can relate entries that already exist, but can't "
+						. "build structured content",
 				// Deleting a page is a guaranteed ask ("delete the old pricing page") and
 				// archiving is the reversible answer to it, so the line steers rather
 				// than just refusing.

@@ -13,6 +13,9 @@
 	use BigTree\Services\AI\Tools\ModuleEntryToolBackend;
 	use BigTree\Services\AI\ColumnDomain;
 	use BigTree\Services\AI\FieldOptionDomain;
+	use BigTree\Services\AI\FieldTypeDomain;
+	use BigTree\Services\AI\ResourceReferenceDomain;
+	use BigTree\Services\AI\RelationDomain;
 	use BigTree\Services\AI\TruncatedRead;
 	use BigTreeAutoModule;
 	use BigTreeJSONDB;
@@ -29,20 +32,12 @@
 	class AutoModuleService implements ModuleEntryToolBackend {
 		use ModuleSubResourceSupport;
 
-		// Module form field types the assistant is allowed to set: plain scalar values
-		// it can synthesize safely. Everything else (uploads, matrices, relationships,
-		// geocoding, routes, callouts) is omitted from the AI schema and rejected if
-		// supplied — the assistant never fabricates a file reference or a relation row.
-		private const AI_SIMPLE_FIELD_TYPES = [
-			"text", "textarea", "html", "htmleditor", "simple-editor", "code",
-			"number", "currency", "phone", "email", "color",
-			"date", "datetime", "time", "select", "radio", "checkbox", "list",
-		];
-
-		// The markup-bearing subset of the above, whose values are tokenized on the way
-		// in. Shared with the page path rather than restated, so the two lists cannot
-		// drift apart — see PageService::aiNormalizeHtmlValue.
-		private const AI_HTML_FIELD_TYPES = PageService::AI_HTML_RESOURCE_TYPES;
+		// Which field types the assistant may set is no longer a list here: it is
+		// derived from the field types' own declared taxonomy by FieldTypeDomain,
+		// because the list that used to live at this line named ten types this CMS has
+		// never had and omitted one it does (audit #11 A2/A4). The markup/link-bearing
+		// subsets stay on PageService, shared rather than restated, so the two paths
+		// cannot tokenize different things.
 
 		public function list(Request $request) {
 			$module_id = $request->routeParam("id");
@@ -1096,9 +1091,9 @@
 		// — AI tool seam (ModuleEntryToolBackend) —
 		//
 		// The assistant creates/updates module entries through BigTreeAutoModule (same
-		// as create()/update()), but only the module form's simple scalar fields, and
-		// always two-phase. Access is re-checked here — module edit to stage, publisher
-		// to write live, per-row gbp on update — never in the model.
+		// as create()/update()), but only the fields FieldTypeDomain classifies as
+		// settable, and always two-phase. Access is re-checked here — module edit to
+		// stage, publisher to write live, per-row gbp on update — never in the model.
 
 		/**
 		 * @param array<string,mixed> $args
@@ -1138,7 +1133,9 @@
 				$schema,
 				$provided,
 				is_array($resolved["form"] ?? null) ? $resolved["form"] : null,
-				(string)$table
+				(string)$table,
+				[],
+				$user
 			);
 
 			if (isset($sifted["error"])) {
@@ -1260,7 +1257,7 @@
 				}
 			}
 
-			return [
+			$staged = [
 				"ok" => true,
 				"summary" => "Create a new entry in the “{$name}” module." . $mode_note,
 				"preview" => $preview,
@@ -1274,6 +1271,18 @@
 					"save_as_draft" => $save_as_draft,
 				],
 			];
+
+			// A create has no row to go stale, but it can still be *about* something
+			// that does: a file it references can be deleted or replaced inside the
+			// proposal's 24h life, and approving would store an id pointing at nothing
+			// (audit #11 B1).
+			$resource_ids = ResourceReferenceDomain::referencedIds($schema, $data);
+
+			if ($resource_ids) {
+				$staged["fingerprint"] = ["type" => "resources", "ids" => $resource_ids];
+			}
+
+			return $staged;
 		}
 
 		/**
@@ -1364,6 +1373,7 @@
 		 *
 		 * @param int $change_id Non-zero when the target *is* a draft.
 		 * @param list<string> $columns
+		 * @param list<int> $resource_ids Files this edit is about to reference.
 		 * @return array<string,mixed>
 		 */
 		private function aiEntryFingerprint(
@@ -1371,15 +1381,26 @@
 			string $entry_id,
 			int $change_id,
 			array $columns,
-			bool $touches_open_graph
+			bool $touches_open_graph,
+			array $resource_ids = []
 		): array {
-			if ($change_id > 0) {
+			// A referenced file is staged as an id, and an id survives its row being
+			// deleted, re-uploaded or moved out of view inside the proposal's 24h life
+			// (audit #11 B1). Hashed even when the target is a draft, because the draft
+			// descriptor knows nothing about the Files library.
+			$reference_part = $resource_ids ? [["type" => "resources", "ids" => $resource_ids]] : [];
 
-				return ["type" => "pending_change", "id" => $change_id];
+			if ($change_id > 0) {
+				$draft = ["type" => "pending_change", "id" => $change_id];
+
+				return $reference_part
+					? ["type" => "composite", "parts" => array_merge([$draft], $reference_part)]
+					: $draft;
 			}
 
 			$queued = $this->aiEntryPendingChange($table, (int)$entry_id);
 			$parts = $queued ? [["type" => "pending_change", "id" => (int)$queued["id"]]] : [];
+			$parts = array_merge($parts, $reference_part);
 
 			if ($touches_open_graph) {
 				$parts[] = ["type" => "open_graph", "table" => $table, "id" => $entry_id];
@@ -1395,6 +1416,46 @@
 			}
 
 			return count($parts) === 1 ? $parts[0] : ["type" => "composite", "parts" => $parts];
+		}
+
+		/**
+		 * Lay a write's authored many-to-many descriptors over the ones it is carrying
+		 * forward, keyed by the (connecting table, my id, other id) triple that
+		 * identifies a relationship field.
+		 *
+		 * An AI edit is a partial write. Passing only what the model authored would
+		 * delete every *other* relationship on the entry — which is exactly the bug
+		 * audit #4 fixed for the read-only case, so authoring must not reintroduce it
+		 * from the other side.
+		 *
+		 * @param list<array<string,mixed>> $existing
+		 * @param list<array<string,mixed>> $authored
+		 * @return list<array<string,mixed>>
+		 */
+		private function aiMergeMtm(array $existing, array $authored): array {
+			if (!$authored) {
+
+				return $existing;
+			}
+
+			$key = function ($entry): string {
+
+				return (string)($entry["table"] ?? "") . "\0" . (string)($entry["my-id"] ?? "")
+					. "\0" . (string)($entry["other-id"] ?? "");
+			};
+			$merged = [];
+
+			foreach ($existing as $entry) {
+				if (is_array($entry)) {
+					$merged[$key($entry)] = $entry;
+				}
+			}
+
+			foreach ($authored as $entry) {
+				$merged[$key($entry)] = $entry;
+			}
+
+			return array_values($merged);
 		}
 
 		/**
@@ -1642,15 +1703,26 @@
 
 		/**
 		 * The read half of what the entry write tools can set beside the row itself:
-		 * an entry's tag names and its Open Graph title/description.
+		 * an entry's tag names, its Open Graph title/description, and its
+		 * many-to-many relations.
 		 *
-		 * Both are writable through create/update_module_entry and neither appeared in
-		 * any read payload, so the model could set a social title but never see one —
-		 * and "what is this tagged?" had no answer at all.
+		 * Tags and Open Graph are writable through create/update_module_entry and
+		 * neither appeared in any read payload, so the model could set a social title
+		 * but never see one — and "what is this tagged?" had no answer at all.
+		 * Many-to-many joined them when audit #11 B2 made relations authorable: a
+		 * relation lives in a connecting table, not in a column, so it appears in no
+		 * part of the flattened row, and an assistant that can set one but not see it
+		 * would replace relations it should have left alone.
 		 *
-		 * @return array{tags:list<string>,open_graph:array<string,string>}
+		 * @param array<string,mixed>|null $form The resolved form, for its relation fields.
+		 * @return array{tags:list<string>,open_graph:array<string,string>,related:array<string,mixed>}
 		 */
-		public function aiEntryRelationDetail(string $table, string $entry_id, bool $is_pending): array {
+		public function aiEntryRelationDetail(
+			string $table,
+			string $entry_id,
+			bool $is_pending,
+			?array $form = null
+		): array {
 			$relations = $this->aiExistingEntryRelations($table, $entry_id, $is_pending, $is_pending);
 			$names = [];
 
@@ -1668,7 +1740,80 @@
 					"og_title" => (string)($relations["open_graph"]["title"] ?? ""),
 					"og_description" => (string)($relations["open_graph"]["description"] ?? ""),
 				],
+				"related" => $this->aiEntryRelatedIds(
+					$form,
+					$entry_id,
+					is_array($relations["mtm"] ?? null) ? $relations["mtm"] : []
+				),
 			];
+		}
+
+		/**
+		 * The related row ids each many-to-many field on this form currently holds,
+		 * keyed by the field's column — the same key update_module_entry's `data`
+		 * takes, so what the model reads is what it would write (audit #11 B2/B4).
+		 *
+		 * A draft's staged relations win over the live ones, matching every other read
+		 * on this path: a queued change replaces the entry's relations wholesale, so
+		 * the live connecting table is not what the next write is amending.
+		 *
+		 * @param array<string,mixed>|null $form
+		 * @param list<array<string,mixed>> $staged The draft's mtm_changes, when there is one.
+		 * @return array<string,list<string>>
+		 */
+		private function aiEntryRelatedIds(?array $form, string $entry_id, array $staged): array {
+			$related = [];
+			$by_triple = [];
+
+			foreach ($staged as $entry) {
+				if (!is_array($entry)) {
+
+					continue;
+				}
+
+				$by_triple[(string)($entry["table"] ?? "") . "\0" . (string)($entry["my-id"] ?? "")
+					. "\0" . (string)($entry["other-id"] ?? "")] = array_map(
+						"strval",
+						is_array($entry["data"] ?? null) ? $entry["data"] : []
+					);
+			}
+
+			foreach ((array)($form["fields"] ?? []) as $field) {
+				if ((string)($field["type"] ?? "") !== "many-to-many") {
+
+					continue;
+				}
+
+				$column = (string)($field["column"] ?? "");
+				$settings = is_array($field["settings"] ?? null) ? $field["settings"] : [];
+				$connecting = (string)($settings["mtm-connecting-table"] ?? "");
+				$my_id = (string)($settings["mtm-my-id"] ?? "");
+				$other_id = (string)($settings["mtm-other-id"] ?? "");
+
+				// Identifiers reach SQL below, so they are gated exactly as
+				// RelationDomain gates them on the way in.
+				if ($column === "" || !preg_match('/^[A-Za-z0-9_]+$/', $connecting)
+					|| !preg_match('/^[A-Za-z0-9_]+$/', $my_id) || !preg_match('/^[A-Za-z0-9_]+$/', $other_id)) {
+
+					continue;
+				}
+
+				$triple = $connecting . "\0" . $my_id . "\0" . $other_id;
+
+				if (array_key_exists($triple, $by_triple)) {
+					$related[$column] = $by_triple[$triple];
+
+					continue;
+				}
+
+				$rows = SQL::fetchAllSingle(
+					"SELECT `{$other_id}` FROM `{$connecting}` WHERE `{$my_id}` = ? ORDER BY id ASC",
+					$entry_id
+				) ?: [];
+				$related[$column] = array_values(array_map("strval", $rows));
+			}
+
+			return $related;
 		}
 
 		/**
@@ -1965,7 +2110,9 @@
 				$resolved["schema"],
 				$data,
 				is_array($resolved["form"] ?? null) ? $resolved["form"] : null,
-				$table
+				$table,
+				[],
+				$user
 			);
 
 			if (isset($sifted["error"])) {
@@ -1974,6 +2121,10 @@
 			}
 
 			$data = $sifted["data"];
+			// Relations the model authored, rebuilt from the form as it stands now
+			// (audit #11 B2) — the descriptor's identifiers come from the field
+			// definition, so a form edited inside the 24h TTL is re-read here.
+			$mtm = is_array($sifted["mtm"] ?? null) ? $sifted["mtm"] : [];
 			$group_error = $this->aiGroupFieldViolation($module, $data, [], $user);
 
 			if ($group_error !== null) {
@@ -2043,6 +2194,10 @@
 
 			$this->bindLegacyAdmin($user);
 
+			// Every gate above has read the relations under their own columns; the row
+			// must not carry them (audit #11 B2).
+			$data = $this->aiWithoutMtmColumns($data, $sifted);
+
 			// The same normalization PendingChangeService runs before the identical
 			// write. Without it a publisher's create hit strict-mode MySQL with a
 			// model-shaped date ("March 3rd, 2027") and failed, while the *same*
@@ -2051,7 +2206,7 @@
 			$data = BigTreeAutoModule::sanitizeData($table, $data);
 
 			if ($can_publish) {
-				$id = BigTreeAutoModule::createItem($table, $data, [], $tag_ids, null, $open_graph);
+				$id = BigTreeAutoModule::createItem($table, $data, $mtm, $tag_ids, null, $open_graph);
 
 				// createItem returns false on a failed query. Casting that to 0 told the
 				// user their entry was published, with entry_id 0 and a resource
@@ -2071,7 +2226,7 @@
 			}
 
 			$pending_id = BigTreeAutoModule::createPendingItem(
-				$module_id, $table, $data, [], $tag_ids, null, false, $open_graph
+				$module_id, $table, $data, $mtm, $tag_ids, null, false, $open_graph
 			);
 			$this->trackModuleResources($table, "p".$pending_id, $data);
 			Hooks::fire("module_entry.pending_created", [
@@ -2180,7 +2335,8 @@
 				$provided,
 				is_array($resolved["form"] ?? null) ? $resolved["form"] : null,
 				(string)$table,
-				is_array($row) ? $row : []
+				is_array($row) ? $row : [],
+				$user
 			);
 
 			if (isset($sifted["error"])) {
@@ -2275,12 +2431,16 @@
 				],
 				// Only the columns this edit touches: the card's `from` values came
 				// from them, so if they moved the card no longer describes the row.
+				// A many-to-many column is not among them — its value doesn't live in
+				// the row, and asking the database for it is either meaningless or an
+				// unknown-column error (audit #11 B2).
 				"fingerprint" => $this->aiEntryFingerprint(
 					$table,
 					(string)$entry_id,
 					$is_pending ? (int)$resolved_entry["change_id"] : 0,
-					array_keys($data),
-					(bool)$open_graph
+					array_keys($this->aiWithoutMtmColumns($data, $sifted)),
+					(bool)$open_graph,
+					ResourceReferenceDomain::referencedIds($schema, $data)
 				),
 				"lock" => $this->aiEntryLock($module, $entry_id, $is_pending),
 			];
@@ -2333,7 +2493,8 @@
 				$data,
 				is_array($resolved_form["form"] ?? null) ? $resolved_form["form"] : null,
 				$table,
-				is_array($row) ? $row : []
+				is_array($row) ? $row : [],
+				$user
 			);
 
 			if (isset($sifted["error"])) {
@@ -2431,9 +2592,21 @@
 			// the columns it is changing, so without merging underneath, an AI edit
 			// destroys every other field already queued in the same draft. Merged
 			// after the processors and the gate so both still judge only this edit.
+			//
+			// Every gate above has read the relations under their own columns; neither
+			// the row nor the queued change's blob may carry them (audit #11 B2).
+			$data = $this->aiWithoutMtmColumns($data, $sifted);
 			$queued = is_array($existing["changes"] ?? null) ? $existing["changes"] : [];
 			$write_data = $queued ? array_merge($queued, $data) : $data;
-			$mtm = is_array($existing["mtm"] ?? null) ? $existing["mtm"] : [];
+			// Relations the model authored, laid over the ones this write would
+			// otherwise carry forward untouched. Merged by triple so setting one
+			// relationship field doesn't blank the entry's other ones — the same
+			// reasoning that made aiExistingEntryRelations necessary in audit #4,
+			// applied now that the assistant can author them too (audit #11 B2).
+			$mtm = $this->aiMergeMtm(
+				is_array($existing["mtm"] ?? null) ? $existing["mtm"] : [],
+				is_array($sifted["mtm"] ?? null) ? $sifted["mtm"] : []
+			);
 
 			// The same normalization PendingChangeService runs before the identical
 			// write, so a model-shaped value doesn't succeed or fail depending on who
@@ -3079,8 +3252,8 @@
 
 				$type = (string)($field["type"] ?? "text");
 				$settings = is_array($field["settings"] ?? null) ? $field["settings"] : [];
-				$settable = in_array($type, self::AI_SIMPLE_FIELD_TYPES, true);
-				$derived = $type === "route" || $type === "geocoding";
+				$refusal = FieldTypeDomain::refusal($type);
+				$settable = $refusal === "";
 
 				$entry = [
 					"column" => $column,
@@ -3102,16 +3275,24 @@
 				];
 
 				if (!$settable) {
-					$entry["reason"] = $derived
-						? "Generated automatically when the entry is saved."
-						: "This field type can't be authored by the assistant — it must be filled in the admin UI.";
+					$entry["reason"] = $refusal;
 				}
 
 				if ($settable) {
-					$maxlength = (int)($settings["maxlength"] ?? 0);
+					// Email-ness and website-ness are a `text` field's `sub_type`
+					// setting, not a type of their own — this CMS has no `email` or
+					// `url` field type, so without this the model saw an unadorned text
+					// field and had no reason to write a well-formed address (#11 A3).
+					$sub_type = (string)($settings["sub_type"] ?? "");
 
-					if ($maxlength > 0) {
-						$entry["maxlength"] = $maxlength;
+					if ($sub_type !== "") {
+						$entry["sub_type"] = $sub_type;
+					}
+
+					$max_length = ColumnDomain::configuredMaxLength($settings);
+
+					if ($max_length > 0) {
+						$entry["max_length"] = $max_length;
 					}
 
 					$storage = $this->aiColumnStorage($columns[$column] ?? null);
@@ -3151,6 +3332,12 @@
 				// audited — and is invisible to the person who asked for it, who will
 				// reasonably report that the assistant did nothing (audit #10 C3).
 				"view_filter_note" => $this->aiViewFilterNote($module),
+				// What a `sub_type` on a text field means. This CMS has no `email` or
+				// `url` field type — the developer's statement that a field holds an
+				// address is a setting on `text`, and until audit #11 A3 nothing on this
+				// path passed it on, so the model saw a plain text field and had no
+				// reason to write anything address-shaped into it.
+				"sub_type_note" => $this->aiSubTypeNote($fields),
 				"unsettable_columns" => $unsettable_columns,
 				"unsettable_columns_note" => $unsettable_columns
 					? "The table has " . (count($unsettable_columns) === 1 ? "a column" : "columns")
@@ -3192,6 +3379,36 @@
 			}
 
 			return $storage;
+		}
+
+		/**
+		 * A note naming the fields whose `sub_type` says what kind of value they hold,
+		 * when the form has any. Shaped like group_column_note: a fact the payload's
+		 * keys alone don't explain, stated once rather than inferred.
+		 *
+		 * @param list<array<string,mixed>> $fields The assembled schema field list.
+		 */
+		private function aiSubTypeNote(array $fields): string {
+			$named = [];
+
+			foreach ($fields as $field) {
+				$sub_type = (string)($field["sub_type"] ?? "");
+
+				if ($sub_type !== "") {
+					$named[] = "\"" . (string)($field["column"] ?? "") . "\" holds " . ($sub_type === "email"
+						? "an email address"
+						: ($sub_type === "website" ? "a website address" : "a {$sub_type}"));
+				}
+			}
+
+			if (!$named) {
+
+				return "";
+			}
+
+			return "This CMS has no separate email or URL field type — a text field says what it holds through "
+				. "its sub_type, and the developer has said so here: " . implode(", ", $named)
+				. ". Write a value in that shape.";
 		}
 
 		/**
@@ -3257,13 +3474,13 @@
 					continue;
 				}
 
-				if (in_array($type, self::AI_SIMPLE_FIELD_TYPES, true)) {
+				if (FieldTypeDomain::isSettable($type)) {
 					continue;
 				}
 
 				// Derived server-side by applyEntryProcessors — required or not, the
 				// model is not expected to supply them and they will be populated.
-				if ($type === "route" || $type === "geocoding") {
+				if (FieldTypeDomain::isDerived($type)) {
 					continue;
 				}
 
@@ -3274,8 +3491,10 @@
 		}
 
 		/**
-		 * The AI-settable field schema for a module form: simple scalar fields only,
-		 * keyed by column.
+		 * The AI-settable field schema for a module form, keyed by column — whichever
+		 * of its fields FieldTypeDomain classifies as settable, which since audit #11
+		 * is the text-like types plus references (by resource id) and relationships
+		 * (by entry id).
 		 *
 		 * @param array<string,mixed>|null $form
 		 * @return array<string,array<string,mixed>>
@@ -3287,7 +3506,7 @@
 				$column = (string)($field["column"] ?? "");
 				$type = (string)($field["type"] ?? "text");
 
-				if ($column === "" || !in_array($type, self::AI_SIMPLE_FIELD_TYPES, true)) {
+				if ($column === "" || !FieldTypeDomain::isSettable($type)) {
 
 					continue;
 				}
@@ -3305,6 +3524,9 @@
 					"column" => $column,
 					"type" => $type,
 					"title" => (string)($field["title"] ?? $column),
+					// Where email-ness and website-ness actually live in this CMS
+					// (audit #11 A3) — see the same key on the schema payload.
+					"sub_type" => (string)($settings["sub_type"] ?? ""),
 					"required" => !empty($settings["required"]) || in_array("required", $rules, true),
 					"rules" => array_values(array_diff($rules, ["required"])),
 					// The option set, when there is one. Neither schema emitted it and
@@ -3315,8 +3537,13 @@
 					// The field's own character budget. TextField/TextareaField honour
 					// this in the browser and nothing on the server ever did, so a field
 					// deliberately capped at 60 characters was capped for humans and
-					// uncapped for the assistant (audit #10 A3).
-					"maxlength" => (int)($settings["maxlength"] ?? 0),
+					// uncapped for the assistant (audit #10 A3). Read through
+					// configuredMaxLength — the stored key is `max_length` (#11 A1).
+					"max_length" => ColumnDomain::configuredMaxLength($settings),
+					// The definition itself, for the checks that need a setting this
+					// summary doesn't lift out — an image reference's min_width /
+					// min_height (audit #11 B1).
+					"settings" => $settings,
 				];
 			}
 
@@ -3354,16 +3581,26 @@
 		 * @param array<string,mixed>|null $form The resolved form, for naming complex fields.
 		 * @param string $table The entry table, for the storage-boundary checks.
 		 * @param array<string,mixed> $existing The stored row, for the truncated-read refusal.
-		 * @return array<string,mixed> ["data" => array] or ["error" => string]
+		 * @param object|array|null $user The actor, for the reference and relation checks.
+		 * @return array<string,mixed> ["data" => array, "mtm" => list, "mtm_columns" => list]
+		 *                             or ["error" => string]
 		 */
 		private function aiSiftEntryData(
 			array $schema,
 			array $provided,
 			?array $form = null,
 			string $table = "",
-			array $existing = []
+			array $existing = [],
+			$user = null
 		): array {
 			$data = [];
+			// Many-to-many relations don't live in the entry's row: they are `__mtm__`
+			// descriptors built from the field's own settings, handed to the write
+			// path's $mtm argument (audit #11 B2).
+			$mtm = [];
+			// …and the columns those descriptors were authored under, so the write and
+			// the fingerprint can drop them. See aiWithoutMtmColumns().
+			$mtm_columns = [];
 			$complex = $this->aiComplexEntryColumns($schema, $form);
 
 			foreach ($provided as $column => $value) {
@@ -3372,13 +3609,54 @@
 				if (!isset($schema[$column])) {
 					if (isset($complex[$column])) {
 
-						return ["error" => "Field \"{$column}\" ({$complex[$column]}) can't be set by the assistant — "
-							. "it needs the module's own editor in the admin. Settable fields: "
+						// The reason is the field type's own, not one wall for uploads,
+						// matrices and relationships alike (audit #11 A4/B1).
+						return ["error" => "Field \"{$column}\" ({$complex[$column]["label"]}) can't be set here — "
+							. $complex[$column]["reason"] . " Settable fields: "
 							. $this->aiDescribeSchema($schema)];
 					}
 
 					return ["error" => "This form has no field called \"{$column}\". Settable fields: "
 						. $this->aiDescribeSchema($schema)];
+				}
+
+				// Relations are the one settable shape that *is* a list, so they are
+				// resolved before the scalar guard below (audit #11 B2).
+				if (FieldTypeDomain::isRelation((string)$schema[$column]["type"])) {
+					if ((string)$schema[$column]["type"] === "many-to-many") {
+						$relation = RelationDomain::resolveManyToMany($schema[$column], $value, $user);
+
+						if (isset($relation["error"])) {
+
+							return ["error" => (string)$relation["error"]];
+						}
+
+						$mtm[] = $relation["mtm"];
+						// Also recorded under the column, because that is how the value
+						// reaches the required-field gate, the proposal preview and the
+						// payload the approval re-sifts. It must not reach the *write*:
+						// a module form's fields are bound to real table columns, so the
+						// key is a real column here — one many-to-many/process.php marks
+						// `ignore` precisely so the admin never writes the id list into
+						// it. aiWithoutMtmColumns() takes it back out.
+						$mtm_columns[] = $column;
+						$data[$column] = $relation["mtm"]["data"];
+
+						continue;
+					}
+
+					$relation = RelationDomain::resolveOneToMany($schema[$column], $value, $user);
+
+					if (isset($relation["error"])) {
+
+						return ["error" => (string)$relation["error"]];
+					}
+
+					// An array in the column, which createItem/updateItem json-encode —
+					// the same thing one-to-many/process.php stores.
+					$data[$column] = $relation["value"];
+
+					continue;
 				}
 
 				if (is_array($value)) {
@@ -3396,29 +3674,71 @@
 				// truncated-read check compares against, because the read decoded too.
 				$as_written = $data[$column];
 
-				// Internal links and image sources in AI-authored markup become tokens
-				// here, at the sift, so the stored form is the form the approver sees on
-				// the card. Shared with the page-content path (audit #9, Part D).
-				if (in_array((string)$schema[$column]["type"], self::AI_HTML_FIELD_TYPES, true)) {
-					$data[$column] = PageService::aiNormalizeHtmlValue($data[$column]);
-				}
+				// A reference column holds a bigtree_resources id. Resolved and checked
+				// here — the row exists, the actor can see its folder, it's the right
+				// kind of file, it clears the field's min_width/min_height — at staging
+				// and again at approval, because this sift runs on both (audit #11 B1).
+				if (FieldTypeDomain::isResourceReference((string)$schema[$column]["type"])) {
+					$reference = ResourceReferenceDomain::resolve(
+						$schema[$column],
+						(string)$schema[$column]["type"],
+						$data[$column],
+						$user
+					);
 
-				$out_of_domain = $this->aiOptionViolation($schema[$column], $data[$column]);
+					if (isset($reference["error"])) {
 
-				if ($out_of_domain !== null) {
+						return ["error" => (string)$reference["error"]];
+					}
 
-					return ["error" => $out_of_domain];
-				}
+					$data[$column] = (string)$reference["value"];
+					// The resolved id is what the column stores, so it still has to fit
+					// the column — but nothing below applies to an id: it carries no
+					// markup to tokenize, no option domain and no rule string, and the
+					// truncated-read refusal is about prose that came back cut.
+					$as_written = $data[$column];
+				} else {
+					// A `link` column holds a URL and nothing else, checked before the
+					// token pass through the shared implementation (audit #11 B3).
+					$bad_link = FieldTypeDomain::linkShapeViolation(
+						(string)($schema[$column]["title"] ?? $column),
+						(string)$schema[$column]["type"],
+						$data[$column]
+					);
 
-				// `required` is deliberately excluded from these rules and left to the
-				// create/update gates, which know whether an empty value is this edit's
-				// doing. What's left (numeric, email, link) the write path would refuse
-				// outright, so catching it here turns a dead end into a correction.
-				$invalid = $this->aiRuleViolation($schema[$column], $data[$column]);
+					if ($bad_link !== null) {
 
-				if ($invalid !== null) {
+						return ["error" => $bad_link];
+					}
 
-					return ["error" => $invalid];
+					// Internal links and image sources in AI-authored markup become
+					// tokens here, at the sift, so the stored form is the form the
+					// approver sees on the card. Shared with the page-content path
+					// (audit #9, Part D). A `link` value goes through the same pass —
+					// autoIPL turns a bare internal URL into the `ipl://` token the
+					// field stores.
+					if (in_array((string)$schema[$column]["type"], PageService::AI_LINK_BEARING_TYPES, true)) {
+						$data[$column] = PageService::aiNormalizeHtmlValue($data[$column]);
+					}
+
+					$out_of_domain = $this->aiOptionViolation($schema[$column], $data[$column]);
+
+					if ($out_of_domain !== null) {
+
+						return ["error" => $out_of_domain];
+					}
+
+					// `required` is deliberately excluded from these rules and left to
+					// the create/update gates, which know whether an empty value is this
+					// edit's doing. What's left (numeric, email, link) the write path
+					// would refuse outright, so catching it here turns a dead end into a
+					// correction.
+					$invalid = $this->aiRuleViolation($schema[$column], $data[$column]);
+
+					if ($invalid !== null) {
+
+						return ["error" => $invalid];
+					}
 				}
 
 				$storage = $this->aiStorageViolation(
@@ -3438,12 +3758,38 @@
 				}
 			}
 
-			return ["data" => $data];
+			return ["data" => $data, "mtm" => $mtm, "mtm_columns" => $mtm_columns];
+		}
+
+		/**
+		 * A sifted data set with the many-to-many columns taken back out.
+		 *
+		 * A many-to-many value is carried in `$data` under the field's column so the
+		 * required gate, the preview and the staged payload can see it — but the row
+		 * itself must never receive it. The relation lives in a connecting table, and
+		 * the entry column the form binds the field to is one the admin deliberately
+		 * skips (`$field["ignore"] = true` in many-to-many/process.php). Left in, the
+		 * assistant would be the only writer that json-encodes an id list into that
+		 * column, and the only one whose staleness fingerprint asks the database for
+		 * it.
+		 *
+		 * @param array<string,mixed> $data
+		 * @param array<string,mixed> $sifted An aiSiftEntryData() result.
+		 * @return array<string,mixed>
+		 */
+		private function aiWithoutMtmColumns(array $data, array $sifted): array {
+			$columns = is_array($sifted["mtm_columns"] ?? null) ? $sifted["mtm_columns"] : [];
+
+			foreach ($columns as $column) {
+				unset($data[(string)$column]);
+			}
+
+			return $data;
 		}
 
 		/**
 		 * The storage-boundary checks, run on a sifted value once its own field rules
-		 * have passed: the field's `maxlength`, characters the connection can't carry,
+		 * have passed: the field's `max_length`, characters the connection can't carry,
 		 * the column's real width/type/domain, and the truncated-read refusal.
 		 *
 		 * Everything here is the audit #10 boundary — the point past which MySQL's
@@ -3465,7 +3811,7 @@
 			?string $stored
 		): ?string {
 			$title = (string)($field["title"] ?? $column);
-			$too_long = ColumnDomain::maxLengthViolation($title, $field["maxlength"] ?? 0, $value);
+			$too_long = ColumnDomain::maxLengthViolation($title, $field["max_length"] ?? 0, $value);
 
 			if ($too_long !== null) {
 
@@ -3571,13 +3917,14 @@
 		}
 
 		/**
-		 * The form's real columns that aren't in the settable schema, mapped to a
-		 * "Title (type)" label — everything the assistant can see exists but cannot
-		 * author. Used to tell a complex field apart from a misspelling.
+		 * The form's real columns that aren't in the settable schema, each with a
+		 * "Title, type" label and the field type's own refusal — everything the
+		 * assistant can see exists but cannot author. Used to tell a complex field
+		 * apart from a misspelling, and to say *why* rather than "it's complex".
 		 *
 		 * @param array<string,array<string,mixed>> $schema
 		 * @param array<string,mixed>|null $form
-		 * @return array<string,string>
+		 * @return array<string,array{label:string,reason:string}>
 		 */
 		private function aiComplexEntryColumns(array $schema, ?array $form): array {
 			$complex = [];
@@ -3592,7 +3939,13 @@
 
 				$type = (string)($field["type"] ?? "");
 				$title = (string)($field["title"] ?? $column);
-				$complex[$column] = $type !== "" ? "{$title}, {$type}" : $title;
+				$refusal = FieldTypeDomain::refusal($type);
+				$complex[$column] = [
+					"label" => $type !== "" ? "{$title}, {$type}" : $title,
+					"reason" => $refusal !== ""
+						? $refusal
+						: "it needs the module's own editor in the admin.",
+				];
 			}
 
 			return $complex;
@@ -3609,7 +3962,18 @@
 			$missing = [];
 
 			foreach ($schema as $column => $field) {
-				if (!empty($field["required"]) && (!array_key_exists($column, $data) || $data[$column] === "")) {
+				if (empty($field["required"])) {
+
+					continue;
+				}
+
+				// A relation's value is a list, so "empty" is [] rather than "" — a
+				// required relationship cleared to no rows is as missing as a blank
+				// string (audit #11 B2).
+				$empty = !array_key_exists($column, $data)
+					|| (is_array($data[$column]) ? $data[$column] === [] : $data[$column] === "");
+
+				if ($empty) {
 					$missing[] = $column;
 				}
 			}
@@ -3632,7 +3996,11 @@
 			$parts = [];
 
 			foreach ($schema as $column => $field) {
-				$parts[] = $column . " (" . $field["type"] . ($field["required"] ? ", required" : "") . ")";
+				// A text field's sub_type is what this CMS calls an email or a website
+				// address — there is no field type for either (audit #11 A3).
+				$sub_type = (string)($field["sub_type"] ?? "");
+				$parts[] = $column . " (" . $field["type"] . ($sub_type !== "" ? "/{$sub_type}" : "")
+					. ($field["required"] ? ", required" : "") . ")";
 			}
 
 			return implode(", ", $parts);
@@ -3657,7 +4025,12 @@
 					"to" => $this->aiPreviewScalar($value),
 				];
 
-				if ($existing) {
+				// A many-to-many's current value isn't in the row — the column the form
+				// binds the field to holds something else entirely — so there is no
+				// `from` to show, and showing the column's contents would caption the
+				// card with a value that has nothing to do with the relation (#11 B2).
+				// get_module_entry's `related` is where the current ids come from.
+				if ($existing && (string)($schema[$column]["type"] ?? "") !== "many-to-many") {
 					$entry["from"] = $this->aiPreviewScalar($existing[$column] ?? "");
 				}
 

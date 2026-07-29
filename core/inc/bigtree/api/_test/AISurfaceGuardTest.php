@@ -131,6 +131,21 @@
 				"id" => "get_module", "name" => "get_module", "route" => "get_module", "class" => "get_module",
 				"icon" => "get_module", "group" => "get_module", "developer_only" => "get_module",
 			],
+			// Audit #11 C1. Everything a scaffold sets is readable afterwards through
+			// get_module (the record) and get_module_schema (the form it builds), which
+			// is the point: a scaffolded module is a module the assistant can then use.
+			// The four shape arguments are exempt for the same reason `id` on a create
+			// is: they describe what to build, and once built the built thing is what
+			// is read back.
+			"scaffold_module" => [
+				"name" => "get_module", "route" => "get_module", "group" => "get_module",
+				"icon" => "get_module", "table" => "get_module_schema", "fields" => "get_module_schema",
+				"view_type" => "exempt: a landing-view shape, and views are the Module Designer's surface",
+				"item_title" => "exempt: the form's own title, set once at build time",
+				"view_title" => "exempt: the landing view's own title, set once at build time",
+				"actions" => "exempt: which status columns to build; the flags themselves read back "
+					. "through get_module_entry",
+			],
 			"update_module" => [
 				"module_id" => "get_module", "name" => "get_module", "icon" => "get_module",
 				"group" => "get_module", "class" => "get_module",

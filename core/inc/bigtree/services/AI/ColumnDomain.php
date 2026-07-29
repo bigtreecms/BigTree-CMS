@@ -341,15 +341,43 @@
 		}
 
 		/**
-		 * The field's own `maxlength` setting, as a recoverable error.
+		 * The character cap a `text` or `textarea` field declares, read from the key
+		 * the CMS actually stores it under.
 		 *
-		 * `maxlength` is a real, honoured field setting — TextField/TextareaField pass
-		 * it straight to the input — but it is a client-side constraint only:
-		 * FieldProcessingService doesn't check it and BigTreeAutoModule::validate has
-		 * no rule for it. So a field a developer deliberately capped at 60 characters
-		 * (a meta title, a character-budgeted teaser) was capped for humans and
-		 * uncapped for the assistant, which is the one writer with no form in front of
-		 * it.
+		 * The stored key is `max_length` — that is the descriptor id in
+		 * field-type-schemas.php, it is what text/draw.php and textarea/draw.php read,
+		 * it is what text/settings.php writes, and it is the only spelling that appears
+		 * in any stored settings blob. `maxlength` is accepted as a fallback purely so
+		 * a hand-edited legacy blob carrying the misspelling still caps something.
+		 *
+		 * @param array<string,mixed> $settings A field/resource `settings` blob.
+		 */
+		public static function configuredMaxLength(array $settings): int {
+			$max = (int)($settings["max_length"] ?? 0);
+
+			if ($max > 0) {
+
+				return $max;
+			}
+
+			return (int)($settings["maxlength"] ?? 0);
+		}
+
+		/**
+		 * The field's own `max_length` setting, as a recoverable error.
+		 *
+		 * `max_length` is a real, honoured field setting — text/draw.php and
+		 * textarea/draw.php render it as the input's `maxlength` attribute — but it is
+		 * a client-side constraint only: FieldProcessingService doesn't check it and
+		 * BigTreeAutoModule::validate has no rule for it. So a field a developer
+		 * deliberately capped at 60 characters (a meta title, a character-budgeted
+		 * teaser) is capped for humans and uncapped for the assistant, which is the one
+		 * writer with no form in front of it.
+		 *
+		 * Audit #11 A1: for two audits this check could not fire at all, because every
+		 * seam feeding it read `$settings["maxlength"]` — a key nothing writes — so the
+		 * cap it was handed was always 0. Read the setting through
+		 * configuredMaxLength() rather than by hand.
 		 */
 		public static function maxLengthViolation(string $title, $max, string $value): ?string {
 			$max = (int)$max;

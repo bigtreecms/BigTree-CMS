@@ -260,10 +260,11 @@
 		 * unsaveable by anybody.
 		 *
 		 * The field *type* has been validated since audit #1; this is the settings half
-		 * of the same rule, and the analogue of SettingService's
-		 * AI_UNSETTABLE_SETTING_TYPES for field *definitions* rather than values. It is
-		 * deliberately a small supplement to the schema-derived rule below rather than
-		 * the whole rule: a static blocklist is what left `list` unguarded.
+		 * of the same rule, and the analogue for field *definitions* of what
+		 * FieldTypeDomain does for field *values*. It is deliberately a small
+		 * supplement to the schema-derived rule below rather than the whole rule: a
+		 * static blocklist is what left `list` unguarded — and, on the value side, what
+		 * audit #11 A2 found naming ten field types that do not exist.
 		 */
 		public const AI_RENDER_REQUIRED_SETTINGS = [
 			"matrix" => ["columns"],

@@ -40,6 +40,7 @@
 	use BigTree\Services\AI\Tools\UpdateUserTool;
 	use BigTree\Services\AI\Tools\CreateCalloutTool;
 	use BigTree\Services\AI\Tools\CreateModuleTool;
+	use BigTree\Services\AI\Tools\ScaffoldModuleTool;
 	use BigTree\Services\AI\Tools\GetModuleTool;
 	use BigTree\Services\AI\Tools\GetModuleSchemaTool;
 	use BigTree\Services\AI\Tools\TemplateToolBackend;
@@ -236,6 +237,12 @@
 			public function aiCreateModule(array $payload, $user): array { $this->executed = $payload; return ["mode" => "created"]; }
 			public function aiValidateModuleUpdate(array $args, $user): array { return $this->update_validation; }
 			public function aiUpdateModule(array $payload, $user): array { $this->executed = $payload; return ["mode" => "updated"]; }
+
+			/** @var array<string,mixed> */
+			public $scaffold_validation = ["ok" => true, "summary" => "Scaffold module.", "preview" => [], "payload" => []];
+
+			public function aiValidateModuleScaffold(array $args, $user): array { return $this->scaffold_validation; }
+			public function aiScaffoldModule(array $payload, $user): array { $this->executed = $payload; return ["mode" => "created"]; }
 
 			/** @var array<string,mixed> */
 			public $group_validation = ["ok" => true, "summary" => "Create module group.", "preview" => [], "payload" => []];
@@ -489,6 +496,7 @@
 			new UpdateTemplateTool(new FakeTemplateBackend(), $store),
 			new CreateCalloutTool(new FakeCalloutBackend(), $store),
 			new CreateModuleTool(new FakeModuleBackend(), $store),
+			new ScaffoldModuleTool(new FakeModuleBackend(), $store),
 		];
 
 		foreach ($tools as $tool) {
@@ -507,6 +515,77 @@
 		$mod = (new CreateModuleTool(new FakeModuleBackend(), $store))
 			->execute(["name" => "Press"], new AIToolContext(ai_fake_user(2), 8, "1"));
 		T::equals($mod->type, AIToolResult::PROPOSAL, "create_module stages for a developer");
+
+		// Audit #11 C1: the DDL runs on approval, never during the turn — the same
+		// two-phase contract every other developer tool has.
+		$scaffold = (new ScaffoldModuleTool(new FakeModuleBackend(), $store))
+			->execute(
+				["name" => "Press Releases", "fields" => [["title" => "Headline", "type" => "text"]]],
+				new AIToolContext(ai_fake_user(2), 8, "1")
+			);
+		T::equals($scaffold->type, AIToolResult::PROPOSAL, "scaffold_module stages for a developer");
+
+		$blank = (new ScaffoldModuleTool(new FakeModuleBackend(), $store))
+			->execute(["fields" => []], new AIToolContext(ai_fake_user(2), 8, "1"));
+		T::equals($blank->type, AIToolResult::ERROR, "and refuses a nameless module before staging anything");
+	}
+
+	/**
+	 * C1: the proposal the developer approves has to describe the schema it is about
+	 * to create — every column, in ProposalCard's own `fields` shape — or the card is
+	 * an unreviewable "trust me" for the one write in the catalogue with no undo.
+	 */
+	function test_scaffold_module_previews_the_whole_schema() {
+		if (!function_exists("parity_db_available") || !parity_db_available()) {
+
+			return;
+		}
+
+		$validation = (new \BigTree\Services\ModuleService())->aiValidateModuleScaffold([
+			"name" => "AI Guard Press Releases",
+			"fields" => [
+				["title" => "Headline", "type" => "text"],
+				["title" => "Body", "type" => "html"],
+			],
+			"actions" => ["archive" => true],
+		], (object)["id" => 1, "level" => 2, "permissions" => []]);
+
+		T::ok(!empty($validation["ok"]), "a well-formed scaffold validates");
+
+		$preview = $validation["preview"];
+		T::equals($preview["table"], "ai_guard_press_releases", "the table name is derived from the module name");
+		T::ok(!empty($preview["destructive"]), "the card warns that this one can't be walked back");
+
+		$rows = [];
+
+		foreach ($preview["fields"] as $field) {
+			$rows[(string)$field["title"]] = (string)$field["to"];
+		}
+
+		T::ok(isset($rows["Headline"]), "every field is on the card");
+		T::ok(strpos($rows["Headline"], "VARCHAR") !== false, "with the SQL type the column will actually have");
+		T::ok(strpos($rows["Body"], "TEXT") !== false, "an html field becomes TEXT, not a varchar");
+		T::ok(isset($rows["Archived"]), "and the status column the archive action adds is named too");
+
+		// Nothing was written by validating.
+		T::ok(!\BigTree::tableExists("ai_guard_press_releases"), "validation created no table");
+
+		$unknown = (new \BigTree\Services\ModuleService())->aiValidateModuleScaffold([
+			"name" => "AI Guard Bad Types",
+			"fields" => [["title" => "Price", "type" => "currency"]],
+		], (object)["id" => 1, "level" => 2, "permissions" => []]);
+
+		T::ok(isset($unknown["error"]), "a field type this CMS doesn't have is refused");
+		T::ok(
+			strpos((string)$unknown["error"], "Available module field types") !== false,
+			"and the error lists the real ones"
+		);
+
+		$denied = (new \BigTree\Services\ModuleService())->aiValidateModuleScaffold(
+			["name" => "AI Guard Denied", "fields" => [["title" => "X", "type" => "text"]]],
+			(object)["id" => 2, "level" => 1, "permissions" => []]
+		);
+		T::ok(isset($denied["denied"]), "scaffolding is developer-only at the backend too");
 	}
 
 	function test_get_module_tool_surfaces_incomplete_setup() {

@@ -18,7 +18,7 @@
 				"id" => "headline",
 				"type" => "text",
 				"title" => "Head<line>",
-				"settings" => ["maxlength" => 100, "blank" => ""],
+				"settings" => ["max_length" => 100, "blank" => ""],
 			],
 		]);
 

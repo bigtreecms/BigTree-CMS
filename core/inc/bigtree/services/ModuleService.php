@@ -100,34 +100,66 @@
 		// (modules/designer/{create,form-create,view-create}.php) into one transaction.
 		//
 		// All validation runs BEFORE any DDL because CREATE/ALTER TABLE implicitly commit
-		// and can't be rolled back — we don't want to half-build on a bad request.
+		// and can't be rolled back — we don't want to half-build on a bad request. That
+		// split is explicit since audit #11 C1: scaffoldPlan() answers "what would this
+		// build?" without touching the database, performScaffold() builds exactly that
+		// plan, and the assistant's scaffold_module tool puts the plan on a proposal
+		// card and runs the build only on approval. That is only safe because both
+		// halves are the same code REST runs.
 		public function scaffold(Request $request) {
-			$d = $request->body;
+			$plan = $this->scaffoldPlan($request->body);
 
+			if (isset($plan["error"])) {
+				throw new BadRequestException((string)$plan["error"], (string)$plan["code"]);
+			}
+
+			if (isset($plan["conflict"])) {
+				throw new ConflictException((string)$plan["conflict"], (string)$plan["code"]);
+			}
+
+			$module_id = $this->performScaffold($plan);
+
+			return Response::created($this->present(BigTreeJSONDB::get("modules", $module_id)), null);
+		}
+
+		/**
+		 * Validate a scaffold request and resolve everything it would build, without
+		 * writing anything.
+		 *
+		 * @param array<string,mixed> $d The request body, or an AI payload in the same shape.
+		 * @return array<string,mixed> ["error"|"conflict" => string, "code" => string] or the plan.
+		 */
+		public function scaffoldPlan(array $d): array {
 			$name = trim((string)($d["name"] ?? ""));
 			$table = trim((string)($d["table"] ?? ""));
 			$class = trim((string)($d["class"] ?? ""));
 			$fields_in = is_array($d["fields"] ?? null) ? $d["fields"] : [];
 
 			if ($name === "") {
-				throw new BadRequestException("Module name is required", "invalid_name");
+
+				return ["error" => "Module name is required", "code" => "invalid_name"];
 			}
 
 			// The table name flows into raw DDL, so it must be a bare identifier.
 			if (!preg_match('/^[A-Za-z0-9_]+$/', $table)) {
-				throw new BadRequestException("Table name must contain only letters, numbers, and underscores", "invalid_table");
+
+				return ["error" => "Table name must contain only letters, numbers, and underscores",
+					"code" => "invalid_table"];
 			}
 
 			if (strlen($table) > 64) {
-				throw new BadRequestException("Table name must be 64 characters or fewer", "invalid_table");
+
+				return ["error" => "Table name must be 64 characters or fewer", "code" => "invalid_table"];
 			}
 
 			if (BigTree::tableExists($table)) {
-				throw new ConflictException("A table named \"$table\" already exists", "table_exists");
+
+				return ["conflict" => "A table named \"$table\" already exists", "code" => "table_exists"];
 			}
 
 			if ($class !== "" && class_exists($class)) {
-				throw new ConflictException("A class named \"$class\" already exists", "class_exists");
+
+				return ["conflict" => "A class named \"$class\" already exists", "code" => "class_exists"];
 			}
 
 			// Resolve fields → form-field defs + column DDL, skipping untitled rows and
@@ -176,23 +208,66 @@
 			}
 
 			if (count($form_fields) === 0) {
-				throw new BadRequestException("Add at least one field with a title", "no_fields");
+
+				return ["error" => "Add at least one field with a title", "code" => "no_fields"];
 			}
 
 			$route = $d["route"] ?? BigTreeCMS::urlify($name);
 
 			if (!Sanitize::isValidId((string)$route, 127, "-")) {
-				throw new BadRequestException("Module route must be alphanumeric (with -) and ≤ 127 chars", "invalid_route");
+
+				return ["error" => "Module route must be alphanumeric (with -) and ≤ 127 chars",
+					"code" => "invalid_route"];
 			}
 
 			$route = $this->uniqueModuleRoute($route);
 			$actions_in = is_array($d["actions"] ?? null) ? $d["actions"] : [];
 			$view_type = ($d["view_type"] ?? "searchable") === "draggable" ? "draggable" : "searchable";
 
-			// — Everything validated; create the module record —
-			// Pass validated class/table via $d so the shared insert map picks them up.
+			// Singular drives the form ("Add Article"), plural the view ("Viewing Articles").
+			$item_title = trim((string)($d["item_title"] ?? "")) ?: $this->singularize($name);
+			$view_title = trim((string)($d["view_title"] ?? "")) ?: $this->pluralize($name);
+
+			// Pass validated class/table through so the shared insert map picks them up.
 			$d["class"] = $class;
 			$d["table"] = $table;
+
+			return [
+				"body" => $d,
+				"name" => $name,
+				"table" => $table,
+				"class" => $class,
+				"route" => $route,
+				"form_fields" => $form_fields,
+				"column_adds" => $column_adds,
+				"actions" => $actions_in,
+				"view_type" => $view_type,
+				"item_title" => $item_title,
+				"view_title" => $view_title,
+			];
+		}
+
+		/**
+		 * Build everything a validated plan describes: the module record, the table and
+		 * its columns, the form, the add/edit actions, the landing view and its list
+		 * action. Runs DDL, so it is only ever called with a plan scaffoldPlan()
+		 * returned.
+		 *
+		 * @param array<string,mixed> $plan
+		 * @return string The new module id.
+		 */
+		private function performScaffold(array $plan): string {
+			$d = $plan["body"];
+			$name = (string)$plan["name"];
+			$table = (string)$plan["table"];
+			$route = (string)$plan["route"];
+			$form_fields = $plan["form_fields"];
+			$column_adds = $plan["column_adds"];
+			$actions_in = $plan["actions"];
+			$view_type = (string)$plan["view_type"];
+			$item_title = (string)$plan["item_title"];
+			$view_title = (string)$plan["view_title"];
+
 			$module_id = BigTreeJSONDB::insert("modules", $this->moduleInsertMap($d, $name, $route));
 
 			// — Build the table —
@@ -215,10 +290,6 @@
 			if ($view_type === "draggable") {
 				SQL::query("ALTER TABLE `$table` ADD COLUMN `position` INT(11) NOT NULL, ADD INDEX `position` (`position`)");
 			}
-
-			// Singular drives the form ("Add Article"), plural the view ("Viewing Articles").
-			$item_title = trim((string)($d["item_title"] ?? "")) ?: $this->singularize($name);
-			$view_title = trim((string)($d["view_title"] ?? "")) ?: $this->pluralize($name);
 
 			$context = BigTreeJSONDB::getSubset("modules", $module_id);
 
@@ -276,7 +347,7 @@
 
 			ModuleViewService::updateModuleViewColumnNumericStatusForTable($table);
 
-			return Response::created($this->present(BigTreeJSONDB::get("modules", $module_id)), null);
+			return (string)$module_id;
 		}
 
 		// Insert a module action via the JSONDB subset, mirroring createAction's
@@ -1608,11 +1679,295 @@
 				"remaining_setup" => $this->aiModuleSetupSteps($name),
 				"note" => "“{$name}” now appears in the admin navigation but is not usable yet — it has no database "
 					. "table, so it has no landing view and entries can't be added to it (including by the "
-					. "assistant). Finish it in Developer → Modules → Module Designer."
+					. "assistant). Finish it in Developer → Modules → Module Designer, or use scaffold_module "
+					. "next time to propose the table, form and view along with the record."
 					. ($group_missing
 						? " The module group it was meant to join no longer exists, so it was created ungrouped."
 						: ""),
 			];
+		}
+
+		/**
+		 * Validate a proposed module scaffold: the module record *and* the table, form,
+		 * landing view and actions that make it usable. Developer-only.
+		 *
+		 * Audit #11 C1. `create_module` builds a record with `"table" => ""` and
+		 * discloses, honestly, that the result isn't usable — the single most
+		 * incomplete record the assistant can create. Meanwhile POST /modules/scaffold
+		 * has always done the whole job from a validated field list, and was declined
+		 * on the strength of "DDL" and "shape-guessing" that are both narrower than
+		 * they look: it writes its own DDL from a field list validated against the real
+		 * field-type registry, and refuses a non-identifier table name, an existing
+		 * table, an existing class, and a field list with nothing titled in it.
+		 *
+		 * What the assistant adds on top is the two-phase proposal every other
+		 * developer tool already gets: the entire plan — the table name, every column
+		 * and its SQL type, the form, the view, the actions — on the card, and not one
+		 * `CREATE TABLE` until a developer approves it.
+		 *
+		 * @param array<string,mixed> $args
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 */
+		public function aiValidateModuleScaffold(array $args, $user): array {
+			if (PermissionService::level($user) < 2) {
+
+				return ["denied" => "Only developers can scaffold modules."];
+			}
+
+			$name = trim((string)($args["name"] ?? ""));
+
+			if ($name === "") {
+
+				return ["error" => "A module name is required."];
+			}
+
+			// Derived rather than demanded: a table name is an implementation detail
+			// the user has no opinion about, and every other create tool derives its id
+			// the same way. An explicit one is still honoured.
+			$table = trim((string)($args["table"] ?? "")) ?: $this->aiDerivedScaffoldTable($name);
+			$fields = is_array($args["fields"] ?? null) ? $args["fields"] : [];
+
+			if (!$fields) {
+
+				return ["error" => "Provide a \"fields\" array describing the module's entry form — each field needs "
+					. "a title and a type. Available field types: "
+					. implode(", ", FieldTypeService::availableFieldTypeIds("modules")) . "."];
+			}
+
+			// The same registry check create_template and create_callout run (audit #2
+			// P2), so a scaffold can't build a column for a field type that doesn't
+			// exist and then render as nothing in the editor it just created.
+			$type_error = $this->aiInvalidScaffoldFieldTypeError($fields);
+
+			if ($type_error !== null) {
+
+				return ["error" => $type_error];
+			}
+
+			$body = $this->aiScaffoldBody($args, $name, $table);
+			$plan = $this->scaffoldPlan($body);
+
+			if (isset($plan["error"]) || isset($plan["conflict"])) {
+
+				return ["error" => (string)($plan["error"] ?? $plan["conflict"])];
+			}
+
+			// Every column on the card, in ProposalCard's existing `fields` shape
+			// ({title, to}) so it renders one row each with no new preview renderer.
+			// This is the whole point of the tool: the approver sees the schema before
+			// a single CREATE TABLE runs.
+			$columns = [];
+
+			foreach ($plan["column_adds"] as $index => $add) {
+				$field = $plan["form_fields"][$index];
+				$columns[] = [
+					"title" => (string)$field["title"],
+					// The literal DDL, so the card shows what will run rather than a
+					// description of what will run.
+					"to" => trim((string)preg_replace('/^ADD COLUMN /', "", (string)$add))
+						. " — " . (string)$field["type"] . " field",
+				];
+			}
+
+			$status_columns = $this->aiScaffoldStatusColumns($plan);
+
+			foreach ($status_columns as $status_column) {
+				$columns[] = [
+					"title" => ucfirst($status_column),
+					"to" => "`{$status_column}` — added by the "
+						. ($status_column === "position" ? "drag-orderable view" : "{$status_column} action"),
+				];
+			}
+
+			return [
+				"ok" => true,
+				"summary" => "Scaffold a new module “{$name}” (route {$plan["route"]}): create the table "
+					. "`{$plan["table"]}` with " . count($columns) . " column"
+					. (count($columns) === 1 ? "" : "s")
+					. ($status_columns ? " plus " . implode(", ", $status_columns) : "")
+					. ", an “{$plan["item_title"]}” add/edit form, and a "
+					. ($plan["view_type"] === "draggable" ? "drag-orderable" : "searchable")
+					. " “{$plan["view_title"]}” landing view. Creating a table is not something the assistant can "
+					. "undo — deleting a module is admin-only.",
+				"preview" => [
+					"action" => "scaffold_module",
+					"name" => $name,
+					"route" => $plan["route"],
+					"table" => $plan["table"],
+					"fields" => $columns,
+					"form" => $plan["item_title"],
+					"view" => $plan["view_title"],
+					"view_type" => $plan["view_type"],
+					"creates_table" => true,
+					// The card's own irreversibility banner. This is the only proposal
+					// in the catalogue whose effect the assistant cannot walk back:
+					// deleting a module is admin-only, and dropping a table isn't a
+					// capability at all.
+					"destructive" => true,
+				],
+				"payload" => $body,
+			];
+		}
+
+		/**
+		 * Apply an approved module scaffold. Re-checks developer level, and re-plans
+		 * from the payload rather than trusting the staged plan — a table or class free
+		 * at staging can be claimed inside the proposal's 24h life, and the DDL below
+		 * is the one write in the catalogue with no undo.
+		 *
+		 * @param array<string,mixed> $payload
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 */
+		public function aiScaffoldModule(array $payload, $user): array {
+			if (PermissionService::level($user) < 2) {
+				throw new AuthorizationException("Only developers can scaffold modules.");
+			}
+
+			// Re-asked at approval like every other staged value: an extension can
+			// register or un-register a field type inside the proposal's 24h TTL.
+			$type_error = $this->aiInvalidScaffoldFieldTypeError(
+				is_array($payload["fields"] ?? null) ? $payload["fields"] : []
+			);
+
+			if ($type_error !== null) {
+
+				return ["mode" => "error", "message" => $type_error];
+			}
+
+			$plan = $this->scaffoldPlan($payload);
+
+			if (isset($plan["error"]) || isset($plan["conflict"])) {
+
+				return ["mode" => "error", "message" => (string)($plan["error"] ?? $plan["conflict"])
+					. " — this module can no longer be scaffolded as proposed. Ask again."];
+			}
+
+			$module_id = $this->performScaffold($plan);
+
+			return [
+				"mode" => "created",
+				"id" => (string)$module_id,
+				"name" => (string)$plan["name"],
+				"route" => (string)$plan["route"],
+				"table" => (string)$plan["table"],
+				"is_complete" => true,
+				"note" => "“{$plan["name"]}” is ready to use: it has a table, an add/edit form and a landing view, "
+					. "so entries can be added to it now — including with create_module_entry.",
+			];
+		}
+
+		/**
+		 * The scaffold request body a proposal describes, in exactly the shape
+		 * POST /modules/scaffold takes. Built once and stored as the payload, so the
+		 * approval re-plans from the same input the card was computed from.
+		 *
+		 * @param array<string,mixed> $args
+		 * @return array<string,mixed>
+		 */
+		private function aiScaffoldBody(array $args, string $name, string $table): array {
+			$actions = is_array($args["actions"] ?? null) ? $args["actions"] : [];
+
+			return [
+				"name" => $name,
+				"table" => $table,
+				// Deliberately empty: the class is the Module Designer's to create, and
+				// create_module already refuses to wire a module to one that doesn't
+				// exist. A scaffold that named a class would either collide or dangle.
+				"class" => "",
+				"route" => trim((string)($args["route"] ?? "")) ?: BigTreeCMS::urlify($name),
+				"fields" => is_array($args["fields"] ?? null) ? $args["fields"] : [],
+				"actions" => [
+					"approve" => !empty($actions["approve"]),
+					"feature" => !empty($actions["feature"]),
+					"archive" => !empty($actions["archive"]),
+				],
+				"view_type" => ($args["view_type"] ?? "searchable") === "draggable" ? "draggable" : "searchable",
+				"item_title" => trim((string)($args["item_title"] ?? "")),
+				"view_title" => trim((string)($args["view_title"] ?? "")),
+				"group" => trim((string)($args["group"] ?? "")) ?: null,
+				"icon" => trim((string)($args["icon"] ?? "")),
+			];
+		}
+
+		/**
+		 * A bare identifier table name derived from the module's name. An empty
+		 * derivation is left empty so scaffoldPlan refuses it by the same rule it
+		 * refuses a bad one, rather than this inventing a name nobody asked for.
+		 */
+		private function aiDerivedScaffoldTable(string $name): string {
+			$table = strtolower((string)preg_replace('/[^A-Za-z0-9]+/', "_", $name));
+			$table = trim($table, "_");
+
+			return $table !== "" ? substr($table, 0, 64) : "";
+		}
+
+		/**
+		 * Field types a scaffold names that this CMS doesn't have, checked against the
+		 * real registry — the same rule create_template and create_callout apply to
+		 * their own field lists (audit #2 P2).
+		 *
+		 * @param array<int,mixed> $fields
+		 */
+		private function aiInvalidScaffoldFieldTypeError(array $fields): ?string {
+			$valid = FieldTypeService::availableFieldTypeIds("modules");
+
+			// An empty catalog means the registry couldn't be resolved — don't turn
+			// that into a refusal of every field.
+			if (!$valid) {
+
+				return null;
+			}
+
+			$bad = [];
+
+			foreach ($fields as $field) {
+				if (!is_array($field)) {
+
+					continue;
+				}
+
+				$type = (string)($field["type"] ?? "");
+
+				if ($type !== "" && !in_array($type, $valid, true)) {
+					$bad[] = "\"{$type}\" (field " . (string)($field["title"] ?? "?") . ")";
+				}
+			}
+
+			if (!$bad) {
+
+				return null;
+			}
+
+			sort($valid);
+
+			return "Unknown field type(s): " . implode(", ", array_unique($bad))
+				. ". Available module field types: " . implode(", ", $valid) . ".";
+		}
+
+		/**
+		 * The builtin status columns a scaffold's chosen actions and view type add, so
+		 * the card names every column the DDL will create rather than only the ones the
+		 * model asked for.
+		 *
+		 * @param array<string,mixed> $plan
+		 * @return list<string>
+		 */
+		private function aiScaffoldStatusColumns(array $plan): array {
+			$columns = [];
+
+			foreach (["approve" => "approved", "feature" => "featured", "archive" => "archived"] as $action => $column) {
+				if (!empty($plan["actions"][$action])) {
+					$columns[] = $column;
+				}
+			}
+
+			if ($plan["view_type"] === "draggable") {
+				$columns[] = "position";
+			}
+
+			return $columns;
 		}
 
 		/**

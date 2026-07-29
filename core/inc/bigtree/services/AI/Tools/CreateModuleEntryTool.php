@@ -6,11 +6,11 @@
 	use BigTree\Services\AI\ProposalStore;
 
 	/**
-	 * Two-phase creation of a module entry. Only the module form's simple scalar
-	 * fields can be set; the backend rejects complex fields and (when called without
-	 * data) lists the settable fields so the model can fill them in. On approval a
-	 * publisher writes live, an editor queues a pending entry. Writes nothing during
-	 * the turn.
+	 * Two-phase creation of a module entry. The form's text-like fields, its
+	 * reference fields (by resource id) and its relationship fields (by entry id) can
+	 * be set; the backend rejects composite fields and (when called without data)
+	 * lists the settable fields so the model can fill them in. On approval a publisher
+	 * writes live, an editor queues a pending entry. Writes nothing during the turn.
 	 */
 	class CreateModuleEntryTool extends AbstractMutatingTool {
 		/** @var ModuleEntryToolBackend */
@@ -41,8 +41,20 @@
 						],
 						"data" => [
 							"type" => "object",
-							"description" => "Field values keyed by column name. Only the module form's simple fields can be set.",
-							"additionalProperties" => ["type" => "string"],
+							"description" => "Field values keyed by column name. Text-like fields take their value directly; an "
+								. "image, file or video reference field takes the numeric id of a file that is already in "
+								. "the Files library (find one with search_files or list_resources); a relationship field "
+								. "takes a list of entry ids in the field's own table (e.g. [\"12\", \"15\"]) — find them "
+								. "with list_module_entries or search_module_entries. Composite fields — matrices, "
+								. "callouts, media galleries — can't be set here.",
+							// A relationship field's value is a list of ids, so a string is
+							// not the only shape this object carries (audit #11 B2).
+							"additionalProperties" => [
+								"anyOf" => [
+									["type" => "string"],
+									["type" => "array", "items" => ["type" => "string"]],
+								],
+							],
 						],
 						"form" => [
 							"type" => "string",

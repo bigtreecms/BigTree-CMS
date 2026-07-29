@@ -11,6 +11,8 @@
 	use BigTree\Services\AI\AIToolRegistry;
 	use BigTree\Services\AI\AIToolResult;
 	use BigTree\Services\AI\AgentLoop;
+	use BigTree\Services\AI\FieldTypeDomain;
+	use BigTree\Services\AI\ResourceReferenceDomain;
 	use BigTree\Services\AI\Tools\SearchToolBackend;
 	use BigTree\Services\AI\Tools\SearchPagesTool;
 	use BigTree\Services\AI\Tools\SearchModulesTool;
@@ -1336,7 +1338,7 @@ PROMPT;
 			// The keyed, markup-preserving content map update_page_content writes to.
 			// content_text alone (strip_tags'd, unkeyed, concatenated) meant every AI
 			// copy edit was proposed blind and flattened the HTML it replaced.
-			$content = $pages->aiPageContentFields($target);
+			$content = $pages->aiPageContentFields($target, $user);
 
 			if ($target["is_pending"]) {
 				$reference = "p".$target["change_id"];
@@ -1475,6 +1477,12 @@ PROMPT;
 			// and say what they cut.
 			$safe = [];
 			$truncated = [];
+			// What each reference column actually names. The flatten below reports a
+			// photo as the string "12" — an opaque integer, with nothing saying it is a
+			// resource id or which file it points at — so "what image is on this entry?"
+			// had no answer and "replace the photo" was a blind write (audit #11 B4).
+			// Folder-filtered, like every other resource read.
+			$references = [];
 			$cap = AutoModuleService::AI_ENTRY_READ_CAP;
 			$schema = is_array($resolved_form["schema"] ?? null) ? $resolved_form["schema"] : [];
 
@@ -1496,6 +1504,18 @@ PROMPT;
 
 				$text = (string)$value;
 				$type = (string)($schema[$key]["type"] ?? "");
+
+				if (FieldTypeDomain::isResourceReference($type)) {
+					$described = ResourceReferenceDomain::describe($text, $user);
+
+					if ($described) {
+						$references[(string)$key] = $described;
+					}
+
+					$safe[$key] = $text;
+
+					continue;
+				}
 
 				// Link tokens are decoded before the cap, so the model reads a real URL
 				// rather than an opaque base64 blob it would have to reproduce verbatim to
@@ -1525,7 +1545,8 @@ PROMPT;
 			$relations = $auto_modules->aiEntryRelationDetail(
 				$table,
 				(string)$resolved["lookup_id"],
-				$is_pending
+				$is_pending,
+				is_array($resolved_form["form"] ?? null) ? $resolved_form["form"] : null
 			);
 
 			// No artifact for a draft: artifacts are navigable rows, and an
@@ -1542,6 +1563,7 @@ PROMPT;
 					"form" => (string)($resolved_form["form"]["id"] ?? ""),
 					"table" => $table,
 					"entry" => $safe,
+					"entry_references" => $references,
 					"fields_truncated" => $truncated,
 				], $relations, [
 					"note" => "This entry is still an unpublished draft awaiting approval — these are the draft's "
@@ -1565,6 +1587,7 @@ PROMPT;
 					"form" => (string)($resolved_form["form"]["id"] ?? ""),
 					"table" => $table,
 					"entry" => $safe,
+					"entry_references" => $references,
 					"fields_truncated" => $truncated,
 				], $relations),
 				"artifact" => $group,

@@ -29,6 +29,7 @@
 	 *   ["type" => "setting_value", "id" => "site_title"]
 	 *   ["type" => "tags", "table" => "bigtree_pages", "id" => 42]
 	 *   ["type" => "open_graph", "table" => "bigtree_pages", "id" => 42]
+	 *   ["type" => "resources", "ids" => [12, 13]]
 	 *   ["type" => "composite", "parts" => [<descriptor>, <descriptor>, …]]
 	 *
 	 * An unknown or empty descriptor fingerprints as "" and is never compared, so a
@@ -85,6 +86,10 @@
 				case "open_graph":
 
 					return self::openGraph((string)($descriptor["table"] ?? ""), (string)($descriptor["id"] ?? ""));
+
+				case "resources":
+
+					return self::resources($descriptor["ids"] ?? []);
 
 				case "composite":
 
@@ -154,6 +159,12 @@
 					return $id !== "" && preg_match(self::IDENTIFIER, $table)
 						? null
 						: "a \"{$type}\" descriptor needs a table and an id";
+
+				case "resources":
+
+					return array_filter(array_map("intval", (array)($descriptor["ids"] ?? [])))
+						? null
+						: "a \"resources\" descriptor needs at least one resource id";
 
 				case "composite":
 					$parts = $descriptor["parts"] ?? [];
@@ -241,6 +252,43 @@
 			}
 
 			return md5((string)$row["value"]);
+		}
+
+		/**
+		 * The files a proposal is about to reference.
+		 *
+		 * Audit #11 B1 made reference fields settable by resource id. An id is a much
+		 * weaker thing to stage than a value: the row it names can be deleted, moved
+		 * to a folder the approver can't see, or replaced by a re-upload inside the
+		 * proposal's 24h life, and the write would still succeed and store an id
+		 * pointing at nothing. Hashing existence, file, folder and dimensions makes
+		 * any of those fail the card instead.
+		 *
+		 * @param mixed $ids
+		 */
+		private static function resources($ids): string {
+			$ids = array_values(array_unique(array_filter(array_map("intval", (array)$ids))));
+
+			if (!$ids) {
+
+				return "";
+			}
+
+			sort($ids);
+			$parts = [];
+
+			foreach ($ids as $id) {
+				$row = SQL::fetch(
+					"SELECT file, folder, width, height FROM bigtree_resources WHERE id = ?",
+					$id
+				);
+
+				// "Deleted" has to be distinguishable from every stored state, the same
+				// way settingValue distinguishes "unset".
+				$parts[] = $id . ":" . ($row ? (string)json_encode($row) : "missing");
+			}
+
+			return md5(implode("\x1f", $parts));
 		}
 
 		/** The tag set attached to one record. */

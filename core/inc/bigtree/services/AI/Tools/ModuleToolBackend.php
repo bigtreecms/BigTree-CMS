@@ -2,12 +2,14 @@
 	namespace BigTree\Services\AI\Tools;
 
 	/**
-	 * The seam the create_module AI tool calls, implemented by ModuleService.
+	 * The seam the module AI tools call, implemented by ModuleService.
 	 *
-	 * Developer-only and two-phase. The assistant creates a bare module record (name,
-	 * route, group, class, icon) — it deliberately does NOT scaffold a database table
-	 * (that path runs irreversible DDL and belongs in the Module Designer). Developer
-	 * level is re-checked at validation and approval.
+	 * Developer-only and two-phase throughout. `create_module` makes a bare module
+	 * record (name, route, group, class, icon) and nothing else; `scaffold_module`
+	 * makes a usable one — the table, its columns, the form, the landing view and the
+	 * actions — with the whole plan on the proposal card and no DDL until a developer
+	 * approves it (audit #11 C1). Developer level is re-checked at validation and at
+	 * approval on both.
 	 */
 	interface ModuleToolBackend {
 		/**
@@ -38,6 +40,30 @@
 		 * @throws \BigTree\Api\Exceptions\AuthorizationException
 		 */
 		public function aiCreateModule(array $payload, $user): array;
+
+		/**
+		 * Validate a proposed module scaffold — the record plus the table, form,
+		 * landing view and actions that make it usable — without writing anything.
+		 * Returns denied | error | ok+summary+preview+payload, with the full build plan
+		 * (table name, every column and its SQL type, form, view, actions) on the
+		 * preview.
+		 *
+		 * @param array<string,mixed> $args
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 */
+		public function aiValidateModuleScaffold(array $args, $user): array;
+
+		/**
+		 * Apply an approved module scaffold from a stored payload, running the DDL.
+		 * Re-checks developer level and re-plans from the payload.
+		 *
+		 * @param array<string,mixed> $payload
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 * @throws \BigTree\Api\Exceptions\AuthorizationException
+		 */
+		public function aiScaffoldModule(array $payload, $user): array;
 
 		/**
 		 * Validate a proposed edit to a module's name/group/icon. Route and the Module

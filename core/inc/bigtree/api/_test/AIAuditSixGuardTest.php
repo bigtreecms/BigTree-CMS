@@ -156,6 +156,9 @@
 			"create_callout" => "creates a callout",
 			"create_callout_group" => "creates a callout group",
 			"create_module" => "creates a module",
+			// The table it creates cannot exist yet — scaffoldPlan refuses an existing
+			// one, at staging and again at approval — so there is no prior state.
+			"scaffold_module" => "creates a module, its table, its form and its view",
 			"create_module_group" => "creates a module group",
 			"create_redirect" => "creates a 404 redirect; the source has no prior record to move",
 		];

@@ -336,7 +336,10 @@
 			"deleting a page revision" => "revision deletion",
 			"two-factor authentication or passkeys" => "authentication-credential management",
 			"configuring integrations" => "email/geocoding/storage/analytics/payment configuration",
-			"scaffolding" => "building a module's table and screens",
+			// Audit #11 C1 replaced the "scaffolding" wall with scaffold_module, so the
+			// line that survives is the narrower and still-true one: restructuring a
+			// module that already exists is ALTER TABLE over real rows.
+			"existing module's tables" => "reshaping an existing module",
 			"integrity scans" => "running an integrity scan",
 		];
 

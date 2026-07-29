@@ -67,10 +67,20 @@
 						"content" => [
 							"type" => "object",
 							"description" => "Content for the template's fields, keyed by field id "
-								. "(e.g. {\"page_header\": \"...\", \"page_content\": \"<p>…</p>\"}). Only simple "
-								. "text/html fields can be set. The template's required fields must be filled; "
+								. "(e.g. {\"page_header\": \"...\", \"page_content\": \"<p>…</p>\"}). Text-like fields "
+								. "take their value directly; an image, file or video reference field takes the "
+								. "numeric id of a file that is already in the Files library (find one with "
+								. "search_files or list_resources); a relationship field takes a list of entry ids "
+								. "(e.g. [\"12\", \"15\"]). The template's required fields must be filled; "
 								. "if you don't know them, call this once without content to be told which fields exist.",
-							"additionalProperties" => ["type" => "string"],
+							// A relationship field's value is a list of ids, so a string is
+							// not the only shape this object carries (audit #11 B2).
+							"additionalProperties" => [
+								"anyOf" => [
+									["type" => "string"],
+									["type" => "array", "items" => ["type" => "string"]],
+								],
+							],
 						],
 						"in_nav" => [
 							"type" => "boolean",

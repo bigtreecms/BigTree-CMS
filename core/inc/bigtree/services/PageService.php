@@ -15,6 +15,9 @@
 	use BigTree\Services\AI\Tools\PageToolBackend;
 	use BigTree\Services\AI\ColumnDomain;
 	use BigTree\Services\AI\FieldOptionDomain;
+	use BigTree\Services\AI\FieldTypeDomain;
+	use BigTree\Services\AI\ResourceReferenceDomain;
+	use BigTree\Services\AI\RelationDomain;
 	use BigTree\Services\AI\TruncatedRead;
 	use BigTreeCMS;
 	use BigTree;
@@ -32,20 +35,14 @@
 	 *  - Multi-site path collision dance
 	 */
 	class PageService implements PageToolBackend {
-		// Template resource types the assistant is allowed to set when creating a page:
-		// plain scalar values it can synthesize safely. Everything else (uploads,
-		// matrices, relationships, callouts, routes) is omitted from the AI schema and
-		// rejected if supplied — mirrors AutoModuleService's AI_SIMPLE_FIELD_TYPES.
-		private const AI_SIMPLE_RESOURCE_TYPES = [
-			"text", "textarea", "html", "htmleditor", "simple-editor", "code",
-			"number", "currency", "phone", "email", "color",
-			"date", "datetime", "time", "select", "radio", "checkbox", "list",
-		];
-
-		// The subset of the above whose values are markup, and so carry links and image
-		// sources that have to be stored as tokens rather than as this environment's
-		// absolute URLs. See aiNormalizeHtmlValue.
-		public const AI_HTML_RESOURCE_TYPES = ["html", "htmleditor", "simple-editor", "code"];
+		// The subset of the settable types whose values are markup, and so carry links
+		// and image sources that have to be stored as tokens rather than as this
+		// environment's absolute URLs. See aiNormalizeHtmlValue.
+		//
+		// One entry, not four: `htmleditor`, `simple-editor` and `code` were never
+		// field types this CMS has (audit #11 A2). `html` is the whole markup subset —
+		// `simple` mode is a *setting* on it, not a type of its own.
+		public const AI_HTML_RESOURCE_TYPES = ["html"];
 
 		// Content columns snapshotted into bigtree_page_revisions (restoreRevision
 		// update map + insertRevisionSnapshot share this list; per-map extras stay
@@ -487,9 +484,10 @@
 				return ["error" => $link_error];
 			}
 
-			// Collect the page's content for the template's simple fields. Complex
-			// fields (uploads, matrices, relationships) are omitted from the schema and
-			// rejected if supplied — the assistant never fabricates a file reference.
+			// Collect the page's content for the template's settable fields. Composite
+			// fields (uploads, matrices, callouts, galleries) are omitted from the
+			// schema and rejected if supplied — the assistant never fabricates a file,
+			// it only points at one that already exists.
 			$schema = $this->aiTemplateResourceSchema($template);
 			$provided = is_array($args["content"] ?? null) ? $args["content"] : [];
 
@@ -503,7 +501,7 @@
 					. "pick a template to create a real page."];
 			}
 
-			$sifted = $this->aiSiftResourceContent($schema, $provided, $template);
+			$sifted = $this->aiSiftResourceContent($schema, $provided, $template, [], $user);
 
 			if (isset($sifted["error"])) {
 
@@ -704,12 +702,24 @@
 
 			$summary = "Create page “{$nav_title}” under {$parent_title}." . $mode_note;
 
-			return [
+			$staged = [
 				"ok" => true,
 				"summary" => $summary,
 				"preview" => $preview,
 				"payload" => $payload,
 			];
+
+			// A create has no row to go stale, but it can still be *about* something
+			// that does: a file it references can be deleted or replaced inside the
+			// proposal's 24h life, and approving would store an id pointing at nothing
+			// (audit #11 B1).
+			$resource_ids = ResourceReferenceDomain::referencedIds($schema, $resources);
+
+			if ($resource_ids) {
+				$staged["fingerprint"] = ["type" => "resources", "ids" => $resource_ids];
+			}
+
+			return $staged;
 		}
 
 		/**
@@ -782,9 +792,12 @@
 		}
 
 		/**
-		 * The AI-settable content schema for a template: its simple scalar resources,
-		 * keyed by resource id. Complex resources are dropped (never offered to the
-		 * model, never accepted). `required` is read from the legacy `settings.validation`
+		 * The AI-settable content schema for a template, keyed by resource id —
+		 * whichever of its resources FieldTypeDomain classifies as settable, which
+		 * since audit #11 is the text-like types plus references (by resource id) and
+		 * one-to-many relationships (by entry id). Composite resources are dropped
+		 * (never offered to the model, never accepted). `required` is read from the
+		 * legacy `settings.validation`
 		 * rule string — the same source the "Add page" screen validates against.
 		 *
 		 * @return array<string,array<string,mixed>>
@@ -803,7 +816,7 @@
 				$id = (string)($resource["id"] ?? "");
 				$type = (string)($resource["type"] ?? "text");
 
-				if ($id === "" || !in_array($type, self::AI_SIMPLE_RESOURCE_TYPES, true)) {
+				if ($id === "" || !FieldTypeDomain::isSettable($type)) {
 
 					continue;
 				}
@@ -817,6 +830,11 @@
 					"id" => $id,
 					"type" => $type,
 					"title" => (string)($resource["title"] ?? $id),
+					// Email-ness and website-ness live in a `text` field's `sub_type`
+					// setting, not in the type id — this CMS has no `email` or `url`
+					// field type (audit #11 A3). Without it the model was shown an
+					// unadorned text field and had no reason to write an address.
+					"sub_type" => (string)($settings["sub_type"] ?? ""),
 					"required" => in_array("required", $rules ?: [], true),
 					// Emptiness is `required`'s business, and the content gates own
 					// that; what's left (numeric, email, link) the write path enforces
@@ -828,7 +846,13 @@
 					"options" => FieldOptionDomain::resolve($resource, $type, $id),
 					// The field's own character budget, honoured in the browser by
 					// TextField/TextareaField and by nothing on the server (audit #10 A3).
-					"maxlength" => (int)($settings["maxlength"] ?? 0),
+					// Read through configuredMaxLength: the stored key is `max_length`,
+					// and reading `maxlength` by hand meant this was always 0 (#11 A1).
+					"max_length" => ColumnDomain::configuredMaxLength($settings),
+					// The definition itself, for the checks that need a setting this
+					// summary doesn't lift out — an image reference's min_width /
+					// min_height (audit #11 B1).
+					"settings" => $settings,
 				];
 			}
 
@@ -865,7 +889,7 @@
 				$id = (string)($resource["id"] ?? "");
 				$type = (string)($resource["type"] ?? "text");
 
-				if ($id === "" || in_array($type, self::AI_SIMPLE_RESOURCE_TYPES, true)) {
+				if ($id === "" || FieldTypeDomain::isSettable($type) || FieldTypeDomain::isDerived($type)) {
 					continue;
 				}
 
@@ -937,13 +961,15 @@
 		 * @param array<string,mixed> $provided
 		 * @param string $template The template the content belongs to, for naming complex resources.
 		 * @param array<string,mixed> $existing The page's stored content, for the truncated-read refusal.
+		 * @param object|array|null $user The actor, for the reference field's folder check.
 		 * @return array<string,mixed> ["data" => array] or ["error" => string]
 		 */
 		private function aiSiftResourceContent(
 			array $schema,
 			array $provided,
 			string $template = "",
-			array $existing = []
+			array $existing = [],
+			$user = null
 		): array {
 			$data = [];
 			$complex = $this->aiComplexTemplateResources($schema, $template);
@@ -954,12 +980,42 @@
 				if (!isset($schema[$id])) {
 					if (isset($complex[$id])) {
 
-						return ["error" => "Field \"{$id}\" ({$complex[$id]}) can't be set by the assistant — it needs "
-							. "the page editor in the admin. Settable fields: " . $this->aiDescribeResourceSchema($schema)];
+						// The reason is the field type's own, not one wall for uploads,
+						// matrices and callouts alike (audit #11 A4/B1).
+						return ["error" => "Field \"{$id}\" ({$complex[$id]["label"]}) can't be set here — "
+							. $complex[$id]["reason"] . " Settable fields: "
+							. $this->aiDescribeResourceSchema($schema)];
 					}
 
 					return ["error" => "This template has no content field called \"{$id}\". Settable fields: "
 						. $this->aiDescribeResourceSchema($schema)];
+				}
+
+				// A relationship resource is the one settable shape that *is* a list, so
+				// it is resolved before the scalar guard below (audit #11 B2).
+				if (FieldTypeDomain::isRelation((string)$schema[$id]["type"])) {
+					if ((string)$schema[$id]["type"] === "many-to-many") {
+
+						// A many-to-many is a connecting-table relation between two
+						// module tables; a page's content is a JSON blob with no row of
+						// its own on either side, and the page write path has no $mtm
+						// argument to hand one to. Refused rather than written into the
+						// blob, where nothing would ever read it.
+						return ["error" => "Field \"{$id}\" is a many-to-many relationship, which only works on a "
+							. "module entry — a page's content can't hold one. Set it in the page editor if the "
+							. "template really has one."];
+					}
+
+					$relation = RelationDomain::resolveOneToMany($schema[$id], $value, $user);
+
+					if (isset($relation["error"])) {
+
+						return ["error" => (string)$relation["error"]];
+					}
+
+					$data[$id] = $relation["value"];
+
+					continue;
 				}
 
 				if (is_array($value)) {
@@ -978,10 +1034,46 @@
 				// handed the model was decoded too.
 				$as_written = $data[$id];
 
+				// A reference resource holds a bigtree_resources id. Resolved and checked
+				// here — the row exists, the actor can see its folder, it's the right kind
+				// of file, it clears the field's min_width/min_height — at staging and
+				// again at approval, because this sift runs on both (audit #11 B1).
+				if (FieldTypeDomain::isResourceReference((string)$schema[$id]["type"])) {
+					$reference = ResourceReferenceDomain::resolve(
+						$schema[$id],
+						(string)$schema[$id]["type"],
+						$data[$id],
+						$user
+					);
+
+					if (isset($reference["error"])) {
+
+						return ["error" => (string)$reference["error"]];
+					}
+
+					// Nothing below applies to an id: no markup to tokenize, no option
+					// domain, no rule string, and the truncated-read refusal is about
+					// prose that came back cut.
+					$data[$id] = (string)$reference["value"];
+
+					continue;
+				}
+
+				// A `link` resource is a URL and nothing else, so a value the model can't
+				// have meant as one is caught before it reaches the token pass (#11 B3).
+				$bad_link = $this->aiLinkShapeViolation($schema[$id], $data[$id]);
+
+				if ($bad_link !== null) {
+
+					return ["error" => $bad_link];
+				}
+
 				// Markup the model authored is normalized here, at the sift, so the
 				// tokenized form is what gets staged, previewed and written — the user
-				// approves what will actually be stored.
-				if (in_array((string)$schema[$id]["type"], self::AI_HTML_RESOURCE_TYPES, true)) {
+				// approves what will actually be stored. A `link` value goes through the
+				// same pass: autoIPL turns a bare internal URL into the `ipl://` token
+				// the field stores.
+				if (in_array((string)$schema[$id]["type"], self::AI_LINK_BEARING_TYPES, true)) {
 					$data[$id] = self::aiNormalizeHtmlValue($data[$id]);
 				}
 
@@ -1005,10 +1097,10 @@
 				// The storage/read-fidelity boundary (audit #10). Page content lands in
 				// `bigtree_pages.resources`, a longtext JSON blob, so there is no column
 				// domain to check here the way there is for a module entry — what applies
-				// is the field's own maxlength, the characters the connection can carry,
+				// is the field's own max_length, the characters the connection can carry,
 				// and the refusal to write back a value that came back cut.
 				$title = (string)($schema[$id]["title"] ?? $id);
-				$too_long = ColumnDomain::maxLengthViolation($title, $schema[$id]["maxlength"] ?? 0, $data[$id]);
+				$too_long = ColumnDomain::maxLengthViolation($title, $schema[$id]["max_length"] ?? 0, $data[$id]);
 
 				if ($too_long !== null) {
 
@@ -1076,7 +1168,7 @@
 		// The markup types are AI_HTML_RESOURCE_TYPES; `link` is here because a link
 		// field stores a bare `ipl://…` as its whole value, which
 		// replaceInternalPageLinks handles through its own substr($html, 0, 6) branch.
-		public const AI_LINK_BEARING_TYPES = ["html", "htmleditor", "simple-editor", "code", "link"];
+		public const AI_LINK_BEARING_TYPES = ["html", "link"];
 
 		/**
 		 * The inverse of aiNormalizeHtmlValue, applied on the way *out* to the model.
@@ -1111,6 +1203,22 @@
 			}
 
 			return (string)BigTreeCMS::replaceInternalPageLinks($value);
+		}
+
+		/**
+		 * The `link` shape check, through the shared implementation so the page path,
+		 * the entry path and the settings path cannot grow three different ideas of
+		 * what a link is (audit #11 B3).
+		 *
+		 * @param array<string,mixed> $field The schema entry.
+		 */
+		private function aiLinkShapeViolation(array $field, string $value): ?string {
+
+			return FieldTypeDomain::linkShapeViolation(
+				(string)($field["title"] ?? $field["id"] ?? "This field"),
+				(string)($field["type"] ?? ""),
+				$value
+			);
 		}
 
 		/**
@@ -1149,12 +1257,13 @@
 		}
 
 		/**
-		 * A template's real resources that aren't in the settable schema, mapped to a
-		 * "Title (type)" label — everything the assistant can see exists but cannot
-		 * author. Used to tell a complex resource apart from a misspelling.
+		 * A template's real resources that aren't in the settable schema, each with a
+		 * "Title, type" label and the field type's own refusal — everything the
+		 * assistant can see exists but cannot author. Used to tell a complex resource
+		 * apart from a misspelling, and to say *why* rather than "it's complex".
 		 *
 		 * @param array<string,array<string,mixed>> $schema
-		 * @return array<string,string>
+		 * @return array<string,array{label:string,reason:string}>
 		 */
 		private function aiComplexTemplateResources(array $schema, string $template): array {
 			$row = $template !== "" ? BigTreeJSONDB::get("templates", $template) : null;
@@ -1176,7 +1285,11 @@
 
 				$type = (string)($resource["type"] ?? "");
 				$title = (string)($resource["title"] ?? $id);
-				$complex[$id] = $type !== "" ? "{$title}, {$type}" : $title;
+				$refusal = FieldTypeDomain::refusal($type);
+				$complex[$id] = [
+					"label" => $type !== "" ? "{$title}, {$type}" : $title,
+					"reason" => $refusal !== "" ? $refusal : "it needs the page editor in the admin.",
+				];
 			}
 
 			return $complex;
@@ -1194,7 +1307,18 @@
 			$missing = [];
 
 			foreach ($schema as $id => $field) {
-				if (!empty($field["required"]) && (!array_key_exists($id, $data) || $data[$id] === "")) {
+				if (empty($field["required"])) {
+
+					continue;
+				}
+
+				// A relation's value is a list, so "empty" is [] rather than "" — a
+				// required relationship cleared to no rows is as missing as a blank
+				// string (audit #11 B2).
+				$empty = !array_key_exists($id, $data)
+					|| (is_array($data[$id]) ? $data[$id] === [] : $data[$id] === "");
+
+				if ($empty) {
 					$missing[] = (string)$field["title"];
 				}
 			}
@@ -1217,7 +1341,12 @@
 			$parts = [];
 
 			foreach ($schema as $id => $field) {
-				$part = $id . " (" . $field["type"] . ($field["required"] ? ", required" : "") . ")";
+				// A text field's sub_type is what this CMS calls an email or a website
+				// address — there is no field type for either (audit #11 A3), so naming
+				// the type alone told the model less than the developer had said.
+				$sub_type = (string)($field["sub_type"] ?? "");
+				$part = $id . " (" . $field["type"] . ($sub_type !== "" ? "/{$sub_type}" : "")
+					. ($field["required"] ? ", required" : "") . ")";
 				$options = is_array($field["options"] ?? null) ? $field["options"] : [];
 
 				// A list field carries its option domain (audit #7 B1); naming the
@@ -1351,13 +1480,15 @@
 
 			if ($template !== "") {
 				// Re-sifted against the template as it stands now: a resource retyped,
-				// given a maxlength or narrowed during the proposal's 24h life must not be
+				// given a max_length or narrowed during the proposal's 24h life must not be
 				// written blind (audit #10's storage boundary, at the approval half of
 				// "never trusted on the way back out").
 				$resifted = $this->aiSiftResourceContent(
 					$this->aiTemplateResourceSchema($template),
 					is_array($payload["resources"] ?? null) ? $payload["resources"] : [],
-					$template
+					$template,
+					[],
+					$user
 				);
 
 				if (isset($resifted["error"])) {
@@ -2117,16 +2248,22 @@
 		 * happily.
 		 *
 		 * Complex resources are deliberately absent: they aren't settable either, and
-		 * showing them would invite the model to try.
+		 * showing them would invite the model to try. Reference resources *are*
+		 * settable since audit #11 B1, so they appear here — as the id the field
+		 * stores, plus a `content_references` entry saying which file that id names,
+		 * because an assistant that can set a photo but not see which photo is set will
+		 * replace things it should have left alone (B4).
 		 *
 		 * @param array<string,mixed> $target An aiResolvePageTarget result.
-		 * @return array{content:array<string,string>,content_truncated:list<string>}
+		 * @param object|array|null $user The actor, for the reference folder filter.
+		 * @return array{content:array<string,string>,content_references:array<string,array<string,mixed>>,content_truncated:list<string>}
 		 */
-		public function aiPageContentFields(array $target): array {
+		public function aiPageContentFields(array $target, $user = null): array {
 			$page = $target["page"];
 			$schema = $this->aiTemplateResourceSchema((string)($page["template"] ?? ""));
 			$stored = Json::decode($page["resources"] ?? "");
 			$content = [];
+			$references = [];
 			$truncated = [];
 
 			foreach ($schema as $id => $field) {
@@ -2137,6 +2274,18 @@
 
 				$value = $stored[$id];
 				$text = is_scalar($value) || $value === null ? (string)$value : (string)json_encode($value);
+
+				if (FieldTypeDomain::isResourceReference((string)$field["type"])) {
+					$described = $user !== null ? ResourceReferenceDomain::describe($text, $user) : null;
+
+					if ($described) {
+						$references[$id] = $described;
+					}
+
+					$content[$id] = $text;
+
+					continue;
+				}
 
 				// Link tokens are decoded here, before the cap — a hard link is longer
 				// than the token it replaces, so decoding afterwards would move where the
@@ -2153,7 +2302,11 @@
 				$content[$id] = $text;
 			}
 
-			return ["content" => $content, "content_truncated" => $truncated];
+			return [
+				"content" => $content,
+				"content_references" => $references,
+				"content_truncated" => $truncated,
+			];
 		}
 
 		/**
@@ -2368,10 +2521,19 @@
 		 * @param list<string> $columns
 		 * @return array<string,mixed>
 		 */
-		private function aiPageFingerprint(array $target, array $columns): array {
-			if (!empty($target["is_pending"])) {
+		private function aiPageFingerprint(array $target, array $columns, array $resource_ids = []): array {
+			// A referenced file is staged as an id, and an id survives its row being
+			// deleted, re-uploaded or moved out of view inside the proposal's 24h life
+			// (audit #11 B1). Hashed even against a draft, which knows nothing about
+			// the Files library.
+			$reference_part = $resource_ids ? [["type" => "resources", "ids" => $resource_ids]] : [];
 
-				return ["type" => "pending_change", "id" => (int)$target["change_id"]];
+			if (!empty($target["is_pending"])) {
+				$draft = ["type" => "pending_change", "id" => (int)$target["change_id"]];
+
+				return $reference_part
+					? ["type" => "composite", "parts" => array_merge([$draft], $reference_part)]
+					: $draft;
 			}
 
 			$page_id = (int)$target["page_id"];
@@ -2382,6 +2544,7 @@
 			// past stalenessError, which is the one case the check exists for.
 			$queued = $this->aiPendingEditChange($page_id);
 			$parts = $queued ? [["type" => "pending_change", "id" => (int)$queued["id"]]] : [];
+			$parts = array_merge($parts, $reference_part);
 
 			// open_graph rides beside the row rather than in it, so it has no column to
 			// hash — it gets its own descriptor. Without one, an OG-only edit (the
@@ -3088,7 +3251,7 @@
 			// The stored content — overlaid with any queued draft above — is what the
 			// write replaces, so it is what the truncated-read refusal measures against.
 			$stored_content = Json::decode($page["resources"] ?? "");
-			$sifted = $this->aiSiftResourceContent($schema, $provided, $template, $stored_content);
+			$sifted = $this->aiSiftResourceContent($schema, $provided, $template, $stored_content, $user);
 
 			if (isset($sifted["error"])) {
 
@@ -3203,7 +3366,11 @@
 					. (count($changed) === 1 ? "" : "s") . ")." . $switch_note . $mode_note,
 				"preview" => $preview,
 				"payload" => $payload,
-				"fingerprint" => $this->aiPageFingerprint($target, ["resources", "template"]),
+				"fingerprint" => $this->aiPageFingerprint(
+					$target,
+					["resources", "template"],
+					ResourceReferenceDomain::referencedIds($schema, $changed)
+				),
 				"lock" => $this->aiPageLock($target),
 			];
 		}
@@ -3343,7 +3510,7 @@
 			}
 
 			// Re-sifted against the template as it stands now, and against the page's
-			// current content: a resource retyped, given a maxlength or narrowed during
+			// current content: a resource retyped, given a max_length or narrowed during
 			// the proposal's 24h life must not be written blind, and a body that has
 			// grown past the read cap since staging would now be a truncated-read write.
 			// This is the "never trusted on the way back out" rule applied to the
@@ -3353,7 +3520,8 @@
 				$this->aiTemplateResourceSchema($template),
 				$changed,
 				$template,
-				$stored_content
+				$stored_content,
+				$user
 			);
 
 			if (isset($resifted["error"])) {

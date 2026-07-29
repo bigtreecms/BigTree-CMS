@@ -56,7 +56,7 @@
 				],
 			],
 			// Page content lands in a longtext JSON blob, so there is no column width to
-			// read — what applies is the field's own maxlength, the characters the
+			// read — what applies is the field's own max_length, the characters the
 			// connection can carry, and the truncated-read refusal.
 			"create_page/update_page_content (content)" => [
 				PageService::class, "aiSiftResourceContent",
@@ -72,8 +72,11 @@
 				["AI_PAGE_MAX_LENGTHS", "ColumnDomain::unrepresentable"],
 			],
 			// The positive control this whole boundary was generalized from (audit #3).
+			// The email leg is `aiSettingRuleViolation` now, not a branch keyed on an
+			// `email` field type that this CMS has never had (audit #11 A3).
 			"update_setting" => [
-				SettingService::class, "aiCheckSettingValue", ["strtotime", "FILTER_VALIDATE_EMAIL"],
+				SettingService::class, "aiCheckSettingValue",
+				["strtotime", "aiSettingRuleViolation", "FieldTypeDomain::linkShapeViolation"],
 			],
 		];
 	}
@@ -178,6 +181,11 @@
 			"update_callout" => "JSON-DB record, not a SQL column",
 			"create_callout_group" => "JSON-DB record; name capped by AI_GROUP_NAME_MAX_LENGTH",
 			"create_module" => "JSON-DB record, not a SQL column",
+			// Writes DDL rather than values: it *creates* the columns, and the table it
+			// creates is required not to exist, so there is no column domain to fit a
+			// value into. What guards it instead is scaffoldPlan's identifier and
+			// collision checks, re-run at approval.
+			"scaffold_module" => "creates columns rather than writing into them",
 			"update_module" => "JSON-DB record, not a SQL column",
 			"create_module_group" => "JSON-DB record; name capped by AI_GROUP_NAME_MAX_LENGTH",
 		];
@@ -524,11 +532,11 @@
 		);
 	}
 
-	/** E2/A3: the maxlength field setting is enforced somewhere other than the browser. */
+	/** E2/A3: the max_length field setting is enforced somewhere other than the browser. */
 	function test_maxlength_is_enforced_server_side() {
 		T::ok(
 			ColumnDomain::maxLengthViolation("Meta title", 60, str_repeat("a", 61)) !== null,
-			"a value past the field's maxlength is refused"
+			"a value past the field's max_length is refused"
 		);
 		T::equals(
 			ColumnDomain::maxLengthViolation("Meta title", 60, str_repeat("a", 60)),
@@ -538,17 +546,267 @@
 		T::equals(
 			ColumnDomain::maxLengthViolation("Meta title", 0, str_repeat("a", 5000)),
 			null,
-			"a field with no maxlength is uncapped by this check"
+			"a field with no max_length is uncapped by this check"
 		);
 
-		// Both schemas have to emit it or the sift has nothing to check against.
+		// Audit #11 A1: the cap above is only reachable if the seams read the key the
+		// CMS actually stores. Build the settings blob the way the field type declares
+		// it (E4) rather than by hand, so this can't agree with a misspelling again.
+		$declared = ai_field_setting_ids("text");
+		T::ok(in_array("max_length", $declared, true), "`text` declares a max_length setting");
+		T::equals(
+			ColumnDomain::configuredMaxLength(["max_length" => 60]),
+			60,
+			"the stored spelling is read"
+		);
+		T::equals(
+			ColumnDomain::configuredMaxLength(["maxlength" => 60]),
+			60,
+			"a legacy blob's misspelling still caps"
+		);
+		T::equals(ColumnDomain::configuredMaxLength([]), 0, "an unset cap is 0");
+
+		// Both schemas have to feed it or the sift has nothing to check against.
 		foreach ([
 			"entries" => [AutoModuleService::class, "aiEntrySchema"],
 			"page content" => [PageService::class, "aiTemplateResourceSchema"],
 		] as $label => [$class, $method]) {
 			$body = ai_surface_method_body($class, $method);
-			T::ok(strpos($body, '"maxlength"') !== false, "the {$label} schema emits maxlength");
+			T::ok(
+				strpos($body, "ColumnDomain::configuredMaxLength") !== false,
+				"the {$label} schema reads the cap through configuredMaxLength"
+			);
+			T::ok(strpos($body, '"max_length"') !== false, "the {$label} schema emits max_length");
 		}
+	}
+
+	// — E1/A1: field settings are read by their declared key —
+
+	/**
+	 * Keys the AI seams read out of a `settings` blob that are deliberately *not*
+	 * field-type settings descriptors, each with the reason it isn't one.
+	 *
+	 * Anything not on this list has to be a `settings_schema` descriptor id in
+	 * core/inc/bigtree/api/field-type-schemas.php. That file's own contract comment
+	 * says the descriptor id "MUST match what the field type's draw.php / process.php
+	 * reads", which makes it the only authority on the spelling of a stored setting —
+	 * and `maxlength`, which no field type has ever written, sat in three AI seams for
+	 * two audits because nothing compared the two (audit #11 A1/E1).
+	 *
+	 * @return array<string,string> key => why it is not a field setting
+	 */
+	function ai_non_descriptor_setting_keys(): array {
+
+		return [
+			// Form-editor keys that live beside the type's own settings rather than in
+			// its schema: every field type carries them, no field type declares them.
+			"validation" => "the form editor's whitespace rule string, on every field type",
+			"required" => "the form editor's own required flag, on every field type",
+			"error_message" => "the form editor's per-field validation message",
+			// View settings, not field settings — same blob name, different owner.
+			"per_page" => "a module view setting",
+			"filter" => "a module view setting",
+			// Written by the SPA's own field renderers, not by a settings.php.
+			"placeholder" => "a renderer hint, not a stored field-type setting",
+			"rows" => "a legacy textarea renderer hint",
+		];
+	}
+
+	/**
+	 * Exceptions that hold in exactly one file, because that file is the single place
+	 * allowed to know about the spelling.
+	 *
+	 * `maxlength` is the whole point of this leg: it is not a key the CMS stores, so
+	 * a blanket exemption for it would make E1 blind to precisely the defect it exists
+	 * to catch. ColumnDomain::configuredMaxLength() is allowed to read it as a legacy
+	 * fallback; no seam is allowed to read it directly.
+	 *
+	 * @return array<string,array<string,string>> file label => [key => reason]
+	 */
+	function ai_scoped_setting_key_exceptions(): array {
+
+		return [
+			"AI/ColumnDomain" => [
+				"maxlength" => "the legacy misspelling, read as a fallback by configuredMaxLength() only",
+			],
+		];
+	}
+
+	/**
+	 * The declared `settings_schema` descriptor ids for one field type.
+	 *
+	 * @return list<string>
+	 */
+	function ai_field_setting_ids(string $type): array {
+		$schemas = ai_field_type_schemas();
+		$descriptors = is_array($schemas[$type]["settings_schema"] ?? null)
+			? $schemas[$type]["settings_schema"]
+			: [];
+
+		return array_values(array_filter(array_map(function ($descriptor): string {
+
+			return is_array($descriptor) ? (string)($descriptor["id"] ?? "") : "";
+		}, $descriptors)));
+	}
+
+	/**
+	 * Every field-type schema, as declared.
+	 *
+	 * @return array<string,array<string,mixed>>
+	 */
+	function ai_field_type_schemas(): array {
+		static $schemas = null;
+
+		if ($schemas === null) {
+			$schemas = (array)(require __DIR__ . "/../field-type-schemas.php");
+		}
+
+		return $schemas;
+	}
+
+	/** Every descriptor id declared by any field type. */
+	function ai_all_declared_setting_ids(): array {
+		$ids = [];
+
+		foreach (array_keys(ai_field_type_schemas()) as $type) {
+			$ids = array_merge($ids, ai_field_setting_ids((string)$type));
+		}
+
+		return array_values(array_unique($ids));
+	}
+
+	/**
+	 * Every file E1 scans: each one reaches into a stored `settings` blob by
+	 * hand-written key, which is the only way the A1 defect can be reintroduced.
+	 *
+	 * Declared once, and asserted total by
+	 * test_e1_scans_every_seam_that_reads_field_settings — a new AI domain class
+	 * that reads a setting and isn't listed here is a seam this guard can't see.
+	 *
+	 * @return array<string,string> label => absolute path
+	 */
+	function ai_setting_key_scanned_files(): array {
+
+		return [
+			"PageService" => __DIR__ . "/../../services/PageService.php",
+			"AutoModuleService" => __DIR__ . "/../../services/AutoModuleService.php",
+			"SettingService" => __DIR__ . "/../../services/SettingService.php",
+			"api/Resources" => __DIR__ . "/../Resources.php",
+			"AI/ColumnDomain" => __DIR__ . "/../../services/AI/ColumnDomain.php",
+			"AI/FieldOptionDomain" => __DIR__ . "/../../services/AI/FieldOptionDomain.php",
+			// Audit #11's own new seams: the reference resolver reads min_width /
+			// min_height, and the relation resolver reads the mtm-* triple, `table`
+			// and `max`. They read settings by hand-written key exactly as the older
+			// seams do, so they are exactly what E1 is for.
+			"AI/ResourceReferenceDomain" => __DIR__ . "/../../services/AI/ResourceReferenceDomain.php",
+			"AI/RelationDomain" => __DIR__ . "/../../services/AI/RelationDomain.php",
+		];
+	}
+
+	/**
+	 * E1: every settings key the AI seams read is a key the CMS actually stores.
+	 *
+	 * Fails on `$settings["maxlength"]` as the code stood at 612ef9e10 — the defect
+	 * A1 describes, which a test written from the implementation could not see.
+	 */
+	function test_ai_seams_read_declared_field_setting_keys() {
+		$declared = ai_all_declared_setting_ids();
+		$exempt = ai_non_descriptor_setting_keys();
+		$scoped = ai_scoped_setting_key_exceptions();
+		$files = ai_setting_key_scanned_files();
+		$unknown = [];
+
+		foreach ($files as $label => $path) {
+			$source = (string)file_get_contents($path);
+			$matches = [];
+			// $settings["key"] and $anything["settings"]["key"] — the two spellings
+			// every one of these seams uses to reach a stored field setting.
+			preg_match_all('/\$settings\[\s*"([a-z0-9_\-]+)"/i', $source, $matches);
+			$keys = $matches[1];
+			preg_match_all('/\["settings"\]\[\s*"([a-z0-9_\-]+)"/i', $source, $matches);
+			$keys = array_merge($keys, $matches[1]);
+
+			foreach (array_unique($keys) as $key) {
+				if (in_array($key, $declared, true) || isset($exempt[$key]) || isset($scoped[$label][$key])) {
+
+					continue;
+				}
+
+				$unknown[] = "{$label}: \"{$key}\"";
+			}
+		}
+
+		T::equals(
+			implode(", ", $unknown),
+			"",
+			"every field setting the AI seams read is a declared descriptor id or an explained exception"
+		);
+	}
+
+	/**
+	 * E1 (the other direction): the exception list stays honest — an entry that names
+	 * a key the schemas *do* declare is stale and hides the check it was written for.
+	 */
+	function test_the_setting_key_exception_list_has_no_stale_entries() {
+		$declared = ai_all_declared_setting_ids();
+		$stale = [];
+
+		foreach (ai_non_descriptor_setting_keys() as $key => $reason) {
+			if (in_array($key, $declared, true)) {
+				$stale[] = $key;
+			}
+
+			T::ok($reason !== "", "the \"{$key}\" exception states why it isn't a field setting");
+		}
+
+		T::equals(implode(", ", $stale), "", "no exempted key is actually a declared descriptor id");
+
+		// The scoped exceptions name a file this test actually scans, or they exempt
+		// nothing and quietly stop protecting the seam they were written for.
+		foreach (ai_scoped_setting_key_exceptions() as $label => $keys) {
+			T::ok(
+				isset(ai_setting_key_scanned_files()[$label]),
+				"the \"{$label}\" scoped exception names a file E1 scans"
+			);
+
+			foreach ($keys as $key => $reason) {
+				T::ok($reason !== "", "the {$label}/\"{$key}\" scoped exception states its reason");
+			}
+		}
+	}
+
+	/**
+	 * E1 (the coverage direction): every AI domain class that reads a field setting
+	 * is a file E1 scans.
+	 *
+	 * The guard is a scan over a hand-written file list, so it protects exactly what
+	 * that list names — and audit #11 added two new classes that read settings by
+	 * hand-written key without adding them to it. A guard whose scope has to be
+	 * remembered is a guard that lapses; this leg discovers the seams instead.
+	 */
+	function test_e1_scans_every_seam_that_reads_field_settings() {
+		$scanned = array_map("realpath", ai_setting_key_scanned_files());
+		$unscanned = [];
+
+		foreach ((array)glob(__DIR__ . "/../../services/AI/*.php") as $path) {
+			$source = (string)file_get_contents($path);
+
+			// The same two spellings the scan itself looks for.
+			if (!preg_match('/\$settings\[\s*"/i', $source) && !preg_match('/\["settings"\]\[\s*"/i', $source)) {
+
+				continue;
+			}
+
+			if (!in_array(realpath($path), $scanned, true)) {
+				$unscanned[] = basename($path);
+			}
+		}
+
+		T::equals(
+			implode(", ", $unscanned),
+			"",
+			"every AI domain class that reads a field setting is scanned by E1"
+		);
 	}
 
 	// — E3: the link-token round trip —

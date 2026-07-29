@@ -58,6 +58,7 @@
 	use BigTree\Services\AI\Tools\RestorePageRevisionTool;
 	use BigTree\Services\AI\Tools\UpdateCalloutTool;
 	use BigTree\Services\AI\Tools\CreateModuleTool;
+	use BigTree\Services\AI\Tools\ScaffoldModuleTool;
 	use BigTree\Services\AI\Tools\UpdateModuleTool;
 	use BigTree\Services\AI\Tools\GetPageSeoRatingTool;
 	use BigTree\Services\AI\Tools\SavePageRevisionTool;
@@ -560,6 +561,7 @@
 			$registry->register(new UpdateCalloutTool($callouts, $store));
 			$registry->register(new CreateCalloutGroupTool($callouts, $store));
 			$registry->register(new CreateModuleTool($modules, $store));
+			$registry->register(new ScaffoldModuleTool($modules, $store));
 			$registry->register(new UpdateModuleTool($modules, $store));
 			$registry->register(new CreateModuleGroupTool($modules, $store));
 
@@ -985,6 +987,9 @@
 				case "create_module":
 					return (new ModuleService())->aiCreateModule($payload, $user);
 
+				case "scaffold_module":
+					return (new ModuleService())->aiScaffoldModule($payload, $user);
+
 				case "update_module":
 					return (new ModuleService())->aiUpdateModule($payload, $user);
 
@@ -1225,6 +1230,7 @@
 					return self::descriptor("callout-groups", "created", $result["id"] ?? "");
 
 				case "create_module":
+				case "scaffold_module":
 					return self::descriptor("modules", "created", $result["id"] ?? "");
 
 				case "update_module":

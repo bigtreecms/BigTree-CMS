@@ -27,9 +27,20 @@
 
 	/**
 	 * Every endpoint family declared in the route files, as family => list of
-	 * "METHOD /path". A family is the first path segment plus the first following
-	 * literal (non-placeholder) segment, which is the granularity the audits
-	 * reason in ("pages/revisions", "system/configure").
+	 * "METHOD /path". A family is the endpoint's path with its {placeholder}
+	 * segments removed — so it is keyed by *endpoint*, not by "first segment plus
+	 * one".
+	 *
+	 * Audit #11 E5: the old rule took only the first literal segment after the
+	 * first, which collapsed every sub-resource into its parent. Where a family's
+	 * per-verb map names one tool per verb, every other endpoint sharing that verb
+	 * was then silently covered by it — `POST /modules/{id}/entries/reorder` was
+	 * COVERED by create_module_entry, and the "Reordering module entries" decline
+	 * that actually applies to it was never asserted for it; `GET
+	 * /modules/{id}/forms/{sid}/relation-options`, the lookup behind the admin's own
+	 * relation picker, was COVERED by get_module_schema. Nothing was wrong, but
+	 * nothing was asserted either — which is the state the per-verb map was
+	 * introduced to end.
 	 *
 	 * @return array<string,list<string>>
 	 */
@@ -55,13 +66,13 @@
 				$segments = array_values(array_filter(explode("/", $match[2])));
 				$family = $segments[0] ?? "";
 
-				// Skip {id}-style placeholders when picking the qualifying segment, so
-				// "pages/{id}/revisions" buckets with "pages/revisions".
-				foreach (array_slice($segments, 1, 2) as $segment) {
+				// {id}-style placeholders drop out, so "pages/{id}/revisions" buckets
+				// with "pages/revisions" — but every *literal* segment is kept, so
+				// "modules/{id}/entries/reorder" is its own endpoint rather than part
+				// of "modules/entries".
+				foreach (array_slice($segments, 1) as $segment) {
 					if (strpos($segment, "{") === false) {
 						$family .= "/" . $segment;
-
-						break;
 					}
 				}
 
@@ -203,6 +214,24 @@
 				"PATCH" => "update_module_entry",
 				"DELETE" => "delete_module_entry",
 			],
+			// Audit #11 E5: these four used to bucket into `modules/entries` above and
+			// be claimed by create_module_entry, because they are POSTs and the map
+			// names one tool per verb. Three are genuinely covered — by a tool nobody
+			// had named — and one is declined by a line nobody had asserted for it.
+			"modules/entries/approve" => "set_module_entry_flag",
+			"modules/entries/archive" => "set_module_entry_flag",
+			"modules/entries/feature" => "set_module_entry_flag",
+			"modules/entries/reorder" => "declined: reordering module entries",
+			// The lookups behind the admin's own relation and list pickers. They are
+			// reads, and the assistant resolves both server-side: a `list` field's
+			// options arrive on the schema through FieldOptionDomain, and a relation's
+			// candidate rows through list_module_entries against the field's own table.
+			"modules/forms/list-options" => "get_module_schema",
+			"modules/forms/relation-options" => "list_module_entries",
+			// Audit #11 C1: the endpoint that builds a module's table, form and view.
+			// Declined until the assistant could stage the whole plan for approval.
+			"modules/scaffold" => "scaffold_module",
+			"db/tables/columns" => "get_module_schema",
 			"pages" => [
 				"GET" => "get_page",
 				"POST" => "create_page",
@@ -227,6 +256,9 @@
 				"POST" => "save_page_revision",
 				"DELETE" => "declined: deleting a page revision",
 			],
+			// Its own endpoint since audit #11 E5 — the comment above used to be the
+			// only record that restoring a revision exists at all on this family.
+			"pages/revisions/restore" => "restore_page_revision",
 			"pages/search" => "search_pages",
 			"pages/seo-rating" => "get_page_seo_rating",
 			"pending-changes" => "get_pending_changes",
@@ -297,7 +329,6 @@
 			"modules/reorder" => "reordering templates, callouts or modules",
 			"pages/reorder" => "duplicating or reordering pages",
 			"pages/duplicate" => "duplicating or reordering pages",
-			"modules/scaffold" => "scaffolding",
 			"modules/actions" => "tables, forms, views or actions",
 			"modules/views" => "tables, forms, views or actions",
 			// Audit #5: the "editing …" line says nothing about *running* a report,
@@ -320,20 +351,20 @@
 			"field-types" => "custom field types",
 			"field-types/render" => "custom field types",
 			"field-types/schema" => "custom field types",
-			"images/crop" => "uploading or managing files",
-			"images/process" => "uploading or managing files",
-			"images/reprocess" => "uploading or managing files",
+			"images/crop" => "uploading files, images and video",
+			"images/process" => "uploading files, images and video",
+			"images/reprocess" => "uploading files, images and video",
 			"messages" => "internal messages",
 			"messages/read" => "internal messages",
 			"messages/unread-count" => "internal messages",
-			"resources" => "uploading or managing files",
-			"resources/allocations" => "uploading or managing files",
-			"resources/crop" => "uploading or managing files",
-			"resources/metadata-fields" => "uploading or managing files",
-			"resources/replace" => "uploading or managing files",
-			"resources/upload" => "uploading or managing files",
-			"resources/usage" => "uploading or managing files",
-			"resources/video" => "uploading or managing files",
+			"resources" => "uploading files, images and video",
+			"resources/allocations" => "uploading files, images and video",
+			"resources/crop" => "uploading files, images and video",
+			"resources/metadata-fields" => "uploading files, images and video",
+			"resources/replace" => "uploading files, images and video",
+			"resources/upload" => "uploading files, images and video",
+			"resources/usage" => "uploading files, images and video",
+			"resources/video" => "uploading files, images and video",
 			"resource-folders" => "resource folders",
 			"resource-folders/flat" => "resource folders",
 			"system/backup" => "system maintenance",
@@ -383,6 +414,89 @@
 		];
 	}
 
+	/**
+	 * The nearest ancestor of an endpoint that is classified, or "".
+	 *
+	 * Audit #11 E5 keyed this test by endpoint rather than by "first segment plus
+	 * one", which surfaced every sub-resource that used to bucket into its parent.
+	 * A sub-resource of a DECLINED or N/A family genuinely inherits that answer —
+	 * "Developer → System" covers `system/configure/email` exactly as it covers
+	 * `system/configure` — so those inherit rather than each restating the same
+	 * phrase.
+	 *
+	 * A sub-resource of a COVERED family does *not* inherit, and that is the whole
+	 * point: coverage is a claim that a specific tool provides a specific endpoint,
+	 * and it was the collapsing that let `POST /modules/{id}/entries/reorder` be
+	 * claimed by create_module_entry and `GET .../relation-options` by
+	 * get_module_schema. Each of those now has to name its own tool or its own
+	 * decline.
+	 */
+	function ai_contract_inherited_classification(string $family): string {
+		$declined = ai_contract_declined();
+		$not_applicable = ai_contract_not_applicable();
+		$segments = explode("/", $family);
+
+		while (count($segments) > 1) {
+			array_pop($segments);
+			$parent = implode("/", $segments);
+
+			if (isset($declined[$parent])) {
+
+				return "declined";
+			}
+
+			if (isset($not_applicable[$parent])) {
+
+				return "not_applicable";
+			}
+		}
+
+		return "";
+	}
+
+	/**
+	 * Audit #11 E5: the endpoints the old family key swallowed are visible, and each
+	 * one names its own tool or its own decline.
+	 *
+	 * Under the previous rule — first segment plus the first following literal —
+	 * every one of these bucketed into a parent whose per-verb map already named a
+	 * tool for their verb, so they were reported COVERED by a tool that does not
+	 * provide them. Nothing was wrong; nothing was asserted. This leg fails outright
+	 * if the key ever collapses again, because the family simply won't exist.
+	 */
+	function test_sub_resource_endpoints_are_classified_individually() {
+		$families = ai_contract_route_families();
+		$covered = ai_contract_covered();
+		$missing = [];
+
+		foreach ([
+			"modules/entries/reorder" => "declined: reordering module entries",
+			"modules/entries/archive" => "set_module_entry_flag",
+			"modules/entries/approve" => "set_module_entry_flag",
+			"modules/entries/feature" => "set_module_entry_flag",
+			"modules/forms/relation-options" => "list_module_entries",
+			"modules/forms/list-options" => "get_module_schema",
+			"pages/revisions/restore" => "restore_page_revision",
+			"modules/scaffold" => "scaffold_module",
+		] as $family => $expected) {
+			if (!isset($families[$family])) {
+				$missing[] = "{$family} (not discovered as its own endpoint)";
+
+				continue;
+			}
+
+			if (($covered[$family] ?? null) !== $expected) {
+				$missing[] = "{$family} (expected {$expected})";
+			}
+		}
+
+		T::equals(
+			implode(", ", $missing),
+			"",
+			"every sub-resource the old family key collapsed names its own tool or decline"
+		);
+	}
+
 	function test_every_route_family_has_a_tool_a_decline_or_a_reason() {
 		$families = ai_contract_route_families();
 		$covered = ai_contract_covered();
@@ -396,6 +510,11 @@
 
 		foreach (array_keys($families) as $family) {
 			$hits = (int)isset($covered[$family]) + (int)isset($declined[$family]) + (int)isset($not_applicable[$family]);
+
+			if ($hits === 0 && ai_contract_inherited_classification($family) !== "") {
+
+				continue;
+			}
 
 			if ($hits === 0) {
 				$unclassified[] = $family;
@@ -543,11 +662,31 @@
 			T::ok(strpos($declines, $phrase) !== false, "{$family} is declined by wording matching \"{$phrase}\"");
 		}
 
-		// And nothing may be classified that isn't a real family any more.
+		// And nothing may be classified that isn't a real family any more — or the
+		// ancestor of one. Since audit #11 E5 keyed this by endpoint, a family like
+		// `system/configure` may have no endpoint of its own left while still being
+		// the line that declines `system/configure/email` and its siblings, which
+		// inherit from it (ai_contract_inherited_classification).
 		$stale = [];
 
 		foreach (array_merge(ai_contract_covered(), ai_contract_declined(), ai_contract_not_applicable()) as $family => $_) {
-			if (!isset($families[$family])) {
+			if (isset($families[$family])) {
+
+				continue;
+			}
+
+			$prefix = $family . "/";
+			$is_ancestor = false;
+
+			foreach (array_keys($families) as $candidate) {
+				if (strpos($candidate, $prefix) === 0) {
+					$is_ancestor = true;
+
+					break;
+				}
+			}
+
+			if (!$is_ancestor) {
 				$stale[] = $family;
 			}
 		}

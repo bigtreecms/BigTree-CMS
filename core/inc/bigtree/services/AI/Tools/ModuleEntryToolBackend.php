@@ -4,10 +4,13 @@
 	/**
 	 * The seam the module-entry AI tools call, implemented by AutoModuleService.
 	 *
-	 * The assistant can only set the module form's simple scalar fields (text, number,
-	 * select, checkbox, date, …). Complex fields — uploads, matrices, relationships,
-	 * geocoding, routes — are omitted from the schema and rejected if supplied, so the
-	 * assistant never has to synthesize a file reference or a relation row.
+	 * Which of the form's fields the assistant may set is derived from the field
+	 * types' own declared taxonomy by FieldTypeDomain, not listed here: the text-like
+	 * types (text, textarea, html, link, list, checkbox, date, time, datetime), the
+	 * reference types by resource id, and the relationship types by entry id. Uploads,
+	 * matrices, callouts, galleries and the server-derived types (route, geocoding)
+	 * are omitted from the schema and rejected if supplied, so the assistant never has
+	 * to synthesize a file or invent a row — it only ever points at ones that exist.
 	 *
 	 * Module-level access is re-checked (edit to stage, publisher to write live), and
 	 * for group-based-permission modules the specific row is checked via

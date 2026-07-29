@@ -52,11 +52,21 @@
 						"content" => [
 							"type" => "object",
 							"description" => "The template fields to change, keyed by field id "
-								. "(e.g. {\"page_content\": \"<p>…</p>\"}). Only simple text/html fields can be set. "
-								. "Fields you omit keep their current values, but a field you supply is REPLACED "
-								. "wholesale — never supply a value you only saw in truncated form (get_page lists "
-								. "those in content_truncated).",
-							"additionalProperties" => ["type" => "string"],
+								. "(e.g. {\"page_content\": \"<p>…</p>\"}). Text-like fields take their value "
+								. "directly; an image, file or video reference field takes the numeric id of a file "
+								. "that is already in the Files library (get_page names the file each reference "
+								. "currently points at under content_references); a relationship field takes a list of "
+								. "entry ids (e.g. [\"12\", \"15\"]). Fields you omit keep their current "
+								. "values, but a field you supply is REPLACED wholesale — never supply a value you "
+								. "only saw in truncated form (get_page lists those in content_truncated).",
+							// A relationship field's value is a list of ids, so a string is
+							// not the only shape this object carries (audit #11 B2).
+							"additionalProperties" => [
+								"anyOf" => [
+									["type" => "string"],
+									["type" => "array", "items" => ["type" => "string"]],
+								],
+							],
 						],
 						"template" => [
 							"type" => "string",

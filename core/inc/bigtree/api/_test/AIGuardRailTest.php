@@ -92,9 +92,19 @@
 		T::equals(ai_guard_invoke($svc, "aiCheckSettingValue", [$checkbox, "false"])["value"], "", "\"false\" → empty");
 		T::equals(ai_guard_invoke($svc, "aiCheckSettingValue", [$checkbox, "0"])["value"], "", "\"0\" → empty");
 
-		$number = ["id" => "zz-num", "name" => "Guard Number", "type" => "number", "settings" => []];
+		// A number in this CMS is a `text` field carrying the `numeric` validation
+		// rule — there is no `number` field type, so the branch that used to be tested
+		// here could never run on a real setting (audit #11 A3).
+		$number = [
+			"id" => "zz-num", "name" => "Guard Number", "type" => "text",
+			"settings" => ["validation" => "numeric"],
+		];
 		T::ok(isset(ai_guard_invoke($svc, "aiCheckSettingValue", [$number, "abc"])["error"]), "non-numeric refused");
-		T::equals(ai_guard_invoke($svc, "aiCheckSettingValue", [$number, "42"])["value"], 42, "numeric string coerced");
+		T::equals(
+			ai_guard_invoke($svc, "aiCheckSettingValue", [$number, "42"])["value"],
+			"42",
+			"a numeric string passes the rule and is stored"
+		);
 	}
 
 	/**
@@ -132,7 +142,13 @@
 		// Clearing a date setting stays legal — emptiness isn't this check's business.
 		T::equals(ai_guard_invoke($svc, "aiCheckSettingValue", [$date, ""])["value"], "", "a date can still be cleared");
 
-		$email = ["id" => "zz-email", "name" => "Guard Email", "type" => "email", "settings" => []];
+		// Same correction as the numeric case: an email setting is a `text` field with
+		// the `email` rule, checked by the rule-string path, which is the mechanism
+		// that actually runs (audit #11 A3).
+		$email = [
+			"id" => "zz-email", "name" => "Guard Email", "type" => "text",
+			"settings" => ["validation" => "email"],
+		];
 		T::ok(
 			isset(ai_guard_invoke($svc, "aiCheckSettingValue", [$email, "not an address"])["error"]),
 			"an invalid email is refused"
@@ -141,6 +157,19 @@
 			ai_guard_invoke($svc, "aiCheckSettingValue", [$email, "hi@example.com"])["value"],
 			"hi@example.com",
 			"a valid email is accepted"
+		);
+
+		// `link` is a real type this path has always been able to set, and until audit
+		// #11 B3 it was the one settable type with no shape check at all.
+		$link = ["id" => "zz-link", "name" => "Guard Link", "type" => "link", "settings" => []];
+		T::ok(
+			isset(ai_guard_invoke($svc, "aiCheckSettingValue", [$link, "our pricing page"])["error"]),
+			"a link setting refuses a value that isn't a URL"
+		);
+		T::equals(
+			ai_guard_invoke($svc, "aiCheckSettingValue", [$link, "https://example.com/pricing/"])["value"],
+			"https://example.com/pricing/",
+			"and accepts a full address"
 		);
 	}
 
