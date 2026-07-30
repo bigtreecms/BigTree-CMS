@@ -145,6 +145,7 @@
 
 	function bigtree_spa_cache_headers(string $file, string $admin_rel): void {
 		$base = basename($file);
+		$rel = str_replace("\\", "/", $admin_rel);
 
 		// Hashed Vite assets: long cache. index.html: no-store.
 		if ($base === "index.html") {
@@ -153,7 +154,16 @@
 			return;
 		}
 
-		if (str_starts_with(str_replace("\\", "/", $admin_rel), "assets/")
+		// Import-map SDK shims (sdk/*.js) are unhashed but must always match the
+		// main SPA bundle's registerSdk() surface. Never long-cache them — a
+		// stale ui.js missing new named exports breaks every custom action.
+		if (str_starts_with($rel, "sdk/")) {
+			header("Cache-Control: no-cache, must-revalidate");
+
+			return;
+		}
+
+		if (str_starts_with($rel, "assets/")
 			|| preg_match('/-[A-Za-z0-9_-]{6,}\.(js|css)$/', $base)
 		) {
 			header("Cache-Control: public, max-age=31536000, immutable");

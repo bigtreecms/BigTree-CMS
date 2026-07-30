@@ -101,6 +101,9 @@ describe("visibleModuleActions", () => {
 		expect(items.map((i) => i.label)).toEqual(["List", "Add"]);
 		expect(items.every((i) => !i.external)).toBe(true);
 		expect(items[0]?.to).toBe(moduleActionPath(module, { route: "" }));
+		// Landing route is a prefix of every deeper path — must exact-match.
+		expect(items[0]?.end).toBe(true);
+		expect(items[1]?.end).toBe(false);
 	});
 
 	it("respects user level", () => {

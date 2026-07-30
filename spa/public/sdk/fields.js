@@ -7,4 +7,4 @@ if (!fields) {
 }
 
 export default fields;
-export const { FieldRenderer } = fields;
+export const { FieldRenderer, settingsOf } = fields;

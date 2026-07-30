@@ -126,10 +126,16 @@ export const visibleModuleActions = (
 			continue;
 		}
 
+		// Landing action (empty route) links to `/modules/{route}`, which is a
+		// prefix of every deeper action URL. Force exact match so "View Forms"
+		// does not stay active on `/settings`, `/add`, etc.
+		const isLanding = !(action.route ?? "");
+
 		items.push({
 			label: action.name,
 			to: moduleActionPath(module, action),
 			icon: iconFor(action.class),
+			end: isLanding,
 		});
 	}
 
