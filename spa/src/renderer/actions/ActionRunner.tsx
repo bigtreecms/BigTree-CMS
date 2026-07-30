@@ -30,9 +30,19 @@ interface ActionRunnerProps {
  * (a later build step). Render-time crashes in the author's component are caught
  * by the wrapping ErrorBoundary — because the module is a component the host
  * renders, not an imperative mount, the boundary actually sees them.
+ *
+ * When the action route changes, `host` updates immediately but the previous
+ * module source can still be on screen for one paint (or until the next source
+ * compiles). We refuse to render a module that wasn't loaded for the current
+ * source — otherwise the old component re-runs effects against the *new* host
+ * (e.g. Settings calling `{ op: "load" }` on Add Form's formEditor → "Form id
+ * is required").
  */
 export const ActionRunner = ({ host, assetUrl, source, onError }: ActionRunnerProps) => {
+	const sourceKey = source != null ? `src:${source}` : assetUrl ? `url:${assetUrl}` : "";
 	const [mod, setMod] = useState<ActionModule | null>(null);
+	/** Source key the current `mod` was compiled/loaded for. */
+	const [loadedKey, setLoadedKey] = useState<string | null>(null);
 	const [error, setError] = useState<string | null>(null);
 
 	// Keep the latest onError reachable without re-running the load effect (the
@@ -44,6 +54,7 @@ export const ActionRunner = ({ host, assetUrl, source, onError }: ActionRunnerPr
 		let cancelled = false;
 
 		setMod(null);
+		setLoadedKey(null);
 		setError(null);
 
 		const load =
@@ -56,6 +67,7 @@ export const ActionRunner = ({ host, assetUrl, source, onError }: ActionRunnerPr
 		load.then((loaded) => {
 			if (!cancelled) {
 				setMod(loaded);
+				setLoadedKey(sourceKey);
 				onErrorRef.current?.(null);
 			}
 		}).catch((err: unknown) => {
@@ -63,6 +75,7 @@ export const ActionRunner = ({ host, assetUrl, source, onError }: ActionRunnerPr
 				const message = describeApiError(err, "Failed to load action.");
 				console.error("Action module load failed:", err);
 				setMod(null);
+				setLoadedKey(null);
 				setError(message);
 				onErrorRef.current?.(message);
 			}
@@ -71,7 +84,7 @@ export const ActionRunner = ({ host, assetUrl, source, onError }: ActionRunnerPr
 		return () => {
 			cancelled = true;
 		};
-	}, [assetUrl, source]);
+	}, [assetUrl, source, sourceKey]);
 
 	if (error) {
 		// When a caller handles errors (live preview), render nothing and let it
@@ -92,15 +105,17 @@ export const ActionRunner = ({ host, assetUrl, source, onError }: ActionRunnerPr
 		);
 	}
 
-	if (!mod) {
+	// Loading, or still holding a module compiled for a previous action.
+	if (!mod || loadedKey !== sourceKey) {
 		return <LoadingText boxed label="Loading action…" />;
 	}
 
 	const Component = mod.Component;
 
 	return (
-		<ErrorBoundary resetKey={source ?? assetUrl}>
-			<Component host={host} />
+		<ErrorBoundary resetKey={sourceKey}>
+			{/* key forces a clean mount when the action source changes */}
+			<Component key={sourceKey} host={host} />
 		</ErrorBoundary>
 	);
 };

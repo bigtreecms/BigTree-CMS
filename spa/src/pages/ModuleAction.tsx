@@ -128,6 +128,7 @@ export const ModuleAction = ({ actionId, commands = [] }: ModuleActionProps) => 
 				)
 			) : (
 				<ActionRunner
+					key={actionId}
 					assetUrl={schema.asset_url || undefined}
 					host={host}
 					source={schema.module_source || undefined}
