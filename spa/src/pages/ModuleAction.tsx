@@ -28,11 +28,13 @@ import type { ActionHost } from "@/renderer/actions/actionModuleContract";
  */
 interface ModuleActionProps {
 	actionId: string;
+	/** Trailing URL segments after the action route (e.g. entry/form id). */
+	commands?: string[];
 }
 
 const card = (body: ReactNode) => <Card className="p-6 text-[13px]">{body}</Card>;
 
-export const ModuleAction = ({ actionId }: ModuleActionProps) => {
+export const ModuleAction = ({ actionId, commands = [] }: ModuleActionProps) => {
 	const navigate = useNavigate();
 	const userLevel = useAuthStore((s) => s.user?.level ?? LEVEL.NORMAL);
 	const { moduleId, module, actions } = useModuleContext();
@@ -50,11 +52,28 @@ export const ModuleAction = ({ actionId }: ModuleActionProps) => {
 			return null;
 		}
 
+		// Surface route commands as params.command0… plus a commands[] array so
+		// view-row actions (entries/export/edit/…) can read the row id.
+		const commandParams: Record<string, string> = {};
+
+		commands.forEach((c, i) => {
+			commandParams[`command${i}`] = c;
+		});
+
+		const selection = commands.length > 0 ? [commands[0] as string] : undefined;
+
 		return {
 			context: {
 				moduleId,
 				action,
-				params: { id: moduleId, sid: actionId },
+				params: {
+					id: moduleId,
+					sid: actionId,
+					...commandParams,
+					// Join so a single-param action can use params.commands when needed.
+					commands: commands.join("/"),
+				},
+				selection,
 				userLevel,
 			},
 			invoke: (payload?: unknown) => modulesApi.invokeAction(moduleId, actionId, payload),
@@ -72,7 +91,7 @@ export const ModuleAction = ({ actionId }: ModuleActionProps) => {
 			navigate: (to: string) => navigate(to),
 			toast: (message: string, kind = "info") => toast[kind](message),
 		};
-	}, [action, actions, moduleId, actionId, userLevel, navigate]);
+	}, [action, actions, moduleId, actionId, userLevel, navigate, commands]);
 
 	const schema = schemaQuery.data;
 	const title = action?.name ?? module?.name ?? "Action";

@@ -52,7 +52,7 @@ export const ModuleDispatcher = () => {
 	const { action, commands } = resolved;
 
 	if (action.render === "module") {
-		return <ModuleAction actionId={action.id} />;
+		return <ModuleAction actionId={action.id} commands={commands} />;
 	}
 
 	if (action.view) {

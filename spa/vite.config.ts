@@ -72,6 +72,19 @@ export default defineConfig(({ mode }) => {
 		// (e.g. /admin or /remaster/admin). Do not use bare "./" — deep-link reloads break.
 		base: mode === "production" ? "/__BIGTREE_ADMIN_BASE__/" : "/",
 		plugins: [
+			// index.html's SDK import map uses /__BIGTREE_ADMIN_BASE__/sdk/... so
+			// production subpath installs rewrite correctly. In dev the token is
+			// inert PHP and must become root-absolute /sdk/... for Vite.
+			{
+				name: "bigtree-admin-base-dev",
+				transformIndexHtml(html) {
+					if (mode === "production") {
+						return html;
+					}
+
+					return html.replaceAll("/__BIGTREE_ADMIN_BASE__", "");
+				},
+			},
 			react(),
 			tailwindcss(),
 			// Self-host TinyMCE. The Editor component loads tinymce.min.js via
