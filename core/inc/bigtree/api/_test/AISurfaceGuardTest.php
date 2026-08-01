@@ -98,10 +98,17 @@
 				"timezone" => "search_users",
 				"daily_digest" => "search_users", "alerts" => "get_content_alerts",
 			],
+			// Audit #14 B1/B2: update_user is offered at every level now, because a
+			// user's own profile is theirs to edit — and search_users is
+			// administrator-gated, so for an editor it was no read surface at all.
+			// get_my_capabilities carries the caller's own profile, which is what makes
+			// every one of these readable at the level that can now write it.
 			"update_user" => [
-				"user_id" => "search_users", "email" => "search_users", "name" => "search_users",
-				"company" => "search_users", "timezone" => "search_users",
-				"daily_digest" => "search_users", "alerts" => "get_content_alerts",
+				"user_id" => "get_my_capabilities", "email" => "get_my_capabilities",
+				"name" => "get_my_capabilities", "company" => "get_my_capabilities",
+				"timezone" => "get_my_capabilities", "daily_digest" => "get_my_capabilities",
+				// The subscription list itself, named page by page rather than counted.
+				"alerts" => "get_content_alerts",
 			],
 			"create_redirect" => [
 				"from" => "exempt: 404s have no read tool; the decline line covers managing the log",

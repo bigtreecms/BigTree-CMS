@@ -52,6 +52,106 @@
 	}
 
 	/**
+	 * Audit #14 C2: the *optional* half of the same scan.
+	 *
+	 * A required unauthorable field blocks the record from going live and has been
+	 * disclosed for several audits. An optional one said nothing at all, which is the
+	 * quieter failure: the entry saves, the card looks complete, and the gallery or
+	 * matrix renders empty on the site with nobody told a human still has to finish it.
+	 * Disclosure, not refusal — refusing would make every composite content model
+	 * unauthorable — and capped at three names plus a count, because a form with ten
+	 * composite fields would otherwise turn a warning into a paragraph.
+	 */
+	function test_ai_gate_discloses_optional_unauthorable_fields() {
+		$svc = new AutoModuleService();
+
+		$form = ["fields" => [
+			["column" => "title", "type" => "text", "title" => "Title", "settings" => ["required" => "on"]],
+			["column" => "hero", "type" => "upload", "title" => "Hero Image", "settings" => ["required" => "on"]],
+			["column" => "gallery", "type" => "photo-gallery", "title" => "Gallery", "settings" => []],
+			["column" => "blocks", "type" => "matrix", "title" => "Blocks", "settings" => []],
+			// Settable, so not a gap in either direction.
+			["column" => "photo", "type" => "image-reference", "title" => "Photo", "settings" => []],
+			// Populated by the write path whatever is supplied.
+			["column" => "route", "type" => "route", "title" => "Route", "settings" => []],
+		]];
+
+		$optional = ai_gate_invoke($svc, "aiOptionalUnsettableFields", [$form]);
+
+		T::equals(count($optional), 2, "the two optional unauthorable fields are named");
+		T::ok(strpos(implode(" ", $optional), "Gallery") !== false, "the gallery is named");
+		T::ok(strpos(implode(" ", $optional), "Blocks") !== false, "and the matrix");
+		T::ok(strpos(implode(" ", $optional), "Hero Image") === false, "the required one is not — it is a blocker");
+		T::ok(strpos(implode(" ", $optional), "Photo") === false, "a reference is settable, not a gap");
+		T::ok(strpos(implode(" ", $optional), "Route") === false, "and a derived field fills itself in");
+
+		// The note the card carries: says it saves anyway, and says who has to finish it.
+		$note = \BigTree\Services\AI\FieldTypeDomain::optionalUnsettableNote($optional);
+		T::ok(strpos($note, "Gallery") !== false, "the note names the fields");
+		T::ok(strpos($note, "optional, so this saves fine") !== false, "and says the record is still valid");
+		T::ok(strpos($note, "in the admin afterwards") !== false, "and says where the rest of the work happens");
+		T::equals(
+			\BigTree\Services\AI\FieldTypeDomain::optionalUnsettableNote([]),
+			"",
+			"a form with nothing to disclose produces no note"
+		);
+
+		// D6: three names, then a count.
+		$many = \BigTree\Services\AI\FieldTypeDomain::optionalUnsettableNote(["A", "B", "C", "D", "E"]);
+		T::ok(strpos($many, "A, B, C, and 2 more") !== false, "past three fields it counts the rest: {$many}");
+		T::ok(strpos($many, "D") === false, "and stops naming them");
+	}
+
+	/**
+	 * The template side of the same disclosure — a page's composite resources land empty
+	 * on a card that otherwise reads as complete.
+	 */
+	function test_ai_gate_discloses_optional_unauthorable_template_resources() {
+		$svc = new PageService();
+		$id = "zz_optional_" . bin2hex(random_bytes(4));
+
+		BigTreeJSONDB::insert("templates", [
+			"id" => $id,
+			"name" => "Optional Fixture",
+			"routed" => "",
+			"level" => 0,
+			"module" => "",
+			"resources" => [
+				["id" => "headline", "type" => "text", "title" => "Headline", "settings" => ["validation" => "required"]],
+				["id" => "hero", "type" => "image", "title" => "Hero", "settings" => ["validation" => "required"]],
+				["id" => "gallery", "type" => "matrix", "title" => "Gallery", "settings" => ["validation" => ""]],
+				["id" => "promo", "type" => "callouts", "title" => "Promos", "settings" => []],
+			],
+		]);
+
+		try {
+			$optional = ai_gate_invoke($svc, "aiOptionalUnsettableResources", [$id, []]);
+
+			T::equals(count($optional), 2, "both optional composite resources are disclosed");
+			T::ok(strpos(implode(" ", $optional), "Gallery") !== false, "the matrix is named");
+			T::ok(strpos(implode(" ", $optional), "Promos") !== false, "and the callouts resource");
+			T::ok(strpos(implode(" ", $optional), "Hero") === false, "the required one stays a blocker, not a note");
+			T::ok(strpos(implode(" ", $optional), "Headline") === false, "and a settable resource is neither");
+
+			// A resource already carrying a value is not a gap, so a template switch
+			// doesn't warn about content the outgoing template supplied.
+			T::equals(
+				ai_gate_invoke($svc, "aiOptionalUnsettableResources", [$id, ["gallery" => ["a"], "promo" => ["b"]]]),
+				[],
+				"a populated composite resource is not disclosed as empty"
+			);
+		} finally {
+			BigTreeJSONDB::delete("templates", $id);
+		}
+
+		T::equals(
+			ai_gate_invoke($svc, "aiOptionalUnsettableResources", ["zz-audit14-missing-template", []]),
+			[],
+			"a template that doesn't exist discloses nothing"
+		);
+	}
+
+	/**
 	 * A3: the gate's verdict depends on whether the approver can publish, and rank can
 	 * change during a proposal's 24h life. An editor may stage a draft with a blocked
 	 * required field — a human completes it in the pending queue — but if that same

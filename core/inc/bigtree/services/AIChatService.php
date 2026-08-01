@@ -17,6 +17,7 @@
 	use BigTree\Services\AI\ProposalFingerprint;
 	use BigTree\Services\AI\ContentLock;
 	use BigTree\Services\AI\ProposalStore;
+	use BigTree\Services\AI\TemporalContext;
 	use BigTree\Services\AI\Tools\AbstractMutatingTool;
 	use BigTree\Services\AI\Tools\CreatePageTool;
 	use BigTree\Services\AI\Tools\GetMyCapabilitiesTool;
@@ -512,7 +513,7 @@
 			$modules = new ModuleService();
 
 			// Read tools (offered per level; object-scoped access re-checked in each backend).
-			$registry->register(new GetMyCapabilitiesTool());
+			$registry->register(new GetMyCapabilitiesTool($users));
 			$registry->register(new GetPageTreeTool($pages));
 			$registry->register(new ListTemplatesTool($templates));
 			$registry->register(new GetTemplateTool($templates));
@@ -1587,6 +1588,15 @@
 			$lines[] = "You help the signed-in user work with their CMS: finding pages, modules, module entries, tags, and users, and answering questions about the site's content.";
 			$lines[] = "";
 			$lines[] = CapabilitySummary::promptText($user);
+			$lines[] = "";
+
+			// The one fact the model can't look up and can't infer. Generated per
+			// request, never a literal — see TemporalContext for why the four date-
+			// writing seams' strtotime pass is not enough on its own.
+			foreach (TemporalContext::promptLines() as $line) {
+				$lines[] = $line;
+			}
+
 			$lines[] = "";
 			$lines[] = "How to work:";
 			$lines[] = "- Use the provided tools to look things up rather than guessing. Never invent ids, titles, paths, or counts.";

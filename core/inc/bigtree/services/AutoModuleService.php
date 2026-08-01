@@ -1236,6 +1236,19 @@
 				true
 			);
 
+			// Real, optional fields the assistant can't author — the entry saves fine
+			// without them and renders empty on the site, so the card has to say so
+			// (audit #14 C2). Folded into the same `warning` key the approval note uses:
+			// both are consequences rather than values, and ProposalCard renders one
+			// warning block.
+			$unfillable = FieldTypeDomain::optionalUnsettableNote(
+				$this->aiOptionalUnsettableFields(is_array($resolved["form"] ?? null) ? $resolved["form"] : null)
+			);
+			$warnings = array_values(array_filter([$approval_note, $unfillable], function (string $note): bool {
+
+				return $note !== "";
+			}));
+
 			$preview = [
 				"action" => "create_module_entry",
 				"module" => $name,
@@ -1243,8 +1256,8 @@
 				"mode" => $can_publish ? "published" : "pending",
 			];
 
-			if ($approval_note !== "") {
-				$preview["warning"] = $approval_note;
+			if ($warnings) {
+				$preview["warning"] = implode(" ", $warnings);
 			}
 
 			if ($blocked) {
@@ -3734,6 +3747,48 @@
 			}
 
 			return $blocked;
+		}
+
+		/**
+		 * Form fields that are real, *optional*, and unauthorable by the assistant — the
+		 * disclosure half aiRequiredUnsettableFields never covered (audit #14 C2).
+		 *
+		 * The required ones block the entry from going live and have been disclosed for
+		 * several audits; the optional ones said nothing at all, which is the quieter
+		 * failure. An entry whose gallery, matrix or upload field the assistant cannot
+		 * touch lands looking complete on the card and renders empty on the site, and
+		 * whoever approved it had no way to know a human still has to finish it.
+		 *
+		 * Labelled exactly as the required list is, so a card carrying both reads
+		 * consistently.
+		 *
+		 * @param array<string,mixed>|null $form
+		 * @return list<string>
+		 */
+		private function aiOptionalUnsettableFields(?array $form): array {
+			$optional = [];
+
+			foreach ((array)($form["fields"] ?? []) as $field) {
+				$column = (string)($field["column"] ?? "");
+				$type = (string)($field["type"] ?? "text");
+				$settings = is_array($field["settings"] ?? null) ? $field["settings"] : [];
+
+				if ($column === "" || FieldTypeDomain::isSettable($type) || FieldTypeDomain::isDerived($type)) {
+					continue;
+				}
+
+				$required = !empty($settings["required"])
+					|| in_array("required", $this->aiValidationRules($settings), true);
+
+				// Already disclosed, more loudly, as a blocker.
+				if ($required) {
+					continue;
+				}
+
+				$optional[] = (string)($field["title"] ?? $column) . " ({$column}, {$type})";
+			}
+
+			return $optional;
 		}
 
 		/**

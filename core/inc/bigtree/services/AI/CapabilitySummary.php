@@ -31,6 +31,26 @@
 			return 0;
 		}
 
+		/**
+		 * @param object|array $user
+		 */
+		public static function userId($user): int {
+
+			return (int)self::field($user, "id");
+		}
+
+		/**
+		 * How to name the signed-in user in prose: their name, falling back to their
+		 * email, falling back to nothing at all.
+		 *
+		 * @param object|array $user
+		 */
+		public static function userLabel($user): string {
+			$name = self::field($user, "name");
+
+			return $name !== "" ? $name : self::field($user, "email");
+		}
+
 		public static function roleLabel(int $level): string {
 			if ($level >= 2) {
 				return "developer";
@@ -53,11 +73,36 @@
 			$level = self::level($user);
 
 			return [
+				// Audit #14 B2: the assistant knew the caller's *role* and not who they
+				// were. "Which drafts are mine", "did I make that change", "what am I
+				// subscribed to", "use my name in the byline" were all unanswerable, or
+				// answerable only by guessing — and search_users is administrator-gated
+				// (audit #1), so an editor could not even look themselves up. This is the
+				// caller's own record, so there is no new exposure: it is the same data
+				// GET /users/me returns at level 0 today. The positive control was
+				// PendingChangeService::aiPresentPendingRow, which has computed a
+				// per-row `mine` flag server-side all along — the seam-level pattern for
+				// "the caller" existed and was never generalized to an identity read.
+				"user_id" => self::userId($user),
+				"name" => self::field($user, "name"),
+				"email" => self::field($user, "email"),
+				// Named alongside the identity rather than under the clock: it is what
+				// the user's own digest and alert emails are rendered in, and it is one
+				// of the fields they may now edit themselves (audit #14 B1).
+				"timezone" => self::field($user, "timezone"),
 				"level" => $level,
 				"role" => self::roleLabel($level),
 				"is_administrator" => $level >= 1,
 				"is_developer" => $level >= 2,
 				"can_manage_users" => $level >= 1,
+				// Audit #14 B1. `PATCH /users/{id}` has always been
+				// ["any" => [["level" => 1], ["self" => "id"]]] and the Profile screen is
+				// that route, so every editor can change their own name, company,
+				// timezone and notification preferences today — while the assistant told
+				// them to ask an administrator for something they can do in two clicks.
+				// Not a level flag: it is true for everyone, and what varies is *whose*
+				// record, which is user_id above.
+				"can_edit_own_profile" => true,
 				// Tagging is split: attaching a tag that already exists is something
 				// any editor can do (matching the page editor), while coining a new
 				// one grows the site's shared vocabulary and stays administrator-only.
@@ -129,6 +174,23 @@
 				// of it explicitly.
 				"Managing two-factor authentication or passkeys" =>
 					"the user's own profile screen — the assistant never touches authentication credentials",
+				// Audit #14 B1/D3. The self path relaxed everything else on the profile
+				// to any level, deliberately excluding this one: `PATCH /users/{id}`
+				// allows a self email change, but the email address IS the sign-in
+				// identity, and changing it from a chat card is a different risk class
+				// from changing a timezone. Declared rather than discovered — the wall
+				// only works if the model knows it is there.
+				"Changing your own email address (an administrator can change another user's)" =>
+					"the user's own profile screen — the assistant can edit the rest of your profile, but your email "
+						. "address is your sign-in identity and is changed there",
+				// Not a route family, so AIRouteFamilyContractTest structurally can't
+				// find this one either. DebugEmulator is a real developer feature ("see
+				// the admin as this user"), so "log in as Jane and check" is a plausible
+				// ask that used to hit no tool and no wall — the nearest line was about
+				// levels and permissions, which is a different thing (audit #14 C3).
+				"Signing in as, or emulating, another user" =>
+					"Developer → Debug → Emulate User — the assistant always acts as you, and can never act as "
+						. "somebody else",
 				"Deleting users, templates, callouts, modules or settings" =>
 					"the relevant Developer or Users screen",
 				// "Redefining" covers the level-2 definition edit SettingService::update
@@ -274,18 +336,57 @@
 		public static function promptText($user): string {
 			$caps = self::forUser($user);
 			$lines = [];
-			$lines[] = "The current user is a BigTree " . $caps["role"] . " (permission level " . $caps["level"] . ").";
+			$label = self::userLabel($user);
+
+			// Audit #14 B2: the role was named and the person was not, so "am I
+			// subscribed to that page", "which of these drafts are mine" and "sign the
+			// post with my name" had nothing to resolve "me" against — and the one tool
+			// that could have looked it up, search_users, is administrator-gated.
+			$lines[] = "The signed-in user is " . ($label !== "" ? "“" . $label . "”" : "the current user")
+				. ($caps["user_id"] > 0 ? " (user id " . $caps["user_id"] . ")" : "")
+				. ", a BigTree " . $caps["role"] . " (permission level " . $caps["level"] . ").";
+			$lines[] = "When the user says \"me\", \"my\" or \"mine\", it means that user. Use their id for tool "
+				. "arguments that name a user, and call get_my_capabilities if you need their email or timezone.";
 
 			if ($caps["is_developer"]) {
 				$lines[] = "They may manage developer resources (templates, modules, callouts), settings, tags, and users, in addition to content.";
 			} elseif ($caps["is_administrator"]) {
 				$lines[] = "They may manage settings, tags, and users, and content they have page/module permission for. They CANNOT create or edit templates, modules, or callouts — that requires a developer.";
 			} else {
-				$lines[] = "They are a content editor. They may work with pages and module entries they have permission for, including adding and removing tags that already exist. They CANNOT create new tags, or manage users, settings, templates, modules, or callouts.";
+				// "cannot manage users" used to swallow the user's own profile, which
+				// every editor can edit today — the self-contradiction audit #14 B1
+				// closed. The wall is about *other* users now, which is what it always
+				// meant.
+				$lines[] = "They are a content editor. They may work with pages and module entries they have permission for, including adding and removing tags that already exist. They CANNOT create new tags, or manage OTHER users, settings, templates, modules, or callouts.";
 			}
 
+			$lines[] = "Any user, at any level, may edit their OWN profile — name, company, timezone, the daily "
+				. "content digest, and their content-alert subscriptions — with update_user targeting their own user "
+				. "id. Their email address is the exception and is never changed through you.";
 			$lines[] = "Never claim to have done something the user lacks permission for. If an action needs a higher role, say so plainly and offer an alternative (e.g. saving a draft/pending change, or asking an administrator).";
 
 			return implode("\n", $lines);
+		}
+
+		/**
+		 * A scalar off the acting user, whichever shape the caller was handed.
+		 *
+		 * Every seam in the AI stack takes `$user` as "object|array", so the identity
+		 * reads below need the same tolerance `level()` has always had.
+		 *
+		 * @param object|array $user
+		 */
+		private static function field($user, string $key): string {
+			if (is_object($user)) {
+
+				return trim((string)($user->$key ?? ""));
+			}
+
+			if (is_array($user)) {
+
+				return trim((string)($user[$key] ?? ""));
+			}
+
+			return "";
 		}
 	}

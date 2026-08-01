@@ -46,7 +46,9 @@
 								. "the Files library (find one with search_files or list_resources); a relationship field "
 								. "takes a list of entry ids in the field's own table (e.g. [\"12\", \"15\"]) — find them "
 								. "with get_relation_options, which lists exactly that field's linkable rows. "
-								. "Composite fields — matrices, "
+								. "A date, datetime or time field takes the user's own words for a relative date "
+								. "(\"next Monday\") — they are resolved against this site's clock, so never compute "
+								. "an absolute date yourself. Composite fields — matrices, "
 								. "callouts, media galleries — can't be set here.",
 							// A relationship field's value is a list of ids, so a string is
 							// not the only shape this object carries (audit #11 B2).

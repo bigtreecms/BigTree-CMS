@@ -12,6 +12,7 @@
 	use BigTree\Api\Exceptions\ConflictException;
 	use BigTree\Api\Exceptions\AuthorizationException;
 	use BigTree\Services\AI\Tools\UserToolBackend;
+	use BigTree\Services\AI\CapabilitySummary;
 	use BigTree\Services\AI\ColumnDomain;
 	use BigTree;
 	use SQL;
@@ -368,11 +369,23 @@
 		 * — and replaced the whole map, so "add page 40 to my alerts" wiped every
 		 * other subscription the user had. It merges now; `false` removes.
 		 *
+		 * Since audit #14 C4 a page also has to be one the *caller* can view. Existence
+		 * was the only check, which was harmless while update_user was
+		 * administrator-only — an administrator views every page — and stopped being
+		 * harmless the moment an editor could edit their own alerts (audit #14 B1): the
+		 * digest names each watched page by title, so a page id an editor guessed at
+		 * would mail them the title of a page they cannot open. It is a read the caller
+		 * couldn't otherwise make, which is why the check is against the caller rather
+		 * than the subscriber — an administrator deliberately subscribing an editor to a
+		 * page is a different, existing decision this must not overturn.
+		 *
 		 * @param mixed $alerts Page id => boolean-ish subscription flag.
 		 * @param array<string|int,mixed> $current The user's stored alerts map.
+		 * @param object|array|null $caller The user making the change; null skips the
+		 *   view check, for callers with no acting user to check against.
 		 * @return array{error?:string,alerts?:array<int|string,string>,added?:list<int>,removed?:list<int>}
 		 */
-		private function aiNormalizeAlerts($alerts, array $current = []): array {
+		private function aiNormalizeAlerts($alerts, array $current = [], $caller = null): array {
 			if (!is_array($alerts)) {
 
 				return ["error" => "alerts must be an object mapping page ids to true (subscribe) or false "
@@ -405,6 +418,17 @@
 				if ($page_id > 0 && !SQL::fetchSingle("SELECT id FROM bigtree_pages WHERE id = ?", $page_id)) {
 
 					return ["error" => "There is no page with id {$page_id}, so it can't be added to the alert list."];
+				}
+
+				// Only on the way *in*: unsubscribing from a page whose access has since
+				// been revoked is exactly the cleanup that must stay possible.
+				if (
+					$page_id > 0 && $caller !== null && self::alertIsOn($flag) && !isset($out[$key])
+					&& !PermissionService::userHasPageAccess($caller, $page_id, "v")
+				) {
+
+					return ["error" => "Page {$page_id} isn't one you have access to, so watching it would put the "
+						. "title of a page you can't open in an alert digest. Pick a page you can view."];
 				}
 
 				if (self::alertIsOn($flag)) {
@@ -693,21 +717,109 @@
 		}
 
 		/**
+		 * The caller's own profile, for get_my_capabilities (audit #14 B2).
+		 *
+		 * Read from the row rather than from the request user, which carries only what
+		 * the JWT middleware selects (id, email, name, level, permissions, timezone) —
+		 * `company` and `daily_digest` are not on it, and both became editor-writable in
+		 * audit #14 B1. Ungated because it is the caller's own record: `GET /users/me`
+		 * returns the same thing at level 0. Kept out of `CapabilitySummary::forUser` on
+		 * purpose — that one is rendered into every system prompt and must stay free of
+		 * queries.
+		 *
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 */
+		public function aiMyProfile($user): array {
+			$id = CapabilitySummary::userId($user);
+			$row = $id > 0
+				? SQL::fetch("SELECT id, email, name, company, timezone, daily_digest FROM bigtree_users WHERE id = ?", $id)
+				: null;
+
+			if (!$row) {
+
+				return [];
+			}
+
+			return [
+				"user_id" => (int)$row["id"],
+				"email" => (string)$row["email"],
+				"name" => Sanitize::decodeEntities((string)$row["name"]),
+				"company" => Sanitize::decodeEntities((string)$row["company"]),
+				"timezone" => (string)$row["timezone"],
+				"daily_digest" => Flag::isOn($row["daily_digest"]),
+			];
+		}
+
+		/**
+		 * Whether a proposed user edit targets the caller's own record.
+		 *
+		 * The gate this answers is REST's, not a new one: `PATCH /users/{id}` has always
+		 * been `["any" => [["level" => 1], ["self" => "id"]]]`, and the SPA's Profile
+		 * screen is that route — so every editor has been able to change their own name,
+		 * company, timezone, daily digest and content-alert subscriptions all along.
+		 * The assistant alone required level 1, with no decline line to fall back on, so
+		 * "turn off my daily digest" told an editor to ask an administrator for something
+		 * they can do in two clicks. That is the same class audit #13 D4 closed for
+		 * callout reads: the AI surface stricter than REST, undeliberately.
+		 *
+		 * @param object|array $user
+		 */
+		private static function aiIsSelf(int $id, $user): bool {
+
+			return $id > 0 && $id === CapabilitySummary::userId($user);
+		}
+
+		/**
+		 * The wall that stays up on the self path (audit #14 D3).
+		 *
+		 * REST allows a self email change; the assistant does not. An email address is
+		 * the sign-in identity, and changing it from a chat card — where the value came
+		 * out of a model and the approval is one click — is a different risk class from
+		 * changing a timezone. Declared in `CapabilitySummary::outOfScope()` too, so the
+		 * model states the wall rather than discovering it.
+		 *
+		 * @param array<string,mixed> $args
+		 * @param array<string,mixed> $target
+		 */
+		private static function aiSelfEmailDenial(array $args, array $target): ?string {
+			if (!array_key_exists("email", $args)) {
+
+				return null;
+			}
+
+			// A no-op email (the model echoing back what it read) is not a change and
+			// shouldn't be refused as one.
+			if (trim((string)$args["email"]) === trim((string)($target["email"] ?? ""))) {
+
+				return null;
+			}
+
+			return "Your email address is how you sign in, so it isn't something I change — you can update it on "
+				. "your own profile screen in the admin. I can still make the rest of the edit if you drop the email "
+				. "address.";
+		}
+
+		/**
 		 * @param array<string,mixed> $args
 		 * @param object|array $user
 		 * @return array<string,mixed>
 		 */
 		public function aiValidateUserUpdate(array $args, $user): array {
-			if (PermissionService::level($user) < 1) {
-
-				return ["denied" => "Only administrators can edit users."];
-			}
-
 			$id = (int)($args["user_id"] ?? 0);
 
 			if ($id < 1) {
 
 				return ["error" => "A user_id is required."];
+			}
+
+			$is_self = self::aiIsSelf($id, $user);
+
+			if (PermissionService::level($user) < 1 && !$is_self) {
+				$own = CapabilitySummary::userId($user);
+
+				return ["denied" => "Only administrators can edit other users."
+					. ($own > 0 ? " You can change your own profile — your user id is {$own}." : "")];
 			}
 
 			$target = SQL::fetch(
@@ -723,6 +835,15 @@
 			if ((int)$target["level"] > PermissionService::level($user)) {
 
 				return ["denied" => "You cannot edit a user whose level is higher than yours."];
+			}
+
+			if ($is_self) {
+				$email_denial = self::aiSelfEmailDenial($args, $target);
+
+				if ($email_denial !== null) {
+
+					return ["denied" => $email_denial];
+				}
 			}
 
 			$changes = [];
@@ -797,7 +918,7 @@
 
 			if (array_key_exists("alerts", $args)) {
 				$current = Json::decode($target["alerts"] ?? "");
-				$alerts = $this->aiNormalizeAlerts($args["alerts"], $current);
+				$alerts = $this->aiNormalizeAlerts($args["alerts"], $current, $user);
 
 				if (isset($alerts["error"])) {
 
@@ -862,12 +983,19 @@
 		 * @return array<string,mixed>
 		 */
 		public function aiUpdateUser(array $payload, $user): array {
-			if (PermissionService::level($user) < 1) {
-				throw new AuthorizationException("Only administrators can edit users.");
+			$id = (int)($payload["user_id"] ?? 0);
+			$is_self = self::aiIsSelf($id, $user);
+
+			// The same relaxation the staging gate got, re-asked here rather than
+			// trusted from staging: a card is approvable for 24h, and the approver is
+			// re-resolved from the request either way. `self` is the one thing that
+			// cannot drift — it is compared against the id in this request's own token.
+			if (PermissionService::level($user) < 1 && !$is_self) {
+				throw new AuthorizationException("Only administrators can edit other users.");
 			}
 
-			$id = (int)($payload["user_id"] ?? 0);
-			$target = $id > 0 ? SQL::fetch("SELECT id, level FROM bigtree_users WHERE id = ?", $id) : null;
+			// `email` joins the read for aiSelfEmailDenial's no-op comparison below.
+			$target = $id > 0 ? SQL::fetch("SELECT id, email, level FROM bigtree_users WHERE id = ?", $id) : null;
 
 			if (!$target) {
 
@@ -879,6 +1007,18 @@
 			}
 
 			$changes = is_array($payload["changes"] ?? null) ? $payload["changes"] : [];
+
+			// Re-asked at approval like every other staged value: a level-1 account
+			// demoted to level 0 inside the proposal's 24h life is now on the self path,
+			// and the self path does not carry email (audit #14 D3).
+			if ($is_self) {
+				$email_denial = self::aiSelfEmailDenial($changes, $target);
+
+				if ($email_denial !== null) {
+
+					return ["mode" => "error", "message" => $email_denial];
+				}
+			}
 
 			// Re-validate a staged email at approval time — another account may have
 			// claimed it during the proposal's TTL. Never trust the guard the staging
@@ -944,7 +1084,11 @@
 				// replaying a stale merged map would revert them.
 				$alerts = $this->aiNormalizeAlerts(
 					$changes["alerts"],
-					Json::decode(SQL::fetchSingle("SELECT alerts FROM bigtree_users WHERE id = ?", $id))
+					Json::decode(SQL::fetchSingle("SELECT alerts FROM bigtree_users WHERE id = ?", $id)),
+					// Re-asked against the caller's access as it stands now: a page grant
+					// revoked during the proposal's 24h life must not be replayed into
+					// a digest (audit #14 C4).
+					$user
 				);
 
 				if (isset($alerts["error"])) {

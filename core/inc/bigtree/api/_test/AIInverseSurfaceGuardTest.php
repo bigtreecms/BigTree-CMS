@@ -142,9 +142,20 @@
 	 *     differently, or one the server derives);
 	 *   - declined — with a phrase that must actually appear in outOfScope().
 	 *
-	 * Routes whose body is `allow_unknown` with no map (page/entry *content*) are
-	 * absent by construction: their fields are the template's or the form's, and the
-	 * sift seams govern them.
+	 * Routes whose body is `allow_unknown` and whose service reads no field by name
+	 * (page/entry *content*) are absent by construction: their fields are the
+	 * template's or the form's, and the sift seams govern them.
+	 *
+	 * Audit #14 E2: the update side is here now. Every PATCH route in the covered
+	 * families except `PATCH /users/{id:int}` declares `allow_unknown => true` with no
+	 * `body` map, and the classification leg below skipped any endpoint whose declared
+	 * body was empty — so for thirteen audits this contract classified the **create**
+	 * side only. That was invisible from either direction: the map looked complete, and
+	 * every route it named really was classified. The update side happened to be at
+	 * parity by hand, but audit #7's C1 (`update_callout.group`) and audit #9's B2
+	 * (`update_module.class`) were both exactly this class of finding, both found by
+	 * reading rather than by a guard. A PATCH route's effective body is what its service
+	 * actually reads — see ai_inverse_service_body.
 	 *
 	 * @return array<string,array<string,mixed>>
 	 */
@@ -162,6 +173,81 @@
 				],
 				"declined" => [
 					"trunk" => "site trunk",
+				],
+			],
+			// The update side (audit #14 E2). Each of these declares no `body` map, so
+			// the fields are the ones its service reads by name — derived, not copied,
+			// which is the difference between a contract and a comment.
+			"PATCH /pages/{id:int}" => [
+				"tools" => ["update_page", "update_page_content", "add_tags", "remove_tags"],
+				"exempt" => [
+					"resources" => "the tools express page content as `content`, sifted against the template schema",
+					"open_graph" => "expressed as the og_title / og_description arguments rather than an object",
+					"publish" => "the tools invert it as save_as_draft; publishing is decided by rank at approval",
+				],
+				"declined" => [
+					"trunk" => "site trunk",
+				],
+			],
+			// Editing a queued draft. update_page resolves a "p{change}" reference onto
+			// the draft and amends it in place, which is how an editor's edit collapses
+			// onto their own pending change rather than making a second one.
+			"PATCH /pages/pending/{pcid:int}" => [
+				"tools" => ["update_page", "update_page_content"],
+				"exempt" => [
+					"open_graph" => "expressed as the og_title / og_description arguments rather than an object",
+					"publish" => "the tools invert it as save_as_draft; publishing a draft is publish_pending_change",
+					// Deliberate and recorded rather than declined: create_page stages a
+					// draft's tags with the draft, and add_tags/remove_tags take a live
+					// page id. Amending only the tags of a page that does not exist yet is
+					// not a capability the catalog offers.
+					"tags" => "a draft's tags are staged with it by create_page; add_tags/remove_tags target a live "
+						. "page id, and an unapproved draft has none",
+				],
+			],
+			"PATCH /templates/{id}" => [
+				"tools" => ["create_template", "update_template"],
+				"exempt" => [
+					"resources" => "the tools express a template's fields as `fields`",
+				],
+				"declined" => [
+					"module" => "binding a template to a module",
+					"hooks" => "configuring its publish hooks",
+				],
+			],
+			"PATCH /callouts/{id}" => [
+				"tools" => ["create_callout", "update_callout"],
+				"exempt" => [
+					"resources" => "the tools express a callout's fields as `fields`",
+				],
+			],
+			"PATCH /modules/{id}" => [
+				"tools" => ["create_module", "update_module"],
+				"declined" => [
+					"gbp" => "group-based permissions",
+				],
+			],
+			// update_setting writes the value; every other key on this route is the
+			// setting's *definition*, which retypes or re-encrypts every stored value
+			// with no migration (audit #9 B2/D3).
+			"PATCH /settings/{id}" => [
+				"tools" => ["update_setting"],
+				"declined" => [
+					"name" => "creating, deleting or redefining settings",
+					"description" => "creating, deleting or redefining settings",
+					"type" => "creating, deleting or redefining settings",
+					"settings" => "creating, deleting or redefining settings",
+					"locked" => "creating, deleting or redefining settings",
+					"system" => "creating, deleting or redefining settings",
+					"extension" => "creating, deleting or redefining settings",
+					// `id` is deliberately absent: update_setting declares an `id`
+					// argument, so by name it is settable, and the guard would (rightly)
+					// call an exemption for it stale. The two mean different things —
+					// the tool's `id` names the setting to write, the route's renames it
+					// — and the rename is declined by the same "redefining settings"
+					// line as the rest of the definition, which says "even the setting's
+					// own id" in as many words.
+					"encrypted" => "reading or writing encrypted settings",
 				],
 			],
 			"POST /users" => [
@@ -289,8 +375,8 @@
 		$unaccounted = [];
 
 		foreach (ai_inverse_body_contracts() as $route => $contract) {
-			$body = ai_inverse_route_body($route);
-			T::ok(count($body) > 0, "{$route} declares a body map");
+			$body = ai_inverse_effective_body($route);
+			T::ok(count($body) > 0, "{$route} accepts a body this contract can enumerate");
 
 			$settable = [];
 
@@ -381,7 +467,7 @@
 					continue;
 				}
 
-				if (isset($contracts[$endpoint]) || ai_inverse_route_body($endpoint) === []) {
+				if (isset($contracts[$endpoint]) || ai_inverse_effective_body($endpoint) === []) {
 
 					continue;
 				}
@@ -411,7 +497,7 @@
 		$now_settable = [];
 
 		foreach (ai_inverse_body_contracts() as $route => $contract) {
-			$body = ai_inverse_route_body($route);
+			$body = ai_inverse_effective_body($route);
 			$classified = array_merge($contract["exempt"] ?? [], $contract["declined"] ?? []);
 			$settable = [];
 
@@ -465,21 +551,40 @@
 	 * @return array<string,string>
 	 */
 	function ai_inverse_route_body(string $route): array {
+		$block = ai_inverse_route_block($route);
+
+		if ($block === "" || !preg_match('/"body"\s*=>\s*\[(.*?)\]/s', $block, $body_match)) {
+
+			return [];
+		}
+
+		preg_match_all('/"([a-zA-Z0-9_]+)"\s*=>\s*"([^"]*)"/', $body_match[1], $fields, PREG_SET_ORDER);
+		$out = [];
+
+		foreach ($fields as $field) {
+			$out[$field[1]] = $field[2];
+		}
+
+		return $out;
+	}
+
+	/**
+	 * A route's own declaration block, bounded at the next route declaration.
+	 *
+	 * Unbounded, a route with no `body` map silently borrowed the next route's — which
+	 * reads as a body contract that was checked when nothing was (audit #9 E2).
+	 */
+	function ai_inverse_route_block(string $route): string {
 		foreach (glob(SERVER_ROOT . "core/inc/bigtree/api/routes/*.php") ?: [] as $file) {
 			$source = (string)file_get_contents($file);
 			$quoted = preg_quote($route, "/");
 
-			// Find the route entry, then its "body" => [ … ] block.
 			if (!preg_match('/"' . $quoted . '"\s*=>\s*\[/', $source, $m, PREG_OFFSET_CAPTURE)) {
 
 				continue;
 			}
 
 			$offset = $m[0][1] + strlen($m[0][0]);
-
-			// Bounded at the next route declaration. Unbounded, a route with no `body`
-			// map silently borrowed the next route's — which reads as a body contract
-			// that was checked when nothing was (audit #9 E2).
 			$next = preg_match(
 				'/"(?:GET|POST|PUT|PATCH|DELETE) [^"]+"\s*=>\s*\[/',
 				$source,
@@ -488,24 +593,187 @@
 				$offset
 			) ? $next_match[0][1] : strlen($source);
 
-			$block = substr($source, $offset, $next - $offset);
+			return substr($source, $offset, $next - $offset);
+		}
 
-			if (!preg_match('/"body"\s*=>\s*\[(.*?)\]/s', $block, $body_match)) {
+		return "";
+	}
+
+	/**
+	 * The service a route dispatches to, with its short class name resolved through the
+	 * route file's own `use` statements.
+	 *
+	 * @return array{0:string,1:string}|null
+	 */
+	function ai_inverse_route_service(string $route): ?array {
+		foreach (glob(SERVER_ROOT . "core/inc/bigtree/api/routes/*.php") ?: [] as $file) {
+			$source = (string)file_get_contents($file);
+
+			if (!preg_match('/"' . preg_quote($route, "/") . '"\s*=>\s*\[/', $source)) {
+
+				continue;
+			}
+
+			$block = ai_inverse_route_block($route);
+
+			if (!preg_match('/"service"\s*=>\s*\[([A-Za-z0-9_\\\\]+)::class\s*,\s*"([A-Za-z0-9_]+)"\]/', $block, $m)) {
+
+				return null;
+			}
+
+			$class = $m[1];
+
+			if (strpos($class, "\\") === false
+				&& preg_match('/use\s+([A-Za-z0-9_\\\\]+\\\\' . preg_quote($class, "/") . ');/', $source, $use)) {
+				$class = $use[1];
+			}
+
+			return [$class, $m[2]];
+		}
+
+		return null;
+	}
+
+	/**
+	 * The body fields a route's service actually reads by name — the *effective* body of
+	 * a route that declares no `body` map (audit #14 E2).
+	 *
+	 * Derived rather than hand-copied, for the reason IconDomain gives about vocabulary
+	 * lists: a copy is one more thing to drift, and the whole point of a contract is
+	 * that it can't silently stop describing the code. Three shapes are recognized,
+	 * which between them cover every update service in the tree:
+	 *
+	 *   - direct reads of the body variable (`$d["nav_title"]`, however guarded);
+	 *   - `FieldSpec::update($d, self::FIELDS)`, where the field set is a class constant
+	 *     read back through reflection;
+	 *   - one or two levels of `$this->method(…, $d, …)` delegation, matched by argument
+	 *     position onto the callee's parameter name (`PageService::update` reads almost
+	 *     nothing itself and hands the body to `performUpdate`).
+	 *
+	 * This is a lower bound, not a parse: a service that stores the whole body wholesale
+	 * (`PageService::updatePending` writes it into the change JSON) yields only the keys
+	 * it names. That is enough for the guard's job, which is to force a decision on every
+	 * field that is visible and to fail the moment the visible set grows.
+	 *
+	 * @return array<string,string> field => "" (shaped like ai_inverse_route_body's map)
+	 */
+	function ai_inverse_service_body(string $route): array {
+		$service = ai_inverse_route_service($route);
+
+		if ($service === null) {
+
+			return [];
+		}
+
+		$seen = [];
+		$keys = ai_inverse_body_keys_in($service[0], $service[1], null, 0, $seen);
+		$out = [];
+
+		foreach ($keys as $key) {
+			$out[$key] = "";
+		}
+
+		return $out;
+	}
+
+	/**
+	 * @param array<string,bool> $seen
+	 * @return list<string>
+	 */
+	function ai_inverse_body_keys_in(string $class, string $method, ?string $var, int $depth, array &$seen): array {
+		if ($depth > 2 || !method_exists($class, $method)) {
+
+			return [];
+		}
+
+		$signature = "{$class}::{$method}:" . (string)$var;
+
+		if (isset($seen[$signature])) {
+
+			return [];
+		}
+
+		$seen[$signature] = true;
+		$body = ai_surface_method_body($class, $method);
+
+		if ($body === "") {
+
+			return [];
+		}
+
+		if ($var === null) {
+			if (!preg_match('/\$([a-zA-Z_][a-zA-Z0-9_]*)\s*=\s*\$request->body\s*;/', $body, $m)) {
 
 				return [];
 			}
 
-			preg_match_all('/"([a-zA-Z0-9_]+)"\s*=>\s*"([^"]*)"/', $body_match[1], $fields, PREG_SET_ORDER);
-			$out = [];
-
-			foreach ($fields as $field) {
-				$out[$field[1]] = $field[2];
-			}
-
-			return $out;
+			$var = $m[1];
 		}
 
-		return [];
+		$quoted = preg_quote($var, "/");
+		$keys = [];
+
+		if (preg_match_all('/\$' . $quoted . '\["([a-zA-Z0-9_]+)"\]/', $body, $m)) {
+			foreach ($m[1] as $key) {
+				$keys[$key] = true;
+			}
+		}
+
+		if (preg_match_all(
+			'/FieldSpec::(?:create|update)\(\s*\$' . $quoted . '\s*,\s*self::([A-Z_]+)\s*\)/',
+			$body,
+			$m
+		)) {
+			foreach ($m[1] as $constant) {
+				$spec = (new ReflectionClass($class))->getConstant($constant);
+
+				foreach (is_array($spec) ? array_keys($spec) : [] as $key) {
+					$keys[(string)$key] = true;
+				}
+			}
+		}
+
+		// Follow the body into a helper it is handed to, matched by argument position.
+		if (preg_match_all('/\$this->([a-zA-Z0-9_]+)\(([^;()]*(?:\([^()]*\)[^;()]*)*)\)/', $body, $calls, PREG_SET_ORDER)) {
+			foreach ($calls as $call) {
+				$arguments = array_map("trim", explode(",", $call[2]));
+				$position = array_search("\$" . $var, $arguments, true);
+
+				if ($position === false || !method_exists($class, $call[1])) {
+
+					continue;
+				}
+
+				$parameters = (new ReflectionMethod($class, $call[1]))->getParameters();
+
+				if (!isset($parameters[$position])) {
+
+					continue;
+				}
+
+				foreach (
+					ai_inverse_body_keys_in($class, $call[1], $parameters[$position]->getName(), $depth + 1, $seen)
+					as $key
+				) {
+					$keys[$key] = true;
+				}
+			}
+		}
+
+		return array_keys($keys);
+	}
+
+	/**
+	 * Everything a route accepts: the fields it declares, plus the fields its service
+	 * reads when it declares none. One notion of "this route's body", so a PATCH is held
+	 * to the same standard as the POST beside it.
+	 *
+	 * @return array<string,string>
+	 */
+	function ai_inverse_effective_body(string $route): array {
+		$declared = ai_inverse_route_body($route);
+
+		return $declared !== [] ? $declared : ai_inverse_service_body($route);
 	}
 
 	/**

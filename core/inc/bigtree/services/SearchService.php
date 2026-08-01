@@ -1035,6 +1035,11 @@
 			$can_tags = $level >= 1 ? "yes" : "no";
 			$safety = implode("\n", \BigTree\Services\AI\PromptGuard::safetyRules());
 
+			// Search answers "what changed this week" and "which of these is newest"
+			// off absolute datetimes in its hits, so it needs the same clock the chat
+			// prompt carries (audit #14 A1). Generated, never a literal.
+			$clock = implode("\n", \BigTree\Services\AI\TemporalContext::promptLines());
+
 			return <<<PROMPT
 You are the BigTree CMS admin search assistant. Help editors find pages, modules, module entries (e.g. news articles), tags, and users.
 
@@ -1048,6 +1053,8 @@ Rules:
 - Can search users: {$can_users}. Can search tags: {$can_tags}.
 - Write a brief plain-text answer (1–3 sentences). No markdown headings.
 - If truly nothing matches after tools + baseline, say so and suggest simpler keywords.
+
+{$clock}
 
 {$safety}
 PROMPT;

@@ -103,15 +103,22 @@
 							"description" => "Days after which the page is flagged as stale on the dashboard's "
 								. "content alerts. 0 (the default) never flags it.",
 						],
+						// No absolute example here on purpose (audit #14 A1): the old one
+						// steered the model into computing a date from its own sense of
+						// "now", which is its training cutoff rather than this server's
+						// clock. The relative form is resolved server-side, correctly.
 						"publish_at" => [
 							"type" => "string",
-							"description" => "Optional date/time the page starts being visible, e.g. \"2026-08-01\" "
-								. "or \"2026-08-01 09:00:00\". Omit for immediately.",
+							"description" => "Optional date/time the page starts being visible. Omit for immediately. "
+								. "Pass the user's own words for a relative date (\"next Monday\", \"in two weeks\") "
+								. "— they are resolved against this site's clock and the resolved date is shown on "
+								. "the confirmation card. Never compute an absolute date yourself.",
 						],
 						"expire_at" => [
 							"type" => "string",
 							"description" => "Optional date/time the page stops being visible. Must be after "
-								. "publish_at. Omit for never.",
+								. "publish_at. Omit for never. Relative dates are resolved server-side, as for "
+								. "publish_at.",
 						],
 						"tags" => [
 							"type" => "array",

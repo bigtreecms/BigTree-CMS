@@ -154,6 +154,68 @@
 		T::equals($last_call["tools"], [], "fallback call offers no tools");
 	}
 
+	/**
+	 * Audit #14 C1: a turn cut off by the round budget says so.
+	 *
+	 * Both per-turn *cap* refusals hand the model an explicit "summarize what you have
+	 * and stop"; round exhaustion — the third and most common way a turn ends early —
+	 * said nothing, so the loop fell straight into the no-tools synthesis call and a turn
+	 * cut off part-way through a read-then-stage sequence could answer as if it had
+	 * finished. "I've prepared that for you" over a proposal that was never staged is
+	 * indistinguishable from the real thing.
+	 */
+	function test_agent_loop_tells_the_model_when_the_rounds_ran_out() {
+		$ai = new FakeChatAI([
+			fake_tool_call_response("c1", "search_pages", ["query" => "a"]),
+			fake_tool_call_response("c2", "search_pages", ["query" => "b"]),
+			fake_answer_response("Here's what I got to."),
+		]);
+		$loop = new AgentLoop($ai, chat_loop_registry(), 2);
+
+		$loop->run([
+			["role" => "system", "content" => "sys"],
+			["role" => "user", "content" => "dig"],
+		], new AIToolContext(ai_fake_user(0), 8));
+
+		$final = end($ai->calls);
+		$note = "";
+
+		foreach ($final["messages"] as $message) {
+			if ((string)$message["role"] === "system" && strpos((string)$message["content"], "tool-calling rounds") !== false) {
+				$note = (string)$message["content"];
+			}
+		}
+
+		T::ok($note !== "", "the exhausted turn's final call carries a note that it was cut off");
+		T::ok(strpos($note, "2 tool-calling rounds") !== false, "and the note names the budget it hit");
+		T::ok(
+			strpos($note, "did not get to") !== false,
+			"and asks the model to say which parts of the request it didn't reach"
+		);
+		T::ok(
+			strpos($note, "unless a tool result above confirms it") !== false,
+			"and forbids describing an unstaged change as prepared"
+		);
+
+		// A turn that finished on its own terms gets no note — otherwise every ordinary
+		// answer would be hedged.
+		$clean = new FakeChatAI([
+			fake_tool_call_response("c1", "search_pages", ["query" => "a"]),
+			fake_answer_response("Found it."),
+		]);
+		$run = (new AgentLoop($clean, chat_loop_registry(), 4))->run([
+			["role" => "system", "content" => "sys"],
+			["role" => "user", "content" => "dig"],
+		], new AIToolContext(ai_fake_user(0), 8));
+
+		foreach ($run["messages"] as $message) {
+			T::ok(
+				strpos((string)$message["content"], "tool-calling rounds") === false,
+				"a turn that answered within its budget is not told it was cut off"
+			);
+		}
+	}
+
 	function test_agent_loop_provider_error() {
 		$ai = new FakeChatAI([false]);
 		$loop = new AgentLoop($ai, chat_loop_registry(), 4);

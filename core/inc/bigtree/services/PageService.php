@@ -18,6 +18,7 @@
 	use BigTree\Services\AI\FieldTypeDomain;
 	use BigTree\Services\AI\ResourceReferenceDomain;
 	use BigTree\Services\AI\RelationDomain;
+	use BigTree\Services\AI\TemporalContext;
 	use BigTree\Services\AI\TruncatedRead;
 	use BigTreeCMS;
 	use BigTree;
@@ -278,6 +279,20 @@
 			"template", "route", "publish_at", "expire_at", "external", "new_window",
 			"og_title", "og_description", "max_age",
 		];
+
+		/**
+		 * Reserved payload key carrying which schedule fields were still in the future
+		 * when the card was written (audit #14 A2).
+		 *
+		 * Stripped before the payload reaches the write path, the same way
+		 * `save_as_draft` and `tag_names` are. `performCreate` builds its INSERT from an
+		 * allow-list and would ignore it, but the *draft* path does not:
+		 * `pendingChangeFields` copies the whole payload into the queue row's `changes`
+		 * JSON, which `get_pending_change` reads back and the SPA's draft editor renders.
+		 * A reserved key left in there is a field nobody can explain sitting on a change
+		 * a human is being asked to approve.
+		 */
+		private const AI_SCHEDULE_SNAPSHOT_KEY = "__schedule_snapshot__";
 
 		// Column caps, mirroring what routes/pages.php declares. Nothing on the AI
 		// path checked any of them, so a 900-character model-generated "name" was
@@ -630,6 +645,7 @@
 				"expire_at" => $schedule["expire_at"],
 				"resources" => $resources,
 				"save_as_draft" => $save_as_draft,
+				self::AI_SCHEDULE_SNAPSHOT_KEY => TemporalContext::scheduleSnapshot($schedule),
 			];
 
 			$preview = [
@@ -657,12 +673,29 @@
 				$preview["max_age"] = $max_age;
 			}
 
+			// Shown as "2026-08-04 09:00:00 (from “next Tuesday”)" when the server did
+			// the resolving, so the approver can tell a date they can check from one
+			// they have to take on faith (audit #14 A1/A2).
 			if ($schedule["publish_at"] !== null) {
-				$preview["publish_at"] = $schedule["publish_at"];
+				$preview["publish_at"] = self::aiSchedulePreviewValue($schedule, "publish_at");
 			}
 
 			if ($schedule["expire_at"] !== null) {
-				$preview["expire_at"] = $schedule["expire_at"];
+				$preview["expire_at"] = self::aiSchedulePreviewValue($schedule, "expire_at");
+			}
+
+			// One `warning` key, so both consequences reach the card: a schedule that has
+			// already gone by, and real optional fields the assistant can't author, which
+			// otherwise land empty on a page whose card looks complete (audit #14 C2).
+			$warnings = $schedule["warning"] !== "" ? [$schedule["warning"]] : [];
+			$unfillable = FieldTypeDomain::optionalUnsettableNote($this->aiOptionalUnsettableResources($template));
+
+			if ($unfillable !== "") {
+				$warnings[] = $unfillable;
+			}
+
+			if ($warnings) {
+				$preview["warning"] = implode(" ", $warnings);
 			}
 
 			if ($external !== "") {
@@ -727,13 +760,23 @@
 		 *
 		 * Both are stored as datetimes; the model tends to emit whatever the user
 		 * said ("next Tuesday"), so anything unparseable is rejected rather than
-		 * silently stored as a zero date that would hide the page forever.
+		 * silently stored as a zero date that would hide the page forever. Since audit
+		 * #14 the relative form is the *encouraged* one — the tool descriptions no
+		 * longer show an absolute example, because doing so taught the model to
+		 * compute dates against its own training-cutoff clock (see TemporalContext).
+		 *
+		 * `raw` carries what was actually supplied so the card can disclose which
+		 * party did the arithmetic, and `warning` names a window that has already gone
+		 * by. Neither is fatal: backdating publish_at is legitimate, and an
+		 * already-passed expire_at is refused nowhere because "take it down now" is a
+		 * real request — it just has to be visible to whoever approves the card.
 		 *
 		 * @param array<string,mixed> $args
-		 * @return array<string,mixed> ["publish_at" => ?string, "expire_at" => ?string] or ["error" => string]
+		 * @return array<string,mixed> ["publish_at" => ?string, "expire_at" => ?string,
+		 *   "raw" => array<string,string>, "warning" => string] or ["error" => string]
 		 */
 		private function aiPageSchedule(array $args): array {
-			$out = ["publish_at" => null, "expire_at" => null];
+			$out = ["publish_at" => null, "expire_at" => null, "raw" => [], "warning" => ""];
 
 			foreach (["publish_at", "expire_at"] as $field) {
 				if (!array_key_exists($field, $args)) {
@@ -750,11 +793,13 @@
 
 				if ($stamp === false) {
 
-					return ["error" => "\"{$raw}\" isn't a date I can store for {$field}. Use an explicit date like "
-						. "\"2026-08-01\" or \"2026-08-01 09:00:00\"."];
+					return ["error" => "\"{$raw}\" isn't a date I can store for {$field}. Give the user's own wording "
+						. "for a relative date (\"next Monday\", \"in two weeks\") or an explicit "
+						. "\"YYYY-MM-DD HH:MM:SS\"."];
 				}
 
 				$out[$field] = date("Y-m-d H:i:s", $stamp);
+				$out["raw"][$field] = $raw;
 			}
 
 			if ($out["publish_at"] !== null && $out["expire_at"] !== null && $out["expire_at"] <= $out["publish_at"]) {
@@ -762,7 +807,22 @@
 				return ["error" => "expire_at ({$out["expire_at"]}) must be after publish_at ({$out["publish_at"]})."];
 			}
 
+			$out["warning"] = TemporalContext::scheduleWarning($out["publish_at"], $out["expire_at"]);
+
 			return $out;
+		}
+
+		/**
+		 * The preview rendering of a resolved schedule field: the absolute value, plus
+		 * the user's words when the server was the party that resolved them.
+		 *
+		 * @param array<string,mixed> $schedule An aiPageSchedule / aiPageScheduleUpdate result.
+		 */
+		private static function aiSchedulePreviewValue(array $schedule, string $field): string {
+			$resolved = (string)($schedule[$field] ?? "");
+			$raw = is_array($schedule["raw"] ?? null) ? (string)($schedule["raw"][$field] ?? "") : "";
+
+			return $raw !== "" ? TemporalContext::disclose($resolved, $raw) : $resolved;
 		}
 
 		/**
@@ -912,6 +972,58 @@
 			}
 
 			return $blocked;
+		}
+
+		/**
+		 * A template's resources that are real, *optional*, and unfillable by the
+		 * assistant — the disclosure half aiRequiredUnsettableResources never covered
+		 * (audit #14 C2).
+		 *
+		 * Labelled exactly as the required list is, so a card that carries both reads
+		 * consistently. Anything already carrying a value is excluded: a template switch
+		 * whose outgoing template populated the resource is not a gap.
+		 *
+		 * @param array<string,mixed> $existing The page's stored content ([] on create).
+		 * @return list<string>
+		 */
+		private function aiOptionalUnsettableResources(string $template, array $existing = []): array {
+			$row = $template !== "" ? BigTreeJSONDB::get("templates", $template) : null;
+
+			if (!$row) {
+
+				return [];
+			}
+
+			$optional = [];
+
+			foreach ((array)($row["resources"] ?? []) as $resource) {
+				$id = (string)($resource["id"] ?? "");
+				$type = (string)($resource["type"] ?? "text");
+
+				if ($id === "" || FieldTypeDomain::isSettable($type) || FieldTypeDomain::isDerived($type)) {
+					continue;
+				}
+
+				$settings = is_array($resource["settings"] ?? null) ? $resource["settings"] : [];
+				$rules = is_string($settings["validation"] ?? null)
+					? preg_split("/\s+/", trim($settings["validation"]), -1, PREG_SPLIT_NO_EMPTY)
+					: [];
+
+				// The required ones are already disclosed, more loudly, as blockers.
+				if (in_array("required", $rules ?: [], true)) {
+					continue;
+				}
+
+				$value = $existing[$id] ?? "";
+
+				if (is_array($value) ? (bool)$value : trim((string)$value) !== "") {
+					continue;
+				}
+
+				$optional[] = (string)($resource["title"] ?? $id) . " ({$id}, {$type})";
+			}
+
+			return $optional;
 		}
 
 		/**
@@ -1526,8 +1638,15 @@
 			// Re-checked at approval like every other staged value — the payload sits
 			// in the proposal store for up to 24h and is never trusted on the way back
 			// out. The create payload spells these fields flat, so the same guard the
-			// update path runs over its `changes` map applies directly.
-			$invalid = $this->aiPageChangeValueError($payload);
+			// update path runs over its `changes` map applies directly. The schedule
+			// snapshot comes off the payload first: it is not a column, and everything
+			// left in $payload is replayed onto the page row.
+			$schedule_snapshot = is_array($payload[self::AI_SCHEDULE_SNAPSHOT_KEY] ?? null)
+				? $payload[self::AI_SCHEDULE_SNAPSHOT_KEY]
+				: [];
+			unset($payload[self::AI_SCHEDULE_SNAPSHOT_KEY]);
+
+			$invalid = $this->aiPageChangeValueError($payload, $schedule_snapshot);
 
 			if ($invalid !== null) {
 
@@ -2063,12 +2182,19 @@
 		 * publish_at past an existing expire_at is just as broken as supplying both in
 		 * the wrong order.
 		 *
+		 * `raw` and `warning` carry the same two things the create side does (audit #14
+		 * A1/A2) — what the model actually supplied, and whether a resolved date has
+		 * already gone by. The warning is scoped to the fields this edit *supplies*: an
+		 * old page whose publish_at is naturally in the past would otherwise carry a
+		 * warning on every unrelated edit, which is how a warning stops being read.
+		 *
 		 * @param array<string,mixed> $args
 		 * @param array<string,mixed> $page
-		 * @return array{error?:string,publish_at?:string,expire_at?:string}
+		 * @return array{error?:string,publish_at?:string,expire_at?:string,raw?:array<string,string>,warning?:string}
 		 */
 		private function aiPageScheduleUpdate(array $args, array $page): array {
-			$out = [];
+			$out = ["raw" => [], "warning" => ""];
+			$supplied = [];
 
 			foreach (["publish_at", "expire_at"] as $field) {
 				if (!array_key_exists($field, $args)) {
@@ -2089,17 +2215,25 @@
 
 				if ($stamp === false) {
 
-					return ["error" => "\"{$raw}\" isn't a date I can store for {$field}. Use an explicit date like "
-						. "\"2026-08-01\" or \"2026-08-01 09:00:00\"."];
+					return ["error" => "\"{$raw}\" isn't a date I can store for {$field}. Give the user's own wording "
+						. "for a relative date (\"next Monday\", \"in two weeks\") or an explicit "
+						. "\"YYYY-MM-DD HH:MM:SS\"."];
 				}
 
 				$out[$field] = date("Y-m-d H:i:s", $stamp);
+				$out["raw"][$field] = $raw;
+				$supplied[] = $field;
 			}
 
 			if ($out["publish_at"] !== "" && $out["expire_at"] !== "" && $out["expire_at"] <= $out["publish_at"]) {
 
 				return ["error" => "expire_at ({$out["expire_at"]}) must be after publish_at ({$out["publish_at"]})."];
 			}
+
+			$out["warning"] = TemporalContext::scheduleWarning(
+				in_array("publish_at", $supplied, true) ? $out["publish_at"] : null,
+				in_array("expire_at", $supplied, true) ? $out["expire_at"] : null
+			);
 
 			return $out;
 		}
@@ -3151,6 +3285,19 @@
 				$preview["publishes_draft"] = $draft;
 			}
 
+			// The diff shows the stored value; the approver also needs to know when the
+			// server was the party that turned "next Tuesday" into it, and when the
+			// resulting window has already gone by (audit #14 A1/A2).
+			foreach (["publish_at", "expire_at"] as $field) {
+				if (isset($preview["changes"][$field]) && isset($schedule["raw"][$field])) {
+					$preview["changes"][$field]["to"] = self::aiSchedulePreviewValue($schedule, $field);
+				}
+			}
+
+			if (($schedule["warning"] ?? "") !== "") {
+				$preview["warning"] = $schedule["warning"];
+			}
+
 			if ($save_as_draft && !$is_pending) {
 				$preview["save_as_draft"] = true;
 			}
@@ -3163,6 +3310,7 @@
 					"id" => $reference,
 					"changes" => $changes,
 					"save_as_draft" => $save_as_draft,
+					self::AI_SCHEDULE_SNAPSHOT_KEY => TemporalContext::scheduleSnapshot($changes),
 				],
 				// Only the columns this edit touches, so an unrelated change elsewhere
 				// on the page doesn't needlessly invalidate a correct proposal.
@@ -3578,15 +3726,26 @@
 		 * validity rule, shared by the live and draft branches of aiUpdatePage.
 		 *
 		 * Everything a proposal stages is re-asked at approval rather than trusted
-		 * from staging — the payload sits in the store for up to 24h. These two are
+		 * from staging — the payload sits in the store for up to 24h. These are
 		 * the values whose rule is about the value itself rather than about the
 		 * world around it (permission, template existence, tag existence), so they
 		 * have nowhere else to be re-checked.
 		 *
+		 * The schedule leg is the odd one out and the reason it belongs here: the value
+		 * hasn't changed at all, the *clock* has. `publish_at` is absolute by the time it
+		 * reaches this function, so the only question left is where it sits relative to
+		 * now — which is a different answer at approval than it was at staging, and 24h
+		 * is exactly long enough for the difference to matter. It refuses only a window
+		 * that was in the future when the card was written and has since passed; a
+		 * deliberately backdated one carried `TemporalContext::pastWarning`'s note on
+		 * the card and was approved knowingly (audit #14 A2/D2).
+		 *
 		 * @param array<string,mixed> $changes
+		 * @param array<string,bool> $schedule_snapshot From the staged payload; [] when
+		 *   the proposal set no schedule, which is the ordinary case.
 		 * @return string|null An error message, or null when the changes still pass.
 		 */
-		private function aiPageChangeValueError(array $changes): ?string {
+		private function aiPageChangeValueError(array $changes, array $schedule_snapshot = []): ?string {
 			$too_long = $this->aiPageLengthError($changes);
 
 			if ($too_long !== null) {
@@ -3603,6 +3762,13 @@
 
 				return "A page's navigation title can't be empty — it's what the site's navigation and breadcrumbs "
 					. "display.";
+			}
+
+			$drifted = TemporalContext::scheduleDrift($schedule_snapshot, $changes);
+
+			if ($drifted !== null) {
+
+				return $drifted;
 			}
 
 			return null;
@@ -3731,7 +3897,12 @@
 
 			// Before the draft split, so both paths get it: the stored payload is
 			// never trusted on the way back out, whichever branch consumes it.
-			$invalid = $this->aiPageChangeValueError($changes);
+			$invalid = $this->aiPageChangeValueError(
+				$changes,
+				is_array($payload[self::AI_SCHEDULE_SNAPSHOT_KEY] ?? null)
+					? $payload[self::AI_SCHEDULE_SNAPSHOT_KEY]
+					: []
+			);
 
 			if ($invalid !== null) {
 

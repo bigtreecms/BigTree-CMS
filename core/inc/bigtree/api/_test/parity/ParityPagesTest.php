@@ -500,3 +500,142 @@
 			parity_delete_users($dev_id);
 		}
 	}
+
+	/**
+	 * Audit #14 A1/A2, end to end: a relative date is resolved by the server, disclosed
+	 * on the card, and stored as the resolved value — with nothing but page columns
+	 * reaching the row.
+	 *
+	 * The schedule snapshot the approval re-check needs rides on the payload, and the
+	 * create payload is replayed wholesale onto the page row, so this also pins that it
+	 * is stripped before the write (the failure that would otherwise be a stray column
+	 * in an INSERT).
+	 */
+	function test_parity_pages_ai_resolves_a_relative_schedule_server_side() {
+		if (!parity_db_available()) {
+			return;
+		}
+
+		$svc = new PageService();
+		$dev_id = parity_seed_user(["level" => 2]);
+		$user = (object)["id" => $dev_id, "level" => 2, "permissions" => []];
+		$page_id = 0;
+
+		try {
+			$schema_ref = new ReflectionMethod(PageService::class, "aiTemplateResourceSchema");
+			$schema_ref->setAccessible(true);
+			$content = [];
+
+			foreach ($schema_ref->invoke($svc, "content") as $resource_id => $resource) {
+				$content[(string)$resource_id] = "Filled by parity test";
+			}
+
+			$staged = $svc->aiValidatePageCreate([
+				"parent" => 0,
+				"nav_title" => "ZZ Audit14 Scheduled",
+				"route" => parity_unique_route("zz-audit14"),
+				"template" => "content",
+				"content" => $content,
+				// The words a user would say, which the tool descriptions now ask for.
+				"publish_at" => "next Monday",
+			], $user);
+
+			T::ok(!empty($staged["ok"]), "a relative publish date stages");
+
+			$expected = date("Y-m-d H:i:s", (int)strtotime("next Monday"));
+			T::equals($staged["payload"]["publish_at"], $expected, "the payload carries the server-resolved value");
+			T::ok(
+				strpos((string)$staged["preview"]["publish_at"], $expected) === 0,
+				"the card shows the resolved date"
+			);
+			T::ok(
+				strpos((string)$staged["preview"]["publish_at"], "next Monday") !== false,
+				"and the words it was resolved from, so the approver knows who did the arithmetic"
+			);
+			T::ok(
+				empty($staged["preview"]["warning"]) || strpos((string)$staged["preview"]["warning"], "already passed") === false,
+				"a future date carries no past-schedule warning"
+			);
+
+			$created = $svc->aiCreatePage($staged["payload"], $user);
+			$page_id = (int)($created["page_id"] ?? 0);
+
+			try {
+				T::equals((string)$created["mode"], "published", "the approval writes live");
+				T::equals(
+					(string)SQL::fetchSingle("SELECT publish_at FROM bigtree_pages WHERE id = ?", $page_id),
+					$expected,
+					"and the row holds the resolved datetime"
+				);
+			} finally {
+				parity_delete_page($page_id);
+			}
+
+			// A window that has already gone by is disclosed, not refused: "take it down
+			// now" is a real request, and the person approving is the one who has to know.
+			$backdated = $svc->aiValidatePageCreate([
+				"parent" => 0,
+				"nav_title" => "ZZ Audit14 Expired",
+				"route" => parity_unique_route("zz-audit14"),
+				"template" => "content",
+				"content" => $content,
+				"publish_at" => "2020-01-01 00:00:00",
+				"expire_at" => "2020-06-01 00:00:00",
+			], $user);
+
+			T::ok(!empty($backdated["ok"]), "a window entirely in the past still stages");
+			T::ok(
+				strpos((string)($backdated["preview"]["warning"] ?? ""), "already passed") !== false,
+				"and the card says so"
+			);
+			// Already past at staging, so the approval must not refuse it — the user
+			// approved it knowing.
+			T::equals(
+				\BigTree\Services\AI\TemporalContext::scheduleDrift(
+					$backdated["payload"]["__schedule_snapshot__"],
+					$backdated["payload"]
+				),
+				null,
+				"a knowingly backdated window is not refused at approval"
+			);
+
+			// The snapshot rides on the payload and must not reach the queue row:
+			// pendingChangeFields copies the whole payload into `changes`, which
+			// get_pending_change reads back and the draft editor renders.
+			$draft = $svc->aiValidatePageCreate([
+				"parent" => 0,
+				"nav_title" => "ZZ Audit14 Draft Schedule",
+				"route" => parity_unique_route("zz-audit14"),
+				"template" => "content",
+				"content" => $content,
+				"publish_at" => "next Monday",
+				"save_as_draft" => true,
+			], $user);
+
+			T::ok(!empty($draft["ok"]), "a scheduled draft stages");
+			$queued = $svc->aiCreatePage($draft["payload"], $user);
+			$change_id = (int)($queued["pending_change_id"] ?? 0);
+
+			try {
+				T::equals((string)$queued["mode"], "pending", "the draft is queued rather than published");
+
+				$changes = json_decode(
+					(string)SQL::fetchSingle("SELECT changes FROM bigtree_pending_changes WHERE id = ?", $change_id),
+					true
+				);
+				T::ok(
+					!array_key_exists("__schedule_snapshot__", (array)$changes),
+					"and the queue row carries no reserved payload key"
+				);
+				T::equals(
+					(string)($changes["publish_at"] ?? ""),
+					$expected,
+					"while the resolved schedule itself is stored on the draft"
+				);
+			} finally {
+				parity_delete_pending($change_id);
+			}
+		} finally {
+			parity_delete_users($dev_id);
+		}
+	}

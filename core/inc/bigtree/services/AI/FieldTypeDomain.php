@@ -53,6 +53,10 @@
 		// Reference types whose stored value is a bigtree_resources id (audit #11 B1).
 		private const REFERENCE_TYPES = ["image-reference", "file-reference", "video-reference"];
 
+		// How many unfillable field names a card names before it starts counting
+		// (audit #14 D6).
+		private const DISCLOSED_UNSETTABLE = 3;
+
 		// Relationship types whose stored value is a list of row ids (audit #11 B2).
 		// `composite` by category because their value is an array, but the array holds
 		// nothing the model would be inventing — RelationDomain is the resolver.
@@ -215,5 +219,49 @@
 		public static function referenceTypes(): array {
 
 			return self::REFERENCE_TYPES;
+		}
+
+		/**
+		 * The card note for fields that are real, optional, and unfillable by the
+		 * assistant (audit #14 C2).
+		 *
+		 * The *required* half of this has been disclosed for several audits — the
+		 * `incomplete_required` list on a page create, `unsettable_columns` on an entry,
+		 * `aiScaffoldUnfillableColumns` on the authoring card — because a required field
+		 * the assistant can't fill blocks the record from going live and something had to
+		 * say so. The optional half said nothing at all, which is the quieter failure: an
+		 * entry whose gallery, matrix or upload field the assistant cannot touch lands
+		 * looking complete on the card and renders empty on the site, and the person
+		 * approving it has no way to know a human still has to finish it.
+		 *
+		 * Disclosure, not refusal — the record is valid without them, and refusing would
+		 * make every composite content model unauthorable. Capped at three names plus a
+		 * count (D6): a form with ten composite fields would otherwise turn a warning
+		 * into a paragraph, which is how warnings stop being read.
+		 *
+		 * @param list<string> $labels Field labels, already in "Title (id, type)" form.
+		 * @return string "" when there is nothing to disclose.
+		 */
+		public static function optionalUnsettableNote(array $labels): string {
+			$labels = array_values(array_filter(array_map("strval", $labels), function (string $label): bool {
+
+				return trim($label) !== "";
+			}));
+
+			if (!$labels) {
+
+				return "";
+			}
+
+			$shown = array_slice($labels, 0, self::DISCLOSED_UNSETTABLE);
+			$rest = count($labels) - count($shown);
+			$named = implode(", ", $shown) . ($rest > 0 ? ", and {$rest} more" : "");
+			$plural = count($labels) > 1;
+
+			return ($plural ? "These fields are" : "This field is") . " left empty because the assistant can't fill "
+				. ($plural ? "them" : "it") . ": " . $named . ". "
+				. ($plural ? "They are" : "It is") . " optional, so this saves fine — but if the "
+				. ($plural ? "fields are" : "field is") . " meant to have content, someone has to add it in the "
+				. "admin afterwards.";
 		}
 	}

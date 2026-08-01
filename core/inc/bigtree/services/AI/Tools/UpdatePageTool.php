@@ -85,15 +85,21 @@
 							"type" => "string",
 							"description" => "New URL route segment for the page.",
 						],
+						// See CreatePageTool: no hardcoded absolute example, because it
+						// taught the model to do the date arithmetic itself against a
+						// clock it doesn't have (audit #14 A1).
 						"publish_at" => [
 							"type" => "string",
-							"description" => "Date the page should go live, e.g. \"2026-08-01\" or "
-								. "\"2026-08-01 09:00:00\". Pass an empty string to clear the scheduled date.",
+							"description" => "Date the page should go live. Pass the user's own words for a relative "
+								. "date (\"next Monday\", \"in two weeks\") — they are resolved against this site's "
+								. "clock and the resolved date is shown on the confirmation card. Never compute an "
+								. "absolute date yourself. Pass an empty string to clear the scheduled date.",
 						],
 						"expire_at" => [
 							"type" => "string",
 							"description" => "Date the page should stop being published. Must be after publish_at. "
-								. "Pass an empty string to clear it.",
+								. "Relative dates are resolved server-side, as for publish_at. Pass an empty string "
+								. "to clear it.",
 						],
 						"external" => [
 							"type" => "string",

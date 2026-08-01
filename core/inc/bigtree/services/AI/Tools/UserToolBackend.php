@@ -13,6 +13,21 @@
 	 */
 	interface UserToolBackend {
 		/**
+		 * The caller's own profile fields, for get_my_capabilities (audit #14 B2).
+		 *
+		 * No permission argument and no gate: this is the caller's own record, which
+		 * `GET /users/me` already returns at level 0. It exists because audit #14 B1 made
+		 * `company` and `daily_digest` editor-writable, and the only read tool that
+		 * returned them — search_users — is administrator-gated, so for an editor they
+		 * would have become write-only. That is exactly the shape AISurfaceGuardTest
+		 * exists to refuse.
+		 *
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 */
+		public function aiMyProfile($user): array;
+
+		/**
 		 * Validate creating a basic editor account without writing: administrator
 		 * level, a valid unique email. Returns denied | error | ok+summary+preview+payload.
 		 *

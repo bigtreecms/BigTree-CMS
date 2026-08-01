@@ -195,6 +195,13 @@
 			/** @var array<string,mixed> */
 			public $update_validation = ["ok" => true, "summary" => "Update user.", "preview" => [], "payload" => []];
 
+			/** @var array<string,mixed> */
+			public $profile = [
+				"user_id" => 100, "email" => "fake@example.com", "name" => "Fake User",
+				"company" => "Fake Co", "timezone" => "UTC", "daily_digest" => false,
+			];
+
+			public function aiMyProfile($user): array { return $this->profile; }
 			public function aiValidateUserCreate(array $args, $user): array { return $this->validation; }
 			public function aiCreateUser(array $payload, $user): array { $this->executed = $payload; return ["mode" => "created"]; }
 			public function aiValidateUserUpdate(array $args, $user): array { return $this->update_validation; }
@@ -258,7 +265,7 @@
 	// — Read tools —
 
 	function test_get_my_capabilities_tool() {
-		$tool = new GetMyCapabilitiesTool();
+		$tool = new GetMyCapabilitiesTool(new FakeUserBackend());
 		T::equals($tool->kind(), "read", "capabilities tool is read");
 		T::ok($tool->isAvailable(ai_fake_user(0)), "offered to editors");
 
@@ -733,7 +740,7 @@
 	function test_catalog_registry_filters_by_level() {
 		$store = new FakeProposalStore();
 		$registry = new AIToolRegistry();
-		$registry->register(new GetMyCapabilitiesTool());
+		$registry->register(new GetMyCapabilitiesTool(new FakeUserBackend()));
 		$registry->register(new GetSettingsTool(new FakeSettingBackend()));
 		$registry->register(new UpdateSettingTool(new FakeSettingBackend(), $store));
 		$registry->register(new CreateTemplateTool(new FakeTemplateBackend(), $store));

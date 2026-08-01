@@ -53,9 +53,11 @@
 								. "reference currently points at under entry_references); a relationship field takes a "
 								. "list of entry ids (e.g. [\"12\", \"15\"]) — get_module_entry lists the ids each one "
 								. "currently holds under related, and get_relation_options lists the rows it can be "
-								. "linked to. Each value REPLACES the whole field, so never supply "
-								. "a value you only saw in truncated form — get_module_entry lists those in "
-								. "fields_truncated.",
+								. "linked to. A date, datetime or time field takes the user's own words for a "
+								. "relative date (\"next Monday\") — they are resolved against this site's clock, so "
+								. "never compute an absolute date yourself. Each value REPLACES the whole field, so "
+								. "never supply a value you only saw in truncated form — get_module_entry lists those "
+								. "in fields_truncated.",
 							// A relationship field's value is a list of ids, so a string is
 							// not the only shape this object carries (audit #11 B2).
 							"additionalProperties" => [

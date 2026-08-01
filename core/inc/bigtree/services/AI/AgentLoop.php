@@ -83,6 +83,36 @@
 		}
 
 		/**
+		 * The note that belongs on the final, no-tools synthesis call when the loop ran
+		 * out of rounds mid-plan.
+		 *
+		 * Both *cap* refusals hand the model an explicit "summarize what you have and
+		 * stop" (see capReached), and round exhaustion — the third and most common way a
+		 * turn ends early — said nothing at all: the loop simply fell out of the while
+		 * and into a call with no tools, so a turn cut off part-way through a
+		 * read-then-stage sequence answered as if it had finished. That is the worst
+		 * shape the answer can take, because "I've prepared that for you" over a
+		 * proposal that was never staged is indistinguishable from the real thing
+		 * (audit #14 C1).
+		 *
+		 * Delivered as a `system` message because BigTreeAI folds every system turn into
+		 * the provider's system block for both providers, so it can't be mistaken for
+		 * something the user said.
+		 *
+		 * @return array<string,string>
+		 */
+		private function exhaustionNote(): array {
+
+			return [
+				"role" => "system",
+				"content" => "This turn has used its limit of " . $this->max_rounds . " tool-calling rounds, so it "
+					. "ended before you signalled you were finished. Answer now from what you already have. Say "
+					. "plainly which parts of the request you completed and which you did not get to, and do not "
+					. "describe anything as prepared, staged or done unless a tool result above confirms it.",
+			];
+		}
+
+		/**
 		 * Drive the loop until the model produces a final text answer, the rounds
 		 * are exhausted, or the provider errors.
 		 *
@@ -102,6 +132,7 @@
 			$error = null;
 			$rounds = 0;
 			$tool_activity = [];
+			$exhausted = false;
 
 			while ($rounds < $this->max_rounds) {
 				$rounds++;
@@ -151,6 +182,11 @@
 						"content" => PromptGuard::wrapToolResult($tool_result->toModelPayload()),
 					];
 				}
+
+				// Set at the bottom of a round that asked for tools: reaching here on the
+				// last allowed round is exactly "the model was still working when the
+				// budget ran out". A round that broke out above never gets here.
+				$exhausted = $rounds >= $this->max_rounds;
 			}
 
 			// No text to show — either the rounds ran out before a final turn, or a
@@ -164,6 +200,10 @@
 			// sitting above a ProposalCard with nothing explaining what the user was
 			// being asked to approve.
 			if (self::isBlank($answer) && $error === null) {
+				if ($exhausted) {
+					$messages[] = $this->exhaustionNote();
+				}
+
 				$final = $this->ai->chat($messages, [], [
 					"max_tokens" => (int)($options["final_max_tokens"] ?? 512),
 					"temperature" => $chat_options["temperature"],
@@ -277,6 +317,7 @@
 			$error = null;
 			$rounds = 0;
 			$tool_activity = [];
+			$exhausted = false;
 
 			while ($rounds < $this->max_rounds) {
 				$rounds++;
@@ -334,10 +375,18 @@
 						"content" => PromptGuard::wrapToolResult($tool_result->toModelPayload()),
 					];
 				}
+
+				// See run(): the streaming loop is cut off the same way and answers from
+				// the same final call, so it needs the same note.
+				$exhausted = $rounds >= $this->max_rounds;
 			}
 
 			// No text to show — see run() for why this isn't gated on round count.
 			if (self::isBlank($answer) && $error === null) {
+				if ($exhausted) {
+					$messages[] = $this->exhaustionNote();
+				}
+
 				$final = $this->ai->chatStream($messages, [], [
 					"max_tokens" => (int)($options["final_max_tokens"] ?? 512),
 					"temperature" => $chat_options["temperature"],
