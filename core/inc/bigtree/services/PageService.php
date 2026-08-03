@@ -16,6 +16,7 @@
 	use BigTree\Services\AI\ColumnDomain;
 	use BigTree\Services\AI\FieldOptionDomain;
 	use BigTree\Services\AI\FieldTypeDomain;
+	use BigTree\Services\AI\PreviewValue;
 	use BigTree\Services\AI\ResourceReferenceDomain;
 	use BigTree\Services\AI\RelationDomain;
 	use BigTree\Services\AI\TemporalContext;
@@ -657,12 +658,20 @@
 				"route" => $route,
 				"path" => "/" . $path,
 				"in_nav" => $in_nav,
-				"fields" => $this->aiPreviewResourceContent($schema, $resources),
+				"fields" => $this->aiPreviewResourceContent($schema, $resources, $user),
 				"mode" => $can_publish ? "published" : "pending",
 			];
 
 			if ($meta_description !== "") {
 				$preview["meta_description"] = $meta_description;
+			}
+
+			// The payload writes it and performCreate stores it, so the card has to show
+			// it. update_page always diffed it (AI_PAGE_FIELDS), which made this
+			// create-only — the same asymmetry audit #14 C2 closed for the optional
+			// unsettable fields (audit #15 A4).
+			if ($meta_keywords !== "") {
+				$preview["meta_keywords"] = $meta_keywords;
 			}
 
 			if ($seo_invisible) {
@@ -1364,7 +1373,7 @@
 				\BigTreeAutoModule::validationErrorMessage($value, $rule_string)
 			);
 
-			return "“{$title}” " . $reason . " \"" . $this->aiPreviewScalarValue($value)
+			return "“{$title}” " . $reason . " \"" . $this->aiPreviewScalarValue($value, $field)
 				. "\" would be refused when the page is saved.";
 		}
 
@@ -1485,24 +1494,22 @@
 		 * Field-level preview rows for a proposal card: the content being set on each
 		 * template resource (rendered by ProposalCard's generic `fields` list).
 		 *
+		 * Through PreviewValue, so a link reaches the card as a link, a reference as
+		 * the file it names and a relation as the rows it files into (audit #15 A1).
+		 *
 		 * @param array<string,array<string,mixed>> $schema
 		 * @param array<string,mixed> $data
+		 * @param object|array|null $user
 		 * @return list<array<string,mixed>>
 		 */
-		private function aiPreviewResourceContent(array $schema, array $data): array {
+		private function aiPreviewResourceContent(array $schema, array $data, $user = null): array {
 			$out = [];
 
 			foreach ($data as $id => $value) {
-				$string = is_scalar($value) ? (string)$value : (string)json_encode($value);
-
-				if (mb_strlen($string) > 200) {
-					$string = mb_substr($string, 0, 199) . "…";
-				}
-
 				$out[] = [
 					"column" => $id,
 					"title" => (string)($schema[$id]["title"] ?? $id),
-					"to" => $string,
+					"to" => PreviewValue::forHuman($value, is_array($schema[$id] ?? null) ? $schema[$id] : [], $user),
 				];
 			}
 
@@ -3200,7 +3207,23 @@
 				}
 
 				$changes[$field] = $new;
-				$diff[$field] = ["from" => $old, "to" => $new];
+
+				// Through the same resolver every other preview row uses (audit #15 A1).
+				// This diff is built inline rather than in a preview builder, so it was
+				// the one page card the resolver never reached — and `external` is
+				// stored through makeIPL, so a page already pointing at an internal link
+				// showed the approver `ipl://cGFnZXM6NDI=` on the `from` side while the
+				// `to` side read as a plain URL. That is the class of damage the
+				// approval gate structurally cannot catch, on the row it is being asked
+				// to catch it.
+				//
+				// Only strings: `in_nav` and friends are booleans and `max_age` an int,
+				// which ProposalCard renders as Yes/No and a number. Stringifying them
+				// here would take that away to fix a problem they don't have.
+				$diff[$field] = [
+					"from" => is_string($old) ? $this->aiPreviewScalarValue($old) : $old,
+					"to" => is_string($new) ? $this->aiPreviewScalarValue($new) : $new,
+				];
 			}
 
 			// A page is either templated or an external link — never both. Enforced
@@ -3434,11 +3457,14 @@
 			$diff = [];
 
 			foreach ($changed as $field_id => $value) {
+				// Both sides through the same resolver: a `from` that stayed tokenized
+				// while the `to` was decoded would read as a change that isn't one.
+				$field = is_array($schema[$field_id] ?? null) ? $schema[$field_id] : [];
 				$diff[] = [
 					"column" => $field_id,
 					"title" => (string)($schema[$field_id]["title"] ?? $field_id),
-					"from" => $this->aiPreviewScalarValue($existing[$field_id] ?? ""),
-					"to" => $this->aiPreviewScalarValue($value),
+					"from" => $this->aiPreviewScalarValue($existing[$field_id] ?? "", $field, $user),
+					"to" => $this->aiPreviewScalarValue($value, $field, $user),
 				];
 			}
 
@@ -3869,18 +3895,17 @@
 		}
 
 		/**
-		 * A short, length-capped rendering of a resource value for a proposal diff.
+		 * A short, length-capped rendering of a resource value for a proposal diff,
+		 * resolved through PreviewValue first (audit #15 A1) — the cap is applied
+		 * after the resolving, not before it.
 		 *
 		 * @param mixed $value
+		 * @param array<string,mixed> $field The AI schema entry, where the caller has one.
+		 * @param object|array|null $user
 		 */
-		private function aiPreviewScalarValue($value): string {
-			$string = is_scalar($value) || $value === null ? (string)$value : (string)json_encode($value);
+		private function aiPreviewScalarValue($value, array $field = [], $user = null): string {
 
-			if (mb_strlen($string) > 200) {
-				$string = mb_substr($string, 0, 199) . "…";
-			}
-
-			return $string;
+			return PreviewValue::forHuman($value, $field, $user);
 		}
 
 		/**

@@ -46,7 +46,8 @@ const HIDDEN_KEYS = new Set([
 	"changes",
 	"fields",
 	"tags",
-	"new_tags",
+	// `tags` minus `new_tags`: the two rows below already say which of the requested
+	// tags are new, so a third row listing the rest is noise.
 	"existing_tags",
 	"mode",
 	"page_id",
@@ -73,6 +74,7 @@ const HIDDEN_KEYS = new Set([
 	"content_lock",
 	"incomplete_required",
 	"depends_on",
+	"unsettable_columns",
 ]);
 
 const humanize = (key: string): string =>
@@ -150,6 +152,17 @@ const previewRows = (preview: Record<string, unknown>): Row[] => {
 
 	if (Array.isArray(preview.tags)) {
 		rows.push({ label: "Tags", to: displayValue(preview.tags) });
+	}
+
+	// Which of those tags don't exist yet. The backends have always emitted this
+	// ("surfaced in the preview so the user sees exactly what a new tag would
+	// introduce") and the card hid the key, so the approver saw a count in the
+	// summary and never the names — while coining a tag is administrator-gated
+	// precisely because it grows the site's shared vocabulary, and the approver is
+	// the person who would catch "Press Releases" beside the existing "Press
+	// Release".
+	if (Array.isArray(preview.new_tags) && preview.new_tags.length > 0) {
+		rows.push({ label: "New tags", to: displayValue(preview.new_tags) });
 	}
 
 	// merge_tags names the tags about to be destroyed in a top-level `from` array —
@@ -306,6 +319,12 @@ export const ProposalCard = ({
 	const remainingSetup = Array.isArray(proposal.preview.remaining_setup)
 		? (proposal.preview.remaining_setup as unknown[]).map(String)
 		: [];
+	// Columns the table requires that the module's form can't fill, so the write
+	// stores them empty — the same disclosure as `incomplete_required`, for the
+	// columns nobody can fill rather than the ones the assistant couldn't.
+	const unsettableColumns = Array.isArray(proposal.preview.unsettable_columns)
+		? (proposal.preview.unsettable_columns as unknown[]).map(String)
+		: [];
 
 	// Deep link to a page the approval touched (created or edited), when we have its id.
 	const pageId =
@@ -371,6 +390,12 @@ export const ProposalCard = ({
 					<p className="mt-2 flex items-start gap-1.5 whitespace-pre-wrap wrap-break-word text-[11.5px] text-warn">
 						<Clock className="mt-px shrink-0" size={13} />
 						<span>{dependsOn}</span>
+					</p>
+				)}
+
+				{unsettableColumns.length > 0 && (
+					<p className="mt-2 text-[11.5px] text-text-3">
+						Stored empty (no form field fills them): {unsettableColumns.join(", ")}
 					</p>
 				)}
 

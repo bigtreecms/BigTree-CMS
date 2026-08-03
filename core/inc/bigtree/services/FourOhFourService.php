@@ -10,6 +10,7 @@
 	use BigTree\Api\Upload;
 	use BigTree\Api\Exceptions\BadRequestException;
 	use BigTree\Api\Exceptions\AuthorizationException;
+	use BigTree\Services\AI\PreviewValue;
 	use BigTree\Services\AI\Tools\RedirectToolBackend;
 	use BigTree;
 	use SQL;
@@ -432,16 +433,28 @@
 
 			$existing = self::getExisting404($source, $parsed["get_vars"], $parsed["site_key"]);
 			$previous = $existing ? (string)($existing["redirect_url"] ?? "") : "";
+			// The stored destination, which set404Redirect writes through autoIPL — so a
+			// redirect pointing at a page on this site is stored as `ipl://<base64>` (or
+			// `{wwwroot}…`), and both the row and the summary sentence told the approver
+			// they were replacing a base64 blob (audit #15 A1). `$previous` itself stays
+			// stored-shaped: it is what the emptiness check below reads.
+			$previous_display = PreviewValue::forHuman($previous);
 
 			$preview = [
 				"action" => "create_redirect",
-				"from" => "/" . $source,
-				"to" => $to,
+				// Two plain rows rather than the top-level from/to pair ProposalCard
+				// renders as one before/after: `from` here is the *source path*, not a
+				// previous value, so the card struck it through and read "this path is
+				// being deleted" — on the one card in the set that is about creating
+				// something (audit #15 A5). The value genuinely being replaced is
+				// `replaces`, which has always been its own row.
+				"source" => "/" . $source,
+				"destination" => $to,
 				// On a multi-site install the redirect only fires for one site, and
 				// the card never said which — so an approver on a five-site install
 				// could not tell what they were approving.
 				"site" => $site_key !== null ? (string)$site_key : "",
-				"replaces" => $previous,
+				"replaces" => $previous_display,
 				"mode" => "published",
 			];
 
@@ -457,7 +470,7 @@
 				"summary" => "Redirect /{$source} to {$to}"
 					. ($site_key !== null ? " on the “{$site_key}” site." : ".")
 					. ($previous !== ""
-						? " This replaces the existing redirect to {$previous}."
+						? " This replaces the existing redirect to {$previous_display}."
 						: ($existing
 							? " This URL is already in the 404 log; it becomes a 301 redirect."
 							: "")),

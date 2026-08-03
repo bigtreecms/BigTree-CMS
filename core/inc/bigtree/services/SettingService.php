@@ -11,6 +11,7 @@
 	use BigTree\Api\Exceptions\AuthorizationException;
 	use BigTree\Services\AI\Tools\SettingToolBackend;
 	use BigTree\Services\AI\FieldTypeDomain;
+	use BigTree\Services\AI\PreviewValue;
 	use BigTreeCMS;
 	use BigTreeJSONDB;
 	use BigTree;
@@ -819,24 +820,16 @@
 		 * A short, model/SPA-safe rendering of a setting value for a proposal preview:
 		 * scalars pass through, structured values are compacted and length-capped.
 		 *
+		 * Through PreviewValue (audit #15 A1), which decodes link tokens before the
+		 * cap. An `html` or `link` setting stores `ipl://…` while the model authors and
+		 * supplies a hard link — so this card diffed a token against a URL and read as a
+		 * total rewrite of a value that had not changed. aiDecodeSettingLinks does the
+		 * same thing on the read side.
+		 *
 		 * @param mixed $value
 		 */
 		private function aiSettingPreviewValue($value): string {
-			if ($value === null) {
 
-				return "";
-			}
-
-			if (is_scalar($value)) {
-				$string = (string)$value;
-			} else {
-				$string = (string)json_encode($value);
-			}
-
-			if (mb_strlen($string) > 200) {
-				$string = mb_substr($string, 0, 199) . "…";
-			}
-
-			return $string;
+			return PreviewValue::forHuman($value);
 		}
 	}

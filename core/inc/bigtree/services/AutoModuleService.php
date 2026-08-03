@@ -14,6 +14,7 @@
 	use BigTree\Services\AI\ColumnDomain;
 	use BigTree\Services\AI\FieldOptionDomain;
 	use BigTree\Services\AI\FieldTypeDomain;
+	use BigTree\Services\AI\PreviewValue;
 	use BigTree\Services\AI\ResourceReferenceDomain;
 	use BigTree\Services\AI\RelationDomain;
 	use BigTree\Services\AI\TruncatedRead;
@@ -1252,7 +1253,7 @@
 			$preview = [
 				"action" => "create_module_entry",
 				"module" => $name,
-				"fields" => $this->aiPreviewEntryData($schema, $data),
+				"fields" => $this->aiPreviewEntryData($schema, $data, [], $user),
 				"mode" => $can_publish ? "published" : "pending",
 			];
 
@@ -2438,7 +2439,7 @@
 				"module" => $name,
 				"entry_id" => $entry_id,
 				"is_draft" => $is_pending,
-				"fields" => $this->aiPreviewEntryData($schema, $data, $row),
+				"fields" => $this->aiPreviewEntryData($schema, $data, $row, $user),
 				"mode" => $is_pending ? "pending" : ($can_publish ? "published" : "pending"),
 			];
 
@@ -4213,7 +4214,7 @@
 				BigTreeAutoModule::validationErrorMessage($value, $rule_string)
 			);
 
-			return "“{$title}” " . $reason . " \"" . $this->aiPreviewScalar($value)
+			return "“{$title}” " . $reason . " \"" . $this->aiPreviewScalar($value, $field)
 				. "\" would be refused when the entry is saved.";
 		}
 
@@ -4311,19 +4312,26 @@
 		 * Field-level preview for a proposal card: the value being set, and (on update)
 		 * the value it replaces.
 		 *
+		 * Through PreviewValue, so a link reaches the card as a link, a reference as
+		 * the file it names and a relation as the rows it relates to (audit #15 A1) —
+		 * on both sides of the diff, since a `from` left in its stored form beside a
+		 * resolved `to` reads as a change that isn't one.
+		 *
 		 * @param array<string,array<string,mixed>> $schema
 		 * @param array<string,mixed> $data
 		 * @param array<string,mixed> $existing
+		 * @param object|array|null $user
 		 * @return list<array<string,mixed>>
 		 */
-		private function aiPreviewEntryData(array $schema, array $data, array $existing = []): array {
+		private function aiPreviewEntryData(array $schema, array $data, array $existing = [], $user = null): array {
 			$out = [];
 
 			foreach ($data as $column => $value) {
+				$field = is_array($schema[$column] ?? null) ? $schema[$column] : [];
 				$entry = [
 					"column" => $column,
 					"title" => (string)($schema[$column]["title"] ?? $column),
-					"to" => $this->aiPreviewScalar($value),
+					"to" => $this->aiPreviewScalar($value, $field, $user),
 				];
 
 				// A many-to-many's current value isn't in the row — the column the form
@@ -4332,7 +4340,7 @@
 				// card with a value that has nothing to do with the relation (#11 B2).
 				// get_module_entry's `related` is where the current ids come from.
 				if ($existing && (string)($schema[$column]["type"] ?? "") !== "many-to-many") {
-					$entry["from"] = $this->aiPreviewScalar($existing[$column] ?? "");
+					$entry["from"] = $this->aiPreviewScalar($existing[$column] ?? "", $field, $user);
 				}
 
 				$out[] = $entry;
@@ -4342,15 +4350,15 @@
 		}
 
 		/**
+		 * One previewed value, resolved for a human through PreviewValue and capped
+		 * after the resolving rather than before it (audit #15 A1).
+		 *
 		 * @param mixed $value
+		 * @param array<string,mixed> $field The AI schema entry, where the caller has one.
+		 * @param object|array|null $user
 		 */
-		private function aiPreviewScalar($value): string {
-			$string = is_scalar($value) ? (string)$value : (string)json_encode($value);
+		private function aiPreviewScalar($value, array $field = [], $user = null): string {
 
-			if (mb_strlen($string) > 200) {
-				$string = mb_substr($string, 0, 199) . "…";
-			}
-
-			return $string;
+			return PreviewValue::forHuman($value, $field, $user);
 		}
 	}

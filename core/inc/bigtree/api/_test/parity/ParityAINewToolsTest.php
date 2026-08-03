@@ -38,7 +38,11 @@
 
 			$validated = $svc->aiValidateRedirectCreate(["from" => "/{$source}", "to" => "/"], $admin);
 			T::ok(!empty($validated["ok"]), "the redirect validates");
-			T::equals($validated["preview"]["from"], "/{$source}", "the preview shows the parsed source");
+			// `source`/`destination`, not `from`/`to`: a top-level from/to pair is the
+			// card's before/after shape, and struck the source path through as if it
+			// were being deleted (audit #15 A5).
+			T::equals($validated["preview"]["source"], "/{$source}", "the preview shows the parsed source");
+			T::equals($validated["preview"]["destination"], "/", "the preview shows the destination");
 
 			$result = $svc->aiCreateRedirect($validated["payload"], $admin);
 			T::equals($result["mode"], "created", "the redirect applies");

@@ -10,6 +10,7 @@
 	use BigTree\Api\Sanitize;
 	use BigTree\Api\Exceptions\AuthorizationException;
 	use BigTree\Api\Exceptions\BadRequestException;
+	use BigTree\Services\AI\PreviewValue;
 	use BigTree\Services\AI\Tools\PendingChangeToolBackend;
 	use BigTreeAutoModule;
 	use BigTreeJSONDB;
@@ -495,16 +496,20 @@
 		}
 
 		/**
+		 * One side of a queued change's diff, resolved for a human through PreviewValue
+		 * (audit #15 A1).
+		 *
+		 * A change blob is arbitrary — its keys are whichever page or entry columns the
+		 * author touched, and there is no schema here to consult — so this gets the
+		 * no-field treatment: link tokens decoded, then capped. That is the half that
+		 * matters on this card, since a queued page edit is exactly where an `ipl://`
+		 * token lives.
+		 *
 		 * @param mixed $value
 		 */
 		private function aiDiffValue($value): string {
-			$string = is_scalar($value) || $value === null ? (string)$value : (string)json_encode($value);
 
-			if (mb_strlen($string) > 200) {
-				$string = mb_substr($string, 0, 199) . "…";
-			}
-
-			return $string;
+			return PreviewValue::forHuman($value);
 		}
 
 		/**
