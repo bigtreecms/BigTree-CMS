@@ -311,6 +311,17 @@
 					return;
 				}
 
+				// Archived content is off the site, so it is out of the index —
+				// mirroring indexPage, which has refused archived pages since the
+				// index shipped. Nothing removed an archived entry's vector, so it
+				// stayed semantically searchable forever and came back to the model
+				// looking like live content.
+				if (Flag::isOn($row["archived"] ?? "")) {
+					self::deleteModuleEntry($table, $entry_id);
+
+					return;
+				}
+
 				$meta = self::moduleMetaForTable($table);
 				$title = self::guessRowTitle($row);
 				$text = self::plainTextFromRow($row, $table);
@@ -384,6 +395,9 @@
 
 			// Batch-fetch the page rows referenced by page hits to avoid N+1 lookups.
 			$page_rows = self::fetchPageRows($rows);
+			// Same, for module-entry hits: the archived flag and the group-based
+			// permission field both live on the row, and neither is in the index.
+			$entry_rows = self::fetchEntryRows($rows);
 
 			$out = $empty;
 			$seen_pages = [];
@@ -436,7 +450,15 @@
 						continue;
 					}
 
-					$seen_entries[$key] = true;
+					// The live row, not the indexed copy: a vector outlives the row it
+					// describes (deleted or archived since it was written), and the
+					// group field the per-row permission reads is not in the index.
+					$entry_row = $entry_rows[$key] ?? null;
+
+					if (!$entry_row || Flag::isOn($entry_row["archived"] ?? "")) {
+						continue;
+					}
+
 					$route = (string)($row["module_route"] ?? "");
 					$name = $route;
 					// $mid is non-empty here (empty values continue above).
@@ -447,6 +469,21 @@
 						$route = (string)($mod["route"] ?? $route);
 					}
 
+					// Per-row group-based permission, the same check the keyword path
+					// applies (SearchService::searchModuleEntries) and the same one
+					// REST's own list uses. userHasModuleAccess above answers "may this
+					// user open the module at all", which on a group-based module is
+					// the best of any group grant — so an editor scoped to one group
+					// passed it for every other group's rows. Applied before the cap,
+					// so the cap counts rows the caller may actually see.
+					$filter_rows = $mod && !empty($mod["gbp"]["enabled"])
+						&& PermissionService::level($user) === 0;
+
+					if ($filter_rows && PermissionService::userRowLevel($user, $mod, $entry_row) === "n") {
+						continue;
+					}
+
+					$seen_entries[$key] = true;
 					$entry_item = [
 						"id" => $eid,
 						"column1" => (string)($row["title"] ?? $eid),
@@ -686,6 +723,130 @@
 			}
 
 			return $map;
+		}
+
+		/**
+		 * Fetch every module-entry row referenced by module_entry hits, one query per
+		 * distinct table (avoids an N+1 SELECT per result).
+		 *
+		 * Only the columns the read filter needs are selected: `id`, `archived` where
+		 * the table has it, and the group field of every group-based module that maps
+		 * to the table — `SELECT *` here would drag every body column of up to 150
+		 * rows through memory to answer two boolean questions.
+		 *
+		 * @param list<array<string,mixed>> $rows
+		 * @return array<string,array<string,mixed>> Keyed by the hit's "table:id" source id.
+		 */
+		private static function fetchEntryRows(array $rows): array {
+			$wanted = [];
+
+			foreach ($rows as $row) {
+				if ((string)($row["source_type"] ?? "") !== "module_entry") {
+					continue;
+				}
+
+				$parts = explode(":", (string)($row["source_id"] ?? ""), 2);
+
+				if (count($parts) !== 2 || !preg_match('/^[a-zA-Z0-9_]+$/', $parts[0]) || $parts[1] === "") {
+					continue;
+				}
+
+				$wanted[$parts[0]][$parts[1]] = true;
+			}
+
+			if (!$wanted) {
+				return [];
+			}
+
+			$group_fields = self::groupFieldsByTable(array_keys($wanted));
+			$map = [];
+			// describeTable is a SHOW CREATE TABLE per call and this is the debounced
+			// quick-search path, so the shapes are memoized for the request.
+			static $described = [];
+
+			foreach ($wanted as $table => $ids) {
+				if (!array_key_exists($table, $described)) {
+					try {
+						$described[$table] = SQL::describeTable($table);
+					} catch (\Throwable $e) {
+						$described[$table] = null;
+					}
+				}
+
+				$description = $described[$table];
+
+				if (!$description || !isset($description["columns"]["id"])) {
+					continue;
+				}
+
+				$columns = ["id"];
+
+				foreach (array_merge(["archived"], $group_fields[$table] ?? []) as $column) {
+					// The group field comes out of a module's JSON definition, so it is
+					// checked against the table's real columns *and* the identifier
+					// pattern before it is concatenated into a SELECT.
+					if (isset($description["columns"][$column]) && !in_array($column, $columns, true)
+						&& preg_match('/^[a-zA-Z0-9_]+$/', $column)) {
+						$columns[] = $column;
+					}
+				}
+
+				$ids = array_keys($ids);
+				$select = "`" . implode("`, `", $columns) . "`";
+				$placeholders = implode(",", array_fill(0, count($ids), "?"));
+
+				try {
+					$fetched = SQL::fetchAll(
+						"SELECT $select FROM `$table` WHERE id IN ($placeholders)",
+						...$ids
+					) ?: [];
+				} catch (\Throwable $e) {
+					continue;
+				}
+
+				foreach ($fetched as $entry) {
+					$map[$table . ":" . $entry["id"]] = $entry;
+				}
+			}
+
+			return $map;
+		}
+
+		/**
+		 * The group-based-permission group field(s) each of these tables is subject
+		 * to. A table can back more than one module, so the value is a list.
+		 *
+		 * @param list<string> $tables
+		 * @return array<string,list<string>>
+		 */
+		private static function groupFieldsByTable(array $tables): array {
+			$fields = [];
+
+			foreach (BigTreeJSONDB::getAll("modules") as $module) {
+				// Same shape-tolerance as PermissionService::userRowLevel — a module
+				// definition is hand-editable JSON, so nothing here assumes a key is
+				// the type it ought to be.
+				$gbp = is_array($module["gbp"] ?? null) ? $module["gbp"] : [];
+				$group_field = (string)($gbp["group_field"] ?? "");
+
+				if (empty($gbp["enabled"]) || $group_field === "") {
+					continue;
+				}
+
+				$views = is_array($module["views"] ?? null) ? $module["views"] : [];
+				$forms = is_array($module["forms"] ?? null) ? $module["forms"] : [];
+
+				foreach (array_merge($views, $forms) as $sub) {
+					$table = is_array($sub) ? (string)($sub["table"] ?? "") : "";
+
+					if ($table !== "" && in_array($table, $tables, true)
+						&& !in_array($group_field, $fields[$table] ?? [], true)) {
+						$fields[$table][] = $group_field;
+					}
+				}
+			}
+
+			return $fields;
 		}
 
 		/**

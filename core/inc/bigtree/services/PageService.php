@@ -63,6 +63,10 @@
 		// walked rather than silently truncated (audit #7 D1).
 		private const AI_PAGE_TREE_CAP = 200;
 
+		// How far the inbound-link count scans before it stops and says "at least".
+		// Same bound and same wording as CalloutService's placement count.
+		private const AI_INBOUND_LINK_LIMIT = 200;
+
 		public function list(Request $request) {
 			$parent = $request->queryInt("parent");
 			$include_archived = $request->queryBool("include_archived");
@@ -4069,16 +4073,30 @@
 			}
 
 			$title = trim((string)$page["nav_title"]) ?: trim((string)$page["title"]) ?: "page #{$id}";
+			$preview = [
+				"page_id" => $id,
+				"page_title" => $title,
+				"path" => "/" . (string)$page["path"],
+				"action" => "archive",
+			];
+
+			// The summary already discloses the outbound half — the descendants that go
+			// with it. The inbound half was absent: every `ipl://` link on every other
+			// page still points here, and the page is about to come off the site, so
+			// those links are dead. Warned rather than refused (audit #17 A2/D3):
+			// archiving is the reversible path the page-delete decline steers people to,
+			// and the CMS's own integrity scan is out of scope, so there is no way to
+			// find these afterwards either.
+			$inbound = $this->aiPageInboundLinks($id);
+
+			if ($inbound !== "") {
+				$preview["warning"] = $inbound;
+			}
 
 			return [
 				"ok" => true,
 				"summary" => "Archive page “{$title}” (and any pages beneath it). It will be hidden from the site until unarchived.",
-				"preview" => [
-					"page_id" => $id,
-					"page_title" => $title,
-					"path" => "/" . (string)$page["path"],
-					"action" => "archive",
-				],
+				"preview" => $preview,
 				"payload" => [
 					"id" => $id,
 				],
@@ -4087,6 +4105,70 @@
 				"fingerprint" => ["type" => "page", "id" => $id, "columns" => ["archived", "archived_inherited", "path"]],
 				"lock" => $this->aiPageLock($id),
 			];
+		}
+
+		/**
+		 * Roughly how much of the site links *to* a page, as a card-ready sentence.
+		 *
+		 * `archive_page` is the reversible answer the delete-a-page decline points at,
+		 * and its card described only what goes with the page (its descendants). What
+		 * points at it was invisible: an internal link is stored as `ipl://{id}//…`
+		 * (LinkService::makeIPL), so every one of them on every other page goes dead the
+		 * moment the page comes off the site, and nothing tells the approver.
+		 *
+		 * The id is plain text in the stored blob, which makes this the same bounded
+		 * LIKE that CalloutService::aiCalloutPageUsage runs, with the same caveats: it
+		 * is a floor (module entry columns and settings hold links too and aren't
+		 * scanned), and it returns "" when the count can't be taken so the caller omits
+		 * the sentence rather than claiming zero.
+		 *
+		 * Deliberately \Exception and not \Throwable, for the reason the callout counter
+		 * documents: an unindexed scan of a longtext column is the one query here that
+		 * can time out, and a proposal should still stage without the figure — but a
+		 * coding mistake in this method must not be swallowed into silence.
+		 */
+		private function aiPageInboundLinks(int $id): string {
+			if ($id < 1) {
+
+				return "";
+			}
+
+			try {
+				// The trailing `//` is what keeps page 12 from matching page 121: an IPL
+				// is always `ipl://<navid>//<base64>//…`, never a bare id. The id itself
+				// is an integer, so there is nothing in it for LIKE to interpret.
+				//
+				// Both slash encodings have to be matched, the same way the callout
+				// placement counter matches both spacings: the legacy admin writes the
+				// resources blob through BigTree::json (JSON_UNESCAPED_SLASHES) and the
+				// new API through a bare json_encode, which stores `ipl:\/\/`, and real
+				// databases hold a mix. Matching only one form under-counts, and a page
+				// linked to solely from the other kind of row counts zero — which omits
+				// the warning entirely, the silence this exists to break. The doubled
+				// backslashes are LIKE's own escape rules: two of them match one stored
+				// backslash.
+				$count = (int)SQL::fetchSingle(
+					"SELECT COUNT(*) FROM (SELECT id FROM bigtree_pages WHERE archived = '' AND id != ? "
+						. "AND (resources LIKE ? OR resources LIKE ?) "
+						. "LIMIT " . self::AI_INBOUND_LINK_LIMIT . ") counted",
+					$id,
+					'%ipl://' . $id . '//%',
+					'%ipl:\\\\/\\\\/' . $id . '\\\\/\\\\/%'
+				);
+			} catch (\Exception $e) {
+
+				return "";
+			}
+
+			if ($count === 0) {
+
+				return "";
+			}
+
+			return "At least {$count} other " . ($count === 1 ? "page links" : "pages link") . " to this one"
+				. ($count >= self::AI_INBOUND_LINK_LIMIT ? " (counting stopped there)" : "")
+				. "; " . ($count === 1 ? "that link" : "those links") . " will point at a page that is no longer "
+				. "on the site until it is unarchived. Module entries and settings can link here too and aren't counted.";
 		}
 
 		/**

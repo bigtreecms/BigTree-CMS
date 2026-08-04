@@ -75,6 +75,7 @@ const HIDDEN_KEYS = new Set([
 	"incomplete_required",
 	"depends_on",
 	"unsettable_columns",
+	"references",
 ]);
 
 const humanize = (key: string): string =>
@@ -325,6 +326,14 @@ export const ProposalCard = ({
 	const unsettableColumns = Array.isArray(proposal.preview.unsettable_columns)
 		? (proposal.preview.unsettable_columns as unknown[]).map(String)
 		: [];
+	// What else in the CMS points at the record this card destroys or hides. Every
+	// comparable card counts its blast radius (pages on a template, pages a callout
+	// is placed on, records a tag merge moves); the two entry cards counted nothing,
+	// and a relation left pointing at a deleted row is exactly what the approver is
+	// there to catch.
+	const references = Array.isArray(proposal.preview.references)
+		? (proposal.preview.references as unknown[]).map(String)
+		: [];
 
 	// Deep link to a page the approval touched (created or edited), when we have its id.
 	const pageId =
@@ -391,6 +400,20 @@ export const ProposalCard = ({
 						<Clock className="mt-px shrink-0" size={13} />
 						<span>{dependsOn}</span>
 					</p>
+				)}
+
+				{references.length > 0 && (
+					<div className="mt-2">
+						<p className="flex items-start gap-1.5 text-[11.5px] text-warn">
+							<TriangleAlert className="mt-px shrink-0" size={13} />
+							<span>Other records point at this one:</span>
+						</p>
+						<ul className="mt-1 list-disc space-y-0.5 pl-4 text-[11.5px] text-text-2">
+							{references.map((reference, i) => (
+								<li key={i}>{reference}</li>
+							))}
+						</ul>
+					</div>
 				)}
 
 				{unsettableColumns.length > 0 && (

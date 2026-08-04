@@ -109,6 +109,15 @@
 		// blob short enough that a proposed page body can't crowd the list out.
 		const REPLAYED_TOOL_CALLS = 40;
 		const REPLAYED_ARGUMENT_CHARS = 200;
+		// And on the transcript itself. MAX_MESSAGES_PER_CONVERSATION ×
+		// MAX_MESSAGE_LENGTH is 400,000 characters of user text alone, plus every
+		// assistant reply — so on a provider configured with a small context the turn
+		// failed outright as a provider error, rolled back, and the only way forward
+		// was to start a new conversation. A budget degrades instead: the oldest turns
+		// drop out behind a marker that says so. Roughly 15k tokens, which leaves the
+		// system prompt, ~45 tool definitions and the new turn comfortable room inside
+		// a 32k window.
+		const REPLAYED_HISTORY_CHARS = 60000;
 
 		// Per-user fixed-window throttle on the paid loop (own key, same shape as
 		// SearchService::throttleAiSearch).
@@ -1163,28 +1172,46 @@
 				case "move_page":
 					return self::descriptor("bigtree_pages", "moved", $result["page_id"] ?? "");
 
+				// Hyphen, where POST /pages/{id}/revisions/{rev_id}/restore writes an
+				// underscore. Nothing filters on `type`, so the drift was invisible in
+				// the UI — but aiAuditTrail hands the string to the model, which then
+				// reports one event under two names when it summarises history.
 				case "restore_page_revision":
-					return self::descriptor("bigtree_pages", "revision-restored", $result["page_id"] ?? "");
+					return self::descriptor("bigtree_pages", "revision_restored", $result["page_id"] ?? "");
 
 				// The live page is untouched — what changed is its revision history, so
 				// the audit row records the snapshot, not an edit to the page.
 				case "save_page_revision":
-					return self::descriptor("bigtree_page_revisions", "created", $result["revision_id"] ?? "");
+					return self::descriptor("bigtree_page_revisions", "saved", $result["revision_id"] ?? "");
 
+				// A pending create has no live row yet, so it audits the draft under the
+				// same "p" prefix every entry seam addresses one by. It used to audit an
+				// empty entry, which is untraceable.
 				case "create_module_entry":
-					return self::descriptor((string)($payload["table"] ?? ""), $pending ? "pending-created" : "created", $result["entry_id"] ?? "");
+					return self::descriptor(
+						(string)($payload["table"] ?? ""),
+						$pending ? "pending-created" : "created",
+						$result["entry_id"] ?? (isset($result["pending_id"]) ? "p" . $result["pending_id"] : "")
+					);
 
 				case "update_module_entry":
 					return self::descriptor((string)($payload["table"] ?? ""), $pending ? "pending-updated" : "updated", $result["entry_id"] ?? "");
 
+				// The flag's own name, matching the three routes
+				// (POST .../{archive,approve,feature}), which write archived/approved/
+				// featured rather than a generic "updated".
 				case "set_module_entry_flag":
-					return self::descriptor((string)($payload["table"] ?? ""), "updated", $result["entry_id"] ?? $payload["entry_id"] ?? "");
+					return self::descriptor(
+						(string)($payload["table"] ?? ""),
+						(string)($payload["flag"] ?? "updated"),
+						$result["entry_id"] ?? $payload["entry_id"] ?? ""
+					);
 
 				case "delete_module_entry":
 					return self::descriptor((string)($payload["table"] ?? ""), "deleted", $result["entry_id"] ?? $payload["entry_id"] ?? "");
 
 				case "publish_pending_change":
-					return self::descriptor("bigtree_pending_changes", "published", $payload["change_id"] ?? "");
+					return self::descriptor("bigtree_pending_changes", "approved", $payload["change_id"] ?? "");
 
 				case "reject_pending_change":
 					return self::descriptor("bigtree_pending_changes", "rejected", $result["change_id"] ?? $payload["change_id"] ?? "");
@@ -1291,6 +1318,13 @@
 		 * The arguments are small, carry the ids, and are as true a week later as they
 		 * were at the time — they say what was *asked for*, not what was found.
 		 *
+		 * The transcript is replayed under a character budget
+		 * (REPLAYED_HISTORY_CHARS). Without one, a long conversation on a
+		 * small-context provider failed the turn outright — and since a failed turn
+		 * rolls back, the conversation was then permanently unusable. Dropping the
+		 * oldest turns behind a marker degrades instead of failing, and the marker is
+		 * there so the model says "I no longer have that" rather than inventing it.
+		 *
 		 * @param list<array<string,mixed>> $history_rows
 		 * @return list<array<string,mixed>>
 		 */
@@ -1305,16 +1339,51 @@
 				"content" => $system_prompt,
 			]];
 
-			foreach ($history_rows as $row) {
+			// Newest first, so what falls off the end is the oldest turn rather than
+			// the one the user is replying to. Once the budget is gone it stays gone —
+			// keeping a short old turn after dropping a long newer one would hand the
+			// model a transcript with a hole in the middle and no way to see it.
+			$kept = [];
+			$omitted = 0;
+			$budget = self::REPLAYED_HISTORY_CHARS;
+			$full = false;
+
+			foreach (array_reverse($history_rows) as $row) {
 				$role = (string)($row["role"] ?? "");
 				$content = (string)($row["content"] ?? "");
 
-				if (($role === "user" || $role === "assistant") && $content !== "") {
-					$messages[] = [
-						"role" => $role,
-						"content" => $content,
-					];
+				if (($role !== "user" && $role !== "assistant") || $content === "") {
+					continue;
 				}
+
+				// The most recent turn is always replayed, however long it is: a
+				// transcript that begins mid-thought is worse than one over budget.
+				if ($full || ($kept && mb_strlen($content) > $budget)) {
+					$full = true;
+					$omitted++;
+
+					continue;
+				}
+
+				$budget -= mb_strlen($content);
+				$kept[] = [
+					"role" => $role,
+					"content" => $content,
+				];
+			}
+
+			if ($omitted > 0) {
+				$messages[] = [
+					"role" => "system",
+					"content" => "This conversation is long: its earliest {$omitted} message"
+						. ($omitted === 1 ? " has" : "s have") . " been omitted from the transcript below to "
+						. "fit the context window. If the user refers to something you cannot find, say you no "
+						. "longer have that part of the conversation rather than guessing.",
+				];
+			}
+
+			foreach (array_reverse($kept) as $message) {
+				$messages[] = $message;
 			}
 
 			// One consolidated note rather than one per assistant turn: the model reads

@@ -1341,6 +1341,17 @@
 
 			// Use pretty print if we have PHP 5.4 or higher
 			$json = (static::$JSONEncoding) ? json_encode($var, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) : json_encode($var);
+
+			// json_encode returns false when it can't encode the value — a single
+			// invalid UTF-8 byte from a legacy import, an extension or a hand edit is
+			// enough. Anything writing the result to disk has to be able to see that
+			// (BigTreeJSONDB::save fed the false straight to file_put_contents, which
+			// wrote an empty file), so the failure is returned as false rather than
+			// laundered into "" by sqlescape.
+			if ($json === false) {
+				return false;
+			}
+
 			// SQL escape if requested
 			if ($sql) {
 				return sqlescape($json);

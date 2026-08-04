@@ -194,6 +194,7 @@
 			"ignored" => "the ignored (not applicable) line",
 			"remaining_setup" => "the still-to-do-by-hand list",
 			"unsettable_columns" => "the stored-empty line (audit #15 A3)",
+			"references" => "the what-else-points-at-this list (audit #17 A1/A2)",
 		];
 	}
 
@@ -236,6 +237,7 @@
 			"incomplete_required" => "rendered as the needs-a-person warning",
 			"depends_on" => "rendered as the approve-in-order note",
 			"unsettable_columns" => "rendered as the stored-empty line",
+			"references" => "rendered as the what-else-points-at-this list, one sentence per source",
 		];
 	}
 
@@ -320,6 +322,9 @@
 			"publish_at" => "scalar",
 			"publishes_draft" => "structured",
 			"records_moved" => "scalar",
+			// A list of sentences naming what still points at the record a card
+			// destroys or hides (audit #17 A1/A2).
+			"references" => "structured",
 			"remaining_setup" => "structured",
 			"replaces" => "scalar",
 			"revision_date" => "scalar",
@@ -592,7 +597,9 @@
 		// renders as a list that the map calls scalar means one of the two is wrong.
 		$card = ai_proposal_card_source();
 
-		foreach (["tags", "new_tags", "ignored", "remaining_setup", "incomplete_required", "unsettable_columns"] as $key) {
+		foreach ([
+			"tags", "new_tags", "ignored", "remaining_setup", "incomplete_required", "unsettable_columns", "references",
+		] as $key) {
 			T::ok(
 				strpos($card, "Array.isArray(proposal.preview.{$key})") !== false
 					|| strpos($card, "Array.isArray(preview.{$key})") !== false,

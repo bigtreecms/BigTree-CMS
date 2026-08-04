@@ -183,7 +183,7 @@
 					"module" => $module_id, "table" => $table, "id" => (int)$id, "item" => $item["item"] ?? $item,
 				]);
 
-				return Response::created($item["item"] ?? $item, null);
+				return $this->auditEntry(Response::created($item["item"] ?? $item, null), $table, $id);
 			}
 
 			if ($user_level !== "e" && !$can_publish) {
@@ -202,7 +202,11 @@
 				"module" => $module_id, "table" => $table, "pending_id" => (int)$pending_id,
 			]);
 
-			return Response::created(["pending_id" => $pending_id, "pending" => true], null);
+			return $this->auditEntry(
+				Response::created(["pending_id" => $pending_id, "pending" => true], null),
+				$table,
+				"p" . $pending_id
+			);
 		}
 
 		public function update(Request $request) {
@@ -264,7 +268,7 @@
 				"module" => $module_id, "table" => $table, "id" => $raw_id,
 			]);
 
-			return Response::ok(["pending" => true]);
+			return $this->auditEntry(Response::ok(["pending" => true]), $table, $raw_id);
 		}
 
 		public function delete(Request $request) {
@@ -287,11 +291,38 @@
 				}
 			}
 
-			Hooks::fire("module_entry.deleted", [
-				"module" => $module_id, "table" => $table, "id" => $raw_id,
-			]);
+			$this->fireEntryDeleted($module_id, $table, $raw_id, $is_pending);
 
-			return Response::noContent();
+			return $this->auditEntry(Response::noContent(), $table);
+		}
+
+		/**
+		 * Fire the entry-deletion events for one delete, on whichever path ran it.
+		 *
+		 * The two paths disagreed. REST fired `module_entry.deleted` for a live row and
+		 * a discarded draft alike; the AI path fired `module_entry.draft_discarded` for
+		 * the draft branch, so an extension listening on `module_entry.deleted` saw a
+		 * person discard a draft and never the assistant. The AI name is the better one
+		 * — discarding a draft that was never published is a genuinely different act,
+		 * and the proposal summary says so — but the fix is to fire both on both paths
+		 * rather than to drop either: losing an event breaks extensions, gaining one
+		 * doesn't (audit #17 B1/D5). Spelled here once so the two paths can't drift
+		 * again.
+		 *
+		 * @param int|string $entry_id
+		 */
+		private function fireEntryDeleted(string $module_id, string $table, $entry_id, bool $was_draft, string $via = ""): void {
+			$payload = ["module" => $module_id, "table" => $table, "id" => $entry_id];
+
+			if ($via !== "") {
+				$payload["via"] = $via;
+			}
+
+			if ($was_draft) {
+				Hooks::fire("module_entry.draft_discarded", $payload);
+			}
+
+			Hooks::fire("module_entry.deleted", $payload);
 		}
 
 		public function toggleArchive(Request $request) {
@@ -350,7 +381,7 @@
 				BigTreeAutoModule::clearCache($dep["table"]);
 			}
 
-			return Response::noContent();
+			return $this->auditEntry(Response::noContent(), $table);
 		}
 
 		/**
@@ -415,16 +446,68 @@
 
 			SQL::update($table, $entry_id, [$column => $next]);
 			BigTreeAutoModule::recacheItem($entry_id, $table);
+			$this->reindexAfterFlag($table, $entry_id, $column);
 
 			Hooks::fire("module_entry.{$column}", [
 				"module" => $module_id, "table" => $table, "id" => $entry_id, "value" => $next,
 			]);
 
-			return Response::ok([
-				"id" => $entry_id,
-				"column" => $column,
-				"value" => $next,
-			]);
+			return $this->auditEntry(
+				Response::ok([
+					"id" => $entry_id,
+					"column" => $column,
+					"value" => $next,
+				]),
+				$table,
+				$entry_id
+			);
+		}
+
+		/**
+		 * Fill in the `%table%` / `%entry%` tokens the entry routes declare in their
+		 * audit block.
+		 *
+		 * A route declaration is a static array: it can name the module id, but not
+		 * the table the row lives in, which is resolved per request from the module's
+		 * view or form. So every entry write audited under the literal "module_entry"
+		 * — a name the audit screen's table picker can never offer, shared across
+		 * every module, and not the name the assistant's own writes use. Naming the
+		 * real table here is what makes "what happened to entry 12 in News?" one
+		 * question with one answer (audit #16 A2/B3).
+		 *
+		 * @param int|string|null $entry The row actually written ("p12" for a draft).
+		 */
+		private function auditEntry(Response $response, string $table, $entry = null): Response {
+			$response->audit["table"] = $table;
+
+			if ($entry !== null) {
+				$response->audit["entry"] = (string)$entry;
+			}
+
+			return $response;
+		}
+
+		/**
+		 * Converge the vector index after an archived flip.
+		 *
+		 * Both flag paths write the column with a raw SQL::update, which bypasses
+		 * BigTreeAutoModule::updateItem and therefore its embedding hook — so an
+		 * archived entry kept its vector and stayed semantically searchable until
+		 * somebody happened to re-save it. indexModuleEntry deletes the vector for an
+		 * archived row and rebuilds it for a live one, so one call covers both
+		 * directions. approved/featured don't affect indexability, so they don't
+		 * pay for a re-embed.
+		 *
+		 * @param int|string $entry_id
+		 */
+		private function reindexAfterFlag(string $table, $entry_id, string $column): void {
+			if ($column !== "archived") {
+				return;
+			}
+
+			EmbeddingService::deferIndex(function () use ($table, $entry_id) {
+				EmbeddingService::indexModuleEntry($table, $entry_id);
+			});
 		}
 
 		// — helpers —
@@ -660,7 +743,7 @@
 				"module" => $module_id, "table" => $table, "id" => $id, "item" => $fresh["item"] ?? $fresh,
 			]);
 
-			return Response::ok($fresh);
+			return $this->auditEntry(Response::ok($fresh), $table, $id);
 		}
 
 		/**
@@ -2830,19 +2913,32 @@
 			$name = (string)($module["name"] ?? $module["id"]);
 			$verb = $value ? self::AI_ENTRY_FLAGS[$flag]["on"] : self::AI_ENTRY_FLAGS[$flag]["off"];
 			$label = $this->aiEntryLabel($row, $entry_id);
+			$preview = [
+				"action" => "set_module_entry_flag",
+				"module" => $name,
+				"entry_id" => $entry_id,
+				"entry" => $label,
+				"flag" => $flag,
+				"from" => $current,
+				"to" => $value,
+			];
+
+			// Archiving is the same act as deleting one surface over: it hides a row that
+			// other entries' relations still name, on a card that said only which flag
+			// flipped. Reversible, so it is disclosed and never refused — and only when
+			// the flag is going *on*, since restoring a row is what fixes this.
+			if ($flag === "archived" && $value) {
+				$references = $this->aiEntryReferenceUsage($table, $entry_id);
+
+				if ($references) {
+					$preview["references"] = $references;
+				}
+			}
 
 			return [
 				"ok" => true,
 				"summary" => "{$verb} “{$label}” in the “{$name}” module. This takes effect live once you approve.",
-				"preview" => [
-					"action" => "set_module_entry_flag",
-					"module" => $name,
-					"entry_id" => $entry_id,
-					"entry" => $label,
-					"flag" => $flag,
-					"from" => $current,
-					"to" => $value,
-				],
+				"preview" => $preview,
 				"payload" => [
 					"module_id" => (string)$module["id"],
 					// Carried so approval can re-resolve the same form rather than
@@ -2916,6 +3012,7 @@
 			$next = !empty($payload["value"]) ? "on" : "";
 			SQL::update($table, $entry_id, [$flag => $next]);
 			BigTreeAutoModule::recacheItem($entry_id, $table);
+			$this->reindexAfterFlag($table, $entry_id, $flag);
 
 			Hooks::fire("module_entry.{$flag}", [
 				"module" => $module_id, "table" => $table, "id" => $entry_id, "value" => $next, "via" => "ai_assistant",
@@ -2967,17 +3064,34 @@
 				: "Permanently delete “{$label}” (entry #{$entry_id}) from the “{$name}” module. "
 					. "This cannot be undone.";
 
+			// What else points at the row. A draft has no live row for anything to point
+			// at, so the question is only asked for a real delete.
+			$references = $is_pending ? [] : $this->aiEntryReferenceUsage((string)$resolved["table"], $entry_id);
+
+			// Named in the summary as well as on the card: the summary is what the model
+			// reads back, so this is what lets the assistant answer "is it safe to
+			// delete this?" instead of the user finding out afterwards.
+			if ($references) {
+				$summary .= " Other records will be left pointing at it: " . implode("; ", $references) . ".";
+			}
+
+			$preview = [
+				"action" => "delete_module_entry",
+				"module" => $name,
+				"entry_id" => $entry_id,
+				"entry" => $label,
+				"is_draft" => $is_pending,
+				"destructive" => true,
+			];
+
+			if ($references) {
+				$preview["references"] = $references;
+			}
+
 			return [
 				"ok" => true,
 				"summary" => $summary,
-				"preview" => [
-					"action" => "delete_module_entry",
-					"module" => $name,
-					"entry_id" => $entry_id,
-					"entry" => $label,
-					"is_draft" => $is_pending,
-					"destructive" => true,
-				],
+				"preview" => $preview,
 				"payload" => [
 					"module_id" => (string)$module["id"],
 					"form" => (string)($resolved["form"] ?? ""),
@@ -3053,9 +3167,7 @@
 				$change_id = (int)$resolved_entry["change_id"];
 				BigTreeAutoModule::deletePendingItem($table, $change_id);
 				ResourceAllocationService::deallocateResources($table, "p".$change_id);
-				Hooks::fire("module_entry.draft_discarded", [
-					"module" => $module_id, "table" => $table, "id" => $raw_entry_id, "via" => "ai_assistant",
-				]);
+				$this->fireEntryDeleted($module_id, $table, $raw_entry_id, true, "ai_assistant");
 
 				return ["mode" => "deleted", "module" => $module_id, "entry_id" => $raw_entry_id];
 			}
@@ -3068,10 +3180,7 @@
 			// usage_count. The explicit deallocateResources calls that used to live
 			// here duplicated exactly that, so they are gone (audit #7 B3).
 			BigTreeAutoModule::deleteItem($table, $entry_id);
-
-			Hooks::fire("module_entry.deleted", [
-				"module" => $module_id, "table" => $table, "id" => $entry_id, "via" => "ai_assistant",
-			]);
+			$this->fireEntryDeleted($module_id, $table, $entry_id, false, "ai_assistant");
 
 			return ["mode" => "deleted", "module" => $module_id, "entry_id" => $entry_id];
 		}
@@ -3172,6 +3281,232 @@
 			}
 
 			return "entry #{$entry_id}";
+		}
+
+		// How far one reference count scans before it stops and says "at least".
+		// Matches AI_CALLOUT_USAGE_LIMIT: a staging call is not the place to walk a
+		// whole table, and the wording is honest about being a floor either way.
+		private const AI_ENTRY_REFERENCE_LIMIT = 200;
+
+		/**
+		 * What else in the CMS points *at* a module entry, as card-ready sentences.
+		 *
+		 * Every mutating tool that destroys or hides a record already counts its blast
+		 * radius — update_template counts the pages on the template, update_callout
+		 * counts the pages the callout is placed on, merge_tags counts the relations it
+		 * will move — except the two entry tools that do it to an entry. deleteItem
+		 * tears down everything the entry *owns* (its allocations, its tags, its Open
+		 * Graph row, its draft, its vector, its connecting-table rows) and there is no
+		 * such teardown for the things that own a reference to it, because rewriting
+		 * another entry's stored value is not teardown: it edits records the approver
+		 * never saw. So they are counted and named here instead, and the human decides
+		 * (audit #17 A1/D1).
+		 *
+		 * Bounded and best-effort, exactly like aiCalloutPageUsage: each leg is guarded
+		 * on its own so a table that can't answer costs its own sentence rather than
+		 * all three, and \Exception rather than \Throwable so a real coding mistake in
+		 * here still surfaces.
+		 *
+		 * @param int|string $entry_id A live row id; a draft has no live row for
+		 *                             anything to point at, so it returns [].
+		 * @return list<string>
+		 */
+		private function aiEntryReferenceUsage(string $table, $entry_id): array {
+			$id = trim((string)$entry_id);
+
+			if (!preg_match('/^[A-Za-z0-9_]+$/', $table) || !ctype_digit($id) || (int)$id < 1) {
+
+				return [];
+			}
+
+			$sentences = [];
+
+			// Leg 1: connecting-table rows belonging to *other* entries that name this
+			// one. deleteItem removes the rows this entry owns and deliberately leaves
+			// these, because they are another entry's relation value.
+			foreach ($this->aiInboundRelationships($table) as $relationship) {
+				try {
+					if (!SQL::tableExists($relationship["table"])) {
+
+						continue;
+					}
+
+					$count = (int)SQL::fetchSingle(
+						"SELECT COUNT(*) FROM (SELECT `".$relationship["other-id"]."` FROM `".$relationship["table"]."` "
+							. "WHERE `".$relationship["other-id"]."` = ? LIMIT " . self::AI_ENTRY_REFERENCE_LIMIT . ") counted",
+						$id
+					);
+				} catch (\Exception $e) {
+
+					continue;
+				}
+
+				if ($count === 0) {
+
+					continue;
+				}
+
+				$sentences[] = "at least {$count} " . ($count === 1 ? "entry" : "entries")
+					. " in “" . $relationship["module"] . "” " . ($count === 1 ? "relates" : "relate")
+					. " to this one through “" . $relationship["title"] . "”";
+			}
+
+			// Leg 2: a one-to-many value is a plain array of ids in the *owning* entry's
+			// own column, so nothing outside that entry can clean it up either.
+			foreach ($this->aiInboundOneToMany($table) as $relationship) {
+				try {
+					if (!SQL::tableExists($relationship["table"])) {
+
+						continue;
+					}
+
+					// The column holds json_encode(["12","15"]) (createItem), so the id is
+					// quoted in the blob and the quotes are what keep 12 from matching 121.
+					$count = (int)SQL::fetchSingle(
+						"SELECT COUNT(*) FROM (SELECT id FROM `".$relationship["table"]."` "
+							. "WHERE `".$relationship["column"]."` LIKE ? LIMIT " . self::AI_ENTRY_REFERENCE_LIMIT . ") counted",
+						'%"' . $id . '"%'
+					);
+				} catch (\Exception $e) {
+
+					continue;
+				}
+
+				if ($count === 0) {
+
+					continue;
+				}
+
+				$sentences[] = "at least {$count} " . ($count === 1 ? "entry" : "entries")
+					. " in “" . $relationship["module"] . "” " . ($count === 1 ? "lists" : "list")
+					. " it in “" . $relationship["title"] . "”";
+			}
+
+			// Leg 3: BigTree's own dependency mechanism. A grouped view groups one
+			// module's entries by the rows of another module's table, and only reorder()
+			// has ever consulted it — so a deleted or hidden group row leaves every entry
+			// under it pointing at a group that isn't there, in a view cache
+			// cacheViewData will not rebuild.
+			try {
+				$views = BigTreeAutoModule::getDependantViews($table);
+			} catch (\Exception $e) {
+				$views = [];
+			}
+
+			if ($views) {
+				$titles = [];
+
+				foreach (array_slice($views, 0, 5) as $view) {
+					$titles[] = "“" . (string)($view["title"] ?? $view["id"] ?? "untitled") . "”";
+				}
+
+				$sentences[] = count($views) . " grouped " . (count($views) === 1 ? "view" : "views")
+					. " (" . implode(", ", $titles) . (count($views) > 5 ? ", …" : "")
+					. ") " . (count($views) === 1 ? "groups" : "group")
+					. " entries by rows of this table";
+			}
+
+			return $sentences;
+		}
+
+		/**
+		 * Every many-to-many relationship whose *other* side is this table — the
+		 * connecting tables that can hold a row naming one of its entries.
+		 *
+		 * The inverse of BigTreeAutoModule::getManyToManyRelationships, which answers
+		 * the outbound question (what this table's own entries own). Identifiers are
+		 * gated the same way for the same reason: they are interpolated into SQL.
+		 *
+		 * @return list<array<string,string>>
+		 */
+		private function aiInboundRelationships(string $table): array {
+			$relationships = [];
+
+			foreach (BigTreeJSONDB::getAll("modules") as $module) {
+				foreach ((array)($module["forms"] ?? []) as $form) {
+					foreach ((array)($form["fields"] ?? []) as $field) {
+						if (($field["type"] ?? "") !== "many-to-many") {
+
+							continue;
+						}
+
+						$settings = is_array($field["settings"] ?? null) ? $field["settings"] : [];
+
+						if ((string)($settings["mtm-other-table"] ?? "") !== $table) {
+
+							continue;
+						}
+
+						$descriptor = [
+							"table" => (string)($settings["mtm-connecting-table"] ?? ""),
+							"other-id" => (string)($settings["mtm-other-id"] ?? ""),
+							"module" => (string)($module["name"] ?? $module["id"] ?? ""),
+							"title" => (string)($field["title"] ?? $field["column"] ?? $field["id"] ?? "a relationship"),
+						];
+
+						if (!preg_match('/^[A-Za-z0-9_]+$/', $descriptor["table"])
+							|| !preg_match('/^[A-Za-z0-9_]+$/', $descriptor["other-id"])) {
+
+							continue;
+						}
+
+						$relationships[$descriptor["table"]."\0".$descriptor["other-id"]] = $descriptor;
+					}
+				}
+			}
+
+			return array_values($relationships);
+		}
+
+		/**
+		 * Every one-to-many field anywhere in the CMS that points at this table, with
+		 * the table and column its ids are stored in.
+		 *
+		 * @return list<array<string,string>>
+		 */
+		private function aiInboundOneToMany(string $table): array {
+			$relationships = [];
+
+			foreach (BigTreeJSONDB::getAll("modules") as $module) {
+				foreach ((array)($module["forms"] ?? []) as $form) {
+					$owning_table = (string)($form["table"] ?? "");
+
+					if (!preg_match('/^[A-Za-z0-9_]+$/', $owning_table)) {
+
+						continue;
+					}
+
+					foreach ((array)($form["fields"] ?? []) as $field) {
+						if (($field["type"] ?? "") !== "one-to-many") {
+
+							continue;
+						}
+
+						$settings = is_array($field["settings"] ?? null) ? $field["settings"] : [];
+
+						if ((string)($settings["table"] ?? "") !== $table) {
+
+							continue;
+						}
+
+						$column = (string)($field["column"] ?? $field["id"] ?? "");
+
+						if (!preg_match('/^[A-Za-z0-9_]+$/', $column)) {
+
+							continue;
+						}
+
+						$relationships[$owning_table."\0".$column] = [
+							"table" => $owning_table,
+							"column" => $column,
+							"module" => (string)($module["name"] ?? $module["id"] ?? ""),
+							"title" => (string)($field["title"] ?? $column),
+						];
+					}
+				}
+			}
+
+			return array_values($relationships);
 		}
 
 		/**

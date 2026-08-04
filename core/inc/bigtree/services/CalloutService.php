@@ -10,6 +10,7 @@
 	use BigTree\Api\TemplateScaffold;
 	use BigTree\Api\Exceptions\AuthorizationException;
 	use BigTree\Api\Exceptions\BadRequestException;
+	use BigTree\Services\AI\ConfigurationStore;
 	use BigTree\Services\AI\ExtensionDomain;
 	use BigTree\Services\AI\Tools\CalloutToolBackend;
 	use BigTree;
@@ -444,8 +445,18 @@
 				"position" => 0,
 			];
 
-			BigTreeJSONDB::incrementPosition("callouts");
-			BigTreeJSONDB::insert("callouts", $insert);
+			if (!BigTreeJSONDB::incrementPosition("callouts")) {
+
+				return ConfigurationStore::failure();
+			}
+
+			// A store that couldn't be written is a FAILED card, not a created callout
+			// (audit #17 A3) — the same answer TemplateScaffold has always given for the
+			// render file half of this tool.
+			if (BigTreeJSONDB::insert("callouts", $insert) === false) {
+
+				return ConfigurationStore::failure();
+			}
 
 			$group_id = (string)($payload["group"] ?? "");
 			$grouped = $this->aiAddCalloutToGroup($group_id, $id);
@@ -1088,7 +1099,10 @@
 				$update["display_field"] = $display_field["value"];
 			}
 
-			BigTreeJSONDB::update("callouts", $id, $update);
+			if (!BigTreeJSONDB::update("callouts", $id, $update)) {
+
+				return ConfigurationStore::failure();
+			}
 
 			// Membership lives on the *group* records, so it is applied after the
 			// callout itself and re-resolved here (a group can vanish inside the TTL).
@@ -1448,6 +1462,11 @@
 				"name" => BigTree::safeEncode($name),
 				"callouts" => $callouts,
 			]);
+
+			if ($id === false) {
+
+				return ConfigurationStore::failure();
+			}
 
 			// Membership is exclusive, so a callout joining this group leaves whichever
 			// one it was in. Done after the insert because the new group's id is what

@@ -11,6 +11,7 @@
 	use BigTree\Api\Resources;
 	use BigTree\Api\TemplateScaffold;
 	use BigTree\Api\Exceptions\AuthorizationException;
+	use BigTree\Services\AI\ConfigurationStore;
 	use BigTree\Services\AI\ExtensionDomain;
 	use BigTree\Services\AI\Tools\TemplateToolBackend;
 	use BigTree;
@@ -390,8 +391,21 @@
 				"position" => 0,
 			];
 
-			BigTreeJSONDB::incrementPosition("templates");
-			BigTreeJSONDB::insert("templates", $insert);
+			if (!BigTreeJSONDB::incrementPosition("templates")) {
+
+				return ConfigurationStore::failure();
+			}
+
+			// The write is the last thing that can fail and the one thing nothing used
+			// to check: a false here means the record is not on disk, so the card has to
+			// say FAILED and stay retryable rather than reporting a template that does
+			// not exist (audit #17 A3). TemplateScaffold has always refused to claim it
+			// wrote the *render file* when it couldn't — this is the record half of the
+			// same tool finally answering the same question.
+			if (BigTreeJSONDB::insert("templates", $insert) === false) {
+
+				return ConfigurationStore::failure();
+			}
 
 			$scaffolded = "";
 			$scaffold_error = "";
@@ -768,7 +782,10 @@
 				$next["resources"] = $merged;
 			}
 
-			BigTreeJSONDB::update("templates", $id, $next);
+			if (!BigTreeJSONDB::update("templates", $id, $next)) {
+
+				return ConfigurationStore::failure();
+			}
 
 			$result = [
 				"mode" => "updated",

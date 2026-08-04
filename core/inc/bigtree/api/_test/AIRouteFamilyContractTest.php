@@ -332,6 +332,13 @@
 			"pages/reorder" => "duplicating or reordering pages",
 			"pages/duplicate" => "duplicating or reordering pages",
 			"modules/actions" => "tables, forms, views or actions",
+			// Audit #16 A3. Asserted rather than inherited: invoking used to be
+			// classified by the *editing* line it inherits from `modules/actions`,
+			// which sends an editor to the Module Designer — a developer screen —
+			// about editing something they did not ask to edit. Running an action is
+			// an editor capability (`min v`) and needs its own wording, exactly as
+			// `modules/reports` did in audit #5.
+			"modules/actions/invoke" => "running a module's custom actions",
 			"modules/views" => "tables, forms, views or actions",
 			// Audit #5: the "editing …" line says nothing about *running* a report,
 			// which is a module-view-level read any editor has — so the family needs

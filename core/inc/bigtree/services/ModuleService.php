@@ -15,6 +15,7 @@
 	use BigTree\Api\Exceptions\ConflictException;
 	use BigTree\Api\Exceptions\NotFoundException;
 	use BigTree\Api\ModuleIcons;
+	use BigTree\Services\AI\ConfigurationStore;
 	use BigTree\Services\AI\ExtensionDomain;
 	use BigTree\Services\AI\FieldTypeDomain;
 	use BigTree\Services\AI\IconDomain;
@@ -326,6 +327,16 @@
 			$view_title = (string)$plan["view_title"];
 
 			$module_id = BigTreeJSONDB::insert("modules", $this->moduleInsertMap($d, $name, $route));
+
+			// The record has to be on disk before any DDL runs: CREATE TABLE implicitly
+			// commits and can't be rolled back, so building the table for a module that
+			// was never written would leave a table nothing owns. Reported the same way
+			// a refused statement is — a 500 on REST, a FAILED card on the AI path
+			// (audit #17 A3) — rather than as a created module.
+			if ($module_id === false) {
+
+				return ["id" => "", "table" => $table, "error" => ConfigurationStore::WRITE_FAILED];
+			}
 
 			// — Build the table —
 			$statements = [
@@ -1838,7 +1849,11 @@
 
 			// Read before the write, from the record as it stands now (audit #13 A3).
 			$extension_warning = ExtensionDomain::warning($module, "module");
-			BigTreeJSONDB::update("modules", $id, $module);
+
+			if (!BigTreeJSONDB::update("modules", $id, $module)) {
+
+				return ConfigurationStore::failure();
+			}
 
 			$result = [
 				"mode" => "updated",
@@ -2004,6 +2019,11 @@
 				"table" => "",
 				"icon" => $icon,
 			], $name, $route));
+
+			if ($id === false) {
+
+				return ConfigurationStore::failure();
+			}
 
 			return [
 				"mode" => "created",
@@ -2814,6 +2834,11 @@
 				"route" => $this->uniqueModuleGroupRoute(BigTreeCMS::urlify($name)),
 				"position" => 0,
 			]);
+
+			if ($id === false) {
+
+				return ConfigurationStore::failure();
+			}
 
 			return ["mode" => "created", "id" => (string)$id, "name" => $name];
 		}

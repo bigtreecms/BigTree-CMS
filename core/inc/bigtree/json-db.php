@@ -48,7 +48,7 @@
 				}
 			}
 
-			static::save($type);
+			return static::save($type);
 		}
 
 		static function exists($type, $id, $alternate_id_column = false) {
@@ -143,7 +143,7 @@
 				static::$Cache[$type][$index]["position"]++;
 			}
 
-			static::save($type);
+			return static::save($type);
 		}
 
 		static function insert($type, $entry) {
@@ -167,10 +167,34 @@
 			}
 
 			static::$Cache[$type][] = BigTree::translateArray($entry);
-			static::save($type);
+
+			// A failed write returns false rather than the id it would have had. The
+			// appended entry is rolled back out of the cache with it, so the rest of the
+			// request reads the store that is actually on disk.
+			if (!static::save($type)) {
+				array_pop(static::$Cache[$type]);
+
+				return false;
+			}
 
 			return $entry["id"];
 		}
+
+		/*
+			Function: save
+				Writes a store back to disk.
+
+				Every template, callout, module, feed, field type and setting definition
+				on the install lives in one of these files, and this was the only write
+				surface in the stack whose failure was unobservable: the file_put_contents
+				return was discarded, so an unwritable directory, a full disk or a partial
+				write was indistinguishable from success and everything downstream — a
+				REST 200, an AI proposal's "published" outcome, the audit row it writes —
+				believed it.
+
+			Returns:
+				true if the store was written, false if it could not be encoded or written.
+		*/
 
 		static function save($type) {
 			// Make sure we don't blow away the whole result set if someone saves before doing anything
@@ -179,8 +203,38 @@
 			// Make sure numeric arrays save as arrays
 			static::cleanArray(self::$Cache[$type]);
 
-			file_put_contents(SERVER_ROOT."custom/json-db/$type.json", BigTree::json(self::$Cache[$type]));
-			BigTree::setPermissions(SERVER_ROOT."custom/json-db/$type.json");
+			$path = SERVER_ROOT."custom/json-db/$type.json";
+			$json = BigTree::json(self::$Cache[$type]);
+
+			// An encode failure used to reach file_put_contents as `false`, which writes
+			// an empty file — so one invalid UTF-8 byte anywhere in the store turned
+			// "add a field to a template" into "every template on the install is gone".
+			if (!is_string($json)) {
+				return false;
+			}
+
+			// The whole store is rewritten on every save, so a crash or a full disk
+			// mid-write left a truncated file that cache() decodes to nothing. A temp
+			// file plus rename() is atomic within the filesystem: a reader sees either
+			// the store as it was or the store as it now is, never half of it.
+			$temporary_path = $path.".".getmypid().".tmp";
+			$written = file_put_contents($temporary_path, $json);
+
+			if ($written === false || $written < strlen($json)) {
+				@unlink($temporary_path);
+
+				return false;
+			}
+
+			if (!rename($temporary_path, $path)) {
+				@unlink($temporary_path);
+
+				return false;
+			}
+
+			BigTree::setPermissions($path);
+
+			return true;
 		}
 
 		static function saveSubsetData($type, $id, $data) {
@@ -190,7 +244,7 @@
 				}
 			}
 
-			self::save($type);
+			return self::save($type);
 		}
 
 		static function search($type, $fields, $query) {
@@ -231,11 +285,11 @@
 			
 			if (!$updated) {
 				$data["id"] = $id;
-				
+
 				static::$Cache[$type][] = $data;
 			}
 
-			static::save($type);
+			return static::save($type);
 		}
 
 	}

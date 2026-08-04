@@ -250,6 +250,94 @@
 	}
 
 	/**
+	 * Audit #16 B2: the replay had no token budget of its own.
+	 *
+	 * MAX_MESSAGES_PER_CONVERSATION × MAX_MESSAGE_LENGTH is 400,000 characters of
+	 * user text before a single assistant reply is counted, and every one of them
+	 * was replayed verbatim. On a provider configured with a small context the turn
+	 * failed as a provider error — and a failed turn rolls back, so the
+	 * conversation was then permanently unusable and the only way forward was to
+	 * start a new one. Now the oldest turns drop out and the model is told they did.
+	 */
+	function test_chat_history_replay_is_budgeted() {
+		$history = [];
+
+		// 40 turns of 3,000 characters is 120,000 — twice the budget.
+		for ($i = 0; $i < 40; $i++) {
+			$history[] = ["role" => "user", "content" => "turn{$i} " . str_repeat("x", 3000)];
+		}
+
+		$messages = AIChatService::buildModelMessages("SYSTEM", $history, "and finally");
+		$replayed = 0;
+		$marker = "";
+		$total = 0;
+
+		foreach ($messages as $message) {
+			if ($message["role"] === "system" && strpos($message["content"], "omitted from the transcript") !== false) {
+				$marker = $message["content"];
+			}
+
+			if ($message["role"] === "user" && strpos($message["content"], "turn") === 0) {
+				$replayed++;
+				$total += mb_strlen($message["content"]);
+			}
+		}
+
+		T::ok($replayed > 0, "the recent turns are still replayed");
+		T::ok($replayed < 40, "the oldest turns are dropped (replayed {$replayed} of 40)");
+		T::ok(
+			$total <= AIChatService::REPLAYED_HISTORY_CHARS,
+			"the replayed transcript fits the budget (got {$total} chars)"
+		);
+		T::ok($marker !== "", "an omission marker is added");
+		T::ok(
+			strpos($marker, (string)(40 - $replayed)) !== false,
+			"the marker names how many messages were dropped"
+		);
+
+		// What survives is the *end* of the conversation, in order — the turn the
+		// user is replying to, not the one they opened with.
+		T::ok(
+			strpos($messages[count($messages) - 2]["content"], "turn39 ") === 0,
+			"the most recent turn is the last one replayed"
+		);
+		T::equals($messages[count($messages) - 1]["content"], "and finally", "the new user message is still last");
+	}
+
+	/** Under budget, nothing is dropped and no marker appears. */
+	function test_chat_history_replay_leaves_a_short_conversation_alone() {
+		$history = [
+			["role" => "user", "content" => "hi"],
+			["role" => "assistant", "content" => "hello"],
+		];
+		$messages = AIChatService::buildModelMessages("SYSTEM", $history, "bye");
+
+		T::equals(count($messages), 4, "system, both turns, new user message");
+		T::equals($messages[1]["content"], "hi", "the first turn survives in order");
+		T::equals($messages[2]["content"], "hello", "and so does the second");
+	}
+
+	/**
+	 * A single turn longer than the whole budget is still replayed: a transcript
+	 * that begins mid-thought is worse than one slightly over.
+	 */
+	function test_chat_history_replay_always_keeps_the_latest_turn() {
+		$history = [
+			["role" => "user", "content" => "older"],
+			["role" => "user", "content" => str_repeat("y", AIChatService::REPLAYED_HISTORY_CHARS + 1000)],
+		];
+		$messages = AIChatService::buildModelMessages("SYSTEM", $history, "next");
+
+		T::equals(count($messages), 4, "system, marker, the oversized turn, new user message");
+		T::ok(strpos($messages[1]["content"], "omitted") !== false, "the dropped turn is announced");
+		T::equals(
+			mb_strlen($messages[2]["content"]),
+			AIChatService::REPLAYED_HISTORY_CHARS + 1000,
+			"the most recent turn is replayed whole"
+		);
+	}
+
+	/**
 	 * Audit #5, Part D: history replay dropped tool calls along with tool results, so
 	 * a follow-up turn had no record of the ids already resolved — the model re-ran
 	 * the same lookups and occasionally proposed against the wrong target. Calls come

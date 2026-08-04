@@ -577,6 +577,27 @@
 				BigTreeAdmin::updateTagReferenceCounts($tags);
 			}
 
+			// The connecting-table rows the entry owned. A many-to-many field stores
+			// nothing in the entry's own table — it writes rows into a connecting table
+			// named by the field's own settings — so deleting the row left every one of
+			// those rows behind as an orphan that no code will ever read again, and that
+			// a future entry re-using this id inherits silently.
+			//
+			// Only the entry's *own* side is cleaned. Rows where this entry is the
+			// `mtm-other-id` belong to other entries, whose relation field would be
+			// silently rewritten by deleting them; those are counted and disclosed on the
+			// proposal card instead (AutoModuleService::aiEntryReferenceUsage).
+			foreach (self::getManyToManyRelationships($table) as $relationship) {
+				if (!SQL::tableExists($relationship["table"])) {
+					continue;
+				}
+
+				SQL::query(
+					"DELETE FROM `".$relationship["table"]."` WHERE `".$relationship["my-id"]."` = ?",
+					$id
+				);
+			}
+
 			$pending_change = SQL::fetch("SELECT * FROM bigtree_pending_changes WHERE `table` = ? AND `item_id` = ?", $table, $id);
 
 			if ($pending_change) {
@@ -641,6 +662,68 @@
 			}
 
 			return $dependent_views;
+		}
+
+		/*
+			Function: getManyToManyRelationships
+				Returns the connecting table descriptors declared by many-to-many fields on
+				every module form that writes a given table.
+
+				A many-to-many value doesn't live in a column: it is rows in a connecting
+				table named by the field's own settings. Those identifiers are interpolated
+				straight into SQL by every caller (createItem, updateItem, deleteItem), so
+				a descriptor whose three names aren't plain identifiers is dropped here —
+				the same boundary AutoModuleService::validateMtm guards on the way in.
+
+			Parameters:
+				table - Table name (the "my" side of the relationship).
+
+			Returns:
+				An array of ["table", "my-id", "other-id", "other-table", "title"] arrays,
+				deduplicated by the first three.
+		*/
+
+		public static function getManyToManyRelationships($table) {
+			$relationships = [];
+
+			foreach (BigTreeJSONDB::getAll("modules") as $module) {
+				foreach ((array)($module["forms"] ?? []) as $form) {
+					if (($form["table"] ?? "") !== $table) {
+						continue;
+					}
+
+					foreach ((array)($form["fields"] ?? []) as $field) {
+						if (($field["type"] ?? "") !== "many-to-many") {
+							continue;
+						}
+
+						$settings = is_array($field["settings"] ?? null) ? $field["settings"] : [];
+						$descriptor = [
+							"table" => (string)($settings["mtm-connecting-table"] ?? ""),
+							"my-id" => (string)($settings["mtm-my-id"] ?? ""),
+							"other-id" => (string)($settings["mtm-other-id"] ?? ""),
+							"other-table" => (string)($settings["mtm-other-table"] ?? ""),
+							"title" => (string)($field["title"] ?? $field["column"] ?? $field["id"] ?? ""),
+						];
+						$safe = true;
+
+						foreach (["table", "my-id", "other-id"] as $key) {
+							if (!preg_match('/^[A-Za-z0-9_]+$/', $descriptor[$key])) {
+								$safe = false;
+							}
+						}
+
+						if (!$safe) {
+							continue;
+						}
+
+						$key = $descriptor["table"]."\0".$descriptor["my-id"]."\0".$descriptor["other-id"];
+						$relationships[$key] = $descriptor;
+					}
+				}
+			}
+
+			return array_values($relationships);
 		}
 
 		/*

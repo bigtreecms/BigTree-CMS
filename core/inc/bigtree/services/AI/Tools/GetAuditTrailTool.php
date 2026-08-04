@@ -54,12 +54,18 @@
 						],
 						"table" => [
 							"type" => "string",
-							"description" => "Filter to one database table, e.g. \"bigtree_pages\".",
+							"description" => "Filter to one database table, e.g. \"bigtree_pages\". A module "
+								. "entry is recorded under its module's own table (the `table` "
+								. "`get_module_schema` reports for the module's form), not under the module "
+								. "id. Templates, callouts and modules themselves are recorded under their "
+								. "store names — \"templates\", \"callouts\", \"callout-groups\", \"modules\", "
+								. "\"module-groups\".",
 						],
 						"entry" => [
 							"type" => "string",
 							"description" => "Filter to one record's id within that table, e.g. \"42\" for page 42. "
-								. "Use with `table` to answer \"what has happened to this page?\".",
+								. "Use with `table` to answer \"what has happened to this page?\". An "
+								. "unpublished draft is recorded under a \"p\" prefix, e.g. \"p12\".",
 						],
 						"user_id" => [
 							"type" => "integer",

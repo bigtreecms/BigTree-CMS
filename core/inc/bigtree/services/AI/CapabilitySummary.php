@@ -221,6 +221,22 @@
 				"Editing an existing module's tables, forms, views or actions, or its group-based permissions" =>
 					"Developer → Modules → Module Designer — the assistant can build a new module end to end with "
 						. "scaffold_module, but not restructure one that already exists",
+				// Same shape as the reports line below, one sub-resource over.
+				// `POST /modules/{id}/actions/{sid}/invoke` runs a module class's
+				// opted-in handler, and its permission is `min v` — an *editor*
+				// capability. The only wording that reached it was the editing line
+				// above, so an editor who asked to run the sync action on Products was
+				// pointed at the Module Designer: a developer screen they cannot open,
+				// about editing something they did not ask to edit.
+				//
+				// A tool is buildable later — GET .../actions/{sid}/schema is the
+				// discovery surface — but a handler is arbitrary module code with
+				// unknown side effects and no preview, so a proposal card could show
+				// the approver nothing beyond the action's name. That decision is the
+				// blocker, not the plumbing.
+				"Running a module's custom actions" =>
+					"the action's own button on the module's screen in the admin — the assistant can read and "
+						. "write a module's entries, but cannot run a module's code",
 				// The line above is about *editing* a report's definition and says
 				// nothing about running one, so "export the events module to CSV" hit
 				// no tool and no wall — and the model improvised a five-row

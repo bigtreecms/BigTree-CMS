@@ -143,7 +143,7 @@
 		}
 
 		function save() {
-			BigTreeJSONDB::saveSubsetData($this->Type, $this->ID, $this->Cache);
+			return BigTreeJSONDB::saveSubsetData($this->Type, $this->ID, $this->Cache);
 		}
 
 		function search($type, $fields, $query) {

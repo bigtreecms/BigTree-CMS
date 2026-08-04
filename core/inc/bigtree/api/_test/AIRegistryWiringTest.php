@@ -282,6 +282,330 @@
 		}
 	}
 
+	/**
+	 * Audit #16 E2 — the per-tool audit contract.
+	 *
+	 * `test_audit_descriptor_tables_match_the_rest_routes` above compares two bags
+	 * of *strings*: the literal table names scraped out of `auditDescriptor`'s body
+	 * against the literal table names scraped out of the route files. It cannot see
+	 * a branch whose table is runtime-valued — `self::descriptor((string)$payload["table"], …)`
+	 * contains no literal — so the four module-entry tools were not in the compared
+	 * set at all, and their table quietly drifted from REST's for the whole life of
+	 * the catalog (audit #16 A2). It also compares nothing about `type`, which is
+	 * how four branches ended up writing a different verb for the same event (B1).
+	 *
+	 * So this one is per *tool*, and it runs the real function instead of reading
+	 * it: `auditDescriptor` is static and pure, so a fixture payload/result gives
+	 * the exact row that would be written. `runtime_table` marks the branches whose
+	 * table comes from the payload — declared, not skipped.
+	 *
+	 * @return list<array<string,mixed>>
+	 */
+	function ai_wiring_tool_audit_cases(): array {
+
+		return [
+			[
+				"tool" => "create_page", "route" => "POST /pages",
+				"payload" => [], "result" => ["mode" => "published", "page_id" => 42],
+				"table" => "bigtree_pages", "type" => "created",
+			],
+			[
+				"tool" => "update_page", "route" => "PATCH /pages/{id:int}",
+				"payload" => [], "result" => ["mode" => "published", "page_id" => 42],
+				"table" => "bigtree_pages", "type" => "updated",
+			],
+			// Amending a queued draft touches no live page, so it audits the change
+			// row — the same row PATCH /pages/pending/{pcid} audits.
+			[
+				"tool" => "update_page", "route" => "PATCH /pages/pending/{pcid:int}",
+				"payload" => [], "result" => ["mode" => "published", "page_id" => 0, "pending_change_id" => 7],
+				"table" => "bigtree_pending_changes", "type" => "updated",
+			],
+			[
+				"tool" => "update_page_content", "route" => "PATCH /pages/{id:int}",
+				"payload" => [], "result" => ["mode" => "published", "page_id" => 42],
+				"table" => "bigtree_pages", "type" => "updated",
+			],
+			[
+				"tool" => "archive_page", "route" => "POST /pages/{id:int}/archive",
+				"payload" => [], "result" => ["mode" => "published", "page_id" => 42],
+				"table" => "bigtree_pages", "type" => "archived",
+			],
+			[
+				"tool" => "unarchive_page", "route" => "POST /pages/{id:int}/unarchive",
+				"payload" => [], "result" => ["mode" => "published", "page_id" => 42],
+				"table" => "bigtree_pages", "type" => "unarchived",
+			],
+			[
+				"tool" => "move_page", "route" => "POST /pages/{id:int}/move",
+				"payload" => [], "result" => ["mode" => "published", "page_id" => 42],
+				"table" => "bigtree_pages", "type" => "moved",
+			],
+			[
+				"tool" => "save_page_revision", "route" => "POST /pages/{id:int}/revisions",
+				"payload" => [], "result" => ["mode" => "published", "revision_id" => 3],
+				"table" => "bigtree_page_revisions", "type" => "saved",
+			],
+			[
+				"tool" => "restore_page_revision", "route" => "POST /pages/{id:int}/revisions/{rev_id:int}/restore",
+				"payload" => [], "result" => ["mode" => "published", "page_id" => 42],
+				"table" => "bigtree_pages", "type" => "revision_restored",
+			],
+			// The four runtime-valued branches. The table is the module's real SQL
+			// table on both sides now; the route declares it as a %table% token the
+			// service fills in (Middleware\Audit::resolve).
+			[
+				"tool" => "create_module_entry", "route" => "POST /modules/{id}/entries",
+				"payload" => ["table" => "bigtree_pages"], "result" => ["mode" => "published", "entry_id" => 12],
+				"table" => "bigtree_pages", "type" => "created", "runtime_table" => true,
+			],
+			[
+				"tool" => "update_module_entry", "route" => "PATCH /modules/{id}/entries/{eid}",
+				"payload" => ["table" => "bigtree_pages"], "result" => ["mode" => "published", "entry_id" => 12],
+				"table" => "bigtree_pages", "type" => "updated", "runtime_table" => true,
+			],
+			[
+				"tool" => "delete_module_entry", "route" => "DELETE /modules/{id}/entries/{eid}",
+				"payload" => ["table" => "bigtree_pages", "entry_id" => 12], "result" => ["mode" => "deleted"],
+				"table" => "bigtree_pages", "type" => "deleted", "runtime_table" => true,
+			],
+			// One case per flag: the type is the flag's own name, matching the three
+			// routes. It used to be a flat "updated" for all three.
+			[
+				"tool" => "set_module_entry_flag", "route" => "POST /modules/{id}/entries/{eid:int}/archive",
+				"payload" => ["table" => "bigtree_pages", "entry_id" => 12, "flag" => "archived"],
+				"result" => ["mode" => "updated", "entry_id" => 12],
+				"table" => "bigtree_pages", "type" => "archived", "runtime_table" => true,
+			],
+			[
+				"tool" => "set_module_entry_flag", "route" => "POST /modules/{id}/entries/{eid:int}/approve",
+				"payload" => ["table" => "bigtree_pages", "entry_id" => 12, "flag" => "approved"],
+				"result" => ["mode" => "updated", "entry_id" => 12],
+				"table" => "bigtree_pages", "type" => "approved", "runtime_table" => true,
+			],
+			[
+				"tool" => "set_module_entry_flag", "route" => "POST /modules/{id}/entries/{eid:int}/feature",
+				"payload" => ["table" => "bigtree_pages", "entry_id" => 12, "flag" => "featured"],
+				"result" => ["mode" => "updated", "entry_id" => 12],
+				"table" => "bigtree_pages", "type" => "featured", "runtime_table" => true,
+			],
+			[
+				"tool" => "publish_pending_change", "route" => "POST /pending-changes/{id:int}/approve",
+				"payload" => ["change_id" => 7], "result" => ["mode" => "published"],
+				"table" => "bigtree_pending_changes", "type" => "approved",
+			],
+			[
+				"tool" => "reject_pending_change", "route" => "POST /pending-changes/{id:int}/reject",
+				"payload" => ["change_id" => 7], "result" => ["mode" => "rejected", "change_id" => 7],
+				"table" => "bigtree_pending_changes", "type" => "rejected",
+			],
+			[
+				"tool" => "merge_tags", "route" => "POST /tags/merge",
+				"payload" => ["into" => 3], "result" => ["mode" => "merged", "tag_id" => 3],
+				"table" => "bigtree_tags", "type" => "merged",
+			],
+			[
+				"tool" => "create_redirect", "route" => "POST /404s",
+				"payload" => [], "result" => ["mode" => "created", "id" => 9],
+				"table" => "bigtree_404s", "type" => "created",
+			],
+			[
+				"tool" => "update_setting", "route" => "PATCH /settings/{id}",
+				"payload" => ["id" => "site-name"], "result" => ["mode" => "updated"],
+				"table" => "bigtree_settings", "type" => "updated",
+			],
+			[
+				"tool" => "create_user", "route" => "POST /users",
+				"payload" => [], "result" => ["mode" => "created", "user_id" => 5],
+				"table" => "bigtree_users", "type" => "created",
+			],
+			[
+				"tool" => "update_user", "route" => "PATCH /users/{id:int}",
+				"payload" => ["user_id" => 5], "result" => ["mode" => "updated"],
+				"table" => "bigtree_users", "type" => "updated",
+			],
+			[
+				"tool" => "create_template", "route" => "POST /templates",
+				"payload" => ["id" => "landing"], "result" => ["mode" => "created"],
+				"table" => "templates", "type" => "created",
+			],
+			[
+				"tool" => "update_template", "route" => "PATCH /templates/{id}",
+				"payload" => ["id" => "landing"], "result" => ["mode" => "updated"],
+				"table" => "templates", "type" => "updated",
+			],
+			[
+				"tool" => "create_callout", "route" => "POST /callouts",
+				"payload" => ["id" => "quote"], "result" => ["mode" => "created"],
+				"table" => "callouts", "type" => "created",
+			],
+			[
+				"tool" => "update_callout", "route" => "PATCH /callouts/{id}",
+				"payload" => ["id" => "quote"], "result" => ["mode" => "updated"],
+				"table" => "callouts", "type" => "updated",
+			],
+			[
+				"tool" => "create_callout_group", "route" => "POST /callout-groups",
+				"payload" => [], "result" => ["mode" => "created", "id" => "cg-1"],
+				"table" => "callout-groups", "type" => "created",
+			],
+			[
+				"tool" => "create_module", "route" => "POST /modules",
+				"payload" => [], "result" => ["mode" => "created", "id" => "modules-1"],
+				"table" => "modules", "type" => "created",
+			],
+			[
+				"tool" => "scaffold_module", "route" => "POST /modules/scaffold",
+				"payload" => [], "result" => ["mode" => "created", "id" => "modules-1"],
+				"table" => "modules", "type" => "created",
+			],
+			[
+				"tool" => "update_module", "route" => "PATCH /modules/{id}",
+				"payload" => ["id" => "modules-1"], "result" => ["mode" => "updated"],
+				"table" => "modules", "type" => "updated",
+			],
+			[
+				"tool" => "create_module_group", "route" => "POST /module-groups",
+				"payload" => [], "result" => ["mode" => "created", "id" => "mg-1"],
+				"table" => "module-groups", "type" => "created",
+			],
+			// The three tools REST has no audited route for. The expectation is still
+			// asserted — the descriptor has to emit *something* specific — but there
+			// is nothing on the other side to compare it to, so the reason is written
+			// down instead (this is the "or a real table" escape hatch, named).
+			[
+				"tool" => "add_tags", "route" => "",
+				"why" => "tagging has no REST route of its own; the tag set rides on the record's own PATCH, "
+					. "so the row is audited against whatever table the tagged record lives in",
+				"payload" => [], "result" => ["mode" => "tagged", "table" => "bigtree_pages", "entry_id" => 42],
+				"table" => "bigtree_pages", "type" => "tagged", "runtime_table" => true,
+			],
+			[
+				"tool" => "remove_tags", "route" => "",
+				"why" => "same as add_tags — untagging rides on the record's own PATCH and audits against the "
+					. "tagged record's table",
+				"payload" => [], "result" => ["mode" => "untagged", "table" => "bigtree_pages", "entry_id" => 42],
+				"table" => "bigtree_pages", "type" => "untagged", "runtime_table" => true,
+			],
+			[
+				"tool" => "rename_tag", "route" => "",
+				"why" => "there is no PATCH /tags/{id}: the admin renames a tag by merging it, so REST audits "
+					. "no tag update for this to mirror",
+				"payload" => ["tag_id" => 3], "result" => ["mode" => "updated", "tag_id" => 3],
+				"table" => "bigtree_tags", "type" => "updated",
+			],
+		];
+	}
+
+	/**
+	 * Leg one: the descriptor a tool actually emits, for a fixture outcome.
+	 */
+	function test_every_tool_emits_the_audit_table_and_type_it_declares() {
+		$wrong = [];
+
+		foreach (ai_wiring_tool_audit_cases() as $case) {
+			$descriptor = AIChatService::auditDescriptor($case["tool"], $case["payload"], $case["result"]);
+
+			if (!is_array($descriptor)) {
+				$wrong[] = "{$case["tool"]} ({$case["type"]}) wrote no audit row at all";
+
+				continue;
+			}
+
+			if ($descriptor["table"] !== $case["table"]) {
+				$wrong[] = "{$case["tool"]} audits table {$descriptor["table"]}, expected {$case["table"]}";
+			}
+
+			if ($descriptor["type"] !== $case["type"]) {
+				$wrong[] = "{$case["tool"]} ({$case["type"]}) audits type {$descriptor["type"]}";
+			}
+		}
+
+		T::equals(implode("; ", $wrong), "", "every tool emits the audit table and type it declares");
+	}
+
+	/**
+	 * Leg two: and that declaration matches the REST route the tool mirrors, so the
+	 * two halves of "what happened to this record" land in one place. A
+	 * runtime-valued table must be runtime-valued on the route too (a %token% the
+	 * service fills in), because a literal there is exactly the bug: it cannot name
+	 * the table the row is really in.
+	 */
+	function test_every_tool_audits_where_its_rest_route_audits() {
+		$routes = \BigTree\Api\Manifest::load();
+		$wrong = [];
+
+		foreach (ai_wiring_tool_audit_cases() as $case) {
+			if ($case["route"] === "") {
+				continue;
+			}
+
+			if (!isset($routes[$case["route"]])) {
+				$wrong[] = "{$case["tool"]} names route “{$case["route"]}”, which does not exist";
+
+				continue;
+			}
+
+			$declared = $routes[$case["route"]]["audit"] ?? null;
+
+			if (!is_array($declared)) {
+				$wrong[] = "{$case["route"]} declares no audit block for {$case["tool"]} to mirror";
+
+				continue;
+			}
+
+			$expected_table = !empty($case["runtime_table"]) ? "%table%" : $case["table"];
+
+			if (($declared["table"] ?? "") !== $expected_table) {
+				$wrong[] = "{$case["route"]} audits table “" . ($declared["table"] ?? "")
+					. "”, {$case["tool"]} audits “{$expected_table}”";
+			}
+
+			if (($declared["type"] ?? "") !== $case["type"]) {
+				$wrong[] = "{$case["route"]} audits type “" . ($declared["type"] ?? "")
+					. "”, {$case["tool"]} audits “{$case["type"]}”";
+			}
+		}
+
+		T::equals(implode("; ", $wrong), "", "every tool audits under the same table and type as its REST route");
+	}
+
+	/**
+	 * Leg three: no tool escapes the comparison. This is the leg the old
+	 * string-bag check could not have: a tool whose branch names no literal simply
+	 * wasn't in the compared set, and nothing said so.
+	 */
+	function test_every_dispatched_tool_has_an_audit_expectation() {
+		$covered = [];
+
+		foreach (ai_wiring_tool_audit_cases() as $case) {
+			$covered[$case["tool"]] = true;
+		}
+
+		$missing = array_values(array_diff(
+			ai_wiring_dispatch_branches(),
+			array_keys($covered),
+			ai_wiring_audit_skips()
+		));
+
+		T::equals(implode(", ", $missing), "", "every approved tool's audit table and type are asserted");
+	}
+
+	/** A routeless tool states why REST has nothing to compare against. */
+	function test_routeless_audit_expectations_carry_a_reason() {
+		$unexplained = [];
+
+		foreach (ai_wiring_tool_audit_cases() as $case) {
+			if ($case["route"] !== "" || strlen(trim((string)($case["why"] ?? ""))) >= 40) {
+				continue;
+			}
+
+			$unexplained[] = $case["tool"];
+		}
+
+		T::equals(implode(", ", $unexplained), "", "every tool with no mirrored REST route says why");
+	}
+
 	function test_new_catalog_tools_are_registered() {
 		$registry = ai_wiring_registry();
 		$developer = ai_wiring_user(2);

@@ -7,6 +7,17 @@
 		public $body;          // mixed; encoded later
 		public $is_envelope = true;
 		public $cookies = [];  // each: [name, value, options]
+		/**
+		 * Runtime values for the `%token%`s a route's `audit` block declares, filled
+		 * in by the service. A route declaration is a static array, so it can only
+		 * name literals and route params — which is why every module-entry route used
+		 * to audit under the literal string "module_entry" (not a real table, and
+		 * shared across every module) instead of the table the row actually lives in.
+		 * The service knows the table; this is how it says so.
+		 *
+		 * @var array<string,mixed>
+		 */
+		public $audit = [];
 
 		public static function ok($data, $meta = []) {
 			$r = new self();
