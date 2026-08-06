@@ -37,7 +37,10 @@
 				$items = [];
 
 				foreach ($modules as $module) {
-					$items[$module["class"]] = $module["route"];
+					// Modules without a PHP class are valid (JSON-only modules); skip them for the autoload map.
+					if (!empty($module["class"])) {
+						$items[$module["class"]] = $module["route"];
+					}
 				}
 
 				// Cache it so we don't hit the database.
