@@ -208,9 +208,9 @@
 			T::ok(!empty($staged["ok"]), "the module create validates against the live group");
 			T::equals((string)$staged["payload"]["group"], $group_id, "and stages the resolved group id");
 
-			// Delete the group out from under the proposal.
+			// Delete the group out from under the proposal. Keep $group_id so
+			// finally can re-attempt if the delete did not persist.
 			BigTreeJSONDB::delete("module-groups", $group_id);
-			$group_id = "";
 
 			$result = $svc->aiCreateModule($staged["payload"], $dev);
 			T::equals((string)($result["mode"] ?? ""), "created", "the module is still created");

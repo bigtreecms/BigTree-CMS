@@ -40,6 +40,12 @@
 		static function delete($type, $id, $alternate_id_column = false) {
 			static::cache($type);
 
+			// Snapshot so a failed save leaves the in-process cache matching disk
+			// (same contract as insert()). Without this, exists() would report the
+			// row gone while the file still held it — test cleanup and admin UI
+			// both trusted the cache and left orphans behind.
+			$before = static::$Cache[$type];
+
 			foreach (static::$Cache[$type] as $index => $item) {
 				if ($alternate_id_column !== false && isset($item[$alternate_id_column]) && $item[$alternate_id_column] == $id) {
 					unset(static::$Cache[$type][$index]);
@@ -48,7 +54,13 @@
 				}
 			}
 
-			return static::save($type);
+			if (!static::save($type)) {
+				static::$Cache[$type] = $before;
+
+				return false;
+			}
+
+			return true;
 		}
 
 		static function exists($type, $id, $alternate_id_column = false) {

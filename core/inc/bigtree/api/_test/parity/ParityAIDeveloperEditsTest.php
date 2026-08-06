@@ -20,46 +20,6 @@
 		return [$id, (object)["id" => $id, "level" => 2, "permissions" => []]];
 	}
 
-	function parity_delete_callout(string $id): void {
-		if ($id !== "" && BigTreeJSONDB::exists("callouts", $id)) {
-			BigTreeJSONDB::delete("callouts", $id);
-		}
-	}
-
-	/** Create a callout directly in the json-db, bypassing the scaffold. */
-	function parity_seed_callout(string $id, array $fields): void {
-		BigTreeJSONDB::insert("callouts", [
-			"id" => $id,
-			"name" => "Parity Callout",
-			"description" => "",
-			"level" => 0,
-			"resources" => $fields,
-			"display_field" => "headline",
-			"display_default" => "",
-			"position" => 0,
-		]);
-	}
-
-	/** Create a template directly in the json-db, bypassing the scaffold. */
-	function parity_seed_template(string $id, array $resources): void {
-		BigTreeJSONDB::insert("templates", [
-			"id" => $id,
-			"name" => "Parity Template",
-			"module" => "",
-			"resources" => $resources,
-			"level" => 0,
-			"routed" => "",
-			"hooks" => [],
-			"position" => 0,
-		]);
-	}
-
-	function parity_delete_template(string $id): void {
-		if ($id !== "" && BigTreeJSONDB::exists("templates", $id)) {
-			BigTreeJSONDB::delete("templates", $id);
-		}
-	}
-
 	/**
 	 * A field the assistant carries over unchanged keeps everything its own field
 	 * shape can't express.

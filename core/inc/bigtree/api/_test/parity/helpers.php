@@ -3,10 +3,31 @@
 	 * Shared helpers for Phase 1 L1 parity suites (p0/* oracles).
 	 *
 	 * Loaded by run.php before any parity/*Test.php file.
+	 *
+	 * Cleanup contract:
+	 *  - Seed helpers register fixtures in a process-local registry.
+	 *  - run.php calls parity_cleanup_tracked() after every test_*() so a failed
+	 *    assertion (or a missing try/finally) cannot leave SQL/JSON-DB rows behind.
+	 *  - parity_sweep_artifacts() also removes anything that matches the throwaway
+	 *    naming conventions (zz_ / ZZ / zzparity / @test.local) — a safety net for
+	 *    fixtures created outside the seed helpers (AI tools, JsonStore inserts,
+	 *    prior interrupted runs). Called at suite start and end.
 	 */
 
 	use BigTree\Api\Request;
 	use BigTree\Api\Response;
+
+	/** @var array<string,array<int|string,true>> */
+	$GLOBALS["__parity_fixtures"] = [
+		"users" => [],
+		"pages" => [],
+		"tags" => [],
+		"pending" => [],
+		"news" => [],
+		"settings" => [],
+		"jsondb" => [], // "store\0id" => true
+		"tables" => [],
+	];
 
 	/** True when the DB is reachable from this harness. */
 	function parity_db_available(): bool {
@@ -75,8 +96,347 @@
 		return $response->body;
 	}
 
+	// ── Fixture registry ───────────────────────────────────────────────────
+
+	/** Remember a SQL/JSON fixture so parity_cleanup_tracked() can remove it. */
+	function parity_track(string $kind, $id): void {
+		if ($id === null || $id === "" || $id === 0 || $id === "0") {
+			return;
+		}
+
+		if ($kind === "jsondb") {
+			return;
+		}
+
+		$GLOBALS["__parity_fixtures"][$kind][(string)$id] = true;
+	}
+
+	/** Remember a JSON-DB row (store + id). */
+	function parity_track_jsondb(string $store, string $id): void {
+		if ($store === "" || $id === "") {
+			return;
+		}
+
+		$GLOBALS["__parity_fixtures"]["jsondb"][$store . "\0" . $id] = true;
+	}
+
+	/** Remember a throwaway SQL table name for DROP TABLE. */
+	function parity_track_table(string $table): void {
+		if ($table === "" || !preg_match('/^[A-Za-z0-9_]+$/', $table)) {
+			return;
+		}
+
+		$GLOBALS["__parity_fixtures"]["tables"][$table] = true;
+	}
+
+	function parity_untrack(string $kind, $id): void {
+		unset($GLOBALS["__parity_fixtures"][$kind][(string)$id]);
+	}
+
+	function parity_untrack_jsondb(string $store, string $id): void {
+		unset($GLOBALS["__parity_fixtures"]["jsondb"][$store . "\0" . $id]);
+	}
+
 	/**
-	 * Insert a throwaway bigtree_users row. Caller must delete.
+	 * Delete every fixture registered since the last cleanup (or suite start).
+	 * Safe to call when the registry is empty. Best-effort: never throws.
+	 */
+	function parity_cleanup_tracked(): void {
+		$fixtures = $GLOBALS["__parity_fixtures"];
+
+		foreach (array_keys($fixtures["tables"] ?? []) as $table) {
+			parity_drop_table((string)$table);
+		}
+
+		foreach (array_keys($fixtures["jsondb"] ?? []) as $key) {
+			$parts = explode("\0", (string)$key, 2);
+
+			if (count($parts) === 2) {
+				parity_delete_jsondb($parts[0], $parts[1]);
+			}
+		}
+
+		foreach (array_keys($fixtures["settings"] ?? []) as $id) {
+			parity_delete_setting((string)$id);
+		}
+
+		foreach (array_keys($fixtures["news"] ?? []) as $id) {
+			parity_delete_news_entries((int)$id);
+		}
+
+		foreach (array_keys($fixtures["pending"] ?? []) as $id) {
+			parity_delete_pending((int)$id);
+		}
+
+		foreach (array_keys($fixtures["tags"] ?? []) as $id) {
+			parity_delete_tags((int)$id);
+		}
+
+		foreach (array_keys($fixtures["pages"] ?? []) as $id) {
+			parity_delete_page((int)$id);
+		}
+
+		foreach (array_keys($fixtures["users"] ?? []) as $id) {
+			parity_delete_users((int)$id);
+		}
+
+		$GLOBALS["__parity_fixtures"] = [
+			"users" => [],
+			"pages" => [],
+			"tags" => [],
+			"pending" => [],
+			"news" => [],
+			"settings" => [],
+			"jsondb" => [],
+			"tables" => [],
+		];
+
+		parity_reset_legacy_admin();
+	}
+
+	/**
+	 * Whether a JSON-DB row looks like a throwaway test artifact.
+	 *
+	 * Suites consistently prefix throwaways with zz / ZZ (underscore, hyphen, or
+	 * space): "zz_parity_*", "zz-parity-*", "ZZ Probe Group", "zzparity…",
+	 * "ZZ_jsonstore_*", scaffold tables "zz_scaffold_*", e2e "zz_e2e_*", etc.
+	 */
+	function parity_is_test_artifact(array $item): bool {
+		foreach (["id", "name", "route", "table"] as $key) {
+			$value = (string)($item[$key] ?? "");
+
+			if ($value === "") {
+				continue;
+			}
+
+			// Leading zz/ZZ with optional separator covers every suite convention.
+			if (preg_match('/^zz([_\-\s]|$)/i', $value)) {
+				return true;
+			}
+
+			if (stripos($value, "zzparity") !== false || stripos($value, "zz_parity") !== false) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Convention-based sweep: remove leftover test artifacts from JSON-DB and SQL
+	 * even when no registry entry exists (interrupted runs, missing finally blocks).
+	 *
+	 * @return int Number of artifacts removed (best-effort count)
+	 */
+	function parity_sweep_artifacts(): int {
+		$removed = 0;
+
+		$stores = [
+			"modules",
+			"module-groups",
+			"callouts",
+			"callout-groups",
+			"templates",
+			"settings",
+			"feeds",
+			"field-types",
+		];
+
+		foreach ($stores as $store) {
+			try {
+				if (!class_exists("BigTreeJSONDB", false)) {
+					break;
+				}
+
+				// Always re-read from disk so a stale in-process cache cannot hide rows.
+				BigTreeJSONDB::$Cache = [];
+				$items = BigTreeJSONDB::getAll($store);
+
+				foreach ($items as $item) {
+					if (!is_array($item) || empty($item["id"]) || !parity_is_test_artifact($item)) {
+						continue;
+					}
+
+					$id = (string)$item["id"];
+
+					// Modules may own a throwaway SQL table — drop it with the definition.
+					if ($store === "modules") {
+						$table = (string)($item["table"] ?? "");
+
+						if ($table !== "" && preg_match('/^zz[_a-z0-9]+$/i', $table)) {
+							parity_drop_table($table);
+						}
+					}
+
+					parity_delete_jsondb($store, $id);
+					$removed++;
+				}
+			} catch (Throwable $e) {
+				// best-effort
+			}
+		}
+
+		try {
+			SQL::fetchSingle("SELECT 1");
+		} catch (Throwable $e) {
+			parity_reset_legacy_admin();
+
+			return $removed;
+		}
+
+		try {
+			// Throwaway SQL tables (scaffold / e2e / smoke / unit).
+			$rows = SQL::fetchAll("SHOW TABLES");
+
+			foreach ($rows as $row) {
+				$table = (string)array_values($row)[0];
+
+				if (preg_match('/^zz[_a-z0-9]+$/i', $table)) {
+					parity_drop_table($table);
+					$removed++;
+				}
+			}
+		} catch (Throwable $e) {
+			// best-effort
+		}
+
+		try {
+			$pages = SQL::fetchAll(
+				"SELECT id FROM bigtree_pages
+				 WHERE nav_title LIKE 'ZZ%' OR title LIKE 'ZZ%'
+				    OR route LIKE 'zz-%' OR route LIKE 'zz\\_%' OR path LIKE 'zz-%'"
+			);
+
+			foreach ($pages as $page) {
+				parity_delete_page((int)$page["id"]);
+				$removed++;
+			}
+		} catch (Throwable $e) {
+			// best-effort
+		}
+
+		try {
+			$users = SQL::fetchAll(
+				"SELECT id FROM bigtree_users
+				 WHERE email LIKE 'zz\\_%@%' OR email LIKE 'zz\\_parity\\_%'
+				    OR name LIKE 'ZZ %' OR name LIKE 'ZZ\\_%' OR name LIKE 'ZZ Parity%'"
+			);
+
+			foreach ($users as $user) {
+				parity_delete_users((int)$user["id"]);
+				$removed++;
+			}
+		} catch (Throwable $e) {
+			// best-effort
+		}
+
+		try {
+			$tags = SQL::fetchAll(
+				"SELECT id FROM bigtree_tags WHERE tag LIKE 'zz%' OR tag LIKE 'ZZ%'"
+			);
+
+			foreach ($tags as $tag) {
+				parity_delete_tags((int)$tag["id"]);
+				$removed++;
+			}
+		} catch (Throwable $e) {
+			// best-effort
+		}
+
+		try {
+			$news = SQL::fetchAll(
+				"SELECT id FROM timber_news WHERE title LIKE 'ZZ%' OR title LIKE 'zz%'"
+			);
+
+			foreach ($news as $entry) {
+				parity_delete_news_entries((int)$entry["id"]);
+				$removed++;
+			}
+		} catch (Throwable $e) {
+			// timber_news may not exist on every install
+		}
+
+		try {
+			// Pending changes left by interrupted editor-level publishes.
+			$pending = SQL::fetchAll(
+				"SELECT id FROM bigtree_pending_changes
+				 WHERE title LIKE 'ZZ%' OR title LIKE 'zz%'
+				    OR user IN (
+				    	SELECT id FROM bigtree_users
+				    	WHERE email LIKE 'zz\\_%@%' OR name LIKE 'ZZ %'
+				    )"
+			);
+
+			foreach ($pending as $change) {
+				parity_delete_pending((int)$change["id"]);
+				$removed++;
+			}
+		} catch (Throwable $e) {
+			// best-effort
+		}
+
+		try {
+			// Settings value rows without a JSON-DB definition (or leftover zz ids).
+			$settings = SQL::fetchAll(
+				"SELECT id FROM bigtree_settings WHERE id LIKE 'zz\\_%' OR id LIKE 'zzparity%'"
+			);
+
+			foreach ($settings as $setting) {
+				parity_delete_setting((string)$setting["id"]);
+				$removed++;
+			}
+		} catch (Throwable $e) {
+			// best-effort
+		}
+
+		parity_reset_legacy_admin();
+
+		return $removed;
+	}
+
+	/** DROP TABLE IF EXISTS for a throwaway name (validated). */
+	function parity_drop_table(string $table): void {
+		if ($table === "" || !preg_match('/^[A-Za-z0-9_]+$/', $table)) {
+			return;
+		}
+
+		// Only drop tables the suites are allowed to create.
+		if (!preg_match('/^zz[_a-z0-9]+$/i', $table)) {
+			return;
+		}
+
+		try {
+			SQL::query("DROP TABLE IF EXISTS `{$table}`");
+			parity_untrack("tables", $table);
+		} catch (Throwable $e) {
+			// best-effort
+		}
+	}
+
+	/** Delete a JSON-DB row if present (any store). */
+	function parity_delete_jsondb(string $store, string ...$ids): void {
+		foreach ($ids as $id) {
+			if ($id === "") {
+				continue;
+			}
+
+			try {
+				if (class_exists("BigTreeJSONDB", false)) {
+					// Prefer a fresh disk read so a stale negative cache cannot
+					// make us skip a row that is still on disk.
+					unset(BigTreeJSONDB::$Cache[$store]);
+					BigTreeJSONDB::delete($store, $id);
+				}
+
+				parity_untrack_jsondb($store, $id);
+			} catch (Throwable $e) {
+				// best-effort
+			}
+		}
+	}
+
+	/**
+	 * Insert a throwaway bigtree_users row. Auto-tracked for suite cleanup.
 	 *
 	 * @param array<string,mixed> $overrides
 	 */
@@ -106,7 +466,10 @@
 			$row["alerts"] = json_encode($row["alerts"]);
 		}
 
-		return (int)SQL::insert("bigtree_users", $row);
+		$id = (int)SQL::insert("bigtree_users", $row);
+		parity_track("users", $id);
+
+		return $id;
 	}
 
 	/** Unique route segment for throwaway pages. */
@@ -143,7 +506,10 @@
 			"updated_at" => "NOW()",
 		], $overrides));
 
-		return (int)$id;
+		$id = (int)$id;
+		parity_track("pages", $id);
+
+		return $id;
 	}
 
 	/** Delete a live page if it still exists (ignores missing). */
@@ -170,6 +536,8 @@
 		} catch (Throwable $e) {
 			// best-effort cleanup
 		}
+
+		parity_untrack("pages", $id);
 	}
 
 	/**
@@ -220,6 +588,8 @@
 			} catch (Throwable $e) {
 				// best-effort
 			}
+
+			parity_untrack("pending", $id);
 		}
 	}
 
@@ -236,6 +606,8 @@
 			} catch (Throwable $e) {
 				// best-effort
 			}
+
+			parity_untrack("tags", $id);
 		}
 	}
 
@@ -251,6 +623,8 @@
 			} catch (Throwable $e) {
 				// best-effort
 			}
+
+			parity_untrack("users", $id);
 		}
 	}
 
@@ -259,8 +633,14 @@
 	 * Uses JSON-DB when present so custom/json-db is restored.
 	 */
 	function parity_delete_setting(string $id): void {
+		if ($id === "") {
+			return;
+		}
+
 		try {
-			if (class_exists("BigTreeJSONDB", false) && BigTreeJSONDB::exists("settings", $id)) {
+			if (class_exists("BigTreeJSONDB", false)) {
+				// Bust a stale cache so exists()/delete() re-read the on-disk store.
+				unset(BigTreeJSONDB::$Cache["settings"]);
 				BigTreeJSONDB::delete("settings", $id);
 			}
 		} catch (Throwable $e) {
@@ -273,6 +653,8 @@
 		} catch (Throwable $e) {
 			// best-effort
 		}
+
+		parity_untrack("settings", $id);
 	}
 
 	/** News module id from example-site fixture (json-db). */
@@ -298,5 +680,100 @@
 			} catch (Throwable $e) {
 				// best-effort
 			}
+
+			parity_untrack("news", $id);
 		}
+	}
+
+	/** Track a pending-change id created outside seed helpers. */
+	function parity_track_pending(int $id): void {
+		parity_track("pending", $id);
+	}
+
+	/** Track a tag id created outside seed helpers. */
+	function parity_track_tag(int $id): void {
+		parity_track("tags", $id);
+	}
+
+	/** Track a news entry id created outside seed helpers. */
+	function parity_track_news(int $id): void {
+		parity_track("news", $id);
+	}
+
+	/** Track a setting id created outside seed helpers. */
+	function parity_track_setting(string $id): void {
+		parity_track("settings", $id);
+	}
+
+	/**
+	 * Insert a throwaway module-group. Auto-tracked.
+	 *
+	 * @param array<string,mixed> $overrides
+	 */
+	function parity_seed_module_group(array $overrides = []): string {
+		$suffix = bin2hex(random_bytes(3));
+		$id = BigTreeJSONDB::insert("module-groups", array_merge([
+			"name" => "ZZ Parity Group " . $suffix,
+			"route" => "zz-parity-group-" . $suffix,
+		], $overrides));
+
+		if ($id) {
+			parity_track_jsondb("module-groups", (string)$id);
+		}
+
+		return (string)$id;
+	}
+
+	/**
+	 * Insert a throwaway callout definition. Auto-tracked.
+	 *
+	 * @param array<int,array<string,mixed>> $fields
+	 */
+	function parity_seed_callout(string $id, array $fields = []): void {
+		if ($id === "") {
+			return;
+		}
+
+		BigTreeJSONDB::insert("callouts", [
+			"id" => $id,
+			"name" => "Parity Callout",
+			"description" => "",
+			"level" => 0,
+			"resources" => $fields,
+			"display_field" => "headline",
+			"display_default" => "",
+			"position" => 0,
+		]);
+		parity_track_jsondb("callouts", $id);
+	}
+
+	function parity_delete_callout(string $id): void {
+		parity_delete_jsondb("callouts", $id);
+	}
+
+	/**
+	 * Insert a throwaway template definition. Auto-tracked.
+	 *
+	 * @param array<int,array<string,mixed>> $resources
+	 */
+	function parity_seed_template(string $id, array $resources = []): void {
+		if ($id === "") {
+			return;
+		}
+
+		BigTreeJSONDB::insert("templates", [
+			"id" => $id,
+			"name" => "Parity Template",
+			"module" => "",
+			"resources" => $resources,
+			"level" => 0,
+			"routed" => "",
+			"hooks" => [],
+			"position" => 0,
+		]);
+		parity_track_jsondb("templates", $id);
+	}
+
+	function parity_delete_template(string $id): void {
+		parity_delete_jsondb("templates", $id);
 	}

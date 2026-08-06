@@ -5,6 +5,11 @@
 	 * in this directory.
 	 *
 	 * Usage:  php core/inc/bigtree/api/_test/run.php
+	 *
+	 * Cleanup: parity helpers register throwaway fixtures; after every test the
+	 * runner frees the registry, and a convention-based sweep at suite start/end
+	 * removes anything left by interrupted runs or tests that create rows outside
+	 * the seed helpers (AI tools, JsonStore inserts, e2e/smoke leftovers).
 	 */
 
 	chdir(__DIR__ . "/../../../../..");
@@ -48,6 +53,16 @@
 		require_once $file;
 	}
 
+	// Recover the local install from any previous interrupted run before we
+	// start creating more throwaways on top of it.
+	if (function_exists("parity_sweep_artifacts")) {
+		$swept = parity_sweep_artifacts();
+
+		if ($swept > 0) {
+			echo "\n(swept {$swept} leftover test artifact(s) from a previous run)\n";
+		}
+	}
+
 	$functions = get_defined_functions()["user"];
 
 	foreach ($functions as $fn) {
@@ -59,7 +74,23 @@
 				$fn();
 			} catch (Throwable $e) {
 				echo "  ! " . $e->getMessage() . "\n";
+			} finally {
+				// Always free fixtures this test registered, even when an
+				// assertion failed and the test's own try/finally was incomplete.
+				if (function_exists("parity_cleanup_tracked")) {
+					parity_cleanup_tracked();
+				}
 			}
+		}
+	}
+
+	// Catch anything created outside the registry (service creates, AI tools,
+	// mid-test inserts that never called parity_track_*).
+	if (function_exists("parity_sweep_artifacts")) {
+		$swept = parity_sweep_artifacts();
+
+		if ($swept > 0) {
+			echo "\n(swept {$swept} leftover test artifact(s) after suite)\n";
 		}
 	}
 

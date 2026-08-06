@@ -112,26 +112,29 @@
 
 		$service = new ModuleService();
 		$developer = ai_wiring_user(2);
-		$group_id = BigTreeJSONDB::insert("module-groups", [
-			"name" => "ZZ Doomed Group " . uniqid(),
-			"route" => "zz-doomed-group-" . uniqid(),
-		]);
-		BigTreeJSONDB::$Cache = [];
-
-		$staged = $service->aiValidateModuleScaffold(
-			_scaffold_group_args(["group" => (string)$group_id]),
-			$developer
-		);
-		T::ok(!empty($staged["ok"]), "the scaffold staged against a real group");
-
-		// The 24-hour life of a proposal, compressed.
-		BigTreeJSONDB::delete("module-groups", $group_id);
-		BigTreeJSONDB::$Cache = [];
-
-		$table = (string)($staged["payload"]["table"] ?? "");
+		$group_id = null;
 		$module_id = null;
+		$table = "";
 
 		try {
+			$group_id = BigTreeJSONDB::insert("module-groups", [
+				"name" => "ZZ Doomed Group " . uniqid(),
+				"route" => "zz-doomed-group-" . uniqid(),
+			]);
+			BigTreeJSONDB::$Cache = [];
+
+			$staged = $service->aiValidateModuleScaffold(
+				_scaffold_group_args(["group" => (string)$group_id]),
+				$developer
+			);
+			T::ok(!empty($staged["ok"]), "the scaffold staged against a real group");
+
+			// The 24-hour life of a proposal, compressed.
+			BigTreeJSONDB::delete("module-groups", $group_id);
+			BigTreeJSONDB::$Cache = [];
+
+			$table = (string)($staged["payload"]["table"] ?? "");
+
 			$result = $service->aiScaffoldModule($staged["payload"], $developer);
 			T::equals((string)($result["mode"] ?? ""), "created", "the build still runs — grouping is cosmetic");
 			$module_id = (string)($result["id"] ?? "");
@@ -154,6 +157,12 @@
 
 			if ($table !== "" && BigTree::tableExists($table)) {
 				SQL::query("DROP TABLE `{$table}`");
+			}
+
+			// Mid-test delete can fail to persist; always re-attempt so a failed
+			// assertion before the intentional delete cannot leave the group behind.
+			if ($group_id !== null && $group_id !== "" && BigTreeJSONDB::exists("module-groups", $group_id)) {
+				BigTreeJSONDB::delete("module-groups", $group_id);
 			}
 		}
 	}
