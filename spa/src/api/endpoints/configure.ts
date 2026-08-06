@@ -153,10 +153,20 @@ export interface AiConfig {
 		chat: boolean;
 		embeddings: boolean;
 	};
+	/** Tokens the final, no-tools answer may generate; 0 = follow the provider default. */
+	final_max_tokens: number;
+	final_max_tokens_default: number;
+	/** Tokens one tool-calling round may generate; 0 = follow the provider default. */
+	max_tokens: number;
+	max_tokens_default: number;
 	model: string;
 	/** Allowlisted chat models keyed by service id. */
 	models: Record<string, AiModelOption[]>;
 	service: AiServiceId;
+	/** Upper bound accepted for either token budget. */
+	token_max: number;
+	/** Lower bound accepted for either token budget (blank/0 still means "default"). */
+	token_min: number;
 }
 
 export interface AiEmbeddingsReindexResult {
@@ -279,6 +289,9 @@ export const configureApi = {
 			embedding_api_key_clear?: boolean;
 			model: string;
 			embedding_model: string;
+			/** 0 or omitted = follow the provider default. */
+			max_tokens?: number;
+			final_max_tokens?: number;
 			features: { search: boolean; chat: boolean; embeddings: boolean };
 		}) => api.put<AiConfig>("/system/configure/ai", body),
 		/** One page of a batched embeddings rebuild (page 0 = probe). */

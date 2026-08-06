@@ -4,7 +4,7 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { History, Plus, Send, Sparkles, X } from "lucide-react";
 
 import { aiApi, type ChatProposal } from "@/api/endpoints/ai";
-import { streamChat, type ChatStreamDone } from "@/api/aiStream";
+import { ChatStreamError, streamChat, type ChatStreamDone } from "@/api/aiStream";
 import { queryKeys } from "@/lib/queryKeys";
 import { describeApiError, isNotFound } from "@/lib/errorHandling";
 import { IconButton } from "@/components/ui/IconButton";
@@ -98,6 +98,19 @@ export const AIChat = ({ open, onClose }: AIChatProps) => {
 		onError: (err) => {
 			setError(describeApiError(err, "The assistant could not respond."));
 			setEntries((prev) => prev.filter((e) => e.id !== PENDING_ID));
+
+			// A failed turn no longer discards what it had already staged: the server
+			// keeps those cards and persists a message explaining them. Pull that
+			// message in so they are visible where they were prepared rather than only
+			// in history — appended, never reloaded. The buffered path's error carries
+			// no word on what survived, and a wholesale reload of a turn that staged
+			// nothing (nothing persisted) would silently drop the message the user
+			// just typed and clear the error saying why.
+			void queryClient.invalidateQueries({ queryKey: queryKeys.ai.conversations() });
+
+			if (conversationId !== null) {
+				void reconcileFailedTurn(conversationId);
+			}
 		},
 	});
 
@@ -157,6 +170,42 @@ export const AIChat = ({ open, onClose }: AIChatProps) => {
 			);
 		} catch {
 			// Best-effort: a refresh failure leaves the cards as they were.
+		}
+	};
+
+	/**
+	 * Fold in the message a *failed* turn left behind. The server keeps whatever
+	 * the turn staged and records an assistant message explaining those cards
+	 * (AIChatService::persistFailedTurn), so the one thing worth pulling in is that
+	 * message — appended to the transcript the user is looking at, which keeps
+	 * their own message and the error banner exactly where they are.
+	 */
+	const reconcileFailedTurn = async (id: number) => {
+		try {
+			const detail = await aiApi.getConversation(id);
+			const last = detail.messages[detail.messages.length - 1];
+
+			if (!last || last.role !== "assistant" || (last.proposals?.length ?? 0) === 0) {
+				return;
+			}
+
+			setEntries((prev) =>
+				prev.some((e) => e.id === last.id)
+					? prev
+					: [
+							...prev,
+							{
+								id: last.id,
+								role: "assistant",
+								content: last.content,
+								tool_activity: last.tool_activity,
+								proposals: last.proposals,
+							},
+						]
+			);
+		} catch {
+			// Best-effort: the error already tells the user the turn failed, and the
+			// cards remain reachable from the history list either way.
 		}
 	};
 
@@ -245,8 +294,9 @@ export const AIChat = ({ open, onClose }: AIChatProps) => {
 		// The conversation id the server assigns this turn, captured from the early
 		// `meta` event (before any tokens). Kept local — not pushed into state — so a
 		// clean provider failure that rolls the new conversation back doesn't leave a
-		// dangling id on the buffered-fallback path. Used only to reconcile a
-		// mid-stream drop after content already arrived.
+		// dangling id on the buffered-fallback path. Promoted into state only to
+		// reconcile: a mid-stream drop after content arrived, or a server-side failure
+		// that reports it kept the turn (so the row is still there).
 		let streamConversationId: number | null = null;
 
 		try {
@@ -289,6 +339,25 @@ export const AIChat = ({ open, onClose }: AIChatProps) => {
 			);
 		} catch (err) {
 			if (controller.signal.aborted) {
+				return;
+			}
+
+			// The server ended the turn itself and said what it did with it. Nothing
+			// to fall back to (the buffered path would re-run a turn the server has
+			// already settled) and nothing to reload — only the cards it kept, if it
+			// kept any, are missing from the transcript.
+			if (err instanceof ChatStreamError && err.fromServer) {
+				setError(err.message);
+				setEntries((prev) => prev.filter((e) => e.id !== PENDING_ID));
+				void queryClient.invalidateQueries({ queryKey: queryKeys.ai.conversations() });
+
+				const settledId = conversationId ?? streamConversationId;
+
+				if (err.proposalsKept && settledId !== null) {
+					setConversationId(settledId);
+					void reconcileFailedTurn(settledId);
+				}
+
 				return;
 			}
 

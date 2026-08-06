@@ -136,7 +136,10 @@
 			"create_callout_group" => ["name" => "list_callouts", "callouts" => "list_callouts"],
 			"create_module" => [
 				"id" => "get_module", "name" => "get_module", "route" => "get_module", "class" => "get_module",
-				"icon" => "get_module", "group" => "get_module", "developer_only" => "get_module",
+				// No `developer_only`: this map entry named an argument no tool declares
+				// and no table stores. `readable_by` only fails on *undeclared*
+				// arguments, so a stale entry lives forever (audit #18 B1).
+				"icon" => "get_module", "group" => "get_module",
 			],
 			// Audit #11 C1. Everything a scaffold sets is readable afterwards through
 			// get_module (the record) and get_module_schema (the form it builds), which

@@ -1,4 +1,7 @@
 <?php
+	use BigTree\Services\AI\StreamAccumulator;
+	use BigTree\Services\AI\TurnCompleteness;
+
 	/*
 		Class: BigTreeAI
 			Generic AI chat/completions client for BigTree features. Supports
@@ -50,6 +53,44 @@
 		const EMBEDDING_DIMENSIONS = 1536;
 
 		/**
+		 * The generation budget: how many tokens a tool-calling round and a final
+		 * answer may each produce.
+		 *
+		 * These were literals in AgentLoop — 1024 per round, 512/700 for the answer —
+		 * settable nowhere. 1024 output tokens is roughly 700 words of *tool-call
+		 * arguments*, JSON scaffolding and every other argument included, so a page
+		 * body past that was cut mid-call; the cut then arrived as a call with no
+		 * arguments, the model was told a required argument was missing, and it
+		 * retried into the same wall until the turn died. Authoring content is the
+		 * point of a CMS assistant, so the ceiling is both higher and configurable
+		 * (Developer → Configure → AI) — audit #18 A3.
+		 */
+		const DEFAULT_MAX_TOKENS = 4096;
+
+		const DEFAULT_FINAL_MAX_TOKENS = 2048;
+
+		/**
+		 * Per-provider defaults, where a provider's own shape argues for something
+		 * other than the general default. Anthropic's Messages API requires
+		 * max_tokens on every request and its models are routinely asked for long
+		 * structured output, so it starts higher.
+		 *
+		 * @var array<string,array{max:int,final:int}>
+		 */
+		const SERVICE_TOKEN_DEFAULTS = [
+			"anthropic" => ["max" => 8192, "final" => 4096],
+		];
+
+		/**
+		 * Bounds on the configured values. The floor is "enough for a tool call at
+		 * all"; the ceiling is a guard against a typo'd zero costing a site real
+		 * money on every round, not a claim about any model's true limit.
+		 */
+		const MIN_TOKENS = 256;
+
+		const MAX_TOKENS_CEILING = 64000;
+
+		/**
 		 * OpenAI embedding models (1536-d for the fixed VECTOR column).
 		 *
 		 * @var list<array{id:string,label:string}>
@@ -75,6 +116,9 @@
 					"model" => "",
 					"embedding_model" => "",
 					"embedding_api_key" => "",
+					// 0 means "use the provider default" (see maxTokens).
+					"max_tokens" => 0,
+					"final_max_tokens" => 0,
 					"features" => ["search" => false, "embeddings" => false],
 				];
 			}
@@ -134,6 +178,54 @@
 			return $model !== ""
 				&& self::isValidEmbeddingModel($model)
 				&& $this->embeddingApiKey() !== "";
+		}
+
+		/**
+		 * The default generation budget for a service, before any site setting.
+		 *
+		 * @return array{max:int,final:int}
+		 */
+		public static function defaultTokens(string $service): array {
+
+			return self::SERVICE_TOKEN_DEFAULTS[$service] ?? [
+				"max" => self::DEFAULT_MAX_TOKENS,
+				"final" => self::DEFAULT_FINAL_MAX_TOKENS,
+			];
+		}
+
+		/**
+		 * Clamp a configured token budget, or fall back to the default. 0 / blank /
+		 * junk all mean "use the default" rather than "generate nothing".
+		 *
+		 * @param mixed $value
+		 */
+		public static function clampTokens($value, int $default): int {
+			$value = (int)$value;
+
+			if ($value < 1) {
+
+				return $default;
+			}
+
+			return max(self::MIN_TOKENS, min(self::MAX_TOKENS_CEILING, $value));
+		}
+
+		/** Tokens a tool-calling round may generate, per this site's settings. */
+		public function maxTokens(): int {
+
+			return self::clampTokens(
+				$this->Settings["max_tokens"] ?? 0,
+				self::defaultTokens($this->Service)["max"]
+			);
+		}
+
+		/** Tokens the final, no-tools answer may generate, per this site's settings. */
+		public function finalMaxTokens(): int {
+
+			return self::clampTokens(
+				$this->Settings["final_max_tokens"] ?? 0,
+				self::defaultTokens($this->Service)["final"]
+			);
 		}
 
 		/**
@@ -409,7 +501,7 @@
 				return false;
 			}
 
-			$accumulator = new \BigTree\Services\AI\StreamAccumulator($this->Service, $on_delta);
+			$accumulator = new StreamAccumulator($this->Service, $on_delta);
 
 			if ($this->Service === "anthropic") {
 				$request = $this->anthropicStreamRequest($messages, $tools, $options);
@@ -564,7 +656,9 @@
 
 			$body = [
 				"model" => $this->Model,
-				"max_tokens" => (int)($options["max_tokens"] ?? 2048),
+				// Anthropic requires max_tokens on every request; a caller that didn't
+				// pass one gets the site's configured budget, never a literal.
+				"max_tokens" => (int)($options["max_tokens"] ?? $this->maxTokens()),
 				"messages" => $anthropic_messages,
 				"stream" => true,
 			];
@@ -718,6 +812,7 @@
 			}
 
 			$tool_calls = [];
+			$truncated_arguments = false;
 
 			foreach ($choice["tool_calls"] ?? [] as $call) {
 				$fn = $call["function"] ?? [];
@@ -725,6 +820,18 @@
 				$args = is_string($args_raw) ? json_decode($args_raw, true) : $args_raw;
 
 				if (!is_array($args)) {
+					// An argument blob that fails to *parse* is a call cut mid-arguments.
+					// This used to degrade silently to [], which the shape validator then
+					// reported as a missing required argument — the model had just
+					// supplied one, so it retried the identical oversized call until the
+					// turn ran out of rounds (audit #18 A2). A blob that parses to
+					// something other than an object is a malformed call, not a truncated
+					// one, and keeps the old degrade: the validator's "missing argument"
+					// is the accurate message there.
+					if (is_string($args_raw) && trim($args_raw) !== "" && json_last_error() !== JSON_ERROR_NONE) {
+						$truncated_arguments = true;
+					}
+
 					$args = [];
 				}
 
@@ -752,11 +859,46 @@
 				$content = implode("", $parts);
 			}
 
+			$content = $content === null || $content === "" ? null : (string)$content;
+			$stop = TurnCompleteness::stopSignal($this->Service, $response);
+
+			// The provider's own word on whether it finished. Only the streaming path
+			// ever asked (audit #6); the buffered one — which is what POST /ai/chat
+			// runs, and what the SPA falls back to whenever a stream can't start —
+			// returned a cut-off turn as the authoritative answer.
+			if ($this->isTruncatedTurn($stop, $tool_calls, $truncated_arguments)) {
+				$this->Error = TurnCompleteness::TRUNCATED_TOOL_CALL . " Try again.";
+
+				return false;
+			}
+
+			if (TurnCompleteness::isLength($stop)) {
+				$content = TurnCompleteness::markTruncatedAnswer($content);
+			}
+
 			return [
-				"content" => $content === null || $content === "" ? null : (string)$content,
+				"content" => $content,
 				"tool_calls" => $tool_calls,
 				"raw" => $response,
 			];
+		}
+
+		/**
+		 * Whether a buffered turn's tool calls can't be trusted: the provider stopped
+		 * at the token ceiling with calls in flight (so at least the last one's
+		 * arguments are short of what the model meant to send), or an argument blob
+		 * didn't parse at all. Either way the call validates as a *different* request
+		 * than the one that was made, so the turn is refused rather than run.
+		 *
+		 * @param list<array<string,mixed>> $tool_calls
+		 */
+		private function isTruncatedTurn(string $stop, array $tool_calls, bool $truncated_arguments): bool {
+			if ($truncated_arguments) {
+
+				return true;
+			}
+
+			return $tool_calls && TurnCompleteness::isLength($stop);
 		}
 
 		/**
@@ -847,7 +989,9 @@
 
 			$body = [
 				"model" => $this->Model,
-				"max_tokens" => (int)($options["max_tokens"] ?? 2048),
+				// Anthropic requires max_tokens on every request; a caller that didn't
+				// pass one gets the site's configured budget, never a literal.
+				"max_tokens" => (int)($options["max_tokens"] ?? $this->maxTokens()),
 				"messages" => $anthropic_messages,
 			];
 
@@ -886,6 +1030,7 @@
 
 			$content_text = null;
 			$tool_calls = [];
+			$truncated_arguments = false;
 			// Keep OpenAI-shaped assistant message for the next loop iteration.
 			$openai_tool_calls = [];
 
@@ -895,6 +1040,13 @@
 				if ($type === "text") {
 					$content_text = ($content_text ?? "") . (string)($block["text"] ?? "");
 				} elseif ($type === "tool_use") {
+					// A tool_use block whose input isn't an object is a call this turn
+					// cannot honestly run — the same silent degrade-to-[] the OpenAI
+					// path had (audit #18 A2).
+					if (array_key_exists("input", $block) && !is_array($block["input"])) {
+						$truncated_arguments = true;
+					}
+
 					$tool_calls[] = [
 						"id" => (string)($block["id"] ?? ""),
 						"name" => (string)($block["name"] ?? ""),
@@ -917,8 +1069,23 @@
 			// the assistant message can use a consistent shape.
 			$response["_openai_tool_calls"] = $openai_tool_calls;
 
+			$content_text = $content_text === "" ? null : $content_text;
+			// stop_reason is Anthropic's half of the same signal the OpenAI path reads
+			// off finish_reason; see chatOpenAICompatible.
+			$stop = TurnCompleteness::stopSignal("anthropic", $response);
+
+			if ($this->isTruncatedTurn($stop, $tool_calls, $truncated_arguments)) {
+				$this->Error = TurnCompleteness::TRUNCATED_TOOL_CALL . " Try again.";
+
+				return false;
+			}
+
+			if (TurnCompleteness::isLength($stop)) {
+				$content_text = TurnCompleteness::markTruncatedAnswer($content_text);
+			}
+
 			return [
-				"content" => $content_text === "" ? null : $content_text,
+				"content" => $content_text,
 				"tool_calls" => $tool_calls,
 				"raw" => $response,
 			];

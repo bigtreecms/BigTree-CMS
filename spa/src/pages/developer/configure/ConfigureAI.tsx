@@ -34,9 +34,15 @@ interface AiDraft {
 	embeddings_ready: boolean;
 	embeddings_supported: boolean;
 	features: { search: boolean; chat: boolean; embeddings: boolean };
+	final_max_tokens: string;
+	final_max_tokens_default: number;
+	max_tokens: string;
+	max_tokens_default: number;
 	model: string;
 	models: AiConfig["models"];
 	service: AiServiceId;
+	token_max: number;
+	token_min: number;
 }
 
 const SERVICES: Array<{ id: AiServiceId; label: string; help: string }> = [
@@ -121,6 +127,14 @@ export const ConfigureAI = () => {
 			embeddings_ready: !!data.embeddings_ready,
 			embedding_dimensions: data.embedding_dimensions ?? 1536,
 			embedding_key_required: !!data.embedding_key_required,
+			// Held as strings so "" reads as "follow the provider default" in the
+			// field itself, the way the server stores 0.
+			max_tokens: data.max_tokens ? String(data.max_tokens) : "",
+			final_max_tokens: data.final_max_tokens ? String(data.final_max_tokens) : "",
+			max_tokens_default: data.max_tokens_default ?? 4096,
+			final_max_tokens_default: data.final_max_tokens_default ?? 2048,
+			token_min: data.token_min ?? 256,
+			token_max: data.token_max ?? 64000,
 		}),
 		save: async (next: AiDraft) => {
 			const fresh = await configureApi.ai.update({
@@ -131,6 +145,9 @@ export const ConfigureAI = () => {
 				embedding_api_key_clear: next.embedding_api_key_clear,
 				model: next.model,
 				embedding_model: next.embedding_model,
+				max_tokens: next.max_tokens.trim() === "" ? 0 : Number(next.max_tokens),
+				final_max_tokens:
+					next.final_max_tokens.trim() === "" ? 0 : Number(next.final_max_tokens),
 				features: next.features,
 			});
 
@@ -364,6 +381,43 @@ export const ConfigureAI = () => {
 								value={draft.model}
 								onChange={(v) => setDraft({ ...draft, model: v })}
 							/>
+
+							<div className="grid gap-3 sm:grid-cols-2">
+								<Field
+									hint={`Tokens one tool-calling round may generate. Leave blank for this provider's default (${draft.max_tokens_default}). Raise it if the assistant writes long page content — a round cut off mid-tool-call is refused, not applied.`}
+									label="Tokens per round"
+								>
+									<TextInput
+										max={draft.token_max}
+										min={draft.token_min}
+										placeholder={`${draft.max_tokens_default} (default)`}
+										type="number"
+										value={draft.max_tokens}
+										onChange={(e) =>
+											setDraft({ ...draft, max_tokens: e.target.value })
+										}
+									/>
+								</Field>
+
+								<Field
+									hint={`Tokens the final written answer may generate. Leave blank for this provider's default (${draft.final_max_tokens_default}). An answer that hits the limit is delivered with a note saying it was cut off.`}
+									label="Tokens per answer"
+								>
+									<TextInput
+										max={draft.token_max}
+										min={draft.token_min}
+										placeholder={`${draft.final_max_tokens_default} (default)`}
+										type="number"
+										value={draft.final_max_tokens}
+										onChange={(e) =>
+											setDraft({
+												...draft,
+												final_max_tokens: e.target.value,
+											})
+										}
+									/>
+								</Field>
+							</div>
 
 							{embeddingOptions.length > 0 && (
 								<>

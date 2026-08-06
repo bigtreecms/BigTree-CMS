@@ -46,6 +46,16 @@
 		private $truncated_arguments = false;
 
 		/**
+		 * @var string The provider's own stop signal (finish_reason / stop_reason).
+		 *
+		 * Streamed as the last thing before the terminal marker, and read for the
+		 * same reason the buffered paths read it (TurnCompleteness): a stream that
+		 * ends because the model hit its token ceiling is *terminated*, not
+		 * finished, and [DONE] / message_stop arrive either way.
+		 */
+		private $stop_reason = "";
+
+		/**
 		 * @param string $service openai|xai|anthropic
 		 * @param callable $on_delta fn(string $text_chunk): void
 		 */
@@ -78,12 +88,12 @@
 		public function incompleteReason(): string {
 			if ($this->truncated_arguments) {
 
-				return "The response was cut off part-way through a tool call.";
+				return TurnCompleteness::TRUNCATED_TOOL_CALL;
 			}
 
 			if (!$this->done) {
 
-				return "The response was cut off before it finished.";
+				return TurnCompleteness::TRUNCATED_STREAM;
 			}
 
 			return "";
@@ -132,6 +142,14 @@
 		 * @param array<string,mixed> $json
 		 */
 		private function feedOpenAI(array $json): void {
+			// Read before the delta check: the chunk that carries finish_reason is
+			// usually the last one, and its delta is empty.
+			$finish = $json["choices"][0]["finish_reason"] ?? null;
+
+			if (is_string($finish) && $finish !== "") {
+				$this->stop_reason = $finish;
+			}
+
 			$delta = $json["choices"][0]["delta"] ?? null;
 
 			if (!is_array($delta)) {
@@ -209,6 +227,18 @@
 				return;
 			}
 
+			// Anthropic reports why it stopped on message_delta, one event ahead of
+			// message_stop.
+			if ($type === "message_delta") {
+				$stop = $json["delta"]["stop_reason"] ?? null;
+
+				if (is_string($stop) && $stop !== "") {
+					$this->stop_reason = $stop;
+				}
+
+				return;
+			}
+
 			if ($type === "message_stop") {
 				$this->done = true;
 			}
@@ -278,8 +308,24 @@
 				];
 			}
 
+			$length_stopped = TurnCompleteness::isLength($this->stop_reason);
+			$content = $this->text === "" ? null : $this->text;
+
+			// Arguments that happen to parse are not arguments that are whole: a model
+			// stopped at its token ceiling mid-call can close the JSON and still have
+			// left a field short. The provider saying "length" is the authority here,
+			// and it refuses the turn through the same flag unparseable fragments do.
+			if ($length_stopped && $tool_calls) {
+				$this->truncated_arguments = true;
+			} elseif ($length_stopped) {
+				// No tool calls: this is an answer the provider cut mid-sentence.
+				// Worth keeping — and worth saying so, which is all the buffered paths
+				// do with the same signal.
+				$content = TurnCompleteness::markTruncatedAnswer($content);
+			}
+
 			return [
-				"content" => $this->text === "" ? null : $this->text,
+				"content" => $content,
 				"tool_calls" => $tool_calls,
 				"raw" => ["_openai_tool_calls" => $openai_tool_calls],
 			];

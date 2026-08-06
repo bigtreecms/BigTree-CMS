@@ -39,15 +39,22 @@
 		 * page content field. A write is judged against all of them, because the model
 		 * may have read the value through any of these seams.
 		 *
+		 * The ladder is here because a seam's declared cap is no longer the only cap
+		 * it can read at: a payload with more fields than the budget affords reads
+		 * each of them shorter (PayloadBudget::capForValues), and a cut this refusal
+		 * doesn't know about is a cut the model can write straight back over the
+		 * stored value. Quantizing those cuts to a fixed ladder is what keeps this
+		 * list finite and complete (audit #18 A1).
+		 *
 		 * @return list<int>
 		 */
 		public static function caps(): array {
 
-			return [
+			return array_values(array_unique(array_merge([
 				\BigTree\Services\AutoModuleService::AI_ENTRY_READ_CAP,       // get_module_entry
 				\BigTree\Services\AutoModuleService::AI_ENTRY_LIST_VALUE_CAP, // list_module_entries
 				\BigTree\Services\PageService::AI_CONTENT_FIELD_CAP,          // get_page
-			];
+			], PayloadBudget::VALUE_CAP_LADDER)));
 		}
 
 		/**

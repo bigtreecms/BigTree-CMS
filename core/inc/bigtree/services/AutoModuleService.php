@@ -14,6 +14,7 @@
 	use BigTree\Services\AI\ColumnDomain;
 	use BigTree\Services\AI\FieldOptionDomain;
 	use BigTree\Services\AI\FieldTypeDomain;
+	use BigTree\Services\AI\PayloadBudget;
 	use BigTree\Services\AI\PreviewValue;
 	use BigTree\Services\AI\ResourceReferenceDomain;
 	use BigTree\Services\AI\RelationDomain;
@@ -1793,6 +1794,27 @@
 			}, $window);
 			$truncated = array_filter($truncated);
 
+			// The per-value cap bounds a column; nothing bounded the payload. Fifty
+			// rows of a twenty-five field module at 300 characters each is ~375,000
+			// characters in one tool result, re-fed on every later round until the
+			// request overflows the model's context and the whole turn dies (audit #18
+			// A1). Rows are dropped rather than values shortened — a row read whole is
+			// worth more than every row read in part — and the drop is disclosed with
+			// the `has_more` this payload already carries.
+			$fitted = PayloadBudget::fitRows($entries);
+
+			if (count($fitted) < count($entries)) {
+				$entries = $fitted;
+				$more = true;
+				$kept_ids = [];
+
+				foreach ($entries as $entry) {
+					$kept_ids[(string)($entry["id"] ?? "")] = true;
+				}
+
+				$truncated = array_intersect_key($truncated, $kept_ids);
+			}
+
 			return [
 				"module" => [
 					"id" => (string)$module["id"],
@@ -1802,6 +1824,11 @@
 				"table" => $table,
 				"offset" => $offset,
 				"limit" => $limit,
+				// What this window actually contains, which is not always the limit
+				// asked for: the payload budget can end the window early. Paging by
+				// `limit` after a short window would step straight over the rows the
+				// budget cut, so the model is told the number to advance `offset` by.
+				"returned" => count($entries),
 				"has_more" => $more,
 				"entries" => $entries,
 				// entry id => the columns shown only in part. A value listed here is not

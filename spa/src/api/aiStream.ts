@@ -50,12 +50,28 @@ export interface ChatStreamHandlers {
 
 /** Thrown when the stream can't start or the server sent an `error` event. */
 export class ChatStreamError extends Error {
+	/**
+	 * The server ended the turn itself (an `error` event), as opposed to the
+	 * connection failing under us. It has already settled whatever the turn
+	 * staged, so there is nothing to retry and nothing to reload.
+	 */
+	readonly fromServer: boolean;
+
+	/** Whether that settlement kept the turn's staged cards (and its thread). */
+	readonly proposalsKept: boolean;
+
 	readonly status?: number;
 
-	constructor(message: string, status?: number) {
+	constructor(
+		message: string,
+		status?: number,
+		settled?: { fromServer?: boolean; proposalsKept?: boolean }
+	) {
 		super(message);
 		this.name = "ChatStreamError";
 		this.status = status;
+		this.fromServer = settled?.fromServer ?? false;
+		this.proposalsKept = settled?.proposalsKept ?? false;
 	}
 }
 
@@ -158,9 +174,12 @@ export const streamChat = async (
 			done = true;
 			handlers.onDone(data as ChatStreamDone);
 		} else if (evt.event === "error") {
-			throw new ChatStreamError(
-				String((data as { message?: string })?.message ?? "The assistant stream failed.")
-			);
+			const e = data as { message?: string; proposals_kept?: boolean };
+
+			throw new ChatStreamError(e?.message ?? "The assistant stream failed.", undefined, {
+				fromServer: true,
+				proposalsKept: !!e?.proposals_kept,
+			});
 		}
 	};
 

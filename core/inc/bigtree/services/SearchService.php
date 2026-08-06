@@ -12,6 +12,7 @@
 	use BigTree\Services\AI\AIToolResult;
 	use BigTree\Services\AI\AgentLoop;
 	use BigTree\Services\AI\FieldTypeDomain;
+	use BigTree\Services\AI\PayloadBudget;
 	use BigTree\Services\AI\ResourceReferenceDomain;
 	use BigTree\Services\AI\Tools\SearchToolBackend;
 	use BigTree\Services\AI\Tools\SearchPagesTool;
@@ -218,9 +219,11 @@
 			$loop = new AgentLoop($ai, $registry, self::AI_MAX_ROUNDS);
 
 			$run = $loop->run($messages, $tool_context, [
-				"max_tokens" => 1024,
+				// The site's configured generation budget (audit #18 A3); search reads
+				// it from the same place chat does so one setting governs both loops.
+				"max_tokens" => $ai->maxTokens(),
 				"temperature" => 0.2,
-				"final_max_tokens" => 512,
+				"final_max_tokens" => $ai->finalMaxTokens(),
 			], function (AIToolResult $tool_result) use (&$collected): void {
 				// Navigable entities the tool touched feed the SPA result set;
 				// the model only ever sees toModelPayload().
@@ -1490,21 +1493,21 @@ PROMPT;
 			// had no answer and "replace the photo" was a blind write (audit #11 B4).
 			// Folder-filtered, like every other resource read.
 			$references = [];
-			$cap = AutoModuleService::AI_ENTRY_READ_CAP;
+			// The per-column cap bounds a column; nothing bounded the row, and a row of
+			// long columns is tens of thousands of characters from one
+			// get_module_entry — re-fed on every later round until the request
+			// overflows the model's context (audit #18 A1). A row has no rows to drop,
+			// so an over-budget row is read at a shorter cap and lists what it cut in
+			// fields_truncated. The cap is chosen from the row's real lengths below,
+			// after everything has been read whole.
+			$lengths = [];
 			$schema = is_array($resolved_form["schema"] ?? null) ? $resolved_form["schema"] : [];
 
 			foreach ($row as $key => $value) {
 				if (is_array($value) || is_object($value)) {
 					$encoded = (string)json_encode($value);
-
-					if (mb_strlen($encoded) > $cap) {
-						// The array branch had no ellipsis at all, so the model received an
-						// unterminated JSON fragment presented as a complete value.
-						$encoded = mb_substr($encoded, 0, $cap) . "…";
-						$truncated[] = (string)$key;
-					}
-
 					$safe[$key] = $encoded;
+					$lengths[(string)$key] = mb_strlen($encoded);
 
 					continue;
 				}
@@ -1519,6 +1522,8 @@ PROMPT;
 						$references[(string)$key] = $described;
 					}
 
+					// A reference is an id, not prose: uncapped, and not part of what
+					// the budget has to fit.
 					$safe[$key] = $text;
 
 					continue;
@@ -1531,12 +1536,27 @@ PROMPT;
 					$text = PageService::aiDenormalizeHtmlValue($text);
 				}
 
-				if (mb_strlen($text) > $cap) {
-					$text = mb_substr($text, 0, $cap) . "…";
-					$truncated[] = (string)$key;
+				$safe[$key] = $text;
+				$lengths[(string)$key] = mb_strlen($text);
+			}
+
+			// Measured, not divided: an ordinary entry — one long body beside a dozen
+			// short columns — still reads at the full AI_ENTRY_READ_CAP audit #10
+			// raised it to. Only a row that genuinely doesn't fit falls down
+			// PayloadBudget's ladder, and it lands on a step TruncatedRead knows, so a
+			// value cut here still can't be written back over the stored one.
+			$cap = PayloadBudget::capForValues(array_values($lengths), AutoModuleService::AI_ENTRY_READ_CAP);
+
+			foreach ($lengths as $key => $length) {
+				if ($length <= $cap) {
+
+					continue;
 				}
 
-				$safe[$key] = $text;
+				// The array branch had no ellipsis at all, so the model received an
+				// unterminated JSON fragment presented as a complete value.
+				$safe[$key] = mb_substr((string)$safe[$key], 0, $cap) . "…";
+				$truncated[] = (string)$key;
 			}
 
 			$resolved_id = $this->moduleId($module);
@@ -1572,6 +1592,7 @@ PROMPT;
 					"entry" => $safe,
 					"entry_references" => $references,
 					"fields_truncated" => $truncated,
+					"value_cap" => $cap,
 				], $relations, [
 					"note" => "This entry is still an unpublished draft awaiting approval — these are the draft's "
 						. "values, not a live row. Edit it with this same \"{$reference}\" id.",
@@ -1596,6 +1617,7 @@ PROMPT;
 					"entry" => $safe,
 					"entry_references" => $references,
 					"fields_truncated" => $truncated,
+					"value_cap" => $cap,
 				], $relations),
 				"artifact" => $group,
 			];

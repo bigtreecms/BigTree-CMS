@@ -31,7 +31,9 @@
 				$this->name(),
 				"List a module's entries, newest first, with the fields the assistant can read and write. Use "
 					. "this for \"show me the latest X\" — search_module_entries is for finding a specific one by "
-					. "keyword. The result says whether more entries exist beyond the window you asked for.",
+					. "keyword. The result says whether more entries exist beyond the window you asked for "
+					. "(has_more) and how many it actually contains (returned) — a module with very long fields can "
+					. "end the window early, so page by advancing offset by `returned`, never by `limit`.",
 				[
 					"type" => "object",
 					"properties" => [

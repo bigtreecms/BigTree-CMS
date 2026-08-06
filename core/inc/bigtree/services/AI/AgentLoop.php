@@ -53,12 +53,25 @@
 		}
 
 		/**
-		 * Whether a turn has hit either per-turn cap, given what it has run so far.
+		 * Whether a turn has hit any per-turn cap, given what it has run so far.
 		 * Returns the refusal to hand the model, or null when there is room.
 		 *
 		 * @param list<array<string,mixed>> $tool_activity
+		 * @param int $payload_chars Characters this turn's tool results have already added to context.
 		 */
-		private static function capReached(array $tool_activity): ?string {
+		private static function capReached(array $tool_activity, int $payload_chars = 0): ?string {
+			// The axis nothing bounded. Rounds, tool calls, proposals, conversation
+			// length and the history replay were all budgeted; the tool results
+			// accumulating inside the turn — re-fed in full on every later round —
+			// were not, so a turn that read widely overflowed the provider's context
+			// and died as an unrecoverable provider error carrying everything it had
+			// staged with it (audit #18 A1). Refused here instead, in the model's own
+			// terms, while there is still room to answer.
+			if ($payload_chars >= PayloadBudget::TURN_CHARS) {
+
+				return PayloadBudget::turnRefusal();
+			}
+
 			if (count($tool_activity) >= self::MAX_TOOL_CALLS) {
 
 				return "This turn has already used its limit of " . self::MAX_TOOL_CALLS . " tool calls. Summarize "
@@ -80,6 +93,35 @@
 			}
 
 			return null;
+		}
+
+		/**
+		 * One tool result, in the form it enters the model's context — bounded.
+		 *
+		 * The read seams that can outgrow RESULT_CHARS bound themselves gracefully
+		 * (dropping rows, or reading values at a shorter cap, and disclosing both).
+		 * This is the backstop under all of them, and it exists because the graceful
+		 * half is a per-seam property: it has to be *added* to a seam, so a new tool,
+		 * an extension's tool, or a seam nobody re-measured after widening it is one
+		 * oversized result away from an unrecoverable provider error. Refusing costs
+		 * that one read; overflowing costs the whole turn.
+		 *
+		 * Only an OK payload is replaced. A proposal's payload is bounded by
+		 * construction (a summary plus PreviewValue::CAP-capped rows), and reporting a
+		 * *staged* change back to the model as an error would be a worse lie than any
+		 * size: it invites a duplicate. Its real size is still charged to the turn.
+		 */
+		private static function budgetedPayload(AIToolResult $tool_result, string $name): array {
+			$payload = $tool_result->toModelPayload();
+
+			if (!$tool_result->isOk() || PayloadBudget::size($payload) <= PayloadBudget::RESULT_CHARS) {
+
+				return $payload;
+			}
+
+			return AIToolResult::error(
+				PayloadBudget::oversizedResult($name, PayloadBudget::size($payload))
+			)->toModelPayload();
 		}
 
 		/**
@@ -125,13 +167,19 @@
 		public function run(array $messages, AIToolContext $context, array $options = [], ?callable $on_tool_result = null): array {
 			$tools = $this->registry->definitions($context->user);
 			$chat_options = [
-				"max_tokens" => (int)($options["max_tokens"] ?? 1024),
+				// Defaults, not policy: every driver passes the site's configured
+				// budget (BigTreeAI::maxTokens). The old literal 1024 was a ceiling no
+				// setting could raise — roughly 700 words of *tool-call arguments*, so
+				// a page body past that was cut mid-JSON and arrived as a call with no
+				// arguments at all (audit #18 A3).
+				"max_tokens" => (int)($options["max_tokens"] ?? BigTreeAI::DEFAULT_MAX_TOKENS),
 				"temperature" => (float)($options["temperature"] ?? 0.2),
 			];
 			$answer = null;
 			$error = null;
 			$rounds = 0;
 			$tool_activity = [];
+			$payload_chars = 0;
 			$exhausted = false;
 
 			while ($rounds < $this->max_rounds) {
@@ -163,7 +211,7 @@
 				foreach ($tool_calls as $call) {
 					$name = (string)($call["name"] ?? "");
 					$args = is_array($call["arguments"] ?? null) ? $call["arguments"] : [];
-					$capped = self::capReached($tool_activity);
+					$capped = self::capReached($tool_activity, $payload_chars);
 					$tool_result = $capped !== null
 						? AIToolResult::error($capped)
 						: $this->registry->execute($name, $args, $context);
@@ -174,12 +222,15 @@
 						$on_tool_result($tool_result, $call);
 					}
 
+					$payload = self::budgetedPayload($tool_result, $name);
+					$payload_chars += PayloadBudget::size($payload);
+
 					// Fence the tool result as untrusted data (PromptGuard) so content
 					// the tool fetched can't read as instructions to the model.
 					$messages[] = [
 						"role" => "tool",
 						"tool_call_id" => (string)($call["id"] ?? ""),
-						"content" => PromptGuard::wrapToolResult($tool_result->toModelPayload()),
+						"content" => PromptGuard::wrapToolResult($payload),
 					];
 				}
 
@@ -205,7 +256,7 @@
 				}
 
 				$final = $this->ai->chat($messages, [], [
-					"max_tokens" => (int)($options["final_max_tokens"] ?? 512),
+					"max_tokens" => (int)($options["final_max_tokens"] ?? BigTreeAI::DEFAULT_FINAL_MAX_TOKENS),
 					"temperature" => $chat_options["temperature"],
 				]);
 
@@ -310,13 +361,15 @@
 		public function runStreaming(array $messages, AIToolContext $context, array $options, callable $emit, ?callable $on_tool_result = null): array {
 			$tools = $this->registry->definitions($context->user);
 			$chat_options = [
-				"max_tokens" => (int)($options["max_tokens"] ?? 1024),
+				// See run(): the configured budget, with the same default.
+				"max_tokens" => (int)($options["max_tokens"] ?? BigTreeAI::DEFAULT_MAX_TOKENS),
 				"temperature" => (float)($options["temperature"] ?? 0.2),
 			];
 			$answer = null;
 			$error = null;
 			$rounds = 0;
 			$tool_activity = [];
+			$payload_chars = 0;
 			$exhausted = false;
 
 			while ($rounds < $this->max_rounds) {
@@ -356,7 +409,7 @@
 				foreach ($tool_calls as $call) {
 					$name = (string)($call["name"] ?? "");
 					$args = is_array($call["arguments"] ?? null) ? $call["arguments"] : [];
-					$capped = self::capReached($tool_activity);
+					$capped = self::capReached($tool_activity, $payload_chars);
 					$tool_result = $capped !== null
 						? AIToolResult::error($capped)
 						: $this->registry->execute($name, $args, $context);
@@ -369,10 +422,13 @@
 						$on_tool_result($tool_result, $call);
 					}
 
+					$payload = self::budgetedPayload($tool_result, $name);
+					$payload_chars += PayloadBudget::size($payload);
+
 					$messages[] = [
 						"role" => "tool",
 						"tool_call_id" => (string)($call["id"] ?? ""),
-						"content" => PromptGuard::wrapToolResult($tool_result->toModelPayload()),
+						"content" => PromptGuard::wrapToolResult($payload),
 					];
 				}
 
@@ -388,7 +444,7 @@
 				}
 
 				$final = $this->ai->chatStream($messages, [], [
-					"max_tokens" => (int)($options["final_max_tokens"] ?? 512),
+					"max_tokens" => (int)($options["final_max_tokens"] ?? BigTreeAI::DEFAULT_FINAL_MAX_TOKENS),
 					"temperature" => $chat_options["temperature"],
 				], function (string $chunk) use ($emit): void {
 					$emit(["type" => "text", "text" => $chunk]);

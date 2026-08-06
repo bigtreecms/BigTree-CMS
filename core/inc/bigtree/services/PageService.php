@@ -16,6 +16,7 @@
 	use BigTree\Services\AI\ColumnDomain;
 	use BigTree\Services\AI\FieldOptionDomain;
 	use BigTree\Services\AI\FieldTypeDomain;
+	use BigTree\Services\AI\PayloadBudget;
 	use BigTree\Services\AI\PreviewValue;
 	use BigTree\Services\AI\ResourceReferenceDomain;
 	use BigTree\Services\AI\RelationDomain;
@@ -2166,6 +2167,20 @@
 				];
 			}
 
+			// Each row is bounded but the window is not: 200 children at ~230
+			// characters is ~46,000 in one tool result, over
+			// PayloadBudget::RESULT_CHARS and re-fed on every later round (audit #18
+			// A1). Rows are dropped rather than fields trimmed — a child read whole
+			// is worth more than every child read in part, and a tree row has nothing
+			// long enough to be worth cutting — and the drop is disclosed through the
+			// has_more / `returned` pair this tool already tells the model to page by.
+			$fitted = PayloadBudget::fitRows($children);
+
+			if (count($fitted) < count($children)) {
+				$children = $fitted;
+				$more = true;
+			}
+
 			$can_create = PermissionService::userHasPageAccess($user, $parent, "e");
 
 			return [
@@ -2179,6 +2194,11 @@
 				"children" => $children,
 				"offset" => $offset,
 				"limit" => $limit,
+				// What this window actually contains, which the payload budget can cut
+				// below `limit`. The description tells the model to advance `offset` by
+				// the number of children returned; this is that number, stated rather
+				// than left to be counted.
+				"returned" => count($children),
 				"has_more" => $more,
 				"can_create_here" => $can_create,
 				"can_edit_here" => $parent > 0 && $can_create,
@@ -2409,7 +2429,7 @@
 		 *
 		 * @param array<string,mixed> $target An aiResolvePageTarget result.
 		 * @param object|array|null $user The actor, for the reference folder filter.
-		 * @return array{content:array<string,string>,content_references:array<string,array<string,mixed>>,content_truncated:list<string>}
+		 * @return array{content:array<string,string>,content_references:array<string,array<string,mixed>>,content_truncated:list<string>,content_field_cap:int}
 		 */
 		public function aiPageContentFields(array $target, $user = null): array {
 			$page = $target["page"];
@@ -2418,6 +2438,15 @@
 			$content = [];
 			$references = [];
 			$truncated = [];
+
+			// Read whole first, then decide what the map can afford. The per-field cap
+			// bounds a field; nothing bounded the map, and a template with enough long
+			// fields is tens of thousands of characters from one get_page — re-fed on
+			// every later round until the request overflows the model's context
+			// (audit #18 A1). There are no rows to drop here, the fields *are* the
+			// record, so an over-budget map is read at a shorter cap and says so in
+			// content_truncated.
+			$lengths = [];
 
 			foreach ($schema as $id => $field) {
 				if (!array_key_exists($id, $stored)) {
@@ -2435,6 +2464,8 @@
 						$references[$id] = $described;
 					}
 
+					// A reference is an id, not prose: no cap applies and it is not
+					// part of what the budget has to fit.
 					$content[$id] = $text;
 
 					continue;
@@ -2447,18 +2478,35 @@
 					$text = self::aiDenormalizeHtmlValue($text);
 				}
 
-				if (mb_strlen($text) > self::AI_CONTENT_FIELD_CAP) {
-					$text = mb_substr($text, 0, self::AI_CONTENT_FIELD_CAP) . "…";
-					$truncated[] = $id;
+				$content[$id] = $text;
+				$lengths[$id] = mb_strlen($text);
+			}
+
+			// Measured, not divided: a page whose fields fit is read at the full
+			// declared cap, which is the ordinary case and the one audit #10 raised
+			// that cap for. Only a genuinely oversized map falls down the ladder — and
+			// it lands on a step TruncatedRead knows, so a value cut here still can't
+			// be written back over the stored one.
+			$cap = PayloadBudget::capForValues(array_values($lengths), self::AI_CONTENT_FIELD_CAP);
+
+			foreach ($lengths as $id => $length) {
+				if ($length <= $cap) {
+
+					continue;
 				}
 
-				$content[$id] = $text;
+				$content[$id] = mb_substr($content[$id], 0, $cap) . "…";
+				$truncated[] = $id;
 			}
 
 			return [
 				"content" => $content,
 				"content_references" => $references,
 				"content_truncated" => $truncated,
+				// The cap these values were actually read at. Normally
+				// AI_CONTENT_FIELD_CAP; lower on a template with enough fields that
+				// reading them all in full would not fit the payload budget.
+				"content_field_cap" => $cap,
 			];
 		}
 

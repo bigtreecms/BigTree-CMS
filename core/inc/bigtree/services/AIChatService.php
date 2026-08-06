@@ -98,9 +98,17 @@
 		const TITLE_MAX = 120;
 		const TOOL_LIMIT = 8;
 		const MAX_ROUNDS = 5;
-		// The default per-request provider timeout (mirrors ai.php's cURL default).
-		// Used only to size the PHP execution budget for a full multi-round turn.
+		// The per-request provider timeout to size the PHP execution budget against.
+		// Deliberately above ai.php's own cURL default (30s, requestJson) rather than
+		// a mirror of it — the comment here used to claim it was a mirror, which made
+		// the budget look tighter than it is (audit #18 A4).
 		const PROVIDER_TIMEOUT_SECONDS = 60;
+		// Why a turn ended without an answer. Both keep whatever the turn staged; they
+		// differ only in what the persisted message tells the user happened, and the
+		// two are not interchangeable — a closed tab is not a provider failure, and
+		// saying so sends the user looking for an outage that never happened.
+		const FAILED_PROVIDER = "provider";
+		const FAILED_INTERRUPTED = "interrupted";
 		// A conversation is a bounded context window; cap turns so history replay
 		// (and its token cost) can't grow without limit.
 		const MAX_MESSAGES_PER_CONVERSATION = 100;
@@ -141,13 +149,16 @@
 			$proposals = [];
 
 			$run = $loop->run($turn["messages"], $turn["context"], [
-				"max_tokens" => 1024,
+				// The site's configured generation budget, not a literal: a hard-coded
+				// 1024 was a ceiling no long-context site could raise, and it is the
+				// authoring limit a CMS assistant runs into first (audit #18 A3).
+				"max_tokens" => $turn["ai"]->maxTokens(),
 				"temperature" => 0.3,
-				"final_max_tokens" => 700,
+				"final_max_tokens" => $turn["ai"]->finalMaxTokens(),
 			], $this->turnCollector($artifacts, $proposals));
 
 			if ($run["answer"] === null && $run["error"] !== null) {
-				$this->rollbackFailedTurn($proposals, $turn["new_conversation"], $turn["conversation_id"]);
+				$this->rollbackFailedTurn($turn, $proposals, $run["tool_activity"]);
 
 				throw new BadRequestException($run["error"], "ai_provider_error");
 			}
@@ -213,10 +224,12 @@
 			$persisted = null;
 
 			// A client that closes the tab mid-stream kills PHP at the next sse()
-			// write. Anything the turn had already staged survived that: proposals
-			// with no message anywhere in the conversation to explain them — invisible
-			// in the UI and approvable through the API for the next 24 hours. Clean
-			// them up on the way out, exactly as a provider failure does.
+			// write, so nothing below runs. What the turn had already staged survived
+			// that as proposals with no message anywhere in the conversation to
+			// explain them — invisible in the UI and approvable through the API for
+			// the next 24 hours. Settled here on the way out, exactly as a provider
+			// failure is: the cards keep their message, an empty new thread is
+			// removed (see rollbackFailedTurn).
 			register_shutdown_function(function () use (&$persisted, &$proposals, $turn): void {
 				if ($persisted !== null) {
 
@@ -224,16 +237,17 @@
 				}
 
 				try {
-					$this->rollbackFailedTurn($proposals, $turn["new_conversation"], $turn["conversation_id"]);
+					$this->rollbackFailedTurn($turn, $proposals, [], self::FAILED_INTERRUPTED);
 				} catch (\Throwable $e) {
 					// Shutdown is best-effort; never surface anything from here.
 				}
 			});
 
 			$run = $loop->runStreaming($turn["messages"], $turn["context"], [
-				"max_tokens" => 1024,
+				// See chat(): configured, not literal.
+				"max_tokens" => $turn["ai"]->maxTokens(),
 				"temperature" => 0.3,
-				"final_max_tokens" => 700,
+				"final_max_tokens" => $turn["ai"]->finalMaxTokens(),
 			], function (array $event): void {
 				$type = (string)($event["type"] ?? "");
 
@@ -255,10 +269,17 @@
 			}, $this->turnCollector($artifacts, $proposals));
 
 			if ($run["answer"] === null && $run["error"] !== null) {
-				$this->rollbackFailedTurn($proposals, $turn["new_conversation"], $turn["conversation_id"]);
-				$proposals = [];
+				$kept = $this->rollbackFailedTurn($turn, $proposals, $run["tool_activity"]);
 				$persisted = ["rolled_back" => true];
-				$this->sse("error", ["message" => (string)$run["error"]]);
+				// Whether anything survives on the server, stated rather than left for
+				// the client to infer. A client that guesses has two ways to be wrong:
+				// reload a thread that was rolled back (losing the message the user
+				// just typed, and the error explaining why) or leave staged cards
+				// showing nowhere but the history list.
+				$this->sse("error", [
+					"message" => (string)$run["error"],
+					"proposals_kept" => $kept,
+				]);
 
 				exit;
 			}
@@ -436,20 +457,79 @@
 		}
 
 		/**
-		 * Discard what a failed turn staged: any proposals from an earlier round, and
-		 * a just-created empty thread (which mutating tools forced us to create up
-		 * front). Keeps a provider failure from leaving orphaned rows behind.
+		 * What a failed turn leaves behind.
 		 *
+		 * This used to delete every proposal the turn had staged. A turn that read
+		 * widely, staged three good cards on rounds 1–3 and hit a provider error on
+		 * round 4 lost all three and told the user a raw provider string — and since
+		 * the same reads produce the same payloads, the retry failed the same way
+		 * (audit #18 A1/D2). A proposal that was staged is not half-written work: it
+		 * was validated, fingerprinted, given a 24-hour TTL and its own approval gate,
+		 * and none of that depends on the turn that produced it having finished.
+		 *
+		 * So the cards survive — but never as orphans. A staged proposal with no
+		 * message anywhere in the conversation is invisible in the UI and approvable
+		 * through the API for a day (the shape chatStream's shutdown handler was
+		 * written to prevent), so keeping them means persisting the turn with an
+		 * assistant message that says what happened and what is waiting. Only a turn
+		 * that staged nothing is rolled back, and then only if it created the
+		 * conversation.
+		 *
+		 * @param array<string,mixed> $turn From setupTurn().
 		 * @param list<array<string,mixed>> $proposals
+		 * @param list<array<string,mixed>> $tool_activity What the turn ran before it failed.
+		 * @param string $reason One of the FAILED_* constants: what the message says happened.
+		 * @return bool Whether the turn was persisted (cards kept) rather than rolled back.
 		 */
-		private function rollbackFailedTurn(array $proposals, bool $new_conversation, int $conversation_id): void {
-			foreach ($proposals as $proposal) {
-				SQL::delete(ProposalStore::TABLE, (string)$proposal["proposal_id"]);
+		private function rollbackFailedTurn(
+			array $turn,
+			array $proposals,
+			array $tool_activity = [],
+			string $reason = self::FAILED_PROVIDER
+		): bool {
+			if ($proposals) {
+				$this->persistFailedTurn($turn, $proposals, $tool_activity, $reason);
+
+				return true;
 			}
 
-			if ($new_conversation) {
-				SQL::delete(self::CONVERSATIONS_TABLE, $conversation_id);
+			if (!empty($turn["new_conversation"])) {
+				SQL::delete(self::CONVERSATIONS_TABLE, (int)$turn["conversation_id"]);
 			}
+
+			return false;
+		}
+
+		/**
+		 * Record a failed turn that staged changes, so the cards it left have a
+		 * message explaining them. The user still sees the error; this is what they
+		 * find in the conversation afterwards.
+		 *
+		 * @param array<string,mixed> $turn
+		 * @param list<array<string,mixed>> $proposals
+		 * @param list<array<string,mixed>> $tool_activity
+		 * @param string $reason One of the FAILED_* constants.
+		 */
+		private function persistFailedTurn(
+			array $turn,
+			array $proposals,
+			array $tool_activity,
+			string $reason = self::FAILED_PROVIDER
+		): void {
+			$count = count($proposals);
+			$answer = ($reason === self::FAILED_INTERRUPTED
+				? "This turn didn't finish — the connection closed before I could reply. "
+				: "This turn didn't finish — the AI service returned an error before I could reply. ")
+				. ($count === 1
+					? "The change I had already prepared is still waiting for you below; approve or reject it as usual."
+					: "The {$count} changes I had already prepared are still waiting for you below; approve or reject "
+						. "them as usual.")
+				. " Nothing has been applied to the site.";
+
+			$this->persistTurn($turn, [
+				"answer" => $answer,
+				"tool_activity" => $tool_activity,
+			], $proposals);
 		}
 
 		// — SSE transport —

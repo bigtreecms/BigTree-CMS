@@ -717,12 +717,21 @@
 				$embeddings_enabled = false;
 			}
 
+			// The generation budget. Blank/0 stores 0, which every reader takes as
+			// "use the provider default" (BigTreeAI::maxTokens) — so a site that never
+			// touches these fields tracks the defaults as they change, rather than
+			// freezing today's numbers into its settings row.
+			$max_tokens = $this->aiTokenSetting($body["max_tokens"] ?? null, "max_tokens");
+			$final_max_tokens = $this->aiTokenSetting($body["final_max_tokens"] ?? null, "final_max_tokens");
+
 			$next = [
 				"service" => $service,
 				"api_key" => $api_key,
 				"model" => $model,
 				"embedding_model" => $embedding_model,
 				"embedding_api_key" => $embedding_api_key,
+				"max_tokens" => $max_tokens,
+				"final_max_tokens" => $final_max_tokens,
 				"features" => [
 					"search" => $search_enabled,
 					"chat" => $chat_enabled,
@@ -741,6 +750,33 @@
 		 */
 		public function reindexAIEmbeddings(Request $request) {
 			return (new EmbeddingService())->reindex($request);
+		}
+
+		/**
+		 * One generation-budget field off the request: 0 (or absent, or blank) means
+		 * "use the provider default"; anything else must sit inside BigTreeAI's
+		 * bounds, since a value below the floor produces turns that can't complete a
+		 * tool call and one above the ceiling is a typo that bills on every round.
+		 *
+		 * @param mixed $value
+		 */
+		private function aiTokenSetting($value, string $field): int {
+			if ($value === null || $value === "" || (int)$value === 0) {
+
+				return 0;
+			}
+
+			$number = (int)$value;
+
+			if ($number < \BigTreeAI::MIN_TOKENS || $number > \BigTreeAI::MAX_TOKENS_CEILING) {
+				throw new BadRequestException(
+					$field . " must be between " . \BigTreeAI::MIN_TOKENS . " and "
+						. \BigTreeAI::MAX_TOKENS_CEILING . ", or blank for the provider default.",
+					"invalid_token_budget"
+				);
+			}
+
+			return $number;
 		}
 
 		/**
@@ -777,6 +813,8 @@
 				$embedding_models[$sid] = $embed_list;
 			}
 
+			$token_defaults = \BigTreeAI::defaultTokens($service);
+
 			return [
 				"service" => $service,
 				"api_key" => "",
@@ -785,6 +823,14 @@
 				"embedding_api_key_set" => $embedding_api_key !== "",
 				"model" => $model,
 				"embedding_model" => $embedding_model,
+				// 0 = following the provider default, which is sent alongside so the
+				// UI can show what "blank" actually means for this service.
+				"max_tokens" => (int)($settings["max_tokens"] ?? 0),
+				"final_max_tokens" => (int)($settings["final_max_tokens"] ?? 0),
+				"max_tokens_default" => $token_defaults["max"],
+				"final_max_tokens_default" => $token_defaults["final"],
+				"token_min" => \BigTreeAI::MIN_TOKENS,
+				"token_max" => \BigTreeAI::MAX_TOKENS_CEILING,
 				"features" => [
 					"search" => !empty($features["search"]) && $configured,
 					"chat" => !empty($features["chat"]) && $configured,
