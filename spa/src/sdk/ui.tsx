@@ -257,6 +257,17 @@ export type { ExternalDropInfo, SortableItem, SortableItemRenderApi } from "./So
 /** Right-edge drawer (focus trap, ESC, scrim) — pickers, field settings, quick edit. */
 export { SlideOver } from "@/components/ui/SlideOver";
 
+/**
+ * Modal confirmation (focus trap, ESC, scrim). Controlled via `open` /
+ * `onOpenChange`; pair with `useConfirmDialog` for open-with-payload state.
+ */
+export { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+export type { ConfirmDialogProps } from "@/components/ui/ConfirmDialog";
+
+/** Open/close state + payload for a single ConfirmDialog instance. */
+export { useConfirmDialog } from "@/hooks/useConfirmDialog";
+export type { UseConfirmDialogResult } from "@/hooks/useConfirmDialog";
+
 // ── Misc chrome ──────────────────────────────────────────────────────────────
 
 export { Chip } from "@/components/ui/Chip";

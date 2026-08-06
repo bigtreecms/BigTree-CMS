@@ -71,6 +71,8 @@ export const {
 	BIGTREE_DRAG_TYPE,
 	// Overlays
 	SlideOver,
+	ConfirmDialog,
+	useConfirmDialog,
 	// Misc
 	Chip,
 	RowReorderControls,

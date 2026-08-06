@@ -91,6 +91,8 @@ export const registerSdk = (): void => {
 		BIGTREE_DRAG_TYPE: BigTreeUI.BIGTREE_DRAG_TYPE,
 		// Overlays
 		SlideOver: BigTreeUI.SlideOver,
+		ConfirmDialog: BigTreeUI.ConfirmDialog,
+		useConfirmDialog: BigTreeUI.useConfirmDialog,
 		// Misc
 		Chip: BigTreeUI.Chip,
 		RowReorderControls: BigTreeUI.RowReorderControls,

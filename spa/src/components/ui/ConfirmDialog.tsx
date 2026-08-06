@@ -1,7 +1,7 @@
 import { Button } from "./Button";
 import { Modal } from "./Modal";
 
-interface ConfirmDialogProps {
+export interface ConfirmDialogProps {
 	cancelLabel?: string;
 	confirmLabel: string;
 	description: string;
