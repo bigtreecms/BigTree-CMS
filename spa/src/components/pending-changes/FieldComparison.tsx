@@ -1,17 +1,31 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 import { formatFieldValue, isEmptyValue, prettyJsonValue } from "@/lib/fieldComparison";
+import { buildFieldDiff, type HtmlDiffView } from "@/lib/textDiff";
 import { expandImageUrl } from "@/lib/imageUrl";
 
+import { DiffStats, TextDiff } from "./TextDiff";
+
 /**
- * Side-by-side "published vs. pending" comparison for a single form field.
- * Rendered inline beneath a field when the user expands its "Compare" toggle.
+ * "Published vs. pending" comparison for a single form field. Rendered inline
+ * beneath a field when the user expands its "Compare" toggle.
  *
- * Rendering adapts to the field type so common core types read well:
- *   - image                → preview thumbnail
- *   - upload / link        → decoded, clickable URL ({staticroot}/{wwwroot} expanded)
- *   - media-gallery        → pretty-printed JSON
- *   - everything else      → the value formatted as text (objects as JSON)
+ * Two presentations, chosen by field type:
+ *
+ *   - Text-like fields (text, textarea, html, the composite JSON types, and any
+ *     untyped column holding a string) get a real diff — see lib/textDiff.ts.
+ *     Reading two columns of body copy to find the sentence that moved is not
+ *     something a publisher should have to do.
+ *   - Everything else keeps the side-by-side columns, where the value's own
+ *     renderer says more than a diff would:
+ *       image                → preview thumbnail
+ *       upload / link        → decoded, clickable URL ({staticroot}/{wwwroot})
+ *       media-gallery/matrix → pretty-printed JSON (only when a diff isn't
+ *                              possible, e.g. a brand-new entry)
+ *       everything else      → the value formatted as text
+ *
+ * A never-published draft (`isNew`) has no baseline to diff against, so it also
+ * keeps the columns — every word would be an insertion.
  */
 
 interface FieldComparisonProps {
@@ -33,22 +47,90 @@ export const FieldComparison = ({
 	isNew,
 	pendingLabel = "Pending draft",
 	fieldType,
-}: FieldComparisonProps) => (
-	<div className="mt-2 grid grid-cols-1 gap-2 rounded-md border border-warn/30 bg-warn/3 p-2 sm:grid-cols-2">
-		<ComparisonColumn
-			emptyLabel={isNew ? "No published version yet" : "Empty"}
-			fieldType={fieldType}
-			heading="Published"
-			tone="published"
-			value={published}
-		/>
-		<ComparisonColumn
-			emptyLabel="Empty"
-			fieldType={fieldType}
-			heading={pendingLabel}
-			tone="pending"
-			value={pending}
-		/>
+}: FieldComparisonProps) => {
+	const [htmlView, setHtmlView] = useState<HtmlDiffView>("text");
+	const diff = useMemo(
+		() => (isNew ? null : buildFieldDiff(published, pending, fieldType, htmlView)),
+		[isNew, published, pending, fieldType, htmlView]
+	);
+
+	if (!diff) {
+		return (
+			<div className="mt-2 grid grid-cols-1 gap-2 rounded-md border border-warn/30 bg-warn/3 p-2 sm:grid-cols-2">
+				<ComparisonColumn
+					emptyLabel={isNew ? "No published version yet" : "Empty"}
+					fieldType={fieldType}
+					heading="Published"
+					tone="published"
+					value={published}
+				/>
+				<ComparisonColumn
+					emptyLabel="Empty"
+					fieldType={fieldType}
+					heading={pendingLabel}
+					tone="pending"
+					value={pending}
+				/>
+			</div>
+		);
+	}
+
+	return (
+		<div className="mt-2 rounded-md border border-warn/30 bg-warn/3 p-2">
+			<div className="mb-1.5 flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+				<div className="text-[10.5px] font-semibold uppercase tracking-[0.04em] text-text-3">
+					Published <span aria-hidden>→</span>{" "}
+					<span className="text-warn">{pendingLabel}</span>
+				</div>
+				<div className="flex items-center gap-2">
+					{fieldType === "html" && (
+						<HtmlViewToggle value={htmlView} onChange={setHtmlView} />
+					)}
+					{!diff.identical && <DiffStats diff={diff} />}
+				</div>
+			</div>
+
+			{diff.identical ? (
+				<div className="rounded border border-border bg-surface px-2 py-1.5 text-[12px] italic text-text-3">
+					{fieldType === "html" && htmlView === "text"
+						? "The text reads the same — switch to Markup to see what changed."
+						: "No differences to show."}
+				</div>
+			) : (
+				<TextDiff diff={diff} />
+			)}
+		</div>
+	);
+};
+
+interface HtmlViewToggleProps {
+	onChange: (next: HtmlDiffView) => void;
+	value: HtmlDiffView;
+}
+
+/**
+ * Text vs. Markup for an HTML field. Text is the default because it answers the
+ * question a publisher is actually asking ("what will the page say?"); Markup is
+ * there for the changes text can't show — a link retargeted, a heading level
+ * changed, an image swapped.
+ */
+const HtmlViewToggle = ({ value, onChange }: HtmlViewToggleProps) => (
+	<div className="flex overflow-hidden rounded border border-border" role="group">
+		{(["text", "markup"] as const).map((option) => (
+			<button
+				aria-pressed={value === option}
+				className={`px-1.5 py-0.5 text-[10.5px] capitalize ${
+					value === option
+						? "bg-surface-3 text-text-2"
+						: "bg-surface text-text-3 hover:text-text-2"
+				}`}
+				key={option}
+				type="button"
+				onClick={() => onChange(option)}
+			>
+				{option}
+			</button>
+		))}
 	</div>
 );
 
@@ -88,6 +170,8 @@ interface ComparisonValueProps {
 	value: unknown;
 }
 
+// Keep the types branched on here in step with OPAQUE_TYPES in lib/textDiff.ts —
+// a type with a widget of its own should not be handed to the differ.
 const ComparisonValue = ({ value, fieldType }: ComparisonValueProps) => {
 	if (fieldType === "image") {
 		return <ImagePreview value={value} />;

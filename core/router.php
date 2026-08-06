@@ -420,6 +420,29 @@
 		// guarded before.
 		$bigtree["reserved_resource_keys"] = ["bigtree", "page", "cms", "admin", "db", "resources", "callouts", "nav"];
 
+		// Fill missing template resource keys as empty strings so templates can
+		// safely echo optional fields that were never saved (SPA used to omit
+		// empty fields from the resources JSON blob).
+		if (!empty($bigtree["page"]["template"])) {
+			$template_def = $cms->getTemplate($bigtree["page"]["template"]);
+
+			if (is_array($template_def) && !empty($template_def["resources"]) && is_array($template_def["resources"])) {
+				if (!is_array($bigtree["resources"])) {
+					$bigtree["resources"] = [];
+				}
+
+				foreach ($template_def["resources"] as $resource) {
+					$id = $resource["id"] ?? "";
+
+					if ($id !== "" && !array_key_exists($id, $bigtree["resources"])) {
+						$bigtree["resources"][$id] = "";
+					}
+				}
+
+				$resources = $bigtree["resources"];
+			}
+		}
+
 		if (is_array($bigtree["resources"])) {
 			foreach ($bigtree["resources"] as $key => $val) {
 				if (substr($key,0,1) != "_" && !in_array($key, $bigtree["reserved_resource_keys"], true)) { // Don't allow for SESSION or COOKIE injection and don't overwrite the render scope

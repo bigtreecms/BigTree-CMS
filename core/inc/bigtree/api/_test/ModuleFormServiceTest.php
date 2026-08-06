@@ -19,6 +19,9 @@
 	 *   - listOptions       — UNIT (static-list happy path needs no DB; state list
 	 *                         happy path; validation/404 paths; db list-type
 	 *                         against a throwaway table when SQL is up)
+	 *   - listOptionsFromSettings — UNIT (settings-only path for page templates /
+	 *                         declarative fields; static + state + missing body;
+	 *                         db against throwaway table when SQL is up)
 	 *
 	 * Tests seed a throwaway module (and, for the db-backed paths, a throwaway
 	 * table) and clean everything up in a finally block. Skips on an unavailable
@@ -466,6 +469,84 @@
 				BigTreeJSONDB::delete("modules", $module_id);
 			}
 
+			try {
+				SQL::query("DROP TABLE IF EXISTS `$table`");
+			} catch (\Throwable $e) {
+				// best-effort cleanup
+			}
+		}
+	}
+
+	/**
+	 * Settings-only list options — the path SelectField uses outside module forms
+	 * (page templates, declarative custom fields like Form Builder's form picker).
+	 */
+	function test_form_list_options_from_settings_static() {
+		$service = new ModuleFormService();
+		$response = $service->listOptionsFromSettings(_form_request([], [
+			"settings" => [
+				"list_type" => "static",
+				"list" => [
+					["key" => "a", "description" => "Alpha"],
+					["value" => "b", "label" => "Beta"],
+				],
+			],
+			"column" => "form",
+		]));
+
+		T::equals($response->status, 200, "listOptionsFromSettings responds 200 for a static list");
+		$options = $response->body["data"]["options"];
+		T::equals(count($options), 2, "settings static list returns both options");
+		T::equals($options[0], ["value" => "a", "label" => "Alpha"], "key/description mapped");
+		T::equals($options[1], ["value" => "b", "label" => "Beta"], "value/label mapped");
+	}
+
+	function test_form_list_options_from_settings_state() {
+		$service = new ModuleFormService();
+		$response = $service->listOptionsFromSettings(_form_request([], [
+			"settings" => ["list_type" => "state"],
+		]));
+
+		$options = $response->body["data"]["options"];
+		T::ok(count($options) > 0, "settings state list returns built-in options");
+		T::ok(isset($options[0]["value"]) && isset($options[0]["label"]), "state options have value + label");
+	}
+
+	function test_form_list_options_from_settings_missing_settings_throws() {
+		$service = new ModuleFormService();
+
+		T::throws(function () use ($service) {
+			$service->listOptionsFromSettings(_form_request([], []));
+		}, BadRequestException::class, "listOptionsFromSettings throws when settings are missing");
+	}
+
+	function test_form_list_options_from_settings_db_list() {
+		if (!_form_sql_ready()) {
+			return;
+		}
+
+		$table = "btx_list_set_" . substr(md5(uniqid()), 0, 8);
+
+		try {
+			SQL::query("CREATE TABLE `$table` (id INT AUTO_INCREMENT PRIMARY KEY, title VARCHAR(64))");
+			SQL::query("INSERT INTO `$table` (title) VALUES ('Contact'), ('Newsletter')");
+
+			$service = new ModuleFormService();
+			$response = $service->listOptionsFromSettings(_form_request([], [
+				"settings" => [
+					"list_type" => "db",
+					"pop-table" => $table,
+					"pop-description" => "title",
+					"pop-sort" => "title ASC",
+				],
+				"column" => "form",
+			]));
+
+			$options = $response->body["data"]["options"];
+			T::equals(count($options), 2, "settings db list returns one option per row");
+			T::equals($options[0]["label"], "Contact", "first db option label");
+			T::equals($options[1]["label"], "Newsletter", "second db option label");
+		} finally {
 			try {
 				SQL::query("DROP TABLE IF EXISTS `$table`");
 			} catch (\Throwable $e) {

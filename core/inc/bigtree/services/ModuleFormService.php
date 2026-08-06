@@ -371,6 +371,27 @@
 		}
 
 		/**
+		 * Resolve list options from field settings alone (no module/form context).
+		 *
+		 * Used by the SPA SelectField when rendering outside a module form — page
+		 * templates, settings, callouts, and nested sub-fields of declarative custom
+		 * types (e.g. Form Builder's form picker). Table/column names are still
+		 * validated against the live schema before any SQL runs.
+		 */
+		public function listOptionsFromSettings(Request $request) {
+			$settings = $request->bodyMap("settings");
+
+			if ($settings === []) {
+				throw new BadRequestException("`settings` body field is required", "missing_settings");
+			}
+
+			$field = ["settings" => $settings];
+			$column = $request->bodyString("column", "list");
+
+			return Response::ok(["options" => $this->resolveListOptions($field, $column)]);
+		}
+
+		/**
 		 * The option set behind a `list` field, whatever populates it (static list,
 		 * database table, state or country).
 		 *

@@ -120,6 +120,12 @@ export const queryKeys = {
 			formId: string | undefined,
 			column: string | undefined
 		) => ["list-options", moduleId, formId, column] as const,
+		/**
+		 * Settings-based list options (page templates, settings, callouts,
+		 * declarative custom fields) — key by the settings that drive the lookup.
+		 */
+		listOptionsFromSettings: (settingsKey: string) =>
+			["list-options", "from-settings", settingsKey] as const,
 		reportPrepare: (moduleId: string, reportId: string) =>
 			["module-report-prepare", moduleId, reportId] as const,
 	},

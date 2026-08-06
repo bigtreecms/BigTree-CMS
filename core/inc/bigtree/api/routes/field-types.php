@@ -1,5 +1,6 @@
 <?php
 	use BigTree\Services\FieldTypeService;
+	use BigTree\Services\ModuleFormService;
 
 	return [
 		"GET /field-types" => [
@@ -48,5 +49,18 @@
 			"service" => [FieldTypeService::class, "render"],
 			"permission" => ["level" => 0],
 			"body" => ["field" => "array"],
+		],
+
+		// Dynamic list options (db / state / country) from field settings alone —
+		// used by SelectField outside module forms (page templates, settings,
+		// callouts, declarative custom-type sub-fields like Form Builder's form
+		// picker). Module forms still use GET /modules/{id}/forms/{sid}/list-options.
+		"POST /field-types/list-options" => [
+			"service" => [ModuleFormService::class, "listOptionsFromSettings"],
+			"permission" => ["level" => 0],
+			"body" => [
+				"settings" => "required|array",
+				"column" => "string|max:255",
+			],
 		],
 	];

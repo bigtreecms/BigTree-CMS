@@ -358,6 +358,7 @@
 			"extensions/upgrade" => "extensions",
 			"feeds" => "feeds",
 			"field-types" => "custom field types",
+			"field-types/list-options" => "custom field types",
 			"field-types/render" => "custom field types",
 			"field-types/schema" => "custom field types",
 			"images/crop" => "uploading files, images and video",

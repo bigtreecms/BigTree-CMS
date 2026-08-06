@@ -20,6 +20,11 @@
   `core/admin/dist/`, no source maps). CI fails if dist is stale.
 - NEW: Install-aware SPA boot config (`window.__BIGTREE_ADMIN__`) and Vite base
   placeholder rewrite for subdirectory `admin_root` installs.
+- NEW: A field's "Compare with published" panel now shows a real diff for
+  text-like fields — word level for text/textarea/HTML, line level for the
+  composite JSON types — instead of two columns to read against each other.
+  HTML compares its rendered text by default, with a Markup view for changes
+  the text can't show (a retargeted link, a changed heading level).
 - Multi-site alternate-domain login hand-off after SPA session bridge remains a
   follow-up; use SPA login per domain for 5.0.
 - Operators with `custom/admin/router.php` must implement the SPA + API + bar

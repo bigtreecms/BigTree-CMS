@@ -34,7 +34,12 @@ import {
 import { pendingChangesApi } from "@/api/endpoints/dashboard";
 import { TagInput } from "@/components/tags/TagInput";
 import type { Tag } from "@/api/endpoints/tags";
-import { resourceToFormField, templatesApi, type TemplateSummary } from "@/api/endpoints/templates";
+import {
+	resourceToFormField,
+	seedTemplateResources,
+	templatesApi,
+	type TemplateSummary,
+} from "@/api/endpoints/templates";
 
 import { FieldRenderer } from "@/renderer/forms/FieldRenderer";
 import { FieldRow } from "@/renderer/forms/FieldRow";
@@ -180,6 +185,34 @@ export const PageEdit = () => {
 		}
 	}, [pageQuery.data]);
 
+	// Once the template schema is known, fill any resource keys the stored page
+	// blob omitted (empty fields the SPA never wrote). Re-run when the template
+	// id changes so a template switch also gets a full key set.
+	useEffect(() => {
+		const template = templateQuery.data;
+
+		if (!template || !body) {
+			return;
+		}
+
+		const current = (body.resources ?? {}) as Record<string, unknown>;
+		const seeded = seedTemplateResources(template.resources, current);
+		const currentKeys = Object.keys(current);
+		const seededKeys = Object.keys(seeded);
+
+		if (
+			seededKeys.length === currentKeys.length &&
+			seededKeys.every((key) => Object.prototype.hasOwnProperty.call(current, key))
+		) {
+			return;
+		}
+
+		setBody((prev) => (prev ? { ...prev, resources: seeded } : prev));
+		// Only re-seed when the template definition or page load identity changes —
+		// not on every body keystroke.
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [templateQuery.data, pageQuery.data]);
+
 	const saveMutation = useMutation({
 		mutationFn: (next: PageEditBody) =>
 			draft ? pagesApi.patchPending(pcid, next) : pagesApi.patch(id, next),
@@ -295,7 +328,12 @@ export const PageEdit = () => {
 			return;
 		}
 
-		const resourceValues = (body.resources ?? {}) as Record<string, unknown>;
+		// Include every template resource key so empty fields persist as "" rather
+		// than being omitted from the JSON blob (front-end templates expect vars).
+		const resourceValues = seedTemplateResources(
+			templateQuery.data?.resources,
+			(body.resources ?? {}) as Record<string, unknown>
+		);
 		const resourceErrors = validateRequiredFields(
 			(templateQuery.data?.resources ?? []).map(resourceToFormField),
 			resourceValues
@@ -311,7 +349,7 @@ export const PageEdit = () => {
 
 		setGeneralError(null);
 		setFieldErrors({});
-		saveMutation.mutate({ ...body, publish });
+		saveMutation.mutate({ ...body, resources: resourceValues, publish });
 	};
 
 	// Dirty once the page has loaded and been edited; suppressed while a save or

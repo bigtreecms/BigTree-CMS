@@ -348,6 +348,12 @@ export interface FieldTypeSchema {
 	value_type?: string;
 }
 
+/** One option returned by POST /field-types/list-options (and the module twin). */
+export interface ListOption {
+	label: string;
+	value: string;
+}
+
 export const fieldTypesApi = {
 	list: () => api.get<FieldTypeRegistry>("/field-types"),
 
@@ -357,6 +363,17 @@ export const fieldTypesApi = {
 
 	getSchema: (id: string) =>
 		api.get<FieldTypeSchema>(`/field-types/${encodeURIComponent(id)}/schema`),
+
+	/**
+	 * Resolve dynamic list-field options (db / state / country) from field settings
+	 * alone — works outside module forms (page templates, settings, callouts,
+	 * declarative custom-type sub-fields).
+	 */
+	listOptions: (settings: Record<string, unknown>, column?: string) =>
+		api.post<{ options: ListOption[] }>("/field-types/list-options", {
+			settings,
+			column: column || undefined,
+		}),
 
 	create: (body: FieldTypeCreateBody) => api.post<FieldType>("/field-types", body),
 

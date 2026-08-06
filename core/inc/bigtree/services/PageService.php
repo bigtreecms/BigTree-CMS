@@ -4627,7 +4627,12 @@
 				"template" => $d["template"] ?? "",
 				"external" => $d["external"] ?? "",
 				"new_window" => Flag::checkbox($d["new_window"] ?? null),
-				"resources" => json_encode($d["resources"] ?? new \stdClass()),
+				"resources" => json_encode(
+					$this->normalizePageResources(
+						(string)($d["template"] ?? ""),
+						is_array($d["resources"] ?? null) ? $d["resources"] : []
+					)
+				),
 				"archived" => "",
 				"archived_inherited" => "",
 				"publish_at" => $d["publish_at"] ?? null,
@@ -4843,7 +4848,11 @@
 			}
 
 			if (isset($d["resources"])) {
-				$update["resources"] = json_encode($d["resources"]);
+				$template_id = (string)($d["template"] ?? $page["template"] ?? "");
+				$resources = is_array($d["resources"]) ? $d["resources"] : [];
+				$update["resources"] = json_encode(
+					$this->normalizePageResources($template_id, $resources)
+				);
 			}
 
 			// array_key_exists, not isset: an explicit null is how a caller clears a
@@ -5020,10 +5029,56 @@
 				unset($changes["trunk"]);
 			}
 
+			if (isset($changes["resources"]) && is_array($changes["resources"])) {
+				$changes["resources"] = $this->normalizePageResources(
+					(string)($changes["template"] ?? ""),
+					$changes["resources"]
+				);
+			}
+
 			$tags_changes = array_key_exists("tags", $d) ? array_values($d["tags"] ?? []) : [];
 			$open_graph_changes = array_key_exists("open_graph", $d) ? ($d["open_graph"] ?? []) : [];
 
 			return [$changes, $tags_changes, $open_graph_changes];
+		}
+
+		/**
+		 * Ensure every template resource key is present in the stored resources blob.
+		 *
+		 * Classic admin form POSTs included empty inputs, so unfilled fields became
+		 * empty strings in `bigtree_pages.resources`. The SPA only writes keys the
+		 * editor touches, which left optional fields missing — front-end templates
+		 * then hit undefined variables when they echo `$page_content` etc.
+		 *
+		 * Existing values are preserved; missing keys get the field's configured
+		 * `default` setting, or "" when none is set.
+		 *
+		 * @param array<string,mixed> $resources
+		 * @return array<string,mixed>
+		 */
+		private function normalizePageResources(string $template_id, array $resources): array {
+			if ($template_id === "") {
+				return $resources;
+			}
+
+			$template = \BigTreeJSONDB::get("templates", $template_id);
+
+			if (!is_array($template) || empty($template["resources"]) || !is_array($template["resources"])) {
+				return $resources;
+			}
+
+			foreach ($template["resources"] as $resource) {
+				$id = (string)($resource["id"] ?? "");
+
+				if ($id === "" || array_key_exists($id, $resources)) {
+					continue;
+				}
+
+				$settings = is_array($resource["settings"] ?? null) ? $resource["settings"] : [];
+				$resources[$id] = array_key_exists("default", $settings) ? $settings["default"] : "";
+			}
+
+			return $resources;
 		}
 
 		/**

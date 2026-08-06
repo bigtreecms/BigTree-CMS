@@ -44,6 +44,39 @@ export const resourceToFormField = (r: TemplateResource): ModuleFormField => ({
 	settings: r.settings,
 });
 
+/**
+ * Ensure every template resource key is present in the values map.
+ *
+ * Empty fields must still be stored (as `""`) so front-end templates receive
+ * `$page_content` etc. Classic admin form POSTs included empty inputs; the SPA
+ * only writes keys the user touches, so we seed the full set on load/save.
+ * Existing values win; missing keys get each field's `default` setting or `""`.
+ */
+export const seedTemplateResources = (
+	resources: TemplateResource[] | undefined,
+	existing?: Record<string, unknown> | null
+): Record<string, unknown> => {
+	const out: Record<string, unknown> = { ...(existing ?? {}) };
+
+	for (const resource of resources ?? []) {
+		const id = resource.id;
+
+		if (!id || Object.prototype.hasOwnProperty.call(out, id)) {
+			continue;
+		}
+
+		const settings = resource.settings;
+		const def =
+			settings && !Array.isArray(settings)
+				? (settings as Record<string, unknown>).default
+				: undefined;
+
+		out[id] = def !== undefined ? def : "";
+	}
+
+	return out;
+};
+
 export interface TemplateEditBody {
 	hooks?: unknown;
 	id?: string;
