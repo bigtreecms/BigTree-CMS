@@ -1,6 +1,6 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
-interface PagerProps {
+export interface PagerProps {
 	onChange: (page: number) => void;
 	page: number;
 	totalPages: number;

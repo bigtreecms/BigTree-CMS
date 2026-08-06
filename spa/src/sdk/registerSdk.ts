@@ -97,6 +97,19 @@ export const registerSdk = (): void => {
 		Chip: BigTreeUI.Chip,
 		RowReorderControls: BigTreeUI.RowReorderControls,
 		Toolbar: BigTreeUI.Toolbar,
+		SearchInput: BigTreeUI.SearchInput,
+		Pager: BigTreeUI.Pager,
+		DataTable: BigTreeUI.DataTable,
+		// Icons (lucide re-exports for custom module row actions)
+		Archive: BigTreeUI.Archive,
+		ArrowRight: BigTreeUI.ArrowRight,
+		Check: BigTreeUI.Check,
+		Download: BigTreeUI.Download,
+		Edit: BigTreeUI.Edit,
+		Eye: BigTreeUI.Eye,
+		Plus: BigTreeUI.Plus,
+		Star: BigTreeUI.Star,
+		Trash: BigTreeUI.Trash,
 	} satisfies typeof BigTreeUI;
 
 	const fields = {

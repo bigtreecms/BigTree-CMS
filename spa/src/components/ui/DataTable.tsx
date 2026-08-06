@@ -27,7 +27,7 @@ export interface DataTableSort {
 	key: string;
 }
 
-interface DataTableProps<Row> {
+export interface DataTableProps<Row> {
 	columns: DataTableColumn<Row>[];
 	emptyLabel?: ReactNode;
 	getRowKey: (row: Row) => string | number;
@@ -99,10 +99,18 @@ export const DataTable = <Row,>({
 		onSortChange({ key, dir: "asc" });
 	};
 
+	// Apply `uppercase` on the header *cells* (not only the row). Sortable
+	// headers render as <button>s; UA / preflight button styles don't reliably
+	// inherit text-transform from the parent, so a row-level `uppercase` alone
+	// left sortable columns (News, Tags, …) in title case while static headers
+	// (e.g. Form Builder actions) stayed all-caps.
+	const headerCellClass =
+		"text-[10.5px] font-semibold uppercase tracking-[0.06em] text-text-3";
+
 	return (
 		<Card className="overflow-hidden">
 			<div
-				className="hidden md:grid md:grid-cols-(--dt-cols) items-center gap-4 border-b border-border bg-surface-2 px-3.5 py-2 text-[10.5px] font-semibold uppercase tracking-[0.06em] text-text-3"
+				className="hidden md:grid md:grid-cols-(--dt-cols) items-center gap-4 border-b border-border bg-surface-2 px-3.5 py-2"
 				style={colsStyle}
 			>
 				{reorderable && <div aria-hidden="true" />}
@@ -119,7 +127,7 @@ export const DataTable = <Row,>({
 
 						return (
 							<button
-								className={`flex items-center gap-1 hover:text-text ${headerAlignClass}`}
+								className={`flex items-center gap-1 hover:text-text ${headerCellClass} ${headerAlignClass}`}
 								key={col.key}
 								type="button"
 								onClick={() => toggleSort(col.key)}
@@ -131,7 +139,7 @@ export const DataTable = <Row,>({
 					}
 
 					return (
-						<div className={headerAlignClass} key={col.key}>
+						<div className={`${headerCellClass} ${headerAlignClass}`} key={col.key}>
 							{col.header}
 						</div>
 					);

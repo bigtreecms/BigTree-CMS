@@ -1,6 +1,6 @@
 import { Search, X } from "lucide-react";
 
-interface SearchInputProps {
+export interface SearchInputProps {
 	/** Accessible label for the field when there is no visible label. */
 	"aria-label"?: string;
 	autoFocus?: boolean;

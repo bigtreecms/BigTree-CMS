@@ -273,3 +273,45 @@ export type { UseConfirmDialogResult } from "@/hooks/useConfirmDialog";
 export { Chip } from "@/components/ui/Chip";
 export { RowReorderControls } from "@/components/ui/RowReorderControls";
 export { Toolbar } from "@/components/ui/Toolbar";
+
+/**
+ * List toolbar search (icon + input + clear). Pair with `Toolbar` / `Pager`
+ * for the same list chrome as built-in module views.
+ */
+export { SearchInput } from "@/components/ui/SearchInput";
+export type { SearchInputProps } from "@/components/ui/SearchInput";
+
+/**
+ * List pagination (prev/next + page numbers, ellipsis for long ranges).
+ * Renders nothing when `totalPages <= 1`.
+ */
+export { Pager } from "@/components/ui/Pager";
+export type { PagerProps } from "@/components/ui/Pager";
+
+/**
+ * CSS-grid list table used by searchable module views and other admin lists.
+ * Supports sort headers, row click, empty/loading states, and optional reorder.
+ */
+export { DataTable } from "@/components/ui/DataTable";
+export type {
+	DataTableColumn,
+	DataTableProps,
+	DataTableSort,
+} from "@/components/ui/DataTable";
+
+/**
+ * Lucide icons commonly used in list/table row actions. Custom modules can't
+ * import `lucide-react` directly (not on the import map); use these with
+ * `IconButton` instead.
+ */
+export {
+	Archive,
+	ArrowRight,
+	Check,
+	Download,
+	Edit,
+	Eye,
+	Plus,
+	Star,
+	Trash,
+} from "lucide-react";

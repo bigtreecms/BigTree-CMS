@@ -77,4 +77,17 @@ export const {
 	Chip,
 	RowReorderControls,
 	Toolbar,
+	SearchInput,
+	Pager,
+	DataTable,
+	// Icons
+	Archive,
+	ArrowRight,
+	Check,
+	Download,
+	Edit,
+	Eye,
+	Plus,
+	Star,
+	Trash,
 } = ui;
