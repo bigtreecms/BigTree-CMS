@@ -21,6 +21,11 @@
 		/**
 		 * "read" | "mutate" | "elicit". Drivers use this to decide whether a call
 		 * can run unattended (read) or must be staged for approval (mutate).
+		 *
+		 * "elicit" is for a tool that asks the user something mid-turn and writes
+		 * nothing — like "read", it is a declaration rather than an enforced rule:
+		 * the only thing the dispatcher enforces is that a non-"mutate" tool may not
+		 * stage a proposal. No core tool declares it.
 		 */
 		public function kind(): string;
 

@@ -170,8 +170,9 @@
 
 			[$data, $mtm, $tags, $og, $publish, $user_level, $can_publish] = $this->prepareEntryWrite($request, $module, $table, 0);
 
-			// Create-only, so it sits here rather than inside prepareEntryWrite (which
+			// Create-only, so they sit here rather than inside prepareEntryWrite (which
 			// update() shares).
+			$this->applyFormFieldDefaults($module, $table, $data);
 			$this->applyFormDefaultPosition($module, $table, $data);
 
 			// Publishers/admins write live only when they explicitly publish; without
@@ -180,6 +181,7 @@
 				$id = BigTreeAutoModule::createItem($table, $data, $mtm, $tags, null, $og);
 				$this->trackModuleResources($table, (int)$id, $data);
 				$item = BigTreeAutoModule::getItem($table, $id);
+				$this->fireFormHooks($module, $table, (int)$id, $data, $mtm, $tags, true);
 				Hooks::fire("module_entry.created", [
 					"module" => $module_id, "table" => $table, "id" => (int)$id, "item" => $item["item"] ?? $item,
 				]);
@@ -196,9 +198,10 @@
 			$this->bindLegacyAdmin($request->user);
 
 			$pending_id = BigTreeAutoModule::createPendingItem(
-				$module_id, $table, $data, $mtm, $tags, null, false, $og
+				$module_id, $table, $data, $mtm, $tags, $this->formPublishHook($module, $table), false, $og
 			);
 			$this->trackModuleResources($table, "p".$pending_id, $data);
+			$this->fireFormHooks($module, $table, "p".$pending_id, $data, $mtm, $tags, false);
 			Hooks::fire("module_entry.pending_created", [
 				"module" => $module_id, "table" => $table, "pending_id" => (int)$pending_id,
 			]);
@@ -233,6 +236,7 @@
 					// Publishing promotes the pending draft to a live row; re-key its
 					// already-tracked allocations from "p{change}" onto the new live id.
 					ResourceAllocationService::updateResourceAllocation($table, $new_id, $pending_change_id);
+					$this->fireFormHooks($module, $table, $new_id, $data, $mtm, $tags, true);
 
 					return $this->respondUpdated($module_id, $table, $new_id);
 				}
@@ -253,6 +257,7 @@
 				// doesn't restate every field would otherwise drop the allocations for
 				// the fields it omitted.
 				$this->trackLiveEntryResources($table, (int)$entry_id);
+				$this->fireFormHooks($module, $table, $entry_id, $data, $mtm, $tags, true);
 
 				return $this->respondUpdated($module_id, $table, $entry_id);
 			}
@@ -263,8 +268,18 @@
 			// existing change rather than creating a second one.
 			$this->bindLegacyAdmin($request->user);
 
-			$change_allocation_id = BigTreeAutoModule::submitChange($module_id, $table, $lookup_id, $data, $mtm, $tags, null, $og);
+			$change_allocation_id = BigTreeAutoModule::submitChange(
+				$module_id,
+				$table,
+				$lookup_id,
+				$data,
+				$mtm,
+				$tags,
+				$this->formPublishHook($module, $table),
+				$og
+			);
 			$this->trackModuleResources($table, "p".$change_allocation_id, $data);
+			$this->fireFormHooks($module, $table, $raw_id, $data, $mtm, $tags, false);
 			Hooks::fire("module_entry.pending_updated", [
 				"module" => $module_id, "table" => $table, "id" => $raw_id,
 			]);
@@ -748,6 +763,103 @@
 		}
 
 		/**
+		 * The form publish-hook string for pending changes (so dashboard approve
+		 * can fire it later). Null when the module form has none.
+		 *
+		 * Every writer of a pending change has to pass this — it is persisted into
+		 * `bigtree_pending_changes.publish_hook` and is the only copy anything has.
+		 * A change queued with null loses its publish hook permanently: the SPA, the
+		 * REST approve route and publish_pending_change all read the stored value
+		 * (PendingChangeService::applyPendingChange), so nothing downstream can
+		 * recover it (audit #19 A1).
+		 */
+		private function formPublishHook(array $module, string $table): ?string {
+			$form = $this->formForTable($module, $table);
+			$hook = is_array($form) ? trim((string)($form["hooks"]["publish"] ?? "")) : "";
+
+			return $hook !== "" ? $hook : null;
+		}
+
+		/**
+		 * Fire module-form post/publish hooks after an entry write.
+		 *
+		 * Mirrors the legacy auto-modules form process path and the public embed
+		 * form path in ModuleService: post always runs; publish runs only when the
+		 * row landed live (not a pending draft). Extensions like Events rely on
+		 * publish hooks to rebuild caches.
+		 *
+		 * Called from every writer of a module entry — REST's create()/update() and
+		 * the AI seams aiCreateEntry()/aiUpdateEntry() — because a hook that fires
+		 * from only one of them is the divergence audit #19 A1 found and
+		 * AIWriteSideEffectParityTest now holds shut. A throwing hook is logged and
+		 * swallowed: the row is already written, and failing the write over a buggy
+		 * extension hook invites a retry that double-writes.
+		 *
+		 * @param array<string,mixed> $module
+		 * @param array<string,mixed> $data
+		 * @param array<int|string,mixed> $mtm
+		 * @param array<int|string,mixed> $tags
+		 * @param int|string $id Live numeric id or "p{n}" pending id
+		 */
+		private function fireFormHooks(
+			array $module,
+			string $table,
+			$id,
+			array $data,
+			array $mtm,
+			array $tags,
+			bool $published
+		): void {
+			$form = $this->formForTable($module, $table);
+
+			if (!$form) {
+				return;
+			}
+
+			$hooks = is_array($form["hooks"] ?? null) ? $form["hooks"] : [];
+
+			if (!empty($hooks["post"]) && $this->resolveHookCallable($hooks["post"])) {
+				try {
+					call_user_func($hooks["post"], $id, $data, $published);
+				} catch (\Throwable $e) {
+					\BigTree::log("Module form post hook failed for $table/$id: " . $e->getMessage());
+				}
+			}
+
+			if ($published && !empty($hooks["publish"]) && $this->resolveHookCallable($hooks["publish"])) {
+				try {
+					call_user_func($hooks["publish"], $table, $id, $data, $mtm, $tags);
+				} catch (\Throwable $e) {
+					\BigTree::log("Module form publish hook failed for $table/$id: " . $e->getMessage());
+				}
+			}
+		}
+
+		/**
+		 * Resolve a form-hook value to something is_callable() accepts. Class
+		 * autoload is triggered for "Class::method" strings so extension classes
+		 * (e.g. BTXEvents::publishHook) load before the check.
+		 *
+		 * @param mixed $hook
+		 * @return callable|false
+		 */
+		private function resolveHookCallable($hook) {
+			if (is_callable($hook)) {
+				return $hook;
+			}
+
+			if (is_string($hook) && strpos($hook, "::") !== false) {
+				[$class, $method] = explode("::", $hook, 2);
+
+				if ($class !== "" && $method !== "" && class_exists($class) && is_callable([$class, $method])) {
+					return [$class, $method];
+				}
+			}
+
+			return false;
+		}
+
+		/**
 		 * The shared entry-write payload prep for create() and update(): pull the
 		 * body, split the special `__mtm__`/`__tags__`/`__open_graph__`/`__publish__`
 		 * keys out, validate the MTM set, run the geocoding/route field processors,
@@ -883,6 +995,69 @@
 			foreach ($derived as $column) {
 				if (array_key_exists($column, $merged)) {
 					$data[$column] = $merged[$column];
+				}
+			}
+		}
+
+		/**
+		 * Seed a new entry's untouched columns from their fields' `default` settings.
+		 *
+		 * The entry-side twin of PageService::normalizePageResources. The SPA's
+		 * FormRenderer seeds every form column client-side (`seedValues`, reading the
+		 * same `default` setting), so a human-created entry writes all its columns
+		 * while a REST- or AI-created one wrote only what the caller supplied — the
+		 * asymmetry audit #19 B2 found. Shared by create() and aiCreateEntry so REST
+		 * and the assistant get it together; making only the AI seam do it would
+		 * reverse the asymmetry rather than remove it.
+		 *
+		 * Only columns whose field actually declares a `default` are seeded. Writing
+		 * "" into every unsupplied column the way the client does would send an empty
+		 * string at a DATE or INT column and fail the INSERT under strict mode.
+		 *
+		 * Create-only, and never over a supplied value: on an update the stored row
+		 * already holds a value, and seeding would overwrite it with the default.
+		 *
+		 * @param array<string,mixed> $data Mutated in place.
+		 */
+		private function applyFormFieldDefaults(array $module, string $table, array &$data): void {
+			$form = $this->formForTable($module, $table);
+
+			if (!$form || !is_array($form["fields"] ?? null)) {
+
+				return;
+			}
+
+			$defaults = [];
+
+			foreach ($form["fields"] as $field) {
+				$column = is_array($field) ? (string)($field["column"] ?? "") : "";
+
+				if ($column === "" || array_key_exists($column, $data)) {
+
+					continue;
+				}
+
+				$settings = is_array($field["settings"] ?? null) ? $field["settings"] : [];
+
+				if (array_key_exists("default", $settings) && is_scalar($settings["default"])) {
+					$defaults[$column] = $settings["default"];
+				}
+			}
+
+			if (!$defaults) {
+
+				return;
+			}
+
+			// Only now worth a SHOW CREATE TABLE. A form field whose column has been
+			// dropped from the table would otherwise fail the INSERT with an opaque
+			// SQL error — the same reason applyFormDefaultPosition describes first.
+			$description = SQL::describeTable($table);
+			$columns = is_array($description["columns"] ?? null) ? $description["columns"] : [];
+
+			foreach ($defaults as $column => $value) {
+				if (isset($columns[$column])) {
+					$data[$column] = $value;
 				}
 			}
 		}
@@ -2274,9 +2449,11 @@
 			// is evaluated against the table as it stands at write time.
 			$this->aiApplyEntryProcessors($module, $table, $data, [], 0);
 
-			// The same seed REST's create() applies — `position` isn't an AI-settable
-			// field type, so without this an assistant-created entry on a positioned
-			// view ignores the form's configured default.
+			// The same two seeds REST's create() applies — neither a field `default`
+			// nor `position` is something the model supplies, so without these an
+			// assistant-created entry ignores the form's configured defaults where a
+			// human-created one honours them (audit #19 B2).
+			$this->applyFormFieldDefaults($module, $table, $data);
 			$this->applyFormDefaultPosition($module, $table, $data);
 
 			// The data being written is the prospective row, so a group-based module
@@ -2363,6 +2540,11 @@
 				}
 
 				$this->trackModuleResources($table, (int)$id, $data);
+				// The same form hooks REST's create() fires. An extension whose publish
+				// hook rebuilds a cache has no other way to hear about an AI-authored
+				// entry — the row lands, the derived state doesn't, and the card says
+				// "published" (audit #19 A1).
+				$this->fireFormHooks($module, $table, (int)$id, $data, $mtm, $tag_ids, true);
 				Hooks::fire("module_entry.created", [
 					"module" => $module_id, "table" => $table, "id" => (int)$id, "via" => "ai_assistant",
 				]);
@@ -2373,10 +2555,16 @@
 				);
 			}
 
+			// The publish hook is stored on the change row, not fired now: whoever
+			// approves it later — the SPA, the REST approve route, or the assistant's
+			// own publish_pending_change — reads it back off the row. Passing null
+			// wrote the omission to the database, where it outlived the proposal
+			// (audit #19 A1).
 			$pending_id = BigTreeAutoModule::createPendingItem(
-				$module_id, $table, $data, $mtm, $tag_ids, null, false, $open_graph
+				$module_id, $table, $data, $mtm, $tag_ids, $this->formPublishHook($module, $table), false, $open_graph
 			);
 			$this->trackModuleResources($table, "p".$pending_id, $data);
+			$this->fireFormHooks($module, $table, "p".$pending_id, $data, $mtm, $tag_ids, false);
 			Hooks::fire("module_entry.pending_created", [
 				"module" => $module_id, "table" => $table, "pending_id" => (int)$pending_id, "via" => "ai_assistant",
 			]);
@@ -2791,9 +2979,17 @@
 			// understands the "p" prefix and updates that row in place.
 			if ($is_pending) {
 				BigTreeAutoModule::submitChange(
-					$module_id, $table, $entry_id, $write_data, $mtm, $existing["tags"], null, $open_graph
+					$module_id,
+					$table,
+					$entry_id,
+					$write_data,
+					$mtm,
+					$existing["tags"],
+					$this->formPublishHook($module, $table),
+					$open_graph
 				);
 				$this->trackModuleResources($table, $entry_id, $write_data);
+				$this->fireFormHooks($module, $table, $entry_id, $write_data, $mtm, $existing["tags"], false);
 				Hooks::fire("module_entry.pending_updated", [
 					"module" => $module_id, "table" => $table, "id" => $entry_id, "via" => "ai_assistant",
 				]);
@@ -2822,6 +3018,7 @@
 				// Allocated from the written row, not this partial change set, which
 				// would delete the allocations for every field the edit didn't mention.
 				$this->trackLiveEntryResources($table, (int)$entry_id);
+				$this->fireFormHooks($module, $table, $entry_id, $write_data, $mtm, $existing["tags"], true);
 				Hooks::fire("module_entry.updated", [
 					"module" => $module_id, "table" => $table, "id" => $entry_id, "via" => "ai_assistant",
 				]);
@@ -2833,9 +3030,17 @@
 			}
 
 			$change_allocation_id = BigTreeAutoModule::submitChange(
-				$module_id, $table, $entry_id, $write_data, $mtm, $existing["tags"], null, $open_graph
+				$module_id,
+				$table,
+				$entry_id,
+				$write_data,
+				$mtm,
+				$existing["tags"],
+				$this->formPublishHook($module, $table),
+				$open_graph
 			);
 			$this->trackModuleResources($table, "p".$change_allocation_id, $write_data);
+			$this->fireFormHooks($module, $table, $entry_id, $write_data, $mtm, $existing["tags"], false);
 			Hooks::fire("module_entry.pending_updated", [
 				"module" => $module_id, "table" => $table, "id" => $entry_id, "via" => "ai_assistant",
 			]);

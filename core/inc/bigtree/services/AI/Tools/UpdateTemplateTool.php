@@ -87,6 +87,12 @@
 										"description" => "Applies to newly added fields only; an existing field keeps "
 											. "the validation rules set in Developer → Templates.",
 									],
+									"default" => [
+										"type" => "string",
+										"description" => "Starting value for a newly added field — what a page stores "
+											. "for it until an editor changes it. Applies to newly added fields only; "
+											. "an existing field keeps the default set in Developer → Templates.",
+									],
 								],
 								"required" => ["id"],
 							],

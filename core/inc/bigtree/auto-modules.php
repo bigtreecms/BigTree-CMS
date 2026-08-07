@@ -170,7 +170,14 @@
 			}
 
 			// Group based permissions data
-			if (isset($view["gbp"]["enabled"]) && $view["gbp"]["table"] == $view["table"]) {
+			//
+			// `table` is optional on both sides: a gbp blob configured to group on a
+			// column of the module's own table carries no `table` of its own, and a
+			// view record built from a form rather than the module carries none either.
+			// Read both defensively — the comparison result is unchanged (a missing key
+			// compared as null already failed against a real table name), it just no
+			// longer emits a warning per cached row.
+			if (isset($view["gbp"]["enabled"]) && ($view["gbp"]["table"] ?? "") == ($view["table"] ?? "")) {
 				$fields[] = "gbp_field";
 				$vals[] = "'".sqlescape($item[$view["gbp"]["group_field"]])."'";
 				$fields[] = "published_gbp_field";

@@ -94,6 +94,11 @@
 										"description" => "Whether an editor placing this callout must fill this field "
 											. "in. Any other field configuration is set in Developer → Callouts.",
 									],
+									"default" => [
+										"type" => "string",
+										"description" => "Starting value for the field, used until an editor changes "
+											. "it. Omit for no default.",
+									],
 								],
 								"required" => ["id", "type", "title"],
 							],

@@ -25,6 +25,12 @@
 			"self_draw" => "checkbox",
 		];
 
+		/**
+		 * The reserved field-type-schemas.php key holding the settings every field
+		 * type carries (see universalSettingsSchema()). Not a field type.
+		 */
+		public const UNIVERSAL_SCHEMA_KEY = "_universal";
+
 		public function list(Request $request) {
 			// Hash against the live JSONDB file BigTreeJSONDB actually reads/writes
 			// (custom/json-db/field-types.json) — not the install-time setup seed,
@@ -203,6 +209,11 @@
 				$schema = $schemas[$id];
 				$schema["render"] = $this->renderKind($schema, "default");
 				$schema["contract_version"] = (int)($schema["contract_version"] ?? 1);
+				// The universal settings the SPA's settings editor renders for every
+				// field type; declared once rather than per type.
+				$schema["settings_schema"] = self::withUniversalSettings(
+					is_array($schema["settings_schema"] ?? null) ? $schema["settings_schema"] : []
+				);
 
 				// Schema-file types are first-party (shipped in core/custom php), so
 				// they default to a high trust level — a module among them may load
@@ -236,7 +247,9 @@
 					$payload["asset_url"] = (string)$ft["asset_url"];
 					$payload["integrity"] = isset($ft["integrity"]) ? (string)$ft["integrity"] : "";
 					$payload["trust"] = isset($ft["trust"]) ? (string)$ft["trust"] : "marketplace";
-					$payload["settings_schema"] = is_array($ft["settings_schema"] ?? null) ? $ft["settings_schema"] : [];
+					$payload["settings_schema"] = self::withUniversalSettings(
+						is_array($ft["settings_schema"] ?? null) ? $ft["settings_schema"] : []
+					);
 				} else {
 					// Locally authored, implicitly trusted — source + settings on disk,
 					// run in-context. (Fall back to a record-stored source for records
@@ -249,7 +262,7 @@
 
 					$payload["module_source"] = $source;
 					$payload["trust"] = "local";
-					$payload["settings_schema"] = $this->readSettingsSchema($id);
+					$payload["settings_schema"] = self::withUniversalSettings($this->readSettingsSchema($id));
 				}
 
 				return Response::ok($payload)->cacheFor(60);
@@ -264,7 +277,9 @@
 					"value_type" => isset($ft["value_type"]) ? (string)$ft["value_type"] : "object",
 					"contract_version" => (int)($ft["contract_version"] ?? 1),
 					"input_schema" => array_values($ft["input_schema"]),
-					"settings_schema" => is_array($ft["settings_schema"] ?? null) ? $ft["settings_schema"] : [],
+					"settings_schema" => self::withUniversalSettings(
+						is_array($ft["settings_schema"] ?? null) ? $ft["settings_schema"] : []
+					),
 				])->cacheFor(60);
 			}
 
@@ -275,6 +290,9 @@
 				"render" => $render,
 				"value_type" => "string",
 				"ui" => ["component" => "ServerRendered", "props" => []],
+				// render_fallback sends the SPA to the raw-JSON settings control, which
+				// reads no descriptors at all — so the universal ones aren't appended
+				// here; there is nothing to render them.
 				"settings_schema" => [],
 				"self_draw" => !empty($ft["self_draw"]),
 				"render_fallback" => true,
@@ -646,38 +664,93 @@
 			static $cache = null;
 
 			if ($cache === null) {
-				$schemas = include SERVER_ROOT . "core/inc/bigtree/api/field-type-schemas.php";
-				$custom = SERVER_ROOT . "custom/inc/bigtree/api/field-type-schemas.php";
+				$schemas = self::rawSchemas();
+				// Reserved, and not a field type: pulled out here so every consumer that
+				// walks schemas() as "the list of field types" (FieldTypeDomain, the
+				// /field-types/{id}/schema lookup) keeps seeing only field types.
+				unset($schemas[self::UNIVERSAL_SCHEMA_KEY]);
+				$cache = $schemas;
+			}
 
-				if (file_exists($custom)) {
-					$overrides = include $custom;
+			return $cache;
+		}
 
-					if (is_array($overrides)) {
-						$schemas = array_replace($schemas, $overrides);
-					}
+		/** The declaration file as written, universal entry included. */
+		private static function rawSchemas(): array {
+			$schemas = include SERVER_ROOT . "core/inc/bigtree/api/field-type-schemas.php";
+			$custom = SERVER_ROOT . "custom/inc/bigtree/api/field-type-schemas.php";
+
+			if (file_exists($custom)) {
+				$overrides = include $custom;
+
+				if (is_array($overrides)) {
+					$schemas = array_replace($schemas, $overrides);
 				}
+			}
 
-				$cache = is_array($schemas) ? $schemas : [];
+			return is_array($schemas) ? $schemas : [];
+		}
+
+		/**
+		 * Settings every field type carries, whatever its own schema declares.
+		 *
+		 * Declared once in field-type-schemas.php rather than copied into each type:
+		 * `default` is read by PageService::normalizePageResources and the SPA's
+		 * FormRenderer for *any* field type, so a per-type copy would have to be
+		 * added to two dozen schemas and to every extension type that will ever
+		 * exist. Cached for the request alongside schemas().
+		 *
+		 * @return list<array<string,mixed>>
+		 */
+		public static function universalSettingsSchema(): array {
+			static $cache = null;
+
+			if ($cache === null) {
+				$universal = self::rawSchemas()[self::UNIVERSAL_SCHEMA_KEY]["settings_schema"] ?? null;
+				$cache = is_array($universal) ? array_values(array_filter($universal, "is_array")) : [];
 			}
 
 			return $cache;
 		}
 
 		/**
-		 * One field type's `settings_schema` descriptors ([] when it declares none, or
-		 * isn't a known type).
+		 * One field type's `settings_schema` descriptors, the universal ones appended
+		 * (just the universal ones when the type declares none, or isn't known).
 		 *
 		 * @return list<array<string,mixed>>
 		 */
 		public static function settingsSchema(string $type): array {
 			$schema = self::schemas()[$type] ?? null;
+			$declared = is_array($schema) && is_array($schema["settings_schema"] ?? null)
+				? array_values(array_filter($schema["settings_schema"], "is_array"))
+				: [];
 
-			if (!is_array($schema) || !is_array($schema["settings_schema"] ?? null)) {
+			return self::withUniversalSettings($declared);
+		}
 
-				return [];
+		/**
+		 * Append the universal descriptors to a declared settings schema, skipping any
+		 * the schema already spells for itself — a field type that wants a different
+		 * label or control for `default` keeps its own.
+		 *
+		 * @param list<array<string,mixed>> $declared
+		 * @return list<array<string,mixed>>
+		 */
+		public static function withUniversalSettings(array $declared): array {
+			$declared = array_values(array_filter($declared, "is_array"));
+			$ids = [];
+
+			foreach ($declared as $descriptor) {
+				$ids[] = (string)($descriptor["id"] ?? "");
 			}
 
-			return array_values(array_filter($schema["settings_schema"], "is_array"));
+			foreach (self::universalSettingsSchema() as $descriptor) {
+				if (!in_array((string)($descriptor["id"] ?? ""), $ids, true)) {
+					$declared[] = $descriptor;
+				}
+			}
+
+			return $declared;
 		}
 
 		/**
@@ -1067,7 +1140,13 @@
 			foreach ($field_types as $field_type) {
 				foreach ($field_type["use_cases"] as $case => $val) {
 					if ($val) {
-						$types[$case]["custom"][$field_type["id"]] = ["name" => $field_type["name"], "self_draw" => $field_type["self_draw"]];
+						// `self_draw` is optional on a field-types record (a declarative or
+						// module type never writes it), so read it the same way :64 does
+						// rather than emitting a warning per row (audit #19 B4).
+						$types[$case]["custom"][$field_type["id"]] = [
+							"name" => $field_type["name"],
+							"self_draw" => !empty($field_type["self_draw"]),
+						];
 					}
 				}
 			}

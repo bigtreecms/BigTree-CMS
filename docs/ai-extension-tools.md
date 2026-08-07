@@ -52,6 +52,13 @@ Rules the loader enforces, so you don't have to:
 | --- | --- |
 | `name()` | stable snake_case name the model sees |
 | `kind()` | `"read"`, `"mutate"` or `"elicit"` — **enforced**: a `read` tool that stages a proposal is refused at dispatch |
+
+`"elicit"` is for a tool that asks the user something mid-turn and writes nothing.
+Like `"read"` it is a declaration rather than a rule with teeth: only `"mutate"`
+carries a result-shape contract (it *must* stage a proposal and may stage only one).
+The dispatcher's rule for the other two is the same single one — neither may stage
+a proposal. No core tool declares `"elicit"`.
+
 | `isAvailable($user)` | registry gate; a tool a user can't use is never offered, so the model can't hallucinate the capability |
 | `definition($user)` | OpenAI-shaped function schema; may vary per user |
 | `execute($args, $context)` | re-checks permission server-side and returns an `AIToolResult` |

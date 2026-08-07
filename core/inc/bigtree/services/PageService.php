@@ -4945,7 +4945,16 @@
 		 * user's repeated saves collapse into one draft (mirrors submitPageChange).
 		 */
 		private function writePendingPageChange($user, string $type, int $item_or_parent, array $d): int {
-			[$changes, $tags_changes, $open_graph_changes] = $this->pendingChangeFields($user, $d);
+			// An EDIT blob holds only the keys being changed, so a change that edits
+			// `resources` without switching template has no template id of its own to
+			// normalize (or allocate) against — the page's stored one is the right
+			// fallback, exactly as performUpdate does for the live write (audit #19
+			// A3). A NEW draft has no page yet, so the blob's own template is all
+			// there is.
+			$fallback_template = $type === "EDIT"
+				? (string)SQL::fetchSingle("SELECT template FROM bigtree_pages WHERE id = ?", $item_or_parent)
+				: "";
+			[$changes, $tags_changes, $open_graph_changes] = $this->pendingChangeFields($user, $d, $fallback_template);
 
 			$row = [
 				"user" => (int)$user->id,
@@ -4965,7 +4974,11 @@
 				$row["pending_page_parent"] = $item_or_parent;
 
 				$change_id = (int)SQL::insert("bigtree_pending_changes", $row);
-				$this->allocatePageResources("p".$change_id, $changes["template"] ?? "", $changes);
+				$this->allocatePageResources(
+					"p".$change_id,
+					$this->pendingChangeTemplate($changes, $fallback_template),
+					$changes
+				);
 
 				return $change_id;
 			}
@@ -5001,13 +5014,21 @@
 				}
 
 				SQL::update("bigtree_pending_changes", (int)$existing["id"], $row);
-				$this->allocatePageResources("p".(int)$existing["id"], $changes["template"] ?? "", $changes);
+				$this->allocatePageResources(
+					"p".(int)$existing["id"],
+					$this->pendingChangeTemplate($changes, $fallback_template),
+					$changes
+				);
 
 				return (int)$existing["id"];
 			}
 
 			$change_id = (int)SQL::insert("bigtree_pending_changes", $row);
-			$this->allocatePageResources("p".$change_id, $changes["template"] ?? "", $changes);
+			$this->allocatePageResources(
+				"p".$change_id,
+				$this->pendingChangeTemplate($changes, $fallback_template),
+				$changes
+			);
 
 			return $change_id;
 		}
@@ -5018,9 +5039,12 @@
 		 * actually submitted, so publish can mirror the live array_key_exists path)
 		 * and the separate NOT NULL tags/OG columns (kept for the SPA's diff view).
 		 *
+		 * $fallback_template is the stored template of the page being edited, used when
+		 * the change itself doesn't switch template — see writePendingPageChange.
+		 *
 		 * @return array{0: array, 1: array, 2: array} [changes, tags_changes, open_graph_changes]
 		 */
-		private function pendingChangeFields($user, array $d): array {
+		private function pendingChangeFields($user, array $d, string $fallback_template = ""): array {
 			$changes = $d;
 			unset($changes["publish"]);
 
@@ -5031,7 +5055,7 @@
 
 			if (isset($changes["resources"]) && is_array($changes["resources"])) {
 				$changes["resources"] = $this->normalizePageResources(
-					(string)($changes["template"] ?? ""),
+					$this->pendingChangeTemplate($changes, $fallback_template),
 					$changes["resources"]
 				);
 			}
@@ -5043,6 +5067,23 @@
 		}
 
 		/**
+		 * Which template a queued change's `resources` blob belongs to.
+		 *
+		 * The one resolution rule for every reader of that blob — normalization and
+		 * resource allocation both — because an EDIT blob holds only the keys being
+		 * changed, so the one thing they must not do is assume the change restates
+		 * the template. It usually doesn't, and both of them silently did nothing at
+		 * all against an empty id (audit #19 A3).
+		 *
+		 * @param array<string,mixed> $changes
+		 */
+		private function pendingChangeTemplate(array $changes, string $fallback): string {
+			$template = (string)($changes["template"] ?? "");
+
+			return $template !== "" ? $template : $fallback;
+		}
+
+		/**
 		 * Ensure every template resource key is present in the stored resources blob.
 		 *
 		 * Classic admin form POSTs included empty inputs, so unfilled fields became
@@ -5051,7 +5092,11 @@
 		 * then hit undefined variables when they echo `$page_content` etc.
 		 *
 		 * Existing values are preserved; missing keys get the field's configured
-		 * `default` setting, or "" when none is set.
+		 * `default` setting, or "" when none is set. `default` is a universal field
+		 * settings descriptor (FieldTypeService::universalSettingsSchema), so every
+		 * field type carries it, the developer sets it in the field-settings editor,
+		 * and the field-authoring AI tools can author it — until audit #19 A2 this
+		 * line read a key nothing in the product could write.
 		 *
 		 * @param array<string,mixed> $resources
 		 * @return array<string,mixed>

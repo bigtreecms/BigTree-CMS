@@ -510,13 +510,13 @@
 		/**
 		 * The settings a new AI-authored field is stored with.
 		 *
-		 * Deliberately narrow. `required` and list `options` are the two the assistant
-		 * can express meaningfully; a `directory` is inherited from the field type's
-		 * own context default, exactly as the admin's DirectoryControl seeds it, so an
-		 * AI-authored upload doesn't silently dump files in the site root. Everything
-		 * else (image presets, matrix subfields, db-populated lists) is structured
-		 * configuration that belongs to the admin field editor, and a field that needs
-		 * one is refused rather than written half-configured.
+		 * Deliberately narrow. `required`, list `options` and a scalar `default` are the
+		 * three the assistant can express meaningfully; a `directory` is inherited from
+		 * the field type's own context default, exactly as the admin's DirectoryControl
+		 * seeds it, so an AI-authored upload doesn't silently dump files in the site
+		 * root. Everything else (image presets, matrix subfields, db-populated lists) is
+		 * structured configuration that belongs to the admin field editor, and a field
+		 * that needs one is refused rather than written half-configured.
 		 *
 		 * The module surface is the one exception, and it is deliberate rather than
 		 * loose: `scaffold_module` declares a per-field `settings` object and writes it
@@ -559,6 +559,19 @@
 			if ($options) {
 				$settings["list_type"] = "static";
 				$settings["list"] = $options;
+			}
+
+			// The field's starting value, from the `default` argument every
+			// field-authoring tool declares. A universal settings descriptor (see
+			// FieldTypeService::universalSettingsSchema), read by
+			// PageService::normalizePageResources when a page leaves the field
+			// untouched and by the SPA's FormRenderer when it seeds a new entry form.
+			// Before audit #19 A2 both readers existed and nothing in the product —
+			// UI or assistant — could author the key they read.
+			if (array_key_exists("default", $field) && is_scalar($field["default"])) {
+				$settings["default"] = is_bool($field["default"])
+					? ($field["default"] ? "on" : "")
+					: (string)$field["default"];
 			}
 
 			// Mirrors spa/src/components/developer/field-settings/DirectoryControl.tsx,

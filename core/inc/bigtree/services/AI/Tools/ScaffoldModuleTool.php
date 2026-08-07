@@ -89,6 +89,12 @@
 											. "\"Medium\", \"Large\"]. Required for a list field — one with no "
 											. "choices renders as an empty select nobody can satisfy.",
 									],
+									"default" => [
+										"type" => "string",
+										"description" => "Starting value for the field, seeded into a new entry's "
+											. "form so an editor begins from it rather than from blank. Omit for "
+											. "no default.",
+									],
 									"settings" => [
 										"type" => "object",
 										"description" => "Optional per-field settings for the types that need "

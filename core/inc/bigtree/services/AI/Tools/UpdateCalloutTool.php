@@ -109,6 +109,12 @@
 										"description" => "Applies to newly added fields only; an existing field keeps "
 											. "the validation rules set in Developer → Callouts.",
 									],
+									"default" => [
+										"type" => "string",
+										"description" => "Starting value for a newly added field. Applies to newly "
+											. "added fields only; an existing field keeps the default set in "
+											. "Developer → Callouts.",
+									],
 								],
 								"required" => ["id"],
 							],

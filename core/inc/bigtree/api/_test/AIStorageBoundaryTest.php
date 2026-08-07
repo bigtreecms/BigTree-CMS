@@ -664,7 +664,19 @@
 		return $schemas;
 	}
 
-	/** Every descriptor id declared by any field type. */
+	/**
+	 * Every descriptor id declared by any field type — including the reserved
+	 * `_universal` entry, whose settings_schema every field type carries (see
+	 * FieldTypeService::universalSettingsSchema).
+	 *
+	 * A universal descriptor is a *declaration*, not an exemption, which is the point
+	 * of audit #19's E2. `default` had two readers (PageService::normalizePageResources
+	 * and the SPA's FormRenderer) and no writer anywhere in the product, so E1 was
+	 * red — and the fix a blanket entry in ai_non_descriptor_setting_keys() would
+	 * have been is precisely what audit #11 refused for `maxlength`: it blinds the
+	 * check to the defect it exists for. Declaring the setting instead means the
+	 * field-settings UI renders it and the field-authoring tools can author it.
+	 */
 	function ai_all_declared_setting_ids(): array {
 		$ids = [];
 
@@ -673,6 +685,39 @@
 		}
 
 		return array_values(array_unique($ids));
+	}
+
+	/**
+	 * E2: `default` is a declared setting, on every field type, and stayed out of the
+	 * global exemption list.
+	 */
+	function test_the_universal_default_setting_is_declared_not_exempted() {
+		$universal = \BigTree\Services\FieldTypeService::universalSettingsSchema();
+		$ids = array_map(function ($descriptor): string {
+
+			return (string)($descriptor["id"] ?? "");
+		}, $universal);
+
+		T::ok(in_array("default", $ids, true), "`default` is declared as a universal field setting");
+		T::ok(
+			in_array("default", ai_all_declared_setting_ids(), true),
+			"…so E1 sees it as a declared descriptor id rather than an unknown key"
+		);
+		T::ok(
+			!isset(ai_non_descriptor_setting_keys()["default"]),
+			"…and it is not blanket-exempted, which would blind E1 to the next such key"
+		);
+
+		// Every field type carries it, which is what makes it universal rather than a
+		// text-field setting that PageService happens to read for all of them.
+		foreach (["text", "html", "image", "list", "matrix"] as $type) {
+			$declared = array_map(function ($descriptor): string {
+
+				return (string)($descriptor["id"] ?? "");
+			}, \BigTree\Services\FieldTypeService::settingsSchema($type));
+
+			T::ok(in_array("default", $declared, true), "the {$type} field type carries the universal `default`");
+		}
 	}
 
 	/**

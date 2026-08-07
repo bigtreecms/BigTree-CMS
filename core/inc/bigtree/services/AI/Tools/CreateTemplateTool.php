@@ -82,6 +82,12 @@
 											. "Any other field configuration (list options, image sizes, subfields) is "
 											. "set in Developer → Templates.",
 									],
+									"default" => [
+										"type" => "string",
+										"description" => "Starting value for the field. It is what a page stores for "
+											. "this field until an editor changes it, so a template's front end never "
+											. "renders an empty region. Omit for no default.",
+									],
 								],
 								"required" => ["id", "type", "title"],
 							],

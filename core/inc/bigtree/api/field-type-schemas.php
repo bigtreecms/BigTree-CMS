@@ -55,6 +55,13 @@
 	 *   db_table, db_column, db_column_sort,
 	 *   list_maker, source_fields, callout_groups, image_options, matrix_columns
 	 *
+	 * Universal settings: the reserved "_universal" entry below is not a field type.
+	 * Its settings_schema is appended to *every* field type's — built-in, custom and
+	 * extension alike — by FieldTypeService::settingsSchema() and by the
+	 * GET /field-types/{id}/schema payload, so a setting every field carries is
+	 * declared once instead of copied into two dozen schemas. It is still a declared
+	 * descriptor id, which is what the AI seams' setting-key guard checks against.
+	 *
 	 * Custom override: drop a file at custom/inc/bigtree/api/field-type-schemas.php
 	 * returning an array keyed by field-type id — entries override or extend these.
 	 */
@@ -68,6 +75,13 @@
 	];
 
 	return [
+		// Not a field type — see "Universal settings" above. Appended to every field
+		// type's settings_schema.
+		"_universal" => [
+			"settings_schema" => [
+				["id" => "default", "control" => "string", "label" => "Default Value", "hint" => "(used when the field has never been filled in)", "note" => "Seeded into a new record's form and written into a page's stored resources for any field left untouched, so front-end templates never see an undefined value."],
+			],
+		],
 		"text" => [
 			"id" => "text", "name" => "Text", "category" => "input", "value_type" => "string",
 			"ui" => ["component" => "TextInput", "props" => ["sub_type", "max_length"]],
