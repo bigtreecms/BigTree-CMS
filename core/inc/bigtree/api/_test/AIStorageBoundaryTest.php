@@ -688,8 +688,7 @@
 	}
 
 	/**
-	 * E2: `default` is a declared setting, on every field type, and stayed out of the
-	 * global exemption list.
+	 * E2 (#19): `default` is a declared setting rather than an exempted key.
 	 */
 	function test_the_universal_default_setting_is_declared_not_exempted() {
 		$universal = \BigTree\Services\FieldTypeService::universalSettingsSchema();
@@ -707,16 +706,141 @@
 			!isset(ai_non_descriptor_setting_keys()["default"]),
 			"…and it is not blanket-exempted, which would blind E1 to the next such key"
 		);
+	}
 
-		// Every field type carries it, which is what makes it universal rather than a
-		// text-field setting that PageService happens to read for all of them.
-		foreach (["text", "html", "image", "list", "matrix"] as $type) {
-			$declared = array_map(function ($descriptor): string {
+	/**
+	 * The descriptor ids a field type's `settings_schema` declares, universal ones
+	 * appended — i.e. what the SPA's settings editor renders and what the AI
+	 * authoring seams treat as a setting this type has.
+	 *
+	 * @return list<string>
+	 */
+	function ai_effective_setting_ids(string $type): array {
 
-				return (string)($descriptor["id"] ?? "");
-			}, \BigTree\Services\FieldTypeService::settingsSchema($type));
+		return array_map(function ($descriptor): string {
 
-			T::ok(in_array("default", $declared, true), "the {$type} field type carries the universal `default`");
+			return (string)($descriptor["id"] ?? "");
+		}, \BigTree\Services\FieldTypeService::settingsSchema($type));
+	}
+
+	/**
+	 * Audit #20 guard E2: a universal descriptor is universal only where the value
+	 * type allows it.
+	 *
+	 * Keyed off each schema's own `value_type` rather than a list of type ids here,
+	 * so a field type added later — or shipped by an extension through
+	 * custom/inc/bigtree/api/field-type-schemas.php — is classified by declaring what
+	 * shape its value is and nothing has to be added to this test.
+	 *
+	 * The negative control is the leg that matters: `default` on a `matrix` or a
+	 * `media-gallery` is a scalar handed to a template's `foreach`, and on an
+	 * `image-reference` a resource id nothing resolved (audit #20 A2).
+	 */
+	function test_the_universal_default_is_declared_only_where_a_scalar_means_something() {
+		$scalar = ["string", "bool"];
+		$wrong = [];
+		$checked = 0;
+
+		foreach (["templates", "modules", "callouts", "settings"] as $use_case) {
+			foreach (\BigTree\Services\FieldTypeService::availableFieldTypeIds($use_case) as $type) {
+				$value_type = \BigTree\Services\FieldTypeService::valueType((string)$type);
+
+				// A type this file doesn't declare (a custom or extension type) keeps
+				// every universal setting — scoping must never silently remove one from
+				// a type nobody classified.
+				if ($value_type === "") {
+
+					continue;
+				}
+
+				$checked++;
+				$declared = in_array("default", ai_effective_setting_ids((string)$type), true);
+				$expected = in_array($value_type, $scalar, true);
+
+				if ($declared !== $expected) {
+					$wrong[] = "{$type} ({$value_type}) " . ($declared ? "carries" : "lacks") . " `default`";
+				}
+			}
+		}
+
+		T::ok($checked > 0, "the field-type catalog resolved, so this checked something");
+		T::equals(
+			implode(", ", array_unique($wrong)),
+			"",
+			"`default` is declared iff the field type's value_type is a scalar"
+		);
+
+		// The explicit controls, so a catalog that silently stopped resolving can't
+		// pass this by finding nothing.
+		foreach (["text", "html", "image", "list", "checkbox"] as $type) {
+			T::ok(
+				in_array("default", ai_effective_setting_ids($type), true),
+				"the {$type} field type carries the universal `default`"
+			);
+		}
+
+		foreach (["matrix", "media-gallery", "callouts", "image-reference", "video"] as $type) {
+			T::ok(
+				!in_array("default", ai_effective_setting_ids($type), true),
+				"the {$type} field type, whose value isn't a scalar, does not"
+			);
+		}
+
+		// …and the descriptor itself still lands on a type that declares no settings
+		// of its own, which is what "universal" continues to mean.
+		T::ok(
+			in_array("default", ai_effective_setting_ids("link"), true),
+			"a field type declaring no settings of its own still gets the universal one"
+		);
+	}
+
+	/**
+	 * D4: what normalizePageResources fills for a field with no default is the empty
+	 * value of that field's *type*.
+	 *
+	 * The function exists so a front-end template never hits an undefined variable.
+	 * Handing a `foreach` over a matrix an empty string rather than an empty array
+	 * trades one warning for a worse one — and a scalar `default` stored on an
+	 * array-valued field before audit #20 A2 stopped those types declaring one is
+	 * ignored rather than written through.
+	 */
+	function test_page_resources_are_filled_with_the_empty_value_of_their_type() {
+		$normalize = new ReflectionMethod(\BigTree\Services\PageService::class, "normalizePageResources");
+		$normalize->setAccessible(true);
+		$service = new \BigTree\Services\PageService();
+		$template = "zz_default_shape_" . bin2hex(random_bytes(4));
+
+		BigTreeJSONDB::insert("templates", [
+			"id" => $template,
+			"name" => "ZZ Default Shape",
+			"routed" => "",
+			"level" => 0,
+			"module" => "",
+			"resources" => [
+				["id" => "headline", "type" => "text", "title" => "Headline", "settings" => ["default" => "Hello"]],
+				["id" => "blurb", "type" => "text", "title" => "Blurb", "settings" => []],
+				["id" => "rows", "type" => "matrix", "title" => "Rows", "settings" => ["default" => "oops"]],
+				["id" => "blocks", "type" => "callouts", "title" => "Blocks", "settings" => []],
+			],
+		]);
+
+		try {
+			$filled = $normalize->invoke($service, $template, []);
+
+			T::equals($filled["headline"] ?? null, "Hello", "a scalar field takes its configured default");
+			T::equals($filled["blurb"] ?? null, "", "…and \"\" when it has none");
+			T::equals($filled["blocks"] ?? null, [], "an array-valued field is filled with an empty array");
+			T::equals(
+				$filled["rows"] ?? null,
+				[],
+				"…and a scalar default left on one by an older blob is ignored, not handed to a foreach"
+			);
+
+			// Never over a value the page already carries.
+			$kept = $normalize->invoke($service, $template, ["headline" => "Set by an editor"]);
+			T::equals($kept["headline"] ?? null, "Set by an editor", "an existing value is preserved");
+		} finally {
+			BigTreeJSONDB::delete("templates", $template);
 		}
 	}
 

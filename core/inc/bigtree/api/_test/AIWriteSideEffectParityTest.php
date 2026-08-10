@@ -372,6 +372,220 @@
 		}
 	}
 
+	/**
+	 * Audit #20 guard E3: the gate that runs before a writer agrees with what the
+	 * writer is about to do.
+	 *
+	 * The rule is "a field the write path will fill is not reported missing by the gate
+	 * that runs before it." `applyFormFieldDefaults` runs *after* validation and no gate
+	 * consulted the setting, so a required field carrying a default was refused for the
+	 * assistant — for a value the write path supplies a few lines later — and pre-filled
+	 * and accepted for a human, because `FormRenderer` seeds every input from the same
+	 * `default` before the form's required check runs (audit #20 A3). A gate that
+	 * refuses what the writer then supplies isn't enforcing an invariant; it is
+	 * reporting a stale view of the data.
+	 *
+	 * This sits next to
+	 * test_an_ai_created_entry_seeds_its_untouched_columns_from_field_defaults
+	 * deliberately: that test proves the writer seeds, this proves the gate agrees, and
+	 * they are the two halves of one claim.
+	 */
+	function test_a_required_field_with_a_default_is_not_reported_missing() {
+		if (!parity_ai_processors_ready()) {
+
+			return;
+		}
+
+		$restore = ai_side_effect_require_blurb("Default blurb copy");
+		$svc = new AutoModuleService();
+		$dev_id = parity_seed_user(["level" => 2]);
+		$dev = (object)["id" => $dev_id, "level" => 2, "permissions" => []];
+		$entry_id = 0;
+
+		try {
+			$validated = $svc->aiValidateEntryCreate([
+				"module_id" => parity_news_module_id(),
+				"data" => ["title" => "zz AI Required Default " . bin2hex(random_bytes(3))],
+			], $dev);
+
+			T::ok(
+				!empty($validated["ok"]),
+				"a create omitting a required field that declares a default stages ("
+					. (string)($validated["error"] ?? "") . ")"
+			);
+
+			if (empty($validated["ok"])) {
+
+				return;
+			}
+
+			$result = $svc->aiCreateEntry($validated["payload"], $dev);
+			$entry_id = (int)($result["entry_id"] ?? 0);
+
+			T::equals((string)($result["mode"] ?? ""), "published", "and lands live");
+			T::equals(
+				(string)SQL::fetchSingle("SELECT blurb FROM timber_news WHERE id = ?", $entry_id),
+				"Default blurb copy",
+				"…with the required column non-empty, which is what the gate was protecting"
+			);
+		} finally {
+			if ($entry_id) {
+				parity_delete_news_entries($entry_id);
+			}
+
+			parity_delete_users($dev_id);
+			$restore();
+		}
+	}
+
+	/**
+	 * …and the gate still fires when there is genuinely nothing to fill the field with.
+	 * An empty or whitespace-only default seeds nothing usable and leaves the column as
+	 * blank as it started, so it is not a default the gate may rely on.
+	 */
+	function test_a_required_field_without_a_usable_default_is_still_reported_missing() {
+		if (!parity_ai_processors_ready()) {
+
+			return;
+		}
+
+		$dev_id = parity_seed_user(["level" => 2]);
+		$dev = (object)["id" => $dev_id, "level" => 2, "permissions" => []];
+
+		try {
+			foreach (["no default at all" => null, "a whitespace-only default" => " "] as $label => $default) {
+				$restore = ai_side_effect_require_blurb($default);
+
+				try {
+					$validated = (new AutoModuleService())->aiValidateEntryCreate([
+						"module_id" => parity_news_module_id(),
+						"data" => ["title" => "zz AI Required Missing " . bin2hex(random_bytes(3))],
+					], $dev);
+
+					T::ok(empty($validated["ok"]), "a required field with {$label} still blocks the create");
+					T::ok(
+						strpos((string)($validated["error"] ?? ""), "blurb") !== false,
+						"…and the error names it"
+					);
+				} finally {
+					$restore();
+				}
+			}
+		} finally {
+			parity_delete_users($dev_id);
+		}
+	}
+
+	/**
+	 * The page half of the same rule: a required template resource carrying a default is
+	 * filled by normalizePageResources inside performCreate, past the gate that used to
+	 * refuse it.
+	 */
+	function test_a_required_template_resource_with_a_default_is_not_reported_missing() {
+		if (!parity_ai_processors_ready()) {
+
+			return;
+		}
+
+		$pages = new \BigTree\Services\PageService();
+		$dev_id = parity_seed_user(["level" => 2]);
+		$dev = (object)["id" => $dev_id, "level" => 2, "permissions" => []];
+		$template = "zz_required_default_" . bin2hex(random_bytes(4));
+		$page_id = 0;
+
+		BigTreeJSONDB::insert("templates", [
+			"id" => $template,
+			"name" => "ZZ Required Default",
+			"routed" => "",
+			"level" => 0,
+			"module" => "",
+			"resources" => [
+				["id" => "headline", "type" => "text", "title" => "Headline", "settings" => ["validation" => "required"]],
+				["id" => "blurb", "type" => "text", "title" => "Blurb", "settings" => [
+					"validation" => "required",
+					"default" => "Standard blurb",
+				]],
+			],
+		]);
+
+		try {
+			$validated = $pages->aiValidatePageCreate([
+				"parent" => 0,
+				"nav_title" => "ZZ Required Default " . bin2hex(random_bytes(3)),
+				"template" => $template,
+				"content" => ["headline" => "Set by the assistant"],
+			], $dev);
+
+			T::ok(
+				!empty($validated["ok"]),
+				"a page create omitting a required resource that declares a default stages ("
+					. (string)($validated["error"] ?? "") . ")"
+			);
+
+			if (empty($validated["ok"])) {
+
+				return;
+			}
+
+			$created = $pages->aiCreatePage($validated["payload"], $dev);
+			$page_id = (int)($created["page_id"] ?? ($created["id"] ?? 0));
+
+			T::ok($page_id > 0, "and the page is created");
+
+			$resources = json_decode(
+				(string)SQL::fetchSingle("SELECT resources FROM bigtree_pages WHERE id = ?", $page_id),
+				true
+			);
+			T::equals(
+				(string)($resources["blurb"] ?? ""),
+				"Standard blurb",
+				"…with the required resource filled from its default, which is what the gate was protecting"
+			);
+		} finally {
+			if ($page_id) {
+				SQL::query("DELETE FROM bigtree_pages WHERE id = ?", $page_id);
+			}
+
+			BigTreeJSONDB::delete("templates", $template);
+			parity_delete_users($dev_id);
+		}
+	}
+
+	/**
+	 * Make the News form's `blurb` field required, optionally with a `default`. Pass null
+	 * to require it with no default at all. Returns the restore closure.
+	 */
+	function ai_side_effect_require_blurb(?string $default): callable {
+		$module_id = parity_news_module_id();
+		$original = BigTreeJSONDB::get("modules", $module_id);
+		$patched = $original;
+
+		foreach ($patched["forms"] as $form_key => $form) {
+			foreach (($form["fields"] ?? []) as $field_key => $field) {
+				if ((string)($field["column"] ?? "") !== "blurb") {
+
+					continue;
+				}
+
+				$settings = is_array($field["settings"] ?? null) ? $field["settings"] : [];
+				$settings["validation"] = "required";
+				unset($settings["default"]);
+
+				if ($default !== null) {
+					$settings["default"] = $default;
+				}
+
+				$patched["forms"][$form_key]["fields"][$field_key]["settings"] = $settings;
+			}
+		}
+
+		BigTreeJSONDB::update("modules", $module_id, $patched);
+
+		return function () use ($module_id, $original): void {
+			BigTreeJSONDB::update("modules", $module_id, $original);
+		};
+	}
+
 	/** Stage and approve an AI entry create as $user. */
 	function ai_side_effect_create(AutoModuleService $svc, $user, string $title): array {
 		$validated = $svc->aiValidateEntryCreate([

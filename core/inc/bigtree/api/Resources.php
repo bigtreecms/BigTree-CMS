@@ -2,6 +2,7 @@
 	namespace BigTree\Api;
 
 	use BigTree;
+	use BigTree\Services\AI\FieldDefaultDomain;
 
 	/**
 	 * Shared cleaning for the resources array carried by callouts and templates
@@ -528,17 +529,36 @@
 		 * @return array The settings array for a newly created field.
 		 */
 		public static function aiFieldSettings(array $field, string $type = "", string $surface = "template"): array {
-			$settings = $surface === "module" && is_array($field["settings"] ?? null) ? $field["settings"] : [];
-			$required = $field["required"] ?? false;
+			// A field arrives here in one of two shapes: the assistant's
+			// {id, type, options, required, default}, or an already-merged resource row
+			// carrying a `settings` blob — which is what the create-approval seams hand
+			// it, since what they re-gate is the payload staged from mergeAiFields. The
+			// module surface takes the whole blob because scaffold_module declares one;
+			// the other surfaces take only the two settings the assistant's own shape
+			// can express, so this function is idempotent on its own output. Reading
+			// nothing from it made a staged `list` field's options invisible at
+			// approval, and create_template refused, as "no choices", a field whose
+			// choices were sitting in the payload.
+			$stored = is_array($field["settings"] ?? null) ? $field["settings"] : [];
+			$settings = $surface === "module" ? $stored : [];
 
-			if (is_string($required)) {
-				$required = !in_array(strtolower(trim($required)), ["", "0", "false", "no"], true);
-			}
+			if (array_key_exists("required", $field)) {
+				$required = $field["required"];
 
-			if ($required) {
-				// Stored as the legacy `validation` rule string, the same source
-				// PageService's required-field gates read.
-				$settings["validation"] = "required";
+				if (is_string($required)) {
+					$required = !in_array(strtolower(trim($required)), ["", "0", "false", "no"], true);
+				}
+
+				if ($required) {
+					// Stored as the legacy `validation` rule string, the same source
+					// PageService's required-field gates read.
+					$settings["validation"] = "required";
+				}
+			} elseif (is_string($stored["validation"] ?? null)) {
+				// Carried through verbatim rather than rewritten to "required": a
+				// stored rule string can hold more than one rule ("required email"),
+				// and this is the merged-row shape, not a fresh proposal.
+				$settings["validation"] = (string)$stored["validation"];
 			}
 
 			// A static list's choices, from either place the model can put them: the
@@ -548,10 +568,10 @@
 			// only asks whether the setting is non-empty: a raw ["Small", "Large"]
 			// satisfied it and then stored rows the Select can't read (audit #12 A2).
 			$supplied = $field["options"] ?? null;
-			$list_type = (string)($settings["list_type"] ?? "");
+			$list_type = (string)($stored["list_type"] ?? "");
 
 			if ($supplied === null && ($list_type === "" || $list_type === "static")) {
-				$supplied = $settings["list"] ?? null;
+				$supplied = $stored["list"] ?? null;
 			}
 
 			$options = self::aiListOptions($supplied);
@@ -565,13 +585,21 @@
 			// field-authoring tool declares. A universal settings descriptor (see
 			// FieldTypeService::universalSettingsSchema), read by
 			// PageService::normalizePageResources when a page leaves the field
-			// untouched and by the SPA's FormRenderer when it seeds a new entry form.
-			// Before audit #19 A2 both readers existed and nothing in the product —
-			// UI or assistant — could author the key they read.
-			if (array_key_exists("default", $field) && is_scalar($field["default"])) {
-				$settings["default"] = is_bool($field["default"])
-					? ($field["default"] ? "on" : "")
-					: (string)$field["default"];
+			// untouched, by AutoModuleService::applyFormFieldDefaults when an entry is
+			// created, and by the SPA's FormRenderer when it seeds a new entry form.
+			// Before audit #19 A2 all three readers existed and nothing in the product
+			// — UI or assistant — could author the key they read.
+			$default = self::aiFieldDefault($field, $stored, $type);
+
+			if ($default !== null) {
+				// Normalized by the same domains that judge a *value* of this field, so
+				// an option given as its label lands as the stored value and a date
+				// lands in the format its column keeps (audit #20 A1). A default this
+				// refuses is left verbatim: aiFieldDefaultError is what turns it into
+				// the recoverable error, and rewriting it here would change what that
+				// error is about.
+				FieldDefaultDomain::violation($field, $type, $surface, $settings, $default);
+				$settings["default"] = $default;
 			}
 
 			// Mirrors spa/src/components/developer/field-settings/DirectoryControl.tsx,
@@ -592,6 +620,287 @@
 			}
 
 			return $settings;
+		}
+
+		/**
+		 * Per-field arguments the assistant's field shape can express, and what each
+		 * ends up as once mergeAiFields has run. The carry-over branch copies only
+		 * `id`/`type`/`title`/`subtitle` from the proposal, so everything here is
+		 * dropped for a field retained at an unchanged type.
+		 */
+		private const AI_NEW_FIELD_ONLY_ARGS = ["options", "required", "default"];
+
+		/**
+		 * Reject an update that supplies a per-field setting the merge is going to
+		 * discard, naming the setting and the field it was sent for.
+		 *
+		 * The discarding itself is right: it is what stops an `update_template` from
+		 * flattening the image presets, matrix subfields and db-driven lists a human
+		 * configured, which the assistant's field shape has no way to restate. What was
+		 * wrong is that it happened in silence — "add Enormous to the Size dropdown" is
+		 * an ordinary request, the model sends `options`, the merge drops it, the
+		 * card's field diff reports only added/removed/retyped fields and shows
+		 * nothing, the approval succeeds, and the model reports the change as made
+		 * (audit #20 A4).
+		 *
+		 * A schema description is advice the model may not follow, so this is the
+		 * runtime half of the same disclosure. Deliberately quiet when the supplied
+		 * value matches what the field already has: restating a field's own
+		 * requiredness while renaming it drops nothing, and erroring on it would make
+		 * the natural "here is the complete field list" call unusable.
+		 *
+		 * Returns null when nothing would be dropped.
+		 *
+		 * @param mixed $fields   Raw AI-proposed field list.
+		 * @param array $existing Stored resources.
+		 * @param string $surface "template" or "callout", for the error's wording.
+		 */
+		public static function aiIgnoredFieldSettingsError($fields, array $existing = [], string $surface = "template"): ?string {
+			$stored = [];
+
+			foreach ($existing as $resource) {
+				$id = is_array($resource) ? (string)($resource["id"] ?? "") : "";
+
+				if ($id !== "") {
+					$stored[$id] = $resource;
+				}
+			}
+
+			foreach ((array)$fields as $field) {
+				if (!is_array($field)) {
+
+					continue;
+				}
+
+				$id = self::aiFieldId($field);
+				$prior = $stored[$id] ?? null;
+				$type = array_key_exists("type", $field)
+					? (string)$field["type"]
+					: (string)($prior["type"] ?? "text");
+
+				// Only the carry-over branch drops anything; a new or retyped field is
+				// built from the proposal, settings and all.
+				if ($prior === null || (string)($prior["type"] ?? "text") !== $type) {
+
+					continue;
+				}
+
+				$ignored = self::aiIgnoredFieldArgs($field, $type, $prior, $surface);
+
+				if (!$ignored) {
+
+					continue;
+				}
+
+				$where = self::SURFACE_EDITORS[$surface] ?? self::SURFACE_EDITORS["template"];
+				// The proposal's own title when it restates one, the stored title
+				// otherwise — a field carried over by id usually restates nothing, and
+				// naming it by a bare id is the least useful half of the disclosure.
+				$label = (string)($field["title"] ?? $prior["title"] ?? "") !== ""
+					? (string)($field["title"] ?? $prior["title"])
+					: $id;
+
+				return "\"" . implode("\" and \"", $ignored) . "\" can only be set on a field being added, and "
+					. "\"{$label}\" already exists — supplying " . (count($ignored) === 1 ? "it" : "them")
+					. " here would change nothing, because an existing field keeps the configuration a developer set "
+					. "for it (its validation rules, list choices, image sizes and matrix columns, none of which "
+					. "this tool can restate). Change " . (count($ignored) === 1 ? "it" : "them") . " in {$where}, "
+					. "or resend this field without " . (count($ignored) === 1 ? "that argument" : "those arguments")
+					. ".";
+			}
+
+			return null;
+		}
+
+		/**
+		 * Which of the new-field-only arguments this proposal supplies for an existing
+		 * field *and* would actually change.
+		 *
+		 * @param array<string,mixed> $field The proposed field.
+		 * @param array<string,mixed> $prior The stored resource record.
+		 * @return list<string>
+		 */
+		private static function aiIgnoredFieldArgs(array $field, string $type, array $prior, string $surface): array {
+			$prior_settings = is_array($prior["settings"] ?? null) ? $prior["settings"] : [];
+			$proposed = self::aiFieldSettings($field, $type, $surface);
+			$ignored = [];
+
+			foreach (self::AI_NEW_FIELD_ONLY_ARGS as $arg) {
+				if (!array_key_exists($arg, $field)) {
+
+					continue;
+				}
+
+				// Each argument is compared as what it *becomes*, not as what was sent:
+				// `required: true` against a field already carrying the `required`
+				// validation rule drops nothing, and reporting it would make the
+				// natural "here is the complete field list" call unusable.
+				if ($arg === "options") {
+					$changed = ($proposed["list"] ?? null) !== ($prior_settings["list"] ?? null)
+						|| ($proposed["list_type"] ?? null) !== ($prior_settings["list_type"] ?? null);
+				} elseif ($arg === "required") {
+					$changed = self::aiSettingsAreRequired($proposed) !== self::aiSettingsAreRequired($prior_settings);
+				} else {
+					// Read straight off the proposal rather than through
+					// aiFieldSettings, which drops a `default` on a field type that has
+					// no such setting — dropping it is exactly what wants disclosing.
+					$changed = (is_scalar($field["default"] ?? null) ? (string)$field["default"] : "")
+						!== (is_scalar($prior_settings["default"] ?? null) ? (string)$prior_settings["default"] : "");
+				}
+
+				if ($changed) {
+					$ignored[] = $arg;
+				}
+			}
+
+			return $ignored;
+		}
+
+		/**
+		 * Whether a settings blob makes its field required, spelled either way this CMS
+		 * spells it: the `validation` rule string every pre-SPA record uses, or the
+		 * standalone `required` key.
+		 *
+		 * @param array<string,mixed> $settings
+		 */
+		private static function aiSettingsAreRequired(array $settings): bool {
+			if (!empty($settings["required"])) {
+
+				return true;
+			}
+
+			$rules = is_string($settings["validation"] ?? null)
+				? preg_split("/\s+/", trim($settings["validation"]), -1, PREG_SPLIT_NO_EMPTY)
+				: [];
+
+			return in_array("required", $rules ?: [], true);
+		}
+
+		/**
+		 * The `default` a proposed field would be stored with, as the string every
+		 * reader of the setting expects — or null when the field declares none, or
+		 * when its type has no such setting to declare.
+		 *
+		 * A boolean is spelled "on"/"" only for `checkbox`, which is how this CMS
+		 * stores a checked box everywhere (the admin's own form pipeline included).
+		 * The coercion used to be unconditional, which made `"default": true` on a
+		 * text field the literal string "on" (audit #20 B2).
+		 *
+		 * @param array<string,mixed> $field  The proposed field (assistant shape).
+		 * @param array<string,mixed> $stored The field's stored settings blob, if any.
+		 */
+		private static function aiFieldDefault(array $field, array $stored, string $type): ?string {
+			if (!self::aiTypeAcceptsDefault($type)) {
+
+				return null;
+			}
+
+			if (array_key_exists("default", $field) && is_scalar($field["default"])) {
+				$default = $field["default"];
+			} elseif (array_key_exists("default", $stored) && is_scalar($stored["default"])) {
+				$default = $stored["default"];
+			} else {
+
+				return null;
+			}
+
+			if (is_bool($default) && $type === "checkbox") {
+
+				return $default ? "on" : "";
+			}
+
+			return (string)$default;
+		}
+
+		/**
+		 * Whether this field type declares a `default` setting at all.
+		 *
+		 * Asked of the declaration rather than restated here: audit #20 A2 scoped the
+		 * universal descriptor to the value types one scalar can mean something for,
+		 * and a second copy of that rule on the write side is the drift the scoping was
+		 * meant to end.
+		 */
+		private static function aiTypeAcceptsDefault(string $type): bool {
+			foreach (\BigTree\Services\FieldTypeService::settingsSchema($type) as $descriptor) {
+				if ((string)($descriptor["id"] ?? "") === "default") {
+
+					return true;
+				}
+			}
+
+			return false;
+		}
+
+		/**
+		 * Reject a proposed `default` that isn't a legal value of the field it is being
+		 * set on — the check that never existed, on the one field setting whose stored
+		 * value later becomes record content (audit #20 A1).
+		 *
+		 * Runs on the same fields, under the same retain rule, as
+		 * aiUnconfigurableFieldError: a field carried over by id at an unchanged type
+		 * keeps the default a human configured, and re-judging it would refuse an
+		 * update for a setting this proposal isn't touching.
+		 *
+		 * Returns null when every default is acceptable.
+		 *
+		 * @param mixed $fields   Raw AI-proposed field list.
+		 * @param array $existing Stored resources ([] when creating).
+		 * @param string $surface "template", "callout" or "module".
+		 */
+		public static function aiFieldDefaultError($fields, array $existing = [], string $surface = "template"): ?string {
+			$stored = [];
+
+			foreach ($existing as $resource) {
+				$id = is_array($resource) ? (string)($resource["id"] ?? "") : "";
+
+				if ($id !== "") {
+					$stored[$id] = $resource;
+				}
+			}
+
+			foreach ((array)$fields as $field) {
+				if (!is_array($field)) {
+
+					continue;
+				}
+
+				$id = self::aiFieldId($field);
+				$prior = $stored[$id] ?? null;
+				$type = array_key_exists("type", $field)
+					? (string)$field["type"]
+					: (string)($prior["type"] ?? "text");
+
+				if ($prior !== null && (string)($prior["type"] ?? "text") === $type) {
+
+					continue;
+				}
+
+				$settings = self::aiFieldSettings($field, $type, $surface);
+				$blob = is_array($field["settings"] ?? null) ? $field["settings"] : [];
+				$supplied = array_key_exists("default", $field) || array_key_exists("default", $blob);
+
+				// A default the type has no setting for is refused rather than dropped:
+				// dropping it hands the model a successful card for a request it didn't
+				// fulfil, which is the defect A4 is about.
+				if ($supplied && !self::aiTypeAcceptsDefault($type)) {
+					$label = (string)($field["title"] ?? "") !== "" ? (string)$field["title"] : $id;
+
+					return "\"{$label}\" is a {$type} field, whose value isn't a single value, so it has no "
+						. "default — a default set on one is written into every record as a bare string that "
+						. "nothing reading the field can use. Remove \"default\" from this field.";
+				}
+
+				$value = (string)($settings["default"] ?? "");
+				$violation = FieldDefaultDomain::violation($field, $type, $surface, $settings, $value);
+
+				if ($violation !== null) {
+
+					return "The default for \"" . ((string)($field["title"] ?? "") !== "" ? (string)$field["title"] : $id)
+						. "\" isn't a value that field can hold. " . $violation;
+				}
+			}
+
+			return null;
 		}
 
 		/**

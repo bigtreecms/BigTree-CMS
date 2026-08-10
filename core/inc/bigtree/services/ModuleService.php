@@ -242,7 +242,7 @@
 				// many-to-many has no column: the plan's consumers (the proposal card,
 				// performScaffold's single ALTER) read the two lists together, and a
 				// bare append would slide every later column onto the wrong field.
-				$sql_type = $this->columnSqlType($type);
+				$sql_type = self::columnSqlType($type);
 
 				if ($sql_type !== "") {
 					$column_adds[count($form_fields) - 1] = "ADD COLUMN `$column` " . $sql_type;
@@ -494,8 +494,13 @@
 		 * Field type → column SQL type (the legacy form-create.php mapping, with the
 		 * default narrowed and the two relation types corrected — see below). An empty
 		 * string means the field needs no column at all.
+		 *
+		 * Public and static because it is also the answer to "how wide is the storage
+		 * this field's value gets" — which is what FieldDefaultDomain has to know to
+		 * judge an authored `default` (audit #20 A1). A second hand-written copy of
+		 * this mapping over there is the drift audit #10 A4 is about.
 		 */
-		private function columnSqlType($type) {
+		public static function columnSqlType($type) {
 			// A many-to-many doesn't live in a column: it is a connecting table and two
 			// id columns, and the entry write path takes the column back out of every
 			// row it writes (`aiWithoutMtmColumns`, and `$field["ignore"] = true` in
@@ -625,7 +630,7 @@
 			$columns = 0;
 
 			foreach (array_values($form_fields) as $index => $field) {
-				$sql_type = $this->columnSqlType((string)$field["type"]);
+				$sql_type = self::columnSqlType((string)$field["type"]);
 
 				// A field that gets no column costs nothing and still fits.
 				if ($sql_type !== "") {
@@ -2118,7 +2123,13 @@
 			// stores as LONGTEXT and draws nothing, and a relation with no target table
 			// is one RelationDomain will later refuse to write into — describing, to
 			// the model, a field the model itself created three turns earlier.
-			$settings_error = Resources::aiUnconfigurableFieldError($this->aiScaffoldGateFields($fields), [], "module");
+			$settings_error = Resources::aiUnconfigurableFieldError($this->aiScaffoldGateFields($fields), [], "module")
+				// The value half of the same rule (audit #20 A1). A `default` is the one
+				// field setting whose stored value becomes record content — every entry
+				// created from this form is born holding it — so it is judged by the
+				// domains that judge a value of the field it sits on, not by the
+				// is_scalar cast that was the whole of the check.
+				?? Resources::aiFieldDefaultError($this->aiScaffoldGateFields($fields), [], "module");
 
 			if ($settings_error !== null) {
 
@@ -2278,11 +2289,12 @@
 			// Never trusted on the way back out, like every other staged value — and a
 			// field type's settings_schema can gain a required setting inside the
 			// proposal's 24h TTL exactly as the type itself can appear or vanish.
-			$settings_error = Resources::aiUnconfigurableFieldError(
-				$this->aiScaffoldGateFields(is_array($payload["fields"] ?? null) ? $payload["fields"] : []),
-				[],
-				"module"
-			);
+			$gate_fields = $this->aiScaffoldGateFields(is_array($payload["fields"] ?? null) ? $payload["fields"] : []);
+			$settings_error = Resources::aiUnconfigurableFieldError($gate_fields, [], "module")
+				// Never trusted on the way back out for the same reason: a field type's
+				// option list is resolved from the database, and a `db`-populated list's
+				// table can lose the row a staged default named.
+				?? Resources::aiFieldDefaultError($gate_fields, [], "module");
 
 			if ($settings_error !== null) {
 

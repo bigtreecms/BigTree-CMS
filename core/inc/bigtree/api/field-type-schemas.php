@@ -43,6 +43,8 @@
 	 *   options      - [{value,label}] for enum/select controls
 	 *   default      - default value when unset
 	 *   required     - bool, marks the control required
+	 *   value_types  - (universal descriptors only) the field `value_type`s this
+	 *                  setting applies to; omitted means "every one"
 	 *   depends_on   - id of another setting this control reads (db_column → its table)
 	 *   context_defaults - {use_case: default} map (directory control)
 	 *   contexts     - only show this setting for these use_cases (e.g. ["templates"])
@@ -62,6 +64,13 @@
 	 * declared once instead of copied into two dozen schemas. It is still a declared
 	 * descriptor id, which is what the AI seams' setting-key guard checks against.
 	 *
+	 * "Universal" is about the *reader*, not about every field type: a descriptor may
+	 * name the `value_type`s it can mean anything for, and withUniversalSettings()
+	 * filters on it. `default` holds one scalar, so it belongs to the field types
+	 * whose value is one — a scalar default on a `matrix` or a `media-gallery` hands
+	 * a template's `foreach` a string, and on an `image-reference` names a resource id
+	 * nothing resolved.
+	 *
 	 * Custom override: drop a file at custom/inc/bigtree/api/field-type-schemas.php
 	 * returning an array keyed by field-type id — entries override or extend these.
 	 */
@@ -79,7 +88,7 @@
 		// type's settings_schema.
 		"_universal" => [
 			"settings_schema" => [
-				["id" => "default", "control" => "string", "label" => "Default Value", "hint" => "(used when the field has never been filled in)", "note" => "Seeded into a new record's form and written into a page's stored resources for any field left untouched, so front-end templates never see an undefined value."],
+				["id" => "default", "control" => "string", "label" => "Default Value", "value_types" => ["string", "bool"], "hint" => "(used when the field has never been filled in)", "note" => "Seeded into a new record's form and written into a page's stored resources for any field left untouched, so front-end templates never see an undefined value."],
 			],
 		],
 		"text" => [

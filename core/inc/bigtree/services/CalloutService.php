@@ -312,7 +312,8 @@
 			$fields = $this->aiCalloutFields($args["fields"] ?? []);
 			$type_error = Resources::aiFieldIdError($args["fields"] ?? [], "callout")
 				?? $this->aiInvalidFieldTypeError($fields)
-				?? Resources::aiUnconfigurableFieldError($args["fields"] ?? [], [], "callout");
+				?? Resources::aiUnconfigurableFieldError($args["fields"] ?? [], [], "callout")
+				?? Resources::aiFieldDefaultError($args["fields"] ?? [], [], "callout");
 
 			if ($type_error !== null) {
 
@@ -419,7 +420,8 @@
 			$resources = is_array($payload["resources"] ?? null) ? $payload["resources"] : [];
 			$type_error = Resources::aiFieldIdError($resources, "callout")
 				?? $this->aiInvalidFieldTypeError($resources)
-				?? Resources::aiUnconfigurableFieldError($resources, [], "callout");
+				?? Resources::aiUnconfigurableFieldError($resources, [], "callout")
+				?? Resources::aiFieldDefaultError($resources, [], "callout");
 
 			if ($type_error !== null) {
 
@@ -703,7 +705,9 @@
 				$fields = $this->aiCalloutFields($args["fields"], $before);
 				$type_error = Resources::aiFieldIdError($args["fields"], "callout")
 					?? $this->aiInvalidFieldTypeError($fields)
-					?? Resources::aiUnconfigurableFieldError($args["fields"], $before, "callout");
+					?? Resources::aiUnconfigurableFieldError($args["fields"], $before, "callout")
+					?? Resources::aiFieldDefaultError($args["fields"], $before, "callout")
+					?? Resources::aiIgnoredFieldSettingsError($args["fields"], $before, "callout");
 
 				if ($type_error !== null) {
 
@@ -1050,7 +1054,9 @@
 				// uninstalled inside the TTL wrote its now-unknown type verbatim.
 				$type_error = Resources::aiFieldIdError($changes["fields"], "callout")
 					?? $this->aiInvalidFieldTypeError($merged)
-					?? Resources::aiUnconfigurableFieldError($changes["fields"], $before, "callout");
+					?? Resources::aiUnconfigurableFieldError($changes["fields"], $before, "callout")
+					?? Resources::aiFieldDefaultError($changes["fields"], $before, "callout")
+					?? Resources::aiIgnoredFieldSettingsError($changes["fields"], $before, "callout");
 
 				if ($type_error !== null) {
 
@@ -1069,7 +1075,8 @@
 				$merged = $this->aiCalloutFields($resources, $before);
 				$type_error = Resources::aiFieldIdError($resources, "callout")
 					?? $this->aiInvalidFieldTypeError($merged)
-					?? Resources::aiUnconfigurableFieldError($resources, $before, "callout");
+					?? Resources::aiUnconfigurableFieldError($resources, $before, "callout")
+					?? Resources::aiFieldDefaultError($resources, $before, "callout");
 
 				if ($type_error !== null) {
 

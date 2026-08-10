@@ -4305,6 +4305,16 @@
 					continue;
 				}
 
+				// A field the assistant can't author but the write path fills anyway.
+				// applyFormFieldDefaults doesn't care what type a column's field is —
+				// it seeds any column whose field declares a `default` — so refusing
+				// the *entire* create for a publisher over a field that is already
+				// configured to fill itself is the blocked-required half of audit #20
+				// A3, and the same parity fix as above.
+				if (self::aiFieldDefaultSatisfies($settings)) {
+					continue;
+				}
+
 				// Derived server-side by applyEntryProcessors — required or not, the
 				// model is not expected to supply them and they will be populated.
 				if (FieldTypeDomain::isDerived($type)) {
@@ -4821,6 +4831,26 @@
 		}
 
 		/**
+		 * Whether a field's own settings will fill it in, so a required field carrying
+		 * one is not a gap the caller has to close.
+		 *
+		 * Matched to what the writers actually seed: applyFormFieldDefaults and
+		 * PageService::normalizePageResources both take a scalar `default`, so an
+		 * empty-string default seeds "" and leaves the field as blank as it started —
+		 * that one is still missing.
+		 *
+		 * @param array<string,mixed> $settings A field/resource settings blob.
+		 */
+		public static function aiFieldDefaultSatisfies(array $settings): bool {
+			if (!array_key_exists("default", $settings) || !is_scalar($settings["default"])) {
+
+				return false;
+			}
+
+			return trim((string)$settings["default"]) !== "";
+		}
+
+		/**
 		 * Required schema columns absent (or empty) in the sifted data.
 		 *
 		 * @param array<string,array<string,mixed>> $schema
@@ -4832,6 +4862,18 @@
 
 			foreach ($schema as $column => $field) {
 				if (empty($field["required"])) {
+
+					continue;
+				}
+
+				// A field the write path is about to fill is not missing. A few lines
+				// after this gate, applyFormFieldDefaults seeds every unsupplied column
+				// whose field declares a `default` — and the SPA's FormRenderer seeds a
+				// human's form from the same setting *before* the form's own required
+				// check runs, so a human never meets this error. Reporting it was a
+				// stale view of the data rather than an invariant (audit #20 A3): the
+				// row that lands is non-empty either way.
+				if (self::aiFieldDefaultSatisfies(is_array($field["settings"] ?? null) ? $field["settings"] : [])) {
 
 					continue;
 				}

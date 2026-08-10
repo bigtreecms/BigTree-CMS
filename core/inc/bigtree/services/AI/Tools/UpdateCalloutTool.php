@@ -101,7 +101,9 @@
 											. "{value, description} objects when the stored value differs from the "
 											. "label. A list field with no options renders as an empty select — and "
 											. "if it is also required, nobody can save the record at all — so this "
-											. "is required when type is \"list\".",
+											. "is required when type is \"list\". Applies to newly added fields only; "
+											. "an existing field keeps the choices set in Developer → Callouts, so "
+											. "adding one choice to an existing list is a Developer → Callouts edit.",
 										"items" => ["type" => "string"],
 									],
 									"required" => [

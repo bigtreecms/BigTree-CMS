@@ -325,6 +325,275 @@
 	}
 
 	/**
+	 * The completeness gate has to read a field in both shapes it arrives in.
+	 *
+	 * A create seam stages the *merged* resource list — rows carrying a `settings`
+	 * blob — and then re-runs the gate on that payload at approval, "never trusted on
+	 * the way back out". `aiFieldSettings` read `settings` on the module surface only,
+	 * so on a template or a callout the merged row's static list was invisible: a
+	 * `create_template` carrying a `list` field staged clean and then failed at
+	 * approval with "has no choices, supply them as options" — for a field whose
+	 * choices were sitting in the payload being judged. Found while wiring the
+	 * default-value domain into the same chain (audit #20), which would otherwise
+	 * have been a no-op at every create approval for the same reason.
+	 *
+	 * The rule, asserted rather than described: aiFieldSettings is idempotent on its
+	 * own output.
+	 */
+	function test_the_field_gate_reads_a_field_in_both_shapes_it_arrives_in() {
+		foreach (["template", "callout", "module"] as $surface) {
+			$proposed = [
+				"id" => "size",
+				"title" => "Size",
+				"type" => "list",
+				"options" => ["Small", "Large"],
+				"required" => true,
+				"default" => "Small",
+			];
+
+			$merged = \BigTree\Api\Resources::mergeAiFields([$proposed], [], $surface);
+			T::equals(count($merged), 1, "{$surface}: the proposal merges to one row");
+
+			// The staged row, re-judged exactly as the approval seam judges it.
+			T::equals(
+				\BigTree\Api\Resources::aiUnconfigurableFieldError($merged, [], $surface),
+				null,
+				"{$surface}: the merged row passes the completeness gate a second time"
+			);
+			T::equals(
+				\BigTree\Api\Resources::aiFieldSettings($merged[0], "list", $surface),
+				$merged[0]["settings"],
+				"{$surface}: re-deriving a merged row's settings changes nothing"
+			);
+		}
+
+		// …and a template field's arbitrary `settings` object is still ignored, which
+		// is what keeps the gate meaningful there: only the two settings the
+		// assistant's own field shape can express are read back.
+		$template = \BigTree\Api\Resources::aiFieldSettings(
+			["id" => "region", "settings" => ["table" => "regions", "list" => [["value" => "a", "description" => "A"]]]],
+			"one-to-many",
+			"template"
+		);
+		T::ok(!isset($template["table"]), "a template field's structured settings are still not carried through");
+	}
+
+	// — audit #20 guard E1: a `default` is validated by the rules of a *value* —
+
+	/**
+	 * E1, option-domain leg: the string `FieldOptionDomain` refuses as an entry value
+	 * is refused as the default that becomes every entry's value.
+	 *
+	 * `default` is the first field setting the assistant can author whose stored value
+	 * later becomes record content — `applyFormFieldDefaults` seeds it into the
+	 * entry's column and `normalizePageResources` writes it into
+	 * `bigtree_pages.resources`, both of them after every gate has run. So it entered
+	 * through the door with no gates on it (an `is_scalar` and a cast) and left
+	 * through the one that has them, having never been checked by either (audit #20
+	 * A1).
+	 *
+	 * The label leg is what proves the shared implementation was *called* rather than
+	 * reimplemented: matching a recognisable label back to its stored value is
+	 * FieldOptionDomain's own behaviour, and a second copy of the rule written here
+	 * would not have it.
+	 */
+	function test_a_default_is_held_to_the_fields_own_option_domain() {
+		$field = [
+			"id" => "size",
+			"title" => "Size",
+			"type" => "list",
+			"options" => ["Small", "Medium", "Large"],
+			"default" => "Enormous",
+		];
+
+		foreach (["template", "callout", "module"] as $surface) {
+			$error = (string)\BigTree\Api\Resources::aiFieldDefaultError([$field], [], $surface);
+
+			T::ok($error !== "", "a {$surface} field's out-of-domain default is refused");
+			T::ok(
+				strpos($error, "isn't one of the options for") !== false,
+				"…in FieldOptionDomain's own wording, not a second copy of the rule"
+			);
+			T::ok(strpos($error, "Small, Medium, Large") !== false, "…and it names the choices to pick from");
+		}
+
+		// A default given as a recognisable *label* resolves to the stored value in
+		// place, exactly as an entry value does — the leg the shared implementation is
+		// the only way to pass.
+		$labelled = [
+			"id" => "size",
+			"title" => "Size",
+			"type" => "list",
+			"options" => [["value" => "sm", "description" => "Small"], ["value" => "lg", "description" => "Large"]],
+			"default" => "Small",
+		];
+
+		T::equals(
+			\BigTree\Api\Resources::aiFieldDefaultError([$labelled], [], "template"),
+			null,
+			"a default written as an option's label is accepted"
+		);
+		T::equals(
+			(string)(\BigTree\Api\Resources::aiFieldSettings($labelled, "list", "template")["default"] ?? ""),
+			"sm",
+			"…and stored as that option's value, not as the label"
+		);
+
+		// An in-domain default is simply accepted.
+		$fine = array_merge($field, ["default" => "Medium"]);
+		T::equals(
+			\BigTree\Api\Resources::aiFieldDefaultError([$fine], [], "template"),
+			null,
+			"a default that is one of the options passes"
+		);
+	}
+
+	/**
+	 * E1, storage-domain leg: a default that wouldn't survive the trip into storage is
+	 * refused rather than silently truncated or coerced.
+	 *
+	 * With `sql_mode = ''` (audit #10's premise, unchanged) MySQL's answer to "this
+	 * doesn't fit" is to cut the string to the column width and turn "tomorrow" into
+	 * `0000-00-00` — on *every* entry created from the form, not once.
+	 */
+	function test_a_default_is_held_to_the_storage_it_lands_in() {
+		$long = str_repeat("a", 5000);
+		$error = (string)\BigTree\Api\Resources::aiFieldDefaultError(
+			[["id" => "Blurb", "title" => "Blurb", "type" => "text", "default" => $long]],
+			[],
+			"module"
+		);
+
+		T::ok($error !== "", "a default longer than the column scaffold_module will emit is refused");
+		T::ok(
+			strpos($error, "191") !== false,
+			"…named as the width ModuleService::columnSqlType actually emits, not a number written here"
+		);
+
+		// The field's own declared cap, which every value path honours and this was
+		// the one value on the field never held to.
+		$capped = (string)\BigTree\Api\Resources::aiFieldDefaultError(
+			[[
+				"id" => "Meta",
+				"title" => "Meta Title",
+				"type" => "text",
+				"settings" => ["max_length" => 10],
+				"default" => "far longer than ten characters",
+			]],
+			[],
+			"module"
+		);
+		T::ok(strpos($capped, "limited to 10") !== false, "a default over the field's own max_length is refused");
+
+		// A relative date resolves to one frozen day and is then handed to every
+		// record created afterwards, which is not what "tomorrow" meant.
+		$relative = (string)\BigTree\Api\Resources::aiFieldDefaultError(
+			[["id" => "starts", "title" => "Starts", "type" => "date", "default" => "tomorrow"]],
+			[],
+			"template"
+		);
+		T::ok($relative !== "", "a relative date is refused as a default");
+		T::ok(strpos($relative, "relative to the current date") !== false, "…and says why a default is different");
+
+		$unparseable = (string)\BigTree\Api\Resources::aiFieldDefaultError(
+			[["id" => "starts", "title" => "Starts", "type" => "date", "default" => "sometime soonish"]],
+			[],
+			"template"
+		);
+		T::ok($unparseable !== "", "and so is a string that is no date at all");
+
+		T::equals(
+			\BigTree\Api\Resources::aiFieldDefaultError(
+				[["id" => "starts", "title" => "Starts", "type" => "date", "default" => "2026-03-04"]],
+				[],
+				"template"
+			),
+			null,
+			"an explicit date passes"
+		);
+
+		// A field type whose value isn't one scalar has no default to set — refused
+		// rather than dropped, since a dropped argument is a successful card for a
+		// request the assistant didn't fulfil.
+		$composite = (string)\BigTree\Api\Resources::aiFieldDefaultError(
+			[["id" => "Rows", "title" => "Rows", "type" => "matrix", "settings" => ["columns" => [["id" => "a"]]], "default" => "x"]],
+			[],
+			"module"
+		);
+		T::ok(strpos($composite, "has no default") !== false, "a default on an array-valued field is refused");
+	}
+
+	/**
+	 * E1's end-to-end leg: the assertion is on the stored row, not on the settings
+	 * blob — the authored default really does become the content of every entry
+	 * created from the form, normalized as the option domain resolved it.
+	 */
+	function test_an_authored_default_reaches_the_row_as_the_option_domain_resolved_it() {
+		if (!function_exists("parity_db_available") || !parity_db_available()) {
+
+			return;
+		}
+
+		$modules = new \BigTree\Services\ModuleService();
+		$entries = new \BigTree\Services\AutoModuleService();
+		$developer = ai_wiring_user(2);
+		$table = "zz_default_row_" . substr(md5((string)mt_rand()), 0, 8);
+		$module_id = "";
+		$entry_id = 0;
+
+		try {
+			$staged = $modules->aiValidateModuleScaffold([
+				"name" => "ZZ Default Row " . substr(md5((string)mt_rand()), 0, 6),
+				"table" => $table,
+				"fields" => [
+					["title" => "Headline", "type" => "text"],
+					[
+						"title" => "Size",
+						"type" => "list",
+						// The default is written as a *label*; what has to land in the
+						// row is the stored value behind it.
+						"options" => [["value" => "md", "description" => "Medium"]],
+						"default" => "Medium",
+					],
+				],
+			], $developer);
+
+			T::ok(!empty($staged["ok"]), "the scaffold stages (" . (string)($staged["error"] ?? "") . ")");
+
+			$built = $modules->aiScaffoldModule($staged["payload"], $developer);
+			T::equals((string)($built["mode"] ?? ""), "created", "and builds");
+			$module_id = (string)($built["id"] ?? "");
+
+			BigTreeJSONDB::$Cache = [];
+			$validated = $entries->aiValidateEntryCreate([
+				"module_id" => $module_id,
+				"data" => ["headline" => "Only the headline"],
+			], $developer);
+
+			T::ok(!empty($validated["ok"]), "an entry that says nothing about the list field stages ("
+				. (string)($validated["error"] ?? "") . ")");
+
+			$created = $entries->aiCreateEntry($validated["payload"], $developer);
+			$entry_id = (int)($created["entry_id"] ?? 0);
+
+			T::equals((string)($created["mode"] ?? ""), "published", "and lands live");
+			T::equals(
+				(string)SQL::fetchSingle("SELECT size FROM `{$table}` WHERE id = ?", $entry_id),
+				"md",
+				"the row holds the option's stored value — the default was normalized, not stored as typed"
+			);
+		} finally {
+			if ($module_id !== "") {
+				BigTreeJSONDB::delete("modules", $module_id);
+			}
+
+			if (BigTree::tableExists($table)) {
+				SQL::query("DROP TABLE `{$table}`");
+			}
+		}
+	}
+
+	/**
 	 * A2's shared-helper half: `many-to-many` had no entry in the render-required map
 	 * and no `required` descriptor in its own schema, so an m2m field with entirely
 	 * empty settings authored clean on every surface that isn't pages.

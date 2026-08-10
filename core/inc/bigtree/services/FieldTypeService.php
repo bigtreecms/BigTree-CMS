@@ -210,9 +210,11 @@
 				$schema["render"] = $this->renderKind($schema, "default");
 				$schema["contract_version"] = (int)($schema["contract_version"] ?? 1);
 				// The universal settings the SPA's settings editor renders for every
-				// field type; declared once rather than per type.
+				// field type; declared once rather than per type, and scoped to the
+				// value types each can mean anything for.
 				$schema["settings_schema"] = self::withUniversalSettings(
-					is_array($schema["settings_schema"] ?? null) ? $schema["settings_schema"] : []
+					is_array($schema["settings_schema"] ?? null) ? $schema["settings_schema"] : [],
+					(string)($schema["value_type"] ?? "")
 				);
 
 				// Schema-file types are first-party (shipped in core/custom php), so
@@ -248,7 +250,8 @@
 					$payload["integrity"] = isset($ft["integrity"]) ? (string)$ft["integrity"] : "";
 					$payload["trust"] = isset($ft["trust"]) ? (string)$ft["trust"] : "marketplace";
 					$payload["settings_schema"] = self::withUniversalSettings(
-						is_array($ft["settings_schema"] ?? null) ? $ft["settings_schema"] : []
+						is_array($ft["settings_schema"] ?? null) ? $ft["settings_schema"] : [],
+						(string)$payload["value_type"]
 					);
 				} else {
 					// Locally authored, implicitly trusted — source + settings on disk,
@@ -262,23 +265,29 @@
 
 					$payload["module_source"] = $source;
 					$payload["trust"] = "local";
-					$payload["settings_schema"] = self::withUniversalSettings($this->readSettingsSchema($id));
+					$payload["settings_schema"] = self::withUniversalSettings(
+						$this->readSettingsSchema($id),
+						(string)$payload["value_type"]
+					);
 				}
 
 				return Response::ok($payload)->cacheFor(60);
 			}
 
 			if ($render === "declarative") {
+				$value_type = isset($ft["value_type"]) ? (string)$ft["value_type"] : "object";
+
 				return Response::ok([
 					"id" => $id,
 					"name" => $ft["name"] ?? $id,
 					"category" => "custom",
 					"render" => "declarative",
-					"value_type" => isset($ft["value_type"]) ? (string)$ft["value_type"] : "object",
+					"value_type" => $value_type,
 					"contract_version" => (int)($ft["contract_version"] ?? 1),
 					"input_schema" => array_values($ft["input_schema"]),
 					"settings_schema" => self::withUniversalSettings(
-						is_array($ft["settings_schema"] ?? null) ? $ft["settings_schema"] : []
+						is_array($ft["settings_schema"] ?? null) ? $ft["settings_schema"] : [],
+						$value_type
 					),
 				])->cacheFor(60);
 			}
@@ -714,6 +723,22 @@
 		}
 
 		/**
+		 * A field type's declared `value_type` — the shape of the value it stores, and
+		 * the axis the universal descriptors are scoped on.
+		 *
+		 * "" for a type this file doesn't declare (a custom or extension type, whose
+		 * value_type lives on its JSONDB record instead). Callers that hold the record
+		 * pass its value_type straight to withUniversalSettings(); the ones that only
+		 * have a type id fall back to the permissive `string`, which is what the type
+		 * got before the scoping existed.
+		 */
+		public static function valueType(string $type): string {
+			$schema = self::schemas()[$type] ?? null;
+
+			return is_array($schema) ? (string)($schema["value_type"] ?? "") : "";
+		}
+
+		/**
 		 * One field type's `settings_schema` descriptors, the universal ones appended
 		 * (just the universal ones when the type declares none, or isn't known).
 		 *
@@ -725,18 +750,28 @@
 				? array_values(array_filter($schema["settings_schema"], "is_array"))
 				: [];
 
-			return self::withUniversalSettings($declared);
+			return self::withUniversalSettings($declared, self::valueType($type) ?: "string");
 		}
 
 		/**
 		 * Append the universal descriptors to a declared settings schema, skipping any
 		 * the schema already spells for itself — a field type that wants a different
-		 * label or control for `default` keeps its own.
+		 * label or control for `default` keeps its own — and any whose declared
+		 * `value_types` don't include this type's.
+		 *
+		 * The value-type filter is what stops "universal" from meaning "on every field
+		 * type": `default` holds one scalar, so declaring it on the seven types whose
+		 * value is an array, an object or a resource id offered the developer (and the
+		 * assistant) a Default Value box whose contents no reader can mean anything by
+		 * — PageService::normalizePageResources hands the stored string to a template's
+		 * `foreach` (audit #20 A2). A descriptor with no `value_types` is genuinely
+		 * universal and still lands everywhere.
 		 *
 		 * @param list<array<string,mixed>> $declared
+		 * @param string $value_type The host field type's value_type ("" when unknown).
 		 * @return list<array<string,mixed>>
 		 */
-		public static function withUniversalSettings(array $declared): array {
+		public static function withUniversalSettings(array $declared, string $value_type = "string"): array {
 			$declared = array_values(array_filter($declared, "is_array"));
 			$ids = [];
 
@@ -745,12 +780,38 @@
 			}
 
 			foreach (self::universalSettingsSchema() as $descriptor) {
-				if (!in_array((string)($descriptor["id"] ?? ""), $ids, true)) {
-					$declared[] = $descriptor;
+				if (in_array((string)($descriptor["id"] ?? ""), $ids, true)) {
+
+					continue;
 				}
+
+				if (!self::universalSettingApplies($descriptor, $value_type)) {
+
+					continue;
+				}
+
+				$declared[] = $descriptor;
 			}
 
 			return $declared;
+		}
+
+		/**
+		 * Whether a universal descriptor is declared for this value type. An unknown
+		 * value type ("" — a custom type whose record doesn't say) takes everything,
+		 * so scoping never silently removes a setting from a type nobody classified.
+		 *
+		 * @param array<string,mixed> $descriptor
+		 */
+		private static function universalSettingApplies(array $descriptor, string $value_type): bool {
+			$value_types = $descriptor["value_types"] ?? null;
+
+			if (!is_array($value_types) || !$value_types || $value_type === "") {
+
+				return true;
+			}
+
+			return in_array($value_type, array_map("strval", $value_types), true);
 		}
 
 		/**

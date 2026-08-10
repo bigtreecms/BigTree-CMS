@@ -76,7 +76,8 @@ export const ModuleAction = ({ actionId, commands = [] }: ModuleActionProps) => 
 				selection,
 				userLevel,
 			},
-			invoke: (payload?: unknown) => modulesApi.invokeAction(moduleId, actionId, payload),
+			invoke: (payload?: unknown) =>
+				modulesApi.invokeAction(moduleId, actionId, payload, selection),
 			invokeAction: (route: string, payload?: unknown) => {
 				const target = actions.find((a) => a.route === route);
 
@@ -86,7 +87,7 @@ export const ModuleAction = ({ actionId, commands = [] }: ModuleActionProps) => 
 					);
 				}
 
-				return modulesApi.invokeAction(moduleId, target.id, payload);
+				return modulesApi.invokeAction(moduleId, target.id, payload, selection);
 			},
 			navigate: (to: string) => navigate(to),
 			toast: (message: string, kind = "info") => toast[kind](message),

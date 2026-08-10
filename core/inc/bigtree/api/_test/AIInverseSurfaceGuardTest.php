@@ -966,3 +966,235 @@
 			"both halves of a namespaced id are sanitized, not just the local one"
 		);
 	}
+
+	// — audit #20 guard E4: a settings-bearing update argument applies, or says it doesn't —
+
+	/**
+	 * The per-field arguments an update surface's field shape carries that
+	 * `Resources::mergeAiFields` *does* copy onto a field carried over by id at an
+	 * unchanged type. Everything else in the field shape is dropped for such a field,
+	 * so it has to say so.
+	 */
+	function ai_merge_carried_field_args(): array {
+
+		return ["id", "type", "title", "subtitle"];
+	}
+
+	/**
+	 * Arguments deliberately dropped without saying so, with the reason. Empty, and
+	 * meant to stay that way: `options` was the entry this would have held, which is
+	 * the point of the guard.
+	 *
+	 * @return array<string,array<string,string>> tool => [argument => reason]
+	 */
+	function ai_merge_dropped_arg_exemptions(): array {
+
+		return [];
+	}
+
+	/** The update tools whose `fields` argument goes through mergeAiFields. */
+	function ai_merge_update_surfaces(): array {
+
+		return ["update_template", "update_callout"];
+	}
+
+	/**
+	 * E4: every per-field property an update tool declares either survives the merge
+	 * or is documented as applying to newly added fields only.
+	 *
+	 * `mergeAiFields` takes a retained field's stored row wholesale — which is right,
+	 * and is what stops an `update_template` from flattening the image presets and
+	 * matrix subfields the assistant's field shape can't restate. What was wrong is
+	 * that `required` and `default` disclosed it in their own descriptions and
+	 * `options` did not: "add Enormous to the Size dropdown" is an ordinary request,
+	 * the model sends `options`, the merge drops it, the card's field diff shows
+	 * nothing, and the model reports the change as made (audit #20 A4).
+	 */
+	function test_update_field_arguments_apply_or_disclose_that_they_do_not() {
+		$registry = ai_wiring_registry();
+		$developer = ai_wiring_user(2);
+		$carried = ai_merge_carried_field_args();
+		$exempt = ai_merge_dropped_arg_exemptions();
+		$undisclosed = [];
+		$checked = 0;
+
+		foreach ($registry->availableTools($developer) as $tool) {
+			if (!in_array($tool->name(), ai_merge_update_surfaces(), true)) {
+
+				continue;
+			}
+
+			$properties = $tool->definition($developer)["function"]["parameters"]["properties"]["fields"]["items"]["properties"] ?? [];
+			T::ok(is_array($properties) && $properties, "{$tool->name()} declares per-field properties");
+
+			foreach ((array)$properties as $arg => $descriptor) {
+				if (in_array((string)$arg, $carried, true) || isset($exempt[$tool->name()][$arg])) {
+
+					continue;
+				}
+
+				$checked++;
+				$description = (string)($descriptor["description"] ?? "");
+
+				if (stripos($description, "newly added fields only") === false) {
+					$undisclosed[] = "{$tool->name()}.{$arg}";
+				}
+			}
+		}
+
+		T::ok($checked > 0, "the update surfaces declare arguments the merge drops, so this checked something");
+		T::equals(
+			implode(", ", $undisclosed),
+			"",
+			"every dropped per-field argument says \"newly added fields only\" in its own description"
+		);
+	}
+
+	/** No exemption may outlive the argument it excuses. */
+	function test_no_merge_dropped_arg_exemption_is_stale() {
+		$registry = ai_wiring_registry();
+		$developer = ai_wiring_user(2);
+		$declared = [];
+
+		foreach ($registry->availableTools($developer) as $tool) {
+			if (!in_array($tool->name(), ai_merge_update_surfaces(), true)) {
+
+				continue;
+			}
+
+			$properties = $tool->definition($developer)["function"]["parameters"]["properties"]["fields"]["items"]["properties"] ?? [];
+			$declared[$tool->name()] = is_array($properties) ? array_keys($properties) : [];
+		}
+
+		$stale = [];
+
+		foreach (ai_merge_dropped_arg_exemptions() as $tool => $args) {
+			foreach ($args as $arg => $reason) {
+				T::ok($reason !== "", "the {$tool}.{$arg} exemption states why the silence is correct");
+
+				if (!in_array((string)$arg, $declared[$tool] ?? [], true)) {
+					$stale[] = "{$tool}.{$arg}";
+				}
+			}
+		}
+
+		T::equals(implode(", ", $stale), "", "no exemption names an argument that is no longer declared");
+	}
+
+	/**
+	 * The runtime half of the same disclosure. A schema description is advice the
+	 * model may not follow, so a supplied-and-dropped argument comes back as a
+	 * recoverable error naming the argument and the field it was sent for, rather
+	 * than staging a card that under-delivers.
+	 */
+	function test_a_dropped_field_argument_comes_back_as_a_recoverable_error() {
+		$existing = [[
+			"id" => "size",
+			"type" => "list",
+			"title" => "Size",
+			"subtitle" => "",
+			"settings" => [
+				"list_type" => "static",
+				"list" => [["value" => "Small", "description" => "Small"], ["value" => "Large", "description" => "Large"]],
+			],
+		]];
+
+		$error = (string)\BigTree\Api\Resources::aiIgnoredFieldSettingsError(
+			[["id" => "size", "options" => ["Small", "Medium", "Large"]]],
+			$existing,
+			"template"
+		);
+
+		T::ok($error !== "", "restating an existing field's options is refused rather than silently dropped");
+		T::ok(strpos($error, "options") !== false, "the error names the argument that was ignored");
+		T::ok(strpos($error, "Size") !== false, "and the field it was sent for");
+		T::ok(
+			strpos($error, "Developer → Templates") !== false,
+			"and where a developer actually makes the change"
+		);
+
+		// …and it is quiet when the argument would change nothing, so the natural
+		// "here is the complete field list" call stays usable.
+		T::equals(
+			\BigTree\Api\Resources::aiIgnoredFieldSettingsError(
+				[["id" => "size", "title" => "Garment Size", "options" => ["Small", "Large"]]],
+				$existing,
+				"template"
+			),
+			null,
+			"restating the options a field already has drops nothing, so it says nothing"
+		);
+
+		// A newly added field is built from the proposal, settings and all — nothing
+		// is dropped there and nothing is reported.
+		T::equals(
+			\BigTree\Api\Resources::aiIgnoredFieldSettingsError(
+				[["id" => "colour", "type" => "list", "options" => ["Red"], "default" => "Red", "required" => true]],
+				$existing,
+				"template"
+			),
+			null,
+			"a new field's settings all apply, so none are reported"
+		);
+
+		// …as is a retyped one, whose settings are deliberately discarded and whose
+		// retype the card's field diff discloses.
+		T::equals(
+			\BigTree\Api\Resources::aiIgnoredFieldSettingsError(
+				[["id" => "size", "type" => "text", "default" => "Medium"]],
+				$existing,
+				"template"
+			),
+			null,
+			"a retyped field takes the proposal's settings, so none are reported"
+		);
+
+		// The other two arguments the merge drops, on the same field.
+		foreach (["required" => true, "default" => "Large"] as $arg => $value) {
+			$dropped = (string)\BigTree\Api\Resources::aiIgnoredFieldSettingsError(
+				[["id" => "size", $arg => $value]],
+				$existing,
+				"template"
+			);
+
+			T::ok(strpos($dropped, $arg) !== false, "a dropped \"{$arg}\" is reported too");
+		}
+	}
+
+	/**
+	 * The corroborating half of A4: the merge's carry-over branch is what these
+	 * arguments are dropped by, so the branch has to still be the shape the guard
+	 * above assumes.
+	 */
+	function test_the_merge_carries_over_only_the_declared_field_arguments() {
+		$existing = [[
+			"id" => "size",
+			"type" => "list",
+			"title" => "Size",
+			"subtitle" => "",
+			"settings" => [
+				"list_type" => "static",
+				"list" => [["value" => "Small", "description" => "Small"]],
+				"validation" => "required",
+			],
+		]];
+
+		$merged = \BigTree\Api\Resources::mergeAiFields(
+			[["id" => "size", "title" => "Garment Size", "options" => ["Small", "Medium"], "required" => false, "default" => "Medium"]],
+			$existing,
+			"template"
+		);
+
+		T::equals((string)($merged[0]["title"] ?? ""), "Garment Size", "a restated title applies");
+		T::equals(
+			count($merged[0]["settings"]["list"] ?? []),
+			1,
+			"…and the stored options survive, which is what the preservation is for"
+		);
+		T::equals(
+			(string)($merged[0]["settings"]["validation"] ?? ""),
+			"required",
+			"…as do the validation rules the page and entry gates depend on"
+		);
+		T::ok(!isset($merged[0]["settings"]["default"]), "…and no default is written in");
+	}

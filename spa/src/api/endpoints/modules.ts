@@ -432,8 +432,16 @@ export const modulesApi = {
 	actionSchema: (id: string, sid: string) =>
 		api.get<ModuleActionSchema>(`/modules/${enc(id)}/actions/${enc(sid)}/schema`),
 
-	invokeAction: (id: string, sid: string, payload: unknown) =>
-		api.post<unknown>(`/modules/${enc(id)}/actions/${enc(sid)}/invoke`, { payload }),
+	/**
+	 * Run a custom action's server handler. Optional `selection` is the view-row
+	 * (or route-command) ids the host already knows — handlers can fall back to it
+	 * when the client payload omits an id.
+	 */
+	invokeAction: (id: string, sid: string, payload: unknown, selection?: string[]) =>
+		api.post<unknown>(`/modules/${enc(id)}/actions/${enc(sid)}/invoke`, {
+			payload,
+			...(selection && selection.length > 0 ? { selection } : {}),
+		}),
 
 	createAction: (id: string, body: ModuleActionBody) =>
 		api.post<ModuleAction>(`/modules/${enc(id)}/actions`, body),

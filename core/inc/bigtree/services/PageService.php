@@ -976,6 +976,14 @@
 					continue;
 				}
 
+				// normalizePageResources fills any untouched key whose field declares a
+				// `default`, whatever the field's type — so a resource already
+				// configured to fill itself is not content the assistant can't provide
+				// (audit #20 A3).
+				if (AutoModuleService::aiFieldDefaultSatisfies($settings)) {
+					continue;
+				}
+
 				$value = $existing[$id] ?? "";
 
 				if (is_array($value) ? (bool)$value : trim((string)$value) !== "") {
@@ -1434,6 +1442,19 @@
 
 			foreach ($schema as $id => $field) {
 				if (empty($field["required"])) {
+
+					continue;
+				}
+
+				// A resource normalizePageResources will fill is not missing — it runs
+				// inside performCreate/performUpdate, past this gate, and seeds every
+				// untouched key from the field's `default`. The "Add page" screen is
+				// already on the other side of this: the SPA seeds the editor from the
+				// same setting before validating, so a required field with a default is
+				// pre-filled and passes for a human (audit #20 A3).
+				if (AutoModuleService::aiFieldDefaultSatisfies(
+					is_array($field["settings"] ?? null) ? $field["settings"] : []
+				)) {
 
 					continue;
 				}
@@ -5092,11 +5113,21 @@
 		 * then hit undefined variables when they echo `$page_content` etc.
 		 *
 		 * Existing values are preserved; missing keys get the field's configured
-		 * `default` setting, or "" when none is set. `default` is a universal field
-		 * settings descriptor (FieldTypeService::universalSettingsSchema), so every
-		 * field type carries it, the developer sets it in the field-settings editor,
+		 * `default` setting, or the empty value of its type when none is set.
+		 * `default` is a universal field settings descriptor
+		 * (FieldTypeService::universalSettingsSchema), so the field types whose value
+		 * is one scalar carry it, the developer sets it in the field-settings editor,
 		 * and the field-authoring AI tools can author it — until audit #19 A2 this
 		 * line read a key nothing in the product could write.
+		 *
+		 * The empty value is the type's, not always "": a field whose `value_type` is
+		 * `array` (callouts, matrix, media-gallery, one-to-many) is read by a template
+		 * with `foreach`, and this function exists so a template never hits an
+		 * undefined variable — handing that `foreach` a string trades one warning for
+		 * a worse one. For the same reason a stored scalar `default` on an
+		 * array-valued field is ignored rather than written through: audit #20 A2
+		 * stopped those types declaring the setting, but a blob written before that
+		 * still carries one.
 		 *
 		 * @param array<string,mixed> $resources
 		 * @return array<string,mixed>
@@ -5120,7 +5151,10 @@
 				}
 
 				$settings = is_array($resource["settings"] ?? null) ? $resource["settings"] : [];
-				$resources[$id] = array_key_exists("default", $settings) ? $settings["default"] : "";
+				$empty = FieldTypeService::valueType((string)($resource["type"] ?? "")) === "array" ? [] : "";
+				$resources[$id] = $empty === [] || !array_key_exists("default", $settings)
+					? $empty
+					: $settings["default"];
 			}
 
 			return $resources;

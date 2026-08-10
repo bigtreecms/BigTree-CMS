@@ -283,7 +283,8 @@
 			$fields = $this->aiCleanResourceFields($args["fields"] ?? []);
 			$type_error = Resources::aiFieldIdError($args["fields"] ?? [], "template")
 				?? $this->aiInvalidFieldTypeError($fields)
-				?? Resources::aiUnconfigurableFieldError($args["fields"] ?? [], [], "template");
+				?? Resources::aiUnconfigurableFieldError($args["fields"] ?? [], [], "template")
+				?? Resources::aiFieldDefaultError($args["fields"] ?? [], [], "template");
 
 			if ($type_error !== null) {
 
@@ -365,7 +366,8 @@
 			$resources = is_array($payload["resources"] ?? null) ? $payload["resources"] : [];
 			$type_error = Resources::aiFieldIdError($resources, "template")
 				?? $this->aiInvalidFieldTypeError($resources)
-				?? Resources::aiUnconfigurableFieldError($resources, [], "template");
+				?? Resources::aiUnconfigurableFieldError($resources, [], "template")
+				?? Resources::aiFieldDefaultError($resources, [], "template");
 
 			if ($type_error !== null) {
 
@@ -496,7 +498,9 @@
 				$fields = $this->aiCleanResourceFields($args["fields"], $before);
 				$type_error = Resources::aiFieldIdError($args["fields"], "template")
 					?? $this->aiInvalidFieldTypeError($fields)
-					?? Resources::aiUnconfigurableFieldError($args["fields"], $before, "template");
+					?? Resources::aiUnconfigurableFieldError($args["fields"], $before, "template")
+					?? Resources::aiFieldDefaultError($args["fields"], $before, "template")
+					?? Resources::aiIgnoredFieldSettingsError($args["fields"], $before, "template");
 
 				if ($type_error !== null) {
 
@@ -753,7 +757,9 @@
 				// uninstalled inside the TTL wrote its now-unknown type verbatim.
 				$type_error = Resources::aiFieldIdError($changes["fields"], "template")
 					?? $this->aiInvalidFieldTypeError($merged)
-					?? Resources::aiUnconfigurableFieldError($changes["fields"], $before, "template");
+					?? Resources::aiUnconfigurableFieldError($changes["fields"], $before, "template")
+					?? Resources::aiFieldDefaultError($changes["fields"], $before, "template")
+					?? Resources::aiIgnoredFieldSettingsError($changes["fields"], $before, "template");
 
 				if ($type_error !== null) {
 
@@ -772,7 +778,8 @@
 				$merged = $this->aiCleanResourceFields($resources, $before);
 				$type_error = Resources::aiFieldIdError($resources, "template")
 					?? $this->aiInvalidFieldTypeError($merged)
-					?? Resources::aiUnconfigurableFieldError($resources, $before, "template");
+					?? Resources::aiUnconfigurableFieldError($resources, $before, "template")
+					?? Resources::aiFieldDefaultError($resources, $before, "template");
 
 				if ($type_error !== null) {
 

@@ -91,9 +91,14 @@
 									],
 									"default" => [
 										"type" => "string",
-										"description" => "Starting value for the field, seeded into a new entry's "
-											. "form so an editor begins from it rather than from blank. Omit for "
-											. "no default.",
+										"description" => "Starting value for the field. Seeded into a new entry's "
+											. "form so an editor begins from it rather than from blank, and written "
+											. "into the column by every entry created through the API or by the "
+											. "assistant that doesn't set the field — so this is the value the "
+											. "field holds on every entry until somebody changes it, not just a "
+											. "suggestion in the editor. It has to be a value the field can "
+											. "actually hold: one of a list field's own choices, an explicit date "
+											. "on a date field. Omit for no default.",
 									],
 									"settings" => [
 										"type" => "object",
