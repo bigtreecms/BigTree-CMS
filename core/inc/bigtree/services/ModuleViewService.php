@@ -173,7 +173,13 @@
 
 							foreach ($view["fields"] as $key => $field) {
 								$numeric = false;
-								$type = $table["columns"][$key]["type"];
+								// A view can name a column the table doesn't have — a
+								// hand-built or legacy view, or (before audit #21 A3) a
+								// scaffold that mirrored a many-to-many form field into its
+								// landing view. Read unguarded this emitted two diagnostics
+								// per phantom column on every recache; an absent column is
+								// simply not numeric.
+								$type = $table["columns"][$key]["type"] ?? "";
 
 								if (in_array($type, ["int", "float", "double", "double precision", "tinyint", "smallint", "mediumint", "bigint", "real", "decimal", "dec", "fixed", "numeric"])) {
 									$numeric = true;

@@ -34,19 +34,30 @@
 	/**
 	 * Types that appear in stored form definitions but that the field-type registry
 	 * doesn't offer, with the reason. Kept explicit so E2/E3 stay total rather than
-	 * quietly skipping whatever they can't find.
+	 * quietly skipping whatever they can't find — and read by audit #21's catalog
+	 * contract as well, which asks the complementary question (every *declared* type
+	 * is authorable somewhere) off the same list, since two lists that both have to
+	 * name the same type are two lists that will eventually disagree.
 	 *
 	 * @return array<string,string>
 	 */
 	function ai_unregistered_field_types(): array {
 
 		return [
-			// Declared in field-type-schemas.php and handled everywhere (validateMtm,
-			// the `__mtm__` write argument) but absent from getCachedFieldTypes, so the
-			// Module Designer can't add a new one. Legacy forms still carry them.
-			"many-to-many" => "legacy only — real in stored forms, not offered by the registry",
-			// Same shape: processed by applyEntryProcessors, not installable.
-			"geocoding" => "legacy only — derived server-side, not offered by the registry",
+			// Its value is generated server-side from the entry's own address columns
+			// (BigTreeGeocoding, applyEntryProcessors) and written into `latitude` and
+			// `longitude` rather than a column of its own, so adding one to a form is
+			// not the whole of installing it and the field picker has never offered it.
+			// FieldTypeDomain refuses to write a value for it for the same reason
+			// (DERIVED_TYPES).
+			"geocoding" => "legacy only — derived server-side into latitude/longitude, not offered by the registry",
+			// `many-to-many` sat here for the same "declared everywhere, absent from
+			// getCachedFieldTypes" reason until audit #21 A2, which found the absence
+			// was the bug rather than the state of the world: everything else in the
+			// stack implemented it, so the catalog omission made one advertised
+			// argument a promise that could never be kept and left two guards defending
+			// a path nothing could reach. It is offered for modules now and needs no
+			// excuse.
 		];
 	}
 

@@ -144,6 +144,87 @@
 	}
 
 	/**
+	 * Audit #21 A3: the landing view names only columns the table has.
+	 *
+	 * `performScaffold` built the view by mirroring the form's field list one-to-one
+	 * while the DDL skipped the fields with no column, so a many-to-many became a
+	 * column the table would never get: permanently blank in the landing list (
+	 * `BigTreeAutoModule::cacheRecord` fills a missing key with "") under the field's
+	 * own title, and two PHP diagnostics per recache from the numeric-status sweep,
+	 * which read `$table["columns"][$key]["type"]` unguarded.
+	 *
+	 * Latent until audit #21 B2 put `many-to-many` in the field-type catalog, which
+	 * is why both landed together.
+	 */
+	function test_a_scaffolded_relation_is_not_mirrored_into_the_landing_view() {
+		if (!_scaffold_guard_sql_ready()) {
+
+			return;
+		}
+
+		$service = new ModuleService();
+		$plan = $service->scaffoldPlan(_scaffold_guard_body([
+			["title" => "Headline", "type" => "text"],
+			["title" => "Related Products", "type" => "many-to-many", "settings" => [
+				"mtm-connecting-table" => "zz_scaffold_guard_join",
+				"mtm-my-id" => "mine",
+				"mtm-other-id" => "theirs",
+				"mtm-other-table" => "zz_scaffold_guard_other",
+				"mtm-other-descriptor" => "title",
+			]],
+		]));
+
+		T::ok(!isset($plan["error"]), "the plan is valid (" . (string)($plan["error"] ?? "") . ")");
+
+		$table = (string)$plan["table"];
+		$module_id = "";
+
+		try {
+			$run = new ReflectionMethod(ModuleService::class, "performScaffold");
+			$run->setAccessible(true);
+			$result = $run->invoke($service, $plan);
+
+			$module_id = (string)($result["id"] ?? "");
+			T::ok(empty($result["error"]), "it builds (" . (string)($result["error"] ?? "") . ")");
+
+			BigTreeJSONDB::$Cache = [];
+			$module = BigTreeJSONDB::get("modules", $module_id);
+			$views = is_array($module["views"] ?? null) ? $module["views"] : [];
+			T::equals(count($views), 1, "the module got its landing view");
+
+			$view_columns = array_keys(is_array($views[0]["fields"] ?? null) ? $views[0]["fields"] : []);
+			$real_columns = array_keys(BigTree::describeTable($table)["columns"] ?? []);
+			$phantom = array_values(array_diff($view_columns, $real_columns));
+
+			T::equals(
+				implode(", ", $phantom),
+				"",
+				"the view names no column the table doesn't have (view: " . implode(", ", $view_columns) . ")"
+			);
+			T::ok(in_array("headline", $view_columns, true), "and the ordinary field is still a column in it");
+
+			// The field itself is untouched — it belongs on the form, it just has
+			// nowhere to be listed.
+			$forms = is_array($module["forms"] ?? null) ? $module["forms"] : [];
+			$form_types = array_map(function ($field) {
+
+				return (string)($field["type"] ?? "");
+			}, is_array($forms[0]["fields"] ?? null) ? $forms[0]["fields"] : []);
+
+			T::ok(in_array("many-to-many", $form_types, true), "while the relation is still on the entry form");
+		} finally {
+			if ($module_id !== "") {
+				BigTreeJSONDB::delete("modules", $module_id);
+				BigTreeJSONDB::$Cache = [];
+			}
+
+			if (BigTree::tableExists($table)) {
+				SQL::query("DROP TABLE `{$table}`");
+			}
+		}
+	}
+
+	/**
 	 * E2: `approved` / `featured` / `archived` are reserved unconditionally. A field
 	 * titled "Approved" used to sanitize onto the status column's name, so the
 	 * second ALTER failed silently and the module got an approve button over a

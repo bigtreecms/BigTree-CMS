@@ -1196,6 +1196,23 @@
 			];
 
 			$types["modules"]["default"]["route"] = ["name" => "Generated Route", "self_draw" => true];
+
+			// Module-only, and deliberately so (audit #21 A2). `many-to-many` is
+			// declared in field-type-schemas.php, drawn by the SPA's RelationField,
+			// lifted into the `__mtm__` payload by FormRenderer, validated on every
+			// entry write by AutoModuleService::validateMtm and given its own no-column
+			// branch in ModuleService::columnSqlType — but it was missing from this
+			// list, which is the one that decides what can be authored. So the Module
+			// Designer's field picker never offered it and every AI authoring seam
+			// refused it as an unknown type before any of that machinery was reached.
+			//
+			// Modules only because the relation needs a `mtm-my-id` pointing at the
+			// record's own row: RelationField refuses to draw outside a module form
+			// (FormRenderer is the module entry renderer, and packForSubmit is where
+			// `__mtm__` is built), and a template, a callout or a setting has no row to
+			// be the "my" side of the join. `route` above is scoped the same way for
+			// the same kind of reason.
+			$types["modules"]["default"]["many-to-many"] = ["name" => "Many to Many", "self_draw" => false];
 			$field_types = BigTreeJSONDB::getAll("field-types", "name", "ASC");
 
 			foreach ($field_types as $field_type) {

@@ -398,10 +398,25 @@
 			$this->insertScaffoldAction($context, $module_id, "Add $item_title", "add", true, "add", $form_id, null, 0);
 			$this->insertScaffoldAction($context, $module_id, "Edit $item_title", "edit", false, "edit", $form_id, null, 0);
 
-			// — Landing view (columns mirror the form fields) + list action —
+			// — Landing view (columns mirror the form fields that have one) + list action —
 			$view_fields = [];
 
-			foreach ($form_fields as $f) {
+			foreach ($form_fields as $index => $f) {
+				// A field with no column has nothing for the view cache to read — a
+				// many-to-many lives in its connecting table, and the entry write path
+				// takes the bound column back out of every row. Naming it here renders a
+				// permanently blank column under the field's own title
+				// (BigTreeAutoModule::cacheRecord fills a missing key with "") and makes
+				// the numeric-status sweep read a column that does not exist, twice per
+				// phantom column per recache (audit #21 A3).
+				//
+				// `$column_adds` is keyed by the field's own index, so this lookup is
+				// exact rather than positional.
+				if (!isset($column_adds[$index])) {
+
+					continue;
+				}
+
 				$view_fields[$f["column"]] = ["title" => $f["title"], "parser" => "", "numeric" => ""];
 			}
 
@@ -1556,37 +1571,9 @@
 			$forms = is_array($module["forms"] ?? null) ? $module["forms"] : [];
 			$views = is_array($module["views"] ?? null) ? $module["views"] : [];
 			$actions = is_array($module["actions"] ?? null) ? $module["actions"] : [];
-			$table = (string)($module["table"] ?? "");
-
-			if ($table === "" && $forms) {
-				$table = (string)($forms[0]["table"] ?? "");
-			}
-
-			$missing = [];
-
-			if ($table === "") {
-				$missing[] = "a database table";
-			}
-
-			if (!$forms) {
-				$missing[] = "an entry form";
-			}
-
-			if (!$views) {
-				$missing[] = "a view (landing screen)";
-			}
-
-			if (!$actions) {
-				$missing[] = "at least one action";
-			}
-
-			// A module nobody holds a grant on is reachable only by administrators and
-			// developers, so "everything is configured" is still not "anyone can use
-			// it" — the checklist said nothing about it, and neither did the create.
-			if (!$this->moduleHasAnyGrant((string)$module["id"])) {
-				$missing[] = "a permission grant for at least one user";
-			}
-
+			$table = $this->moduleTableName($module);
+			$grant_state = $this->moduleGrantState((string)$module["id"]);
+			$missing = $this->moduleMissingSetup($module, $grant_state);
 			$gbp = is_array($module["gbp"] ?? null) ? $module["gbp"] : [];
 
 			return ["module" => [
@@ -1643,6 +1630,15 @@
 				"your_access_level" => PermissionService::userModuleLevel($user, (string)$module["id"]),
 				"is_complete" => !$missing,
 				"missing_setup" => $missing,
+				// The other half of the grant state (audit #21 A4). "Grant somebody
+				// access" is not an instruction on a site with nobody to grant it to, so
+				// that case is said as a note rather than counted as unfinished setup —
+				// the two states want different sentences, and a boolean had only one.
+				"permissions_note" => $grant_state === self::MODULE_GRANT_NO_EDITORS
+					? "This site has no editor accounts, so module permissions don't gate anything yet — every "
+						. "administrator and developer can reach this module. An editor added later will need a "
+						. "grant on it (Users → a user → Module Permissions)."
+					: "",
 				// The whole vocabulary `icon` is drawn from, so the model picks from a
 				// list the way the developer picks from a grid. Discovery by accident —
 				// copying a slug off whichever module happened to be read — is what this
@@ -2030,13 +2026,24 @@
 				return ConfigurationStore::failure();
 			}
 
+			// Asked of the record that was just written rather than written down here,
+			// for the same reason the scaffold's is (audit #21 A1). A bare create can
+			// only ever be incomplete — it makes a module with `"table" => ""` — but a
+			// seam that asserts its own completeness is exactly how scaffold_module came
+			// to disagree with get_module about the same module in the same turn.
+			$created = BigTreeJSONDB::get("modules", $id);
+			$missing = $this->moduleMissingSetup(
+				is_array($created) ? $created : ["table" => ""],
+				$this->moduleGrantState((string)$id)
+			);
+
 			return [
 				"mode" => "created",
 				"id" => (string)$id,
 				"name" => $name,
 				"route" => $route,
 				"group" => $group,
-				"is_complete" => false,
+				"is_complete" => !$missing,
 				"remaining_setup" => $this->aiModuleSetupSteps($name),
 				"note" => "“{$name}” now appears in the admin navigation but is not usable yet — it has no database "
 					. "table, so it has no landing view and entries can't be added to it (including by the "
@@ -2173,7 +2180,11 @@
 					// gets no DDL, why it doesn't.
 					"to" => ($add !== ""
 						? trim((string)preg_replace('/^ADD COLUMN /', "", $add))
-						: "no column — the relation lives in its connecting table")
+						// Said in full because the approver would otherwise meet it as a
+						// surprise: the field is on the form and absent from the list, and
+						// the landing view is the screen they'll open first (audit #21 A3).
+						: "no column — the relation lives in its connecting table, and it "
+							. "won't appear as a column in the landing view")
 						. " — " . (string)$field["type"] . " field"
 						// Required is the one validation rule this tool sets, and the
 						// approver is the person who'd notice it was wrong (audit #12 A4).
@@ -2192,6 +2203,13 @@
 			}
 
 			$unfillable = $this->aiScaffoldUnfillableColumns($plan);
+			// What a scaffold doesn't finish, on the card rather than only in the
+			// post-write note (audit #21 A1). The approver is the person who can act on
+			// it and the card is what they see first — and until this landed the card
+			// said nothing at all about permissions, so a developer accepted a build the
+			// tool then called complete while no editor on the site could open it.
+			$remaining_setup = $this->aiScaffoldRemainingSetup("", $name);
+			$needs_grant = $this->moduleGrantIsMissing($this->moduleGrantState(""));
 
 			// The columns the table actually gets, which is not the same as the number of
 			// rows on the card: a many-to-many has no column, and the status columns are
@@ -2218,6 +2236,10 @@
 						. " content that has to be added in the entry editor. Everything else it can write with "
 						. "create_module_entry."
 					: "",
+				// Rendered as the card's still-to-do-by-hand list, the same block
+				// create_module's card uses — the same shape, so the two cards read as
+				// one checklist with different amounts already ticked off.
+				"remaining_setup" => $remaining_setup,
 				// The card's own irreversibility banner. This is the only proposal in
 				// the catalogue whose effect the assistant cannot walk back: deleting a
 				// module is admin-only, and dropping a table isn't a capability at all.
@@ -2253,6 +2275,14 @@
 					// (audit #12 A5).
 					. ($unfillable
 						? " " . $this->aiJoinList($unfillable) . " can only be filled in the entry editor."
+						: "")
+					// Said in the summary as well as the remaining_setup list, the way the
+					// unfillable columns are said in both places: the summary is what the
+					// model reads back and what a one-line notification shows, and "the
+					// module is finished" is the specific wrong conclusion this prevents.
+					. ($needs_grant
+						? " It will be visible to administrators and developers only until somebody is granted "
+							. "access to it."
 						: "")
 					. " Creating a table is not something the assistant can undo — deleting a module is admin-only.",
 				"preview" => $preview,
@@ -2351,6 +2381,14 @@
 
 			$module_id = (string)$build["id"];
 			$unfillable = $this->aiScaffoldUnfillableColumns($plan);
+			// Asked of the module that was just built, not asserted (audit #21 A1).
+			// `is_complete` was the literal `true` — so the same module, in the same
+			// turn, was complete from the tool that built it and incomplete from
+			// `get_module`, which counts the grant as setup. The model has no way to
+			// reconcile that, and the developer approving the card was told the job was
+			// finished with one step left.
+			$grant_state = $this->moduleGrantState($module_id);
+			$needs_grant = $this->moduleGrantIsMissing($grant_state);
 
 			return [
 				"mode" => "created",
@@ -2358,13 +2396,28 @@
 				"name" => (string)$plan["name"],
 				"route" => (string)$plan["route"],
 				"table" => (string)$plan["table"],
-				"is_complete" => true,
+				"is_complete" => !$needs_grant,
+				"remaining_setup" => $this->aiScaffoldRemainingSetup($module_id, (string)$plan["name"]),
 				// Scoped to what is actually true (audit #12 A5): the note used to
 				// promise create_module_entry could fill the module, which holds for the
 				// text-like and reference columns and not for an image, a gallery or a
 				// matrix.
 				"note" => "“{$plan["name"]}” is ready to use: it has a table, an add/edit form and a landing view, "
 					. "so entries can be added to it now — including with create_module_entry."
+					// And scoped to *who* it is true for. "Ready to use" was a claim about
+					// every editor on the site, and it was wrong for all of them:
+					// PermissionService::userModuleLevel defaults an ungranted module to
+					// "n", so a fully-built module nobody holds a grant on is reachable
+					// only by administrators and developers.
+					. ($needs_grant
+						? " It is visible to administrators and developers only: no editor holds a permission on "
+							. "it yet, so grant access in Users → a user → Module Permissions before an editor "
+							. "can reach it."
+						: "")
+					. ($grant_state === self::MODULE_GRANT_NO_EDITORS
+						? " This site has no editor accounts, so module permissions don't gate anything yet — an "
+							. "editor added later will need a grant on it."
+						: "")
 					. ($unfillable
 						? " " . $this->aiJoinList($unfillable) . " "
 							. (count($unfillable) === 1 ? "is a column" : "are columns")
@@ -2855,22 +2908,121 @@
 			return ["mode" => "created", "id" => (string)$id, "name" => $name];
 		}
 
+		/** No editor accounts exist, so a module permission gates nothing yet. */
+		private const MODULE_GRANT_NO_EDITORS = "no_editors";
+
+		/** Editors exist and none of them can reach this module. */
+		private const MODULE_GRANT_NONE = "none";
+
+		/** At least one editor holds a module-level or group-level grant on it. */
+		private const MODULE_GRANT_HELD = "held";
+
 		/**
-		 * Whether any user holds a module-level or group-level grant on this module.
-		 * Administrators and developers see every module regardless, so this is about
-		 * whether the module is reachable by the editors it was built for.
+		 * Which of three states this module's editor access is in.
+		 *
+		 * A boolean conflated the two states that want different sentences (audit #21
+		 * A4). On an install with no level-0 users the loop body never ran, so every
+		 * module was reported forever as missing "a permission grant for at least one
+		 * user" — not false, but unactionable: it tells a developer to grant access on
+		 * a site that has nobody to grant it to, and it makes `is_complete`
+		 * permanently false for a site run entirely by administrators.
+		 *
+		 * Administrators and developers see every module regardless, so all of this is
+		 * about whether the module is reachable by the editors it was built for.
+		 *
+		 * An empty `$module_id` is the not-yet-created case the scaffold card asks
+		 * about: nothing can hold a grant on a module that doesn't exist, so it
+		 * reports NONE or NO_EDITORS by the same rule.
 		 */
-		private function moduleHasAnyGrant(string $module_id): bool {
-			foreach (SQL::fetchAllSingle("SELECT permissions FROM bigtree_users WHERE level = 0") as $stored) {
+		private function moduleGrantState(string $module_id): string {
+			$editors = SQL::fetchAllSingle("SELECT permissions FROM bigtree_users WHERE level = 0");
+
+			if (!$editors) {
+
+				return self::MODULE_GRANT_NO_EDITORS;
+			}
+
+			foreach ($editors as $stored) {
 				$permissions = Json::decode($stored);
 
 				if (!empty($permissions["module"][$module_id]) || !empty($permissions["module_gbp"][$module_id])) {
 
-					return true;
+					return self::MODULE_GRANT_HELD;
 				}
 			}
 
-			return false;
+			return self::MODULE_GRANT_NONE;
+		}
+
+		/**
+		 * Whether the grant state is one that leaves setup unfinished. Only
+		 * MODULE_GRANT_NONE does: a site with no editor accounts is not an incomplete
+		 * site, it is a site run by administrators.
+		 */
+		private function moduleGrantIsMissing(string $state): bool {
+
+			return $state === self::MODULE_GRANT_NONE;
+		}
+
+		/**
+		 * The table a module's entries live in: its own, or — for a module built by an
+		 * older path that only recorded it on the form — its first form's.
+		 *
+		 * @param array<string,mixed> $module
+		 */
+		private function moduleTableName(array $module): string {
+			$table = (string)($module["table"] ?? "");
+			$forms = is_array($module["forms"] ?? null) ? $module["forms"] : [];
+
+			if ($table === "" && $forms) {
+				$table = (string)($forms[0]["table"] ?? "");
+			}
+
+			return $table;
+		}
+
+		/**
+		 * What a module still needs before it works, in get_module's own words.
+		 *
+		 * Extracted so every seam that answers "is this module finished" answers with
+		 * one predicate (audit #21 A1). `scaffold_module` used to assert
+		 * `"is_complete" => true` outright, so the same module, in the same turn, was
+		 * complete from the tool that built it and incomplete from the tool that read
+		 * it — a contradiction the model has no way to reconcile, and one nothing could
+		 * catch while the value was a literal rather than a question.
+		 *
+		 * @param array<string,mixed> $module
+		 * @param string $grant_state A moduleGrantState() value, passed in so a caller
+		 *                            that also needs it doesn't ask the database twice.
+		 * @return list<string>
+		 */
+		private function moduleMissingSetup(array $module, string $grant_state): array {
+			$missing = [];
+
+			if ($this->moduleTableName($module) === "") {
+				$missing[] = "a database table";
+			}
+
+			if (!(is_array($module["forms"] ?? null) ? $module["forms"] : [])) {
+				$missing[] = "an entry form";
+			}
+
+			if (!(is_array($module["views"] ?? null) ? $module["views"] : [])) {
+				$missing[] = "a view (landing screen)";
+			}
+
+			if (!(is_array($module["actions"] ?? null) ? $module["actions"] : [])) {
+				$missing[] = "at least one action";
+			}
+
+			// A module nobody holds a grant on is reachable only by administrators and
+			// developers, so "everything is configured" is still not "anyone can use
+			// it" — the checklist said nothing about it, and neither did the create.
+			if ($this->moduleGrantIsMissing($grant_state)) {
+				$missing[] = "a permission grant for at least one user";
+			}
+
+			return $missing;
 		}
 
 		/**
@@ -2883,15 +3035,30 @@
 		 */
 		private function aiModuleSetupSteps(string $name): array {
 
+			return array_values($this->aiModuleSetupStepMap($name));
+		}
+
+		/**
+		 * The same steps, keyed, so a seam that finishes some of them can name the rest
+		 * by picking from this list rather than restating it (audit #21 A1). Two copies
+		 * of the same checklist is the drift audit #10 A4 is about, and here it would
+		 * be worse than drift: the two seams would be telling the same developer, about
+		 * the same module, two different things about what is left.
+		 *
+		 * @return array<string,string>
+		 */
+		private function aiModuleSetupStepMap(string $name): array {
+
 			return [
-				"Create the database table that will hold “{$name}” entries (Module Designer → Table).",
-				"Add an entry form so editors can create and edit entries.",
-				"Add a view so the module has a landing screen listing its entries.",
-				"Add the module's actions (at minimum a default 'view' action) so it's reachable from the nav.",
-				"Grant users access to it — a module nobody holds a permission on is invisible to everyone "
-					. "except administrators and developers (Users → a user → Module Permissions).",
-				"Add the module's class if it needs one (Module Designer → Class), so custom logic and the "
-					. "module's own API have somewhere to live.",
+				"table" => "Create the database table that will hold “{$name}” entries (Module Designer → Table).",
+				"form" => "Add an entry form so editors can create and edit entries.",
+				"view" => "Add a view so the module has a landing screen listing its entries.",
+				"actions" => "Add the module's actions (at minimum a default 'view' action) so it's reachable "
+					. "from the nav.",
+				"grant" => "Grant users access to it — a module nobody holds a permission on is invisible to "
+					. "everyone except administrators and developers (Users → a user → Module Permissions).",
+				"class" => "Add the module's class if it needs one (Module Designer → Class), so custom logic "
+					. "and the module's own API have somewhere to live.",
 				// The assistant deliberately has no `gbp` argument: enabling group-based
 				// permissions is several interdependent choices (which column groups
 				// entries, which table supplies the groups, how each is titled) and
@@ -2899,10 +3066,38 @@
 				// Naming it here is the honest version — the user is told the option
 				// exists and where it lives, rather than being offered a write that
 				// can't be previewed.
-				"Decide whether entries should be scoped per editor group (Module Designer → Group Based "
-					. "Permissions). The assistant can't configure this — but once it's on, every entry needs a "
-					. "value in the group column or it's invisible to the editors it belongs to.",
+				"gbp" => "Decide whether entries should be scoped per editor group (Module Designer → Group "
+					. "Based Permissions). The assistant can't configure this — but once it's on, every entry "
+					. "needs a value in the group column or it's invisible to the editors it belongs to.",
 			];
+		}
+
+		/**
+		 * What a scaffold genuinely leaves behind (audit #21 A1).
+		 *
+		 * `scaffold_module` builds the table, the form, the view and the actions, so
+		 * those four steps must not appear — telling the approver to do the work they
+		 * just approved is how a checklist stops being read. What is left is the
+		 * permission grant, the optional class, and group-based permissions, which the
+		 * assistant deliberately cannot configure.
+		 *
+		 * `$module_id` is "" at validate time, when the module doesn't exist yet:
+		 * nothing can hold a grant on it, which is the answer the card needs.
+		 *
+		 * @return list<string>
+		 */
+		private function aiScaffoldRemainingSetup(string $module_id, string $name): array {
+			$steps = $this->aiModuleSetupStepMap($name);
+			$remaining = [];
+
+			if ($this->moduleGrantIsMissing($this->moduleGrantState($module_id))) {
+				$remaining[] = $steps["grant"];
+			}
+
+			$remaining[] = $steps["class"];
+			$remaining[] = $steps["gbp"];
+
+			return $remaining;
 		}
 
 		/**
