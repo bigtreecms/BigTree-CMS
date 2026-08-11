@@ -12,6 +12,8 @@
 	use BigTree\Services\AI\Tools\SettingToolBackend;
 	use BigTree\Services\AI\FieldTypeDomain;
 	use BigTree\Services\AI\PreviewValue;
+	use BigTree\Services\AI\RelationDomain;
+	use BigTree\Services\AI\ResourceReferenceDomain;
 	use BigTreeCMS;
 	use BigTreeJSONDB;
 	use BigTree;
@@ -413,7 +415,10 @@
 				}
 
 				// Encrypted values are never surfaced to the model.
-				$out[] = $this->aiDecodeSettingLinks($this->present($def, false));
+				$out[] = $this->aiDescribeSettingReference(
+					$this->aiDecodeSettingLinks($this->present($def, false)),
+					$user
+				);
 			}
 
 			return ["settings" => $out, "has_more" => $more];
@@ -448,6 +453,45 @@
 			}
 
 			$setting["value"] = PageService::aiDenormalizeHtmlValue($setting["value"]);
+
+			return $setting;
+		}
+
+		/**
+		 * Say what a reference setting's stored id actually names, beside the id.
+		 *
+		 * The write half of audit #22 A1 is that reference settings were never resolved;
+		 * this is the read half. `present()` hands back the stored value, so an
+		 * `image-reference` setting reached the model as `"value": "12"` — an opaque
+		 * integer with nothing saying it was a resource id, let alone which file it
+		 * named. "Change the header logo to the new mark" was therefore unanswerable
+		 * from the read even once the write became safe. Both other read seams have had
+		 * this since audit #11 B4 (PageService::aiPageContentFields,
+		 * SearchService::getModuleEntryDetail); this is the same pass, one surface over.
+		 *
+		 * The id stays as it is and the description sits beside it, the way both of
+		 * those do: the id is what update_setting takes back. describe() returns null
+		 * for a row the user can't see, so this can't become a way to learn the names of
+		 * files behind a folder permission.
+		 *
+		 * @param array<string,mixed> $setting
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 */
+		private function aiDescribeSettingReference(array $setting, $user): array {
+			$type = (string)($setting["type"] ?? "");
+			$value = $setting["value"] ?? null;
+
+			if (!FieldTypeDomain::isResourceReference($type) || !is_scalar($value)) {
+
+				return $setting;
+			}
+
+			$described = ResourceReferenceDomain::describe((string)$value, $user);
+
+			if ($described) {
+				$setting["value_reference"] = $described;
+			}
 
 			return $setting;
 		}
@@ -515,7 +559,7 @@
 			// equally loose, but a model guessing value shapes makes malformed writes
 			// far more likely — and a front-end template that foreachs over a setting
 			// fatals on a scalar.
-			$checked = $this->aiCheckSettingValue($def, $args["value"]);
+			$checked = $this->aiCheckSettingValue($def, $args["value"], $user);
 
 			if (isset($checked["error"])) {
 
@@ -534,8 +578,8 @@
 					"id" => $id,
 					"name" => $name,
 					"type" => (string)($def["type"] ?? "text"),
-					"from" => $this->aiSettingPreviewValue($current),
-					"to" => $this->aiSettingPreviewValue($value),
+					"from" => $this->aiSettingPreviewValue($current, $def, $user),
+					"to" => $this->aiSettingPreviewValue($value, $def, $user),
 				],
 				"payload" => [
 					"id" => $id,
@@ -576,9 +620,11 @@
 		 *
 		 * @param array<string,mixed> $def
 		 * @param mixed $value
+		 * @param object|array|null $user The actor, for the reference folder check and
+		 *   the relation's per-row permission check.
 		 * @return array<string,mixed>
 		 */
-		private function aiCheckSettingValue(array $def, $value): array {
+		private function aiCheckSettingValue(array $def, $value, $user = null): array {
 			$type = (string)($def["type"] ?? "text");
 			$name = (string)($def["name"] ?? $def["id"] ?? "this setting");
 
@@ -597,8 +643,60 @@
 				return ["error" => $rule_error];
 			}
 
-			// Every settable type's value_type is `string` or `bool`, so a list or an
-			// object is always wrong for one.
+			// Reference and relation types before the scalar guard below, because the
+			// guard's premise stopped being true when audit #11 B1/B2 made them settable:
+			// a reference's value is a `bigtree_resources` id and a one-to-many's is a
+			// list, and neither is a scalar with no domain. Both other value seams
+			// (PageService::aiSiftResourceContent, AutoModuleService::aiSiftEntryData)
+			// route them through the shared resolvers; settings didn't, so every check
+			// those classes exist for — the row exists, the actor can see its folder,
+			// it's the right kind of file, it clears min_width/min_height, the related
+			// rows exist and are visible — was skipped on this one path (audit #22 A1).
+			$field = $this->aiSettingField($def);
+
+			if (FieldTypeDomain::isResourceReference($type)) {
+				if (is_array($value) || is_object($value)) {
+
+					return ["error" => "“{$name}” is a {$type} setting and holds one file's id, not a list or object."];
+				}
+
+				$reference = ResourceReferenceDomain::resolve($field, $type, (string)$value, $user);
+
+				if (isset($reference["error"])) {
+
+					return ["error" => (string)$reference["error"]];
+				}
+
+				return ["value" => (string)$reference["value"]];
+			}
+
+			if (FieldTypeDomain::isRelation($type)) {
+				// A many-to-many is a connecting-table relation between two module
+				// tables, and a setting has no row on either side for the connecting
+				// table to point at. Refused with its own reason rather than by the
+				// scalar guard, which would say a list is the wrong shape when a list is
+				// exactly the right one. The settings use case doesn't offer this type,
+				// but an extension registering it must not land in the wrong message.
+				if ($type === "many-to-many") {
+
+					return ["error" => "“{$name}” is a many-to-many relationship, which only works on a module entry "
+						. "— a setting has no row for the connecting table to relate. Change it on the Settings "
+						. "screen in the admin."];
+				}
+
+				$relation = RelationDomain::resolveOneToMany($field, $value, $user);
+
+				if (isset($relation["error"])) {
+
+					return ["error" => (string)$relation["error"]];
+				}
+
+				return ["value" => $relation["value"]];
+			}
+
+			// Everything still here has a `string` or `bool` value_type — the two
+			// settable types whose value is neither were resolved above — so a list or
+			// an object is always wrong for one.
 			if (is_array($value) || is_object($value)) {
 
 				return ["error" => "“{$name}” is a {$type} setting and expects a single value, not a list or object."];
@@ -655,6 +753,29 @@
 			// enforced above by aiSettingRuleViolation, which reads the rule string the
 			// admin's own save reads. One mechanism, and it is the one that works.
 			return ["value" => $value];
+		}
+
+		/**
+		 * A setting definition in the shape the shared field domains take.
+		 *
+		 * ResourceReferenceDomain, RelationDomain and PreviewValue were all written
+		 * against a page resource / form field entry — `title`, `type`, `settings` — and
+		 * a setting definition carries the same three things under `name`, `type` and
+		 * `settings`. Translating once here is what lets settings reuse those classes
+		 * rather than restate their rules, which is the whole reason they are separate
+		 * classes (audit #22 B1).
+		 *
+		 * @param array<string,mixed> $def
+		 * @return array<string,mixed>
+		 */
+		private function aiSettingField(array $def): array {
+
+			return [
+				"id" => (string)($def["id"] ?? ""),
+				"title" => (string)($def["name"] ?? $def["id"] ?? "this setting"),
+				"type" => (string)($def["type"] ?? "text"),
+				"settings" => is_array($def["settings"] ?? null) ? $def["settings"] : [],
+			];
 		}
 
 		/**
@@ -800,7 +921,7 @@
 			// Re-check at approval: a definition can change between staging and
 			// approval (options edited, type switched), and the same guard that made
 			// the value safe to propose is what makes it safe to write.
-			$checked = $this->aiCheckSettingValue($def, $payload["value"] ?? null);
+			$checked = $this->aiCheckSettingValue($def, $payload["value"] ?? null, $user);
 
 			if (isset($checked["error"])) {
 
@@ -826,10 +947,19 @@
 		 * total rewrite of a value that had not changed. aiDecodeSettingLinks does the
 		 * same thing on the read side.
 		 *
+		 * The definition and the actor are passed when the caller has them, because
+		 * PreviewValue names a reference's file and a relation's rows only when it knows
+		 * the type — otherwise the card an approver reads for the reference settings
+		 * B1 just made writable would say "12 → 15" (audit #22 B1). The callers that
+		 * don't pass them are error messages about a value the type check has already
+		 * refused, where there is no stored row to name.
+		 *
 		 * @param mixed $value
+		 * @param array<string,mixed> $def
+		 * @param object|array|null $user
 		 */
-		private function aiSettingPreviewValue($value): string {
+		private function aiSettingPreviewValue($value, array $def = [], $user = null): string {
 
-			return PreviewValue::forHuman($value);
+			return PreviewValue::forHuman($value, $def ? $this->aiSettingField($def) : [], $user);
 		}
 	}

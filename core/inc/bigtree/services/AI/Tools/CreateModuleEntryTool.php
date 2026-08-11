@@ -4,6 +4,7 @@
 	use BigTree\Services\AI\AIToolContext;
 	use BigTree\Services\AI\AIToolResult;
 	use BigTree\Services\AI\ProposalStore;
+	use BigTree\Services\AI\OpenGraphDomain;
 
 	/**
 	 * Two-phase creation of a module entry. The form's text-like fields, its
@@ -77,6 +78,18 @@
 						"og_description" => [
 							"type" => "string",
 							"description" => "Optional Open Graph (social sharing) description.",
+						],
+						"og_type" => [
+							"type" => "string",
+							"description" => "Optional Open Graph type, which tells a social network what kind of "
+								. "thing this entry is. One of: website, article, profile, video.movie.",
+							"enum" => OpenGraphDomain::TYPES,
+						],
+						"og_image" => [
+							"type" => "string",
+							"description" => "Optional Open Graph image: the full URL of an image to show when the "
+								. "entry is shared (at least 1200x630). This is a URL, not an upload — use the "
+								. "public URL of a file already in the Files library, which search_files returns.",
 						],
 						"save_as_draft" => [
 							"type" => "boolean",

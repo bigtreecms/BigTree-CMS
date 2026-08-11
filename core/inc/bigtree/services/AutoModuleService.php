@@ -14,6 +14,7 @@
 	use BigTree\Services\AI\ColumnDomain;
 	use BigTree\Services\AI\FieldOptionDomain;
 	use BigTree\Services\AI\FieldTypeDomain;
+	use BigTree\Services\AI\OpenGraphDomain;
 	use BigTree\Services\AI\PayloadBudget;
 	use BigTree\Services\AI\PreviewValue;
 	use BigTree\Services\AI\ResourceReferenceDomain;
@@ -1446,6 +1447,13 @@
 					. implode(", ", $new_tags) . ". You can still use tags that already exist."];
 			}
 
+			$og_error = OpenGraphDomain::error($args);
+
+			if ($og_error !== null) {
+
+				return ["error" => $og_error];
+			}
+
 			$open_graph = $this->aiEntryOpenGraph($args);
 			$relation_error = $this->aiFormRelationError(
 				is_array($resolved["form"] ?? null) ? $resolved["form"] : null,
@@ -1537,7 +1545,7 @@
 				$preview["new_tags"] = $new_tags;
 			}
 
-			foreach (["title" => "og_title", "description" => "og_description"] as $key => $preview_key) {
+			foreach (OpenGraphDomain::FIELDS as $preview_key => $key) {
 				if (isset($open_graph[$key])) {
 					$preview[$preview_key] = $open_graph[$key];
 				}
@@ -1766,8 +1774,8 @@
 
 			if ($open_graph && empty($form["open_graph"])) {
 
-				return "This module's form doesn't have Open Graph enabled, so a social title or description set "
-					. "here would be invisible in the admin and unremovable. Turn Open Graph on for the form in "
+				return "This module's form doesn't have Open Graph enabled, so social sharing values set here "
+					. "would be invisible in the admin and unremovable. Turn Open Graph on for the form in "
 					. "Developer → Modules first.";
 			}
 
@@ -2048,10 +2056,12 @@
 
 			return [
 				"tags" => array_values(array_map("strval", $names ?: [])),
-				"open_graph" => [
-					"og_title" => (string)($relations["open_graph"]["title"] ?? ""),
-					"og_description" => (string)($relations["open_graph"]["description"] ?? ""),
-				],
+				// All four, keyed by the arguments that write them: the entry read seam is
+				// what the surface guard measures the write arguments against, and an
+				// entry's social image was as unreadable as a page's until audit #22 B3.
+				"open_graph" => OpenGraphDomain::detail(
+					is_array($relations["open_graph"] ?? null) ? $relations["open_graph"] : []
+				),
 				"related" => $this->aiEntryRelatedIds(
 					$form,
 					$entry_id,
@@ -2165,9 +2175,13 @@
 		}
 
 		/**
-		 * The assistant's flat og_title/og_description args as the `open_graph` record
-		 * the entry write path stores — the same two scalars create_page already
-		 * carries, and the same shape BigTreeAdmin::handleOpenGraph reads.
+		 * The assistant's flat og_* args as the `open_graph` record the entry write path
+		 * stores — the same record create_page carries, through the same shared map, and
+		 * the same shape BigTreeAdmin::handleOpenGraph reads.
+		 *
+		 * All four authored columns since audit #22 B3: `type` is a four-value enum and
+		 * `image` a URL, and neither is the file reference the old two-field version
+		 * claimed as its reason for stopping at title and description.
 		 *
 		 * @param array<string,mixed> $args
 		 * @return array<string,string>
@@ -2175,7 +2189,7 @@
 		private function aiEntryOpenGraph(array $args): array {
 			$open_graph = [];
 
-			foreach (["og_title" => "title", "og_description" => "description"] as $arg => $key) {
+			foreach (OpenGraphDomain::FIELDS as $arg => $key) {
 				$value = trim((string)($args[$arg] ?? ""));
 
 				if ($value !== "") {
@@ -2646,6 +2660,13 @@
 			}
 
 			$provided = is_array($args["data"] ?? null) ? $args["data"] : [];
+			$og_error = OpenGraphDomain::error($args);
+
+			if ($og_error !== null) {
+
+				return ["error" => $og_error];
+			}
+
 			$open_graph = $this->aiEntryOpenGraph($args);
 			$relation_error = $this->aiFormRelationError(
 				is_array($resolved["form"] ?? null) ? $resolved["form"] : null,
@@ -2763,7 +2784,7 @@
 				$preview["save_as_draft"] = true;
 			}
 
-			foreach (["title" => "og_title", "description" => "og_description"] as $key => $preview_key) {
+			foreach (OpenGraphDomain::FIELDS as $preview_key => $key) {
 				if (isset($open_graph[$key])) {
 					$preview[$preview_key] = $open_graph[$key];
 				}

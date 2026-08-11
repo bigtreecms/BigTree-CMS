@@ -37,7 +37,8 @@
 				"new_window" => "get_page", "in_nav" => "get_page", "meta_description" => "get_page",
 				"meta_keywords" => "get_page", "seo_invisible" => "get_page", "publish_at" => "get_page",
 				"expire_at" => "get_page", "max_age" => "get_page", "og_title" => "get_page",
-				"og_description" => "get_page", "tags" => "get_page",
+				"og_description" => "get_page", "og_type" => "get_page",
+				"og_image" => "get_page", "tags" => "get_page",
 				"content" => "get_page",
 				"save_as_draft" => "exempt: a routing flag for this write, not a stored field",
 			],
@@ -47,6 +48,7 @@
 				"in_nav" => "get_page", "meta_description" => "get_page", "meta_keywords" => "get_page",
 				"seo_invisible" => "get_page", "publish_at" => "get_page", "expire_at" => "get_page",
 				"max_age" => "get_page", "og_title" => "get_page", "og_description" => "get_page",
+				"og_type" => "get_page", "og_image" => "get_page",
 				"save_as_draft" => "exempt: a routing flag for this write, not a stored field",
 			],
 			"update_page_content" => [
@@ -64,13 +66,15 @@
 			"create_module_entry" => [
 				"module_id" => "search_modules", "form" => "get_module_schema", "data" => "get_module_entry",
 				"tags" => "get_module_entry", "og_title" => "get_module_entry",
-				"og_description" => "get_module_entry",
+				"og_description" => "get_module_entry", "og_type" => "get_module_entry",
+				"og_image" => "get_module_entry",
 				"save_as_draft" => "exempt: a routing flag for this write, not a stored field",
 			],
 			"update_module_entry" => [
 				"module_id" => "search_modules", "form" => "get_module_schema", "entry_id" => "get_module_entry",
 				"data" => "get_module_entry", "og_title" => "get_module_entry",
-				"og_description" => "get_module_entry",
+				"og_description" => "get_module_entry", "og_type" => "get_module_entry",
+				"og_image" => "get_module_entry",
 				"save_as_draft" => "exempt: a routing flag for this write, not a stored field",
 			],
 			"set_module_entry_flag" => [

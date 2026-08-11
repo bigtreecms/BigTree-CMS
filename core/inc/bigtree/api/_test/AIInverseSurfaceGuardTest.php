@@ -19,6 +19,7 @@
 	 */
 
 	use BigTree\Services\AI\CapabilitySummary;
+	use BigTree\Services\PageService;
 
 	/**
 	 * Every mutating tool mapped to the validate seam it dispatches to. This is the
@@ -168,8 +169,18 @@
 					// The tools take page content as `content`, keyed by template
 					// resource id, and sift it against the template's own schema.
 					"resources" => "the tools express page content as `content`, sifted against the template schema",
-					"open_graph" => "expressed as the og_title / og_description arguments rather than an object",
 					"publish" => "the tools invert it as save_as_draft; publishing is decided by rank at approval",
+				],
+				// Audit #22 B6. `open_graph` stood as one exemption line — "expressed as
+				// the og_title / og_description arguments rather than an object" — which
+				// is an assertion that the mapping is complete, written at a granularity
+				// that cannot see inside an array-valued body field. It was false for two
+				// audits: the record has four authored columns and the tools carried two
+				// (audit #22 A2). Any array body field can hide an arbitrary number of
+				// unmapped scalars behind one line, so the fields whose array is a fixed
+				// record enumerate it.
+				"sub_keys" => [
+					"open_graph" => ai_inverse_open_graph_sub_keys(),
 				],
 				"declined" => [
 					"trunk" => "site trunk",
@@ -182,8 +193,11 @@
 				"tools" => ["update_page", "update_page_content", "add_tags", "remove_tags"],
 				"exempt" => [
 					"resources" => "the tools express page content as `content`, sifted against the template schema",
-					"open_graph" => "expressed as the og_title / og_description arguments rather than an object",
 					"publish" => "the tools invert it as save_as_draft; publishing is decided by rank at approval",
+				],
+				// Enumerated rather than exempted, per B6 above.
+				"sub_keys" => [
+					"open_graph" => ai_inverse_open_graph_sub_keys(),
 				],
 				"declined" => [
 					"trunk" => "site trunk",
@@ -195,7 +209,6 @@
 			"PATCH /pages/pending/{pcid:int}" => [
 				"tools" => ["update_page", "update_page_content"],
 				"exempt" => [
-					"open_graph" => "expressed as the og_title / og_description arguments rather than an object",
 					"publish" => "the tools invert it as save_as_draft; publishing a draft is publish_pending_change",
 					// Deliberate and recorded rather than declined: create_page stages a
 					// draft's tags with the draft, and add_tags/remove_tags take a live
@@ -203,6 +216,10 @@
 					// not a capability the catalog offers.
 					"tags" => "a draft's tags are staged with it by create_page; add_tags/remove_tags target a live "
 						. "page id, and an unapproved draft has none",
+				],
+				// Enumerated rather than exempted, per B6 above.
+				"sub_keys" => [
+					"open_graph" => ai_inverse_open_graph_sub_keys(),
 				],
 			],
 			"PATCH /templates/{id}" => [
@@ -368,6 +385,157 @@
 		];
 	}
 
+	/**
+	 * The `open_graph` body field's own record, key by key.
+	 *
+	 * `derived_from` names the write that defines what the record holds:
+	 * `syncOpenGraph`'s own INSERT, read rather than hand-listed, so a fifth Open Graph
+	 * column fails this contract the day it is added — the derivation trick
+	 * AIPostWriteVisibilityTest uses on performScaffold's DDL.
+	 *
+	 * Each key is `settable: <tool argument>`, `exempt: <reason>` or
+	 * `declined: <outOfScope wording>`.
+	 *
+	 * @return array<string,mixed>
+	 */
+	function ai_inverse_open_graph_sub_keys(): array {
+
+		return [
+			"derived_from" => [PageService::class, "syncOpenGraph"],
+			"keys" => [
+				"title" => "settable: og_title",
+				"description" => "settable: og_description",
+				"type" => "settable: og_type",
+				"image" => "settable: og_image",
+				"table" => "exempt: the record's own identity — which table this Open Graph row belongs to, "
+					. "written by the seam rather than supplied by anyone",
+				"entry" => "exempt: the record's own identity — which row this Open Graph row belongs to",
+				"image_width" => "exempt: derived at render time; BigTreeCMS::drawHeadTags measures a local "
+					. "image with getimagesize(), and a remote URL can't be measured without fetching it, so "
+					. "the AI seam omits both exactly as the REST path does for a client that doesn't send them",
+				"image_height" => "exempt: the same measurement, one dimension over",
+			],
+		];
+	}
+
+	/**
+	 * Audit #22 B6: an array-valued body field whose array is a fixed record enumerates
+	 * that record, key by key.
+	 *
+	 * The contract above classifies a *body field*. That granularity cannot see inside
+	 * an array — `open_graph` carried one exemption line asserting the og_title /
+	 * og_description arguments expressed it completely, and for two audits they
+	 * expressed half of it, with the other half (a four-value enum and a URL) reachable
+	 * by every other surface and by no tool. One exemption line can hide an arbitrary
+	 * number of unmapped scalars, and nothing anywhere would say so.
+	 *
+	 * `resources` and `publish` deliberately stay whole-field exemptions: the first is
+	 * open-ended template content with its own contract (the sift seams), the second is
+	 * a scalar already inverted as `save_as_draft`.
+	 */
+	function test_array_body_fields_enumerate_their_sub_keys() {
+		$registry = ai_wiring_registry();
+		$developer = ai_wiring_user(2);
+		$declines = strtolower(implode(" | ", array_keys(CapabilitySummary::outOfScope())));
+		$unaccounted = [];
+
+		foreach (ai_inverse_body_contracts() as $route => $contract) {
+			foreach ($contract["sub_keys"] ?? [] as $field => $map) {
+				$body = ai_inverse_effective_body($route);
+				T::ok(isset($body[$field]), "{$route}.{$field} is a body field this sub-key map describes");
+
+				$settable = [];
+
+				foreach ($contract["tools"] as $name) {
+					$tool = $registry->get($name);
+					$properties = $tool !== null
+						? ($tool->definition($developer)["function"]["parameters"]["properties"] ?? [])
+						: [];
+
+					foreach (is_array($properties) ? array_keys($properties) : [] as $argument) {
+						$settable[$argument] = true;
+					}
+				}
+
+				$declared = $map["keys"] ?? [];
+				$written = ai_inverse_record_columns($map["derived_from"][0], $map["derived_from"][1]);
+				T::ok($written !== [], "{$route}.{$field}'s record was derived from the write that defines it");
+
+				foreach ($written as $key) {
+					$classification = (string)($declared[$key] ?? "");
+
+					if ($classification === "") {
+						$unaccounted[] = "{$route}.{$field}.{$key}";
+
+						continue;
+					}
+
+					if (strpos($classification, "settable: ") === 0) {
+						$argument = trim(substr($classification, strlen("settable: ")));
+						T::ok(
+							isset($settable[$argument]),
+							"{$route}.{$field}.{$key} is written by the {$argument} argument"
+						);
+
+						continue;
+					}
+
+					if (strpos($classification, "declined: ") === 0) {
+						$wording = strtolower(trim(substr($classification, strlen("declined: "))));
+						T::ok(
+							strpos($declines, $wording) !== false,
+							"{$route}.{$field}.{$key} is declined by wording matching \"{$wording}\""
+						);
+
+						continue;
+					}
+
+					T::ok(
+						strpos($classification, "exempt: ") === 0 && strlen($classification) > strlen("exempt: "),
+						"{$route}.{$field}.{$key} is exempt with a reason"
+					);
+				}
+
+				foreach (array_keys($declared) as $key) {
+					if (!in_array($key, $written, true)) {
+						$unaccounted[] = "{$route}.{$field}.{$key} (the record no longer holds it)";
+					}
+				}
+			}
+		}
+
+		T::equals(
+			implode(", ", $unaccounted),
+			"",
+			"every key of an array body field's record is settable by a tool, exempt with a reason, or declined"
+		);
+	}
+
+	/**
+	 * The columns a record-writing method's own INSERT writes, in source order.
+	 *
+	 * Read out of the body rather than out of the database: the contract is about what
+	 * this write path puts in the record, and a column the table has but nothing writes
+	 * is not a field any tool could be missing.
+	 *
+	 * @return list<string>
+	 */
+	function ai_inverse_record_columns(string $class, string $method): array {
+		$body = ai_surface_method_body($class, $method);
+		$start = strpos($body, "SQL::insert(");
+
+		if ($start === false) {
+
+			return [];
+		}
+
+		$end = strpos($body, "]);", $start);
+		$insert = substr($body, $start, $end === false ? null : $end - $start);
+		preg_match_all('/"([a-z_]+)"\s*=>/', $insert, $matches);
+
+		return array_values(array_unique($matches[1] ?? []));
+	}
+
 	function test_write_route_body_fields_are_settable_exempt_or_declined() {
 		$registry = ai_wiring_registry();
 		$developer = ai_wiring_user(2);
@@ -397,6 +565,10 @@
 			}
 
 			$exempt = $contract["exempt"] ?? [];
+			// A field whose array is a fixed record is accounted for key by key instead,
+			// by the B6 leg above — which is a stronger claim than the one exemption line
+			// it replaced, not a weaker one.
+			$exempt = array_merge($exempt, $contract["sub_keys"] ?? []);
 			$declined = $contract["declined"] ?? [];
 			$declined_all = (string)($contract["declined_all"] ?? "");
 
@@ -498,7 +670,11 @@
 
 		foreach (ai_inverse_body_contracts() as $route => $contract) {
 			$body = ai_inverse_effective_body($route);
-			$classified = array_merge($contract["exempt"] ?? [], $contract["declined"] ?? []);
+			$classified = array_merge(
+				$contract["exempt"] ?? [],
+				$contract["declined"] ?? [],
+				$contract["sub_keys"] ?? []
+			);
 			$settable = [];
 
 			foreach ($contract["tools"] as $name) {

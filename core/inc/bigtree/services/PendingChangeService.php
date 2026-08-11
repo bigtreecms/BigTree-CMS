@@ -10,6 +10,7 @@
 	use BigTree\Api\Sanitize;
 	use BigTree\Api\Exceptions\AuthorizationException;
 	use BigTree\Api\Exceptions\BadRequestException;
+	use BigTree\Services\AI\OpenGraphDomain;
 	use BigTree\Services\AI\PreviewValue;
 	use BigTree\Services\AI\Tools\PendingChangeToolBackend;
 	use BigTreeAutoModule;
@@ -427,7 +428,7 @@
 
 			$open_graph = Json::decode($row["open_graph_changes"] ?? "");
 
-			foreach (["title" => "og_title", "description" => "og_description"] as $key => $label) {
+			foreach (OpenGraphDomain::FIELDS as $label => $key) {
 				if (array_key_exists($key, $open_graph)) {
 					$out[] = ["column" => $label, "to" => $this->aiDiffValue($open_graph[$key])];
 				}

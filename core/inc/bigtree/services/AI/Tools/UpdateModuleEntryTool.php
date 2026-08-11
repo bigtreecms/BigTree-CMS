@@ -4,6 +4,7 @@
 	use BigTree\Services\AI\AIToolContext;
 	use BigTree\Services\AI\AIToolResult;
 	use BigTree\Services\AI\ProposalStore;
+	use BigTree\Services\AI\OpenGraphDomain;
 
 	/**
 	 * Two-phase edit of a module entry. The form's text-like fields, its reference
@@ -79,6 +80,19 @@
 						"og_description" => [
 							"type" => "string",
 							"description" => "New Open Graph (social sharing) description for the entry.",
+						],
+						"og_type" => [
+							"type" => "string",
+							"description" => "Open Graph type, which tells a social network what kind of thing this "
+								. "entry is. One of: website, article, profile, video.movie. Empty string clears it.",
+							"enum" => OpenGraphDomain::TYPES,
+						],
+						"og_image" => [
+							"type" => "string",
+							"description" => "Open Graph image: the full URL of an image to show when the entry is "
+								. "shared (at least 1200x630). This is a URL, not an upload — use the public URL of "
+								. "a file already in the Files library, which search_files returns. Empty string "
+								. "clears it.",
 						],
 						"save_as_draft" => [
 							"type" => "boolean",

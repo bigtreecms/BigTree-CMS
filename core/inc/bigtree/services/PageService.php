@@ -16,6 +16,7 @@
 	use BigTree\Services\AI\ColumnDomain;
 	use BigTree\Services\AI\FieldOptionDomain;
 	use BigTree\Services\AI\FieldTypeDomain;
+	use BigTree\Services\AI\OpenGraphDomain;
 	use BigTree\Services\AI\PayloadBudget;
 	use BigTree\Services\AI\PreviewValue;
 	use BigTree\Services\AI\ResourceReferenceDomain;
@@ -283,8 +284,12 @@
 		public const AI_PAGE_FIELDS = [
 			"nav_title", "title", "meta_description", "meta_keywords", "in_nav", "seo_invisible",
 			"template", "route", "publish_at", "expire_at", "external", "new_window",
-			"og_title", "og_description", "max_age",
+			"og_title", "og_description", "og_type", "og_image", "max_age",
 		];
+
+		// The Open Graph record's arguments, its `type` domain and its shape checks live
+		// in OpenGraphDomain — one class both this seam and the module-entry seam read,
+		// and the four tools declare their arguments from (audit #22 B3).
 
 		/**
 		 * Reserved payload key carrying which schedule fields were still in the future
@@ -607,9 +612,16 @@
 					. implode(", ", $new_tags) . ". You can still use tags that already exist."];
 			}
 
+			$og_error = OpenGraphDomain::error($args);
+
+			if ($og_error !== null) {
+
+				return ["error" => $og_error];
+			}
+
 			$open_graph = [];
 
-			foreach (["og_title" => "title", "og_description" => "description"] as $arg => $key) {
+			foreach (OpenGraphDomain::FIELDS as $arg => $key) {
 				$value = trim((string)($args[$arg] ?? ""));
 
 				if ($value !== "") {
@@ -722,7 +734,7 @@
 				$preview["new_tags"] = $new_tags;
 			}
 
-			foreach (["title" => "og_title", "description" => "og_description"] as $key => $preview_key) {
+			foreach (OpenGraphDomain::FIELDS as $preview_key => $key) {
 				if (isset($open_graph[$key])) {
 					$preview[$preview_key] = $open_graph[$key];
 				}
@@ -2291,19 +2303,31 @@
 		}
 
 		/**
-		 * The scalar Open Graph subset the assistant may set, before and after an edit.
+		 * The Open Graph record the assistant may set, before and after an edit.
 		 *
-		 * Only title and description: OG images are file references, which the
-		 * assistant never fabricates. syncOpenGraph replaces the whole row, so the
-		 * existing record is loaded and merged — otherwise setting a title would wipe
-		 * an image someone chose in the admin.
+		 * All four columns of `bigtree_open_graph` that carry a value a person chose:
+		 * title, description, type and image. The docblock here used to say "only title
+		 * and description: OG images are file references, which the assistant never
+		 * fabricates", and that reason was never true on this code path — `image` is a
+		 * varchar holding a URL, the admin renders it as a plain text input beside a
+		 * four-option `<select>` for `type`, and neither is an upload or a resource
+		 * picker. So the assistant wrote half a record and disclosed nothing about the
+		 * other half (audit #22 A2).
+		 *
+		 * syncOpenGraph replaces the whole row, so the existing record is loaded and
+		 * merged — otherwise setting a title would wipe an image someone chose in the
+		 * admin. That behaviour predates B3 and is what keeps a partial edit partial.
 		 *
 		 * @param array<string,mixed> $args
 		 * @param array<string,mixed> $page
 		 * @return array{from:array<string,string>,to:array<string,string>,stored:array<string,mixed>}
 		 */
 		private function aiPageOpenGraph(array $args, array $page): array {
-			$supplied = array_key_exists("og_title", $args) || array_key_exists("og_description", $args);
+			$supplied = false;
+
+			foreach (array_keys(OpenGraphDomain::FIELDS) as $argument) {
+				$supplied = $supplied || array_key_exists($argument, $args);
+			}
 
 			// Only read the OG record when an OG field is actually being edited —
 			// otherwise every plain page edit would pay for a query it never uses.
@@ -2313,13 +2337,15 @@
 				? (array_key_exists("ai_open_graph", $page) ? $page["ai_open_graph"] : $this->loadOpenGraph((int)$page["id"]))
 				: null;
 			$stored = is_array($stored) ? $stored : [];
-			$from = [
-				"og_title" => (string)($stored["title"] ?? ""),
-				"og_description" => (string)($stored["description"] ?? ""),
-			];
+			$from = [];
+
+			foreach (OpenGraphDomain::FIELDS as $arg => $key) {
+				$from[$arg] = (string)($stored[$key] ?? "");
+			}
+
 			$to = $from;
 
-			foreach (["og_title" => "title", "og_description" => "description"] as $arg => $key) {
+			foreach (OpenGraphDomain::FIELDS as $arg => $key) {
 				if (array_key_exists($arg, $args)) {
 					$to[$arg] = trim((string)$args[$arg]);
 					$stored[$key] = $to[$arg];
@@ -2416,6 +2442,13 @@
 				// value the model sends against this one.
 				"og_title" => Sanitize::decodeEntities((string)($open_graph["title"] ?? "")),
 				"og_description" => Sanitize::decodeEntities((string)($open_graph["description"] ?? "")),
+				// The other two of the record's four authored columns, which the assistant
+				// can now write. Without them "set up the social preview" was proposed
+				// blind: the model could not report the image the page already had, so it
+				// had no way to tell a page that needed one from a page that had one
+				// (audit #22 A2).
+				"og_type" => Sanitize::decodeEntities((string)($open_graph["type"] ?? "")),
+				"og_image" => Sanitize::decodeEntities((string)($open_graph["image"] ?? "")),
 				"max_age" => (int)($page["max_age"] ?? 0),
 				"tags" => $this->aiPageTagNames($target),
 			];
@@ -3172,6 +3205,13 @@
 				return $schedule;
 			}
 
+			$og_error = OpenGraphDomain::error($args);
+
+			if ($og_error !== null) {
+
+				return ["error" => $og_error];
+			}
+
 			$open_graph = $this->aiPageOpenGraph($args, $page);
 
 			foreach ($editable as $field) {
@@ -3266,7 +3306,7 @@
 					// mismatch would otherwise read as a change on every edit.
 					$new = (string)$schedule[$field];
 					$old = (string)($page[$field] ?? "");
-				} elseif (in_array($field, ["og_title", "og_description"], true)) {
+				} elseif (array_key_exists($field, OpenGraphDomain::FIELDS)) {
 					$new = (string)$open_graph["to"][$field];
 					$old = (string)$open_graph["from"][$field];
 				} else {
@@ -3325,11 +3365,15 @@
 				return ["error" => $too_long];
 			}
 
-			// og_title/og_description are the assistant's flat spelling of one JSON
-			// record; collapse them into the single `open_graph` key the write path
-			// (and the pending-change replay) understands.
-			if (isset($changes["og_title"]) || isset($changes["og_description"])) {
-				unset($changes["og_title"], $changes["og_description"]);
+			// The og_* arguments are the assistant's flat spelling of one JSON record;
+			// collapse them into the single `open_graph` key the write path (and the
+			// pending-change replay) understands. Every one of them has to be in this
+			// condition — an edit that set only the image would otherwise build the
+			// record and never attach it.
+			$og_changed = array_intersect_key($changes, OpenGraphDomain::FIELDS);
+
+			if ($og_changed) {
+				$changes = array_diff_key($changes, OpenGraphDomain::FIELDS);
 				$changes["open_graph"] = $open_graph["stored"];
 			}
 
@@ -3366,7 +3410,29 @@
 				$mode_note .= " " . $draft["note"];
 			}
 
-			$summary = ($is_pending ? "Update draft “{$title}”." : "Update page “{$title}”.") . $mode_note;
+			// A route rename is the same event as a move, through a different door:
+			// performUpdate's route block writes a route-history redirect and calls
+			// repathChildren, so it changes the URL of an entire branch of the site. The
+			// card said none of it — one diff row, `route: old → new`, on a summary
+			// reading "It will be published live once you approve" (audit #22 A3).
+			//
+			// Only for a live page: a "p"-prefixed target is a NEW draft, a page that
+			// doesn't exist yet, so there is no subtree to repath and no old URL to
+			// redirect from.
+			$repath = [];
+
+			if (!$is_pending && array_key_exists("route", $changes)) {
+				$repath = $this->aiPathChangeDisclosure((string)$page["path"]);
+				$new_route = $this->uniqueRoute((int)$page["parent"], (string)$changes["route"], $id);
+				$parent_path = (int)$page["parent"]
+					? (string)SQL::fetchSingle("SELECT path FROM bigtree_pages WHERE id = ?", (int)$page["parent"])
+					: "";
+				$repath["from_path"] = "/" . (string)$page["path"];
+				$repath["to_path"] = "/" . ($parent_path !== "" ? $parent_path . "/" : "") . $new_route;
+			}
+
+			$summary = ($is_pending ? "Update draft “{$title}”." : "Update page “{$title}”.") . $mode_note
+				. (string)($repath["note"] ?? "");
 
 			$preview = [
 				"page_id" => $id,
@@ -3376,6 +3442,14 @@
 				"changes" => $diff,
 				"mode" => $is_pending ? "pending" : ($can_publish ? "published" : "pending"),
 			];
+
+			// The same three facts a move card shows, so the two page-URL writers read
+			// alike to whoever is approving them.
+			if ($repath) {
+				$preview["descendants_affected"] = $repath["descendants"];
+				$preview["from_path"] = $repath["from_path"];
+				$preview["to_path"] = $repath["to_path"];
+			}
 
 			if ($draft) {
 				$preview["publishes_draft"] = $draft;
@@ -3409,8 +3483,13 @@
 					self::AI_SCHEDULE_SNAPSHOT_KEY => TemporalContext::scheduleSnapshot($changes),
 				],
 				// Only the columns this edit touches, so an unrelated change elsewhere
-				// on the page doesn't needlessly invalidate a correct proposal.
-				"fingerprint" => $this->aiPageFingerprint($target, array_keys($changes)),
+				// on the page doesn't needlessly invalidate a correct proposal — plus
+				// `path` when the card shows a from/to path, because that pair is read
+				// off a column this edit doesn't set and an ancestor's move rewrites.
+				"fingerprint" => $this->aiPageFingerprint(
+					$target,
+					$repath ? array_merge(array_keys($changes), ["path"]) : array_keys($changes)
+				),
 				"lock" => $this->aiPageLock($target),
 			];
 		}
@@ -4386,6 +4465,42 @@
 		}
 
 		/**
+		 * What changing a page's path does to the rest of the site, as the two sentences
+		 * a card owes: how far the change reaches, and that it leaves redirects.
+		 *
+		 * `repathChildren` rewrites `path` on every descendant, writes a route-history
+		 * redirect for each and re-indexes each for search, so renaming one route changes
+		 * the URL of a whole branch. Both writers of a page's path reach it —
+		 * `performMove` and `performUpdate`'s route block — and only the move card said
+		 * so: a route rename appeared in a proposal as one diff row,
+		 * `route: old → new`, indistinguishable from a `meta_keywords` edit (audit #22
+		 * A3).
+		 *
+		 * One helper rather than two copies, because the reason the two diverged is that
+		 * the sentences were only ever written in one place. Both halves matter and they
+		 * pull opposite ways: the approver is not told the blast radius without the
+		 * count, and not told the mitigation without the redirect sentence.
+		 *
+		 * @param string $path The page's current path, whose descendants are counted.
+		 * @return array{descendants:int,note:string}
+		 */
+		private function aiPathChangeDisclosure(string $path): array {
+			$descendants = (int)SQL::fetchSingle(
+				"SELECT COUNT(*) FROM bigtree_pages WHERE path LIKE ?", $path . "/%"
+			);
+
+			$note = $descendants > 0
+				? " {$descendants} page" . ($descendants === 1 ? "" : "s") . " beneath it will move too, and every "
+					. "affected URL will change."
+				: " Its URL will change.";
+			// Every changed URL gets a redirect from its old one, so say so — it is
+			// the difference between "moving this breaks our links" and not.
+			$note .= " A redirect will be left behind for every old URL.";
+
+			return ["descendants" => $descendants, "note" => $note];
+		}
+
+		/**
 		 * Validate moving a page to a new parent.
 		 *
 		 * Moving rewrites the page's path and every descendant's path, so it needs
@@ -4462,17 +4577,9 @@
 			$parent_title = $parent
 				? (trim((string)SQL::fetchSingle("SELECT nav_title FROM bigtree_pages WHERE id = ?", $parent)) ?: "page #{$parent}")
 				: "the site root";
-			$descendants = (int)SQL::fetchSingle(
-				"SELECT COUNT(*) FROM bigtree_pages WHERE path LIKE ?", $page["path"] . "/%"
-			);
-
-			$note = $descendants > 0
-				? " {$descendants} page" . ($descendants === 1 ? "" : "s") . " beneath it will move too, and every "
-					. "affected URL will change."
-				: " Its URL will change.";
-			// Every changed URL gets a redirect from its old one, so say so — it is
-			// the difference between "moving this breaks our links" and not.
-			$note .= " A redirect will be left behind for every old URL.";
+			$repath = $this->aiPathChangeDisclosure((string)$page["path"]);
+			$descendants = $repath["descendants"];
+			$note = $repath["note"];
 
 			// Legacy takes a non-developer's page out of the nav when it lands at top
 			// level; that is a visible, site-wide consequence and belongs on the card.
@@ -6123,6 +6230,12 @@
 				"description" => BigTree::safeEncode((string)($og["description"] ?? "")),
 				"type" => BigTree::safeEncode((string)($og["type"] ?? "")),
 				"image" => BigTree::safeEncode((string)($og["image"] ?? "")),
+				// Derived, not authored: drawHeadTags() measures a local image with
+				// getimagesize() at render time, and a remote URL can't be measured
+				// without fetching it. A caller that knows them (the admin's own upload
+				// path) may still send them; the AI seam deliberately does not, which
+				// costs the og:image:width / og:image:height tags on remote images only
+				// (audit #22 B3).
 				"image_width" => (int)($og["image_width"] ?? 0),
 				"image_height" => (int)($og["image_height"] ?? 0),
 			]);

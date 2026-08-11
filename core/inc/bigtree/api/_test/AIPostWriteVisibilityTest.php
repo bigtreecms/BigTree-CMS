@@ -82,6 +82,24 @@
 					[PageService::class, "aiPageTree", "scheduled"],
 				],
 			],
+			// Audit #22 A3. The gate here isn't that the page becomes invisible — it is
+			// that every URL under it becomes a different URL. `repathChildren` rewrites
+			// `path` on every descendant and writes a route-history redirect for each, so
+			// renaming one route changes the address of an entire branch of the site.
+			// `move_page` disclosed the blast radius and the mitigation; `update_page`,
+			// the same event through a different door, showed one diff row reading
+			// `route: old → new` and said neither. The token is the shared helper both
+			// validators now compose the sentences with, so deleting it from either fails
+			// here.
+			"page: route change repaths the subtree" => [
+				"why" => "performMove and performUpdate's route block both call repathChildren, which rewrites "
+					. "every descendant's path and leaves a route-history redirect behind for each old URL",
+				"disclosed_by" => [
+					[PageService::class, "aiValidatePageMove", "aiPathChangeDisclosure"],
+					[PageService::class, "aiValidatePageUpdate", "aiPathChangeDisclosure"],
+					[PageService::class, "aiPathChangeDisclosure", "A redirect will be left behind for every old URL."],
+				],
+			],
 			"page: editor's create queues as pending" => [
 				"why" => "the same queue, one content type over",
 				"disclosed_by" => [
