@@ -5,7 +5,7 @@ import type { Tag } from "@/api/endpoints/tags";
 import { TagInput } from "@/components/tags/TagInput";
 import { Alert } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
+import { Card, CardFooter } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { FieldLabel } from "@/components/ui/Field";
 import { UnsavedChangesGuard } from "@/components/ui/UnsavedChangesGuard";
@@ -328,7 +328,7 @@ export const FormRenderer = ({
 				)}
 			</div>
 
-			<div className="sticky bottom-0 flex flex-wrap items-center justify-end gap-2 border-t border-border bg-surface-2 px-4 py-3">
+			<CardFooter sticky className="flex-wrap">
 				{onCancel && (
 					<Button disabled={submitting} onClick={onCancel}>
 						Cancel
@@ -353,7 +353,7 @@ export const FormRenderer = ({
 						{publishLabel}
 					</Button>
 				)}
-			</div>
+			</CardFooter>
 		</Card>
 	);
 

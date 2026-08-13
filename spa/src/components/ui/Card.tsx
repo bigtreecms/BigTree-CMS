@@ -87,8 +87,9 @@ interface CardFooterProps extends HTMLAttributes<HTMLDivElement> {
 /**
  * The `border-t … bg-surface-2` action bar that sits flush at the bottom of a
  * flush {@link Card} — the mirror of {@link CardHeader}. Right-aligns its
- * buttons; pass `sticky` to pin it to the viewport, and `rounded-b-xl` via
- * `className` on a `Card` without `overflow-hidden`.
+ * buttons; pass `sticky` to pin it to the viewport (with `z-10` so it stays
+ * above TinyMCE's toolbar), and `rounded-b-xl` via `className` on a `Card`
+ * without `overflow-hidden`.
  */
 export const CardFooter = ({
 	sticky,
@@ -97,7 +98,9 @@ export const CardFooter = ({
 	children,
 	...rest
 }: CardFooterProps) => {
-	const stick = sticky ? " sticky bottom-0" : "";
+	// `z-10` keeps the bar above scrolling field chrome (TinyMCE's toolbar
+	// header is `z-index: 2`) and below the top bar (`z-30`) / dialogs.
+	const stick = sticky ? " sticky bottom-0 z-10" : "";
 	const extra = className ? ` ${className}` : "";
 
 	return (

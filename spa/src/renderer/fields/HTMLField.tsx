@@ -102,42 +102,48 @@ export const HTMLField = ({ field, value, onChange, disabled }: FieldComponentPr
 	// plugin puts the editor at `${base}tinymce/tinymce.min.js`.
 	const scriptSrc = `${import.meta.env.BASE_URL}tinymce/tinymce.min.js`.replace(/\/{2,}/g, "/");
 
+	// TinyMCE's `.tox-editor-header` uses `z-index: 2` for internal stacking.
+	// Without a containing stacking context that value escapes and the toolbar
+	// paints over sticky form footers (which sit at `z-index: auto`). Isolate
+	// here so page chrome stays on top; menus still portal to `.tox-tinymce-aux`.
 	return (
-		<Editor
-			disabled={disabled}
-			init={{
-				disabled: Boolean(disabled),
-				menubar: false,
-				plugins: isSimple ? SIMPLE_PLUGINS : FULL_PLUGINS,
-				toolbar: isSimple ? SIMPLE_TOOLBAR : FULL_TOOLBAR,
-				skin: dark ? "oxide-dark" : "oxide",
-				content_css: dark ? "dark" : "default",
-				browser_spellcheck: true,
-				relative_urls: false,
-				remove_script_host: false,
-				convert_urls: false,
-				extended_valid_elements: "*[*]",
-				branding: false,
-				promotion: false,
-				statusbar: !isSimple,
-				resize: true,
-				width: settings.width ?? undefined,
-				height: settings.height ?? (isSimple ? 180 : 360),
-				// File / image pickers are wired up in the Image / Upload field
-				// work — for now the dialogs fall back to a plain URL field.
-			}}
-			// Re-mount when skin / variant flips so TinyMCE picks up the new init
-			// (`init` is only consumed once per editor instance).
-			key={`${theme}-${isSimple ? "simple" : "full"}`}
-			licenseKey="gpl"
-			tinymceScriptSrc={scriptSrc}
-			value={text}
-			onEditorChange={(html) => onChange(html)}
-			onInit={(_evt, editor) => {
-				editorRef.current = editor;
-				editor.options.set("disabled", Boolean(disabled));
-			}}
-		/>
+		<div className="isolate">
+			<Editor
+				disabled={disabled}
+				init={{
+					disabled: Boolean(disabled),
+					menubar: false,
+					plugins: isSimple ? SIMPLE_PLUGINS : FULL_PLUGINS,
+					toolbar: isSimple ? SIMPLE_TOOLBAR : FULL_TOOLBAR,
+					skin: dark ? "oxide-dark" : "oxide",
+					content_css: dark ? "dark" : "default",
+					browser_spellcheck: true,
+					relative_urls: false,
+					remove_script_host: false,
+					convert_urls: false,
+					extended_valid_elements: "*[*]",
+					branding: false,
+					promotion: false,
+					statusbar: !isSimple,
+					resize: true,
+					width: settings.width ?? undefined,
+					height: settings.height ?? (isSimple ? 180 : 360),
+					// File / image pickers are wired up in the Image / Upload field
+					// work — for now the dialogs fall back to a plain URL field.
+				}}
+				// Re-mount when skin / variant flips so TinyMCE picks up the new init
+				// (`init` is only consumed once per editor instance).
+				key={`${theme}-${isSimple ? "simple" : "full"}`}
+				licenseKey="gpl"
+				tinymceScriptSrc={scriptSrc}
+				value={text}
+				onEditorChange={(html) => onChange(html)}
+				onInit={(_evt, editor) => {
+					editorRef.current = editor;
+					editor.options.set("disabled", Boolean(disabled));
+				}}
+			/>
+		</div>
 	);
 };
 

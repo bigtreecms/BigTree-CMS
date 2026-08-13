@@ -91,6 +91,16 @@ describe("FormRenderer field render isolation", () => {
 		expect(screen.getByLabelText("a")).toHaveValue("hello");
 	});
 
+	it("pins the action bar above scrolling field chrome", () => {
+		renderWithRouter(<FormRenderer form={makeForm()} submitLabel="Save" onSubmit={vi.fn()} />);
+
+		const save = screen.getByRole("button", { name: "Save" });
+		const footer = save.parentElement;
+
+		expect(footer?.className).toContain("sticky");
+		expect(footer?.className).toContain("z-10");
+	});
+
 	it("collects every field's value on submit", async () => {
 		const onSubmit = vi.fn();
 		const user = userEvent.setup();
