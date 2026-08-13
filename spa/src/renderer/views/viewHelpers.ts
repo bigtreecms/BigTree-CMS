@@ -1,7 +1,23 @@
-import { Archive, ArrowRight, Check, Download, Eye, Star, type LucideIcon } from "lucide-react";
+import {
+	Archive,
+	ArrowRight,
+	CalendarRange,
+	Check,
+	Download,
+	Eye,
+	Folder,
+	Image as ImageIcon,
+	ListChecks,
+	Mail,
+	Merge,
+	Repeat,
+	Star,
+	type LucideIcon,
+} from "lucide-react";
 
 import type { DataTableSort } from "@/components/ui/DataTable";
 import type { ModuleView, ModuleViewFieldConfig } from "@/api/endpoints/modules";
+import { knownIconFor } from "@/lib/legacyIcons";
 import { pluralize } from "@/lib/number";
 import { decodeHtmlEntitiesDom } from "@/lib/html";
 
@@ -187,17 +203,27 @@ export const parseSortSetting = (view: ModuleView): DataTableSort | undefined =>
 };
 
 // Map legacy admin CSS classes (e.g. `icon_view`, `icon_export`) onto Lucide
-// icons. Custom view actions store the class string in `class`; without this
-// the action renders as the first two letters of its name (e.g. "Re" for
-// "Report"). ArrowRight is the generic fallback when nothing matches.
+// icons. Custom view actions store the class string in `class`. Unlisted
+// `icon_*` tokens then try the module-icon vocabulary (`icon_calendar` →
+// Calendar). ArrowRight is the last resort when nothing matches.
 const customActionIcons: Record<string, LucideIcon> = {
 	icon_view: Eye,
+	icon_view_details: Eye,
 	icon_export: Download,
 	icon_preview: Eye,
 	icon_approve: Check,
 	icon_archive: Archive,
 	icon_feature: Star,
 	icon_download: Download,
+	// View-action-only classes (not in the module-icon slug list).
+	icon_settings: ListChecks,
+	icon_settings_generic: ListChecks,
+	icon_trail: CalendarRange,
+	icon_repeat: Repeat,
+	icon_folder: Folder,
+	icon_images: ImageIcon,
+	icon_email: Mail,
+	icon_merge: Merge,
 };
 
 export const iconForCustomAction = (className: string | undefined): LucideIcon => {
@@ -206,10 +232,22 @@ export const iconForCustomAction = (className: string | undefined): LucideIcon =
 	}
 
 	for (const token of className.split(/\s+/)) {
+		if (!token) {
+			continue;
+		}
+
 		const match = customActionIcons[token];
 
 		if (match) {
 			return match;
+		}
+
+		if (token.startsWith("icon_")) {
+			const fromLegacy = knownIconFor(token.slice("icon_".length));
+
+			if (fromLegacy) {
+				return fromLegacy;
+			}
 		}
 	}
 

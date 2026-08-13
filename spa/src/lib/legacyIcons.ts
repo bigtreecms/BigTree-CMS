@@ -175,3 +175,17 @@ export const iconFor = (slug: string | undefined): LucideIcon => {
 
 	return LEGACY_ICON_MAP[slug.toLowerCase()] ?? Box;
 };
+
+/**
+ * Same lookup as {@link iconFor}, but `undefined` when the slug is unknown
+ * instead of falling back to `<Box />`. Used by view-action icon resolution
+ * so an unmapped `icon_*` class can keep searching rather than rendering a
+ * generic box.
+ */
+export const knownIconFor = (slug: string | undefined): LucideIcon | undefined => {
+	if (!slug) {
+		return undefined;
+	}
+
+	return LEGACY_ICON_MAP[slug.toLowerCase()];
+};
