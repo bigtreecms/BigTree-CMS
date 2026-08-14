@@ -244,6 +244,16 @@
 			$parent = (int)($d["parent"] ?? 0);
 			$this->enforce($request->user, $parent, "e", "create child page");
 
+			// The template picker's own rule, which only the picker used to carry
+			// (audit #23 A2). Ahead of the publish/pending split so it holds for a
+			// draft too — a queued change is a page in waiting, and publishing it
+			// doesn't re-ask.
+			$template_denial = self::templateUsableBy((string)($d["template"] ?? ""), $request->user);
+
+			if ($template_denial !== null) {
+				throw new AuthorizationException($template_denial);
+			}
+
 			// Publishers (and global admins/devs) may write live by passing publish=true;
 			// everyone else — and publishers who leave it off — creates a NEW pending draft.
 			$access = PermissionService::userPageLevel($request->user, $parent);
@@ -493,14 +503,28 @@
 			if ($template !== "") {
 				if (!BigTreeJSONDB::exists("templates", $template)) {
 
-					return ["error" => "Template \"{$template}\" does not exist."];
+					return array_merge(
+						["error" => "Template \"{$template}\" does not exist."],
+						self::aiPriorTemplateChange($template)
+					);
+				}
+
+				// list_templates is a level-0 read and returns each template's level, so
+				// an editor can see a developer-only template and ask for it by name.
+				// The picker would never have offered it (audit #23 A2).
+				$template_denial = self::templateUsableBy($template, $user);
+
+				if ($template_denial !== null) {
+
+					return ["denied" => $template_denial];
 				}
 			} elseif ($external === "") {
 				// No template and no external link. A blank template is only valid for
 				// an external link, so default to the same template the admin's "Add
 				// page" screen would preselect: the first flexible (non-routed)
-				// template, falling back to the first template.
-				$template = $this->aiDefaultTemplate();
+				// template this user is allowed to use, falling back to the first they
+				// are allowed to use at all.
+				$template = $this->aiDefaultTemplate($user);
 			}
 
 			$link_error = $this->aiAssertLinkOrTemplate($template, $external);
@@ -854,27 +878,41 @@
 		/**
 		 * The template the "Add page" UI preselects: the first flexible (non-routed)
 		 * template, falling back to the first template overall. Templates are read in
-		 * the same position-DESC order the admin list uses. Returns "" only when no
-		 * templates exist at all.
+		 * the same position-DESC order the admin list uses. Returns "" only when the
+		 * user has no template to pick from at all.
 		 *
+		 * Filtered by level, because the picker it mirrors was: legacy's
+		 * `getPageCreationTemplates` offered `level <= $this->Level && !routed`
+		 * (admin.php:3646), and preselecting a template the actor isn't allowed to use
+		 * would hand create_page the one value templateUsableBy is about to refuse
+		 * (audit #23 A2).
+		 *
+		 * @param object|array|null $user
 		 * @return string
 		 */
-		private function aiDefaultTemplate(): string {
+		private function aiDefaultTemplate($user = null): string {
 			$templates = BigTreeJSONDB::getAll("templates", "position", "DESC");
+			$usable = [];
 
-			if (!$templates) {
+			foreach ($templates as $template) {
+				if ($user === null || self::templateUsableBy((string)$template["id"], $user) === null) {
+					$usable[] = $template;
+				}
+			}
+
+			if (!$usable) {
 
 				return "";
 			}
 
-			foreach ($templates as $template) {
+			foreach ($usable as $template) {
 				if (empty($template["routed"])) {
 
 					return (string)$template["id"];
 				}
 			}
 
-			return (string)$templates[0]["id"];
+			return (string)$usable[0]["id"];
 		}
 
 		/**
@@ -1635,6 +1673,16 @@
 				return ["mode" => "error", "message" => "The “{$template}” template no longer exists."];
 			}
 
+			// Re-asked at approval like every other staged value — a template's level
+			// can be raised inside the proposal's 24h life, and the approver is not
+			// necessarily the person who staged it (audit #23 A2).
+			$template_denial = self::templateUsableBy($template, $user);
+
+			if ($template_denial !== null) {
+
+				return ["mode" => "error", "message" => $template_denial];
+			}
+
 			if ($template !== "") {
 				// Re-sifted against the template as it stands now: a resource retyped,
 				// given a max_length or narrowed during the proposal's 24h life must not be
@@ -1837,6 +1885,21 @@
 					. "get_page_revisions to list the ones that do."];
 			}
 
+			// The fourth door onto the template level rule: a revision stores its
+			// `template` and the restore writes it back, so restoring one is a template
+			// change — legacy's updatePage clamp is exactly what used to stop a restore
+			// reinstating a template the actor may not use (audit #23 A2).
+			$template_denial = self::templateChangeDenial(
+				(string)($revision["template"] ?? ""),
+				(string)$page["template"],
+				$user
+			);
+
+			if ($template_denial !== null) {
+
+				return ["denied" => $template_denial];
+			}
+
 			$title = trim((string)$page["nav_title"]) ?: trim((string)$page["title"]) ?: "page #{$page_id}";
 			$description = trim((string)($revision["saved_description"] ?? ""));
 			$diff = [];
@@ -1928,6 +1991,20 @@
 			if (!$page || !$revision) {
 
 				return ["mode" => "error", "message" => "That page or revision no longer exists."];
+			}
+
+			// Re-asked at approval like every other staged value — the page can be
+			// re-templated, or a template's level raised, inside the proposal's 24h
+			// life (audit #23 A2).
+			$template_denial = self::templateChangeDenial(
+				(string)($revision["template"] ?? ""),
+				(string)$page["template"],
+				$user
+			);
+
+			if ($template_denial !== null) {
+
+				return ["mode" => "error", "message" => $template_denial];
 			}
 
 			// Snapshot the current published state first so the restore can be undone,
@@ -3144,6 +3221,126 @@
 			return null;
 		}
 
+		/** A template level (0/1/2) as the words the template editor and REST use for it. */
+		private const TEMPLATE_LEVEL_NAMES = [0 => "editors", 1 => "administrators", 2 => "developers"];
+
+		private static function templateLevelNoun(int $level): string {
+
+			return self::TEMPLATE_LEVEL_NAMES[$level] ?? "level {$level}";
+		}
+
+		/**
+		 * Whether an actor may put a page on a template, as the reason they may not.
+		 *
+		 * A template's `level` (0 any editor / 1 administrators / 2 developers) is a
+		 * permission rule, and legacy enforced it in three places: both Add-Page
+		 * template pickers filtered on `$template["level"] <= $this->Level`
+		 * (admin.php:3646 flexible, :5656 routed) and updatePage() forced a template
+		 * the user isn't allowed to use back to the page's stored value
+		 * (admin.php:8789).
+		 *
+		 * The rewrite dropped it on every path — this service, routes/pages.php and the
+		 * SPA's picker all treated every template as available to everybody — so a
+		 * level-0 editor could put a page on a developer-only template through the API,
+		 * the admin or the assistant. It lives here rather than in the AI seams because
+		 * it is a dropped CMS rule and not an AI defect: REST has the identical hole,
+		 * and fixing it AI-side alone would make the assistant stricter than the UI
+		 * (audit #23 A2/D3).
+		 *
+		 * Only the *level* half of the picker's clause is a permission rule. The other
+		 * half (`&& !routed`) split routed templates out of the flexible picker and
+		 * into the routed one — a UI arrangement, not a rule, and deliberately not
+		 * ported into a writer.
+		 *
+		 * A template that doesn't exist is not this rule's business: existence is the
+		 * caller's own check, with its own wording and its own sequencing hint.
+		 *
+		 * @param object|array $user
+		 * @return string|null The reason, or null when the actor may use the template.
+		 */
+		public static function templateUsableBy(string $template_id, $user): ?string {
+			$template = $template_id !== "" ? BigTreeJSONDB::get("templates", $template_id) : null;
+
+			if (!is_array($template)) {
+
+				return null;
+			}
+
+			$required = (int)($template["level"] ?? 0);
+			$level = PermissionService::level($user);
+
+			if ($required <= $level) {
+
+				return null;
+			}
+
+			$name = trim((string)($template["name"] ?? "")) ?: $template_id;
+
+			// Both levels are named because the error is the model's (and the API
+			// caller's) only route to a correct retry — "denied" alone can't say which
+			// of the templates it was just shown are reachable.
+			return "The “{$name}” template is restricted to " . self::templateLevelNoun($required)
+				. " (level {$required}) and this account is level {$level} (" . self::templateLevelNoun($level)
+				. "), so a page can't be put on it. Choose a template at level {$level} or lower — every template's "
+				. "level is on its own record — or ask " . ($required === 2 ? "a developer" : "an administrator")
+				. " to make this change.";
+		}
+
+		/**
+		 * The same rule applied to *changing* a page's template, which has the extra
+		 * leg legacy's updatePage carried: a page already on a template above the
+		 * actor's level keeps it. They may edit the page — every other field is theirs
+		 * — they just can't move it off (or onto) a template they aren't allowed to
+		 * use. Legacy did this by silently forcing `$data["template"]` back to the
+		 * stored value; the writers here say so instead, because every surface that
+		 * reaches this rule has already shown the user the template it was going to
+		 * write.
+		 *
+		 * An unchanged (or unsupplied) template is always allowed, which is what makes
+		 * an unrelated edit to such a page succeed.
+		 *
+		 * @param object|array $user
+		 * @return string|null The reason, or null when the change is allowed.
+		 */
+		public static function templateChangeDenial(string $incoming, string $stored, $user): ?string {
+			// "" is how every caller spells "this write doesn't change the template" —
+			// the AI payloads default a missing key to it and the REST bodies omit it.
+			// An *explicit* clear (update_page converting a page into an external link)
+			// is a change, and its caller reaches templateOutOfReachDenial directly,
+			// because only that caller can tell the two apart.
+			if ($incoming === "" || $incoming === $stored) {
+
+				return null;
+			}
+
+			return self::templateOutOfReachDenial($stored, $user) ?? self::templateUsableBy($incoming, $user);
+		}
+
+		/**
+		 * The stored half of the rule on its own: whether the page's *current* template
+		 * is above the actor, which is what legacy's clamp actually tested — the picker
+		 * had already filtered the incoming value, so `updatePage` only had to stop
+		 * someone moving a page off a template they were never offered.
+		 *
+		 * @param object|array $user
+		 * @return string|null The reason, or null when the page's template is in reach.
+		 */
+		public static function templateOutOfReachDenial(string $stored, $user): ?string {
+			if (self::templateUsableBy($stored, $user) === null) {
+
+				return null;
+			}
+
+			$existing = BigTreeJSONDB::get("templates", $stored);
+			$name = trim((string)(is_array($existing) ? ($existing["name"] ?? "") : "")) ?: $stored;
+			$level = PermissionService::level($user);
+
+			return "This page is on the “{$name}” template, which is above this account's level (level "
+				. "{$level}, " . self::templateLevelNoun($level) . "), so its template can't be changed from "
+				. "here — everything else about the page can still be edited. Ask a developer to change the "
+				. "template.";
+		}
+
 		/**
 		 * Validate a proposed page edit without writing anything: existence, edit
 		 * access, and (where supplied) template existence. Builds a payload of only the
@@ -3225,7 +3422,27 @@
 
 					if ($template !== "" && !BigTreeJSONDB::exists("templates", $template)) {
 
-						return ["error" => "Template \"{$template}\" does not exist."];
+						return array_merge(
+							["error" => "Template \"{$template}\" does not exist."],
+							self::aiPriorTemplateChange($template)
+						);
+					}
+
+					// Both legs of the level rule: the template being moved onto, and
+					// the one being moved off (audit #23 A2). Named rather than clamped
+					// — the card would otherwise show a template change that silently
+					// didn't happen.
+					//
+					// This is the one seam where `template: ""` is an explicit clear
+					// rather than "unchanged" — the model is converting the page into an
+					// external link — so the stored half is asked directly for it.
+					$template_denial = $template === ""
+						? self::templateOutOfReachDenial((string)$page["template"], $user)
+						: self::templateChangeDenial($template, (string)$page["template"], $user);
+
+					if ($template_denial !== null) {
+
+						return ["denied" => $template_denial];
 					}
 
 					// Switching templates keeps the old template's stored resources and
@@ -3555,7 +3772,19 @@
 
 			if ($template !== $current_template && !BigTreeJSONDB::exists("templates", $template)) {
 
-				return ["error" => "Template \"{$template}\" does not exist."];
+				return array_merge(
+					["error" => "Template \"{$template}\" does not exist."],
+					self::aiPriorTemplateChange($template)
+				);
+			}
+
+			// The third door onto the level rule: update_page_content switches template
+			// as readily as update_page does (audit #23 A2).
+			$template_denial = self::templateChangeDenial($template, $current_template, $user);
+
+			if ($template_denial !== null) {
+
+				return ["denied" => $template_denial];
 			}
 
 			// The other half of the "templated or external link, never both" rule.
@@ -3827,6 +4056,15 @@
 			$template = !empty($payload["template"]) ? (string)$payload["template"] : (string)$page["template"];
 			$changed = is_array($payload["content"] ?? null) ? $payload["content"] : [];
 
+			// Re-asked at approval like every other staged value: a template's level can
+			// be raised inside the proposal's 24h life (audit #23 A2).
+			$template_denial = self::templateChangeDenial($template, (string)$page["template"], $user);
+
+			if ($template_denial !== null) {
+
+				return ["mode" => "error", "message" => $template_denial];
+			}
+
 			// The template may have been redefined, or the page re-templated, since
 			// staging; re-check it still exists before merging against its schema.
 			if ($template !== (string)$page["template"]) {
@@ -4017,6 +4255,37 @@
 		}
 
 		/**
+		 * The same hint for a template a page is being written against.
+		 *
+		 * "Build an Article template, then create the first article" reaches the three
+		 * template refusals below on its second card, with the template sitting
+		 * unapproved in the same conversation — and got a flat "does not exist", which
+		 * is the wall audit #9 A1 exists to remove. The parent hint one method up has
+		 * done the right thing at the neighbouring field since that audit; templates
+		 * emitted no descriptor at all (audit #23 A1a).
+		 *
+		 * Matched on `id` and `name`: create_template stages both, and the model names
+		 * a template however the user did — "article" or "Article".
+		 *
+		 * Empty when the template exists, so the caller can merge it unconditionally.
+		 *
+		 * @return array<string,mixed> A `prior_change` descriptor to merge into the result, or [].
+		 */
+		private static function aiPriorTemplateChange(string $template): array {
+			if ($template === "" || BigTreeJSONDB::exists("templates", $template)) {
+
+				return [];
+			}
+
+			return ["prior_change" => [
+				"tool" => "create_template",
+				"value" => $template,
+				"keys" => ["id", "name"],
+				"label" => "The “{$template}” template",
+			]];
+		}
+
+		/**
 		 * Approval-time re-check of the staged values whose rule is about the page's
 		 * *resulting state* rather than the value alone.
 		 *
@@ -4105,6 +4374,20 @@
 					return ["mode" => "error", "message" => $invalid];
 				}
 
+				// Re-asked here as well as at staging: a draft is still a page waiting
+				// to be published, and the level rule follows the template wherever it
+				// is written (audit #23 A2).
+				$template_denial = self::templateChangeDenial(
+					(string)($changes["template"] ?? ""),
+					(string)($target["page"]["template"] ?? ""),
+					$user
+				);
+
+				if ($template_denial !== null) {
+
+					return ["mode" => "error", "message" => $template_denial];
+				}
+
 				return $this->aiAmendPageDraft((int)$target["change_id"], $changes, $user);
 			}
 
@@ -4146,6 +4429,16 @@
 			// during the proposal's 24h life — or a page whose content changed since —
 			// could now be switched into a broken state, so re-ask before writing.
 			$template = (string)($changes["template"] ?? "");
+
+			// Re-asked at approval like every other staged value: a template's level
+			// can be raised inside the proposal's 24h life, and the approver may not be
+			// the person who staged it (audit #23 A2).
+			$template_denial = self::templateChangeDenial($template, (string)$page["template"], $user);
+
+			if ($template_denial !== null) {
+
+				return ["mode" => "error", "message" => $template_denial];
+			}
 
 			if ($template !== "" && $template !== (string)$page["template"]) {
 				if (!BigTreeJSONDB::exists("templates", $template)) {
@@ -4911,6 +5204,22 @@
 
 			$d = $request->body;
 
+			// Legacy's updatePage clamp, stated rather than silently applied
+			// (admin.php:8789, audit #23 A2). An edit that doesn't touch the template
+			// is unaffected, including on a page whose template is above the actor —
+			// but a body that supplies an empty one is clearing it, which is a change.
+			$template_denial = array_key_exists("template", $d) && (string)$d["template"] === ""
+				? self::templateOutOfReachDenial((string)$page["template"], $request->user)
+				: self::templateChangeDenial(
+					(string)($d["template"] ?? ""),
+					(string)$page["template"],
+					$request->user
+				);
+
+			if ($template_denial !== null) {
+				throw new AuthorizationException($template_denial);
+			}
+
 			// Publishers (and global admins/devs) may write live by passing publish=true;
 			// everyone else — and publishers who leave it off — queues an EDIT draft.
 			$access = PermissionService::userPageLevel($request->user, $id);
@@ -5082,6 +5391,22 @@
 			$fallback_template = $type === "EDIT"
 				? (string)SQL::fetchSingle("SELECT template FROM bigtree_pages WHERE id = ?", $item_or_parent)
 				: "";
+
+			// The one choke point every draft goes through, whichever surface wrote it
+			// (audit #23 A2/D3). The callers above check first and say it in their own
+			// words; this is the backstop, because a queued change is published later
+			// by somebody else and publishPendingChange never re-asks whose template
+			// this was.
+			$template_denial = $type === "NEW"
+				? self::templateUsableBy((string)($d["template"] ?? ""), $user)
+				: (array_key_exists("template", $d) && (string)$d["template"] === ""
+					? self::templateOutOfReachDenial($fallback_template, $user)
+					: self::templateChangeDenial((string)($d["template"] ?? ""), $fallback_template, $user));
+
+			if ($template_denial !== null) {
+				throw new AuthorizationException($template_denial);
+			}
+
 			[$changes, $tags_changes, $open_graph_changes] = $this->pendingChangeFields($user, $d, $fallback_template);
 
 			$row = [
@@ -5720,6 +6045,18 @@
 				[$rev_id, $id],
 				"Revision $rev_id not found for page $id"
 			);
+
+			// A revision stores its template, so restoring one changes the page's
+			// template — the same rule the write paths carry (audit #23 A2).
+			$template_denial = self::templateChangeDenial(
+				(string)($revision["template"] ?? ""),
+				(string)$page["template"],
+				$request->user
+			);
+
+			if ($template_denial !== null) {
+				throw new AuthorizationException($template_denial);
+			}
 
 			// Snapshot the current published state so the restore can be undone.
 			$this->insertRevisionSnapshot($id, $page, (int)$request->user->id);

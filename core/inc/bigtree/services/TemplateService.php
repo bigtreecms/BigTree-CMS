@@ -282,6 +282,7 @@
 			}
 			$fields = $this->aiCleanResourceFields($args["fields"] ?? []);
 			$type_error = Resources::aiFieldIdError($args["fields"] ?? [], "template")
+				?? Resources::aiDuplicateFieldIdError($args["fields"] ?? [], "template")
 				?? $this->aiInvalidFieldTypeError($fields)
 				?? Resources::aiUnconfigurableFieldError($args["fields"] ?? [], [], "template")
 				?? Resources::aiFieldDefaultError($args["fields"] ?? [], [], "template");
@@ -365,6 +366,7 @@
 			// every other staged value.
 			$resources = is_array($payload["resources"] ?? null) ? $payload["resources"] : [];
 			$type_error = Resources::aiFieldIdError($resources, "template")
+				?? Resources::aiDuplicateFieldIdError($resources, "template")
 				?? $this->aiInvalidFieldTypeError($resources)
 				?? Resources::aiUnconfigurableFieldError($resources, [], "template")
 				?? Resources::aiFieldDefaultError($resources, [], "template");
@@ -497,6 +499,7 @@
 				$before = is_array($existing["resources"] ?? null) ? $existing["resources"] : [];
 				$fields = $this->aiCleanResourceFields($args["fields"], $before);
 				$type_error = Resources::aiFieldIdError($args["fields"], "template")
+					?? Resources::aiDuplicateFieldIdError($args["fields"], "template")
 					?? $this->aiInvalidFieldTypeError($fields)
 					?? Resources::aiUnconfigurableFieldError($args["fields"], $before, "template")
 					?? Resources::aiFieldDefaultError($args["fields"], $before, "template")
@@ -641,7 +644,21 @@
 			}
 
 			if ($retyped) {
-				$rows["fields_retyped"] = implode(", ", $retyped);
+				// The one row in this diff that named a change and stopped there. A
+				// retype has two consequences and stated neither: Resources::mergeAiFields
+				// drops the field's stored settings (deliberately — they configure the
+				// *old* type) and every page already on the template keeps a value
+				// stored in the old type's shape. Both are recoverable, both were
+				// invisible on the card, and the other three rows have carried their
+				// consequence since audits #3, #9 and #10 (audit #23 B1).
+				$rows["fields_retyped"] = implode(", ", $retyped)
+					. " — " . (count($retyped) === 1 ? "the field's" : "each field's")
+					. " settings are discarded, since they configure the old type"
+					. ($page_count > 0
+						? ", and the " . $page_count . " page" . ($page_count === 1 ? "" : "s")
+							. " already on this template keep" . ($page_count === 1 ? "s" : "")
+							. " content stored in the old type's shape"
+						: "");
 			}
 
 			if ($newly_required) {
@@ -756,6 +773,7 @@
 				// Only the staging pass used to check the types, so an extension
 				// uninstalled inside the TTL wrote its now-unknown type verbatim.
 				$type_error = Resources::aiFieldIdError($changes["fields"], "template")
+					?? Resources::aiDuplicateFieldIdError($changes["fields"], "template")
 					?? $this->aiInvalidFieldTypeError($merged)
 					?? Resources::aiUnconfigurableFieldError($changes["fields"], $before, "template")
 					?? Resources::aiFieldDefaultError($changes["fields"], $before, "template")
@@ -777,6 +795,7 @@
 				$resources = is_array($changes["resources"]) ? $changes["resources"] : [];
 				$merged = $this->aiCleanResourceFields($resources, $before);
 				$type_error = Resources::aiFieldIdError($resources, "template")
+					?? Resources::aiDuplicateFieldIdError($resources, "template")
 					?? $this->aiInvalidFieldTypeError($merged)
 					?? Resources::aiUnconfigurableFieldError($resources, $before, "template")
 					?? Resources::aiFieldDefaultError($resources, $before, "template");

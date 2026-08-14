@@ -3794,13 +3794,22 @@
 					// "Create a News module and add the first entry" reaches here with
 					// the module still on an unapproved card. The wall the model reports
 					// should be the sequencing, not a module that "does not exist"
-					// (audit #9 A1). The scaffolding decline still applies once the
-					// module is real — an AI-created module has no table.
+					// (audit #9 A1).
+					//
+					// Both tools, scaffold first: create_module was the only one named
+					// until audit #23 A1b, and it stages a *bare record* — no table, no
+					// form, no view — so approving the card this hint pointed at left
+					// the entry write just as impossible, while a pending
+					// scaffold_module (the tool that produces a usable module, audit
+					// #11 C1) wasn't matched at all and the model was told the module
+					// did not exist. Both stage `name` and `route`, so either matches
+					// on the same keys; the store returns the most recently staged card
+					// first, which is the one the user is looking at.
 					"prior_change" => [
-						"tool" => "create_module",
+						"tools" => ["scaffold_module", "create_module"],
 						"value" => $module_id,
 						"keys" => ["name", "route"],
-						"label" => "A module called “{$module_id}”",
+						"label" => "A module called “{$module_id}” with an entry form",
 					],
 				];
 			}
@@ -3850,8 +3859,17 @@
 			$table = (string)($form["table"] ?? $module["table"] ?? "");
 
 			if ($table === "") {
-
-				return ["error" => "This module has no editable entry form."];
+				// Verbatim the state a just-approved create_module leaves behind: a
+				// record with no table, no form and no view. The error named no way out
+				// of it, and the one in-catalog move — scaffold_module — cannot be
+				// guessed from "no editable entry form" (audit #23 A1c). Named rather
+				// than hinted with prior_change: nothing is pending here, the module is
+				// real, and what it is missing has to be built.
+				return ["error" => "Module \"{$module_id}\" has no database table or entry form behind it — it is a "
+					. "bare module record, which is what create_module makes. Nothing can be written into it until "
+					. "one is built: a developer can propose a complete module — table, add/edit form and landing "
+					. "view — with scaffold_module (that builds a new module rather than filling this one in), or "
+					. "finish this one by hand in Developer → Modules → Module Designer."];
 			}
 
 			return [

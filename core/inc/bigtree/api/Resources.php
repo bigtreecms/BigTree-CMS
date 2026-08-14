@@ -251,6 +251,79 @@
 		}
 
 		/**
+		 * Reject a proposed field list that names the same field twice.
+		 *
+		 * `fields` is replace-semantics — the model resends the whole list on every
+		 * edit — so a repeated id is a realistic model error, and nothing refused it:
+		 * mergeAiFields appends a row per supplied field with no uniqueness check, and
+		 * the shared REST cleaner doesn't de-dupe either. The result is a template or
+		 * callout carrying two fields writing and reading the same content key.
+		 *
+		 * Refused rather than warned about, because the card structurally cannot show
+		 * it: both field diffs index the before and after lists *by id*, so the second
+		 * copy collapses into the first and the diff reports no change at all
+		 * (audit #23 B2/D4). AI-scoped — `clean()` is left alone, so REST behaviour is
+		 * unchanged.
+		 *
+		 * Matched exactly, the way mergeAiFields and the diffs key their own lookups: a
+		 * field id is a storage key, and two ids differing only in case are two keys.
+		 *
+		 * On the module surface the "id" is the field's *title* (aiScaffoldGateFields),
+		 * and the collision is a different one: `scaffoldPlan` de-duplicates the
+		 * generated column (`name`, `name2`) but keeps both titles verbatim, so the
+		 * form ends up with two fields carrying one label — indistinguishable in the
+		 * editor and indistinguishable on the proposal card, which lists them by title.
+		 *
+		 * @param mixed $fields Raw AI-proposed field list.
+		 * @param string $surface "template", "callout" or "module".
+		 */
+		public static function aiDuplicateFieldIdError($fields, string $surface = "template"): ?string {
+			$seen = [];
+			$repeated = [];
+
+			foreach ((array)$fields as $field) {
+				if (!is_array($field)) {
+
+					continue;
+				}
+
+				$id = self::aiFieldId($field);
+
+				if ($id === "") {
+
+					continue;
+				}
+
+				if (isset($seen[$id])) {
+					$repeated[$id] = "\"{$id}\"";
+
+					continue;
+				}
+
+				$seen[$id] = true;
+			}
+
+			if (!$repeated) {
+
+				return null;
+			}
+
+			$names = implode(" and ", array_values($repeated));
+
+			if ($surface === "module") {
+
+				return "The field title {$names} is used more than once. Two form fields with the same label are "
+					. "indistinguishable in the editor — and on this proposal, which lists the planned columns by "
+					. "title — while writing to different columns. Give each field its own title.";
+			}
+
+			return "The field id {$names} appears more than once. A field id is the key content is stored under, so "
+				. "two fields sharing one would write and read the same value, and the duplicate wouldn't even show "
+				. "on the proposal — fields are matched by id, so the second copy collapses into the first. Send "
+				. "each field once, with its own id.";
+		}
+
+		/**
 		 * Settings a field type's draw.php hard-requires to render anything at all,
 		 * beyond what its own `settings_schema` marks `required`.
 		 *

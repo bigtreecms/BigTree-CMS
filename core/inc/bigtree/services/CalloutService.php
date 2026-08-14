@@ -311,6 +311,7 @@
 
 			$fields = $this->aiCalloutFields($args["fields"] ?? []);
 			$type_error = Resources::aiFieldIdError($args["fields"] ?? [], "callout")
+				?? Resources::aiDuplicateFieldIdError($args["fields"] ?? [], "callout")
 				?? $this->aiInvalidFieldTypeError($fields)
 				?? Resources::aiUnconfigurableFieldError($args["fields"] ?? [], [], "callout")
 				?? Resources::aiFieldDefaultError($args["fields"] ?? [], [], "callout");
@@ -419,6 +420,7 @@
 
 			$resources = is_array($payload["resources"] ?? null) ? $payload["resources"] : [];
 			$type_error = Resources::aiFieldIdError($resources, "callout")
+				?? Resources::aiDuplicateFieldIdError($resources, "callout")
 				?? $this->aiInvalidFieldTypeError($resources)
 				?? Resources::aiUnconfigurableFieldError($resources, [], "callout")
 				?? Resources::aiFieldDefaultError($resources, [], "callout");
@@ -704,6 +706,7 @@
 				$before = is_array($existing["resources"] ?? null) ? $existing["resources"] : [];
 				$fields = $this->aiCalloutFields($args["fields"], $before);
 				$type_error = Resources::aiFieldIdError($args["fields"], "callout")
+					?? Resources::aiDuplicateFieldIdError($args["fields"], "callout")
 					?? $this->aiInvalidFieldTypeError($fields)
 					?? Resources::aiUnconfigurableFieldError($args["fields"], $before, "callout")
 					?? Resources::aiFieldDefaultError($args["fields"], $before, "callout")
@@ -899,7 +902,16 @@
 			}
 
 			if ($retyped) {
-				$rows["fields_retyped"] = implode(", ", $retyped);
+				// The template diff had the same silence: a retype drops the field's
+				// stored settings (they configure the *old* type) and leaves every
+				// value already saved under it in the old type's shape. Naming the
+				// consequence is the pattern the other three rows follow
+				// (audit #23 B1).
+				$rows["fields_retyped"] = implode(", ", $retyped)
+					. " — " . (count($retyped) === 1 ? "the field's" : "each field's")
+					. " settings are discarded, since they configure the old type, and content already saved under "
+					. (count($retyped) === 1 ? "it" : "them") . " stays in the old type's shape wherever this callout "
+					. "is placed" . ($usage !== "" ? " ({$usage})" : "");
 			}
 
 			if ($newly_required) {
@@ -1053,6 +1065,7 @@
 				// Only the staging pass used to check the types, so an extension
 				// uninstalled inside the TTL wrote its now-unknown type verbatim.
 				$type_error = Resources::aiFieldIdError($changes["fields"], "callout")
+					?? Resources::aiDuplicateFieldIdError($changes["fields"], "callout")
 					?? $this->aiInvalidFieldTypeError($merged)
 					?? Resources::aiUnconfigurableFieldError($changes["fields"], $before, "callout")
 					?? Resources::aiFieldDefaultError($changes["fields"], $before, "callout")
@@ -1074,6 +1087,7 @@
 				$resources = is_array($changes["resources"]) ? $changes["resources"] : [];
 				$merged = $this->aiCalloutFields($resources, $before);
 				$type_error = Resources::aiFieldIdError($resources, "callout")
+					?? Resources::aiDuplicateFieldIdError($resources, "callout")
 					?? $this->aiInvalidFieldTypeError($merged)
 					?? Resources::aiUnconfigurableFieldError($resources, $before, "callout")
 					?? Resources::aiFieldDefaultError($resources, $before, "callout");

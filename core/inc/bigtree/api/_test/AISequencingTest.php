@@ -398,6 +398,7 @@
 			"module group" => [\BigTree\Services\ModuleService::class, "aiResolveModuleGroup"],
 			"module" => [\BigTree\Services\AutoModuleService::class, "aiResolveModuleForm"],
 			"page parent" => [\BigTree\Services\PageService::class, "aiPriorPageChange"],
+			"page template" => [\BigTree\Services\PageService::class, "aiPriorTemplateChange"],
 			"redirect destination" => [\BigTree\Services\FourOhFourService::class, "aiCheckRedirectDestination"],
 		];
 	}
@@ -419,6 +420,391 @@
 			implode(", ", $missing),
 			"",
 			"every seam that resolves a container by name can say it is staged rather than absent"
+		);
+	}
+
+	/**
+	 * Every `ai*` seam in services/ whose *code* (comments stripped) refuses with
+	 * "does not exist" or "doesn't exist", as "Class::method" => whether it emits a
+	 * sequencing descriptor.
+	 *
+	 * Discovered rather than listed, which is the whole point of audit #23 E1: the
+	 * hand-written map above is what let A1 through — templates emitted no descriptor
+	 * from any of three seams, and none of the three was in the map, so nothing
+	 * looked. A seam added tomorrow lands in this list by itself and fails the test
+	 * below until somebody classifies it.
+	 *
+	 * A seam "emits a descriptor" if it spells `"prior_change"` itself or calls one of
+	 * the `aiPrior*Change` helpers that returns one — PageService composes its two
+	 * that way, so a literal-only match would read them as silent.
+	 *
+	 * @return array<string,bool>
+	 */
+	function ai_sequencing_refusing_seams(): array {
+		static $seams = null;
+
+		if ($seams !== null) {
+
+			return $seams;
+		}
+
+		$seams = [];
+
+		foreach (glob(SERVER_ROOT . "core/inc/bigtree/services/*.php") as $file) {
+			$class = basename($file, ".php");
+			$method = null;
+			$depth = 0;
+			$body = "";
+
+			foreach (file($file) as $line) {
+				if ($method === null) {
+					if (!preg_match('/function\s+(ai[A-Za-z0-9_]*)\s*\(/', $line, $match)) {
+
+						continue;
+					}
+
+					$method = $match[1];
+					$body = $line;
+					$depth = substr_count($line, "{") - substr_count($line, "}");
+
+					// An interface/abstract declaration with no body of its own.
+					if ($depth <= 0) {
+						$method = null;
+					}
+
+					continue;
+				}
+
+				$body .= $line;
+				$depth += substr_count($line, "{") - substr_count($line, "}");
+
+				if ($depth > 0) {
+
+					continue;
+				}
+
+				$code = ai_sequencing_strip_comments($body);
+
+				// The literals are load-bearing: a refusal worded any other way is a
+				// refusal this guard can't see, which is a limitation worth knowing
+				// rather than one worth working around — every one of them in the
+				// codebase today is spelled one of these two ways.
+				if (preg_match('/does not exist|doesn.t exist/i', $code)) {
+					$seams["{$class}::{$method}"] = strpos($code, '"prior_change"') !== false
+						|| preg_match('/aiPrior[A-Za-z]*Change\(/', $code) === 1;
+				}
+
+				$method = null;
+				$body = "";
+			}
+		}
+
+		ksort($seams);
+
+		return $seams;
+	}
+
+	/** A method body with its comments removed, so a docblock can't answer for code. */
+	function ai_sequencing_strip_comments(string $body): string {
+		$code = "";
+
+		foreach (token_get_all("<?php " . $body) as $token) {
+			if (is_array($token) && in_array($token[0], [T_COMMENT, T_DOC_COMMENT], true)) {
+
+				continue;
+			}
+
+			$code .= is_array($token) ? $token[1] : $token;
+		}
+
+		return $code;
+	}
+
+	/**
+	 * Why each seam that refuses with "does not exist" doesn't offer a sequencing
+	 * hint. Every entry is a claim about the object being refused, and the claim is
+	 * always one of three:
+	 *
+	 *  - it is referenced by a key an unwritten record doesn't have yet (a numeric id
+	 *    an INSERT hands out), so there is nothing for a descriptor to match on;
+	 *  - nothing in the tool catalogue creates it at all;
+	 *  - the seam is a read, or an approval seam, where "approve the other card first"
+	 *    is not a step toward what the user asked (approval order is the
+	 *    `assertPrerequisiteResolved` guard's job, not a descriptor's).
+	 *
+	 * A seam that isn't in here and doesn't emit a descriptor fails the test below.
+	 *
+	 * @return array<string,string>
+	 */
+	function ai_sequencing_seam_exemptions(): array {
+
+		return [
+			// Referenced by a key that only exists once the record is written.
+			"AutoModuleService::aiResolveEntryRow" => "exempt: an entry is addressed by its primary key (or a "
+				. "\"p\"-prefixed draft id), and an entry staged by create_module_entry has neither until it is "
+				. "written — the module around it is the reference that can be staged, and aiResolveModuleForm "
+				. "hints at that one",
+			"PageService::aiResolvePageTarget" => "exempt: resolves an existing page or draft by id, which an "
+				. "unwritten page doesn't have — create_page's own sequencing hint hangs off the *parent*, which "
+				. "is the reference a two-step intent actually names",
+			"TagService::aiResolveTagTarget" => "exempt: tags are applied to a page or entry by numeric id, so a "
+				. "record that is only staged cannot be named here",
+			"UserService::aiValidateUserUpdate" => "exempt: a user is addressed by numeric id, which create_user "
+				. "cannot supply before approval",
+			"PendingChangeService::aiValidatePublishChange" => "exempt: a pending change is a side effect of an "
+				. "approved write, not something any tool creates by name, and it is addressed by the id that "
+				. "write returned",
+			"PendingChangeService::aiValidateRejectChange" => "exempt: same as aiValidatePublishChange",
+
+			// Nothing in the catalogue creates the missing thing.
+			"ModuleService::aiValidateModuleCreate" => "exempt: the refusal is about a module *class*, which is "
+				. "written by the Module Designer — no tool in the catalogue creates one",
+			"SettingService::aiValidateSettingUpdate" => "exempt: settings are declared by a developer in the "
+				. "settings editor; the catalogue can update one and has no tool that creates one",
+
+			// An edit to something still on an unapproved create card is one card.
+			"CalloutService::aiValidateCalloutUpdate" => "exempt: create_callout takes the whole record, so an "
+				. "edit to a callout still sitting on an unapproved create card belongs *in* that card — the "
+				. "refusal naming the id is what sends the model back to amend it rather than sequence behind it",
+			"ModuleService::aiValidateModuleUpdate" => "exempt: same as aiValidateCalloutUpdate — create_module "
+				. "and scaffold_module both take the record's fields",
+			"TemplateService::aiValidateTemplateUpdate" => "exempt: same as aiValidateCalloutUpdate — "
+				. "create_template takes the whole field list",
+
+			// The object must already exist for the intent to mean anything.
+			"PageService::aiValidatePageArchive" => "exempt: archiving a page that hasn't been written yet is not "
+				. "an intent — the create card can simply be left unapproved",
+			"PageService::aiValidatePageUnarchive" => "exempt: same as aiValidatePageArchive; a page created "
+				. "through the assistant is never born archived",
+			"PageService::aiValidateRevisionRestore" => "exempt: a revision only exists for a page that has been "
+				. "written, so nothing staged can produce one to restore",
+			"PageService::aiValidateSaveRevision" => "exempt: a snapshot of an unwritten page has nothing to "
+				. "snapshot",
+
+			// Reads. "Get that card approved so you can look at it" is not an answer.
+			"CalloutService::aiGetCallout" => "exempt: a read — a staged callout has nothing to return",
+			"ModuleService::aiGetModule" => "exempt: a read",
+			"TemplateService::aiGetTemplate" => "exempt: a read",
+			"PendingChangeService::aiGetPendingChange" => "exempt: a read",
+			"PageService::aiPageRevisions" => "exempt: a read",
+			"PageService::aiPageSeoRating" => "exempt: a read",
+			"PageService::aiPageTree" => "exempt: a read",
+
+			// Approval seams. Ordering approvals is assertPrerequisiteResolved's job.
+			"ModuleService::aiUpdateModule" => "exempt: an approval seam, and the refusal is about a module class "
+				. "claimed since staging",
+			"ModuleService::aiCreateModule" => "exempt: same as aiUpdateModule",
+
+			// Composed by its callers.
+			"PageService::aiParentUsableError" => "exempt: returns the refusal *string*; its two callers merge "
+				. "aiPriorPageChange's descriptor beside it, and both are in the hinting map above",
+		];
+	}
+
+	/**
+	 * The enumeration leg (audit #23 E1). Every discovered seam either emits a
+	 * descriptor or carries a written reason it doesn't — a new one does neither, so
+	 * it fails here rather than three audits later.
+	 */
+	function test_every_does_not_exist_refusal_is_classified() {
+		$seams = ai_sequencing_refusing_seams();
+		$exemptions = ai_sequencing_seam_exemptions();
+
+		T::ok(count($seams) > 20, "the scan found the refusing seams (" . count($seams) . ")");
+
+		$unclassified = [];
+
+		foreach ($seams as $seam => $hints) {
+			if ($hints || isset($exemptions[$seam])) {
+
+				continue;
+			}
+
+			$unclassified[] = $seam;
+		}
+
+		T::equals(
+			implode(", ", $unclassified),
+			"",
+			"every \"does not exist\" refusal either hints at a pending proposal or says why it can't"
+		);
+
+		// And the reverse: an exemption for a seam that no longer refuses (or that has
+		// since grown a descriptor) is a stale claim, and stale claims are what a
+		// hand-written list decays into.
+		$stale = [];
+
+		foreach ($exemptions as $seam => $reason) {
+			if (!isset($seams[$seam]) || $seams[$seam]) {
+				$stale[] = $seam;
+			}
+
+			if (strpos($reason, "exempt: ") !== 0) {
+				$stale[] = "{$seam} (unworded)";
+			}
+		}
+
+		T::equals(implode(", ", $stale), "", "no exemption outlives the refusal it explains");
+	}
+
+	/**
+	 * Descriptor sufficiency (audit #23 E2).
+	 *
+	 * A `prior_change` descriptor names the tool(s) that would create the missing
+	 * thing and the payload/preview keys the match runs against. Both halves can be
+	 * wrong in a way nothing else notices: `aiResolveModuleForm` named `create_module`
+	 * — the bare-record tool — so approving the card the hint pointed at still left
+	 * create_module_entry unable to write, and a pending `scaffold_module` (the tool
+	 * that produces a usable module) wasn't matched at all.
+	 *
+	 * So: every named tool must be a registered mutating tool, and must declare every
+	 * key the descriptor matches on. Where a descriptor names several tools they must
+	 * *each* declare the keys — the store returns whichever is pending, and a match
+	 * that only works for one of them is a coin flip.
+	 *
+	 * @return list<array{file:string,line:int,tools:list<string>,keys:list<string>}>
+	 */
+	function ai_sequencing_descriptors(): array {
+		$found = [];
+
+		foreach (glob(SERVER_ROOT . "core/inc/bigtree/services/*.php") as $file) {
+			$source = (string)file_get_contents($file);
+			$offset = 0;
+
+			while (($start = strpos($source, '"prior_change" => [', $offset)) !== false) {
+				$offset = $start + 1;
+				$cursor = strpos($source, "[", $start);
+				$depth = 0;
+				$end = null;
+
+				for ($i = $cursor; $i < strlen($source); $i++) {
+					if ($source[$i] === "[") {
+						$depth++;
+					} elseif ($source[$i] === "]") {
+						$depth--;
+
+						if ($depth === 0) {
+							$end = $i;
+
+							break;
+						}
+					}
+				}
+
+				if ($end === null) {
+
+					continue;
+				}
+
+				$block = substr($source, $cursor, $end - $cursor + 1);
+				$tools = [];
+				$keys = [];
+
+				if (preg_match('/"tools?"\s*=>\s*(\[[^\]]*\]|"[^"]*")/', $block, $match)) {
+					preg_match_all('/"([a-z_]+)"/', $match[1], $names);
+					$tools = $names[1];
+				}
+
+				if (preg_match('/"keys"\s*=>\s*\[([^\]]*)\]/', $block, $match)) {
+					preg_match_all('/"([a-z_]+)"/', $match[1], $names);
+					$keys = $names[1];
+				}
+
+				$found[] = [
+					"file" => basename($file),
+					"line" => substr_count(substr($source, 0, $start), "\n") + 1,
+					"tools" => $tools,
+					"keys" => $keys,
+				];
+			}
+		}
+
+		return $found;
+	}
+
+	/**
+	 * Descriptor keys that are matched against a proposal's *preview* rather than its
+	 * payload, so the tool has no argument of that name to declare.
+	 * `proposalDescribes` reads the payload first and the preview second precisely so
+	 * a derived value the approver was shown can be matched — but a key that is
+	 * neither is a match that silently never fires, which is what the guard is for.
+	 *
+	 * @return array<string,string>
+	 */
+	function ai_sequencing_preview_keys(): array {
+
+		return [
+			"path" => "derived: a page's full path is computed from its parent and route at staging and shown on "
+				. "the card, so it exists on the preview and never as an argument",
+		];
+	}
+
+	function test_every_prior_change_descriptor_names_a_tool_that_can_satisfy_it() {
+		$descriptors = ai_sequencing_descriptors();
+		$preview_keys = ai_sequencing_preview_keys();
+
+		T::ok(count($descriptors) >= 4, "the scan found the descriptors (" . count($descriptors) . ")");
+
+		$registry = ai_wiring_registry();
+		$declared = [];
+
+		foreach ($registry->availableTools(ai_wiring_user(2)) as $tool) {
+			if (!($tool instanceof AbstractMutatingTool)) {
+
+				continue;
+			}
+
+			$parameters = $tool->definition(ai_wiring_user(2))["function"]["parameters"] ?? [];
+			$declared[$tool->name()] = array_keys(
+				is_array($parameters["properties"] ?? null) ? $parameters["properties"] : []
+			);
+		}
+
+		$problems = [];
+
+		foreach ($descriptors as $descriptor) {
+			$where = "{$descriptor["file"]}:{$descriptor["line"]}";
+
+			if (!$descriptor["tools"]) {
+				$problems[] = "{$where} names no tool";
+
+				continue;
+			}
+
+			foreach ($descriptor["tools"] as $tool) {
+				if (!isset($declared[$tool])) {
+					$problems[] = "{$where} names \"{$tool}\", which is not a registered mutating tool";
+
+					continue;
+				}
+
+				foreach ($descriptor["keys"] as $key) {
+					if (in_array($key, $declared[$tool], true) || isset($preview_keys[$key])) {
+
+						continue;
+					}
+
+					$problems[] = "{$where} matches on \"{$key}\", which {$tool} doesn't declare";
+				}
+			}
+
+			// The other half of A1b, and the half the key check above cannot see:
+			// create_module's own card says it writes a module with no table, no form
+			// and no view, so a descriptor that waits on a *module* and names only
+			// create_module points at a card whose approval changes nothing for the
+			// caller. scaffold_module is the tool that produces a module something can
+			// be written into, so wherever create_module is offered as the thing to
+			// approve first, scaffold_module has to be offered alongside it.
+			if (in_array("create_module", $descriptor["tools"], true)
+				&& !in_array("scaffold_module", $descriptor["tools"], true)) {
+				$problems[] = "{$where} waits on create_module alone, which stages a module with no table or form";
+			}
+		}
+
+		T::equals(
+			implode("; ", $problems),
+			"",
+			"every sequencing descriptor names tools that can actually create what it's waiting on"
 		);
 	}
 

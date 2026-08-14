@@ -2130,7 +2130,8 @@
 			// stores as LONGTEXT and draws nothing, and a relation with no target table
 			// is one RelationDomain will later refuse to write into — describing, to
 			// the model, a field the model itself created three turns earlier.
-			$settings_error = Resources::aiUnconfigurableFieldError($this->aiScaffoldGateFields($fields), [], "module")
+			$settings_error = Resources::aiDuplicateFieldIdError($this->aiScaffoldGateFields($fields), "module")
+				?? Resources::aiUnconfigurableFieldError($this->aiScaffoldGateFields($fields), [], "module")
 				// The value half of the same rule (audit #20 A1). A `default` is the one
 				// field setting whose stored value becomes record content — every entry
 				// created from this form is born holding it — so it is judged by the
@@ -2320,7 +2321,8 @@
 			// field type's settings_schema can gain a required setting inside the
 			// proposal's 24h TTL exactly as the type itself can appear or vanish.
 			$gate_fields = $this->aiScaffoldGateFields(is_array($payload["fields"] ?? null) ? $payload["fields"] : []);
-			$settings_error = Resources::aiUnconfigurableFieldError($gate_fields, [], "module")
+			$settings_error = Resources::aiDuplicateFieldIdError($gate_fields, "module")
+				?? Resources::aiUnconfigurableFieldError($gate_fields, [], "module")
 				// Never trusted on the way back out for the same reason: a field type's
 				// option list is resolved from the database, and a `db`-populated list's
 				// table can lose the row a staged default named.

@@ -968,3 +968,74 @@
 		// The value genuinely being replaced keeps its own row.
 		T::ok(strpos($body, '"replaces" => $previous') !== false, "the redirect it replaces is still shown");
 	}
+
+	/**
+	 * Audit #23 E4: the field-diff row contract.
+	 *
+	 * The template and callout field diffs each emit four rows describing what an
+	 * edit does to a field list, and three of them earned a consequence clause one
+	 * audit at a time — `fields_added` says the render file isn't touched (#10 C1),
+	 * `fields_removed` says existing content is orphaned, `now_required` says pages
+	 * that already exist can't be saved while the new rule is unmet (#3, #9 C2).
+	 * `fields_retyped` named the change and stopped, which is the state each of the
+	 * others was in before the audit that noticed it: a retype drops the field's
+	 * stored settings and leaves saved content in the old type's shape, and the card
+	 * said neither (#23 B1).
+	 *
+	 * Read as source rather than driven, because two of the rows only append their
+	 * clause when the object is in use — a template with no pages on it has nothing
+	 * to disclose — and the contract is about what the builder is *able* to say.
+	 *
+	 * @return array<string,string> row key => the source of its assignment
+	 */
+	function ai_preview_field_diff_rows(string $class, string $method): array {
+		$body = ai_surface_method_body($class, $method);
+		$rows = [];
+
+		foreach (["fields_added", "fields_removed", "fields_retyped", "now_required"] as $key) {
+			$start = strpos($body, "\$rows[\"{$key}\"] = ");
+
+			if ($start === false) {
+				$rows[$key] = "";
+
+				continue;
+			}
+
+			// To the next row assignment, or the end of the method — the assignments
+			// are multi-line concatenations, so there is no single-line boundary.
+			$next = strpos($body, "\$rows[", $start + 8);
+			$rows[$key] = substr($body, $start, $next === false ? null : $next - $start);
+		}
+
+		return $rows;
+	}
+
+	function test_every_field_diff_row_states_a_consequence() {
+		$diffs = [
+			"template" => [\BigTree\Services\TemplateService::class, "aiTemplateFieldDiff"],
+			"callout" => [\BigTree\Services\CalloutService::class, "aiCalloutFieldDiff"],
+		];
+		$silent = [];
+
+		foreach ($diffs as $surface => [$class, $method]) {
+			foreach (ai_preview_field_diff_rows($class, $method) as $key => $source) {
+				if ($source === "") {
+					$silent[] = "{$surface}.{$key} (no such row)";
+
+					continue;
+				}
+
+				// The shape the four share: the value, an em dash, and prose saying
+				// what the change does to content that already exists.
+				if (strpos($source, '" — ') === false && strpos($source, " . \" — \"") === false) {
+					$silent[] = "{$surface}.{$key}";
+				}
+			}
+		}
+
+		T::equals(
+			implode(", ", $silent),
+			"",
+			"every field-diff row says what its change does to content that already exists"
+		);
+	}

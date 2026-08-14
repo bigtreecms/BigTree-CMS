@@ -755,8 +755,9 @@
 	 * Insert a throwaway template definition. Auto-tracked.
 	 *
 	 * @param array<int,array<string,mixed>> $resources
+	 * @param int $level Minimum admin level allowed to use it (0/1/2).
 	 */
-	function parity_seed_template(string $id, array $resources = []): void {
+	function parity_seed_template(string $id, array $resources = [], int $level = 0): void {
 		if ($id === "") {
 			return;
 		}
@@ -766,7 +767,7 @@
 			"name" => "Parity Template",
 			"module" => "",
 			"resources" => $resources,
-			"level" => 0,
+			"level" => $level,
 			"routed" => "",
 			"hooks" => [],
 			"position" => 0,

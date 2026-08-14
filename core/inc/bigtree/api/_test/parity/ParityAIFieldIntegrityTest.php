@@ -154,6 +154,105 @@
 	}
 
 	/**
+	 * Audit #23 B2/E5: the same field id twice.
+	 *
+	 * `fields` is replace-semantics — the model resends the whole list every edit —
+	 * so a duplicated id is a realistic model error, and nothing refused it:
+	 * `mergeAiFields` appends a row per supplied field with no uniqueness check and
+	 * `Resources::clean` doesn't de-dupe either, so the template ends up with two
+	 * fields writing and reading the same content key. The card could not have shown
+	 * it: both field diffs index the before and after lists *by id*, so the second
+	 * copy collapses into the first and the diff reports nothing at all.
+	 */
+	function test_parity_ai_duplicate_field_ids_are_refused() {
+		T::equals(
+			Resources::aiDuplicateFieldIdError([["id" => "headline"], ["id" => "body"]], "template"),
+			null,
+			"distinct ids pass"
+		);
+
+		$duplicate = (string)Resources::aiDuplicateFieldIdError(
+			[["id" => "headline"], ["id" => "body"], ["id" => "headline"]],
+			"template"
+		);
+
+		T::ok($duplicate !== "", "a repeated id is refused");
+		T::ok(strpos($duplicate, "headline") !== false, "and the refusal names it");
+
+		// Exactly as the merge and the diffs key their own lookups: a field id is a
+		// storage key, so two ids differing only in case are two keys.
+		T::equals(
+			Resources::aiDuplicateFieldIdError([["id" => "Headline"], ["id" => "headline"]], "template"),
+			null,
+			"a case difference is two ids, not one repeated"
+		);
+
+		// The module surface's "id" is the field's title, and the collision is the
+		// other one: scaffoldPlan de-duplicates the generated column (name, name2)
+		// and keeps both titles, so the form gets two fields under one label.
+		$titles = (string)Resources::aiDuplicateFieldIdError(
+			[["id" => "Name", "title" => "Name"], ["id" => "Name", "title" => "Name"]],
+			"module"
+		);
+
+		T::ok(strpos($titles, "title") !== false, "the scaffold surface refuses a repeated field title");
+	}
+
+	/** And the seams consult it — the behavioural half, through update_template. */
+	function test_parity_ai_update_template_refuses_a_duplicate_field_id() {
+		if (!parity_db_available()) {
+			return;
+		}
+
+		$templates = new TemplateService();
+		$dev = (object)["id" => 1, "level" => 2, "permissions" => []];
+		$id = "zz-dupe-" . bin2hex(random_bytes(3));
+
+		try {
+			parity_seed_template($id, [[
+				"id" => "headline",
+				"type" => "text",
+				"title" => "Headline",
+				"subtitle" => "",
+				"settings" => [],
+			]]);
+
+			$result = $templates->aiValidateTemplateUpdate([
+				"id" => $id,
+				"fields" => [
+					["id" => "headline", "type" => "text", "title" => "Headline"],
+					["id" => "headline", "type" => "text", "title" => "Headline Again"],
+				],
+			], $dev);
+
+			T::ok(isset($result["error"]), "update_template refuses two fields sharing an id");
+			T::ok(
+				strpos((string)$result["error"], "headline") !== false,
+				"and names the id, which is what makes it fixable in one turn"
+			);
+
+			// The approval half — the staged payload is re-checked on the way back out
+			// like every other value, so a list that got past staging can't be written.
+			$approved = $templates->aiUpdateTemplate([
+				"id" => $id,
+				"changes" => ["fields" => [
+					["id" => "headline", "type" => "text", "title" => "Headline"],
+					["id" => "headline", "type" => "text", "title" => "Headline Again"],
+				]],
+			], $dev);
+
+			T::equals((string)($approved["mode"] ?? ""), "error", "and approval refuses it too");
+			T::ok(
+				strpos((string)($approved["message"] ?? ""), "headline") !== false,
+				"naming the same id"
+			);
+		} finally {
+			parity_delete_template($id);
+			parity_cleanup_tracked();
+		}
+	}
+
+	/**
 	 * A2: every stub TemplateScaffold writes has to be loadable PHP.
 	 *
 	 * router.php includes the stub directly, so a parse error in it 500s every page
