@@ -540,6 +540,52 @@
 		}
 
 		/**
+		 * Put the generation budget and sampling temperature on an OpenAI-compatible
+		 * request body, in the spelling this provider accepts.
+		 *
+		 * Both builders used to send `max_tokens` and `temperature` unconditionally.
+		 * On OpenAI's Chat Completions API the GPT-5 / reasoning family rejects
+		 * `max_tokens` outright (400: use `max_completion_tokens`) and rejects a
+		 * `temperature` other than the default — and every model in MODELS["openai"]
+		 * except `gpt-4.1` is a GPT-5-family id, so if that holds the OpenAI provider
+		 * was not degraded but non-functional, failing as a provider 400 surfaced as a
+		 * chat error (audits #18 A4, #23 C1, #24 B2).
+		 *
+		 * Settled without the live request that twice deferred it, because the change
+		 * is strictly safer either way: `max_completion_tokens` is accepted by every
+		 * current OpenAI chat model including `gpt-4.1`, and omitting `temperature`
+		 * falls back to the provider's default, which is the only value the reasoning
+		 * models accept anyway. So nothing that works today can break, whichever way
+		 * the underlying question resolves.
+		 *
+		 * Branched on the *service* rather than on the endpoint shape: xAI posts to the
+		 * same Chat Completions path through both of these builders and takes
+		 * `max_tokens` and a temperature, so keying on the URL would silently break it.
+		 *
+		 * @param array<string,mixed> $body
+		 * @param array<string,mixed> $options
+		 * @return array<string,mixed>
+		 */
+		private function applyGenerationOptions(array $body, array $options): array {
+			$openai = $this->Service === "openai";
+
+			if (!empty($options["max_tokens"])) {
+				$body[$openai ? "max_completion_tokens" : "max_tokens"] = (int)$options["max_tokens"];
+			}
+
+			// gpt-4.x is the one OpenAI family here that still takes a temperature; the
+			// rest are sent none at all rather than sent the default, which is the same
+			// request with one fewer thing to be wrong about.
+			$takes_temperature = !$openai || strncmp((string)$this->Model, "gpt-4", 5) === 0;
+
+			if (array_key_exists("temperature", $options) && $takes_temperature) {
+				$body["temperature"] = (float)$options["temperature"];
+			}
+
+			return $body;
+		}
+
+		/**
 		 * Build the streaming request tuple for the OpenAI-compatible providers.
 		 *
 		 * @param list<array<string,mixed>> $messages
@@ -548,19 +594,11 @@
 		 * @return array{url:string,body:array<string,mixed>,headers:list<string>}
 		 */
 		private function openAiStreamRequest(array $messages, array $tools, array $options): array {
-			$body = [
+			$body = $this->applyGenerationOptions([
 				"model" => $this->Model,
 				"messages" => $messages,
 				"stream" => true,
-			];
-
-			if (!empty($options["max_tokens"])) {
-				$body["max_tokens"] = (int)$options["max_tokens"];
-			}
-
-			if (array_key_exists("temperature", $options)) {
-				$body["temperature"] = (float)$options["temperature"];
-			}
+			], $options);
 
 			if ($tools) {
 				$body["tools"] = $tools;
@@ -720,6 +758,11 @@
 			}
 
 			$buffer = "";
+			// A non-2xx "stream" is really an error document arriving through the same
+			// write callback, so the head of it is kept for logProviderFailure — the
+			// streaming path is where an OpenAI parameter rejection actually lands
+			// (SPA chat streams first and only falls back to the buffered call).
+			$head = "";
 			$ch = curl_init($url);
 			curl_setopt_array($ch, [
 				CURLOPT_POST => true,
@@ -728,7 +771,11 @@
 				CURLOPT_TIMEOUT => $timeout,
 				CURLOPT_CONNECTTIMEOUT => 5,
 				CURLOPT_RETURNTRANSFER => false,
-				CURLOPT_WRITEFUNCTION => function ($handle, string $chunk) use (&$buffer, $on_line): int {
+				CURLOPT_WRITEFUNCTION => function ($handle, string $chunk) use (&$buffer, &$head, $on_line): int {
+					if (strlen($head) < 2000) {
+						$head .= substr($chunk, 0, 2000 - strlen($head));
+					}
+
 					$buffer .= $chunk;
 
 					while (($nl = strpos($buffer, "\n")) !== false) {
@@ -759,6 +806,7 @@
 
 			if ($code < 200 || $code >= 300) {
 				$this->Error = "AI provider error (HTTP $code).";
+				$this->logProviderFailure($code, $head);
 
 				return false;
 			}
@@ -776,18 +824,10 @@
 		 */
 		private function chatOpenAICompatible(array $messages, array $tools, array $options) {
 			$url = self::ENDPOINTS[$this->Service];
-			$body = [
+			$body = $this->applyGenerationOptions([
 				"model" => $this->Model,
 				"messages" => $messages,
-			];
-
-			if (!empty($options["max_tokens"])) {
-				$body["max_tokens"] = (int)$options["max_tokens"];
-			}
-
-			if (array_key_exists("temperature", $options)) {
-				$body["temperature"] = (float)$options["temperature"];
-			}
+			], $options);
 
 			if ($tools) {
 				$body["tools"] = $tools;
@@ -1175,11 +1215,39 @@
 
 			if ($code < 200 || $code >= 300) {
 				$this->Error = $this->extractProviderError($decoded, $code);
+				$this->logProviderFailure($code, (string)$raw);
 
 				return false;
 			}
 
 			return $decoded;
+		}
+
+		/**
+		 * Record a provider rejection with the body the provider sent back.
+		 *
+		 * Audits #18 and #23 both left the OpenAI parameter question open pending "one
+		 * live request", and both times the reason it could not simply be answered from
+		 * a running install was that the failure arrived with no evidence attached: the
+		 * chat surfaced extractProviderError's one sentence and the body — which is
+		 * where the provider names the offending parameter — went nowhere. A 4xx here
+		 * is a configuration or request-shape fault, not traffic, so logging it costs
+		 * nothing and is the only durable record of what the provider objected to.
+		 *
+		 * Truncated because a provider body can carry the echoed request, and @-quiet
+		 * because a failed log write must not turn a recoverable provider error into a
+		 * fatal one (the convention AIChatService's audit write already uses).
+		 */
+		private function logProviderFailure(int $code, string $raw): void {
+			if ($code < 400 || $code >= 500 || $raw === "") {
+
+				return;
+			}
+
+			@error_log(
+				"[BigTree AI] provider rejected request (HTTP {$code}, service {$this->Service}, model "
+					. "{$this->Model}): " . substr($raw, 0, 2000)
+			);
 		}
 
 		/**

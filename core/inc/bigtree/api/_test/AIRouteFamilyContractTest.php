@@ -182,6 +182,15 @@
 	function ai_contract_covered(): array {
 
 		return [
+			// Audit #24 B1: the family used to be declined outright, on a line worded
+			// about *editing* 404 monitoring — so a level-1 read was refused by wording
+			// about writes. The read has a tool now; the two write verbs keep the
+			// (narrowed) decline.
+			"404s" => [
+				"GET" => "list_404s",
+				"POST" => "create_redirect",
+				"DELETE" => "declined: removing redirects",
+			],
 			"404s/redirect" => "create_redirect",
 			"dashboard/content-alerts" => "get_content_alerts",
 			"callouts" => [
@@ -320,12 +329,11 @@
 	function ai_contract_declined(): array {
 
 		return [
-			"404s" => "404 monitoring",
-			"404s/bulk-delete" => "404 monitoring",
-			"404s/clear-dead" => "404 monitoring",
-			"404s/export" => "404 monitoring",
-			"404s/ignore" => "404 monitoring",
-			"404s/import" => "404 monitoring",
+			"404s/bulk-delete" => "deleting, importing or exporting 404 log entries",
+			"404s/clear-dead" => "deleting, importing or exporting 404 log entries",
+			"404s/export" => "importing or exporting 404 log entries",
+			"404s/ignore" => "resolving, ignoring",
+			"404s/import" => "importing or exporting 404 log entries",
 			"callouts/reorder" => "reordering templates, callouts or modules",
 			"templates/reorder" => "reordering templates, callouts or modules",
 			"modules/reorder" => "reordering templates, callouts or modules",
@@ -703,4 +711,184 @@
 		}
 
 		T::equals(implode(", ", $stale), "", "no classification names a route family that no longer exists");
+	}
+
+	/**
+	 * Verbs in an outOfScope() key that describe *reading* something.
+	 *
+	 * A key containing one of these has said something about the read it is being
+	 * used to decline. A key containing none of them has only ever talked about
+	 * writes.
+	 *
+	 * @return list<string>
+	 */
+	function ai_contract_read_verbs(): array {
+
+		return ["read", "view", "list", "see", "browse", "export", "search", "look", "inspect"];
+	}
+
+	/**
+	 * Declined families whose GET is refused by a write-worded line on purpose, with
+	 * the reason.
+	 *
+	 * The obligation the leg below creates is to *say so*, not to build a tool: a
+	 * family here has had the question asked and answered. A stale entry — a family
+	 * that is no longer declined, or whose wording now names the read — fails, so
+	 * this cannot quietly become the place the question goes to die.
+	 *
+	 * @return array<string,string>
+	 */
+	function ai_contract_write_worded_read_declines(): array {
+
+		return [
+			"feeds" => "a feed's definition is developer configuration; nothing in a chat turn needs to enumerate them",
+			"field-types" => "the same — the assistant validates against the catalogue server-side rather than reading it",
+			"field-types/schema" => "one field type's settings schema, read by the SPA's settings editor, not by a turn",
+			"resources" => "reading the library is covered by search_files and list_resources; this family is the upload and management surface",
+			"resource-folders" => "folder structure reaches the model through list_resources' own subfolder window",
+			"extensions" => "an installed-extension inventory is a developer screen; the tools an extension adds arrive in the registry instead",
+			"extensions/updates" => "the same, for available updates",
+			"modules/views" => "a view definition is the Module Designer's; list_module_entries is the read the model needs",
+			"modules/actions" => "an action's definition, likewise — running one has its own line",
+			"modules/reports" => "wording already names exporting; kept here because the read it declines is running one",
+			"modules/embed-forms" => "an embed form's definition is developer configuration",
+			"embed-forms" => "the public embed surface, not an admin read",
+			"modules/gbp-categories" => "group-based-permission categories are part of a module's definition",
+			"dashboard/integrity" => "an integrity scan is a job, and its results are a developer screen",
+			"dashboard/analytics" => "analytics configuration; page-level numbers already reach the model on the page read",
+			"system/security-policy" => "likewise",
+			"system/backup" => "backups are a maintenance job",
+			"system/upgrade" => "upgrade state is a maintenance concern",
+			"system/configure" => "integration settings include credentials the assistant must never read back",
+			"auth/2fa" => "two-factor state is credential-adjacent",
+			"auth/passkey" => "likewise",
+			"auth/passkeys" => "likewise",
+		];
+	}
+
+	/** Whether a family, or an ancestor whose decline wording it inherits, is exempt. */
+	function ai_contract_read_decline_exempt(string $family): bool {
+		$exempt = ai_contract_write_worded_read_declines();
+		$segments = explode("/", $family);
+
+		while ($segments) {
+			if (isset($exempt[implode("/", $segments)])) {
+
+				return true;
+			}
+
+			array_pop($segments);
+		}
+
+		return false;
+	}
+
+	/**
+	 * Audit #24 E5: a decline that refuses a *read* has to be worded about reading.
+	 *
+	 * Every decline line is spliced into the system prompt beside "do not improvise a
+	 * workaround", which is what makes a mis-worded one load-bearing: the model is
+	 * told a capability is out of scope in words that describe a different capability.
+	 * Audits #5, #16 and #24 each found one of these by hand — reports ("editing …"
+	 * said nothing about *running* one), action invocation, and the 404 log, where
+	 * "Editing 404 monitoring, or removing redirects" was declining `GET /404s`, a
+	 * level-1 read the assistant is permitted to make and now has a tool for.
+	 *
+	 * So: a family with a GET endpoint whose GET is declined must be declined by
+	 * wording that names a read, or carry an explicit reason above.
+	 */
+	function test_a_declined_read_is_declined_by_wording_about_reading() {
+		$families = ai_contract_route_families();
+		$declined = ai_contract_declined();
+		$covered = ai_contract_covered();
+		$exempt = ai_contract_write_worded_read_declines();
+		$keys = array_keys(CapabilitySummary::outOfScope());
+		$mute = [];
+		$declined_reads = [];
+
+		foreach (array_keys($families) as $family) {
+			if (!in_array("GET", ai_contract_verbs_for($family), true)) {
+
+				continue;
+			}
+
+			// Either the whole family is declined, or its per-verb map declines the GET.
+			$phrase = $declined[$family] ?? null;
+			$coverage = $covered[$family] ?? null;
+
+			if ($phrase === null && is_array($coverage) && strpos((string)($coverage["GET"] ?? ""), "declined:") === 0) {
+				$phrase = trim(substr((string)$coverage["GET"], strlen("declined:")));
+			}
+
+			// A sub-resource with no classification of its own inherits its parent's.
+			if ($phrase === null && $coverage === null && ai_contract_inherited_classification($family) === "declined") {
+				$segments = explode("/", $family);
+
+				while ($phrase === null && count($segments) > 1) {
+					array_pop($segments);
+					$phrase = $declined[implode("/", $segments)] ?? null;
+				}
+			}
+
+			if ($phrase === null) {
+
+				continue;
+			}
+
+			$declined_reads[] = $family;
+
+			// The key the phrase matches is what the model is actually shown.
+			$named = false;
+
+			foreach ($keys as $key) {
+				if (strpos(strtolower($key), strtolower($phrase)) === false) {
+
+					continue;
+				}
+
+				foreach (ai_contract_read_verbs() as $verb) {
+					if (strpos(strtolower($key), $verb) !== false) {
+						$named = true;
+
+						break 2;
+					}
+				}
+			}
+
+			// An exemption covers the family it names and everything that inherits its
+			// wording, the same way ai_contract_inherited_classification does — the
+			// decision is about the line, and the line is shared.
+			if (!$named && !ai_contract_read_decline_exempt($family)) {
+				$mute[] = $family;
+			}
+		}
+
+		T::ok(count($declined_reads) > 5, "the sweep found the declined reads (" . count($declined_reads) . ")");
+		T::equals(
+			implode(", ", $mute),
+			"",
+			"every declined read is declined by wording that names a read, or says why it isn't"
+		);
+
+		// And no exemption outlives the decline it explains — counting the descendants
+		// that inherit its wording, since that is what several of them exist for.
+		$stale = [];
+
+		foreach (array_keys($exempt) as $family) {
+			$live = false;
+
+			foreach ($declined_reads as $declined_read) {
+				if ($declined_read === $family || strpos($declined_read, $family . "/") === 0) {
+					$live = true;
+
+					break;
+				}
+			}
+
+			if (!$live) {
+				$stale[] = $family;
+			}
+		}
+
+		T::equals(implode(", ", $stale), "", "no read-decline exemption names a family whose GET is no longer declined");
 	}

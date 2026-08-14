@@ -278,8 +278,16 @@
 					"the page tree in Pages — the assistant can archive a page instead, which takes it off the "
 						. "site reversibly",
 				"Deleting tags" => "Settings → Tags — the assistant can merge or rename tags, but not delete them",
-				"Editing 404 monitoring, or removing redirects" =>
-					"Developer → 404s — the assistant can create a redirect but not manage the log",
+				// Narrowed in audit #24 B1. The old wording was "Editing 404 monitoring,
+				// or removing redirects", which declined the whole family — including
+				// `GET /404s`, a level-1 read the assistant is permitted to make and now
+				// has a tool for. Every decline line is spliced into the system prompt
+				// next to "do not improvise a workaround", so a line whose verbs don't
+				// describe the capability it is being used to refuse is load-bearing in
+				// the wrong direction.
+				"Resolving, ignoring, deleting, importing or exporting 404 log entries, or removing redirects" =>
+					"Developer → 404s — the assistant can read the log with list_404s and create a redirect, "
+						. "but not manage the log itself",
 				"Creating, editing or deleting feeds" => "Developer → Feeds",
 				"Creating or editing custom field types" => "Developer → Field Types",
 				"Reading or sending internal messages" => "the Messages section",

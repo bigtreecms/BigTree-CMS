@@ -10,7 +10,9 @@
 	use BigTree\Api\Upload;
 	use BigTree\Api\Exceptions\BadRequestException;
 	use BigTree\Api\Exceptions\AuthorizationException;
+	use BigTree\Services\AI\PayloadBudget;
 	use BigTree\Services\AI\PreviewValue;
+	use BigTree\Services\AI\Tools\FourOhFourToolBackend;
 	use BigTree\Services\AI\Tools\RedirectToolBackend;
 	use BigTree;
 	use SQL;
@@ -20,7 +22,10 @@
 	 * Manage the bigtree_404s table: 404 log, 301 redirects, ignored URLs.
 	 * type filter: 404 | 301 | ignored
 	 */
-	class FourOhFourService implements RedirectToolBackend {
+	class FourOhFourService implements RedirectToolBackend, FourOhFourToolBackend {
+		/** The most 404 log rows one list_404s call returns, matching GET /404s' per_page cap. */
+		public const AI_404_LIMIT = 100;
+
 		public function list(Request $request) {
 			$type = $request->query["type"] ?? "404";
 			$site_key = $request->query["site_key"] ?? null;
@@ -364,6 +369,72 @@
 
 				if ($actor_id !== null) { AuditService::write("bigtree_404s", sqlid(), "created", $actor_id); }
 			}
+		}
+
+		/**
+		 * The 404 log, for the assistant.
+		 *
+		 * The read half of a workflow whose write half shipped first: create_redirect
+		 * is level 1, `GET /404s` is level 1, and every natural phrasing of the ask
+		 * ("what's 404ing since the relaunch?", "fix our broken links") starts at the
+		 * log. Filtered exactly as list() is, through the same buildConditions, so the
+		 * bucket the model asks for is the bucket the dashboard shows (audit #24 B1).
+		 *
+		 * `redirect_url` is stored through autoIPL, so it is decoded on the way out for
+		 * the reason every AI read decodes a link: the model is being shown a value it
+		 * may hand back to create_redirect.
+		 *
+		 * @param array<string,mixed> $args
+		 * @param object|array $user
+		 * @return array<string,mixed>
+		 */
+		public function aiList404s(array $args, int $limit, $user): array {
+			if (PermissionService::level($user) < 1) {
+
+				return ["denied" => "Only administrators can read the 404 log."];
+			}
+
+			$type = trim((string)($args["type"] ?? "")) ?: "404";
+
+			if (!in_array($type, ["404", "301", "ignored"], true)) {
+
+				return ["error" => "\"{$type}\" isn't a 404 log bucket. Use \"404\" for unresolved broken URLs, "
+					. "\"301\" for URLs that already redirect, or \"ignored\" for ones somebody dismissed."];
+			}
+
+			$site_key = trim((string)($args["site_key"] ?? ""));
+			$q = trim((string)($args["q"] ?? ""));
+
+			[$where, $bind] = $this->buildConditions($type, $site_key !== "" ? $site_key : null, $q);
+
+			$limit = max(1, min($limit, self::AI_404_LIMIT));
+			$total = (int)SQL::fetchSingle(...array_merge(
+				["SELECT COUNT(*) FROM bigtree_404s" . $where], $bind
+			));
+			// Ordered by request volume, like the dashboard: the most-hit broken URL is
+			// the one worth redirecting first, so a capped read returns the rows that
+			// matter rather than an arbitrary slice.
+			$rows = SQL::fetchAll(...array_merge([
+				"SELECT * FROM bigtree_404s" . $where . " ORDER BY requests DESC, id DESC LIMIT " . (int)$limit,
+			], $bind));
+
+			$entries = [];
+
+			foreach ($rows as $row) {
+				$entry = $this->present($row);
+				$entry["redirect_url"] = LinkService::untokenize((string)$entry["redirect_url"]);
+				$entries[] = $entry;
+			}
+
+			$entries = PayloadBudget::fitRows($entries);
+
+			return [
+				"type" => $type,
+				"total" => $total,
+				"returned" => count($entries),
+				"has_more" => $total > count($entries),
+				"entries" => $entries,
+			];
 		}
 
 		// — AI tool seam (RedirectToolBackend) —

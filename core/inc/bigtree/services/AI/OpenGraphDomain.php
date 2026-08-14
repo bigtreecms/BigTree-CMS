@@ -1,6 +1,8 @@
 <?php
 	namespace BigTree\Services\AI;
 
+	use BigTree\Services\LinkService;
+
 	/**
 	 * The value domain for a record's Open Graph metadata.
 	 *
@@ -119,7 +121,33 @@
 		}
 
 		/**
+		 * The stored form of an Open Graph image, for a writer.
+		 *
+		 * violation() has accepted `ipl://` / `irl://` / `{wwwroot}` since audit #22
+		 * because BigTreeCMS::getOpenGraph untranslates them before drawHeadTags echoes
+		 * the tag — but nothing produced one, so a same-site image URL was stored hard
+		 * and went stale the first time the file moved or the domain changed. Legacy
+		 * runs the column through replaceHardRoots on its own write path
+		 * (BigTreeAdmin::handleOpenGraph); makeIPL is the superset of that, and is what
+		 * turns a link at a library file into the `irl://` that carries a resource
+		 * allocation (audit #24 A1b).
+		 */
+		public static function storedImage(string $image): string {
+			if (trim($image) === "") {
+
+				return $image;
+			}
+
+			return (string)LinkService::makeIPL($image);
+		}
+
+		/**
 		 * A stored record keyed by the arguments that write it, for a read payload.
+		 *
+		 * `image` is decoded on the way out for the reason every other AI read decodes
+		 * a link: the model is shown the value it will hand straight back to a write
+		 * tool, and a token it cannot resolve is a value it cannot reason about or
+		 * safely restate.
 		 *
 		 * @param array<string,mixed> $stored
 		 * @return array<string,string>
@@ -128,7 +156,8 @@
 			$out = [];
 
 			foreach (self::FIELDS as $argument => $key) {
-				$out[$argument] = (string)($stored[$key] ?? "");
+				$value = (string)($stored[$key] ?? "");
+				$out[$argument] = $argument === "og_image" ? LinkService::untokenize($value) : $value;
 			}
 
 			return $out;

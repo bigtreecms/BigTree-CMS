@@ -56,6 +56,7 @@
 	use BigTree\Services\AI\Tools\ListModuleEntriesTool;
 	use BigTree\Services\AI\Tools\GetAuditTrailTool;
 	use BigTree\Services\AI\Tools\GetContentAlertsTool;
+	use BigTree\Services\AI\Tools\List404sTool;
 	use BigTree\Services\AI\Tools\GetPageRevisionsTool;
 	use BigTree\Services\AI\Tools\RestorePageRevisionTool;
 	use BigTree\Services\AI\Tools\UpdateCalloutTool;
@@ -621,6 +622,7 @@
 			$registry->register(new GetPageRevisionsTool($pages));
 			$registry->register(new GetPageSeoRatingTool($pages));
 			$registry->register(new GetContentAlertsTool(new DashboardService()));
+			$registry->register(new List404sTool(new FourOhFourService()));
 
 			// Two-phase mutating tools.
 			$registry->register(new CreatePageTool($pages, $store));

@@ -137,6 +137,30 @@
 		}
 
 		/**
+		 * The prefixes BigTree stores a link under instead of a hard URL.
+		 *
+		 * Named once because three surfaces test for them — this class's link shape
+		 * check, OpenGraphDomain's image rule, and PageService's `external` gate — and
+		 * a fourth, the link-column guard, enumerates them to find every column that
+		 * can hold one (audit #24 A1/E1).
+		 */
+		public const LINK_TOKEN_PREFIXES = ["ipl://", "irl://", "{wwwroot}"];
+
+		/** Whether a value is already stored in one of BigTree's link token forms. */
+		public static function isLinkToken(string $value): bool {
+			$raw = trim($value);
+
+			foreach (self::LINK_TOKEN_PREFIXES as $token) {
+				if (strpos($raw, $token) === 0) {
+
+					return true;
+				}
+			}
+
+			return false;
+		}
+
+		/**
 		 * A `link` value that isn't a link, as a recoverable error.
 		 *
 		 * `link` is a real, first-class type whose stored value is a whole URL — and
@@ -168,11 +192,9 @@
 				return null;
 			}
 
-			foreach (["ipl://", "irl://", "{wwwroot}"] as $token) {
-				if (strpos($raw, $token) === 0) {
+			if (self::isLinkToken($raw)) {
 
-					return null;
-				}
+				return null;
 			}
 
 			if (preg_match('/^(mailto:[^@\s]+@[^@\s]+|tel:[0-9+().\-\s]+)$/i', $raw)) {

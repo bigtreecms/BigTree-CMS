@@ -202,6 +202,34 @@
 			return false;
 		}
 
+		/**
+		 * The human-readable form of a stored whole-value link, for a reader.
+		 *
+		 * makeIPL's inverse, and the counterpart to PageService::aiDenormalizeHtmlValue
+		 * for the columns that hold a link as their entire value rather than embedded
+		 * in markup — `bigtree_pages.external` and `bigtree_open_graph.image`. Both are
+		 * shown to somebody who has to act on them: an editor typing in a text input,
+		 * or a model that will send the value straight back through a write tool. A
+		 * base64 `ipl://` blob is unusable to either (audit #24 A1).
+		 *
+		 * The fallback is the point of having a helper at all: getInternalPageLink
+		 * returns null for a token whose page has been deleted, so decoding alone would
+		 * turn a dangling link into "", which reads as "this page has no link" and would
+		 * clear a real one if it were written back. The stored token is at least true.
+		 */
+		public static function untokenize($stored) {
+			$stored = (string)$stored;
+
+			if (trim($stored) === "") {
+
+				return $stored;
+			}
+
+			$decoded = (string)BigTreeCMS::replaceInternalPageLinks($stored);
+
+			return trim($decoded) !== "" ? $decoded : $stored;
+		}
+
 		public static function makeIPL($url) {
 			global $bigtree;
 

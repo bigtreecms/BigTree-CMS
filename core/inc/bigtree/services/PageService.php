@@ -102,7 +102,7 @@
 					"trunk" => Flag::isOn($r["trunk"]),
 					"position" => (int)$r["position"],
 					"template" => $r["template"],
-					"external" => Sanitize::decodeEntities($r["external"]),
+					"external" => LinkService::untokenize(Sanitize::decodeEntities($r["external"])),
 					"updated_at" => $r["updated_at"],
 					"publish_at" => $r["publish_at"],
 					"expire_at" => $r["expire_at"],
@@ -167,7 +167,7 @@
 					"trunk" => !empty($changes["trunk"]),
 					"position" => 999999, // New pending pages sort at the end for now
 					"template" => (string)($changes["template"] ?? ""),
-					"external" => Sanitize::decodeEntities(($changes["external"] ?? "")),
+					"external" => LinkService::untokenize(Sanitize::decodeEntities(($changes["external"] ?? ""))),
 					"updated_at" => $pc["date"],
 					"publish_at" => $publishAt,
 					"scheduled" => $isScheduled,
@@ -2249,7 +2249,9 @@
 			$children = [];
 
 			foreach ($window as $row) {
-				$external = (string)$row["external"];
+				// Decoded for the same reason get_page's is: the tree is where the model
+				// decides which nav entry to touch, and a base64 token tells it nothing.
+				$external = LinkService::untokenize((string)$row["external"]);
 
 				$children[] = [
 					"id" => (int)$row["id"],
@@ -2511,7 +2513,12 @@
 				"route" => (string)($page["route"] ?? ""),
 				"publish_at" => (string)($page["publish_at"] ?? ""),
 				"expire_at" => (string)($page["expire_at"] ?? ""),
-				"external" => (string)($page["external"] ?? ""),
+				// Decoded, like every link the model is shown (aiDenormalizeHtmlValue).
+				// The column is stored through makeIPL, so a nav entry pointing at a
+				// page on this site reads back as `ipl://cGFnZXM6NDI=` — which the model
+				// cannot reason about ("does this menu item point at the old pricing
+				// page?") and could not hand back to update_page at all (audit #24 A1).
+				"external" => LinkService::untokenize((string)($page["external"] ?? "")),
 				"new_window" => Flag::isOn($page["new_window"] ?? ""),
 				// Decoded like every sibling above. Left encoded, an apostrophe in a
 				// social title read back as "&#39;" — entity soup in get_page, and a
@@ -3167,6 +3174,15 @@
 		 * at an absolute http(s) URL — anything else (javascript:, data:, a bare word)
 		 * would either not work or be a vector.
 		 *
+		 * A value already in one of BigTree's stored token forms is accepted verbatim,
+		 * for the reason FieldTypeDomain::linkShapeViolation accepts them: it is what
+		 * the framework itself writes, and a model handed one has to be able to give it
+		 * back. Before this, get_page returned a legacy-authored `ipl://cGFnZXM6NDI=`
+		 * and update_page refused it — an error whose only compliant answer downgraded a
+		 * durable internal link to a hard URL that breaks the next time the target moves
+		 * (audit #24 A1/D2). The read seams now hand over the decoded URL, so this leg
+		 * is the backstop for a token that reaches the tool some other way.
+		 *
 		 * @return array{error?:string,url?:string}
 		 */
 		private function aiNormalizeExternalLink(string $raw): array {
@@ -3175,6 +3191,11 @@
 			if ($url === "") {
 
 				return ["url" => ""];
+			}
+
+			if (FieldTypeDomain::isLinkToken($url)) {
+
+				return ["url" => $url];
 			}
 
 			$scheme = strtolower((string)parse_url($url, PHP_URL_SCHEME));
@@ -3339,6 +3360,56 @@
 				. "{$level}, " . self::templateLevelNoun($level) . "), so its template can't be changed from "
 				. "here — everything else about the page can still be edited. Ask a developer to change the "
 				. "template.";
+		}
+
+		/**
+		 * Whether this actor may change a page's `in_nav` flag.
+		 *
+		 * Legacy pins the flag for anyone below developer whenever the page is at top
+		 * level, on both write paths — admin.php:8830 (updatePage: "If this is top
+		 * level nav and the user isn't a developer, use what the current state is") and
+		 * admin.php:8022 (submitPageChange, the identical clause). Audit #6 found the
+		 * *move* leg of the same rule and it was ported properly; these two were never
+		 * ported at all, so a level-0 editor holding `e` on a top-level page could put
+		 * it into — or take it out of — the site's main navigation, approved on a card
+		 * that said nothing about a site-wide change (audit #24 A2).
+		 *
+		 * The threshold is legacy's `< 2`, so an administrator is clamped too, not just
+		 * an editor: which pages appear in the top-level nav is a developer's call.
+		 *
+		 * Only the page's *current* position matters, which is what legacy tests. A
+		 * page below the top level has an ordinary in_nav flag, and a page *arriving*
+		 * at top level through move_page is handled by that tool's own clamp, which
+		 * discloses the consequence rather than refusing — there the nav change is a
+		 * side effect of what was asked, not the thing being asked for.
+		 *
+		 * Like the template rule, this lives in core rather than in the AI seams: REST
+		 * has the identical hole, so it is a dropped CMS rule and not an AI defect. The
+		 * two surfaces then differ in how they say so, exactly as
+		 * templateOutOfReachDenial's docblock describes — REST keeps legacy's silent
+		 * pin so no existing client breaks, and the assistant returns this sentence,
+		 * because it has already shown the user the change it was going to make.
+		 *
+		 * @param int $parent The page's current parent; 0 is top level.
+		 * @param object|array $user
+		 * @return string|null The reason, or null when the actor may set the flag.
+		 */
+		public static function topLevelNavDenial(int $parent, $user): ?string {
+			$level = PermissionService::level($user);
+
+			if ($parent !== 0 || $level >= 2) {
+
+				return null;
+			}
+
+			// Both the rule and the actor's level are named, for the reason
+			// templateUsableBy names them: the error is the model's only route to a
+			// correct retry, and "denied" alone can't say what would make it succeed.
+			return "This is a top-level page, and whether one appears in the site's main navigation is a "
+				. "developer's call — only level 2 (developer) can add a top-level page to the navigation or "
+				. "take one out of it. This account is level {$level} (" . self::templateLevelNoun($level)
+				. "), so in_nav can't be changed here; everything else about the page can still be edited. Ask "
+				. "a developer to make this change.";
 		}
 
 		/**
@@ -3526,6 +3597,19 @@
 				} elseif (array_key_exists($field, OpenGraphDomain::FIELDS)) {
 					$new = (string)$open_graph["to"][$field];
 					$old = (string)$open_graph["from"][$field];
+				} elseif ($field === "external") {
+					// Compared in the form the read showed it in, exactly as a
+					// link-bearing resource value is (aiSiftResourceContent). The column
+					// is stored tokenized and get_page hands over the decoded URL, so
+					// comparing the model's answer against the raw token would report a
+					// change on every edit that merely restates the link — and write a
+					// diff row with a base64 blob on one side (audit #24 A1).
+					// Both sides, because the model may legitimately hand a token back
+					// (aiNormalizeExternalLink accepts one) — and what is stored in
+					// `changes` is then the decoded URL the writer will re-tokenize,
+					// which is the same value either way.
+					$new = LinkService::untokenize(trim((string)$args[$field]));
+					$old = LinkService::untokenize(Sanitize::decodeEntities((string)$page[$field]));
 				} else {
 					$new = trim((string)$args[$field]);
 					$old = Sanitize::decodeEntities((string)$page[$field]);
@@ -3534,6 +3618,19 @@
 				if ($new === $old) {
 
 					continue;
+				}
+
+				// Checked only once the value is known to be changing, so restating a
+				// top-level page's existing in_nav in a wider edit is not a refusal.
+				// Skipped on a draft: a NEW draft is a create, and legacy's createPage
+				// carries no clamp (audit #24 A2).
+				if ($field === "in_nav" && !$is_pending) {
+					$nav_denial = self::topLevelNavDenial((int)($page["parent"] ?? 0), $user);
+
+					if ($nav_denial !== null) {
+
+						return ["denied" => $nav_denial];
+					}
 				}
 
 				$changes[$field] = $new;
@@ -4419,6 +4516,19 @@
 				return ["mode" => "error", "message" => $invalid];
 			}
 
+			// Re-asked at approval like every other level rule: the actor's level, or
+			// the page's position in the tree, may have changed inside the proposal's
+			// 24h life. Read off the live row rather than the overlaid one — the tree
+			// position is a fact about the page, not about the queued draft.
+			if (array_key_exists("in_nav", $changes)) {
+				$nav_denial = self::topLevelNavDenial((int)($live_page["parent"] ?? 0), $user);
+
+				if ($nav_denial !== null) {
+
+					return ["mode" => "error", "message" => $nav_denial];
+				}
+			}
+
 			$rank = PermissionService::userPageLevel($user, $id);
 			// An explicit "save as draft" forces the pending path however senior the
 			// approver is.
@@ -5018,6 +5128,39 @@
 			return false;
 		}
 
+		/**
+		 * The stored form of a page's external link.
+		 *
+		 * Legacy runs it through makeIPL on both write paths (admin.php:1637
+		 * createPage, :8837 updatePage) and no writer here did, so a nav entry
+		 * pointing at a page on this site was stored as a hard URL. That breaks the
+		 * next time the target's route changes — recordRouteHistory covers the page's
+		 * own URL, not a link that hard-codes it — and again on any domain, protocol
+		 * or staging-host change, which is the whole reason replaceHardRoots exists.
+		 * A link at a file in the Files library is worse: makeIPL is what turns it
+		 * into `irl://<id>//<prefix>`, so without it performCreate's `external`
+		 * argument to allocatePageResources can never match anything and deleting the
+		 * file warns about nothing (audit #24 A1).
+		 *
+		 * In the shared writer rather than the AI seams, unlike aiNormalizeHtmlValue.
+		 * That one is AI-scoped because the SPA's link picker already emits `ipl://`
+		 * for markup; there is no picker here — PageEdit renders `external` as a plain
+		 * text input, so the SPA hard-codes URLs exactly as the model does (audit #24
+		 * D1).
+		 *
+		 * makeIPL is safe to run unconditionally: a URL that isn't on this site falls
+		 * through to replaceHardRoots, which returns it unchanged, and a value that is
+		 * already a token is returned as-is.
+		 */
+		public static function storedExternalLink(string $external): string {
+			if (trim($external) === "") {
+
+				return $external;
+			}
+
+			return (string)LinkService::makeIPL($external);
+		}
+
 		// Live page insert, shared by create() (publish path) and the pending-change
 		// publish flow in publishPendingChange(). Returns the presented page payload.
 		private function performCreate(array $d, $user): array {
@@ -5046,7 +5189,7 @@
 				"meta_description" => $d["meta_description"] ?? "",
 				"seo_invisible" => Flag::checkbox($d["seo_invisible"] ?? null),
 				"template" => $d["template"] ?? "",
-				"external" => $d["external"] ?? "",
+				"external" => self::storedExternalLink((string)($d["external"] ?? "")),
 				"new_window" => Flag::checkbox($d["new_window"] ?? null),
 				"resources" => json_encode(
 					$this->normalizePageResources(
@@ -5268,7 +5411,11 @@
 				$update["seo_invisible"] = Flag::checkbox($d["seo_invisible"]);
 			}
 
-			if (isset($d["in_nav"])) {
+			// Legacy's top-level nav clamp (admin.php:8830), applied silently here
+			// exactly as legacy applies it — the key is dropped and the rest of the
+			// write goes through, so no existing client breaks. See topLevelNavDenial
+			// for why the AI seam refuses instead of pinning.
+			if (isset($d["in_nav"]) && self::topLevelNavDenial((int)$page["parent"], $user) === null) {
 				$update["in_nav"] = Flag::checkbox($d["in_nav"]);
 			}
 
@@ -5277,7 +5424,7 @@
 			}
 
 			if (isset($d["external"])) {
-				$update["external"] = (string)$d["external"];
+				$update["external"] = self::storedExternalLink((string)$d["external"]);
 			}
 
 			if (isset($d["new_window"])) {
@@ -5388,9 +5535,10 @@
 			// fallback, exactly as performUpdate does for the live write (audit #19
 			// A3). A NEW draft has no page yet, so the blob's own template is all
 			// there is.
-			$fallback_template = $type === "EDIT"
-				? (string)SQL::fetchSingle("SELECT template FROM bigtree_pages WHERE id = ?", $item_or_parent)
-				: "";
+			$existing_page = $type === "EDIT"
+				? SQL::fetch("SELECT template, parent FROM bigtree_pages WHERE id = ?", $item_or_parent)
+				: null;
+			$fallback_template = (string)(is_array($existing_page) ? ($existing_page["template"] ?? "") : "");
 
 			// The one choke point every draft goes through, whichever surface wrote it
 			// (audit #23 A2/D3). The callers above check first and say it in their own
@@ -5407,7 +5555,14 @@
 				throw new AuthorizationException($template_denial);
 			}
 
-			[$changes, $tags_changes, $open_graph_changes] = $this->pendingChangeFields($user, $d, $fallback_template);
+			// The page's live position, for the top-level nav clamp. Null on a NEW draft
+			// — there is no live page yet, and legacy's createPage carries no clamp, so
+			// create is parity rather than a gap (audit #24 A2).
+			$current_parent = is_array($existing_page) ? (int)($existing_page["parent"] ?? 0) : null;
+
+			[$changes, $tags_changes, $open_graph_changes] = $this->pendingChangeFields(
+				$user, $d, $fallback_template, $current_parent
+			);
 
 			$row = [
 				"user" => (int)$user->id,
@@ -5495,9 +5650,14 @@
 		 * $fallback_template is the stored template of the page being edited, used when
 		 * the change itself doesn't switch template — see writePendingPageChange.
 		 *
+		 * $current_parent is that page's live parent, for the top-level nav clamp; null
+		 * when there is no live page (a NEW draft).
+		 *
 		 * @return array{0: array, 1: array, 2: array} [changes, tags_changes, open_graph_changes]
 		 */
-		private function pendingChangeFields($user, array $d, string $fallback_template = ""): array {
+		private function pendingChangeFields(
+			$user, array $d, string $fallback_template = "", ?int $current_parent = null
+		): array {
 			$changes = $d;
 			unset($changes["publish"]);
 
@@ -5506,11 +5666,32 @@
 				unset($changes["trunk"]);
 			}
 
+			// Legacy's other clamp on this path, one clause below the trunk one it sits
+			// next to in submitPageChange (admin.php:8022) and the twin of the pin
+			// performUpdate applies to a live write. Dropping the key means "unchanged",
+			// which is what legacy's "use what the current state is" amounts to for a
+			// change blob that only carries what is being edited.
+			if ($current_parent !== null && self::topLevelNavDenial($current_parent, $user) !== null) {
+				unset($changes["in_nav"]);
+			}
+
 			if (isset($changes["resources"]) && is_array($changes["resources"])) {
 				$changes["resources"] = $this->normalizePageResources(
 					$this->pendingChangeTemplate($changes, $fallback_template),
 					$changes["resources"]
 				);
+			}
+
+			// Tokenized here as well as in the two live writers, because a queued
+			// change's blob is what allocatePageResources scans for the draft's own
+			// allocation rows and what the SPA's diff renders — and because legacy
+			// tokenizes on the pending path too (admin.php:8022's submitPageChange
+			// runs the same makeIPL as updatePage). Replaying it through
+			// performUpdate at publish would tokenize a second time, which is a no-op:
+			// makeIPL returns an `irl://` unchanged and getPageIDForPath finds no page
+			// behind an `ipl://`, so the value falls through replaceHardRoots intact.
+			if (isset($changes["external"])) {
+				$changes["external"] = self::storedExternalLink((string)$changes["external"]);
 			}
 
 			$tags_changes = array_key_exists("tags", $d) ? array_values($d["tags"] ?? []) : [];
@@ -5791,7 +5972,7 @@
 				"meta_description" => (string)($changes["meta_description"] ?? ""),
 				"seo_invisible" => !empty($changes["seo_invisible"]),
 				"template" => (string)($changes["template"] ?? ""),
-				"external" => (string)($changes["external"] ?? ""),
+				"external" => LinkService::untokenize((string)($changes["external"] ?? "")),
 				"new_window" => !empty($changes["new_window"]),
 				"resources" => $changes["resources"] ?? new \stdClass(),
 				"archived" => !empty($changes["archived"]),
@@ -6566,7 +6747,11 @@
 				"title" => BigTree::safeEncode((string)($og["title"] ?? "")),
 				"description" => BigTree::safeEncode((string)($og["description"] ?? "")),
 				"type" => BigTree::safeEncode((string)($og["type"] ?? "")),
-				"image" => BigTree::safeEncode((string)($og["image"] ?? "")),
+				// Tokenized like `external` and like the entry path's own OG write
+				// (BigTreeAdmin::handleOpenGraph): the column is rendered through
+				// getOpenGraph, which untranslates, so a same-site image stored hard
+				// goes stale on the next move or domain change (audit #24 A1b).
+				"image" => BigTree::safeEncode(OpenGraphDomain::storedImage((string)($og["image"] ?? ""))),
 				// Derived, not authored: drawHeadTags() measures a local image with
 				// getimagesize() at render time, and a remote URL can't be measured
 				// without fetching it. A caller that knows them (the admin's own upload
@@ -6604,7 +6789,11 @@
 				"title" => $row["title"],
 				"description" => $row["description"],
 				"type" => $row["type"],
-				"image" => $row["image"],
+				// Decoded here rather than at each reader: this one method feeds the
+				// REST payload's `open_graph`, get_page's `og_image` and the update
+				// card's `from` side, and all three show the value to someone who will
+				// send it straight back (audit #24 A1b).
+				"image" => LinkService::untokenize((string)$row["image"]),
 				"image_width" => (int)$row["image_width"],
 				"image_height" => (int)$row["image_height"],
 			];
@@ -6624,7 +6813,11 @@
 				"meta_description" => Sanitize::decodeEntities($p["meta_description"]),
 				"seo_invisible" => Flag::isOn($p["seo_invisible"]),
 				"template" => $p["template"],
-				"external" => Sanitize::decodeEntities($p["external"]),
+				// Stored through makeIPL since audit #24 A1, so the column holds a token
+				// for any link that points at this site. The SPA renders `external` as a
+				// plain text input and PATCHes it straight back, so it is decoded here
+				// and re-tokenized by the writer — the round trip legacy's admin had.
+				"external" => LinkService::untokenize(Sanitize::decodeEntities($p["external"])),
 				"new_window" => Flag::isOn($p["new_window"]),
 				"resources" => json_decode($p["resources"] ?: "{}", true) ?: new \stdClass(),
 				"archived" => Flag::isOn($p["archived"]),

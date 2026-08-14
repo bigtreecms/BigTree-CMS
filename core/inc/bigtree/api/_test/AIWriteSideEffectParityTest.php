@@ -235,9 +235,13 @@
 		// The queued path takes its fallback as an argument, so the caller has to
 		// actually resolve one — an unpassed default would satisfy the check above
 		// and normalize against "" exactly as before.
+		// Matched as a pattern rather than a literal because the same read now carries
+		// the page's `parent` for the top-level nav clamp (audit #24 A2) — what this
+		// leg is asserting is that the template is resolved from the page being
+		// edited, not the exact column list it arrives in.
 		$caller = ai_surface_method_body($service, "writePendingPageChange");
 		T::ok(
-			strpos($caller, "SELECT template FROM bigtree_pages") !== false,
+			preg_match('/SELECT [^"]*\btemplate\b[^"]*FROM bigtree_pages WHERE id = \?/', $caller) === 1,
 			"and the caller resolves that fallback from the page being edited"
 		);
 

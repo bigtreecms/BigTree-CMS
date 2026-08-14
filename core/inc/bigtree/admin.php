@@ -6105,7 +6105,12 @@
 			}
 
 			if (!$og_image && !empty($data_source["image"])) {
-				$og_image = BigTreeCMS::replaceHardRoots($data_source["image"]);
+				// makeIPL rather than replaceHardRoots alone (audit #24 A1b): the root
+				// swap only survives a domain change, while an image that is a page
+				// resource or a library file also has to survive the file moving —
+				// makeIPL falls through to replaceHardRoots for everything else, so
+				// this is a strict superset of what was here.
+				$og_image = static::makeIPL($data_source["image"]);
 				$og_image_width = $data_source["image_width"];
 				$og_image_height = $data_source["image_height"];
 			}

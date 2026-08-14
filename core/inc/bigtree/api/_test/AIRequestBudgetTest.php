@@ -92,6 +92,10 @@
 			"folder_row" => 60,
 			// A relation candidate: an id and a label.
 			"relation_row" => 90,
+			// One 404 log row, JSON-encoded: seven keys, a broken URL, a redirect
+			// destination and a query string, each of which the column allows 1024
+			// characters of.
+			"log_row" => 2200,
 		];
 	}
 
@@ -154,6 +158,15 @@
 				"window" => \BigTree\Services\ResourceService::class . "::AI_RESOURCE_FOLDER_CAP",
 				"worst_case" => ai_service_constant(\BigTree\Services\ResourceService::class, "AI_RESOURCE_FOLDER_CAP")
 					* $shapes["folder_row"],
+			],
+			// rows × one encoded log row. Two 1024-char URL columns per row means the
+			// window alone is well over the ceiling, so this one leans on fitRows.
+			"list_404s" => [
+				"class" => \BigTree\Services\FourOhFourService::class,
+				"method" => "aiList404s",
+				"window" => \BigTree\Services\FourOhFourService::class . "::AI_404_LIMIT",
+				"worst_case" => ai_service_constant(\BigTree\Services\FourOhFourService::class, "AI_404_LIMIT")
+					* $shapes["log_row"],
 			],
 			// candidates × one id/label row
 			"get_relation_options" => [
@@ -227,6 +240,7 @@
 			$pages . "::AI_PAGE_TREE_CAP" => ["row_window", "get_page_tree's window"],
 			$resources . "::AI_RESOURCE_FOLDER_CAP" => ["row_window", "list_resources' subfolder window"],
 			$auto . "::AI_RELATION_OPTION_CAP" => ["row_window", "get_relation_options' window"],
+			\BigTree\Services\FourOhFourService::class . "::AI_404_LIMIT" => ["row_window", "list_404s' window"],
 
 			$auto . "::AI_ENTRY_LIST_VALUE_CAP" => ["value_cap", "per column in a list row"],
 			$auto . "::AI_ENTRY_READ_CAP" => ["value_cap", "per column in one entry"],
