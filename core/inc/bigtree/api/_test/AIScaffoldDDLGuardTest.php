@@ -155,12 +155,27 @@
 	 *
 	 * Latent until audit #21 B2 put `many-to-many` in the field-type catalog, which
 	 * is why both landed together.
+	 *
+	 * The two tables the relation names are created here since audit #25 A1: a plan
+	 * whose relation points at a table that isn't there is now refused before any DDL
+	 * runs, so a fixture that named two tables nobody had made was testing the
+	 * landing-view rule against a module that can no longer be built.
 	 */
 	function test_a_scaffolded_relation_is_not_mirrored_into_the_landing_view() {
 		if (!_scaffold_guard_sql_ready()) {
 
 			return;
 		}
+
+		SQL::query("CREATE TABLE IF NOT EXISTS `zz_scaffold_guard_other` (
+			`id` INT(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+			`title` VARCHAR(191) NOT NULL DEFAULT ''
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci");
+		SQL::query("CREATE TABLE IF NOT EXISTS `zz_scaffold_guard_join` (
+			`id` INT(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+			`mine` INT(11) NOT NULL DEFAULT '0',
+			`theirs` INT(11) NOT NULL DEFAULT '0'
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci");
 
 		$service = new ModuleService();
 		$plan = $service->scaffoldPlan(_scaffold_guard_body([
@@ -221,6 +236,9 @@
 			if (BigTree::tableExists($table)) {
 				SQL::query("DROP TABLE `{$table}`");
 			}
+
+			SQL::query("DROP TABLE IF EXISTS `zz_scaffold_guard_join`");
+			SQL::query("DROP TABLE IF EXISTS `zz_scaffold_guard_other`");
 		}
 	}
 

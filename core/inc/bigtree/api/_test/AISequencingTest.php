@@ -875,3 +875,66 @@
 			"and names the result the backend returns"
 		);
 	}
+
+	/**
+	 * Audit #25 A1/D2: a relation whose target table doesn't exist *yet*.
+	 *
+	 * The existence check A1 added refuses a scaffold whose relation names a missing
+	 * table — but "build a Categories module, then a Press Releases module that
+	 * relates to it" is exactly the two-proposal intent this machinery exists for: the
+	 * table genuinely does not exist until the first card is approved. The descriptor
+	 * ModuleService emits keys on `table` rather than `name`, because that is the
+	 * value a scaffold's payload and card carry, so this is the leg that proves the
+	 * explicit `keys` is read.
+	 */
+	function test_a_scaffold_relation_resolves_against_a_pending_scaffold() {
+		$descriptor = [
+			"error" => "The “Categories” field's \"table\" setting names the table `zz_categories`, which doesn't "
+				. "exist.",
+			"prior_change" => [
+				"tool" => "scaffold_module",
+				"value" => "zz_categories",
+				"keys" => ["table"],
+				"label" => "A table called `zz_categories`",
+			],
+		];
+
+		// Nothing staged: the refusal stands as the flat error the model has to act on.
+		[, $alone] = ai_sequencing_pair();
+		$alone->validation = $descriptor;
+		$result = $alone->execute([], new AIToolContext(ai_fake_user(2), 8, "5"));
+
+		T::equals($result->type, AIToolResult::ERROR, "with nothing pending the existence refusal stands");
+
+		// The module that would build that table is on a card: the answer becomes the
+		// order, not the refusal.
+		[$store, $tool] = ai_sequencing_pair();
+		$store->addPending(
+			"prop-scaffold-1",
+			"scaffold_module",
+			"Scaffold a new module “Categories” (route categories): create the table `zz_categories`…",
+			["name" => "Categories", "table" => "zz_categories"]
+		);
+		$tool->validation = $descriptor;
+		$sequenced = $tool->execute([], new AIToolContext(ai_fake_user(2), 8, "5"));
+
+		T::equals($sequenced->type, AIToolResult::NEEDS_PRIOR_CHANGE, "a staged scaffold changes the answer");
+		T::equals($sequenced->proposal_id, "prop-scaffold-1", "and names the card to approve first");
+
+		// …and only for the table it actually builds. `name` matching would have hit
+		// here, which is why the descriptor names its keys.
+		[$other, $mismatched] = ai_sequencing_pair();
+		$other->addPending(
+			"prop-scaffold-9",
+			"scaffold_module",
+			"Scaffold a new module “Categories”…",
+			["name" => "Categories", "table" => "zz_something_else"]
+		);
+		$mismatched->validation = $descriptor;
+
+		T::equals(
+			$mismatched->execute([], new AIToolContext(ai_fake_user(2), 8, "5"))->type,
+			AIToolResult::ERROR,
+			"a pending scaffold that builds a different table is not the prerequisite"
+		);
+	}

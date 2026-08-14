@@ -4318,10 +4318,17 @@
 		 *
 		 * Returned as "Title (column)" strings for a human-readable error.
 		 *
+		 * $existing is the content the entry already carries ([] when creating), the
+		 * same parameter aiRequiredUnsettableResources takes for a page: a required
+		 * field that already holds a value is not a gap. It exists for the publish-time
+		 * re-ask (audit #25 A2), where the question is about a draft that may have
+		 * filled some of these in.
+		 *
 		 * @param array<string,mixed>|null $form
+		 * @param array<string,mixed> $existing
 		 * @return list<string>
 		 */
-		private function aiRequiredUnsettableFields(?array $form): array {
+		private function aiRequiredUnsettableFields(?array $form, array $existing = []): array {
 			$blocked = [];
 
 			foreach ((array)($form["fields"] ?? []) as $field) {
@@ -4360,10 +4367,71 @@
 					continue;
 				}
 
+				$value = $existing[$column] ?? "";
+
+				if (is_array($value) ? (bool)$value : trim((string)$value) !== "") {
+					continue;
+				}
+
 				$blocked[] = (string)($field["title"] ?? $column) . " ({$column}, {$type})";
 			}
 
 			return $blocked;
+		}
+
+		/**
+		 * The required-but-unauthorable fields a queued change would publish still
+		 * empty, resolved from the module and table the change row names.
+		 *
+		 * Audit #25 A2. Both create gates relax the blocked-required refusal for a
+		 * draft on purpose — a draft is the "a human completes this" case — and the
+		 * card discloses it at that moment. Then the draft leaves the conversation and
+		 * nothing asked again: the publish seam built a diff, said "It will go live
+		 * immediately once you approve", and ran no required check of any kind. The
+		 * assistant is the only writer that can put such a change in the queue (the
+		 * entry editor validates before submitting), and also the tool that publishes
+		 * it.
+		 *
+		 * The module knowledge lives here rather than in PendingChangeService so the
+		 * form is resolved by the same rule the write path resolves it by: by table,
+		 * because a module with more than one form has one table each.
+		 *
+		 * @param array<string,mixed> $data The change's data, merged over the live row.
+		 * @return list<string>
+		 */
+		public function aiChangeBlockedRequired(string $module_id, string $table, array $data): array {
+			if ($module_id === "") {
+
+				return [];
+			}
+
+			$module = BigTreeJSONDB::get("modules", $module_id) ?: BigTreeJSONDB::get("modules", $module_id, "route");
+
+			if (!$module) {
+
+				return [];
+			}
+
+			$forms = array_values(is_array($module["forms"] ?? null) ? $module["forms"] : []);
+			$form = null;
+
+			foreach ($forms as $candidate) {
+				if ($table !== "" && (string)($candidate["table"] ?? "") === $table) {
+					$form = $candidate;
+
+					break;
+				}
+			}
+
+			// A form whose `table` is empty inherits the module's, so a single-form
+			// module still resolves when the row's table doesn't literally match. More
+			// than one and no match is not something to guess at — each writes to its
+			// own table, and reporting the wrong form's gaps is worse than reporting none.
+			if ($form === null && count($forms) === 1) {
+				$form = $forms[0];
+			}
+
+			return $this->aiRequiredUnsettableFields($form, $data);
 		}
 
 		/**

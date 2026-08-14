@@ -996,10 +996,15 @@
 		 * matters on a template switch, where the outgoing template may well have
 		 * populated the same resource id.
 		 *
+		 * Public because PendingChangeService asks the same question of a queued page
+		 * draft at publish time (audit #25 A2): the create gate relaxes for a draft on
+		 * purpose, and until this was re-asked nothing between that relaxation and the
+		 * live site ever mentioned it again.
+		 *
 		 * @param array<string,mixed> $existing
 		 * @return list<string>
 		 */
-		private function aiRequiredUnsettableResources(string $template, array $existing = []): array {
+		public function aiRequiredUnsettableResources(string $template, array $existing = []): array {
 			$row = $template !== "" ? BigTreeJSONDB::get("templates", $template) : null;
 
 			if (!$row) {
@@ -6059,7 +6064,16 @@
 			$new_path = ($parent_path ? $parent_path . "/" : "") . $page["route"];
 
 			SQL::update("bigtree_pages", $id, ["parent" => $new_parent, "path" => $new_path, "updated_at" => "NOW()"]);
+
+			// repathChildren matches `path LIKE '$old_path/%'` — descendants only — and
+			// it is the sole caller of recordRouteHistory and reindexPage on this path.
+			// So every descendant got a redirect and a fresh embedding while the page
+			// that actually moved got neither: its old URL 404d and its search index
+			// still held the old path. aiMovePage has done both since audit #11; this is
+			// the same act through REST (audit #25 B1).
+			$this->recordRouteHistory((string)$page["path"], $new_path);
 			$this->repathChildren($page["path"], $new_path);
+			$this->reindexPage((int)$id);
 
 			// Moving a trunk page changes the multi-site routing map (path-keyed).
 			if (Flag::isOn($page["trunk"])) $this->invalidateMultiSiteCache();

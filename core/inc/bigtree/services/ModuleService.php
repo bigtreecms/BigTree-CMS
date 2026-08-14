@@ -254,6 +254,31 @@
 				return ["error" => "Add at least one field with a title", "code" => "no_fields"];
 			}
 
+			// A field whose settings name a table — a relation's target, a db-populated
+			// list's source — is checked against the database before any DDL runs
+			// (audit #25 A1). The settings gate in front of the AI surface asks only
+			// whether the name is *present*, so any identifier-shaped string satisfied
+			// it and the CREATE TABLE went ahead with a field pointing at nothing;
+			// POST /modules/scaffold ran no settings check at all. Both callers land
+			// here, which is why it lives at plan time rather than in the AI gate: a
+			// module whose relation points at a missing table is broken whoever built
+			// it, and this is the last place it can still be refused for free.
+			foreach ($form_fields as $field) {
+				$target_violation = ModuleFormService::settingsTargetViolation($field);
+
+				if ($target_violation !== null) {
+
+					return [
+						"error" => (string)$target_violation["message"],
+						"code" => "invalid_field_settings",
+						// Named separately so the AI seam can tell "no such table" from
+						// "no such column": only the first can be covered by another
+						// pending proposal.
+						"missing_table" => (string)$target_violation["table"],
+					];
+				}
+			}
+
 			$route = $d["route"] ?? BigTreeCMS::urlify($name);
 
 			if (!Sanitize::isValidId((string)$route, 127, "-")) {
@@ -2162,6 +2187,28 @@
 			$plan = $this->scaffoldPlan($body);
 
 			if (isset($plan["error"]) || isset($plan["conflict"])) {
+				$missing_table = trim((string)($plan["missing_table"] ?? ""));
+
+				// "Build a Categories module, then a Press Releases module that relates
+				// to it" is the two-proposal intent audit #9 built the sequencing
+				// machinery for: the table genuinely does not exist until the first card
+				// is approved, so the honest answer is the order rather than a flat
+				// refusal (audit #25 D2). Keyed on `table`, not `name`, because that is
+				// the value a scaffold's payload and card carry.
+				if ($missing_table !== "") {
+
+					return [
+						"error" => (string)$plan["error"] . " Find one that does with get_module_schema (a module's "
+							. "form fields name their own tables) or get_module, or scaffold the module that owns "
+							. "it first.",
+						"prior_change" => [
+							"tool" => "scaffold_module",
+							"value" => $missing_table,
+							"keys" => ["table"],
+							"label" => "A table called `{$missing_table}`",
+						],
+					];
+				}
 
 				return ["error" => (string)($plan["error"] ?? $plan["conflict"])];
 			}

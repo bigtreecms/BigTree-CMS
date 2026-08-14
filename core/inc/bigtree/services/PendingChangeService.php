@@ -302,8 +302,7 @@
 		 * @return array<string,mixed>
 		 */
 		private function aiPresentPendingRow(array $row, bool $mine, bool $can_publish): array {
-
-			return [
+			$out = [
 				"id" => (int)$row["id"],
 				"title" => (string)$row["title"],
 				"table" => (string)$row["table"],
@@ -314,6 +313,26 @@
 				"can_publish" => $can_publish,
 				"date" => $row["date"],
 			];
+
+			// Carried on the list read as well as on the card, so the model reviewing
+			// the queue can see it before it proposes anything (audit #25 A2). The
+			// changes blob is deliberately not in the list query — it is a LONGTEXT and
+			// the editor path walks the queue 500 rows at a time — so it is read only
+			// for the rows that are actually returned, which the caller's limit bounds.
+			if (!array_key_exists("changes", $row)) {
+				$row["changes"] = SQL::fetchSingle(
+					"SELECT changes FROM bigtree_pending_changes WHERE id = ?",
+					(int)$row["id"]
+				);
+			}
+
+			$incomplete = $this->aiIncompleteRequired($row);
+
+			if ($incomplete) {
+				$out["incomplete_required"] = $incomplete;
+			}
+
+			return $out;
 		}
 
 		/**
@@ -359,7 +378,88 @@
 				"date" => $row["date"],
 				"is_new_item" => $row["item_id"] === null,
 				"changes" => $this->aiChangeDiff($row),
+				// What a publisher would put live unfilled. Said on the detail read as
+				// well as on the publish card, because this is the read the model makes
+				// when it is deciding whether to propose the publish at all (audit #25 A2).
+				"incomplete_required" => $this->aiIncompleteRequired($row),
 			]];
+		}
+
+		/**
+		 * The required fields a queued change would put live still empty.
+		 *
+		 * Audit #25 A2. `PageService::aiPageCreateGate` and
+		 * `AutoModuleService::aiEntryCreateGate` both relax their blocked-required
+		 * refusal for a draft — deliberately, because a draft is the "a human completes
+		 * this" case — and both disclose it on the create card. Nothing between that
+		 * card and the live site ever asked again: this seam built a diff and staged
+		 * "It will go live immediately once you approve" with no required check at all,
+		 * and the queue read carried no marker either, so the model reviewing the queue
+		 * couldn't see it.
+		 *
+		 * Disclosed rather than blocked (audit #25 D4): refusing would make the
+		 * assistant unable to publish changes the admin's own pending-changes screen
+		 * publishes, and would strand the draft with no in-chat way out.
+		 *
+		 * @param array<string,mixed> $row A bigtree_pending_changes row.
+		 * @return list<string>
+		 */
+		private function aiIncompleteRequired(array $row): array {
+			$changes = Json::decode($row["changes"] ?? "");
+			$table = (string)$row["table"];
+			$item_id = $row["item_id"] !== null ? (int)$row["item_id"] : 0;
+
+			if ($table === "bigtree_pages") {
+				$live = $item_id > 0
+					? SQL::fetch("SELECT template, resources FROM bigtree_pages WHERE id = ?", $item_id)
+					: null;
+				// A change may switch the template, in which case the required set is
+				// the incoming one's — the same rule aiTemplateSwitchGaps applies.
+				$template = trim((string)($changes["template"] ?? ($live["template"] ?? "")));
+
+				if ($template === "") {
+
+					return [];
+				}
+
+				$stored = is_array($live) ? Json::decode($live["resources"] ?? "") : [];
+				$proposed = is_array($changes["resources"] ?? null) ? $changes["resources"] : [];
+
+				return (new PageService())->aiRequiredUnsettableResources($template, array_merge($stored, $proposed));
+			}
+
+			$existing = [];
+
+			if ($item_id > 0 && $table !== "") {
+				$live = SQL::fetch("SELECT * FROM `" . str_replace("`", "", $table) . "` WHERE id = ?", $item_id);
+				$existing = is_array($live) ? $live : [];
+			}
+
+			return (new AutoModuleService())->aiChangeBlockedRequired(
+				(string)($row["module"] ?? ""),
+				$table,
+				array_merge($existing, $changes)
+			);
+		}
+
+		/**
+		 * The one sentence the create card said and the publish card didn't, so both
+		 * halves of a draft's life describe it the same way.
+		 *
+		 * @param list<string> $incomplete
+		 */
+		private static function aiIncompleteRequiredNote(array $incomplete): string {
+			if (!$incomplete) {
+
+				return "";
+			}
+
+			$one = count($incomplete) === 1;
+
+			return " Note that " . implode(", ", $incomplete) . " " . ($one ? "is" : "are")
+				. " required and still empty — the assistant can't fill "
+				. ($one ? "it" : "them") . ", so publishing puts the "
+				. ($one ? "gap" : "gaps") . " live.";
 		}
 
 		/**
@@ -548,20 +648,33 @@
 			$diff = $this->aiChangeDiff($row);
 			$count = count($diff);
 
+			// Recomputed here rather than carried from the create card: the draft may
+			// have been re-saved since, and the template or form behind it can gain a
+			// required field inside its life (audit #25 A2).
+			$incomplete = $this->aiIncompleteRequired($row);
+			$preview = [
+				"action" => "publish_pending_change",
+				"change_id" => $id,
+				"title" => $title,
+				"table" => (string)$row["table"],
+				"type" => (string)$row["type"],
+				"is_new_item" => $row["item_id"] === null,
+				"fields" => $diff,
+			];
+
+			if ($incomplete) {
+				// The key ProposalCard already renders as the needs-a-person warning, so
+				// the publish card discloses exactly what the create card disclosed.
+				$preview["incomplete_required"] = $incomplete;
+			}
+
 			return [
 				"ok" => true,
 				"summary" => "Publish the pending change “{$title}”"
 					. ($count ? " ({$count} field" . ($count === 1 ? "" : "s") . " affected)" : "")
-					. ". It will go live immediately once you approve.",
-				"preview" => [
-					"action" => "publish_pending_change",
-					"change_id" => $id,
-					"title" => $title,
-					"table" => (string)$row["table"],
-					"type" => (string)$row["type"],
-					"is_new_item" => $row["item_id"] === null,
-					"fields" => $diff,
-				],
+					. ". It will go live immediately once you approve."
+					. self::aiIncompleteRequiredNote($incomplete),
+				"preview" => $preview,
 				"payload" => [
 					"change_id" => $id,
 				],

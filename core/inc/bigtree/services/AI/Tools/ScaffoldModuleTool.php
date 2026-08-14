@@ -105,7 +105,10 @@
 										"description" => "Optional per-field settings for the types that need "
 											. "configuring: a one-to-many's `table` and `title_column`, a "
 											. "many-to-many's `mtm-*` keys, an image field's `directory`. A list "
-											. "field's choices go in `options` above.",
+											. "field's choices go in `options` above. Any table named here has to "
+											. "already exist — nothing in this tool creates one — so take the name "
+											. "from get_module_schema or get_module rather than guessing it, and "
+											. "scaffold the module that owns it first if it isn't there yet.",
 									],
 								],
 								"required" => ["title", "type"],

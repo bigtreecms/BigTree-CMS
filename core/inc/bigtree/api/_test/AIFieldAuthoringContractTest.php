@@ -629,3 +629,269 @@
 
 		T::equals($configured, null, "a fully configured one is accepted");
 	}
+
+	/**
+	 * Audit #25 guard E1: the settings gate checks existence, not just presence.
+	 *
+	 * `aiMissingSettings` judges every required setting by one test — non-empty — so
+	 * any identifier-shaped string satisfied a relation's `table` and `title_column`,
+	 * and a scaffold naming two tables that do not exist staged `ok: true` with an
+	 * irreversible `CREATE TABLE` behind the approve button. The field it built is one
+	 * `relationOptionsFor` — the seam behind the admin's own relation picker and
+	 * behind `get_relation_options` — refuses to read, so the assistant could author a
+	 * field and be told three turns later that a developer has to go finish it.
+	 *
+	 * Fails on the tree before audit #25: the same call stages cleanly.
+	 */
+	function test_a_scaffold_naming_a_table_that_does_not_exist_is_refused() {
+		if (!function_exists("parity_db_available") || !parity_db_available()) {
+
+			return;
+		}
+
+		$modules = new \BigTree\Services\ModuleService();
+		$missing = $modules->aiValidateModuleScaffold([
+			"name" => "ZZ Relation Target Probe",
+			"table" => "zz_relation_probe_" . substr(md5((string)mt_rand()), 0, 8),
+			"fields" => [
+				["title" => "Headline", "type" => "text"],
+				["title" => "Region", "type" => "one-to-many", "settings" => [
+					"table" => "zz_no_such_regions_table",
+					"title_column" => "name",
+				]],
+			],
+		], ai_wiring_user(2));
+
+		T::ok(empty($missing["ok"]), "a relation pointing at a missing table doesn't stage");
+		T::ok(
+			strpos((string)($missing["error"] ?? ""), "zz_no_such_regions_table") !== false,
+			"and the refusal names the table (" . (string)($missing["error"] ?? "") . ")"
+		);
+		T::ok(
+			strpos((string)($missing["error"] ?? ""), "Region") !== false,
+			"and the field it belongs to"
+		);
+
+		// A table that doesn't exist *yet* is the two-proposal case audit #9 built the
+		// sequencing machinery for, so the refusal carries the descriptor that lets the
+		// tool layer resolve it against this conversation's own pending cards.
+		T::equals(
+			(string)($missing["prior_change"]["tool"] ?? ""),
+			"scaffold_module",
+			"the refusal offers the sequencing hint"
+		);
+		T::equals(
+			$missing["prior_change"]["keys"] ?? null,
+			["table"],
+			"keyed on `table`, which is what a scaffold's payload and card carry"
+		);
+		T::equals(
+			(string)($missing["prior_change"]["value"] ?? ""),
+			"zz_no_such_regions_table",
+			"for the table that is missing"
+		);
+
+		// The column half of the same rule, and it is not a sequencing case: the table
+		// is there and the column named on it is not.
+		$bad_column = $modules->aiValidateModuleScaffold([
+			"name" => "ZZ Relation Column Probe",
+			"table" => "zz_relation_probe_" . substr(md5((string)mt_rand()), 0, 8),
+			"fields" => [
+				["title" => "Region", "type" => "one-to-many", "settings" => [
+					"table" => "bigtree_pages",
+					"title_column" => "zz_not_a_column",
+				]],
+			],
+		], ai_wiring_user(2));
+
+		T::ok(empty($bad_column["ok"]), "a descriptor column that isn't on the table doesn't stage");
+		T::ok(
+			strpos((string)($bad_column["error"] ?? ""), "zz_not_a_column") !== false,
+			"and the refusal names the column (" . (string)($bad_column["error"] ?? "") . ")"
+		);
+		T::ok(
+			!isset($bad_column["prior_change"]),
+			"with no sequencing hint — nothing pending can add a column to a table that is already there"
+		);
+
+		// …and a relation that names a real table and a real column on it still
+		// authors, which is the half that keeps this from being "refuse relations".
+		$real = $modules->aiValidateModuleScaffold([
+			"name" => "ZZ Relation Real Probe",
+			"table" => "zz_relation_probe_" . substr(md5((string)mt_rand()), 0, 8),
+			"fields" => [
+				["title" => "Region", "type" => "one-to-many", "settings" => [
+					"table" => "bigtree_pages",
+					"title_column" => "nav_title",
+				]],
+			],
+		], ai_wiring_user(2));
+
+		T::ok(!empty($real["ok"]), "a real relation target still stages (" . (string)($real["error"] ?? "") . ")");
+	}
+
+	/**
+	 * Audit #25 guard E2: the authoring gate and the read seam agree.
+	 *
+	 * A1 is what the two halves drifting apart looks like — the read seam
+	 * (`relationOptionsFor`) dereferenced settings the authoring gate had only ever
+	 * checked for presence. This is the drift guard: every setting that seam reads is
+	 * either one the authoring gate insists on *and* the existence check validates, or
+	 * it carries a written reason for being optional.
+	 *
+	 * Derived from the method's own body rather than from a list here, so a setting
+	 * added to the read seam later is covered without anyone remembering this file.
+	 */
+	function test_the_authoring_gate_covers_every_setting_the_relation_read_seam_uses() {
+		$targets = \BigTree\Services\ModuleFormService::TARGET_TABLE_SETTINGS;
+		$required = \BigTree\Api\Resources::AI_RENDER_REQUIRED_SETTINGS;
+
+		// Settings relationOptionsFor reads that nothing has to insist on, each with
+		// the reason it is safe to leave unset.
+		$optional = [
+			"sort_by_column" => "Sanitize::orderClause falls back to the descriptor column when the sort names "
+				. "nothing, so an unset sort orders by title rather than failing.",
+			"mtm-sort" => "The same fallback on the many-to-many side.",
+		];
+
+		$body = ai_surface_method_body(\BigTree\Services\ModuleFormService::class, "relationOptionsFor");
+		preg_match_all('/\$settings\["([^"]+)"\]/', $body, $matches);
+
+		$relations = ["one-to-many", "many-to-many"];
+
+		// Both halves have to know about both relation types before anything below can
+		// compare them — a type missing from either map is the drift itself.
+		T::equals(
+			implode(", ", array_values(array_diff($relations, array_keys($targets)))),
+			"",
+			"the existence check covers every relation field type"
+		);
+		T::equals(
+			implode(", ", array_values(array_diff($relations, array_keys($required)))),
+			"",
+			"and so does the authoring gate"
+		);
+
+		$covered = [];
+
+		foreach ($relations as $type) {
+			foreach ($targets[$type] as $pair) {
+				$covered[$pair["table"]] = true;
+				$covered[$pair["column"]] = true;
+
+				// The superset claim itself: what the existence check dereferences is
+				// also what the authoring gate refuses to leave empty.
+				T::ok(
+					in_array($pair["table"], $required[$type], true),
+					"the {$type} gate insists on \"{$pair["table"]}\", which the existence check dereferences"
+				);
+				T::ok(
+					in_array($pair["column"], $required[$type], true),
+					"…and on \"{$pair["column"]}\""
+				);
+			}
+		}
+
+		$unguarded = [];
+
+		foreach (array_unique($matches[1]) as $setting) {
+			if (isset($covered[$setting]) || isset($optional[$setting])) {
+
+				continue;
+			}
+
+			$unguarded[] = $setting;
+		}
+
+		T::equals(
+			implode(", ", $unguarded),
+			"",
+			"every setting relationOptionsFor reads is guarded at authoring time or written down as optional"
+		);
+
+		// …and no exemption outlives the read it excuses.
+		$stale = [];
+
+		foreach ($optional as $setting => $reason) {
+			T::ok($reason !== "", "the \"{$setting}\" exemption says why it is safe to leave unset");
+
+			if (!in_array($setting, $matches[1], true)) {
+				$stale[] = $setting;
+			}
+		}
+
+		T::equals(implode(", ", $stale), "", "no exemption names a setting the read seam no longer uses");
+	}
+
+	/**
+	 * Audit #25 guard E3: visibility filtering is applied to both halves of the
+	 * needed-settings list.
+	 *
+	 * `aiMissingSettings` seeds from the hardcoded const and *then* walks the field
+	 * type's own schema, applying `aiSettingIsVisible` only to the schema-derived
+	 * half. `list` is declared with `show_if list_type in ["", "static"]`, so a
+	 * db-populated list — configured exactly as the Module Designer configures one —
+	 * was refused for having no static choices, and handed a correction that would
+	 * have silently thrown the db source away.
+	 *
+	 * Fails on the tree before audit #25: the db-configured field is refused.
+	 */
+	function test_a_db_populated_list_is_not_asked_for_static_choices() {
+		$db = \BigTree\Api\Resources::aiUnconfigurableFieldError(
+			[[
+				"id" => "Source",
+				"type" => "list",
+				"settings" => [
+					"list_type" => "db",
+					"pop-table" => "bigtree_pages",
+					"pop-description" => "nav_title",
+				],
+			]],
+			[],
+			"module"
+		);
+
+		T::equals($db, null, "a db-populated list authors clean (" . (string)$db . ")");
+
+		// The rule it replaces is still there: a static list with no choices is an
+		// empty select nobody can satisfy, and the correction names the argument that
+		// fixes it.
+		$static = \BigTree\Api\Resources::aiUnconfigurableFieldError(
+			[["id" => "Size", "type" => "list"]],
+			[],
+			"module"
+		);
+
+		T::ok($static !== null, "a static list with no choices is still refused");
+		T::ok(strpos((string)$static, "\"options\"") !== false, "and still names the argument that fixes it");
+
+		// Step 7: the other three entries in the const are unaffected because their
+		// descriptors declare no `show_if` — asserted rather than assumed, since the
+		// filter above is a no-op for them only as long as that stays true.
+		$unconditional = [];
+
+		foreach (\BigTree\Api\Resources::AI_RENDER_REQUIRED_SETTINGS as $type => $settings) {
+			$schema = [];
+
+			foreach (\BigTree\Services\FieldTypeService::settingsSchema($type) as $descriptor) {
+				$schema[(string)($descriptor["id"] ?? "")] = $descriptor;
+			}
+
+			foreach ($settings as $setting) {
+				if ($type === "list" && $setting === "list") {
+
+					continue;
+				}
+
+				if (is_array($schema[$setting]["show_if"] ?? null) || isset($schema[$setting]["contexts"])) {
+					$unconditional[] = "{$type}.{$setting}";
+				}
+			}
+		}
+
+		T::equals(
+			implode(", ", $unconditional),
+			"",
+			"`list` is the only render-required setting hidden behind a condition; the rest are unconditional"
+		);
+	}

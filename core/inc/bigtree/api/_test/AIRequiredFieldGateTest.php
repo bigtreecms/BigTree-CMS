@@ -365,3 +365,128 @@
 			BigTreeJSONDB::delete("templates", $id);
 		}
 	}
+
+	/**
+	 * Audit #25 guard E4: the publish card discloses what the create card disclosed.
+	 *
+	 * Both create gates relax the blocked-required refusal for a draft on purpose — a
+	 * draft is the "a human completes this" case — and both say so on the card
+	 * (`incomplete_required` plus a sentence in the mode note). Then the draft leaves
+	 * that conversation and nothing ever re-asked: `aiValidatePublishChange` built a
+	 * diff and staged "It will go live immediately once you approve" with no required
+	 * check of any kind, and the queue read carried no marker either.
+	 *
+	 * The asymmetry is on the authoring side. The admin UI cannot produce this draft —
+	 * the page editor validates required fields before submitting — so the assistant
+	 * is the only writer that can queue a change with an empty required field, and
+	 * also the tool that publishes it, to a publisher shown nothing about it.
+	 *
+	 * Fails on the tree before audit #25: the card names nothing.
+	 */
+	function test_ai_publish_card_names_the_required_fields_a_draft_left_empty() {
+		if (!function_exists("parity_db_available") || !parity_db_available()) {
+
+			return;
+		}
+
+		// Seeded rather than borrowed: the queue row has a foreign key onto
+		// bigtree_users, and a fresh CI install has no users at all.
+		$owner = parity_seed_user();
+		$template = "zz_publish_gate_" . bin2hex(random_bytes(4));
+		BigTreeJSONDB::insert("templates", [
+			"id" => $template,
+			"name" => "Publish Gate Fixture",
+			"routed" => "",
+			"level" => 0,
+			"module" => "",
+			"resources" => [
+				["id" => "headline", "type" => "text", "title" => "Headline", "settings" => ["validation" => "required"]],
+				["id" => "hero", "type" => "image", "title" => "Hero", "settings" => ["validation" => "required"]],
+			],
+		]);
+
+		$change_id = (int)SQL::insert("bigtree_pending_changes", [
+			"user" => $owner,
+			"date" => "NOW()",
+			"title" => "ZZ Publish Gate Draft",
+			"table" => "bigtree_pages",
+			"item_id" => null,
+			"changes" => json_encode([
+				"template" => $template,
+				"nav_title" => "Publish Gate Draft",
+				"resources" => ["headline" => "Filled in"],
+			]),
+			"mtm_changes" => "[]",
+			"tags_changes" => "[]",
+			"open_graph_changes" => "[]",
+			"type" => "NEW",
+			"module" => "",
+			"pending_page_parent" => 0,
+		]);
+
+		try {
+			$svc = new \BigTree\Services\PendingChangeService();
+			$publisher = ai_wiring_user(2);
+			$validation = $svc->aiValidatePublishChange(["change_id" => $change_id], $publisher);
+
+			T::ok(!empty($validation["ok"]), "the publish stages (" . (string)($validation["error"] ?? "") . ")");
+			T::equals(
+				$validation["preview"]["incomplete_required"] ?? null,
+				["Hero (hero, image)"],
+				"the card carries the required field the draft left empty"
+			);
+			T::ok(
+				strpos((string)$validation["summary"], "Hero") !== false,
+				"and the summary names it, which is what the model reads back"
+			);
+			// The required field the draft *did* fill is not a gap — reporting it would
+			// make the disclosure noise a publisher learns to skip past.
+			T::ok(
+				strpos((string)$validation["summary"], "Headline") === false,
+				"a required field the draft filled in is not reported"
+			);
+
+			// The same answer on both reads the model makes while reviewing the queue,
+			// so it can see this before it proposes the publish at all.
+			$detail = $svc->aiGetPendingChange($change_id, $publisher);
+			T::equals(
+				$detail["pending_change"]["incomplete_required"] ?? null,
+				["Hero (hero, image)"],
+				"get_pending_change carries it too"
+			);
+
+			$listed = null;
+
+			foreach ($svc->aiPendingChanges(50, $publisher)["pending_changes"] as $row) {
+				if ((int)$row["id"] === $change_id) {
+					$listed = $row;
+				}
+			}
+
+			T::equals(
+				$listed["incomplete_required"] ?? null,
+				["Hero (hero, image)"],
+				"and so does the queue listing"
+			);
+
+			// Fill it in and the disclosure goes away — this is a statement about the
+			// draft, not about the template.
+			SQL::update("bigtree_pending_changes", $change_id, [
+				"changes" => json_encode([
+					"template" => $template,
+					"nav_title" => "Publish Gate Draft",
+					"resources" => ["headline" => "Filled in", "hero" => "files/hero.jpg"],
+				]),
+			]);
+
+			$complete = $svc->aiValidatePublishChange(["change_id" => $change_id], $publisher);
+			T::ok(
+				!isset($complete["preview"]["incomplete_required"]),
+				"a complete draft's card says nothing about required fields"
+			);
+		} finally {
+			parity_delete_pending($change_id);
+			parity_delete_users($owner);
+			BigTreeJSONDB::delete("templates", $template);
+		}
+	}

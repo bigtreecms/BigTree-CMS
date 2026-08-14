@@ -475,7 +475,134 @@
 
 			return $schema;
 		}
-	
+
+		/**
+		 * Every (table setting, column setting) pair a field type's configuration
+		 * points at, for the three types whose settings name a table the read seams
+		 * later dereference.
+		 *
+		 * This is the authoring-time half of what `relationOptionsFor` and
+		 * `resolveDatabaseList` require at read time, expressed as data so the two can
+		 * be compared rather than kept in step by hand: `table` / `title_column` for a
+		 * one-to-many, the other-table and connecting-table triples for a
+		 * many-to-many, and `pop-table` / `pop-description` for a db-populated list.
+		 * `id` marks the tables the read seam `SELECT`s an id column out of — the
+		 * connecting table is joined on its own two id columns instead, so it doesn't
+		 * need one.
+		 */
+		public const TARGET_TABLE_SETTINGS = [
+			"one-to-many" => [
+				["table" => "table", "column" => "title_column", "id" => true],
+			],
+			"many-to-many" => [
+				["table" => "mtm-other-table", "column" => "mtm-other-descriptor", "id" => true],
+				["table" => "mtm-connecting-table", "column" => "mtm-my-id", "id" => false],
+				["table" => "mtm-connecting-table", "column" => "mtm-other-id", "id" => false],
+			],
+			"list" => [
+				["table" => "pop-table", "column" => "pop-description", "id" => true],
+			],
+		];
+
+		/**
+		 * Whether a field's settings name a table or column that isn't there.
+		 *
+		 * Audit #25 A1. The completeness gate in front of the authoring surfaces
+		 * (`Resources::aiMissingSettings`) asks only whether a relation's target is
+		 * *named*, so any identifier-shaped string satisfied it — and a scaffold could
+		 * run an irreversible `CREATE TABLE` for a form carrying a field that points at
+		 * nothing. `relationOptionsFor`, the seam behind the admin's own relation
+		 * picker and behind `get_relation_options`, has always required the table to
+		 * describe and the descriptor column to be on it, so the assistant could build
+		 * a field and then, three turns later, be told by the read seam that a
+		 * developer has to go finish it.
+		 *
+		 * Deliberately existence only. A setting left empty is the presence rule's
+		 * business — it has its own message, and it is checked on the authoring path
+		 * where the settings object comes from a model rather than from a picker.
+		 *
+		 * Returns the missing table separately from the message, because "this table
+		 * doesn't exist *yet*" is a legitimate state on the AI path: the caller turns
+		 * it into a `prior_change` when another pending proposal would create it.
+		 *
+		 * @param array<string,mixed> $field A form field, as stored ({title, type, settings}).
+		 * @return array{message:string,table:string}|null Null when every named target resolves.
+		 */
+		public static function settingsTargetViolation(array $field): ?array {
+			$type = (string)($field["type"] ?? "");
+			$pairs = self::TARGET_TABLE_SETTINGS[$type] ?? [];
+
+			if (!$pairs) {
+
+				return null;
+			}
+
+			$settings = is_array($field["settings"] ?? null) ? $field["settings"] : [];
+			$title = trim((string)($field["title"] ?? $field["column"] ?? $field["id"] ?? "")) ?: $type;
+			$described = [];
+
+			foreach ($pairs as $pair) {
+				$table = trim((string)($settings[$pair["table"]] ?? ""));
+
+				if ($table === "") {
+
+					continue;
+				}
+
+				if (!array_key_exists($table, $described)) {
+					// A name that isn't a bare identifier can't be a table here and must
+					// never reach the describe, which interpolates it. Existence is asked
+					// with tableExists first because describeTable runs a `SHOW CREATE
+					// TABLE` that errors on a name that isn't there — this seam is called
+					// precisely when that is the likely answer.
+					$schema = (preg_match('/^[A-Za-z0-9_]+$/', $table) && BigTree::tableExists($table))
+						? BigTree::describeTable($table)
+						: null;
+					$described[$table] = (is_array($schema) && !empty($schema["columns"])) ? $schema["columns"] : null;
+				}
+
+				$columns = $described[$table];
+
+				if ($columns === null) {
+
+					return [
+						"message" => "The “{$title}” field's \"{$pair["table"]}\" setting names the table `{$table}`, "
+							. "which doesn't exist. A field can only point at a table that is already there — "
+							. "nothing here creates one.",
+						"table" => $table,
+					];
+				}
+
+				if (!empty($pair["id"]) && empty($columns["id"])) {
+
+					return [
+						"message" => "The “{$title}” field's \"{$pair["table"]}\" setting names the table `{$table}`, "
+							. "which has no `id` column. The field reads its choices as `id` plus a descriptor "
+							. "column, so a table without one can't be its source.",
+						"table" => "",
+					];
+				}
+
+				$column = trim((string)($settings[$pair["column"]] ?? ""));
+
+				if ($column !== "" && empty($columns[$column])) {
+					$available = array_slice(array_keys($columns), 0, 20);
+
+					return [
+						"message" => "The “{$title}” field's \"{$pair["column"]}\" setting names the column "
+							. "`{$column}`, which is not on `{$table}`. That table's columns are: "
+							. implode(", ", $available)
+							. (count($columns) > count($available)
+								? " and " . (count($columns) - count($available)) . " more."
+								: "."),
+						"table" => "",
+					];
+				}
+			}
+
+			return null;
+		}
+
 		public static function getModuleForms($sort = "title", $module = false) {
 			$sort_parts = explode(" ", $sort);
 			$sort_column = $sort_parts[0] ?? "";

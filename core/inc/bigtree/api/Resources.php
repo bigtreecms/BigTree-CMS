@@ -339,6 +339,10 @@
 		 * supplement to the schema-derived rule below rather than the whole rule: a
 		 * static blocklist is what left `list` unguarded — and, on the value side, what
 		 * audit #11 A2 found naming ten field types that do not exist.
+		 *
+		 * Every entry here is still judged through the field type's own `show_if`
+		 * (audit #25 A3): `list` is declared as shown only when `list_type` is static,
+		 * so a db-populated list is not asked for static choices it has no use for.
 		 */
 		public const AI_RENDER_REQUIRED_SETTINGS = [
 			"matrix" => ["columns"],
@@ -476,13 +480,42 @@
 		 * @return list<string>
 		 */
 		private static function aiMissingSettings(string $type, array $settings, string $surface): array {
-			$needed = self::AI_RENDER_REQUIRED_SETTINGS[$type] ?? [];
 			// The same mapping aiFieldSettings resolves the seeded defaults through —
 			// read from the one const rather than spelled out again, since a second
 			// hand-written copy of a mapping is the drift audit #10 A4 is about.
 			$use_case = self::SURFACE_USE_CASES[$surface] ?? "templates";
+			$schema = \BigTree\Services\FieldTypeService::settingsSchema($type);
+			$descriptors = [];
 
-			foreach (\BigTree\Services\FieldTypeService::settingsSchema($type) as $descriptor) {
+			foreach ($schema as $descriptor) {
+				$descriptor_id = (string)($descriptor["id"] ?? "");
+
+				if ($descriptor_id !== "") {
+					$descriptors[$descriptor_id] = $descriptor;
+				}
+			}
+
+			// The hardcoded half went through no visibility filter at all, so a `list`
+			// field configured the way the Module Designer configures a db-driven one
+			// was refused for having no *static* choices — and told to supply them as
+			// "options", which would have silently thrown the db source away (audit #25
+			// A3). `show_if` is read from the field type's own schema rather than
+			// restated here, which is the same reason the schema-derived leg below is
+			// derived at all.
+			$needed = [];
+
+			foreach (self::AI_RENDER_REQUIRED_SETTINGS[$type] ?? [] as $setting_id) {
+				$descriptor = $descriptors[$setting_id] ?? null;
+
+				if ($descriptor !== null && !self::aiSettingIsVisible($descriptor, $settings, $use_case)) {
+
+					continue;
+				}
+
+				$needed[] = $setting_id;
+			}
+
+			foreach ($schema as $descriptor) {
 				$setting_id = (string)($descriptor["id"] ?? "");
 
 				// A `_`-prefixed descriptor is a composite editor control (image

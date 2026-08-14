@@ -27,6 +27,7 @@
 	 */
 
 	use BigTree\Services\AutoModuleService;
+	use BigTree\Services\PageService;
 	use BigTree\Services\PendingChangeService;
 
 	// — leg 1: static parity between the two writers of a module entry —
@@ -52,21 +53,65 @@
 	}
 
 	/**
-	 * The writer pairs. Each is one table written two ways: the REST request handler
-	 * and the AI approval seam.
+	 * The side effects a page *move* is supposed to have.
 	 *
-	 * @return array<string,array{rest:array{0:string,1:string},ai:array{0:string,1:string}}>
+	 * Audit #25 B1. The pair map below covered module entries only, which is exactly
+	 * why this went unseen: `PageService::move` updated the row and called
+	 * `repathChildren`, whose `path LIKE '$old_path/%'` match is descendants only —
+	 * and which is the sole caller of `recordRouteHistory` and `reindexPage` on that
+	 * path. So every descendant got a redirect and a fresh embedding while the page
+	 * that actually moved got neither: its old URL 404d and its search index still
+	 * held the old path. `aiMovePage` has done both since audit #11, with the reason
+	 * written down, which makes this the negative of the usual finding — the AI seam
+	 * was the more complete of the two.
+	 *
+	 * @return array<string,string> token => what it does
+	 */
+	function ai_page_move_side_effects(): array {
+
+		return [
+			"recordRouteHistory" => "the redirect from the moved page's own old URL, so existing links don't 404",
+			"repathChildren" => "the descendants' stored paths, plus a redirect and a re-index for each",
+			"reindexPage" => "the moved page's own embedding, which still holds the old path otherwise",
+			"invalidateMultiSiteCache" => "the path-keyed multi-site routing map, when a trunk moves",
+			"Hooks::fire" => "the page.moved event other services subscribe to",
+		];
+	}
+
+	/**
+	 * The writer pairs. Each is one record written two ways: the REST request handler
+	 * and the AI approval seam, with the side effects that act is supposed to have and
+	 * the file those effects have to be real calls in.
+	 *
+	 * Page move is the second pair, and the one this map should always have had: it is
+	 * the same act producing two different outcomes depending on who did it, which is
+	 * the thing this guard exists to prevent.
+	 *
+	 * @return array<string,array{rest:array{0:string,1:string},ai:array{0:string,1:string},
+	 *                            effects:array<string,string>,source:string}>
 	 */
 	function ai_write_side_effect_pairs(): array {
+		$entry_effects = ai_write_side_effects();
+		$module_source = "core/inc/bigtree/services/AutoModuleService.php";
 
 		return [
 			"module entry create" => [
 				"rest" => [AutoModuleService::class, "create"],
 				"ai" => [AutoModuleService::class, "aiCreateEntry"],
+				"effects" => $entry_effects,
+				"source" => $module_source,
 			],
 			"module entry update" => [
 				"rest" => [AutoModuleService::class, "update"],
 				"ai" => [AutoModuleService::class, "aiUpdateEntry"],
+				"effects" => $entry_effects,
+				"source" => $module_source,
+			],
+			"page move" => [
+				"rest" => [PageService::class, "move"],
+				"ai" => [PageService::class, "aiMovePage"],
+				"effects" => ai_page_move_side_effects(),
+				"source" => "core/inc/bigtree/services/PageService.php",
 			],
 		];
 	}
@@ -101,14 +146,16 @@
 	 * E1: the AI seam and the REST handler run the same side effects.
 	 *
 	 * Fails on `fireFormHooks` and `formPublishHook` as the tree stood at 7914f5813 —
-	 * the A1 defect, which every existing guard was structurally unable to see.
+	 * the A1 defect, which every existing guard was structurally unable to see. Fails
+	 * again on `recordRouteHistory` and `reindexPage` as it stood at 28f71d9c0, once
+	 * page move joined the pair map (audit #25 B1/E5).
 	 */
-	function test_both_writers_of_a_module_entry_run_the_same_side_effects() {
+	function test_both_writers_of_a_record_run_the_same_side_effects() {
 		$exemptions = ai_write_side_effect_exemptions();
 		$diverged = [];
 
 		foreach (ai_write_side_effect_pairs() as $pair => $seams) {
-			foreach (array_keys(ai_write_side_effects()) as $token) {
+			foreach (array_keys($seams["effects"]) as $token) {
 				$rest = ai_write_body_calls($seams["rest"][0], $seams["rest"][1], $token);
 				$ai = ai_write_body_calls($seams["ai"][0], $seams["ai"][1], $token);
 
@@ -125,7 +172,7 @@
 		T::equals(
 			implode(", ", $diverged),
 			"",
-			"every module-entry side effect runs on both the REST and the AI write path"
+			"every declared side effect runs on both the REST and the AI write path"
 		);
 	}
 
@@ -134,18 +181,21 @@
 	 * a guard checking for something that no longer exists, which passes forever.
 	 */
 	function test_the_declared_side_effects_all_exist() {
-		$source = (string)file_get_contents(SERVER_ROOT . "core/inc/bigtree/services/AutoModuleService.php");
 		$missing = [];
 
-		foreach (ai_write_side_effects() as $token => $reason) {
-			if (strpos($source, $token) === false) {
-				$missing[] = $token;
-			}
+		foreach (ai_write_side_effect_pairs() as $pair => $seams) {
+			$source = (string)file_get_contents(SERVER_ROOT . $seams["source"]);
 
-			T::ok($reason !== "", "the \"{$token}\" side effect says what it does");
+			foreach ($seams["effects"] as $token => $reason) {
+				if (strpos($source, $token) === false) {
+					$missing[] = "{$pair}: {$token}";
+				}
+
+				T::ok($reason !== "", "the {$pair} \"{$token}\" side effect says what it does");
+			}
 		}
 
-		T::equals(implode(", ", $missing), "", "every declared side effect is a call AutoModuleService actually makes");
+		T::equals(implode(", ", $missing), "", "every declared side effect is a call the service actually makes");
 	}
 
 	/**
