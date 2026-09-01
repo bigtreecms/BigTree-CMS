@@ -458,3 +458,128 @@
 			parity_delete_users($dev_id);
 		}
 	}
+
+	/**
+	 * Audit #26 B2: a queued tag change says it is riding along with somebody else's
+	 * draft, and whose.
+	 *
+	 * `aiQueueTagChange` merges into whatever change is already queued on the record —
+	 * `submitChange` replaces the change row wholesale, so there is no second queue row
+	 * to be had — and it re-stamps that row's `user` to whoever tagged. The card said
+	 * only "It will be queued as a pending change on this entry for a publisher to
+	 * review", which is true of a record with nothing queued and misleading of one
+	 * with a draft on it: the approver is being handed somebody else's edit as well,
+	 * and the original author's name comes off the queue.
+	 *
+	 * The clause appears only when it is true, which is the other half of the claim.
+	 */
+	function test_parity_ai_queued_tag_change_discloses_the_draft_it_joins() {
+		if (!parity_ai_processors_ready()) {
+
+			return;
+		}
+
+		$svc = new AutoModuleService();
+		$tags = new \BigTree\Services\TagService();
+		$module_id = parity_news_module_id();
+		$dev_id = parity_seed_user(["level" => 2, "name" => "ZZ Audit26 Author"]);
+		$dev = (object)["id" => $dev_id, "level" => 2, "permissions" => []];
+		[$editor_id, $editor] = parity_pending_entry_editor();
+		[$other_id, $other] = parity_pending_entry_editor();
+		$entry_id = 0;
+		$change_id = 0;
+		$tag_id = 0;
+
+		try {
+			$validated = $svc->aiValidateEntryCreate([
+				"module_id" => $module_id,
+				"data" => ["title" => "zz Audit26 Tag Disclosure " . bin2hex(random_bytes(3))],
+			], $dev);
+			$entry_id = (int)($svc->aiCreateEntry($validated["payload"], $dev)["entry_id"] ?? 0);
+			T::ok($entry_id > 0, "a live entry to tag");
+
+			$tag_name = "zz audit twentysix disclosure";
+			$tag_id = (int)SQL::insert("bigtree_tags", [
+				"tag" => $tag_name,
+				"route" => "zz-audit-twentysix-disclosure-" . bin2hex(random_bytes(3)),
+				"usage_count" => 0,
+			]);
+
+			// Nothing queued yet: the note says what it always said, and no more.
+			$clean = $tags->aiValidateAddTags([
+				"module_id" => $module_id,
+				"entry_id" => $entry_id,
+				"tags" => [$tag_name],
+			], $editor);
+			T::ok(!empty($clean["ok"]), "the tag change stages (" . (string)($clean["error"] ?? "") . ")");
+			T::ok(
+				strpos((string)$clean["summary"], "queued as a pending change") !== false,
+				"the card says the tag change will be queued"
+			);
+			T::ok(
+				strpos((string)$clean["summary"], "unpublished edit queued") === false,
+				"…and says nothing about a draft, because there isn't one"
+			);
+
+			// Now somebody else has an edit queued on the same entry.
+			$edit = $svc->aiValidateEntryUpdate([
+				"module_id" => $module_id,
+				"entry_id" => (string)$entry_id,
+				"data" => ["title" => "zz Audit26 Someone Elses Edit"],
+			], $other);
+			T::ok(!empty($edit["ok"]), "another editor's edit stages (" . (string)($edit["error"] ?? "") . ")");
+			$svc->aiUpdateEntry($edit["payload"], $other);
+
+			$change_id = (int)SQL::fetchSingle(
+				"SELECT id FROM bigtree_pending_changes WHERE `table` = 'timber_news' AND item_id = ?",
+				(string)$entry_id
+			);
+			T::ok($change_id > 0, "their draft is queued against the live entry");
+
+			$joined = $tags->aiValidateAddTags([
+				"module_id" => $module_id,
+				"entry_id" => $entry_id,
+				"tags" => [$tag_name],
+			], $editor);
+			T::ok(!empty($joined["ok"]), "the tag change still stages");
+
+			$summary = (string)$joined["summary"];
+			T::ok(
+				strpos($summary, "unpublished edit queued") !== false,
+				"the card now says an edit is already queued on this entry"
+			);
+			T::ok(
+				strpos($summary, "publish their edit too") !== false,
+				"…that approving it publishes that edit as well"
+			);
+			T::ok(
+				strpos($summary, "attributed to you") !== false,
+				"…and that the queue's attribution moves to the tagger"
+			);
+
+			// The tagger's own draft is a different sentence: nothing of anyone else's
+			// is being published, and the attribution does not move.
+			$mine = $tags->aiValidateAddTags([
+				"module_id" => $module_id,
+				"entry_id" => $entry_id,
+				"tags" => [$tag_name],
+			], $other);
+			T::ok(!empty($mine["ok"]), "and stages for the draft's own author");
+			T::ok(
+				strpos((string)$mine["summary"], "You already have an unpublished edit queued") !== false,
+				"whose card says it is their own edit this rides along with"
+			);
+			T::ok(
+				strpos((string)$mine["summary"], "attributed to you") === false,
+				"…and doesn't warn them about an attribution change that isn't one"
+			);
+		} finally {
+			if ($change_id) {
+				parity_delete_pending($change_id);
+			}
+
+			parity_delete_tags($tag_id);
+			parity_delete_news_entries($entry_id);
+			parity_delete_users($dev_id, $editor_id, $other_id);
+		}
+	}

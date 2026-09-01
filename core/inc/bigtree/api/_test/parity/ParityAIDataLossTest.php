@@ -443,7 +443,7 @@
 			$result = $svc->aiUpdateSetting(["id" => $id, "value" => "hijacked"], $admin);
 			T::equals((string)($result["mode"] ?? ""), "error", "approval refuses it too");
 
-			$listed = $svc->aiGetSettings("zz-audit5-system", 50, $admin);
+			$listed = $svc->aiGetSettings("zz-audit5-system", 50, 0, $admin);
 			$ids = array_map(function ($row) {
 
 				return (string)($row["id"] ?? "");

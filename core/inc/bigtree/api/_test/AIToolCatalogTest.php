@@ -110,7 +110,7 @@
 			/** @var array<string,mixed> */
 			public $settings = ["settings" => [["id" => "site-name", "value" => "Acme"]]];
 
-			public function aiGetSettings(string $query, int $limit, $user): array { return $this->settings; }
+			public function aiGetSettings(string $query, int $limit, int $offset, $user): array { return $this->settings; }
 			public function aiValidateSettingUpdate(array $args, $user): array { return $this->validation; }
 			public function aiUpdateSetting(array $payload, $user): array { $this->executed = $payload; return ["mode" => "updated"]; }
 		}

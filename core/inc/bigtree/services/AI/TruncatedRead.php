@@ -35,9 +35,9 @@
 		private const TAIL = 40;
 
 		/**
-		 * Every per-value cap an AI read seam applies to a module entry column or a
-		 * page content field. A write is judged against all of them, because the model
-		 * may have read the value through any of these seams.
+		 * Every per-value cap an AI read seam applies to a module entry column, a page
+		 * content field or a setting value. A write is judged against all of them,
+		 * because the model may have read the value through any of these seams.
 		 *
 		 * The ladder is here because a seam's declared cap is no longer the only cap
 		 * it can read at: a payload with more fields than the budget affords reads
@@ -54,6 +54,7 @@
 				\BigTree\Services\AutoModuleService::AI_ENTRY_READ_CAP,       // get_module_entry
 				\BigTree\Services\AutoModuleService::AI_ENTRY_LIST_VALUE_CAP, // list_module_entries
 				\BigTree\Services\PageService::AI_CONTENT_FIELD_CAP,          // get_page
+				\BigTree\Services\SettingService::AI_SETTING_VALUE_CAP,       // get_settings
 			], PayloadBudget::VALUE_CAP_LADDER)));
 		}
 
@@ -89,7 +90,15 @@
 					continue;
 				}
 
-				if (mb_substr(mb_substr($stored, 0, $cap), -self::TAIL) !== $ending) {
+				$prefix = mb_substr($stored, 0, $cap);
+				// Both forms of the cut, because strip() above rtrims: a cap that falls
+				// on a space — which prose hits about one time in six — leaves the model
+				// holding a value one character shorter than the prefix, and comparing
+				// only the untrimmed form missed every one of those. The settings read
+				// seam is where this showed (audit #26 B1), but the miss was never
+				// specific to it.
+				if (mb_substr($prefix, -self::TAIL) !== $ending
+					&& mb_substr(rtrim($prefix), -self::TAIL) !== $ending) {
 
 					continue;
 				}

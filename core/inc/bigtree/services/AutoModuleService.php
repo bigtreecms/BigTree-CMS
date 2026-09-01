@@ -2144,6 +2144,13 @@
 		 * other entry write already follows. Everything else already queued on the
 		 * change row is carried forward, because submitChange replaces it wholesale.
 		 *
+		 * "Everything else" includes the publish hook, and this seam used to pass a
+		 * literal null for it — so tagging an entry someone else had a draft queued on
+		 * erased the hook that draft stored, and approval is the only thing that could
+		 * ever have fired it (audit #26 A1). The value written back is the form's hook
+		 * *as it stands now*, which is what every other write site stores; carrying the
+		 * old row's value forward would preserve a stale hook name past a form edit.
+		 *
 		 * @param list<int> $tag_ids The complete resulting tag set.
 		 * @param object|array $user
 		 */
@@ -2152,7 +2159,18 @@
 				throw new AuthorizationException("Insufficient module permission to tag entry (e required)");
 			}
 
+			// The module record, for the form the hooks below hang off. Resolved the
+			// way aiResolveModuleForm resolves it, because the tag tools accept a route
+			// as well as an id.
+			$module = BigTreeJSONDB::get("modules", $module_id);
+
+			if (!is_array($module)) {
+				$module = BigTreeJSONDB::get("modules", $module_id, "route");
+			}
+
+			$module = is_array($module) ? $module : [];
 			$existing = $this->aiExistingEntryRelations($table, (string)$entry_id, false, true);
+			$tag_ids = array_values(array_map("intval", $tag_ids));
 
 			$this->bindLegacyAdmin($user);
 
@@ -2162,11 +2180,15 @@
 				$entry_id,
 				$existing["changes"],
 				$existing["mtm"],
-				array_values(array_map("intval", $tag_ids)),
-				null,
+				$tag_ids,
+				$this->formPublishHook($module, $table),
 				$existing["open_graph"]
 			);
 
+			// The same form hooks every other queueing site fires (:205, :2581, :3064).
+			// A tag change is a write to the entry like any other, and the form's `post`
+			// hook is how an extension hears about one.
+			$this->fireFormHooks($module, $table, $entry_id, $existing["changes"], $existing["mtm"], $tag_ids, false);
 			Hooks::fire("module_entry.pending_updated", [
 				"module" => $module_id, "table" => $table, "id" => $entry_id, "via" => "ai_assistant",
 			]);
@@ -2559,8 +2581,15 @@
 				// entry — the row lands, the derived state doesn't, and the card says
 				// "published" (audit #19 A1).
 				$this->fireFormHooks($module, $table, (int)$id, $data, $mtm, $tag_ids, true);
+				// `item` is the row REST's create() puts in this payload, and the one key
+				// a subscriber can't re-derive without a query it shouldn't have to make.
+				// A hook file written against the documented REST shape —
+				// $data["item"]["title"] — silently no-opped on every assistant-driven
+				// write while it was missing (audit #26 A3).
+				$fresh = BigTreeAutoModule::getItem($table, (int)$id);
 				Hooks::fire("module_entry.created", [
-					"module" => $module_id, "table" => $table, "id" => (int)$id, "via" => "ai_assistant",
+					"module" => $module_id, "table" => $table, "id" => (int)$id,
+					"item" => $fresh["item"] ?? $fresh, "via" => "ai_assistant",
 				]);
 
 				return $this->aiWithApprovalNote(
@@ -3040,8 +3069,11 @@
 				// would delete the allocations for every field the edit didn't mention.
 				$this->trackLiveEntryResources($table, (int)$entry_id);
 				$this->fireFormHooks($module, $table, $entry_id, $write_data, $mtm, $existing["tags"], true);
+				// The same `item` REST's respondUpdated() carries (audit #26 A3).
+				$fresh = BigTreeAutoModule::getItem($table, $entry_id);
 				Hooks::fire("module_entry.updated", [
-					"module" => $module_id, "table" => $table, "id" => $entry_id, "via" => "ai_assistant",
+					"module" => $module_id, "table" => $table, "id" => $entry_id,
+					"item" => $fresh["item"] ?? $fresh, "via" => "ai_assistant",
 				]);
 
 				return $this->aiWithApprovalNote(

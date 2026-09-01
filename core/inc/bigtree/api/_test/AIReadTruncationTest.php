@@ -116,6 +116,12 @@
 			"get_page (content_text)" => [
 				\BigTree\Services\SearchService::class, "getPageDetail", "content_text_truncated",
 			],
+			// Audit #26 B1: the one read in the catalogue with no per-value cap at all
+			// until settings got one, and therefore the one whose cuts TruncatedRead had
+			// nothing to recognise. The write half is asserted below.
+			"get_settings" => [
+				\BigTree\Services\SettingService::class, "aiGetSettings", "values_truncated",
+			],
 			// The one entry read seam with no per-value cap of its own: it returns the
 			// module view's own cached summary columns (column1…column4), not the
 			// editable field values, and no write tool takes its output back.
@@ -219,6 +225,27 @@
 			null,
 			"and a short field that was never cut is never refused"
 		);
+
+		// A cut that lands on a space, which prose does about one time in six. The
+		// seam appends "…" and this class strips it — with rtrim, so the value it
+		// judges is one character shorter than the stored prefix, and comparing only
+		// the untrimmed prefix missed every one of those (audit #26 B1).
+		$spaced = str_repeat("A sentence that ends the window on a space. ", 40);
+		$space_cap = 44 * 4;
+		T::equals(
+			mb_substr($spaced, $space_cap - 1, 1),
+			" ",
+			"the fixture cap really does fall on a space"
+		);
+		T::ok(
+			\BigTree\Services\AI\TruncatedRead::violation(
+				"Body",
+				mb_substr($spaced, 0, $space_cap) . "…",
+				$spaced,
+				[$space_cap]
+			) !== null,
+			"a cut that fell on whitespace is still recognised when it is written back"
+		);
 	}
 
 	/** E4: get_settings sets has_more when the scan is truncated. */
@@ -231,7 +258,7 @@
 		$svc = new SettingService();
 		$admin = (object)["id" => 1, "level" => 1, "permissions" => []];
 
-		$all = $svc->aiGetSettings("", 1000, $admin);
+		$all = $svc->aiGetSettings("", 1000, 0, $admin);
 
 		if (empty($all["settings"]) || count($all["settings"]) < 2) {
 
@@ -239,7 +266,97 @@
 			return;
 		}
 
-		$capped = $svc->aiGetSettings("", 1, $admin);
+		$capped = $svc->aiGetSettings("", 1, 0, $admin);
 		T::equals(count($capped["settings"]), 1, "a limit of 1 returns one setting");
 		T::ok(!empty($capped["has_more"]), "and has_more is set because more settings exist");
+	}
+
+	/**
+	 * E1 (audit #26 B1), the write half: `update_setting` refuses a value that is the
+	 * truncated form of the stored one.
+	 *
+	 * The two halves have to land together. `get_settings` returned the decoded stored
+	 * value with no length cap at all, which is why `TruncatedRead` had nothing to
+	 * catch there — but the moment the read can cut, "fix the typo in the footer" can
+	 * read the cut, edit the visible text and write it back, and `update_setting`
+	 * replaces a value wholesale with no pending queue and no history behind it. The
+	 * page and entry write seams have run this check since audit #10 B2; this is the
+	 * same refusal on the one write path that lacked it.
+	 */
+	function test_a_truncated_setting_value_cannot_be_written_back() {
+		if (!function_exists("parity_db_available") || !parity_db_available()) {
+
+			return;
+		}
+
+		$svc = new SettingService();
+		$admin = (object)["id" => 1, "level" => 1, "permissions" => []];
+		$id = "zz-audit26-long-" . bin2hex(random_bytes(3));
+		$cap = SettingService::AI_SETTING_VALUE_CAP;
+		$stored = str_repeat("The footer says a great deal about the organisation. ", 200);
+
+		try {
+			T::ok(mb_strlen($stored) > $cap, "the fixture value is longer than the read cap");
+
+			BigTreeJSONDB::insert("settings", [
+				"id" => $id,
+				"name" => "ZZ Audit26 Long Setting",
+				"description" => "",
+				"type" => "textarea",
+				"settings" => [],
+				"extension" => "",
+				"system" => "",
+				"encrypted" => "",
+				"locked" => "",
+			]);
+			SQL::insert("bigtree_settings", ["id" => $id, "value" => json_encode($stored), "encrypted" => ""]);
+
+			// What the model is actually handed.
+			$read = $svc->aiGetSettings($id, 5, 0, $admin);
+			$row = null;
+
+			foreach ($read["settings"] ?? [] as $candidate) {
+				if ((string)($candidate["id"] ?? "") === $id) {
+					$row = $candidate;
+				}
+			}
+
+			T::ok(is_array($row), "the setting comes back from get_settings");
+			T::ok(
+				in_array($id, (array)($read["values_truncated"] ?? []), true),
+				"and the read says it cut the value"
+			);
+			T::equals(
+				mb_strlen((string)($row["value"] ?? "")),
+				$cap + 1,
+				"…which it shows up to the cap, plus the ellipsis"
+			);
+
+			// Writing that back would discard everything past the cut.
+			$validated = $svc->aiValidateSettingUpdate(["id" => $id, "value" => (string)$row["value"]], $admin);
+			T::ok(
+				isset($validated["error"]),
+				"staging refuses the value exactly as the read handed it over"
+			);
+			T::ok(
+				strpos((string)($validated["error"] ?? ""), (string)$cap) !== false,
+				"…and the refusal says where the cut fell"
+			);
+
+			// Re-asked at approval, because the stored value can grow past the cap
+			// inside the proposal's 24h life.
+			$applied = $svc->aiUpdateSetting(["id" => $id, "value" => (string)$row["value"]], $admin);
+			T::equals((string)($applied["mode"] ?? ""), "error", "approval refuses it too");
+			T::equals(
+				(string)json_decode((string)SQL::fetchSingle("SELECT value FROM bigtree_settings WHERE id = ?", $id), true),
+				$stored,
+				"and the stored value is untouched"
+			);
+
+			// A genuine rewrite ends where the author chose, not where the cap fell.
+			$rewrite = $svc->aiValidateSettingUpdate(["id" => $id, "value" => "A short new footer."], $admin);
+			T::ok(!empty($rewrite["ok"]), "a real rewrite still stages (" . (string)($rewrite["error"] ?? "") . ")");
+		} finally {
+			parity_delete_setting($id);
+		}
 	}

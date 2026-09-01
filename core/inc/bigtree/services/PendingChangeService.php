@@ -134,10 +134,12 @@
 				}
 
 				BigTreeAutoModule::updateItem($row["table"], $item_id, $changes, $mtm_changes, $tags_changes, $open_graph_changes);
+				$promoted = false;
 			} else {
 				// New entry — promote the pending change to a real row. publishPendingItem
 				// deletes the pending change row itself (the id is the publishing change).
 				$item_id = BigTreeAutoModule::publishPendingItem($row["table"], $id, $changes, $mtm_changes, $tags_changes, $open_graph_changes);
+				$promoted = true;
 			}
 
 			// Re-key the draft's tracked resource allocations from "p{change}" onto the
@@ -146,6 +148,31 @@
 
 			if (!empty($row["publish_hook"]) && is_callable($row["publish_hook"])) {
 				call_user_func($row["publish_hook"], $row["table"], $item_id, $changes, $mtm_changes, $tags_changes, $open_graph_changes);
+			}
+
+			// The row is live now, and until audit #26 A2 nothing said so: the legacy
+			// primitives fire nothing, and this method fired nothing either, so an
+			// extension subscribing to api.module_entry.updated saw publisher writes and
+			// missed every editor-authored change once it was approved — which is the
+			// assistant's default path, since an editor's entry write queues by
+			// construction. The page half of this same method has always fired, because
+			// publishPendingChange replays the change through performCreate/performUpdate.
+			//
+			// Same event names as the live writes: a subscriber should not have to learn
+			// a second vocabulary for "this row is now live", and there is no double-fire
+			// to worry about because updateItem/publishPendingItem fire nothing.
+			$fresh = BigTreeAutoModule::getItem($row["table"], $item_id);
+			$payload = [
+				"module" => (string)$row["module"],
+				"table" => (string)$row["table"],
+				"id" => (int)$item_id,
+				"item" => $fresh["item"] ?? $fresh,
+			];
+
+			if ($promoted) {
+				Hooks::fire("module_entry.created", $payload);
+			} else {
+				Hooks::fire("module_entry.updated", $payload);
 			}
 
 			return ["mode" => "published", "table" => (string)$row["table"], "item_id" => (int)$item_id];
@@ -159,11 +186,30 @@
 			SQL::delete("bigtree_pending_changes", $id);
 			// Discard the draft's resource allocations (mirrors legacy reject-change.php).
 			ResourceAllocationService::deallocateResources($row["table"], "p".$id);
+			$this->fireChangeRejected($id, (string)$row["table"]);
 
 			return Response::noContent();
 		}
 
 		// — helpers —
+
+		/**
+		 * The pending_change.rejected event, from the one place both rejecters call.
+		 *
+		 * It used to fire from the assistant only, so an extension listening for a
+		 * discarded draft saw assistant rejections and missed every one made through the
+		 * SPA — the exact inversion audit #5 fixed for page.archived / unarchived /
+		 * moved, one service over (audit #26 A4).
+		 */
+		private function fireChangeRejected(int $id, string $table, string $via = ""): void {
+			$payload = ["id" => $id, "table" => $table];
+
+			if ($via !== "") {
+				$payload["via"] = $via;
+			}
+
+			Hooks::fire("pending_change.rejected", $payload);
+		}
 
 		/**
 		 * Re-key a published draft's resource allocations from its "p{change}" entry
@@ -779,10 +825,7 @@
 			SQL::delete("bigtree_pending_changes", $id);
 			// Discard the draft's resource allocations (mirrors legacy reject-change.php).
 			ResourceAllocationService::deallocateResources($row["table"], "p".$id);
-
-			Hooks::fire("pending_change.rejected", [
-				"id" => $id, "table" => (string)$row["table"], "via" => "ai_assistant",
-			]);
+			$this->fireChangeRejected($id, (string)$row["table"], "ai_assistant");
 
 			return [
 				"mode" => "rejected",

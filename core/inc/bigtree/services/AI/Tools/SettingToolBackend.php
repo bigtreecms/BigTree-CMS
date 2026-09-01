@@ -16,10 +16,13 @@
 		 * values; encrypted values are omitted. Returns ["denied" => string] when the
 		 * user is not an administrator.
 		 *
+		 * Windowed like every other list read: `$limit` is clamped to
+		 * SettingService::AI_SETTINGS_CAP and `$offset` pages past it.
+		 *
 		 * @param object|array $user
 		 * @return array<string,mixed>
 		 */
-		public function aiGetSettings(string $query, int $limit, $user): array;
+		public function aiGetSettings(string $query, int $limit, int $offset, $user): array;
 
 		/**
 		 * Validate a proposed setting-value change without writing: administrator

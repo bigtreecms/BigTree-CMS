@@ -5105,7 +5105,11 @@
 				$this->invalidateMultiSiteCache();
 			}
 
-			Hooks::fire("page.moved", ["id" => $id, "parent" => $parent, "via" => "ai_assistant"]);
+			// `path` is the new URL, which is the one fact a page.moved subscriber wants
+			// and the key REST's move() has always carried. Without it a hook written
+			// against the documented shape read $data["path"] as null on every
+			// assistant-driven move (audit #26 A3).
+			Hooks::fire("page.moved", ["id" => $id, "parent" => $parent, "path" => $new_path, "via" => "ai_assistant"]);
 
 			return [
 				"mode" => "moved",

@@ -118,6 +118,7 @@
 		$shapes = ai_payload_shapes();
 		$auto = \BigTree\Services\AutoModuleService::class;
 		$pages = \BigTree\Services\PageService::class;
+		$settings = \BigTree\Services\SettingService::class;
 
 		return [
 			// rows × columns × per-value cap
@@ -167,6 +168,16 @@
 				"window" => \BigTree\Services\FourOhFourService::class . "::AI_404_LIMIT",
 				"worst_case" => ai_service_constant(\BigTree\Services\FourOhFourService::class, "AI_404_LIMIT")
 					* $shapes["log_row"],
+			],
+			// settings × per-value cap. The one unbounded payload in the catalogue
+			// until audit #26 B1: no window of its own, and no per-value cap at all, so
+			// a site-wide `html` setting went into the model's context whole.
+			"get_settings" => [
+				"class" => $settings,
+				"method" => "aiGetSettings",
+				"window" => $settings . "::AI_SETTINGS_CAP",
+				"worst_case" => ai_service_constant($settings, "AI_SETTINGS_CAP")
+					* \BigTree\Services\SettingService::AI_SETTING_VALUE_CAP,
 			],
 			// candidates × one id/label row
 			"get_relation_options" => [
@@ -234,6 +245,7 @@
 		$callouts = \BigTree\Services\CalloutService::class;
 		$modules = \BigTree\Services\ModuleService::class;
 		$pending = \BigTree\Services\PendingChangeService::class;
+		$settings = \BigTree\Services\SettingService::class;
 
 		return [
 			$auto . "::AI_ENTRY_LIST_CAP" => ["row_window", "list_module_entries' window"],
@@ -241,10 +253,12 @@
 			$resources . "::AI_RESOURCE_FOLDER_CAP" => ["row_window", "list_resources' subfolder window"],
 			$auto . "::AI_RELATION_OPTION_CAP" => ["row_window", "get_relation_options' window"],
 			\BigTree\Services\FourOhFourService::class . "::AI_404_LIMIT" => ["row_window", "list_404s' window"],
+			$settings . "::AI_SETTINGS_CAP" => ["row_window", "get_settings' window"],
 
 			$auto . "::AI_ENTRY_LIST_VALUE_CAP" => ["value_cap", "per column in a list row"],
 			$auto . "::AI_ENTRY_READ_CAP" => ["value_cap", "per column in one entry"],
 			$pages . "::AI_CONTENT_FIELD_CAP" => ["value_cap", "per page content field"],
+			$settings . "::AI_SETTING_VALUE_CAP" => ["value_cap", "per setting value"],
 			$search . "::AI_SNIPPET_CAP" => ["value_cap", "per search-result snippet"],
 
 			$resources . "::AI_FILE_SEARCH_SCAN_CAP" => ["scan_limit", "rows scanned before the folder filter, not returned"],
@@ -362,6 +376,165 @@
 		}
 
 		T::equals(implode(", ", $stale), "", "no classification entry outlives the constant it describes");
+	}
+
+	// — E4 (audit #26): every read seam says how wide its window is —
+
+	/**
+	 * Every read tool that hands AIToolContext::$limit to a backend seam, and the
+	 * seams it hands it to.
+	 *
+	 * Discovered from the tool sources rather than listed, because the gap this leg
+	 * exists for is a tool that *only* ever had the turn's shared limit:
+	 * `get_settings` passed AIChatService::TOOL_LIMIT (8) into
+	 * SettingService::aiGetSettings and declared no `limit`, no `offset` and no `id`,
+	 * so on an install with more than eight non-system settings there was no call the
+	 * model could make to see the ninth — and nothing in the suite could tell that
+	 * from a tool whose seam has a window of its own (audit #26 B1).
+	 *
+	 * @return array<string,list<string>> tool name => seam method names
+	 */
+	function ai_tools_taking_the_turn_limit(): array {
+		$found = [];
+
+		foreach (glob(__DIR__ . "/../../services/AI/Tools/*.php") ?: [] as $file) {
+			$source = (string)file_get_contents($file);
+
+			if (strpos($source, '$context->limit') === false) {
+
+				continue;
+			}
+
+			if (!preg_match('/function name\(\): string \{\s*return "([a-z0-9_]+)";/', $source, $name)) {
+
+				continue;
+			}
+
+			preg_match_all('/\$this->backend->([A-Za-z0-9_]+)\s*\(/', $source, $calls);
+			$found[$name[1]] = array_values(array_unique($calls[1]));
+		}
+
+		return $found;
+	}
+
+	/** The service class that declares $method, or "" when nothing does. */
+	function ai_service_declaring(string $method): string {
+		foreach (glob(__DIR__ . "/../../services/*.php") ?: [] as $file) {
+			$class = "BigTree\\Services\\" . basename($file, ".php");
+
+			if (!class_exists($class) || !method_exists($class, $method)) {
+
+				continue;
+			}
+
+			if ((new ReflectionMethod($class, $method))->getDeclaringClass()->getName() === $class) {
+
+				return $class;
+			}
+		}
+
+		return "";
+	}
+
+	/**
+	 * Tools whose whole window is the turn's shared limit, and why that is the right
+	 * bound rather than an omission.
+	 *
+	 * An entry is a claim that the payload is small enough that the turn's limit *is*
+	 * the window — never that the seam may be unbounded. Anything with no entry and no
+	 * declared row_window fails, which is what makes shipping a read with no way to
+	 * page past its first window loud instead of silent.
+	 *
+	 * @return array<string,string> tool => reason
+	 */
+	function ai_turn_limit_exemptions(): array {
+		$hit = "a search hit is an id, a label and a snippet capped by AI_SNIPPET_CAP; the turn's limit of "
+			. "them is far inside RESULT_CHARS, and the narrowing move is a better query, not a wider window";
+
+		return [
+			"search_pages" => $hit,
+			"search_modules" => $hit,
+			"search_module_entries" => $hit,
+			"search_tags" => $hit,
+			"search_users" => $hit,
+			"semantic_search" => $hit,
+			"search_files" => "one file row per hit, and the narrowing move is a better query; "
+				. "AI_FILE_SEARCH_SCAN_CAP bounds the scan behind it, not the payload",
+			"get_pending_changes" => "one summary line per queued change, newest first; the whole queue is not "
+				. "a window the model pages through, and AI_PENDING_SCAN_BATCH bounds the scan behind it",
+		];
+	}
+
+	/**
+	 * E4: a read seam handed the turn's limit either resolves a declared row window or
+	 * says why the turn's limit is the whole answer.
+	 *
+	 * Fails on `get_settings` as the tree stood at 5de00e725.
+	 */
+	function test_every_read_seam_declares_its_window() {
+		$tools = ai_tools_taking_the_turn_limit();
+		T::ok(count($tools) >= 8, "the sweep found the tools that take the turn's limit (" . count($tools) . ")");
+
+		$exemptions = ai_turn_limit_exemptions();
+		$windows = [];
+
+		foreach (ai_window_constant_roles() as $key => [$role, $why]) {
+			if ($role === "row_window") {
+				$windows[substr($key, (int)strrpos($key, ":") + 1)] = true;
+			}
+		}
+
+		$undeclared = [];
+		$resolves = [];
+
+		foreach ($tools as $tool => $methods) {
+			$bounded = false;
+
+			foreach ($methods as $method) {
+				$class = ai_service_declaring($method);
+
+				if ($class === "") {
+
+					continue;
+				}
+
+				$code = ai_code_without_comments(ai_surface_method_body($class, $method));
+
+				foreach (array_keys($windows) as $constant) {
+					if (strpos($code, $constant) !== false) {
+						$bounded = true;
+					}
+				}
+			}
+
+			$resolves[$tool] = $bounded;
+
+			if (!$bounded && !isset($exemptions[$tool])) {
+				$undeclared[] = $tool;
+			}
+		}
+
+		T::equals(
+			implode(", ", $undeclared),
+			"",
+			"every read seam handed the turn's limit resolves a declared row window, or says why it needs none"
+		);
+
+		// …and no exemption outlives the gap it excuses: a tool that has since grown a
+		// window would otherwise keep the excuse that hid the next one.
+		$stale = [];
+
+		foreach ($exemptions as $tool => $reason) {
+			T::ok($reason !== "", "the {$tool} exemption says why the turn's limit is the whole window");
+
+			if (!isset($resolves[$tool])) {
+				$stale[] = "{$tool} (no longer takes the turn's limit)";
+			} elseif ($resolves[$tool]) {
+				$stale[] = "{$tool} (now resolves a row window)";
+			}
+		}
+
+		T::equals(implode(", ", $stale), "", "no window exemption names a gap that no longer exists");
 	}
 
 	/** E1: the two ceilings are coherent, and one result always fits inside a turn. */

@@ -2,6 +2,7 @@
 	namespace BigTree\Services;
 
 	use BigTree\Api\Entity;
+	use BigTree\Api\Hooks;
 	use BigTree\Api\Sanitize;
 	use BigTree\Api\Pagination;
 	use BigTree\Api\Request;
@@ -9,6 +10,7 @@
 	use BigTree\Api\Exceptions\BadRequestException;
 	use BigTree\Api\Exceptions\AuthorizationException;
 	use BigTree\Services\AI\Tools\TagToolBackend;
+	use BigTreeAutoModule;
 	use BigTreeCMS;
 	use BigTree;
 	use BigTreeJSONDB;
@@ -343,7 +345,7 @@
 				"ok" => true,
 				"summary" => "Add " . count($names) . " tag(s) to “{$label}”"
 					. ($new ? " (" . count($new) . " new)." : ".")
-					. $this->aiTagModeNote($can_publish, $target["kind"]),
+					. $this->aiTagModeNote($can_publish, $target, $user),
 				"preview" => [
 					"action" => "add_tags",
 					"target" => $target["kind"],
@@ -441,6 +443,10 @@
 				$added[] = $name;
 			}
 
+			if ($added) {
+				$this->fireTagWrite($target);
+			}
+
 			return [
 				"mode" => "tagged",
 				"table" => $target["table"],
@@ -513,7 +519,7 @@
 				"ok" => true,
 				"summary" => "Remove " . count($attached) . " tag(s) from “{$label}”" . $note
 					. ". The tags themselves are not deleted."
-					. $this->aiTagModeNote($can_publish, $target["kind"]),
+					. $this->aiTagModeNote($can_publish, $target, $user),
 				"preview" => [
 					"action" => "remove_tags",
 					"target" => $target["kind"],
@@ -587,6 +593,22 @@
 					continue;
 				}
 
+				// Only what was actually on the record counts as removed — the mirror of
+				// the `$already` skip aiAddTags runs. Reporting a detachment that never
+				// happened would also announce a module_entry.updated for a write that
+				// changed nothing.
+				$attached = SQL::fetchSingle(
+					"SELECT id FROM bigtree_tags_rel WHERE `table` = ? AND entry = ? AND tag = ?",
+					$target["table"],
+					(string)$target["entry_id"],
+					$tag_id
+				);
+
+				if (!$attached) {
+
+					continue;
+				}
+
 				SQL::query(
 					"DELETE FROM bigtree_tags_rel WHERE `table` = ? AND entry = ? AND tag = ?",
 					$target["table"], (string)$target["entry_id"], $tag_id
@@ -596,6 +618,10 @@
 				// still use it, and deleting tags is not an assistant action.
 				$this->recomputeUsage($tag_id);
 				$removed[] = $name;
+			}
+
+			if ($removed) {
+				$this->fireTagWrite($target);
 			}
 
 			return [
@@ -608,17 +634,114 @@
 		}
 
 		/**
+		 * The record's own `updated` event, after a tag write that landed live.
+		 *
+		 * The inversion audit #26 A4 found: a publisher's tag write inserts and deletes
+		 * bigtree_tags_rel rows directly and fired nothing, while a non-publisher's
+		 * *queued* tag change fired module_entry.pending_updated — so the less
+		 * consequential of the two writes was the one subscribers could see. Same event
+		 * names and the same payloads the entry and page write paths use, so a
+		 * subscriber needs no second vocabulary for "these tags changed".
+		 *
+		 * @param array<string,mixed> $target An aiResolveTagTarget result.
+		 */
+		private function fireTagWrite(array $target): void {
+			$entry_id = (int)$target["entry_id"];
+
+			if ($target["table"] === "bigtree_pages") {
+				$page = SQL::fetch("SELECT * FROM bigtree_pages WHERE id = ?", $entry_id);
+
+				if ($page) {
+					// Nothing on the page row itself moved — tags live in
+					// bigtree_tags_rel — so the row is its own `previous`, which is the
+					// context key finishPageWrite's subscribers already expect to exist.
+					Hooks::fire("page.updated", $page, ["previous" => $page]);
+				}
+
+				return;
+			}
+
+			$fresh = BigTreeAutoModule::getItem((string)$target["table"], $entry_id);
+			Hooks::fire("module_entry.updated", [
+				"module" => (string)$target["module_id"],
+				"table" => (string)$target["table"],
+				"id" => $entry_id,
+				"item" => $fresh["item"] ?? $fresh,
+				"via" => "ai_assistant",
+			]);
+		}
+
+		/**
 		 * The "…once you approve" / "…for a publisher to review" tail every other
 		 * content proposal's summary carries, for a tag write.
 		 */
-		private function aiTagModeNote(bool $can_publish, string $kind): string {
+		private function aiTagModeNote(bool $can_publish, array $target, $user): string {
+			$kind = (string)($target["kind"] ?? "entry");
+
 			if ($can_publish) {
 
 				return " The change goes live once you approve.";
 			}
 
-			return " It will be queued as a pending change on this {$kind} for a publisher to review — the live "
+			$note = " It will be queued as a pending change on this {$kind} for a publisher to review — the live "
 				. ($kind === "page" ? "page" : "entry") . "'s tags are untouched until then.";
+
+			// …and if somebody already has an edit queued on this record, the tag change
+			// does not get a queue row of its own: submitChange replaces the existing one
+			// wholesale, so this rides along with their draft and re-stamps the queue's
+			// attribution to whoever tags. None of that was disclosed anywhere (audit
+			// #26 B2), and it is the same consequence the entry card spells out as its
+			// publishes-someone's-draft warning.
+			$queued = $this->aiQueuedChangeNote($target, $user);
+
+			return $queued === "" ? $note : $note . " " . $queued;
+		}
+
+		/**
+		 * The sentence describing an edit already queued on the record being tagged, or
+		 * "" when there is none.
+		 *
+		 * @param array<string,mixed> $target An aiResolveTagTarget result.
+		 * @param object|array $user
+		 */
+		private function aiQueuedChangeNote(array $target, $user): string {
+			$table = (string)($target["table"] ?? "");
+			$entry_id = (string)($target["entry_id"] ?? "");
+
+			if ($table === "" || $entry_id === "" || $entry_id === "0") {
+
+				return "";
+			}
+
+			$change = SQL::fetch(
+				"SELECT id, user FROM bigtree_pending_changes WHERE `table` = ? AND item_id = ?",
+				$table,
+				$entry_id
+			);
+
+			if (!$change) {
+
+				return "";
+			}
+
+			$owner_id = (int)$change["user"];
+			$me = (int)(is_object($user) ? ($user->id ?? 0) : ($user["id"] ?? 0));
+
+			if ($owner_id > 0 && $owner_id === $me) {
+
+				return "You already have an unpublished edit queued on this " . (string)($target["kind"] ?? "entry")
+					. ", and this rides along with it rather than queueing separately — one change for a publisher "
+					. "to approve, not two.";
+			}
+
+			$owner = $owner_id
+				? (string)SQL::fetchSingle("SELECT name FROM bigtree_users WHERE id = ?", $owner_id)
+				: "";
+			$whose = $owner !== "" ? "{$owner} has" : "Somebody else has";
+
+			return $whose . " an unpublished edit queued on this " . (string)($target["kind"] ?? "entry")
+				. " already, and this rides along with it rather than queueing separately — approving it will "
+				. "publish their edit too, and the queued change will be attributed to you.";
 		}
 
 		/**

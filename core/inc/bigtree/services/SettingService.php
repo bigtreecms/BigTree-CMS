@@ -11,9 +11,11 @@
 	use BigTree\Api\Exceptions\AuthorizationException;
 	use BigTree\Services\AI\Tools\SettingToolBackend;
 	use BigTree\Services\AI\FieldTypeDomain;
+	use BigTree\Services\AI\PayloadBudget;
 	use BigTree\Services\AI\PreviewValue;
 	use BigTree\Services\AI\RelationDomain;
 	use BigTree\Services\AI\ResourceReferenceDomain;
+	use BigTree\Services\AI\TruncatedRead;
 	use BigTreeCMS;
 	use BigTreeJSONDB;
 	use BigTree;
@@ -31,6 +33,29 @@
 	 *  - bigtree-internal-* settings are hidden from list and not writable via this API.
 	 */
 	class SettingService implements SettingToolBackend {
+		/**
+		 * How many settings get_settings returns at most. The model pages with
+		 * `offset`; the payload always says whether there are more.
+		 *
+		 * There was no window of its own until audit #26 B1: the seam took
+		 * AIChatService::TOOL_LIMIT (8) and the tool declared neither a `limit` nor an
+		 * `offset`, so on an install with more than eight non-system settings there was
+		 * no call the model could make to see the ninth. In line with AI_404_LIMIT, the
+		 * other whole-table read at this level.
+		 */
+		public const AI_SETTINGS_CAP = 100;
+
+		/**
+		 * Per-value cap on a setting's stored value in a get_settings payload.
+		 *
+		 * The same 6,000 characters get_page reads a content field at, and for the same
+		 * reason: a site-wide footer or a policy block is an `html` setting, and eight
+		 * of them uncapped was the one unbounded payload in the catalogue. On
+		 * PayloadBudget's ladder, so a value cut here lands on a step
+		 * TruncatedRead::caps() knows and can refuse a write-back of.
+		 */
+		public const AI_SETTING_VALUE_CAP = 6000;
+
 		public function list(Request $request) {
 			$q = $request->queryString("q");
 			$include_encrypted = !empty($request->query["include_encrypted"]) && (int)$request->user->level >= 2;
@@ -369,17 +394,19 @@
 		 * @param object|array $user
 		 * @return array<string,mixed>
 		 */
-		public function aiGetSettings(string $query, int $limit, $user): array {
+		public function aiGetSettings(string $query, int $limit, int $offset, $user): array {
 			if (PermissionService::level($user) < 1) {
 
 				return ["denied" => "Only administrators can read settings."];
 			}
 
 			$query = strtolower(trim($query));
-			$limit = max(1, $limit);
+			$limit = max(1, min($limit, self::AI_SETTINGS_CAP));
+			$offset = max(0, $offset);
 			$defs = BigTreeJSONDB::getAll("settings");
 			$out = [];
 			$more = false;
+			$skipped = 0;
 
 			foreach ($defs as $def) {
 				if (strpos($def["id"] ?? "", "bigtree-internal-") === 0) {
@@ -405,6 +432,15 @@
 					}
 				}
 
+				// Paging is over the *qualifying* settings, so the window advances past
+				// what the last call returned rather than past raw definitions the
+				// filters above would have dropped anyway.
+				if ($skipped < $offset) {
+					$skipped++;
+
+					continue;
+				}
+
 				// One qualifying setting past the window means the scan was truncated —
 				// so "is there a setting for X?" can't be answered "no" from a partial
 				// list (audit #7 D4).
@@ -421,7 +457,65 @@
 				);
 			}
 
-			return ["settings" => $out, "has_more" => $more];
+			// Until audit #26 B1 this was the one read in the catalogue with no bound on
+			// its payload at all: a single `html` setting — a site-wide footer, a policy
+			// block — went into the model's context whole, and a window of them went in
+			// whole together. Values are cut on PayloadBudget's ladder (so the cut lands
+			// where TruncatedRead can recognise it and refuse a write-back), and only
+			// then are whole rows dropped, which the `has_more` this payload already
+			// carries discloses.
+			$lengths = [];
+
+			foreach ($out as $setting) {
+				if (is_string($setting["value"] ?? null)) {
+					$lengths[] = mb_strlen($setting["value"]);
+				}
+			}
+
+			$cap = PayloadBudget::capForValues($lengths, self::AI_SETTING_VALUE_CAP);
+			$truncated = [];
+
+			foreach ($out as $index => $setting) {
+				if (!is_string($setting["value"] ?? null) || mb_strlen($setting["value"]) <= $cap) {
+
+					continue;
+				}
+
+				$out[$index]["value"] = mb_substr((string)$setting["value"], 0, $cap) . "…";
+				$truncated[] = (string)$setting["id"];
+			}
+
+			$fitted = PayloadBudget::fitRows($out);
+
+			if (count($fitted) < count($out)) {
+				$kept = [];
+
+				foreach ($fitted as $setting) {
+					$kept[(string)$setting["id"]] = true;
+				}
+
+				$out = $fitted;
+				$more = true;
+				$truncated = array_values(array_filter($truncated, function (string $id) use ($kept): bool {
+
+					return isset($kept[$id]);
+				}));
+			}
+
+			return [
+				"offset" => $offset,
+				"limit" => $limit,
+				// What this window actually contains, which is not always the limit
+				// asked for: the payload budget can end it early, so the model advances
+				// `offset` by this rather than by `limit`.
+				"returned" => count($out),
+				"has_more" => $more,
+				"settings" => $out,
+				// The ids whose value is shown only in part. A value listed here is not
+				// one you can write back — update_setting replaces a value wholesale.
+				"values_truncated" => $truncated,
+				"value_cap" => $cap,
+			];
 		}
 
 		/**
@@ -569,6 +663,19 @@
 			$value = $checked["value"];
 			$current_raw = SQL::fetchSingle("SELECT value FROM bigtree_settings WHERE id = ?", $id);
 			$current = is_string($current_raw) ? json_decode($current_raw, true) : null;
+
+			// The follow-on to the read seam's new value cap (audit #26 B1): the moment
+			// get_settings can hand a value back cut, "fix the typo in the footer" can
+			// read the cut, edit the visible text and propose writing that back — and
+			// update_setting replaces a value wholesale, with no pending queue and no
+			// history to recover the rest from. The page and entry write seams have run
+			// this check since audit #10 B2.
+			$cut = $this->aiTruncatedSettingWrite($def, $current, $value);
+
+			if ($cut !== null) {
+
+				return ["error" => $cut];
+			}
 
 			return [
 				"ok" => true,
@@ -928,6 +1035,21 @@
 				return ["mode" => "error", "message" => $checked["error"]];
 			}
 
+			// Re-asked at approval like every other staged fact: the stored value can
+			// grow past the read cap inside the proposal's 24h life, which turns a
+			// value that was whole when it was staged into the cut half of one.
+			$current_raw = SQL::fetchSingle("SELECT value FROM bigtree_settings WHERE id = ?", $id);
+			$cut = $this->aiTruncatedSettingWrite(
+				$def,
+				is_string($current_raw) ? json_decode($current_raw, true) : null,
+				$checked["value"]
+			);
+
+			if ($cut !== null) {
+
+				return ["mode" => "error", "message" => $cut];
+			}
+
 			$this->setValue($id, $def, $checked["value"]);
 
 			return [
@@ -935,6 +1057,43 @@
 				"id" => $id,
 				"name" => (string)($def["name"] ?? $id),
 			];
+		}
+
+		/**
+		 * Refuse a setting value that is the truncated form of what is stored.
+		 *
+		 * The settings half of TruncatedRead, which the page and entry write seams have
+		 * had since audit #10 B2 (PageService::aiSiftResourceContent,
+		 * AutoModuleService::aiFieldViolation). It only became reachable when
+		 * get_settings gained a per-value cap in audit #26 B1 — the two belong in the
+		 * same change, because a read that can cut with no write that can refuse the cut
+		 * is exactly the data-loss shape TruncatedRead exists for.
+		 *
+		 * @param array<string,mixed> $def
+		 * @param mixed $stored The decoded stored value.
+		 * @param mixed $supplied The value about to be written.
+		 * @return string|null A recoverable message, or null when the write is safe.
+		 */
+		private function aiTruncatedSettingWrite(array $def, $stored, $supplied): ?string {
+			if (!is_string($supplied) || !is_string($stored)) {
+
+				return null;
+			}
+
+			// Compared in the form the read showed it in: link tokens decoded, then
+			// capped. aiDecodeSettingLinks decodes exactly these types on the way out.
+			if (in_array((string)($def["type"] ?? ""), PageService::AI_LINK_BEARING_TYPES, true)) {
+				$stored = PageService::aiDenormalizeHtmlValue($stored);
+			}
+
+			// Every cap, not just this seam's declared one: an over-budget window reads
+			// values at a shorter step of PayloadBudget's ladder, and a cut this
+			// refusal doesn't know about is a cut the model can write straight back.
+			return TruncatedRead::violation(
+				(string)($def["name"] ?? $def["id"] ?? "this setting"),
+				$supplied,
+				$stored
+			);
 		}
 
 		/**

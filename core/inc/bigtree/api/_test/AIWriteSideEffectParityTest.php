@@ -229,6 +229,234 @@
 		T::equals(implode(", ", $stale), "", "no exemption names a difference that no longer exists");
 	}
 
+	// — E1 (audit #26): every writer of a pending change, discovered rather than paired —
+
+	/**
+	 * The two legacy primitives that write a `bigtree_pending_changes` row, and the
+	 * zero-based position their publish-hook argument sits in.
+	 *
+	 * Both replace `publish_hook` wholesale — `"publish_hook" => $publish_hook ?: null`
+	 * on every branch of both — so passing null is not "leave it alone", it is "erase
+	 * whatever is there". The stored string is the only copy anything has: the SPA,
+	 * REST approve and publish_pending_change all read it back off the row, and
+	 * nothing can recover it once the proposal's 24h life is over.
+	 *
+	 * @return array<string,int> call => argument index
+	 */
+	function ai_pending_write_primitives(): array {
+
+		return [
+			// (module, table, id, data, mtm, tags, publish_hook, open_graph)
+			"BigTreeAutoModule::submitChange" => 6,
+			// (module, table, data, mtm, tags, publish_hook, embedded_form, open_graph)
+			"BigTreeAutoModule::createPendingItem" => 5,
+		];
+	}
+
+	/**
+	 * The arguments of the call that starts at $offset in $source, as written.
+	 *
+	 * Parsed from the call rather than grepped for out of the method body, because
+	 * "the body mentions formPublishHook somewhere" is exactly the check that cannot
+	 * see a *second* write in the same method passing null — and a method with two
+	 * queueing branches is the normal shape here (aiUpdateEntry has three).
+	 *
+	 * @return list<string>
+	 */
+	function ai_call_arguments(string $source, int $offset): array {
+		$open = strpos($source, "(", $offset);
+
+		if ($open === false) {
+
+			return [];
+		}
+
+		$depth = 0;
+		$argument = "";
+		$arguments = [];
+		$length = strlen($source);
+
+		for ($i = $open; $i < $length; $i++) {
+			$char = $source[$i];
+
+			if ($char === '"' || $char === "'") {
+				$quote = $char;
+				$argument .= $char;
+
+				while (++$i < $length) {
+					$argument .= $source[$i];
+
+					if ($source[$i] === "\\") {
+						$argument .= $source[++$i] ?? "";
+
+						continue;
+					}
+
+					if ($source[$i] === $quote) {
+
+						break;
+					}
+				}
+
+				continue;
+			}
+
+			if ($char === "(" || $char === "[") {
+				$depth++;
+
+				if ($depth === 1) {
+
+					continue;
+				}
+			} elseif ($char === ")" || $char === "]") {
+				$depth--;
+
+				if ($depth === 0) {
+					$arguments[] = trim($argument);
+
+					return $arguments;
+				}
+			} elseif ($char === "," && $depth === 1) {
+				$arguments[] = trim($argument);
+				$argument = "";
+
+				continue;
+			}
+
+			$argument .= $char;
+		}
+
+		return $arguments;
+	}
+
+	/** The name of the method $offset falls inside, or "" outside any. */
+	function ai_enclosing_method(string $source, int $offset): string {
+		$head = substr($source, 0, $offset);
+
+		if (!preg_match_all('/function\s+([A-Za-z0-9_]+)\s*\(/', $head, $matches, PREG_OFFSET_CAPTURE)) {
+
+			return "";
+		}
+
+		$last = end($matches[1]);
+
+		return (string)$last[0];
+	}
+
+	/**
+	 * Every pending-change write in AutoModuleService, discovered by scanning for the
+	 * primitives above.
+	 *
+	 * @return list<array{call:string,method:string,hook:string,line:int}>
+	 */
+	function ai_pending_write_sites(): array {
+		$path = SERVER_ROOT . "core/inc/bigtree/services/AutoModuleService.php";
+		$source = (string)file_get_contents($path);
+		$sites = [];
+
+		foreach (ai_pending_write_primitives() as $call => $position) {
+			$offset = 0;
+
+			while (($found = strpos($source, $call . "(", $offset)) !== false) {
+				$offset = $found + 1;
+				$arguments = ai_call_arguments($source, $found);
+
+				$sites[] = [
+					"call" => $call,
+					"method" => ai_enclosing_method($source, $found),
+					"hook" => $arguments[$position] ?? "",
+					"line" => substr_count(substr($source, 0, $found), "\n") + 1,
+				];
+			}
+		}
+
+		return $sites;
+	}
+
+	/**
+	 * Pending-change writers that legitimately owe neither a publish hook nor the
+	 * form hooks, with the reason.
+	 *
+	 * Empty today, and that is the point: an entry here is a claim that the omission is
+	 * correct, never that the site was overlooked. A stale entry — one naming a site
+	 * that no longer exists, or that now does the thing it was excused from — fails
+	 * too.
+	 *
+	 * @return array<string,string> method => reason
+	 */
+	function ai_pending_write_exemptions(): array {
+
+		return [];
+	}
+
+	/**
+	 * E1: every writer of a pending change stores the form's publish hook and fires the
+	 * form's hooks — discovered, not paired.
+	 *
+	 * The pair map above relates an AI seam to a REST twin, so a writer with no REST
+	 * twin is not in it and no leg of this suite reads it. `aiQueueEntryTagChange` is
+	 * exactly that: an admin tags an entry as part of a whole-form save, so the tag
+	 * queue has no REST route of its own — and it passed a literal `null` for the
+	 * publish hook, erasing the hook stored on whatever draft somebody else already had
+	 * queued on the same entry. The effects map is also matched as *tokens in a method
+	 * body*, which a second call in the same method can slip past.
+	 *
+	 * Fails on aiQueueEntryTagChange as the tree stood at 5de00e725 (audit #26 A1).
+	 */
+	function test_every_pending_change_writer_stores_the_forms_publish_hook() {
+		$sites = ai_pending_write_sites();
+		T::ok(count($sites) >= 5, "the sweep found the pending-change write sites (" . count($sites) . ")");
+
+		$exemptions = ai_pending_write_exemptions();
+		$null_hook = [];
+		$no_form_hooks = [];
+		$seen = [];
+
+		foreach ($sites as $site) {
+			$where = $site["method"] . "() line " . $site["line"];
+			$seen[$site["method"]] = true;
+
+			if (isset($exemptions[$site["method"]])) {
+
+				continue;
+			}
+
+			// "null", "", or anything that isn't a resolution of the form's own hook.
+			if (strpos($site["hook"], "formPublishHook(") === false) {
+				$null_hook[] = $where . ' passes "' . $site["hook"] . '"';
+			}
+
+			$body = ai_surface_method_body(\BigTree\Services\AutoModuleService::class, $site["method"]);
+
+			if (strpos($body, "fireFormHooks") === false) {
+				$no_form_hooks[] = $where;
+			}
+		}
+
+		T::equals(
+			implode(", ", $null_hook),
+			"",
+			"every pending-change write passes the form's publish hook, so approval can still fire it"
+		);
+		T::equals(
+			implode(", ", $no_form_hooks),
+			"",
+			"…and sits in a writer that fires the module form's own hooks"
+		);
+
+		$stale = [];
+
+		foreach ($exemptions as $method => $reason) {
+			T::ok($reason !== "", "the {$method} exemption states why it owes neither");
+
+			if (!isset($seen[$method])) {
+				$stale[] = $method;
+			}
+		}
+
+		T::equals(implode(", ", $stale), "", "no exemption names a writer that no longer queues a change");
+	}
+
 	// — E3: the page resource fill rule applies on every path that writes the blob —
 
 	/**
@@ -762,6 +990,142 @@
 				parity_delete_pending($change_id);
 			}
 
+			parity_delete_users($dev_id, $editor_id);
+			$restore();
+			ai_side_effect_hook_log("reset");
+		}
+	}
+
+	/**
+	 * E1b, the behavioural half: a tag change over an entry somebody already has a
+	 * draft queued on leaves that draft's publish hook alone.
+	 *
+	 * This is the only defect in audit #26 that writes something the 24-hour proposal
+	 * TTL doesn't clean up. `submitChange` replaces `publish_hook` wholesale on both
+	 * its branches, so the literal `null` `aiQueueEntryTagChange` used to pass wrote a
+	 * NULL over a hook name a *different* writer had stored — and the tagger need not
+	 * have known a draft was there. Whoever approved the change later read the row,
+	 * found nothing, and the module form's publish hook never ran for that record.
+	 *
+	 * Reproduced here in the order it happens: a queued edit, then a tag change over
+	 * the same entry, then the approval that has to fire the hook.
+	 */
+	function test_a_tag_change_leaves_a_queued_drafts_publish_hook_alone() {
+		if (!parity_ai_processors_ready()) {
+
+			return;
+		}
+
+		$restore = ai_side_effect_enable_form_hooks();
+		$svc = new AutoModuleService();
+		$tags = new \BigTree\Services\TagService();
+		$module_id = parity_news_module_id();
+		$dev_id = parity_seed_user(["level" => 2]);
+		$dev = (object)["id" => $dev_id, "level" => 2, "permissions" => []];
+		$editor_id = parity_seed_user(["level" => 0]);
+		$editor = (object)[
+			"id" => $editor_id,
+			"level" => 0,
+			"permissions" => ["module" => [$module_id => "e"]],
+		];
+		$entry_id = 0;
+		$change_id = 0;
+		$tag_id = 0;
+
+		try {
+			// A live entry, written by somebody who can publish.
+			$created = ai_side_effect_create($svc, $dev, "zz AI Tag Hook " . bin2hex(random_bytes(3)));
+			$entry_id = (int)($created["entry_id"] ?? 0);
+			T::ok($entry_id > 0, "the fixture entry is live");
+
+			// …and an editor's edit queued against it, which is where the hook is stored.
+			$validated = $svc->aiValidateEntryUpdate([
+				"module_id" => $module_id,
+				"entry_id" => (string)$entry_id,
+				"data" => ["title" => "zz AI Tag Hook edited"],
+			], $editor);
+			T::ok(!empty($validated["ok"]), "an editor's edit stages (" . (string)($validated["error"] ?? "") . ")");
+
+			$queued = $svc->aiUpdateEntry($validated["payload"], $editor);
+			T::equals((string)($queued["mode"] ?? ""), "pending", "and queues rather than publishing");
+
+			$change_id = (int)SQL::fetchSingle(
+				"SELECT id FROM bigtree_pending_changes WHERE `table` = 'timber_news' AND item_id = ?",
+				(string)$entry_id
+			);
+			T::ok($change_id > 0, "the queued change exists");
+			T::equals(
+				(string)SQL::fetchSingle("SELECT publish_hook FROM bigtree_pending_changes WHERE id = ?", $change_id),
+				"ai_side_effect_publish_hook",
+				"the draft carries the form's publish hook"
+			);
+
+			// Now the tag change, over the same entry, by the same editor. Coining a tag
+			// stays administrator-only, so the tag exists already.
+			$tag_name = "zz audit twentysix";
+			$tag_id = (int)SQL::insert("bigtree_tags", [
+				"tag" => $tag_name,
+				"route" => "zz-audit-twentysix-" . bin2hex(random_bytes(3)),
+				"usage_count" => 0,
+			]);
+
+			ai_side_effect_hook_log("reset");
+			$staged = $tags->aiValidateAddTags([
+				"module_id" => $module_id,
+				"entry_id" => $entry_id,
+				"tags" => [$tag_name],
+			], $editor);
+			T::ok(!empty($staged["ok"]), "the tag change stages (" . (string)($staged["error"] ?? "") . ")");
+
+			$tagged = $tags->aiAddTags($staged["payload"], $editor);
+			T::equals((string)($tagged["mode"] ?? ""), "pending", "an editor's tag change queues");
+			T::equals(
+				(int)($tagged["pending_change_id"] ?? 0),
+				$change_id,
+				"and folds into the change already queued rather than opening a second one"
+			);
+
+			// The defect, at the row: the content edit survived and the hook did not.
+			T::equals(
+				(string)SQL::fetchSingle("SELECT publish_hook FROM bigtree_pending_changes WHERE id = ?", $change_id),
+				"ai_side_effect_publish_hook",
+				"the queued draft's publish hook is still there after the tag change"
+			);
+
+			$changes = json_decode(
+				(string)SQL::fetchSingle("SELECT changes FROM bigtree_pending_changes WHERE id = ?", $change_id),
+				true
+			) ?: [];
+			T::equals((string)($changes["title"] ?? ""), "zz AI Tag Hook edited", "…and so is the queued edit");
+
+			// The other half of the same omission: the form's post hook.
+			T::ok(
+				in_array("post:pending", ai_side_effect_hook_log(), true),
+				"the tag change fires the form's post hook, told the row is not live"
+			);
+
+			// And the hook the row was carrying still fires when a publisher approves.
+			ai_side_effect_hook_log("reset");
+			$row = SQL::fetch("SELECT * FROM bigtree_pending_changes WHERE id = ?", $change_id);
+			$apply = new ReflectionMethod(PendingChangeService::class, "applyPendingChange");
+			$apply->setAccessible(true);
+			$apply->invoke(new PendingChangeService(), $row, $dev);
+			$change_id = 0;
+
+			T::ok(
+				in_array("publish:timber_news:{$entry_id}", ai_side_effect_hook_log(), true),
+				"approving the change fires the publish hook the tag change did not erase"
+			);
+		} finally {
+			if ($change_id) {
+				parity_delete_pending($change_id);
+			}
+
+			if ($entry_id) {
+				parity_delete_news_entries($entry_id);
+			}
+
+			parity_delete_tags($tag_id);
 			parity_delete_users($dev_id, $editor_id);
 			$restore();
 			ai_side_effect_hook_log("reset");
