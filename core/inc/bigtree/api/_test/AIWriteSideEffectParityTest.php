@@ -1017,6 +1017,10 @@
 		}
 
 		$restore = ai_side_effect_enable_form_hooks();
+		// Layered over the hook patch and unwound before it, so the module definition
+		// ends where it started. add_tags refuses a tagging-off form since audit #27 A1,
+		// and News ships with the switch off.
+		$tagging = parity_enable_news_relations();
 		$svc = new AutoModuleService();
 		$tags = new \BigTree\Services\TagService();
 		$module_id = parity_news_module_id();
@@ -1127,6 +1131,7 @@
 
 			parity_delete_tags($tag_id);
 			parity_delete_users($dev_id, $editor_id);
+			$tagging();
 			$restore();
 			ai_side_effect_hook_log("reset");
 		}

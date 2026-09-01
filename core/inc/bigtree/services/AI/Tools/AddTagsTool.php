@@ -13,6 +13,12 @@
 	 * being tagged. Creating a *new* tag is still administrator-only — the backend
 	 * enforces that split (and re-checks it at approval, since a tag that was new at
 	 * staging may exist by then), and the preview flags which tags are new.
+	 *
+	 * A module entry's tags are also gated on the form's own `tagging` switch, which is
+	 * off by default — the same gate create_module_entry's `tags` has carried since
+	 * audit #6 B5, reached here through AutoModuleService::aiFormTaggingError so the two
+	 * paths share one sentence. The description names the precondition because a
+	 * refusal the model could have read ahead of time is a wasted turn.
 	 */
 	class AddTagsTool extends AbstractMutatingTool {
 		/** @var TagToolBackend */
@@ -34,7 +40,10 @@
 				$this->name(),
 				"Propose adding tags to a page or a module entry. Requires approval. Identify the target with "
 					. "either page_id, or module_id + entry_id. Tags that already exist can be attached by any "
-					. "editor; creating a brand-new tag requires administrator level.",
+					. "editor; creating a brand-new tag requires administrator level. A module entry can only be "
+					. "tagged when its form has tagging turned on — read get_module_schema's `tagging` before you "
+					. "propose, the way you would for og_*; it is off by default, and tags written against a form "
+					. "without it would be invisible in the admin and unremovable. Pages are always taggable.",
 				[
 					"type" => "object",
 					"properties" => [

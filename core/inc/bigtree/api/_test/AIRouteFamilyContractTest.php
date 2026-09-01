@@ -892,3 +892,225 @@
 
 		T::equals(implode(", ", $stale), "", "no read-decline exemption names a family whose GET is no longer declined");
 	}
+
+	/**
+	 * Path segments a decline is allowed to name by a different word, with the word.
+	 *
+	 * The mapping is between the *route's* vocabulary and the *user's*: `build` is
+	 * what the endpoint is called and "packaging" is what an administrator would ask
+	 * for. Keep it to genuine renamings — a segment the wording simply doesn't cover
+	 * belongs in the exemption map below, where it needs a reason.
+	 *
+	 * @return array<string,list<string>>
+	 */
+	function ai_contract_write_verb_synonyms(): array {
+
+		return [
+			"2fa" => ["two-factor"],
+			// Audit #27 B1: `POST /extensions/build` packages an extension for
+			// distribution, which is neither installing, updating nor removing one.
+			"build" => ["packaging"],
+			"upgrade" => ["updating", "updates"],
+			// Bulk-deletes the 404 rows whose target no longer resolves.
+			"clear-dead" => ["deleting"],
+		];
+	}
+
+	/**
+	 * Crudely stem a segment word so "delete" matches "deleting" and "upgrade"
+	 * matches "upgrades". Deliberately loose: this decides whether a human reading
+	 * the decline would recognise the capability, not whether two strings are equal.
+	 */
+	function ai_contract_segment_stem(string $word): string {
+
+		return rtrim(rtrim($word, "s"), "e");
+	}
+
+	/** Whether a decline key names a path segment, as a word or a declared synonym. */
+	function ai_contract_segment_named(string $segment, string $key): bool {
+		$key = strtolower($key);
+
+		foreach (ai_contract_write_verb_synonyms()[$segment] ?? [] as $synonym) {
+			if (strpos($key, strtolower($synonym)) !== false) {
+
+				return true;
+			}
+		}
+
+		// Hyphenated segments are compound ("clear-dead", "security-policy"); any one
+		// of their words naming the capability is enough.
+		foreach (explode("-", $segment) as $word) {
+			$stem = ai_contract_segment_stem($word);
+
+			if (strlen($stem) < 3) {
+
+				continue;
+			}
+
+			if (strpos($key, $stem) !== false) {
+
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Declined write endpoints whose decline doesn't name the segment, with the
+	 * reason. Same contract as ai_contract_write_worded_read_declines(): a reason is
+	 * required, and a stale entry — one no longer declined, or one the wording now
+	 * names — fails.
+	 *
+	 * @return array<string,string>
+	 */
+	function ai_contract_unnamed_write_segments(): array {
+
+		return [
+			"embed-forms/submit" => "the public submission endpoint an embedded form posts to, not an admin "
+				. "action; the family's decline is about managing the forms",
+			// The exemption audit #27 D5 named as the natural first one.
+			"extensions/recache-hooks" => "rebuilding the hook cache is maintenance, covered by the "
+				. "\"clearing caches\" line rather than by the extension family's own",
+			"field-types/list-options" => "the admin's own field renderer resolving a list field's options; "
+				. "nothing an administrator would ask for by name",
+			"field-types/render" => "likewise — the form renderer asking a field type to draw itself",
+			"images/crop" => "image processing on a resource, covered by \"managing resources\"",
+			"images/process" => "likewise",
+			"images/reprocess" => "likewise",
+			"resources/allocations" => "which records use a resource; covered by \"managing resources\"",
+			"resources/crop" => "likewise",
+			"resources/replace" => "likewise",
+		];
+	}
+
+	/**
+	 * Audit #27 E4: the write half of E5.
+	 *
+	 * Audit #24's E5 asks that a decline refusing a *read* be worded about reading.
+	 * Nothing asked the same question of a family's write verbs, which is how
+	 * "Installing, updating or removing extensions" came to decline
+	 * `POST /extensions/build` — packaging an extension for distribution, a screen the
+	 * SPA has all to itself, described by a line whose three verbs are all about
+	 * something else. Every decline line is spliced into the system prompt beside "do
+	 * not improvise a workaround", so a mutating capability the wording doesn't name
+	 * is one the model is left to improvise around.
+	 *
+	 * So: a declined endpoint with a mutating verb on a sub-resource segment must have
+	 * that segment named by the wording — as a word, or as a declared synonym — or
+	 * carry a reason. A parent segment counts, which is what lets
+	 * `extensions/build/inspect` ride on `extensions/build`; the walk stops before the
+	 * bare first segment, because "extensions" naming the *family* is exactly the
+	 * match that would have let B1 through.
+	 */
+	function test_a_declined_write_verb_is_named_by_the_decline_wording() {
+		$families = ai_contract_route_families();
+		$declined = ai_contract_declined();
+		$covered = ai_contract_covered();
+		$exempt = ai_contract_unnamed_write_segments();
+		$keys = array_keys(CapabilitySummary::outOfScope());
+		$in_scope = [];
+		$was_named = [];
+		$mute = [];
+
+		foreach (array_keys($families) as $family) {
+			// Sub-resources only: a bare first-segment family is named by its own noun,
+			// which says nothing about which of its verbs the line covers.
+			if (strpos($family, "/") === false) {
+
+				continue;
+			}
+
+			$writes = array_values(array_diff(ai_contract_verbs_for($family), ["GET"]));
+
+			if (!$writes) {
+
+				continue;
+			}
+
+			$phrase = $declined[$family] ?? null;
+			$coverage = $covered[$family] ?? null;
+
+			// A per-verb map can decline one write verb while covering another.
+			if ($phrase === null && is_array($coverage)) {
+				foreach ($writes as $verb) {
+					if (strpos((string)($coverage[$verb] ?? ""), "declined:") === 0) {
+						$phrase = trim(substr((string)$coverage[$verb], strlen("declined:")));
+
+						break;
+					}
+				}
+			}
+
+			// A sub-resource with no classification of its own inherits its parent's.
+			if ($phrase === null && $coverage === null && ai_contract_inherited_classification($family) === "declined") {
+				$segments = explode("/", $family);
+
+				while ($phrase === null && count($segments) > 1) {
+					array_pop($segments);
+					$phrase = $declined[implode("/", $segments)] ?? null;
+				}
+			}
+
+			if ($phrase === null) {
+
+				continue;
+			}
+
+			$in_scope[$family] = true;
+			$named = false;
+
+			foreach ($keys as $key) {
+				if (strpos(strtolower($key), strtolower($phrase)) === false) {
+
+					continue;
+				}
+
+				$segments = explode("/", $family);
+
+				while (count($segments) > 1) {
+					if (ai_contract_segment_named(strtolower((string)end($segments)), $key)) {
+						$named = true;
+
+						break 2;
+					}
+
+					array_pop($segments);
+				}
+			}
+
+			if ($named) {
+				$was_named[$family] = true;
+			} elseif (!isset($exempt[$family])) {
+				$mute[] = $family;
+			}
+		}
+
+		T::ok(count($in_scope) > 40, "the sweep found the declined writes (" . count($in_scope) . ")");
+		T::ok(isset($in_scope["extensions/build"]), "including extensions/build, the endpoint audit #27 B1 was about");
+		T::equals(
+			implode(", ", $mute),
+			"",
+			"every declined write is declined by wording that names what it does, or says why it isn't"
+		);
+
+		// Staleness both ways: an exemption for an endpoint that is no longer declined,
+		// or one the wording has since grown a word for, is a decision that has expired.
+		$stale = [];
+
+		foreach (array_keys($exempt) as $family) {
+			if (!isset($in_scope[$family])) {
+				$stale[] = $family . " (no longer a declined write)";
+
+				continue;
+			}
+
+			// The exemption suppressed nothing: the wording grew a word for it, so the
+			// decision it records has expired.
+			if (isset($was_named[$family])) {
+				$stale[] = $family . " (the wording names it now)";
+			}
+		}
+
+		T::equals(implode(", ", $stale), "", "no write-decline exemption has outlived the wording that needed it");
+	}

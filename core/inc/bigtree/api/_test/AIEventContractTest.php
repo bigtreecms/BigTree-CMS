@@ -770,6 +770,10 @@
 		}
 
 		$restore = ai_event_capture(["module_entry.updated"]);
+		// The News form ships with tagging off, and add_tags refuses that form since
+		// audit #27 A1 — so a fixture that tags an entry turns it on first, exactly as
+		// the entry-write fixtures have since audit #6 B5.
+		$tagging = parity_enable_news_relations();
 		$svc = new AutoModuleService();
 		$tags = new \BigTree\Services\TagService();
 		$module_id = parity_news_module_id();
@@ -825,6 +829,7 @@
 			parity_delete_tags($tag_id);
 			parity_delete_news_entries($entry_id);
 			parity_delete_users($dev_id);
+			$tagging();
 			$restore();
 		}
 	}

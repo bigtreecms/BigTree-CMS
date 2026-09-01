@@ -309,6 +309,17 @@
 				return $target;
 			}
 
+			// The same gate the entry write seams have carried since audit #6 B5, through
+			// the same sentence. add_tags reaches bigtree_tags_rel without going through
+			// the entry form, so until audit #27 A1 it never asked — and a tagging-off
+			// form has no admin screen that could show or remove what it wrote.
+			$untaggable = AutoModuleService::aiFormTaggingError(["tagging" => !empty($target["tagging"])]);
+
+			if ($untaggable !== null) {
+
+				return ["error" => $untaggable];
+			}
+
 			$names = $this->aiNormalizeTagNames($args["tags"] ?? []);
 
 			if (!$names) {
@@ -383,6 +394,16 @@
 			if (isset($target["mode"])) {
 
 				return $target;
+			}
+
+			// Re-asked rather than trusted from staging: the form's tagging switch can be
+			// turned off inside the proposal's 24h TTL, and aiReauthorizeTagTarget has
+			// already re-resolved the form, so this costs one comparison.
+			$untaggable = AutoModuleService::aiFormTaggingError(["tagging" => !empty($target["tagging"])]);
+
+			if ($untaggable !== null) {
+
+				return ["mode" => "error", "message" => $untaggable];
 			}
 
 			$names = $this->aiNormalizeTagNames($payload["tags"] ?? []);
@@ -519,6 +540,7 @@
 				"ok" => true,
 				"summary" => "Remove " . count($attached) . " tag(s) from “{$label}”" . $note
 					. ". The tags themselves are not deleted."
+					. $this->aiUntaggableFormNote($target)
 					. $this->aiTagModeNote($can_publish, $target, $user),
 				"preview" => [
 					"action" => "remove_tags",
@@ -580,7 +602,10 @@
 					$removed[] = $name;
 				}
 
-				return $this->aiQueueTagChange($target, array_values($ids), $user, "removed", $removed);
+				return $this->aiWithUntaggableNote(
+					$this->aiQueueTagChange($target, array_values($ids), $user, "removed", $removed),
+					$target
+				);
 			}
 
 			$removed = [];
@@ -624,13 +649,57 @@
 				$this->fireTagWrite($target);
 			}
 
-			return [
+			return $this->aiWithUntaggableNote([
 				"mode" => "untagged",
 				"table" => $target["table"],
 				"entry_id" => $target["entry_id"],
 				"page_id" => $target["table"] === "bigtree_pages" ? $target["entry_id"] : null,
 				"removed" => $removed,
-			];
+			], $target);
+		}
+
+		/**
+		 * Put the tagging-off clause on a removal result, whichever branch produced it.
+		 *
+		 * The live and queued halves return differently-shaped results and both owe the
+		 * same sentence, so folding it in here keeps "which branch forgot" from being a
+		 * thing that can happen — the same reason aiWithApprovalNote exists one service
+		 * over.
+		 *
+		 * @param array<string,mixed> $result
+		 * @param array<string,mixed> $target An aiResolveTagTarget result.
+		 * @return array<string,mixed>
+		 */
+		private function aiWithUntaggableNote(array $result, array $target): array {
+			$note = $this->aiUntaggableFormNote($target);
+
+			if ($note !== "") {
+				$result["note"] = trim($note);
+			}
+
+			return $result;
+		}
+
+		/**
+		 * The clause remove_tags carries when the form's tagging switch is off, or ""
+		 * when it isn't.
+		 *
+		 * add_tags refuses that form (audit #27 A1) and remove_tags deliberately does
+		 * not: rows written before the gate existed, or by any other writer, are
+		 * invisible in the admin precisely *because* the form has no tag section — so
+		 * refusing here would strand them with nothing able to reach them. This is the
+		 * only cleanup path, which is why it is disclosed rather than declined.
+		 *
+		 * @param array<string,mixed> $target An aiResolveTagTarget result.
+		 */
+		private function aiUntaggableFormNote(array $target): string {
+			if (!empty($target["tagging"])) {
+
+				return "";
+			}
+
+			return " This module's form doesn't have tagging enabled, so these tags are invisible in the admin — "
+				. "removing them here is the only way to clear them.";
 		}
 
 		/**
@@ -836,6 +905,10 @@
 					"table" => "bigtree_pages",
 					"entry_id" => $page_id,
 					"module_id" => "",
+					// One key answers for both record kinds. Pages are always taggable —
+					// the page editor renders the tag chips unconditionally — so the
+					// per-form switch a module carries has no page equivalent to read.
+					"tagging" => true,
 					// Tags are live, public-facing content, so a non-publisher's tag
 					// change has to go through the queue like every other content write.
 					"can_publish" => PermissionService::userHasPageAccess($user, $page_id, "p"),
@@ -896,6 +969,11 @@
 				"entry_id" => $entry_id,
 				"module_id" => (string)$module["id"],
 				"form_id" => (string)($resolved["form"]["id"] ?? ""),
+				// The form's own tagging switch, which decides whether anything in the
+				// admin can show or remove what these tools write. The resolver is the
+				// only place that has the form, so the flag rides on the descriptor
+				// rather than being re-resolved by each of the four seams (audit #27 A1).
+				"tagging" => !empty($resolved["form"]["tagging"]),
 				// Per-row, not best-of-any-group — same rule the entry write seams use.
 				"can_publish" => PermissionService::isPublisher(
 					$user,

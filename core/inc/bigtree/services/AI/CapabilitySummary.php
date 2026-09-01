@@ -252,7 +252,13 @@
 				"Binding a template to a module, or configuring its publish hooks" =>
 					"Developer → Templates — the assistant can create and edit a template's fields, but not its "
 						. "module binding or hooks",
-				"Installing, updating or removing extensions" => "Developer → Extensions",
+				// Audit #27 B1: "installing, updating or removing" said nothing about
+				// `POST /extensions/build`, and packaging an extension for distribution
+				// is the family's most plausible developer ask — the SPA has a whole
+				// screen for it. Every decline line is spliced into the system prompt
+				// beside "do not improvise a workaround", so a verb the line doesn't
+				// carry is a capability the model is left to improvise around.
+				"Installing, updating, removing or packaging extensions" => "Developer → Extensions",
 				// The assistant can't take, hold or release a lock — but it does read
 				// them, and says so on the proposal when someone else is holding one.
 				// The old line ("the lock banner on the item being edited") read as if

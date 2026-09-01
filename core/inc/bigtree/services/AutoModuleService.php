@@ -1766,10 +1766,13 @@
 		 * @param array<string,mixed> $open_graph
 		 */
 		private function aiFormRelationError(?array $form, array $tag_names, array $open_graph): ?string {
-			if ($tag_names && empty($form["tagging"])) {
+			if ($tag_names) {
+				$tagging_error = self::aiFormTaggingError($form);
 
-				return "This module's form doesn't have tagging enabled, so tags set here would be invisible in the "
-					. "admin and unremovable. Turn tagging on for the form in Developer → Modules first.";
+				if ($tagging_error !== null) {
+
+					return $tagging_error;
+				}
 			}
 
 			if ($open_graph && empty($form["open_graph"])) {
@@ -1780,6 +1783,32 @@
 			}
 
 			return null;
+		}
+
+		/**
+		 * Refuse a tag write against a module form that doesn't have tagging on.
+		 *
+		 * The tagging half of aiFormRelationError, promoted so the tag tools share the
+		 * sentence rather than restating it — the way aiOptionViolation wraps
+		 * FieldOptionDomain::violation so two callers cannot drift apart.
+		 *
+		 * The entry write seams enforced this from audit #6 B5; add_tags reaches the
+		 * same `bigtree_tags_rel` rows without going through the entry form, and until
+		 * audit #27 A1 it never asked (so the rows it wrote had no admin screen that
+		 * could show or remove them, and the entry's next ordinary save deleted them
+		 * outright — auto-modules.php:456 clears the record's relations on every write
+		 * and a tagging-off form re-submits none).
+		 *
+		 * @param array<string,mixed>|null $form The resolved module form.
+		 */
+		public static function aiFormTaggingError(?array $form): ?string {
+			if (!empty($form["tagging"])) {
+
+				return null;
+			}
+
+			return "This module's form doesn't have tagging enabled, so tags set here would be invisible in the "
+				. "admin and unremovable. Turn tagging on for the form in Developer → Modules first.";
 		}
 
 		/**
@@ -3180,6 +3209,16 @@
 				return ["error" => "Entries in this module have no \"{$flag}\" flag."];
 			}
 
+			// The column existing is not the same question as anything in the admin
+			// being able to flip it back (audit #27 A2). A status column is operable by
+			// a human only when the module declares the matching action — on itself or
+			// on one of its views — and a hand-built module, or a scaffolded one whose
+			// action was later removed in the Module Designer, can carry the column
+			// without it. Status columns are not form fields either, so the entry editor
+			// doesn't render them: this tool would be the only surface that can reach it.
+			// Disclosed rather than refused, because the REST toggle does it too.
+			$no_admin_action = $this->aiFlagWithoutActionNote($module, $flag);
+
 			// Publisher-only, matching the REST toggle. userRowLevel folds in the admin
 			// bypass, so the strict "p" comparison is the whole check.
 			if (PermissionService::userRowLevel($user, $module, $row) !== "p") {
@@ -3220,9 +3259,14 @@
 				}
 			}
 
+			if ($no_admin_action !== null) {
+				$preview["no_admin_action"] = $no_admin_action;
+			}
+
 			return [
 				"ok" => true,
-				"summary" => "{$verb} “{$label}” in the “{$name}” module. This takes effect live once you approve.",
+				"summary" => "{$verb} “{$label}” in the “{$name}” module. This takes effect live once you approve."
+					. ($no_admin_action !== null ? " " . $no_admin_action : ""),
 				"preview" => $preview,
 				"payload" => [
 					"module_id" => (string)$module["id"],
@@ -3290,6 +3334,11 @@
 				return ["mode" => "error", "message" => "Entries in this module no longer have a \"{$flag}\" flag."];
 			}
 
+			// And the module's action can be removed in the Module Designer inside the
+			// same window, which is the whole reason the card's claim is re-asked rather
+			// than carried over from staging.
+			$no_admin_action = $this->aiFlagWithoutActionNote($module, $flag);
+
 			if (PermissionService::userRowLevel($user, $module, $row) !== "p") {
 				throw new AuthorizationException("Publisher access required to change entry flags");
 			}
@@ -3303,13 +3352,50 @@
 				"module" => $module_id, "table" => $table, "id" => $entry_id, "value" => $next, "via" => "ai_assistant",
 			]);
 
-			return [
+			$result = [
 				"mode" => "updated",
 				"module" => $module_id,
 				"entry_id" => $entry_id,
 				"flag" => $flag,
 				"value" => $next !== "",
 			];
+
+			if ($no_admin_action !== null) {
+				$result["note"] = $no_admin_action;
+			}
+
+			return $result;
+		}
+
+		/**
+		 * The sentence a flag change owes when the module has no action that can undo
+		 * it in the admin, or null when it has one.
+		 *
+		 * aiModuleStatusActions is the same map get_module and get_module_schema
+		 * already disclose, read from both places a module can declare an action; the
+		 * write seam asking a different question from the read seams is what audit #27
+		 * A2 was about. Shared by staging and approval so the card and the result
+		 * cannot disagree.
+		 *
+		 * @param array<string,mixed> $module
+		 */
+		private function aiFlagWithoutActionNote(array $module, string $flag): ?string {
+			$actions = ModuleService::aiModuleStatusActions($module);
+
+			if (isset($actions[$flag])) {
+
+				return null;
+			}
+
+			$action = array_search($flag, ModuleService::AI_STATUS_ACTION_COLUMNS, true);
+
+			if ($action === false) {
+
+				return null;
+			}
+
+			return "This module's views have no {$action} action, so nothing in the admin can change it back — "
+				. "only this assistant can.";
 		}
 
 		/**

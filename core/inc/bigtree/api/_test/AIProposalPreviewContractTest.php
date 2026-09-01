@@ -311,6 +311,11 @@
 			"new_parent_title" => "scalar",
 			"new_tags" => "structured",
 			"new_window" => "scalar",
+			// One sentence: the module has no action for this status column, so nothing
+			// in the admin can flip it back (audit #27 A2). Rendered as an ordinary
+			// humanized row — the consequence is the value, so there is nothing for the
+			// card to lay out specially.
+			"no_admin_action" => "scalar",
 			"note" => "scalar",
 			"open_graph" => "scalar",
 			"page_id" => "scalar",

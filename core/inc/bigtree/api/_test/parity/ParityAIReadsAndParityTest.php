@@ -251,6 +251,9 @@
 			return;
 		}
 
+		// add_tags refuses a form whose tagging switch is off (audit #27 A1), and News
+		// ships with it off — same fixture step the entry-write tests take.
+		$tagging = parity_enable_news_relations();
 		$svc = new AutoModuleService();
 		$changes = new PendingChangeService();
 		$dev_id = parity_seed_user(["level" => 2]);
@@ -313,6 +316,7 @@
 			parity_delete_news_entries($entry_id);
 			parity_delete_tags($tag_id);
 			parity_delete_users($dev_id, $editor_id);
+			$tagging();
 		}
 	}
 

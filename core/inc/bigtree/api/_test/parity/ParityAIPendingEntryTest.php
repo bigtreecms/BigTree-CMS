@@ -479,6 +479,9 @@
 			return;
 		}
 
+		// News ships with tagging off and add_tags refuses that form (audit #27 A1), so
+		// the fixture turns the switch on the way a developer would.
+		$tagging = parity_enable_news_relations();
 		$svc = new AutoModuleService();
 		$tags = new \BigTree\Services\TagService();
 		$module_id = parity_news_module_id();
@@ -581,5 +584,6 @@
 			parity_delete_tags($tag_id);
 			parity_delete_news_entries($entry_id);
 			parity_delete_users($dev_id, $editor_id, $other_id);
+			$tagging();
 		}
 	}
