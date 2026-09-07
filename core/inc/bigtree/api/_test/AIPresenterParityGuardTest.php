@@ -20,6 +20,7 @@
 	 * payload) and would be noise, not a guard.
 	 */
 
+	use BigTree\Services\PageService;
 	use BigTree\Services\SearchService;
 	use BigTree\Services\UserService;
 
@@ -42,6 +43,24 @@
 					"two_factor_enabled" => "whether an account has 2FA configured is a security-posture "
 						. "fact the assistant never acts on — managing two-factor and passkeys is an "
 						. "explicit non-tool — so it stays off a search payload the model reads in bulk",
+				],
+			],
+			// Audit #29 B2. The tool's own description says "use this to find the
+			// revision to restore", and both lists returned the same five display
+			// columns — nothing about whether a revision is still restorable. The four
+			// facts that answer come from revisionRestorability, which both presenters
+			// call, so they cannot differ by construction; what this pair watches is
+			// the half either surface writes out for itself.
+			"get_page_revisions" => [
+				"seam" => [PageService::class, "aiPageRevisions"],
+				"presenter" => [PageService::class, ["listRevisions"]],
+				"omitted" => [
+					"page" => "the page every revision belongs to is the seam's own `page_id`, returned "
+						. "once beside `page_title` rather than repeated on each of up to fifty rows",
+					"author" => "a user id the model can do nothing with; the seam resolves it to "
+						. "`author_name`, which is what \"who saved this?\" actually asks",
+					"saved_description" => "returned as `description`, beside the `saved` flag that says "
+						. "whether there is one — the column name is the storage's, not the reader's",
 				],
 			],
 		];

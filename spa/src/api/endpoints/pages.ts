@@ -144,12 +144,29 @@ export interface PageEditBody {
 
 export interface PageRevision {
 	author: number;
+	/** False when the revision's content already matches the live page. */
+	differs_from_live: boolean;
 	id: number;
+	/** How many of the files this revision referenced have since been deleted. */
+	missing_files: number;
 	page: number;
 	saved: boolean;
 	saved_description: string;
+	/** The template the revision would restore; "" for an external-link revision. */
+	template: string;
+	/** False when that template has since been deleted — restoring it leaves the page unrenderable. */
+	template_exists: boolean;
 	title: string;
 	updated_at: string;
+}
+
+/**
+ * What a restore says about the state it left behind: required content the
+ * revision doesn't fill in, files it points at that have been deleted, a template
+ * that no longer exists, a draft still queued on top of it.
+ */
+export interface PageRestoreResult {
+	warnings?: string[];
 }
 
 /** Search hit returned by GET /pages/search. */
@@ -256,6 +273,6 @@ export const pagesApi = {
 			api.delete<void>(`/pages/${id}/revisions/${revisionId}`),
 
 		restore: (id: number, revisionId: number) =>
-			api.post<void>(`/pages/${id}/revisions/${revisionId}/restore`, {}),
+			api.post<PageRestoreResult>(`/pages/${id}/revisions/${revisionId}/restore`, {}),
 	},
 };

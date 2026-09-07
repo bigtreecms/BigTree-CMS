@@ -30,7 +30,9 @@
 			return $this->functionDefinition(
 				$this->name(),
 				"List the saved and automatic revisions of a page, newest first, with when each was taken and "
-					. "by whom. Use this to find the revision to restore when the user wants to undo a change.",
+					. "by whom. Use this to find the revision to restore when the user wants to undo a change. "
+					. "Each revision says whether it still differs from the live page, whether its template "
+					. "still exists, and how many of the files it referenced have since been deleted.",
 				[
 					"type" => "object",
 					"properties" => [

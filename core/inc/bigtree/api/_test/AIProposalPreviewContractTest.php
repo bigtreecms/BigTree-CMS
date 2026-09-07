@@ -301,6 +301,9 @@
 			"meta_description" => "scalar",
 			"meta_keywords" => "scalar",
 			"mine" => "scalar",
+			// How many of the files a revision referenced have since been deleted, and
+			// which — a short "2 (#12, #14)" row beside the restore diff (audit #29 A2).
+			"missing_files" => "scalar",
 			"mode" => "scalar",
 			"module" => "scalar",
 			"module_id" => "scalar",
@@ -326,6 +329,10 @@
 			"path" => "scalar",
 			"publish_at" => "scalar",
 			"publishes_draft" => "structured",
+			// Who has an unpublished draft on the page a restore is about to overwrite,
+			// and when they queued it. Unlike publishes_draft this write does *not*
+			// publish it — it stays queued and lands on top later (audit #29 B1).
+			"queued_draft" => "scalar",
 			"records_moved" => "scalar",
 			// A list of sentences naming what still points at the record a card
 			// destroys or hides (audit #17 A1/A2).
@@ -349,6 +356,9 @@
 			"target_title" => "scalar",
 			"template" => "scalar",
 			"template_changed" => "scalar",
+			// The template id a revision would restore, when that template has since
+			// been deleted. Disclosure, not refusal (audit #29 A4).
+			"template_missing" => "scalar",
 			"timezone" => "scalar",
 			"title" => "scalar",
 			"to" => "scalar",

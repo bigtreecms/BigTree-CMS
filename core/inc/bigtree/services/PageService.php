@@ -1110,6 +1110,10 @@
 		 * populated, and required complex fields the assistant could not fill even
 		 * if asked. Empty means the switch is safe.
 		 *
+		 * $page is any row carrying a `resources` blob, not only a live page: a
+		 * revision row qualifies as-is, which is what lets revisionRestoreGaps ask
+		 * this same question of content authored in the past (audit #29 A1).
+		 *
 		 * @param array<string,mixed> $page the existing page row
 		 * @return list<string>
 		 */
@@ -1135,6 +1139,280 @@
 			}
 
 			return $unmet;
+		}
+
+		/**
+		 * The required-content gaps a revision restore would land the page in, split by
+		 * whether the restore *introduces* them.
+		 *
+		 * A restore is the fourth door onto the required-content rule and the only one
+		 * that takes no content from the model: the revision's `template` and
+		 * `resources` are written back verbatim, so a field added to (or flipped
+		 * required on) the template since the snapshot was taken has no value at all in
+		 * it. update_page_content refuses that end state (aiMissingRequiredResources)
+		 * and update_page refuses a template switch that reaches it
+		 * (aiTemplateSwitchGaps); a restore reached it through neither.
+		 *
+		 * Judged as a difference rather than absolutely, because a restore is the undo
+		 * path: refusing outright would strand a page that is *already* incomplete,
+		 * with the repair — going back to a version that had the field — behind the
+		 * very wall. The principle is that a restore never makes a page less complete
+		 * than it is (audit #29 A1/D1).
+		 *
+		 * @param array<string,mixed> $revision A bigtree_page_revisions row.
+		 * @param array<string,mixed> $page The live page row.
+		 * @return array{introduced:list<string>,carried:list<string>}
+		 */
+		private function revisionRestoreGaps(array $revision, array $page): array {
+			$after = $this->aiTemplateSwitchGaps((string)($revision["template"] ?? ""), $revision);
+			$now = $this->aiTemplateSwitchGaps((string)($page["template"] ?? ""), $page);
+
+			return [
+				"introduced" => array_values(array_diff($after, $now)),
+				"carried" => array_values(array_intersect($after, $now)),
+			];
+		}
+
+		/**
+		 * The resource ids a revision referenced that no longer exist.
+		 *
+		 * insertRevisionSnapshot stores `resource_allocation` so a restore can't
+		 * silently produce a page pointing at files that are gone — but the flagging
+		 * it was stored for (`has_deleted_resources`) only ever had a legacy writer,
+		 * and nothing on any surface read either column. Computed at read time instead:
+		 * a flag written at delete time rots the moment a file is re-uploaded under the
+		 * same id, and this is one `IN` query (audit #29 A2/D2).
+		 *
+		 * Both stored shapes are accepted — this rewrite's unquoted `[12,13]` and
+		 * legacy's `["12","13"]` (admin.php:8809 stores the driver's strings).
+		 *
+		 * @param array<string,mixed> $revision A bigtree_page_revisions row.
+		 * @param array<int,bool>|null $existing Ids already known to exist, keyed by id, when a
+		 *   caller has resolved a whole list at once; null resolves this revision's ids itself.
+		 * @return list<int>
+		 */
+		private function revisionMissingResources(array $revision, ?array $existing = null): array {
+			$ids = self::revisionAllocatedIds($revision);
+
+			if (!$ids) {
+
+				return [];
+			}
+
+			if ($existing === null) {
+				$existing = self::existingResourceIds($ids);
+			}
+
+			return array_values(array_filter($ids, function (int $id) use ($existing): bool {
+
+				return empty($existing[$id]);
+			}));
+		}
+
+		/**
+		 * The resource ids a revision's `resource_allocation` names, in either stored
+		 * shape.
+		 *
+		 * @param array<string,mixed> $revision A bigtree_page_revisions row.
+		 * @return list<int>
+		 */
+		private static function revisionAllocatedIds(array $revision): array {
+			$allocated = Json::decode($revision["resource_allocation"] ?? "");
+			$ids = is_array($allocated) ? $allocated : [];
+
+			return array_values(array_unique(array_filter(array_map("intval", $ids))));
+		}
+
+		/**
+		 * The same question for a whole list of revision rows, so a list seam resolves
+		 * file existence in one query however long the page's history is — REST's
+		 * revision list is unbounded.
+		 *
+		 * @param list<array<string,mixed>> $revisions
+		 * @return array<int,bool>
+		 */
+		private static function existingResourceIdsFor(array $revisions): array {
+			$ids = [];
+
+			foreach ($revisions as $revision) {
+				foreach (self::revisionAllocatedIds($revision) as $id) {
+					$ids[] = $id;
+				}
+			}
+
+			return self::existingResourceIds($ids);
+		}
+
+		/**
+		 * Which of these resource ids still exist, keyed by id.
+		 *
+		 * @param list<int> $ids
+		 * @return array<int,bool>
+		 */
+		private static function existingResourceIds(array $ids): array {
+			$ids = array_values(array_unique(array_filter(array_map("intval", $ids))));
+
+			if (!$ids) {
+
+				return [];
+			}
+
+			$live = SQL::fetchAllSingle(
+				"SELECT id FROM bigtree_resources WHERE id IN (" . Sanitize::placeholders($ids) . ")",
+				...$ids
+			);
+			$existing = [];
+
+			foreach ($live ?: [] as $id) {
+				$existing[(int)$id] = true;
+			}
+
+			return $existing;
+		}
+
+		/**
+		 * Whether the template a revision would restore still exists. A template id is
+		 * a soft reference everywhere in the CMS (audit #28 E1), so this is a
+		 * disclosure and never a refusal — it exists so the two revision presenters and
+		 * the restore card share one spelling of the question (audit #29 A4/D4).
+		 *
+		 * An empty template is the external-link era of a page, which is a real state
+		 * rather than a missing template.
+		 *
+		 * @param array<string,mixed> $revision A bigtree_page_revisions row.
+		 */
+		private function revisionTemplateExists(array $revision): bool {
+			$template = (string)($revision["template"] ?? "");
+
+			return $template === "" || BigTreeJSONDB::exists("templates", $template);
+		}
+
+		/**
+		 * The facts a revision has to carry for anyone — model or person — to choose
+		 * between revisions without restoring one to find out.
+		 *
+		 * Both revision lists used to return title/saved/description/date/author, and
+		 * the tool that reads them says "use this to find the revision to restore":
+		 * whether a revision still differs from the live page, whether its template
+		 * still exists and how many of the files it referenced are gone are exactly the
+		 * facts that choice turns on, and all three were computable and returned by
+		 * neither surface (audit #29 A2/A4/B2).
+		 *
+		 * The same shape on both presenters, so the SPA's badges and the assistant's
+		 * answer can't disagree.
+		 *
+		 * @param array<string,mixed> $revision A bigtree_page_revisions row.
+		 * @param array<string,mixed> $page The live page row.
+		 * @param array<int,bool>|null $existing Resolved-once resource existence, for a whole list.
+		 * @return array{template:string,template_exists:bool,missing_files:int,differs_from_live:bool}
+		 */
+		private function revisionRestorability(array $revision, array $page, ?array $existing = null): array {
+			$differs = false;
+
+			foreach (self::REVISION_COLUMNS as $column) {
+				if ((string)($revision[$column] ?? "") !== (string)($page[$column] ?? "")) {
+					$differs = true;
+				}
+			}
+
+			return [
+				"template" => (string)($revision["template"] ?? ""),
+				"template_exists" => $this->revisionTemplateExists($revision),
+				"missing_files" => count($this->revisionMissingResources($revision, $existing)),
+				"differs_from_live" => $differs,
+			];
+		}
+
+		/**
+		 * Everything a revision restore has to say for itself, in one place, because
+		 * three doors ask it: the staging seam, the approval seam and the REST route.
+		 *
+		 * A revision is content authored in the past, and every rule the live editing
+		 * seams enforce on content the model supplies — required fields present, the
+		 * template exists, referenced files exist, an outstanding draft is disclosed —
+		 * was true when the snapshot was taken and is re-asked by nobody when it is
+		 * written back (audit #29). Exactly one of those is a refusal: required content
+		 * the restore would *newly* empty. The rest are disclosures, because a template
+		 * id is a soft reference, a deleted file is not this write's doing, and a
+		 * queued draft is somebody else's work that the restore leaves alone.
+		 *
+		 * @param array<string,mixed> $revision A bigtree_page_revisions row.
+		 * @param array<string,mixed> $page The live page row.
+		 * @param string $title The page's display title, for the refusal's wording.
+		 * @return array{refusal:string|null,warning:string|null,template_missing:string|null,
+		 *   missing_files:string|null,queued_draft:string|null,clauses:list<string>}
+		 */
+		private function revisionRestoreNotices(array $revision, array $page, string $title): array {
+			$notices = [
+				"refusal" => null,
+				"warning" => null,
+				"template_missing" => null,
+				"missing_files" => null,
+				"queued_draft" => null,
+				"clauses" => [],
+			];
+			$gaps = $this->revisionRestoreGaps($revision, $page);
+
+			// The one refusal. Judged against what the page is already missing, so the
+			// undo path stays open on a page that is incomplete today (D1).
+			if ($gaps["introduced"]) {
+				$notices["refusal"] = "Restoring that revision would leave “{$title}” with required content "
+					. "empty: " . implode(", ", $gaps["introduced"]) . ". The revision was taken before that "
+					. "content was required, so it has no value for it. Restore a later revision that does have "
+					. "it, or use update_page_content to put the older content back field by field.";
+
+				return $notices;
+			}
+
+			if ($gaps["carried"]) {
+				$notices["warning"] = "“{$title}” is already missing required content ("
+					. implode(", ", $gaps["carried"]) . ") and this revision doesn't fill it in, so the page "
+					. "stays incomplete after the restore.";
+				$notices["clauses"][] = "The page is already missing required content ("
+					. implode(", ", $gaps["carried"]) . ") and this revision doesn't fill it in.";
+			}
+
+			// Disclose, never refuse: a template id is a soft reference everywhere in
+			// the CMS (audit #28 E1), and the state this leaves behind is the same one
+			// the admin's own restore would leave behind.
+			if (!$this->revisionTemplateExists($revision)) {
+				$template = (string)$revision["template"];
+				$notices["template_missing"] = $template;
+				$notices["clauses"][] = "The “{$template}” template this revision was on no longer exists, so "
+					. "the page won't render until it's moved onto one that does.";
+			}
+
+			$missing_files = $this->revisionMissingResources($revision);
+
+			if ($missing_files) {
+				$count = count($missing_files);
+				$named = array_slice($missing_files, 0, 5);
+				$ids = "#" . implode(", #", $named) . ($count > count($named) ? ", …" : "");
+				$notices["missing_files"] = "{$count} ({$ids})";
+				$notices["clauses"][] = "{$count} " . ($count === 1 ? "file" : "files") . " this revision "
+					. "referenced " . ($count === 1 ? "has" : "have") . " since been deleted ({$ids}), so "
+					. "anything in the restored content pointing at " . ($count === 1 ? "it" : "them")
+					. " will be broken.";
+			}
+
+			// The restore doesn't touch a queued draft — but the draft's `resources` is
+			// a whole blob authored against the pre-restore content, so approving it
+			// afterwards overlays everything this restore puts back (B1).
+			$queued = $this->aiPendingEditChange((int)($page["id"] ?? 0));
+
+			if ($queued) {
+				$owner = !empty($queued["user"])
+					? (string)SQL::fetchSingle("SELECT name FROM bigtree_users WHERE id = ?", (int)$queued["user"])
+					: "";
+				$whose = $owner !== "" ? $owner : "someone";
+				$when = trim((string)($queued["date"] ?? ""));
+				$notices["queued_draft"] = $whose . ($when !== "" ? ", {$when}" : "");
+				$notices["clauses"][] = "This page has an unpublished draft ({$whose}"
+					. ($when !== "" ? ", {$when}" : "") . ") which the restore leaves queued — approving that "
+					. "draft afterwards will overlay the restored content.";
+			}
+
+			return $notices;
 		}
 
 		/**
@@ -1816,14 +2094,19 @@
 			}
 
 			$limit = max(1, min(50, $limit));
+			// The whole row, not the six display columns: a revision has to be judged
+			// on whether it is still restorable at all, which needs its content
+			// (audit #29 B2).
 			$rows = SQL::fetchAll(
-				"SELECT r.id, r.title, r.saved, r.saved_description, r.updated_at, r.author, u.name AS author_name
+				"SELECT r.*, u.name AS author_name
 				 FROM bigtree_page_revisions r
 				 LEFT JOIN bigtree_users u ON u.id = r.author
 				 WHERE r.page = ? ORDER BY r.updated_at DESC, r.id DESC LIMIT " . $limit,
 				$page_id
 			);
 
+			$live = SQL::fetch("SELECT * FROM bigtree_pages WHERE id = ?", $page_id);
+			$existing = self::existingResourceIdsFor($rows);
 			$revisions = [];
 
 			foreach ($rows as $row) {
@@ -1836,7 +2119,7 @@
 					"description" => (string)($row["saved_description"] ?? ""),
 					"updated_at" => $row["updated_at"],
 					"author_name" => $row["author_name"] !== null ? (string)$row["author_name"] : null,
-				];
+				] + $this->revisionRestorability($row, $live ?: [], $existing);
 			}
 
 			return [
@@ -1894,10 +2177,15 @@
 			// `template` and the restore writes it back, so restoring one is a template
 			// change — legacy's updatePage clamp is exactly what used to stop a restore
 			// reinstating a template the actor may not use (audit #23 A2).
-			$template_denial = self::templateChangeDenial(
+			//
+			// A stored `""` is the page's external-link era, which is a real change off
+			// the stored template and not the "unchanged" every other caller means by it
+			// — the explicit-clear leg update_page has always had (audit #29 A3).
+			$template_denial = self::templateWriteDenial(
 				(string)($revision["template"] ?? ""),
 				(string)$page["template"],
-				$user
+				$user,
+				true
 			);
 
 			if ($template_denial !== null) {
@@ -1907,6 +2195,13 @@
 
 			$title = trim((string)$page["nav_title"]) ?: trim((string)$page["title"]) ?: "page #{$page_id}";
 			$description = trim((string)($revision["saved_description"] ?? ""));
+			$notices = $this->revisionRestoreNotices($revision, $page, $title);
+
+			if ($notices["refusal"] !== null) {
+
+				return ["error" => $notices["refusal"]];
+			}
+
 			$diff = [];
 
 			// Show which content columns the restore would actually change, so this
@@ -1930,21 +2225,45 @@
 					. "change nothing."];
 			}
 
+			$preview = [
+				"action" => "restore_page_revision",
+				"page_id" => $page_id,
+				"page_title" => $title,
+				"revision_id" => $revision_id,
+				"revision_date" => $revision["updated_at"],
+				"changes" => $diff,
+				"mode" => "published",
+			];
+
+			// The four things a restore carries that the six-column diff can't show:
+			// `resources` renders as one blob nobody can read for gaps, and the other
+			// three aren't among the columns at all (audit #29 A1/A2/A4/B1). Written
+			// out one key at a time, like every other conditional preview key, because
+			// the card contract reads this file as text.
+			if ($notices["warning"] !== null) {
+				$preview["warning"] = $notices["warning"];
+			}
+
+			if ($notices["template_missing"] !== null) {
+				$preview["template_missing"] = $notices["template_missing"];
+			}
+
+			if ($notices["missing_files"] !== null) {
+				$preview["missing_files"] = $notices["missing_files"];
+			}
+
+			if ($notices["queued_draft"] !== null) {
+				$preview["queued_draft"] = $notices["queued_draft"];
+			}
+
 			return [
 				"ok" => true,
 				"summary" => "Restore “{$title}” to its revision from {$revision["updated_at"]}"
 					. ($description !== "" ? " (“{$description}”)" : "")
 					. ". This replaces the page's current content live. The current version is snapshotted first, "
-					. "so it can be restored back.",
-				"preview" => [
-					"action" => "restore_page_revision",
-					"page_id" => $page_id,
-					"page_title" => $title,
-					"revision_id" => $revision_id,
-					"revision_date" => $revision["updated_at"],
-					"changes" => $diff,
-					"mode" => "published",
-				],
+					. "so it can be restored back."
+					. ($notices["clauses"] ? " " . implode(" ", $notices["clauses"]) : ""),
+				"preview" => $preview,
 				"payload" => [
 					"page_id" => $page_id,
 					"revision_id" => $revision_id,
@@ -2000,16 +2319,29 @@
 
 			// Re-asked at approval like every other staged value — the page can be
 			// re-templated, or a template's level raised, inside the proposal's 24h
-			// life (audit #23 A2).
-			$template_denial = self::templateChangeDenial(
+			// life (audit #23 A2), and the explicit-clear leg travels with it (#29 A3).
+			$template_denial = self::templateWriteDenial(
 				(string)($revision["template"] ?? ""),
 				(string)$page["template"],
-				$user
+				$user,
+				true
 			);
 
 			if ($template_denial !== null) {
 
 				return ["mode" => "error", "message" => $template_denial];
+			}
+
+			$title = trim((string)$page["nav_title"]) ?: ("page #{$page_id}");
+
+			// The same question, re-asked for the same reason: a field can be flipped
+			// required, a template deleted or a draft queued inside those 24h, and the
+			// card the approver read was drawn before any of it (audit #29 A1).
+			$notices = $this->revisionRestoreNotices($revision, $page, $title);
+
+			if ($notices["refusal"] !== null) {
+
+				return ["mode" => "error", "message" => $notices["refusal"]];
 			}
 
 			// Snapshot the current published state first so the restore can be undone,
@@ -2027,12 +2359,21 @@
 			SQL::update("bigtree_pages", $page_id, $update);
 			$this->finishPageWrite($page_id, $update, [], [], $page);
 
-			return [
+			$result = [
 				"mode" => "restored",
 				"page_id" => $page_id,
 				"revision_id" => $revision_id,
-				"title" => trim((string)$page["nav_title"]) ?: ("page #{$page_id}"),
+				"title" => $title,
 			];
+
+			// What the restore left behind that nobody is going to look for: carried
+			// required gaps, files it points at that are gone, a template that isn't
+			// there and a draft still queued on top of it.
+			if ($notices["clauses"]) {
+				$result["note"] = implode(" ", $notices["clauses"]);
+			}
+
+			return $result;
 		}
 
 		/**
@@ -3332,14 +3673,48 @@
 			// "" is how every caller spells "this write doesn't change the template" —
 			// the AI payloads default a missing key to it and the REST bodies omit it.
 			// An *explicit* clear (update_page converting a page into an external link)
-			// is a change, and its caller reaches templateOutOfReachDenial directly,
-			// because only that caller can tell the two apart.
+			// is a change, and reaches templateOutOfReachDenial through
+			// templateWriteDenial's $explicit_clear leg, because only the caller can
+			// tell the two apart.
 			if ($incoming === "" || $incoming === $stored) {
 
 				return null;
 			}
 
 			return self::templateOutOfReachDenial($stored, $user) ?? self::templateUsableBy($incoming, $user);
+		}
+
+		/**
+		 * The level rule as every *writer* of a page's template has to ask it: the
+		 * change rule, plus the one leg that can't be inferred from the values alone.
+		 *
+		 * `""` means two different things to a writer. Almost everywhere it is "this
+		 * write doesn't touch the template", which is always allowed — that is
+		 * templateChangeDenial's first clause. On update_page (and the REST body, and a
+		 * draft of either) it can instead be an *explicit clear*: the page is being
+		 * converted into an external link, which moves it off its stored template and
+		 * is exactly what the clamp exists to stop. Each caller used to spell that
+		 * branch out itself, and the fourth writer of a template — a revision restore,
+		 * whose stored `""` is a page's external-link era — never grew one, so a
+		 * level-1 publisher could restore a page off a developer-only template (audit
+		 * #29 A3/D3). One home for the branch, so the doors can't drift again.
+		 *
+		 * @param object|array $user
+		 * @param bool $explicit_clear Whether an empty $incoming means "clear it", not "unchanged".
+		 * @return string|null The reason, or null when the write is allowed.
+		 */
+		public static function templateWriteDenial(
+			string $incoming,
+			string $stored,
+			$user,
+			bool $explicit_clear = false
+		): ?string {
+			if ($explicit_clear && $incoming === "") {
+
+				return self::templateOutOfReachDenial($stored, $user);
+			}
+
+			return self::templateChangeDenial($incoming, $stored, $user);
 		}
 
 		/**
@@ -3509,12 +3884,15 @@
 					// — the card would otherwise show a template change that silently
 					// didn't happen.
 					//
-					// This is the one seam where `template: ""` is an explicit clear
-					// rather than "unchanged" — the model is converting the page into an
-					// external link — so the stored half is asked directly for it.
-					$template_denial = $template === ""
-						? self::templateOutOfReachDenial((string)$page["template"], $user)
-						: self::templateChangeDenial($template, (string)$page["template"], $user);
+					// `template: ""` is an explicit clear here rather than "unchanged" —
+					// the model is converting the page into an external link — which is
+					// the leg templateWriteDenial carries for every writer.
+					$template_denial = self::templateWriteDenial(
+						$template,
+						(string)$page["template"],
+						$user,
+						true
+					);
 
 					if ($template_denial !== null) {
 
@@ -3881,8 +4259,9 @@
 			}
 
 			// The third door onto the level rule: update_page_content switches template
-			// as readily as update_page does (audit #23 A2).
-			$template_denial = self::templateChangeDenial($template, $current_template, $user);
+			// as readily as update_page does (audit #23 A2). `""` was resolved to the
+			// page's own template above, so there is no explicit clear on this seam.
+			$template_denial = self::templateWriteDenial($template, $current_template, $user);
 
 			if ($template_denial !== null) {
 
@@ -4160,7 +4539,7 @@
 
 			// Re-asked at approval like every other staged value: a template's level can
 			// be raised inside the proposal's 24h life (audit #23 A2).
-			$template_denial = self::templateChangeDenial($template, (string)$page["template"], $user);
+			$template_denial = self::templateWriteDenial($template, (string)$page["template"], $user);
 
 			if ($template_denial !== null) {
 
@@ -4479,7 +4858,7 @@
 				// Re-asked here as well as at staging: a draft is still a page waiting
 				// to be published, and the level rule follows the template wherever it
 				// is written (audit #23 A2).
-				$template_denial = self::templateChangeDenial(
+				$template_denial = self::templateWriteDenial(
 					(string)($changes["template"] ?? ""),
 					(string)($target["page"]["template"] ?? ""),
 					$user
@@ -4548,7 +4927,7 @@
 			// Re-asked at approval like every other staged value: a template's level
 			// can be raised inside the proposal's 24h life, and the approver may not be
 			// the person who staged it (audit #23 A2).
-			$template_denial = self::templateChangeDenial($template, (string)$page["template"], $user);
+			$template_denial = self::templateWriteDenial($template, (string)$page["template"], $user);
 
 			if ($template_denial !== null) {
 
@@ -5360,13 +5739,12 @@
 			// (admin.php:8789, audit #23 A2). An edit that doesn't touch the template
 			// is unaffected, including on a page whose template is above the actor —
 			// but a body that supplies an empty one is clearing it, which is a change.
-			$template_denial = array_key_exists("template", $d) && (string)$d["template"] === ""
-				? self::templateOutOfReachDenial((string)$page["template"], $request->user)
-				: self::templateChangeDenial(
-					(string)($d["template"] ?? ""),
-					(string)$page["template"],
-					$request->user
-				);
+			$template_denial = self::templateWriteDenial(
+				(string)($d["template"] ?? ""),
+				(string)$page["template"],
+				$request->user,
+				array_key_exists("template", $d)
+			);
 
 			if ($template_denial !== null) {
 				throw new AuthorizationException($template_denial);
@@ -5556,9 +5934,12 @@
 			// this was.
 			$template_denial = $type === "NEW"
 				? self::templateUsableBy((string)($d["template"] ?? ""), $user)
-				: (array_key_exists("template", $d) && (string)$d["template"] === ""
-					? self::templateOutOfReachDenial($fallback_template, $user)
-					: self::templateChangeDenial((string)($d["template"] ?? ""), $fallback_template, $user));
+				: self::templateWriteDenial(
+					(string)($d["template"] ?? ""),
+					$fallback_template,
+					$user,
+					array_key_exists("template", $d)
+				);
 
 			if ($template_denial !== null) {
 				throw new AuthorizationException($template_denial);
@@ -6255,12 +6636,17 @@
 		public function listRevisions(Request $request) {
 			$id = $request->id();
 			$this->enforce($request->user, $id, "v");
+			// The whole row: a revision's restorability is judged from its content, and
+			// the same four facts the assistant's list carries are computed from it
+			// (audit #29 B2).
 			$rows = SQL::fetchAll(
-				"SELECT id, page, title, author, saved, saved_description, updated_at FROM bigtree_page_revisions WHERE page = ? ORDER BY updated_at DESC, id DESC",
+				"SELECT * FROM bigtree_page_revisions WHERE page = ? ORDER BY updated_at DESC, id DESC",
 				$id
 			);
+			$page = SQL::fetch("SELECT * FROM bigtree_pages WHERE id = ?", $id);
+			$existing = self::existingResourceIdsFor($rows);
 
-			return Response::ok(array_map(function ($r) {
+			return Response::ok(array_map(function ($r) use ($page, $existing) {
 
 				return [
 					"id" => (int)$r["id"],
@@ -6270,7 +6656,7 @@
 					"saved" => Flag::isOn($r["saved"]),
 					"saved_description" => $r["saved_description"],
 					"updated_at" => $r["updated_at"],
-				];
+				] + $this->revisionRestorability($r, $page ?: [], $existing);
 			}, $rows));
 		}
 
@@ -6315,15 +6701,31 @@
 			);
 
 			// A revision stores its template, so restoring one changes the page's
-			// template — the same rule the write paths carry (audit #23 A2).
-			$template_denial = self::templateChangeDenial(
+			// template — the same rule the write paths carry (audit #23 A2), including
+			// the explicit-clear leg for a revision of the page's external-link era
+			// (audit #29 A3).
+			$template_denial = self::templateWriteDenial(
 				(string)($revision["template"] ?? ""),
 				(string)$page["template"],
-				$request->user
+				$request->user,
+				true
 			);
 
 			if ($template_denial !== null) {
 				throw new AuthorizationException($template_denial);
+			}
+
+			$title = trim((string)$page["nav_title"]) ?: trim((string)$page["title"]) ?: "page #{$id}";
+
+			// The same refusal and the same disclosures the assistant's restore carries
+			// — the rule is the CMS's, not the assistant's (audit #29 A1/A2/A4/B1). The
+			// warnings ride back on the response so the SPA's toast can show them.
+			$notices = $this->revisionRestoreNotices($revision, $page, $title);
+
+			if ($notices["refusal"] !== null) {
+				// 422 rather than 400: the body is well-formed and the actor is allowed
+				// — it is the revision's own content that can't be written.
+				throw new BadRequestException($notices["refusal"], "revision_missing_required_content", 422);
 			}
 
 			// Snapshot the current published state so the restore can be undone.
@@ -6339,7 +6741,13 @@
 			$update["updated_at"] = "NOW()";
 			SQL::update("bigtree_pages", $id, $update);
 
-			return Response::ok($this->finishPageWrite($id, $update, [], [], $page));
+			$restored = $this->finishPageWrite($id, $update, [], [], $page);
+
+			if ($notices["clauses"]) {
+				$restored["warnings"] = $notices["clauses"];
+			}
+
+			return Response::ok($restored);
 		}
 
 		/**

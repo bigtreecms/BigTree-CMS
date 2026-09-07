@@ -374,3 +374,98 @@
 			parity_cleanup_tracked();
 		}
 	}
+
+	/**
+	 * The same door's other leg (audit #29 A3). `templateChangeDenial("")` means "this
+	 * write doesn't touch the template", which is right for every caller that omits
+	 * one — and wrong for a restore, where a stored `""` is the page's external-link
+	 * era and restoring it moves the page off whatever template it is on now. update_page
+	 * has always had that branch; the restore doors reached it through
+	 * templateWriteDenial's $explicit_clear leg only after this guard existed.
+	 */
+	function test_parity_a_restore_cannot_clear_a_too_high_template() {
+		if (!parity_db_available()) {
+			return;
+		}
+
+		$svc = new PageService();
+		[$editor_id, $editor] = parity_level_editor();
+		$dev_only = "zz-level-dev-" . bin2hex(random_bytes(3));
+		$page_id = 0;
+		$revision_id = 0;
+
+		try {
+			parity_seed_template($dev_only, [], 2);
+			$page_id = parity_seed_page(["template" => $dev_only]);
+
+			// The page's own past: before it was templated it was an external link, so
+			// the revision stores no template at all.
+			$revision_id = (int)SQL::insert("bigtree_page_revisions", [
+				"page" => $page_id,
+				"title" => "ZZ Parity Page",
+				"meta_description" => "",
+				"template" => "",
+				"external" => "http://example.com/",
+				"new_window" => "",
+				"resources" => "",
+				"author" => 0,
+				"updated_at" => "NOW()",
+				"saved" => "on",
+				"saved_description" => "Back when it was a link",
+			]);
+
+			$publisher = (object)["id" => $editor_id, "level" => 0, "permissions" => ["page" => [0 => "p"]]];
+			$validated = $svc->aiValidateRevisionRestore([
+				"page_id" => $page_id,
+				"revision_id" => $revision_id,
+			], $publisher);
+
+			T::ok(
+				isset($validated["denied"]),
+				"restoring a revision can't move a page off a template out of reach"
+			);
+			T::ok(
+				strpos((string)($validated["denied"] ?? ""), "above this account's level") !== false,
+				"and it is the stored half of the rule that says so"
+			);
+
+			// Approval re-asks it, like every other staged value.
+			$approved = $svc->aiRestoreRevision([
+				"page_id" => $page_id,
+				"revision_id" => $revision_id,
+			], $publisher);
+
+			T::equals((string)($approved["mode"] ?? ""), "error", "approving one refuses too");
+
+			// REST is the same rule on the same body, so it refuses identically.
+			$denied = false;
+
+			try {
+				$svc->restoreRevision(parity_request(
+					$editor_id,
+					0,
+					["id" => $page_id, "rev_id" => $revision_id],
+					[],
+					[],
+					["page" => [0 => "p"]]
+				));
+			} catch (AuthorizationException $e) {
+				$denied = true;
+			}
+
+			T::ok($denied, "and so does the REST restore route");
+			T::equals(
+				(string)SQL::fetchSingle("SELECT template FROM bigtree_pages WHERE id = ?", $page_id),
+				$dev_only,
+				"the page is still on the template it was on"
+			);
+		} finally {
+			if ($revision_id > 0) {
+				SQL::delete("bigtree_page_revisions", $revision_id);
+			}
+
+			parity_delete_page($page_id);
+			parity_delete_template($dev_only);
+			parity_cleanup_tracked();
+		}
+	}

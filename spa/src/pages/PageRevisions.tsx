@@ -13,12 +13,14 @@ import { Button } from "@/components/ui/Button";
 import { TextInput } from "@/components/ui/TextInput";
 import { Loading } from "@/components/ui/Loading";
 import { Card } from "@/components/ui/Card";
+import { Badge } from "@/components/ui/Badge";
 
 import { pagesApi, type PageRevision } from "@/api/endpoints/pages";
 
 import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 import { useToastMutation } from "@/hooks/useToastMutation";
 import { queryKeys } from "@/lib/queryKeys";
+import { toast } from "@/lib/toast";
 import { InlineEmpty } from "@/components/ui/InlineEmpty";
 import { IconButton } from "@/components/ui/IconButton";
 import { SectionLabel } from "@/components/ui/SectionLabel";
@@ -83,8 +85,18 @@ export const PageRevisions = () => {
 		invalidate: [queryKeys.pages.revisions(id), queryKeys.pages.detail(id)],
 		successMessage: "Revision restored to the live page",
 		errorMessage: "Could not restore revision",
-		onSuccess: () => {
+		onSuccess: (result) => {
 			restoreDialog.close();
+
+			// What the restore left behind that nobody would think to look for: a
+			// required field the revision never had a value for, files it points at
+			// that have since been deleted, a template that is gone, a draft still
+			// queued on top of it.
+			if (result?.warnings?.length) {
+				toast.warning("Restored, but check the page", {
+					description: result.warnings.join(" "),
+				});
+			}
 		},
 	});
 
@@ -235,10 +247,36 @@ const RevisionSection = ({
 						key={rev.id}
 					>
 						<div className="min-w-0">
-							<div className="truncate text-text-2">
-								{showDescription && rev.saved_description
-									? rev.saved_description
-									: rev.title || `Revision #${rev.id}`}
+							<div className="flex min-w-0 items-center gap-1.5">
+								<span className="truncate text-text-2">
+									{showDescription && rev.saved_description
+										? rev.saved_description
+										: rev.title || `Revision #${rev.id}`}
+								</span>
+								{/* What restoring this one would leave behind — the files
+								    it points at are gone, or its template is. Both are
+								    computed at read time from the snapshot. */}
+								{rev.missing_files > 0 && (
+									<Badge
+										className="shrink-0"
+										size="sm"
+										title={`${rev.missing_files} file${rev.missing_files === 1 ? "" : "s"} this revision referenced ${rev.missing_files === 1 ? "has" : "have"} since been deleted.`}
+										tone="warn"
+									>
+										{rev.missing_files} missing file
+										{rev.missing_files === 1 ? "" : "s"}
+									</Badge>
+								)}
+								{!rev.template_exists && (
+									<Badge
+										className="shrink-0"
+										size="sm"
+										title={`The “${rev.template}” template this revision was on no longer exists.`}
+										tone="warn"
+									>
+										Template gone
+									</Badge>
+								)}
 							</div>
 							{!showDescription && rev.title && (
 								<div className="truncate text-[11px] text-text-3">{rev.title}</div>

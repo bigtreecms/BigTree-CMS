@@ -38,6 +38,10 @@ const KEY_LABELS: Record<string, string> = {
 	meta_keywords: "Meta keywords",
 	in_nav: "In navigation",
 	seo_invisible: "Hidden from search",
+	// Revision restores: what the six-column diff can't show on its own.
+	missing_files: "Deleted files it points at",
+	template_missing: "Template no longer exists",
+	queued_draft: "Unpublished draft on this page",
 };
 
 /** Preview keys that are structural/noise and never rendered as a plain row. */

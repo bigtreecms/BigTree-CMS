@@ -490,3 +490,123 @@
 			BigTreeJSONDB::delete("templates", $template);
 		}
 	}
+
+	/**
+	 * Audit #29 E4: the discovered sweep that would have seen A1.
+	 *
+	 * The required-content rule is keyed, everywhere else in this file, to the seams
+	 * that take content *from the model* — which is exactly why a restore walked past
+	 * it for twenty-eight audits. restore_page_revision writes `template` +
+	 * `resources` out of a revision row, supplies nothing, and was therefore invisible
+	 * to every guard that starts from an argument.
+	 *
+	 * So this one starts from the write instead: every place PageService puts a
+	 * `resources`-bearing array onto bigtree_pages has to ask the question in its own
+	 * body, or be exempted here with the reason it doesn't. A fifth door fails until
+	 * somebody decides which it is.
+	 *
+	 * @return array<string,string> method => why it doesn't ask
+	 */
+	function ai_page_content_write_exemptions(): array {
+
+		return [
+			"aiUpdatePageContent" => "delegates to aiMergePageContent, which runs aiMissingRequiredResources "
+				. "over the merged content before this method writes anything",
+			"aiMovePage" => "a move writes parent/route/path/in_nav — the `resources` column never enters "
+				. "its update array, only the variable holding it makes that unprovable by inspection",
+			"update" => "the REST update delegates to performUpdate; the body's own rules are declared in "
+				. "routes/pages.php",
+			"performUpdate" => "the shared live-write epilogue, reached from REST, from publishing a draft "
+				. "and from the AI seams. Its callers gate: the admin's own save refuses an empty required "
+				. "field client-side, and every AI door above runs a gate before reaching it. A gate here "
+				. "would refuse a draft that a person deliberately queued incomplete (audit #14)",
+			"publishPendingChange" => "publishing is not authoring: the draft's content was gated when it "
+				. "was queued, and the card discloses what it left empty (incomplete_required)",
+		];
+	}
+
+	function test_every_page_content_write_asks_the_required_content_question() {
+		$file = dirname(__DIR__, 2) . "/services/PageService.php";
+		T::ok(is_readable($file), "PageService.php is readable");
+
+		$lines = file($file) ?: [];
+		$method = "";
+		$bodies = [];
+		$sites = [];
+
+		foreach ($lines as $line) {
+			if (preg_match('/function\s+([A-Za-z0-9_]+)\s*\(/', $line, $named)) {
+				$method = $named[1];
+			}
+
+			$bodies[$method] = ($bodies[$method] ?? "") . $line;
+
+			if (preg_match('/SQL::update\("bigtree_pages",\s*[^,]+,\s*(.+)\);/', $line, $update)) {
+				$written = trim($update[1]);
+
+				// An inline literal that names no `resources` key structurally cannot
+				// carry content — archiving, reordering and repathing are not this
+				// rule's business.
+				if (strpos($written, "[") === 0 && strpos($written, "resources") === false) {
+
+					continue;
+				}
+
+				$sites[$method] = true;
+			}
+
+			if (strpos($line, "->performUpdate(") !== false) {
+				$sites[$method] = true;
+			}
+		}
+
+		T::ok(count($sites) > 4, "the sweep found the page-content write sites");
+
+		$exemptions = ai_page_content_write_exemptions();
+		$ungated = [];
+
+		foreach (array_keys($sites) as $writer) {
+			// revisionRestoreNotices is the restore doors' wrapper around
+			// revisionRestoreGaps — the same question, asked of a row instead of an
+			// argument.
+			$asks = (bool)preg_match(
+				'/aiMissingRequiredResources|aiTemplateSwitchGaps|revisionRestoreGaps|revisionRestoreNotices/',
+				$bodies[$writer]
+			);
+
+			if ($asks || array_key_exists($writer, $exemptions)) {
+
+				continue;
+			}
+
+			$ungated[] = $writer;
+		}
+
+		T::equals(
+			implode(", ", $ungated),
+			"",
+			"every writer of a page's content asks the required-content question, or is exempted with a reason"
+		);
+
+		// Staleness the other way: an exemption for a method that no longer writes
+		// content (or now asks the question itself) is a reason nobody re-derived.
+		$stale = [];
+
+		foreach ($exemptions as $writer => $reason) {
+			if (!isset($sites[$writer])) {
+				$stale[] = "{$writer} (no longer writes page content)";
+
+				continue;
+			}
+
+			if (strlen(trim($reason)) < 40) {
+				$stale[] = "{$writer} (reason too thin to be a decision)";
+			}
+		}
+
+		T::equals(
+			implode(", ", $stale),
+			"",
+			"and every exemption still names a live write site, with a reason"
+		);
+	}
