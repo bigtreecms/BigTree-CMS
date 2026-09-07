@@ -38,7 +38,7 @@
 				return [["id" => 5, "tag" => "news"]];
 			}
 
-			public function searchUsers($q, $limit): array {
+			public function searchUsers($q, $limit, $user = null): array {
 
 				return [["id" => 7, "name" => "Ada"]];
 			}

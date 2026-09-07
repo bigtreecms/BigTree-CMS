@@ -87,7 +87,7 @@
 			}
 
 			if (in_array("users", $only, true) && (int)$request->user->level >= 1) {
-				$rows = $this->searchUsers($q, $limit);
+				$rows = $this->searchUsers($q, $limit, $request->user);
 				$results["users"] = $rows;
 				$counts["users"] = count($rows);
 			}
@@ -733,22 +733,32 @@
 			return array_map([TagService::class, "presentRow"], $rows);
 		}
 
-		public function searchUsers($q, $limit): array {
+		public function searchUsers($q, $limit, $user = null): array {
 			$like = Sanitize::likeTerm($q);
 			$limit = max(1, (int)$limit);
 			// company/timezone/daily_digest are all writable through the user tools but
 			// appeared in no read payload — and `company` was matched on in the WHERE
 			// while never being shown, so a hit on it looked like a false positive.
 			$rows = SQL::fetchAll(
-				"SELECT id, name, email, level, company, timezone, daily_digest FROM bigtree_users
+				"SELECT id, name, email, level, company, timezone, daily_digest, permissions, alerts
+				 FROM bigtree_users
 				 WHERE name LIKE ? OR email LIKE ? OR company LIKE ?
 				 ORDER BY name ASC LIMIT $limit",
 				$like, $like, $like
 			);
 
-			return array_map(function ($r) {
+			// The same self-or-admin gate UserService::presentFull applies to the two
+			// fields it holds back. Every caller of this method is already level-gated
+			// (the REST search route, the AI seed sweep and search_users itself all
+			// require level >= 1), so in practice this restates the gate it has — it is
+			// spelled out because the presenter spells it out, and because a future
+			// caller shouldn't have to know that.
+			$me = (int)(is_object($user) ? ($user->id ?? 0) : (is_array($user) ? ($user["id"] ?? 0) : 0));
+			$level = (int)(is_object($user) ? ($user->level ?? 0) : (is_array($user) ? ($user["level"] ?? 0) : 0));
+			$users = new UserService();
 
-				return [
+			return array_map(function ($r) use ($me, $level, $users) {
+				$out = [
 					"id" => (int)$r["id"],
 					"name" => $r["name"],
 					"email" => $r["email"],
@@ -757,6 +767,23 @@
 					"timezone" => (string)($r["timezone"] ?? ""),
 					"daily_digest" => (string)($r["daily_digest"] ?? "") !== "",
 				];
+
+				// The two fields presentFull hands to self-or-admin and this seam
+				// dropped. "Who can publish News?" and "who is subscribed to alerts on
+				// the pricing page?" hit no tool and no wall, because the only decline
+				// line nearby is about *changing* levels and permissions — and every
+				// decline line is spliced into the system prompt beside "do not
+				// improvise a workaround" (audit #28 B2). It is also the read half of a
+				// write the assistant already makes: update_user writes `alerts` and
+				// could read back only `daily_digest`.
+				if ($level >= 1 || (int)$r["id"] === $me) {
+					$out["permissions"] = Json::decode($r["permissions"] ?? "");
+					// Named, not numbered — the same treatment update_user's own diff
+					// gives a subscription set.
+					$out["alerts"] = $users->aiAlertSubscriptions(Json::decode($r["alerts"] ?? ""));
+				}
+
+				return $out;
 			}, $rows);
 		}
 
@@ -1006,7 +1033,7 @@
 
 				if ((int)$user->level >= 1) {
 					$this->mergeCollected($collected, "tags", $this->searchTags($kw, $limit), "id");
-					$this->mergeCollected($collected, "users", $this->searchUsers($kw, $limit), "id");
+					$this->mergeCollected($collected, "users", $this->searchUsers($kw, $limit, $user), "id");
 				}
 			}
 

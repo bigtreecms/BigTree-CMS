@@ -95,11 +95,20 @@
 		private function applyPendingChange(array $row, $user): array {
 			$id = (int)$row["id"];
 
+			// Tag ids the blob names that no longer name a live tag. Read before the
+			// write, because the write is what drops them — and disclosed afterwards
+			// rather than silently swallowed, which is how the unrepaired blob already
+			// behaved (audit #28 D3).
+			$stale_tags = $this->aiStaleTagIds($row);
+
 			// Pages: apply the queued change live and drop the queue row.
 			if ($row["table"] === "bigtree_pages") {
 				(new PageService())->publishPendingChange($row, $user);
 
-				return ["mode" => "published", "table" => "bigtree_pages", "type" => (string)$row["type"]];
+				return self::withStaleTagNote(
+					["mode" => "published", "table" => "bigtree_pages", "type" => (string)$row["type"]],
+					$stale_tags
+				);
 			}
 
 			// Module entries
@@ -113,6 +122,18 @@
 			$mtm_changes = Json::decode($row["mtm_changes"]);
 			$tags_changes = Json::decode($row["tags_changes"]);
 			$open_graph_changes = Json::decode($row["open_graph_changes"]);
+
+			// The entry half of the same filter, and here it is not a cosmetic one:
+			// BigTreeAutoModule::updateItem/createItem insert tag ids blindly — no
+			// existence check, unlike PageService::syncTags — so an id whose tag has
+			// been deleted trips bigtree_tags_rel_ibfk_1 *after* the data UPDATE has
+			// landed and every existing relation has been wiped. What survived was a
+			// half-published row with no tags, a change row that was never deleted, no
+			// recache, no re-index, no audit row and no event, and a change that threw
+			// again on every retry, forever (audit #28 A1c).
+			if ($stale_tags) {
+				$tags_changes = TagService::partitionExistingTagIds($tags_changes)["kept"];
+			}
 
 			// Branch on item_id, not type: a re-edited NEW draft keeps item_id = null
 			// while submitChange flips its type to "EDIT", so type is unreliable here.
@@ -175,7 +196,157 @@
 				Hooks::fire("module_entry.updated", $payload);
 			}
 
-			return ["mode" => "published", "table" => (string)$row["table"], "item_id" => (int)$item_id];
+			return self::withStaleTagNote(
+				["mode" => "published", "table" => (string)$row["table"], "item_id" => (int)$item_id],
+				$stale_tags
+			);
+		}
+
+		/**
+		 * The concurrent-edit lock descriptor for the record a queued change writes.
+		 *
+		 * Publishing and rejecting were the only writers of a lockable record that
+		 * emitted no descriptor, and they write the most contended one there is: an
+		 * editor's draft and the publisher reviewing it are the two people most likely
+		 * to be in the same record at the same time — the exact case aiEntryLock argues
+		 * it must cover. The lockable kinds are the three screens that call useLock:
+		 * bigtree_pages (PageEdit), module:{id} (ModuleEntryEdit) and config:settings
+		 * (SettingEdit); a pending change only ever targets the first two.
+		 *
+		 * A NEW *page* draft emits nothing, matching aiPageLock and PageEdit's own
+		 * `enabled: !draft` — the page editor takes no lock on a draft, so there is
+		 * never a holder to name. A NEW *entry* draft does emit one, keyed by its
+		 * "p"-prefixed id, because ModuleEntryEdit locks a draft by whatever id is in
+		 * the URL. Advisory like every other lock note: approving is the take-over
+		 * decision.
+		 *
+		 * @param array<string,mixed> $row A bigtree_pending_changes row.
+		 * @return array<string,mixed>
+		 */
+		private function aiChangeLock(array $row): array {
+			$item_id = $row["item_id"] !== null ? (int)$row["item_id"] : 0;
+
+			if ((string)$row["table"] === "bigtree_pages") {
+
+				return $item_id > 0 ? ["table" => "bigtree_pages", "id" => $item_id] : [];
+			}
+
+			$module = (string)($row["module"] ?? "");
+
+			if ($module === "") {
+
+				return [];
+			}
+
+			return [
+				"table" => "module:{$module}",
+				"id" => $item_id > 0 ? $item_id : "p" . (int)$row["id"],
+			];
+		}
+
+		/**
+		 * Why a queued change can no longer be published, in the words the write paths
+		 * use — or "" when its target is still there.
+		 *
+		 * The staging half of the guards in PageService::publishPendingChange and
+		 * applyPendingChange. Both of those refuse at approval; this is what lets the
+		 * card refuse instead, so a change stranded by a deleted page or entry never
+		 * becomes a proposal the approver can only fail. Rejecting a stranded change
+		 * stays possible — that is the way out of the queue, so aiValidateRejectChange
+		 * deliberately does not ask this.
+		 *
+		 * @param array<string,mixed> $row A bigtree_pending_changes row.
+		 */
+		private function aiMissingTargetError(array $row): string {
+			$table = (string)$row["table"];
+			$item_id = $row["item_id"] !== null ? (int)$row["item_id"] : 0;
+
+			if ($table === "bigtree_pages") {
+				if ((string)$row["type"] === "NEW") {
+					$changes = Json::decode($row["changes"] ?? "");
+					$parent = (int)($changes["parent"] ?? $row["pending_page_parent"] ?? 0);
+
+					return $parent > 0 && !SQL::exists("bigtree_pages", $parent)
+						? "The parent page this new page belongs under has been deleted, so the change can't be "
+							. "published."
+						: "";
+				}
+
+				return $item_id > 0 && !SQL::exists("bigtree_pages", $item_id)
+					? "The page this change belongs to has been deleted, so the change can't be published."
+					: "";
+			}
+
+			if ($item_id < 1 || $table === "") {
+
+				return "";
+			}
+
+			return SQL::fetchSingle("SELECT id FROM `" . str_replace("`", "", $table) . "` WHERE id = ?", $item_id)
+				? ""
+				: "The entry this change belongs to has been deleted, so the change can't be published.";
+		}
+
+		/**
+		 * The tag ids a queued change would replay that no longer name a live tag.
+		 *
+		 * Reads whichever copy of the list the replay actually uses: a page's tags ride
+		 * inside the `changes` blob (PageService::publishPendingChange replays that),
+		 * an entry's live in `tags_changes`. A page change with no `tags` key isn't
+		 * touching tags at all — performCreate/performUpdate only sync when the key is
+		 * present — so it has nothing to go stale.
+		 *
+		 * @param array<string,mixed> $row A bigtree_pending_changes row.
+		 * @return list<int>
+		 */
+		private function aiStaleTagIds(array $row): array {
+			if ((string)$row["table"] === "bigtree_pages") {
+				$changes = Json::decode($row["changes"] ?? "");
+				$ids = is_array($changes) && is_array($changes["tags"] ?? null) ? $changes["tags"] : [];
+			} else {
+				$ids = Json::decode($row["tags_changes"] ?? "");
+			}
+
+			return TagService::partitionExistingTagIds($ids)["dropped"];
+		}
+
+		/**
+		 * Fold the stale-tag disclosure into a publish outcome, when there is one.
+		 *
+		 * @param array<string,mixed> $out
+		 * @param list<int> $stale_tags
+		 * @return array<string,mixed>
+		 */
+		private static function withStaleTagNote(array $out, array $stale_tags): array {
+			$note = self::aiStaleTagNote($stale_tags, true);
+
+			if ($note !== "") {
+				$out["note"] = $note;
+			}
+
+			return $out;
+		}
+
+		/**
+		 * The one sentence both halves of a publish use for tags the replay can't
+		 * apply, so the card and the result describe the same drop.
+		 *
+		 * @param list<int> $stale_tags
+		 * @param bool $applied True once the publish has run (past tense).
+		 */
+		private static function aiStaleTagNote(array $stale_tags, bool $applied): string {
+			if (!$stale_tags) {
+
+				return "";
+			}
+
+			$count = count($stale_tags);
+			$one = $count === 1;
+			$subject = $count . " tag" . ($one ? "" : "s") . " on this change";
+
+			return $applied
+				? $subject . " no longer existed and " . ($one ? "was" : "were") . " not applied."
+				: $subject . " no longer exist" . ($one ? "s" : "") . " and won't be applied.";
 		}
 
 		public function reject(Request $request) {
@@ -694,6 +865,18 @@
 			$diff = $this->aiChangeDiff($row);
 			$count = count($diff);
 
+			// The target can go away inside the draft's life — a page delete used to
+			// leave both its EDIT draft and any NEW child draft in the queue, and
+			// nothing between the queue read and the approval noticed. Refuse on the
+			// card rather than at the approval, where an EDIT threw a bare 404 and a
+			// NEW succeeded into an orphan (audit #28 A2).
+			$missing = $this->aiMissingTargetError($row);
+
+			if ($missing !== "") {
+
+				return ["error" => $missing];
+			}
+
 			// Recomputed here rather than carried from the create card: the draft may
 			// have been re-saved since, and the template or form behind it can gain a
 			// required field inside its life (audit #25 A2).
@@ -714,12 +897,23 @@
 				$preview["incomplete_required"] = $incomplete;
 			}
 
+			// Tags the blob names that no longer exist. Staged here *and* re-derived at
+			// approval (withStaleTagNote), because a merge or a delete can land inside
+			// the card's own life — and a silently dropped tag is exactly the failure
+			// audit #28 A1 found, so the one thing it must not do is happen quietly.
+			$stale_note = self::aiStaleTagNote($this->aiStaleTagIds($row), false);
+
+			if ($stale_note !== "") {
+				$preview["warning"] = $stale_note;
+			}
+
 			return [
 				"ok" => true,
 				"summary" => "Publish the pending change “{$title}”"
 					. ($count ? " ({$count} field" . ($count === 1 ? "" : "s") . " affected)" : "")
 					. ". It will go live immediately once you approve."
-					. self::aiIncompleteRequiredNote($incomplete),
+					. self::aiIncompleteRequiredNote($incomplete)
+					. ($stale_note !== "" ? " " . $stale_note : ""),
 				"preview" => $preview,
 				"payload" => [
 					"change_id" => $id,
@@ -728,6 +922,7 @@
 				// wholly rewritten before the publisher clicks Approve — publishing
 				// content they never saw, under an audit row saying they approved it.
 				"fingerprint" => ["type" => "pending_change", "id" => $id],
+				"lock" => $this->aiChangeLock($row),
 			];
 		}
 
@@ -795,6 +990,7 @@
 				// The mirror of publish's problem: a stale reject discards work newer
 				// than the card described.
 				"fingerprint" => ["type" => "pending_change", "id" => $id],
+				"lock" => $this->aiChangeLock($row),
 			];
 		}
 

@@ -42,7 +42,7 @@
 			$rows = [];
 
 			foreach ($terms as $term) {
-				$rows = array_merge($rows, $this->backend->searchUsers($term, $context->limit));
+				$rows = array_merge($rows, $this->backend->searchUsers($term, $context->limit, $context->user));
 			}
 
 			return AIToolResult::ok(

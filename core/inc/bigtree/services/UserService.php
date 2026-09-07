@@ -450,6 +450,43 @@
 		}
 
 		/**
+		 * A stored alerts map presented as a named subscription list.
+		 *
+		 * Public because the user *read* seam needs the same naming the write seam's
+		 * diff uses: search_users can now return who is subscribed to what, and a bare
+		 * array of page ids is not an answer to "who is watching the pricing page?" —
+		 * the same reason aiChangeDiff names tags instead of printing integers
+		 * (audit #28 B2). Unsubscribed entries are dropped: the column keeps `false`
+		 * keys once someone unsubscribes, and those are not subscriptions.
+		 *
+		 * @param mixed $alerts The decoded bigtree_users.alerts map.
+		 * @return list<array{page_id:int,page:string}>
+		 */
+		public function aiAlertSubscriptions($alerts): array {
+			if (!is_array($alerts)) {
+
+				return [];
+			}
+
+			$out = [];
+
+			foreach ($alerts as $page_id => $flag) {
+				if (!self::alertIsOn($flag)) {
+
+					continue;
+				}
+
+				$page_id = (int)$page_id;
+				$out[] = [
+					"page_id" => $page_id,
+					"page" => $this->aiDescribeAlerts([$page_id]),
+				];
+			}
+
+			return $out;
+		}
+
+		/**
 		 * A subscription set rendered for a proposal diff. Names the pages rather than
 		 * counting them, so the approver can see which subscription is being added or
 		 * dropped.

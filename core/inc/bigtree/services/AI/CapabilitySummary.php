@@ -168,7 +168,8 @@
 						. "reference field, but cannot upload a new one",
 				"Managing resource folders" => "the Files section",
 				"Changing user levels, permissions or passwords" =>
-					"Users, or the user's own profile screen for their password",
+					"Users, or the user's own profile screen for their password — the assistant can see who "
+						. "holds which access, through search_users, but never grants it",
 				// The line above reads as being about privileges; authentication
 				// credentials are a separate category and the assistant declines all
 				// of it explicitly.

@@ -5793,12 +5793,52 @@
 			// performCreate/performUpdate paths see them exactly as a live save would.
 			$d = Json::decode($row["changes"]);
 
+			// A queued blob names tags by *id*, and the tag can be gone by the time
+			// somebody approves: legacy admin.php merges and deletes tags, an extension
+			// can SQL::delete one, and bigtree_tags_rel_ibfk_1 cascades the relations
+			// away whatever anybody does. TagService repairs its own merge and delete
+			// (audit #28 A1a/A1b), so through the CMS's own surfaces this filter is
+			// unreachable — it stays because every queued page change funnels through
+			// here, and the failure it prevents is silent: syncTags skips an orphan id
+			// and then strips the tag that orphan was merged *into*, so the page loses
+			// the tag entirely. PendingChangeService discloses the count on the card
+			// and in the publish result.
+			if (is_array($d["tags"] ?? null)) {
+				$d["tags"] = TagService::partitionExistingTagIds($d["tags"])["kept"];
+			}
+
+			// The page twin of PendingChangeService::applyPendingChange's entry guard,
+			// in the same words. Without it a change stranded by a deleted page had two
+			// outcomes and both were wrong: an EDIT threw a bare 404 the approver had no
+			// way to act on, and a NEW *succeeded*, creating a live page whose parent
+			// names an id that no longer exists — in no page tree, reported by nothing.
+			// cascadeDelete now clears both shapes (audit #28 A2), so this is the
+			// belt-and-braces leg: it is what makes a row already stranded on an
+			// existing install legible instead of fatal.
 			if ($row["type"] === "NEW") {
 				$d["parent"] = (int)($d["parent"] ?? $row["pending_page_parent"] ?? 0);
+
+				if ($d["parent"] > 0 && !SQL::exists("bigtree_pages", $d["parent"])) {
+
+					throw new BadRequestException(
+						"The parent page this new page belongs under has been deleted, so the change can't be "
+							. "published.",
+						"parent_page_deleted"
+					);
+				}
+
 				$result = $this->performCreate($d, $user);
 			} else {
 				$id = (int)$row["item_id"];
-				$page = Entity::findOrFail("bigtree_pages", $id, "Page");
+				$page = SQL::fetch("SELECT * FROM bigtree_pages WHERE id = ?", $id);
+
+				if (!$page) {
+
+					throw new BadRequestException(
+						"The page this change belongs to has been deleted, so the change can't be published.",
+						"page_deleted"
+					);
+				}
 
 				$result = $this->performUpdate($id, $page, $d, $user);
 			}
@@ -5858,6 +5898,30 @@
 					if (!$matches) {
 						$changed_fields[] = $field;
 					}
+				}
+			}
+
+			// Tags are the one presented field a draft stages that the loop above can't
+			// reach: they live in the change blob as bare ids while the payload carries
+			// whole tag rows, and they were left out of the overlay entirely. So the
+			// editor rendered the *published* chips while editing a draft whose staged
+			// tag set differed, and submitting that form wrote the published set back
+			// over the draft's — silently reverting it. aiQueuePageTagChange is the only
+			// writer that queues a page tag change, so the assistant's queued tag edit
+			// was precisely the one a human editor undid without being shown it existed
+			// (audit #28 C1).
+			$pending_tags = $this->pendingTags($change);
+
+			if ($pending_tags !== null) {
+				$published_tags = is_array($out["tags"] ?? null) ? $out["tags"] : [];
+				$original["tags"] = $published_tags;
+				$out["tags"] = $pending_tags;
+
+				// Compared as id *sets*, not structurally like the loop's fields: both
+				// sides are whole tag rows and neither read orders them, so a json_encode
+				// comparison would mark an unchanged tag set as pending on row order alone.
+				if (self::tagIdSet($published_tags) !== self::tagIdSet($pending_tags)) {
+					$changed_fields[] = "tags";
 				}
 			}
 
@@ -5995,7 +6059,12 @@
 				"updated_at" => $change["date"],
 				// A NEW draft has no live row yet, so no cached analytics.
 				"ga_page_views" => null,
-				"tags" => [],
+				// The NEW-draft twin of the overlay's tag leg: a draft's staged tags
+				// were presented as an empty list, so the editor showed no chips and
+				// stampPendingNew wrote that empty list straight back over them on the
+				// next save. Same revert as audit #28 C1, one read seam over — and
+				// create_page is the writer that stages a draft with tags.
+				"tags" => $this->pendingTags($change) ?? [],
 				"open_graph" => $changes["open_graph"] ?? null,
 				"changes_applied" => true,
 				"pending" => true,
@@ -6600,10 +6669,26 @@
 				// the row goes away, so nothing dangles in bigtree_resource_allocation.
 				\BigTree\Services\ResourceAllocationService::deallocateResources("bigtree_pages", (int)$cid);
 
+				// Both queue shapes this page owns: an EDIT draft *of* it (item_id), and
+				// a NEW child draft filed *under* it (pending_page_parent). Nothing
+				// cascades either — there is no FK on either column — so before audit
+				// #28 A2 they simply stayed in the queue. The EDIT became permanently
+				// unpublishable and permanently listed; the NEW published *successfully*
+				// into an orphan, a live page whose parent names a deleted id, in no
+				// page tree and reported by nothing.
+				//
+				// Deleting rather than re-parenting matches BigTreeAutoModule::deleteItem
+				// and is the honest answer: the whole subtree went with the page, so a
+				// draft written against it has no correct parent left. It does destroy
+				// queued work, which is why it is said out loud here.
 				foreach (SQL::fetchAllSingle(
-					"SELECT id FROM bigtree_pending_changes WHERE `table` = 'bigtree_pages' AND item_id = ?", (int)$cid
+					"SELECT id FROM bigtree_pending_changes
+					 WHERE `table` = 'bigtree_pages' AND (item_id = ? OR pending_page_parent = ?)",
+					(int)$cid,
+					(int)$cid
 				) as $change_id) {
 					\BigTree\Services\ResourceAllocationService::deallocateResources("bigtree_pages", "p".$change_id);
+					SQL::delete("bigtree_pending_changes", (int)$change_id);
 				}
 
 				EmbeddingService::deletePage((int)$cid);
@@ -6779,6 +6864,66 @@
 				"image_width" => (int)($og["image_width"] ?? 0),
 				"image_height" => (int)($og["image_height"] ?? 0),
 			]);
+		}
+
+		/**
+		 * A queued change's staged tag ids, resolved to the same tag rows a live
+		 * page's `tags` carries so the edit screen can render them as chips.
+		 *
+		 * Sourced the way aiPageTagIds sources them — `changes["tags"]` first, the
+		 * separate `tags_changes` column as the fallback aiApplyPendingToTarget uses.
+		 * Returns null when the change stages no tags at all, which is not the same as
+		 * staging an empty set: the first must leave the published tags alone, the
+		 * second must show none.
+		 *
+		 * @param array<string,mixed> $change A bigtree_pending_changes row.
+		 * @return list<array<string,mixed>>|null
+		 */
+		private function pendingTags(array $change): ?array {
+			$changes = Json::decode($change["changes"] ?? "");
+			$ids = is_array($changes) && is_array($changes["tags"] ?? null) ? $changes["tags"] : null;
+
+			if ($ids === null) {
+				$fallback = Json::decode($change["tags_changes"] ?? "");
+				$ids = is_array($fallback) && $fallback ? $fallback : null;
+			}
+
+			if ($ids === null) {
+
+				return null;
+			}
+
+			$ids = array_values(array_unique(array_filter(array_map("intval", $ids))));
+
+			if (!$ids) {
+
+				return [];
+			}
+
+			$rows = SQL::fetchAll(
+				"SELECT id, tag, route, usage_count FROM bigtree_tags WHERE id IN ("
+					. Sanitize::placeholders($ids) . ")",
+				...$ids
+			);
+
+			return array_map([TagService::class, "presentRow"], $rows);
+		}
+
+		/**
+		 * The sorted, de-duplicated id set of a presented tag list, for comparing two
+		 * of them without depending on row order.
+		 *
+		 * @param list<array<string,mixed>> $tags
+		 * @return list<int>
+		 */
+		private static function tagIdSet(array $tags): array {
+			$ids = array_values(array_unique(array_map(function ($tag): int {
+
+				return (int)($tag["id"] ?? 0);
+			}, $tags)));
+			sort($ids);
+
+			return $ids;
 		}
 
 		private function loadTags($page_id) {

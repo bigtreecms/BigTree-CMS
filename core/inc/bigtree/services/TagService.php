@@ -94,6 +94,11 @@
 
 			SQL::delete("bigtree_tags", $id);
 			SQL::query("DELETE FROM bigtree_tags_rel WHERE tag = ?", $id);
+			// Live relations go with the row (and the FK cascades the rest), but a
+			// queued draft holds the id in a blob nothing cascades into — so scrub it
+			// here, beside the relation delete, rather than leaving the replay to
+			// re-attach a tag that no longer exists (audit #28 A1c).
+			$this->scrubQueuedTagChanges($id);
 
 			return Response::noContent();
 		}
@@ -114,6 +119,11 @@
 
 			foreach ($from as $tag_id) {
 				$this->retargetTagRelations($tag_id, $into);
+				// Queued drafts hold tag ids too, and merging is the act that
+				// invalidates them. aiMergeTags has always repaired them; this path —
+				// the one TagMerge.tsx drives — did not, so the same merge left a
+				// different amount of damage depending on who ran it (audit #28 A1b).
+				$this->retargetQueuedTagChanges($tag_id, $into);
 				SQL::delete("bigtree_tags", $tag_id);
 			}
 
@@ -178,7 +188,7 @@
 
 		/**
 		 * Point a merged-away tag id at its replacement inside every queued draft's
-		 * `tags_changes` blob.
+		 * stored tag list — both copies of it, per rewriteQueuedTagChanges.
 		 *
 		 * A pending change stores tag *ids*, and publishing replays that blob. Merging
 		 * a tag rewrote the live relations and deleted the row but left those blobs
@@ -186,23 +196,10 @@
 		 * exists — a tag relation pointing at nothing, invisible everywhere.
 		 */
 		private function retargetQueuedTagChanges(int $from, int $into): void {
-			$rows = SQL::fetchAll(
-				"SELECT id, tags_changes FROM bigtree_pending_changes WHERE tags_changes IS NOT NULL AND tags_changes != ''"
-			);
-
-			foreach ($rows as $row) {
-				$tags = json_decode((string)$row["tags_changes"], true);
-
-				if (!is_array($tags)) {
-
-					continue;
-				}
-
-				$ids = array_map("intval", $tags);
-
+			$this->rewriteQueuedTagChanges(function (array $ids) use ($from, $into): array {
 				if (!in_array($from, $ids, true)) {
 
-					continue;
+					return $ids;
 				}
 
 				$next = [];
@@ -217,8 +214,126 @@
 					}
 				}
 
-				SQL::update("bigtree_pending_changes", (int)$row["id"], ["tags_changes" => $next]);
+				return $next;
+			});
+		}
+
+		/**
+		 * Drop a deleted tag id from every queued draft's stored tag list.
+		 *
+		 * The delete-shaped twin of retargetQueuedTagChanges: a merged tag has a
+		 * replacement to point at, a deleted one has nothing, so the id comes out of
+		 * the list rather than being repointed. Without this, deleting a tag left the
+		 * id in every outstanding blob — and on a module entry that is not a silent
+		 * no-op but a fatal one, because BigTreeAutoModule::updateItem inserts tag ids
+		 * blindly and bigtree_tags_rel_ibfk_1 rejects the orphan *after* the data
+		 * UPDATE and the relation wipe have already landed (audit #28 A1c).
+		 */
+		private function scrubQueuedTagChanges(int $tag_id): void {
+			$this->rewriteQueuedTagChanges(function (array $ids) use ($tag_id): array {
+
+				return array_values(array_filter($ids, function (int $id) use ($tag_id): bool {
+
+					return $id !== $tag_id;
+				}));
+			});
+		}
+
+		/**
+		 * Walk every queued change that stores tag ids and rewrite both copies of the
+		 * list through $rewrite (ids in, ids out).
+		 *
+		 * A pending change stores tag ids in *two* places and both are read. A module
+		 * entry's queued tags live in `tags_changes`; a page's live in the `changes`
+		 * blob as well, because PageService::pendingChangeFields writes them to both
+		 * and PageService::publishPendingChange replays `changes` — so a repair that
+		 * touched only `tags_changes` rewrote the copy nobody publishes, and a page
+		 * draft approved after a merge lost the tag outright (audit #28 A1a). Keep
+		 * both copies moving together rather than dropping one: publishPendingChange,
+		 * performCreate/performUpdate, aiChangeDiff and aiPageTagIds all read
+		 * `changes["tags"]`, and aiApplyPendingToTarget falls back to `tags_changes`.
+		 *
+		 * @param callable(list<int>):list<int> $rewrite
+		 */
+		private function rewriteQueuedTagChanges(callable $rewrite): void {
+			$rows = SQL::fetchAll(
+				"SELECT id, `table`, changes, tags_changes FROM bigtree_pending_changes
+				 WHERE (tags_changes IS NOT NULL AND tags_changes != '' AND tags_changes != '[]')
+				    OR (`table` = 'bigtree_pages' AND changes LIKE '%\"tags\"%')"
+			);
+
+			foreach ($rows as $row) {
+				$update = [];
+				$tags = json_decode((string)$row["tags_changes"], true);
+
+				if (is_array($tags)) {
+					$ids = array_map("intval", array_values($tags));
+					$next = $rewrite($ids);
+
+					if ($next !== $ids) {
+						$update["tags_changes"] = $next;
+					}
+				}
+
+				if ((string)$row["table"] === "bigtree_pages") {
+					$changes = json_decode((string)$row["changes"], true);
+
+					if (is_array($changes) && is_array($changes["tags"] ?? null)) {
+						$ids = array_map("intval", array_values($changes["tags"]));
+						$next = $rewrite($ids);
+
+						if ($next !== $ids) {
+							$changes["tags"] = $next;
+							$update["changes"] = $changes;
+						}
+					}
+				}
+
+				if ($update) {
+					SQL::update("bigtree_pending_changes", (int)$row["id"], $update);
+				}
 			}
+		}
+
+		/**
+		 * Split a queued change's stored tag ids into the ones that still name a live
+		 * tag and the ones that don't.
+		 *
+		 * The choke-point half of audit #28 A1: the repairs above cover the CMS's own
+		 * merge and delete, but legacy admin.php, an extension calling SQL::delete and
+		 * the bigtree_tags_rel foreign key can all still remove a tag out from under a
+		 * queued blob. Every queued change funnels through publishPendingChange /
+		 * applyPendingChange, so that is where a stale id is filtered — and disclosed,
+		 * because silently dropping it is how A1a already behaved.
+		 *
+		 * @param mixed $ids
+		 * @return array{kept:list<int>,dropped:list<int>}
+		 */
+		public static function partitionExistingTagIds($ids): array {
+			$ids = array_values(array_unique(array_filter(array_map("intval", (array)$ids))));
+
+			if (!$ids) {
+
+				return ["kept" => [], "dropped" => []];
+			}
+
+			$live = SQL::fetchAllSingle(
+				"SELECT id FROM bigtree_tags WHERE id IN (" . Sanitize::placeholders($ids) . ")",
+				...$ids
+			);
+			$live = array_map("intval", $live ?: []);
+			$kept = [];
+			$dropped = [];
+
+			foreach ($ids as $id) {
+				if (in_array($id, $live, true)) {
+					$kept[] = $id;
+				} else {
+					$dropped[] = $id;
+				}
+			}
+
+			return ["kept" => $kept, "dropped" => $dropped];
 		}
 
 		private function recomputeUsage($id) {

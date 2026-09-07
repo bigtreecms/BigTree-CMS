@@ -35,9 +35,10 @@
 		public function searchTags($q, $limit): array;
 
 		/**
+		 * @param object|array $user The acting user; gates the permission/alert fields.
 		 * @return list<array<string,mixed>>
 		 */
-		public function searchUsers($q, $limit): array;
+		public function searchUsers($q, $limit, $user): array;
 
 		/**
 		 * @param object|array $user

@@ -503,6 +503,266 @@
 		);
 	}
 
+	/**
+	 * Audit #28 E4: the same contract, discovered rather than listed.
+	 *
+	 * ai_surface_locked() above is a hand-kept map, so it can only guarantee that the
+	 * tools somebody remembered to add still emit a descriptor. It cannot notice a
+	 * *new* writer of a lockable record — which is exactly how publish_pending_change
+	 * and reject_pending_change ended up as the only writers of one that named no
+	 * lock, while aiEntryLock's own comment argued that a publisher reviewing an
+	 * editor's draft is the most contended case there is.
+	 *
+	 * So this leg sweeps the registry instead: every mutating tool must declare which
+	 * record kind its write targets, and if that kind is one the SPA locks, its
+	 * validating seam — found from the tool's own source, not from a list — must emit
+	 * a descriptor or carry an exemption reason.
+	 *
+	 * @return array<string,string> tool => "" (writes nothing lockable) or the lock table kind.
+	 */
+	function ai_lock_record_kind(): array {
+
+		return [
+			// bigtree_pages — PageEdit's useLock.
+			"update_page" => "bigtree_pages",
+			"update_page_content" => "bigtree_pages",
+			"archive_page" => "bigtree_pages",
+			"unarchive_page" => "bigtree_pages",
+			"move_page" => "bigtree_pages",
+			"restore_page_revision" => "bigtree_pages",
+			// Either kind, depending on the target; the seam resolves it and emits the
+			// matching descriptor.
+			"add_tags" => "bigtree_pages",
+			"remove_tags" => "bigtree_pages",
+			// module:{id} — ModuleEntryEdit's useLock.
+			"update_module_entry" => "module",
+			"set_module_entry_flag" => "module",
+			"delete_module_entry" => "module",
+			// config:settings — SettingEdit's useLock.
+			"update_setting" => "config:settings",
+			// Audit #28 B1: these write (or destroy) a page row, an entry row or an
+			// entry draft, and named nothing until it was found by reading.
+			"publish_pending_change" => "bigtree_pages",
+			"reject_pending_change" => "bigtree_pages",
+			// Creates: there is no existing record for anyone to be holding open.
+			"create_page" => "",
+			"create_module_entry" => "",
+			"create_user" => "",
+			"create_redirect" => "",
+			"create_template" => "",
+			"create_callout" => "",
+			"create_callout_group" => "",
+			"create_module" => "",
+			"create_module_group" => "",
+			"scaffold_module" => "",
+			// Writes to records no admin screen locks.
+			"save_page_revision" => "",
+			"update_user" => "",
+			"update_template" => "",
+			"update_callout" => "",
+			"update_module" => "",
+			"merge_tags" => "",
+			"rename_tag" => "",
+		];
+	}
+
+	/**
+	 * A tool whose write targets a lockable record and still, deliberately, emits no
+	 * descriptor. Each needs the reason, and the reason has to be about the admin's
+	 * own behaviour — the assistant is not stricter or looser than the screen.
+	 *
+	 * @return array<string,string>
+	 */
+	function ai_lock_kind_exempt(): array {
+
+		return [];
+	}
+
+	/** The three record kinds the SPA actually locks, read from its useLock calls. */
+	function ai_lock_spa_kinds(): array {
+		$kinds = [];
+
+		foreach (["PageEdit", "ModuleEntryEdit", "SettingEdit"] as $screen) {
+			$file = SERVER_ROOT . "spa/src/pages/{$screen}.tsx";
+
+			if (!is_readable($file)) {
+
+				continue;
+			}
+
+			$source = (string)file_get_contents($file);
+
+			if (preg_match('/useLock\(\{\s*table: [`"]([^`"$]*)/', $source, $match)) {
+				$kinds[] = rtrim((string)$match[1], ":");
+			}
+		}
+
+		return array_values(array_unique($kinds));
+	}
+
+	/**
+	 * The validating seam a mutating tool drives, discovered from the tool's own
+	 * source and its injected backend rather than from a map.
+	 *
+	 * @return array{0:string,1:string}|null [class, method]
+	 */
+	function ai_lock_validating_seam($tool): ?array {
+		$reflection = new ReflectionClass($tool);
+		$file = $reflection->getFileName();
+
+		if (!$file || !is_readable($file)) {
+
+			return null;
+		}
+
+		if (!preg_match('/\$this->backend->(aiValidate[A-Za-z]+)\(/', (string)file_get_contents($file), $match)) {
+
+			return null;
+		}
+
+		if (!$reflection->hasProperty("backend")) {
+
+			return null;
+		}
+
+		$property = $reflection->getProperty("backend");
+		$property->setAccessible(true);
+		$backend = $property->getValue($tool);
+
+		return $backend === null ? null : [get_class($backend), $match[1]];
+	}
+
+	/** Every registered mutating tool, keyed by name. */
+	function ai_lock_mutating_tools(): array {
+		static $tools = null;
+
+		if ($tools !== null) {
+
+			return $tools;
+		}
+
+		$tools = [];
+
+		foreach (ai_wiring_registry()->availableTools((object)["id" => 1, "level" => 2, "permissions" => []]) as $tool) {
+			if ($tool->kind() === "read") {
+
+				continue;
+			}
+
+			$tools[$tool->name()] = $tool;
+		}
+
+		return $tools;
+	}
+
+	/** The declared lockable kinds are the ones the admin screens actually take. */
+	function test_lockable_kinds_match_the_screens_that_lock() {
+		$spa = ai_lock_spa_kinds();
+		sort($spa);
+		$declared = array_values(array_unique(array_filter(array_values(ai_lock_record_kind()))));
+		sort($declared);
+
+		T::equals(count($spa), 3, "three admin screens take an edit lock");
+		T::equals($declared, $spa, "the declared lockable kinds are exactly the ones the SPA locks");
+	}
+
+	/** Adding a mutating tool without deciding what it locks fails here. */
+	function test_every_mutating_tool_declares_its_lock_record_kind() {
+		$declared = ai_lock_record_kind();
+		$tools = ai_lock_mutating_tools();
+
+		T::ok(count($tools) > 10, "the mutating tools were enumerated from the registry");
+
+		$missing = array_values(array_diff(array_keys($tools), array_keys($declared)));
+		T::equals(implode(", ", $missing), "", "every mutating tool declares the record kind its write targets");
+
+		$stale = array_values(array_diff(array_keys($declared), array_keys($tools)));
+		T::equals(implode(", ", $stale), "", "no lock-kind entry names a tool that is no longer registered");
+
+		$bad = [];
+
+		foreach ($declared as $tool => $kind) {
+			if ($kind !== "" && !in_array($kind, ai_lock_spa_kinds(), true)) {
+				$bad[] = "{$tool} => {$kind}";
+			}
+		}
+
+		T::equals(implode(", ", $bad), "", "every declared kind is a kind the SPA actually locks");
+	}
+
+	/**
+	 * The swept version of the contract: whatever the hand-kept map says, a tool that
+	 * writes a lockable record must name the lock at its own validating seam.
+	 */
+	function test_every_lockable_write_names_its_lock_or_is_exempt() {
+		$exempt = ai_lock_kind_exempt();
+		$missing = [];
+		$checked = 0;
+
+		foreach (ai_lock_record_kind() as $name => $kind) {
+			if ($kind === "" || isset($exempt[$name])) {
+
+				continue;
+			}
+
+			$tool = ai_lock_mutating_tools()[$name] ?? null;
+
+			if ($tool === null) {
+
+				continue;
+			}
+
+			$seam = ai_lock_validating_seam($tool);
+
+			if ($seam === null) {
+				$missing[] = "{$name}: no validating seam could be resolved from its source";
+
+				continue;
+			}
+
+			$body = ai_surface_method_body($seam[0], $seam[1]);
+
+			if ($body === "") {
+				$missing[] = "{$name}: {$seam[0]}::{$seam[1]} could not be read";
+
+				continue;
+			}
+
+			$checked++;
+
+			if (strpos($body, '"lock" =>') === false) {
+				$missing[] = "{$name} ({$seam[1]})";
+			}
+		}
+
+		T::ok($checked > 10, "the sweep resolved a validating seam for every lockable writer");
+		T::equals(
+			implode(", ", $missing),
+			"",
+			"every tool that writes a lockable record names its lock at its validating seam"
+		);
+	}
+
+	/** An exemption has to name a real lockable writer, and say why. */
+	function test_lock_kind_exemptions_are_current_and_reasoned() {
+		$kinds = ai_lock_record_kind();
+		$stale = [];
+		$unreasoned = [];
+
+		foreach (ai_lock_kind_exempt() as $tool => $reason) {
+			if (($kinds[$tool] ?? "") === "") {
+				$stale[] = $tool;
+			}
+
+			if (strlen(trim((string)$reason)) < 25) {
+				$unreasoned[] = $tool;
+			}
+		}
+
+		T::equals(implode(", ", $stale), "", "no lock exemption names a tool that writes nothing lockable");
+		T::equals(implode(", ", $unreasoned), "", "every lock exemption states why the screen takes no lock either");
+	}
+
 	/** Every locked tool is a tool the approval dispatcher still knows. */
 	function test_lock_map_has_no_stale_entries() {
 		$dispatched = ai_wiring_dispatch_branches();

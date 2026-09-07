@@ -497,6 +497,7 @@ export const PageEdit = () => {
 									: undefined
 							}
 							tags={tagObjects}
+							tagsPending={pendingInfo?.isPending("tags")}
 							template={templateDisabled ? undefined : templateQuery.data}
 							templateDisabled={templateDisabled}
 							onChange={(resources) => setBodyPatch({ resources })}
@@ -803,6 +804,8 @@ interface ContentTabProps {
 	publishedResources?: Record<string, unknown>;
 	/** Selected tags. Rendering the tag browser requires onTagsChange too. */
 	tags?: Tag[];
+	/** True when the overlaid draft stages a different tag set than the published one. */
+	tagsPending?: boolean;
 	template: TemplateSummary | undefined;
 	templateDisabled: boolean;
 }
@@ -816,6 +819,7 @@ export const ContentTab = ({
 	disabled,
 	onChange,
 	tags,
+	tagsPending,
 	onTagsChange,
 	publishedResources,
 	changedResourceIds,
@@ -828,7 +832,10 @@ export const ContentTab = ({
 	// content tab's always-present tag sidebar.
 	const tagsSection = onTagsChange ? (
 		<div className="mt-5 border-t border-border pt-4">
-			<FieldLabel>Tags</FieldLabel>
+			<FieldLabel>
+				Tags
+				{tagsPending && <PendingBadge />}
+			</FieldLabel>
 			<TagInput
 				multiple
 				disabled={disabled}
