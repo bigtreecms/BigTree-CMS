@@ -1,4 +1,6 @@
 <?php
+	$admin->verifyCSRFToken();
+
 	$analytics = new BigTreeGoogleAnalytics4;
 	$analytics->setPropertyID($_POST["property_id"]);
 	
