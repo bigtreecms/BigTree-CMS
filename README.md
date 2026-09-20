@@ -20,6 +20,15 @@ We would love to have the community work with us on BigTree.  Guidelines are cur
 Changelog
 ---------
 
+### 4.6.1
+- NEW: File manager now shows a File Usage list when editing a file, with links to the pages, modules, and settings that use it (including pending drafts and archived pages)
+- UPDATED: Google Analytics setup instructions now walk through creating a Google Cloud service account JSON key (Google's old client-libraries quickstart is no longer available)
+- UPDATED: Resource allocation tracking now includes HTML, textarea, link, file/image/video reference, and Open Graph fields, and existing content is backfilled on upgrade
+- SECURITY FIX: Cross site scripting in the CORS multi-site login flow
+- FIXED: Crops and thumbnails with file name prefixes not being matched back to the original resource
+- FIXED: Archived pages showing as Published in the page properties panel
+- FIXED: Session handler PHP 7.4 compatibility and deprecation warnings on PHP 8.1+
+
 ### 4.6
 - NEW: Passkeys support
 - NEW: CSV export support for pending changes
