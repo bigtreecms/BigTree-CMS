@@ -36,15 +36,15 @@
 		private $Exists = false;
 
 		// These aren't needed as the SQL class handles the connection
-		public function open($save_path, $session_name) {
+		public function open($save_path, $session_name): bool {
 			return true;
 		}
 
-		public function close() {
+		public function close(): bool {
 			return true;
 		}
 
-		public function read($session_id) {
+		public function read($session_id): string {
 			$session = SQL::fetch("SELECT * FROM bigtree_sessions WHERE id = ?", $session_id);
 
 			if (!$session) {
@@ -65,7 +65,7 @@
 			}
 		}
 
-		public function write($session_id, $session_data) {
+		public function write($session_id, $session_data): bool {
 			if (!$this->Exists) {
 				SQL::query("INSERT INTO bigtree_sessions (`id`, `last_accessed`, `data`, `ip_address`, `user_agent`) VALUES (?, ?, ?, ?, ?)", $session_id, time(), $session_data, BigTree::remoteIP(), $_SERVER["HTTP_USER_AGENT"]);
 			} else {
@@ -75,15 +75,15 @@
 			return true;
 		}
 
-		public function destroy($session_id) {
+		public function destroy($session_id): bool {
 			return SQL::delete("bigtree_sessions", $session_id);
 		}
 
-		public function gc($maxlifetime) {
-			// Return the number of deleted sessions, or false on error
+		public function gc($maxlifetime): int {
+			// Return the number of deleted sessions, or 0 on error
 			$affected = SQL::query("DELETE FROM bigtree_sessions WHERE last_accessed < ?", time() - $maxlifetime)->rows();
 
-			return $affected !== null ? $affected : false;
+			return $affected !== null ? (int) $affected : 0;
 		}
 
 		static function start() {
