@@ -889,6 +889,141 @@
 		}
 
 		/**
+		 * Run the form's `pre` hook over an entry write before anything is processed.
+		 *
+		 * Legacy's forms/process.php called it with the raw submission, merged the
+		 * returned array back over the input, and then copied every returned key no
+		 * form field had produced straight onto the entry — which is how a `pre` hook
+		 * fills columns the form doesn't show (a computed slug, an author id, a sort
+		 * key). The remaster ran it nowhere but embed forms, so every entry written
+		 * through REST or by the assistant on such a module was stored without those
+		 * columns (audit #31 A1).
+		 *
+		 * Here both legs collapse into one merge, done *before* the field processors:
+		 * the processors still win over the hook on the columns they derive (legacy's
+		 * "only if no field set it"), and createItem only ever writes real columns.
+		 * The returned keys are filtered to real columns and form columns anyway, so a
+		 * queued change never carries junk, and `id` is never taken — the primary key
+		 * comes from the route, as prepareEntryWrite already insists.
+		 *
+		 * $input is what the hook is shown; it defaults to $data. An AI update passes
+		 * the stored row merged with the edit, because legacy's hook always saw the
+		 * whole form and the assistant's edit is partial. Only the keys the hook
+		 * returns are folded back into $data.
+		 *
+		 * A throwing hook is logged and swallowed, the same as fireFormHooks: the hook
+		 * is developer code and must not be able to fail the save.
+		 *
+		 * @param array<string,mixed> $module
+		 * @param array<string,mixed> $data
+		 * @param array<string,mixed>|null $input
+		 * @return array{0: array<string,mixed>, 1: list<string>} the data with the
+		 *         hook's output folded in, and the columns whose value the hook changed
+		 */
+		private function applyFormPreHook(array $module, string $table, array $data, ?array $input = null): array {
+			$form = $this->formForTable($module, $table);
+			$hook = is_array($form["hooks"] ?? null) ? ($form["hooks"]["pre"] ?? null) : null;
+
+			if (empty($hook) || !$this->resolveHookCallable($hook)) {
+
+				return [$data, []];
+			}
+
+			$input = $input ?? $data;
+
+			try {
+				$output = call_user_func($this->resolveHookCallable($hook), $input);
+			} catch (\Throwable $e) {
+				\BigTree::log("Module form pre hook failed for $table: " . $e->getMessage());
+
+				return [$data, []];
+			}
+
+			if (!is_array($output) || !$output) {
+
+				return [$data, []];
+			}
+
+			$description = SQL::describeTable($table);
+			$columns = is_array($description["columns"] ?? null) ? $description["columns"] : [];
+			$form_columns = [];
+
+			foreach ((array)($form["fields"] ?? []) as $field) {
+				$column = (string)($field["column"] ?? "");
+
+				if ($column !== "") {
+					$form_columns[$column] = true;
+				}
+			}
+
+			$changed = [];
+
+			foreach ($output as $key => $value) {
+				$key = (string)$key;
+
+				if ($key === "id" || (!isset($columns[$key]) && !isset($form_columns[$key]))) {
+					continue;
+				}
+
+				if (!array_key_exists($key, $input) || $input[$key] !== $value) {
+					$changed[] = $key;
+				}
+
+				$data[$key] = $value;
+			}
+
+			return [$data, $changed];
+		}
+
+		/**
+		 * The names of the hooks a form declares, in a fixed order.
+		 *
+		 * @param array<string,mixed>|null $form
+		 * @return list<string>
+		 */
+		private function aiFormHookNames(?array $form): array {
+			$hooks = is_array($form["hooks"] ?? null) ? $form["hooks"] : [];
+			$names = [];
+
+			foreach (["edit", "pre", "post", "publish"] as $name) {
+				if (!empty($hooks[$name])) {
+					$names[] = $name;
+				}
+			}
+
+			return $names;
+		}
+
+		/** Whether this form declares a callable `pre` hook — what the AI cards disclose (audit #31 D2). */
+		private function formHasPreHook(?array $form): bool {
+			$hook = is_array($form["hooks"] ?? null) ? ($form["hooks"]["pre"] ?? null) : null;
+
+			return !empty($hook) && $this->resolveHookCallable($hook) !== false;
+		}
+
+		/**
+		 * The card/summary sentence for a form with a `pre` hook. Staging never runs
+		 * the hook — it is arbitrary developer code that may have side effects, and a
+		 * staged proposal can be rejected — so the approver is told instead.
+		 */
+		private const AI_PRE_HOOK_NOTE = "This module's form runs a pre-processing hook when the entry is saved, "
+			. "which may set or change values not shown here.";
+
+		/**
+		 * The approval-result sentence naming the columns the `pre` hook set.
+		 *
+		 * @param list<string> $columns
+		 */
+		private function aiPreHookResultNote(array $columns): string {
+			if (!$columns) {
+
+				return "";
+			}
+
+			return "The form's pre-processing hook also set " . implode(", ", $columns) . ".";
+		}
+
+		/**
 		 * Resolve a form-hook value to something is_callable() accepts. Class
 		 * autoload is triggered for "Class::method" strings so extension classes
 		 * (e.g. BTXEvents::publishHook) load before the check.
@@ -945,6 +1080,10 @@
 			// from the request body. Allowing it through would let a caller force a
 			// chosen id on create or re-key an existing row on update.
 			unset($data["id"]);
+
+			// Before the processors, as legacy ran it: the hook may derive the very
+			// columns a route or geocode is computed from (audit #31 A1).
+			[$data] = $this->applyFormPreHook($module, $table, $data);
 
 			$geocoding = $this->applyEntryProcessors($module, $table, $data, $route_exclude_id, $row);
 
@@ -1052,6 +1191,12 @@
 				// a derived type, excluded from the settable schema — so an entry's
 				// URL is only ever changed by a human in the admin, deliberately.
 				if (!$is_create) {
+					continue;
+				}
+
+				// The model can't supply a route, so a value here came from the form's
+				// `pre` hook — kept, as legacy's route processor kept a submitted one.
+				if (trim((string)($merged[$column] ?? "")) !== "") {
 					continue;
 				}
 
@@ -1963,6 +2108,15 @@
 				$mode_note .= " " . $geocoding_note;
 			}
 
+			// The hook isn't run here (audit #31 D2), so what it will do is disclosed.
+			$pre_hook_note = $this->formHasPreHook(is_array($resolved["form"] ?? null) ? $resolved["form"] : null)
+				? self::AI_PRE_HOOK_NOTE
+				: "";
+
+			if ($pre_hook_note !== "") {
+				$mode_note .= " " . $pre_hook_note;
+			}
+
 			// Audit #13 A1. Said on the card as well as in the result, because the model
 			// is not required to call get_module_schema before a create, and the person
 			// clicking Approve is the one who needs to know the entry won't be live.
@@ -1987,7 +2141,7 @@
 				? $geocoding_note
 				: "";
 			$warnings = array_values(array_filter(
-				[$approval_note, $unfillable, $geocoding_warning],
+				[$approval_note, $unfillable, $geocoding_warning, $pre_hook_note],
 				function (string $note): bool {
 
 					return $note !== "";
@@ -2979,6 +3133,20 @@
 			// (audit #11 B2) — the descriptor's identifiers come from the field
 			// definition, so a form edited inside the 24h TTL is re-read here.
 			$mtm = is_array($sifted["mtm"] ?? null) ? $sifted["mtm"] : [];
+			// The form's `pre` hook, at approval only — staging never runs developer
+			// code (audit #31 D2). It runs before every gate below, so the group check
+			// and the required-field gate judge the entry the hook actually produced.
+			[$data, $hook_columns] = $this->applyFormPreHook($module, $table, $data);
+
+			if ($hook_columns) {
+				// A required column the assistant can't author was refused or disclosed
+				// at staging; the hook may have filled it since (audit #31 D3).
+				$resolved["blocked_required"] = $this->aiRequiredUnsettableFields(
+					is_array($resolved["form"] ?? null) ? $resolved["form"] : null,
+					$data
+				);
+			}
+
 			$group_error = $this->aiGroupFieldViolation($module, $data, [], $user);
 
 			if ($group_error !== null) {
@@ -3073,6 +3241,7 @@
 			// geocoder will answer, and the result is the only place the person who
 			// clicked Approve finds out their entry has no coordinates (audit #30 A2).
 			$approval_note = $this->aiWithGeocodingNote($approval_note, $geocoding);
+			$approval_note = trim($approval_note . " " . $this->aiPreHookResultNote($hook_columns));
 
 			if ($can_publish) {
 				$id = BigTreeAutoModule::createItem($table, $data, $mtm, $tag_ids, null, $open_graph);
@@ -3301,6 +3470,13 @@
 				$mode_note .= " " . $geocoding_note;
 			}
 
+			// The hook isn't run here (audit #31 D2), so what it will do is disclosed.
+			$has_pre_hook = $this->formHasPreHook(is_array($resolved["form"] ?? null) ? $resolved["form"] : null);
+
+			if ($has_pre_hook) {
+				$mode_note .= " " . self::AI_PRE_HOOK_NOTE;
+			}
+
 			$label = $is_pending ? "draft {$entry_id}" : "entry #{$entry_id}";
 
 			$preview = [
@@ -3333,6 +3509,10 @@
 
 			if ($geocoding_state["geocodes"] && !$geocoding_state["configured"]) {
 				$warnings[] = $geocoding_note;
+			}
+
+			if ($has_pre_hook) {
+				$warnings[] = self::AI_PRE_HOOK_NOTE;
 			}
 
 			if ($warnings) {
@@ -3436,6 +3616,16 @@
 			}
 
 			$data = $sifted["data"];
+			// The form's `pre` hook, at approval only (audit #31 D2). Legacy's hook
+			// always saw the whole form; this edit is partial, so it is shown the
+			// stored row with the edit over it, and only what it returns is folded back
+			// — where the update gate below judges it like any other changed column.
+			[$data, $hook_columns] = $this->applyFormPreHook(
+				$module,
+				$table,
+				$data,
+				array_merge(is_array($row) ? $row : [], $data)
+			);
 			$group_error = $this->aiGroupFieldViolation($module, $data, $row, $user);
 
 			if ($group_error !== null) {
@@ -3557,6 +3747,7 @@
 			// update whose address moved and whose lookup failed has just had its
 			// coordinates cleared, and one whose address didn't has kept them.
 			$approval_note = $this->aiWithGeocodingNote($approval_note, $geocoding);
+			$approval_note = trim($approval_note . " " . $this->aiPreHookResultNote($hook_columns));
 
 			// A draft only exists in the pending queue — there is nothing to publish
 			// over, so even a publisher's edit amends the queued change. submitChange
@@ -4709,6 +4900,11 @@
 						. "supplying them is refused. Each says which columns it is computed from, so include "
 						. "every one of those on a create if you want the derived value to be right."
 					: "",
+				// The hooks this form runs on a save, by name only — never the callable,
+				// which is developer code. A `pre` hook can set or change values the
+				// model never sent, and this is how it can tell the user why one appeared
+				// (audit #31 A1).
+				"form_hooks" => $this->aiFormHookNames(is_array($resolved["form"] ?? null) ? $resolved["form"] : null),
 				"unsettable_columns" => $unsettable_columns,
 				"unsettable_columns_note" => $unsettable_columns
 					? "The table has " . (count($unsettable_columns) === 1 ? "a column" : "columns")

@@ -280,6 +280,33 @@
 				}
 			}
 
+			// A route field's `source` names the sibling column its slug is generated
+			// from. One naming a column this plan doesn't create — or the route's own —
+			// generates from nothing, so every entry gets an empty URL (audit #31 A2).
+			// Checked against the columns as they will actually be stored, after the
+			// de-duplication above, and here rather than only in the AI gate for the
+			// reason the target check is (#25 D1): broken whoever built it.
+			foreach ($form_fields as $field) {
+				if ($field["type"] !== "route") {
+					continue;
+				}
+
+				$wrong = Resources::aiRouteSourceUnplanned($field["column"], $field["settings"], $used_columns, "plain");
+
+				// No source at all is the AI surface's own correction (audit #30 B1);
+				// the Module Designer allows it, so REST does too.
+				if ($wrong === [""] || !$wrong) {
+					continue;
+				}
+
+				return [
+					"error" => "The \"" . $field["title"] . "\" route field's source names "
+						. implode(", ", $wrong) . ", which " . (count($wrong) === 1 ? "isn't a column" : "aren't columns")
+						. " this module will have besides the route itself. Columns: " . implode(", ", $used_columns) . ".",
+					"code" => "invalid_field_settings",
+				];
+			}
+
 			$route = $d["route"] ?? BigTreeCMS::urlify($name);
 
 			if (!Sanitize::isValidId((string)$route, 127, "-")) {
@@ -2158,6 +2185,9 @@
 			// the model, a field the model itself created three turns earlier.
 			$settings_error = Resources::aiDuplicateFieldIdError($this->aiScaffoldGateFields($fields), "module")
 				?? Resources::aiUnconfigurableFieldError($this->aiScaffoldGateFields($fields), [], "module")
+				// The same gate one level down: a matrix's columns are fields too, and
+				// `columns` being present said nothing about them (audit #31 A3).
+				?? Resources::aiMatrixColumnsError($this->aiScaffoldGateFields($fields), "module")
 				// The value half of the same rule (audit #20 A1). A `default` is the one
 				// field setting whose stored value becomes record content — every entry
 				// created from this form is born holding it — so it is judged by the
@@ -2371,6 +2401,7 @@
 			$gate_fields = $this->aiScaffoldGateFields(is_array($payload["fields"] ?? null) ? $payload["fields"] : []);
 			$settings_error = Resources::aiDuplicateFieldIdError($gate_fields, "module")
 				?? Resources::aiUnconfigurableFieldError($gate_fields, [], "module")
+				?? Resources::aiMatrixColumnsError($gate_fields, "module")
 				// Never trusted on the way back out for the same reason: a field type's
 				// option list is resolved from the database, and a `db`-populated list's
 				// table can lose the row a staged default named.

@@ -153,11 +153,17 @@
 			return strtolower(trim(preg_replace('/[^a-zA-Z0-9 ]/', '', $t)));
 		}
 
-		private function uniqueRoute($base) {
+		/**
+		 * $base, or $base-2, -3… until no *other* tag holds it. $exclude_id is the tag
+		 * being renamed: without it a rename whose name urlifies to the tag's current
+		 * route found the tag itself and moved its public URL for no reason (audit #31
+		 * B1) — the same exclude-self PageService::uniqueRoute has always had.
+		 */
+		private function uniqueRoute($base, int $exclude_id = 0) {
 			$route = $base;
 			$x = 2;
 
-			while (SQL::fetchSingle("SELECT id FROM bigtree_tags WHERE route = ?", $route)) {
+			while (SQL::fetchSingle("SELECT id FROM bigtree_tags WHERE route = ? AND id != ?", $route, $exclude_id)) {
 				$route = $base . "-" . $x++;
 			}
 
@@ -1501,12 +1507,18 @@
 			}
 
 			$usage = (int)($tag["usage_count"] ?? 0);
+			// A rename that only changes spacing or case can urlify to the route the tag
+			// already has, and then its URL doesn't move — so the card mustn't say it does.
+			$route = (string)$tag["route"];
+			$url_note = $this->uniqueRoute(BigTreeCMS::urlify($name), (int)$tag["id"]) === $route
+				? " Its public URL stays “{$route}”."
+				: " Its public URL changes with it.";
 
 			return [
 				"ok" => true,
 				"summary" => "Rename the tag “{$tag["tag"]}” to “{$name}”"
 					. ($usage > 0 ? ", affecting {$usage} tagged record" . ($usage === 1 ? "" : "s") : "")
-					. ". Its public URL changes with it.",
+					. "." . $url_note,
 				"preview" => [
 					"action" => "rename_tag",
 					"changes" => ["tag" => ["from" => (string)$tag["tag"], "to" => $name]],
@@ -1563,7 +1575,7 @@
 			SQL::update("bigtree_tags", $tag_id, [
 				"tag" => $name,
 				"metaphone" => metaphone($name),
-				"route" => $this->uniqueRoute(BigTreeCMS::urlify($name)),
+				"route" => $this->uniqueRoute(BigTreeCMS::urlify($name), $tag_id),
 			]);
 
 			return [

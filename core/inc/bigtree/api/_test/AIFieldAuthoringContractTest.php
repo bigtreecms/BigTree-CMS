@@ -516,7 +516,7 @@
 		// rather than dropped, since a dropped argument is a successful card for a
 		// request the assistant didn't fulfil.
 		$composite = (string)\BigTree\Api\Resources::aiFieldDefaultError(
-			[["id" => "Rows", "title" => "Rows", "type" => "matrix", "settings" => ["columns" => [["id" => "a"]]], "default" => "x"]],
+			[["id" => "Rows", "title" => "Rows", "type" => "matrix", "settings" => ["columns" => [["id" => "a", "title" => "A", "type" => "text"]]], "default" => "x"]],
 			[],
 			"module"
 		);
@@ -956,6 +956,138 @@
 			!empty($accepted["ok"]),
 			"the same plan with a source stages (" . (string)($accepted["error"] ?? "") . ")"
 		);
+	}
+
+	/**
+	 * Audit #31 E4/A2: a `source` that is present but names no planned column.
+	 *
+	 * #30 B1 made the setting mandatory and asked only whether it was there — so a
+	 * typo, a guess, or the route's own column still staged, and generated every
+	 * entry's route from nothing exactly as a missing source did.
+	 *
+	 * Fails on the tree before this pass: every wrong source below stages.
+	 */
+	function test_a_scaffolded_route_source_must_name_a_planned_column() {
+		$modules = new \BigTree\Services\ModuleService();
+		$plan = function ($source): array {
+
+			return [
+				"name" => "ZZ Route Membership Probe",
+				"table" => "zz_route_member_" . substr(md5((string)mt_rand()), 0, 8),
+				"fields" => [
+					["title" => "Headline", "type" => "text"],
+					["title" => "Body", "type" => "textarea"],
+					["title" => "URL Slug", "type" => "route", "settings" => ["source" => $source]],
+				],
+			];
+		};
+
+		foreach ([
+			"a typo" => "headlin",
+			"a guess at a column the plan doesn't have" => "title",
+			"the route's own column" => "url_slug",
+			"a list with one bad member" => ["headline", "summary"],
+		] as $case => $source) {
+			$refused = $modules->aiValidateModuleScaffold($plan($source), ai_wiring_user(2));
+			$error = (string)($refused["error"] ?? "");
+
+			T::ok(empty($refused["ok"]), "{$case} doesn't stage");
+			T::ok(
+				strpos($error, "headline") !== false && strpos($error, "body") !== false,
+				"…and the correction names the planned columns ({$error})"
+			);
+			T::ok(strpos($error, "Module Designer") === false, "…as a correction, not a refusal");
+
+			// REST builds the same broken module, so it refuses the same body.
+			$rest = $modules->scaffoldPlan($plan($source));
+
+			T::equals($rest["code"] ?? "", "invalid_field_settings", "…and REST POST /modules/scaffold refuses it too");
+		}
+
+		foreach (["headline", ["headline", "body"]] as $source) {
+			$accepted = $modules->aiValidateModuleScaffold($plan($source), ai_wiring_user(2));
+
+			T::ok(!empty($accepted["ok"]), "a source naming planned columns stages (" . (string)($accepted["error"] ?? "") . ")");
+			T::ok(!isset($modules->scaffoldPlan($plan($source))["error"]), "…and REST accepts it");
+		}
+
+		// Nothing to generate from: the correction must not suggest a column that
+		// doesn't exist (the old "title" fallback).
+		$alone = $modules->aiValidateModuleScaffold([
+			"name" => "ZZ Route Alone Probe",
+			"table" => "zz_route_alone_" . substr(md5((string)mt_rand()), 0, 8),
+			"fields" => [["title" => "URL Slug", "type" => "route"]],
+		], ai_wiring_user(2));
+		$alone_error = (string)($alone["error"] ?? "");
+
+		T::ok(strpos($alone_error, "needs another column to generate from") !== false, "a lone route is refused for what it lacks");
+		T::ok(strpos($alone_error, "\"source\": \"title\"") === false, "…without proposing a column that doesn't exist");
+	}
+
+	/**
+	 * Audit #31 E5/A3: a scaffolded matrix's columns get the gate its parent field
+	 * gets. `"matrix" => ["columns"]` asked only that the list was non-empty.
+	 *
+	 * Fails on the tree before this pass: every broken matrix below stages.
+	 */
+	function test_a_scaffolded_matrix_validates_its_columns() {
+		$modules = new \BigTree\Services\ModuleService();
+		$plan = function ($columns): array {
+
+			return [
+				"name" => "ZZ Matrix Probe",
+				"table" => "zz_matrix_probe_" . substr(md5((string)mt_rand()), 0, 8),
+				"fields" => [
+					["title" => "Name", "type" => "text"],
+					["title" => "Rows", "type" => "matrix", "settings" => ["columns" => $columns]],
+				],
+			];
+		};
+
+		foreach ([
+			"a non-list columns value" => ["a" => ["id" => "a", "type" => "text"]],
+			"a column that isn't an object" => ["name"],
+			"a column with no id" => [["type" => "text", "title" => "Name"]],
+			"a column id with unusable characters" => [["id" => "full name", "type" => "text"]],
+			"a column with no type" => [["id" => "name", "title" => "Name"]],
+			"a column type that isn't in the registry" => [["id" => "name", "type" => "no-such-type"]],
+			"a matrix nested in a matrix" => [["id" => "inner", "type" => "matrix", "settings" => ["columns" => [
+				["id" => "x", "type" => "text"],
+			]]]],
+			"duplicate column ids" => [["id" => "name", "type" => "text"], ["id" => "name", "type" => "textarea"]],
+			"a list column with no choices" => [["id" => "size", "type" => "list"]],
+			"a column whose default isn't a value it can hold" => [
+				["id" => "size", "type" => "list", "settings" => ["list_type" => "static", "list" => [
+					["value" => "s", "description" => "Small"],
+				], "default" => "huge"]],
+			],
+		] as $case => $columns) {
+			$refused = $modules->aiValidateModuleScaffold($plan($columns), ai_wiring_user(2));
+
+			T::ok(empty($refused["ok"]), "{$case} doesn't stage (" . (string)($refused["error"] ?? "") . ")");
+			T::ok(strpos((string)($refused["error"] ?? ""), "Rows") !== false, "…and the error names the matrix");
+		}
+
+		// A column with no title is fine — the SPA falls back to the id.
+		$valid = $modules->aiValidateModuleScaffold($plan([
+			["id" => "name", "type" => "text", "title" => "Name"],
+			["id" => "when", "type" => "date"],
+		]), ai_wiring_user(2));
+
+		T::ok(!empty($valid["ok"]), "a valid matrix still stages (" . (string)($valid["error"] ?? "") . ")");
+
+		// The approval re-gate asks again rather than trusting the staged plan.
+		$payload = $valid["payload"] ?? [];
+
+		foreach ($payload["fields"] ?? [] as $key => $field) {
+			if (($field["type"] ?? "") === "matrix") {
+				$payload["fields"][$key]["settings"]["columns"][] = ["id" => "name", "type" => "text"];
+			}
+		}
+
+		$approved = $modules->aiScaffoldModule($payload, ai_wiring_user(2));
+
+		T::equals($approved["mode"] ?? "", "error", "a matrix broken after staging is refused at approval");
 	}
 
 	/**

@@ -57,6 +57,10 @@
 			// itself is asserted by
 			// test_both_processor_passes_hand_the_stored_row_to_the_geocoder below.
 			"applyGeocoding" => "the geocoding field's lookup, and what a failed one does to the coordinates",
+			// Audit #31 E2. The form's `pre` hook ran on neither writer — only on embed
+			// forms — so every entry on a module whose hook computes a column was
+			// stored without it, from the SPA and from the assistant alike.
+			"applyFormPreHook" => "the module form's pre hook, folded into the data before it is processed",
 		];
 	}
 
@@ -139,8 +143,8 @@
 			. "the AI seam has no request body to prep, so it runs the same call inline.";
 
 		return [
-			"module entry create" => ["BigTreeAutoModule::sanitizeData" => $prep],
-			"module entry update" => ["BigTreeAutoModule::sanitizeData" => $prep],
+			"module entry create" => ["BigTreeAutoModule::sanitizeData" => $prep, "applyFormPreHook" => $prep],
+			"module entry update" => ["BigTreeAutoModule::sanitizeData" => $prep, "applyFormPreHook" => $prep],
 		];
 	}
 
@@ -182,6 +186,39 @@
 			"",
 			"every declared side effect runs on both the REST and the AI write path"
 		);
+	}
+
+	/**
+	 * Audit #31 E2: the `pre` hook's exemption above is a claim that it still runs on
+	 * both writers, just from prepareEntryWrite on the REST side. This holds the
+	 * claim to account — the exemption alone would let either side drop it.
+	 */
+	function test_both_writers_of_an_entry_run_the_forms_pre_hook() {
+		$prep = ai_surface_method_body(AutoModuleService::class, "prepareEntryWrite");
+
+		T::ok(strpos($prep, '$this->applyFormPreHook(') !== false, "prepareEntryWrite runs the pre hook");
+		T::ok(
+			strpos($prep, '$this->applyFormPreHook(') < strpos($prep, '$this->applyEntryProcessors('),
+			"…before the processors, which may derive columns from what it set"
+		);
+
+		foreach (["create", "update"] as $method) {
+			T::ok(
+				ai_write_body_calls(AutoModuleService::class, $method, '$this->prepareEntryWrite('),
+				"REST {$method}() goes through prepareEntryWrite"
+			);
+		}
+
+		foreach (["aiCreateEntry", "aiUpdateEntry"] as $method) {
+			$body = ai_surface_method_body(AutoModuleService::class, $method);
+			$hook = strpos($body, '$this->applyFormPreHook(');
+
+			T::ok($hook !== false, "{$method} runs the pre hook");
+			T::ok(
+				$hook !== false && $hook < strpos($body, '$this->aiApplyEntryProcessors('),
+				"…before the processors and the gates that judge the entry"
+			);
+		}
 	}
 
 	/**

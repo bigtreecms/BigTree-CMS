@@ -430,6 +430,52 @@
 		}
 
 		/**
+		 * The members of a route field's `source` that name no planned column — or
+		 * name the route's own column, which is empty when the slug is generated.
+		 *
+		 * applyRoute skips any source column that isn't in the data being written, so
+		 * a source naming nothing real yields an empty base and an empty route on
+		 * every entry: the audit #30 B1 failure reached with the setting present
+		 * (audit #31 A2). A source with no non-empty member at all counts as naming
+		 * nothing, reported as "".
+		 *
+		 * Shared by the AI gate and ModuleService::scaffoldPlan, so REST refuses the
+		 * same plan the assistant is corrected on.
+		 *
+		 * @param array<string,mixed> $settings
+		 * @param list<string> $planned The planned column ids (aiPlannedFieldIds).
+		 * @return list<string>
+		 */
+		public static function aiRouteSourceUnplanned(string $id, array $settings, array $planned, string $surface): array {
+			$own = $surface === "module" ? Sanitize::columnName($id) : $id;
+			$source = $settings["source"] ?? "";
+			$members = is_array($source) ? $source : [$source];
+			$wrong = [];
+			$named = false;
+
+			foreach ($members as $member) {
+				$member = is_scalar($member) ? trim((string)$member) : "";
+
+				if ($member === "") {
+					continue;
+				}
+
+				$named = true;
+
+				if ($member === $own || !in_array($member, $planned, true)) {
+					$wrong[] = $member;
+				}
+			}
+
+			if (!$named) {
+
+				return [""];
+			}
+
+			return array_values(array_unique($wrong));
+		}
+
+		/**
 		 * Reject any proposed field that would be stored incompletely — either because
 		 * its type needs structured configuration the assistant can't express, or
 		 * because its own settings_schema marks a setting required and nothing filled
@@ -459,6 +505,7 @@
 			$bad = [];
 			$fixable = [];
 			$route_fixable = [];
+			$route_wrong = [];
 			$route_ids = [];
 			$planned = self::aiPlannedFieldIds($fields, $surface);
 
@@ -483,6 +530,24 @@
 
 				$settings = self::aiFieldSettings($field, $type, $surface);
 				$missing = self::aiMissingSettings($type, $settings, $surface);
+
+				// A route's `source` being *present* is half the rule: one naming a
+				// column the plan doesn't contain — a typo, a guess, the route's own
+				// column — generates from an empty base exactly as a missing one does
+				// (audit #31 A2). So a supplied source is held to the planned ids.
+				if ($type === "route" && !$missing) {
+					$wrong = self::aiRouteSourceUnplanned($id, $settings, $planned, $surface);
+
+					if ($wrong) {
+						$route_wrong[] = "\"{$id}\" (source " . implode(", ", array_map(function (string $source): string {
+
+							return "\"{$source}\"";
+						}, $wrong)) . ")";
+						$route_ids[] = $id;
+					}
+
+					continue;
+				}
 
 				if (!$missing) {
 
@@ -520,12 +585,7 @@
 					. "select. Supply them as \"options\", e.g. \"options\": [\"Small\", \"Medium\", \"Large\"].";
 			}
 
-			if ($route_fixable) {
-				$names = implode(" and ", array_unique($route_fixable));
-				$one = count($route_fixable) === 1;
-				// A route can't be its own source, so the worked example points at a
-				// sibling — the model derives column names from titles and would
-				// otherwise be guessing at the one string that has to match.
+			if ($route_fixable || $route_wrong) {
 				$route_columns = [];
 
 				foreach ($route_ids as $route_id) {
@@ -533,23 +593,40 @@
 				}
 
 				$route_columns = self::aiPlannedFieldIds($route_columns, $surface);
-				$example = "title";
+				// A route can't be its own source, so what it may name is every planned
+				// column but the route columns themselves.
+				$sources = array_values(array_diff($planned, $route_columns));
+				$one = count($route_fixable) + count($route_wrong) === 1;
 
-				foreach ($planned as $planned_id) {
-					if (!in_array($planned_id, $route_columns, true)) {
-						$example = $planned_id;
+				// Nothing to generate from: suggesting a column that doesn't exist is
+				// the very mistake this rule refuses, so say what is actually missing.
+				if (!$sources) {
 
-						break;
-					}
+					return "A route needs another column to generate from, and this plan has none besides the "
+						. "route itself — every entry would be saved with an empty URL. Add the field the slug "
+						. "should come from (a title or name) and give the route a \"settings\" object whose "
+						. "\"source\" names that field's column.";
 				}
+
+				$columns = " The columns this will have: " . implode(", ", $sources) . ".";
+
+				if ($route_wrong) {
+
+					return "The " . implode(" and ", array_unique($route_wrong)) . " route field"
+						. ($one ? "" : "s") . " name" . ($one ? "s" : "") . " a source column this module won't "
+						. "have, so every entry would be generated from nothing — saved with an empty URL, its "
+						. "detail page a 404. A route's \"source\" has to name another of the columns in this "
+						. "plan, exactly as it will be stored." . $columns;
+				}
+
+				$names = implode(" and ", array_unique($route_fixable));
 
 				return "The {$names} route field" . ($one ? "" : "s") . " " . ($one ? "has" : "have")
 					. " no source, so every entry would be saved with an empty URL and its detail page would "
 					. "404 — a route is generated from other columns, never typed, and the assistant can't set "
 					. "one on an entry either. Give " . ($one ? "it" : "each of them")
 					. " a \"settings\" object naming the column the slug comes from, e.g. "
-					. "\"settings\": {\"source\": \"{$example}\"}"
-					. ($planned ? ". The columns this will have: " . implode(", ", $planned) . "." : ".");
+					. "\"settings\": {\"source\": \"{$sources[0]}\"}." . $columns;
 			}
 
 			if (!$bad) {
@@ -1105,6 +1182,133 @@
 			}
 
 			return null;
+		}
+
+		/**
+		 * The field types a matrix column may not be: the composite ones, whose value
+		 * is itself a list or a relation and which a matrix cell can't hold — no
+		 * nesting a matrix in a matrix — plus `upload`, which needs a directory and
+		 * crop configuration the column editor owns.
+		 */
+		private const AI_MATRIX_COLUMN_EXCLUDED_TYPES = [
+			"matrix", "media-gallery", "callouts", "upload", "one-to-many", "many-to-many",
+		];
+
+		/**
+		 * Reject a proposed `matrix` field whose columns would not render — the
+		 * subfield half of the gate every top-level field already goes through.
+		 *
+		 * `"matrix" => ["columns"]` asks only that `columns` is non-empty, and the
+		 * module surface passes the model's whole settings blob through, so a column
+		 * with no id or type, a type the registry doesn't have, or two columns under
+		 * one id all staged and built (audit #31 A3). The SPA maps each column
+		 * straight onto a form field: no type renders as nothing, and duplicate ids
+		 * overwrite each other's cell.
+		 *
+		 * One level deep, per D5. Each column needs a non-empty unique id matching
+		 * AI_FIELD_ID_PATTERN and a type from the catalog the Module Designer's own
+		 * column editor offers (the callouts catalog) minus the composite types, and
+		 * is then judged as a field in its own right: its render-required settings
+		 * and its default. A missing title is fine — the SPA falls back to the id.
+		 *
+		 * Returns null when every matrix field is acceptable.
+		 *
+		 * @param mixed $fields Raw AI-proposed field list.
+		 * @param string $surface The surface the field list is authored on.
+		 */
+		public static function aiMatrixColumnsError($fields, string $surface = "module"): ?string {
+			$problems = [];
+			$allowed = array_values(array_diff(
+				\BigTree\Services\FieldTypeService::availableFieldTypeIds("callouts"),
+				self::AI_MATRIX_COLUMN_EXCLUDED_TYPES
+			));
+
+			foreach ((array)$fields as $field) {
+				if (!is_array($field) || (string)($field["type"] ?? "") !== "matrix") {
+
+					continue;
+				}
+
+				$label = trim((string)($field["title"] ?? "")) !== "" ? trim((string)$field["title"]) : self::aiFieldId($field);
+				$settings = is_array($field["settings"] ?? null) ? $field["settings"] : [];
+				$columns = $settings["columns"] ?? null;
+
+				if (!is_array($columns) || !$columns || array_keys($columns) !== range(0, count($columns) - 1)) {
+					$problems[] = "\"{$label}\": \"columns\" must be a list of column objects";
+
+					continue;
+				}
+
+				$seen = [];
+				$subfields = [];
+
+				foreach ($columns as $index => $column) {
+					$position = "column " . ($index + 1);
+
+					if (!is_array($column)) {
+						$problems[] = "\"{$label}\" {$position} is not an object";
+
+						continue;
+					}
+
+					$id = trim((string)($column["id"] ?? ""));
+					$type = trim((string)($column["type"] ?? ""));
+
+					if ($id === "" || !preg_match(self::AI_FIELD_ID_PATTERN, $id)) {
+						$problems[] = "\"{$label}\" {$position} needs an \"id\" of letters, numbers, - or _"
+							. ($id === "" ? "" : " (got \"{$id}\")");
+
+						continue;
+					}
+
+					if (isset($seen[$id])) {
+						$problems[] = "\"{$label}\" has two columns with the id \"{$id}\" — each would overwrite "
+							. "the other's value";
+
+						continue;
+					}
+
+					$seen[$id] = true;
+
+					if ($type === "" || !in_array($type, $allowed, true)) {
+						$problems[] = "\"{$label}\" column \"{$id}\" " . ($type === ""
+							? "has no \"type\""
+							: "has the type \"{$type}\", which a matrix column can't be");
+
+						continue;
+					}
+
+					$column_settings = is_array($column["settings"] ?? null) ? $column["settings"] : [];
+					$subfield = ["id" => $id, "title" => (string)($column["title"] ?? $id), "type" => $type,
+						"settings" => $column_settings];
+					$column_missing = self::aiMissingSettings($type, self::aiFieldSettings($subfield, $type, $surface), $surface);
+
+					if ($column_missing) {
+						$problems[] = "\"{$label}\" column \"{$id}\" ({$type}) is missing its "
+							. implode(", ", $column_missing) . " setting" . (count($column_missing) === 1 ? "" : "s");
+
+						continue;
+					}
+
+					$subfields[] = $subfield;
+				}
+
+				$default_error = $subfields ? self::aiFieldDefaultError($subfields, [], $surface) : null;
+
+				if ($default_error !== null) {
+					$problems[] = "in \"{$label}\": " . rtrim($default_error, ".");
+				}
+			}
+
+			if (!$problems) {
+
+				return null;
+			}
+
+			return "A matrix field's columns would not render: " . implode("; ", $problems) . ". Each column needs "
+				. "a unique \"id\" and a \"type\" (one of " . implode(", ", $allowed) . "), with any "
+				. "settings that type requires, e.g. \"settings\": {\"columns\": [{\"id\": \"name\", "
+				. "\"title\": \"Name\", \"type\": \"text\"}]}.";
 		}
 
 		/**

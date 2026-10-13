@@ -359,3 +359,69 @@
 			parity_delete_users($admin_id, $editor_id);
 		}
 	}
+
+	/**
+	 * Audit #31 E6: a rename whose name urlifies to the tag's own route keeps it.
+	 *
+	 * uniqueRoute had no exclude-self, so renaming "parity ai spaced" to
+	 * "parity ai  spaced" — normalize trims but doesn't collapse internal spaces —
+	 * found the tag itself holding "parity-ai-spaced" and moved its public URL to
+	 * "parity-ai-spaced-2" for no reason. A genuinely new name must still be
+	 * de-duplicated against *other* tags.
+	 */
+	function test_parity_ai_rename_tag_keeps_the_route_when_the_url_would_not_change() {
+		if (!parity_db_available()) {
+			return;
+		}
+
+		$svc = new TagService();
+		$admin_id = parity_seed_user(["level" => 1]);
+		$admin = (object)["id" => $admin_id, "level" => 1, "permissions" => []];
+		$ids = [];
+
+		try {
+			$a = parity_data($svc->create(parity_request(1, 1, [], ["tag" => "Parity AI Spaced"])));
+			$b = parity_data($svc->create(parity_request(1, 1, [], ["tag" => "Parity AI Neighbour"])));
+			$ids = [(int)$a["id"], (int)$b["id"]];
+			$route = (string)SQL::fetchSingle("SELECT route FROM bigtree_tags WHERE id = ?", $ids[0]);
+
+			$validated = $svc->aiValidateTagRename(["tag" => "parity ai spaced", "name" => "parity ai  spaced"], $admin);
+
+			T::ok(!empty($validated["ok"]), "a spacing-only rename validates");
+			T::ok(
+				strpos((string)($validated["summary"] ?? ""), "stays “{$route}”") !== false,
+				"…and the card says the URL stays put (" . (string)($validated["summary"] ?? "") . ")"
+			);
+
+			$svc->aiRenameTag($validated["payload"], $admin);
+
+			T::equals(
+				(string)SQL::fetchSingle("SELECT route FROM bigtree_tags WHERE id = ?", $ids[0]),
+				$route,
+				"the tag kept its route rather than finding itself and moving to -2"
+			);
+
+			// A new name whose route another tag already holds is still de-duplicated.
+			$neighbour = (string)SQL::fetchSingle("SELECT route FROM bigtree_tags WHERE id = ?", $ids[1]);
+			$onto = $svc->aiValidateTagRename(["tag" => "parity ai  spaced", "name" => "parity ai  neighbour"], $admin);
+
+			T::ok(
+				strpos((string)($onto["summary"] ?? ""), "changes with it") !== false,
+				"a rename that does move the URL still says so"
+			);
+
+			$svc->aiRenameTag($onto["payload"], $admin);
+
+			T::equals(
+				(string)SQL::fetchSingle("SELECT route FROM bigtree_tags WHERE id = ?", $ids[0]),
+				$neighbour . "-2",
+				"…and is de-duplicated against the other tag holding that route"
+			);
+		} finally {
+			foreach ($ids as $id) {
+				parity_delete_tags($id);
+			}
+
+			parity_delete_users($admin_id);
+		}
+	}
