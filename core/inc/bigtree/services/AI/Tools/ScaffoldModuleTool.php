@@ -104,7 +104,11 @@
 										"type" => "object",
 										"description" => "Optional per-field settings for the types that need "
 											. "configuring: a one-to-many's `table` and `title_column`, a "
-											. "many-to-many's `mtm-*` keys, an image field's `directory`. A list "
+											. "many-to-many's `mtm-*` keys, an image field's `directory`. A "
+											. "`route` field's `source` — the column the URL slug is generated "
+											. "from — is required too: a route is generated, never typed, so a "
+											. "route field with no source gives every entry an empty URL and you "
+											. "can't set one on an entry to fix it. A list "
 											. "field's choices go in `options` above. Any table named here has to "
 											. "already exist — nothing in this tool creates one — so take the name "
 											. "from get_module_schema or get_module rather than guessing it, and "

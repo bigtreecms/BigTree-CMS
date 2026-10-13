@@ -211,3 +211,330 @@
 			parity_delete_users($dev_id);
 		}
 	}
+
+	/**
+	 * Audit #30 E1: the geocoding legs of the same processor pass.
+	 *
+	 * The route legs above are about a value the write *generates*; these are about
+	 * one it *fetches*, and the difference is that the fetch can fail — which, on an
+	 * install where Developer → System → Geocoding was never filled in, is what it
+	 * does on every save.
+	 *
+	 * Driven through the fixture module and the stub geocoder from
+	 * AIGeocodingDisclosureTest, so both the success and the failure leg run without
+	 * a socket.
+	 */
+
+	/** Stage and approve an AI create against a geocoding fixture module. */
+	function parity_ai_geocoding_create(AutoModuleService $svc, string $module_id, $user, array $data): array {
+		$validated = $svc->aiValidateEntryCreate(["module_id" => $module_id, "data" => $data], $user);
+
+		if (empty($validated["ok"])) {
+
+			return ["error" => (string)($validated["error"] ?? $validated["denied"] ?? "unknown"), "id" => 0];
+		}
+
+		$result = $svc->aiCreateEntry($validated["payload"], $user);
+
+		return [
+			"error" => "",
+			"id" => (int)($result["entry_id"] ?? 0),
+			"mode" => (string)($result["mode"] ?? ""),
+			"note" => (string)($result["note"] ?? ""),
+			"staged" => $validated,
+		];
+	}
+
+	/** Stage and approve an AI update against a geocoding fixture module. */
+	function parity_ai_geocoding_update(
+		AutoModuleService $svc,
+		string $module_id,
+		$user,
+		int $entry_id,
+		array $data
+	): array {
+		$validated = $svc->aiValidateEntryUpdate([
+			"module_id" => $module_id,
+			"entry_id" => $entry_id,
+			"data" => $data,
+		], $user);
+
+		if (empty($validated["ok"])) {
+
+			return ["error" => (string)($validated["error"] ?? $validated["denied"] ?? "unknown"), "note" => ""];
+		}
+
+		$result = $svc->aiUpdateEntry($validated["payload"], $user);
+
+		return ["error" => "", "note" => (string)($result["note"] ?? ""), "staged" => $validated];
+	}
+
+	function test_parity_ai_entry_create_writes_the_coordinates_a_geocode_returned() {
+		if (!parity_db_available()) {
+
+			return;
+		}
+
+		$suffix = substr(md5(uniqid("", true)), 0, 8);
+		$table = "";
+		$dev_id = 0;
+
+		try {
+			[$module_id, , $table] = ai_geocoding_module($suffix);
+			$dev_id = parity_seed_user(["level" => 2]);
+			$user = (object)["id" => $dev_id, "level" => 2, "permissions" => []];
+			$stub = ai_geocoding_stub(["latitude" => "41.8781", "longitude" => "-87.6298"]);
+			$svc = new AutoModuleService();
+			$created = parity_ai_geocoding_create($svc, $module_id, $user, [
+				"title" => "Chicago Office",
+				"street" => "233 S Wacker Dr",
+				"city" => "Chicago",
+			]);
+
+			T::equals($created["error"], "", "the create staged");
+			T::ok($created["id"] > 0, "the entry was written");
+			T::equals(
+				$stub->addresses[0] ?? "",
+				"233 S Wacker Dr, Chicago",
+				"the address was built from the field's own source columns, in order"
+			);
+
+			$row = SQL::fetch("SELECT latitude, longitude FROM `{$table}` WHERE id = ?", $created["id"]);
+
+			T::equals($row["latitude"] ?? "", "41.8781", "latitude written from the lookup");
+			T::equals($row["longitude"] ?? "", "-87.6298", "longitude written from the lookup");
+			T::ok(strpos($created["note"], "Geocoding failed") === false, "and the result says nothing about failure");
+		} finally {
+			parity_delete_users($dev_id);
+			ai_geocoding_teardown($suffix, $table);
+		}
+	}
+
+	function test_parity_ai_entry_create_stores_empty_coordinates_when_the_geocode_fails() {
+		if (!parity_db_available()) {
+
+			return;
+		}
+
+		$suffix = substr(md5(uniqid("", true)), 0, 8);
+		$table = "";
+		$dev_id = 0;
+
+		try {
+			[$module_id, , $table] = ai_geocoding_module($suffix);
+			$dev_id = parity_seed_user(["level" => 2]);
+			$user = (object)["id" => $dev_id, "level" => 2, "permissions" => []];
+			ai_geocoding_stub(false, "REQUEST_DENIED");
+			$svc = new AutoModuleService();
+			$created = parity_ai_geocoding_create($svc, $module_id, $user, [
+				"title" => "Nowhere Office",
+				"street" => "1 Imaginary Way",
+				"city" => "Nowhere",
+			]);
+
+			T::equals($created["error"], "", "the create still staged — an entry without coordinates is valid");
+			T::ok($created["id"] > 0, "…and still wrote the entry: disclose, never refuse");
+
+			$row = SQL::fetch("SELECT latitude, longitude FROM `{$table}` WHERE id = ?", $created["id"]);
+
+			T::equals($row["latitude"] ?? "x", "", "latitude stored empty rather than left to chance");
+			T::equals($row["longitude"] ?? "x", "", "longitude stored empty");
+
+			// The line legacy showed the editor, on the surface that replaced it.
+			T::ok(
+				strpos($created["note"], "Geocoding failed") !== false,
+				"the approval result says the lookup failed (" . $created["note"] . ")"
+			);
+			T::ok(
+				strpos($created["note"], "REQUEST_DENIED") !== false,
+				"…quoting the geocoder's own error, which is what names the actual cause"
+			);
+		} finally {
+			parity_delete_users($dev_id);
+			ai_geocoding_teardown($suffix, $table);
+		}
+	}
+
+	/**
+	 * A1, the finding leg: an update that moves the address and can't geocode it
+	 * must not leave the *old* address's coordinates on the row.
+	 *
+	 * Fails with the finding reintroduced (applyGeocoding writing nothing on
+	 * failure): the row keeps 41.8781 / -87.6298 under a Boston address, and the
+	 * card, the result and the audit trail all read exactly as a successful write.
+	 */
+	function test_parity_ai_entry_update_clears_coordinates_when_the_address_moved() {
+		if (!parity_db_available()) {
+
+			return;
+		}
+
+		$suffix = substr(md5(uniqid("", true)), 0, 8);
+		$table = "";
+		$dev_id = 0;
+
+		try {
+			[$module_id, , $table] = ai_geocoding_module($suffix);
+			$dev_id = parity_seed_user(["level" => 2]);
+			$user = (object)["id" => $dev_id, "level" => 2, "permissions" => []];
+			ai_geocoding_stub(["latitude" => "41.8781", "longitude" => "-87.6298"]);
+			$svc = new AutoModuleService();
+			$created = parity_ai_geocoding_create($svc, $module_id, $user, [
+				"title" => "Head Office",
+				"street" => "233 S Wacker Dr",
+				"city" => "Chicago",
+			]);
+
+			T::ok($created["id"] > 0, "the entry was created with coordinates");
+
+			ai_geocoding_stub(false, "REQUEST_DENIED");
+			$updated = parity_ai_geocoding_update($svc, $module_id, $user, (int)$created["id"], [
+				"street" => "1 City Hall Sq",
+				"city" => "Boston",
+			]);
+
+			T::equals($updated["error"], "", "the update staged");
+
+			$row = SQL::fetch("SELECT street, city, latitude, longitude FROM `{$table}` WHERE id = ?", $created["id"]);
+
+			T::equals($row["city"] ?? "", "Boston", "the address moved");
+			T::equals($row["latitude"] ?? "x", "", "the old address's latitude was cleared, not re-asserted");
+			T::equals($row["longitude"] ?? "x", "", "…and its longitude");
+			T::ok(
+				strpos($updated["note"], "Geocoding failed") !== false,
+				"and the result says so (" . $updated["note"] . ")"
+			);
+		} finally {
+			parity_delete_users($dev_id);
+			ai_geocoding_teardown($suffix, $table);
+		}
+	}
+
+	/**
+	 * D1's other half: an edit that doesn't touch the address keeps the coordinates
+	 * it already had. A coordinate that no longer matches its address is wrong data;
+	 * one that still matches is right data a flaky service shouldn't erase.
+	 */
+	function test_parity_ai_entry_update_keeps_coordinates_when_the_address_did_not_move() {
+		if (!parity_db_available()) {
+
+			return;
+		}
+
+		$suffix = substr(md5(uniqid("", true)), 0, 8);
+		$table = "";
+		$dev_id = 0;
+
+		try {
+			[$module_id, , $table] = ai_geocoding_module($suffix);
+			$dev_id = parity_seed_user(["level" => 2]);
+			$user = (object)["id" => $dev_id, "level" => 2, "permissions" => []];
+			ai_geocoding_stub(["latitude" => "41.8781", "longitude" => "-87.6298"]);
+			$svc = new AutoModuleService();
+			$created = parity_ai_geocoding_create($svc, $module_id, $user, [
+				"title" => "Head Office",
+				"street" => "233 S Wacker Dr",
+				"city" => "Chicago",
+			]);
+
+			T::ok($created["id"] > 0, "the entry was created with coordinates");
+
+			ai_geocoding_stub(false, "REQUEST_DENIED");
+			$updated = parity_ai_geocoding_update($svc, $module_id, $user, (int)$created["id"], [
+				"title" => "Head Office (renamed)",
+			]);
+
+			T::equals($updated["error"], "", "the update staged");
+
+			$row = SQL::fetch("SELECT title, latitude, longitude FROM `{$table}` WHERE id = ?", $created["id"]);
+
+			T::equals($row["title"] ?? "", "Head Office (renamed)", "the unrelated column changed");
+			T::equals($row["latitude"] ?? "", "41.8781", "the coordinates its address earned are kept");
+			T::equals($row["longitude"] ?? "", "-87.6298", "…both of them");
+			T::ok(
+				strpos($updated["note"], "kept the coordinates it already had") !== false,
+				"and the result says which of the two things happened (" . $updated["note"] . ")"
+			);
+		} finally {
+			parity_delete_users($dev_id);
+			ai_geocoding_teardown($suffix, $table);
+		}
+	}
+
+	/**
+	 * The same two update legs through REST, so both writers of the record are
+	 * asserted rather than only the shared helper — and so the SPA's own editor gets
+	 * back the "Geocoding: …" line the legacy admin printed on this save.
+	 */
+	function test_parity_rest_entry_update_applies_the_same_failed_geocode_rule() {
+		if (!parity_db_available()) {
+
+			return;
+		}
+
+		$suffix = substr(md5(uniqid("", true)), 0, 8);
+		$table = "";
+		$dev_id = 0;
+
+		try {
+			[$module_id, $form_id, $table] = ai_geocoding_module($suffix);
+			$dev_id = parity_seed_user(["level" => 2]);
+			ai_geocoding_stub(["latitude" => "41.8781", "longitude" => "-87.6298"]);
+			$svc = new AutoModuleService();
+			$create = $svc->create(parity_request($dev_id, 2, ["id" => $module_id], [
+				"title" => "Head Office",
+				"street" => "233 S Wacker Dr",
+				"city" => "Chicago",
+				"__publish__" => true,
+			], ["form" => $form_id]));
+			$body = (array)parity_data($create);
+			$entry_id = (int)($body["id"] ?? 0);
+
+			T::ok($entry_id > 0, "REST created the entry");
+			T::ok(!isset($body["warnings"]), "a successful lookup carries no warning");
+
+			// An edit that moves the address, with the geocoder refusing.
+			ai_geocoding_stub(false, "REQUEST_DENIED");
+			$moved = $svc->update(parity_request($dev_id, 2, [
+				"id" => $module_id,
+				"eid" => (string)$entry_id,
+			], [
+				"title" => "Head Office",
+				"street" => "1 City Hall Sq",
+				"city" => "Boston",
+				"__publish__" => true,
+			], ["form" => $form_id]));
+			$moved_body = (array)parity_data($moved);
+			$row = SQL::fetch("SELECT city, latitude, longitude FROM `{$table}` WHERE id = ?", $entry_id);
+
+			T::equals($row["city"] ?? "", "Boston", "REST moved the address");
+			T::equals($row["latitude"] ?? "x", "", "…and cleared the coordinates it no longer describes");
+			T::ok(
+				is_array($moved_body["warnings"] ?? null)
+					&& strpos((string)($moved_body["warnings"][0] ?? ""), "REQUEST_DENIED") !== false,
+				"…and told the SPA why, the way the legacy admin did"
+			);
+
+			// …and an edit that doesn't touch the address keeps them.
+			SQL::query("UPDATE `{$table}` SET latitude = ?, longitude = ? WHERE id = ?", "42.3601", "-71.0589", $entry_id);
+			$renamed = $svc->update(parity_request($dev_id, 2, [
+				"id" => $module_id,
+				"eid" => (string)$entry_id,
+			], [
+				"title" => "Head Office (renamed)",
+				"street" => "1 City Hall Sq",
+				"city" => "Boston",
+				"__publish__" => true,
+			], ["form" => $form_id]));
+			$kept = SQL::fetch("SELECT latitude, longitude FROM `{$table}` WHERE id = ?", $entry_id);
+
+			T::equals($kept["latitude"] ?? "", "42.3601", "an unrelated REST edit keeps the coordinates");
+			T::ok(
+				strpos((string)(((array)parity_data($renamed))["warnings"][0] ?? ""), "kept the coordinates") !== false,
+				"…and says that is what happened rather than staying silent"
+			);
+		} finally {
+			parity_delete_users($dev_id);
+			ai_geocoding_teardown($suffix, $table);
+		}
+	}

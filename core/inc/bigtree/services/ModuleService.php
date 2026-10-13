@@ -15,6 +15,7 @@
 	use BigTree\Api\Exceptions\ConflictException;
 	use BigTree\Api\Exceptions\NotFoundException;
 	use BigTree\Api\ModuleIcons;
+	use BigTree\Services\AI\ColumnDomain;
 	use BigTree\Services\AI\ConfigurationStore;
 	use BigTree\Services\AI\ExtensionDomain;
 	use BigTree\Services\AI\FieldTypeDomain;
@@ -3071,7 +3072,81 @@
 				$missing[] = "a permission grant for at least one user";
 			}
 
+			foreach ($this->moduleGeocodingColumnGaps($module) as $gap) {
+				$missing[] = $gap;
+			}
+
 			return $missing;
+		}
+
+		/**
+		 * Forms that geocode into columns their table hasn't got (audit #30 A3).
+		 *
+		 * A geocoding field has no column of its own: it writes `latitude` and
+		 * `longitude`, and `BigTreeAutoModule::createItem` drops any key
+		 * `describeTable` doesn't list. So a legacy-built module whose form carries
+		 * the field over a table that was never given the two columns geocodes on
+		 * every save, stores nothing, and reports success — silent twice over. Legacy
+		 * did the same, so this is parity and nothing here creates a column; but
+		 * `get_module`'s missing_setup is precisely the read whose job is to say what
+		 * a module still needs, and it said nothing.
+		 *
+		 * @param array<string,mixed> $module
+		 * @return list<string>
+		 */
+		private function moduleGeocodingColumnGaps(array $module): array {
+			$gaps = [];
+
+			foreach ((array)($module["forms"] ?? []) as $form) {
+				if (!is_array($form)) {
+
+					continue;
+				}
+
+				$geocodes = false;
+
+				foreach ((array)($form["fields"] ?? []) as $field) {
+					if (is_array($field) && ($field["type"] ?? "") === "geocoding") {
+						$geocodes = true;
+
+						break;
+					}
+				}
+
+				if (!$geocodes) {
+
+					continue;
+				}
+
+				$table = trim((string)($form["table"] ?? "")) ?: $this->moduleTableName($module);
+				$columns = $table !== "" ? ColumnDomain::columns($table) : [];
+
+				// No description at all is the "a database table" gap the caller
+				// already names; don't say it twice in different words.
+				if (!$columns) {
+
+					continue;
+				}
+
+				$absent = [];
+
+				foreach (["latitude", "longitude"] as $column) {
+					if (!array_key_exists($column, $columns)) {
+						$absent[] = "`{$column}`";
+					}
+				}
+
+				if (!$absent) {
+
+					continue;
+				}
+
+				$gaps[] = implode(" and ", $absent) . " on `{$table}` — the “"
+					. (string)($form["title"] ?? $form["id"] ?? "entry") . "” form has a geocoding field, which "
+					. "writes coordinates into those columns; without them every save geocodes and stores nothing";
+			}
+
+			return array_values(array_unique($gaps));
 		}
 
 		/**

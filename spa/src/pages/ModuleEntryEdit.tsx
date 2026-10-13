@@ -99,6 +99,17 @@ export const ModuleEntryEdit = ({ formId, entryId }: ModuleEntryEditProps) => {
 				toast.success("Entry published");
 			}
 
+			// See ModuleEntryAdd: a failed geocode either cleared this entry's
+			// coordinates or left the ones it already had, and only the response
+			// knows which.
+			const warnings = (result as { warnings?: string[] } | null)?.warnings;
+
+			if (warnings?.length) {
+				toast.warning("Saved, but check the entry", {
+					description: warnings.join(" "),
+				});
+			}
+
 			navigate(returnPath);
 		},
 	});

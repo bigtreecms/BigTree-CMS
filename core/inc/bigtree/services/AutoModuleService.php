@@ -169,12 +169,18 @@
 			$module = $this->loadModule($module_id);
 			$table = $this->resolveTable($module, $request);
 
-			[$data, $mtm, $tags, $og, $publish, $user_level, $can_publish] = $this->prepareEntryWrite($request, $module, $table, 0);
+			[$data, $mtm, $tags, $og, $publish, $user_level, $can_publish, $geocoding]
+				= $this->prepareEntryWrite($request, $module, $table, 0);
 
 			// Create-only, so they sit here rather than inside prepareEntryWrite (which
 			// update() shares).
 			$this->applyFormFieldDefaults($module, $table, $data);
 			$this->applyFormDefaultPosition($module, $table, $data);
+
+			// The line legacy showed the editor on the save that produced no
+			// coordinates. Audit #29 gave restoreRevision the same seam; this is the
+			// SPA's own entry editor getting it back (audit #30 A2 / phase 4).
+			$warnings = $this->entryWriteWarnings($geocoding);
 
 			// Publishers/admins write live only when they explicitly publish; without
 			// the flag they (like editors) save a pending draft.
@@ -187,7 +193,11 @@
 					"module" => $module_id, "table" => $table, "id" => (int)$id, "item" => $item["item"] ?? $item,
 				]);
 
-				return $this->auditEntry(Response::created($item["item"] ?? $item, null), $table, $id);
+				return $this->auditEntry(
+					Response::created($this->withEntryWarnings($item["item"] ?? $item, $warnings), null),
+					$table,
+					$id
+				);
 			}
 
 			if ($user_level !== "e" && !$can_publish) {
@@ -208,7 +218,10 @@
 			]);
 
 			return $this->auditEntry(
-				Response::created(["pending_id" => $pending_id, "pending" => true], null),
+				Response::created(
+					$this->withEntryWarnings(["pending_id" => $pending_id, "pending" => true], $warnings),
+					null
+				),
 				$table,
 				"p" . $pending_id
 			);
@@ -220,8 +233,9 @@
 
 			// A pending entry has no live row yet, so there is nothing to exclude from
 			// the uniqueness check; a numeric id excludes its own live row.
-			[$data, $mtm, $tags, $og, $publish, $user_level, $can_publish]
+			[$data, $mtm, $tags, $og, $publish, $user_level, $can_publish, $geocoding]
 				= $this->prepareEntryWrite($request, $module, $table, $is_pending ? 0 : (int)$lookup_id, $row);
+			$warnings = $this->entryWriteWarnings($geocoding);
 
 			// Publishers/admins write live only when they explicitly publish; without
 			// the flag they (like editors) submit a pending change.
@@ -239,7 +253,7 @@
 					ResourceAllocationService::updateResourceAllocation($table, $new_id, $pending_change_id);
 					$this->fireFormHooks($module, $table, $new_id, $data, $mtm, $tags, true);
 
-					return $this->respondUpdated($module_id, $table, $new_id);
+					return $this->respondUpdated($module_id, $table, $new_id, $warnings);
 				}
 
 				$entry_id = (int)$lookup_id;
@@ -260,7 +274,7 @@
 				$this->trackLiveEntryResources($table, (int)$entry_id);
 				$this->fireFormHooks($module, $table, $entry_id, $data, $mtm, $tags, true);
 
-				return $this->respondUpdated($module_id, $table, $entry_id);
+				return $this->respondUpdated($module_id, $table, $entry_id, $warnings);
 			}
 
 			// submitChange requires a logged-in legacy admin ($admin->ID / ->track()),
@@ -285,7 +299,11 @@
 				"module" => $module_id, "table" => $table, "id" => $raw_id,
 			]);
 
-			return $this->auditEntry(Response::ok(["pending" => true]), $table, $raw_id);
+			return $this->auditEntry(
+				Response::ok($this->withEntryWarnings(["pending" => true], $warnings)),
+				$table,
+				$raw_id
+			);
 		}
 
 		public function delete(Request $request) {
@@ -754,13 +772,47 @@
 		 * and return a 200. Used by both update() publish branches (pending promote
 		 * and live update).
 		 */
-		private function respondUpdated(string $module_id, string $table, int $id): Response {
+		private function respondUpdated(string $module_id, string $table, int $id, array $warnings = []): Response {
 			$fresh = BigTreeAutoModule::getItem($table, $id);
 			Hooks::fire("module_entry.updated", [
 				"module" => $module_id, "table" => $table, "id" => $id, "item" => $fresh["item"] ?? $fresh,
 			]);
 
-			return $this->auditEntry(Response::ok($fresh), $table, $id);
+			return $this->auditEntry(Response::ok($this->withEntryWarnings($fresh, $warnings)), $table, $id);
+		}
+
+		/**
+		 * The warnings an entry write owes its caller. One list today — the failed
+		 * geocode — with the same wording the assistant's approval note carries, so
+		 * the two writers say one thing.
+		 *
+		 * @param array{attempted:bool,ok:bool,error:string,cleared:bool} $report
+		 * @return list<string>
+		 */
+		private function entryWriteWarnings(array $report): array {
+			$note = $this->geocodingFailureNote($report);
+
+			return $note !== "" ? [$note] : [];
+		}
+
+		/**
+		 * Attach them to a write response, when there are any. Same shape as the page
+		 * revision restore's (audit #29): a `warnings` array the SPA raises as a toast
+		 * rather than an error, because the entry itself saved.
+		 *
+		 * Deliberately mixed-in rather than typed: a write's body is whatever its
+		 * branch already returned, and this must not be the thing that changes it.
+		 *
+		 * @param mixed $body
+		 * @param list<string> $warnings
+		 * @return mixed
+		 */
+		private function withEntryWarnings($body, array $warnings) {
+			if ($warnings && is_array($body)) {
+				$body["warnings"] = $warnings;
+			}
+
+			return $body;
 		}
 
 		/**
@@ -870,7 +922,9 @@
 		 * $row is the stored row being edited, [] on create (where the submitted data
 		 * is itself the prospective row) — it decides which group's rank governs
 		 * publishing on a group-based module.
-		 * Returns [$data, $mtm, $tags, $og, $publish, $user_level, $can_publish].
+		 * Returns [$data, $mtm, $tags, $og, $publish, $user_level, $can_publish,
+		 * $geocoding] — the last being the geocoding report the response discloses as
+		 * `warnings[]` when a lookup failed (audit #30 A2).
 		 */
 		private function prepareEntryWrite(
 			Request $request,
@@ -892,14 +946,14 @@
 			// chosen id on create or re-key an existing row on update.
 			unset($data["id"]);
 
-			$this->applyEntryProcessors($module, $table, $data, $route_exclude_id);
+			$geocoding = $this->applyEntryProcessors($module, $table, $data, $route_exclude_id, $row);
 
 			// Per-row rather than best-of-any-group: a user granted `p` on one group
 			// and `e` on another must not publish live in the group they only edit.
 			$user_level = PermissionService::userEntryLevel($request->user, $module, $row ?: $data);
 			$can_publish = PermissionService::isPublisher($request->user, $user_level);
 
-			return [$data, $mtm, $tags, $og, $publish, $user_level, $can_publish];
+			return [$data, $mtm, $tags, $og, $publish, $user_level, $can_publish, $geocoding];
 		}
 
 		/**
@@ -910,11 +964,26 @@
 		 * entries with no route and no coordinates.
 		 *
 		 * $route_exclude_id is the live row id to exclude from the route-uniqueness
-		 * check (0 on create).
+		 * check (0 on create). $row is the stored row being edited ([] on create),
+		 * which is what a failed geocode decides against — see applyGeocoding.
+		 *
+		 * Returns applyGeocoding's report, which both writers disclose rather than
+		 * discard (audit #30 A2).
+		 *
+		 * @param array<string,mixed> $row
+		 * @return array{attempted:bool,ok:bool,error:string,cleared:bool}
 		 */
-		private function applyEntryProcessors(array $module, string $table, array &$data, int $route_exclude_id): void {
-			$this->applyGeocoding($module, $table, $data);
+		private function applyEntryProcessors(
+			array $module,
+			string $table,
+			array &$data,
+			int $route_exclude_id,
+			array $row = []
+		): array {
+			$report = $this->applyGeocoding($module, $table, $data, $row);
 			$this->applyRoute($module, $table, $data, $route_exclude_id);
+
+			return $report;
 		}
 
 		/**
@@ -934,24 +1003,27 @@
 		 *
 		 * @param array<string,mixed> $data the sifted values being written (mutated)
 		 * @param array<string,mixed> $row the existing live row, or [] on create
+		 * @return array{attempted:bool,ok:bool,error:string,cleared:bool} the geocoding report
 		 */
-		private function aiApplyEntryProcessors(array $module, string $table, array &$data, array $row, int $exclude_id): void {
+		private function aiApplyEntryProcessors(array $module, string $table, array &$data, array $row, int $exclude_id): array {
+			$report = ["attempted" => false, "ok" => false, "error" => "", "cleared" => false];
 			$form = $this->formForTable($module, $table);
 
 			if (!$form) {
-				return;
+
+				return $report;
 			}
 
 			$is_create = !$row;
 			$merged = array_merge($row, $data);
 			$derived = [];
+			$geocodes = false;
 
 			foreach ((array)($form["fields"] ?? []) as $field) {
 				$type = (string)($field["type"] ?? "");
 
 				if ($type === "geocoding") {
-					$derived[] = "latitude";
-					$derived[] = "longitude";
+					$geocodes = true;
 
 					continue;
 				}
@@ -987,17 +1059,30 @@
 				$derived[] = $column;
 			}
 
-			if (!$derived) {
-				return;
+			if (!$derived && !$geocodes) {
+
+				return $report;
 			}
 
-			$this->applyEntryProcessors($module, $table, $merged, $exclude_id);
+			$report = $this->applyEntryProcessors($module, $table, $merged, $exclude_id, $row);
+
+			// The coordinates are copied back only when the processor actually
+			// decided them — wrote a fresh pair, or cleared a stale one. On a failed
+			// lookup that D1 chose to preserve, $merged still holds the live row's
+			// values, and copying those back would make the update *re-assert* the
+			// previous address's coordinates under the new address rather than simply
+			// leaving them be (audit #30 A1).
+			if ($geocodes && ($report["ok"] || $report["cleared"])) {
+				$derived = array_merge($derived, self::AI_GEOCODING_COLUMNS);
+			}
 
 			foreach ($derived as $column) {
 				if (array_key_exists($column, $merged)) {
 					$data[$column] = $merged[$column];
 				}
 			}
+
+			return $report;
 		}
 
 		/**
@@ -1118,38 +1203,85 @@
 		}
 
 		/**
+		 * How applyGeocoding obtains its geocoder.
+		 *
+		 * A static factory rather than a `new` inline because the failure leg is the
+		 * one this seam gets wrong, and it is the leg that has to be testable:
+		 * BigTreeGeocoding reaches the network through BigTree::cURL, which has no
+		 * stub hook, so pre-seeding the geocode cache covers only the success path.
+		 * Null means the real geocoder. A test that sets this resets it in teardown.
+		 *
+		 * @var callable|null
+		 */
+		public static $geocoder_factory = null;
+
+		/**
+		 * Which stored key each geocoding service's credential lives under, in
+		 * `bigtree-internal-geocoding-service`. Read to answer "is a service
+		 * configured", never to read a key back out (audit #30 D3).
+		 */
+		private const AI_GEOCODING_SERVICE_KEYS = [
+			"google" => "google_key",
+			"bing" => "bing_key",
+			"mapquest" => "mapquest_key",
+		];
+
+		/** The longest slice of a geocoder's own error text any disclosure repeats. */
+		private const AI_GEOCODER_ERROR_CAP = 200;
+
+		/** The two columns a geocoding field writes. Fixed by the legacy processor. */
+		private const AI_GEOCODING_COLUMNS = ["latitude", "longitude"];
+
+		/**
 		 * Run server-side field processors over the submitted entry data before it
 		 * is persisted. Currently this covers the "geocoding" field, which has no
 		 * value of its own: it concatenates its configured source columns into an
 		 * address, geocodes it, and writes `latitude` / `longitude` onto the row —
 		 * mirroring the legacy geocoding process.php.
 		 *
-		 * Unlike the legacy processor we do NOT clear existing coordinates when a
-		 * geocode fails (e.g. the address fields weren't included in a partial
-		 * update, or the service is unavailable); coordinates are only written on a
-		 * successful lookup.
+		 * The port used to mirror the *success* path only, and legacy did three
+		 * things on failure that it dropped (`field-types/geocoding/process.php`):
+		 * it cleared both coordinates, it surfaced the geocoder's own error to the
+		 * editor, and — by clearing — it never let a row carry coordinates belonging
+		 * to a previous address. Keeping whatever was there meant "move the office to
+		 * 123 New Street" wrote the new address under the *old* address's map pin,
+		 * with nothing anywhere saying so. And the failure path is the common path,
+		 * not the edge: BigTreeGeocoding defaults to Google with whatever `google_key`
+		 * is stored, so on an install where Developer → System → Geocoding was never
+		 * filled in — the state every fresh install is in — every lookup fails.
+		 *
+		 * So (audit #30 D1): a failed lookup clears both columns when the address it
+		 * was meant to describe has changed (always true on a create, where there is
+		 * nothing to preserve), and leaves them alone when it hasn't — a coordinate
+		 * that no longer matches its address is wrong data, one that still matches is
+		 * right data a flaky service shouldn't erase. $row is the stored row being
+		 * edited, [] on create, and is what "has changed" is judged against.
+		 *
+		 * Returns a report the callers disclose rather than discard:
+		 * `["attempted" => bool, "ok" => bool, "error" => string, "cleared" => bool]`.
+		 *
+		 * @param array<string,mixed> $row
+		 * @return array{attempted:bool,ok:bool,error:string,cleared:bool}
 		 */
-		private function applyGeocoding(array $module, string $table, array &$data): void {
+		private function applyGeocoding(array $module, string $table, array &$data, array $row = []): array {
+			$report = ["attempted" => false, "ok" => false, "error" => "", "cleared" => false];
 			$form = $this->formForTable($module, $table);
 
 			if (!$form) {
-				return;
+
+				return $report;
 			}
 
 			foreach ((array)($form["fields"] ?? []) as $field) {
-				if (($field["type"] ?? "") !== "geocoding") {
+				if (!is_array($field) || ($field["type"] ?? "") !== "geocoding") {
 					continue;
 				}
 
-				$settings = is_array($field["settings"] ?? null) ? $field["settings"] : [];
-				$raw = $settings["fields"] ?? [];
-				$source_fields = is_array($raw) ? $raw : explode(",", (string)$raw);
+				$source_fields = self::geocodingSourceColumns($field);
 				$location = [];
 
 				foreach ($source_fields as $source_field) {
-					$source_field = trim((string)$source_field);
-
-					if ($source_field === "" || !isset($data[$source_field])) {
+					if (!isset($data[$source_field])) {
 						continue;
 					}
 
@@ -1166,14 +1298,339 @@
 					continue;
 				}
 
-				$geocoder = new \BigTreeGeocoding();
+				$geocoder = self::geocoder();
 				$result = $geocoder->geocode(implode(", ", $location));
+				$report["attempted"] = true;
 
 				if ($result) {
 					$data["latitude"] = $result["latitude"];
 					$data["longitude"] = $result["longitude"];
+					$report["ok"] = true;
+
+					continue;
+				}
+
+				$report["error"] = self::geocoderErrorText($geocoder);
+
+				if (!$row || self::geocodingSourceChanged($source_fields, $row, $data)) {
+					foreach (self::AI_GEOCODING_COLUMNS as $column) {
+						$data[$column] = "";
+					}
+
+					$report["cleared"] = true;
 				}
 			}
+
+			return $report;
+		}
+
+		/**
+		 * The geocoder applyGeocoding will use. Never called anywhere else — the
+		 * factory exists for the failure leg's testability (audit #30 D5), not as a
+		 * general injection point.
+		 *
+		 * @return object an object with geocode(string) and a public $Error
+		 */
+		private static function geocoder() {
+			$factory = self::$geocoder_factory;
+
+			if (is_callable($factory)) {
+
+				return $factory();
+			}
+
+			return new \BigTreeGeocoding();
+		}
+
+		/**
+		 * A geocoding field's configured source columns, de-duplicated and trimmed.
+		 * The setting is stored as an array by the Designer and as a comma string by
+		 * older installs, exactly as the legacy processor read it.
+		 *
+		 * @param array<string,mixed> $field
+		 * @return list<string>
+		 */
+		private static function geocodingSourceColumns(array $field): array {
+			$settings = is_array($field["settings"] ?? null) ? $field["settings"] : [];
+			$raw = $settings["fields"] ?? [];
+			$source_fields = is_array($raw) ? $raw : explode(",", (string)$raw);
+			$columns = [];
+
+			foreach ($source_fields as $source_field) {
+				$source_field = trim((string)$source_field);
+
+				if ($source_field !== "") {
+					$columns[] = $source_field;
+				}
+			}
+
+			return array_values(array_unique($columns));
+		}
+
+		/**
+		 * Whether the address this write is storing differs from the one the stored
+		 * row already had — the question D1 turns on. A column the write doesn't
+		 * mention can't have changed it; a column the row has never held has.
+		 *
+		 * @param list<string> $columns
+		 * @param array<string,mixed> $row
+		 * @param array<string,mixed> $data
+		 */
+		private static function geocodingSourceChanged(array $columns, array $row, array $data): bool {
+			foreach ($columns as $column) {
+				if (!array_key_exists($column, $data)) {
+					continue;
+				}
+
+				if (!array_key_exists($column, $row)) {
+
+					return true;
+				}
+
+				if (self::geocodingSourceValue($data[$column]) !== self::geocodingSourceValue($row[$column])) {
+
+					return true;
+				}
+			}
+
+			return false;
+		}
+
+		/** One source column's value as the address comparison sees it. */
+		private static function geocodingSourceValue($value): string {
+
+			return is_array($value)
+				? implode(", ", array_map("strval", $value))
+				: trim((string)$value);
+		}
+
+		/**
+		 * The geocoder's own error, as a disclosure may repeat it.
+		 *
+		 * Third-party response text, so it is data (audit #30 D4): collapsed to one
+		 * line, capped, and quoted wherever it is shown. Nothing in it is read as an
+		 * instruction, and no disclosure ever pairs it with a key.
+		 *
+		 * @param object $geocoder
+		 */
+		private static function geocoderErrorText($geocoder): string {
+			$error = (is_object($geocoder) && isset($geocoder->Error) && is_scalar($geocoder->Error))
+				? trim((string)$geocoder->Error)
+				: "";
+
+			if ($error === "") {
+
+				return "";
+			}
+
+			return mb_substr(trim((string)preg_replace('/\s+/', " ", $error)), 0, self::AI_GEOCODER_ERROR_CAP);
+		}
+
+		/**
+		 * Does this form geocode, from which columns into which, and is there a
+		 * service configured to do it?
+		 *
+		 * The one answer the schema, both entry previews and get_module all ask, so
+		 * they can't disagree about it. The "configured" half is read from the
+		 * internal setting the way BigTreeGeocoding reads it — never through
+		 * SystemConfigureService, whose payload carries the API keys themselves and
+		 * whose whole route family is declined to the assistant precisely because
+		 * integration settings include credentials it must never read back. What is
+		 * disclosed is the service's *name* and whether its key is non-empty; the key
+		 * itself is never returned, logged or quoted (audit #30 D3).
+		 *
+		 * @param array<string,mixed>|null $form
+		 * @return array{geocodes:bool,source_columns:list<string>,columns:list<string>,
+		 *               service:string,configured:bool}
+		 */
+		private function aiGeocodingState(?array $form): array {
+			$state = [
+				"geocodes" => false,
+				"source_columns" => [],
+				"columns" => self::AI_GEOCODING_COLUMNS,
+				"service" => "",
+				"configured" => false,
+			];
+
+			foreach ((array)($form["fields"] ?? []) as $field) {
+				if (!is_array($field) || ($field["type"] ?? "") !== "geocoding") {
+					continue;
+				}
+
+				$state["geocodes"] = true;
+				$state["source_columns"] = array_values(array_unique(array_merge(
+					$state["source_columns"],
+					self::geocodingSourceColumns($field)
+				)));
+			}
+
+			if (!$state["geocodes"]) {
+
+				return $state;
+			}
+
+			// Named apart from `$settings` on purpose: everywhere else in this service
+			// that identifier is a *field's* stored settings blob, and one guard reads
+			// this file for exactly that (AIStorageBoundaryTest E1). This is the
+			// install's internal geocoding setting, which is a different thing.
+			$configured_service = BigTreeCMS::getSetting("bigtree-internal-geocoding-service");
+			$configured_service = is_array($configured_service) ? $configured_service : [];
+			$service = trim((string)($configured_service["service"] ?? ""));
+			$key = (string)(self::AI_GEOCODING_SERVICE_KEYS[$service] ?? "");
+			$state["service"] = $service;
+			$state["configured"] = $key !== "" && trim((string)($configured_service[$key] ?? "")) !== "";
+
+			return $state;
+		}
+
+		/**
+		 * The one sentence a schema entry, a card and a proposal summary all use to
+		 * say what a geocoding field does to this write — including, when it is the
+		 * case, that it will do nothing (audit #30 D2: disclose, never refuse; an
+		 * unconfigured geocoder is a developer setting the editor can't change, and
+		 * the entry is a valid entry without coordinates — legacy saved it too).
+		 *
+		 * @param array{geocodes:bool,source_columns:list<string>,columns:list<string>,
+		 *              service:string,configured:bool} $state
+		 */
+		private function aiGeocodingNote(array $state): string {
+			if (empty($state["geocodes"])) {
+
+				return "";
+			}
+
+			$from = $state["source_columns"]
+				? " from " . $this->aiJoinColumns($state["source_columns"])
+				: "";
+			$into = $this->aiJoinColumns($state["columns"]);
+
+			if (empty($state["configured"])) {
+
+				return "This form geocodes: {$into} are computed{$from} when the entry is saved. No geocoding "
+					. "service is configured under Developer → System → Geocoding, so the lookup will fail and "
+					. "they will be stored empty.";
+			}
+
+			return "This form geocodes: {$into} are computed{$from} when the entry is saved, by the configured "
+				. "{$state["service"]} geocoding service. You can't set them yourself.";
+		}
+
+		/**
+		 * The columns an entry write fills that the model neither supplies nor sees
+		 * in the settable schema.
+		 *
+		 * `route` and `geocoding` are refused as settable types and are then, quite
+		 * correctly, absent from every list the schema carries — including
+		 * aiOptionalUnsettableFields, which skips derived types on purpose. The
+		 * result was that nothing anywhere named `latitude` / `longitude` or an
+		 * entry's URL slug as columns the write would fill, from which source
+		 * columns, so the model could not explain to a person why the map pin moved
+		 * or didn't, and had no reason to include every part of an address on a
+		 * create (audit #30 A2).
+		 *
+		 * @param array<string,mixed>|null $form
+		 * @param array<string,mixed> $geocoding aiGeocodingState's answer for $form
+		 * @return list<array<string,mixed>>
+		 */
+		private function aiDerivedColumns(?array $form, array $geocoding): array {
+			$derived = [];
+
+			foreach ((array)($form["fields"] ?? []) as $field) {
+				if (!is_array($field) || ($field["type"] ?? "") !== "route") {
+					continue;
+				}
+
+				$column = (string)($field["column"] ?? "");
+
+				if ($column === "") {
+					continue;
+				}
+
+				$settings = is_array($field["settings"] ?? null) ? $field["settings"] : [];
+				$source = $settings["source"] ?? "";
+				$sources = [];
+
+				foreach (is_array($source) ? $source : [$source] as $source_column) {
+					$source_column = trim((string)$source_column);
+
+					if ($source_column !== "") {
+						$sources[] = $source_column;
+					}
+				}
+
+				$derived[] = [
+					"kind" => "route",
+					"columns" => [$column],
+					"source_columns" => $sources,
+					"note" => $sources
+						? "`{$column}` is the entry's URL slug, generated from "
+							. $this->aiJoinColumns($sources) . " when the entry is created. It is deliberately "
+							. "left alone on every later edit — entries have no route history, so re-slugging "
+							. "one would 404 every link to it."
+						: "`{$column}` is the entry's URL slug, but the field has no source columns configured, "
+							. "so every entry is saved with an empty route and its detail URL 404s. A developer "
+							. "has to set the source in Developer → Modules → Module Designer.",
+				];
+			}
+
+			if (!empty($geocoding["geocodes"])) {
+				$derived[] = [
+					"kind" => "geocoding",
+					"columns" => $geocoding["columns"],
+					"source_columns" => $geocoding["source_columns"],
+					"note" => $this->aiGeocodingNote($geocoding),
+				];
+			}
+
+			return $derived;
+		}
+
+		/** "`a`", "`a` and `b`", "`a`, `b` and `c`" — column lists, one wording. */
+		private function aiJoinColumns(array $columns): string {
+			$quoted = [];
+
+			foreach ($columns as $column) {
+				$quoted[] = "`" . (string)$column . "`";
+			}
+
+			if (count($quoted) < 2) {
+
+				return (string)($quoted[0] ?? "");
+			}
+
+			$last = array_pop($quoted);
+
+			return implode(", ", $quoted) . " and " . $last;
+		}
+
+		/**
+		 * The sentence a failed geocode owes whoever caused the write — the AI
+		 * result's `note` at approval, the REST response's `warnings[]` for the SPA's
+		 * own editor. Legacy pushed the geocoder's error into $bigtree["errors"] on
+		 * the very save that produced no coordinates; this is that line, on both of
+		 * the writers that replaced it (audit #30 A2).
+		 *
+		 * "" when there is nothing to say: no lookup was attempted, or it worked.
+		 *
+		 * @param array{attempted:bool,ok:bool,error:string,cleared:bool} $report
+		 */
+		private function geocodingFailureNote(array $report): string {
+			if (empty($report["attempted"]) || !empty($report["ok"])) {
+
+				return "";
+			}
+
+			$error = (string)($report["error"] ?? "");
+			$because = $error !== "" ? " (the geocoder said “{$error}”)" : "";
+
+			if (!empty($report["cleared"])) {
+
+				return "Geocoding failed{$because}, so this entry's latitude and longitude were stored empty. "
+					. "Check the service and key under Developer → System → Geocoding, then re-save the entry.";
+			}
+
+			return "Geocoding failed{$because}, so this entry kept the coordinates it already had — its address "
+				. "fields didn't change in this edit.";
 		}
 
 		/**
@@ -1495,6 +1952,17 @@
 					. "as any entry added through the admin.";
 			}
 
+			// The columns this write fills from something other than the values on the
+			// card. An entry whose coordinates will be empty because no geocoding
+			// service is configured is a record stored as complete that isn't, and
+			// neither the summary nor the card said a word about it (audit #30 A2).
+			$geocoding_state = $this->aiGeocodingState(is_array($resolved["form"] ?? null) ? $resolved["form"] : null);
+			$geocoding_note = $this->aiGeocodingNote($geocoding_state);
+
+			if ($geocoding_note !== "") {
+				$mode_note .= " " . $geocoding_note;
+			}
+
 			// Audit #13 A1. Said on the card as well as in the result, because the model
 			// is not required to call get_module_schema before a create, and the person
 			// clicking Approve is the one who needs to know the entry won't be live.
@@ -1512,10 +1980,19 @@
 			$unfillable = FieldTypeDomain::optionalUnsettableNote(
 				$this->aiOptionalUnsettableFields(is_array($resolved["form"] ?? null) ? $resolved["form"] : null)
 			);
-			$warnings = array_values(array_filter([$approval_note, $unfillable], function (string $note): bool {
+			// Only the unconfigured case rises to a warning: "this form geocodes" is
+			// information the summary already carries, "it will geocode into nothing"
+			// is a consequence the approver is the only person who can act on.
+			$geocoding_warning = ($geocoding_state["geocodes"] && !$geocoding_state["configured"])
+				? $geocoding_note
+				: "";
+			$warnings = array_values(array_filter(
+				[$approval_note, $unfillable, $geocoding_warning],
+				function (string $note): bool {
 
-				return $note !== "";
-			}));
+					return $note !== "";
+				}
+			));
 
 			$preview = [
 				"action" => "create_module_entry",
@@ -2512,7 +2989,7 @@
 			// Route/geocoding are derived server-side, never supplied by the model.
 			// Run them here (at approval) rather than at staging so route uniqueness
 			// is evaluated against the table as it stands at write time.
-			$this->aiApplyEntryProcessors($module, $table, $data, [], 0);
+			$geocoding = $this->aiApplyEntryProcessors($module, $table, $data, [], 0);
 
 			// The same two seeds REST's create() applies — neither a field `default`
 			// nor `position` is something the model supplies, so without these an
@@ -2591,6 +3068,11 @@
 				PermissionService::isPublisher($user, $rank),
 				true
 			);
+			// The lookup the processors just ran, disclosed rather than discarded. It
+			// can only be answered here — staging has no way to know whether the
+			// geocoder will answer, and the result is the only place the person who
+			// clicked Approve finds out their entry has no coordinates (audit #30 A2).
+			$approval_note = $this->aiWithGeocodingNote($approval_note, $geocoding);
 
 			if ($can_publish) {
 				$id = BigTreeAutoModule::createItem($table, $data, $mtm, $tag_ids, null, $open_graph);
@@ -2809,6 +3291,16 @@
 				$mode_note .= " " . $draft["note"];
 			}
 
+			// Same disclosure as the create card, and it matters more here: on an
+			// update a failed lookup used to leave the previous address's coordinates
+			// in place under the new address, with nothing saying so (audit #30 A1).
+			$geocoding_state = $this->aiGeocodingState(is_array($resolved["form"] ?? null) ? $resolved["form"] : null);
+			$geocoding_note = $this->aiGeocodingNote($geocoding_state);
+
+			if ($geocoding_note !== "") {
+				$mode_note .= " " . $geocoding_note;
+			}
+
 			$label = $is_pending ? "draft {$entry_id}" : "entry #{$entry_id}";
 
 			$preview = [
@@ -2833,9 +3325,18 @@
 				PermissionService::isPublisher($user, $rank),
 				false
 			);
+			$warnings = [];
 
 			if ($approval_note !== "" && (string)($resolved_entry["row"]["approved"] ?? "") !== "on") {
-				$preview["warning"] = $approval_note;
+				$warnings[] = $approval_note;
+			}
+
+			if ($geocoding_state["geocodes"] && !$geocoding_state["configured"]) {
+				$warnings[] = $geocoding_note;
+			}
+
+			if ($warnings) {
+				$preview["warning"] = implode(" ", $warnings);
 			}
 
 			if ($save_as_draft && !$is_pending) {
@@ -2946,7 +3447,7 @@
 			// when one of its source columns is among the fields being changed —
 			// otherwise an unrelated edit would silently re-route the entry. A draft
 			// has no live row, so nothing is excluded from the uniqueness check.
-			$this->aiApplyEntryProcessors($module, $table, $data, $row, $is_pending ? 0 : (int)$entry_id);
+			$geocoding = $this->aiApplyEntryProcessors($module, $table, $data, $row, $is_pending ? 0 : (int)$entry_id);
 
 			// Re-gated against the form as it stands now: a column made required during
 			// the proposal's 24h life would otherwise be blanked by approving it.
@@ -3052,6 +3553,10 @@
 			$approval_note = (string)($row["approved"] ?? "") !== "on"
 				? $this->aiApprovalNote($table, PermissionService::isPublisher($user, $rank), false)
 				: "";
+			// …and the same geocoding outcome, on the leg where it matters most: an
+			// update whose address moved and whose lookup failed has just had its
+			// coordinates cleared, and one whose address didn't has kept them.
+			$approval_note = $this->aiWithGeocodingNote($approval_note, $geocoding);
 
 			// A draft only exists in the pending queue — there is nothing to publish
 			// over, so even a publisher's edit amends the queued change. submitChange
@@ -3131,6 +3636,27 @@
 				["mode" => "pending", "module" => $module_id, "entry_id" => $entry_id],
 				$approval_note
 			);
+		}
+
+		/**
+		 * Fold a failed geocode's sentence into the note a write result already owes.
+		 *
+		 * Both entry writers return through aiWithApprovalNote, which carries exactly
+		 * one `note`, so the two facts are composed here rather than competing for the
+		 * key — an approval note that was silently replaced would be the audit #13 A1
+		 * disclosure going missing to make room for this one.
+		 *
+		 * @param array{attempted:bool,ok:bool,error:string,cleared:bool} $report
+		 */
+		private function aiWithGeocodingNote(string $note, array $report): string {
+			$geocoding = $this->geocodingFailureNote($report);
+
+			if ($geocoding === "") {
+
+				return $note;
+			}
+
+			return $note === "" ? $geocoding : $note . " " . $geocoding;
 		}
 
 		/**
@@ -4126,6 +4652,16 @@
 				(string)$resolved["table"],
 				is_array($resolved["form"] ?? null) ? $resolved["form"] : null
 			);
+			// The other half of "what does this write actually store" (audit #30 A2).
+			// unsettable_columns names the columns the write leaves empty; these are
+			// the ones it *fills* from something other than the model's own values —
+			// and until now the schema described neither the columns nor the source
+			// fields they are computed from.
+			$geocoding = $this->aiGeocodingState(is_array($resolved["form"] ?? null) ? $resolved["form"] : null);
+			$derived_columns = $this->aiDerivedColumns(
+				is_array($resolved["form"] ?? null) ? $resolved["form"] : null,
+				$geocoding
+			);
 
 			return ["schema" => [
 				"module_id" => (string)$module["id"],
@@ -4167,6 +4703,12 @@
 				// path passed it on, so the model saw a plain text field and had no
 				// reason to write anything address-shaped into it.
 				"sub_type_note" => $this->aiSubTypeNote($fields),
+				"derived_columns" => $derived_columns,
+				"derived_columns_note" => $derived_columns
+					? "These columns are filled by the write itself, not by you — they are not in `fields` and "
+						. "supplying them is refused. Each says which columns it is computed from, so include "
+						. "every one of those on a create if you want the derived value to be right."
+					: "",
 				"unsettable_columns" => $unsettable_columns,
 				"unsettable_columns_note" => $unsettable_columns
 					? "The table has " . (count($unsettable_columns) === 1 ? "a column" : "columns")

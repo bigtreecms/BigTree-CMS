@@ -49,6 +49,14 @@
 			"applyFormDefaultPosition" => "the form's default sort position",
 			"BigTreeAutoModule::sanitizeData" => "value normalization before the write",
 			"Hooks::fire" => "the module_entry.* event other services subscribe to",
+			// Audit #30 E4. Both writers reach this through their shared processor
+			// pass, so both bodies are (correctly) silent about it — which is what
+			// makes naming it here worth doing: a future writer that geocodes inline,
+			// without the stored row a failed lookup has to judge against, shows up
+			// as a divergence rather than as a quietly wrong map pin. The row-passing
+			// itself is asserted by
+			// test_both_processor_passes_hand_the_stored_row_to_the_geocoder below.
+			"applyGeocoding" => "the geocoding field's lookup, and what a failed one does to the coordinates",
 		];
 	}
 
@@ -174,6 +182,62 @@
 			"",
 			"every declared side effect runs on both the REST and the AI write path"
 		);
+	}
+
+	/**
+	 * Audit #30 E4: one failure rule, reached the same way by both writers.
+	 *
+	 * `applyGeocoding` decides what a failed lookup does to `latitude` / `longitude`
+	 * by comparing the address being written against the address the stored row
+	 * already had — so a caller that hands it no row silently gets the create rule
+	 * (clear both) on an update, and one that skips it entirely gets the bug this
+	 * audit is about (the previous address's coordinates re-asserted under the new
+	 * address). Neither is visible in the static pair map above, because both
+	 * writers reach the seam through a shared helper.
+	 *
+	 * Fails with the finding reintroduced: the pre-audit signature took no $row.
+	 */
+	function test_both_processor_passes_hand_the_stored_row_to_the_geocoder() {
+		$source = (string)file_get_contents(SERVER_ROOT . "core/inc/bigtree/services/AutoModuleService.php");
+
+		T::ok(
+			strpos($source, 'private function applyGeocoding(array $module, string $table, array &$data, array $row') !== false,
+			"applyGeocoding takes the stored row a failed lookup has to judge against"
+		);
+
+		// The one call site, and the two passes that reach it. Each has to hand its
+		// own row through rather than defaulting it away.
+		$processors = ai_surface_method_body(AutoModuleService::class, "applyEntryProcessors");
+
+		T::ok(
+			strpos($processors, '$this->applyGeocoding($module, $table, $data, $row)') !== false,
+			"the shared processor pass hands the row to applyGeocoding"
+		);
+
+		foreach (["prepareEntryWrite", "aiApplyEntryProcessors"] as $caller) {
+			$body = ai_surface_method_body(AutoModuleService::class, $caller);
+
+			T::ok(
+				strpos($body, '$this->applyEntryProcessors(') !== false && strpos($body, '$row)') !== false,
+				"{$caller} runs the processor pass with the row it already holds"
+			);
+		}
+
+		// …and both writers disclose the outcome rather than discarding it, which is
+		// the other half of the same finding (A2).
+		foreach (["aiCreateEntry", "aiUpdateEntry"] as $writer) {
+			T::ok(
+				strpos(ai_surface_method_body(AutoModuleService::class, $writer), "aiWithGeocodingNote") !== false,
+				"{$writer} attaches the failed lookup's note to its result"
+			);
+		}
+
+		foreach (["create", "update"] as $writer) {
+			T::ok(
+				strpos(ai_surface_method_body(AutoModuleService::class, $writer), "entryWriteWarnings") !== false,
+				"REST {$writer} carries the same sentence back as a response warning"
+			);
+		}
 	}
 
 	/**

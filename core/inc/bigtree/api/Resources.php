@@ -360,6 +360,21 @@
 				"mtm-other-table",
 				"mtm-other-descriptor",
 			],
+			// Audit #30 B1. `route`'s own settings_schema marks nothing required, so
+			// the schema-derived leg finds nothing to insist on — and a route field
+			// with no `source` generates from an empty base: urlify("") is "", and the
+			// uniqueness pass is skipped because it only runs on a non-empty route. So
+			// every entry lands with an empty route, the detail URL every routed
+			// template builds from it 404s, and there is no uniqueness to catch the
+			// second one. Neither designer insists on it either, so this is parity —
+			// but it is worse here than in the admin: a human with a source-less route
+			// field can still type a route (the field is self_draw, an editable
+			// input), while `route` is a derived type the assistant is refused from
+			// setting. A module the assistant scaffolds with a source-less route field
+			// is one in which every entry the assistant ever creates has no URL, with
+			// no way to fix it short of the Module Designer. `route` is only offered on
+			// the module surface, so templates and callouts are unaffected.
+			"route" => ["source"],
 		];
 
 		/** How a surface name maps onto a field-type schema's use case. */
@@ -377,6 +392,42 @@
 			"callout" => "Developer → Callouts",
 			"module" => "Developer → Modules → Module Designer",
 		];
+
+		/**
+		 * The column ids a proposed field list will actually be stored under, in
+		 * order — what a correction has to name for the model to point a setting at
+		 * one of them.
+		 *
+		 * On the module surface a form field is keyed by a column derived from its
+		 * title (ModuleService::scaffoldPlan sanitizes it), so the id this gate sees —
+		 * the title — is not the id the setting has to name. Everywhere else the id is
+		 * the id.
+		 *
+		 * @param mixed $fields
+		 * @return list<string>
+		 */
+		private static function aiPlannedFieldIds($fields, string $surface): array {
+			$ids = [];
+
+			foreach ((array)$fields as $field) {
+				if (!is_array($field)) {
+
+					continue;
+				}
+
+				$id = self::aiFieldId($field);
+
+				if ($surface === "module") {
+					$id = Sanitize::columnName($id);
+				}
+
+				if ($id !== "" && !in_array($id, $ids, true)) {
+					$ids[] = $id;
+				}
+			}
+
+			return $ids;
+		}
 
 		/**
 		 * Reject any proposed field that would be stored incompletely — either because
@@ -407,6 +458,9 @@
 
 			$bad = [];
 			$fixable = [];
+			$route_fixable = [];
+			$route_ids = [];
+			$planned = self::aiPlannedFieldIds($fields, $surface);
 
 			foreach ((array)$fields as $field) {
 				if (!is_array($field)) {
@@ -443,6 +497,18 @@
 					continue;
 				}
 
+				// So is `route`, and for the same reason: `source` names a sibling
+				// column, which is something the model has in front of it (audit #30
+				// D6). A flat refusal would send it to the Module Designer for a
+				// setting it could supply — and it can't guess the column ids, because
+				// they are derived from the titles it sent.
+				if ($type === "route" && $missing === ["source"]) {
+					$route_fixable[] = "\"{$id}\"";
+					$route_ids[] = $id;
+
+					continue;
+				}
+
 				$bad[] = "\"{$id}\" ({$type})";
 			}
 
@@ -452,6 +518,38 @@
 					. (count($fixable) === 1 ? "" : "s") . " " . (count($fixable) === 1 ? "has" : "have")
 					. " no choices, so " . (count($fixable) === 1 ? "it" : "they") . " would render as an empty "
 					. "select. Supply them as \"options\", e.g. \"options\": [\"Small\", \"Medium\", \"Large\"].";
+			}
+
+			if ($route_fixable) {
+				$names = implode(" and ", array_unique($route_fixable));
+				$one = count($route_fixable) === 1;
+				// A route can't be its own source, so the worked example points at a
+				// sibling — the model derives column names from titles and would
+				// otherwise be guessing at the one string that has to match.
+				$route_columns = [];
+
+				foreach ($route_ids as $route_id) {
+					$route_columns[] = ["id" => $route_id];
+				}
+
+				$route_columns = self::aiPlannedFieldIds($route_columns, $surface);
+				$example = "title";
+
+				foreach ($planned as $planned_id) {
+					if (!in_array($planned_id, $route_columns, true)) {
+						$example = $planned_id;
+
+						break;
+					}
+				}
+
+				return "The {$names} route field" . ($one ? "" : "s") . " " . ($one ? "has" : "have")
+					. " no source, so every entry would be saved with an empty URL and its detail page would "
+					. "404 — a route is generated from other columns, never typed, and the assistant can't set "
+					. "one on an entry either. Give " . ($one ? "it" : "each of them")
+					. " a \"settings\" object naming the column the slug comes from, e.g. "
+					. "\"settings\": {\"source\": \"{$example}\"}"
+					. ($planned ? ". The columns this will have: " . implode(", ", $planned) . "." : ".");
 			}
 
 			if (!$bad) {

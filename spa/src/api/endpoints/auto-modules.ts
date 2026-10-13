@@ -49,6 +49,13 @@ export interface ModuleEntryDetail {
 	// mtm / tags / open_graph etc. live alongside `item` — kept loose for the
 	// form runtime to interpret.
 	[key: string]: unknown;
+	/**
+	 * Things the save did that nobody would think to look for. Today: a geocoding
+	 * field whose lookup failed, so the entry's coordinates were stored empty (or
+	 * kept, when its address didn't change). The entry saved either way, so this
+	 * is a toast rather than an error — the same shape page revision restore uses.
+	 */
+	warnings?: string[];
 	/** Columns whose draft value differs from the published content. */
 	changed_fields?: string[];
 	item: ModuleEntryRow;
@@ -101,6 +108,16 @@ const refQuery = (ref?: EntryTableRef) => {
 	return undefined;
 };
 
+/** The `warnings` any entry write may carry back. See ModuleEntryDetail.warnings. */
+export interface EntryWrittenWarnings {
+	warnings?: string[];
+}
+
+/** What POST /modules/{id}/entries answers with: the new row, or the queued draft. */
+export type EntryWriteResult =
+	| (ModuleEntryRow & EntryWrittenWarnings)
+	| ({ pending_id: number; pending: true } & EntryWrittenWarnings);
+
 export const autoModulesApi = {
 	list: (moduleId: string, params: ModuleEntriesListParams = {}) =>
 		api.get<ModuleEntriesListResponse>(`/modules/${encodeURIComponent(moduleId)}/entries`, {
@@ -126,7 +143,7 @@ export const autoModulesApi = {
 		ref?: EntryTableRef,
 		publish = false
 	) =>
-		api.post<ModuleEntryRow | { pending_id: number; pending: true }>(
+		api.post<EntryWriteResult>(
 			`/modules/${encodeURIComponent(moduleId)}/entries`,
 			publish ? { ...body, __publish__: true } : body,
 			{ query: refQuery(ref) }
@@ -141,7 +158,7 @@ export const autoModulesApi = {
 		ref?: EntryTableRef,
 		publish = false
 	) =>
-		api.patch<ModuleEntryDetail | { pending: true }>(
+		api.patch<ModuleEntryDetail | ({ pending: true } & EntryWrittenWarnings)>(
 			`/modules/${encodeURIComponent(moduleId)}/entries/${encodeURIComponent(String(entryId))}`,
 			publish ? { ...body, __publish__: true } : body,
 			{ query: refQuery(ref) }

@@ -72,6 +72,18 @@ export const ModuleEntryAdd = ({ formId }: ModuleEntryAddProps) => {
 				toast.success("Entry published");
 			}
 
+			// What the save did that the form can't show: a geocoding field whose
+			// lookup failed, so the entry's coordinates were stored empty. The
+			// legacy admin printed the geocoder's own error on this save; the
+			// entry still saved, so it is a warning rather than an error.
+			const warnings = (result as { warnings?: string[] } | null)?.warnings;
+
+			if (warnings?.length) {
+				toast.warning("Saved, but check the entry", {
+					description: warnings.join(" "),
+				});
+			}
+
 			navigate(returnPath);
 		},
 	});

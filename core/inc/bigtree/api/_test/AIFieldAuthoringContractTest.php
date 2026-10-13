@@ -895,3 +895,84 @@
 			"`list` is the only render-required setting hidden behind a condition; the rest are unconditional"
 		);
 	}
+
+	/**
+	 * Audit #30 E5/B1: a scaffolded `route` field with no `source`.
+	 *
+	 * `route`'s own settings_schema marks nothing required, and the render-required
+	 * supplement never named it — so a source-less route field authored clean. It
+	 * generates from an empty base (urlify("") is ""), and the uniqueness pass is
+	 * skipped because it only runs on a non-empty route, so every entry lands with an
+	 * empty route and a detail URL that 404s.
+	 *
+	 * Neither designer insists on `source` either, so this is parity — but it is
+	 * worse on this surface than in the admin, which is why it is gated here and not
+	 * there: a human with a source-less route field can still *type* a route (the
+	 * field is self_draw, an editable input), while `route` is a derived type the
+	 * assistant is refused from setting. A module the assistant scaffolds this way is
+	 * one in which every entry it ever creates has no URL, with no way to fix it
+	 * short of the Module Designer. Audit #12 A2's rule one step over: a field type
+	 * that exists is not yet a field that *writes*.
+	 *
+	 * Fails on the tree before this pass: the same plan stages cleanly.
+	 */
+	function test_a_scaffolded_route_field_needs_the_column_its_slug_comes_from() {
+		$modules = new \BigTree\Services\ModuleService();
+		$plan = [
+			"name" => "ZZ Route Source Probe",
+			"table" => "zz_route_probe_" . substr(md5((string)mt_rand()), 0, 8),
+			"fields" => [
+				["title" => "Headline", "type" => "text"],
+				["title" => "Body", "type" => "textarea"],
+				["title" => "URL Slug", "type" => "route"],
+			],
+		];
+		$refused = $modules->aiValidateModuleScaffold($plan, ai_wiring_user(2));
+		$error = (string)($refused["error"] ?? "");
+
+		T::ok(empty($refused["ok"]), "a route field with no source doesn't stage");
+		T::ok(strpos($error, "source") !== false, "and the refusal names the setting ({$error})");
+		T::ok(strpos($error, "URL Slug") !== false, "…and the field it belongs to");
+
+		// A correction, not a dead end (the `list` precedent): the model derives
+		// column names from the titles it sent, so it would otherwise be guessing at
+		// the one string that has to match a sibling column exactly.
+		T::ok(strpos($error, "headline") !== false, "…and names the planned column ids it can point `source` at");
+		T::ok(
+			strpos($error, "url_slug") === false || strpos($error, "\"source\": \"headline\"") !== false,
+			"…with a worked example that points at a sibling rather than at the route itself"
+		);
+		T::ok(
+			strpos($error, "Module Designer") === false,
+			"…and doesn't send the model to the admin for something it can supply itself"
+		);
+
+		// The half that keeps this from being "refuse route fields".
+		$plan["fields"][2]["settings"] = ["source" => "headline"];
+		$plan["table"] = "zz_route_probe_" . substr(md5((string)mt_rand()), 0, 8);
+		$accepted = $modules->aiValidateModuleScaffold($plan, ai_wiring_user(2));
+
+		T::ok(
+			!empty($accepted["ok"]),
+			"the same plan with a source stages (" . (string)($accepted["error"] ?? "") . ")"
+		);
+	}
+
+	/**
+	 * …and the gate stays where the field type is actually offered. `route` is a
+	 * modules-only type, so templates and callouts must not have acquired a new
+	 * refusal for a field they were never able to author in the first place.
+	 */
+	function test_route_is_not_suddenly_gated_on_the_surfaces_that_never_offered_it() {
+		foreach (["templates", "callouts"] as $use_case) {
+			T::ok(
+				!in_array("route", \BigTree\Services\FieldTypeService::availableFieldTypeIds($use_case), true),
+				"{$use_case} still doesn't offer `route`, so the module-only gate can't reach them"
+			);
+		}
+
+		T::ok(
+			in_array("route", \BigTree\Services\FieldTypeService::availableFieldTypeIds("modules"), true),
+			"…and modules, where it is offered, are the surface the gate applies to"
+		);
+	}

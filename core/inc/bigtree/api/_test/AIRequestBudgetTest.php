@@ -260,6 +260,10 @@
 			$pages . "::AI_CONTENT_FIELD_CAP" => ["value_cap", "per page content field"],
 			$settings . "::AI_SETTING_VALUE_CAP" => ["value_cap", "per setting value"],
 			$search . "::AI_SNIPPET_CAP" => ["value_cap", "per search-result snippet"],
+			// Third-party response text quoted back inside a disclosure, so it is
+			// capped for the same reason a snippet is: it is data of unbounded length
+			// arriving from outside (audit #30 D4).
+			$auto . "::AI_GEOCODER_ERROR_CAP" => ["value_cap", "per geocoder error quoted in a disclosure"],
 
 			$resources . "::AI_FILE_SEARCH_SCAN_CAP" => ["scan_limit", "rows scanned before the folder filter, not returned"],
 			$pending . "::AI_PENDING_SCAN_BATCH" => ["scan_limit", "batch size of a scan, not a payload"],
