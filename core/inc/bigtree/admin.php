@@ -3726,11 +3726,12 @@
 				return $perm;
 			}
 
-			if (is_array($permissions["module_gbp"][$id])) {
-				$gv = $item[$module["gbp"]["group_field"]];
-				$gp = $permissions["module_gbp"][$id][$gv];
+			if (is_array($permissions["module_gbp"][$id] ?? null)) {
+				$gv = $item[$module["gbp"]["group_field"]] ?? "";
+				$gp = $permissions["module_gbp"][$id][$gv] ?? "";
 
-				if ($gp != "n") {
+				// Groups without an explicit permission fall back to the module permission
+				if ($gp && $gp != "n") {
 					return $gp;
 				}
 			}
@@ -3904,31 +3905,40 @@
 
 			$id = is_array($module) ? $module["id"] : $module;
 
-			$perm = $this->Permissions["module"][$id];
+			$perm = $this->Permissions["module"][$id] ?? "";
 
 			// If group based permissions aren't on or we're a publisher of this module it's an easy solution… or if we're not even using the table.
 			if (!$item || !$module["gbp"]["enabled"] || $perm == "p" || $table != $module["gbp"]["table"]) {
 				return $perm;
 			}
 
-			if (is_array($this->Permissions["module_gbp"][$id])) {
-				$current_gbp_value = $item["gbp_field"];
-				$original_gbp_value = $item["published_gbp_field"];
+			$gbp_permissions = $this->Permissions["module_gbp"][$id] ?? null;
 
-				$access_level = $this->Permissions["module_gbp"][$id][$current_gbp_value];
-				if ($access_level != "n") {
-					$original_access_level = $this->Permissions["module_gbp"][$id][$original_gbp_value];
-					if ($original_access_level != "p") {
-						$access_level = $original_access_level;
-					}
-				}
+			if (!is_array($gbp_permissions)) {
+				return $perm;
+			}
 
-				if ($access_level != "n") {
-					return $access_level;
+			// Groups without an explicit permission (or set to "n") fall back to the module permission
+			$group_level = function($group) use ($gbp_permissions, $perm) {
+				$level = $gbp_permissions[$group] ?? "";
+
+				return ($level && $level != "n") ? $level : $perm;
+			};
+
+			$access_level = $group_level($item["gbp_field"] ?? "");
+			$original_gbp_value = $item["published_gbp_field"] ?? "";
+
+			// If the published version lives in a group we can't publish to, we can't publish this item either
+			// Never-published pending items have no original group, so skip the check
+			if ($access_level && $original_gbp_value !== "") {
+				$original_access_level = $group_level($original_gbp_value);
+
+				if ($original_access_level != "p") {
+					$access_level = $original_access_level;
 				}
 			}
 
-			return $perm;
+			return $access_level;
 		}
 
 		/*
