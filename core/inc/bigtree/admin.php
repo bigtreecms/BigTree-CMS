@@ -825,9 +825,9 @@
 			}
 
 			if (!empty($this->Permissions["module_gbp"][$id]) && is_array($this->Permissions["module_gbp"][$id])) {
-				$gp = $this->Permissions["module_gbp"][$id][$group];
+				$gp = $this->Permissions["module_gbp"][$id][$group] ?? "";
 
-				if ($gp != "n") {
+				if ($gp && $gp != "n") {
 					if ($gp == "p" || !$level) {
 						$level = $gp;
 					}
@@ -3671,12 +3671,12 @@
 				$module = $module["id"];
 			}
 
-			if ($this->Permissions["module"][$module] && $this->Permissions["module"][$module] != "n") {
+			if (!empty($this->Permissions["module"][$module]) && $this->Permissions["module"][$module] != "n") {
 				return true;
 			}
 
 			$groups = [];
-			if (is_array($this->Permissions["module_gbp"][$module])) {
+			if (is_array($this->Permissions["module_gbp"][$module] ?? null)) {
 				foreach ($this->Permissions["module_gbp"][$module] as $group => $permission) {
 					if ($permission && $permission != "n") {
 						$groups[] = $group;
