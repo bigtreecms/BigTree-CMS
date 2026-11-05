@@ -1,5 +1,5 @@
 <?php
-	// BigTree 5.0 — AI assistant audit #5 (Phase 1, A5)
+	// BigTree 5.0 — unique tag relations
 	//
 	// bigtree_tags_rel had no unique key on (table, entry, tag), so merging tags
 	// gave every record that carried both tags two identical relation rows: the tag

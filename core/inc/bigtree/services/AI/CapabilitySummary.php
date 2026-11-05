@@ -73,11 +73,11 @@
 			$level = self::level($user);
 
 			return [
-				// Audit #14 B2: the assistant knew the caller's *role* and not who they
+				// The assistant knew the caller's *role* and not who they
 				// were. "Which drafts are mine", "did I make that change", "what am I
 				// subscribed to", "use my name in the byline" were all unanswerable, or
-				// answerable only by guessing — and search_users is administrator-gated
-				// (audit #1), so an editor could not even look themselves up. This is the
+				// answerable only by guessing — and search_users is administrator-gated,
+				// so an editor could not even look themselves up. This is the
 				// caller's own record, so there is no new exposure: it is the same data
 				// GET /users/me returns at level 0 today. The positive control was
 				// PendingChangeService::aiPresentPendingRow, which has computed a
@@ -88,14 +88,14 @@
 				"email" => self::field($user, "email"),
 				// Named alongside the identity rather than under the clock: it is what
 				// the user's own digest and alert emails are rendered in, and it is one
-				// of the fields they may now edit themselves (audit #14 B1).
+				// of the fields they may now edit themselves.
 				"timezone" => self::field($user, "timezone"),
 				"level" => $level,
 				"role" => self::roleLabel($level),
 				"is_administrator" => $level >= 1,
 				"is_developer" => $level >= 2,
 				"can_manage_users" => $level >= 1,
-				// Audit #14 B1. `PATCH /users/{id}` has always been
+				// `PATCH /users/{id}` has always been
 				// ["any" => [["level" => 1], ["self" => "id"]]] and the Profile screen is
 				// that route, so every editor can change their own name, company,
 				// timezone and notification preferences today — while the assistant told
@@ -121,19 +121,19 @@
 				// one place built to answer it.
 				"can_manage_callouts" => $level >= 2,
 				"can_manage_modules" => $level >= 2,
-				// Audit #11 C1: building a new module end to end (table, form, view) is
+				// Building a new module end to end (table, form, view) is
 				// a capability now, distinct from restructuring one that already exists,
 				// which stays admin-UI-only at every level.
 				"can_scaffold_modules" => $level >= 2,
 				// create_redirect is administrator-gated like the rest, but the map the
 				// SPA and the tests read had no key for it at all.
 				"can_create_redirects" => $level >= 1,
-				// Audit #11 B1. Two different answers that used to be one: the assistant
+				// Two different answers that used to be one: the assistant
 				// can point a reference field at a file that already exists (a lookup
 				// against a library it can already enumerate), and cannot create one.
 				"can_attach_existing_files" => true,
 				"can_upload_files" => false,
-				// Audit #11 B2, and the same split one step further out: relating an
+				// The same split one step further out: relating an
 				// entry to rows that already exist is a lookup against ids the
 				// assistant reads from list_module_entries. Building the *structure*
 				// those rows live in — a matrix, a callout, a gallery — is not.
@@ -159,9 +159,9 @@
 		public static function outOfScope(): array {
 
 			return [
-				// Narrowed in audit #11 B1: the assistant still cannot put a file *into*
-				// the library, but it can point a reference field at one that is already
-				// there, which is what "attach the logo" actually asks for.
+				// The assistant cannot put a file *into* the library, but it can point
+				// a reference field at one that is already there, which is what "attach
+				// the logo" actually asks for.
 				"Uploading files, images and video, or managing resources" =>
 					"the Files section, or the upload field on the page or entry itself — the assistant can "
 						. "attach a file that is already in the Files library to an image, file or video "
@@ -175,7 +175,7 @@
 				// of it explicitly.
 				"Managing two-factor authentication or passkeys" =>
 					"the user's own profile screen — the assistant never touches authentication credentials",
-				// Audit #14 B1/D3. The self path relaxed everything else on the profile
+				// The self path relaxed everything else on the profile
 				// to any level, deliberately excluding this one: `PATCH /users/{id}`
 				// allows a self email change, but the email address IS the sign-in
 				// identity, and changing it from a chat card is a different risk class
@@ -188,7 +188,7 @@
 				// find this one either. DebugEmulator is a real developer feature ("see
 				// the admin as this user"), so "log in as Jane and check" is a plausible
 				// ask that used to hit no tool and no wall — the nearest line was about
-				// levels and permissions, which is a different thing (audit #14 C3).
+				// levels and permissions, which is a different thing.
 				"Signing in as, or emulating, another user" =>
 					"Developer → Debug → Emulate User — the assistant always acts as you, and can never act as "
 						. "somebody else",
@@ -199,7 +199,7 @@
 				// setting's own id. update_setting writes the *value* only, and there is
 				// no tool for the definition: retyping a setting reinterprets every
 				// stored value with no migration, and toggling `encrypted` rewrites the
-				// column. Without this word the wall was undiscoverable (audit #9 B2).
+				// column. Without this word the wall was undiscoverable.
 				"Creating, deleting or redefining settings (changing a setting's name, type, options or "
 					. "encryption)" => "Developer → Settings — the assistant can change a setting's value, "
 						. "but not what the setting is",
@@ -211,14 +211,13 @@
 					"the relevant Developer screen — the assistant can create and edit these, but not reorder them",
 				// Group-based permissions belong on this line rather than under user
 				// permissions above: it is part of the module's own definition, and
-				// create_module/update_module deliberately can't express it — turning it
-				// on is several interdependent choices, and getting them wrong hides
-				// every existing entry from every editor scoped to a group.
-				// Scoped to an *existing* module since audit #11 C1: building a new one
-				// is scaffold_module's job now — the whole plan on a proposal card,
-				// developer-only, no DDL until it is approved. Restructuring a module
-				// that already holds entries is ALTER TABLE against real rows, and
-				// stays where it was.
+				// create_module/update_module deliberately can't express it — turning
+				// it on is several interdependent choices, and getting them wrong hides
+				// every existing entry from every editor scoped to a group. Scoped to
+				// an *existing* module: building a new one is scaffold_module's job —
+				// the whole plan on a proposal card, developer-only, no DDL until it is
+				// approved. Restructuring a module that already holds entries is ALTER
+				// TABLE against real rows, and stays where it was.
 				"Editing an existing module's tables, forms, views or actions, or its group-based permissions" =>
 					"Developer → Modules → Module Designer — the assistant can build a new module end to end with "
 						. "scaffold_module, but not restructure one that already exists",
@@ -253,7 +252,7 @@
 				"Binding a template to a module, or configuring its publish hooks" =>
 					"Developer → Templates — the assistant can create and edit a template's fields, but not its "
 						. "module binding or hooks",
-				// Audit #27 B1: "installing, updating or removing" said nothing about
+				// "installing, updating or removing" said nothing about
 				// `POST /extensions/build`, and packaging an extension for distribution
 				// is the family's most plausible developer ask — the SPA has a whole
 				// screen for it. Every decline line is spliced into the system prompt
@@ -267,7 +266,7 @@
 				"Taking over or releasing another user's content lock" =>
 					"the lock banner on the item being edited — the assistant will tell you when someone else has "
 						. "an item open, but approving is what takes it over",
-				// Split in audit #11 B1/B2. "Complex fields" used to swallow reference
+				// "Complex fields" used to swallow reference
 				// and relationship fields, whose stored values are nothing more than a
 				// bigtree_resources id and a list of entry ids the assistant can
 				// already look up — so on any content model with a required photo the
@@ -285,8 +284,8 @@
 					"the page tree in Pages — the assistant can archive a page instead, which takes it off the "
 						. "site reversibly",
 				"Deleting tags" => "Settings → Tags — the assistant can merge or rename tags, but not delete them",
-				// Narrowed in audit #24 B1. The old wording was "Editing 404 monitoring,
-				// or removing redirects", which declined the whole family — including
+				// Narrow on purpose. Wording like "Editing 404 monitoring, or removing
+				// redirects" would decline the whole family — including
 				// `GET /404s`, a level-1 read the assistant is permitted to make and now
 				// has a tool for. Every decline line is spliced into the system prompt
 				// next to "do not improvise a workaround", so a line whose verbs don't
@@ -329,14 +328,13 @@
 				"Making a page a site trunk, or changing the multi-site structure" =>
 					"Developer → Pages — the assistant can see which pages are site trunks but cannot set or move one",
 				// Not a route family, so AIRouteFamilyContractTest structurally cannot
-				// find this wall (audit #9's "running a report" was the first of the
-				// kind). Every mutating tool targets exactly one record: there is no
-				// batch argument, no multi-target proposal, and no grouping in the
-				// proposal store. The only faithful execution of "all forty event pages"
-				// is forty tool calls producing forty cards, which the bounded agent loop
-				// cuts off part-way through with some pages done, some not, and no way to
-				// report which. The line steers rather than just refusing, the way the
-				// page-delete line does (audit #10 C4).
+				// find this wall (like "running a report"). Every mutating tool targets
+				// exactly one record: there is no batch argument, no multi-target
+				// proposal, and no grouping in the proposal store. The only faithful
+				// execution of "all forty event pages" is forty tool calls producing
+				// forty cards, which the bounded agent loop cuts off part-way through
+				// with some pages done, some not, and no way to report which. The line
+				// steers rather than just refusing, the way the page-delete line does.
 				"Applying the same change to many records at once" =>
 					"the module's own bulk actions in the admin — the assistant proposes one change at a time, so "
 						. "ask for the specific pages or entries you want changed",
@@ -369,7 +367,7 @@
 			$lines = [];
 			$label = self::userLabel($user);
 
-			// Audit #14 B2: the role was named and the person was not, so "am I
+			// The role was named and the person was not, so "am I
 			// subscribed to that page", "which of these drafts are mine" and "sign the
 			// post with my name" had nothing to resolve "me" against — and the one tool
 			// that could have looked it up, search_users, is administrator-gated.
@@ -385,9 +383,8 @@
 				$lines[] = "They may manage settings, tags, and users, and content they have page/module permission for. They CANNOT create or edit templates, modules, or callouts — that requires a developer.";
 			} else {
 				// "cannot manage users" used to swallow the user's own profile, which
-				// every editor can edit today — the self-contradiction audit #14 B1
-				// closed. The wall is about *other* users now, which is what it always
-				// meant.
+				// every editor can edit. The wall is about *other* users, which is what it
+				// always meant.
 				$lines[] = "They are a content editor. They may work with pages and module entries they have permission for, including adding and removing tags that already exist. They CANNOT create new tags, or manage OTHER users, settings, templates, modules, or callouts.";
 			}
 

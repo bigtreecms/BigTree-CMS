@@ -1,18 +1,17 @@
 <?php
 	/**
-	 * Audit #24 E1: the link-token machinery is enumerated by *column*, not by field
+	 * The link-token machinery is enumerated by *column*, not by field
 	 * type.
 	 *
-	 * Audit #10 built both halves of the link tokenizer — aiNormalizeHtmlValue on the
-	 * way in, aiDenormalizeHtmlValue on the way out — and wired them into every schema
-	 * -typed read and write across pages, entries, search and settings. Every
-	 * assertion it left behind is keyed to `PageService::AI_LINK_BEARING_TYPES`, a
-	 * *field type*. Two of the columns that hold links are not schema-typed fields at
-	 * all — `bigtree_pages.external` and `bigtree_open_graph.image` — so there was no
-	 * type for a schema-keyed test to match, no parity leg fired (REST had the
-	 * identical hole), and `external` went untokenized for fourteen audits while the
-	 * preview layer was being taught to decode a shape the writers had stopped
-	 * producing.
+	 * Both halves of the link tokenizer — aiNormalizeHtmlValue on the way in,
+	 * aiDenormalizeHtmlValue on the way out — are wired into every schema-typed read
+	 * and write across pages, entries, search and settings. Every assertion about them
+	 * is keyed to `PageService::AI_LINK_BEARING_TYPES`, a *field type*. Two of the
+	 * columns that hold links are not schema-typed fields at all —
+	 * `bigtree_pages.external` and `bigtree_open_graph.image` — so there was no type
+	 * for a schema-keyed test to match, no parity leg fired (REST had the identical
+	 * hole), and `external` went untokenized while the preview layer was being taught
+	 * to decode a shape the writers had stopped producing.
 	 *
 	 * So this guard closes the class rather than the instance, in two legs:
 	 *
@@ -69,8 +68,8 @@
 					"get_page_tree" => [$pages, "aiPageTree"],
 				],
 			],
-			// The social preview image. OpenGraphDomain::violation has accepted a token
-			// since audit #22 because getOpenGraph untranslates one before rendering —
+			// The social preview image. OpenGraphDomain::violation accepts a token
+			// because getOpenGraph untranslates one before rendering —
 			// but nothing produced one, and detail() handed the stored value back raw.
 			"bigtree_open_graph.image" => [
 				"writers" => [
@@ -82,7 +81,7 @@
 				],
 			],
 			// A redirect destination, which has tokenized since it shipped — the
-			// positive control the audit reasoned from, asserted here so it stays one.
+			// positive control, asserted here so it stays one.
 			"bigtree_404s.redirect_url" => [
 				"writers" => [
 					"create301" => [$fourohfour, "create301"],
@@ -186,8 +185,8 @@
 	/**
 	 * E1, leg 1: every file that handles a link token is accounted for.
 	 *
-	 * This is the leg that closes the class. `external` was invisible to fourteen
-	 * audits because nothing enumerated the *places* tokens are handled — only the
+	 * This is the leg that closes the class. `external` was invisible
+	 * because nothing enumerated the *places* tokens are handled — only the
 	 * field types that carry them.
 	 */
 	function test_every_file_handling_a_link_token_is_classified() {

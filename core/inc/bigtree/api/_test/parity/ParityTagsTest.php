@@ -228,7 +228,7 @@
 	}
 
 	/**
-	 * Audit #3 (B3): the AI tag-hygiene seam, against the same backend the REST
+	 * The AI tag-hygiene seam, against the same backend the REST
 	 * merge route uses.
 	 *
 	 * add_tags/remove_tags manage which tags a record carries; merge and rename
@@ -361,7 +361,7 @@
 	}
 
 	/**
-	 * Audit #31 E6: a rename whose name urlifies to the tag's own route keeps it.
+	 * A rename whose name urlifies to the tag's own route keeps it.
 	 *
 	 * uniqueRoute had no exclude-self, so renaming "parity ai spaced" to
 	 * "parity ai  spaced" — normalize trims but doesn't collapse internal spaces —

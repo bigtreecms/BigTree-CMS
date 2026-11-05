@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { useEffect } from "react";
 
 import { Select } from "@/components/ui/Select";
 import { normalizeStaticOptions, toStringValue, type StaticOption } from "./fieldHelpers";
@@ -43,8 +44,7 @@ export const SelectField = ({ field, value, onChange, disabled }: FieldComponent
 
 	const context = useFormRenderContext();
 	const isDynamic = listType !== "static";
-	const useModuleLookup =
-		isDynamic && !!context?.moduleId && !!context?.formId && !!field.column;
+	const useModuleLookup = isDynamic && !!context?.moduleId && !!context?.formId && !!field.column;
 	const useSettingsLookup = isDynamic && !useModuleLookup;
 
 	const moduleOptionsQ = useQuery({
@@ -67,6 +67,27 @@ export const SelectField = ({ field, value, onChange, disabled }: FieldComponent
 
 	const items: Option[] = isDynamic ? (optionsQ.data?.options ?? []) : staticItems;
 
+	const isLoading = isDynamic && optionsQ.isLoading;
+	const currentValue = toStringValue(value);
+	const firstValue = items[0]?.value;
+
+	// With no blank option the control shows its first option over an empty value,
+	// and a browser <select> would submit that option — so store it, rather than
+	// save a blank the control can't display.
+	useEffect(() => {
+		if (
+			allowEmpty ||
+			disabled ||
+			isLoading ||
+			currentValue !== "" ||
+			firstValue === undefined
+		) {
+			return;
+		}
+
+		onChange(firstValue);
+	}, [allowEmpty, disabled, isLoading, currentValue, firstValue, onChange]);
+
 	if (isDynamic && optionsQ.isError) {
 		return (
 			<Select disabled value="">
@@ -75,12 +96,10 @@ export const SelectField = ({ field, value, onChange, disabled }: FieldComponent
 		);
 	}
 
-	const isLoading = isDynamic && optionsQ.isLoading;
-
 	return (
 		<Select
 			disabled={disabled || isLoading}
-			value={toStringValue(value)}
+			value={currentValue}
 			onChange={(event) => onChange(event.target.value)}
 		>
 			{isLoading ? (

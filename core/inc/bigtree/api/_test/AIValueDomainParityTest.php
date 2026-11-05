@@ -1,16 +1,16 @@
 <?php
 	/**
-	 * Audit #22 guard B5: the value-domain parity contract.
+	 * The value-domain parity contract.
 	 *
 	 * Every guard in this suite tests a seam against a *tool argument* or a *route body
 	 * field*. None of them tests the value seams against each other — and that is
-	 * exactly the gap audit #22 A1 fell through. Audits #11 B1 and #11 B2 changed the
-	 * answer to "may the assistant write a value for this field type?" for five types
-	 * (`image-reference`, `file-reference`, `video-reference`, `one-to-many`,
-	 * `many-to-many`) by adding two overrides to `FieldTypeDomain::refusal()`. Two of
+	 * exactly the gap one change fell through. Two overrides in
+	 * `FieldTypeDomain::refusal()` changed the answer to "may the assistant write a
+	 * value for this field type?" for five types (`image-reference`, `file-reference`,
+	 * `video-reference`, `one-to-many`, `many-to-many`). Two of
 	 * the three seams that accept a value against a field type were given the resolvers
 	 * that make those types safe. The third — `SettingService::aiCheckSettingValue` —
-	 * was not, and nothing noticed for eleven audits: it fell through to "anything left
+	 * was not, and nothing noticed: it fell through to "anything left
 	 * is a scalar type with no enumerable domain, store as given" and wrote whatever the
 	 * model produced into a first-class, admin-creatable reference setting.
 	 *
@@ -123,7 +123,7 @@
 			"module entry (aiSiftEntryData)" => [
 				"list" => [
 					"via" => [AutoModuleService::class, "aiOptionViolation"],
-					"why" => "called through the wrapper audit #7 B1 added when the option domain was extracted, "
+					"why" => "called through the wrapper added when the option domain was extracted, "
 						. "which exists so the entry path and the page path cannot drift apart again",
 				],
 			],

@@ -97,11 +97,11 @@
 		 * the same JSON-DB stores as the site's own, keyed this way, and the packager
 		 * relocates their render files to `extensions/{ext}/templates/…` — which is
 		 * where router.php loads them from. `safeId()` strips the `*` along with every
-		 * other unsafe character, so before audit #13 A3 an extension template resolved
+		 * other unsafe character, so without this an extension template would resolve
 		 * to `templates/basic/comexampleblogsidebar.php`: a path that has never existed
-		 * and never renders anything. Since audit #10 C1 that path is printed on the
-		 * update proposal as the file a developer has to edit, so following the card
-		 * created a dead file.
+		 * and never renders anything. That path is printed on the update proposal as
+		 * the file a developer has to edit, so following the card would create a dead
+		 * file.
 		 *
 		 * The extension half keeps dots (extension ids are reverse-domain) and the
 		 * local half goes through safeId as before; `..` is removed from the extension

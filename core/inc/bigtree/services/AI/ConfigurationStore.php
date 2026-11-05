@@ -5,21 +5,20 @@
 	 * The one sentence the assistant says when a write to the JSON configuration
 	 * store did not land, and the result shape that carries it.
 	 *
-	 * Audit #17 A3. Every template, callout, module and group the assistant can
+	 * Every template, callout, module and group the assistant can
 	 * author lives in `custom/json-db/*.json`, and `BigTreeJSONDB::save()` discarded
 	 * its `file_put_contents` return — so an unwritable directory, a full disk or a
 	 * partial write was indistinguishable from success. The approval seam returned
 	 * `mode: published`, `recordApprovalAudit` wrote a `via=ai_assistant` row for a
 	 * change that isn't there, and the card went green.
 	 *
-	 * Every other write surface the assistant reaches was made to fail loudly by an
-	 * earlier audit: a false from `createItem` becomes `mode: error` (audit #5),
-	 * failed scaffold DDL becomes a FAILED card (audit #12), and `TemplateScaffold`
-	 * refuses an unwritable directory rather than claiming it wrote a render file.
-	 * `mode: error` is what makes a card FAILED rather than approved, and a FAILED
-	 * card stays claimable — which is exactly right here, because the cause (a
-	 * permission, a full disk) is fixable and the same proposal can then be approved
-	 * again.
+	 * Every other write surface the assistant reaches fails loudly: a false from
+	 * `createItem` becomes `mode: error`, failed scaffold DDL becomes a FAILED card,
+	 * and `TemplateScaffold` refuses an unwritable directory rather than claiming it
+	 * wrote a render file. `mode: error` is what makes a card FAILED rather than
+	 * approved, and a FAILED card stays claimable — which is exactly right here,
+	 * because the cause (a permission, a full disk) is fixable and the same proposal
+	 * can then be approved again.
 	 */
 	class ConfigurationStore {
 		/**

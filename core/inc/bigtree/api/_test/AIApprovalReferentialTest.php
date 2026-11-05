@@ -1,6 +1,6 @@
 <?php
 	/**
-	 * Audit #8 guard E1: the referenced-entity boundary at approval.
+	 * The referenced-entity boundary at approval.
 	 *
 	 * Audits 1–7 hardened the *value* boundary — a staged value is never trusted on
 	 * the way back out, and a targeted mutation fingerprints its row so a stale edit
@@ -9,7 +9,7 @@
 	 * existing target row, so it never appears in that map — and with it, nothing
 	 * mechanically required the *container* a create/move files into (a page's parent,
 	 * a module's group, a move's destination, a redirect's site) to still be valid at
-	 * approval. That gap is exactly what audit #8's A1–A3 found by reading.
+	 * approval.
 	 *
 	 * This is the create-side analogue of the fingerprint leg. For every create/move
 	 * tool it names the container reference the tool resolves at staging and the
@@ -65,9 +65,9 @@
 				CalloutService::class, "aiCreateCalloutGroup",
 				['BigTreeJSONDB::exists("callouts"', "aiRemoveCalloutFromGroups"],
 			],
-			// Audit #12 A3: the same module group, on the tool the name-keyed
+			// The same module group, on the tool the name-keyed
 			// enumeration below never asked. It files a module under a group exactly as
-			// create_module does — and was written four audits *after* that defect was
+			// create_module does — and was missed even after that defect was
 			// found and fixed on create_module, because "scaffold_module" is neither a
 			// create_* nor a move_*.
 			"scaffold_module" => [ModuleService::class, "aiScaffoldModule", ['BigTreeJSONDB::exists("module-groups"']],
@@ -152,9 +152,8 @@
 	 * move_*" — which is a guess about what a tool does dressed as a rule about what
 	 * it is called. `scaffold_module` is named neither, so the one tool in the
 	 * catalogue with the least reversible write was the one tool the referential
-	 * contract never asked about, and audit #12 A3 found it filing a module under an
-	 * unresolved, never-re-checked group id: exactly the defect audit #8 A2 had
-	 * already found and fixed on `create_module`.
+	 * contract never asked about, and it filed a module under an unresolved,
+	 * never-re-checked group id: exactly the defect already fixed on `create_module`.
 	 *
 	 * So it enumerates by behaviour instead, and from the other end. Every mutating
 	 * tool is one of four things, and it must say which:

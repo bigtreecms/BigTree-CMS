@@ -1,6 +1,6 @@
 <?php
 	/**
-	 * Audit #32: a redirect is judged by the router that will serve it.
+	 * A redirect is judged by the router that will serve it.
 	 *
 	 * create_redirect is the one AI write whose whole job happens at request time,
 	 * and its checks — "is the source a live page?", "does the destination exist?",

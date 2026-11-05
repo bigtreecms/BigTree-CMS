@@ -7,8 +7,8 @@
 	 * Which field types the assistant may write a value for, derived from the field
 	 * types' own declared taxonomy rather than from a hand-written list.
 	 *
-	 * Every audit through #10 read a field definition and trusted it. Audit #11 A2
-	 * audited the lists doing the reading and found that ten of the eighteen entries
+	 * The value path reads a field definition and trusts it, so the lists doing the
+	 * reading have to be right — and once ten of the eighteen entries
 	 * across `AI_SIMPLE_FIELD_TYPES` / `AI_SIMPLE_RESOURCE_TYPES` / the setting lists
 	 * named field types this CMS has never had — `htmleditor`, `simple-editor`,
 	 * `code`, `number`, `currency`, `phone`, `email`, `color`, `select`, `radio`. A
@@ -30,7 +30,7 @@
 	 *    must not: a value the model supplies is overwritten, so offering the field
 	 *    would be a lie.
 	 *  - REFERENCE_TYPES are settable even though their `value_type` is `resource_id`
-	 *    (audit #11 B1) — the value is a `bigtree_resources` id the assistant already
+	 * — the value is a `bigtree_resources` id the assistant already
 	 *    reads through `list_resources` / `search_files`, so filling one is a lookup
 	 *    rather than the fabrication the old refusal assumed. `resourceReferenceValue`
 	 *    is the shared resolver every seam validates through.
@@ -50,14 +50,13 @@
 		// Populated by the write path itself, whatever the model supplies.
 		private const DERIVED_TYPES = ["route", "geocoding"];
 
-		// Reference types whose stored value is a bigtree_resources id (audit #11 B1).
+		// Reference types whose stored value is a bigtree_resources id.
 		private const REFERENCE_TYPES = ["image-reference", "file-reference", "video-reference"];
 
-		// How many unfillable field names a card names before it starts counting
-		// (audit #14 D6).
+		// How many unfillable field names a card names before it starts counting.
 		private const DISCLOSED_UNSETTABLE = 3;
 
-		// Relationship types whose stored value is a list of row ids (audit #11 B2).
+		// Relationship types whose stored value is a list of row ids.
 		// `composite` by category because their value is an array, but the array holds
 		// nothing the model would be inventing — RelationDomain is the resolver.
 		private const RELATION_TYPES = ["one-to-many", "many-to-many"];
@@ -93,7 +92,7 @@
 
 			// Settable despite a `resource_id` value_type: the value is a row id in a
 			// library the assistant already reads, and ResourceReferenceDomain is the
-			// resolver every seam validates it through (audit #11 B1).
+			// resolver every seam validates it through.
 			if (in_array($type, self::REFERENCE_TYPES, true)) {
 
 				return "";
@@ -101,9 +100,8 @@
 
 			// Settable despite an `array` value_type: the array holds row ids the
 			// assistant reads out of get_relation_options — the field's own target
-			// table, which audit #12 B1 added because it is usually not a module's —
-			// and RelationDomain is the resolver every seam validates them through
-			// (audit #11 B2).
+			// table, which is usually not a module's —
+			// and RelationDomain is the resolver every seam validates them through.
 			if (in_array($type, self::RELATION_TYPES, true)) {
 
 				return "";
@@ -142,7 +140,7 @@
 		 * Named once because three surfaces test for them — this class's link shape
 		 * check, OpenGraphDomain's image rule, and PageService's `external` gate — and
 		 * a fourth, the link-column guard, enumerates them to find every column that
-		 * can hold one (audit #24 A1/E1).
+		 * can hold one.
 		 */
 		public const LINK_TOKEN_PREFIXES = ["ipl://", "irl://", "{wwwroot}"];
 
@@ -163,11 +161,11 @@
 		/**
 		 * A `link` value that isn't a link, as a recoverable error.
 		 *
-		 * `link` is a real, first-class type whose stored value is a whole URL — and
-		 * audit #11 B3 is that it was authorable as a *setting* and refused on pages
-		 * and entries, on the strength of an allowlist that had never named it. Making
-		 * it settable everywhere means the one shape check it needs has to be shared
-		 * too, or the three paths disagree again the moment one of them grows a rule.
+		 * `link` is a real, first-class type whose stored value is a whole URL — and it
+		 * was once authorable as a *setting* and refused on pages and entries, on the
+		 * strength of an allowlist that had never named it. Making it settable
+		 * everywhere means the one shape check it needs has to be shared too, or the
+		 * three paths disagree again the moment one of them grows a rule.
 		 *
 		 * Accepted: an absolute http/https/ftp URL, a mailto:/tel: address, and the
 		 * tokens BigTree itself stores (`ipl://`, `irl://`, `{wwwroot}`) — a model that
@@ -245,9 +243,9 @@
 
 		/**
 		 * The card note for fields that are real, optional, and unfillable by the
-		 * assistant (audit #14 C2).
+		 * assistant.
 		 *
-		 * The *required* half of this has been disclosed for several audits — the
+		 * The *required* half of this is already disclosed — the
 		 * `incomplete_required` list on a page create, `unsettable_columns` on an entry,
 		 * `aiScaffoldUnfillableColumns` on the authoring card — because a required field
 		 * the assistant can't fill blocks the record from going live and something had to

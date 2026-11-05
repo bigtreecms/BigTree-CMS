@@ -1,6 +1,6 @@
 <?php
 	/**
-	 * Audit #4 Phase 3 (B2, B4, B5): what the assistant can read back.
+	 * What the assistant can read back.
 	 *
 	 * get_page returned six fields against a write surface of fourteen, so "is this
 	 * page hidden from search?" or "when does it expire?" could only be answered by

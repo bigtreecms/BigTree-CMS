@@ -7,16 +7,16 @@
 	/**
 	 * The rows a relationship field can be filed against.
 	 *
-	 * Audit #12 B1. Audit #11 B2 made `one-to-many` and `many-to-many` writable by
-	 * entry id — carefully: RelationDomain builds the descriptor from the field
-	 * definition, checks every id against the target table, applies per-row
-	 * permissions and honours the field's `max`. What shipped without it was any way
-	 * to *find* the ids. A relation's target table is named by the field's own
-	 * settings and is usually a plain lookup table (`categories`, `regions`,
-	 * `staff_types`) that no module owns, so list_module_entries — which takes a
-	 * module id and resolves a table through its form — cannot reach it, and nothing
-	 * maps a table back to a module for the model to work out which module to ask
-	 * for. A capability granted without its lookup is one that works by luck.
+	 * `one-to-many` and `many-to-many` are writable by entry id — carefully:
+	 * RelationDomain builds the descriptor from the field definition, checks every id
+	 * against the target table, applies per-row permissions and honours the field's
+	 * `max`. Without this tool there was no way to *find* the ids. A relation's target
+	 * table is named by the field's own settings and is usually a plain lookup table
+	 * (`categories`, `regions`, `staff_types`) that no module owns, so
+	 * list_module_entries — which takes a module id and resolves a table through its
+	 * form — cannot reach it, and nothing maps a table back to a module for the model
+	 * to work out which module to ask for. A capability granted without its lookup is
+	 * one that works by luck.
 	 *
 	 * The endpoint behind this is the one the admin's own relation picker uses, so
 	 * the rows offered here are the rows a person would be offered.

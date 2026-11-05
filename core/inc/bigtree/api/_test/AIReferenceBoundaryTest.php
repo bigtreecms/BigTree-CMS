@@ -1,6 +1,6 @@
 <?php
 	/**
-	 * Audit #11 Part B: the reference boundary.
+	 * The reference boundary.
 	 *
 	 * Every reference-shaped field — an image reference, a file reference, a related
 	 * entry — used to be refused with the "the assistant only sets simple text-like
@@ -361,7 +361,7 @@
 
 	/**
 	 * B2: an AI edit is a partial write, so authoring one relationship must not blank
-	 * the entry's others — the same failure audit #4 fixed from the read side.
+	 * the entry's others — the same failure as on the read side.
 	 */
 	function test_authoring_a_relation_does_not_blank_the_others() {
 		$svc = new AutoModuleService();

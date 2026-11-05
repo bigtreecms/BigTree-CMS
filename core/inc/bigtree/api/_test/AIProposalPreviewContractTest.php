@@ -1,6 +1,6 @@
 <?php
 	/**
-	 * Audit #15 Part B: the preview ↔ proposal-card contract.
+	 * The preview ↔ proposal-card contract.
 	 *
 	 * Every other seam in the two-phase design has a contract test. The tool
 	 * definition ↔ backend seam has AIArgShapeContractTest; the tool ↔ route seam has
@@ -9,12 +9,12 @@
 	 * spa/src/components/ai/ProposalCard.tsx seam had nothing at all — and it is the
 	 * last surface before the write happens and the only one a human reads.
 	 *
-	 * Every finding in audit #15 Part A is what an unguarded seam produces: keys
-	 * written specifically to be seen that render nowhere (`new_tags`,
-	 * `unsettable_columns`), and values rendered in a form the approver cannot check
-	 * (`ipl://cGFnZXM6NDI=` on both sides of a link diff, `Photo: 482`, `["12","15"]`).
+	 * An unguarded seam produces exactly this: keys written specifically to be seen
+	 * that render nowhere (`new_tags`, `unsettable_columns`), and values rendered in a
+	 * form the approver cannot check (`ipl://cGFnZXM6NDI=` on both sides of a link
+	 * diff, `Photo: 482`, `["12","15"]`).
 	 *
-	 * The legs, in the order the audit lists them:
+	 * The legs:
 	 *
 	 *  1. Every key any validator emits into a preview is classified: rendered as a
 	 *     row, rendered as a block, or hidden *with a reason recorded here*. A new
@@ -48,8 +48,8 @@
 	/**
 	 * Every key emitted into a proposal preview, mapped to where it comes from.
 	 *
-	 * Both forms are parsed because both are in use, and the second is where audit
-	 * #15's A3 lived: a `"preview" => [ … ]` / `$preview = [ … ]` literal, and a
+	 * Both forms are parsed because both are in use, and the second is the easy one
+	 * to miss: a `"preview" => [ … ]` / `$preview = [ … ]` literal, and a
 	 * `$preview["…"] =` assignment made after the literal.
 	 *
 	 * @return array<string,list<string>> key => the files that emit it
@@ -179,7 +179,7 @@
 			"changes" => "a diff map, one before/after row per entry",
 			"fields" => "a field list, one row per field",
 			"tags" => "the Tags row",
-			"new_tags" => "the New tags row (audit #15 A2)",
+			"new_tags" => "the New tags row",
 			"from" => "the Merging row when it is a list, otherwise the before side of the top-level diff",
 			"into" => "the Into row",
 			"to" => "the after side of the top-level diff",
@@ -193,16 +193,15 @@
 			"depends_on" => "the approve-these-in-order note",
 			"ignored" => "the ignored (not applicable) line",
 			"remaining_setup" => "the still-to-do-by-hand list",
-			"unsettable_columns" => "the stored-empty line (audit #15 A3)",
-			"references" => "the what-else-points-at-this list (audit #17 A1/A2)",
+			"unsettable_columns" => "the stored-empty line",
+			"references" => "the what-else-points-at-this list",
 		];
 	}
 
 	/**
 	 * Why each hidden key is hidden. Exactly the tool-or-decline shape
 	 * AIRouteFamilyContractTest uses, for the same reason: a key that renders nowhere
-	 * is a decision, and a decision with no reason written down is the bug audit #15
-	 * A2 and A3 both are.
+	 * is a decision, and a decision with no reason written down is a bug.
 	 *
 	 * @return array<string,string> key => reason
 	 */
@@ -266,6 +265,9 @@
 			"creates_file" => "scalar",
 			"creates_table" => "scalar",
 			"daily_digest" => "scalar",
+			// The fields a create (or template switch) fills from their draw-time
+			// defaults — "Published on: 2026-11-04; Featured: on".
+			"defaults_applied" => "scalar",
 			"depends_on" => "scalar",
 			"descendants_affected" => "scalar",
 			"description" => "scalar",
@@ -302,7 +304,7 @@
 			"meta_keywords" => "scalar",
 			"mine" => "scalar",
 			// How many of the files a revision referenced have since been deleted, and
-			// which — a short "2 (#12, #14)" row beside the restore diff (audit #29 A2).
+			// which — a short "2" row beside the restore diff.
 			"missing_files" => "scalar",
 			"mode" => "scalar",
 			"module" => "scalar",
@@ -315,7 +317,7 @@
 			"new_tags" => "structured",
 			"new_window" => "scalar",
 			// One sentence: the module has no action for this status column, so nothing
-			// in the admin can flip it back (audit #27 A2). Rendered as an ordinary
+			// in the admin can flip it back. Rendered as an ordinary
 			// humanized row — the consequence is the value, so there is nothing for the
 			// card to lay out specially.
 			"no_admin_action" => "scalar",
@@ -331,11 +333,11 @@
 			"publishes_draft" => "structured",
 			// Who has an unpublished draft on the page a restore is about to overwrite,
 			// and when they queued it. Unlike publishes_draft this write does *not*
-			// publish it — it stays queued and lands on top later (audit #29 B1).
+			// publish it — it stays queued and lands on top later.
 			"queued_draft" => "scalar",
 			"records_moved" => "scalar",
 			// A list of sentences naming what still points at the record a card
-			// destroys or hides (audit #17 A1/A2).
+			// destroys or hides.
 			"references" => "structured",
 			"remaining_setup" => "structured",
 			"replaces" => "scalar",
@@ -357,7 +359,7 @@
 			"template" => "scalar",
 			"template_changed" => "scalar",
 			// The template id a revision would restore, when that template has since
-			// been deleted. Disclosure, not refusal (audit #29 A4).
+			// been deleted. Disclosure, not refusal.
 			"template_missing" => "scalar",
 			"timezone" => "scalar",
 			"title" => "scalar",
@@ -526,8 +528,8 @@
 		T::ok(count($emitted) > 50, "the preview key scan found the service layer's keys (" . count($emitted) . ")");
 		T::ok($hidden !== [], "ProposalCard's HIDDEN_KEYS set was parsed");
 
-		// A hidden key with no reason written down is the decision audit #15 A2 and A3
-		// were both made of. Checked in both directions so a stale reason goes too.
+		// A hidden key with no reason written down is an unmade decision. Checked in
+		// both directions so a stale reason goes too.
 		$unexplained = array_values(array_diff($hidden, array_keys($reasons)));
 		$stale = array_values(array_diff(array_keys($reasons), $hidden));
 
@@ -578,8 +580,7 @@
 	/**
 	 * Leg 2: the shape leg. ProposalCard's generic scan skips arrays and objects —
 	 * `continue` in previewRows — so a structured key the card doesn't handle itself
-	 * renders nowhere at all, silently. This is the leg audit #15 A3 failed:
-	 * `unsettable_columns` was an array with no renderer for as long as it existed.
+	 * renders nowhere at all, silently — the way `unsettable_columns` once did.
 	 */
 	function test_structured_preview_keys_are_handled_by_the_card() {
 		$emitted = ai_preview_emitted_keys();
@@ -625,13 +626,12 @@
 	}
 
 	/**
-	 * Leg 3: the link-token leg (audit #15 A1).
+	 * Leg 3: the link-token leg.
 	 *
-	 * Audit #10 B3 built aiDenormalizeHtmlValue and applied it at five read seams and
-	 * zero preview seams, which inverts the protection backwards: its own docblock
-	 * names the proposal diff as the place a mangled token cannot be caught. Every
-	 * builder that can carry a field value now resolves through PreviewValue, and a
-	 * sixth builder fails this leg until it is classified.
+	 * aiDenormalizeHtmlValue applied at read seams but not preview seams inverts the
+	 * protection: its own docblock names the proposal diff as the place a mangled token
+	 * cannot be caught. Every builder that can carry a field value now resolves through
+	 * PreviewValue, and a sixth builder fails this leg until it is classified.
 	 */
 	function test_every_preview_value_builder_is_classified() {
 		$classified = ai_preview_value_builders();
@@ -696,7 +696,7 @@
 		$resolver = ai_surface_method_body(PreviewValue::class, "forHuman");
 		T::ok(
 			strpos($resolver, "aiDenormalizeHtmlValue") !== false,
-			"PreviewValue::forHuman decodes link tokens (the inverse audit #10 B3 built, at the seam it was missing from)"
+			"PreviewValue::forHuman decodes link tokens (the inverse of the read seams' tokenizer)"
 		);
 	}
 
@@ -842,7 +842,7 @@
 
 		// A file deleted inside the proposal's 24h life degrades rather than throwing —
 		// and says so, which is itself something the approver wants to see. The
-		// referential re-check at approval (audit #8) refuses the write regardless.
+		// referential re-check at approval refuses the write regardless.
 		T::equals(
 			PreviewValue::forHuman((string)PHP_INT_MAX, ["type" => "image-reference"], $admin),
 			"#" . PHP_INT_MAX . " (no longer available)",
@@ -949,8 +949,8 @@
 	/**
 	 * A4: create_page writes meta_keywords and previewed only meta_description.
 	 * update_page always diffed it, because its preview is built from AI_PAGE_FIELDS —
-	 * so the asymmetry was create-only, the same shape audit #14 C2 closed for the
-	 * optional unsettable fields.
+	 * so the asymmetry was create-only, the same shape as the optional unsettable
+	 * fields.
 	 */
 	function test_create_page_previews_every_field_it_writes() {
 		$body = ai_surface_method_body(\BigTree\Services\PageService::class, "aiValidatePageCreate");
@@ -985,17 +985,17 @@
 	}
 
 	/**
-	 * Audit #23 E4: the field-diff row contract.
+	 * The field-diff row contract.
 	 *
 	 * The template and callout field diffs each emit four rows describing what an
 	 * edit does to a field list, and three of them earned a consequence clause one
-	 * audit at a time — `fields_added` says the render file isn't touched (#10 C1),
+	 * audit at a time — `fields_added` says the render file isn't touched,
 	 * `fields_removed` says existing content is orphaned, `now_required` says pages
-	 * that already exist can't be saved while the new rule is unmet (#3, #9 C2).
+	 * that already exist can't be saved while the new rule is unmet.
 	 * `fields_retyped` named the change and stopped, which is the state each of the
-	 * others was in before the audit that noticed it: a retype drops the field's
+	 * others was in before it was fixed: a retype drops the field's
 	 * stored settings and leaves saved content in the old type's shape, and the card
-	 * said neither (#23 B1).
+	 * said neither.
 	 *
 	 * Read as source rather than driven, because two of the rows only append their
 	 * clause when the object is in use — a template with no pages on it has nothing

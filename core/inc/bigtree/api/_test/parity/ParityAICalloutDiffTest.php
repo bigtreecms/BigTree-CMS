@@ -1,12 +1,11 @@
 <?php
 	/**
-	 * Audit #9 C1/C2: the blast-radius disclosure on a callout field edit.
+	 * The blast-radius disclosure on a callout field edit.
 	 *
-	 * The template diff has counted its affected pages since audit #7; the callout
-	 * diff said only "orphaned wherever this callout is already placed" — the
-	 * abstract consequence with no sense of scale, on the developer object that is
-	 * typically embedded in far more places than a template is applied to. Silence
-	 * there reads as "small".
+	 * The template diff counts its affected pages; the callout diff once said only
+	 * "orphaned wherever this callout is already placed" — the abstract consequence
+	 * with no sense of scale, on the developer object that is typically embedded in far
+	 * more places than a template is applied to. Silence there reads as "small".
 	 *
 	 * Two things have to hold for the count to mean anything, and each is a way the
 	 * disclosure was previously absent rather than merely imprecise:

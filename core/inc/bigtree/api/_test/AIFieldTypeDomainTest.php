@@ -1,10 +1,9 @@
 <?php
 	/**
-	 * Audit #11 guards E2 and E3: the AI value path's idea of what a field type is
-	 * has to match the CMS's.
+	 * The AI value path's idea of what a field type is has to match the CMS's.
 	 *
-	 * Audits #1–#10 all read a field definition and trusted it. #11 A2 audited the
-	 * lists doing the reading: across `AI_SIMPLE_FIELD_TYPES`,
+	 * The value path reads a field definition and trusts it, so the lists doing the
+	 * reading have to be right. Across `AI_SIMPLE_FIELD_TYPES`,
 	 * `AI_SIMPLE_RESOURCE_TYPES` and the two setting lists, ten of eighteen entries
 	 * named field types this CMS has never had, and the one real type that was
 	 * missing (`link`) was missing precisely because a long plausible list reads as a
@@ -34,8 +33,8 @@
 	/**
 	 * Types that appear in stored form definitions but that the field-type registry
 	 * doesn't offer, with the reason. Kept explicit so E2/E3 stay total rather than
-	 * quietly skipping whatever they can't find — and read by audit #21's catalog
-	 * contract as well, which asks the complementary question (every *declared* type
+	 * quietly skipping whatever they can't find — and read by the catalog contract
+	 * as well, which asks the complementary question (every *declared* type
 	 * is authorable somewhere) off the same list, since two lists that both have to
 	 * name the same type are two lists that will eventually disagree.
 	 *
@@ -52,12 +51,11 @@
 			// (DERIVED_TYPES).
 			"geocoding" => "legacy only — derived server-side into latitude/longitude, not offered by the registry",
 			// `many-to-many` sat here for the same "declared everywhere, absent from
-			// getCachedFieldTypes" reason until audit #21 A2, which found the absence
-			// was the bug rather than the state of the world: everything else in the
-			// stack implemented it, so the catalog omission made one advertised
-			// argument a promise that could never be kept and left two guards defending
-			// a path nothing could reach. It is offered for modules now and needs no
-			// excuse.
+			// getCachedFieldTypes" reason until it turned out the absence was the bug
+			// rather than the state of the world: everything else in the stack
+			// implemented it, so the catalog omission made one advertised argument a
+			// promise that could never be kept and left two guards defending a path
+			// nothing could reach. It is offered for modules now and needs no excuse.
 		];
 	}
 
@@ -78,8 +76,8 @@
 
 		// Asked of a *universe*, not of the settable set: a check that only enumerates
 		// what the classifier already returns can never see a name the classifier lets
-		// through some other way, which is exactly how ten fictional ids survived four
-		// audits inside a list nobody enumerated against the registry.
+		// through some other way, which is exactly how ten fictional ids survived
+		// inside a list nobody enumerated against the registry.
 		$universe = array_unique(array_merge(
 			array_map("strval", array_keys(FieldTypeService::schemas())),
 			$installable,
@@ -280,15 +278,15 @@
 	}
 
 	/**
-	 * Audit #13 guard E2: the closed-vocabulary contract.
+	 * The closed-vocabulary contract.
 	 *
-	 * #11 A2 was a hand-written type list nobody derived. #12 B1 was a relation
-	 * whose candidate ids no tool could produce. #13 A2 is the same mistake a third
-	 * time: `icon` is a free string over a 54-slug vocabulary, declared as "Optional
-	 * icon identifier.", validated nowhere, and discoverable only by copying a slug
-	 * off some other module. A human never types this field — they click a grid —
-	 * so the assistant is the only writer without a picker, and the model reaches for
-	 * Lucide names ("newspaper", "calendar-days") and gets a fallback box.
+	 * A hand-written type list nobody derived, and a relation whose candidate ids no
+	 * tool could produce, were the same mistake as this one: `icon` is a free string
+	 * over a 54-slug vocabulary, declared as "Optional icon identifier.", validated
+	 * nowhere, and discoverable only by copying a slug off some other module. A human
+	 * never types this field — they click a grid — so the assistant is the only writer
+	 * without a picker, and the model reaches for Lucide names ("newspaper",
+	 * "calendar-days") and gets a fallback box.
 	 *
 	 * Every enumerated domain the assistant writes into has to be one derivation
 	 * shared by every copy of it, and every tool argument over such a domain has to

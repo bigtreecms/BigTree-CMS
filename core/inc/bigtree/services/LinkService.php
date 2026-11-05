@@ -210,7 +210,7 @@
 		 * in markup — `bigtree_pages.external` and `bigtree_open_graph.image`. Both are
 		 * shown to somebody who has to act on them: an editor typing in a text input,
 		 * or a model that will send the value straight back through a write tool. A
-		 * base64 `ipl://` blob is unusable to either (audit #24 A1).
+		 * base64 `ipl://` blob is unusable to either.
 		 *
 		 * The fallback is the point of having a helper at all: getInternalPageLink
 		 * returns null for a token whose page has been deleted, so decoding alone would

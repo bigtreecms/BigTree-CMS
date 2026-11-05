@@ -17,7 +17,7 @@
 	 * identically on retry, because the same reads produce the same payloads.
 	 * AIChatService::REPLAYED_HISTORY_CHARS budgets the *history* replay for exactly
 	 * this reason; the in-turn accumulation sitting next to it never got the same
-	 * treatment (audit #18 A1).
+	 * treatment.
 	 *
 	 * Two ceilings, because they answer different questions:
 	 *
@@ -91,7 +91,7 @@
 		 * 120,000 characters *if every column is a long body*, which is not a real
 		 * record: one field holds an article and the rest hold a title, a date and a
 		 * handful of flags. Dividing the budget by the field count would cut that
-		 * article to a fifth of the cap audit #10 raised it to, to defend against a
+		 * article to a fifth of its cap, to defend against a
 		 * shape that doesn't occur. So the declared cap is kept whenever the record
 		 * as it stands fits, and the ladder is walked only for the records that
 		 * genuinely don't.

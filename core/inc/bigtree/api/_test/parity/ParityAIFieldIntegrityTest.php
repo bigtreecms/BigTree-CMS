@@ -1,11 +1,10 @@
 <?php
 	/**
-	 * Audit #6 Phase 1 (A1–A8): the assistant producing structurally broken output,
-	 * and the publisher-branch data loss audit #5 fixed only on the editor branch.
+	 * The assistant producing structurally broken output, and publisher-branch data
+	 * loss that had been fixed only on the editor branch.
 	 *
-	 * Every test here fails against the pre-audit-6 code. The theme this time is not
-	 * "a partial body broke a seam that wanted a whole one" (audit #5) but "the write
-	 * that landed is not the write the card described" — a field id silently
+	 * The theme is not "a partial body broke a seam that wanted a whole one" but "the
+	 * write that landed is not the write the card described" — a field id silently
 	 * rewritten, a render file that won't parse, an allocation set deleted for fields
 	 * nobody touched, somebody else's draft annihilated by a publish.
 	 */
@@ -135,8 +134,8 @@
 		$dev = (object)["id" => 1, "level" => 2, "permissions" => []];
 
 		$result = $templates->aiValidateTemplateCreate([
-			"id" => "zz-audit6-" . bin2hex(random_bytes(3)),
-			"name" => "ZZ Audit6",
+			"id" => "zz-integrity-" . bin2hex(random_bytes(3)),
+			"name" => "ZZ Integrity",
 			"fields" => [["id" => "2024 stats", "type" => "text", "title" => "Stats"]],
 		], $dev);
 		T::ok(isset($result["error"]), "create_template refuses an unusable field id");
@@ -146,15 +145,15 @@
 		);
 
 		$callout = $callouts->aiValidateCalloutCreate([
-			"id" => "zz-audit6-co-" . bin2hex(random_bytes(3)),
-			"name" => "ZZ Audit6",
+			"id" => "zz-integrity-co-" . bin2hex(random_bytes(3)),
+			"name" => "ZZ Integrity",
 			"fields" => [["id" => "head line!", "type" => "text", "title" => "Headline"]],
 		], $dev);
 		T::ok(isset($callout["error"]), "create_callout refuses one too");
 	}
 
 	/**
-	 * Audit #23 B2/E5: the same field id twice.
+	 * The same field id twice.
 	 *
 	 * `fields` is replace-semantics — the model resends the whole list every edit —
 	 * so a duplicated id is a realistic model error, and nothing refused it:
@@ -330,8 +329,8 @@
 
 		try {
 			$resource_id = (int)SQL::insert("bigtree_resources", [
-				"file" => "zz-audit6-" . bin2hex(random_bytes(4)) . ".png",
-				"name" => "ZZ Audit6 fixture",
+				"file" => "zz-integrity-" . bin2hex(random_bytes(4)) . ".png",
+				"name" => "ZZ Integrity fixture",
 				"date" => "NOW()",
 				"metadata" => "",
 				"crops" => "",
@@ -340,7 +339,7 @@
 
 			// An entry whose body references the resource.
 			$created = parity_ai_create_entry($svc, $dev, [
-				"title" => "zz Audit6 Allocations",
+				"title" => "zz Integrity Allocations",
 				"content" => "<p>See <img src=\"irl://{$resource_id}\" alt=\"\"></p>",
 			]);
 			$entry_id = (int)$created["id"];
@@ -356,7 +355,7 @@
 			$validated = $svc->aiValidateEntryUpdate([
 				"module_id" => parity_news_module_id(),
 				"entry_id" => (string)$entry_id,
-				"data" => ["title" => "zz Audit6 Allocations (renamed)"],
+				"data" => ["title" => "zz Integrity Allocations (renamed)"],
 			], $dev);
 			T::ok(!empty($validated["ok"]), "the title-only edit validates");
 
@@ -471,7 +470,7 @@
 
 		try {
 			$created = parity_ai_create_entry($svc, $dev, [
-				"title" => "zz Audit6 Entry Draft",
+				"title" => "zz Integrity Entry Draft",
 				"content" => "<p>Published body.</p>",
 			]);
 			$entry_id = (int)$created["id"];
@@ -496,7 +495,7 @@
 			$publish = $svc->aiValidateEntryUpdate([
 				"module_id" => parity_news_module_id(),
 				"entry_id" => (string)$entry_id,
-				"data" => ["title" => "zz Audit6 Entry Draft (published)"],
+				"data" => ["title" => "zz Integrity Entry Draft (published)"],
 			], $dev);
 			T::ok(!empty($publish["ok"]), "the publisher's edit validates");
 			T::ok(!empty($publish["preview"]["publishes_draft"]), "the card discloses the draft");
@@ -512,7 +511,7 @@
 			);
 			T::equals(
 				\BigTree\Api\Sanitize::decodeEntities((string)$row["title"]),
-				"zz Audit6 Entry Draft (published)",
+				"zz Integrity Entry Draft (published)",
 				"alongside the publisher's own change"
 			);
 		} finally {
@@ -539,24 +538,24 @@
 		try {
 			// A tag literally named after some other tag's id.
 			$decoy_id = (int)SQL::insert("bigtree_tags", [
-				"tag" => "zz audit6 decoy",
-				"route" => "zz-audit6-decoy-" . bin2hex(random_bytes(3)),
+				"tag" => "zz integrity decoy",
+				"route" => "zz-integrity-decoy-" . bin2hex(random_bytes(3)),
 				"usage_count" => 0,
 			]);
 			$named_id = (int)SQL::insert("bigtree_tags", [
 				"tag" => (string)$decoy_id,
-				"route" => "zz-audit6-named-" . bin2hex(random_bytes(3)),
+				"route" => "zz-integrity-named-" . bin2hex(random_bytes(3)),
 				"usage_count" => 0,
 			]);
 			$target_id = (int)SQL::insert("bigtree_tags", [
-				"tag" => "zz audit6 archive",
-				"route" => "zz-audit6-archive-" . bin2hex(random_bytes(3)),
+				"tag" => "zz integrity archive",
+				"route" => "zz-integrity-archive-" . bin2hex(random_bytes(3)),
 				"usage_count" => 0,
 			]);
 
 			$validated = $svc->aiValidateTagMerge([
 				"from" => [(string)$decoy_id],
-				"into" => "zz audit6 archive",
+				"into" => "zz integrity archive",
 			], $admin);
 			T::ok(!empty($validated["ok"]), "the merge validates");
 			T::equals(

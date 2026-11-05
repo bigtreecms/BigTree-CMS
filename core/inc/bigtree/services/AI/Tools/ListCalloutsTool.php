@@ -12,7 +12,7 @@
 	 * id, and create_callout's `group` argument had nothing to enumerate — which made
 	 * its needs_input branch the normal path rather than the exception.
 	 *
-	 * Level 0, matching `GET /callouts` — see GetCalloutTool (audit #13 D4). Editing
+	 * Level 0, matching `GET /callouts` — see GetCalloutTool. Editing
 	 * a callout is still developer-only.
 	 */
 	class ListCalloutsTool extends AbstractReadTool {

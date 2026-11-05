@@ -321,7 +321,7 @@
 		 * `bigtree_users` is CHARSET=utf8mb3 until revision 512 converts it, so on an
 		 * install that has not upgraded yet a 4-byte character in a name or a company
 		 * doesn't error — MySQL cuts the value off *at* that character and carries on
-		 * (audit #10 A2; the connection itself is utf8mb4 now). Tag names are
+		 * (the connection itself is utf8mb4). Tag names are
 		 * not checked here because TagService::normalize strips everything outside
 		 * [a-zA-Z0-9 ] before storage, and redirect URLs are shape-gated by
 		 * aiCheckRedirectDestination.
@@ -369,15 +369,14 @@
 		 * — and replaced the whole map, so "add page 40 to my alerts" wiped every
 		 * other subscription the user had. It merges now; `false` removes.
 		 *
-		 * Since audit #14 C4 a page also has to be one the *caller* can view. Existence
-		 * was the only check, which was harmless while update_user was
-		 * administrator-only — an administrator views every page — and stopped being
-		 * harmless the moment an editor could edit their own alerts (audit #14 B1): the
-		 * digest names each watched page by title, so a page id an editor guessed at
-		 * would mail them the title of a page they cannot open. It is a read the caller
+		 * A page also has to be one the *caller* can view. Existence alone would be
+		 * harmless while update_user was administrator-only — an administrator views
+		 * every page — but not once an editor can edit their own alerts: the digest
+		 * names each watched page by title, so a page id an editor guessed at would
+		 * mail them the title of a page they cannot open. It is a read the caller
 		 * couldn't otherwise make, which is why the check is against the caller rather
-		 * than the subscriber — an administrator deliberately subscribing an editor to a
-		 * page is a different, existing decision this must not overturn.
+		 * than the subscriber — an administrator deliberately subscribing an editor to
+		 * a page is a different, existing decision this must not overturn.
 		 *
 		 * @param mixed $alerts Page id => boolean-ish subscription flag.
 		 * @param array<string|int,mixed> $current The user's stored alerts map.
@@ -455,8 +454,8 @@
 		 * Public because the user *read* seam needs the same naming the write seam's
 		 * diff uses: search_users can now return who is subscribed to what, and a bare
 		 * array of page ids is not an answer to "who is watching the pricing page?" —
-		 * the same reason aiChangeDiff names tags instead of printing integers
-		 * (audit #28 B2). Unsubscribed entries are dropped: the column keeps `false`
+		 * the same reason aiChangeDiff names tags instead of printing integers.
+		 * Unsubscribed entries are dropped: the column keeps `false`
 		 * keys once someone unsubscribes, and those are not subscriptions.
 		 *
 		 * @param mixed $alerts The decoded bigtree_users.alerts map.
@@ -598,7 +597,7 @@
 			// proposals — and the second could not even be staged until the first was
 			// approved, because the user id doesn't exist until then. That is the
 			// cheapest possible instance of the sequencing problem, so closing it
-			// removes one (audit #9 B3).
+			// removes one.
 			$digest = !empty($args["daily_digest"]) && $args["daily_digest"] !== "false";
 			$alerts = ["alerts" => []];
 
@@ -754,12 +753,12 @@
 		}
 
 		/**
-		 * The caller's own profile, for get_my_capabilities (audit #14 B2).
+		 * The caller's own profile, for get_my_capabilities.
 		 *
 		 * Read from the row rather than from the request user, which carries only what
 		 * the JWT middleware selects (id, email, name, level, permissions, timezone) —
 		 * `company` and `daily_digest` are not on it, and both became editor-writable in
-		 * audit #14 B1. Ungated because it is the caller's own record: `GET /users/me`
+		 * Ungated because it is the caller's own record: `GET /users/me`
 		 * returns the same thing at level 0. Kept out of `CapabilitySummary::forUser` on
 		 * purpose — that one is rendered into every system prompt and must stay free of
 		 * queries.
@@ -797,8 +796,7 @@
 		 * company, timezone, daily digest and content-alert subscriptions all along.
 		 * The assistant alone required level 1, with no decline line to fall back on, so
 		 * "turn off my daily digest" told an editor to ask an administrator for something
-		 * they can do in two clicks. That is the same class audit #13 D4 closed for
-		 * callout reads: the AI surface stricter than REST, undeliberately.
+		 * they can do in two clicks: the AI surface stricter than REST, undeliberately.
 		 *
 		 * @param object|array $user
 		 */
@@ -808,7 +806,7 @@
 		}
 
 		/**
-		 * The wall that stays up on the self path (audit #14 D3).
+		 * The wall that stays up on the self path.
 		 *
 		 * REST allows a self email change; the assistant does not. An email address is
 		 * the sign-in identity, and changing it from a chat card — where the value came
@@ -1047,7 +1045,7 @@
 
 			// Re-asked at approval like every other staged value: a level-1 account
 			// demoted to level 0 inside the proposal's 24h life is now on the self path,
-			// and the self path does not carry email (audit #14 D3).
+			// and the self path does not carry email.
 			if ($is_self) {
 				$email_denial = self::aiSelfEmailDenial($changes, $target);
 
@@ -1124,7 +1122,7 @@
 					Json::decode(SQL::fetchSingle("SELECT alerts FROM bigtree_users WHERE id = ?", $id)),
 					// Re-asked against the caller's access as it stands now: a page grant
 					// revoked during the proposal's 24h life must not be replayed into
-					// a digest (audit #14 C4).
+					// a digest.
 					$user
 				);
 

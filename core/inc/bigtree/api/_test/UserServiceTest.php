@@ -22,8 +22,8 @@
 	 *  test_userservice_create_copies_permissions_verbatim and
 	 *  test_userservice_update_copies_permissions_verbatim document that a lower-
 	 *  level actor can assign an ARBITRARY permissions blob (no subset check
-	 *  against the actor's own permissions). The audit flagged this as a Low-
-	 *  severity gap. The tests lock the current (permissive) behavior.
+	 *  against the actor's own permissions). It is a known low-severity gap;
+	 *  the tests lock the current (permissive) behavior.
 	 */
 
 	use BigTree\Services\UserService;

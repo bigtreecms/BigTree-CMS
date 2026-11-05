@@ -1,10 +1,9 @@
 <?php
 	/**
-	 * Audit #4 (C3): the parity-drift guard.
+	 * The parity-drift guard.
 	 *
-	 * Four audits in a row found route families that had gained endpoints without
-	 * gaining either a tool or a decline line — the whole of audit #4's part B was
-	 * this one category. The failure is silent by nature: the model discovers the
+	 * Route families gain endpoints without gaining either a tool or a decline line.
+	 * The failure is silent by nature: the model discovers the
 	 * wall by failing at it mid-conversation, and nothing in the suite notices.
 	 *
 	 * So every endpoint family in core/inc/bigtree/api/routes/*.php must be
@@ -31,7 +30,7 @@
 	 * segments removed — so it is keyed by *endpoint*, not by "first segment plus
 	 * one".
 	 *
-	 * Audit #11 E5: the old rule took only the first literal segment after the
+	 * The old rule took only the first literal segment after the
 	 * first, which collapsed every sub-resource into its parent. Where a family's
 	 * per-verb map names one tool per verb, every other endpoint sharing that verb
 	 * was then silently covered by it — `POST /modules/{id}/entries/reorder` was
@@ -182,7 +181,7 @@
 	function ai_contract_covered(): array {
 
 		return [
-			// Audit #24 B1: the family used to be declined outright, on a line worded
+			// The family used to be declined outright, on a line worded
 			// about *editing* 404 monitoring — so a level-1 read was refused by wording
 			// about writes. The read has a tool now; the two write verbs keep the
 			// (narrowed) decline.
@@ -223,7 +222,7 @@
 				"PATCH" => "update_module_entry",
 				"DELETE" => "delete_module_entry",
 			],
-			// Audit #11 E5: these four used to bucket into `modules/entries` above and
+			// These four used to bucket into `modules/entries` above and
 			// be claimed by create_module_entry, because they are POSTs and the map
 			// names one tool per verb. Three are genuinely covered — by a tool nobody
 			// had named — and one is declined by a line nobody had asserted for it.
@@ -234,12 +233,12 @@
 			// The lookups behind the admin's own relation and list pickers. A `list`
 			// field's options arrive on the schema through FieldOptionDomain; a
 			// relation's candidate rows need a tool of their own, because the target
-			// table belongs to the *field*, not to any module (audit #12 B1). This line
+			// table belongs to the *field*, not to any module. This line
 			// used to name list_module_entries, which cannot reach that table — an
 			// assertion about a capability that did not exist.
 			"modules/forms/list-options" => "get_module_schema",
 			"modules/forms/relation-options" => "get_relation_options",
-			// Audit #11 C1: the endpoint that builds a module's table, form and view.
+			// The endpoint that builds a module's table, form and view.
 			// Declined until the assistant could stage the whole plan for approval.
 			"modules/scaffold" => "scaffold_module",
 			"db/tables/columns" => "get_module_schema",
@@ -267,8 +266,7 @@
 				"POST" => "save_page_revision",
 				"DELETE" => "declined: deleting a page revision",
 			],
-			// Its own endpoint since audit #11 E5 — the comment above used to be the
-			// only record that restoring a revision exists at all on this family.
+			// Its own endpoint, so restoring a revision is recorded on this family.
 			"pages/revisions/restore" => "restore_page_revision",
 			"pages/search" => "search_pages",
 			"pages/seo-rating" => "get_page_seo_rating",
@@ -314,7 +312,7 @@
 				// A form's definition is the Module Designer's, and its writes are DDL
 				// over stored entries. These three verbs were classified COVERED by the
 				// read tool above, so the decline that actually applies was never
-				// asserted (audit #9 E1).
+				// asserted.
 				"POST" => "declined: tables, forms, views or actions",
 				"PATCH" => "declined: tables, forms, views or actions",
 				"DELETE" => "declined: tables, forms, views or actions",
@@ -340,15 +338,15 @@
 			"pages/reorder" => "duplicating or reordering pages",
 			"pages/duplicate" => "duplicating or reordering pages",
 			"modules/actions" => "tables, forms, views or actions",
-			// Audit #16 A3. Asserted rather than inherited: invoking used to be
+			// Asserted rather than inherited: invoking used to be
 			// classified by the *editing* line it inherits from `modules/actions`,
 			// which sends an editor to the Module Designer — a developer screen —
 			// about editing something they did not ask to edit. Running an action is
 			// an editor capability (`min v`) and needs its own wording, exactly as
-			// `modules/reports` did in audit #5.
+			// `modules/reports` does.
 			"modules/actions/invoke" => "running a module's custom actions",
 			"modules/views" => "tables, forms, views or actions",
-			// Audit #5: the "editing …" line says nothing about *running* a report,
+			// The "editing …" line says nothing about *running* a report,
 			// which is a module-view-level read any editor has — so the family needs
 			// its own decline wording, not the editing one.
 			"modules/reports" => "running or exporting a module's reports",
@@ -436,8 +434,8 @@
 	/**
 	 * The nearest ancestor of an endpoint that is classified, or "".
 	 *
-	 * Audit #11 E5 keyed this test by endpoint rather than by "first segment plus
-	 * one", which surfaced every sub-resource that used to bucket into its parent.
+	 * This test is keyed by endpoint rather than by "first segment plus one", so
+	 * every sub-resource is classified rather than bucketed into its parent.
 	 * A sub-resource of a DECLINED or N/A family genuinely inherits that answer —
 	 * "Developer → System" covers `system/configure/email` exactly as it covers
 	 * `system/configure` — so those inherit rather than each restating the same
@@ -474,7 +472,7 @@
 	}
 
 	/**
-	 * Audit #11 E5: the endpoints the old family key swallowed are visible, and each
+	 * The endpoints the old family key swallowed are visible, and each
 	 * one names its own tool or its own decline.
 	 *
 	 * Under the previous rule — first segment plus the first following literal —
@@ -588,7 +586,7 @@
 	}
 
 	/**
-	 * Audit #9 E1: the per-verb form is required, not optional.
+	 * The per-verb form is required, not optional.
 	 *
 	 * Only six families used it, and the leg above only checks families that already
 	 * opted in — so a family mapped to a single tool name was never checked
@@ -620,7 +618,7 @@
 	}
 
 	/**
-	 * Audit #9 E1, second half: a write verb may not be covered by a read tool.
+	 * E1, second half: a write verb may not be covered by a read tool.
 	 *
 	 * `modules/forms` was the sharpest case — POST, PATCH and DELETE all classified
 	 * COVERED by get_module_schema, so three write endpoints looked accounted for by
@@ -682,7 +680,7 @@
 		}
 
 		// And nothing may be classified that isn't a real family any more — or the
-		// ancestor of one. Since audit #11 E5 keyed this by endpoint, a family like
+		// ancestor of one. Because this is keyed by endpoint, a family like
 		// `system/configure` may have no endpoint of its own left while still being
 		// the line that declines `system/configure/email` and its siblings, which
 		// inherit from it (ai_contract_inherited_classification).
@@ -784,14 +782,14 @@
 	}
 
 	/**
-	 * Audit #24 E5: a decline that refuses a *read* has to be worded about reading.
+	 * A decline that refuses a *read* has to be worded about reading.
 	 *
 	 * Every decline line is spliced into the system prompt beside "do not improvise a
 	 * workaround", which is what makes a mis-worded one load-bearing: the model is
 	 * told a capability is out of scope in words that describe a different capability.
-	 * Audits #5, #16 and #24 each found one of these by hand — reports ("editing …"
-	 * said nothing about *running* one), action invocation, and the 404 log, where
-	 * "Editing 404 monitoring, or removing redirects" was declining `GET /404s`, a
+	 * Three have turned up by hand — reports ("editing …" said nothing about
+	 * *running* one), action invocation, and the 404 log, where "Editing 404
+	 * monitoring, or removing redirects" was declining `GET /404s`, a
 	 * level-1 read the assistant is permitted to make and now has a tool for.
 	 *
 	 * So: a family with a GET endpoint whose GET is declined must be declined by
@@ -907,7 +905,7 @@
 
 		return [
 			"2fa" => ["two-factor"],
-			// Audit #27 B1: `POST /extensions/build` packages an extension for
+			// `POST /extensions/build` packages an extension for
 			// distribution, which is neither installing, updating nor removing one.
 			"build" => ["packaging"],
 			"upgrade" => ["updating", "updates"],
@@ -969,7 +967,7 @@
 		return [
 			"embed-forms/submit" => "the public submission endpoint an embedded form posts to, not an admin "
 				. "action; the family's decline is about managing the forms",
-			// The exemption audit #27 D5 named as the natural first one.
+			// The natural first exemption.
 			"extensions/recache-hooks" => "rebuilding the hook cache is maintenance, covered by the "
 				. "\"clearing caches\" line rather than by the extension family's own",
 			"field-types/list-options" => "the admin's own field renderer resolving a list field's options; "
@@ -985,9 +983,9 @@
 	}
 
 	/**
-	 * Audit #27 E4: the write half of E5.
+	 * The write half of E5.
 	 *
-	 * Audit #24's E5 asks that a decline refusing a *read* be worded about reading.
+	 * E5 asks that a decline refusing a *read* be worded about reading.
 	 * Nothing asked the same question of a family's write verbs, which is how
 	 * "Installing, updating or removing extensions" came to decline
 	 * `POST /extensions/build` — packaging an extension for distribution, a screen the
@@ -1087,7 +1085,7 @@
 		}
 
 		T::ok(count($in_scope) > 40, "the sweep found the declined writes (" . count($in_scope) . ")");
-		T::ok(isset($in_scope["extensions/build"]), "including extensions/build, the endpoint audit #27 B1 was about");
+		T::ok(isset($in_scope["extensions/build"]), "including extensions/build");
 		T::equals(
 			implode(", ", $mute),
 			"",

@@ -12,7 +12,7 @@
 	 * permissions (an explicit non-tool) and cannot edit a user who outranks the
 	 * actor. Writes nothing until approved.
 	 *
-	 * Offered at every level since audit #14 B1, which is why this no longer extends
+	 * Offered at every level, which is why this doesn't extend
 	 * AbstractAdminMutatingTool: `PATCH /users/{id}` is
 	 * `["any" => [["level" => 1], ["self" => "id"]]]` and the SPA's Profile screen is
 	 * that route, so an editor changing their own notification preferences is an

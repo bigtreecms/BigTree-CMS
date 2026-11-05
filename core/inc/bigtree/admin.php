@@ -6105,7 +6105,7 @@
 			}
 
 			if (!$og_image && !empty($data_source["image"])) {
-				// makeIPL rather than replaceHardRoots alone (audit #24 A1b): the root
+				// makeIPL rather than replaceHardRoots alone: the root
 				// swap only survives a domain change, while an image that is a page
 				// resource or a library file also has to survive the file moving —
 				// makeIPL falls through to replaceHardRoots for everything else, so

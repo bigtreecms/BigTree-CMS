@@ -78,8 +78,7 @@
 	 * A field that already existed and has just been made required is the case
 	 * now_required was written for — and the one it missed. Only fields *new* to the
 	 * template were collected, so flipping an optional field to required produced no
-	 * row at all, while the reverse (required → optional) had been reported since
-	 * audit #7.
+	 * row at all, while the reverse (required → optional) was reported.
 	 */
 	function test_parity_ai_template_diff_flags_an_existing_field_turned_required() {
 		if (!parity_db_available()) {

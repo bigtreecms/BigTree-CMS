@@ -16,7 +16,7 @@
 	 * four-option `<select>`, the single most authorable shape in the framework, which
 	 * neither seam mentioned at all. So "set up the social preview for the new pricing
 	 * page" produced a card that looked complete, wrote half the record, and said
-	 * nothing (audit #22 A2).
+	 * nothing.
 	 *
 	 * One class rather than a pair of lists on two services and four tool definitions:
 	 * the arguments mean the same thing on a page and on an entry, and a domain restated
@@ -123,14 +123,14 @@
 		/**
 		 * The stored form of an Open Graph image, for a writer.
 		 *
-		 * violation() has accepted `ipl://` / `irl://` / `{wwwroot}` since audit #22
-		 * because BigTreeCMS::getOpenGraph untranslates them before drawHeadTags echoes
-		 * the tag — but nothing produced one, so a same-site image URL was stored hard
-		 * and went stale the first time the file moved or the domain changed. Legacy
-		 * runs the column through replaceHardRoots on its own write path
+		 * violation() accepts `ipl://` / `irl://` / `{wwwroot}` because
+		 * BigTreeCMS::getOpenGraph untranslates them before drawHeadTags echoes the tag
+		 * — but without this nothing produces one, so a same-site image URL is stored
+		 * hard and went stale the first time the file moved or the domain changed.
+		 * Legacy runs the column through replaceHardRoots on its own write path
 		 * (BigTreeAdmin::handleOpenGraph); makeIPL is the superset of that, and is what
 		 * turns a link at a library file into the `irl://` that carries a resource
-		 * allocation (audit #24 A1b).
+		 * allocation.
 		 */
 		public static function storedImage(string $image): string {
 			if (trim($image) === "") {

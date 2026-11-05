@@ -1,14 +1,14 @@
 <?php
 	/**
-	 * Audit #31 E3: every hook the Module Designer lets a developer configure is
+	 * Every hook the Module Designer lets a developer configure is
 	 * either run by the entry write path or exempt with a written reason.
 	 *
 	 * The designer offers four form hooks. The remaster wired `post` and `publish`
 	 * into every entry writer and left `pre` running nowhere but embed forms — and
 	 * nothing noticed, because no test related what the designer *offers* to what the
 	 * write path *does*. This one parses the offer straight out of the TSX, so the
-	 * next hook added to the designer and left unwired fails here rather than in a
-	 * later audit.
+	 * next hook added to the designer and left unwired fails here rather than
+	 * shipping unwired.
 	 */
 
 	use BigTree\Services\AutoModuleService;

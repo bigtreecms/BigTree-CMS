@@ -149,12 +149,12 @@
 		}
 
 		/**
-		 * The relation lookup itself, with the Request lifted out (audit #12 B1).
+		 * The relation lookup itself, with the Request lifted out.
 		 *
 		 * Both callers need exactly this: the SPA's relation picker, and the
-		 * assistant's get_relation_options — which exists because audit #11 B2 made
-		 * relation fields *writable* by entry id while nothing in the catalogue could
-		 * enumerate the ids. A relation's target is `settings["table"]` /
+		 * assistant's get_relation_options — which exists because relation fields are
+		 * *writable* by entry id and something in the catalogue has to enumerate the
+		 * ids. A relation's target is `settings["table"]` /
 		 * `settings["mtm-other-table"]`, which is usually a plain lookup table no
 		 * module owns, so list_module_entries could never reach it.
 		 *
@@ -507,7 +507,7 @@
 		/**
 		 * Whether a field's settings name a table or column that isn't there.
 		 *
-		 * Audit #25 A1. The completeness gate in front of the authoring surfaces
+		 * The completeness gate in front of the authoring surfaces
 		 * (`Resources::aiMissingSettings`) asks only whether a relation's target is
 		 * *named*, so any identifier-shaped string satisfied it — and a scaffold could
 		 * run an irreversible `CREATE TABLE` for a form carrying a field that points at

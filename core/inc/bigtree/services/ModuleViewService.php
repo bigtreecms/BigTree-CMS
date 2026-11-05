@@ -174,7 +174,7 @@
 							foreach ($view["fields"] as $key => $field) {
 								$numeric = false;
 								// A view can name a column the table doesn't have — a
-								// hand-built or legacy view, or (before audit #21 A3) a
+								// hand-built or legacy view, or a
 								// scaffold that mirrored a many-to-many form field into its
 								// landing view. Read unguarded this emitted two diagnostics
 								// per phantom column on every recache; an absent column is

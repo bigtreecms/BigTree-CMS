@@ -166,7 +166,7 @@
 	 * Every table name auditDescriptor emits must be one some REST route audits
 	 * under, or a table that really exists.
 	 *
-	 * Audit #5 found five that were neither: `bigtree_templates`, `bigtree_callouts`,
+	 * Five were once neither: `bigtree_templates`, `bigtree_callouts`,
 	 * `bigtree_callout_groups`, `bigtree_modules`, `bigtree_module_groups` — SQL
 	 * tables dropped at revision 401, while every other writer audits under the
 	 * JSON-DB store name ("templates", "callouts", …). AuditService::list filters on
@@ -251,7 +251,7 @@
 			"every auditDescriptor table is a route's audit table or a real table"
 		);
 
-		// Spot-check the five the audit named, so a revert is caught by name.
+		// Spot-check the five developer stores by name, so a revert is caught by name.
 		foreach (["templates", "callouts", "callout-groups", "modules", "module-groups"] as $store) {
 			T::ok(in_array($store, $emitted, true), "developer objects audit under the JSON-DB name “{$store}”");
 		}
@@ -283,7 +283,7 @@
 	}
 
 	/**
-	 * Audit #16 E2 — the per-tool audit contract.
+	 * E2 — the per-tool audit contract.
 	 *
 	 * `test_audit_descriptor_tables_match_the_rest_routes` above compares two bags
 	 * of *strings*: the literal table names scraped out of `auditDescriptor`'s body
@@ -291,7 +291,7 @@
 	 * a branch whose table is runtime-valued — `self::descriptor((string)$payload["table"], …)`
 	 * contains no literal — so the four module-entry tools were not in the compared
 	 * set at all, and their table quietly drifted from REST's for the whole life of
-	 * the catalog (audit #16 A2). It also compares nothing about `type`, which is
+	 * the catalog. It also compares nothing about `type`, which is
 	 * how four branches ended up writing a different verb for the same event (B1).
 	 *
 	 * So this one is per *tool*, and it runs the real function instead of reading
@@ -620,7 +620,6 @@
 			"set_module_entry_flag", "delete_module_entry",
 			"remove_tags", "reject_pending_change",
 			"get_module", "get_module_schema", "get_pending_change",
-			// Audit #2 phase 4.
 			"update_callout", "update_module", "get_callout",
 			"get_audit_trail", "get_page_revisions", "restore_page_revision",
 		] as $expected) {

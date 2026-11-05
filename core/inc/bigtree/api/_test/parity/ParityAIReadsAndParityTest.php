@@ -1,7 +1,6 @@
 <?php
 	/**
-	 * Audit #5 Phases 3 and 4: what the assistant can read, and the validation and
-	 * parity nits underneath it.
+	 * What the assistant can read, and the validation and parity nits underneath it.
 	 *
 	 * Phase 3 is about reads that leaked (no per-row group check), reads that lied
 	 * (the wrong form's row), and reads that simply weren't there (page content,
@@ -251,7 +250,7 @@
 			return;
 		}
 
-		// add_tags refuses a form whose tagging switch is off (audit #27 A1), and News
+		// add_tags refuses a form whose tagging switch is off, and News
 		// ships with it off — same fixture step the entry-write tests take.
 		$tagging = parity_enable_news_relations();
 		$svc = new AutoModuleService();
@@ -279,7 +278,7 @@
 				"usage_count" => 0,
 			]);
 
-			// An editor's tag change now queues (audit #5 A2) — and its whole content
+			// An editor's tag change now queues — and its whole content
 			// lives in tags_changes, which the diff used to ignore entirely.
 			$tags = new TagService();
 			$validated = $tags->aiValidateAddTags([

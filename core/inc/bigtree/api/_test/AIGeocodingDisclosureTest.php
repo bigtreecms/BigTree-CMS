@@ -1,6 +1,6 @@
 <?php
 	/**
-	 * Audit #30: the one field type whose value comes from neither the model nor the
+	 * The one field type whose value comes from neither the model nor the
 	 * person, but from a third-party service at write time.
 	 *
 	 * A `geocoding` field has no value of its own: at save it concatenates its source
@@ -10,18 +10,18 @@
 	 * coordinates, it surfaced the geocoder's own error to the editor, and (by
 	 * clearing) it never let a row carry coordinates belonging to a previous address.
 	 *
-	 * That was structurally invisible for the same reason audit #29's finding was:
-	 * every value-domain and required-field guard keys its rule to a value the model
-	 * supplies, and AIRequiredFieldGateTest asserts — correctly — that `route` and
-	 * `geocoding` are not gaps because "they are populated by applyEntryProcessors at
-	 * write time". Nothing then asked what *populated* means when the lookup fails.
+	 * That was structurally invisible because every value-domain and required-field
+	 * guard keys its rule to a value the model supplies, and AIRequiredFieldGateTest
+	 * asserts — correctly — that `route` and `geocoding` are not gaps because "they are
+	 * populated by applyEntryProcessors at write time". Nothing then asked what
+	 * *populated* means when the lookup fails.
 	 *
 	 * And the failure case is the common case, not an edge: BigTreeGeocoding defaults
 	 * to Google with whatever `google_key` is stored, so on an install where
 	 * Developer → System → Geocoding was never filled in — the state every fresh
 	 * install is in — every lookup in every geocoding module fails.
 	 *
-	 * This file holds the fixtures the other audit #30 guards share, plus E3
+	 * This file holds the fixtures the other geocoding guards share, plus E3
 	 * (get_module_schema names the derived columns) and E6 (get_module names a
 	 * geocoding form whose table has no coordinate columns). E1's write legs live in
 	 * parity/ParityAIEntryProcessorsTest, beside the route legs they belong with.
@@ -34,8 +34,8 @@
 	 * A geocoder that answers whatever the test says, without a socket.
 	 *
 	 * BigTree::cURL has no stub hook, so pre-seeding the geocode cache can only
-	 * cover the success leg — and the failure leg is the one this audit is about.
-	 * AutoModuleService::$geocoder_factory exists for exactly this (audit #30 D5);
+	 * cover the success leg — and the failure leg is the one this test is about.
+	 * AutoModuleService::$geocoder_factory exists for exactly this;
 	 * it is the whole of the production change made for testability.
 	 */
 	class AIGeocodingStub {
@@ -86,7 +86,7 @@
 	/**
 	 * A throwaway module whose form geocodes, over a throwaway table.
 	 *
-	 * Built the way ai_feature_switch_module builds one (audit #27), with the two
+	 * Built the way ai_feature_switch_module builds one, with the two
 	 * address columns the field is sourced from and — unless the caller asks for the
 	 * A3 shape — the two coordinate columns it writes into.
 	 *
@@ -182,7 +182,7 @@
 	 * named `latitude` / `longitude` as columns the write would fill, nor which
 	 * source columns feed them: the model could not tell a person why the map pin
 	 * moved or didn't, and had no reason to include every part of an address on a
-	 * create (audit #30 A2).
+	 * create.
 	 *
 	 * Fails on the tree before this pass: the schema has no `derived_columns` key.
 	 */

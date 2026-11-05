@@ -7,25 +7,25 @@
 	/**
 	 * One previewed value, in the form the person clicking Approve can actually check.
 	 *
-	 * Audit #15 A1. Every audit from #1 to #14 walked outward from the value to the
-	 * row, the container, the column, the schema and the clock, and all of them stop
-	 * at the moment the payload is staged. The surface none of them audited is the
-	 * last one before the write happens and the only one a human reads: the proposal
-	 * card. The values reaching it were the *stored* forms —
+	 * The other guards walk outward from the value to the row, the container, the
+	 * column, the schema and the clock, and all of them stop at the moment the payload
+	 * is staged. The surface they miss is the last one before the write happens and
+	 * the only one a human reads: the proposal card. The values reaching it were the
+	 * *stored* forms —
 	 *
 	 *  - a link-bearing field is tokenized at the sift (aiNormalizeHtmlValue), so an
 	 *    internal link reached the card as `ipl://cGFnZXM6NDI=` on the `from` and the
 	 *    `to` side alike, and a token the model mangled while rewriting the prose
-	 *    around it is indistinguishable from an intact one. Audit #10 B3 built the
-	 *    inverse and applied it at five *read* seams and zero preview seams, which
-	 *    inverts the protection exactly backwards: its own docblock names the
-	 *    proposal diff as "the one class of AI-caused damage the human approval gate
-	 *    structurally cannot catch", and that half was still true.
-	 *  - a reference field (audit #11 B1) stores a `bigtree_resources` id, so the card
+	 *    around it is indistinguishable from an intact one. Applying the inverse at
+	 *    *read* seams but not preview seams inverts the protection exactly
+	 *    backwards: its own docblock names the proposal diff as "the one class of
+	 *    AI-caused damage the human approval gate structurally cannot catch", and
+	 *    that half was still true.
+	 *  - a reference field stores a `bigtree_resources` id, so the card
 	 *    read "Photo: 482" — the approver could not tell which file was being
 	 *    attached, while the *model* picked it through search_files, which resolves
 	 *    the name server-side already.
-	 *  - a relation field (audit #11 B2) stores row ids, so the card read
+	 *  - a relation field stores row ids, so the card read
 	 *    `["12","15"]` with the same consequence.
 	 *
 	 * Resolving happens here, at the preview seam, and nowhere near the write seam:
@@ -76,11 +76,11 @@
 		}
 
 		/**
-		 * A reference value as `filename (#482)`.
+		 * A reference value as `filename`.
 		 *
 		 * An id that resolves to nothing degrades rather than throwing, and says so:
 		 * that a file went away inside the proposal's 24h life is itself something the
-		 * approver wants to see, and the referential re-check at approval (audit #8)
+		 * approver wants to see, and the referential re-check at approval
 		 * refuses the write regardless. describe() is folder-filtered by design, so a
 		 * deleted file and one in a folder this actor can't see are deliberately
 		 * indistinguishable here — hence "no longer available" rather than a claim
@@ -115,7 +115,7 @@
 		}
 
 		/**
-		 * A relation value as `Title (#12), Title (#15)`.
+		 * A relation value as `Title, Title`.
 		 *
 		 * @param mixed $value
 		 * @param array<string,mixed> $field

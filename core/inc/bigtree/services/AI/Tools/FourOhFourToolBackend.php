@@ -14,7 +14,7 @@
 	 * "fix our broken links" both start at the log, and the model either had to be
 	 * handed the URLs by the user or decline a read it was permitted to perform. The
 	 * decline line it fell back on was worded about *editing* 404 monitoring, so it
-	 * refused a read on the strength of wording about writes (audit #24 B1).
+	 * refused a read on the strength of wording about writes.
 	 */
 	interface FourOhFourToolBackend {
 		/**

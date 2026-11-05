@@ -40,6 +40,7 @@ const KEY_LABELS: Record<string, string> = {
 	seo_invisible: "Hidden from search",
 	// Revision restores: what the six-column diff can't show on its own.
 	missing_files: "Deleted files it points at",
+	defaults_applied: "Filled from field defaults",
 	template_missing: "Template no longer exists",
 	queued_draft: "Unpublished draft on this page",
 };

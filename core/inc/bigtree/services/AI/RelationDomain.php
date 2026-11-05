@@ -9,13 +9,13 @@
 	 * The value domain for the two relationship field types — `one-to-many` and
 	 * `many-to-many`.
 	 *
-	 * Audit #11 B2. The AI path knew about relations only in order to protect them:
-	 * audit #4 added `aiExistingEntryRelations()` because passing `[]` to
-	 * `updateItem`/`submitChange` was *deleting* an entry's relations on every edit,
-	 * and audit #5 extended it to merge against a queued draft. So the seam carried
-	 * relations through every write and could never author one — "file this staff
-	 * member under Marketing", "relate this article to those three products" had ids
-	 * coming straight out of `list_module_entries` and no way to write them.
+	 * The AI path once knew about relations only in order to protect them:
+	 * `aiExistingEntryRelations()` exists because passing `[]` to
+	 * `updateItem`/`submitChange` *deletes* an entry's relations on every edit, and it
+	 * merges against a queued draft. So the seam carried relations through every write
+	 * and could never author one — "file this staff member under Marketing", "relate
+	 * this article to those three products" had ids coming straight out of
+	 * `list_module_entries` and no way to write them.
 	 *
 	 * Both types store row ids and nothing else:
 	 *

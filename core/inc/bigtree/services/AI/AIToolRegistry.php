@@ -138,8 +138,7 @@
 		 * staged proposal from either. "elicit" is the vocabulary for a tool that
 		 * gathers input mid-turn and writes nothing — no core tool declares it, and
 		 * it is kept because it is part of the published extension contract
-		 * (docs/ai-extension-tools.md), not because anything in core needs it
-		 * (audit #19 B3).
+		 * (docs/ai-extension-tools.md), not because anything in core needs it.
 		 */
 		private const KINDS = ["read", "mutate", "elicit"];
 

@@ -1,18 +1,18 @@
 <?php
 	/**
-	 * Audit #12 B1 and guard E7: a writable field type whose candidate rows are
-	 * discoverable, and error text that names tools which exist.
+	 * A writable field type whose candidate rows are discoverable, and error text that
+	 * names tools which exist.
 	 *
-	 * Audit #11 B2 made `one-to-many` and `many-to-many` settable by entry id, and
-	 * did it carefully — RelationDomain builds the `__mtm__` descriptor from the field
-	 * definition rather than the model, checks every id against the target table,
-	 * applies per-row permissions and honours the field's `max`. To write one, the
-	 * model needs ids, and nothing in the catalogue could produce them: a relation's
-	 * target is `settings["table"]` / `settings["mtm-other-table"]`, which is not
-	 * required to be any module's table and usually isn't one. RelationDomain's own
-	 * error told the model to "find them with list_module_entries", a tool that cannot
-	 * reach that table — and the route-family contract recorded the same non-existent
-	 * capability as covering the endpoint.
+	 * `one-to-many` and `many-to-many` are settable by entry id, carefully —
+	 * RelationDomain builds the `__mtm__` descriptor from the field definition rather
+	 * than the model, checks every id against the target table, applies per-row
+	 * permissions and honours the field's `max`. To write one, the model needs ids, and
+	 * nothing in the catalogue could produce them: a relation's target is
+	 * `settings["table"]` / `settings["mtm-other-table"]`, which is not required to be
+	 * any module's table and usually isn't one. RelationDomain's own error told the
+	 * model to "find them with list_module_entries", a tool that cannot reach that
+	 * table — and the route-family contract recorded the same non-existent capability
+	 * as covering the endpoint.
 	 *
 	 * E7 is the general form of that mistake: a message naming a tool is a promise,
 	 * and a promise about a tool that isn't registered is worse than no promise. This

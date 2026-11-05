@@ -8,8 +8,7 @@
 	 * the module's view or form, and the declaration had no way to say so. The
 	 * table picker on the audit screen is `SHOW TABLES`, so "module_entry" could
 	 * never be selected, and the assistant — which did name the real table —
-	 * wrote the other half of the same history somewhere else entirely
-	 * (audit #16 A2).
+	 * wrote the other half of the same history somewhere else entirely.
 	 *
 	 * `table` now takes a `%token%` the way `entry` always has, resolved from the
 	 * values the service puts on the response. These drive the middleware directly

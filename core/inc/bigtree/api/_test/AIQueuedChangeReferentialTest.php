@@ -1,14 +1,13 @@
 <?php
 	/**
-	 * Audit #28 guard E1: the referenced-entity boundary of a *queued* change.
+	 * The referenced-entity boundary of a *queued* change.
 	 *
-	 * Audits #19/#24/#25/#26 asked what a write does to the world at the moment it
-	 * runs. This asks the opposite question. A pending change is a write that has not
+	 * Other guards ask what a write does to the world at the moment it runs. This
+	 * asks the opposite question. A pending change is a write that has not
 	 * run yet, and it names things — a target row, a parent page, tag ids, a module —
 	 * by id. Between the moment it is queued and the moment somebody approves it,
-	 * those things can be merged away, deleted, or removed from under it. Audit #28
-	 * found two instances of that (A1's tag ids, A2's deleted page); this closes it as
-	 * a class.
+	 * those things can be merged away, deleted, or removed from under it (merged tag
+	 * ids, a deleted page); this closes it as a class.
 	 *
 	 * `AIWriteSideEffectParityTest` is structurally blind to this: it pairs an AI seam
 	 * with a REST twin and matches effect tokens inside the seam body, while the
@@ -54,8 +53,8 @@
 				"why" => "the parent a NEW page draft is filed under — publishing under a deleted one "
 					. "created a live page in no page tree",
 			],
-			// The entry half, which has been complete on both counts since long before
-			// audit #28 and is the shape A2's page half was measured against.
+			// The entry half, complete on both counts, and the shape the page half is
+			// measured against.
 			"item_id (module entry)" => [
 				"repair" => ["BigTreeAutoModule", "deleteItem", ['SQL::delete("bigtree_pending_changes"']],
 				"refuse" => [PendingChangeService::class, "applyPendingChange", ["entry_deleted"]],

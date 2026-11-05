@@ -1,7 +1,7 @@
 <?php
 	/**
-	 * Audit #4 Phase 1 (A1, A2, A4): values the assistant could still write that
-	 * neither the admin UI nor the REST validators would ever produce.
+	 * Values the assistant could write that neither the admin UI nor the REST
+	 * validators would ever produce.
 	 *
 	 * All three share a shape — a create path that validated something the matching
 	 * update path didn't, or a field stored verbatim because REST happened to be

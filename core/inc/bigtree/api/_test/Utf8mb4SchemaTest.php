@@ -11,7 +11,7 @@
 	 *        exactly 3072 bytes at utf8mb3 and 4096 at utf8mb4, so a new
 	 *        varchar(1024)+KEY pair would make the next conversion impossible.
 	 *   V2 — a 4-byte character (an emoji) survives a write and a read on the three
-	 *        surfaces audit #10 A2 named: a page field, a module entry column, and a
+	 *        surfaces it can land on: a page field, a module entry column, and a
 	 *        chat message. This is the test that would have caught the original bug,
 	 *        where `SET NAMES 'utf8'` (utf8mb3) had MySQL truncate the value AT the
 	 *        emoji and report success.

@@ -13,7 +13,7 @@
 	 *
 	 * Level 0, matching `GET /callouts/{id}`. It used to be developer-gated, which
 	 * made it stricter than the REST route it mirrors — the only read tool in the
-	 * catalogue that was, and not a decision anybody made (audit #13 D4). Editing a
+	 * catalogue that was, and not a decision anybody made. Editing a
 	 * callout is still developer-only.
 	 */
 	class GetCalloutTool extends AbstractReadTool {

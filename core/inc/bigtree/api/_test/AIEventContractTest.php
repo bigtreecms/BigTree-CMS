@@ -1,10 +1,10 @@
 <?php
 	/**
-	 * Audit #26: the `api.*` event contract — who fires, with what, and whether the
+	 * The `api.*` event contract — who fires, with what, and whether the
 	 * approval that finishes a queued change fires anything at all.
 	 *
-	 * Audit #19 asked whether the AI write path runs the same extension-facing side
-	 * effects the human path runs, and answered it for the module form's hooks. This
+	 * The module form's hooks are already checked for running the same
+	 * extension-facing side effects on the AI write path as on the human one. This
 	 * is the next question down, and three of its findings are invisible to
 	 * AIWriteSideEffectParityTest for one structural reason: that guard's map pairs an
 	 * AI seam with a REST twin and matches effects as *tokens in a body*, so
@@ -64,7 +64,7 @@
 			"page.archived" => ["required" => ["id"]],
 			"page.unarchived" => ["required" => ["id"]],
 			// `path` is the new URL, and the one fact a mover's subscriber actually
-			// wants. REST carried it; the AI seam didn't (audit #26 A3).
+			// wants. REST carried it; the AI seam didn't.
 			"page.moved" => ["required" => ["id", "parent", "path"]],
 			"page.pending_created" => [
 				"required" => ["parent", "pending_change_id"],
@@ -298,7 +298,7 @@
 	 * E2: every `api.*` fire matches its event's declared payload contract.
 	 *
 	 * Fails on `module_entry.created`, `module_entry.updated` and `page.moved` as the
-	 * tree stood at 5de00e725 — the AI seams dropped `item` and `path` (audit #26 A3).
+	 * tree stood at 5de00e725 — the AI seams dropped `item` and `path`.
 	 */
 	function test_every_event_fires_with_its_declared_payload() {
 		$contract = ai_event_payload_contract();
@@ -464,12 +464,11 @@
 	/**
 	 * E2, the inversion leg: an event only the assistant can make happen.
 	 *
-	 * This is the shape audit #5 fixed for page.archived / unarchived / moved — "these
-	 * three hooks used to fire on the AI path only", so an extension listening for an
-	 * archive saw assistant-driven ones and missed every one made in the admin — and
-	 * the shape audit #26 A4 found again one service over, where
-	 * `pending_change.rejected` fired from `aiRejectChange` and REST's `reject()`
-	 * deleted the row in silence.
+	 * This is the shape page.archived / unarchived / moved once had — "these three
+	 * hooks used to fire on the AI path only", so an extension listening for an archive
+	 * saw assistant-driven ones and missed every one made in the admin — and the same
+	 * shape one service over, where `pending_change.rejected` fired from
+	 * `aiRejectChange` and REST's `reject()` deleted the row in silence.
 	 *
 	 * The assistant is the rarer writer of every record type here, so an event it alone
 	 * produces is always backwards.
@@ -599,7 +598,7 @@
 	 * Both branches, because they are different acts through different primitives: a
 	 * NEW draft is *promoted* by publishPendingItem and an EDIT is applied in place by
 	 * updateItem. Neither fires anything of its own — grep `Hooks::fire` in
-	 * auto-modules.php and there are no hits — so before audit #26 A2 an extension
+	 * auto-modules.php and there are no hits — so without these an extension
 	 * mirroring rows into a search service saw the publisher's write and missed the
 	 * editor's entirely, which is the assistant's default path.
 	 */
@@ -756,10 +755,10 @@
 	/**
 	 * A4's second inversion: a publisher's tag write lands live and now says so.
 	 *
-	 * The queued half has fired `module_entry.pending_updated` since audit #5, while
-	 * the live half wrote `bigtree_tags_rel` rows directly and fired nothing — so the
-	 * *more* consequential of the two writes was the one no subscriber could see
-	 * (audit #26 A4). Same event name the entry write path uses, through one helper,
+	 * The queued half always fired `module_entry.pending_updated`, while the live
+	 * half wrote `bigtree_tags_rel` rows directly and fired nothing — so the
+	 * *more* consequential of the two writes was the one no subscriber could see.
+	 * Same event name the entry write path uses, through one helper,
 	 * so there is a single token to match and a single place for the two record kinds
 	 * to agree.
 	 */
@@ -770,9 +769,9 @@
 		}
 
 		$restore = ai_event_capture(["module_entry.updated"]);
-		// The News form ships with tagging off, and add_tags refuses that form since
-		// audit #27 A1 — so a fixture that tags an entry turns it on first, exactly as
-		// the entry-write fixtures have since audit #6 B5.
+		// The News form ships with tagging off, and add_tags refuses that form — so a
+		// fixture that tags an entry turns it on first, exactly as the entry-write
+		// fixtures do.
 		$tagging = parity_enable_news_relations();
 		$svc = new AutoModuleService();
 		$tags = new \BigTree\Services\TagService();

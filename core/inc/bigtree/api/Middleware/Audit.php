@@ -21,7 +21,7 @@
 	 * request body, and the response's data envelope. 'table' takes tokens because
 	 * a module entry's table is only knowable at runtime — the route can name the
 	 * module, not the table the row lives in, and auditing every module's entries
-	 * under one literal string partitioned the trail (audit #16 A2).
+	 * under one literal string partitioned the trail.
 	 */
 	class Audit {
 		public function after(Request $request, Response $response) {

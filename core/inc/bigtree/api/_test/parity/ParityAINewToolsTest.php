@@ -1,6 +1,6 @@
 <?php
 	/**
-	 * Audit #3 (B3 / decision D2): the tools built to close catalog gaps.
+	 * The tools built to close catalog gaps.
 	 *
 	 * Each of these wrapped a REST capability the assistant could see the effects of
 	 * but never reach: it could rename a page and not repair the URL, edit the fields
@@ -40,7 +40,7 @@
 			T::ok(!empty($validated["ok"]), "the redirect validates");
 			// `source`/`destination`, not `from`/`to`: a top-level from/to pair is the
 			// card's before/after shape, and struck the source path through as if it
-			// were being deleted (audit #15 A5).
+			// were being deleted.
 			T::equals($validated["preview"]["source"], "/{$source}", "the preview shows the parsed source");
 			T::equals($validated["preview"]["destination"], "/", "the preview shows the destination");
 
@@ -261,8 +261,8 @@
 	}
 
 	/**
-	 * A group can be created with its members named, rather than empty-then-four-edits
-	 * (audit #9 follow-up). Membership is exclusive, so the card has to say what each
+	 * A group can be created with its members named, rather than empty-then-four-edits.
+	 * Membership is exclusive, so the card has to say what each
 	 * callout is moving out of, and a callout deleted inside the TTL is dropped with a
 	 * note rather than written in as a member that renders as nothing.
 	 */

@@ -137,7 +137,7 @@
 				"hooks" => $t["hooks"] ?? [],
 				// Which extension owns this record, "" when the site does. An
 				// extension-owned template read back as an ordinary one, and every
-				// consequence of that followed from the omission (audit #13 A3).
+				// consequence of that followed from the omission.
 				"extension" => (string)($t["extension"] ?? ""),
 			];
 		}
@@ -403,7 +403,7 @@
 			// The write is the last thing that can fail and the one thing nothing used
 			// to check: a false here means the record is not on disk, so the card has to
 			// say FAILED and stay retryable rather than reporting a template that does
-			// not exist (audit #17 A3). TemplateScaffold has always refused to claim it
+			// not exist. TemplateScaffold has always refused to claim it
 			// wrote the *render file* when it couldn't — this is the record half of the
 			// same tool finally answering the same question.
 			if (BigTreeJSONDB::insert("templates", $insert) === false) {
@@ -537,8 +537,7 @@
 				"changes" => $diff,
 			];
 			// Non-fatal: the developer keeps the edit, they just get to know it is
-			// temporary before they approve it rather than after the next upgrade
-			// (audit #13 A3/D5).
+			// temporary before they approve it rather than after the next upgrade.
 			$extension_warning = ExtensionDomain::warning($existing, "template");
 
 			if ($extension_warning !== "") {
@@ -625,7 +624,7 @@
 				// file either, so "add a subtitle field to the article template" produced a
 				// field that appears in the page editor, an editor who fills it in, and a
 				// site that never renders it. fields_removed and now_required already model
-				// the right shape: the consequence appended to the value (audit #10 C1).
+				// the right shape: the consequence appended to the value.
 				$existing = BigTreeJSONDB::get("templates", $template_id);
 				$path = TemplateScaffold::templatePath($template_id, !empty($existing["routed"]));
 				$rows["fields_added"] = implode(", ", $added)
@@ -649,8 +648,7 @@
 				// drops the field's stored settings (deliberately — they configure the
 				// *old* type) and every page already on the template keeps a value
 				// stored in the old type's shape. Both are recoverable, both were
-				// invisible on the card, and the other three rows have carried their
-				// consequence since audits #3, #9 and #10 (audit #23 B1).
+				// invisible on the card, and the other three rows carry their consequence.
 				$rows["fields_retyped"] = implode(", ", $retyped)
 					. " — " . (count($retyped) === 1 ? "the field's" : "each field's")
 					. " settings are discarded, since they configure the old type"
@@ -667,7 +665,7 @@
 				// carrying a required field it has no value for, so the admin's own save
 				// refuses it and update_page_content hits the blocked-required gate on
 				// pages this edit never touched. fields_removed above already models the
-				// right shape — the consequence appended to the value (audit #9 C2).
+				// right shape — the consequence appended to the value.
 				//
 				// Worded to hold for both ways a field becomes required: one added to the
 				// template (empty everywhere by definition) and one that already existed
@@ -821,7 +819,7 @@
 			// Re-asked at approval like every other staged fact: an extension can be
 			// installed over — or uninstalled out from under — this record inside the
 			// proposal's 24h life, so ownership is read from the record as it stands
-			// now rather than from the card (audit #13 A3).
+			// now rather than from the card.
 			$extension_warning = ExtensionDomain::warning($existing, "template");
 
 			if ($extension_warning !== "") {

@@ -1,8 +1,8 @@
 <?php
 	/**
-	 * Audit #17 Part C: the two questions on the far side of a completed write.
+	 * The two questions on the far side of a completed write.
 	 *
-	 * Audits #1–#16 all walked outward from the value to the record being written —
+	 * Every other guard walks outward from the value to the record being written —
 	 * the row, the container, the sibling proposal, the column, the clock, the
 	 * caller, the card, the read seam, the audit row. Neither of the questions that
 	 * only exist *after* the write had a guard anywhere:
@@ -104,8 +104,8 @@
 	/**
 	 * What makes a tool destructive, in its own source. A tool qualifies if its card
 	 * says so or if its write reaches a primitive that removes or hides a record —
-	 * discovered rather than listed, because a list is exactly what audit #17 A1 and
-	 * A2 slipped past (nobody had written one).
+	 * discovered rather than listed, because a list is exactly what destructive
+	 * writes slipped past before (nobody had written one).
 	 *
 	 * @return array<string,string> substring => what it means
 	 */
@@ -256,7 +256,7 @@
 			}
 
 			// The key has to reach the card too, which is the other half of this
-			// contract and the map audit #15 built to hold it.
+			// contract and the map built to hold it.
 			if (function_exists("ai_preview_key_shapes") && !isset(ai_preview_key_shapes()[$parts[0]])) {
 				$unshaped[] = "{$tool} → {$parts[0]}";
 			}
@@ -275,7 +275,7 @@
 	 * BigTreeAutoModule::deleteItem that proves the teardown addresses it.
 	 *
 	 * Six of the seven were already right, which is the point: the pattern was
-	 * established (audit #7 B3 deliberately moved entry teardown *into* deleteItem),
+	 * established (entry teardown deliberately lives *inside* deleteItem),
 	 * and the connecting tables a module's own forms declare were the one thing left
 	 * out of it — silently, because nothing enumerated the set.
 	 *

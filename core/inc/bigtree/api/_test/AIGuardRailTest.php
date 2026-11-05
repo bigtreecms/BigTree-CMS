@@ -94,7 +94,7 @@
 
 		// A number in this CMS is a `text` field carrying the `numeric` validation
 		// rule — there is no `number` field type, so the branch that used to be tested
-		// here could never run on a real setting (audit #11 A3).
+		// here could never run on a real setting.
 		$number = [
 			"id" => "zz-num", "name" => "Guard Number", "type" => "text",
 			"settings" => ["validation" => "numeric"],
@@ -144,7 +144,7 @@
 
 		// Same correction as the numeric case: an email setting is a `text` field with
 		// the `email` rule, checked by the rule-string path, which is the mechanism
-		// that actually runs (audit #11 A3).
+		// that actually runs.
 		$email = [
 			"id" => "zz-email", "name" => "Guard Email", "type" => "text",
 			"settings" => ["validation" => "email"],
@@ -159,8 +159,8 @@
 			"a valid email is accepted"
 		);
 
-		// `link` is a real type this path has always been able to set, and until audit
-		// #11 B3 it was the one settable type with no shape check at all.
+		// `link` is a real type this path has always been able to set, and it was once
+		// the one settable type with no shape check at all.
 		$link = ["id" => "zz-link", "name" => "Guard Link", "type" => "link", "settings" => []];
 		T::ok(
 			isset(ai_guard_invoke($svc, "aiCheckSettingValue", [$link, "our pricing page"])["error"]),
@@ -230,7 +230,7 @@
 	}
 
 	/**
-	 * Audit #4 (A6): REST declares level as in:0,1,2, but the AI create path stored
+	 * REST declares level as in:0,1,2, but the AI create path stored
 	 * whatever int arrived. A level of 7 compares as higher than everyone, so the
 	 * template silently becomes unusable rather than erroring anywhere.
 	 */

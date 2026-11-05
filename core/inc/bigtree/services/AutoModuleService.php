@@ -12,6 +12,7 @@
 	use BigTree\Api\Exceptions\AuthorizationException;
 	use BigTree\Services\AI\Tools\ModuleEntryToolBackend;
 	use BigTree\Services\AI\ColumnDomain;
+	use BigTree\Services\AI\FieldDefaultDomain;
 	use BigTree\Services\AI\FieldOptionDomain;
 	use BigTree\Services\AI\FieldTypeDomain;
 	use BigTree\Services\AI\OpenGraphDomain;
@@ -38,7 +39,7 @@
 		// Which field types the assistant may set is no longer a list here: it is
 		// derived from the field types' own declared taxonomy by FieldTypeDomain,
 		// because the list that used to live at this line named ten types this CMS has
-		// never had and omitted one it does (audit #11 A2/A4). The markup/link-bearing
+		// never had and omitted one it does. The markup/link-bearing
 		// subsets stay on PageService, shared rather than restated, so the two paths
 		// cannot tokenize different things.
 
@@ -178,8 +179,8 @@
 			$this->applyFormDefaultPosition($module, $table, $data);
 
 			// The line legacy showed the editor on the save that produced no
-			// coordinates. Audit #29 gave restoreRevision the same seam; this is the
-			// SPA's own entry editor getting it back (audit #30 A2 / phase 4).
+			// coordinates. restoreRevision has the same seam; this is the SPA's own entry
+			// editor getting it back.
 			$warnings = $this->entryWriteWarnings($geocoding);
 
 			// Publishers/admins write live only when they explicitly publish; without
@@ -341,7 +342,7 @@
 		 * — discarding a draft that was never published is a genuinely different act,
 		 * and the proposal summary says so — but the fix is to fire both on both paths
 		 * rather than to drop either: losing an event breaks extensions, gaining one
-		 * doesn't (audit #17 B1/D5). Spelled here once so the two paths can't drift
+		 * doesn't. Spelled here once so the two paths can't drift
 		 * again.
 		 *
 		 * @param int|string $entry_id
@@ -508,7 +509,7 @@
 		 * — a name the audit screen's table picker can never offer, shared across
 		 * every module, and not the name the assistant's own writes use. Naming the
 		 * real table here is what makes "what happened to entry 12 in News?" one
-		 * question with one answer (audit #16 A2/B3).
+		 * question with one answer.
 		 *
 		 * @param int|string|null $entry The row actually written ("p12" for a draft).
 		 */
@@ -797,7 +798,7 @@
 
 		/**
 		 * Attach them to a write response, when there are any. Same shape as the page
-		 * revision restore's (audit #29): a `warnings` array the SPA raises as a toast
+		 * revision restore's: a `warnings` array the SPA raises as a toast
 		 * rather than an error, because the entry itself saved.
 		 *
 		 * Deliberately mixed-in rather than typed: a write's body is whatever its
@@ -824,7 +825,7 @@
 		 * A change queued with null loses its publish hook permanently: the SPA, the
 		 * REST approve route and publish_pending_change all read the stored value
 		 * (PendingChangeService::applyPendingChange), so nothing downstream can
-		 * recover it (audit #19 A1).
+		 * recover it.
 		 */
 		private function formPublishHook(array $module, string $table): ?string {
 			$form = $this->formForTable($module, $table);
@@ -841,12 +842,12 @@
 		 * row landed live (not a pending draft). Extensions like Events rely on
 		 * publish hooks to rebuild caches.
 		 *
-		 * Called from every writer of a module entry — REST's create()/update() and
-		 * the AI seams aiCreateEntry()/aiUpdateEntry() — because a hook that fires
-		 * from only one of them is the divergence audit #19 A1 found and
-		 * AIWriteSideEffectParityTest now holds shut. A throwing hook is logged and
-		 * swallowed: the row is already written, and failing the write over a buggy
-		 * extension hook invites a retry that double-writes.
+		 * Called from every writer of a module entry — REST's create()/update() and the
+		 * AI seams aiCreateEntry()/aiUpdateEntry() — because a hook that fires from
+		 * only one of them is a divergence, and AIWriteSideEffectParityTest holds it
+		 * shut. A throwing hook is logged and swallowed: the row is already written,
+		 * and failing the write over a buggy extension hook invites a retry that
+		 * double-writes.
 		 *
 		 * @param array<string,mixed> $module
 		 * @param array<string,mixed> $data
@@ -897,7 +898,7 @@
 		 * fills columns the form doesn't show (a computed slug, an author id, a sort
 		 * key). The remaster ran it nowhere but embed forms, so every entry written
 		 * through REST or by the assistant on such a module was stored without those
-		 * columns (audit #31 A1).
+		 * columns.
 		 *
 		 * Here both legs collapse into one merge, done *before* the field processors:
 		 * the processors still win over the hook on the columns they derive (legacy's
@@ -994,7 +995,7 @@
 			return $names;
 		}
 
-		/** Whether this form declares a callable `pre` hook — what the AI cards disclose (audit #31 D2). */
+		/** Whether this form declares a callable `pre` hook — what the AI cards disclose. */
 		private function formHasPreHook(?array $form): bool {
 			$hook = is_array($form["hooks"] ?? null) ? ($form["hooks"]["pre"] ?? null) : null;
 
@@ -1059,7 +1060,7 @@
 		 * publishing on a group-based module.
 		 * Returns [$data, $mtm, $tags, $og, $publish, $user_level, $can_publish,
 		 * $geocoding] — the last being the geocoding report the response discloses as
-		 * `warnings[]` when a lookup failed (audit #30 A2).
+		 * `warnings[]` when a lookup failed.
 		 */
 		private function prepareEntryWrite(
 			Request $request,
@@ -1082,7 +1083,7 @@
 			unset($data["id"]);
 
 			// Before the processors, as legacy ran it: the hook may derive the very
-			// columns a route or geocode is computed from (audit #31 A1).
+			// columns a route or geocode is computed from.
 			[$data] = $this->applyFormPreHook($module, $table, $data);
 
 			$geocoding = $this->applyEntryProcessors($module, $table, $data, $route_exclude_id, $row);
@@ -1107,7 +1108,7 @@
 		 * which is what a failed geocode decides against — see applyGeocoding.
 		 *
 		 * Returns applyGeocoding's report, which both writers disclose rather than
-		 * discard (audit #30 A2).
+		 * discard.
 		 *
 		 * @param array<string,mixed> $row
 		 * @return array{attempted:bool,ok:bool,error:string,cleared:bool}
@@ -1216,7 +1217,7 @@
 			// lookup that D1 chose to preserve, $merged still holds the live row's
 			// values, and copying those back would make the update *re-assert* the
 			// previous address's coordinates under the new address rather than simply
-			// leaving them be (audit #30 A1).
+			// leaving them be.
 			if ($geocodes && ($report["ok"] || $report["cleared"])) {
 				$derived = array_merge($derived, self::AI_GEOCODING_COLUMNS);
 			}
@@ -1236,10 +1237,10 @@
 		 * The entry-side twin of PageService::normalizePageResources. The SPA's
 		 * FormRenderer seeds every form column client-side (`seedValues`, reading the
 		 * same `default` setting), so a human-created entry writes all its columns
-		 * while a REST- or AI-created one wrote only what the caller supplied — the
-		 * asymmetry audit #19 B2 found. Shared by create() and aiCreateEntry so REST
-		 * and the assistant get it together; making only the AI seam do it would
-		 * reverse the asymmetry rather than remove it.
+		 * while a REST- or AI-created one would write only what the caller supplied.
+		 * Shared by create() and aiCreateEntry so REST and the assistant get it
+		 * together; making only the AI seam do it would reverse the asymmetry rather
+		 * than remove it.
 		 *
 		 * Only columns whose field actually declares a `default` are seeded. Writing
 		 * "" into every unsupplied column the way the client does would send an empty
@@ -1248,14 +1249,19 @@
 		 * Create-only, and never over a supplied value: on an update the stored row
 		 * already holds a value, and seeding would overwrite it with the default.
 		 *
+		 * Also seeds the draw-time defaults (FieldDefaultDomain::implicitDefault),
+		 * which legacy applied only by pre-filling the editor.
+		 *
 		 * @param array<string,mixed> $data Mutated in place.
+		 * @return array<string,array{title:string,value:string}> The draw-time defaults
+		 *         actually written, for the assistant's result note.
 		 */
-		private function applyFormFieldDefaults(array $module, string $table, array &$data): void {
+		private function applyFormFieldDefaults(array $module, string $table, array &$data): array {
 			$form = $this->formForTable($module, $table);
 
 			if (!$form || !is_array($form["fields"] ?? null)) {
 
-				return;
+				return [];
 			}
 
 			$defaults = [];
@@ -1275,9 +1281,18 @@
 				}
 			}
 
+			// The draw-time defaults legacy applied only by pre-filling the editor.
+			// An explicit `default` above always wins, and a column
+			// the caller supplied — even as "" — is never touched.
+			$implicit = FieldDefaultDomain::implicitDefaults($form["fields"], $data + $defaults, "column");
+
+			foreach ($implicit as $column => $entry) {
+				$defaults[$column] = $entry["value"];
+			}
+
 			if (!$defaults) {
 
-				return;
+				return [];
 			}
 
 			// Only now worth a SHOW CREATE TABLE. A form field whose column has been
@@ -1286,11 +1301,32 @@
 			$description = SQL::describeTable($table);
 			$columns = is_array($description["columns"] ?? null) ? $description["columns"] : [];
 
+			$written = [];
+
 			foreach ($defaults as $column => $value) {
 				if (isset($columns[$column])) {
 					$data[$column] = $value;
+
+					if (isset($implicit[$column])) {
+						$written[$column] = $implicit[$column];
+					}
 				}
 			}
+
+			return $written;
+		}
+
+		/**
+		 * The draw-time defaults a create from this form will fill — the same set
+		 * applyFormFieldDefaults seeds, computed for the proposal card.
+		 *
+		 * @param array<string,mixed> $data The values being written.
+		 * @return array<string,array{title:string,value:string}>
+		 */
+		private function aiFormImplicitDefaults(?array $form, array $data): array {
+			$fields = is_array($form) && is_array($form["fields"] ?? null) ? $form["fields"] : [];
+
+			return FieldDefaultDomain::implicitDefaults($fields, $data, "column");
 		}
 
 		/**
@@ -1302,7 +1338,7 @@
 		 * form handler did, so an entry created through REST or by the assistant landed
 		 * on the column default instead of the position the form declares, which on a
 		 * positioned view is the difference between "new items go to the top" and "new
-		 * items go wherever" (audit #9 B4/D4).
+		 * items go wherever".
 		 *
 		 * Create-only, and never over a supplied value: reordering an existing entry is
 		 * the reorder endpoint's job.
@@ -1363,7 +1399,7 @@
 		/**
 		 * Which stored key each geocoding service's credential lives under, in
 		 * `bigtree-internal-geocoding-service`. Read to answer "is a service
-		 * configured", never to read a key back out (audit #30 D3).
+		 * configured", never to read a key back out.
 		 */
 		private const AI_GEOCODING_SERVICE_KEYS = [
 			"google" => "google_key",
@@ -1395,7 +1431,7 @@
 		 * is stored, so on an install where Developer → System → Geocoding was never
 		 * filled in — the state every fresh install is in — every lookup fails.
 		 *
-		 * So (audit #30 D1): a failed lookup clears both columns when the address it
+		 * So: a failed lookup clears both columns when the address it
 		 * was meant to describe has changed (always true on a create, where there is
 		 * nothing to preserve), and leaves them alone when it hasn't — a coordinate
 		 * that no longer matches its address is wrong data, one that still matches is
@@ -1471,7 +1507,7 @@
 
 		/**
 		 * The geocoder applyGeocoding will use. Never called anywhere else — the
-		 * factory exists for the failure leg's testability (audit #30 D5), not as a
+		 * factory exists for the failure leg's testability, not as a
 		 * general injection point.
 		 *
 		 * @return object an object with geocode(string) and a public $Error
@@ -1552,7 +1588,7 @@
 		/**
 		 * The geocoder's own error, as a disclosure may repeat it.
 		 *
-		 * Third-party response text, so it is data (audit #30 D4): collapsed to one
+		 * Third-party response text, so it is data: collapsed to one
 		 * line, capped, and quoted wherever it is shown. Nothing in it is read as an
 		 * instruction, and no disclosure ever pairs it with a key.
 		 *
@@ -1582,7 +1618,7 @@
 		 * whose whole route family is declined to the assistant precisely because
 		 * integration settings include credentials it must never read back. What is
 		 * disclosed is the service's *name* and whether its key is non-empty; the key
-		 * itself is never returned, logged or quoted (audit #30 D3).
+		 * itself is never returned, logged or quoted.
 		 *
 		 * @param array<string,mixed>|null $form
 		 * @return array{geocodes:bool,source_columns:list<string>,columns:list<string>,
@@ -1631,7 +1667,7 @@
 		/**
 		 * The one sentence a schema entry, a card and a proposal summary all use to
 		 * say what a geocoding field does to this write — including, when it is the
-		 * case, that it will do nothing (audit #30 D2: disclose, never refuse; an
+		 * case, that it will do nothing (disclose, never refuse: an
 		 * unconfigured geocoder is a developer setting the editor can't change, and
 		 * the entry is a valid entry without coordinates — legacy saved it too).
 		 *
@@ -1671,7 +1707,7 @@
 		 * entry's URL slug as columns the write would fill, from which source
 		 * columns, so the model could not explain to a person why the map pin moved
 		 * or didn't, and had no reason to include every part of an address on a
-		 * create (audit #30 A2).
+		 * create.
 		 *
 		 * @param array<string,mixed>|null $form
 		 * @param array<string,mixed> $geocoding aiGeocodingState's answer for $form
@@ -1753,7 +1789,7 @@
 		 * result's `note` at approval, the REST response's `warnings[]` for the SPA's
 		 * own editor. Legacy pushed the geocoder's error into $bigtree["errors"] on
 		 * the very save that produced no coordinates; this is that line, on both of
-		 * the writers that replaced it (audit #30 A2).
+		 * the writers that replaced it.
 		 *
 		 * "" when there is nothing to say: no lookup was attempted, or it worked.
 		 *
@@ -2085,8 +2121,8 @@
 			// Columns the *table* requires that the form can't fill. In non-strict mode
 			// they silently take '' or 0 on every write — the admin's own create does
 			// exactly the same thing, because createItem builds its INSERT from the
-			// form's columns too, so this is disclosed rather than refused (audit #10
-			// A1). Refusing would make the assistant the only writer that can't create
+			// form's columns too, so this is disclosed rather than refused. Refusing
+			// would make the assistant the only writer that can't create
 			// an entry on a legacy table.
 			$unsettable_columns = ColumnDomain::unsettableRequiredColumns((string)$table, is_array($resolved["form"] ?? null) ? $resolved["form"] : null);
 
@@ -2100,7 +2136,7 @@
 			// The columns this write fills from something other than the values on the
 			// card. An entry whose coordinates will be empty because no geocoding
 			// service is configured is a record stored as complete that isn't, and
-			// neither the summary nor the card said a word about it (audit #30 A2).
+			// neither the summary nor the card said a word about it.
 			$geocoding_state = $this->aiGeocodingState(is_array($resolved["form"] ?? null) ? $resolved["form"] : null);
 			$geocoding_note = $this->aiGeocodingNote($geocoding_state);
 
@@ -2108,7 +2144,7 @@
 				$mode_note .= " " . $geocoding_note;
 			}
 
-			// The hook isn't run here (audit #31 D2), so what it will do is disclosed.
+			// The hook isn't run here, so what it will do is disclosed.
 			$pre_hook_note = $this->formHasPreHook(is_array($resolved["form"] ?? null) ? $resolved["form"] : null)
 				? self::AI_PRE_HOOK_NOTE
 				: "";
@@ -2117,7 +2153,20 @@
 				$mode_note .= " " . $pre_hook_note;
 			}
 
-			// Audit #13 A1. Said on the card as well as in the result, because the model
+			// Fields the create will fill from their draw-time defaults — today's date,
+			// a pre-checked box, a list's first option. aiCreateEntry seeds them through
+			// applyFormFieldDefaults at approval (so a date is the approval's day), and
+			// the card has to say a value is coming that nobody typed.
+			$implicit_defaults = $this->aiFormImplicitDefaults(
+				is_array($resolved["form"] ?? null) ? $resolved["form"] : null,
+				$data
+			);
+
+			if ($implicit_defaults) {
+				$mode_note .= " " . FieldDefaultDomain::appliedNote($implicit_defaults);
+			}
+
+			// Said on the card as well as in the result, because the model
 			// is not required to call get_module_schema before a create, and the person
 			// clicking Approve is the one who needs to know the entry won't be live.
 			$approval_note = $this->aiApprovalNote(
@@ -2127,8 +2176,8 @@
 			);
 
 			// Real, optional fields the assistant can't author — the entry saves fine
-			// without them and renders empty on the site, so the card has to say so
-			// (audit #14 C2). Folded into the same `warning` key the approval note uses:
+			// without them and renders empty on the site, so the card has to say so.
+			// Folded into the same `warning` key the approval note uses:
 			// both are consequences rather than values, and ProposalCard renders one
 			// warning block.
 			$unfillable = FieldTypeDomain::optionalUnsettableNote(
@@ -2161,6 +2210,10 @@
 
 			if ($blocked) {
 				$preview["incomplete_required"] = $blocked;
+			}
+
+			if ($implicit_defaults) {
+				$preview["defaults_applied"] = FieldDefaultDomain::describeApplied($implicit_defaults);
 			}
 
 			if ($unsettable_columns) {
@@ -2199,8 +2252,7 @@
 
 			// A create has no row to go stale, but it can still be *about* something
 			// that does: a file it references can be deleted or replaced inside the
-			// proposal's 24h life, and approving would store an id pointing at nothing
-			// (audit #11 B1).
+			// proposal's 24h life, and approving would store an id pointing at nothing.
 			$resource_ids = ResourceReferenceDomain::referencedIds($schema, $data);
 
 			if ($resource_ids) {
@@ -2310,8 +2362,8 @@
 			array $resource_ids = []
 		): array {
 			// A referenced file is staged as an id, and an id survives its row being
-			// deleted, re-uploaded or moved out of view inside the proposal's 24h life
-			// (audit #11 B1). Hashed even when the target is a draft, because the draft
+			// deleted, re-uploaded or moved out of view inside the proposal's 24h life.
+			// Hashed even when the target is a draft, because the draft
 			// descriptor knows nothing about the Files library.
 			$reference_part = $resource_ids ? [["type" => "resources", "ids" => $resource_ids]] : [];
 
@@ -2349,9 +2401,9 @@
 		 * identifies a relationship field.
 		 *
 		 * An AI edit is a partial write. Passing only what the model authored would
-		 * delete every *other* relationship on the entry — which is exactly the bug
-		 * audit #4 fixed for the read-only case, so authoring must not reintroduce it
-		 * from the other side.
+		 * delete every *other* relationship on the entry — the same bug the read-only
+		 * case guards against, so authoring must not reintroduce it from the other
+		 * side.
 		 *
 		 * @param list<array<string,mixed>> $existing
 		 * @param list<array<string,mixed>> $authored
@@ -2423,10 +2475,10 @@
 		 * sentence rather than restating it — the way aiOptionViolation wraps
 		 * FieldOptionDomain::violation so two callers cannot drift apart.
 		 *
-		 * The entry write seams enforced this from audit #6 B5; add_tags reaches the
-		 * same `bigtree_tags_rel` rows without going through the entry form, and until
-		 * audit #27 A1 it never asked (so the rows it wrote had no admin screen that
-		 * could show or remove them, and the entry's next ordinary save deleted them
+		 * The entry write seams enforce this; add_tags reaches the same
+		 * `bigtree_tags_rel` rows without going through the entry form, so it has to
+		 * ask too (otherwise the rows it wrote would have no admin screen that could
+		 * show or remove them, and the entry's next ordinary save would delete them
 		 * outright — auto-modules.php:456 clears the record's relations on every write
 		 * and a tagging-off form re-submits none).
 		 *
@@ -2522,11 +2574,11 @@
 
 		// Per-value caps on the two entry read seams. Both used to cut silently — no
 		// marker in the payload at all — while update_module_entry replaces the whole
-		// column, which is audit #10's B1. get_module_entry now reads at the same
-		// budget a page body reads at (PageService::AI_CONTENT_FIELD_CAP): there was
-		// never a principled reason for a news body to be shown at one-twelfth of it.
-		// list_module_entries stays short — it is a directory, not an editing read —
-		// and both now say which fields they cut.
+		// column. get_module_entry reads at the same budget a page body reads at
+		// (PageService::AI_CONTENT_FIELD_CAP): there was never a principled reason for
+		// a news body to be shown at one-twelfth of it. list_module_entries stays short
+		// — it is a directory, not an editing read — and both now say which fields they
+		// cut.
 		public const AI_ENTRY_READ_CAP = PageService::AI_CONTENT_FIELD_CAP;
 
 		public const AI_ENTRY_LIST_VALUE_CAP = 300;
@@ -2596,7 +2648,7 @@
 			$columns = array_merge(["id"], array_keys($schema));
 			// Which values were cut, per row. `has_more` says there are more *rows*; it
 			// has never said anything about a row's own values being shown in part, and
-			// the write tools replace a column wholesale (audit #10 B1).
+			// the write tools replace a column wholesale.
 			$truncated = [];
 			$entries = array_map(function ($row) use ($columns, $schema, &$truncated) {
 				$out = [];
@@ -2640,8 +2692,8 @@
 			// The per-value cap bounds a column; nothing bounded the payload. Fifty
 			// rows of a twenty-five field module at 300 characters each is ~375,000
 			// characters in one tool result, re-fed on every later round until the
-			// request overflows the model's context and the whole turn dies (audit #18
-			// A1). Rows are dropped rather than values shortened — a row read whole is
+			// request overflows the model's context and the whole turn dies. Rows are
+			// dropped rather than values shortened — a row read whole is
 			// worth more than every row read in part — and the drop is disclosed with
 			// the `has_more` this payload already carries.
 			$fitted = PayloadBudget::fitRows($entries);
@@ -2689,7 +2741,7 @@
 		 * Tags and Open Graph are writable through create/update_module_entry and
 		 * neither appeared in any read payload, so the model could set a social title
 		 * but never see one — and "what is this tagged?" had no answer at all.
-		 * Many-to-many joined them when audit #11 B2 made relations authorable: a
+		 * Many-to-many joins them because relations are authorable: a
 		 * relation lives in a connecting table, not in a column, so it appears in no
 		 * part of the flattened row, and an assistant that can set one but not see it
 		 * would replace relations it should have left alone.
@@ -2718,7 +2770,7 @@
 				"tags" => array_values(array_map("strval", $names ?: [])),
 				// All four, keyed by the arguments that write them: the entry read seam is
 				// what the surface guard measures the write arguments against, and an
-				// entry's social image was as unreadable as a page's until audit #22 B3.
+				// entry's social image has to be as readable as a page's.
 				"open_graph" => OpenGraphDomain::detail(
 					is_array($relations["open_graph"] ?? null) ? $relations["open_graph"] : []
 				),
@@ -2733,7 +2785,7 @@
 		/**
 		 * The related row ids each many-to-many field on this form currently holds,
 		 * keyed by the field's column — the same key update_module_entry's `data`
-		 * takes, so what the model reads is what it would write (audit #11 B2/B4).
+		 * takes, so what the model reads is what it would write.
 		 *
 		 * A draft's staged relations win over the live ones, matching every other read
 		 * on this path: a queued change replaces the entry's relations wholesale, so
@@ -2807,7 +2859,7 @@
 		 * "Everything else" includes the publish hook, and this seam used to pass a
 		 * literal null for it — so tagging an entry someone else had a draft queued on
 		 * erased the hook that draft stored, and approval is the only thing that could
-		 * ever have fired it (audit #26 A1). The value written back is the form's hook
+		 * ever have fired it. The value written back is the form's hook
 		 * *as it stands now*, which is what every other write site stores; carrying the
 		 * old row's value forward would preserve a stale hook name past a form edit.
 		 *
@@ -2861,7 +2913,7 @@
 		 * stores — the same record create_page carries, through the same shared map, and
 		 * the same shape BigTreeAdmin::handleOpenGraph reads.
 		 *
-		 * All four authored columns since audit #22 B3: `type` is a four-value enum and
+		 * All four authored columns: `type` is a four-value enum and
 		 * `image` a URL, and neither is the file reference the old two-field version
 		 * claimed as its reason for stopping at title and description.
 		 *
@@ -3130,17 +3182,17 @@
 
 			$data = $sifted["data"];
 			// Relations the model authored, rebuilt from the form as it stands now
-			// (audit #11 B2) — the descriptor's identifiers come from the field
+			// — the descriptor's identifiers come from the field
 			// definition, so a form edited inside the 24h TTL is re-read here.
 			$mtm = is_array($sifted["mtm"] ?? null) ? $sifted["mtm"] : [];
 			// The form's `pre` hook, at approval only — staging never runs developer
-			// code (audit #31 D2). It runs before every gate below, so the group check
+			// code. It runs before every gate below, so the group check
 			// and the required-field gate judge the entry the hook actually produced.
 			[$data, $hook_columns] = $this->applyFormPreHook($module, $table, $data);
 
 			if ($hook_columns) {
 				// A required column the assistant can't author was refused or disclosed
-				// at staging; the hook may have filled it since (audit #31 D3).
+				// at staging; the hook may have filled it since.
 				$resolved["blocked_required"] = $this->aiRequiredUnsettableFields(
 					is_array($resolved["form"] ?? null) ? $resolved["form"] : null,
 					$data
@@ -3162,8 +3214,10 @@
 			// The same two seeds REST's create() applies — neither a field `default`
 			// nor `position` is something the model supplies, so without these an
 			// assistant-created entry ignores the form's configured defaults where a
-			// human-created one honours them (audit #19 B2).
-			$this->applyFormFieldDefaults($module, $table, $data);
+			// human-created one honours them. The draw-time defaults
+			// are re-seeded here rather than carried from staging, so a date default is
+			// the day the entry is actually created.
+			$applied_defaults = $this->applyFormFieldDefaults($module, $table, $data);
 			$this->applyFormDefaultPosition($module, $table, $data);
 
 			// The data being written is the prospective row, so a group-based module
@@ -3219,7 +3273,7 @@
 			$this->bindLegacyAdmin($user);
 
 			// Every gate above has read the relations under their own columns; the row
-			// must not carry them (audit #11 B2).
+			// must not carry them.
 			$data = $this->aiWithoutMtmColumns($data, $sifted);
 
 			// The same normalization PendingChangeService runs before the identical
@@ -3239,9 +3293,14 @@
 			// The lookup the processors just ran, disclosed rather than discarded. It
 			// can only be answered here — staging has no way to know whether the
 			// geocoder will answer, and the result is the only place the person who
-			// clicked Approve finds out their entry has no coordinates (audit #30 A2).
+			// clicked Approve finds out their entry has no coordinates.
 			$approval_note = $this->aiWithGeocodingNote($approval_note, $geocoding);
 			$approval_note = trim($approval_note . " " . $this->aiPreHookResultNote($hook_columns));
+
+			if ($applied_defaults) {
+				$approval_note = trim($approval_note . " Filled from the fields' configured defaults: "
+					. FieldDefaultDomain::describeApplied($applied_defaults) . ".");
+			}
 
 			if ($can_publish) {
 				$id = BigTreeAutoModule::createItem($table, $data, $mtm, $tag_ids, null, $open_graph);
@@ -3259,13 +3318,13 @@
 				// The same form hooks REST's create() fires. An extension whose publish
 				// hook rebuilds a cache has no other way to hear about an AI-authored
 				// entry — the row lands, the derived state doesn't, and the card says
-				// "published" (audit #19 A1).
+				// "published".
 				$this->fireFormHooks($module, $table, (int)$id, $data, $mtm, $tag_ids, true);
 				// `item` is the row REST's create() puts in this payload, and the one key
 				// a subscriber can't re-derive without a query it shouldn't have to make.
 				// A hook file written against the documented REST shape —
 				// $data["item"]["title"] — silently no-opped on every assistant-driven
-				// write while it was missing (audit #26 A3).
+				// write while it was missing.
 				$fresh = BigTreeAutoModule::getItem($table, (int)$id);
 				Hooks::fire("module_entry.created", [
 					"module" => $module_id, "table" => $table, "id" => (int)$id,
@@ -3281,8 +3340,7 @@
 			// The publish hook is stored on the change row, not fired now: whoever
 			// approves it later — the SPA, the REST approve route, or the assistant's
 			// own publish_pending_change — reads it back off the row. Passing null
-			// wrote the omission to the database, where it outlived the proposal
-			// (audit #19 A1).
+			// wrote the omission to the database, where it outlived the proposal.
 			$pending_id = BigTreeAutoModule::createPendingItem(
 				$module_id, $table, $data, $mtm, $tag_ids, $this->formPublishHook($module, $table), false, $open_graph
 			);
@@ -3462,7 +3520,7 @@
 
 			// Same disclosure as the create card, and it matters more here: on an
 			// update a failed lookup used to leave the previous address's coordinates
-			// in place under the new address, with nothing saying so (audit #30 A1).
+			// in place under the new address, with nothing saying so.
 			$geocoding_state = $this->aiGeocodingState(is_array($resolved["form"] ?? null) ? $resolved["form"] : null);
 			$geocoding_note = $this->aiGeocodingNote($geocoding_state);
 
@@ -3470,7 +3528,7 @@
 				$mode_note .= " " . $geocoding_note;
 			}
 
-			// The hook isn't run here (audit #31 D2), so what it will do is disclosed.
+			// The hook isn't run here, so what it will do is disclosed.
 			$has_pre_hook = $this->formHasPreHook(is_array($resolved["form"] ?? null) ? $resolved["form"] : null);
 
 			if ($has_pre_hook) {
@@ -3492,10 +3550,10 @@
 				$preview["publishes_draft"] = $draft;
 			}
 
-			// Audit #13 A1, on the edit side: an edit to an entry that is still
-			// unapproved changes a record nothing on the site can read, and the card
-			// said so nowhere. Judged against the stored row rather than the draft
-			// overlay — the flag lives on the published row.
+			// On the edit side: an edit to an entry that is still unapproved changes a
+			// record nothing on the site can read, so the card says so. Judged against
+			// the stored row rather than the draft overlay — the flag lives on the
+			// published row.
 			$approval_note = $this->aiApprovalNote(
 				(string)$table,
 				PermissionService::isPublisher($user, $rank),
@@ -3546,7 +3604,7 @@
 				// from them, so if they moved the card no longer describes the row.
 				// A many-to-many column is not among them — its value doesn't live in
 				// the row, and asking the database for it is either meaningless or an
-				// unknown-column error (audit #11 B2).
+				// unknown-column error.
 				"fingerprint" => $this->aiEntryFingerprint(
 					$table,
 					(string)$entry_id,
@@ -3616,7 +3674,7 @@
 			}
 
 			$data = $sifted["data"];
-			// The form's `pre` hook, at approval only (audit #31 D2). Legacy's hook
+			// The form's `pre` hook, at approval only. Legacy's hook
 			// always saw the whole form; this edit is partial, so it is shown the
 			// stored row with the edit over it, and only what it returns is folded back
 			// — where the update gate below judges it like any other changed column.
@@ -3717,15 +3775,15 @@
 			// after the processors and the gate so both still judge only this edit.
 			//
 			// Every gate above has read the relations under their own columns; neither
-			// the row nor the queued change's blob may carry them (audit #11 B2).
+			// the row nor the queued change's blob may carry them.
 			$data = $this->aiWithoutMtmColumns($data, $sifted);
 			$queued = is_array($existing["changes"] ?? null) ? $existing["changes"] : [];
 			$write_data = $queued ? array_merge($queued, $data) : $data;
 			// Relations the model authored, laid over the ones this write would
 			// otherwise carry forward untouched. Merged by triple so setting one
 			// relationship field doesn't blank the entry's other ones — the same
-			// reasoning that made aiExistingEntryRelations necessary in audit #4,
-			// applied now that the assistant can author them too (audit #11 B2).
+			// reasoning that makes aiExistingEntryRelations necessary, applied now that
+			// the assistant can author them too.
 			$mtm = $this->aiMergeMtm(
 				is_array($existing["mtm"] ?? null) ? $existing["mtm"] : [],
 				is_array($sifted["mtm"] ?? null) ? $sifted["mtm"] : []
@@ -3739,7 +3797,7 @@
 
 			// Re-asked at approval, and only when the row is still unapproved: a
 			// published edit to a record the site can't read is not the "it's live now"
-			// the result otherwise implies (audit #13 A1).
+			// the result otherwise implies.
 			$approval_note = (string)($row["approved"] ?? "") !== "on"
 				? $this->aiApprovalNote($table, PermissionService::isPublisher($user, $rank), false)
 				: "";
@@ -3794,7 +3852,7 @@
 				// would delete the allocations for every field the edit didn't mention.
 				$this->trackLiveEntryResources($table, (int)$entry_id);
 				$this->fireFormHooks($module, $table, $entry_id, $write_data, $mtm, $existing["tags"], true);
-				// The same `item` REST's respondUpdated() carries (audit #26 A3).
+				// The same `item` REST's respondUpdated() carries.
 				$fresh = BigTreeAutoModule::getItem($table, $entry_id);
 				Hooks::fire("module_entry.updated", [
 					"module" => $module_id, "table" => $table, "id" => $entry_id,
@@ -3834,7 +3892,7 @@
 		 *
 		 * Both entry writers return through aiWithApprovalNote, which carries exactly
 		 * one `note`, so the two facts are composed here rather than competing for the
-		 * key — an approval note that was silently replaced would be the audit #13 A1
+		 * key — an approval note that was silently replaced would be the unapproved-entry
 		 * disclosure going missing to make room for this one.
 		 *
 		 * @param array{attempted:bool,ok:bool,error:string,cleared:bool} $report
@@ -3927,7 +3985,7 @@
 			}
 
 			// The column existing is not the same question as anything in the admin
-			// being able to flip it back (audit #27 A2). A status column is operable by
+			// being able to flip it back. A status column is operable by
 			// a human only when the module declares the matching action — on itself or
 			// on one of its views — and a hand-built module, or a scaffolded one whose
 			// action was later removed in the Module Designer, can carry the column
@@ -4090,9 +4148,8 @@
 		 *
 		 * aiModuleStatusActions is the same map get_module and get_module_schema
 		 * already disclose, read from both places a module can declare an action; the
-		 * write seam asking a different question from the read seams is what audit #27
-		 * A2 was about. Shared by staging and approval so the card and the result
-		 * cannot disagree.
+		 * write seam must not ask a different question from the read seams. Shared by
+		 * staging and approval so the card and the result cannot disagree.
 		 *
 		 * @param array<string,mixed> $module
 		 */
@@ -4266,7 +4323,7 @@
 			// allocations, its tag relations, its Open Graph row, and the outstanding
 			// draft's change row and allocations — and recomputes the affected tags'
 			// usage_count. The explicit deallocateResources calls that used to live
-			// here duplicated exactly that, so they are gone (audit #7 B3).
+			// here duplicated exactly that, so they are gone.
 			BigTreeAutoModule::deleteItem($table, $entry_id);
 			$this->fireEntryDeleted($module_id, $table, $entry_id, false, "ai_assistant");
 
@@ -4387,8 +4444,7 @@
 		 * Graph row, its draft, its vector, its connecting-table rows) and there is no
 		 * such teardown for the things that own a reference to it, because rewriting
 		 * another entry's stored value is not teardown: it edits records the approver
-		 * never saw. So they are counted and named here instead, and the human decides
-		 * (audit #17 A1/D1).
+		 * never saw. So they are counted and named here instead, and the human decides.
 		 *
 		 * Bounded and best-effort, exactly like aiCalloutPageUsage: each leg is guarded
 		 * on its own so a table that can't answer costs its own sentence rather than
@@ -4628,18 +4684,15 @@
 					"error" => "Module \"{$module_id}\" does not exist.",
 					// "Create a News module and add the first entry" reaches here with
 					// the module still on an unapproved card. The wall the model reports
-					// should be the sequencing, not a module that "does not exist"
-					// (audit #9 A1).
+					// should be the sequencing, not a module that "does not exist".
 					//
-					// Both tools, scaffold first: create_module was the only one named
-					// until audit #23 A1b, and it stages a *bare record* — no table, no
-					// form, no view — so approving the card this hint pointed at left
-					// the entry write just as impossible, while a pending
-					// scaffold_module (the tool that produces a usable module, audit
-					// #11 C1) wasn't matched at all and the model was told the module
-					// did not exist. Both stage `name` and `route`, so either matches
-					// on the same keys; the store returns the most recently staged card
-					// first, which is the one the user is looking at.
+					// Both tools, scaffold first: create_module stages a *bare record*
+					// — no table, no form, no view — so approving a card it pointed at
+					// would leave the entry write just as impossible, while
+					// scaffold_module is the tool that produces a usable module. Both
+					// stage `name` and `route`, so either matches on the same keys; the
+					// store returns the most recently staged card first, which is the
+					// one the user is looking at.
 					"prior_change" => [
 						"tools" => ["scaffold_module", "create_module"],
 						"value" => $module_id,
@@ -4697,7 +4750,7 @@
 				// Verbatim the state a just-approved create_module leaves behind: a
 				// record with no table, no form and no view. The error named no way out
 				// of it, and the one in-catalog move — scaffold_module — cannot be
-				// guessed from "no editable entry form" (audit #23 A1c). Named rather
+				// guessed from "no editable entry form". Named rather
 				// than hinted with prior_change: nothing is pending here, the module is
 				// real, and what it is missing has to be built.
 				return ["error" => "Module \"{$module_id}\" has no database table or entry form behind it — it is a "
@@ -4767,10 +4820,10 @@
 			$fields = [];
 			$gbp = is_array($module["gbp"] ?? null) ? $module["gbp"] : [];
 			$group_column = !empty($gbp["enabled"]) ? (string)($gbp["group_field"] ?? "") : "";
-			// The table's real column definitions. Everything before audit #10 described
-			// the *form* and nothing described the storage, so the model had no way to
-			// know a field it was about to fill holds 255 characters — and MySQL, in
-			// non-strict mode, wouldn't tell it either.
+			// The table's real column definitions. Describing only the *form* and not
+			// the storage would leave the model no way to know a field it was about to
+			// fill holds 255 characters — and MySQL, in non-strict mode, wouldn't tell
+			// it either.
 			$columns = ColumnDomain::columns((string)$resolved["table"]);
 
 			foreach ((array)($resolved["form"]["fields"] ?? []) as $field) {
@@ -4812,7 +4865,7 @@
 					// Email-ness and website-ness are a `text` field's `sub_type`
 					// setting, not a type of their own — this CMS has no `email` or
 					// `url` field type, so without this the model saw an unadorned text
-					// field and had no reason to write a well-formed address (#11 A3).
+					// field and had no reason to write a well-formed address.
 					$sub_type = (string)($settings["sub_type"] ?? "");
 
 					if ($sub_type !== "") {
@@ -4838,12 +4891,12 @@
 			// Columns the *table* insists on that the form can't fill. Named here as
 			// well as on the create proposal, for the reason blocked_required is named
 			// here: the model should learn what it can't set before it proposes, not
-			// from the card it gets back (audit #10 A1).
+			// from the card it gets back.
 			$unsettable_columns = ColumnDomain::unsettableRequiredColumns(
 				(string)$resolved["table"],
 				is_array($resolved["form"] ?? null) ? $resolved["form"] : null
 			);
-			// The other half of "what does this write actually store" (audit #30 A2).
+			// The other half of "what does this write actually store".
 			// unsettable_columns names the columns the write leaves empty; these are
 			// the ones it *fills* from something other than the model's own values —
 			// and until now the schema described neither the columns nor the source
@@ -4865,7 +4918,7 @@
 				// beyond its own columns. Both are per-form switches, and a write to
 				// either is refused on a form that doesn't have it — so the model needs
 				// to read them before it proposes, not learn them from a refusal. They
-				// are also what scaffold_module now sets (audit #12 A5/D6).
+				// are also what scaffold_module now sets.
 				"tagging" => !empty($resolved["form"]["tagging"]),
 				"open_graph" => !empty($resolved["form"]["open_graph"]),
 				"group_column" => $group_column,
@@ -4877,9 +4930,9 @@
 				// entry appears in the module's landing list at all. An entry created
 				// through the form that the view then filters out exists, is correct, is
 				// audited — and is invisible to the person who asked for it, who will
-				// reasonably report that the assistant did nothing (audit #10 C3).
+				// reasonably report that the assistant did nothing.
 				"view_filter_note" => $this->aiViewFilterNote($module),
-				// The same shape of fact, one column over (audit #13 A1). The status
+				// The same shape of fact, one column over. The status
 				// columns this module's actions gate, and — when the table really has an
 				// `approved` column — what that means for anything written into it.
 				"status_actions" => ModuleService::aiModuleStatusActions($module),
@@ -4890,9 +4943,9 @@
 				),
 				// What a `sub_type` on a text field means. This CMS has no `email` or
 				// `url` field type — the developer's statement that a field holds an
-				// address is a setting on `text`, and until audit #11 A3 nothing on this
-				// path passed it on, so the model saw a plain text field and had no
-				// reason to write anything address-shaped into it.
+				// address is a setting on `text`, so without passing it on the model sees
+				// a plain text field and has no reason to write anything address-shaped
+				// into it.
 				"sub_type_note" => $this->aiSubTypeNote($fields),
 				"derived_columns" => $derived_columns,
 				"derived_columns_note" => $derived_columns
@@ -4902,8 +4955,7 @@
 					: "",
 				// The hooks this form runs on a save, by name only — never the callable,
 				// which is developer code. A `pre` hook can set or change values the
-				// model never sent, and this is how it can tell the user why one appeared
-				// (audit #31 A1).
+				// model never sent, and this is how it can tell the user why one appeared.
 				"form_hooks" => $this->aiFormHookNames(is_array($resolved["form"] ?? null) ? $resolved["form"] : null),
 				"unsettable_columns" => $unsettable_columns,
 				"unsettable_columns_note" => $unsettable_columns
@@ -4923,8 +4975,8 @@
 		 * The rows a relation field can be filed against: id and label, from the
 		 * field's *own* target table.
 		 *
-		 * Audit #12 B1. Audit #11 B2 made `one-to-many` and `many-to-many` writable by
-		 * entry id and nothing in the catalogue could produce the ids. A relation's
+		 * `one-to-many` and `many-to-many` are writable by entry id, so something in
+		 * the catalogue has to produce the ids. A relation's
 		 * target is `settings["table"]` / `settings["mtm-other-table"]`, which is not
 		 * required to be any module's table and in practice usually isn't one
 		 * (`categories`, `regions`, `staff_types`) — so list_module_entries, which
@@ -4989,8 +5041,8 @@
 			// not a 400 at the top of a request.
 			//
 			// One row past the window, so `has_more` is a fact about the table rather
-			// than about the page size — the filter-before-cap treatment audit #7 D1
-			// gave every other listing seam.
+			// than about the page size — the filter-before-cap treatment every other
+			// listing seam has.
 			try {
 				$options = (new ModuleFormService())->relationOptionsFor($field, $column, [
 					"q" => $query,
@@ -5125,7 +5177,7 @@
 		/**
 		 * The disclosure an `approved` column owes whoever is about to write into it.
 		 *
-		 * Audit #13 A1. A module whose scaffold requested the `approve` action gets
+		 * A module whose scaffold requested the `approve` action gets
 		 * `approved CHAR(2) NOT NULL` with no default, so a new row is born `""` —
 		 * unapproved — and that is the whole point of the feature: the front end reads
 		 * through `BigTreeModel::getApproved()` / `BigTreeModule::getApproved()`, which
@@ -5177,7 +5229,7 @@
 		 * $existing is the content the entry already carries ([] when creating), the
 		 * same parameter aiRequiredUnsettableResources takes for a page: a required
 		 * field that already holds a value is not a gap. It exists for the publish-time
-		 * re-ask (audit #25 A2), where the question is about a draft that may have
+		 * re-ask, where the question is about a draft that may have
 		 * filled some of these in.
 		 *
 		 * @param array<string,mixed>|null $form
@@ -5211,9 +5263,9 @@
 				// applyFormFieldDefaults doesn't care what type a column's field is —
 				// it seeds any column whose field declares a `default` — so refusing
 				// the *entire* create for a publisher over a field that is already
-				// configured to fill itself is the blocked-required half of audit #20
-				// A3, and the same parity fix as above.
-				if (self::aiFieldDefaultSatisfies($settings)) {
+				// configured to fill itself would be wrong — the same parity rule as
+				// above.
+				if (self::aiFieldDefaultSatisfies($settings, $field)) {
 					continue;
 				}
 
@@ -5239,7 +5291,7 @@
 		 * The required-but-unauthorable fields a queued change would publish still
 		 * empty, resolved from the module and table the change row names.
 		 *
-		 * Audit #25 A2. Both create gates relax the blocked-required refusal for a
+		 * Both create gates relax the blocked-required refusal for a
 		 * draft on purpose — a draft is the "a human completes this" case — and the
 		 * card discloses it at that moment. Then the draft leaves the conversation and
 		 * nothing asked again: the publish seam built a diff, said "It will go live
@@ -5292,10 +5344,10 @@
 
 		/**
 		 * Form fields that are real, *optional*, and unauthorable by the assistant — the
-		 * disclosure half aiRequiredUnsettableFields never covered (audit #14 C2).
+		 * disclosure half aiRequiredUnsettableFields never covered.
 		 *
-		 * The required ones block the entry from going live and have been disclosed for
-		 * several audits; the optional ones said nothing at all, which is the quieter
+		 * The required ones block the entry from going live and are already
+		 * disclosed; the optional ones said nothing at all, which is the quieter
 		 * failure. An entry whose gallery, matrix or upload field the assistant cannot
 		 * touch lands looking complete on the card and renders empty on the site, and
 		 * whoever approved it had no way to know a human still has to finish it.
@@ -5334,8 +5386,8 @@
 
 		/**
 		 * The AI-settable field schema for a module form, keyed by column — whichever
-		 * of its fields FieldTypeDomain classifies as settable, which since audit #11
-		 * is the text-like types plus references (by resource id) and relationships
+		 * of its fields FieldTypeDomain classifies as settable, which is the text-like
+		 * types plus references (by resource id) and relationships
 		 * (by entry id).
 		 *
 		 * @param array<string,mixed>|null $form
@@ -5367,7 +5419,7 @@
 					"type" => $type,
 					"title" => (string)($field["title"] ?? $column),
 					// Where email-ness and website-ness actually live in this CMS
-					// (audit #11 A3) — see the same key on the schema payload.
+					// — see the same key on the schema payload.
 					"sub_type" => (string)($settings["sub_type"] ?? ""),
 					"required" => !empty($settings["required"]) || in_array("required", $rules, true),
 					"rules" => array_values(array_diff($rules, ["required"])),
@@ -5379,12 +5431,12 @@
 					// The field's own character budget. TextField/TextareaField honour
 					// this in the browser and nothing on the server ever did, so a field
 					// deliberately capped at 60 characters was capped for humans and
-					// uncapped for the assistant (audit #10 A3). Read through
-					// configuredMaxLength — the stored key is `max_length` (#11 A1).
+					// uncapped for the assistant. Read through
+					// configuredMaxLength — the stored key is `max_length`.
 					"max_length" => ColumnDomain::configuredMaxLength($settings),
 					// The definition itself, for the checks that need a setting this
 					// summary doesn't lift out — an image reference's min_width /
-					// min_height (audit #11 B1).
+					// min_height.
 					"settings" => $settings,
 				];
 			}
@@ -5403,7 +5455,7 @@
 		 */
 		private function aiFieldOptions(array $field, string $type, string $column): array {
 
-			// One implementation, shared with the page-content path (audit #7 B1), so
+			// One implementation, shared with the page-content path, so
 			// the two option domains cannot drift apart again.
 			return FieldOptionDomain::resolve($field, $type, $column);
 		}
@@ -5438,7 +5490,7 @@
 			$data = [];
 			// Many-to-many relations don't live in the entry's row: they are `__mtm__`
 			// descriptors built from the field's own settings, handed to the write
-			// path's $mtm argument (audit #11 B2).
+			// path's $mtm argument.
 			$mtm = [];
 			// …and the columns those descriptors were authored under, so the write and
 			// the fingerprint can drop them. See aiWithoutMtmColumns().
@@ -5452,7 +5504,7 @@
 					if (isset($complex[$column])) {
 
 						// The reason is the field type's own, not one wall for uploads,
-						// matrices and relationships alike (audit #11 A4/B1).
+						// matrices and relationships alike.
 						return ["error" => "Field \"{$column}\" ({$complex[$column]["label"]}) can't be set here — "
 							. $complex[$column]["reason"] . " Settable fields: "
 							. $this->aiDescribeSchema($schema)];
@@ -5463,7 +5515,7 @@
 				}
 
 				// Relations are the one settable shape that *is* a list, so they are
-				// resolved before the scalar guard below (audit #11 B2).
+				// resolved before the scalar guard below.
 				if (FieldTypeDomain::isRelation((string)$schema[$column]["type"])) {
 					if ((string)$schema[$column]["type"] === "many-to-many") {
 						$relation = RelationDomain::resolveManyToMany($schema[$column], $value, $user);
@@ -5519,7 +5571,7 @@
 				// A reference column holds a bigtree_resources id. Resolved and checked
 				// here — the row exists, the actor can see its folder, it's the right
 				// kind of file, it clears the field's min_width/min_height — at staging
-				// and again at approval, because this sift runs on both (audit #11 B1).
+				// and again at approval, because this sift runs on both.
 				if (FieldTypeDomain::isResourceReference((string)$schema[$column]["type"])) {
 					$reference = ResourceReferenceDomain::resolve(
 						$schema[$column],
@@ -5541,7 +5593,7 @@
 					$as_written = $data[$column];
 				} else {
 					// A `link` column holds a URL and nothing else, checked before the
-					// token pass through the shared implementation (audit #11 B3).
+					// token pass through the shared implementation.
 					$bad_link = FieldTypeDomain::linkShapeViolation(
 						(string)($schema[$column]["title"] ?? $column),
 						(string)$schema[$column]["type"],
@@ -5555,8 +5607,8 @@
 
 					// Internal links and image sources in AI-authored markup become
 					// tokens here, at the sift, so the stored form is the form the
-					// approver sees on the card. Shared with the page-content path
-					// (audit #9, Part D). A `link` value goes through the same pass —
+					// approver sees on the card. Shared with the page-content path. A
+					// `link` value goes through the same pass —
 					// autoIPL turns a bare internal URL into the `ipl://` token the
 					// field stores.
 					if (in_array((string)$schema[$column]["type"], PageService::AI_LINK_BEARING_TYPES, true)) {
@@ -5634,7 +5686,7 @@
 		 * have passed: the field's `max_length`, characters the connection can't carry,
 		 * the column's real width/type/domain, and the truncated-read refusal.
 		 *
-		 * Everything here is the audit #10 boundary — the point past which MySQL's
+		 * Everything here is the storage boundary — the point past which MySQL's
 		 * non-strict `sql_mode` stops erroring and starts silently changing the data.
 		 * The value is passed by reference because the column domain normalizes what
 		 * it safely can (a date to the column's format, an enum label to its value)
@@ -5705,7 +5757,7 @@
 		 */
 		private function aiOptionViolation(array $field, string &$value): ?string {
 
-			// Shared with the page-content path (audit #7 B1).
+			// Shared with the page-content path.
 			return FieldOptionDomain::violation($field, $value);
 		}
 
@@ -5804,13 +5856,16 @@
 		 *
 		 * @param array<string,mixed> $settings A field/resource settings blob.
 		 */
-		public static function aiFieldDefaultSatisfies(array $settings): bool {
-			if (!array_key_exists("default", $settings) || !is_scalar($settings["default"])) {
+		public static function aiFieldDefaultSatisfies(array $settings, array $field = []): bool {
+			if (FieldDefaultDomain::explicitDefaultSatisfies($settings)) {
 
-				return false;
+				return true;
 			}
 
-			return trim((string)$settings["default"]) !== "";
+			// The draw-time defaults (default_today / default_now / default_checked, a
+			// list with no blank option) are seeded by the same create seams, so a
+			// required field carrying one is filled just as surely.
+			return $field !== [] && FieldDefaultDomain::implicitDefault($field) !== null;
 		}
 
 		/**
@@ -5834,16 +5889,16 @@
 				// whose field declares a `default` — and the SPA's FormRenderer seeds a
 				// human's form from the same setting *before* the form's own required
 				// check runs, so a human never meets this error. Reporting it was a
-				// stale view of the data rather than an invariant (audit #20 A3): the
+				// stale view of the data rather than an invariant: the
 				// row that lands is non-empty either way.
-				if (self::aiFieldDefaultSatisfies(is_array($field["settings"] ?? null) ? $field["settings"] : [])) {
+				if (self::aiFieldDefaultSatisfies(is_array($field["settings"] ?? null) ? $field["settings"] : [], $field)) {
 
 					continue;
 				}
 
 				// A relation's value is a list, so "empty" is [] rather than "" — a
 				// required relationship cleared to no rows is as missing as a blank
-				// string (audit #11 B2).
+				// string.
 				$empty = !array_key_exists($column, $data)
 					|| (is_array($data[$column]) ? $data[$column] === [] : $data[$column] === "");
 
@@ -5871,7 +5926,7 @@
 
 			foreach ($schema as $column => $field) {
 				// A text field's sub_type is what this CMS calls an email or a website
-				// address — there is no field type for either (audit #11 A3).
+				// address — there is no field type for either.
 				$sub_type = (string)($field["sub_type"] ?? "");
 				$parts[] = $column . " (" . $field["type"] . ($sub_type !== "" ? "/{$sub_type}" : "")
 					. ($field["required"] ? ", required" : "") . ")";
@@ -5885,7 +5940,7 @@
 		 * the value it replaces.
 		 *
 		 * Through PreviewValue, so a link reaches the card as a link, a reference as
-		 * the file it names and a relation as the rows it relates to (audit #15 A1) —
+		 * the file it names and a relation as the rows it relates to —
 		 * on both sides of the diff, since a `from` left in its stored form beside a
 		 * resolved `to` reads as a change that isn't one.
 		 *
@@ -5909,7 +5964,7 @@
 				// A many-to-many's current value isn't in the row — the column the form
 				// binds the field to holds something else entirely — so there is no
 				// `from` to show, and showing the column's contents would caption the
-				// card with a value that has nothing to do with the relation (#11 B2).
+				// card with a value that has nothing to do with the relation.
 				// get_module_entry's `related` is where the current ids come from.
 				if ($existing && (string)($schema[$column]["type"] ?? "") !== "many-to-many") {
 					$entry["from"] = $this->aiPreviewScalar($existing[$column] ?? "", $field, $user);
@@ -5923,7 +5978,7 @@
 
 		/**
 		 * One previewed value, resolved for a human through PreviewValue and capped
-		 * after the resolving rather than before it (audit #15 A1).
+		 * after the resolving rather than before it.
 		 *
 		 * @param mixed $value
 		 * @param array<string,mixed> $field The AI schema entry, where the caller has one.

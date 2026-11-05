@@ -63,7 +63,7 @@
 		 * arguments, the model was told a required argument was missing, and it
 		 * retried into the same wall until the turn died. Authoring content is the
 		 * point of a CMS assistant, so the ceiling is both higher and configurable
-		 * (Developer → Configure → AI) — audit #18 A3.
+		 * (Developer → Configure → AI).
 		 */
 		const DEFAULT_MAX_TOKENS = 4096;
 
@@ -549,7 +549,7 @@
 		 * `temperature` other than the default — and every model in MODELS["openai"]
 		 * except `gpt-4.1` is a GPT-5-family id, so if that holds the OpenAI provider
 		 * was not degraded but non-functional, failing as a provider 400 surfaced as a
-		 * chat error (audits #18 A4, #23 C1, #24 B2).
+		 * chat error.
 		 *
 		 * Settled without the live request that twice deferred it, because the change
 		 * is strictly safer either way: `max_completion_tokens` is accepted by every
@@ -864,7 +864,7 @@
 					// This used to degrade silently to [], which the shape validator then
 					// reported as a missing required argument — the model had just
 					// supplied one, so it retried the identical oversized call until the
-					// turn ran out of rounds (audit #18 A2). A blob that parses to
+					// turn ran out of rounds. A blob that parses to
 					// something other than an object is a malformed call, not a truncated
 					// one, and keeps the old degrade: the validator's "missing argument"
 					// is the accurate message there.
@@ -903,7 +903,7 @@
 			$stop = TurnCompleteness::stopSignal($this->Service, $response);
 
 			// The provider's own word on whether it finished. Only the streaming path
-			// ever asked (audit #6); the buffered one — which is what POST /ai/chat
+			// ever asked; the buffered one — which is what POST /ai/chat
 			// runs, and what the SPA falls back to whenever a stream can't start —
 			// returned a cut-off turn as the authoritative answer.
 			if ($this->isTruncatedTurn($stop, $tool_calls, $truncated_arguments)) {
@@ -1082,7 +1082,7 @@
 				} elseif ($type === "tool_use") {
 					// A tool_use block whose input isn't an object is a call this turn
 					// cannot honestly run — the same silent degrade-to-[] the OpenAI
-					// path had (audit #18 A2).
+					// path had.
 					if (array_key_exists("input", $block) && !is_array($block["input"])) {
 						$truncated_arguments = true;
 					}
@@ -1226,9 +1226,8 @@
 		/**
 		 * Record a provider rejection with the body the provider sent back.
 		 *
-		 * Audits #18 and #23 both left the OpenAI parameter question open pending "one
-		 * live request", and both times the reason it could not simply be answered from
-		 * a running install was that the failure arrived with no evidence attached: the
+		 * The OpenAI parameter question could not simply be answered from a running
+		 * install, because the failure arrived with no evidence attached: the
 		 * chat surfaced extractProviderError's one sentence and the body — which is
 		 * where the provider names the offending parameter — went nowhere. A 4xx here
 		 * is a configuration or request-shape fault, not traffic, so logging it costs

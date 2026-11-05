@@ -18,7 +18,7 @@
 	 * so the approver sees a sensible opening and an ellipsis on the `from` and the
 	 * `to` side alike, and approving it deletes the rest of the entry.
 	 *
-	 * Audit #10's B2. The disclosure half (a `fields_truncated` list on the read) and
+	 * The disclosure half (a `fields_truncated` list on the read) and
 	 * the prompt rule half both exist, but this framework's stated position is that
 	 * the model is never the enforcement point, so the seam refuses too.
 	 *
@@ -44,7 +44,7 @@
 		 * each of them shorter (PayloadBudget::capForValues), and a cut this refusal
 		 * doesn't know about is a cut the model can write straight back over the
 		 * stored value. Quantizing those cuts to a fixed ladder is what keeps this
-		 * list finite and complete (audit #18 A1).
+		 * list finite and complete.
 		 *
 		 * @return list<int>
 		 */
@@ -95,7 +95,7 @@
 				// on a space — which prose hits about one time in six — leaves the model
 				// holding a value one character shorter than the prefix, and comparing
 				// only the untrimmed form missed every one of those. The settings read
-				// seam is where this showed (audit #26 B1), but the miss was never
+				// seam is where this showed, but the miss was never
 				// specific to it.
 				if (mb_substr($prefix, -self::TAIL) !== $ending
 					&& mb_substr(rtrim($prefix), -self::TAIL) !== $ending) {

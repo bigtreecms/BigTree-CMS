@@ -88,7 +88,7 @@
 						],
 						// See CreatePageTool: no hardcoded absolute example, because it
 						// taught the model to do the date arithmetic itself against a
-						// clock it doesn't have (audit #14 A1).
+						// clock it doesn't have.
 						"publish_at" => [
 							"type" => "string",
 							"description" => "Date the page should go live. Pass the user's own words for a relative "

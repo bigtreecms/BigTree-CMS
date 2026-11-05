@@ -214,7 +214,7 @@
 	}
 
 	/**
-	 * Audit #30 E1: the geocoding legs of the same processor pass.
+	 * The geocoding legs of the same processor pass.
 	 *
 	 * The route legs above are about a value the write *generates*; these are about
 	 * one it *fetches*, and the difference is that the fetch can fail — which, on an
@@ -541,7 +541,7 @@
 	}
 
 	/**
-	 * Audit #31 E1: the form's `pre` hook runs on both writers of an entry.
+	 * The form's `pre` hook runs on both writers of an entry.
 	 *
 	 * Legacy's forms/process.php ran it before anything else: its output was merged
 	 * over the submission, and the keys no form field produced were copied straight

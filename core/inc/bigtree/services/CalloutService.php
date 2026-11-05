@@ -190,7 +190,7 @@
 				"display_field" => $c["display_field"] ?? "",
 				"display_default" => $c["display_default"] ?? "",
 				"resources" => $c["resources"] ?? [],
-				// Audit #13 A3, as on templates: an extension-owned callout is stored in
+				// As on templates: an extension-owned callout is stored in
 				// the same place as the site's own and read back indistinguishable from it.
 				"extension" => (string)($c["extension"] ?? ""),
 			];
@@ -229,8 +229,7 @@
 		];
 
 		// The max:255 the POST /callout-groups route enforces on the group name; the
-		// two group creators were the only create seams left without a length cap
-		// (audit #7 B4).
+		// two group creators were the only create seams left without a length cap.
 		private const AI_GROUP_NAME_MAX_LENGTH = 255;
 
 		// How far the callout usage scan counts before it stops. A blast-radius figure
@@ -302,7 +301,7 @@
 
 			// REST declares level as in:0,1,2 (routes/callouts.php). Anything else
 			// compares as higher-than-everyone, so the callout is offered to nobody —
-			// including its author. Same clamp templates got in audit #4.
+			// including its author. Same clamp as templates.
 			if ($level < 0 || $level > 2) {
 
 				return ["error" => "A callout's level must be 0 (any editor), 1 (administrators) or 2 (developers). "
@@ -455,7 +454,7 @@
 			}
 
 			// A store that couldn't be written is a FAILED card, not a created callout
-			// (audit #17 A3) — the same answer TemplateScaffold has always given for the
+			// — the same answer TemplateScaffold has always given for the
 			// render file half of this tool.
 			if (BigTreeJSONDB::insert("callouts", $insert) === false) {
 
@@ -499,7 +498,7 @@
 		 * so the assistant has to be able to see what's already on the callout before
 		 * proposing a change to it — otherwise "add a field" means guessing the rest.
 		 *
-		 * Level 0, matching `GET /callouts/{id}` (audit #13 D4). The developer gate this
+		 * Level 0, matching `GET /callouts/{id}`. The developer gate this
 		 * used to carry made the AI read *stricter* than the REST route it mirrors — the
 		 * only place in the catalogue where that was true, and nobody decided it. It
 		 * also put the callout catalogue out of an editor's reach entirely, which is the
@@ -586,7 +585,7 @@
 		 * create_callout's `group` argument had nothing to enumerate — which made its
 		 * needs_input branch the normal path rather than the exception.
 		 *
-		 * Level 0, matching `GET /callouts` — see aiGetCallout (audit #13 D4).
+		 * Level 0, matching `GET /callouts` — see aiGetCallout.
 		 *
 		 * @param object|array $user Unused: listing callout definitions is level 0.
 		 * @return array<string,mixed>
@@ -885,8 +884,7 @@
 			if ($added) {
 				// Same disclosure the template diff carries: create scaffolds a render
 				// file and says so, update deliberately never touches it and said nothing,
-				// so a new field appeared in the editor and never on the site (audit #10
-				// C1).
+				// so a new field appeared in the editor and never on the site.
 				$rows["fields_added"] = implode(", ", $added)
 					. " — the callout's render file isn't changed, so "
 					. (count($added) === 1 ? "a new field won't" : "new fields won't")
@@ -905,8 +903,7 @@
 				// The template diff had the same silence: a retype drops the field's
 				// stored settings (they configure the *old* type) and leaves every
 				// value already saved under it in the old type's shape. Naming the
-				// consequence is the pattern the other three rows follow
-				// (audit #23 B1).
+				// consequence is the pattern the other three rows follow.
 				$rows["fields_retyped"] = implode(", ", $retyped)
 					. " — " . (count($retyped) === 1 ? "the field's" : "each field's")
 					. " settings are discarded, since they configure the old type, and content already saved under "
@@ -954,7 +951,7 @@
 		 * field's JSON in bigtree_pages.resources and in module entry columns, so a
 		 * real count means walking every page's resource blob and every module table.
 		 * A bounded LIKE over the pages blob is honest about being a floor, costs one
-		 * query, and turns an abstraction into a number (audit #9 C1/D5).
+		 * query, and turns an abstraction into a number.
 		 *
 		 * Returns "" when the count can't be taken, so the caller omits the phrase
 		 * rather than claiming zero.
@@ -1140,7 +1137,7 @@
 
 			// Re-asked at approval, and folded in beside the group note rather than
 			// replacing it — both are facts about the record the approver has just
-			// changed (audit #13 A3).
+			// changed.
 			$note = trim($group_note . " " . ExtensionDomain::warning($existing, "callout"));
 
 			return [
@@ -1236,7 +1233,7 @@
 				// then arrives here with nothing written — and the question above would
 				// offer the model the groups that already exist, which is the opposite
 				// of what was asked. When the group is already on a card, say so
-				// instead (audit #9 A1).
+				// instead.
 				"prior_change" => [
 					"tool" => "create_callout_group",
 					"value" => $requested,
@@ -1383,7 +1380,7 @@
 							. $this->aiDescribeCallouts($callouts) . ".",
 						// It may be staged rather than absent: "create a promo callout
 						// and a Promos group with it in" is the same two-step intent
-						// from the other direction (audit #9 A1).
+						// from the other direction.
 						"prior_change" => [
 							"tool" => "create_callout",
 							"value" => $wanted,

@@ -1,19 +1,19 @@
 <?php
 	/**
-	 * Audit #28 guard E5: an AI read seam against the REST presenter of the same
+	 * An AI read seam against the REST presenter of the same
 	 * record.
 	 *
 	 * `search_users` returned id/name/email/level/company/timezone/daily_digest while
 	 * `UserService::presentFull` gives self-or-admin `permissions` and `alerts` too.
-	 * The consequence is the shape audits #24 B1 and #27 B1 both had: the only decline
-	 * line in the neighbourhood is "Changing user levels, permissions or passwords",
-	 * which is about *writing*, so "who can publish News?" hit no tool and no wall —
-	 * and every decline line is spliced into the system prompt beside *do not
-	 * improvise a workaround*. It was also a read/write asymmetry on the assistant's
-	 * own surface: update_user writes `alerts` and could read back only `daily_digest`.
+	 * The consequence: the only decline line in the neighbourhood is "Changing user
+	 * levels, permissions or passwords", which is about *writing*, so "who can publish
+	 * News?" hit no tool and no wall — and every decline line is spliced into the
+	 * system prompt beside *do not improvise a workaround*. It was also a read/write
+	 * asymmetry on the assistant's own surface: update_user writes `alerts` and could
+	 * read back only `daily_digest`.
 	 *
-	 * Neither existing wording guard sees it. Audit #24's E5 and #27's E4 ask their
-	 * question only of *declined* families, and `users` is a covered family.
+	 * Neither existing wording guard sees it. They ask their question only of
+	 * *declined* families, and `users` is a covered family.
 	 *
 	 * The pair list is deliberately explicit rather than discovered: a blanket version
 	 * would fail on a dozen deliberate shape differences (a search row is not a detail
@@ -45,7 +45,7 @@
 						. "explicit non-tool — so it stays off a search payload the model reads in bulk",
 				],
 			],
-			// Audit #29 B2. The tool's own description says "use this to find the
+			// The tool's own description says "use this to find the
 			// revision to restore", and both lists returned the same five display
 			// columns — nothing about whether a revision is still restorable. The four
 			// facts that answer come from revisionRestorability, which both presenters

@@ -1,7 +1,7 @@
 <?php
 	/**
-	 * Audit #28 guards E2 and E3: the behavioural half of "a queued change is a write
-	 * that has not run yet, and the things it names by id can go away before it runs".
+	 * The behavioural half of "a queued change is a write that has not run yet, and the
+	 * things it names by id can go away before it runs".
 	 *
 	 * E2 (A1) — a queued draft stores tag *ids*. Merging or deleting a tag rewrote the
 	 * live relations and left those blobs alone, so approving the draft afterwards
@@ -182,9 +182,8 @@
 	}
 
 	/**
-	 * E2, leg 2: the same merge through the REST route TagMerge.tsx drives. Before
-	 * audit #28 A1b this leg repaired nothing at all — the same act left a different
-	 * amount of damage depending on who ran it.
+	 * E2, leg 2: the same merge through the REST route TagMerge.tsx drives, so the
+	 * same act leaves the same result whoever runs it.
 	 */
 	function test_parity_queued_tags_survive_a_rest_merge() {
 		if (!parity_queued_ready()) {
@@ -472,7 +471,7 @@
 	}
 
 	/**
-	 * Audit #28 C1: a page draft's queued tag change has to be *visible* in the page
+	 * A page draft's queued tag change has to be *visible* in the page
 	 * editor, or the next human save silently reverts it.
 	 *
 	 * applyPendingOverlay overlaid 16 fields and tags was not one of them, so PageEdit

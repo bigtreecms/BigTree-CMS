@@ -1,6 +1,6 @@
 <?php
 	/**
-	 * Audit #29 E2: the rules a revision restore has to re-ask.
+	 * The rules a revision restore has to re-ask.
 	 *
 	 * A revision is content authored in the past. Every rule the live editing seams
 	 * enforce on content the model supplies — required fields present, the template
@@ -280,7 +280,7 @@
 	}
 
 	/**
-	 * Leg (c). A template id is a soft reference everywhere in the CMS (audit #28 E1),
+	 * Leg (c). A template id is a soft reference everywhere in the CMS,
 	 * so a revision naming a deleted template is disclosed rather than refused — but
 	 * it was neither: the level rule passes a template that isn't there, and neither
 	 * presenter returned the revision's template at all.
@@ -339,8 +339,8 @@
 	}
 
 	/**
-	 * Leg (d). Both update cards resolve aiPendingEditChange and say a draft is there
-	 * (audit #5 A1); the restore card never asked. The draft survives the restore and
+	 * Leg (d). Both update cards resolve aiPendingEditChange and say a draft is there;
+	 * the restore card never asked. The draft survives the restore and
 	 * its `resources` — a whole blob authored against the pre-restore content —
 	 * overlays everything the restore put back when a publisher approves it later.
 	 */

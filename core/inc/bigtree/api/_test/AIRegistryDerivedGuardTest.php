@@ -1,11 +1,10 @@
 <?php
 	/**
-	 * Audit #6 Phase 5 (Part E): the guards for the bug classes this pass found that
-	 * no existing test could have caught.
+	 * Guards for bug classes that no structural grep could have caught.
 	 *
-	 * Audit #5's guards were structural in the weakest sense — they grepped a seam's
-	 * source for `"fingerprint" =>` and for hand-written maps of tool names. Audit #6
-	 * then found eight targeted mutations with no fingerprint at all (invisible to a
+	 * The earlier guards were structural in the weakest sense — they grepped a seam's
+	 * source for `"fingerprint" =>` and for hand-written maps of tool names. That
+	 * missed eight targeted mutations with no fingerprint at all (invisible to a
 	 * hand-written map), two whose fingerprints evaluated to `[]` at runtime for the
 	 * cases that mattered (invisible to a substring grep), and one that hashed the
 	 * wrong thing entirely (invisible to both).
@@ -30,7 +29,7 @@
 	 *
 	 * @return list<string>
 	 */
-	function audit6_mutating_tool_names(): array {
+	function registry_guard_mutating_tool_names(): array {
 		$names = [];
 
 		foreach (ai_wiring_registry()->availableTools(ai_wiring_user(2)) as $tool) {
@@ -54,12 +53,12 @@
 	 *
 	 * @return array<string,array{0:string,1:string,2:array<string,mixed>}>
 	 */
-	function audit6_targeted_mutations(): array {
+	function registry_guard_targeted_mutations(): array {
 
 		return [
 			"update_page" => [
 				\BigTree\Services\PageService::class, "aiValidatePageUpdate",
-				["id" => "%page%", "meta_description" => "zz audit6 fingerprint"],
+				["id" => "%page%", "meta_description" => "zz registry guard fingerprint"],
 			],
 			"update_page_content" => [
 				\BigTree\Services\PageService::class, "aiValidatePageContentUpdate",
@@ -77,7 +76,7 @@
 			],
 			"save_page_revision" => [
 				\BigTree\Services\PageService::class, "aiValidateSaveRevision",
-				["page_id" => "%page_int%", "description" => "zz audit6 snapshot"],
+				["page_id" => "%page_int%", "description" => "zz registry guard snapshot"],
 			],
 			"add_tags" => [
 				\BigTree\Services\TagService::class, "aiValidateAddTags",
@@ -93,31 +92,31 @@
 			],
 			"rename_tag" => [
 				\BigTree\Services\TagService::class, "aiValidateTagRename",
-				["tag" => "%tag%", "name" => "zz audit6 renamed"],
+				["tag" => "%tag%", "name" => "zz registry guard renamed"],
 			],
 			"update_setting" => [
 				\BigTree\Services\SettingService::class, "aiValidateSettingUpdate",
-				["id" => "%setting%", "value" => "zz audit6 value"],
+				["id" => "%setting%", "value" => "zz registry guard value"],
 			],
 			"update_user" => [
 				\BigTree\Services\UserService::class, "aiValidateUserUpdate",
-				["user_id" => "%user%", "name" => "ZZ Audit6 Renamed"],
+				["user_id" => "%user%", "name" => "ZZ Registry Guard Renamed"],
 			],
 			"update_template" => [
 				\BigTree\Services\TemplateService::class, "aiValidateTemplateUpdate",
-				["id" => "%template%", "name" => "ZZ Audit6 Template"],
+				["id" => "%template%", "name" => "ZZ Registry Guard Template"],
 			],
 			"update_callout" => [
 				\BigTree\Services\CalloutService::class, "aiValidateCalloutUpdate",
-				["id" => "%callout%", "name" => "ZZ Audit6 Callout"],
+				["id" => "%callout%", "name" => "ZZ Registry Guard Callout"],
 			],
 			"update_module" => [
 				\BigTree\Services\ModuleService::class, "aiValidateModuleUpdate",
-				["module_id" => "%module%", "name" => "ZZ Audit6 Module"],
+				["module_id" => "%module%", "name" => "ZZ Registry Guard Module"],
 			],
 			"update_module_entry" => [
 				\BigTree\Services\AutoModuleService::class, "aiValidateEntryUpdate",
-				["module_id" => "%module%", "entry_id" => "%entry%", "data" => ["title" => "zz audit6 entry"]],
+				["module_id" => "%module%", "entry_id" => "%entry%", "data" => ["title" => "zz registry guard entry"]],
 			],
 			"set_module_entry_flag" => [
 				\BigTree\Services\AutoModuleService::class, "aiValidateEntryFlag",
@@ -142,11 +141,11 @@
 
 	/**
 	 * Mutating tools with no existing target, and why. Every mutating tool must
-	 * appear here or in audit6_targeted_mutations().
+	 * appear here or in registry_guard_targeted_mutations().
 	 *
 	 * @return array<string,string>
 	 */
-	function audit6_creation_tools(): array {
+	function registry_guard_creation_tools(): array {
 
 		return [
 			"create_page" => "creates a page; there is no prior state to compare",
@@ -167,17 +166,17 @@
 	/**
 	 * E1a: the fingerprint map can't drift from the registry.
 	 *
-	 * The audit-5 guard read a hand-written list, so the eight tools that staged no
-	 * fingerprint at all were invisible to it — they simply weren't in the list.
+	 * A hand-written list can't see a tool that stages no fingerprint at all — it
+	 * simply isn't in the list.
 	 * Enumerating from the registry means a tool has to be classified as targeted or
 	 * creating before this passes, and the classification is the decision that was
 	 * being skipped.
 	 */
 	function test_every_mutating_tool_is_classified_for_staleness() {
-		$targeted = array_keys(audit6_targeted_mutations());
-		$creating = array_keys(audit6_creation_tools());
+		$targeted = array_keys(registry_guard_targeted_mutations());
+		$creating = array_keys(registry_guard_creation_tools());
 		$classified = array_merge($targeted, $creating);
-		$registered = audit6_mutating_tool_names();
+		$registered = registry_guard_mutating_tool_names();
 
 		$unclassified = array_values(array_diff($registered, $classified));
 		T::equals(
@@ -193,7 +192,7 @@
 	/**
 	 * E1b: a targeted mutation's fingerprint must be non-empty *at runtime*.
 	 *
-	 * The audit-5 guard grepped for the literal `"fingerprint" =>`, which passed for
+	 * Grepping for the literal `"fingerprint" =>` passes for
 	 * update_setting (hashing the wrong record) and for the page and entry seams
 	 * whose descriptor evaluated to `[]` for an Open Graph-only or tag-only edit.
 	 * Staging each seam against a real fixture and computing the hash is the only
@@ -204,7 +203,7 @@
 			return;
 		}
 
-		$fixtures = audit6_fingerprint_fixtures();
+		$fixtures = registry_guard_fingerprint_fixtures();
 
 		if (!$fixtures) {
 			echo "  (skipped — fixtures unavailable in this harness)\n";
@@ -215,8 +214,8 @@
 		$dev = (object)["id" => $fixtures["user_id"], "level" => 2, "permissions" => []];
 
 		try {
-			foreach (audit6_targeted_mutations() as $tool => [$class, $method, $args]) {
-				$resolved = audit6_resolve_placeholders($args, $fixtures);
+			foreach (registry_guard_targeted_mutations() as $tool => [$class, $method, $args]) {
+				$resolved = registry_guard_resolve_placeholders($args, $fixtures);
 
 				if ($resolved === null) {
 					echo "  (skipped {$tool} — fixture unavailable)\n";
@@ -251,7 +250,7 @@
 				);
 			}
 		} finally {
-			audit6_clean_fingerprint_fixtures($fixtures);
+			registry_guard_clean_fingerprint_fixtures($fixtures);
 		}
 	}
 
@@ -288,7 +287,7 @@
 		}
 
 		// And the refusal reaches the model as a failed tool call rather than a card.
-		$tool = new Audit6BadFingerprintTool(new \BigTree\Services\AI\ProposalStore());
+		$tool = new RegistryGuardBadFingerprintTool(new \BigTree\Services\AI\ProposalStore());
 		$result = $tool->execute([], new \BigTree\Services\AI\AIToolContext(ai_wiring_user(2), 8));
 
 		T::equals($result->type, AIToolResult::ERROR, "a tool staging a malformed descriptor errors");
@@ -318,7 +317,7 @@
 	 * For every field type the assistant may author, either it can express the
 	 * type's schema-required settings, or the type is refused outright. A field type
 	 * added later — core or from an extension — is covered without anyone updating a
-	 * list, which is what left `list` unguarded after audit #5's hardcoded blocklist.
+	 * list, which is what left `list` unguarded under a hardcoded blocklist.
 	 */
 	function test_every_authorable_field_type_is_complete_or_refused() {
 		foreach (["templates", "callouts"] as $use_case) {
@@ -329,7 +328,7 @@
 			$refused = [];
 
 			foreach ($types as $type) {
-				$field = ["id" => "zz_audit6", "type" => $type, "title" => "ZZ Audit6"];
+				$field = ["id" => "zz_registry_guard", "type" => $type, "title" => "ZZ Registry Guard"];
 				$error = Resources::aiUnconfigurableFieldError([$field], [], $surface);
 
 				if ($error !== null) {
@@ -369,7 +368,7 @@
 
 			// The refusal arm has to be live, or this whole test passes vacuously the
 			// moment the completeness rule stops firing — which is exactly how `list`
-			// stayed authorable-but-empty through audit #5.
+			// stayed authorable-but-empty.
 			T::ok(
 				in_array("matrix", $refused, true) && in_array("one-to-many", $refused, true),
 				"{$use_case}: the types that need structured configuration are still refused"
@@ -382,7 +381,7 @@
 			// …and supplying the options is what lifts the refusal.
 			T::equals(
 				Resources::aiUnconfigurableFieldError(
-					[["id" => "zz_audit6", "type" => "list", "title" => "ZZ", "options" => ["A", "B"]]],
+					[["id" => "zz_registry_guard", "type" => "list", "title" => "ZZ", "options" => ["A", "B"]]],
 					[],
 					$surface
 				),
@@ -452,23 +451,23 @@
 	 */
 	function test_kind_is_enforced_when_a_tool_runs() {
 		$registry = new \BigTree\Services\AI\AIToolRegistry();
-		$registry->register(new Audit6LyingReadTool());
-		$registry->register(new Audit6BadKindTool());
-		$registry->register(new Audit6IdleMutatingTool());
+		$registry->register(new RegistryGuardLyingReadTool());
+		$registry->register(new RegistryGuardBadKindTool());
+		$registry->register(new RegistryGuardIdleMutatingTool());
 
 		$context = new \BigTree\Services\AI\AIToolContext(ai_wiring_user(2), 8);
 
-		$lying = $registry->execute("audit6_lying_read", [], $context);
+		$lying = $registry->execute("registry_guard_lying_read", [], $context);
 		T::equals(
 			$lying->toModelPayload()["status"],
 			"error",
 			"a tool declared \"read\" cannot stage a proposal"
 		);
 
-		$bad = $registry->execute("audit6_bad_kind", [], $context);
+		$bad = $registry->execute("registry_guard_bad_kind", [], $context);
 		T::equals($bad->toModelPayload()["status"], "error", "an unknown kind is refused");
 
-		$idle = $registry->execute("audit6_idle_mutating", [], $context);
+		$idle = $registry->execute("registry_guard_idle_mutating", [], $context);
 		T::equals(
 			$idle->toModelPayload()["status"],
 			"error",
@@ -484,7 +483,7 @@
 	 * ProposalCard with nothing explaining what was being approved.
 	 */
 	function test_an_empty_turn_surfaces_as_an_error() {
-		$ai = new Audit6EmptyAI();
+		$ai = new RegistryGuardEmptyAI();
 		$loop = new \BigTree\Services\AI\AgentLoop($ai, new \BigTree\Services\AI\AIToolRegistry(), 3);
 		$run = $loop->run(
 			[["role" => "user", "content" => "hello"]],
@@ -546,27 +545,27 @@
 	 *
 	 * @return array<string,mixed>
 	 */
-	function audit6_fingerprint_fixtures(): array {
+	function registry_guard_fingerprint_fixtures(): array {
 		$fixtures = [
 			"page_id" => 0, "archived_page_id" => 0, "other_page_id" => 0, "user_id" => 0,
 			"tag_id" => 0, "other_tag_id" => 0, "entry_id" => 0, "change_id" => 0, "setting_id" => "",
 		];
 
 		try {
-			$fixtures["user_id"] = parity_seed_user(["level" => 2, "name" => "ZZ Audit6 Actor"]);
-			$fixtures["page_id"] = parity_seed_page(["nav_title" => "ZZ Audit6 Fingerprint"]);
+			$fixtures["user_id"] = parity_seed_user(["level" => 2, "name" => "ZZ Registry Guard Actor"]);
+			$fixtures["page_id"] = parity_seed_page(["nav_title" => "ZZ Registry Guard Fingerprint"]);
 			$fixtures["archived_page_id"] = parity_seed_page([
-				"nav_title" => "ZZ Audit6 Archived",
+				"nav_title" => "ZZ Registry Guard Archived",
 				"archived" => "on",
 			]);
 			$fixtures["tag_id"] = (int)SQL::insert("bigtree_tags", [
-				"tag" => "zz audit6 tag",
-				"route" => "zz-audit6-tag-" . bin2hex(random_bytes(3)),
+				"tag" => "zz registry guard tag",
+				"route" => "zz-registry-guard-tag-" . bin2hex(random_bytes(3)),
 				"usage_count" => 0,
 			]);
 			$fixtures["other_tag_id"] = (int)SQL::insert("bigtree_tags", [
-				"tag" => "zz audit6 other",
-				"route" => "zz-audit6-other-" . bin2hex(random_bytes(3)),
+				"tag" => "zz registry guard other",
+				"route" => "zz-registry-guard-other-" . bin2hex(random_bytes(3)),
 				"usage_count" => 0,
 			]);
 
@@ -577,7 +576,7 @@
 				"tag" => $fixtures["tag_id"],
 			]);
 
-			$fixtures["other_page_id"] = parity_seed_page(["nav_title" => "ZZ Audit6 Destination"]);
+			$fixtures["other_page_id"] = parity_seed_page(["nav_title" => "ZZ Registry Guard Destination"]);
 
 			// A content-bearing page, so update_page_content has fields to change.
 			$content = parity_ai_content_required();
@@ -588,12 +587,12 @@
 				$values = [];
 
 				foreach ($content as $field) {
-					$values[$field] = "zz audit6 body";
+					$values[$field] = "zz registry guard body";
 				}
 
 				$fixtures["content_values"] = $values;
 				$fixtures["content_page_id"] = parity_seed_page([
-					"nav_title" => "ZZ Audit6 Content",
+					"nav_title" => "ZZ Registry Guard Content",
 					"template" => "content",
 					"resources" => json_encode($values),
 				]);
@@ -603,7 +602,7 @@
 			if (parity_ai_processors_ready()) {
 				$service = new \BigTree\Services\AutoModuleService();
 				$actor = (object)["id" => $fixtures["user_id"], "level" => 2, "permissions" => []];
-				$created = parity_ai_create_entry($service, $actor, ["title" => "zz Audit6 Fingerprint Entry"]);
+				$created = parity_ai_create_entry($service, $actor, ["title" => "zz Registry Guard Fingerprint Entry"]);
 				$fixtures["entry_id"] = (int)$created["id"];
 
 				if ($fixtures["entry_id"] > 0) {
@@ -612,7 +611,7 @@
 						"date" => "NOW()",
 						"table" => "timber_news",
 						"item_id" => $fixtures["entry_id"],
-						"changes" => ["title" => "zz Audit6 Queued"],
+						"changes" => ["title" => "zz Registry Guard Queued"],
 						"mtm_changes" => [],
 						"tags_changes" => [],
 						"open_graph_changes" => [],
@@ -625,10 +624,10 @@
 			}
 
 			// A setting with a definition and a value row.
-			$fixtures["setting_id"] = "zz-audit6-" . bin2hex(random_bytes(3));
+			$fixtures["setting_id"] = "zz-registry-guard-" . bin2hex(random_bytes(3));
 			BigTreeJSONDB::insert("settings", [
 				"id" => $fixtures["setting_id"],
-				"name" => "ZZ Audit6 Setting",
+				"name" => "ZZ Registry Guard Setting",
 				"description" => "",
 				"type" => "text",
 				"settings" => [],
@@ -651,7 +650,7 @@
 
 			$fixtures["revision_id"] = (int)SQL::insert("bigtree_page_revisions", [
 				"page" => $fixtures["page_id"],
-				"title" => "ZZ Audit6 Older Title",
+				"title" => "ZZ Registry Guard Older Title",
 				"meta_description" => "",
 				"template" => "",
 				"external" => "",
@@ -671,7 +670,7 @@
 	}
 
 	/** @param array<string,mixed> $fixtures */
-	function audit6_clean_fingerprint_fixtures(array $fixtures): void {
+	function registry_guard_clean_fingerprint_fixtures(array $fixtures): void {
 		SQL::query(
 			"DELETE FROM bigtree_tags_rel WHERE `table` = 'bigtree_pages' AND entry = ?",
 			(string)($fixtures["page_id"] ?? 0)
@@ -702,7 +701,7 @@
 	 * @param array<string,mixed> $fixtures
 	 * @return array<string,mixed>|null
 	 */
-	function audit6_resolve_placeholders(array $args, array $fixtures): ?array {
+	function registry_guard_resolve_placeholders(array $args, array $fixtures): ?array {
 		$map = [
 			"%page%" => (string)$fixtures["page_id"],
 			"%page_int%" => (int)$fixtures["page_id"],
@@ -711,9 +710,9 @@
 			"%content_page%" => (string)($fixtures["content_page_id"] ?? 0),
 			"%content_values%" => is_array($fixtures["content_values"] ?? null) ? $fixtures["content_values"] : [],
 			"%user%" => (int)$fixtures["user_id"],
-			"%tag%" => "zz audit6 tag",
-			"%attached_tag%" => "zz audit6 tag",
-			"%other_tag%" => "zz audit6 other",
+			"%tag%" => "zz registry guard tag",
+			"%attached_tag%" => "zz registry guard tag",
+			"%other_tag%" => "zz registry guard other",
 			"%revision%" => (int)($fixtures["revision_id"] ?? 0),
 			"%module%" => parity_news_module_id(),
 			"%entry%" => (string)($fixtures["entry_id"] ?? 0),
@@ -727,7 +726,7 @@
 
 		foreach ($args as $key => $value) {
 			if (is_array($value)) {
-				$nested = audit6_resolve_placeholders($value, $fixtures);
+				$nested = registry_guard_resolve_placeholders($value, $fixtures);
 
 				if ($nested === null) {
 
@@ -768,8 +767,8 @@
 	}
 
 	/** A tool that claims to be a read but stages a proposal. */
-	class Audit6LyingReadTool implements \BigTree\Services\AI\AIToolInterface {
-		public function name(): string { return "audit6_lying_read"; }
+	class RegistryGuardLyingReadTool implements \BigTree\Services\AI\AIToolInterface {
+		public function name(): string { return "registry_guard_lying_read"; }
 		public function kind(): string { return "read"; }
 		public function isAvailable($user): bool { return true; }
 		public function definition($user): array { return ["type" => "function", "function" => ["name" => $this->name()]]; }
@@ -781,8 +780,8 @@
 	}
 
 	/** A tool whose kind() is a typo — outside every rule keyed on it. */
-	class Audit6BadKindTool implements \BigTree\Services\AI\AIToolInterface {
-		public function name(): string { return "audit6_bad_kind"; }
+	class RegistryGuardBadKindTool implements \BigTree\Services\AI\AIToolInterface {
+		public function name(): string { return "registry_guard_bad_kind"; }
 		public function kind(): string { return "mutating"; }
 		public function isAvailable($user): bool { return true; }
 		public function definition($user): array { return ["type" => "function", "function" => ["name" => $this->name()]]; }
@@ -794,8 +793,8 @@
 	}
 
 	/** A mutating tool that returns a finished result instead of staging one. */
-	class Audit6IdleMutatingTool implements \BigTree\Services\AI\AIToolInterface {
-		public function name(): string { return "audit6_idle_mutating"; }
+	class RegistryGuardIdleMutatingTool implements \BigTree\Services\AI\AIToolInterface {
+		public function name(): string { return "registry_guard_idle_mutating"; }
 		public function kind(): string { return "mutate"; }
 		public function isAvailable($user): bool { return true; }
 		public function definition($user): array { return ["type" => "function", "function" => ["name" => $this->name()]]; }
@@ -810,8 +809,8 @@
 	 * A mutating tool whose backend hands up a staleness descriptor the fingerprinter
 	 * doesn't recognize — the shape of a typo in a real seam.
 	 */
-	class Audit6BadFingerprintTool extends AbstractMutatingTool {
-		public function name(): string { return "audit6_bad_fingerprint"; }
+	class RegistryGuardBadFingerprintTool extends AbstractMutatingTool {
+		public function name(): string { return "registry_guard_bad_fingerprint"; }
 		public function definition($user): array { return ["type" => "function", "function" => ["name" => $this->name()]]; }
 
 		public function execute(array $args, \BigTree\Services\AI\AIToolContext $context): AIToolResult {
@@ -827,7 +826,7 @@
 	}
 
 	/** A provider that always answers with nothing at all. */
-	class Audit6EmptyAI extends BigTreeAI {
+	class RegistryGuardEmptyAI extends BigTreeAI {
 		public function __construct() {}
 
 		public function chat($messages, $tools = [], $options = []) {

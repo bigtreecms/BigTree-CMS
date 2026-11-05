@@ -1,6 +1,6 @@
 <?php
 	/**
-	 * Audit #18 E4: what a failed turn leaves behind.
+	 * What a failed turn leaves behind.
 	 *
 	 * A provider error on round N used to delete every proposal the turn had staged
 	 * on rounds 1..N-1. That is finished work — validated, fingerprinted, given a

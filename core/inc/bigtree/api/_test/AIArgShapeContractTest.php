@@ -1,6 +1,6 @@
 <?php
 	/**
-	 * Audit #7 Phase 1: the argument-shape contract at the model↔backend boundary.
+	 * The argument-shape contract at the model↔backend boundary.
 	 *
 	 * Every seam validates semantics meticulously and, until AIToolArgs, nothing
 	 * validated that an argument arrived as the type its own definition() declares.

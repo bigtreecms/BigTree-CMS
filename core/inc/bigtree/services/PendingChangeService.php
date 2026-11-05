@@ -98,7 +98,7 @@
 			// Tag ids the blob names that no longer name a live tag. Read before the
 			// write, because the write is what drops them — and disclosed afterwards
 			// rather than silently swallowed, which is how the unrepaired blob already
-			// behaved (audit #28 D3).
+			// behaved.
 			$stale_tags = $this->aiStaleTagIds($row);
 
 			// Pages: apply the queued change live and drop the queue row.
@@ -130,7 +130,7 @@
 			// landed and every existing relation has been wiped. What survived was a
 			// half-published row with no tags, a change row that was never deleted, no
 			// recache, no re-index, no audit row and no event, and a change that threw
-			// again on every retry, forever (audit #28 A1c).
+			// again on every retry, forever.
 			if ($stale_tags) {
 				$tags_changes = TagService::partitionExistingTagIds($tags_changes)["kept"];
 			}
@@ -171,13 +171,13 @@
 				call_user_func($row["publish_hook"], $row["table"], $item_id, $changes, $mtm_changes, $tags_changes, $open_graph_changes);
 			}
 
-			// The row is live now, and until audit #26 A2 nothing said so: the legacy
-			// primitives fire nothing, and this method fired nothing either, so an
-			// extension subscribing to api.module_entry.updated saw publisher writes and
-			// missed every editor-authored change once it was approved — which is the
-			// assistant's default path, since an editor's entry write queues by
-			// construction. The page half of this same method has always fired, because
-			// publishPendingChange replays the change through performCreate/performUpdate.
+			// The row is live now, so say so: the legacy primitives fire nothing, so
+			// without this an extension subscribing to api.module_entry.updated would
+			// see publisher writes and miss every editor-authored change once it was
+			// approved — which is the assistant's default path, since an editor's entry
+			// write queues by construction. The page half of this same method has
+			// always fired, because publishPendingChange replays the change through
+			// performCreate/performUpdate.
 			//
 			// Same event names as the live writes: a subscriber should not have to learn
 			// a second vocabulary for "this row is now live", and there is no double-fire
@@ -369,8 +369,8 @@
 		 *
 		 * It used to fire from the assistant only, so an extension listening for a
 		 * discarded draft saw assistant rejections and missed every one made through the
-		 * SPA — the exact inversion audit #5 fixed for page.archived / unarchived /
-		 * moved, one service over (audit #26 A4).
+		 * SPA — the same inversion page.archived / unarchived / moved once had, one
+		 * service over.
 		 */
 		private function fireChangeRejected(int $id, string $table, string $via = ""): void {
 			$payload = ["id" => $id, "table" => $table];
@@ -532,7 +532,7 @@
 			];
 
 			// Carried on the list read as well as on the card, so the model reviewing
-			// the queue can see it before it proposes anything (audit #25 A2). The
+			// the queue can see it before it proposes anything. The
 			// changes blob is deliberately not in the list query — it is a LONGTEXT and
 			// the editor path walks the queue 500 rows at a time — so it is read only
 			// for the rows that are actually returned, which the caller's limit bounds.
@@ -597,7 +597,7 @@
 				"changes" => $this->aiChangeDiff($row),
 				// What a publisher would put live unfilled. Said on the detail read as
 				// well as on the publish card, because this is the read the model makes
-				// when it is deciding whether to propose the publish at all (audit #25 A2).
+				// when it is deciding whether to propose the publish at all.
 				"incomplete_required" => $this->aiIncompleteRequired($row),
 			]];
 		}
@@ -605,7 +605,7 @@
 		/**
 		 * The required fields a queued change would put live still empty.
 		 *
-		 * Audit #25 A2. `PageService::aiPageCreateGate` and
+		 * `PageService::aiPageCreateGate` and
 		 * `AutoModuleService::aiEntryCreateGate` both relax their blocked-required
 		 * refusal for a draft — deliberately, because a draft is the "a human completes
 		 * this" case — and both disclose it on the create card. Nothing between that
@@ -614,7 +614,7 @@
 		 * and the queue read carried no marker either, so the model reviewing the queue
 		 * couldn't see it.
 		 *
-		 * Disclosed rather than blocked (audit #25 D4): refusing would make the
+		 * Disclosed rather than blocked: refusing would make the
 		 * assistant unable to publish changes the admin's own pending-changes screen
 		 * publishes, and would strand the draft with no in-chat way out.
 		 *
@@ -814,8 +814,7 @@
 		}
 
 		/**
-		 * One side of a queued change's diff, resolved for a human through PreviewValue
-		 * (audit #15 A1).
+		 * One side of a queued change's diff, resolved for a human through PreviewValue.
 		 *
 		 * A change blob is arbitrary — its keys are whichever page or entry columns the
 		 * author touched, and there is no schema here to consult — so this gets the
@@ -869,7 +868,7 @@
 			// leave both its EDIT draft and any NEW child draft in the queue, and
 			// nothing between the queue read and the approval noticed. Refuse on the
 			// card rather than at the approval, where an EDIT threw a bare 404 and a
-			// NEW succeeded into an orphan (audit #28 A2).
+			// NEW succeeded into an orphan.
 			$missing = $this->aiMissingTargetError($row);
 
 			if ($missing !== "") {
@@ -879,7 +878,7 @@
 
 			// Recomputed here rather than carried from the create card: the draft may
 			// have been re-saved since, and the template or form behind it can gain a
-			// required field inside its life (audit #25 A2).
+			// required field inside its life.
 			$incomplete = $this->aiIncompleteRequired($row);
 			$preview = [
 				"action" => "publish_pending_change",
@@ -899,8 +898,7 @@
 
 			// Tags the blob names that no longer exist. Staged here *and* re-derived at
 			// approval (withStaleTagNote), because a merge or a delete can land inside
-			// the card's own life — and a silently dropped tag is exactly the failure
-			// audit #28 A1 found, so the one thing it must not do is happen quietly.
+			// the card's own life — and a dropped tag must not happen quietly.
 			$stale_note = self::aiStaleTagNote($this->aiStaleTagIds($row), false);
 
 			if ($stale_note !== "") {

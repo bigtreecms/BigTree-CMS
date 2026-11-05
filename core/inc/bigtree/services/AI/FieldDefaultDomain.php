@@ -6,12 +6,12 @@
 	/**
 	 * The value-domain check for a field's `default` setting.
 	 *
-	 * Audits #1–#11 validate a value against its field definition. `default` **is**
-	 * part of the field definition, and it is also a value — so until audit #20 it
-	 * entered through the door with no gates on it (`Resources::aiFieldSettings`, an
-	 * `is_scalar` and a cast) and left through the one that has them, having never
+	 * Values are validated against their field definition. `default` **is** part of
+	 * the field definition, and it is also a value — so without this it would enter
+	 * through the door with no gates on it (`Resources::aiFieldSettings`, an
+	 * `is_scalar` and a cast) and leave through the one that has them, having never
 	 * been checked by either. The same string `FieldOptionDomain` refuses as an entry
-	 * value was accepted as the default that becomes *every* entry's value:
+	 * value would be accepted as the default that becomes *every* entry's value:
 	 * `AutoModuleService::applyFormFieldDefaults` seeds it into the entry's column and
 	 * `PageService::normalizePageResources` writes it into `bigtree_pages.resources`,
 	 * both of them after every gate has run.
@@ -159,6 +159,165 @@
 				. "from this field afterwards — \"{$raw}\" is relative to the current date, so it would freeze to "
 				. "whichever day this is approved on. Use an explicit value like \"" . date("Y-m-d") . "\", or the "
 				. "field's own \"default to today\" setting.";
+		}
+
+		/**
+		 * The value a field's *draw-time* default would have put in the editor, or null
+		 * when the field has none.
+		 *
+		 * Legacy BigTree honoured four settings only by pre-filling the editor's HTML
+		 * control — `date/draw.php`, `datetime/draw.php`, `checkbox/draw.php`, and the
+		 * browser itself for a `<select>` with no blank option — so a human who saved
+		 * the form untouched stored the pre-filled value. Nothing on the server ever
+		 * applied them, which left every writer that never draws a form (the assistant
+		 * above all) storing a blank where the field designer configured a value.
+		 *
+		 *  - `date` + `default_today`    → today, `Y-m-d`
+		 *  - `datetime` + `default_now`  → now, `Y-m-d H:i:s` (the server clock, which is
+		 *    what legacy's convertTimestampToUser → convertTimestampFromUser round-trip
+		 *    stores)
+		 *  - `checkbox` + `default_checked` → the field's `custom_value`, or "on"
+		 *  - `list` with `allow-empty: No` → the first resolved option. A list whose
+		 *    options can't be resolved yields nothing, by the same "a misconfigured list
+		 *    is nobody's cue" rule FieldOptionDomain::resolve follows.
+		 *
+		 * An explicit `default` is not this method's concern; callers check it first,
+		 * because it always wins.
+		 *
+		 * @param array<string,mixed> $field A form field or template resource (type,
+		 *                                   settings, column/id), or a schema entry that
+		 *                                   already carries resolved `options`.
+		 */
+		public static function implicitDefault(array $field): ?string {
+			$type = (string)($field["type"] ?? "");
+			$settings = is_array($field["settings"] ?? null) ? $field["settings"] : [];
+
+			if ($type === "date" && !empty($settings["default_today"])) {
+
+				return date("Y-m-d");
+			}
+
+			if ($type === "datetime" && !empty($settings["default_now"])) {
+
+				return date("Y-m-d H:i:s");
+			}
+
+			if ($type === "checkbox" && !empty($settings["default_checked"])) {
+				$custom = trim((string)($settings["custom_value"] ?? ""));
+
+				return $custom !== "" ? $custom : "on";
+			}
+
+			if ($type === "list" && !FieldOptionDomain::allowsEmpty($settings)) {
+				$options = is_array($field["options"] ?? null)
+					? $field["options"]
+					: FieldOptionDomain::resolve(
+						$field,
+						$type,
+						(string)($field["column"] ?? $field["id"] ?? "")
+					);
+
+				if ($options) {
+
+					return (string)($options[0]["value"] ?? "");
+				}
+			}
+
+			return null;
+		}
+
+		/**
+		 * The draw-time defaults a create would apply: every field absent from the
+		 * supplied values, with no explicit `default` of its own, whose
+		 * implicitDefault() yields a value.
+		 *
+		 * @param iterable<array<string,mixed>> $fields   Form fields or template resources.
+		 * @param array<string,mixed>           $provided The values being written.
+		 * @param string                        $key      "column" (forms) or "id" (templates).
+		 * @return array<string,array{title:string,value:string}> Keyed by column/id.
+		 */
+		public static function implicitDefaults(iterable $fields, array $provided, string $key): array {
+			$applied = [];
+
+			foreach ($fields as $field) {
+				if (!is_array($field)) {
+					continue;
+				}
+
+				$id = (string)($field[$key] ?? "");
+
+				if ($id === "" || array_key_exists($id, $provided)) {
+					continue;
+				}
+
+				$settings = is_array($field["settings"] ?? null) ? $field["settings"] : [];
+
+				if (self::explicitDefaultSatisfies($settings)) {
+					continue;
+				}
+
+				$value = self::implicitDefault($field);
+
+				if ($value === null) {
+					continue;
+				}
+
+				$title = trim((string)($field["title"] ?? ""));
+				$applied[$id] = ["title" => $title !== "" ? $title : $id, "value" => $value];
+			}
+
+			return $applied;
+		}
+
+		/**
+		 * Whether a field's explicit `default` setting fills it. An empty default is
+		 * "no default".
+		 *
+		 * @param array<string,mixed> $settings
+		 */
+		public static function explicitDefaultSatisfies(array $settings): bool {
+			if (!array_key_exists("default", $settings) || !is_scalar($settings["default"])) {
+
+				return false;
+			}
+
+			return trim((string)$settings["default"]) !== "";
+		}
+
+		/**
+		 * The `defaults_applied` card row and result note for a set of applied
+		 * defaults: "Published on: 2026-11-04; Featured: on". Empty when none apply.
+		 *
+		 * @param array<string,array{title:string,value:string}> $applied
+		 */
+		public static function describeApplied(array $applied): string {
+			$parts = [];
+
+			foreach ($applied as $entry) {
+				$parts[] = $entry["title"] . ": " . $entry["value"];
+			}
+
+			return implode("; ", $parts);
+		}
+
+		/**
+		 * The summary clause for a staged create that will fill fields from their
+		 * configured defaults. Empty when none apply.
+		 *
+		 * @param array<string,array{title:string,value:string}> $applied
+		 */
+		public static function appliedNote(array $applied): string {
+			if (!$applied) {
+
+				return "";
+			}
+
+			$titles = array_column($applied, "title");
+
+			return "The field" . (count($titles) === 1 ? " " : "s ") . implode(", ", $titles)
+				. (count($titles) === 1 ? " isn't" : " aren't") . " being set, so "
+				. (count($titles) === 1 ? "it takes its" : "they take their")
+				. " configured default (a date default is the day this is approved).";
 		}
 
 		/**

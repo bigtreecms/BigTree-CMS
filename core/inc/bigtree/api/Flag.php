@@ -8,8 +8,7 @@
 	 * truthy→flag conversion in one place rather than re-inlining `? "on" : ""` at
 	 * each field, so the legacy format lives in a single, swappable spot.
 	 *
-	 * Named Flag (not Json) to avoid colliding with the Json request middleware;
-	 * the audit doc that proposed this refers to it as "Json::checkbox".
+	 * Named Flag (not Json) to avoid colliding with the Json request middleware.
 	 */
 	class Flag {
 		/**

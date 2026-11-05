@@ -1,14 +1,13 @@
 <?php
 	/**
-	 * Audit #12 guards E1, E2 and E4: the DDL boundary the scaffold surface writes
-	 * across.
+	 * The DDL boundary the scaffold surface writes across.
 	 *
 	 * `scaffold_module` is the first tool in the catalogue whose write is DDL, and
 	 * the only proposal whose effect the assistant cannot walk back — deleting a
 	 * module is admin-only and dropping a table isn't a capability at all. Every
 	 * other AI write is checked against the thing it lands in; this one emits
-	 * `CREATE TABLE` / `ALTER TABLE` and, until audit #12, checked nothing about
-	 * whether MySQL would accept them:
+	 * `CREATE TABLE` / `ALTER TABLE`, so it has to check whether MySQL will accept
+	 * them:
 	 *
 	 *  - E1 (A1): a plan whose columns exceed InnoDB's 65,535-byte row definition
 	 *    limit is refused at *plan* time, so REST gets a 400 and the assistant gets a
@@ -110,7 +109,7 @@
 	 * ever put a value in — and at utf8mb4 it spent 766 bytes of the row budget doing
 	 * it. A one-to-many does use its column, but what it holds is a JSON list of ids:
 	 * at the narrowed default width that is about 45 related entries before the write
-	 * is refused, where the same field held five times as many before audit #12 D1.
+	 * is refused, where the same field would hold five times as many at the old width.
 	 */
 	function test_scaffold_plan_stores_the_relation_types_the_way_they_are_read() {
 		$service = new ModuleService();
@@ -144,7 +143,7 @@
 	}
 
 	/**
-	 * Audit #21 A3: the landing view names only columns the table has.
+	 * The landing view names only columns the table has.
 	 *
 	 * `performScaffold` built the view by mirroring the form's field list one-to-one
 	 * while the DDL skipped the fields with no column, so a many-to-many became a
@@ -153,13 +152,12 @@
 	 * own title, and two PHP diagnostics per recache from the numeric-status sweep,
 	 * which read `$table["columns"][$key]["type"]` unguarded.
 	 *
-	 * Latent until audit #21 B2 put `many-to-many` in the field-type catalog, which
-	 * is why both landed together.
+	 * Latent until `many-to-many` was in the field-type catalog.
 	 *
-	 * The two tables the relation names are created here since audit #25 A1: a plan
-	 * whose relation points at a table that isn't there is now refused before any DDL
-	 * runs, so a fixture that named two tables nobody had made was testing the
-	 * landing-view rule against a module that can no longer be built.
+	 * The two tables the relation names are created here: a plan whose relation points
+	 * at a table that isn't there is refused before any DDL runs, so a fixture that
+	 * named two tables nobody had made was testing the landing-view rule against a
+	 * module that can no longer be built.
 	 */
 	function test_a_scaffolded_relation_is_not_mirrored_into_the_landing_view() {
 		if (!_scaffold_guard_sql_ready()) {

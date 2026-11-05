@@ -398,7 +398,7 @@
 		 * is level 1, `GET /404s` is level 1, and every natural phrasing of the ask
 		 * ("what's 404ing since the relaunch?", "fix our broken links") starts at the
 		 * log. Filtered exactly as list() is, through the same buildConditions, so the
-		 * bucket the model asks for is the bucket the dashboard shows (audit #24 B1).
+		 * bucket the model asks for is the bucket the dashboard shows.
 		 *
 		 * `redirect_url` is stored through autoIPL, so it is decoded on the way out for
 		 * the reason every AI read decodes a link: the model is being shown a value it
@@ -530,7 +530,7 @@
 			// The stored destination, which set404Redirect writes through autoIPL — so a
 			// redirect pointing at a page on this site is stored as `ipl://<base64>` (or
 			// `{wwwroot}…`), and both the row and the summary sentence told the approver
-			// they were replacing a base64 blob (audit #15 A1). `$previous` itself stays
+			// they were replacing a base64 blob. `$previous` itself stays
 			// stored-shaped: it is what the emptiness check below reads.
 			$previous_display = PreviewValue::forHuman($previous);
 
@@ -540,7 +540,7 @@
 				// renders as one before/after: `from` here is the *source path*, not a
 				// previous value, so the card struck it through and read "this path is
 				// being deleted" — on the one card in the set that is about creating
-				// something (audit #15 A5). The value genuinely being replaced is
+				// something. The value genuinely being replaced is
 				// `replaces`, which has always been its own row.
 				"source" => "/" . $source,
 				"destination" => $to,
@@ -554,7 +554,7 @@
 
 			// An automatic route-history redirect at the source is checked by the
 			// router before any 404 row, and create301 deletes it, so it is as much
-			// a thing being replaced as an earlier 301 (audit #32 A3).
+			// a thing being replaced as an earlier 301.
 			if ($source_notes["replaces"] !== "") {
 				$preview["replaces"] = implode("; ", array_filter([$previous_display, $source_notes["replaces"]]));
 			}
@@ -759,7 +759,7 @@
 					// whether it lands on a real page depends on which card is approved
 					// first. Non-blocking — a redirect to a page that doesn't exist yet
 					// is legitimate — so it is recorded as a dependency rather than
-					// refused (audit #9 A1/A3). The value is the stored page path, trunk
+					// refused. The value is the stored page path, trunk
 					// included, because that is what a create_page card's `path` holds.
 					$prior = ["prior_change" => [
 						"tool" => "create_page",
@@ -878,7 +878,7 @@
 		/**
 		 * What the front end would do with a request for $path on $site_key today.
 		 *
-		 * The one copy of the router's rules on the AI side (audit #32 D1). router.php
+		 * The one copy of the router's rules on the AI side. router.php
 		 * tries three things in order — the page lookup (getNavId: trunk path prefixed,
 		 * not archived, published, not expired), then checkOldRoutes over
 		 * bigtree_route_history, then handle404 over bigtree_404s — and every AI check
@@ -1067,7 +1067,7 @@
 		 *
 		 * "Live" is the router's answer from aiRouteState: the page on *this* site
 		 * (trunk path prefixed), not archived, published and not expired. An expired or
-		 * scheduled page's URL 404s, so its redirect fires (audit #32 A1).
+		 * scheduled page's URL 404s, so its redirect fires.
 		 *
 		 * Returns null when the source is genuinely unrouted.
 		 *

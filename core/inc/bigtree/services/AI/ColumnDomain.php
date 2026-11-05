@@ -7,7 +7,7 @@
 	 * The storage-boundary check: does a value the assistant proposes actually fit
 	 * the SQL column it is about to be written into?
 	 *
-	 * Every audit before #10 validated a proposed value against a *definition* — the
+	 * The other checks validate a proposed value against a *definition* — the
 	 * form's fields, the value's own rule string, the option domain, the type its
 	 * tool declared. All of them stop where the value is handed to `SQL::insert`,
 	 * and the connection runs with `sql_mode = ''` (sql-class.php), so MySQL's answer
@@ -19,7 +19,7 @@
 	 * approver saw on the card.
 	 *
 	 * SettingService::aiCheckSettingValue is the positive control: it does exactly
-	 * this, keyed by the setting's *type*, and has since audit #3. This class is the
+	 * this, keyed by the setting's *type*. This class is the
 	 * generalization, keyed by the *column* — which is the only thing that actually
 	 * knows the width, the date format and the enum domain. It sits beside
 	 * FieldOptionDomain for the same reason that class exists: one implementation, so
@@ -150,8 +150,8 @@
 				return null;
 			}
 
-			// Character-width types. This is the common case and the one the audit
-			// opened on: a 400-word summary into a varchar(255).
+			// Character-width types. This is the common case: a 400-word
+			// summary into a varchar(255).
 			if ($type === "varchar" || $type === "char" || $type === "varbinary" || $type === "binary") {
 				$max = (int)($column["size"] ?? 0);
 				$length = mb_strlen($value);
@@ -320,8 +320,8 @@
 		 * survive — so the failure is intermittent and looks like the model cut its own
 		 * answer off.
 		 *
-		 * This is the sift-side half of audit #10's A2. The other half has landed: the
-		 * connection is utf8mb4 (`SQL::connect`) and revision 512 converts the schema.
+		 * This is the sift-side half of the utf8mb4 fix. The other half: the connection
+		 * is utf8mb4 (`SQL::connect`) and revision 512 converts the schema.
 		 * The check stays until every install has RUN 512 — a site mid-upgrade is a
 		 * mixed estate, and this is the only warning its utf8mb3 tables get.
 		 */
@@ -374,7 +374,7 @@
 		 * teaser) is capped for humans and uncapped for the assistant, which is the one
 		 * writer with no form in front of it.
 		 *
-		 * Audit #11 A1: for two audits this check could not fire at all, because every
+		 * This check once could not fire at all, because every
 		 * seam feeding it read `$settings["maxlength"]` — a key nothing writes — so the
 		 * cap it was handed was always 0. Read the setting through
 		 * configuredMaxLength() rather than by hand.

@@ -189,7 +189,7 @@
 		 * Proposals in a conversation that are still waiting on the user, newest
 		 * first, optionally narrowed to a set of tools.
 		 *
-		 * Audit #9 A1: every validate seam reads the database as it stands *now*, so a
+		 * Every validate seam reads the database as it stands *now*, so a
 		 * two-step intent ("create a callout group and put this callout in it") had its
 		 * second step validated against a world where the first hadn't happened. This
 		 * is how a seam asks "is the thing I can't find already staged?" — a single

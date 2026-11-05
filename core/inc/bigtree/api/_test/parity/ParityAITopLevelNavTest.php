@@ -1,15 +1,14 @@
 <?php
 	/**
-	 * Audit #24 E4: legacy's top-level `in_nav` clamp, on all three of its legs.
+	 * Legacy's top-level `in_nav` clamp, on all three of its legs.
 	 *
 	 * Legacy pins the flag for anyone below developer whenever the page is at top
 	 * level, on three write paths: `updatePage` (admin.php:8830), `submitPageChange`
-	 * (:8022) and the move (admin.php:9044). Audit #6 found the move leg and it was
-	 * ported properly — aiMovePage clears the flag and the card discloses it. The
-	 * other two were never ported at all, so "put About in the main menu" succeeded
-	 * for a level-0 editor with `e` access, on a card that said nothing about a
-	 * site-wide change; and the reverse, taking a top-level page *out* of the nav, was
-	 * equally reachable.
+	 * (:8022) and the move (admin.php:9044). The move leg was ported properly —
+	 * aiMovePage clears the flag and the card discloses it. The other two were never
+	 * ported at all, so "put About in the main menu" succeeded for a level-0 editor
+	 * with `e` access, on a card that said nothing about a site-wide change; and the
+	 * reverse, taking a top-level page *out* of the nav, was equally reachable.
 	 *
 	 * It is not an "AI is looser than REST" finding — `PATCH /pages/{id}` had the
 	 * identical hole, which is why every parity guard was correctly silent. So the two

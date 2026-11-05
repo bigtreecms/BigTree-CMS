@@ -1,6 +1,6 @@
 <?php
 	/**
-	 * Audit #19 guard E1: the side effects a write is supposed to have.
+	 * The side effects a write is supposed to have.
 	 *
 	 * Every earlier AI guard relates a *tool* to a *backend seam*, or a route body
 	 * field to a tool argument. None of them can see a side effect that fires from
@@ -49,7 +49,7 @@
 			"applyFormDefaultPosition" => "the form's default sort position",
 			"BigTreeAutoModule::sanitizeData" => "value normalization before the write",
 			"Hooks::fire" => "the module_entry.* event other services subscribe to",
-			// Audit #30 E4. Both writers reach this through their shared processor
+			// Both writers reach this through their shared processor
 			// pass, so both bodies are (correctly) silent about it — which is what
 			// makes naming it here worth doing: a future writer that geocodes inline,
 			// without the stored row a failed lookup has to judge against, shows up
@@ -57,7 +57,7 @@
 			// itself is asserted by
 			// test_both_processor_passes_hand_the_stored_row_to_the_geocoder below.
 			"applyGeocoding" => "the geocoding field's lookup, and what a failed one does to the coordinates",
-			// Audit #31 E2. The form's `pre` hook ran on neither writer — only on embed
+			// The form's `pre` hook ran on neither writer — only on embed
 			// forms — so every entry on a module whose hook computes a column was
 			// stored without it, from the SPA and from the assistant alike.
 			"applyFormPreHook" => "the module form's pre hook, folded into the data before it is processed",
@@ -67,15 +67,14 @@
 	/**
 	 * The side effects a page *move* is supposed to have.
 	 *
-	 * Audit #25 B1. The pair map below covered module entries only, which is exactly
-	 * why this went unseen: `PageService::move` updated the row and called
-	 * `repathChildren`, whose `path LIKE '$old_path/%'` match is descendants only —
-	 * and which is the sole caller of `recordRouteHistory` and `reindexPage` on that
-	 * path. So every descendant got a redirect and a fresh embedding while the page
-	 * that actually moved got neither: its old URL 404d and its search index still
-	 * held the old path. `aiMovePage` has done both since audit #11, with the reason
-	 * written down, which makes this the negative of the usual finding — the AI seam
-	 * was the more complete of the two.
+	 * The pair map below covered module entries only, which is exactly why this went
+	 * unseen: `PageService::move` updated the row and called `repathChildren`, whose
+	 * `path LIKE '$old_path/%'` match is descendants only — and which is the sole
+	 * caller of `recordRouteHistory` and `reindexPage` on that path. So every
+	 * descendant got a redirect and a fresh embedding while the page that actually
+	 * moved got neither: its old URL 404d and its search index still held the old path.
+	 * `aiMovePage` does both, with the reason written down, which makes this the
+	 * negative of the usual finding — the AI seam was the more complete of the two.
 	 *
 	 * @return array<string,string> token => what it does
 	 */
@@ -160,7 +159,7 @@
 	 * Fails on `fireFormHooks` and `formPublishHook` as the tree stood at 7914f5813 —
 	 * the A1 defect, which every existing guard was structurally unable to see. Fails
 	 * again on `recordRouteHistory` and `reindexPage` as it stood at 28f71d9c0, once
-	 * page move joined the pair map (audit #25 B1/E5).
+	 * page move joined the pair map.
 	 */
 	function test_both_writers_of_a_record_run_the_same_side_effects() {
 		$exemptions = ai_write_side_effect_exemptions();
@@ -189,7 +188,7 @@
 	}
 
 	/**
-	 * Audit #31 E2: the `pre` hook's exemption above is a claim that it still runs on
+	 * The `pre` hook's exemption above is a claim that it still runs on
 	 * both writers, just from prepareEntryWrite on the REST side. This holds the
 	 * claim to account — the exemption alone would let either side drop it.
 	 */
@@ -222,7 +221,7 @@
 	}
 
 	/**
-	 * Audit #30 E4: one failure rule, reached the same way by both writers.
+	 * One failure rule, reached the same way by both writers.
 	 *
 	 * `applyGeocoding` decides what a failed lookup does to `latitude` / `longitude`
 	 * by comparing the address being written against the address the stored row
@@ -232,7 +231,7 @@
 	 * address). Neither is visible in the static pair map above, because both
 	 * writers reach the seam through a shared helper.
 	 *
-	 * Fails with the finding reintroduced: the pre-audit signature took no $row.
+	 * Fails if the signature stops taking $row.
 	 */
 	function test_both_processor_passes_hand_the_stored_row_to_the_geocoder() {
 		$source = (string)file_get_contents(SERVER_ROOT . "core/inc/bigtree/services/AutoModuleService.php");
@@ -330,7 +329,7 @@
 		T::equals(implode(", ", $stale), "", "no exemption names a difference that no longer exists");
 	}
 
-	// — E1 (audit #26): every writer of a pending change, discovered rather than paired —
+	// — E1: every writer of a pending change, discovered rather than paired —
 
 	/**
 	 * The two legacy primitives that write a `bigtree_pending_changes` row, and the
@@ -502,7 +501,7 @@
 	 * queued on the same entry. The effects map is also matched as *tokens in a method
 	 * body*, which a second call in the same method can slip past.
 	 *
-	 * Fails on aiQueueEntryTagChange as the tree stood at 5de00e725 (audit #26 A1).
+	 * Fails on aiQueueEntryTagChange as the tree stood at 5de00e725.
 	 */
 	function test_every_pending_change_writer_stores_the_forms_publish_hook() {
 		$sites = ai_pending_write_sites();
@@ -568,7 +567,7 @@
 	 * there is no stored page yet, but both edit paths receive only the keys being
 	 * changed, so a change that edits `resources` without switching template has to
 	 * fall back to the page's stored one. performUpdate always did; the queued path
-	 * didn't, and normalized against "" (audit #19 A3).
+	 * didn't, and normalized against "".
 	 *
 	 * The token is the whole resolution, not just the fallback variable:
 	 * `$fallback_template` on its own also matches the parameter declaration, so a
@@ -615,7 +614,7 @@
 		// actually resolve one — an unpassed default would satisfy the check above
 		// and normalize against "" exactly as before.
 		// Matched as a pattern rather than a literal because the same read now carries
-		// the page's `parent` for the top-level nav clamp (audit #24 A2) — what this
+		// the page's `parent` for the top-level nav clamp — what this
 		// leg is asserting is that the template is resolved from the page being
 		// edited, not the exact column list it arrives in.
 		$caller = ai_surface_method_body($service, "writePendingPageChange");
@@ -756,7 +755,7 @@
 	}
 
 	/**
-	 * Audit #20 guard E3: the gate that runs before a writer agrees with what the
+	 * The gate that runs before a writer agrees with what the
 	 * writer is about to do.
 	 *
 	 * The rule is "a field the write path will fill is not reported missing by the gate
@@ -764,7 +763,7 @@
 	 * consulted the setting, so a required field carrying a default was refused for the
 	 * assistant — for a value the write path supplies a few lines later — and pre-filled
 	 * and accepted for a human, because `FormRenderer` seeds every input from the same
-	 * `default` before the form's required check runs (audit #20 A3). A gate that
+	 * `default` before the form's required check runs. A gate that
 	 * refuses what the writer then supplies isn't enforcing an invariant; it is
 	 * reporting a stale view of the data.
 	 *
@@ -1101,12 +1100,12 @@
 	 * E1b, the behavioural half: a tag change over an entry somebody already has a
 	 * draft queued on leaves that draft's publish hook alone.
 	 *
-	 * This is the only defect in audit #26 that writes something the 24-hour proposal
-	 * TTL doesn't clean up. `submitChange` replaces `publish_hook` wholesale on both
-	 * its branches, so the literal `null` `aiQueueEntryTagChange` used to pass wrote a
-	 * NULL over a hook name a *different* writer had stored — and the tagger need not
-	 * have known a draft was there. Whoever approved the change later read the row,
-	 * found nothing, and the module form's publish hook never ran for that record.
+	 * This writes something the 24-hour proposal TTL doesn't clean up. `submitChange`
+	 * replaces `publish_hook` wholesale on both its branches, so the literal `null`
+	 * `aiQueueEntryTagChange` used to pass wrote a NULL over a hook name a *different*
+	 * writer had stored — and the tagger need not have known a draft was there. Whoever
+	 * approved the change later read the row, found nothing, and the module form's
+	 * publish hook never ran for that record.
 	 *
 	 * Reproduced here in the order it happens: a queued edit, then a tag change over
 	 * the same entry, then the approval that has to fire the hook.
@@ -1119,8 +1118,8 @@
 
 		$restore = ai_side_effect_enable_form_hooks();
 		// Layered over the hook patch and unwound before it, so the module definition
-		// ends where it started. add_tags refuses a tagging-off form since audit #27 A1,
-		// and News ships with the switch off.
+		// ends where it started. add_tags refuses a tagging-off form, and News ships
+		// with the switch off.
 		$tagging = parity_enable_news_relations();
 		$svc = new AutoModuleService();
 		$tags = new \BigTree\Services\TagService();

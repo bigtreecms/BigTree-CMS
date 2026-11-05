@@ -30,7 +30,7 @@
 			["column" => "blurb", "type" => "textarea", "title" => "Blurb", "settings" => []],
 			["column" => "hero", "type" => "upload", "title" => "Hero Image", "settings" => ["required" => "on"]],
 			["column" => "blocks", "type" => "matrix", "title" => "Blocks", "settings" => ["required" => "on"]],
-			// Settable since audit #11: an image reference is a file id the assistant
+			// Settable: an image reference is a file id the assistant
 			// can look up, and a relationship is a list of entry ids — neither is a
 			// gap a human has to fill, so neither belongs in blocked_required.
 			["column" => "photo", "type" => "image-reference", "title" => "Photo", "settings" => ["required" => "on"]],
@@ -52,10 +52,10 @@
 	}
 
 	/**
-	 * Audit #14 C2: the *optional* half of the same scan.
+	 * The *optional* half of the same scan.
 	 *
-	 * A required unauthorable field blocks the record from going live and has been
-	 * disclosed for several audits. An optional one said nothing at all, which is the
+	 * A required unauthorable field blocks the record from going live and is
+	 * disclosed. An optional one said nothing at all, which is the
 	 * quieter failure: the entry saves, the card looks complete, and the gallery or
 	 * matrix renders empty on the site with nobody told a human still has to finish it.
 	 * Disclosure, not refusal — refusing would make every composite content model
@@ -367,7 +367,7 @@
 	}
 
 	/**
-	 * Audit #25 guard E4: the publish card discloses what the create card disclosed.
+	 * The publish card discloses what the create card disclosed.
 	 *
 	 * Both create gates relax the blocked-required refusal for a draft on purpose — a
 	 * draft is the "a human completes this" case — and both say so on the card
@@ -381,7 +381,7 @@
 	 * is the only writer that can queue a change with an empty required field, and
 	 * also the tool that publishes it, to a publisher shown nothing about it.
 	 *
-	 * Fails on the tree before audit #25: the card names nothing.
+	 * Without the disclosure, the card names nothing.
 	 */
 	function test_ai_publish_card_names_the_required_fields_a_draft_left_empty() {
 		if (!function_exists("parity_db_available") || !parity_db_available()) {
@@ -492,13 +492,13 @@
 	}
 
 	/**
-	 * Audit #29 E4: the discovered sweep that would have seen A1.
+	 * The discovered sweep that would have seen A1.
 	 *
 	 * The required-content rule is keyed, everywhere else in this file, to the seams
 	 * that take content *from the model* — which is exactly why a restore walked past
-	 * it for twenty-eight audits. restore_page_revision writes `template` +
-	 * `resources` out of a revision row, supplies nothing, and was therefore invisible
-	 * to every guard that starts from an argument.
+	 * it. restore_page_revision writes `template` + `resources` out of a revision row,
+	 * supplies nothing, and was therefore invisible to every guard that starts from an
+	 * argument.
 	 *
 	 * So this one starts from the write instead: every place PageService puts a
 	 * `resources`-bearing array onto bigtree_pages has to ask the question in its own
@@ -519,7 +519,7 @@
 			"performUpdate" => "the shared live-write epilogue, reached from REST, from publishing a draft "
 				. "and from the AI seams. Its callers gate: the admin's own save refuses an empty required "
 				. "field client-side, and every AI door above runs a gate before reaching it. A gate here "
-				. "would refuse a draft that a person deliberately queued incomplete (audit #14)",
+				. "would refuse a draft that a person deliberately queued incomplete",
 			"publishPendingChange" => "publishing is not authoring: the draft's content was gated when it "
 				. "was queued, and the card discloses what it left empty (incomplete_required)",
 		];

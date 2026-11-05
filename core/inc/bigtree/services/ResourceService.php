@@ -36,7 +36,7 @@
 	class ResourceService implements ResourceToolBackend {
 		// How many viewable subfolders list_resources returns before marking the
 		// list partial, and how many rows search_files scans before filtering by
-		// folder access (audit #7 D3).
+		// folder access.
 		private const AI_RESOURCE_FOLDER_CAP = 200;
 		private const AI_FILE_SEARCH_SCAN_CAP = 500;
 
@@ -420,7 +420,7 @@
 
 			// Subfolders the user can't see are dropped, so the cap has to come after
 			// the filter or a visible folder past the window vanishes with nothing
-			// saying so (audit #7 D3). Over-fetch, filter, then slice one past the
+			// saying so. Over-fetch, filter, then slice one past the
 			// window for an honest has_more.
 			$folders = SQL::fetchAll(
 				"SELECT id, parent, name FROM bigtree_resource_folders WHERE parent = ? ORDER BY name LIMIT "
@@ -481,7 +481,7 @@
 
 			// Rows in folders the user can't view are dropped, so filtering after a
 			// fixed LIMIT 100 could report "no such file" for a match sitting at row
-			// 101 in a folder the user can see (audit #7 D3). Scan a generous window,
+			// 101 in a folder the user can see. Scan a generous window,
 			// filter, then cap — and take one extra so has_more is a fact.
 			$rows = SQL::fetchAll(
 				"SELECT id, folder, file, name, type, mimetype, is_image, is_video, height, width, size, date

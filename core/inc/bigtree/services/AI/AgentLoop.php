@@ -65,7 +65,7 @@
 			// accumulating inside the turn — re-fed in full on every later round —
 			// were not, so a turn that read widely overflowed the provider's context
 			// and died as an unrecoverable provider error carrying everything it had
-			// staged with it (audit #18 A1). Refused here instead, in the model's own
+			// staged with it. Refused here instead, in the model's own
 			// terms, while there is still room to answer.
 			if ($payload_chars >= PayloadBudget::TURN_CHARS) {
 
@@ -134,8 +134,7 @@
 		 * and into a call with no tools, so a turn cut off part-way through a
 		 * read-then-stage sequence answered as if it had finished. That is the worst
 		 * shape the answer can take, because "I've prepared that for you" over a
-		 * proposal that was never staged is indistinguishable from the real thing
-		 * (audit #14 C1).
+		 * proposal that was never staged is indistinguishable from the real thing.
 		 *
 		 * Delivered as a `system` message because BigTreeAI folds every system turn into
 		 * the provider's system block for both providers, so it can't be mistaken for
@@ -171,7 +170,7 @@
 				// budget (BigTreeAI::maxTokens). The old literal 1024 was a ceiling no
 				// setting could raise — roughly 700 words of *tool-call arguments*, so
 				// a page body past that was cut mid-JSON and arrived as a call with no
-				// arguments at all (audit #18 A3).
+				// arguments at all.
 				"max_tokens" => (int)($options["max_tokens"] ?? BigTreeAI::DEFAULT_MAX_TOKENS),
 				"temperature" => (float)($options["temperature"] ?? 0.2),
 			];

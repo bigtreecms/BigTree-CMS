@@ -4,16 +4,15 @@
 	/**
 	 * Did the provider finish, or did it stop?
 	 *
-	 * A 2xx says the request was accepted, not that the turn is whole. Every
-	 * provider says which of the two happened — OpenAI/xAI in
-	 * `choices[0].finish_reason`, Anthropic in `stop_reason` (and, streaming, in the
-	 * `message_delta` event) — and until audit #18 neither string appeared anywhere
-	 * in this codebase. The streaming path inferred truncation from unparseable
-	 * argument JSON (audit #6) and the two buffered paths inferred nothing at all:
-	 * `json_decode(...) ?: []` turned a tool call cut mid-arguments into the same
-	 * call with every argument dropped — "update page 42, changing nothing" — and a
-	 * final answer cut at the token ceiling was returned as though the model had
-	 * finished speaking.
+	 * A 2xx says the request was accepted, not that the turn is whole. Every provider
+	 * says which of the two happened — OpenAI/xAI in `choices[0].finish_reason`,
+	 * Anthropic in `stop_reason` (and, streaming, in the `message_delta` event) — and
+	 * both have to be read. The streaming path inferred truncation from unparseable
+	 * argument JSON and the two buffered paths inferred nothing at all:
+	 * `json_decode(...) ?: []` turned a tool call cut mid-arguments into the same call
+	 * with every argument dropped — "update page 42, changing nothing" — and a final
+	 * answer cut at the token ceiling was returned as though the model had finished
+	 * speaking.
 	 *
 	 * Two different failures, two different answers:
 	 *

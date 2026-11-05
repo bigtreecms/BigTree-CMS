@@ -35,8 +35,7 @@
 		use ModuleSubResourceSupport;
 		use ModuleFormFieldsSupport;
 
-		// The max:255 the POST /module-groups route enforces on the group name
-		// (audit #7 B4).
+		// The max:255 the POST /module-groups route enforces on the group name.
 		private const AI_GROUP_NAME_MAX_LENGTH = 255;
 
 		// The embed-form sub-resource write shape: column => transform verb (see
@@ -122,7 +121,7 @@
 		//
 		// All validation runs BEFORE any DDL because CREATE/ALTER TABLE implicitly commit
 		// and can't be rolled back — we don't want to half-build on a bad request. That
-		// split is explicit since audit #11 C1: scaffoldPlan() answers "what would this
+		// split is explicit: scaffoldPlan() answers "what would this
 		// build?" without touching the database, performScaffold() builds exactly that
 		// plan, and the assistant's scaffold_module tool puts the plan on a proposal
 		// card and runs the build only on approval. That is only safe because both
@@ -198,7 +197,7 @@
 			// and the builtin `ADD COLUMN approved CHAR(2)` that follows would fail
 			// against it — leaving an approve button over a VARCHAR with no index. The
 			// action can also be switched on later in the Designer, so the collision
-			// has to be impossible rather than merely unlikely today (audit #12 A1).
+			// has to be impossible rather than merely unlikely today.
 			$reserved = ["id", "position", "approved", "featured", "archived"];
 			$form_fields = [];
 			$column_adds = [];
@@ -256,8 +255,8 @@
 			}
 
 			// A field whose settings name a table — a relation's target, a db-populated
-			// list's source — is checked against the database before any DDL runs
-			// (audit #25 A1). The settings gate in front of the AI surface asks only
+			// list's source — is checked against the database before any DDL runs.
+			// The settings gate in front of the AI surface asks only
 			// whether the name is *present*, so any identifier-shaped string satisfied
 			// it and the CREATE TABLE went ahead with a field pointing at nothing;
 			// POST /modules/scaffold ran no settings check at all. Both callers land
@@ -282,10 +281,10 @@
 
 			// A route field's `source` names the sibling column its slug is generated
 			// from. One naming a column this plan doesn't create — or the route's own —
-			// generates from nothing, so every entry gets an empty URL (audit #31 A2).
+			// generates from nothing, so every entry gets an empty URL.
 			// Checked against the columns as they will actually be stored, after the
 			// de-duplication above, and here rather than only in the AI gate for the
-			// reason the target check is (#25 D1): broken whoever built it.
+			// reason the target check is: broken whoever built it.
 			foreach ($form_fields as $field) {
 				if ($field["type"] !== "route") {
 					continue;
@@ -293,7 +292,7 @@
 
 				$wrong = Resources::aiRouteSourceUnplanned($field["column"], $field["settings"], $used_columns, "plain");
 
-				// No source at all is the AI surface's own correction (audit #30 B1);
+				// No source at all is the AI surface's own correction;
 				// the Module Designer allows it, so REST does too.
 				if ($wrong === [""] || !$wrong) {
 					continue;
@@ -324,7 +323,7 @@
 			$view_title = trim((string)($d["view_title"] ?? "")) ?: $this->pluralize($name);
 
 			// The last thing MySQL would refuse, asked before anything is built rather
-			// than halfway through building it (audit #12 A1).
+			// than halfway through building it.
 			$budget_error = $this->scaffoldRowBudgetError($form_fields, $actions_in, $view_type);
 
 			if ($budget_error !== null) {
@@ -357,12 +356,12 @@
 		 * action. Runs DDL, so it is only ever called with a plan scaffoldPlan()
 		 * returned.
 		 *
-		 * Every statement's result is checked. Until audit #12 none were: the DDL was
-		 * fired and the form, the view and the actions were built over whatever came
-		 * out the other side, so a refused `ALTER` produced a module whose form named
-		 * columns that did not exist. There is no rollback to offer — DDL implicitly
-		 * commits — so a failure stops and reports the module id and table a developer
-		 * has to finish or drop by hand (audit #12 D4).
+		 * Every statement's result is checked. Otherwise the form, the view and the
+		 * actions would be built over whatever came out the other side, so a refused
+		 * `ALTER` would produce a module whose form named columns that did not exist.
+		 * There is no rollback to offer — DDL implicitly commits — so a failure stops
+		 * and reports the module id and table a developer has to finish or drop by
+		 * hand.
 		 *
 		 * @param array<string,mixed> $plan
 		 * @return array{id:string,table:string,error?:string}
@@ -385,7 +384,7 @@
 			// commits and can't be rolled back, so building the table for a module that
 			// was never written would leave a table nothing owns. Reported the same way
 			// a refused statement is — a 500 on REST, a FAILED card on the AI path
-			// (audit #17 A3) — rather than as a created module.
+			// — rather than as a created module.
 			if ($module_id === false) {
 
 				return ["id" => "", "table" => $table, "error" => ConfigurationStore::WRITE_FAILED];
@@ -439,7 +438,7 @@
 				"fields" => $this->cleanFormFields($form_fields),
 				// A drag-orderable view is a hand-ordered one, and every entry landing
 				// at position 0 leaves it unordered until someone drags all of it. "top"
-				// is what the legacy designer sets for the same view type (audit #12 A5).
+				// is what the legacy designer sets for the same view type.
 				"default_position" => $view_type === "draggable" ? "top" : "",
 				"return_view" => null,
 				"return_url" => "",
@@ -461,7 +460,7 @@
 				// permanently blank column under the field's own title
 				// (BigTreeAutoModule::cacheRecord fills a missing key with "") and makes
 				// the numeric-status sweep read a column that does not exist, twice per
-				// phantom column per recache (audit #21 A3).
+				// phantom column per recache.
 				//
 				// `$column_adds` is keyed by the field's own index, so this lookup is
 				// exact rather than positional.
@@ -565,8 +564,8 @@
 		 *
 		 * Public and static because it is also the answer to "how wide is the storage
 		 * this field's value gets" — which is what FieldDefaultDomain has to know to
-		 * judge an authored `default` (audit #20 A1). A second hand-written copy of
-		 * this mapping over there is the drift audit #10 A4 is about.
+		 * judge an authored `default`. A second hand-written copy of this mapping over
+		 * there would drift.
 		 */
 		public static function columnSqlType($type) {
 			// A many-to-many doesn't live in a column: it is a connecting table and two
@@ -574,7 +573,7 @@
 			// row it writes (`aiWithoutMtmColumns`, and `$field["ignore"] = true` in
 			// many-to-many/process.php) precisely because nothing may land there. The
 			// legacy designer created one anyway; it was never written to, and at
-			// utf8mb4 it spent 766 bytes of the row budget on nothing (audit #12 A2).
+			// utf8mb4 it spent 766 bytes of the row budget on nothing.
 			if ($type === "many-to-many") {
 				return "";
 			}
@@ -607,7 +606,7 @@
 				return "DATETIME";
 			}
 
-			// Audit #12 D1. This was VARCHAR(1024), which under utf8mb3 cost 3,074
+			// This was VARCHAR(1024), which under utf8mb3 cost 3,074
 			// bytes of the 65,535-byte row definition and left room for 21 columns.
 			// Revision 512 moved every table to utf8mb4 and silently halved that to 15
 			// — fewer fields than a staff directory needs. 191 is the width CLAUDE.md
@@ -665,8 +664,7 @@
 		}
 
 		/**
-		 * Refuse a field list MySQL will refuse, while refusing it still costs nothing
-		 * (audit #12 A1).
+		 * Refuse a field list MySQL will refuse, while refusing it still costs nothing.
 		 *
 		 * `performScaffold` issues every field column as one `ALTER`, so the whole list
 		 * fails as a unit — the table keeps `id` and nothing else while the form, the
@@ -1654,13 +1652,13 @@
 						"table" => (string)($v["table"] ?? ""),
 						// A `draggable` view is hand-ordered — position matters and the
 						// form's default_position applies — and a `searchable` one isn't.
-						// Without the type the two read identically (audit #13 C2).
+						// Without the type the two read identically.
 						"type" => (string)($v["type"] ?? ""),
 					];
 				}, array_values($views)),
 				// The routes, not a count. A number told the model nothing it could act
 				// on, and the actions are where a module says whether its entries are
-				// approval-gated (audit #13 C3).
+				// approval-gated.
 				"actions" => array_map(function (array $a): array {
 
 					return [
@@ -1671,10 +1669,10 @@
 						"level" => (int)($a["level"] ?? 0),
 					];
 				}, array_values($actions)),
-				// The read side of audit #13 A1: which of this module's entry columns
-				// are status flags, and what each one is called in the admin. An entry
-				// in an `approved`-gated module is invisible on the live site until
-				// somebody approves it, and nothing here used to say so.
+				// Which of this module's entry columns are status flags, and what each
+				// one is called in the admin. An entry in an `approved`-gated module is
+				// invisible on the live site until somebody approves it, and this says
+				// so.
 				"status_actions" => self::aiModuleStatusActions($module),
 				"gbp" => [
 					"enabled" => !empty($gbp["enabled"]),
@@ -1683,7 +1681,7 @@
 				"your_access_level" => PermissionService::userModuleLevel($user, (string)$module["id"]),
 				"is_complete" => !$missing,
 				"missing_setup" => $missing,
-				// The other half of the grant state (audit #21 A4). "Grant somebody
+				// The other half of the grant state. "Grant somebody
 				// access" is not an instruction on a site with nobody to grant it to, so
 				// that case is said as a note rather than counted as unfinished setup —
 				// the two states want different sentences, and a boolean had only one.
@@ -1695,8 +1693,7 @@
 				// The whole vocabulary `icon` is drawn from, so the model picks from a
 				// list the way the developer picks from a grid. Discovery by accident —
 				// copying a slug off whichever module happened to be read — is what this
-				// replaces, and it failed for any subject no existing module shared
-				// (audit #13 A2).
+				// replaces, and it failed for any subject no existing module shared.
 				"icon_options" => IconDomain::slugs(),
 				"extension" => (string)($module["extension"] ?? ""),
 			]];
@@ -1784,8 +1781,8 @@
 			}
 
 			// Settable on create and nowhere afterwards, with no decline line either, so
-			// "point the Events module at the new handler class" hit no tool and no wall
-			// (audit #9 B1). Unlike the route — which is declined because changing it
+			// "point the Events module at the new handler class" hit no tool and no wall.
+			// Unlike the route — which is declined because changing it
 			// breaks every bookmark and hard-coded link — a class change breaks neither,
 			// and the validation the create path uses already exists. The Module
 			// Designer still owns *creating* a class; this only re-points at one.
@@ -1879,7 +1876,7 @@
 				$module["class"] = $class;
 			}
 
-			// Re-asked at approval like `class` above (audit #13 A2).
+			// Re-asked at approval like `class` above.
 			if (array_key_exists("icon", $changes)) {
 				$icon = IconDomain::normalize((string)$changes["icon"]);
 				$icon_violation = IconDomain::violation($icon);
@@ -1901,7 +1898,7 @@
 				}
 			}
 
-			// Read before the write, from the record as it stands now (audit #13 A3).
+			// Read before the write, from the record as it stands now.
 			$extension_warning = ExtensionDomain::warning($module, "module");
 
 			if (!BigTreeJSONDB::update("modules", $id, $module)) {
@@ -1979,7 +1976,7 @@
 
 			// A closed 54-slug vocabulary the admin picks from a grid, and the model can
 			// only guess at — so the guess is checked here rather than stored and drawn
-			// as a generic box (audit #13 A2).
+			// as a generic box.
 			$icon = IconDomain::normalize((string)($args["icon"] ?? ""));
 			$icon_violation = IconDomain::violation($icon);
 
@@ -2056,7 +2053,7 @@
 
 			// Never trusted on the way back out: an extension can't add a slug to the
 			// vocabulary, but a payload can be replayed against a core whose list has
-			// changed, and the check costs nothing (audit #13 A2).
+			// changed, and the check costs nothing.
 			$icon = IconDomain::normalize((string)($payload["icon"] ?? ""));
 			$icon_violation = IconDomain::violation($icon);
 
@@ -2080,7 +2077,7 @@
 			}
 
 			// Asked of the record that was just written rather than written down here,
-			// for the same reason the scaffold's is (audit #21 A1). A bare create can
+			// for the same reason the scaffold's is. A bare create can
 			// only ever be incomplete — it makes a module with `"table" => ""` — but a
 			// seam that asserts its own completeness is exactly how scaffold_module came
 			// to disagree with get_module about the same module in the same turn.
@@ -2112,7 +2109,7 @@
 		 * Validate a proposed module scaffold: the module record *and* the table, form,
 		 * landing view and actions that make it usable. Developer-only.
 		 *
-		 * Audit #11 C1. `create_module` builds a record with `"table" => ""` and
+		 * `create_module` builds a record with `"table" => ""` and
 		 * discloses, honestly, that the result isn't usable — the single most
 		 * incomplete record the assistant can create. Meanwhile POST /modules/scaffold
 		 * has always done the whole job from a validated field list, and was declined
@@ -2144,9 +2141,8 @@
 			}
 
 			// Resolved by id *or* name, and handed back as a choice when neither
-			// matches, exactly as create_module has done since audit #9 — the same
-			// sentence from the user resolved on one tool and stored a dangling string
-			// on the other (audit #12 A3).
+			// matches, exactly as create_module does — so the same sentence from the
+			// user can't resolve on one tool and store a dangling string on the other.
 			$resolved_group = $this->aiResolveModuleGroup($args["group"] ?? "");
 
 			if (isset($resolved_group["needs_input"])) {
@@ -2167,8 +2163,8 @@
 					. implode(", ", FieldTypeService::availableFieldTypeIds("modules")) . "."];
 			}
 
-			// The same registry check create_template and create_callout run (audit #2
-			// P2), so a scaffold can't build a column for a field type that doesn't
+			// The same registry check create_template and create_callout run, so a
+			// scaffold can't build a column for a field type that doesn't
 			// exist and then render as nothing in the editor it just created.
 			$type_error = $this->aiInvalidScaffoldFieldTypeError($fields);
 
@@ -2177,7 +2173,7 @@
 				return ["error" => $type_error];
 			}
 
-			// The settings-completeness half of the same rule (audit #12 A2). A field
+			// The settings-completeness half of the same rule. A field
 			// type that exists is not yet a field that renders: a `list` with no
 			// options is an empty select nobody can satisfy, a `matrix` with no columns
 			// stores as LONGTEXT and draws nothing, and a relation with no target table
@@ -2186,9 +2182,9 @@
 			$settings_error = Resources::aiDuplicateFieldIdError($this->aiScaffoldGateFields($fields), "module")
 				?? Resources::aiUnconfigurableFieldError($this->aiScaffoldGateFields($fields), [], "module")
 				// The same gate one level down: a matrix's columns are fields too, and
-				// `columns` being present said nothing about them (audit #31 A3).
+				// `columns` being present said nothing about them.
 				?? Resources::aiMatrixColumnsError($this->aiScaffoldGateFields($fields), "module")
-				// The value half of the same rule (audit #20 A1). A `default` is the one
+				// The value half of the same rule. A `default` is the one
 				// field setting whose stored value becomes record content — every entry
 				// created from this form is born holding it — so it is judged by the
 				// domains that judge a value of the field it sits on, not by the
@@ -2221,11 +2217,11 @@
 				$missing_table = trim((string)($plan["missing_table"] ?? ""));
 
 				// "Build a Categories module, then a Press Releases module that relates
-				// to it" is the two-proposal intent audit #9 built the sequencing
-				// machinery for: the table genuinely does not exist until the first card
-				// is approved, so the honest answer is the order rather than a flat
-				// refusal (audit #25 D2). Keyed on `table`, not `name`, because that is
-				// the value a scaffold's payload and card carry.
+				// to it" is the two-proposal intent the sequencing machinery is for:
+				// the table genuinely does not exist until the first card is approved,
+				// so the honest answer is the order rather than a flat refusal. Keyed
+				// on `table`, not `name`, because that is the value a scaffold's
+				// payload and card carry.
 				if ($missing_table !== "") {
 
 					return [
@@ -2261,12 +2257,12 @@
 						? trim((string)preg_replace('/^ADD COLUMN /', "", $add))
 						// Said in full because the approver would otherwise meet it as a
 						// surprise: the field is on the form and absent from the list, and
-						// the landing view is the screen they'll open first (audit #21 A3).
+						// the landing view is the screen they'll open first.
 						: "no column — the relation lives in its connecting table, and it "
 							. "won't appear as a column in the landing view")
 						. " — " . (string)$field["type"] . " field"
 						// Required is the one validation rule this tool sets, and the
-						// approver is the person who'd notice it was wrong (audit #12 A4).
+						// approver is the person who'd notice it was wrong.
 						. ($this->aiScaffoldFieldIsRequired($field) ? ", required" : ""),
 				];
 			}
@@ -2283,7 +2279,7 @@
 
 			$unfillable = $this->aiScaffoldUnfillableColumns($plan);
 			// What a scaffold doesn't finish, on the card rather than only in the
-			// post-write note (audit #21 A1). The approver is the person who can act on
+			// post-write note. The approver is the person who can act on
 			// it and the card is what they see first — and until this landed the card
 			// said nothing at all about permissions, so a developer accepted a build the
 			// tool then called complete while no editor on the site could open it.
@@ -2305,7 +2301,7 @@
 				"view_type" => $plan["view_type"],
 				"creates_table" => true,
 				// What the module will and won't be able to be filled with, said on the
-				// card rather than discovered later (audit #12 A5/D5). Refusing these
+				// card rather than discovered later. Refusing these
 				// types outright would make the assistant unable to build the ordinary
 				// module a human would build — most content models have an image on them
 				// — so the honest version is naming them.
@@ -2350,8 +2346,7 @@
 					. ($plan["view_type"] === "draggable" ? "drag-orderable" : "searchable")
 					. " “{$plan["view_title"]}” landing view."
 					// Named here as well as in the warning below, because the summary is
-					// what the model reads back and what a one-line notification shows
-					// (audit #12 A5).
+					// what the model reads back and what a one-line notification shows.
 					. ($unfillable
 						? " " . $this->aiJoinList($unfillable) . " can only be filled in the entry editor."
 						: "")
@@ -2427,12 +2422,11 @@
 				return ["mode" => "error", "message" => $icon_violation];
 			}
 
-			// The container re-check create_module has run since audit #8 A2 and this
-			// never did: a group free at staging can be deleted inside the proposal's
-			// 24h life, which would file the module under a dead id — it renders
-			// ungrouped or under a phantom heading with nothing disclosed. Grouping is
-			// cosmetic, so degrade to ungrouped-with-a-note rather than refusing a build
-			// the approver has already accepted (audit #12 A3).
+			// The container re-check create_module runs: a group free at staging can be
+			// deleted inside the proposal's 24h life, which would file the module under
+			// a dead id — it renders ungrouped or under a phantom heading with nothing
+			// disclosed. Grouping is cosmetic, so degrade to ungrouped-with-a-note
+			// rather than refusing a build the approver has already accepted.
 			$group = trim((string)($payload["group"] ?? ""));
 			$group_missing = $group !== "" && !BigTreeJSONDB::exists("module-groups", $group);
 
@@ -2452,8 +2446,8 @@
 
 			// A statement the database refused. Reported as mode=error so the proposal
 			// lands in FAILED — a retryable card and no audit row — rather than a green
-			// badge over a module whose form names columns that were never created
-			// (audit #12 D4). Retrying then fails at plan time on "a table named X
+			// badge over a module whose form names columns that were never created.
+			// Retrying then fails at plan time on "a table named X
 			// already exists", which is the legible outcome.
 			if (isset($build["error"])) {
 
@@ -2462,7 +2456,7 @@
 
 			$module_id = (string)$build["id"];
 			$unfillable = $this->aiScaffoldUnfillableColumns($plan);
-			// Asked of the module that was just built, not asserted (audit #21 A1).
+			// Asked of the module that was just built, not asserted.
 			// `is_complete` was the literal `true` — so the same module, in the same
 			// turn, was complete from the tool that built it and incomplete from
 			// `get_module`, which counts the grant as setup. The model has no way to
@@ -2479,7 +2473,7 @@
 				"table" => (string)$plan["table"],
 				"is_complete" => !$needs_grant,
 				"remaining_setup" => $this->aiScaffoldRemainingSetup($module_id, (string)$plan["name"]),
-				// Scoped to what is actually true (audit #12 A5): the note used to
+				// Scoped to what is actually true: the note used to
 				// promise create_module_entry could fill the module, which holds for the
 				// text-like and reference columns and not for an image, a gallery or a
 				// matrix.
@@ -2538,7 +2532,7 @@
 					"feature" => !empty($actions["feature"]),
 					"archive" => !empty($actions["archive"]),
 				],
-				// Two booleans on a form this tool creates from nothing (audit #12 D6).
+				// Two booleans on a form this tool creates from nothing.
 				// The decline that used to cover them — "editing an existing module's
 				// tables, forms, views or actions" — is about restructuring a module that
 				// already holds entries, which is a different act. Without them a
@@ -2556,7 +2550,7 @@
 
 		/**
 		 * The scaffold's fields in the shape the form stores, with each field's
-		 * settings authored through the shared seam (audit #12 A2/A4).
+		 * settings authored through the shared seam.
 		 *
 		 * Three things arrive that way rather than being written by hand here: the
 		 * supplied `settings` object, `required` as the legacy `validation` rule string
@@ -2637,7 +2631,7 @@
 		 * while `FieldTypeDomain::isSettable` governs what the entry seams may write,
 		 * and the two sets are not the same — an image, a gallery, a matrix or a
 		 * callouts region is buildable and not fillable. Both halves are correct; what
-		 * was missing is saying so (audit #12 A5).
+		 * was missing is saying so.
 		 *
 		 * @param array<string,mixed> $plan
 		 * @return list<string>
@@ -2670,7 +2664,7 @@
 		 * The caps POST /modules/scaffold declares (routes/modules.php). `table` and
 		 * `route` flow into DDL and URLs, so scaffoldPlan re-checks those itself; the
 		 * other three were enforced only by the router — and the AI path never goes
-		 * through the router (audit #12 A6). They land in the JSON DB rather than a
+		 * through the router. They land in the JSON DB rather than a
 		 * varchar so nothing truncates, but a 900-character module name breaks the
 		 * admin navigation, and every other tool mirrors its route's caps at staging
 		 * *and* approval.
@@ -2717,7 +2711,7 @@
 		/**
 		 * Field types a scaffold names that this CMS doesn't have, checked against the
 		 * real registry — the same rule create_template and create_callout apply to
-		 * their own field lists (audit #2 P2).
+		 * their own field lists.
 		 *
 		 * @param array<int,mixed> $fields
 		 */
@@ -2761,8 +2755,8 @@
 		 * The three status actions a module can carry, mapped to the column each one
 		 * gates. One map, two callers: the scaffold names the columns its DDL is about
 		 * to create, and aiModuleStatusActions names the ones an existing module
-		 * already has — audit #13 A1 exists because the authoring path disclosed the
-		 * approve action and the writing path never mentioned it.
+		 * already has — so the authoring path and the writing path both disclose the
+		 * approve action.
 		 */
 		public const AI_STATUS_ACTION_COLUMNS = [
 			"approve" => "approved",
@@ -2889,7 +2883,7 @@
 					"options" => $options,
 				],
 				// The group may be staged and unapproved rather than absent — see
-				// aiResolveCalloutGroup for the same case (audit #9 A1).
+				// aiResolveCalloutGroup for the same case.
 				"prior_change" => [
 					"tool" => "create_module_group",
 					"value" => $requested,
@@ -2976,7 +2970,7 @@
 				// The name is unique but its slug need not be — "Site Content" and
 				// "Site  Content" both urlify to "site-content" and would collide on the
 				// route the front-end resolves groups by. De-duplicate it the same way
-				// module routes are (audit #7 B5).
+				// module routes are.
 				"route" => $this->uniqueModuleGroupRoute(BigTreeCMS::urlify($name)),
 				"position" => 0,
 			]);
@@ -3001,8 +2995,8 @@
 		/**
 		 * Which of three states this module's editor access is in.
 		 *
-		 * A boolean conflated the two states that want different sentences (audit #21
-		 * A4). On an install with no level-0 users the loop body never ran, so every
+		 * A boolean would conflate the two states that want different sentences. On an
+		 * install with no level-0 users the loop body never ran, so every
 		 * module was reported forever as missing "a permission grant for at least one
 		 * user" — not false, but unactionable: it tells a developer to grant access on
 		 * a site that has nobody to grant it to, and it makes `is_complete`
@@ -3066,11 +3060,11 @@
 		 * What a module still needs before it works, in get_module's own words.
 		 *
 		 * Extracted so every seam that answers "is this module finished" answers with
-		 * one predicate (audit #21 A1). `scaffold_module` used to assert
-		 * `"is_complete" => true` outright, so the same module, in the same turn, was
-		 * complete from the tool that built it and incomplete from the tool that read
-		 * it — a contradiction the model has no way to reconcile, and one nothing could
-		 * catch while the value was a literal rather than a question.
+		 * one predicate. `scaffold_module` used to assert `"is_complete" => true`
+		 * outright, so the same module, in the same turn, was complete from the tool
+		 * that built it and incomplete from the tool that read it — a contradiction the
+		 * model has no way to reconcile, and one nothing could catch while the value
+		 * was a literal rather than a question.
 		 *
 		 * @param array<string,mixed> $module
 		 * @param string $grant_state A moduleGrantState() value, passed in so a caller
@@ -3111,7 +3105,7 @@
 		}
 
 		/**
-		 * Forms that geocode into columns their table hasn't got (audit #30 A3).
+		 * Forms that geocode into columns their table hasn't got.
 		 *
 		 * A geocoding field has no column of its own: it writes `latitude` and
 		 * `longitude`, and `BigTreeAutoModule::createItem` drops any key
@@ -3195,10 +3189,10 @@
 
 		/**
 		 * The same steps, keyed, so a seam that finishes some of them can name the rest
-		 * by picking from this list rather than restating it (audit #21 A1). Two copies
-		 * of the same checklist is the drift audit #10 A4 is about, and here it would
-		 * be worse than drift: the two seams would be telling the same developer, about
-		 * the same module, two different things about what is left.
+		 * by picking from this list rather than restating it. Two copies of the same
+		 * checklist would drift, and here that would be worse than drift: the two seams
+		 * would be telling the same developer, about the same module, two different
+		 * things about what is left.
 		 *
 		 * @return array<string,string>
 		 */
@@ -3228,7 +3222,7 @@
 		}
 
 		/**
-		 * What a scaffold genuinely leaves behind (audit #21 A1).
+		 * What a scaffold genuinely leaves behind.
 		 *
 		 * `scaffold_module` builds the table, the form, the view and the actions, so
 		 * those four steps must not appear — telling the approver to do the work they
@@ -3334,7 +3328,7 @@
 			return $route;
 		}
 
-		/** The module-group equivalent of uniqueModuleRoute (audit #7 B5). */
+		/** The module-group equivalent of uniqueModuleRoute. */
 		private function uniqueModuleGroupRoute($base) {
 			$route = $base !== "" ? $base : "group";
 			$x = 2;
@@ -3359,7 +3353,7 @@
 				"icon" => $m["icon"] ?? "",
 				"route" => $m["route"] ?? "",
 				"position" => (int)($m["position"] ?? 0),
-				// Audit #13 A3. A packaged module keeps its own id — only its route is
+				// A packaged module keeps its own id — only its route is
 				// namespaced — so this key is the only thing that says an upgrade will
 				// re-import it over any edit made here.
 				"extension" => (string)($m["extension"] ?? ""),

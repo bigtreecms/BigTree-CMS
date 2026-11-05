@@ -14,6 +14,7 @@
 	use BigTree\Api\Exceptions\AuthorizationException;
 	use BigTree\Services\AI\Tools\PageToolBackend;
 	use BigTree\Services\AI\ColumnDomain;
+	use BigTree\Services\AI\FieldDefaultDomain;
 	use BigTree\Services\AI\FieldOptionDomain;
 	use BigTree\Services\AI\FieldTypeDomain;
 	use BigTree\Services\AI\OpenGraphDomain;
@@ -44,7 +45,7 @@
 		// environment's absolute URLs. See aiNormalizeHtmlValue.
 		//
 		// One entry, not four: `htmleditor`, `simple-editor` and `code` were never
-		// field types this CMS has (audit #11 A2). `html` is the whole markup subset —
+		// field types this CMS has. `html` is the whole markup subset —
 		// `simple` mode is a *setting* on it, not a type of its own.
 		public const AI_HTML_RESOURCE_TYPES = ["html"];
 
@@ -62,7 +63,7 @@
 
 		// How many viewable children get_page_tree returns in one window. Filtered
 		// before the cap and paired with has_more/offset so a large section can be
-		// walked rather than silently truncated (audit #7 D1).
+		// walked rather than silently truncated.
 		private const AI_PAGE_TREE_CAP = 200;
 
 		// How far the inbound-link count scans before it stops and says "at least".
@@ -244,8 +245,8 @@
 			$parent = (int)($d["parent"] ?? 0);
 			$this->enforce($request->user, $parent, "e", "create child page");
 
-			// The template picker's own rule, which only the picker used to carry
-			// (audit #23 A2). Ahead of the publish/pending split so it holds for a
+			// The template picker's own rule, which only the picker used to carry.
+			// Ahead of the publish/pending split so it holds for a
 			// draft too — a queued change is a page in waiting, and publishing it
 			// doesn't re-ask.
 			$template_denial = self::templateUsableBy((string)($d["template"] ?? ""), $request->user);
@@ -299,11 +300,11 @@
 
 		// The Open Graph record's arguments, its `type` domain and its shape checks live
 		// in OpenGraphDomain — one class both this seam and the module-entry seam read,
-		// and the four tools declare their arguments from (audit #22 B3).
+		// and the four tools declare their arguments from.
 
 		/**
 		 * Reserved payload key carrying which schedule fields were still in the future
-		 * when the card was written (audit #14 A2).
+		 * when the card was written.
 		 *
 		 * Stripped before the payload reaches the write path, the same way
 		 * `save_as_draft` and `tag_names` are. `performCreate` builds its INSERT from an
@@ -358,7 +359,7 @@
 			// install that has not upgraded yet a 4-byte character in a title or a meta
 			// description doesn't error — MySQL cuts the value off *at* that character and
 			// carries on. Say so rather than let the model watch its own sentence get
-			// amputated (audit #10 A2).
+			// amputated.
 			foreach (self::AI_PAGE_FIELDS as $field) {
 				if (!array_key_exists($field, $fields) || !is_scalar($fields[$field])) {
 
@@ -384,7 +385,7 @@
 		 *
 		 * Returns the choices plus a has_more flag: the top-level list is capped, and
 		 * beyond the cap valid targets would otherwise vanish from the prompt with
-		 * nothing said (audit #7 D2). When truncated the model tells the user they can
+		 * nothing said. When truncated the model tells the user they can
 		 * name a parent page directly instead of picking from a partial list.
 		 *
 		 * @param object|array $user
@@ -511,7 +512,7 @@
 
 				// list_templates is a level-0 read and returns each template's level, so
 				// an editor can see a developer-only template and ask for it by name.
-				// The picker would never have offered it (audit #23 A2).
+				// The picker would never have offered it.
 				$template_denial = self::templateUsableBy($template, $user);
 
 				if ($template_denial !== null) {
@@ -709,8 +710,7 @@
 
 			// The payload writes it and performCreate stores it, so the card has to show
 			// it. update_page always diffed it (AI_PAGE_FIELDS), which made this
-			// create-only — the same asymmetry audit #14 C2 closed for the optional
-			// unsettable fields (audit #15 A4).
+			// create-only — the same asymmetry as the optional unsettable fields.
 			if ($meta_keywords !== "") {
 				$preview["meta_keywords"] = $meta_keywords;
 			}
@@ -725,7 +725,7 @@
 
 			// Shown as "2026-08-04 09:00:00 (from “next Tuesday”)" when the server did
 			// the resolving, so the approver can tell a date they can check from one
-			// they have to take on faith (audit #14 A1/A2).
+			// they have to take on faith.
 			if ($schedule["publish_at"] !== null) {
 				$preview["publish_at"] = self::aiSchedulePreviewValue($schedule, "publish_at");
 			}
@@ -736,7 +736,7 @@
 
 			// One `warning` key, so both consequences reach the card: a schedule that has
 			// already gone by, and real optional fields the assistant can't author, which
-			// otherwise land empty on a page whose card looks complete (audit #14 C2).
+			// otherwise land empty on a page whose card looks complete.
 			$warnings = $schedule["warning"] !== "" ? [$schedule["warning"]] : [];
 			$unfillable = FieldTypeDomain::optionalUnsettableNote($this->aiOptionalUnsettableResources($template));
 
@@ -783,6 +783,15 @@
 					. (count($blocked) === 1 ? "it" : "them") . " in before this page can go live.";
 			}
 
+			// Content fields normalizePageResources will fill from their draw-time
+			// defaults at approval.
+			$implicit_defaults = $this->aiTemplateImplicitDefaults($template, $resources);
+
+			if ($implicit_defaults) {
+				$preview["defaults_applied"] = FieldDefaultDomain::describeApplied($implicit_defaults);
+				$mode_note .= " " . FieldDefaultDomain::appliedNote($implicit_defaults);
+			}
+
 			$summary = "Create page “{$nav_title}” under {$parent_title}." . $mode_note;
 
 			$staged = [
@@ -794,8 +803,7 @@
 
 			// A create has no row to go stale, but it can still be *about* something
 			// that does: a file it references can be deleted or replaced inside the
-			// proposal's 24h life, and approving would store an id pointing at nothing
-			// (audit #11 B1).
+			// proposal's 24h life, and approving would store an id pointing at nothing.
 			$resource_ids = ResourceReferenceDomain::referencedIds($schema, $resources);
 
 			if ($resource_ids) {
@@ -884,8 +892,7 @@
 		 * Filtered by level, because the picker it mirrors was: legacy's
 		 * `getPageCreationTemplates` offered `level <= $this->Level && !routed`
 		 * (admin.php:3646), and preselecting a template the actor isn't allowed to use
-		 * would hand create_page the one value templateUsableBy is about to refuse
-		 * (audit #23 A2).
+		 * would hand create_page the one value templateUsableBy is about to refuse.
 		 *
 		 * @param object|array|null $user
 		 * @return string
@@ -918,7 +925,7 @@
 		/**
 		 * The AI-settable content schema for a template, keyed by resource id —
 		 * whichever of its resources FieldTypeDomain classifies as settable, which
-		 * since audit #11 is the text-like types plus references (by resource id) and
+		 * is the text-like types plus references (by resource id) and
 		 * one-to-many relationships (by entry id). Composite resources are dropped
 		 * (never offered to the model, never accepted). `required` is read from the
 		 * legacy `settings.validation`
@@ -956,7 +963,7 @@
 					"title" => (string)($resource["title"] ?? $id),
 					// Email-ness and website-ness live in a `text` field's `sub_type`
 					// setting, not in the type id — this CMS has no `email` or `url`
-					// field type (audit #11 A3). Without it the model was shown an
+					// field type. Without it the model was shown an
 					// unadorned text field and had no reason to write an address.
 					"sub_type" => (string)($settings["sub_type"] ?? ""),
 					"required" => in_array("required", $rules ?: [], true),
@@ -965,17 +972,17 @@
 					// and nothing here used to check.
 					"rules" => array_values(array_diff($rules ?: [], ["required"])),
 					// The option domain for a `list` resource, resolved the same way the
-					// module-entry schema resolves it (audit #7 B1). Without this the
+					// module-entry schema resolves it. Without this the
 					// content sift accepted any string into a list field.
 					"options" => FieldOptionDomain::resolve($resource, $type, $id),
 					// The field's own character budget, honoured in the browser by
-					// TextField/TextareaField and by nothing on the server (audit #10 A3).
+					// TextField/TextareaField and by nothing on the server.
 					// Read through configuredMaxLength: the stored key is `max_length`,
-					// and reading `maxlength` by hand meant this was always 0 (#11 A1).
+					// and reading `maxlength` by hand meant this was always 0.
 					"max_length" => ColumnDomain::configuredMaxLength($settings),
 					// The definition itself, for the checks that need a setting this
 					// summary doesn't lift out — an image reference's min_width /
-					// min_height (audit #11 B1).
+					// min_height.
 					"settings" => $settings,
 				];
 			}
@@ -997,7 +1004,7 @@
 		 * populated the same resource id.
 		 *
 		 * Public because PendingChangeService asks the same question of a queued page
-		 * draft at publish time (audit #25 A2): the create gate relaxes for a draft on
+		 * draft at publish time: the create gate relaxes for a draft on
 		 * purpose, and until this was re-asked nothing between that relaxation and the
 		 * live site ever mentioned it again.
 		 *
@@ -1033,9 +1040,8 @@
 
 				// normalizePageResources fills any untouched key whose field declares a
 				// `default`, whatever the field's type — so a resource already
-				// configured to fill itself is not content the assistant can't provide
-				// (audit #20 A3).
-				if (AutoModuleService::aiFieldDefaultSatisfies($settings)) {
+				// configured to fill itself is not content the assistant can't provide.
+				if (AutoModuleService::aiFieldDefaultSatisfies($settings, $resource)) {
 					continue;
 				}
 
@@ -1053,8 +1059,7 @@
 
 		/**
 		 * A template's resources that are real, *optional*, and unfillable by the
-		 * assistant — the disclosure half aiRequiredUnsettableResources never covered
-		 * (audit #14 C2).
+		 * assistant — the disclosure half aiRequiredUnsettableResources never covered.
 		 *
 		 * Labelled exactly as the required list is, so a card that carries both reads
 		 * consistently. Anything already carrying a value is excluded: a template switch
@@ -1112,7 +1117,7 @@
 		 *
 		 * $page is any row carrying a `resources` blob, not only a live page: a
 		 * revision row qualifies as-is, which is what lets revisionRestoreGaps ask
-		 * this same question of content authored in the past (audit #29 A1).
+		 * this same question of content authored in the past.
 		 *
 		 * @param array<string,mixed> $page the existing page row
 		 * @return list<string>
@@ -1157,7 +1162,7 @@
 		 * path: refusing outright would strand a page that is *already* incomplete,
 		 * with the repair — going back to a version that had the field — behind the
 		 * very wall. The principle is that a restore never makes a page less complete
-		 * than it is (audit #29 A1/D1).
+		 * than it is.
 		 *
 		 * @param array<string,mixed> $revision A bigtree_page_revisions row.
 		 * @param array<string,mixed> $page The live page row.
@@ -1181,7 +1186,7 @@
 		 * it was stored for (`has_deleted_resources`) only ever had a legacy writer,
 		 * and nothing on any surface read either column. Computed at read time instead:
 		 * a flag written at delete time rots the moment a file is re-uploaded under the
-		 * same id, and this is one `IN` query (audit #29 A2/D2).
+		 * same id, and this is one `IN` query.
 		 *
 		 * Both stored shapes are accepted — this rewrite's unquoted `[12,13]` and
 		 * legacy's `["12","13"]` (admin.php:8809 stores the driver's strings).
@@ -1272,9 +1277,9 @@
 
 		/**
 		 * Whether the template a revision would restore still exists. A template id is
-		 * a soft reference everywhere in the CMS (audit #28 E1), so this is a
+		 * a soft reference everywhere in the CMS, so this is a
 		 * disclosure and never a refusal — it exists so the two revision presenters and
-		 * the restore card share one spelling of the question (audit #29 A4/D4).
+		 * the restore card share one spelling of the question.
 		 *
 		 * An empty template is the external-link era of a page, which is a real state
 		 * rather than a missing template.
@@ -1296,7 +1301,7 @@
 		 * whether a revision still differs from the live page, whether its template
 		 * still exists and how many of the files it referenced are gone are exactly the
 		 * facts that choice turns on, and all three were computable and returned by
-		 * neither surface (audit #29 A2/A4/B2).
+		 * neither surface.
 		 *
 		 * The same shape on both presenters, so the SPA's badges and the assistant's
 		 * answer can't disagree.
@@ -1331,7 +1336,7 @@
 		 * seams enforce on content the model supplies — required fields present, the
 		 * template exists, referenced files exist, an outstanding draft is disclosed —
 		 * was true when the snapshot was taken and is re-asked by nobody when it is
-		 * written back (audit #29). Exactly one of those is a refusal: required content
+		 * written back. Exactly one of those is a refusal: required content
 		 * the restore would *newly* empty. The rest are disclosures, because a template
 		 * id is a soft reference, a deleted file is not this write's doing, and a
 		 * queued draft is somebody else's work that the restore leaves alone.
@@ -1373,7 +1378,7 @@
 			}
 
 			// Disclose, never refuse: a template id is a soft reference everywhere in
-			// the CMS (audit #28 E1), and the state this leaves behind is the same one
+			// the CMS, and the state this leaves behind is the same one
 			// the admin's own restore would leave behind.
 			if (!$this->revisionTemplateExists($revision)) {
 				$template = (string)$revision["template"];
@@ -1448,7 +1453,7 @@
 					if (isset($complex[$id])) {
 
 						// The reason is the field type's own, not one wall for uploads,
-						// matrices and callouts alike (audit #11 A4/B1).
+						// matrices and callouts alike.
 						return ["error" => "Field \"{$id}\" ({$complex[$id]["label"]}) can't be set here — "
 							. $complex[$id]["reason"] . " Settable fields: "
 							. $this->aiDescribeResourceSchema($schema)];
@@ -1459,7 +1464,7 @@
 				}
 
 				// A relationship resource is the one settable shape that *is* a list, so
-				// it is resolved before the scalar guard below (audit #11 B2).
+				// it is resolved before the scalar guard below.
 				if (FieldTypeDomain::isRelation((string)$schema[$id]["type"])) {
 					if ((string)$schema[$id]["type"] === "many-to-many") {
 
@@ -1504,7 +1509,7 @@
 				// A reference resource holds a bigtree_resources id. Resolved and checked
 				// here — the row exists, the actor can see its folder, it's the right kind
 				// of file, it clears the field's min_width/min_height — at staging and
-				// again at approval, because this sift runs on both (audit #11 B1).
+				// again at approval, because this sift runs on both.
 				if (FieldTypeDomain::isResourceReference((string)$schema[$id]["type"])) {
 					$reference = ResourceReferenceDomain::resolve(
 						$schema[$id],
@@ -1527,7 +1532,7 @@
 				}
 
 				// A `link` resource is a URL and nothing else, so a value the model can't
-				// have meant as one is caught before it reaches the token pass (#11 B3).
+				// have meant as one is caught before it reaches the token pass.
 				$bad_link = $this->aiLinkShapeViolation($schema[$id], $data[$id]);
 
 				if ($bad_link !== null) {
@@ -1544,7 +1549,7 @@
 					$data[$id] = self::aiNormalizeHtmlValue($data[$id]);
 				}
 
-				// Same option-domain check the module-entry sift runs (audit #7 B1),
+				// Same option-domain check the module-entry sift runs,
 				// through the shared helper so the two paths cannot disagree. A matched
 				// label is rewritten to its stored value in place.
 				$out_of_domain = FieldOptionDomain::violation($schema[$id], $data[$id]);
@@ -1561,7 +1566,7 @@
 					return ["error" => $invalid];
 				}
 
-				// The storage/read-fidelity boundary (audit #10). Page content lands in
+				// The storage/read-fidelity boundary. Page content lands in
 				// `bigtree_pages.resources`, a longtext JSON blob, so there is no column
 				// domain to check here the way there is for a module entry — what applies
 				// is the field's own max_length, the characters the connection can carry,
@@ -1614,7 +1619,7 @@
 		 * the only one doing it unattended. Untokenized, those links survive only while
 		 * the domain and path stay put, IntegrityService doesn't recognize them as
 		 * internal, and ResourceAllocationService can't associate a referenced file
-		 * with the page (audit #9, Part D).
+		 * with the page.
 		 *
 		 * Deliberately scoped to the AI seams rather than fixed in the shared write
 		 * path: doing it at the sift means the stored form is the form on the proposal
@@ -1658,7 +1663,7 @@
 		 * The round trip is lossless in both directions — the model reads a hard link,
 		 * edits the prose around it, and the sift tokenizes it back on the way in.
 		 * AI-scoped for exactly the reason aiNormalizeHtmlValue is: REST's behaviour is
-		 * left alone (audit #10 B3).
+		 * left alone.
 		 *
 		 * Run this *before* any length cap: a decoded link is longer than its token, so
 		 * decoding after the cut would move where the cut falls.
@@ -1675,7 +1680,7 @@
 		/**
 		 * The `link` shape check, through the shared implementation so the page path,
 		 * the entry path and the settings path cannot grow three different ideas of
-		 * what a link is (audit #11 B3).
+		 * what a link is.
 		 *
 		 * @param array<string,mixed> $field The schema entry.
 		 */
@@ -1784,9 +1789,10 @@
 				// untouched key from the field's `default`. The "Add page" screen is
 				// already on the other side of this: the SPA seeds the editor from the
 				// same setting before validating, so a required field with a default is
-				// pre-filled and passes for a human (audit #20 A3).
+				// pre-filled and passes for a human.
 				if (AutoModuleService::aiFieldDefaultSatisfies(
-					is_array($field["settings"] ?? null) ? $field["settings"] : []
+					is_array($field["settings"] ?? null) ? $field["settings"] : [],
+					$field
 				)) {
 
 					continue;
@@ -1794,7 +1800,7 @@
 
 				// A relation's value is a list, so "empty" is [] rather than "" — a
 				// required relationship cleared to no rows is as missing as a blank
-				// string (audit #11 B2).
+				// string.
 				$empty = !array_key_exists($id, $data)
 					|| (is_array($data[$id]) ? $data[$id] === [] : $data[$id] === "");
 
@@ -1822,14 +1828,14 @@
 
 			foreach ($schema as $id => $field) {
 				// A text field's sub_type is what this CMS calls an email or a website
-				// address — there is no field type for either (audit #11 A3), so naming
+				// address — there is no field type for either, so naming
 				// the type alone told the model less than the developer had said.
 				$sub_type = (string)($field["sub_type"] ?? "");
 				$part = $id . " (" . $field["type"] . ($sub_type !== "" ? "/{$sub_type}" : "")
 					. ($field["required"] ? ", required" : "") . ")";
 				$options = is_array($field["options"] ?? null) ? $field["options"] : [];
 
-				// A list field carries its option domain (audit #7 B1); naming the
+				// A list field carries its option domain; naming the
 				// choices here is what lets the model correct an out-of-domain value
 				// from the same error that lists the fields, rather than guessing again.
 				if ($options) {
@@ -1854,7 +1860,7 @@
 		 * template resource (rendered by ProposalCard's generic `fields` list).
 		 *
 		 * Through PreviewValue, so a link reaches the card as a link, a reference as
-		 * the file it names and a relation as the rows it files into (audit #15 A1).
+		 * the file it names and a relation as the rows it files into.
 		 *
 		 * @param array<string,array<string,mixed>> $schema
 		 * @param array<string,mixed> $data
@@ -1958,7 +1964,7 @@
 
 			// Re-asked at approval like every other staged value — a template's level
 			// can be raised inside the proposal's 24h life, and the approver is not
-			// necessarily the person who staged it (audit #23 A2).
+			// necessarily the person who staged it.
 			$template_denial = self::templateUsableBy($template, $user);
 
 			if ($template_denial !== null) {
@@ -1969,8 +1975,8 @@
 			if ($template !== "") {
 				// Re-sifted against the template as it stands now: a resource retyped,
 				// given a max_length or narrowed during the proposal's 24h life must not be
-				// written blind (audit #10's storage boundary, at the approval half of
-				// "never trusted on the way back out").
+				// written blind (the storage boundary, at the approval half of "never
+				// trusted on the way back out").
 				$resifted = $this->aiSiftResourceContent(
 					$this->aiTemplateResourceSchema($template),
 					is_array($payload["resources"] ?? null) ? $payload["resources"] : [],
@@ -1995,13 +2001,13 @@
 
 			// performCreate re-runs uniqueRoute() on the way in, and it has to — two
 			// pages under one parent cannot share a route. But creates are deliberately
-			// fingerprint-exempt (audit #8, D4), so nothing compared the route the user
+			// fingerprint-exempt, so nothing compared the route the user
 			// approved against the one that would actually be written: if a sibling took
 			// it inside the 24h TTL — including the other proposal from the same turn —
 			// approval quietly created /pricing-2 while the card said /pricing, and
 			// every link, redirect or reference authored against the previewed path
 			// pointed at a 404. Refuse instead of disclosing after the fact: the model
-			// can re-propose with a route the user can see (audit #9 A4/D1).
+			// can re-propose with a route the user can see.
 			$staged_route = (string)($payload["route"] ?? "");
 
 			if ($staged_route !== "" && $this->uniqueRoute($parent, $staged_route) !== $staged_route) {
@@ -2045,6 +2051,17 @@
 				$payload["tags"] = $tags->aiResolveTagIds($tag_names);
 			}
 
+			// Re-computed at approval, against the template as it stands now: both
+			// writers below seed these through normalizePageResources, so a date default
+			// is the day the page is actually created.
+			$applied_defaults = $this->aiTemplateImplicitDefaults(
+				$template,
+				is_array($payload["resources"] ?? null) ? $payload["resources"] : []
+			);
+			$defaults_note = $applied_defaults
+				? "Filled from the fields' configured defaults: " . FieldDefaultDomain::describeApplied($applied_defaults) . "."
+				: "";
+
 			if (!$can_publish) {
 				$pending_id = $this->writePendingPageChange($user, "NEW", $parent, $payload);
 
@@ -2052,21 +2069,26 @@
 					"parent" => $parent, "pending_change_id" => (int)$pending_id, "via" => "ai_assistant",
 				]);
 
-				return [
+				$result = [
 					"mode" => "pending",
 					"title" => $nav_title,
 					"pending_change_id" => (int)$pending_id,
 				];
+			} else {
+				$page = $this->performCreate($payload, $user);
+				$result = [
+					"mode" => "published",
+					"title" => $nav_title,
+					"page_id" => (int)($page["id"] ?? 0),
+					"path" => "/" . (string)($page["path"] ?? ""),
+				];
 			}
 
-			$page = $this->performCreate($payload, $user);
+			if ($defaults_note !== "") {
+				$result["note"] = $defaults_note;
+			}
 
-			return [
-				"mode" => "published",
-				"title" => $nav_title,
-				"page_id" => (int)($page["id"] ?? 0),
-				"path" => "/" . (string)($page["path"] ?? ""),
-			];
+			return $result;
 		}
 
 		/**
@@ -2095,8 +2117,7 @@
 
 			$limit = max(1, min(50, $limit));
 			// The whole row, not the six display columns: a revision has to be judged
-			// on whether it is still restorable at all, which needs its content
-			// (audit #29 B2).
+			// on whether it is still restorable at all, which needs its content.
 			$rows = SQL::fetchAll(
 				"SELECT r.*, u.name AS author_name
 				 FROM bigtree_page_revisions r
@@ -2176,11 +2197,11 @@
 			// The fourth door onto the template level rule: a revision stores its
 			// `template` and the restore writes it back, so restoring one is a template
 			// change — legacy's updatePage clamp is exactly what used to stop a restore
-			// reinstating a template the actor may not use (audit #23 A2).
+			// reinstating a template the actor may not use.
 			//
 			// A stored `""` is the page's external-link era, which is a real change off
 			// the stored template and not the "unchanged" every other caller means by it
-			// — the explicit-clear leg update_page has always had (audit #29 A3).
+			// — the explicit-clear leg update_page has always had.
 			$template_denial = self::templateWriteDenial(
 				(string)($revision["template"] ?? ""),
 				(string)$page["template"],
@@ -2237,7 +2258,7 @@
 
 			// The four things a restore carries that the six-column diff can't show:
 			// `resources` renders as one blob nobody can read for gaps, and the other
-			// three aren't among the columns at all (audit #29 A1/A2/A4/B1). Written
+			// three aren't among the columns at all. Written
 			// out one key at a time, like every other conditional preview key, because
 			// the card contract reads this file as text.
 			if ($notices["warning"] !== null) {
@@ -2319,7 +2340,7 @@
 
 			// Re-asked at approval like every other staged value — the page can be
 			// re-templated, or a template's level raised, inside the proposal's 24h
-			// life (audit #23 A2), and the explicit-clear leg travels with it (#29 A3).
+			// life, and the explicit-clear leg travels with it.
 			$template_denial = self::templateWriteDenial(
 				(string)($revision["template"] ?? ""),
 				(string)$page["template"],
@@ -2336,7 +2357,7 @@
 
 			// The same question, re-asked for the same reason: a field can be flipped
 			// required, a template deleted or a draft queued inside those 24h, and the
-			// card the approver read was drawn before any of it (audit #29 A1).
+			// card the approver read was drawn before any of it.
 			$notices = $this->revisionRestoreNotices($revision, $page, $title);
 
 			if ($notices["refusal"] !== null) {
@@ -2577,7 +2598,7 @@
 			// invisible, and a section of 200+ children reports a partial list as
 			// complete, prompting a duplicate-page creation. Over-fetch, filter, then
 			// slice one past the window so has_more is a fact, mirroring
-			// list_module_entries (audit #5 C3 / audit #7 D1).
+			// list_module_entries.
 			$rows = SQL::fetchAll(
 				"SELECT id, nav_title, title, path, in_nav, archived, `template`, `external`, trunk, publish_at
 					FROM bigtree_pages
@@ -2605,12 +2626,11 @@
 					"path" => "/" . (string)$row["path"],
 					"in_nav" => Flag::isOn($row["in_nav"]),
 					"archived" => Flag::isOn($row["archived"]),
-					// The other way a page is off the site. The tree reported `archived`
-					// and said nothing about a publish date still in the future, so a page
-					// cms.php will 404 read here exactly like a live one — the same
-					// omission audit #13 A1 found on module entries, on the surface the
-					// model browses before deciding anything is fine. REST's own page list
-					// has carried this flag all along.
+					// The other way a page is off the site. The tree reported
+					// `archived` and said nothing about a publish date still in the
+					// future, so a page cms.php will 404 read here exactly like a live
+					// one — on the surface the model browses before deciding anything
+					// is fine. REST's own page list has carried this flag all along.
 					"scheduled" => !empty($row["publish_at"]) && $row["publish_at"] > date("Y-m-d H:i:s"),
 					"template" => (string)$row["template"],
 					// An external link has no template of its own; without this flag it
@@ -2627,8 +2647,8 @@
 
 			// Each row is bounded but the window is not: 200 children at ~230
 			// characters is ~46,000 in one tool result, over
-			// PayloadBudget::RESULT_CHARS and re-fed on every later round (audit #18
-			// A1). Rows are dropped rather than fields trimmed — a child read whole
+			// PayloadBudget::RESULT_CHARS and re-fed on every later round. Rows are
+			// dropped rather than fields trimmed — a child read whole
 			// is worth more than every child read in part, and a tree row has nothing
 			// long enough to be worth cutting — and the drop is disclosed through the
 			// has_more / `returned` pair this tool already tells the model to page by.
@@ -2671,8 +2691,8 @@
 		 * publish_at past an existing expire_at is just as broken as supplying both in
 		 * the wrong order.
 		 *
-		 * `raw` and `warning` carry the same two things the create side does (audit #14
-		 * A1/A2) — what the model actually supplied, and whether a resolved date has
+		 * `raw` and `warning` carry the same two things the create side does — what the
+		 * model actually supplied, and whether a resolved date has
 		 * already gone by. The warning is scoped to the fields this edit *supplies*: an
 		 * old page whose publish_at is naturally in the past would otherwise carry a
 		 * warning on every unrelated edit, which is how a warning stops being read.
@@ -2737,7 +2757,7 @@
 		 * varchar holding a URL, the admin renders it as a plain text input beside a
 		 * four-option `<select>` for `type`, and neither is an upload or a resource
 		 * picker. So the assistant wrote half a record and disclosed nothing about the
-		 * other half (audit #22 A2).
+		 * other half.
 		 *
 		 * syncOpenGraph replaces the whole row, so the existing record is loaded and
 		 * merged — otherwise setting a title would wipe an image someone chose in the
@@ -2863,7 +2883,7 @@
 				// The column is stored through makeIPL, so a nav entry pointing at a
 				// page on this site reads back as `ipl://cGFnZXM6NDI=` — which the model
 				// cannot reason about ("does this menu item point at the old pricing
-				// page?") and could not hand back to update_page at all (audit #24 A1).
+				// page?") and could not hand back to update_page at all.
 				"external" => LinkService::untokenize((string)($page["external"] ?? "")),
 				"new_window" => Flag::isOn($page["new_window"] ?? ""),
 				// Decoded like every sibling above. Left encoded, an apostrophe in a
@@ -2875,8 +2895,7 @@
 				// The other two of the record's four authored columns, which the assistant
 				// can now write. Without them "set up the social preview" was proposed
 				// blind: the model could not report the image the page already had, so it
-				// had no way to tell a page that needed one from a page that had one
-				// (audit #22 A2).
+				// had no way to tell a page that needed one from a page that had one.
 				"og_type" => Sanitize::decodeEntities((string)($open_graph["type"] ?? "")),
 				"og_image" => Sanitize::decodeEntities((string)($open_graph["image"] ?? "")),
 				"max_age" => (int)($page["max_age"] ?? 0),
@@ -2906,10 +2925,10 @@
 		 *
 		 * Complex resources are deliberately absent: they aren't settable either, and
 		 * showing them would invite the model to try. Reference resources *are*
-		 * settable since audit #11 B1, so they appear here — as the id the field
+		 * settable, so they appear here — as the id the field
 		 * stores, plus a `content_references` entry saying which file that id names,
 		 * because an assistant that can set a photo but not see which photo is set will
-		 * replace things it should have left alone (B4).
+		 * replace things it should have left alone.
 		 *
 		 * @param array<string,mixed> $target An aiResolvePageTarget result.
 		 * @param object|array|null $user The actor, for the reference folder filter.
@@ -2926,8 +2945,8 @@
 			// Read whole first, then decide what the map can afford. The per-field cap
 			// bounds a field; nothing bounded the map, and a template with enough long
 			// fields is tens of thousands of characters from one get_page — re-fed on
-			// every later round until the request overflows the model's context
-			// (audit #18 A1). There are no rows to drop here, the fields *are* the
+			// every later round until the request overflows the model's context.
+			// There are no rows to drop here, the fields *are* the
 			// record, so an over-budget map is read at a shorter cap and says so in
 			// content_truncated.
 			$lengths = [];
@@ -2957,7 +2976,7 @@
 
 				// Link tokens are decoded here, before the cap — a hard link is longer
 				// than the token it replaces, so decoding afterwards would move where the
-				// cut falls (audit #10 B3).
+				// cut falls.
 				if (in_array((string)$field["type"], self::AI_LINK_BEARING_TYPES, true)) {
 					$text = self::aiDenormalizeHtmlValue($text);
 				}
@@ -2967,8 +2986,8 @@
 			}
 
 			// Measured, not divided: a page whose fields fit is read at the full
-			// declared cap, which is the ordinary case and the one audit #10 raised
-			// that cap for. Only a genuinely oversized map falls down the ladder — and
+			// declared cap, which is the ordinary case and the one that cap is sized
+			// for. Only a genuinely oversized map falls down the ladder — and
 			// it lands on a step TruncatedRead knows, so a value cut here still can't
 			// be written back over the stored one.
 			$cap = PayloadBudget::capForValues(array_values($lengths), self::AI_CONTENT_FIELD_CAP);
@@ -3208,8 +3227,8 @@
 		 */
 		private function aiPageFingerprint(array $target, array $columns, array $resource_ids = []): array {
 			// A referenced file is staged as an id, and an id survives its row being
-			// deleted, re-uploaded or moved out of view inside the proposal's 24h life
-			// (audit #11 B1). Hashed even against a draft, which knows nothing about
+			// deleted, re-uploaded or moved out of view inside the proposal's 24h life.
+			// Hashed even against a draft, which knows nothing about
 			// the Files library.
 			$reference_part = $resource_ids ? [["type" => "resources", "ids" => $resource_ids]] : [];
 
@@ -3342,12 +3361,12 @@
 		 * Resolve an AI-supplied page id, which may address an unpublished NEW draft
 		 * ("p"-prefixed) rather than a live page.
 		 *
-		 * The entry tools have accepted "p123" since audit #1, for exactly the reason
-		 * that applies here: an editor's own create_page lands in the pending queue,
-		 * so "actually, change the header on that draft" had no path — the very
-		 * scenario that motivated draft addressing in the first place. REST has
-		 * addressed page drafts all along (GET/PATCH /pages/pending/{pcid}); this is
-		 * the same addressing for the tool seam.
+		 * The entry tools accept "p123" too, for exactly the reason that applies here:
+		 * an editor's own create_page lands in the pending queue, so "actually, change
+		 * the header on that draft" had no path — the very scenario that motivated
+		 * draft addressing in the first place. REST has addressed page drafts all along
+		 * (GET/PATCH /pages/pending/{pcid}); this is the same addressing for the tool
+		 * seam.
 		 *
 		 * A draft's permissions are checked against its parent, matching
 		 * updatePending's own enforce() — the page itself doesn't exist yet. Callers
@@ -3525,8 +3544,8 @@
 		 * the framework itself writes, and a model handed one has to be able to give it
 		 * back. Before this, get_page returned a legacy-authored `ipl://cGFnZXM6NDI=`
 		 * and update_page refused it — an error whose only compliant answer downgraded a
-		 * durable internal link to a hard URL that breaks the next time the target moves
-		 * (audit #24 A1/D2). The read seams now hand over the decoded URL, so this leg
+		 * durable internal link to a hard URL that breaks the next time the target moves.
+		 * The read seams now hand over the decoded URL, so this leg
 		 * is the backstop for a token that reaches the tool some other way.
 		 *
 		 * @return array{error?:string,url?:string}
@@ -3611,8 +3630,7 @@
 		 * level-0 editor could put a page on a developer-only template through the API,
 		 * the admin or the assistant. It lives here rather than in the AI seams because
 		 * it is a dropped CMS rule and not an AI defect: REST has the identical hole,
-		 * and fixing it AI-side alone would make the assistant stricter than the UI
-		 * (audit #23 A2/D3).
+		 * and fixing it AI-side alone would make the assistant stricter than the UI.
 		 *
 		 * Only the *level* half of the picker's clause is a permission rule. The other
 		 * half (`&& !routed`) split routed templates out of the flexible picker and
@@ -3696,8 +3714,8 @@
 		 * is exactly what the clamp exists to stop. Each caller used to spell that
 		 * branch out itself, and the fourth writer of a template — a revision restore,
 		 * whose stored `""` is a page's external-link era — never grew one, so a
-		 * level-1 publisher could restore a page off a developer-only template (audit
-		 * #29 A3/D3). One home for the branch, so the doors can't drift again.
+		 * level-1 publisher could restore a page off a developer-only template. One
+		 * home for the branch, so the doors can't drift again.
 		 *
 		 * @param object|array $user
 		 * @param bool $explicit_clear Whether an empty $incoming means "clear it", not "unchanged".
@@ -3748,11 +3766,11 @@
 		 * Legacy pins the flag for anyone below developer whenever the page is at top
 		 * level, on both write paths — admin.php:8830 (updatePage: "If this is top
 		 * level nav and the user isn't a developer, use what the current state is") and
-		 * admin.php:8022 (submitPageChange, the identical clause). Audit #6 found the
-		 * *move* leg of the same rule and it was ported properly; these two were never
-		 * ported at all, so a level-0 editor holding `e` on a top-level page could put
-		 * it into — or take it out of — the site's main navigation, approved on a card
-		 * that said nothing about a site-wide change (audit #24 A2).
+		 * admin.php:8022 (submitPageChange, the identical clause). The *move* leg of
+		 * the same rule was ported properly; these two once weren't ported at all, so a
+		 * level-0 editor holding `e` on a top-level page could put it into — or take it
+		 * out of — the site's main navigation, approved on a card that said nothing
+		 * about a site-wide change.
 		 *
 		 * The threshold is legacy's `< 2`, so an administrator is clamped too, not just
 		 * an editor: which pages appear in the top-level nav is a developer's call.
@@ -3880,7 +3898,7 @@
 					}
 
 					// Both legs of the level rule: the template being moved onto, and
-					// the one being moved off (audit #23 A2). Named rather than clamped
+					// the one being moved off. Named rather than clamped
 					// — the card would otherwise show a template change that silently
 					// didn't happen.
 					//
@@ -3986,7 +4004,7 @@
 					// is stored tokenized and get_page hands over the decoded URL, so
 					// comparing the model's answer against the raw token would report a
 					// change on every edit that merely restates the link — and write a
-					// diff row with a base64 blob on one side (audit #24 A1).
+					// diff row with a base64 blob on one side.
 					// Both sides, because the model may legitimately hand a token back
 					// (aiNormalizeExternalLink accepts one) — and what is stored in
 					// `changes` is then the decoded URL the writer will re-tokenize,
@@ -4006,7 +4024,7 @@
 				// Checked only once the value is known to be changing, so restating a
 				// top-level page's existing in_nav in a wider edit is not a refusal.
 				// Skipped on a draft: a NEW draft is a create, and legacy's createPage
-				// carries no clamp (audit #24 A2).
+				// carries no clamp.
 				if ($field === "in_nav" && !$is_pending) {
 					$nav_denial = self::topLevelNavDenial((int)($page["parent"] ?? 0), $user);
 
@@ -4018,7 +4036,7 @@
 
 				$changes[$field] = $new;
 
-				// Through the same resolver every other preview row uses (audit #15 A1).
+				// Through the same resolver every other preview row uses.
 				// This diff is built inline rather than in a preview builder, so it was
 				// the one page card the resolver never reached — and `external` is
 				// stored through makeIPL, so a page already pointing at an internal link
@@ -4111,7 +4129,7 @@
 			// performUpdate's route block writes a route-history redirect and calls
 			// repathChildren, so it changes the URL of an entire branch of the site. The
 			// card said none of it — one diff row, `route: old → new`, on a summary
-			// reading "It will be published live once you approve" (audit #22 A3).
+			// reading "It will be published live once you approve".
 			//
 			// Only for a live page: a "p"-prefixed target is a NEW draft, a page that
 			// doesn't exist yet, so there is no subtree to repath and no old URL to
@@ -4154,7 +4172,7 @@
 
 			// The diff shows the stored value; the approver also needs to know when the
 			// server was the party that turned "next Tuesday" into it, and when the
-			// resulting window has already gone by (audit #14 A1/A2).
+			// resulting window has already gone by.
 			foreach (["publish_at", "expire_at"] as $field) {
 				if (isset($preview["changes"][$field]) && isset($schedule["raw"][$field])) {
 					$preview["changes"][$field]["to"] = self::aiSchedulePreviewValue($schedule, $field);
@@ -4259,7 +4277,7 @@
 			}
 
 			// The third door onto the level rule: update_page_content switches template
-			// as readily as update_page does (audit #23 A2). `""` was resolved to the
+			// as readily as update_page does. `""` was resolved to the
 			// page's own template above, so there is no explicit clear on this seam.
 			$template_denial = self::templateWriteDenial($template, $current_template, $user);
 
@@ -4367,6 +4385,20 @@
 				? " The page will also switch from the “{$current_template}” template to “{$template}”."
 				: "";
 
+			// A template switch brings in fields the page has never had, and
+			// normalizePageResources fills those from their draw-time defaults; a
+			// same-template edit never does.
+			$implicit_defaults = $template !== $current_template
+				? $this->aiTemplateImplicitDefaults(
+					$template,
+					is_array($merged["resources"] ?? null) ? $merged["resources"] : []
+				)
+				: [];
+
+			if ($implicit_defaults) {
+				$switch_note .= " " . FieldDefaultDomain::appliedNote($implicit_defaults);
+			}
+
 			// Store only the fields the assistant is changing, not the merged blob: the
 			// merge is redone at approval against whatever the page holds then, so an
 			// edit made during the proposal's TTL isn't reverted. See aiUpdatePageContent.
@@ -4398,6 +4430,10 @@
 
 			if ($draft) {
 				$preview["publishes_draft"] = $draft;
+			}
+
+			if ($implicit_defaults) {
+				$preview["defaults_applied"] = FieldDefaultDomain::describeApplied($implicit_defaults);
 			}
 
 			if ($save_as_draft && !$is_pending) {
@@ -4538,7 +4574,7 @@
 			$changed = is_array($payload["content"] ?? null) ? $payload["content"] : [];
 
 			// Re-asked at approval like every other staged value: a template's level can
-			// be raised inside the proposal's 24h life (audit #23 A2).
+			// be raised inside the proposal's 24h life.
 			$template_denial = self::templateWriteDenial($template, (string)$page["template"], $user);
 
 			if ($template_denial !== null) {
@@ -4567,7 +4603,7 @@
 			// the proposal's 24h life must not be written blind, and a body that has
 			// grown past the read cap since staging would now be a truncated-read write.
 			// This is the "never trusted on the way back out" rule applied to the
-			// storage boundary (audit #10).
+			// storage boundary.
 			$stored_content = Json::decode($page["resources"] ?? "");
 			$resifted = $this->aiSiftResourceContent(
 				$this->aiTemplateResourceSchema($template),
@@ -4592,8 +4628,18 @@
 
 			$changes = ["resources" => $merged["resources"]];
 
+			// Fields the switch brings in that normalizePageResources fills from their
+			// draw-time defaults, named in the result.
+			$defaults_note = "";
+
 			if ($template !== (string)$page["template"]) {
 				$changes["template"] = $template;
+				$applied_defaults = $this->aiTemplateImplicitDefaults($template, $merged["resources"]);
+
+				if ($applied_defaults) {
+					$defaults_note = "Filled from the fields' configured defaults: "
+						. FieldDefaultDomain::describeApplied($applied_defaults) . ".";
+				}
 			}
 
 			if ($is_pending) {
@@ -4608,14 +4654,19 @@
 					"id" => $id, "pending_change_id" => (int)$pending_id, "via" => "ai_assistant",
 				]);
 
-				return ["mode" => "pending", "page_id" => $id, "title" => $title, "pending_change_id" => (int)$pending_id];
+				$result = ["mode" => "pending", "page_id" => $id, "title" => $title, "pending_change_id" => (int)$pending_id];
+			} else {
+				// Publishing deletes every queued change for the page, so the draft this
+				// edit was merged onto goes live with it rather than being destroyed.
+				$this->performUpdate($id, $live_page, $this->aiCarryPendingDraft($id, $changes), $user);
+				$result = ["mode" => "published", "page_id" => $id, "title" => $title];
 			}
 
-			// Publishing deletes every queued change for the page, so the draft this
-			// edit was merged onto goes live with it rather than being destroyed.
-			$this->performUpdate($id, $live_page, $this->aiCarryPendingDraft($id, $changes), $user);
+			if ($defaults_note !== "") {
+				$result["note"] = $defaults_note;
+			}
 
-			return ["mode" => "published", "page_id" => $id, "title" => $title];
+			return $result;
 		}
 
 		/**
@@ -4635,7 +4686,7 @@
 		 * is exactly long enough for the difference to matter. It refuses only a window
 		 * that was in the future when the card was written and has since passed; a
 		 * deliberately backdated one carried `TemporalContext::pastWarning`'s note on
-		 * the card and was approved knowingly (audit #14 A2/D2).
+		 * the card and was approved knowingly.
 		 *
 		 * @param array<string,mixed> $changes
 		 * @param array<string,bool> $schedule_snapshot From the staged payload; [] when
@@ -4740,10 +4791,9 @@
 		 *
 		 * "Build an Article template, then create the first article" reaches the three
 		 * template refusals below on its second card, with the template sitting
-		 * unapproved in the same conversation — and got a flat "does not exist", which
-		 * is the wall audit #9 A1 exists to remove. The parent hint one method up has
-		 * done the right thing at the neighbouring field since that audit; templates
-		 * emitted no descriptor at all (audit #23 A1a).
+		 * unapproved in the same conversation — and a flat "does not exist" would be a
+		 * wall. The parent hint one method up does the right thing at the neighbouring
+		 * field; templates need the same descriptor.
 		 *
 		 * Matched on `id` and `name`: create_template stages both, and the model names
 		 * a template however the user did — "article" or "Article".
@@ -4798,7 +4848,7 @@
 
 		/**
 		 * A short, length-capped rendering of a resource value for a proposal diff,
-		 * resolved through PreviewValue first (audit #15 A1) — the cap is applied
+		 * resolved through PreviewValue first — the cap is applied
 		 * after the resolving, not before it.
 		 *
 		 * @param mixed $value
@@ -4857,7 +4907,7 @@
 
 				// Re-asked here as well as at staging: a draft is still a page waiting
 				// to be published, and the level rule follows the template wherever it
-				// is written (audit #23 A2).
+				// is written.
 				$template_denial = self::templateWriteDenial(
 					(string)($changes["template"] ?? ""),
 					(string)($target["page"]["template"] ?? ""),
@@ -4926,7 +4976,7 @@
 
 			// Re-asked at approval like every other staged value: a template's level
 			// can be raised inside the proposal's 24h life, and the approver may not be
-			// the person who staged it (audit #23 A2).
+			// the person who staged it.
 			$template_denial = self::templateWriteDenial($template, (string)$page["template"], $user);
 
 			if ($template_denial !== null) {
@@ -5018,7 +5068,7 @@
 			// The summary already discloses the outbound half — the descendants that go
 			// with it. The inbound half was absent: every `ipl://` link on every other
 			// page still points here, and the page is about to come off the site, so
-			// those links are dead. Warned rather than refused (audit #17 A2/D3):
+			// those links are dead. Warned rather than refused:
 			// archiving is the reversible path the page-delete decline steers people to,
 			// and the CMS's own integrity scan is out of scope, so there is no way to
 			// find these afterwards either.
@@ -5092,7 +5142,7 @@
 				);
 				// A 301 to a page on this site is stored through autoIPL as the same
 				// `ipl://<id>//…` token (create301), so every redirect pointing here
-				// lands on a 404 once the page is archived (audit #32 B1). Both slash
+				// lands on a 404 once the page is archived. Both slash
 				// encodings, for the same reason as the resources match above.
 				$redirects = (int)SQL::fetchSingle(
 					"SELECT COUNT(*) FROM (SELECT id FROM bigtree_404s WHERE ignored = '' "
@@ -5285,8 +5335,7 @@
 		 * the URL of a whole branch. Both writers of a page's path reach it —
 		 * `performMove` and `performUpdate`'s route block — and only the move card said
 		 * so: a route rename appeared in a proposal as one diff row,
-		 * `route: old → new`, indistinguishable from a `meta_keywords` edit (audit #22
-		 * A3).
+		 * `route: old → new`, indistinguishable from a `meta_keywords` edit.
 		 *
 		 * One helper rather than two copies, because the reason the two diverged is that
 		 * the sentences were only ever written in one place. Both halves matter and they
@@ -5512,7 +5561,7 @@
 			// `path` is the new URL, which is the one fact a page.moved subscriber wants
 			// and the key REST's move() has always carried. Without it a hook written
 			// against the documented shape read $data["path"] as null on every
-			// assistant-driven move (audit #26 A3).
+			// assistant-driven move.
 			Hooks::fire("page.moved", ["id" => $id, "parent" => $parent, "path" => $new_path, "via" => "ai_assistant"]);
 
 			return [
@@ -5553,13 +5602,12 @@
 		 * A link at a file in the Files library is worse: makeIPL is what turns it
 		 * into `irl://<id>//<prefix>`, so without it performCreate's `external`
 		 * argument to allocatePageResources can never match anything and deleting the
-		 * file warns about nothing (audit #24 A1).
+		 * file warns about nothing.
 		 *
 		 * In the shared writer rather than the AI seams, unlike aiNormalizeHtmlValue.
 		 * That one is AI-scoped because the SPA's link picker already emits `ipl://`
 		 * for markup; there is no picker here — PageEdit renders `external` as a plain
-		 * text input, so the SPA hard-codes URLs exactly as the model does (audit #24
-		 * D1).
+		 * text input, so the SPA hard-codes URLs exactly as the model does.
 		 *
 		 * makeIPL is safe to run unconditionally: a URL that isn't on this site falls
 		 * through to replaceHardRoots, which returns it unchanged, and a value that is
@@ -5761,7 +5809,7 @@
 			$d = $request->body;
 
 			// Legacy's updatePage clamp, stated rather than silently applied
-			// (admin.php:8789, audit #23 A2). An edit that doesn't touch the template
+			// (admin.php:8789). An edit that doesn't touch the template
 			// is unaffected, including on a page whose template is above the actor —
 			// but a body that supplies an empty one is clearing it, which is a change.
 			$template_denial = self::templateWriteDenial(
@@ -5846,8 +5894,14 @@
 			if (isset($d["resources"])) {
 				$template_id = (string)($d["template"] ?? $page["template"] ?? "");
 				$resources = is_array($d["resources"]) ? $d["resources"] : [];
+				// Draw-time defaults only for the fields a template switch brings in;
+				// a same-template edit never gains a seeded value.
 				$update["resources"] = json_encode(
-					$this->normalizePageResources($template_id, $resources)
+					$this->normalizePageResources(
+						$template_id,
+						$resources,
+						$template_id !== (string)($page["template"] ?? "")
+					)
 				);
 			}
 
@@ -5944,16 +5998,15 @@
 			// An EDIT blob holds only the keys being changed, so a change that edits
 			// `resources` without switching template has no template id of its own to
 			// normalize (or allocate) against — the page's stored one is the right
-			// fallback, exactly as performUpdate does for the live write (audit #19
-			// A3). A NEW draft has no page yet, so the blob's own template is all
-			// there is.
+			// fallback, exactly as performUpdate does for the live write. A NEW draft
+			// has no page yet, so the blob's own template is all there is.
 			$existing_page = $type === "EDIT"
 				? SQL::fetch("SELECT template, parent FROM bigtree_pages WHERE id = ?", $item_or_parent)
 				: null;
 			$fallback_template = (string)(is_array($existing_page) ? ($existing_page["template"] ?? "") : "");
 
-			// The one choke point every draft goes through, whichever surface wrote it
-			// (audit #23 A2/D3). The callers above check first and say it in their own
+			// The one choke point every draft goes through, whichever surface wrote it.
+			// The callers above check first and say it in their own
 			// words; this is the backstop, because a queued change is published later
 			// by somebody else and publishPendingChange never re-asks whose template
 			// this was.
@@ -5972,7 +6025,7 @@
 
 			// The page's live position, for the top-level nav clamp. Null on a NEW draft
 			// — there is no live page yet, and legacy's createPage carries no clamp, so
-			// create is parity rather than a gap (audit #24 A2).
+			// create is parity rather than a gap.
 			$current_parent = is_array($existing_page) ? (int)($existing_page["parent"] ?? 0) : null;
 
 			[$changes, $tags_changes, $open_graph_changes] = $this->pendingChangeFields(
@@ -6091,9 +6144,14 @@
 			}
 
 			if (isset($changes["resources"]) && is_array($changes["resources"])) {
+				$pending_template = $this->pendingChangeTemplate($changes, $fallback_template);
+				// A NEW draft (no fallback) or a template switch is create-like, so it is
+				// seeded into the draft itself and the publish replay carries the value;
+				// a same-template EDIT is not.
 				$changes["resources"] = $this->normalizePageResources(
-					$this->pendingChangeTemplate($changes, $fallback_template),
-					$changes["resources"]
+					$pending_template,
+					$changes["resources"],
+					$pending_template !== $fallback_template
 				);
 			}
 
@@ -6122,7 +6180,7 @@
 		 * resource allocation both — because an EDIT blob holds only the keys being
 		 * changed, so the one thing they must not do is assume the change restates
 		 * the template. It usually doesn't, and both of them silently did nothing at
-		 * all against an empty id (audit #19 A3).
+		 * all against an empty id.
 		 *
 		 * @param array<string,mixed> $changes
 		 */
@@ -6145,22 +6203,39 @@
 		 * `default` is a universal field settings descriptor
 		 * (FieldTypeService::universalSettingsSchema), so the field types whose value
 		 * is one scalar carry it, the developer sets it in the field-settings editor,
-		 * and the field-authoring AI tools can author it — until audit #19 A2 this
-		 * line read a key nothing in the product could write.
+		 * and the field-authoring AI tools can author it.
 		 *
 		 * The empty value is the type's, not always "": a field whose `value_type` is
 		 * `array` (callouts, matrix, media-gallery, one-to-many) is read by a template
 		 * with `foreach`, and this function exists so a template never hits an
 		 * undefined variable — handing that `foreach` a string trades one warning for
 		 * a worse one. For the same reason a stored scalar `default` on an
-		 * array-valued field is ignored rather than written through: audit #20 A2
-		 * stopped those types declaring the setting, but a blob written before that
-		 * still carries one.
+		 * array-valued field is ignored rather than written through: those types don't
+		 * declare the setting, but an older blob can still carry one.
 		 *
 		 * @param array<string,mixed> $resources
 		 * @return array<string,mixed>
 		 */
-		private function normalizePageResources(string $template_id, array $resources): array {
+		/**
+		 * The draw-time defaults (FieldDefaultDomain::implicitDefault) a create or
+		 * template switch onto this template will fill — the same set
+		 * normalizePageResources seeds, computed for the card.
+		 *
+		 * @param array<string,mixed> $resources The content being written.
+		 * @return array<string,array{title:string,value:string}>
+		 */
+		private function aiTemplateImplicitDefaults(string $template_id, array $resources): array {
+			$template = $template_id !== "" ? \BigTreeJSONDB::get("templates", $template_id) : null;
+
+			if (!is_array($template) || !is_array($template["resources"] ?? null)) {
+
+				return [];
+			}
+
+			return FieldDefaultDomain::implicitDefaults($template["resources"], $resources, "id");
+		}
+
+		private function normalizePageResources(string $template_id, array $resources, bool $implicit = true): array {
 			if ($template_id === "") {
 				return $resources;
 			}
@@ -6170,6 +6245,14 @@
 			if (!is_array($template) || empty($template["resources"]) || !is_array($template["resources"])) {
 				return $resources;
 			}
+
+			// The draw-time defaults, judged against the keys the
+			// caller supplied — before the loop below fills every missing key — and only
+			// when this write is create-like: a new page, or a template switch that
+			// brings in fields the page has never had. On a plain edit a missing key is
+			// stored content that predates the field, and stamping today's date on it
+			// would rewrite a page the user never touched there.
+			$drawn = $implicit ? FieldDefaultDomain::implicitDefaults($template["resources"], $resources, "id") : [];
 
 			foreach ($template["resources"] as $resource) {
 				$id = (string)($resource["id"] ?? "");
@@ -6183,6 +6266,10 @@
 				$resources[$id] = $empty === [] || !array_key_exists("default", $settings)
 					? $empty
 					: $settings["default"];
+
+				if (isset($drawn[$id])) {
+					$resources[$id] = $drawn[$id]["value"];
+				}
 			}
 
 			return $resources;
@@ -6202,8 +6289,8 @@
 			// A queued blob names tags by *id*, and the tag can be gone by the time
 			// somebody approves: legacy admin.php merges and deletes tags, an extension
 			// can SQL::delete one, and bigtree_tags_rel_ibfk_1 cascades the relations
-			// away whatever anybody does. TagService repairs its own merge and delete
-			// (audit #28 A1a/A1b), so through the CMS's own surfaces this filter is
+			// away whatever anybody does. TagService repairs its own merge and delete,
+			// so through the CMS's own surfaces this filter is
 			// unreachable — it stays because every queued page change funnels through
 			// here, and the failure it prevents is silent: syncTags skips an orphan id
 			// and then strips the tag that orphan was merged *into*, so the page loses
@@ -6218,7 +6305,7 @@
 			// outcomes and both were wrong: an EDIT threw a bare 404 the approver had no
 			// way to act on, and a NEW *succeeded*, creating a live page whose parent
 			// names an id that no longer exists — in no page tree, reported by nothing.
-			// cascadeDelete now clears both shapes (audit #28 A2), so this is the
+			// cascadeDelete now clears both shapes, so this is the
 			// belt-and-braces leg: it is what makes a row already stranded on an
 			// existing install legible instead of fatal.
 			if ($row["type"] === "NEW") {
@@ -6314,8 +6401,7 @@
 			// tag set differed, and submitting that form wrote the published set back
 			// over the draft's — silently reverting it. aiQueuePageTagChange is the only
 			// writer that queues a page tag change, so the assistant's queued tag edit
-			// was precisely the one a human editor undid without being shown it existed
-			// (audit #28 C1).
+			// was precisely the one a human editor undid without being shown it existed.
 			$pending_tags = $this->pendingTags($change);
 
 			if ($pending_tags !== null) {
@@ -6468,7 +6554,7 @@
 				// The NEW-draft twin of the overlay's tag leg: a draft's staged tags
 				// were presented as an empty list, so the editor showed no chips and
 				// stampPendingNew wrote that empty list straight back over them on the
-				// next save. Same revert as audit #28 C1, one read seam over — and
+				// next save. Same revert as the overlay's, one read seam over — and
 				// create_page is the writer that stages a draft with tags.
 				"tags" => $this->pendingTags($change) ?? [],
 				"open_graph" => $changes["open_graph"] ?? null,
@@ -6548,8 +6634,8 @@
 			// it is the sole caller of recordRouteHistory and reindexPage on this path.
 			// So every descendant got a redirect and a fresh embedding while the page
 			// that actually moved got neither: its old URL 404d and its search index
-			// still held the old path. aiMovePage has done both since audit #11; this is
-			// the same act through REST (audit #25 B1).
+			// still held the old path. aiMovePage does both; this is the same act
+			// through REST.
 			$this->recordRouteHistory((string)$page["path"], $new_path);
 			$this->repathChildren($page["path"], $new_path);
 			$this->reindexPage((int)$id);
@@ -6662,8 +6748,7 @@
 			$id = $request->id();
 			$this->enforce($request->user, $id, "v");
 			// The whole row: a revision's restorability is judged from its content, and
-			// the same four facts the assistant's list carries are computed from it
-			// (audit #29 B2).
+			// the same four facts the assistant's list carries are computed from it.
 			$rows = SQL::fetchAll(
 				"SELECT * FROM bigtree_page_revisions WHERE page = ? ORDER BY updated_at DESC, id DESC",
 				$id
@@ -6726,9 +6811,8 @@
 			);
 
 			// A revision stores its template, so restoring one changes the page's
-			// template — the same rule the write paths carry (audit #23 A2), including
-			// the explicit-clear leg for a revision of the page's external-link era
-			// (audit #29 A3).
+			// template — the same rule the write paths carry, including
+			// the explicit-clear leg for a revision of the page's external-link era.
 			$template_denial = self::templateWriteDenial(
 				(string)($revision["template"] ?? ""),
 				(string)$page["template"],
@@ -6743,7 +6827,7 @@
 			$title = trim((string)$page["nav_title"]) ?: trim((string)$page["title"]) ?: "page #{$id}";
 
 			// The same refusal and the same disclosures the assistant's restore carries
-			// — the rule is the CMS's, not the assistant's (audit #29 A1/A2/A4/B1). The
+			// — the rule is the CMS's, not the assistant's. The
 			// warnings ride back on the response so the SPA's toast can show them.
 			$notices = $this->revisionRestoreNotices($revision, $page, $title);
 
@@ -7102,13 +7186,13 @@
 				// the row goes away, so nothing dangles in bigtree_resource_allocation.
 				\BigTree\Services\ResourceAllocationService::deallocateResources("bigtree_pages", (int)$cid);
 
-				// Both queue shapes this page owns: an EDIT draft *of* it (item_id), and
-				// a NEW child draft filed *under* it (pending_page_parent). Nothing
-				// cascades either — there is no FK on either column — so before audit
-				// #28 A2 they simply stayed in the queue. The EDIT became permanently
-				// unpublishable and permanently listed; the NEW published *successfully*
-				// into an orphan, a live page whose parent names a deleted id, in no
-				// page tree and reported by nothing.
+				// Both queue shapes this page owns: an EDIT draft *of* it (item_id),
+				// and a NEW child draft filed *under* it (pending_page_parent). Nothing
+				// cascades either — there is no FK on either column — so without this
+				// they would stay in the queue. The EDIT would be permanently
+				// unpublishable and permanently listed; the NEW would publish
+				// *successfully* into an orphan, a live page whose parent names a
+				// deleted id, in no page tree and reported by nothing.
 				//
 				// Deleting rather than re-parenting matches BigTreeAutoModule::deleteItem
 				// and is the honest answer: the whole subtree went with the page, so a
@@ -7286,14 +7370,13 @@
 				// Tokenized like `external` and like the entry path's own OG write
 				// (BigTreeAdmin::handleOpenGraph): the column is rendered through
 				// getOpenGraph, which untranslates, so a same-site image stored hard
-				// goes stale on the next move or domain change (audit #24 A1b).
+				// goes stale on the next move or domain change.
 				"image" => BigTree::safeEncode(OpenGraphDomain::storedImage((string)($og["image"] ?? ""))),
 				// Derived, not authored: drawHeadTags() measures a local image with
 				// getimagesize() at render time, and a remote URL can't be measured
 				// without fetching it. A caller that knows them (the admin's own upload
 				// path) may still send them; the AI seam deliberately does not, which
-				// costs the og:image:width / og:image:height tags on remote images only
-				// (audit #22 B3).
+				// costs the og:image:width / og:image:height tags on remote images only.
 				"image_width" => (int)($og["image_width"] ?? 0),
 				"image_height" => (int)($og["image_height"] ?? 0),
 			]);
@@ -7388,7 +7471,7 @@
 				// Decoded here rather than at each reader: this one method feeds the
 				// REST payload's `open_graph`, get_page's `og_image` and the update
 				// card's `from` side, and all three show the value to someone who will
-				// send it straight back (audit #24 A1b).
+				// send it straight back.
 				"image" => LinkService::untokenize((string)$row["image"]),
 				"image_width" => (int)$row["image_width"],
 				"image_height" => (int)$row["image_height"],
@@ -7409,7 +7492,7 @@
 				"meta_description" => Sanitize::decodeEntities($p["meta_description"]),
 				"seo_invisible" => Flag::isOn($p["seo_invisible"]),
 				"template" => $p["template"],
-				// Stored through makeIPL since audit #24 A1, so the column holds a token
+				// Stored through makeIPL, so the column holds a token
 				// for any link that points at this site. The SPA renders `external` as a
 				// plain text input and PATCHes it straight back, so it is decoded here
 				// and re-tokenized by the writer — the round trip legacy's admin had.

@@ -261,8 +261,8 @@
 		 *
 		 * Refused rather than warned about, because the card structurally cannot show
 		 * it: both field diffs index the before and after lists *by id*, so the second
-		 * copy collapses into the first and the diff reports no change at all
-		 * (audit #23 B2/D4). AI-scoped — `clean()` is left alone, so REST behaviour is
+		 * copy collapses into the first and the diff reports no change at all.
+		 * AI-scoped — `clean()` is left alone, so REST behaviour is
 		 * unchanged.
 		 *
 		 * Matched exactly, the way mergeAiFields and the diffs key their own lookups: a
@@ -333,22 +333,22 @@
 		 * in the editor, and if it is also required, makes the page or entry
 		 * unsaveable by anybody.
 		 *
-		 * The field *type* has been validated since audit #1; this is the settings half
+		 * The field *type* is validated elsewhere; this is the settings half
 		 * of the same rule, and the analogue for field *definitions* of what
 		 * FieldTypeDomain does for field *values*. It is deliberately a small
 		 * supplement to the schema-derived rule below rather than the whole rule: a
 		 * static blocklist is what left `list` unguarded — and, on the value side, what
-		 * audit #11 A2 found naming ten field types that do not exist.
+		 * ended up naming ten field types that do not exist.
 		 *
-		 * Every entry here is still judged through the field type's own `show_if`
-		 * (audit #25 A3): `list` is declared as shown only when `list_type` is static,
+		 * Every entry here is still judged through the field type's own `show_if`:
+		 * `list` is declared as shown only when `list_type` is static,
 		 * so a db-populated list is not asked for static choices it has no use for.
 		 */
 		public const AI_RENDER_REQUIRED_SETTINGS = [
 			"matrix" => ["columns"],
 			"one-to-many" => ["table", "title_column"],
 			"list" => ["list"],
-			// Audit #12 A2. `many-to-many` doesn't live in a column at all — it is a
+			// `many-to-many` doesn't live in a column at all — it is a
 			// connecting table and two id columns — and none of its settings_schema
 			// descriptors is marked `required`, so the schema-derived leg below finds
 			// nothing to insist on. An m2m with empty settings authored clean, rendered
@@ -360,7 +360,7 @@
 				"mtm-other-table",
 				"mtm-other-descriptor",
 			],
-			// Audit #30 B1. `route`'s own settings_schema marks nothing required, so
+			// `route`'s own settings_schema marks nothing required, so
 			// the schema-derived leg finds nothing to insist on — and a route field
 			// with no `source` generates from an empty base: urlify("") is "", and the
 			// uniqueness pass is skipped because it only runs on a non-empty route. So
@@ -381,7 +381,7 @@
 		private const SURFACE_USE_CASES = [
 			"template" => "templates",
 			"callout" => "callouts",
-			// Audit #12 A2: the module surface, where scaffold_module authors a form's
+			// The module surface, where scaffold_module authors a form's
 			// field list exactly as create_template authors a template's.
 			"module" => "modules",
 		];
@@ -433,11 +433,11 @@
 		 * The members of a route field's `source` that name no planned column — or
 		 * name the route's own column, which is empty when the slug is generated.
 		 *
-		 * applyRoute skips any source column that isn't in the data being written, so
-		 * a source naming nothing real yields an empty base and an empty route on
-		 * every entry: the audit #30 B1 failure reached with the setting present
-		 * (audit #31 A2). A source with no non-empty member at all counts as naming
-		 * nothing, reported as "".
+		 * applyRoute skips any source column that isn't in the data being written, so a
+		 * source naming nothing real yields an empty base and an empty route on every
+		 * entry: the same failure as a missing source, reached with the setting
+		 * present. A source with no non-empty member at all counts as naming nothing,
+		 * reported as "".
 		 *
 		 * Shared by the AI gate and ModuleService::scaffoldPlan, so REST refuses the
 		 * same plan the assistant is corrected on.
@@ -533,8 +533,8 @@
 
 				// A route's `source` being *present* is half the rule: one naming a
 				// column the plan doesn't contain — a typo, a guess, the route's own
-				// column — generates from an empty base exactly as a missing one does
-				// (audit #31 A2). So a supplied source is held to the planned ids.
+				// column — generates from an empty base exactly as a missing one does.
+				// So a supplied source is held to the planned ids.
 				if ($type === "route" && !$missing) {
 					$wrong = self::aiRouteSourceUnplanned($id, $settings, $planned, $surface);
 
@@ -563,10 +563,10 @@
 				}
 
 				// So is `route`, and for the same reason: `source` names a sibling
-				// column, which is something the model has in front of it (audit #30
-				// D6). A flat refusal would send it to the Module Designer for a
-				// setting it could supply — and it can't guess the column ids, because
-				// they are derived from the titles it sent.
+				// column, which is something the model has in front of it. A flat
+				// refusal would send it to the Module Designer for a setting it could
+				// supply — and it can't guess the column ids, because they are derived
+				// from the titles it sent.
 				if ($type === "route" && $missing === ["source"]) {
 					$route_fixable[] = "\"{$id}\"";
 					$route_ids[] = $id;
@@ -657,7 +657,7 @@
 		private static function aiMissingSettings(string $type, array $settings, string $surface): array {
 			// The same mapping aiFieldSettings resolves the seeded defaults through —
 			// read from the one const rather than spelled out again, since a second
-			// hand-written copy of a mapping is the drift audit #10 A4 is about.
+			// hand-written copy of a mapping is how the two drift apart.
 			$use_case = self::SURFACE_USE_CASES[$surface] ?? "templates";
 			$schema = \BigTree\Services\FieldTypeService::settingsSchema($type);
 			$descriptors = [];
@@ -673,10 +673,9 @@
 			// The hardcoded half went through no visibility filter at all, so a `list`
 			// field configured the way the Module Designer configures a db-driven one
 			// was refused for having no *static* choices — and told to supply them as
-			// "options", which would have silently thrown the db source away (audit #25
-			// A3). `show_if` is read from the field type's own schema rather than
-			// restated here, which is the same reason the schema-derived leg below is
-			// derived at all.
+			// "options", which would have silently thrown the db source away. `show_if`
+			// is read from the field type's own schema rather than restated here, which
+			// is the same reason the schema-derived leg below is derived at all.
 			$needed = [];
 
 			foreach (self::AI_RENDER_REQUIRED_SETTINGS[$type] ?? [] as $setting_id) {
@@ -703,7 +702,7 @@
 				// The two filters the SPA's own validate.ts applies and this didn't, so
 				// the assistant refused to author fields the admin would happily save —
 				// "stricter than the UI for no reason", which the framework otherwise
-				// avoids (audit #10 C2).
+				// avoids.
 				if (!self::aiSettingIsVisible($descriptor, $settings, $use_case)) {
 
 					continue;
@@ -847,7 +846,7 @@
 			// module surface, which passes a whole settings object through — the
 			// `list` setting itself. Normalizing both matters because the gate above
 			// only asks whether the setting is non-empty: a raw ["Small", "Large"]
-			// satisfied it and then stored rows the Select can't read (audit #12 A2).
+			// satisfied it and then stored rows the Select can't read.
 			$supplied = $field["options"] ?? null;
 			$list_type = (string)($stored["list_type"] ?? "");
 
@@ -868,14 +867,14 @@
 			// PageService::normalizePageResources when a page leaves the field
 			// untouched, by AutoModuleService::applyFormFieldDefaults when an entry is
 			// created, and by the SPA's FormRenderer when it seeds a new entry form.
-			// Before audit #19 A2 all three readers existed and nothing in the product
-			// — UI or assistant — could author the key they read.
+			// All three readers need something in the product — UI or assistant — that
+			// can author the key they read.
 			$default = self::aiFieldDefault($field, $stored, $type);
 
 			if ($default !== null) {
 				// Normalized by the same domains that judge a *value* of this field, so
 				// an option given as its label lands as the stored value and a date
-				// lands in the format its column keeps (audit #20 A1). A default this
+				// lands in the format its column keeps. A default this
 				// refuses is left verbatim: aiFieldDefaultError is what turns it into
 				// the recoverable error, and rewriting it here would change what that
 				// error is about.
@@ -921,8 +920,7 @@
 		 * wrong is that it happened in silence — "add Enormous to the Size dropdown" is
 		 * an ordinary request, the model sends `options`, the merge drops it, the
 		 * card's field diff reports only added/removed/retyped fields and shows
-		 * nothing, the approval succeeds, and the model reports the change as made
-		 * (audit #20 A4).
+		 * nothing, the approval succeeds, and the model reports the change as made.
 		 *
 		 * A schema description is advice the model may not follow, so this is the
 		 * runtime half of the same disclosure. Deliberately quiet when the supplied
@@ -1065,7 +1063,7 @@
 		 * A boolean is spelled "on"/"" only for `checkbox`, which is how this CMS
 		 * stores a checked box everywhere (the admin's own form pipeline included).
 		 * The coercion used to be unconditional, which made `"default": true` on a
-		 * text field the literal string "on" (audit #20 B2).
+		 * text field the literal string "on".
 		 *
 		 * @param array<string,mixed> $field  The proposed field (assistant shape).
 		 * @param array<string,mixed> $stored The field's stored settings blob, if any.
@@ -1096,8 +1094,8 @@
 		/**
 		 * Whether this field type declares a `default` setting at all.
 		 *
-		 * Asked of the declaration rather than restated here: audit #20 A2 scoped the
-		 * universal descriptor to the value types one scalar can mean something for,
+		 * Asked of the declaration rather than restated here: the universal descriptor
+		 * is scoped to the value types one scalar can mean something for,
 		 * and a second copy of that rule on the write side is the drift the scoping was
 		 * meant to end.
 		 */
@@ -1115,7 +1113,7 @@
 		/**
 		 * Reject a proposed `default` that isn't a legal value of the field it is being
 		 * set on — the check that never existed, on the one field setting whose stored
-		 * value later becomes record content (audit #20 A1).
+		 * value later becomes record content.
 		 *
 		 * Runs on the same fields, under the same retain rule, as
 		 * aiUnconfigurableFieldError: a field carried over by id at an unchanged type
@@ -1201,7 +1199,7 @@
 		 * `"matrix" => ["columns"]` asks only that `columns` is non-empty, and the
 		 * module surface passes the model's whole settings blob through, so a column
 		 * with no id or type, a type the registry doesn't have, or two columns under
-		 * one id all staged and built (audit #31 A3). The SPA maps each column
+		 * one id all staged and built. The SPA maps each column
 		 * straight onto a form field: no type renders as nothing, and duplicate ids
 		 * overwrite each other's cell.
 		 *

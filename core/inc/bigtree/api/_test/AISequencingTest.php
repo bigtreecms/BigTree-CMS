@@ -1,9 +1,9 @@
 <?php
 	/**
-	 * Audit #9 Part A: the sequencing boundary.
+	 * The sequencing boundary.
 	 *
-	 * Audits #1–#8 hardened one proposal resolving to one approval. None of them
-	 * examined the case where the user's intent needs two: "create a callout group
+	 * Most guards cover one proposal resolving to one approval. This covers the case
+	 * where the user's intent needs two: "create a callout group
 	 * and put this callout in it", "create the News module and add the first entry",
 	 * "create the pricing page and redirect the old URL to it". Every validate seam
 	 * reads live state, and nothing has been written while the first card is still on
@@ -428,8 +428,8 @@
 	 * "does not exist" or "doesn't exist", as "Class::method" => whether it emits a
 	 * sequencing descriptor.
 	 *
-	 * Discovered rather than listed, which is the whole point of audit #23 E1: the
-	 * hand-written map above is what let A1 through — templates emitted no descriptor
+	 * Discovered rather than listed, which is the whole point of E1: a hand-written
+	 * map is what let templates through — they emitted no descriptor
 	 * from any of three seams, and none of the three was in the map, so nothing
 	 * looked. A seam added tomorrow lands in this list by itself and fails the test
 	 * below until somebody classifies it.
@@ -602,9 +602,9 @@
 	}
 
 	/**
-	 * The enumeration leg (audit #23 E1). Every discovered seam either emits a
+	 * The enumeration leg. Every discovered seam either emits a
 	 * descriptor or carries a written reason it doesn't — a new one does neither, so
-	 * it fails here rather than three audits later.
+	 * it fails here rather than going unnoticed.
 	 */
 	function test_every_does_not_exist_refusal_is_classified() {
 		$seams = ai_sequencing_refusing_seams();
@@ -648,7 +648,7 @@
 	}
 
 	/**
-	 * Descriptor sufficiency (audit #23 E2).
+	 * Descriptor sufficiency.
 	 *
 	 * A `prior_change` descriptor names the tool(s) that would create the missing
 	 * thing and the payload/preview keys the match runs against. Both halves can be
@@ -877,7 +877,7 @@
 	}
 
 	/**
-	 * Audit #25 A1/D2: a relation whose target table doesn't exist *yet*.
+	 * A relation whose target table doesn't exist *yet*.
 	 *
 	 * The existence check A1 added refuses a scaffold whose relation names a missing
 	 * table — but "build a Categories module, then a Press Releases module that

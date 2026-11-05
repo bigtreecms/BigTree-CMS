@@ -19,7 +19,7 @@
 	 * deliberately spares is settings, "because they have user data". The edit is
 	 * temporary and nothing said so.
 	 *
-	 * Warned rather than refused (audit #13 D5): refusing outright would make the
+	 * Warned rather than refused: refusing outright would make the
 	 * assistant the only writer that can't do something the developer UI does. The
 	 * developer keeps the choice; they just get to make it knowing.
 	 */

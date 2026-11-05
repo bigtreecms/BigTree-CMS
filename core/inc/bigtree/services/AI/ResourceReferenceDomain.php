@@ -10,7 +10,7 @@
 	 * The value domain for the three reference field types — `image-reference`,
 	 * `file-reference` and `video-reference`.
 	 *
-	 * Audit #11 B1. Every one of these was refused with the "the assistant only sets
+	 * Every one of these was refused with the "the assistant only sets
 	 * simple text-like fields" wall, on the reasoning that the assistant must never
 	 * fabricate a file. But their stored value is not a file: it is a
 	 * `bigtree_resources` id, or a `resource://` URL the CMS resolves to one — see

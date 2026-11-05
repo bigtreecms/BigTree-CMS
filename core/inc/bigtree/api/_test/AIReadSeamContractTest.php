@@ -1,6 +1,6 @@
 <?php
 	/**
-	 * Audit #16: the read seams, and the one that isn't a tool.
+	 * The read seams, and the one that isn't a tool.
 	 *
 	 * Every read-permission guard in this suite is keyed to a *tool's backend
 	 * method*. `EmbeddingService::search` is not one — `semantic_search` calls
@@ -13,7 +13,7 @@
 	 *
 	 * These are the read-side analogue of AISurfaceGuardTest's fingerprint map: a
 	 * seam is enumerated by hand, and adding a new one without deciding how it
-	 * filters fails here rather than leaking a row two audits later.
+	 * filters fails here rather than leaking a row unnoticed.
 	 */
 
 	use BigTree\Services\AutoModuleService;
@@ -38,9 +38,9 @@
 			"search_module_entries" => [SearchService::class, "searchModuleEntries", "userRowLevel"],
 			"get_module_entry" => [SearchService::class, "getModuleEntryDetail", "userEntryLevel"],
 			"list_module_entries" => [AutoModuleService::class, "aiListEntries", "userRowLevel"],
-			// Audit #16 A1. Reached through a one-line passthrough
-			// (SearchService::semanticSearch) rather than being a backend method
-			// itself, which is exactly why no existing guard covered it.
+			// Reached through a one-line passthrough (SearchService::semanticSearch)
+			// rather than being a backend method itself, which is exactly why no
+			// existing guard covered it.
 			"semantic_search" => [EmbeddingService::class, "search", "userRowLevel"],
 			// The legitimate exemption, verified against REST this pass: this mirrors
 			// `GET /modules/{id}/forms/{sid}/relation-options`, whose permission is the

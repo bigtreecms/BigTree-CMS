@@ -75,7 +75,7 @@
 								. "(e.g. [\"12\", \"15\"]). The template's required fields must be filled; "
 								. "if you don't know them, call this once without content to be told which fields exist.",
 							// A relationship field's value is a list of ids, so a string is
-							// not the only shape this object carries (audit #11 B2).
+							// not the only shape this object carries.
 							"additionalProperties" => [
 								"anyOf" => [
 									["type" => "string"],
@@ -104,7 +104,7 @@
 							"description" => "Days after which the page is flagged as stale on the dashboard's "
 								. "content alerts. 0 (the default) never flags it.",
 						],
-						// No absolute example here on purpose (audit #14 A1): the old one
+						// No absolute example here on purpose: the old one
 						// steered the model into computing a date from its own sense of
 						// "now", which is its training cutoff rather than this server's
 						// clock. The relative form is resolved server-side, correctly.
@@ -192,7 +192,7 @@
 				}
 
 				// The top-level list is capped; when it is partial, say so rather than
-				// present a truncated choice list as the whole set (audit #7 D2).
+				// present a truncated choice list as the whole set.
 				$prompt = !empty($writable["has_more"])
 					? "Where should this page be created? This is a partial list — if you don't see the "
 						. "right parent, name the page it should live under and I'll use that."

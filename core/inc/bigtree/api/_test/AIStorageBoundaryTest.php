@@ -1,9 +1,9 @@
 <?php
 	/**
-	 * Audit #10 guards E2–E4: the storage boundary, the token round trip, and the
+	 * Guards E2–E4: the storage boundary, the token round trip, and the
 	 * prompt/decline coverage that goes with them.
 	 *
-	 * Audits #1–#9 each validated a proposed value against a *definition* — the form's
+	 * The other guards validate a proposed value against a *definition* — the form's
 	 * fields, the value's own rule, the row it targets, the type its tool declared,
 	 * the container it files into. Every one of them stops where the value is handed
 	 * to SQL. The connection runs with `sql_mode = ''`, so from that point MySQL's
@@ -71,9 +71,9 @@
 				PageService::class, "aiPageLengthError",
 				["AI_PAGE_MAX_LENGTHS", "ColumnDomain::unrepresentable"],
 			],
-			// The positive control this whole boundary was generalized from (audit #3).
+			// The positive control this whole boundary was generalized from.
 			// The email leg is `aiSettingRuleViolation` now, not a branch keyed on an
-			// `email` field type that this CMS has never had (audit #11 A3).
+			// `email` field type that this CMS has never had.
 			"update_setting" => [
 				SettingService::class, "aiCheckSettingValue",
 				["strtotime", "aiSettingRuleViolation", "FieldTypeDomain::linkShapeViolation"],
@@ -164,7 +164,7 @@
 			"move_page" => "moves a row; writes no authored value",
 			"delete_module_entry" => "deletes a row",
 			"set_module_entry_flag" => "flags only",
-			"add_tags" => "tag names are capped inline at both passes (audit #5 Phase 4)",
+			"add_tags" => "tag names are capped inline at both passes",
 			"remove_tags" => "detaches existing tags; authors nothing",
 			"merge_tags" => "operates on existing tag records",
 			"rename_tag" => "tag names are capped inline at both passes",
@@ -370,7 +370,7 @@
 	function test_column_domain_refuses_what_mysql_would_coerce() {
 		$field = ["column" => "headline", "type" => "text", "title" => "Headline"];
 
-		// Length: the audit's opening case — a 400-word summary into a varchar(255).
+		// Length: the common case — a 400-word summary into a varchar(255).
 		$value = str_repeat("a", 300);
 		T::ok(
 			ColumnDomain::violationForColumn(["type" => "varchar", "size" => "255"], $field, $value) !== null,
@@ -549,7 +549,7 @@
 			"a field with no max_length is uncapped by this check"
 		);
 
-		// Audit #11 A1: the cap above is only reachable if the seams read the key the
+		// The cap above is only reachable if the seams read the key the
 		// CMS actually stores. Build the settings blob the way the field type declares
 		// it (E4) rather than by hand, so this can't agree with a misspelling again.
 		$declared = ai_field_setting_ids("text");
@@ -590,8 +590,8 @@
 	 * core/inc/bigtree/api/field-type-schemas.php. That file's own contract comment
 	 * says the descriptor id "MUST match what the field type's draw.php / process.php
 	 * reads", which makes it the only authority on the spelling of a stored setting —
-	 * and `maxlength`, which no field type has ever written, sat in three AI seams for
-	 * two audits because nothing compared the two (audit #11 A1/E1).
+	 * and `maxlength`, which no field type has ever written, sat in three AI seams
+	 * because nothing compared the two.
 	 *
 	 * @return array<string,string> key => why it is not a field setting
 	 */
@@ -670,11 +670,10 @@
 	 * FieldTypeService::universalSettingsSchema).
 	 *
 	 * A universal descriptor is a *declaration*, not an exemption, which is the point
-	 * of audit #19's E2. `default` had two readers (PageService::normalizePageResources
-	 * and the SPA's FormRenderer) and no writer anywhere in the product, so E1 was
-	 * red — and the fix a blanket entry in ai_non_descriptor_setting_keys() would
-	 * have been is precisely what audit #11 refused for `maxlength`: it blinds the
-	 * check to the defect it exists for. Declaring the setting instead means the
+	 * of E2. `default` has readers (PageService::normalizePageResources and the SPA's
+	 * FormRenderer), so it needs a writer too — and a blanket entry in
+	 * ai_non_descriptor_setting_keys() would blind the check to the defect it exists
+	 * for, just as one for `maxlength` would. Declaring the setting instead means the
 	 * field-settings UI renders it and the field-authoring tools can author it.
 	 */
 	function ai_all_declared_setting_ids(): array {
@@ -688,7 +687,7 @@
 	}
 
 	/**
-	 * E2 (#19): `default` is a declared setting rather than an exempted key.
+	 * E2: `default` is a declared setting rather than an exempted key.
 	 */
 	function test_the_universal_default_setting_is_declared_not_exempted() {
 		$universal = \BigTree\Services\FieldTypeService::universalSettingsSchema();
@@ -724,7 +723,7 @@
 	}
 
 	/**
-	 * Audit #20 guard E2: a universal descriptor is universal only where the value
+	 * A universal descriptor is universal only where the value
 	 * type allows it.
 	 *
 	 * Keyed off each schema's own `value_type` rather than a list of type ids here,
@@ -734,7 +733,7 @@
 	 *
 	 * The negative control is the leg that matters: `default` on a `matrix` or a
 	 * `media-gallery` is a scalar handed to a template's `foreach`, and on an
-	 * `image-reference` a resource id nothing resolved (audit #20 A2).
+	 * `image-reference` a resource id nothing resolved.
 	 */
 	function test_the_universal_default_is_declared_only_where_a_scalar_means_something() {
 		$scalar = ["string", "bool"];
@@ -800,9 +799,8 @@
 	 *
 	 * The function exists so a front-end template never hits an undefined variable.
 	 * Handing a `foreach` over a matrix an empty string rather than an empty array
-	 * trades one warning for a worse one — and a scalar `default` stored on an
-	 * array-valued field before audit #20 A2 stopped those types declaring one is
-	 * ignored rather than written through.
+	 * trades one warning for a worse one — and a scalar `default` left on an
+	 * array-valued field by an older blob is ignored rather than written through.
 	 */
 	function test_page_resources_are_filled_with_the_empty_value_of_their_type() {
 		$normalize = new ReflectionMethod(\BigTree\Services\PageService::class, "normalizePageResources");
@@ -863,10 +861,13 @@
 			"api/Resources" => __DIR__ . "/../Resources.php",
 			"AI/ColumnDomain" => __DIR__ . "/../../services/AI/ColumnDomain.php",
 			"AI/FieldOptionDomain" => __DIR__ . "/../../services/AI/FieldOptionDomain.php",
-			// Audit #11's own new seams: the reference resolver reads min_width /
-			// min_height, and the relation resolver reads the mtm-* triple, `table`
-			// and `max`. They read settings by hand-written key exactly as the older
-			// seams do, so they are exactly what E1 is for.
+			// The draw-time defaults (default_today / default_now /
+			// default_checked + custom_value) are read by hand-written key here.
+			"AI/FieldDefaultDomain" => __DIR__ . "/../../services/AI/FieldDefaultDomain.php",
+			// The reference resolver reads min_width / min_height, and the relation
+			// resolver reads the mtm-* triple, `table` and `max`. They read settings by
+			// hand-written key exactly as the older seams do, so they are exactly what
+			// E1 is for.
 			"AI/ResourceReferenceDomain" => __DIR__ . "/../../services/AI/ResourceReferenceDomain.php",
 			"AI/RelationDomain" => __DIR__ . "/../../services/AI/RelationDomain.php",
 		];
@@ -949,8 +950,8 @@
 	 * is a file E1 scans.
 	 *
 	 * The guard is a scan over a hand-written file list, so it protects exactly what
-	 * that list names — and audit #11 added two new classes that read settings by
-	 * hand-written key without adding them to it. A guard whose scope has to be
+	 * that list names — a new class that reads settings by hand-written key and isn't
+	 * added to it goes unchecked. A guard whose scope has to be
 	 * remembered is a guard that lapses; this leg discovers the seams instead.
 	 */
 	function test_e1_scans_every_seam_that_reads_field_settings() {

@@ -1,9 +1,9 @@
 <?php
 	/**
-	 * Audit #27 E1/E2/E3: the per-form and per-view feature switches.
+	 * The per-form and per-view feature switches.
 	 *
-	 * Audits #12/#21/#25 each asked whether a *field's* configuration was complete
-	 * enough for a future write. This asks the level up. A module form and a module
+	 * Other guards ask whether a *field's* configuration is complete enough for a
+	 * future write. This asks the level up. A module form and a module
 	 * view each carry switches that decide whether a column or a relation is
 	 * reachable in the admin at all — the form's `tagging` / `open_graph` flags, and
 	 * the view's `approve` / `feature` / `archive` actions. Every read seam discloses
@@ -323,7 +323,7 @@
 			// can give a record a relation it did not already have.
 			"tagging TagService::retargetTagRelations" => "merge/rename repoint existing relations; they create none",
 			// The two AI seams the finding is actually about.
-			"tagging TagService::aiRemoveTags" => "the deliberate cleanup path (audit #27 D1) — discloses "
+			"tagging TagService::aiRemoveTags" => "the deliberate cleanup path — discloses "
 				. "through aiUntaggableFormNote instead of refusing, because it is the only surface that can "
 				. "reach rows a tagging-off form hides",
 			"tagging TagService::aiQueueTagChange" => "the queued half of aiAddTags/aiRemoveTags, reached only "
@@ -398,8 +398,8 @@
 	 * shared gate, or carries a reason.
 	 *
 	 * This is the leg that closes the class rather than the instance. `add_tags` was
-	 * not missed for lack of a rule — `aiFormRelationError` had held the rule since
-	 * audit #6 B5, and `aiModuleSchema` disclosed it to the model as if it were
+	 * not missed for lack of a rule — `aiFormRelationError` already held the rule,
+	 * and `aiModuleSchema` disclosed it to the model as if it were
 	 * universally enforced. What was missing was anything that enumerated the writers.
 	 */
 	function test_every_writer_of_a_switched_relation_resolves_the_gate() {
@@ -439,7 +439,7 @@
 		T::ok(count($found) > 8, "the sweep found the writers (" . count($found) . ")");
 		T::ok(
 			isset($found["tagging TagService::aiAddTags"]),
-			"including add_tags, the seam audit #27 A1 was about"
+			"including add_tags"
 		);
 		T::equals(
 			implode(", ", $ungated),

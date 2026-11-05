@@ -15,10 +15,10 @@
 	 * staging may exist by then), and the preview flags which tags are new.
 	 *
 	 * A module entry's tags are also gated on the form's own `tagging` switch, which is
-	 * off by default — the same gate create_module_entry's `tags` has carried since
-	 * audit #6 B5, reached here through AutoModuleService::aiFormTaggingError so the two
-	 * paths share one sentence. The description names the precondition because a
-	 * refusal the model could have read ahead of time is a wasted turn.
+	 * off by default — the same gate create_module_entry's `tags` carries, reached here
+	 * through AutoModuleService::aiFormTaggingError so the two paths share one
+	 * sentence. The description names the precondition because a refusal the model
+	 * could have read ahead of time is a wasted turn.
 	 */
 	class AddTagsTool extends AbstractMutatingTool {
 		/** @var TagToolBackend */

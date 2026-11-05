@@ -60,7 +60,7 @@
 								. "values, but a field you supply is REPLACED wholesale — never supply a value you "
 								. "only saw in truncated form (get_page lists those in content_truncated).",
 							// A relationship field's value is a list of ids, so a string is
-							// not the only shape this object carries (audit #11 B2).
+							// not the only shape this object carries.
 							"additionalProperties" => [
 								"anyOf" => [
 									["type" => "string"],

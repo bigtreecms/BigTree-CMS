@@ -1,11 +1,11 @@
 <?php
 	/**
-	 * Audit #7 Phase 4 (E4): the read-truncation contract.
+	 * The read-truncation contract.
 	 *
-	 * Audit #5 (C3) established the rule for a capped read seam: filter by permission
+	 * The rule for a capped read seam: filter by permission
 	 * *before* the cap, and tell the model the result is partial. list_module_entries
-	 * followed it; get_page_tree, list_resources, search_files and get_settings did
-	 * not — they capped silently, so "there is no page/file/setting called X" could
+	 * followed it; get_page_tree, list_resources, search_files and get_settings once
+	 * did not — they capped silently, so "there is no page/file/setting called X" could
 	 * be answered from a truncated scan, and the model's next move (create a
 	 * duplicate) followed from a false premise.
 	 *
@@ -42,7 +42,7 @@
 			T::ok($body !== "", "{$label}: {$method} source was read");
 
 			// A LIMIT or a break-at-limit without a has_more key is the silent-cliff
-			// shape the audit found.
+			// shape.
 			$has_marker = strpos($body, '"has_more"') !== false;
 			$is_capped = stripos($body, "LIMIT") !== false
 				|| strpos($body, "array_slice") !== false
@@ -82,7 +82,7 @@
 	}
 
 	/**
-	 * Audit #10 E1 — the *value* truncation axis.
+	 * E1 — the *value* truncation axis.
 	 *
 	 * The map above is about row-count truncation: "there were more entries than I
 	 * showed you". Cutting an individual field's value — "this entry's body is
@@ -116,7 +116,7 @@
 			"get_page (content_text)" => [
 				\BigTree\Services\SearchService::class, "getPageDetail", "content_text_truncated",
 			],
-			// Audit #26 B1: the one read in the catalogue with no per-value cap at all
+			// The one read in the catalogue with no per-value cap at all
 			// until settings got one, and therefore the one whose cuts TruncatedRead had
 			// nothing to recognise. The write half is asserted below.
 			"get_settings" => [
@@ -229,7 +229,7 @@
 		// A cut that lands on a space, which prose does about one time in six. The
 		// seam appends "…" and this class strips it — with rtrim, so the value it
 		// judges is one character shorter than the stored prefix, and comparing only
-		// the untrimmed prefix missed every one of those (audit #26 B1).
+		// the untrimmed prefix missed every one of those.
 		$spaced = str_repeat("A sentence that ends the window on a space. ", 40);
 		$space_cap = 44 * 4;
 		T::equals(
@@ -272,7 +272,7 @@
 	}
 
 	/**
-	 * E1 (audit #26 B1), the write half: `update_setting` refuses a value that is the
+	 * E1, the write half: `update_setting` refuses a value that is the
 	 * truncated form of the stored one.
 	 *
 	 * The two halves have to land together. `get_settings` returned the decoded stored
@@ -280,8 +280,8 @@
 	 * catch there — but the moment the read can cut, "fix the typo in the footer" can
 	 * read the cut, edit the visible text and write it back, and `update_setting`
 	 * replaces a value wholesale with no pending queue and no history behind it. The
-	 * page and entry write seams have run this check since audit #10 B2; this is the
-	 * same refusal on the one write path that lacked it.
+	 * page and entry write seams run this check; this is the same refusal on the one
+	 * write path that lacked it.
 	 */
 	function test_a_truncated_setting_value_cannot_be_written_back() {
 		if (!function_exists("parity_db_available") || !parity_db_available()) {

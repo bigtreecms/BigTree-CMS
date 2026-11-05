@@ -12,7 +12,7 @@
 	 * both mirror an endpoint at that level (`GET /404s`, `POST /404s/{id}/redirect`),
 	 * and the workflow only makes sense in that order: you cannot fix broken links you
 	 * cannot see. Until this existed the model either had to be handed the URLs by the
-	 * user or decline a read it was permitted to perform (audit #24 B1).
+	 * user or decline a read it was permitted to perform.
 	 *
 	 * Read-only. Resolving, ignoring, deleting, importing and exporting log entries
 	 * stay out of scope and are named in CapabilitySummary::outOfScope().

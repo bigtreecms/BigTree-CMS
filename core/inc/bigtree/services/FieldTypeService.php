@@ -764,7 +764,7 @@
 		 * value is an array, an object or a resource id offered the developer (and the
 		 * assistant) a Default Value box whose contents no reader can mean anything by
 		 * — PageService::normalizePageResources hands the stored string to a template's
-		 * `foreach` (audit #20 A2). A descriptor with no `value_types` is genuinely
+		 * `foreach`. A descriptor with no `value_types` is genuinely
 		 * universal and still lands everywhere.
 		 *
 		 * @param list<array<string,mixed>> $declared
@@ -1134,7 +1134,7 @@
 		/**
 		 * The field types installable for a use case as id/name pairs, sorted by id.
 		 *
-		 * Audit #8 B1: the AI template/callout authoring path had no way to *discover*
+		 * The AI template/callout authoring path had no way to *discover*
 		 * the valid `fields[].type` ids — the field-types route family is declined for
 		 * management, which conflated it with discovery, so the model guessed ids
 		 * ("richtext"? "wysiwyg"?) and learned only from a recoverable error. The read
@@ -1197,7 +1197,7 @@
 
 			$types["modules"]["default"]["route"] = ["name" => "Generated Route", "self_draw" => true];
 
-			// Module-only, and deliberately so (audit #21 A2). `many-to-many` is
+			// Module-only, and deliberately so. `many-to-many` is
 			// declared in field-type-schemas.php, drawn by the SPA's RelationField,
 			// lifted into the `__mtm__` payload by FormRenderer, validated on every
 			// entry write by AutoModuleService::validateMtm and given its own no-column
@@ -1220,7 +1220,7 @@
 					if ($val) {
 						// `self_draw` is optional on a field-types record (a declarative or
 						// module type never writes it), so read it the same way :64 does
-						// rather than emitting a warning per row (audit #19 B4).
+						// rather than emitting a warning per row.
 						$types[$case]["custom"][$field_type["id"]] = [
 							"name" => $field_type["name"],
 							"self_draw" => !empty($field_type["self_draw"]),

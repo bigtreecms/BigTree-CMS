@@ -8,7 +8,7 @@
 	 * record (name, route, group, class, icon) and nothing else; `scaffold_module`
 	 * makes a usable one — the table, its columns, the form, the landing view and the
 	 * actions — with the whole plan on the proposal card and no DDL until a developer
-	 * approves it (audit #11 C1). Developer level is re-checked at validation and at
+	 * approves it. Developer level is re-checked at validation and at
 	 * approval on both.
 	 */
 	interface ModuleToolBackend {

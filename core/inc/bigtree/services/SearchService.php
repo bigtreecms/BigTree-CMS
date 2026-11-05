@@ -219,7 +219,7 @@
 			$loop = new AgentLoop($ai, $registry, self::AI_MAX_ROUNDS);
 
 			$run = $loop->run($messages, $tool_context, [
-				// The site's configured generation budget (audit #18 A3); search reads
+				// The site's configured generation budget; search reads
 				// it from the same place chat does so one setting governs both loops.
 				"max_tokens" => $ai->maxTokens(),
 				"temperature" => 0.2,
@@ -773,7 +773,7 @@
 				// the pricing page?" hit no tool and no wall, because the only decline
 				// line nearby is about *changing* levels and permissions — and every
 				// decline line is spliced into the system prompt beside "do not
-				// improvise a workaround" (audit #28 B2). It is also the read half of a
+				// improvise a workaround". It is also the read half of a
 				// write the assistant already makes: update_user writes `alerts` and
 				// could read back only `daily_digest`.
 				if ($level >= 1 || (int)$r["id"] === $me) {
@@ -1067,7 +1067,7 @@
 
 			// Search answers "what changed this week" and "which of these is newest"
 			// off absolute datetimes in its hits, so it needs the same clock the chat
-			// prompt carries (audit #14 A1). Generated, never a literal.
+			// prompt carries. Generated, never a literal.
 			$clock = implode("\n", \BigTree\Services\AI\TemporalContext::promptLines());
 
 			return <<<PROMPT
@@ -1502,28 +1502,27 @@ PROMPT;
 
 			// Flatten to scalars/strings for the model; drop huge blobs.
 			//
-			// Audit #10 B1: this used to cut every column at 500 characters — roughly
+			// This used to cut every column at 500 characters — roughly
 			// seventy words, so essentially every real textarea or html field — with a
 			// bare "…" and *nothing in the payload saying a cut happened*. Since
 			// update_module_entry replaces the column wholesale, "fix the typo in the
 			// second paragraph" then read the body cut off, edited the visible text and
-			// proposed writing that back, deleting the rest of the entry. Pages were
-			// given exactly this protection in audit #5 C4 (a 6,000-character cap and an
-			// explicit content_truncated list); entries got the read-parity half of that
-			// audit and never got the truncation half. They read at the same budget now,
-			// and say what they cut.
+			// proposed writing that back, deleting the rest of the entry. Pages have
+			// exactly this protection (a 6,000-character cap and an explicit
+			// content_truncated list), so entries read at the same budget and say what
+			// they cut.
 			$safe = [];
 			$truncated = [];
 			// What each reference column actually names. The flatten below reports a
 			// photo as the string "12" — an opaque integer, with nothing saying it is a
 			// resource id or which file it points at — so "what image is on this entry?"
-			// had no answer and "replace the photo" was a blind write (audit #11 B4).
+			// had no answer and "replace the photo" was a blind write.
 			// Folder-filtered, like every other resource read.
 			$references = [];
 			// The per-column cap bounds a column; nothing bounded the row, and a row of
 			// long columns is tens of thousands of characters from one
 			// get_module_entry — re-fed on every later round until the request
-			// overflows the model's context (audit #18 A1). A row has no rows to drop,
+			// overflows the model's context. A row has no rows to drop,
 			// so an over-budget row is read at a shorter cap and lists what it cut in
 			// fields_truncated. The cap is chosen from the row's real lengths below,
 			// after everything has been read whole.
@@ -1558,7 +1557,7 @@ PROMPT;
 
 				// Link tokens are decoded before the cap, so the model reads a real URL
 				// rather than an opaque base64 blob it would have to reproduce verbatim to
-				// edit the prose around it (audit #10 B3).
+				// edit the prose around it.
 				if (in_array($type, PageService::AI_LINK_BEARING_TYPES, true)) {
 					$text = PageService::aiDenormalizeHtmlValue($text);
 				}
@@ -1568,10 +1567,10 @@ PROMPT;
 			}
 
 			// Measured, not divided: an ordinary entry — one long body beside a dozen
-			// short columns — still reads at the full AI_ENTRY_READ_CAP audit #10
-			// raised it to. Only a row that genuinely doesn't fit falls down
-			// PayloadBudget's ladder, and it lands on a step TruncatedRead knows, so a
-			// value cut here still can't be written back over the stored one.
+			// short columns — still reads at the full AI_ENTRY_READ_CAP. Only a row
+			// that genuinely doesn't fit falls down PayloadBudget's ladder, and it
+			// lands on a step TruncatedRead knows, so a value cut here still can't be
+			// written back over the stored one.
 			$cap = PayloadBudget::capForValues(array_values($lengths), AutoModuleService::AI_ENTRY_READ_CAP);
 
 			foreach ($lengths as $key => $length) {
@@ -1671,7 +1670,7 @@ PROMPT;
 		 *
 		 * $truncated reports whether the cap fell, because every other value cap in an
 		 * AI read payload now says so and a silent one here would be the exception the
-		 * E1 guard exists to prevent (audit #10 B1). Writing this value back is not a
+		 * E1 guard exists to prevent. Writing this value back is not a
 		 * hazard the way a truncated `content` field is — it is strip_tags'd,
 		 * concatenated and keyed to nothing, so no write tool accepts it — but the
 		 * model shouldn't have to guess whether it read the whole page.

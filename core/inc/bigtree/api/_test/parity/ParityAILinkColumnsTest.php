@@ -1,6 +1,6 @@
 <?php
 	/**
-	 * Audit #24 E2/E3: `bigtree_pages.external` behaves like a link again.
+	 * `bigtree_pages.external` behaves like a link again.
 	 *
 	 * Legacy makeIPLs the column on both write paths (admin.php:1637 createPage,
 	 * :8837 updatePage); no writer in the remaster did. Two things followed, and both
@@ -197,11 +197,11 @@
 	 * A change queued before the writers tokenized is tokenized when it publishes.
 	 *
 	 * publishPendingChange replays the stored blob through performUpdate, so a draft
-	 * carrying a raw same-site URL — one staged before audit #24, or written by any
-	 * client that reached the queue another way — lands tokenized rather than raw.
-	 * That is the direction we want, and it is asserted rather than assumed because
-	 * the alternative (a blob replayed verbatim) is what the same shape of code did
-	 * for `resources` until audit #19 A3.
+	 * carrying a raw same-site URL — one staged before the writers tokenized, or
+	 * written by any client that reached the queue another way — lands tokenized rather
+	 * than raw. That is the direction we want, and it is asserted rather than assumed
+	 * because the alternative (a blob replayed verbatim) is what the same shape of code
+	 * once did for `resources`.
 	 */
 	function test_parity_a_queued_external_link_is_tokenized_when_it_publishes() {
 		if (!parity_db_available()) {

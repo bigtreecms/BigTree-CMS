@@ -12,6 +12,7 @@ import { UnsavedChangesGuard } from "@/components/ui/UnsavedChangesGuard";
 import { useScrollToFirstError } from "@/hooks/useScrollToFirstError";
 import { pluralize } from "@/lib/number";
 import { applyApiFieldErrors } from "@/lib/errorHandling";
+import { drawTimeDefault } from "@/renderer/fields/drawDefaults";
 
 import { FieldRowItem } from "./FieldRowItem";
 import { FormRenderContextProvider, type FormRenderContextValue } from "./FormContext";
@@ -508,7 +509,9 @@ const readIdList = (raw: unknown): Array<number | string> => {
 
 /**
  * Build the initial-values map: prefer the entry data (edit case), fall back
- * to per-field `default` settings (legacy storage), and finally to "".
+ * to per-field `default` settings (legacy storage), then — on an add screen
+ * only — to the field's draw-time default (`default_today` etc.),
+ * and finally to "".
  */
 const seedValues = (
 	form: ModuleForm,
@@ -529,7 +532,22 @@ const seedValues = (
 				? (settings as Record<string, unknown>).default
 				: undefined;
 
-		out[field.column] = def !== undefined ? def : "";
+		if (def !== undefined && def !== "") {
+			out[field.column] = def;
+
+			continue;
+		}
+
+		const drawn = initial
+			? undefined
+			: drawTimeDefault(
+					field.type,
+					settings && !Array.isArray(settings)
+						? (settings as Record<string, unknown>)
+						: null
+				);
+
+		out[field.column] = drawn !== undefined ? drawn : (def ?? "");
 	}
 
 	return out;

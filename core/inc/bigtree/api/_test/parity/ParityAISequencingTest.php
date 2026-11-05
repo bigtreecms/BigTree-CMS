@@ -1,6 +1,6 @@
 <?php
 	/**
-	 * Audit #9 Part A against the real store.
+	 * The sequencing boundary against the real store.
 	 *
 	 * AISequencingTest exercises the sequencing logic over a fake store, which proves
 	 * the branching but not the query underneath it. These legs run the real
@@ -19,7 +19,7 @@
 
 	function parity_a9_probe_tool(ProposalStore $store): AbstractMutatingTool {
 
-		// The same stand-in the audit #5 lock probe uses: stageFromValidation is the
+		// The same stand-in the lock probe uses: stageFromValidation is the
 		// shared path, so what it does here is what every tool in the catalog does.
 		return new class ($store) extends AbstractMutatingTool {
 			public function name(): string {

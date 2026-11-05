@@ -63,7 +63,7 @@
 			T::ok(strpos($validated["preview"]["changes"]["fields_added"], "footnote") === 0, "the preview names the added field");
 			T::ok(
 				strpos($validated["preview"]["changes"]["fields_added"], "render file isn't changed") !== false,
-				"and says the render file won't output it (audit #10 C1)"
+				"and says the render file won't output it"
 			);
 			T::ok(
 				!isset($validated["preview"]["changes"]["no_longer_required"]),
@@ -216,7 +216,7 @@
 			T::ok(strpos($validated["preview"]["changes"]["fields_added"], "link") === 0, "the preview names the added field");
 			T::ok(
 				strpos($validated["preview"]["changes"]["fields_added"], "render file isn't changed") !== false,
-				"and says the render file won't output it (audit #10 C1)"
+				"and says the render file won't output it"
 			);
 			T::ok(!isset($validated["preview"]["changes"]["fields_removed"]), "nothing is reported as removed");
 
@@ -350,8 +350,8 @@
 			$denied = $svc->aiValidateCalloutUpdate(["id" => "anything", "name" => "X"], $admin);
 			T::ok(isset($denied["denied"]), "an admin cannot edit callouts");
 
-			// Reading is level 0 now, at parity with `GET /callouts/{id}` (audit #13
-			// D4) — so an admin gets a plain "does not exist", not a denial.
+			// Reading is level 0, at parity with `GET /callouts/{id}` — so an admin
+			// gets a plain "does not exist", not a denial.
 			$read = $svc->aiGetCallout("anything", $admin);
 			T::ok(!isset($read["denied"]), "but reading a callout definition is no longer gated above the REST route");
 			T::ok(isset($read["error"]), "an id that doesn't exist is still a recoverable error");

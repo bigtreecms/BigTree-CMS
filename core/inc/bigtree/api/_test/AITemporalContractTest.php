@@ -1,12 +1,12 @@
 <?php
 	/**
-	 * Audit #14 guard E1: the temporal contract.
+	 * The temporal contract.
 	 *
 	 * Every guard before this one asserts a relationship between two things that are
 	 * both in the codebase — a tool argument against a read seam, a write seam against
 	 * its gate, a route against a decline line. The clock is not in the codebase: it is
 	 * a request-time fact that has to be injected, and nothing structural noticed its
-	 * absence for thirteen audits. The failure that produced was not a refusal or a
+	 * absence. The failure that produced was not a refusal or a
 	 * crash but a confidently wrong absolute date, written through a seam that had
 	 * already validated it as parseable.
 	 *
@@ -33,7 +33,7 @@
 	 * Every seam that turns a model-supplied date into a stored one, and the helper it
 	 * does the turning with.
 	 *
-	 * These are the four surfaces of audit #14's A1 table. They all validate
+	 * These are the four date-taking surfaces. They all validate
 	 * parseability and then trust the value, which is the right check for the failure
 	 * they were written for — and is only safe because the prompt now tells the model to
 	 * hand relative dates through verbatim instead of resolving them itself. A fifth

@@ -9,9 +9,9 @@
 	 * module icon's closed vocabulary. This one carries the opposite kind of fact:
 	 * *what time it is*, which is nowhere in the codebase and has to be injected at
 	 * request time. Nothing structural notices its absence, which is exactly why it
-	 * went missing for thirteen audits.
+	 * went missing.
 	 *
-	 * The failure it closes (audit #14 A1) is not a refusal or a crash. The model
+	 * The failure it closes is not a refusal or a crash. The model
 	 * writes dates on four surfaces — `publish_at`/`expire_at` on a page, `date` /
 	 * `datetime` / `time` entry columns, `date`-typed template resources, and
 	 * date-typed settings — and every one of those seams validates *parseability*
@@ -210,7 +210,7 @@
 		 * apart.
 		 *
 		 * This is what makes the approval-time re-check a warning-plus-refusal rather
-		 * than a blanket refusal (audit #14 D2). A value that was *already* past at
+		 * than a blanket refusal. A value that was *already* past at
 		 * staging was deliberate — backdating a publish_at is a legitimate thing to
 		 * want, the card carried `pastWarning`'s note about it, and the user approved it
 		 * knowing. A value that was in the future at staging and is past by the time

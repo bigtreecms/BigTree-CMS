@@ -102,7 +102,7 @@
 		// The per-request provider timeout to size the PHP execution budget against.
 		// Deliberately above ai.php's own cURL default (30s, requestJson) rather than
 		// a mirror of it — the comment here used to claim it was a mirror, which made
-		// the budget look tighter than it is (audit #18 A4).
+		// the budget look tighter than it is.
 		const PROVIDER_TIMEOUT_SECONDS = 60;
 		// Why a turn ended without an answer. Both keep whatever the turn staged; they
 		// differ only in what the persisted message tells the user happened, and the
@@ -152,7 +152,7 @@
 			$run = $loop->run($turn["messages"], $turn["context"], [
 				// The site's configured generation budget, not a literal: a hard-coded
 				// 1024 was a ceiling no long-context site could raise, and it is the
-				// authoring limit a CMS assistant runs into first (audit #18 A3).
+				// authoring limit a CMS assistant runs into first.
 				"max_tokens" => $turn["ai"]->maxTokens(),
 				"temperature" => 0.3,
 				"final_max_tokens" => $turn["ai"]->finalMaxTokens(),
@@ -463,8 +463,8 @@
 		 * This used to delete every proposal the turn had staged. A turn that read
 		 * widely, staged three good cards on rounds 1–3 and hit a provider error on
 		 * round 4 lost all three and told the user a raw provider string — and since
-		 * the same reads produce the same payloads, the retry failed the same way
-		 * (audit #18 A1/D2). A proposal that was staged is not half-written work: it
+		 * the same reads produce the same payloads, the retry failed the same way.
+		 * A proposal that was staged is not half-written work: it
 		 * was validated, fingerprinted, given a 24-hour TTL and its own approval gate,
 		 * and none of that depends on the turn that produced it having finished.
 		 *
@@ -767,8 +767,7 @@
 
 			// A card that depends on another card refuses until that one is resolved.
 			// Checked before the claim so the proposal stays pending and clickable
-			// after the prerequisite is approved, rather than being spent on a refusal
-			// (audit #9 A3).
+			// after the prerequisite is approved, rather than being spent on a refusal.
 			$this->assertPrerequisiteResolved($store, $payload, $request->user);
 
 			// Claim the proposal before executing so two concurrent approvals can't both
@@ -925,8 +924,8 @@
 		 * Guard that a proposal whose staging recorded a prerequisite isn't approved
 		 * before it.
 		 *
-		 * Audit #8's container re-checks already made a wrong order *fail* rather than
-		 * write a dangling reference, but the user was given no reason to expect it and
+		 * The container re-checks already make a wrong order *fail* rather than
+		 * write a dangling reference, but the user is given no reason to expect it and
 		 * no hint about which card to click first. Where the two cards are known to be
 		 * related, name the other one instead of letting the write discover it.
 		 *
@@ -1523,7 +1522,7 @@
 
 				// Pending rows were skipped, which left the model unable to see the one
 				// fact it needs to sequence a two-step intent: that it has a change
-				// staged and unapproved (audit #9 A1). They are listed separately —
+				// staged and unapproved. They are listed separately —
 				// nothing about them has happened, so they must not read like outcomes.
 				if ($status === ProposalStore::PENDING) {
 					// A row only flips to `expired` when someone tries to load it

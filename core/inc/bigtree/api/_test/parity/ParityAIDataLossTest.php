@@ -1,11 +1,11 @@
 <?php
 	/**
-	 * Audit #5 Phase 1 (A1–A8): the ways an assistant write destroyed data that
-	 * already existed, or reached the live site without a publisher.
+	 * The ways an assistant write could destroy data that already existed, or reach
+	 * the live site without a publisher.
 	 *
-	 * Every test here fails against the pre-audit-5 code. They are grouped in one
-	 * file because they share one theme: the AI path is the only writer that submits
-	 * a *partial* body, and every seam that assumed a whole body broke on it.
+	 * They are grouped in one file because they share one theme: the AI path is the
+	 * only writer that submits a *partial* body, and every seam that assumed a whole
+	 * body broke on it.
 	 */
 
 	use BigTree\Api\Resources;

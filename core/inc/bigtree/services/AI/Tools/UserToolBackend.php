@@ -13,11 +13,11 @@
 	 */
 	interface UserToolBackend {
 		/**
-		 * The caller's own profile fields, for get_my_capabilities (audit #14 B2).
+		 * The caller's own profile fields, for get_my_capabilities.
 		 *
 		 * No permission argument and no gate: this is the caller's own record, which
-		 * `GET /users/me` already returns at level 0. It exists because audit #14 B1 made
-		 * `company` and `daily_digest` editor-writable, and the only read tool that
+		 * `GET /users/me` already returns at level 0. It exists because `company` and
+		 * `daily_digest` are editor-writable, and the only read tool that
 		 * returned them — search_users — is administrator-gated, so for an editor they
 		 * would have become write-only. That is exactly the shape AISurfaceGuardTest
 		 * exists to refuse.

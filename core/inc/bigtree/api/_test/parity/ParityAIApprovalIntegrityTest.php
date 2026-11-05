@@ -1,7 +1,6 @@
 <?php
 	/**
-	 * Audit #5 Phase 2 (B1–B4): what happens between staging a proposal and
-	 * approving it.
+	 * What happens between staging a proposal and approving it.
 	 *
 	 * The framework's stated convention is that a staged payload is never trusted on
 	 * the way back out. These cover the three places that didn't honour it — a failed

@@ -1,9 +1,9 @@
 <?php
 	/**
-	 * Audit #7 Phase 2: option-domain parity (E5) and relation bookkeeping (E6).
+	 * Option-domain parity (E5) and relation bookkeeping (E6).
 	 *
-	 * E5 — audit #5 gave module entries a `list` option domain; the page-content path
-	 * never got it, so a `list`/`select`/`radio` template field accepted any string.
+	 * E5 — module entries had a `list` option domain; the page-content path didn't,
+	 * so a `list`/`select`/`radio` template field accepted any string.
 	 * Both paths now call the one FieldOptionDomain helper, so the guard is that (a)
 	 * the helper behaves and (b) both sift seams and both schema seams actually call
 	 * it — the divergence is what created the gap in the first place.
@@ -79,7 +79,7 @@
 		);
 
 		// The schema-discovery error names each list field's choices, so a model that
-		// sent an out-of-domain value can correct it from the same message (audit #7 B1).
+		// sent an out-of-domain value can correct it from the same message.
 		$describe = ai_surface_method_body(\BigTree\Services\PageService::class, "aiDescribeResourceSchema");
 		T::ok(
 			strpos($describe, "options") !== false,

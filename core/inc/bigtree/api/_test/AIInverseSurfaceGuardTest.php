@@ -1,14 +1,14 @@
 <?php
 	/**
-	 * Audit #7 Phase 3 guards: the inverse surface guard (E1) and the route-body
-	 * decline-completeness leg (E7).
+	 * The inverse surface guard (E1) and the route-body decline-completeness leg
+	 * (E7).
 	 *
 	 * AISurfaceGuardTest maps declared tool arguments → the read tool that returns
-	 * them, so it catches a *writable* field with no read surface. It cannot catch
-	 * the opposite: a backend seam that reads an argument the tool never declares, so
-	 * the model can't supply it. That is exactly audit #7's C1 — update_callout's
-	 * validate seam read `$args["group"]` and outOfScope() promised it, but the tool
-	 * schema never declared it, so the capability was unreachable.
+	 * them, so it catches a *writable* field with no read surface. It cannot catch the
+	 * opposite: a backend seam that reads an argument the tool never declares, so the
+	 * model can't supply it. For example, update_callout's validate seam read
+	 * `$args["group"]` and outOfScope() promised it, but the tool schema never declared
+	 * it, so the capability was unreachable.
 	 *
 	 * E1 closes that direction: every `$args["…"]` a validate seam reads must be a
 	 * declared property of the seam's tool (or an explicitly-listed internal key).
@@ -44,7 +44,7 @@
 			"delete_module_entry" => [\BigTree\Services\AutoModuleService::class, "aiValidateEntryDelete"],
 			"create_redirect" => [\BigTree\Services\FourOhFourService::class, "aiValidateRedirectCreate"],
 			"create_module" => [\BigTree\Services\ModuleService::class, "aiValidateModuleCreate"],
-			// Audit #12 C1/E3: absent since the tool landed, which is why nothing asked
+			// Absent since the tool landed, which is why nothing asked
 			// the scaffold whether it declared the arguments it reads — or, through the
 			// field-authoring contract that stands on this map, whether it gated them.
 			"scaffold_module" => [\BigTree\Services\ModuleService::class, "aiValidateModuleScaffold"],
@@ -128,13 +128,11 @@
 	}
 
 	/**
-	 * Audit #9 E2: the body-field contract, for every write route the assistant is
+	 * The body-field contract, for every write route the assistant is
 	 * meant to cover — not just `pages`.
 	 *
-	 * Audit #7 shipped this scoped to POST /pages and recorded the general version as
-	 * future work. Audit #9's B1–B3 were all instances of what the general version
-	 * would have caught: a field the route accepts, no tool sets, and no decline
-	 * names — so the model discovers it by failing.
+	 * It catches a field the route accepts, no tool sets, and no decline names — so
+	 * the model would otherwise discover it by failing.
 	 *
 	 * Each field of each route must be exactly one of:
 	 *
@@ -147,15 +145,12 @@
 	 * (page/entry *content*) are absent by construction: their fields are the
 	 * template's or the form's, and the sift seams govern them.
 	 *
-	 * Audit #14 E2: the update side is here now. Every PATCH route in the covered
-	 * families except `PATCH /users/{id:int}` declares `allow_unknown => true` with no
-	 * `body` map, and the classification leg below skipped any endpoint whose declared
-	 * body was empty — so for thirteen audits this contract classified the **create**
-	 * side only. That was invisible from either direction: the map looked complete, and
-	 * every route it named really was classified. The update side happened to be at
-	 * parity by hand, but audit #7's C1 (`update_callout.group`) and audit #9's B2
-	 * (`update_module.class`) were both exactly this class of finding, both found by
-	 * reading rather than by a guard. A PATCH route's effective body is what its service
+	 * The update side is covered too. Every PATCH route in the covered families
+	 * except `PATCH /users/{id:int}` declares `allow_unknown => true` with no `body`
+	 * map, so a leg that skipped any endpoint whose declared body was empty would
+	 * classify the **create** side only — invisibly, because the map would look
+	 * complete. `update_callout.group` and `update_module.class` were both exactly
+	 * this class of gap. A PATCH route's effective body is what its service
 	 * actually reads — see ai_inverse_service_body.
 	 *
 	 * @return array<string,array<string,mixed>>
@@ -171,12 +166,12 @@
 					"resources" => "the tools express page content as `content`, sifted against the template schema",
 					"publish" => "the tools invert it as save_as_draft; publishing is decided by rank at approval",
 				],
-				// Audit #22 B6. `open_graph` stood as one exemption line — "expressed as
+				// `open_graph` stood as one exemption line — "expressed as
 				// the og_title / og_description arguments rather than an object" — which
 				// is an assertion that the mapping is complete, written at a granularity
-				// that cannot see inside an array-valued body field. It was false for two
-				// audits: the record has four authored columns and the tools carried two
-				// (audit #22 A2). Any array body field can hide an arbitrary number of
+				// that cannot see inside an array-valued body field. It was false: the
+				// record has four authored columns and the tools carried two.
+				// Any array body field can hide an arbitrary number of
 				// unmapped scalars behind one line, so the fields whose array is a fixed
 				// record enumerate it.
 				"sub_keys" => [
@@ -186,7 +181,7 @@
 					"trunk" => "site trunk",
 				],
 			],
-			// The update side (audit #14 E2). Each of these declares no `body` map, so
+			// The update side. Each of these declares no `body` map, so
 			// the fields are the ones its service reads by name — derived, not copied,
 			// which is the difference between a contract and a comment.
 			"PATCH /pages/{id:int}" => [
@@ -246,7 +241,7 @@
 			],
 			// update_setting writes the value; every other key on this route is the
 			// setting's *definition*, which retypes or re-encrypts every stored value
-			// with no migration (audit #9 B2/D3).
+			// with no migration.
 			"PATCH /settings/{id}" => [
 				"tools" => ["update_setting"],
 				"declined" => [
@@ -284,7 +279,7 @@
 			],
 			// Wholly declined: update_setting writes a setting's *value*, and the
 			// definition — name, type, options, locked, encrypted, even the id — is a
-			// schema change over stored values with no migration (audit #9 B2/D3).
+			// schema change over stored values with no migration.
 			"POST /settings" => [
 				"tools" => [],
 				"declined_all" => "creating, deleting or redefining settings",
@@ -308,11 +303,10 @@
 					"gbp" => "group-based permissions",
 				],
 			],
-			// Audit #12 C2. A full body map with no entry here, so `class` and `gbp`
+			// A full body map with no entry here, so `class` and `gbp`
 			// were unclassified and the capabilities A4/A5 found missing were never put
-			// to anyone as a decision. Audit #9's E2 leg made this map mandatory for
-			// action routes with bodies; a whole new route family with a body still
-			// slipped in, which is what the leg below now closes.
+			// to anyone as a decision. This map is mandatory for action routes with
+			// bodies, and the leg below covers a whole new route family with a body.
 			"POST /modules/scaffold" => [
 				"tools" => ["scaffold_module"],
 				"exempt" => [
@@ -344,7 +338,7 @@
 			],
 			// Setting a redirect on a logged 404 rather than coining one: same act, and
 			// create_redirect expresses the destination as `to`. Surfaced by the E6 leg
-			// below (audit #12 C2) — a body map with no entry, on a route the family
+			// below — a body map with no entry, on a route the family
 			// contract already called covered.
 			"POST /404s/{id:int}/redirect" => [
 				"tools" => ["create_redirect"],
@@ -369,10 +363,10 @@
 					"tag" => "add_tags coins tags as a list under `tags` while tagging something, never as a bare record",
 				],
 			],
-			// The sub-resource writes. Audit #9 listed the top-level families by name
-			// and these fell outside the list, which is the same optionality E1 closed
-			// on the verb map: an action route with a body is a body contract, and a
-			// field it gains should have to be classified like any other.
+			// The sub-resource writes. A list of top-level families by name leaves
+			// these outside it, which is the same optionality E1 closes on the verb
+			// map: an action route with a body is a body contract, and a field it gains
+			// should have to be classified like any other.
 			"POST /pages/{id:int}/move" => [
 				"tools" => ["move_page"],
 			],
@@ -419,12 +413,12 @@
 	}
 
 	/**
-	 * Audit #22 B6: an array-valued body field whose array is a fixed record enumerates
+	 * An array-valued body field whose array is a fixed record enumerates
 	 * that record, key by key.
 	 *
 	 * The contract above classifies a *body field*. That granularity cannot see inside
 	 * an array — `open_graph` carried one exemption line asserting the og_title /
-	 * og_description arguments expressed it completely, and for two audits they
+	 * og_description arguments expressed it completely, and they actually
 	 * expressed half of it, with the other half (a four-value enum and a URL) reachable
 	 * by every other surface and by no tool. One exemption line can hide an arbitrary
 	 * number of unmapped scalars, and nothing anywhere would say so.
@@ -608,7 +602,7 @@
 	}
 
 	/**
-	 * Audit #12 C2/E6: the body contract is not optional.
+	 * The body contract is not optional.
 	 *
 	 * Every route classified COVERED by the route-family contract that declares a
 	 * `body` map must have an entry above. `POST /modules/scaffold` had a twelve-field
@@ -710,7 +704,7 @@
 	}
 
 	/**
-	 * The audit #7 C2 guarantee the pages-scoped version carried, kept explicitly:
+	 * The guarantee the pages-scoped version carried, kept explicitly:
 	 * `trunk` is a real POST /pages body field and it is a named decline.
 	 */
 	function test_page_trunk_is_a_real_body_field_and_declined() {
@@ -748,7 +742,7 @@
 	 * A route's own declaration block, bounded at the next route declaration.
 	 *
 	 * Unbounded, a route with no `body` map silently borrowed the next route's — which
-	 * reads as a body contract that was checked when nothing was (audit #9 E2).
+	 * reads as a body contract that was checked when nothing was.
 	 */
 	function ai_inverse_route_block(string $route): string {
 		foreach (glob(SERVER_ROOT . "core/inc/bigtree/api/routes/*.php") ?: [] as $file) {
@@ -812,7 +806,7 @@
 
 	/**
 	 * The body fields a route's service actually reads by name — the *effective* body of
-	 * a route that declares no `body` map (audit #14 E2).
+	 * a route that declares no `body` map.
 	 *
 	 * Derived rather than hand-copied, for the reason IconDomain gives about vocabulary
 	 * lists: a copy is one more thing to drift, and the whole point of a contract is
@@ -953,7 +947,7 @@
 	}
 
 	/**
-	 * Audit #13 guard E3: the extension-ownership contract.
+	 * The extension-ownership contract.
 	 *
 	 * `ExtensionService` files an installed extension's records into the very same
 	 * JSON-DB stores the site's own live in, keyed `{ext}*{local}` with an
@@ -965,7 +959,7 @@
 	 *      (`BigTreeAdmin::installExtension` deletes and re-inserts every one of
 	 *      them), so an approved field addition is reverted at the next upgrade with
 	 *      no warning anywhere;
-	 *  (b) since audit #10 C1 the field diff names the render file to edit, and
+	 *  (b) the field diff names the render file to edit, and
 	 *      `TemplateScaffold::safeId()` strips the `*` — so
 	 *      `com.example.blog*sidebar` was reported as
 	 *      `templates/basic/comexampleblogsidebar.php` while the router loads
@@ -1143,7 +1137,7 @@
 		);
 	}
 
-	// — audit #20 guard E4: a settings-bearing update argument applies, or says it doesn't —
+	// — a settings-bearing update argument applies, or says it doesn't —
 
 	/**
 	 * The per-field arguments an update surface's field shape carries that
@@ -1184,7 +1178,7 @@
 	 * that `required` and `default` disclosed it in their own descriptions and
 	 * `options` did not: "add Enormous to the Size dropdown" is an ordinary request,
 	 * the model sends `options`, the merge drops it, the card's field diff shows
-	 * nothing, and the model reports the change as made (audit #20 A4).
+	 * nothing, and the model reports the change as made.
 	 */
 	function test_update_field_arguments_apply_or_disclose_that_they_do_not() {
 		$registry = ai_wiring_registry();

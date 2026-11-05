@@ -1,7 +1,6 @@
 <?php
 	/**
-	 * Audit #4 Phase 2 (A3, A5, B1): the halves of the draft workflow that were
-	 * missing.
+	 * The halves of the draft workflow that were missing.
 	 *
 	 * The write tools could address a "p"-prefixed draft but the read tool cast it to
 	 * an int, so the model could edit a draft it could never look at. An editor could

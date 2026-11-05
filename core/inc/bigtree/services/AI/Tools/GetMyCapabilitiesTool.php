@@ -16,9 +16,9 @@
 	 * the system prompt): the model can call it mid-conversation when the user asks
 	 * about their own permissions.
 	 *
-	 * Since audit #14 B2 it is also the *identity* read, which the catalog had nowhere
-	 * at all: the payload carried level and role and never a user id, name or email,
-	 * and search_users is administrator-gated (audit #1), so an editor could not even
+	 * It is also the *identity* read, which the catalog otherwise lacks: the payload
+	 * once carried level and role and never a user id, name or email,
+	 * and search_users is administrator-gated, so an editor could not even
 	 * look themselves up. "Which drafts are mine", "did I make that change", "what am
 	 * I subscribed to", "use my name in the byline" were unanswerable or answerable
 	 * only by guessing. No new exposure: this is the caller's own record — the same
@@ -74,7 +74,7 @@
 				"capabilities" => $caps,
 				// The two editor-writable profile fields the request user object doesn't
 				// carry, so "is my daily digest on?" has an answer and update_user's
-				// arguments all have a read surface an editor can reach (audit #14 B2).
+				// arguments all have a read surface an editor can reach.
 				"profile" => $this->backend->aiMyProfile($context->user),
 				// Level-independent: what the assistant itself can't do, so the model
 				// can cite the limit and the admin screen rather than discovering the

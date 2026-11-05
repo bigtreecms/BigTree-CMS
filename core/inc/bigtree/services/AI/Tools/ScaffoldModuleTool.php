@@ -9,7 +9,7 @@
 	 * Developer-only two-phase creation of a *usable* module: the record, its database
 	 * table, an add/edit form, a landing view and the actions that go with them.
 	 *
-	 * Audit #11 C1. `create_module` makes a record with no table — honestly disclosed,
+	 * `create_module` makes a record with no table — honestly disclosed,
 	 * but the single most incomplete thing the assistant can create, and the only tool
 	 * whose successful outcome is something broken in the admin navigation. The
 	 * endpoint that finishes the job has existed all along (POST /modules/scaffold);

@@ -1,13 +1,13 @@
 <?php
 	/**
-	 * Audit #12 guard E3 (C3): the field-authoring contract.
+	 * The field-authoring contract.
 	 *
-	 * `Resources::aiUnconfigurableFieldError` is the gate audits #5, #10 C2 and #11 A4
-	 * built — it refuses a field whose type needs structured configuration the
-	 * assistant can't author, and any field whose own `settings_schema` marks a
-	 * setting required that nothing filled in. It had twelve call sites and every one
-	 * of them was in TemplateService or CalloutService, because those were the only
-	 * two surfaces that authored a field list when it was written.
+	 * `Resources::aiUnconfigurableFieldError` is the gate that refuses a field whose
+	 * type needs structured configuration the assistant can't author, and any field
+	 * whose own `settings_schema` marks a setting required that nothing filled in. It
+	 * had twelve call sites and every one of them was in TemplateService or
+	 * CalloutService, because those were the only two surfaces that authored a field
+	 * list when it was written.
 	 *
 	 * `scaffold_module` then authored a third, through ModuleService, and inherited
 	 * none of it: its only field check was "does this type exist in the registry?", so
@@ -259,7 +259,7 @@
 	/**
 	 * The scaffold card states the two things about a column an approver can only
 	 * learn from the card: whether an entry must fill it in, and whether the
-	 * assistant will be able to fill it at all (audit #12 A4/A5).
+	 * assistant will be able to fill it at all.
 	 */
 	function test_the_scaffold_card_states_required_and_the_columns_it_cannot_fill() {
 		if (!function_exists("parity_db_available") || !parity_db_available()) {
@@ -334,7 +334,7 @@
 	 * `create_template` carrying a `list` field staged clean and then failed at
 	 * approval with "has no choices, supply them as options" — for a field whose
 	 * choices were sitting in the payload being judged. Found while wiring the
-	 * default-value domain into the same chain (audit #20), which would otherwise
+	 * default-value domain into the same chain, which would otherwise
 	 * have been a no-op at every create approval for the same reason.
 	 *
 	 * The rule, asserted rather than described: aiFieldSettings is idempotent on its
@@ -378,7 +378,7 @@
 		T::ok(!isset($template["table"]), "a template field's structured settings are still not carried through");
 	}
 
-	// — audit #20 guard E1: a `default` is validated by the rules of a *value* —
+	// — a `default` is validated by the rules of a *value* —
 
 	/**
 	 * E1, option-domain leg: the string `FieldOptionDomain` refuses as an entry value
@@ -389,8 +389,7 @@
 	 * entry's column and `normalizePageResources` writes it into
 	 * `bigtree_pages.resources`, both of them after every gate has run. So it entered
 	 * through the door with no gates on it (an `is_scalar` and a cast) and left
-	 * through the one that has them, having never been checked by either (audit #20
-	 * A1).
+	 * through the one that has them, having never been checked by either.
 	 *
 	 * The label leg is what proves the shared implementation was *called* rather than
 	 * reimplemented: matching a recognisable label back to its stored value is
@@ -452,9 +451,9 @@
 	 * E1, storage-domain leg: a default that wouldn't survive the trip into storage is
 	 * refused rather than silently truncated or coerced.
 	 *
-	 * With `sql_mode = ''` (audit #10's premise, unchanged) MySQL's answer to "this
-	 * doesn't fit" is to cut the string to the column width and turn "tomorrow" into
-	 * `0000-00-00` — on *every* entry created from the form, not once.
+	 * With `sql_mode = ''` MySQL's answer to "this doesn't fit" is to cut the string to
+	 * the column width and turn "tomorrow" into `0000-00-00` — on *every* entry created
+	 * from the form, not once.
 	 */
 	function test_a_default_is_held_to_the_storage_it_lands_in() {
 		$long = str_repeat("a", 5000);
@@ -631,7 +630,7 @@
 	}
 
 	/**
-	 * Audit #25 guard E1: the settings gate checks existence, not just presence.
+	 * The settings gate checks existence, not just presence.
 	 *
 	 * `aiMissingSettings` judges every required setting by one test — non-empty — so
 	 * any identifier-shaped string satisfied a relation's `table` and `title_column`,
@@ -641,7 +640,7 @@
 	 * behind `get_relation_options` — refuses to read, so the assistant could author a
 	 * field and be told three turns later that a developer has to go finish it.
 	 *
-	 * Fails on the tree before audit #25: the same call stages cleanly.
+	 * Without the check, the same call stages cleanly.
 	 */
 	function test_a_scaffold_naming_a_table_that_does_not_exist_is_refused() {
 		if (!function_exists("parity_db_available") || !parity_db_available()) {
@@ -672,8 +671,8 @@
 			"and the field it belongs to"
 		);
 
-		// A table that doesn't exist *yet* is the two-proposal case audit #9 built the
-		// sequencing machinery for, so the refusal carries the descriptor that lets the
+		// A table that doesn't exist *yet* is the two-proposal case the sequencing
+		// machinery is for, so the refusal carries the descriptor that lets the
 		// tool layer resolve it against this conversation's own pending cards.
 		T::equals(
 			(string)($missing["prior_change"]["tool"] ?? ""),
@@ -731,7 +730,7 @@
 	}
 
 	/**
-	 * Audit #25 guard E2: the authoring gate and the read seam agree.
+	 * The authoring gate and the read seam agree.
 	 *
 	 * A1 is what the two halves drifting apart looks like — the read seam
 	 * (`relationOptionsFor`) dereferenced settings the authoring gate had only ever
@@ -824,7 +823,7 @@
 	}
 
 	/**
-	 * Audit #25 guard E3: visibility filtering is applied to both halves of the
+	 * Visibility filtering is applied to both halves of the
 	 * needed-settings list.
 	 *
 	 * `aiMissingSettings` seeds from the hardcoded const and *then* walks the field
@@ -834,7 +833,7 @@
 	 * was refused for having no static choices, and handed a correction that would
 	 * have silently thrown the db source away.
 	 *
-	 * Fails on the tree before audit #25: the db-configured field is refused.
+	 * Without the visibility filter, the db-configured field is refused.
 	 */
 	function test_a_db_populated_list_is_not_asked_for_static_choices() {
 		$db = \BigTree\Api\Resources::aiUnconfigurableFieldError(
@@ -897,7 +896,7 @@
 	}
 
 	/**
-	 * Audit #30 E5/B1: a scaffolded `route` field with no `source`.
+	 * A scaffolded `route` field with no `source`.
 	 *
 	 * `route`'s own settings_schema marks nothing required, and the render-required
 	 * supplement never named it — so a source-less route field authored clean. It
@@ -911,8 +910,8 @@
 	 * field is self_draw, an editable input), while `route` is a derived type the
 	 * assistant is refused from setting. A module the assistant scaffolds this way is
 	 * one in which every entry it ever creates has no URL, with no way to fix it
-	 * short of the Module Designer. Audit #12 A2's rule one step over: a field type
-	 * that exists is not yet a field that *writes*.
+	 * short of the Module Designer. A field type that exists is not yet a field that
+	 * *writes*.
 	 *
 	 * Fails on the tree before this pass: the same plan stages cleanly.
 	 */
@@ -959,9 +958,9 @@
 	}
 
 	/**
-	 * Audit #31 E4/A2: a `source` that is present but names no planned column.
+	 * A `source` that is present but names no planned column.
 	 *
-	 * #30 B1 made the setting mandatory and asked only whether it was there — so a
+	 * Making the setting mandatory asks only whether it is there — so a
 	 * typo, a guess, or the route's own column still staged, and generated every
 	 * entry's route from nothing exactly as a missing source did.
 	 *
@@ -1025,7 +1024,7 @@
 	}
 
 	/**
-	 * Audit #31 E5/A3: a scaffolded matrix's columns get the gate its parent field
+	 * A scaffolded matrix's columns get the gate its parent field
 	 * gets. `"matrix" => ["columns"]` asked only that the list was non-empty.
 	 *
 	 * Fails on the tree before this pass: every broken matrix below stages.

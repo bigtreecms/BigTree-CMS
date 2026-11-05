@@ -257,7 +257,7 @@
 		/**
 		 * The files a proposal is about to reference.
 		 *
-		 * Audit #11 B1 made reference fields settable by resource id. An id is a much
+		 * Reference fields are settable by resource id. An id is a much
 		 * weaker thing to stage than a value: the row it names can be deleted, moved
 		 * to a folder the approver can't see, or replaced by a re-upload inside the
 		 * proposal's 24h life, and the write would still succeed and store an id

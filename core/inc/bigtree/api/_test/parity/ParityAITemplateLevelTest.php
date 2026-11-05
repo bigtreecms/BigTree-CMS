@@ -1,6 +1,6 @@
 <?php
 	/**
-	 * Audit #23 A2/E3: a template's `level` is a permission rule again.
+	 * A template's `level` is a permission rule again.
 	 *
 	 * A template carries `level` (0 any editor / 1 administrators / 2 developers).
 	 * Legacy enforced it in three places — both Add-Page template pickers filtered on
@@ -376,7 +376,7 @@
 	}
 
 	/**
-	 * The same door's other leg (audit #29 A3). `templateChangeDenial("")` means "this
+	 * The same door's other leg. `templateChangeDenial("")` means "this
 	 * write doesn't touch the template", which is right for every caller that omits
 	 * one — and wrong for a restore, where a stored `""` is the page's external-link
 	 * era and restoring it moves the page off whatever template it is on now. update_page

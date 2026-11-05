@@ -1,16 +1,15 @@
 <?php
 	/**
-	 * Audit #14 guard E3, and the behaviour of B1/B2/C4: the caller.
+	 * The caller.
 	 *
-	 * The other half of audit #14's subject. Like the clock, who the user *is* is a
-	 * request-time fact rather than something in the codebase — and the consequence was
-	 * the same shape: not a crash but a wrong answer. The assistant knew the caller's
-	 * role and not their identity, and it required level 1 for a profile edit that
-	 * `PATCH /users/{id}` has always allowed a user to make to their own record. So "turn
-	 * off my daily digest" told an editor to ask an administrator for two clicks they
-	 * could do themselves, with no decline line to explain the wall because there wasn't
-	 * one — the AI surface stricter than REST, undeliberately (the class audit #13 D4
-	 * closed for callout reads).
+	 * Like the clock, who the user *is* is a request-time fact rather than something in
+	 * the codebase — and the consequence was the same shape: not a crash but a wrong
+	 * answer. The assistant knew the caller's role and not their identity, and it
+	 * required level 1 for a profile edit that `PATCH /users/{id}` has always allowed a
+	 * user to make to their own record. So "turn off my daily digest" told an editor to
+	 * ask an administrator for two clicks they could do themselves, with no decline
+	 * line to explain the wall because there wasn't one — the AI surface stricter than
+	 * REST, undeliberately.
 	 *
 	 * E3 is the structural leg: any route whose permission is
 	 * `["any" => [["level" => N], ["self" => …]]]` is a route the CMS lets a user use on
@@ -35,11 +34,11 @@
 	function ai_caller_self_route_coverage(): array {
 
 		return [
-			// Reading your own record. search_users is administrator-gated (audit #1), so
-			// before audit #14 B2 an editor could not look themselves up at all — and the
-			// capability payload, which every user can call, carried no identity.
+			// Reading your own record. search_users is administrator-gated, so without
+			// this an editor could not look themselves up at all — the capability
+			// payload is the one read every user can call.
 			"GET /users/{id:int}" => "get_my_capabilities",
-			// Audit #14 B1. The Profile screen in the SPA is this route.
+			// The Profile screen in the SPA is this route.
 			"PATCH /users/{id:int}" => "update_user",
 			// Authentication credentials are a category the assistant never touches, at
 			// any level, for anybody — including the caller themselves.
@@ -192,7 +191,7 @@
 			"and the editor's wall is about other users rather than swallowing their own record"
 		);
 
-		// The email wall is declared rather than discovered, per audit #14 D3.
+		// The email wall is declared rather than discovered.
 		$declines = implode(" ", CapabilitySummary::outOfScopeLines());
 		T::ok(
 			stripos($declines, "your own email address") !== false,
@@ -200,7 +199,7 @@
 		);
 		T::ok(
 			stripos($declines, "emulating, another user") !== false,
-			"and so is emulating another user (audit #14 C3)"
+			"and so is emulating another user"
 		);
 	}
 

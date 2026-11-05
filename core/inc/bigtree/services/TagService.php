@@ -97,7 +97,7 @@
 			// Live relations go with the row (and the FK cascades the rest), but a
 			// queued draft holds the id in a blob nothing cascades into — so scrub it
 			// here, beside the relation delete, rather than leaving the replay to
-			// re-attach a tag that no longer exists (audit #28 A1c).
+			// re-attach a tag that no longer exists.
 			$this->scrubQueuedTagChanges($id);
 
 			return Response::noContent();
@@ -122,7 +122,7 @@
 				// Queued drafts hold tag ids too, and merging is the act that
 				// invalidates them. aiMergeTags has always repaired them; this path —
 				// the one TagMerge.tsx drives — did not, so the same merge left a
-				// different amount of damage depending on who ran it (audit #28 A1b).
+				// different amount of damage depending on who ran it.
 				$this->retargetQueuedTagChanges($tag_id, $into);
 				SQL::delete("bigtree_tags", $tag_id);
 			}
@@ -156,8 +156,8 @@
 		/**
 		 * $base, or $base-2, -3… until no *other* tag holds it. $exclude_id is the tag
 		 * being renamed: without it a rename whose name urlifies to the tag's current
-		 * route found the tag itself and moved its public URL for no reason (audit #31
-		 * B1) — the same exclude-self PageService::uniqueRoute has always had.
+		 * route would find the tag itself and move its public URL for no reason — the
+		 * same exclude-self PageService::uniqueRoute has always had.
 		 */
 		private function uniqueRoute($base, int $exclude_id = 0) {
 			$route = $base;
@@ -233,7 +233,7 @@
 		 * id in every outstanding blob — and on a module entry that is not a silent
 		 * no-op but a fatal one, because BigTreeAutoModule::updateItem inserts tag ids
 		 * blindly and bigtree_tags_rel_ibfk_1 rejects the orphan *after* the data
-		 * UPDATE and the relation wipe have already landed (audit #28 A1c).
+		 * UPDATE and the relation wipe have already landed.
 		 */
 		private function scrubQueuedTagChanges(int $tag_id): void {
 			$this->rewriteQueuedTagChanges(function (array $ids) use ($tag_id): array {
@@ -254,7 +254,7 @@
 		 * blob as well, because PageService::pendingChangeFields writes them to both
 		 * and PageService::publishPendingChange replays `changes` — so a repair that
 		 * touched only `tags_changes` rewrote the copy nobody publishes, and a page
-		 * draft approved after a merge lost the tag outright (audit #28 A1a). Keep
+		 * draft approved after a merge lost the tag outright. Keep
 		 * both copies moving together rather than dropping one: publishPendingChange,
 		 * performCreate/performUpdate, aiChangeDiff and aiPageTagIds all read
 		 * `changes["tags"]`, and aiApplyPendingToTarget falls back to `tags_changes`.
@@ -305,7 +305,7 @@
 		 * Split a queued change's stored tag ids into the ones that still name a live
 		 * tag and the ones that don't.
 		 *
-		 * The choke-point half of audit #28 A1: the repairs above cover the CMS's own
+		 * The choke-point half: the repairs above cover the CMS's own
 		 * merge and delete, but legacy admin.php, an extension calling SQL::delete and
 		 * the bigtree_tags_rel foreign key can all still remove a tag out from under a
 		 * queued blob. Every queued change funnels through publishPendingChange /
@@ -430,10 +430,10 @@
 				return $target;
 			}
 
-			// The same gate the entry write seams have carried since audit #6 B5, through
-			// the same sentence. add_tags reaches bigtree_tags_rel without going through
-			// the entry form, so until audit #27 A1 it never asked — and a tagging-off
-			// form has no admin screen that could show or remove what it wrote.
+			// The same gate the entry write seams carry, through the same sentence.
+			// add_tags reaches bigtree_tags_rel without going through the entry form, so
+			// it has to ask itself — a tagging-off form has no admin screen that could
+			// show or remove what it wrote.
 			$untaggable = AutoModuleService::aiFormTaggingError(["tagging" => !empty($target["tagging"])]);
 
 			if ($untaggable !== null) {
@@ -805,7 +805,7 @@
 		 * The clause remove_tags carries when the form's tagging switch is off, or ""
 		 * when it isn't.
 		 *
-		 * add_tags refuses that form (audit #27 A1) and remove_tags deliberately does
+		 * add_tags refuses that form and remove_tags deliberately does
 		 * not: rows written before the gate existed, or by any other writer, are
 		 * invisible in the admin precisely *because* the form has no tag section — so
 		 * refusing here would strand them with nothing able to reach them. This is the
@@ -826,12 +826,12 @@
 		/**
 		 * The record's own `updated` event, after a tag write that landed live.
 		 *
-		 * The inversion audit #26 A4 found: a publisher's tag write inserts and deletes
-		 * bigtree_tags_rel rows directly and fired nothing, while a non-publisher's
-		 * *queued* tag change fired module_entry.pending_updated — so the less
-		 * consequential of the two writes was the one subscribers could see. Same event
-		 * names and the same payloads the entry and page write paths use, so a
-		 * subscriber needs no second vocabulary for "these tags changed".
+		 * A publisher's tag write inserts and deletes bigtree_tags_rel rows directly
+		 * and fired nothing, while a non-publisher's *queued* tag change fired
+		 * module_entry.pending_updated — so the less consequential of the two writes
+		 * was the one subscribers could see. Same event names and the same payloads the
+		 * entry and page write paths use, so a subscriber needs no second vocabulary
+		 * for "these tags changed".
 		 *
 		 * @param array<string,mixed> $target An aiResolveTagTarget result.
 		 */
@@ -876,11 +876,11 @@
 			$note = " It will be queued as a pending change on this {$kind} for a publisher to review — the live "
 				. ($kind === "page" ? "page" : "entry") . "'s tags are untouched until then.";
 
-			// …and if somebody already has an edit queued on this record, the tag change
-			// does not get a queue row of its own: submitChange replaces the existing one
-			// wholesale, so this rides along with their draft and re-stamps the queue's
-			// attribution to whoever tags. None of that was disclosed anywhere (audit
-			// #26 B2), and it is the same consequence the entry card spells out as its
+			// …and if somebody already has an edit queued on this record, the tag
+			// change does not get a queue row of its own: submitChange replaces the
+			// existing one wholesale, so this rides along with their draft and
+			// re-stamps the queue's attribution to whoever tags. That has to be
+			// disclosed: it is the same consequence the entry card spells out as its
 			// publishes-someone's-draft warning.
 			$queued = $this->aiQueuedChangeNote($target, $user);
 
@@ -1093,7 +1093,7 @@
 				// The form's own tagging switch, which decides whether anything in the
 				// admin can show or remove what these tools write. The resolver is the
 				// only place that has the form, so the flag rides on the descriptor
-				// rather than being re-resolved by each of the four seams (audit #27 A1).
+				// rather than being re-resolved by each of the four seams.
 				"tagging" => !empty($resolved["form"]["tagging"]),
 				// Per-row, not best-of-any-group — same rule the entry write seams use.
 				"can_publish" => PermissionService::isPublisher(

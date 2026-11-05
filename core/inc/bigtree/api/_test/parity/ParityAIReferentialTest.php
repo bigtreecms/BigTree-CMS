@@ -1,6 +1,6 @@
 <?php
 	/**
-	 * Audit #8 Phase 1 (A1–A3): the referenced-entity boundary at approval.
+	 * The referenced-entity boundary at approval.
 	 *
 	 * A proposal sits in the store for up to 24h between staging and approval. The
 	 * staging seam validates the container a new record files into — a page's parent,

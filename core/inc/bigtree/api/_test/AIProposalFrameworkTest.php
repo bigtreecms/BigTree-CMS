@@ -128,7 +128,7 @@
 				return ["mode" => "moved", "title" => "X", "page_id" => 1, "path" => "/new/path"];
 			}
 
-			// Audit #2 phase 4 — page revisions.
+			// Page revisions.
 			/** @var array<string,mixed> */
 			public $revisions = ["page_id" => 1, "page_title" => "X", "revisions" => [
 				["id" => 7, "title" => "X", "saved" => true, "description" => "Before rewrite", "updated_at" => "2026-07-01 09:00:00", "author_name" => "Tim"],
@@ -154,7 +154,7 @@
 				return ["mode" => "restored", "page_id" => 1, "revision_id" => 7, "title" => "X"];
 			}
 
-			// Audit #3 (B3) — SEO rating read and the named-revision save.
+			// SEO rating read and the named-revision save.
 			/** @var array<string,mixed> */
 			public $seo_rating = [
 				"page_id" => 1, "page_title" => "X", "available" => true, "score" => 74,

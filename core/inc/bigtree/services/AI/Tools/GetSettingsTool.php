@@ -66,7 +66,7 @@
 			// The turn's shared row limit is the default rather than the ceiling: a site
 			// with more than that many settings used to have no call the model could
 			// make to see the rest, which made "what settings does this site have?"
-			// unanswerable past the eighth (audit #26 B1).
+			// unanswerable past the eighth.
 			$limit = (int)($args["limit"] ?? 0);
 			$result = $this->backend->aiGetSettings(
 				(string)($args["query"] ?? ""),

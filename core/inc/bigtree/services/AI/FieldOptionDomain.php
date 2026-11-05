@@ -7,7 +7,7 @@
 	 * The option-domain check for a `list` field, shared by the module-entry path and
 	 * the page-content path.
 	 *
-	 * Audit #5 gave module entries a full option domain — resolve a `list` field's
+	 * Module entries had a full option domain — resolve a `list` field's
 	 * static/db/state/country choices, then refuse a value that matches none of them
 	 * (matching a label back to its stored value). None of that reached the page
 	 * side, so a `list` template field accepted any string and the next human save
@@ -41,6 +41,17 @@
 		}
 
 		/**
+		 * Whether a list field's control offers a blank first option. `allow-empty`
+		 * defaults to "Yes"; only an explicit "No" removes the blank.
+		 *
+		 * @param array<string,mixed> $settings
+		 */
+		public static function allowsEmpty(array $settings): bool {
+
+			return (string)($settings["allow-empty"] ?? "") !== "No";
+		}
+
+		/**
 		 * Refuse a value that isn't one of a list field's options. A recognisable
 		 * label is matched back to its stored value in place; an empty value is
 		 * `required`'s business and left to the gates. Returns null when acceptable.
@@ -50,9 +61,30 @@
 		public static function violation(array $field, string &$value): ?string {
 			$options = is_array($field["options"] ?? null) ? $field["options"] : [];
 
-			if (!$options || $value === "") {
+			if (!$options) {
 
 				return null;
+			}
+
+			if ($value === "") {
+				$settings = is_array($field["settings"] ?? null) ? $field["settings"] : [];
+
+				// `allow-empty: No` means the field's own control has no blank option,
+				// so a blank is a value no human writer can produce — the SPA would show
+				// the first option selected over a row that holds "".
+				// Otherwise emptiness is `required`'s business.
+				if (self::allowsEmpty($settings)) {
+
+					return null;
+				}
+
+				return "\"" . (string)($field["title"] ?? $field["column"] ?? $field["id"] ?? "")
+					. "\" can't be left empty — the field is set up without a blank option. Choose one of: "
+					. implode(", ", array_map(function (array $option): string {
+
+						return (string)($option["value"] ?? "");
+					}, array_slice($options, 0, 30)))
+					. (count($options) > 30 ? ", …" : "") . ".";
 			}
 
 			$values = array_map("strval", array_column($options, "value"));

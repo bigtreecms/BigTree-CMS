@@ -545,7 +545,7 @@
 	 * test, returning a closure that puts the module definition back.
 	 *
 	 * A form opts into each with its own flag, and both the SPA's FormRenderer and
-	 * (since audit #6 B5) the AI write path refuse to touch a relation the form
+	 * the AI write path refuse to touch a relation the form
 	 * doesn't offer — so any fixture that tags an entry has to enable it first, the
 	 * same way a developer would.
 	 */

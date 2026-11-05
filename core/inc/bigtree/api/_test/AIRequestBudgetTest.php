@@ -1,7 +1,7 @@
 <?php
 	/**
-	 * Audit #18: the turn's own resource envelope — the boundary on the *provider*
-	 * side of AgentLoop, which audits #1–#17 never looked at.
+	 * The turn's own resource envelope — the boundary on the *provider*
+	 * side of AgentLoop.
 	 *
 	 * Every earlier guard relates a tool to a backend seam. None of these facts is
 	 * about either one:
@@ -86,7 +86,7 @@
 			// A content-heavy page template.
 			"page_fields" => 10,
 			// One get_page_tree child, JSON-encoded: eleven keys, a nav title and a
-			// path (measured, not guessed — see the audit).
+			// path (measured, not guessed).
 			"tree_row" => 232,
 			// {"id":123,"name":"Marketing Assets"} and a little slack.
 			"folder_row" => 60,
@@ -169,9 +169,9 @@
 				"worst_case" => ai_service_constant(\BigTree\Services\FourOhFourService::class, "AI_404_LIMIT")
 					* $shapes["log_row"],
 			],
-			// settings × per-value cap. The one unbounded payload in the catalogue
-			// until audit #26 B1: no window of its own, and no per-value cap at all, so
-			// a site-wide `html` setting went into the model's context whole.
+			// settings × per-value cap. Without it this would be unbounded: no window
+			// of its own, and no per-value cap at all, so a site-wide `html` setting
+			// went into the model's context whole.
 			"get_settings" => [
 				"class" => $settings,
 				"method" => "aiGetSettings",
@@ -262,7 +262,7 @@
 			$search . "::AI_SNIPPET_CAP" => ["value_cap", "per search-result snippet"],
 			// Third-party response text quoted back inside a disclosure, so it is
 			// capped for the same reason a snippet is: it is data of unbounded length
-			// arriving from outside (audit #30 D4).
+			// arriving from outside.
 			$auto . "::AI_GEOCODER_ERROR_CAP" => ["value_cap", "per geocoder error quoted in a disclosure"],
 
 			$resources . "::AI_FILE_SEARCH_SCAN_CAP" => ["scan_limit", "rows scanned before the folder filter, not returned"],
@@ -383,7 +383,7 @@
 		T::equals(implode(", ", $stale), "", "no classification entry outlives the constant it describes");
 	}
 
-	// — E4 (audit #26): every read seam says how wide its window is —
+	// — E4: every read seam says how wide its window is —
 
 	/**
 	 * Every read tool that hands AIToolContext::$limit to a backend seam, and the
@@ -395,7 +395,7 @@
 	 * SettingService::aiGetSettings and declared no `limit`, no `offset` and no `id`,
 	 * so on an install with more than eight non-system settings there was no call the
 	 * model could make to see the ninth — and nothing in the suite could tell that
-	 * from a tool whose seam has a window of its own (audit #26 B1).
+	 * from a tool whose seam has a window of its own.
 	 *
 	 * @return array<string,list<string>> tool name => seam method names
 	 */
@@ -623,7 +623,7 @@
 		$declared = \BigTree\Services\PageService::AI_CONTENT_FIELD_CAP;
 
 		// The ordinary shape of a record: one long body beside a dozen short columns.
-		// This is what audit #10 raised the cap for, and it must not be degraded by a
+		// This is what the cap is sized for, and it must not be degraded by a
 		// budget defending against a shape that doesn't occur.
 		$ordinary = array_merge([$declared * 3], array_fill(0, 24, 40));
 		T::equals(

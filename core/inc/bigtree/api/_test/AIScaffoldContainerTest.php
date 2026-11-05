@@ -1,16 +1,15 @@
 <?php
 	/**
-	 * Audit #12 A3: the scaffold's module group, resolved at staging and re-checked at
+	 * The scaffold's module group, resolved at staging and re-checked at
 	 * approval.
 	 *
-	 * `create_module` has resolved its group by id *or* name since audit #9, hands
-	 * back a choice (with a `prior_change` hint) when neither matches, and re-reads it
-	 * at approval so a group deleted inside the proposal's 24-hour life degrades to
-	 * ungrouped-with-a-note rather than filing the module under a dead id — that
-	 * re-check is audit #8 A2. `scaffold_module` did none of the three: its argument
-	 * description said "module-group id" while its sibling accepted a name, so the
-	 * same sentence from the user resolved on one tool and stored a dangling string on
-	 * the other.
+	 * `create_module` resolves its group by id *or* name, hands back a choice (with a
+	 * `prior_change` hint) when neither matches, and re-reads it at approval so a group
+	 * deleted inside the proposal's 24-hour life degrades to ungrouped-with-a-note
+	 * rather than filing the module under a dead id. `scaffold_module` once did none of
+	 * the three: its argument description said "module-group id" while its sibling
+	 * accepted a name, so the same sentence from the user resolved on one tool and
+	 * stored a dangling string on the other.
 	 */
 
 	use BigTree\Services\ModuleService;

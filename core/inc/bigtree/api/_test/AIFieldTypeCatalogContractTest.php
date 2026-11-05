@@ -1,6 +1,6 @@
 <?php
 	/**
-	 * Audit #21 guard B7: the field-type catalog contract.
+	 * The field-type catalog contract.
 	 *
 	 * Three lists have to agree about what a field type is and nothing asserted that
 	 * they did:
@@ -98,10 +98,10 @@
 	 * B7b: every render-blocking settings rule defends a type an authoring surface
 	 * can actually receive.
 	 *
-	 * This is the leg that fails on `many-to-many` today: its five `mtm-*` keys were
-	 * added by audit #12 A2 and the gate they feed was unreachable, because the
-	 * catalog check runs first and refused the field as an unknown type. A rule
-	 * nothing can reach is not a rule — it is a test passing over an empty path.
+	 * This is the leg that once failed on `many-to-many`: the gate its five `mtm-*`
+	 * keys feed was unreachable, because the catalog check runs first and refused the
+	 * field as an unknown type. A rule nothing can reach is not a rule — it is a test
+	 * passing over an empty path.
 	 */
 	function test_every_render_required_setting_names_an_authorable_field_type() {
 		$authorable = [];

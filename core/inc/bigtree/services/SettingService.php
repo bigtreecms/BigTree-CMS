@@ -10,6 +10,7 @@
 	use BigTree\Api\Exceptions\ConflictException;
 	use BigTree\Api\Exceptions\AuthorizationException;
 	use BigTree\Services\AI\Tools\SettingToolBackend;
+	use BigTree\Services\AI\FieldOptionDomain;
 	use BigTree\Services\AI\FieldTypeDomain;
 	use BigTree\Services\AI\PayloadBudget;
 	use BigTree\Services\AI\PreviewValue;
@@ -37,11 +38,10 @@
 		 * How many settings get_settings returns at most. The model pages with
 		 * `offset`; the payload always says whether there are more.
 		 *
-		 * There was no window of its own until audit #26 B1: the seam took
-		 * AIChatService::TOOL_LIMIT (8) and the tool declared neither a `limit` nor an
-		 * `offset`, so on an install with more than eight non-system settings there was
-		 * no call the model could make to see the ninth. In line with AI_404_LIMIT, the
-		 * other whole-table read at this level.
+		 * Without a window of its own the seam would take AIChatService::TOOL_LIMIT
+		 * (8), and with neither a `limit` nor an `offset` on the tool, an install with
+		 * more than eight non-system settings would have no call that shows the ninth.
+		 * In line with AI_404_LIMIT, the other whole-table read at this level.
 		 */
 		public const AI_SETTINGS_CAP = 100;
 
@@ -443,7 +443,7 @@
 
 				// One qualifying setting past the window means the scan was truncated —
 				// so "is there a setting for X?" can't be answered "no" from a partial
-				// list (audit #7 D4).
+				// list.
 				if (count($out) >= $limit) {
 					$more = true;
 
@@ -457,10 +457,10 @@
 				);
 			}
 
-			// Until audit #26 B1 this was the one read in the catalogue with no bound on
-			// its payload at all: a single `html` setting — a site-wide footer, a policy
-			// block — went into the model's context whole, and a window of them went in
-			// whole together. Values are cut on PayloadBudget's ladder (so the cut lands
+			// Without this, the read would have no bound on its payload at all: a single
+			// `html` setting — a site-wide footer, a policy
+			// block — would go into the model's context whole, and a window of them
+			// together. Values are cut on PayloadBudget's ladder (so the cut lands
 			// where TruncatedRead can recognise it and refuse a write-back), and only
 			// then are whole rows dropped, which the `has_more` this payload already
 			// carries discloses.
@@ -528,7 +528,7 @@
 		 * since update_setting replaces the value wholesale and the model would have to
 		 * reproduce the base64 character for character. readSetting($id, true) has
 		 * always done exactly this for the front end (SettingService::readSetting);
-		 * the assistant was the one reader that didn't get it (audit #10 B3).
+		 * the assistant was the one reader that didn't get it.
 		 *
 		 * Scoped to the AI seam: `present()` itself is shared with REST, whose clients
 		 * round-trip the stored form through the settings editor and must keep seeing
@@ -554,14 +554,14 @@
 		/**
 		 * Say what a reference setting's stored id actually names, beside the id.
 		 *
-		 * The write half of audit #22 A1 is that reference settings were never resolved;
-		 * this is the read half. `present()` hands back the stored value, so an
-		 * `image-reference` setting reached the model as `"value": "12"` — an opaque
-		 * integer with nothing saying it was a resource id, let alone which file it
-		 * named. "Change the header logo to the new mark" was therefore unanswerable
-		 * from the read even once the write became safe. Both other read seams have had
-		 * this since audit #11 B4 (PageService::aiPageContentFields,
-		 * SearchService::getModuleEntryDetail); this is the same pass, one surface over.
+		 * The write path resolves reference settings; this is the read half.
+		 * `present()` hands back the stored value, so an `image-reference` setting
+		 * reached the model as `"value": "12"` — an opaque integer with nothing saying
+		 * it was a resource id, let alone which file it named. "Change the header logo
+		 * to the new mark" was therefore unanswerable from the read even once the write
+		 * became safe. Both other read seams have this
+		 * (PageService::aiPageContentFields, SearchService::getModuleEntryDetail); this
+		 * is the same pass, one surface over.
 		 *
 		 * The id stays as it is and the description sits beside it, the way both of
 		 * those do: the id is what update_setting takes back. describe() returns null
@@ -664,12 +664,12 @@
 			$current_raw = SQL::fetchSingle("SELECT value FROM bigtree_settings WHERE id = ?", $id);
 			$current = is_string($current_raw) ? json_decode($current_raw, true) : null;
 
-			// The follow-on to the read seam's new value cap (audit #26 B1): the moment
+			// The follow-on to the read seam's new value cap: the moment
 			// get_settings can hand a value back cut, "fix the typo in the footer" can
 			// read the cut, edit the visible text and propose writing that back — and
 			// update_setting replaces a value wholesale, with no pending queue and no
-			// history to recover the rest from. The page and entry write seams have run
-			// this check since audit #10 B2.
+			// history to recover the rest from. The page and entry write seams run this
+			// check too.
 			$cut = $this->aiTruncatedSettingWrite($def, $current, $value);
 
 			if ($cut !== null) {
@@ -716,7 +716,7 @@
 		// to be kept in agreement with each other, with the two lists on
 		// PageService/AutoModuleService, and with reality — and were in agreement with
 		// none of the three: between them they named six types this CMS has never had,
-		// and `link` was settable here and refused on pages and entries (audit #11 A2).
+		// and `link` was settable here and refused on pages and entries.
 
 		/**
 		 * Validate (and where appropriate coerce) a proposed setting value against the
@@ -751,14 +751,14 @@
 			}
 
 			// Reference and relation types before the scalar guard below, because the
-			// guard's premise stopped being true when audit #11 B1/B2 made them settable:
+			// guard's premise isn't true for them now that they're settable:
 			// a reference's value is a `bigtree_resources` id and a one-to-many's is a
 			// list, and neither is a scalar with no domain. Both other value seams
 			// (PageService::aiSiftResourceContent, AutoModuleService::aiSiftEntryData)
 			// route them through the shared resolvers; settings didn't, so every check
 			// those classes exist for — the row exists, the actor can see its folder,
 			// it's the right kind of file, it clears min_width/min_height, the related
-			// rows exist and are visible — was skipped on this one path (audit #22 A1).
+			// rows exist and are visible — was skipped on this one path.
 			$field = $this->aiSettingField($def);
 
 			if (FieldTypeDomain::isResourceReference($type)) {
@@ -853,9 +853,8 @@
 			// Anything left is a scalar type with no enumerable domain (text, textarea,
 			// html) — store as given.
 			//
-			// There were `number`/`currency` and `email` branches here until audit #11
-			// A3. They keyed off type ids this CMS has never had, so neither could ever
-			// run; what they read as was coverage. Email-ness is a `text` field's
+			// No `number`/`currency` or `email` branches: this CMS has no such type ids,
+			// so they could never run. Email-ness is a `text` field's
 			// `sub_type` setting and numeric-ness is a `validation` rule, and both are
 			// enforced above by aiSettingRuleViolation, which reads the rule string the
 			// admin's own save reads. One mechanism, and it is the one that works.
@@ -870,7 +869,7 @@
 		 * a setting definition carries the same three things under `name`, `type` and
 		 * `settings`. Translating once here is what lets settings reuse those classes
 		 * rather than restate their rules, which is the whole reason they are separate
-		 * classes (audit #22 B1).
+		 * classes.
 		 *
 		 * @param array<string,mixed> $def
 		 * @return array<string,mixed>
@@ -982,7 +981,8 @@
 				return ["value" => $value];
 			}
 
-			$allow_empty = (string)($settings["allow-empty"] ?? "") !== "No";
+			// Shared with the page and entry paths.
+			$allow_empty = FieldOptionDomain::allowsEmpty($settings);
 
 			if ($allow_empty && (string)$value === "") {
 
@@ -1062,11 +1062,10 @@
 		/**
 		 * Refuse a setting value that is the truncated form of what is stored.
 		 *
-		 * The settings half of TruncatedRead, which the page and entry write seams have
-		 * had since audit #10 B2 (PageService::aiSiftResourceContent,
-		 * AutoModuleService::aiFieldViolation). It only became reachable when
-		 * get_settings gained a per-value cap in audit #26 B1 — the two belong in the
-		 * same change, because a read that can cut with no write that can refuse the cut
+		 * The settings half of TruncatedRead, which the page and entry write seams also
+		 * run (PageService::aiSiftResourceContent, AutoModuleService::aiFieldViolation).
+		 * It is reachable because get_settings has a per-value cap — the two belong
+		 * together, because a read that can cut with no write that can refuse the cut
 		 * is exactly the data-loss shape TruncatedRead exists for.
 		 *
 		 * @param array<string,mixed> $def
@@ -1100,7 +1099,7 @@
 		 * A short, model/SPA-safe rendering of a setting value for a proposal preview:
 		 * scalars pass through, structured values are compacted and length-capped.
 		 *
-		 * Through PreviewValue (audit #15 A1), which decodes link tokens before the
+		 * Through PreviewValue, which decodes link tokens before the
 		 * cap. An `html` or `link` setting stores `ipl://…` while the model authors and
 		 * supplies a hard link — so this card diffed a token against a URL and read as a
 		 * total rewrite of a value that had not changed. aiDecodeSettingLinks does the
@@ -1109,7 +1108,7 @@
 		 * The definition and the actor are passed when the caller has them, because
 		 * PreviewValue names a reference's file and a relation's rows only when it knows
 		 * the type — otherwise the card an approver reads for the reference settings
-		 * B1 just made writable would say "12 → 15" (audit #22 B1). The callers that
+		 * B1 just made writable would say "12 → 15". The callers that
 		 * don't pass them are error messages about a value the type check has already
 		 * refused, where there is no stored row to name.
 		 *

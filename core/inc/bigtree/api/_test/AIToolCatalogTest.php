@@ -175,7 +175,7 @@
 			public function aiValidateRemoveTags(array $args, $user): array { return $this->validation; }
 			public function aiRemoveTags(array $payload, $user): array { $this->executed = $payload; return ["mode" => "untagged"]; }
 
-			// Audit #3 (B3) — tag record management.
+			// Tag record management.
 			/** @var array<string,mixed> */
 			public $merge_validation = ["ok" => true, "summary" => "Merge tags.", "preview" => [], "payload" => []];
 			/** @var array<string,mixed> */
@@ -526,7 +526,7 @@
 			->execute(["name" => "Press"], new AIToolContext(ai_fake_user(2), 8, "1"));
 		T::equals($mod->type, AIToolResult::PROPOSAL, "create_module stages for a developer");
 
-		// Audit #11 C1: the DDL runs on approval, never during the turn — the same
+		// The DDL runs on approval, never during the turn — the same
 		// two-phase contract every other developer tool has.
 		$scaffold = (new ScaffoldModuleTool(new FakeModuleBackend(), $store))
 			->execute(
@@ -768,7 +768,7 @@
 		T::ok(in_array("create_template", $dev, true), "developer sees create_template");
 	}
 
-	// — Audit #2 phase 4 additions —
+	// — Further tool backends —
 
 	if (!class_exists("FakeAuditBackend")) {
 		class FakeAuditBackend implements AuditToolBackend {
@@ -793,7 +793,7 @@
 		$tool = new GetCalloutTool($backend);
 
 		T::equals($tool->kind(), "read", "get_callout is a read tool");
-		// Level 0, at read-parity with `GET /callouts/{id}` (audit #13 D4). The
+		// Level 0, at read-parity with `GET /callouts/{id}`. The
 		// developer gate it used to carry made it stricter than the route it mirrors,
 		// which was the only such asymmetry in the catalogue.
 		T::ok($tool->isAvailable(ai_fake_user(0)), "offered to editors, like the REST route it mirrors");
@@ -854,7 +854,7 @@
 
 		T::equals($tool->kind(), "read", "get_audit_trail is a read tool");
 		T::ok(!$tool->isAvailable(ai_fake_user(0)), "hidden from editors — the trail spans every table");
-		// Audit #5 C2: `GET /audit` declares level 2, and this seam gating at 1 was
+		// `GET /audit` declares level 2, and this seam gating at 1 was
 		// the one place an AI tool was looser than the route it mirrors.
 		T::ok(!$tool->isAvailable(ai_fake_user(1)), "hidden from administrators too, matching GET /audit");
 		T::ok($tool->isAvailable(ai_fake_user(2)), "offered to developers");

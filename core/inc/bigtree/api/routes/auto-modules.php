@@ -8,7 +8,7 @@
 	// module, so entry 5 in two modules were indistinguishable rows. The assistant
 	// audited the same writes under the real table, which split "what happened to
 	// this entry" in half — REST's edits under one name, the assistant's under
-	// another, and AuditService::list filtering on literal equality (audit #16 A2).
+	// another, and AuditService::list filtering on literal equality.
 	//
 	// `%entry%` on create/update is the id of the row that was actually written
 	// ("p12" for a pending draft). Create declared `%id%`, which on this route is

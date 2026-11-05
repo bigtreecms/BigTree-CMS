@@ -502,7 +502,7 @@
 	}
 
 	/**
-	 * Audit #14 A1/A2, end to end: a relative date is resolved by the server, disclosed
+	 * End to end: a relative date is resolved by the server, disclosed
 	 * on the card, and stored as the resolved value — with nothing but page columns
 	 * reaching the row.
 	 *

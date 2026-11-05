@@ -1,11 +1,11 @@
 <?php
 	/**
-	 * Audit #13 guard E1: the post-write visibility contract.
+	 * The post-write visibility contract.
 	 *
 	 * Every guard written before this one asserts something about the *input* to a
 	 * seam — the value against its field, the shape of an argument, the container it
 	 * names, the column it lands in. All of them stop at the moment the row lands,
-	 * which is why A1 survived twelve audits: a module whose scaffold requested the
+	 * which is how this gap went unnoticed: a module whose scaffold requested the
 	 * `approve` action gets a `CHAR(2) NOT NULL` column with no default, so every new
 	 * entry is born `""` — unapproved — and `BigTreeModel::getApproved()` /
 	 * `BigTreeModule::getApproved()` exclude it from the live site. The write
@@ -47,7 +47,7 @@
 					[AutoModuleService::class, "aiUpdateEntry", "aiApprovalNote"],
 				],
 			],
-			// Audit #10 C3, the positive control this finding was measured against.
+			// The positive control.
 			"module entry: view filter callback" => [
 				"why" => "a per-row PHP callback on the view decides whether an entry appears in the module's "
 					. "landing list at all",
@@ -75,14 +75,13 @@
 				"disclosed_by" => [
 					[PageService::class, "aiValidatePageCreate", "publish_at"],
 					[PageService::class, "aiPageDetailFields", "publish_at"],
-					// Audit #13 found this one missing while writing the map: the tree is
-					// the surface the model browses before it decides a page is fine, and
-					// it reported `archived` without reporting the other way a page is off
-					// the site.
+					// The tree is the surface the model browses before it decides a
+					// page is fine, and it reported `archived` without reporting the
+					// other way a page is off the site.
 					[PageService::class, "aiPageTree", "scheduled"],
 				],
 			],
-			// Audit #22 A3. The gate here isn't that the page becomes invisible — it is
+			// The gate here isn't that the page becomes invisible — it is
 			// that every URL under it becomes a different URL. `repathChildren` rewrites
 			// `path` on every descendant and writes a route-history redirect for each, so
 			// renaming one route changes the address of an entire branch of the site.
@@ -106,8 +105,8 @@
 					[PageService::class, "aiValidatePageCreate", "pending"],
 				],
 			],
-			// Audit #21 A1. Every gate above this line is about a *record* — an entry or
-			// a page — which is why A1 survived twenty audits: the one thing the
+			// Every gate above this line is about a *record* — an entry or
+			// a page — which is how this gap went unnoticed: the one thing the
 			// assistant authors that isn't a record is a module, and a module has a
 			// visibility gate of exactly the same kind. `create_module` and `get_module`
 			// both named it; `scaffold_module`, the tool that exists precisely so the
@@ -251,7 +250,7 @@
 	}
 
 	/**
-	 * Audit #21 B6, the container equivalent of E1b's enumeration leg: every seam
+	 * The container equivalent of E1b's enumeration leg: every seam
 	 * that reports `is_complete` must *derive* it.
 	 *
 	 * A literal is what A1 was. `scaffold_module` returned `"is_complete" => true`
@@ -300,7 +299,7 @@
 	}
 
 	/**
-	 * Audit #21 B6: the contradiction stated directly.
+	 * The contradiction stated directly.
 	 *
 	 * Scaffold a module, then read it back, and assert the two seams agree about
 	 * whether it is finished. This is the thing a developer would have noticed if
@@ -427,7 +426,7 @@
 	}
 
 	/**
-	 * Audit #21 A4: the other grant state, which wants a different sentence.
+	 * The other grant state, which wants a different sentence.
 	 *
 	 * `moduleHasAnyGrant` iterated level-0 users and returned false when there were
 	 * none, so an install run entirely by administrators — every module fully built

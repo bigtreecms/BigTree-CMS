@@ -1,6 +1,6 @@
 <?php
 	/**
-	 * Audit #19 guard E3: the resource fill rule applies on every page write path.
+	 * The resource fill rule applies on every page write path.
 	 *
 	 * `PageService::normalizePageResources` fills every template resource key missing
 	 * from a page's stored `resources` blob — with the field's `default` setting, or
@@ -70,8 +70,7 @@
 	 * A live create fills the untouched key from its field's `default`.
 	 *
 	 * This is also the only end-to-end proof that `default` is a setting the product
-	 * honours — audit #19 A2 found both of its readers in place and nothing in the
-	 * CMS able to author the key they read.
+	 * honours, not just one its readers expect.
 	 */
 	function test_parity_a_live_page_create_fills_untouched_resources_from_their_defaults() {
 		if (!parity_db_available()) {

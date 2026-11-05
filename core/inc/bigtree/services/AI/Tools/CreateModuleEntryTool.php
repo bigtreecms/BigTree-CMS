@@ -52,7 +52,7 @@
 								. "an absolute date yourself. Composite fields — matrices, "
 								. "callouts, media galleries — can't be set here.",
 							// A relationship field's value is a list of ids, so a string is
-							// not the only shape this object carries (audit #11 B2).
+							// not the only shape this object carries.
 							"additionalProperties" => [
 								"anyOf" => [
 									["type" => "string"],

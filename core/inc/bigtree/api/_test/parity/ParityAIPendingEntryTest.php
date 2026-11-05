@@ -460,7 +460,7 @@
 	}
 
 	/**
-	 * Audit #26 B2: a queued tag change says it is riding along with somebody else's
+	 * A queued tag change says it is riding along with somebody else's
 	 * draft, and whose.
 	 *
 	 * `aiQueueTagChange` merges into whatever change is already queued on the record —
@@ -479,7 +479,7 @@
 			return;
 		}
 
-		// News ships with tagging off and add_tags refuses that form (audit #27 A1), so
+		// News ships with tagging off and add_tags refuses that form, so
 		// the fixture turns the switch on the way a developer would.
 		$tagging = parity_enable_news_relations();
 		$svc = new AutoModuleService();

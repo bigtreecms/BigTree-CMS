@@ -1,13 +1,13 @@
 <?php
 	/**
-	 * Audit #5 Phase 5: the guards that should make pass #6 shorter.
+	 * The guards that should make pass #6 shorter.
 	 *
-	 * Audits 1–5 kept finding the same two shapes of drift, one tool at a time:
+	 * Two shapes of drift recur, one tool at a time:
 	 *
 	 *  - a field the assistant can *write* that no read tool returns, so every edit
-	 *    to it is proposed blind (audit #4's B4, audit #5's C3);
+	 *    to it is proposed blind;
 	 *  - a staged proposal whose target can move before approval, with nothing
-	 *    checking (audit #5's B2, B3 and A1 together).
+	 *    checking.
 	 *
 	 * Both are structural, so both can be guarded structurally. These are
 	 * source-and-definition level checks: they don't prove a seam behaves correctly
@@ -102,7 +102,7 @@
 				"timezone" => "search_users",
 				"daily_digest" => "search_users", "alerts" => "get_content_alerts",
 			],
-			// Audit #14 B1/B2: update_user is offered at every level now, because a
+			// Update_user is offered at every level now, because a
 			// user's own profile is theirs to edit — and search_users is
 			// administrator-gated, so for an editor it was no read surface at all.
 			// get_my_capabilities carries the caller's own profile, which is what makes
@@ -142,10 +142,10 @@
 				"id" => "get_module", "name" => "get_module", "route" => "get_module", "class" => "get_module",
 				// No `developer_only`: this map entry named an argument no tool declares
 				// and no table stores. `readable_by` only fails on *undeclared*
-				// arguments, so a stale entry lives forever (audit #18 B1).
+				// arguments, so a stale entry lives forever.
 				"icon" => "get_module", "group" => "get_module",
 			],
-			// Audit #11 C1. Everything a scaffold sets is readable afterwards through
+			// Everything a scaffold sets is readable afterwards through
 			// get_module (the record) and get_module_schema (the form it builds), which
 			// is the point: a scaffolded module is a module the assistant can then use.
 			// The four shape arguments are exempt for the same reason `id` on a create
@@ -154,7 +154,7 @@
 			"scaffold_module" => [
 				"name" => "get_module", "route" => "get_module", "group" => "get_module",
 				"icon" => "get_module", "table" => "get_module_schema", "fields" => "get_module_schema",
-				// Audit #12 A5/D6: two per-form switches the scaffold sets, reported on
+				// Two per-form switches the scaffold sets, reported on
 				// the schema alongside the fields — an entry write to either is refused
 				// on a form that lacks it, so the model has to be able to read them.
 				"tagging" => "get_module_schema", "open_graph" => "get_module_schema",
@@ -173,7 +173,7 @@
 	}
 
 	/**
-	 * Audit #9 E3: create/update tool pairs, and the arguments only one of them has.
+	 * Create/update tool pairs, and the arguments only one of them has.
 	 *
 	 * B1 (`class` settable on create_module, not on update_module) and B3
 	 * (`daily_digest`/`alerts` settable on update_user, not on create_user) are the
@@ -362,10 +362,8 @@
 	 * The generalized read/write parity guard.
 	 *
 	 * Every argument of every mutating tool must be readable through some read tool,
-	 * or carry an explicit exemption. This is the check that would have caught audit
-	 * #4's B4 (get_page returned six of fourteen writable fields) and audit #5's C3
-	 * (entry tags/OG, user company/timezone and callout groups were all write-only)
-	 * as they were introduced, rather than two audits later.
+	 * or carry an explicit exemption — so a write-only field (get_page once returned
+	 * six of fourteen writable fields) is caught as it is introduced.
 	 */
 	function test_every_writable_field_is_readable_or_exempt() {
 		$registry = ai_wiring_registry();
@@ -450,8 +448,7 @@
 	 *
 	 * A mutating tool that addresses an existing record must stage a staleness
 	 * fingerprint, or a proposal can be approved against a record that has since
-	 * been rewritten — which is exactly what audit #5's B2 found on
-	 * publish_pending_change, and what A1 found on the page and entry drafts.
+	 * been rewritten — on publish_pending_change, or on the page and entry drafts.
 	 * AbstractMutatingTool hashes whatever `fingerprint` the seam returns, so the
 	 * structural fact to guard is that the seam returns one at all.
 	 */
@@ -504,7 +501,7 @@
 	}
 
 	/**
-	 * Audit #28 E4: the same contract, discovered rather than listed.
+	 * The same contract, discovered rather than listed.
 	 *
 	 * ai_surface_locked() above is a hand-kept map, so it can only guarantee that the
 	 * tools somebody remembered to add still emit a descriptor. It cannot notice a
@@ -540,7 +537,7 @@
 			"delete_module_entry" => "module",
 			// config:settings — SettingEdit's useLock.
 			"update_setting" => "config:settings",
-			// Audit #28 B1: these write (or destroy) a page row, an entry row or an
+			// These write (or destroy) a page row, an entry row or an
 			// entry draft, and named nothing until it was found by reading.
 			"publish_pending_change" => "bigtree_pages",
 			"reject_pending_change" => "bigtree_pages",
@@ -813,7 +810,7 @@
 
 	/**
 	 * A failed approval must be a distinct, non-success, still-actionable state —
-	 * the three properties audit #5's B1 found missing at once.
+	 * all three properties at once.
 	 */
 	function test_failed_is_a_distinct_actionable_status() {
 		T::ok(ProposalStore::FAILED !== ProposalStore::APPROVED, "failed is not approved");
@@ -841,7 +838,7 @@
 	}
 
 	/**
-	 * E4 (audit #32): router parity on the redirect seams.
+	 * E4: router parity on the redirect seams.
 	 *
 	 * Every check that asked "is there a page at this path?" on the redirect path
 	 * grew its own bare `bigtree_pages.path = ?`, and each one forgot a different
