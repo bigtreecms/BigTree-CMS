@@ -26,6 +26,9 @@
 		/** The most 404 log rows one list_404s call returns, matching GET /404s' per_page cap. */
 		public const AI_404_LIMIT = 100;
 
+		/** How far a redirect chain is followed — checkOldRoutes' own `max_depth`. */
+		private const AI_REDIRECT_CHAIN_DEPTH = 5;
+
 		public function list(Request $request) {
 			$type = $request->query["type"] ?? "404";
 			$site_key = $request->query["site_key"] ?? null;
@@ -338,20 +341,10 @@
 			$site_key = $sanitized_input["site_key"];
 			$to = sqlescape(htmlspecialchars(LinkService::autoIPL(trim($to))));
 			$existing = static::getExisting404($from, $get_vars, $site_key);
-			$history_cleaned = false;
 
-			if ($site_key) {
-				foreach (BigTreeCMS::$SiteRoots as $site_path => $data) {
-					if ($data["key"] == $site_key) {
-						$history_cleaned = true;
-						SQL::delete("bigtree_route_history", ["old_route" => ltrim($site_path."/".$from, "/")]);
-					}
-				}
-			}
-
-			if (!$history_cleaned) {
-				SQL::delete("bigtree_route_history", ["old_route" => $from]);
-			}
+			// Route history is keyed by the stored page path, which on a multi-site
+			// install carries the site's trunk path; the 404 row does not.
+			SQL::delete("bigtree_route_history", ["old_route" => ltrim(static::sitePathFor($site_key) . "/" . $from, "/")]);
 
 			if ($existing) {
 				// `ignored` is cleared in the same write REST's setRedirect does it in:
@@ -369,6 +362,33 @@
 
 				if ($actor_id !== null) { AuditService::write("bigtree_404s", sqlid(), "created", $actor_id); }
 			}
+		}
+
+		/**
+		 * The stored path of a site's trunk page — what the front end prefixes a
+		 * request with (BIGTREE_SITE_PATH) before looking it up in bigtree_pages and
+		 * bigtree_route_history. "" for the primary site and for a single-site install.
+		 *
+		 * Read from the config rather than BigTreeCMS::$SiteRoots, which is only
+		 * populated once a BigTreeCMS has been constructed — true of a front-end
+		 * request, not of every API bootstrap.
+		 */
+		private static function sitePathFor(?string $site_key): string {
+			global $bigtree;
+
+			if ($site_key === null || $site_key === "") {
+
+				return "";
+			}
+
+			$trunk = (int)($bigtree["config"]["sites"][$site_key]["trunk"] ?? 0);
+
+			if ($trunk < 1) {
+
+				return "";
+			}
+
+			return trim((string)SQL::fetchSingle("SELECT path FROM bigtree_pages WHERE id = ?", $trunk), "/");
 		}
 
 		/**
@@ -495,12 +515,15 @@
 				return $destination;
 			}
 
-			$live = $this->aiRedirectSourceIsLive($source, (string)$parsed["site_key"]);
+			$source_state = $this->aiRouteState($source, $parsed["site_key"], (string)$parsed["get_vars"]);
+			$live = $this->aiRedirectSourceIsLive($source_state);
 
 			if ($live !== null) {
 
 				return ["error" => $live];
 			}
+
+			$source_notes = $this->aiRedirectSourceNotes($source_state);
 
 			$existing = self::getExisting404($source, $parsed["get_vars"], $parsed["site_key"]);
 			$previous = $existing ? (string)($existing["redirect_url"] ?? "") : "";
@@ -529,11 +552,20 @@
 				"mode" => "published",
 			];
 
+			// An automatic route-history redirect at the source is checked by the
+			// router before any 404 row, and create301 deletes it, so it is as much
+			// a thing being replaced as an earlier 301 (audit #32 A3).
+			if ($source_notes["replaces"] !== "") {
+				$preview["replaces"] = implode("; ", array_filter([$previous_display, $source_notes["replaces"]]));
+			}
+
 			// Not a refusal: a destination can legitimately be a module route, a
 			// scheduled page or a path served outside BigTree. Surfacing it lets the
 			// human approving the proposal catch a typo the shape check can't.
-			if ($destination["warning"] !== "") {
-				$preview["warning"] = $destination["warning"];
+			$warning = trim(implode(" ", array_merge($source_notes["warnings"], [$destination["warning"]])));
+
+			if ($warning !== "") {
+				$preview["warning"] = $warning;
 			}
 
 			$result = [
@@ -544,7 +576,11 @@
 						? " This replaces the existing redirect to {$previous_display}."
 						: ($existing
 							? " This URL is already in the 404 log; it becomes a 301 redirect."
-							: "")),
+							: ""))
+					. ($source_notes["replaces"] !== ""
+						? " This replaces the " . $source_notes["replaces"] . "."
+						: "")
+					. ($source_notes["warnings"] ? " " . implode(" ", $source_notes["warnings"]) : ""),
 				"preview" => $preview,
 				"payload" => [
 					"from" => $from,
@@ -625,13 +661,17 @@
 		}
 
 		/**
-		 * Shape- and loop-check a proposed redirect destination.
+		 * Shape-, loop- and route-check a proposed redirect destination.
 		 *
 		 * REST is equally loose here, but a model guessing formats makes a malformed
 		 * write far more likely, and this write goes live on approval with no pending
 		 * queue and no human between: a bare phrase like "pricing page" would be
 		 * served verbatim as a 301 Location, and from == to is an infinite loop the
 		 * moment it's hit.
+		 *
+		 * An internal destination is followed the way a visitor's browser would follow
+		 * it (aiRedirectChain), so a cycle through an existing redirect is refused as
+		 * the one-hop self-loop is, and a chain is disclosed with where it really ends.
 		 *
 		 * @param array<string,mixed> $parsed The result of parse404SourceURL for `from`.
 		 * @return array{error:string}|array{warning:string}
@@ -655,46 +695,367 @@
 				return ["error" => "\"{$to}\" is not a valid URL — it has no domain."];
 			}
 
+			// A token is checked as the URL it decodes to, which is what the front end
+			// sends the visitor to.
+			$target = $is_ipl ? htmlspecialchars_decode(LinkService::untokenize($to)) : $to;
+
 			// Normalize the destination the same way the source was so the comparison
 			// is like for like: "/old", "old" and "https://site.com/old" all collapse
 			// to the same stored path.
-			$destination = self::parse404SourceURL($to, $parsed["site_key"]);
+			$destination = self::parse404SourceURL($target, $parsed["site_key"]);
 
-			if ($destination["url"] === $parsed["url"] && $destination["get_vars"] === $parsed["get_vars"]) {
+			if ($destination["url"] === $parsed["url"]
+				&& $destination["get_vars"] === $parsed["get_vars"]
+				&& $destination["site_key"] === $parsed["site_key"]
+			) {
 
 				return ["error" => "That redirect points at itself — \"{$to}\" resolves to the same path it's "
 					. "redirecting from, which would loop forever. Give a different destination."];
 			}
 
-			$warning = "";
-			$prior = [];
-			$is_internal = !$is_absolute || strpos($to, WWW_ROOT) === 0;
-
 			// Only meaningful for internal destinations — an external URL is nothing
 			// this install can check.
-			if ($is_internal) {
-				$path = (string)$destination["url"];
+			if (!$this->aiIsInternalUrl($target)) {
 
-				if ($path !== "" && !SQL::fetchSingle("SELECT id FROM bigtree_pages WHERE path = ?", $path)) {
-					$warning = "No page exists at /{$path}. If that's a module route or a page that isn't published "
+				return ["warning" => ""];
+			}
+
+			$path = (string)$destination["url"];
+
+			if ($path === "") {
+
+				return ["warning" => ""];
+			}
+
+			$state = $this->aiRouteState($path, $destination["site_key"], (string)$destination["get_vars"]);
+			$chain = $this->aiRedirectChain($state, $parsed);
+
+			if (isset($chain["error"])) {
+
+				return $chain;
+			}
+
+			$end = $chain["end"];
+			$warnings = [];
+			$prior = [];
+
+			if ($chain["hops"]) {
+				$count = count($chain["hops"]) + 1;
+				$warnings[] = implode(" → ", $chain["hops"]) . " already redirects to {$chain["final"]}; visitors "
+					. "will take {$count} hops — point at {$chain["final"]} directly?";
+			}
+
+			if ($end["page"] === null && $end["history"]["exact"] === null && $end["redirect"] === null) {
+				$at = "/" . $end["path"];
+				$held = $end["held_page"];
+
+				if ($held !== null) {
+					$warnings[] = "The page at {$at} (“{$held["title"]}”) " . $this->aiHeldPageClause($held);
+				} elseif ($end === $state) {
+					$warnings[] = "No page exists at {$at}. If that's a module route or a page that isn't published "
 						. "yet this is fine — otherwise the redirect will land on a 404.";
 					// "Create the new pricing page and point /old-pricing at it" stages
 					// both, and this is the dangerous half: it looks like it worked, and
 					// whether it lands on a real page depends on which card is approved
 					// first. Non-blocking — a redirect to a page that doesn't exist yet
 					// is legitimate — so it is recorded as a dependency rather than
-					// refused (audit #9 A1/A3).
+					// refused (audit #9 A1/A3). The value is the stored page path, trunk
+					// included, because that is what a create_page card's `path` holds.
 					$prior = ["prior_change" => [
 						"tool" => "create_page",
-						"value" => $path,
+						"value" => $state["full_path"],
 						"keys" => ["path", "route"],
-						"label" => "The page at /{$path}",
+						"label" => "The page at {$at}",
 						"blocking" => false,
 					]];
+				} else {
+					$warnings[] = "No page exists at {$at}, where that chain ends, so the redirect will land on a 404.";
 				}
 			}
 
-			return array_merge(["warning" => $warning], $prior);
+			return array_merge(["warning" => implode(" ", $warnings)], $prior);
+		}
+
+		/**
+		 * Whether a URL is served by this install: a site-relative path, or a full URL
+		 * on WWW_ROOT or on any configured site's domain.
+		 */
+		private function aiIsInternalUrl(string $url): bool {
+			global $bigtree;
+
+			if (preg_match('#^https?://#i', $url) !== 1 || strpos($url, WWW_ROOT) === 0) {
+
+				return true;
+			}
+
+			$host = parse_url($url, PHP_URL_HOST);
+			$sites = is_array($bigtree["config"]["sites"] ?? null) ? $bigtree["config"]["sites"] : [];
+
+			foreach ($sites as $site) {
+				if ($host && parse_url((string)($site["domain"] ?? ""), PHP_URL_HOST) === $host) {
+
+					return true;
+				}
+			}
+
+			return false;
+		}
+
+		/**
+		 * Follow a redirect destination the way a visitor's browser would.
+		 *
+		 * Each hop is answered by aiRouteState: a live page or an automatic
+		 * route-history redirect ends the chain, an existing 301 is another hop, and
+		 * anything else is where the visitor lands. Walks at most the depth
+		 * checkOldRoutes allows itself. A hop back to the source — or to any URL
+		 * already on the chain — is a loop and is refused in the self-loop's words.
+		 *
+		 * @param array<string,mixed> $state aiRouteState for the destination.
+		 * @param array<string,mixed> $parsed parse404SourceURL for the source.
+		 * @return array{error:string}|array{hops:list<string>,final:string,end:array<string,mixed>}
+		 */
+		private function aiRedirectChain(array $state, array $parsed): array {
+			$source = "/" . (string)$parsed["url"];
+			$visited = [
+				self::aiChainKey((string)$parsed["url"], $parsed["site_key"], (string)$parsed["get_vars"]),
+				self::aiChainKey($state["path"], $state["site_key"], $state["get_vars"]),
+			];
+			$hops = [];
+			$current = $state;
+
+			for ($depth = 0; $depth < self::AI_REDIRECT_CHAIN_DEPTH; $depth++) {
+				if ($current["page"] !== null) {
+
+					return ["hops" => $hops, "final" => "/" . $current["path"], "end" => $current];
+				}
+
+				if ($current["history"]["exact"] !== null) {
+
+					return [
+						"hops" => array_merge($hops, ["/" . $current["path"]]),
+						"final" => $current["history"]["exact"]["new_route"],
+						"end" => $current,
+					];
+				}
+
+				if ($current["redirect"] === null) {
+
+					return ["hops" => $hops, "final" => "/" . $current["path"], "end" => $current];
+				}
+
+				$hops[] = "/" . $current["path"];
+				$next_url = $current["redirect"]["url"];
+
+				if (!$this->aiIsInternalUrl($next_url)) {
+
+					return ["hops" => $hops, "final" => $next_url, "end" => ["page" => true] + $current];
+				}
+
+				$next = self::parse404SourceURL($next_url, $current["site_key"]);
+				$key = self::aiChainKey((string)$next["url"], $next["site_key"], (string)$next["get_vars"]);
+
+				if (in_array($key, $visited, true)) {
+					$chain = implode(" → ", array_merge($hops, ["/" . (string)$next["url"]]));
+
+					return ["error" => "That redirect would loop forever — " . $chain . " already "
+						. ($key === $visited[0] ? "leads back to {$source}" : "loops back on itself")
+						. ", so visitors would bounce between them. Give a different destination, or point the "
+						. "existing redirect on {$hops[0]} somewhere else first."];
+				}
+
+				$visited[] = $key;
+				$current = $this->aiRouteState((string)$next["url"], $next["site_key"], (string)$next["get_vars"]);
+			}
+
+			return ["hops" => $hops, "final" => "/" . $current["path"], "end" => ["page" => true] + $current];
+		}
+
+		/** One comparable identity for a URL on the chain: site, path and query. */
+		private static function aiChainKey(string $path, ?string $site_key, string $get_vars): string {
+			return (string)$site_key . "\0" . trim($path, "/") . "\0" . $get_vars;
+		}
+
+		/**
+		 * What the front end would do with a request for $path on $site_key today.
+		 *
+		 * The one copy of the router's rules on the AI side (audit #32 D1). router.php
+		 * tries three things in order — the page lookup (getNavId: trunk path prefixed,
+		 * not archived, published, not expired), then checkOldRoutes over
+		 * bigtree_route_history, then handle404 over bigtree_404s — and every AI check
+		 * that asks "will this redirect fire?" or "does this URL lead anywhere?" reads
+		 * the answer from here. Any query of bigtree_pages by path on the redirect
+		 * seams belongs in this method (AISurfaceGuardTest sweeps for it).
+		 *
+		 * Deliberately not getPageIDForPath: that takes no site, and its routed-template
+		 * prefix walk reports every path under a routed page as live, while a routed
+		 * template that doesn't recognize a path hands it back to catch404 — so a
+		 * redirect from under a routed page does fire.
+		 *
+		 * @return array{
+		 *     path:string, site_key:?string, get_vars:string, full_path:string,
+		 *     page:?array{id:int,title:string},
+		 *     held_page:?array{id:int,title:string,reason:string,publish_at:string,expire_at:string},
+		 *     history:array{exact:?array{new_route:string},prefix:?array{old_route:string,new_route:string,routed:bool}},
+		 *     redirect:?array{id:int,url:string}
+		 * }
+		 */
+		private function aiRouteState(string $path, ?string $site_key, string $get_vars = ""): array {
+			$path = trim($path, "/");
+			$site_path = self::sitePathFor($site_key);
+			$full_path = trim($site_path . "/" . $path, "/");
+			$state = [
+				"path" => $path,
+				"site_key" => $site_key,
+				"get_vars" => $get_vars,
+				"full_path" => $full_path,
+				"page" => null,
+				"held_page" => null,
+				"history" => ["exact" => null, "prefix" => null],
+				"redirect" => null,
+			];
+
+			// The page lookup, with getNavId's own clause evaluated on the database's
+			// clock, as the router does.
+			$rows = SQL::fetchAll(
+				"SELECT id, nav_title, archived, publish_at, expire_at,
+					(publish_at IS NULL OR publish_at <= NOW()) AS published,
+					(expire_at IS NULL OR expire_at >= NOW()) AS unexpired
+				FROM bigtree_pages WHERE path = ?",
+				$full_path
+			);
+
+			foreach ($rows as $row) {
+				$page = [
+					"id" => (int)$row["id"],
+					"title" => trim((string)$row["nav_title"]) ?: "page #" . (int)$row["id"],
+				];
+				$archived = (string)$row["archived"] !== "";
+
+				if (!$archived && !empty($row["published"]) && !empty($row["unexpired"])) {
+					$state["page"] = $page;
+					$state["held_page"] = null;
+
+					break;
+				}
+
+				if ($state["held_page"] === null) {
+					$state["held_page"] = $page + [
+						"reason" => $archived ? "archived" : (empty($row["published"]) ? "scheduled" : "expired"),
+						"publish_at" => (string)($row["publish_at"] ?? ""),
+						"expire_at" => (string)($row["expire_at"] ?? ""),
+					];
+				}
+			}
+
+			// checkOldRoutes: the longest matching old route wins. An exact match
+			// redirects to wherever its chain leads; a shorter one only when the page
+			// it leads to is on a routed template, otherwise the router falls through
+			// to handle404. create301 deletes the exact row, so the prefix match is
+			// looked for independently — it is what is left after the redirect lands.
+			$segments = $full_path === "" ? [] : explode("/", $full_path);
+
+			for ($x = count($segments); $x > 0; $x--) {
+				$old_route = implode("/", array_slice($segments, 0, $x));
+				$new_route = SQL::fetchSingle("SELECT new_route FROM bigtree_route_history WHERE old_route = ?", $old_route);
+
+				if (!$new_route) {
+					continue;
+				}
+
+				$target = $this->aiRouteHistoryTarget((string)$new_route);
+
+				if ($x === count($segments)) {
+					if ($target !== null) {
+						$state["history"]["exact"] = ["new_route" => "/" . self::aiSiteRelative($target["path"], $site_path)];
+					}
+
+					continue;
+				}
+
+				$template = $target !== null ? \BigTreeJSONDB::get("templates", $target["template"]) : null;
+				$state["history"]["prefix"] = [
+					"old_route" => "/" . self::aiSiteRelative($old_route, $site_path),
+					"new_route" => "/" . self::aiSiteRelative((string)($target["path"] ?? $new_route), $site_path),
+					"routed" => $target !== null && !empty($template["routed"]),
+				];
+
+				break;
+			}
+
+			// handle404: an exact query-string match first, then the bare path's redirect.
+			$row = self::getExisting404($path, $get_vars, $site_key);
+
+			if ((!$row || (string)$row["redirect_url"] === "") && $get_vars !== "") {
+				$row = self::getExisting404($path, "", $site_key);
+			}
+
+			if ($row && (string)$row["redirect_url"] !== "") {
+				$state["redirect"] = [
+					"id" => (int)$row["id"],
+					"url" => htmlspecialchars_decode(LinkService::untokenize((string)$row["redirect_url"])),
+				];
+			}
+
+			return $state;
+		}
+
+		/**
+		 * The page a route-history entry leads to, following a page that moved more
+		 * than once exactly as checkOldRoutes does (no archive or publish clause, the
+		 * same depth). Part of aiRouteState.
+		 *
+		 * @return array{id:int,template:string,path:string}|null
+		 */
+		private function aiRouteHistoryTarget(string $route): ?array {
+			$page = SQL::fetch("SELECT id, template, path FROM bigtree_pages WHERE path = ?", $route);
+			$depth = self::AI_REDIRECT_CHAIN_DEPTH;
+
+			while (!$page && $depth--) {
+				$route = SQL::fetchSingle("SELECT new_route FROM bigtree_route_history WHERE old_route = ?", $route);
+
+				if (!$route) {
+
+					return null;
+				}
+
+				$page = SQL::fetch("SELECT id, template, path FROM bigtree_pages WHERE path = ?", $route);
+			}
+
+			return $page ? ["id" => (int)$page["id"], "template" => (string)$page["template"], "path" => (string)$page["path"]] : null;
+		}
+
+		/** A stored page path as the site it belongs to addresses it. */
+		private static function aiSiteRelative(string $full_path, string $site_path): string {
+			$full_path = trim($full_path, "/");
+
+			if ($site_path !== "" && strpos($full_path . "/", $site_path . "/") === 0) {
+
+				return trim(substr($full_path, strlen($site_path)), "/");
+			}
+
+			return $full_path;
+		}
+
+		/** Why a held page doesn't serve its URL, and what that means for a redirect landing there. */
+		private function aiHeldPageClause(array $held): string {
+			if ($held["reason"] === "scheduled") {
+
+				return "isn't live until " . self::aiDisplayDate($held["publish_at"])
+					. ", so the redirect will land on a 404 until then.";
+			}
+
+			if ($held["reason"] === "expired") {
+
+				return "expired on " . self::aiDisplayDate($held["expire_at"]) . ", so the redirect will land on a 404.";
+			}
+
+			return "is archived, so the redirect will land on a 404 until it's unarchived.";
+		}
+
+		private static function aiDisplayDate(string $datetime): string {
+			$time = strtotime($datetime);
+
+			return $time ? date("F j, Y g:ia", $time) : $datetime;
 		}
 
 		/**
@@ -704,24 +1065,60 @@
 		 * a live page's own path can never fire — it is a row that looks like it did
 		 * something and never will. Says how to actually move the page instead.
 		 *
+		 * "Live" is the router's answer from aiRouteState: the page on *this* site
+		 * (trunk path prefixed), not archived, published and not expired. An expired or
+		 * scheduled page's URL 404s, so its redirect fires (audit #32 A1).
+		 *
 		 * Returns null when the source is genuinely unrouted.
+		 *
+		 * @param array<string,mixed> $state aiRouteState for the source.
 		 */
-		private function aiRedirectSourceIsLive(string $source, string $site_key): ?string {
-			$page = SQL::fetch(
-				"SELECT id, nav_title, archived FROM bigtree_pages WHERE path = ?",
-				$source
-			);
-
-			if (!$page || \BigTree\Api\Flag::isOn($page["archived"])) {
+		private function aiRedirectSourceIsLive(array $state): ?string {
+			if ($state["page"] === null) {
 
 				return null;
 			}
 
-			$title = trim((string)$page["nav_title"]) ?: "page #" . (int)$page["id"];
+			$site = $state["site_key"] !== null && $state["site_key"] !== "" ? " on the “{$state["site_key"]}” site" : "";
 
-			return "/{$source} is a live page (“{$title}”), so a redirect from it would never fire — BigTree only "
-				. "looks at redirects once a URL fails to route. To move that page's URL, change its route with "
-				. "update_page or move it with move_page: either one leaves the redirect behind automatically.";
+			return "/{$state["path"]} is a live page{$site} (“{$state["page"]["title"]}”), so a redirect from it would "
+				. "never fire — BigTree only looks at redirects once a URL fails to route. To move that page's URL, "
+				. "change its route with update_page or move it with move_page: either one leaves the redirect behind "
+				. "automatically.";
+		}
+
+		/**
+		 * What the source's route state means for the redirect being made there, beyond
+		 * the liveness refusal: a scheduled page that will take the URL back (D2), an
+		 * automatic route-history redirect create301 will delete (D4), and an old-route
+		 * prefix that will keep catching the URL first (D4).
+		 *
+		 * @param array<string,mixed> $state aiRouteState for the source.
+		 * @return array{warnings:list<string>,replaces:string}
+		 */
+		private function aiRedirectSourceNotes(array $state): array {
+			$warnings = [];
+			$replaces = "";
+			$held = $state["held_page"];
+
+			if ($held !== null && $held["reason"] === "scheduled") {
+				$warnings[] = "/{$state["path"]} belongs to “{$held["title"]}”, which is scheduled to go live on "
+					. self::aiDisplayDate($held["publish_at"]) . "; the redirect works until then, after which the "
+					. "page takes over.";
+			}
+
+			if ($state["history"]["exact"] !== null) {
+				$replaces = "automatic redirect to {$state["history"]["exact"]["new_route"]} (left when that page moved)";
+			}
+
+			$prefix = $state["history"]["prefix"];
+
+			if ($prefix !== null && $prefix["routed"]) {
+				$warnings[] = "This path is under {$prefix["old_route"]}, which already redirects automatically to "
+					. "{$prefix["new_route"]}'s routed page, so this redirect will never fire.";
+			}
+
+			return ["warnings" => $warnings, "replaces" => $replaces];
 		}
 
 		/**
@@ -777,12 +1174,19 @@
 
 			// A page can be created at the source path inside the proposal's 24h life,
 			// which would make the redirect dead on arrival.
-			$live = $this->aiRedirectSourceIsLive((string)$approval_parsed["url"], (string)$site_key);
+			$source_state = $this->aiRouteState(
+				(string)$approval_parsed["url"],
+				$approval_parsed["site_key"],
+				(string)$approval_parsed["get_vars"]
+			);
+			$live = $this->aiRedirectSourceIsLive($source_state);
 
 			if ($live !== null) {
 
 				return ["mode" => "error", "message" => $live];
 			}
+
+			$replaced = $this->aiRedirectSourceNotes($source_state)["replaces"];
 
 			$actor_id = 0;
 
@@ -800,11 +1204,17 @@
 				$approval_parsed["site_key"]
 			);
 
-			return [
+			$result = [
 				"mode" => "created",
 				"id" => (int)($row["id"] ?? 0),
 				"from" => "/" . (string)$approval_parsed["url"],
 				"to" => (string)($row["redirect_url"] ?? $to),
 			];
+
+			if ($replaced !== "") {
+				$result["note"] = "This replaced the " . $replaced . ".";
+			}
+
+			return $result;
 		}
 	}

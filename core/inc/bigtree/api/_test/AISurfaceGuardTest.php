@@ -823,3 +823,59 @@
 		T::ok(!in_array(ProposalStore::REJECTED, ProposalStore::ACTIONABLE, true), "rejected is terminal");
 		T::ok(!in_array(ProposalStore::EXPIRED, ProposalStore::ACTIONABLE, true), "expired is terminal");
 	}
+
+	/**
+	 * FourOhFourService methods allowed to query bigtree_pages by path, and why.
+	 * Everything else asks aiRouteState.
+	 *
+	 * @return array<string,string> method => reason
+	 */
+	function ai_route_state_owners(): array {
+
+		return [
+			"aiRouteState" => "the routing oracle itself: the page lookup with getNavId's site, archive and "
+				. "publish rules",
+			"aiRouteHistoryTarget" => "aiRouteState's route-history leg, following a moved page the way "
+				. "checkOldRoutes does",
+		];
+	}
+
+	/**
+	 * E4 (audit #32): router parity on the redirect seams.
+	 *
+	 * Every check that asked "is there a page at this path?" on the redirect path
+	 * grew its own bare `bigtree_pages.path = ?`, and each one forgot a different
+	 * router rule — the site's trunk path, archive/publish/expire, route history.
+	 * The rules now live in one oracle, and this keeps the next check from
+	 * re-growing a bare query beside it. Parses the source, like the other sweeps.
+	 */
+	function test_redirect_seams_ask_the_routing_oracle_for_pages_by_path() {
+		$class = \BigTree\Services\FourOhFourService::class;
+		$owners = ai_route_state_owners();
+		$offenders = [];
+
+		foreach ((new ReflectionClass($class))->getMethods() as $method) {
+			if ($method->getDeclaringClass()->getName() !== $class) {
+				continue;
+			}
+
+			$body = preg_replace('#//[^\n]*|/\*.*?\*/#s', "", ai_surface_method_body($class, $method->getName()));
+			$queries = preg_match('/bigtree_pages\b[^"]*\bWHERE\b[^"]*\bpath\s*=/i', $body) === 1;
+
+			if (isset($owners[$method->getName()])) {
+				T::ok($queries, "{$method->getName()} is listed as owning a path lookup, and still has one");
+
+				continue;
+			}
+
+			if ($queries) {
+				$offenders[] = $method->getName();
+			}
+		}
+
+		T::equals(
+			$offenders,
+			[],
+			"FourOhFourService looks pages up by path only through aiRouteState: " . implode(", ", $offenders)
+		);
+	}

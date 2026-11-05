@@ -278,6 +278,7 @@
 			$search . "::AI_RATE_WINDOW" => ["not_a_size", "seconds in the rate window"],
 			$callouts . "::AI_GROUP_NAME_MAX_LENGTH" => ["not_a_size", "input validation on a written value"],
 			$modules . "::AI_GROUP_NAME_MAX_LENGTH" => ["not_a_size", "the same, for module groups"],
+			\BigTree\Services\FourOhFourService::class . "::AI_REDIRECT_CHAIN_DEPTH" => ["not_a_size", "hops a redirect chain is followed, checkOldRoutes' max_depth"],
 		];
 	}
 

@@ -5090,20 +5090,45 @@
 					'%ipl://' . $id . '//%',
 					'%ipl:\\\\/\\\\/' . $id . '\\\\/\\\\/%'
 				);
+				// A 301 to a page on this site is stored through autoIPL as the same
+				// `ipl://<id>//…` token (create301), so every redirect pointing here
+				// lands on a 404 once the page is archived (audit #32 B1). Both slash
+				// encodings, for the same reason as the resources match above.
+				$redirects = (int)SQL::fetchSingle(
+					"SELECT COUNT(*) FROM (SELECT id FROM bigtree_404s WHERE ignored = '' "
+						. "AND (redirect_url LIKE ? OR redirect_url LIKE ?) "
+						. "LIMIT " . self::AI_INBOUND_LINK_LIMIT . ") counted",
+					'%ipl://' . $id . '//%',
+					'%ipl:\\\\/\\\\/' . $id . '\\\\/\\\\/%'
+				);
 			} catch (\Exception $e) {
 
 				return "";
 			}
 
-			if ($count === 0) {
+			$sentences = [];
+
+			if ($count > 0) {
+				$sentences[] = "At least {$count} other " . ($count === 1 ? "page links" : "pages link") . " to this one"
+					. ($count >= self::AI_INBOUND_LINK_LIMIT ? " (counting stopped there)" : "")
+					. "; " . ($count === 1 ? "that link" : "those links") . " will point at a page that is no longer "
+					. "on the site until it is unarchived.";
+			}
+
+			if ($redirects > 0) {
+				$sentences[] = "{$redirects} " . ($redirects === 1 ? "redirect points" : "redirects point") . " here"
+					. ($redirects >= self::AI_INBOUND_LINK_LIMIT ? " (counting stopped there)" : "")
+					. " and will land on a 404 until it's unarchived.";
+			}
+
+			if (!$sentences) {
 
 				return "";
 			}
 
-			return "At least {$count} other " . ($count === 1 ? "page links" : "pages link") . " to this one"
-				. ($count >= self::AI_INBOUND_LINK_LIMIT ? " (counting stopped there)" : "")
-				. "; " . ($count === 1 ? "that link" : "those links") . " will point at a page that is no longer "
-				. "on the site until it is unarchived. Module entries and settings can link here too and aren't counted.";
+			$sentences[] = "Module entries and settings can link here too and aren't counted.";
+
+			return implode(" ", $sentences);
 		}
 
 		/**
