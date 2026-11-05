@@ -4146,6 +4146,19 @@
 				$repath["to_path"] = "/" . ($parent_path !== "" ? $parent_path . "/" : "") . $new_route;
 			}
 
+			// A switch to a template that brings in fields the page has never had
+			// fills them from their configured defaults (performUpdate on a live
+			// write or on publish, performCreate for a NEW draft), the same way an
+			// update_page_content switch does. Named here so the card says so.
+			$implicit_defaults = isset($changes["template"]) && (string)$changes["template"] !== ""
+				&& (string)$changes["template"] !== (string)($page["template"] ?? "")
+				? $this->aiTemplateImplicitDefaults((string)$changes["template"], Json::decode($page["resources"] ?? ""))
+				: [];
+
+			if ($implicit_defaults) {
+				$mode_note .= " " . FieldDefaultDomain::appliedNote($implicit_defaults);
+			}
+
 			$summary = ($is_pending ? "Update draft “{$title}”." : "Update page “{$title}”.") . $mode_note
 				. (string)($repath["note"] ?? "");
 
@@ -4168,6 +4181,10 @@
 
 			if ($draft) {
 				$preview["publishes_draft"] = $draft;
+			}
+
+			if ($implicit_defaults) {
+				$preview["defaults_applied"] = FieldDefaultDomain::describeApplied($implicit_defaults);
 			}
 
 			// The diff shows the stored value; the approver also needs to know when the
@@ -4999,6 +5016,12 @@
 				}
 			}
 
+			// Recomputed rather than replayed from staging: the page's content, or the
+			// template's fields, may have changed inside the proposal's life.
+			$applied_defaults = $template !== "" && $template !== (string)$page["template"]
+				? $this->aiTemplateImplicitDefaults($template, Json::decode($page["resources"] ?? ""))
+				: [];
+
 			if (!$can_publish) {
 				$pending_id = $this->writePendingPageChange($user, "EDIT", $id, $changes);
 
@@ -5006,22 +5029,36 @@
 					"id" => $id, "pending_change_id" => (int)$pending_id, "via" => "ai_assistant",
 				]);
 
-				return [
+				$result = [
 					"mode" => "pending",
 					"title" => $title,
 					"pending_change_id" => (int)$pending_id,
 				];
+
+				if ($applied_defaults) {
+					$result["note"] = "When this is published, the new template's fields will be filled from their "
+						. "configured defaults: " . FieldDefaultDomain::describeApplied($applied_defaults) . ".";
+				}
+
+				return $result;
 			}
 
 			// Publishing deletes every queued change for the page, so the draft this
 			// edit was measured against goes live with it rather than being destroyed.
 			$this->performUpdate($id, $live_page, $this->aiCarryPendingDraft($id, $changes), $user);
 
-			return [
+			$result = [
 				"mode" => "published",
 				"title" => $title,
 				"page_id" => $id,
 			];
+
+			if ($applied_defaults) {
+				$result["note"] = "Filled from the fields' configured defaults: "
+					. FieldDefaultDomain::describeApplied($applied_defaults) . ".";
+			}
+
+			return $result;
 		}
 
 		/**
@@ -5903,6 +5940,18 @@
 						$template_id !== (string)($page["template"] ?? "")
 					)
 				);
+			} elseif ($this->switchesTemplateWithoutResources($page, $d)) {
+				// A template switch that sends no content — update_page, a template-only
+				// PATCH, or a queued EDIT replayed on publish — would otherwise store the
+				// page without any of the new template's fields. Fill only the keys the
+				// page has never had, judged against what it holds now.
+				$update["resources"] = json_encode(
+					$this->normalizePageResources(
+						(string)$d["template"],
+						Json::decode($page["resources"] ?? ""),
+						true
+					)
+				);
 			}
 
 			// array_key_exists, not isset: an explicit null is how a caller clears a
@@ -6233,6 +6282,25 @@
 			}
 
 			return FieldDefaultDomain::implicitDefaults($template["resources"], $resources, "id");
+		}
+
+		/**
+		 * Whether a page write switches to a different (non-empty) template without
+		 * sending any content, so the stored resources have to be normalized against
+		 * the new template on the write's behalf.
+		 *
+		 * @param array<string,mixed> $page the stored page row
+		 * @param array<string,mixed> $d the write payload
+		 */
+		private function switchesTemplateWithoutResources(array $page, array $d): bool {
+			if (isset($d["resources"]) || !isset($d["template"])) {
+
+				return false;
+			}
+
+			$template = (string)$d["template"];
+
+			return $template !== "" && $template !== (string)($page["template"] ?? "");
 		}
 
 		private function normalizePageResources(string $template_id, array $resources, bool $implicit = true): array {

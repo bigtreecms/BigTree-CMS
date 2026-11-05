@@ -610,3 +610,93 @@
 			"and every exemption still names a live write site, with a reason"
 		);
 	}
+
+	/**
+	 * The page writers that set a page's template without normalizing its content
+	 * against it, each with the reason that's right.
+	 *
+	 * @return array<string,string> method => why it doesn't normalize
+	 */
+	function ai_page_template_write_exemptions(): array {
+
+		return [
+			"aiRestoreRevision" => "a restore writes a revision's template and resources back as the pair they "
+				. "were saved as; the gaps that pair has against today's template are revisionRestoreNotices' business",
+			"restoreRevision" => "the REST twin of aiRestoreRevision: the revision's template and resources go back "
+				. "as the pair they were saved as, behind the same revisionRestoreNotices refusal",
+		];
+	}
+
+	/**
+	 * Every PageService method that writes a page's template has to fill the fields
+	 * that template declares (normalizePageResources), or be exempted with a reason.
+	 *
+	 * Discovered from the writes rather than listed: a method is in scope when it
+	 * writes bigtree_pages and its body sets a `template` key or copies
+	 * REVISION_COLUMNS, which carries one. This catches a new writer that never
+	 * normalizes; whether a writer normalizes on every branch (a template switch
+	 * that sends no content, say) is behavioural, and
+	 * test_parity_template_only_switches_fill_the_new_templates_fields asks that.
+	 */
+	function test_every_page_template_write_fills_the_templates_fields() {
+		$file = dirname(__DIR__, 2) . "/services/PageService.php";
+		T::ok(is_readable($file), "PageService.php is readable");
+
+		$method = "";
+		$bodies = [];
+
+		foreach (file($file) ?: [] as $line) {
+			if (preg_match('/function\s+([A-Za-z0-9_]+)\s*\(/', $line, $named)) {
+				$method = $named[1];
+			}
+
+			$bodies[$method] = ($bodies[$method] ?? "") . $line;
+		}
+
+		$sites = [];
+
+		foreach ($bodies as $name => $body) {
+			$writes_pages = (bool)preg_match('/SQL::(insert|update)\("bigtree_pages"/', $body);
+			$sets_template = (bool)preg_match('/\["template"\]\s*=[^=>]|"template"\s*=>|REVISION_COLUMNS/', $body);
+
+			if ($writes_pages && $sets_template) {
+				$sites[$name] = true;
+			}
+		}
+
+		T::ok(isset($sites["performUpdate"]) && isset($sites["performCreate"]), "the sweep found the template writers");
+
+		$exemptions = ai_page_template_write_exemptions();
+		$missing = [];
+
+		foreach (array_keys($sites) as $writer) {
+			if (strpos($bodies[$writer], "normalizePageResources(") !== false || isset($exemptions[$writer])) {
+
+				continue;
+			}
+
+			$missing[] = $writer;
+		}
+
+		T::equals(
+			implode(", ", $missing),
+			"",
+			"every writer of a page's template fills the fields it declares, or is exempted with a reason"
+		);
+
+		$stale = [];
+
+		foreach ($exemptions as $writer => $reason) {
+			if (!isset($sites[$writer])) {
+				$stale[] = "{$writer} (no longer writes a page's template)";
+
+				continue;
+			}
+
+			if (strlen(trim($reason)) < 40) {
+				$stale[] = "{$writer} (reason too thin to be a decision)";
+			}
+		}
+
+		T::equals(implode(", ", $stale), "", "and every exemption still names a live template writer, with a reason");
+	}

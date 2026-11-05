@@ -358,3 +358,104 @@
 			parity_delete_template($plain);
 		}
 	}
+
+	/** Assert a page switched onto the fixture template gained its fields and kept its own. */
+	function parity_a34_assert_switched(array $row, string $writer): void {
+		T::equals($row["title"] ?? "", "Old", "{$writer}: the page's own content is kept");
+		T::equals($row["published_on"] ?? "", date("Y-m-d"), "{$writer}: default_today filled in");
+		T::equals($row["featured"] ?? "", "on", "{$writer}: default_checked filled in");
+		T::equals($row["category"] ?? "", "news", "{$writer}: a no-blank list filled with its first option");
+		T::ok(array_key_exists("starts_at", $row), "{$writer}: every field the new template declares is stored");
+		T::equals(
+			$row["ends_on"] ?? "",
+			"2031-05-05",
+			"{$writer}: a value the page already holds under a declared key is never overwritten"
+		);
+	}
+
+	function test_parity_template_only_switches_fill_the_new_templates_fields() {
+		if (!parity_db_available()) {
+
+			return;
+		}
+
+		$template = "zz-audit34-" . substr(md5(uniqid("", true)), 0, 8);
+		$plain = $template . "-plain";
+		$dev_id = 0;
+		$pages = [];
+
+		try {
+			parity_seed_template($template, parity_a33_fields("id"));
+			parity_seed_template($plain, [["id" => "title", "title" => "Title", "type" => "text", "settings" => []]]);
+			$dev_id = parity_seed_user(["level" => 2]);
+			$user = (object)["id" => $dev_id, "level" => 2, "permissions" => []];
+			$svc = new PageService();
+			$resources = function (int $id): array {
+
+				return (array)json_decode((string)SQL::fetchSingle("SELECT resources FROM bigtree_pages WHERE id = ?", $id), true);
+			};
+			$seed = function () use ($plain, &$pages): int {
+				$id = parity_seed_page([
+					"template" => $plain,
+					"resources" => json_encode(["title" => "Old", "ends_on" => "2031-05-05"]),
+				]);
+				$pages[] = $id;
+
+				return $id;
+			};
+
+			// update_page, published live.
+			$live = $seed();
+			$staged = $svc->aiValidatePageUpdate(["id" => $live, "template" => $template], $user);
+			T::ok(!empty($staged["ok"]), "the template-only update_page staged");
+			T::ok(
+				strpos((string)($staged["preview"]["defaults_applied"] ?? ""), "Published On") !== false,
+				"the update_page card names the fields filled from defaults"
+			);
+			$result = $svc->aiUpdatePage($staged["payload"] ?? [], $user);
+			T::equals($result["mode"] ?? "", "published", "the switch was published");
+			T::ok(strpos((string)($result["note"] ?? ""), "configured defaults") !== false, "the result names them");
+			parity_a34_assert_switched($resources($live), "update_page live");
+
+			// update_page queued as a draft, then published: the replay fills them.
+			$queued = $seed();
+			$staged = $svc->aiValidatePageUpdate([
+				"id" => $queued,
+				"template" => $template,
+				"save_as_draft" => true,
+			], $user);
+			T::ok(!empty($staged["ok"]), "the queued template-only switch staged");
+			$result = $svc->aiUpdatePage($staged["payload"] ?? [], $user);
+			T::equals($result["mode"] ?? "", "pending", "the switch was queued");
+			T::ok(strpos((string)($result["note"] ?? ""), "When this is published") !== false, "…and says when they fill");
+			$change_id = (int)($result["pending_change_id"] ?? 0);
+			parity_track_pending($change_id);
+			T::equals($resources($queued)["title"] ?? "", "Old", "the queued switch leaves the live page alone");
+			$svc->publishPendingChange(SQL::fetch("SELECT * FROM bigtree_pending_changes WHERE id = ?", $change_id), $user);
+			parity_a34_assert_switched($resources($queued), "update_page queued + published");
+
+			// REST PATCH with only a template.
+			$rest = $seed();
+			$svc->update(parity_request($dev_id, 2, ["id" => $rest], ["template" => $template, "publish" => true]));
+			parity_a34_assert_switched($resources($rest), "REST template-only PATCH");
+
+			// A same-template metadata edit never fills anything.
+			$stored = $resources($rest);
+			unset($stored["published_on"]);
+			SQL::update("bigtree_pages", $rest, ["resources" => json_encode($stored)]);
+			$svc->update(parity_request($dev_id, 2, ["id" => $rest], ["template" => $template, "title" => "Renamed", "publish" => true]));
+			T::ok(
+				!array_key_exists("published_on", $resources($rest)),
+				"a write that keeps the template never fills a field the page doesn't hold"
+			);
+		} finally {
+			foreach ($pages as $page_id) {
+				parity_delete_page($page_id);
+			}
+
+			parity_cleanup_tracked();
+			parity_delete_users($dev_id);
+			parity_delete_template($template);
+			parity_delete_template($plain);
+		}
+	}

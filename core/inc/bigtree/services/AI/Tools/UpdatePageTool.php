@@ -80,7 +80,9 @@
 						],
 						"template" => [
 							"type" => "string",
-							"description" => "New template id (must be an existing template).",
+							"description" => "New template id (must be an existing template). Fields the new "
+								. "template adds are filled from their configured defaults; to set them yourself, "
+								. "use update_page_content instead.",
 						],
 						"route" => [
 							"type" => "string",
