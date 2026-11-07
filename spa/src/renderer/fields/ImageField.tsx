@@ -12,6 +12,7 @@ import { expandImageUrl } from "@/lib/imageUrl";
 import { useFilePicker } from "@/hooks/useFilePicker";
 
 import { FieldCropModal } from "./FieldCropModal";
+import { useFieldUploadTarget } from "./FieldUploadContext";
 import { toInt } from "./fieldHelpers";
 import { useImageFieldProcessing } from "./useImageFieldProcessing";
 import { settingsOf, type FieldComponentProps } from "./types";
@@ -57,8 +58,13 @@ export const ImageField = ({ field, value, onChange, disabled }: FieldComponentP
 	const [error, setError] = useState<string | null>(null);
 	const [showCrops, setShowCrops] = useState(false);
 
+	const { libraryAccess } = useFieldUploadTarget();
 	const { inFlight, reprocessing, enqueueFile, reprocess, cropModalProps } =
-		useImageFieldProcessing(settings, { onCommit: onChange, onError: setError });
+		useImageFieldProcessing(settings, {
+			column: field.column,
+			onCommit: onChange,
+			onError: setError,
+		});
 
 	const busy = disabled || Boolean(inFlight) || reprocessing;
 
@@ -73,7 +79,9 @@ export const ImageField = ({ field, value, onChange, disabled }: FieldComponentP
 	// to the full image.
 	const fullUrl = currentPath ? expandImageUrl(currentPath) : null;
 	const previewUrl = currentPath ? buildPreviewUrl(currentPath, settings) : null;
-	const showBrowse = !settings.disable_browse;
+	// Browsing and in-place recrops go through the media library / reprocess
+	// routes, which need a signed-in user.
+	const showBrowse = libraryAccess && !settings.disable_browse;
 	const showRemove = !settings.disable_remove;
 	const configuredCrops = (Array.isArray(settings.crops) ? settings.crops : []).filter(
 		(c) => typeof c.prefix === "string" && c.prefix.length > 0
@@ -102,7 +110,7 @@ export const ImageField = ({ field, value, onChange, disabled }: FieldComponentP
 					</Button>
 				)}
 
-				{currentPath && configuredCrops.length > 0 && (
+				{libraryAccess && currentPath && configuredCrops.length > 0 && (
 					<Button
 						disabled={busy}
 						icon={<Crop size={13} />}

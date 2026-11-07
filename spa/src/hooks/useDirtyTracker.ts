@@ -13,12 +13,24 @@ import { stableStringify } from "@/lib/stableStringify";
  * dirty state from the initial empty → loaded jump. For add screens, where the
  * initial state is already pristine, leave `ready` at its default of `true`.
  *
- * The baseline is captured once and never moves on its own — after a successful
- * save the form typically navigates away, so there's no need to re-baseline.
+ * `resetKey` re-captures the baseline whenever it changes. Screens that stay
+ * open after a save and reseed from the saved record (e.g. "Save & Preview")
+ * change it in the same render as the reseed, so the saved state becomes the
+ * new pristine one. Screens that navigate away after saving can omit it.
  */
-export const useDirtyTracker = (value: unknown, ready: boolean = true): boolean => {
+export const useDirtyTracker = (
+	value: unknown,
+	ready: boolean = true,
+	resetKey?: unknown
+): boolean => {
 	const baselineRef = useRef<string | null>(null);
+	const resetKeyRef = useRef<unknown>(resetKey);
 	const serialized = stableStringify(value);
+
+	if (!Object.is(resetKeyRef.current, resetKey)) {
+		resetKeyRef.current = resetKey;
+		baselineRef.current = null;
+	}
 
 	if (ready && baselineRef.current === null) {
 		baselineRef.current = serialized;

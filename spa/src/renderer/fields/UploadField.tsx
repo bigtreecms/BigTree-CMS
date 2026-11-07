@@ -1,13 +1,17 @@
+import { useState } from "react";
 import { File as FileIcon, Upload as UploadIcon, X } from "lucide-react";
 
+import { Alert } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
 import { IconButton } from "@/components/ui/IconButton";
 import { ProgressBar } from "@/components/ui/ProgressBar";
-import { UPLOAD_PATH, type ResourceDetail } from "@/api/endpoints/resources";
+import type { ResourceDetail } from "@/api/endpoints/resources";
 import { useFilePicker } from "@/hooks/useFilePicker";
 import { useLatestUpload } from "@/hooks/useLatestUpload";
 import { useUploads } from "@/hooks/useUploads";
+import { expandImageUrl } from "@/lib/imageUrl";
 
+import { useFieldUploadTarget } from "./FieldUploadContext";
 import { settingsOf, type FieldComponentProps } from "./types";
 
 /**
@@ -29,23 +33,30 @@ interface UploadFieldSettings {
 export const UploadField = ({ field, value, onChange, disabled }: FieldComponentProps) => {
 	const settings = settingsOf(field) as UploadFieldSettings;
 	const { items, enqueue } = useUploads();
+	const target = useFieldUploadTarget();
+	const [error, setError] = useState<string | null>(null);
 
 	// Watch the upload queue for our newest completed item and surface its URL.
 	const { inFlight } = useLatestUpload(items, {
 		onDone: (item) => {
-			const result = item.result as ResourceDetail | undefined;
+			const result = item.result as (ResourceDetail & { token?: string }) | undefined;
 
 			if (result?.file) {
+				target.onStored?.(field.column, { file: result.file, token: result.token });
 				onChange(result.file);
 			}
 		},
+		onError: (item) => setError(item.error ?? "Upload failed."),
 	});
 
 	const filePicker = useFilePicker((file) => {
-		enqueue([file], { path: UPLOAD_PATH });
+		setError(null);
+		enqueue([file], { path: target.filePath, extra: target.extraFor(field.column) });
 	});
 
 	const currentPath = typeof value === "string" && value.length > 0 ? value : null;
+	// Stored paths carry `{wwwroot}` placeholders; expand them for the link.
+	const currentUrl = currentPath ? expandImageUrl(currentPath) : "";
 	const showRemove = !settings.disable_remove;
 
 	return (
@@ -79,15 +90,21 @@ export const UploadField = ({ field, value, onChange, disabled }: FieldComponent
 				/>
 			</div>
 
+			{error && (
+				<Alert data-field-error tone="danger">
+					{error}
+				</Alert>
+			)}
+
 			{currentPath && (
 				<div className="flex items-center gap-2 rounded-md border border-border bg-surface-2 px-3 py-2 text-[12.5px]">
 					<FileIcon className="text-text-3" size={14} />
 					<a
 						className="min-w-0 truncate text-accent hover:underline"
-						href={currentPath}
+						href={currentUrl}
 						rel="noopener noreferrer"
 						target="_blank"
-						title={currentPath}
+						title={currentUrl}
 					>
 						{filenameFromPath(currentPath)}
 					</a>

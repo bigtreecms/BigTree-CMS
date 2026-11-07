@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { useRepeaterRows, type RepeaterRow } from "@/hooks/useRepeaterRows";
 
+import { FieldUploadProvider, scopeUploadTarget, useFieldUploadTarget } from "./FieldUploadContext";
+
 import { deriveRepeaterSummary, toInt } from "./fieldHelpers";
 import { RepeaterColumnFields } from "./RepeaterColumnFields";
 import { RepeaterRowShell } from "./RepeaterRowShell";
@@ -59,6 +61,12 @@ export const MatrixField = ({ field, value, onChange, disabled }: FieldComponent
 	const max = toInt(settings.max);
 	const style = settings.style === "callout" ? "callout" : "list";
 	const reactId = useId();
+	// Uploads in a row's sub-fields are named by their path through this matrix.
+	const parentUploadTarget = useFieldUploadTarget();
+	const uploadTarget = useMemo(
+		() => scopeUploadTarget(parentUploadTarget, field.column),
+		[parentUploadTarget, field.column]
+	);
 
 	const { rows, isExpanded, toggleExpanded, atLimit, add, remove, move, update } =
 		useRepeaterRows<RowData>({ value, onChange, uidPrefix: "m", max });
@@ -84,49 +92,53 @@ export const MatrixField = ({ field, value, onChange, disabled }: FieldComponent
 	}
 
 	return (
-		<div className="space-y-2" data-matrix-style={style}>
-			{rows.length === 0 ? (
-				<EmptyState dashed size="sm">
-					No items yet. Click <strong>Add item</strong> to create one.
-				</EmptyState>
-			) : (
-				<ul className="space-y-1.5">
-					{rows.map((row, index) => (
-						<MatrixRowItem
-							columns={columns}
-							disabled={disabled}
-							expanded={isExpanded(row.uid)}
-							idPrefix={reactId}
-							index={index}
-							key={row.uid}
-							row={row}
-							style={style}
-							totalRows={rows.length}
-							onCellChange={(columnId, next) => updateCell(row.uid, columnId, next)}
-							onDelete={() => remove(row.uid)}
-							onMove={(direction) => move(index, direction)}
-							onToggle={() => toggleExpanded(row.uid)}
-						/>
-					))}
-				</ul>
-			)}
-
-			<div className="flex items-center justify-between gap-2">
-				<Button
-					disabled={disabled || atLimit}
-					icon={<Plus size={13} />}
-					variant="secondary"
-					onClick={addRow}
-				>
-					Add item
-				</Button>
-				{max > 0 && (
-					<span className="text-[11.5px] text-text-3 tabular-nums">
-						{rows.length} / {max}
-					</span>
+		<FieldUploadProvider value={uploadTarget}>
+			<div className="space-y-2" data-matrix-style={style}>
+				{rows.length === 0 ? (
+					<EmptyState dashed size="sm">
+						No items yet. Click <strong>Add item</strong> to create one.
+					</EmptyState>
+				) : (
+					<ul className="space-y-1.5">
+						{rows.map((row, index) => (
+							<MatrixRowItem
+								columns={columns}
+								disabled={disabled}
+								expanded={isExpanded(row.uid)}
+								idPrefix={reactId}
+								index={index}
+								key={row.uid}
+								row={row}
+								style={style}
+								totalRows={rows.length}
+								onCellChange={(columnId, next) =>
+									updateCell(row.uid, columnId, next)
+								}
+								onDelete={() => remove(row.uid)}
+								onMove={(direction) => move(index, direction)}
+								onToggle={() => toggleExpanded(row.uid)}
+							/>
+						))}
+					</ul>
 				)}
+
+				<div className="flex items-center justify-between gap-2">
+					<Button
+						disabled={disabled || atLimit}
+						icon={<Plus size={13} />}
+						variant="secondary"
+						onClick={addRow}
+					>
+						Add item
+					</Button>
+					{max > 0 && (
+						<span className="text-[11.5px] text-text-3 tabular-nums">
+							{rows.length} / {max}
+						</span>
+					)}
+				</div>
 			</div>
-		</div>
+		</FieldUploadProvider>
 	);
 };
 

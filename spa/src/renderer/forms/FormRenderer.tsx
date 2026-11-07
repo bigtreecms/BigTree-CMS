@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { Eye } from "lucide-react";
 
 import type { ModuleForm, ModuleFormField } from "@/api/endpoints/modules";
 import type { Tag } from "@/api/endpoints/tags";
@@ -28,6 +29,7 @@ import { validateRequiredFields } from "./validation";
  *   - `initialValues` — values for an edit screen (omit for add)
  *   - `submitLabel` — defaults to "Save". Add screens typically pass "Create".
  *   - `secondaryAction` — optional extra footer button (e.g. "Save & Publish").
+ *   - `canPreview` — adds "Save & Preview", which submits with `{ preview: true }`.
  *   - `disabled` — read-only mode (e.g. when a lock is held by another user).
  *   - `header` — optional content rendered in the FormShell header bar.
  *
@@ -38,6 +40,13 @@ import { validateRequiredFields } from "./validation";
  */
 
 export interface FormRendererProps {
+	/**
+	 * When true, render a "Save & Preview" button that submits with
+	 * `{ preview: true }` (and never `publish`). The caller opens the preview —
+	 * synchronously inside `onSubmit`, before its first await, so the browser
+	 * still treats it as part of the click.
+	 */
+	canPreview?: boolean;
 	/**
 	 * When true, render a second primary button ("Save & Publish") that submits
 	 * with `{ publish: true }`. Gate this on the caller's publisher access.
@@ -71,7 +80,7 @@ export interface FormRendererProps {
 	onCancel?: () => void;
 	onSubmit: (
 		values: Record<string, unknown>,
-		opts?: { publish?: boolean }
+		opts?: { preview?: boolean; publish?: boolean }
 	) => Promise<unknown> | unknown;
 	/**
 	 * Columns whose draft value differs from the published content. Each gets a
@@ -106,6 +115,7 @@ export const FormRenderer = ({
 	onCancel,
 	submitLabel = "Save",
 	canPublish = false,
+	canPreview = false,
 	publishLabel = "Save & Publish",
 	secondaryAction,
 	disabled,
@@ -210,7 +220,7 @@ export const FormRenderer = ({
 		});
 	}, []);
 
-	const handleSubmit = async (event: React.FormEvent, publish = false) => {
+	const handleSubmit = async (event: React.FormEvent, publish = false, preview = false) => {
 		event.preventDefault();
 
 		if (submitting || disabled) {
@@ -245,7 +255,7 @@ export const FormRenderer = ({
 				payload["__open_graph__"] = openGraph;
 			}
 
-			await onSubmit(payload, { publish });
+			await onSubmit(payload, preview ? { preview: true } : { publish });
 		} catch (err) {
 			applyApiFieldErrors(err, {
 				setFieldErrors,
@@ -336,6 +346,16 @@ export const FormRenderer = ({
 					</Button>
 				)}
 				{secondaryAction}
+				{canPreview && (
+					<Button
+						disabled={submitting || disabled}
+						icon={<Eye size={13} />}
+						variant="secondary"
+						onClick={(e) => handleSubmit(e, false, true)}
+					>
+						Save & Preview
+					</Button>
+				)}
 				<Button
 					disabled={disabled}
 					loading={submitting}

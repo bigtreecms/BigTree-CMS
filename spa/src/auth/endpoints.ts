@@ -48,10 +48,11 @@ export interface LoginPolicy {
 }
 
 /**
- * Once-per-page-load guard for the PHP session bridge. Reset on logout so a
- * re-login re-establishes the legacy session.
+ * Once-per-page-load guard for the PHP session bridge: the in-flight (or
+ * settled) bridge request. Reset on logout so a re-login re-establishes the
+ * legacy session, and on failure so the next call retries.
  */
-let phpSessionEstablished = false;
+let phpSession: Promise<void> | null = null;
 
 export const authApi = {
 	/**
@@ -69,14 +70,28 @@ export const authApi = {
 	 * Idempotent per page load; failures simply retry on the next call.
 	 */
 	establishPhpSession: (): void => {
-		if (phpSessionEstablished) {
-			return;
-		}
-		phpSessionEstablished = true;
+		void authApi.ensurePhpSession().catch(() => undefined);
+	},
 
-		void api.post("/auth/php-session", {}).catch(() => {
-			phpSessionEstablished = false;
-		});
+	/**
+	 * The same bridge, awaitable — for flows that send the browser to a
+	 * front-end URL that needs the PHP session, such as a draft preview.
+	 * Resolves once the session exists; rejects (and clears the guard) when the
+	 * bridge request fails.
+	 */
+	ensurePhpSession: (): Promise<void> => {
+		if (!phpSession) {
+			phpSession = api
+				.post<unknown>("/auth/php-session", {})
+				.then(() => undefined)
+				.catch((err: unknown) => {
+					phpSession = null;
+
+					throw err;
+				});
+		}
+
+		return phpSession;
 	},
 
 	/**
@@ -170,14 +185,14 @@ export const authApi = {
 		} catch {
 			// best effort; even if the server call fails we still want to clear state locally
 		}
-		phpSessionEstablished = false;
+		phpSession = null;
 		useAuthStore.getState().clear();
 	},
 
 	/** Sign out from every device (bumps token_version). */
 	logoutAll: async (): Promise<void> => {
 		await api.post<void>("/auth/logout-all");
-		phpSessionEstablished = false;
+		phpSession = null;
 		useAuthStore.getState().clear();
 	},
 

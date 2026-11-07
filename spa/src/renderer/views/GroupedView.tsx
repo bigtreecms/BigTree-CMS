@@ -190,6 +190,7 @@ export const GroupedView = ({ moduleId, view }: GroupedViewProps) => {
 														custom={custom}
 														editPath={editPath}
 														moduleId={moduleId}
+														previewUrl={view.preview_url}
 														row={row}
 														viewId={view.id}
 														onDelete={requestDelete}

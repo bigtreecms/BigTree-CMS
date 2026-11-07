@@ -1,8 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToastMutation } from "@/hooks/useToastMutation";
 import { Navigate, useLocation, useNavigate, useParams } from "react-router-dom";
-import { Calendar, Save } from "lucide-react";
+import { Calendar, Eye, Save } from "lucide-react";
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
@@ -24,6 +24,7 @@ import { PageTabStrip, type PageTabValue } from "@/components/pages/PageTabStrip
 import { PageWizardFooter } from "@/components/pages/PageWizardFooter";
 import { PageSectionToolbar } from "@/components/pages/PageSectionToolbar";
 import { PageSummaryPanel } from "@/components/pages/PageSummaryPanel";
+import { discardPreviewWindow, openPreviewWindow, showPreview } from "@/lib/preview";
 
 import {
 	isPendingResult,
@@ -165,6 +166,9 @@ export const PageEdit = () => {
 	});
 
 	const [body, setBody] = useState<PageEditBody | null>(null);
+	// Bumped each time `body` is reseeded from the server, so the unsaved-changes
+	// baseline follows a save that keeps the editor open (Save & Preview).
+	const [seedVersion, setSeedVersion] = useState(0);
 	// Full Tag objects for the browser chips; body.tags carries just the ids.
 	const [tagObjects, setTagObjects] = useState<Tag[]>([]);
 	const [activeTab, setActiveTab] = useState<PageTabValue>("content");
@@ -173,12 +177,16 @@ export const PageEdit = () => {
 	const deleteDialog = useConfirmDialog<true>();
 	const [movingOpen, setMovingOpen] = useState(false);
 	const [accessOpen, setAccessOpen] = useState(false);
+	// Set while a "Save & Preview" is in flight: the tab the preview opens in
+	// (null when the browser blocked it). Undefined for a plain save.
+	const previewWindow = useRef<Window | null | undefined>(undefined);
 
 	useScrollToFirstError(fieldErrors);
 
 	useEffect(() => {
 		if (pageQuery.data) {
 			setBody(seedBody(pageQuery.data));
+			setSeedVersion((version) => version + 1);
 			setTagObjects(pageQuery.data.tags ?? []);
 			setFieldErrors({});
 			setGeneralError(null);
@@ -217,6 +225,8 @@ export const PageEdit = () => {
 		mutationFn: (next: PageEditBody) =>
 			draft ? pagesApi.patchPending(pcid, next) : pagesApi.patch(id, next),
 		onSuccess: (updated) => {
+			const preview = previewWindow.current;
+			previewWindow.current = undefined;
 			queryClient.invalidateQueries({ queryKey: queryKeys.pages.lists() });
 			// The live-publish response omits `access`/lineage, so invalidate rather
 			// than seeding the cache with a partial detail.
@@ -224,6 +234,26 @@ export const PageEdit = () => {
 
 			if (draft) {
 				queryClient.invalidateQueries({ queryKey: queryKeys.pages.draft(pcid) });
+			}
+
+			// Save & Preview stays on the editor (now showing the saved draft) and
+			// opens the draft on the front end.
+			if (preview !== undefined) {
+				const url = isPendingResult(updated) ? updated.preview_url : null;
+
+				if (url) {
+					toast.success("Draft saved", {
+						description: "The preview opened in a new tab.",
+					});
+					void showPreview(preview, url);
+				} else {
+					discardPreviewWindow(preview);
+					toast.success("Draft saved", {
+						description: "This page has no front-end URL to preview.",
+					});
+				}
+
+				return;
 			}
 
 			if (isPendingResult(updated)) {
@@ -237,6 +267,8 @@ export const PageEdit = () => {
 			navigate(returnTo(pageQuery.data?.parent));
 		},
 		onError: (err) => {
+			discardPreviewWindow(previewWindow.current ?? null);
+			previewWindow.current = undefined;
 			applyApiFieldErrors(err, {
 				setFieldErrors,
 				setError: setGeneralError,
@@ -323,7 +355,11 @@ export const PageEdit = () => {
 		// pendingInfo already keys off pageData; depend on pageData for the data.
 	}, [pendingInfo, pageData]);
 
-	const handleSave = (publish: boolean) => {
+	/**
+	 * Validate and save. `preview` saves as a draft (never publishes) and opens
+	 * the saved draft on the front end, like the legacy "Save & Preview".
+	 */
+	const handleSave = (publish: boolean, preview = false) => {
 		if (!body || saveMutation.isPending || lock.ownedByOther) {
 			return;
 		}
@@ -349,14 +385,34 @@ export const PageEdit = () => {
 
 		setGeneralError(null);
 		setFieldErrors({});
-		saveMutation.mutate({ ...body, resources: resourceValues, publish });
+		// Opened here, inside the click, so a popup blocker lets it through.
+		previewWindow.current = preview ? openPreviewWindow() : undefined;
+		saveMutation.mutate({ ...body, resources: resourceValues, publish: publish && !preview });
 	};
+
+	// Compared with template keys the stored blob omitted already filled in, so
+	// the seeding effect above doesn't read as an edit; the baseline waits for
+	// the template for the same reason.
+	const dirtyValue = useMemo(
+		() =>
+			body
+				? {
+						...body,
+						resources: seedTemplateResources(
+							templateQuery.data?.resources,
+							(body.resources ?? {}) as Record<string, unknown>
+						),
+					}
+				: null,
+		[body, templateQuery.data]
+	);
+	const dirtyReady = body !== null && (!templateId || templateQuery.isFetched);
 
 	// Dirty once the page has loaded and been edited; suppressed while a save or
 	// delete is in flight (both navigate away) and when the row is read-only
 	// because another user holds the lock.
 	const isDirty =
-		useDirtyTracker(body, body !== null) &&
+		useDirtyTracker(dirtyValue, dirtyReady, seedVersion) &&
 		!saveMutation.isPending &&
 		!deleteMutation.isPending &&
 		!lock.ownedByOther;
@@ -412,7 +468,11 @@ export const PageEdit = () => {
 				title={page.nav_title || "Untitled page"}
 			/>
 
-			<PageSummaryPanel page={page} />
+			<PageSummaryPanel
+				draft={draft}
+				page={page}
+				previewUrl={page.preview_url ?? undefined}
+			/>
 
 			<PageSectionToolbar
 				active="edit"
@@ -530,6 +590,15 @@ export const PageEdit = () => {
 				</div>
 
 				<PageWizardFooter activeTab={activeTab} onSelect={setActiveTab}>
+					<Button
+						disabled={readOnly || saveMutation.isPending}
+						icon={<Eye size={13} />}
+						variant="secondary"
+						onClick={() => handleSave(false, true)}
+					>
+						Save & Preview
+					</Button>
+
 					<Button
 						disabled={readOnly || saveMutation.isPending}
 						icon={<Save size={13} />}

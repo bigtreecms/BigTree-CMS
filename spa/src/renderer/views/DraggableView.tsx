@@ -146,6 +146,7 @@ export const DraggableView = ({ moduleId, view }: DraggableViewProps) => {
 										custom={custom}
 										editPath={editPath}
 										moduleId={moduleId}
+										previewUrl={view.preview_url}
 										row={r.row}
 										viewId={view.id}
 										onDelete={requestDelete}

@@ -94,20 +94,56 @@
 		// crop spec carried over from a pending_crops entry.
 
 		public function crop(Request $request) {
-			$file = $request->bodyString("file", "", false);
-			$x = $request->bodyInt("x");
-			$y = $request->bodyInt("y");
-			$w = $request->bodyInt("width");
-			$h = $request->bodyInt("height");
-			$target_w = $request->bodyInt("target_width");
-			$target_h = $request->bodyInt("target_height");
-			$prefix = $request->bodyString("prefix", "", false);
-			$name = BigTree::cleanFile($request->bodyString("name", basename($file), false));
-			$directory = $this->cleanDirectory($request->bodyString("directory", "files/", false));
-			$retina = $request->bodyBool("retina");
-			$grayscale = $request->bodyBool("grayscale");
-			$thumbs = $request->bodyMap("thumbs");
-			$center_crops = $request->bodyMap("center_crops");
+			$spec = [
+				"file" => $request->bodyString("file", "", false),
+				"target_width" => $request->bodyInt("target_width"),
+				"target_height" => $request->bodyInt("target_height"),
+				"prefix" => $request->bodyString("prefix", "", false),
+				"name" => $request->bodyString("name", "", false),
+				"directory" => $request->bodyString("directory", "files/", false),
+				"retina" => $request->bodyBool("retina"),
+				"grayscale" => $request->bodyBool("grayscale"),
+				"thumbs" => $request->bodyMap("thumbs"),
+				"center_crops" => $request->bodyMap("center_crops"),
+			];
+			$result = $this->cropFromSpec(
+				$spec,
+				$request->bodyInt("x"),
+				$request->bodyInt("y"),
+				$request->bodyInt("width"),
+				$request->bodyInt("height")
+			);
+
+			return Response::created($result, null);
+		}
+
+		/**
+		 * Run the store + auto-crop pipeline over an uploaded temp file with the
+		 * given field settings. Used by callers that resolve the settings
+		 * themselves rather than trusting the client (public embed forms).
+		 */
+		public function processFile(string $tmp_name, string $name, array $settings): array {
+
+			return $this->runPipeline($tmp_name, $name, $settings);
+		}
+
+		/**
+		 * Generate one manual crop (plus its nested thumbs / center crops) from a
+		 * crop spec — the keys of a pending_crops entry plus the stored original as
+		 * "file" and the output size as target_width / target_height. $x/$y/$w/$h
+		 * is the selection in source pixels.
+		 */
+		public function cropFromSpec(array $spec, int $x, int $y, int $w, int $h): array {
+			$file = (string)($spec["file"] ?? "");
+			$target_w = (int)($spec["target_width"] ?? 0);
+			$target_h = (int)($spec["target_height"] ?? 0);
+			$prefix = (string)($spec["prefix"] ?? "");
+			$name = BigTree::cleanFile((string)(($spec["name"] ?? "") !== "" ? $spec["name"] : basename($file)));
+			$directory = $this->cleanDirectory($spec["directory"] ?? "files/");
+			$retina = !empty($spec["retina"]);
+			$grayscale = !empty($spec["grayscale"]);
+			$thumbs = is_array($spec["thumbs"] ?? null) ? $spec["thumbs"] : [];
+			$center_crops = is_array($spec["center_crops"] ?? null) ? $spec["center_crops"] : [];
 
 			if ($w <= 0 || $h <= 0 || $target_w <= 0 || $target_h <= 0) {
 				throw new BadRequestException("width/height/target_width/target_height must be > 0", "bad_dimensions");
@@ -119,6 +155,7 @@
 			if ($image->Error) {
 				throw new BadRequestException("Image processing failed: " . $image->Error, "image_invalid");
 			}
+
 			$storage = new BigTreeStorage();
 
 			// The crop itself.
@@ -149,12 +186,12 @@
 				throw new BadRequestException("Storage refused crop", "storage_failed");
 			}
 
-			return Response::created([
+			return [
 				"file" => $stored,
 				"prefix" => $prefix,
 				"width" => $target_w,
 				"height" => $target_h,
-			], null);
+			];
 		}
 
 		// — Shared pipeline —
@@ -374,7 +411,7 @@
 			}
 		}
 
-		private function cleanDirectory($raw): string {
+		public function cleanDirectory($raw): string {
 			$dir = trim((string)$raw);
 
 			if ($dir === "") {

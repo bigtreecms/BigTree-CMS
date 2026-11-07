@@ -253,6 +253,7 @@ export const NestedView = ({ moduleId, view }: NestedViewProps) => {
 									key={String(node.row.id)}
 									moduleId={moduleId}
 									node={node}
+									previewUrl={view.preview_url}
 									viewId={view.id}
 									onDelete={requestDelete}
 									onEdit={openEdit}
@@ -273,6 +274,7 @@ export const NestedView = ({ moduleId, view }: NestedViewProps) => {
 									key={String(row.id)}
 									moduleId={moduleId}
 									node={{ row, children: [] }}
+									previewUrl={view.preview_url}
 									viewId={view.id}
 									onDelete={requestDelete}
 									onEdit={openEdit}
@@ -301,6 +303,8 @@ interface NestedRowProps {
 	onDelete: (row: ModuleEntryRow) => void;
 	onEdit: (row: ModuleEntryRow) => void;
 	onToggle: (id: string) => void;
+	/** The view's `preview_url`, for each row's Preview action. */
+	previewUrl?: string;
 	viewId: string;
 }
 
@@ -317,6 +321,7 @@ const NestedRow = ({
 	moduleId,
 	viewId,
 	drag,
+	previewUrl,
 }: NestedRowProps) => {
 	const { editPath, actionPath } = useModuleEntryLinks();
 	const id = String(node.row.id);
@@ -384,6 +389,7 @@ const NestedRow = ({
 					custom={custom}
 					editPath={editPath}
 					moduleId={moduleId}
+					previewUrl={previewUrl}
 					row={node.row}
 					viewId={viewId}
 					onDelete={onDelete}
@@ -403,6 +409,7 @@ const NestedRow = ({
 							key={String(child.row.id)}
 							moduleId={moduleId}
 							node={child}
+							previewUrl={previewUrl}
 							viewId={viewId}
 							onDelete={onDelete}
 							onEdit={onEdit}

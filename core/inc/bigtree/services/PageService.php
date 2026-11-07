@@ -5872,7 +5872,11 @@
 					"id" => $id, "pending_change_id" => (int)$pending_id,
 				]);
 
-				return Response::ok(["pending" => true, "pending_change_id" => (int)$pending_id]);
+				return Response::ok([
+					"pending" => true,
+					"pending_change_id" => (int)$pending_id,
+					"preview_url" => self::previewUrl($id),
+				]);
 			}
 
 			return Response::ok($this->performUpdate($id, $page, $d, $request->user));
@@ -6497,6 +6501,20 @@
 				? SQL::fetchSingle("SELECT name FROM bigtree_users WHERE id = ?", $owner_id)
 				: null;
 			$out["updated_at"] = $change["date"];
+			$out["preview_url"] = self::previewUrl($id);
+		}
+
+		/**
+		 * Front-end URL that renders a page with its pending changes applied — the
+		 * router's `_preview/` (live page + draft) or `_preview-pending/p{id}/`
+		 * (a never-published draft). Pass a page id, or "p{change id}" for a new
+		 * draft. Null when the page has no front-end URL (e.g. archived). Needs the
+		 * admin PHP session, which the SPA establishes at sign-in.
+		 */
+		public static function previewUrl($id): ?string {
+			$link = BigTreeCMS::getPreviewLink($id);
+
+			return $link ? (string)$link : null;
 		}
 
 		/**
@@ -6551,7 +6569,11 @@
 				"pending_change_id" => $pcid, "parent" => $parent,
 			]);
 
-			return Response::ok(["pending" => true, "pending_change_id" => $pcid]);
+			return Response::ok([
+				"pending" => true,
+				"pending_change_id" => $pcid,
+				"preview_url" => self::previewUrl("p" . $pcid),
+			]);
 		}
 
 		/** Load a NEW page draft row or 404. */
@@ -6629,6 +6651,7 @@
 				"changes_applied" => true,
 				"pending" => true,
 				"pending_change_id" => (int)$change["id"],
+				"preview_url" => self::previewUrl("p" . (int)$change["id"]),
 			];
 		}
 

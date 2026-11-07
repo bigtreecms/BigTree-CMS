@@ -8,6 +8,7 @@ import { IconButton } from "@/components/ui/IconButton";
 import { SectionLabel } from "@/components/ui/SectionLabel";
 
 import { isRecord } from "./fieldHelpers";
+import { useFieldUploadTarget } from "./FieldUploadContext";
 import { INPUT_CLASS, settingsOf, type FieldComponentProps } from "./types";
 
 /**
@@ -39,7 +40,8 @@ interface VideoValue {
 
 export const VideoField = ({ field, value, onChange, disabled }: FieldComponentProps) => {
 	const settings = settingsOf(field);
-	const showBrowse = !settings.disable_browse;
+	const { libraryAccess } = useFieldUploadTarget();
+	const showBrowse = libraryAccess && !settings.disable_browse;
 
 	const [pickerOpen, setPickerOpen] = useState(false);
 

@@ -1,7 +1,6 @@
 import { useCallback, useMemo, useState } from "react";
 
 import {
-	IMAGE_PROCESS_PATH,
 	imagesApi,
 	type PendingCrop,
 	type ProcessImageResult,
@@ -11,7 +10,11 @@ import { useLatestUpload } from "@/hooks/useLatestUpload";
 import { useUploads } from "@/hooks/useUploads";
 import { describeApiError } from "@/lib/errorHandling";
 
+import { useFieldUploadTarget } from "./FieldUploadContext";
+
 export interface UseImageFieldProcessingOptions {
+	/** The field's column, sent to upload targets that resolve settings server-side. */
+	column?: string;
 	/** Commit a freshly processed image path (after any manual crops finalize). */
 	onCommit: (file: string) => void;
 	/** Surface an error message, or `null` to clear a previous one. */
@@ -29,8 +32,9 @@ export interface UseImageFieldProcessingOptions {
  */
 export const useImageFieldProcessing = (
 	settings: object,
-	{ onCommit, onError }: UseImageFieldProcessingOptions
+	{ column = "", onCommit, onError }: UseImageFieldProcessingOptions
 ) => {
+	const target = useFieldUploadTarget();
 	const [reprocessing, setReprocessing] = useState(false);
 	const [cropState, setCropState] = useState<{ file: string; crops: PendingCrop[] } | null>(null);
 	const { items, enqueue } = useUploads();
@@ -48,6 +52,7 @@ export const useImageFieldProcessing = (
 			}
 
 			onError(null);
+			target.onStored?.(column, { file: result.file, token: result.token });
 
 			// Defer committing until any manual crops are finalized. If the user
 			// cancels the cropper nothing was changed, so the prior state stands.
@@ -57,7 +62,7 @@ export const useImageFieldProcessing = (
 				onCommit(result.file);
 			}
 		},
-		[onCommit, onError]
+		[column, onCommit, onError, target]
 	);
 
 	// Drain finished uploads (done → apply + maybe crop; error → surface).
@@ -67,7 +72,10 @@ export const useImageFieldProcessing = (
 	});
 
 	const enqueueFile = (file: File) => {
-		enqueue([file], { path: IMAGE_PROCESS_PATH, extra: { settings: processSettings } });
+		enqueue([file], {
+			path: target.imagePath,
+			extra: { settings: processSettings, ...target.extraFor(column) },
+		});
 	};
 
 	const reprocess = async (source: ReprocessSource) => {

@@ -90,6 +90,11 @@ export interface PageDetail {
 	/** Display name of the pending change's owner, for attribution. */
 	pending_owner_name?: string | null;
 	position: number;
+	/**
+	 * Front-end URL that renders this page with its draft applied. Present when
+	 * the payload carries a draft (`changes_applied`); null when there's no URL.
+	 */
+	preview_url?: string | null;
 	publish_at: string | null;
 	resources: Record<string, unknown>;
 
@@ -181,6 +186,8 @@ export interface PageSearchHit {
 export interface PagePendingResult {
 	pending: true;
 	pending_change_id: number;
+	/** Front-end URL that renders the saved draft (null when the page has none). */
+	preview_url: string | null;
 }
 
 /**

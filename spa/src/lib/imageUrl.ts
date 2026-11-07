@@ -18,9 +18,14 @@ const PLACEHOLDER_TOKEN_RE = /\{(www|static)root\}/g;
 const ASSET_BASE = resolveAssetBase();
 
 function resolveAssetBase(): string {
-	// Production: the SPA is served from the BigTree origin, so page-relative works.
+	// Production: the SPA shares the BigTree origin, but the site may live under
+	// a subpath (e.g. `/remaster/`), so expand against the site root PHP injects.
+	// Falls back to the domain root when the boot object has no `wwwRoot`.
 	if (import.meta.env.PROD) {
-		return "";
+		const wwwRoot =
+			typeof window !== "undefined" ? window.__BIGTREE_ADMIN__?.wwwRoot : undefined;
+
+		return wwwRoot ? wwwRoot.replace(/\/+$/, "") : "";
 	}
 
 	// Explicit override wins (assets on a separate host / CDN).

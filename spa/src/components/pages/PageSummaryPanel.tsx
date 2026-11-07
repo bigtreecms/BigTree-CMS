@@ -10,6 +10,8 @@ import { IconButton } from "@/components/ui/IconButton";
 import { SectionLabel } from "@/components/ui/SectionLabel";
 import { formatNumber } from "@/lib/number";
 
+import { PreviewLink } from "./PreviewLink";
+
 /**
  * Collapsible "Properties" summary panel that sits above every page-section
  * view (Edit / Add / Revisions). Ports the design's `.props` block:
@@ -19,6 +21,7 @@ import { formatNumber } from "@/lib/number";
  *   │ Published   85%              611 Days      34,561                       │
  *   │ Live URL                                    Page ID                     │
  *   │ https://…                                   #123                        │
+ *   │ Preview URL (only while a draft is pending)                             │
  *   └────────────────────────────────────────────────────────────────────────┘
  *
  * All six properties are API-backed: Status / Content Age / Live URL / Page ID
@@ -31,12 +34,22 @@ import { formatNumber } from "@/lib/number";
 interface PageSummaryPanelProps {
 	defaultOpen?: boolean;
 	/**
+	 * The page is a never-published draft (it only exists as a pending change),
+	 * so it has no status of its own beyond "Draft" and no page id yet.
+	 */
+	draft?: boolean;
+	/**
 	 * Override the displayed live URL. Default uses page.path (the site-relative
 	 * path from PageService), resolved against `www_root` from GET /system/site
 	 * so subpath installs (e.g. `/remaster/`) link correctly.
 	 */
 	liveUrl?: string;
 	page: PageDetail | null;
+	/**
+	 * Front-end URL that renders the page's pending draft. Shown only when set,
+	 * matching the legacy properties header.
+	 */
+	previewUrl?: string;
 }
 
 type StatusTone = "ok" | "draft" | "warn" | "danger";
@@ -46,9 +59,13 @@ interface StatusInfo {
 	tone: StatusTone;
 }
 
-const deriveStatus = (page: PageDetail | null): StatusInfo => {
+const deriveStatus = (page: PageDetail | null, draft: boolean): StatusInfo => {
 	if (!page) {
 		return { label: "—", tone: "draft" };
+	}
+
+	if (draft) {
+		return { label: "Draft", tone: "draft" };
 	}
 
 	if (page.archived) {
@@ -90,10 +107,16 @@ const TONE_TEXT: Record<StatusTone, string> = {
 	danger: "text-danger",
 };
 
-export const PageSummaryPanel = ({ page, liveUrl, defaultOpen = false }: PageSummaryPanelProps) => {
+export const PageSummaryPanel = ({
+	page,
+	draft = false,
+	liveUrl,
+	previewUrl,
+	defaultOpen = false,
+}: PageSummaryPanelProps) => {
 	const [open, setOpen] = useState(defaultOpen);
 
-	const status = useMemo(() => deriveStatus(page), [page]);
+	const status = useMemo(() => deriveStatus(page, draft), [page, draft]);
 	const ageDays = useMemo(() => (page ? daysSince(page.updated_at) : null), [page]);
 
 	// Site's public root (full URL with trailing slash, e.g.
@@ -235,8 +258,16 @@ export const PageSummaryPanel = ({ page, liveUrl, defaultOpen = false }: PageSum
 					</Prop>
 
 					<Prop label="Page ID">
-						<span className="font-mono text-[13px] text-text-2">#{page.id}</span>
+						<span className="font-mono text-[13px] text-text-2">
+							{draft ? "—" : `#${page.id}`}
+						</span>
 					</Prop>
+
+					{previewUrl && (
+						<Prop label="Preview URL" span={2}>
+							<PreviewLink url={previewUrl} />
+						</Prop>
+					)}
 				</div>
 			)}
 		</section>

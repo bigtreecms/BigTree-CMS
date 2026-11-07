@@ -1,7 +1,8 @@
-import { Edit, Trash } from "lucide-react";
+import { Edit, Eye, Trash } from "lucide-react";
 
 import { IconButton } from "@/components/ui/IconButton";
 import type { ModuleEntryRow } from "@/api/endpoints/auto-modules";
+import { modulePreviewUrl, openPreviewWindow, showPreview } from "@/lib/preview";
 
 import { BuiltinToggleButtons } from "./BuiltinToggleButtons";
 import {
@@ -26,6 +27,8 @@ interface RowActionsProps {
 	editPath: (id: string | number) => string;
 	moduleId: string;
 	onDelete: (row: ModuleEntryRow) => void;
+	/** The view's `preview_url`; when set, each row gets a Preview action. */
+	previewUrl?: string;
 	row: ModuleEntryRow;
 	viewId: string;
 }
@@ -34,8 +37,8 @@ const stop = (e: { stopPropagation: () => void }) => e.stopPropagation();
 
 /**
  * The trailing per-row action cluster shared by every module list view
- * (searchable / grouped / nested / draggable): custom actions, edit, the
- * publisher toggles, and delete — all as {@link IconButton}s. The single source
+ * (searchable / grouped / nested / draggable): custom actions, preview, edit,
+ * the publisher toggles, and delete — all as {@link IconButton}s. The single source
  * of truth for that group, so the views only differ by how they lay out rows,
  * not how they render actions.
  */
@@ -50,6 +53,7 @@ export const RowActions = ({
 	onDelete,
 	canEditOrDelete = true,
 	className,
+	previewUrl,
 }: RowActionsProps) => (
 	<div className={`flex items-center justify-end gap-1${className ? ` ${className}` : ""}`}>
 		{custom.map((action) => {
@@ -67,6 +71,8 @@ export const RowActions = ({
 				</IconButton>
 			);
 		})}
+
+		{previewUrl && <PreviewAction previewUrl={previewUrl} rowId={row.id} />}
 
 		{builtins.edit && canEditOrDelete && (
 			<IconButton label="Edit" title="Edit" to={editPath(row.id)} onClick={stop}>
@@ -92,3 +98,38 @@ export const RowActions = ({
 		)}
 	</div>
 );
+
+interface PreviewActionProps {
+	previewUrl: string;
+	rowId: string | number;
+}
+
+/**
+ * Opens the entry on the front end through the view's preview URL. Goes
+ * through showPreview so the admin PHP session exists before the preview
+ * renders; the href stays real for modified clicks and "copy link".
+ */
+const PreviewAction = ({ previewUrl, rowId }: PreviewActionProps) => {
+	const url = modulePreviewUrl(previewUrl, rowId);
+
+	return (
+		<IconButton
+			href={url}
+			label="Preview"
+			target="_blank"
+			title="Preview"
+			onClick={(e) => {
+				e.stopPropagation();
+
+				if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) {
+					return;
+				}
+
+				e.preventDefault();
+				void showPreview(openPreviewWindow(), url);
+			}}
+		>
+			<Eye size={15} />
+		</IconButton>
+	);
+};

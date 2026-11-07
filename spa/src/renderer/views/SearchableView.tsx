@@ -69,7 +69,8 @@ export const SearchableView = ({ moduleId, view }: SearchableViewProps) => {
 		(builtins.delete ? 1 : 0) +
 		(builtins.archive ? 1 : 0) +
 		(builtins.approve ? 1 : 0) +
-		(builtins.feature ? 1 : 0);
+		(builtins.feature ? 1 : 0) +
+		(view.preview_url ? 1 : 0);
 	const hasRowActions = builtinCount > 0 || custom.length > 0;
 
 	const columns: DataTableColumn<ModuleEntryRow>[] = useMemo(() => {
@@ -139,6 +140,7 @@ export const SearchableView = ({ moduleId, view }: SearchableViewProps) => {
 							custom={custom}
 							editPath={editPath}
 							moduleId={moduleId}
+							previewUrl={view.preview_url}
 							row={row}
 							viewId={view.id}
 							onDelete={requestDelete}
@@ -157,6 +159,7 @@ export const SearchableView = ({ moduleId, view }: SearchableViewProps) => {
 		custom,
 		moduleId,
 		view.id,
+		view.preview_url,
 		requestDelete,
 		editPath,
 		actionPath,

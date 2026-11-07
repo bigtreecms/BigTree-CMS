@@ -1,4 +1,5 @@
 <?php
+	use BigTree\Services\EmbedFormService;
 	use BigTree\Services\ModuleService;
 	use BigTree\Services\ModuleFormService;
 	use BigTree\Services\ModuleReportService;
@@ -274,19 +275,48 @@
 
 		// — Public embed form routes — no auth required so the form can be
 		// loaded and submitted from a third-party page via the SPA's
-		// /embed/:hash route.
+		// /embed/:hash route. Every unauthenticated write is throttled per IP
+		// (RateLimit middleware only engages for /auth/* or routes that opt in
+		// with an explicit rate_limit). See EmbedFormService for the upload and
+		// bot-check tokens.
 		"GET /embed-forms/{hash}" => [
-			"service" => [ModuleService::class, "publicGetEmbedForm"],
+			"service" => [EmbedFormService::class, "get"],
 			"permission" => "public",
 			"rate_limit" => ["per_minute" => 30],
 		],
-		"POST /embed-forms/{hash}/submit" => [
-			"service" => [ModuleService::class, "publicSubmitEmbedForm"],
+		"POST /embed-forms/{hash}/images" => [
+			"service" => [EmbedFormService::class, "processImage"],
 			"permission" => "public",
-			"body" => ["values" => "array"],
-			// Unauthenticated write — throttle per-IP so it can't be used to spam
-			// the module's table. (RateLimit middleware only engages for /auth/* or
-			// routes that opt in with an explicit rate_limit.)
+			"multipart" => true,
+			"rate_limit" => ["per_minute" => 10],
+		],
+		"POST /embed-forms/{hash}/images/crop" => [
+			"service" => [EmbedFormService::class, "cropImage"],
+			"permission" => "public",
+			"body" => [
+				"token" => "required|string",
+				"x" => "required|int|min:0",
+				"y" => "required|int|min:0",
+				"width" => "required|int|min:1",
+				"height" => "required|int|min:1",
+			],
+			"rate_limit" => ["per_minute" => 30],
+		],
+		"POST /embed-forms/{hash}/files" => [
+			"service" => [EmbedFormService::class, "uploadFile"],
+			"permission" => "public",
+			"multipart" => true,
+			"rate_limit" => ["per_minute" => 10],
+		],
+		"POST /embed-forms/{hash}/submit" => [
+			"service" => [EmbedFormService::class, "submit"],
+			"permission" => "public",
+			"body" => [
+				"values" => "array",
+				"challenge" => "required|string",
+				"honeypot" => "string",
+				"upload_tokens" => "array",
+			],
 			"rate_limit" => ["per_minute" => 10],
 		],
 

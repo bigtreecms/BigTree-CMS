@@ -32,6 +32,8 @@ export interface PendingCrop {
 	prefix: string;
 	retina: boolean;
 	thumbs: CropDerivativeSpec[];
+	/** Signed copy of this spec, issued by public embed-form uploads. */
+	token?: string;
 	width: number;
 }
 
@@ -41,6 +43,8 @@ export interface ProcessImageResult {
 	file: string;
 	height: number;
 	pending_crops: PendingCrop[];
+	/** Claim token, issued by public embed-form uploads. */
+	token?: string;
 	width: number;
 }
 

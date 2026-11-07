@@ -967,6 +967,9 @@
 		return [
 			"embed-forms/submit" => "the public submission endpoint an embedded form posts to, not an admin "
 				. "action; the family's decline is about managing the forms",
+			"embed-forms/images" => "likewise — a visitor's image upload while filling in a public embedded form",
+			"embed-forms/images/crop" => "likewise — a visitor framing a crop of the image they just uploaded",
+			"embed-forms/files" => "likewise — a visitor's file upload while filling in a public embedded form",
 			// The natural first exemption.
 			"extensions/recache-hooks" => "rebuilding the hook cache is maintenance, covered by the "
 				. "\"clearing caches\" line rather than by the extension family's own",

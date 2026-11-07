@@ -3,10 +3,12 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { ImageCropStage } from "@/components/ui/ImageCropStage";
 import { Modal } from "@/components/ui/Modal";
-import { imagesApi, type PendingCrop } from "@/api/endpoints/images";
+import type { PendingCrop } from "@/api/endpoints/images";
 import { useImageCrop } from "@/hooks/useImageCrop";
 import { expandImageUrl } from "@/lib/imageUrl";
 import { toast } from "@/lib/toast";
+
+import { useFieldUploadTarget } from "./FieldUploadContext";
 
 interface FieldCropModalProps {
 	/** Crops the server couldn't auto-generate; walked one at a time. */
@@ -37,6 +39,7 @@ export const FieldCropModal = ({
 	const [index, setIndex] = useState(0);
 	const [busy, setBusy] = useState(false);
 	const imageCrop = useImageCrop();
+	const target = useFieldUploadTarget();
 	const { reset: resetCrop } = imageCrop;
 
 	const imageSrc = expandImageUrl(file);
@@ -78,21 +81,11 @@ export const FieldCropModal = ({
 		setBusy(true);
 
 		try {
-			await imagesApi.crop({
-				file,
+			await target.crop(current, file, {
 				x: Math.round(imageCrop.areaPixels.x),
 				y: Math.round(imageCrop.areaPixels.y),
 				width: Math.round(imageCrop.areaPixels.width),
 				height: Math.round(imageCrop.areaPixels.height),
-				target_width: current.width,
-				target_height: current.height,
-				prefix: current.prefix,
-				name: current.name,
-				directory: current.directory,
-				retina: current.retina,
-				grayscale: current.grayscale,
-				thumbs: current.thumbs,
-				center_crops: current.center_crops,
 			});
 
 			if (isLast) {

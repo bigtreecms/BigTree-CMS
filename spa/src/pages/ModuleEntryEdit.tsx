@@ -10,6 +10,7 @@ import { autoModulesApi } from "@/api/endpoints/auto-modules";
 import { modulesApi } from "@/api/endpoints/modules";
 import type { Tag } from "@/api/endpoints/tags";
 import { FormRenderer } from "@/renderer/forms/FormRenderer";
+import { useFormPreviewUrl } from "@/renderer/forms/useFormPreviewUrl";
 import type { OpenGraphValue } from "@/renderer/forms/OpenGraphSection";
 import { useLock } from "@/hooks/useLock";
 import { modulePath, moduleActionPath } from "@/lib/moduleActions";
@@ -19,6 +20,12 @@ import { useAuthStore } from "@/auth/store";
 import { useModuleContext } from "@/pages/ModuleLayout";
 import { isPersistedEntryId, numericEntryId } from "@/renderer/views/viewHelpers";
 import { toast } from "@/lib/toast";
+import {
+	discardPreviewWindow,
+	modulePreviewUrl,
+	openPreviewWindow,
+	showPreview,
+} from "@/lib/preview";
 
 interface ModuleEntryEditProps {
 	// May be a real numeric id or a "p"-prefixed pending id (e.g. "p5"); also a
@@ -74,6 +81,7 @@ export const ModuleEntryEdit = ({ formId, entryId }: ModuleEntryEditProps) => {
 	});
 
 	const form = formsQuery.data?.find((f) => f.id === formId);
+	const previewUrl = useFormPreviewUrl(moduleId, form);
 
 	const returnAction = form?.return_view
 		? actions.find((a) => a.view === form.return_view)
@@ -86,10 +94,19 @@ export const ModuleEntryEdit = ({ formId, entryId }: ModuleEntryEditProps) => {
 				: "/modules";
 
 	const updateMutation = useMutation({
-		mutationFn: ({ values, publish }: { values: Record<string, unknown>; publish: boolean }) =>
+		mutationFn: ({ values, publish }: EntrySaveVariables) =>
 			autoModulesApi.update(moduleId, entryId, values, { form: formId }, publish),
-		onSuccess: (result) => {
+		onSuccess: (result, { preview }) => {
 			queryClient.invalidateQueries({ queryKey: queryKeys.moduleEntries.root(moduleId) });
+
+			// Save & Preview: stay on the form (now showing the saved draft) and
+			// open the entry through the view's preview URL.
+			if (preview !== undefined && previewUrl) {
+				toast.success("Draft saved", { description: "The preview opened in a new tab." });
+				void showPreview(preview, modulePreviewUrl(previewUrl, entryId));
+
+				return;
+			}
 
 			if (result && typeof result === "object" && "pending" in result) {
 				toast.success("Draft saved", {
@@ -148,6 +165,7 @@ export const ModuleEntryEdit = ({ formId, entryId }: ModuleEntryEditProps) => {
 				<EmptyState>This module doesn't have a form configured.</EmptyState>
 			) : (
 				<FormRenderer
+					canPreview={Boolean(previewUrl)}
 					canPublish={moduleQuery.data?.access === "p"}
 					disabled={readOnly}
 					entryId={liveId}
@@ -163,16 +181,33 @@ export const ModuleEntryEdit = ({ formId, entryId }: ModuleEntryEditProps) => {
 					submitLabel="Save"
 					onCancel={() => navigate(returnPath)}
 					onSubmit={async (values, opts) => {
-						await updateMutation.mutateAsync({
-							values,
-							publish: Boolean(opts?.publish),
-						});
+						// Opened before the first await so it counts as part of the click.
+						const preview = opts?.preview ? openPreviewWindow() : undefined;
+
+						try {
+							await updateMutation.mutateAsync({
+								values,
+								publish: Boolean(opts?.publish),
+								preview,
+							});
+						} catch (err) {
+							discardPreviewWindow(preview ?? null);
+
+							throw err;
+						}
 					}}
 				/>
 			)}
 		</>
 	);
 };
+
+interface EntrySaveVariables {
+	/** The tab a Save & Preview opens in (null if blocked); undefined for a plain save. */
+	preview?: Window | null;
+	publish: boolean;
+	values: Record<string, unknown>;
+}
 
 /**
  * Strip out the BigTree envelope (`item`, pending-change metadata) and surface
