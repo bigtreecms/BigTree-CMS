@@ -166,11 +166,14 @@ export interface PageRevision {
 }
 
 /**
- * What a restore says about the state it left behind: required content the
- * revision doesn't fill in, files it points at that have been deleted, a template
- * that no longer exists, a draft still queued on top of it.
+ * A restore loads the revision into the page's draft. `warnings` says what that
+ * leaves behind: required content the revision doesn't fill in, files it points
+ * at that have been deleted, a template that no longer exists.
  */
 export interface PageRestoreResult {
+	pending: true;
+	pending_change_id: number;
+	preview_url: string | null;
 	warnings?: string[];
 }
 
@@ -275,6 +278,10 @@ export const pagesApi = {
 
 		save: (id: number, description: string) =>
 			api.post<{ id: number }>(`/pages/${id}/revisions`, { description }),
+
+		/** Keep a revision (auto-saved → saved) or change a saved one's description. */
+		update: (id: number, revisionId: number, description: string) =>
+			api.patch<void>(`/pages/${id}/revisions/${revisionId}`, { description }),
 
 		delete: (id: number, revisionId: number) =>
 			api.delete<void>(`/pages/${id}/revisions/${revisionId}`),

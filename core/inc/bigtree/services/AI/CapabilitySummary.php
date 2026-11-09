@@ -291,7 +291,7 @@
 				// next to "do not improvise a workaround", so a line whose verbs don't
 				// describe the capability it is being used to refuse is load-bearing in
 				// the wrong direction.
-				"Resolving, ignoring, deleting, importing or exporting 404 log entries, or removing redirects" =>
+				"Resolving, ignoring, unignoring, deleting, importing or exporting 404 log entries, or removing redirects" =>
 					"Developer → 404s — the assistant can read the log with list_404s and create a redirect, "
 						. "but not manage the log itself",
 				"Creating, editing or deleting feeds" => "Developer → Feeds",
@@ -320,6 +320,12 @@
 				"Deleting a page revision" =>
 					"the page's revisions panel — the assistant can list, save and restore revisions, but not "
 						. "delete one",
+				"Exporting pending changes to CSV" =>
+					"the Pending Changes screen's Export CSV — the assistant can list and inspect pending changes, "
+						. "but not export them",
+				"Keeping or describing an existing page revision" =>
+					"the page's revisions panel — the assistant can save the current content as a new revision, "
+						. "but not keep an auto-saved one or change a saved one's description",
 				// `trunk` is deliberately absent from every page write tool (dev-only,
 				// multi-site-structural): setting it restructures multi-site routing and
 				// invalidates the path cache. The page tree does surface which pages are

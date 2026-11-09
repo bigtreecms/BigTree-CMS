@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { Check, Download, EyeOff, Link2, Plus, Trash, Upload, X } from "lucide-react";
+import { Check, Download, Eye, EyeOff, Link2, Plus, Trash, Upload, X } from "lucide-react";
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
@@ -15,6 +15,7 @@ import { SearchInput } from "@/components/ui/SearchInput";
 import { SubNav } from "@/components/ui/SubNav";
 import { TextInput } from "@/components/ui/TextInput";
 import { IconButton } from "@/components/ui/IconButton";
+import { Select } from "@/components/ui/Select";
 
 import {
 	fourOhFoursApi,
@@ -44,7 +45,11 @@ import { useToggleSet } from "@/hooks/useToggleSet";
  *
  *   - Per-row inline "Set redirect" editor: clicking the link icon swaps the
  *     row into a small text input + save / cancel pair.
- *   - Bulk select via checkboxes + Bulk delete + Clear dead (server prune).
+ *   - Bulk select via checkboxes + Bulk delete + "Clear low-traffic" (server
+ *     prune of active 404s with only a few hits).
+ *   - Ignored entries can be un-ignored back into the active list.
+ *   - A multi-site install gets a site filter, applied to the list, the export
+ *     and the clear.
  *   - Every bucket can export its full contents to CSV. The 301 bucket also
  *     offers a manual "Add 301" form and a guided "Import CSV" flow.
  */
@@ -82,6 +87,17 @@ export const FourOhFours = ({ type }: FourOhFoursProps) => {
 	const [redirectDraft, setRedirectDraft] = useState("");
 	const bulkDeleteDialog = useConfirmDialog<true>();
 	const clearDeadDialog = useConfirmDialog<true>();
+	// "" = every site. Only offered in a multi-site install.
+	const [siteKey, setSiteKey] = useState("");
+
+	const sitesQ = useQuery({
+		queryKey: queryKeys.redirects.sites(),
+		queryFn: () => fourOhFoursApi.sites(),
+		staleTime: Infinity,
+	});
+	const sites = sitesQ.data ?? [];
+	const multisite = sites.length > 1;
+	const siteFilter = multisite && siteKey ? siteKey : undefined;
 
 	// Clears the multi-select + inline redirect editor — run from every handler
 	// that changes which rows are on screen, instead of chaining off page/search.
@@ -108,9 +124,21 @@ export const FourOhFours = ({ type }: FourOhFoursProps) => {
 	}, [debounced, setSelected]);
 
 	const listQ = useQuery({
-		queryKey: queryKeys.redirects.list({ type, page, per_page: PER_PAGE, q: debounced }),
+		queryKey: queryKeys.redirects.list({
+			type,
+			page,
+			per_page: PER_PAGE,
+			q: debounced,
+			site_key: siteFilter,
+		}),
 		queryFn: () =>
-			fourOhFoursApi.list({ type, page, per_page: PER_PAGE, q: debounced || undefined }),
+			fourOhFoursApi.list({
+				type,
+				page,
+				per_page: PER_PAGE,
+				q: debounced || undefined,
+				site_key: siteFilter,
+			}),
 		placeholderData: keepPreviousData,
 	});
 
@@ -132,6 +160,13 @@ export const FourOhFours = ({ type }: FourOhFoursProps) => {
 		invalidate: [["404s"], ["dashboard"]],
 		successMessage: "Entry ignored",
 		errorMessage: "Could not ignore entry",
+	});
+
+	const unignoreMutation = useToastMutation({
+		mutationFn: (id: number) => fourOhFoursApi.unignore(id),
+		invalidate: [["404s"], ["dashboard"]],
+		successMessage: "Entry moved back to the active list",
+		errorMessage: "Could not un-ignore entry",
 	});
 
 	const setRedirectMutation = useToastMutation({
@@ -158,17 +193,17 @@ export const FourOhFours = ({ type }: FourOhFoursProps) => {
 	});
 
 	const clearDeadMutation = useToastMutation({
-		mutationFn: () => fourOhFoursApi.clearDead(),
+		mutationFn: () => fourOhFoursApi.clearDead(siteFilter),
 		invalidate: [["404s"], ["dashboard"]],
-		errorMessage: "Could not clear dead 404s",
+		errorMessage: "Could not clear low-traffic 404s",
 		onSuccess: (result) => {
 			clearDeadDialog.close();
-			toast.success(`Cleared ${pluralize(result.deleted, "dead 404")}`);
+			toast.success(`Cleared ${pluralize(result.deleted, "low-traffic 404")}`);
 		},
 	});
 
 	const exportMutation = useToastMutation({
-		mutationFn: () => fourOhFoursApi.export(type),
+		mutationFn: () => fourOhFoursApi.export(type, siteFilter),
 		errorMessage: "CSV export failed",
 		onSuccess: ({ data: rows, meta }) => {
 			if (rows.length === 0) {
@@ -346,7 +381,15 @@ export const FourOhFours = ({ type }: FourOhFoursProps) => {
 					>
 						<Link2 size={13} />
 					</IconButton>
-					{!row.ignored && (
+					{row.ignored ? (
+						<IconButton
+							label="Un-ignore"
+							title="Un-ignore"
+							onClick={() => unignoreMutation.mutate(row.id)}
+						>
+							<Eye size={13} />
+						</IconButton>
+					) : (
 						<IconButton
 							label="Ignore"
 							title="Ignore"
@@ -416,7 +459,7 @@ export const FourOhFours = ({ type }: FourOhFoursProps) => {
 								icon={<Trash size={13} />}
 								onClick={() => clearDeadDialog.open(true)}
 							>
-								Clear dead
+								Clear low-traffic
 							</Button>
 						)}
 					</>
@@ -442,6 +485,26 @@ export const FourOhFours = ({ type }: FourOhFoursProps) => {
 					value={search}
 					onChange={setSearch}
 				/>
+
+				{multisite && (
+					<Select
+						aria-label="Site"
+						className="w-auto"
+						value={siteKey}
+						onChange={(e) => {
+							setSiteKey(e.target.value);
+							setPage(1);
+							resetRowState();
+						}}
+					>
+						<option value="">All sites</option>
+						{sites.map((site) => (
+							<option key={site.key} value={site.key}>
+								{site.domain || site.key}
+							</option>
+						))}
+					</Select>
+				)}
 
 				<div className="hidden flex-1 sm:block" />
 
@@ -492,8 +555,8 @@ export const FourOhFours = ({ type }: FourOhFoursProps) => {
 			<ConfirmDialog
 				{...clearDeadDialog.dialogProps}
 				confirmLabel="Clear"
-				description="Deletes unredirected 404 entries with fewer than 5 recorded hits — usually one-off typos and crawler noise."
-				title="Clear dead 404s?"
+				description={`Deletes active 404s (not ignored, no redirect) with fewer than 5 recorded hits${siteFilter ? " on this site" : ""} — usually one-off typos and crawler noise. Ignored entries and redirects are kept.`}
+				title="Clear low-traffic 404s?"
 				variant="danger"
 				onConfirm={() => clearDeadMutation.mutate()}
 			/>

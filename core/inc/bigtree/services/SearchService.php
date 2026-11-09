@@ -52,6 +52,8 @@
 	class SearchService implements SearchToolBackend {
 		const DEFAULT_PER_DOMAIN = 10;
 		const MODULE_ENTRY_CAP = 5;
+		// Per-module cap for the full results page (`full=1`).
+		const MODULE_ENTRY_CAP_FULL = 25;
 		const AI_MAX_ROUNDS = 4;
 		const AI_TOOL_LIMIT = 8;
 		// Per-user throttle on the paid agent loop (fixed window).
@@ -66,6 +68,8 @@
 				throw new BadRequestException("q required", "missing_query");
 			}
 			$limit = max(1, min(50, $request->queryInt("limit", self::DEFAULT_PER_DOMAIN)));
+			// The full results page asks for more of each module's entries.
+			$full = $request->queryBool("full");
 
 			$only = isset($request->query["types"])
 				? array_filter(array_map("trim", explode(",", (string)$request->query["types"])))
@@ -75,7 +79,7 @@
 			$counts = [];
 
 			if (in_array("pages", $only, true)) {
-				$rows = $this->searchPages($q, $limit, $request->user);
+				$rows = $this->searchPages($q, $limit, $request->user, true);
 				$results["pages"] = $rows;
 				$counts["pages"] = count($rows);
 			}
@@ -99,7 +103,13 @@
 			}
 
 			if (in_array("entries", $only, true)) {
-				$rows = $this->searchModuleEntries($q, $limit, $request->user);
+				$rows = $this->searchModuleEntries(
+					$q,
+					$limit,
+					$request->user,
+					25,
+					$full ? self::MODULE_ENTRY_CAP_FULL : self::MODULE_ENTRY_CAP
+				);
 				$results["entries"] = $rows;
 				$counts["entries"] = count($rows);
 			}
@@ -713,10 +723,11 @@
 
 		// — per-domain searchers —
 
-		public function searchPages($q, $limit, $user): array {
+		public function searchPages($q, $limit, $user, bool $content = false): array {
 			// Delegate to PageService so federated search and GET /pages/search
 			// share the overfetch-then-filter semantics and the same presenter.
-			return (new PageService())->searchRows($q, $user, (int)$limit);
+			// The federated search also matches content (and links, for a URL).
+			return (new PageService())->searchRows($q, $user, (int)$limit, $content);
 		}
 
 		public function searchTags($q, $limit): array {
@@ -818,7 +829,13 @@
 			return $kept;
 		}
 
-		public function searchModuleEntries($q, $limit_per_module, $user, int $max_modules = 25): array {
+		public function searchModuleEntries(
+			$q,
+			$limit_per_module,
+			$user,
+			int $max_modules = 25,
+			int $per_module_cap = self::MODULE_ENTRY_CAP
+		): array {
 			$all = BigTreeJSONDB::getAll("modules");
 			$results = [];
 			// Cap how many modules we sweep to keep latency bounded. The seed sweep
@@ -870,7 +887,7 @@
 
 					$visible[] = $item;
 
-					if (count($visible) >= self::MODULE_ENTRY_CAP) {
+					if (count($visible) >= $per_module_cap) {
 						break;
 					}
 				}

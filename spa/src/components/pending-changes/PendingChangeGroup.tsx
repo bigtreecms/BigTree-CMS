@@ -2,6 +2,7 @@ import { Check, FileText, X } from "lucide-react";
 
 import { Card, CardHeader } from "@/components/ui/Card";
 import { IconButton } from "@/components/ui/IconButton";
+import { PendingChangeExportButton } from "@/components/pending-changes/PendingChangeExportButton";
 import type { PendingChange } from "@/api/endpoints/dashboard";
 import type { PendingChangeGroup as Group } from "@/lib/pendingChanges";
 import { isPageChange } from "@/lib/pendingChanges";
@@ -30,6 +31,9 @@ export const PendingChangeGroup = ({
 	onReject,
 	onOpen,
 }: PendingChangeGroupProps) => {
+	// Pages export as one section; module entries by their module.
+	const exportGroup = group.table === "bigtree_pages" ? "pages" : group.module;
+
 	return (
 		<Card className="overflow-hidden">
 			<CardHeader className="flex items-center justify-between">
@@ -37,9 +41,12 @@ export const PendingChangeGroup = ({
 					<FileText className="text-text-3" size={14} />
 					{group.label}
 				</h2>
-				<span className="text-[11.5px] tabular-nums text-text-3">
-					{pluralize(group.changes.length, "change")}
-				</span>
+				<div className="flex items-center gap-3">
+					<span className="text-[11.5px] tabular-nums text-text-3">
+						{pluralize(group.changes.length, "change")}
+					</span>
+					{exportGroup && <PendingChangeExportButton group={exportGroup} />}
+				</div>
 			</CardHeader>
 
 			<ul className="m-0 flex list-none flex-col p-0">

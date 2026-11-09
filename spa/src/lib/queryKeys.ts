@@ -194,8 +194,13 @@ export const queryKeys = {
 	redirects: {
 		root: () => ["404s"] as const,
 		sites: () => ["404s", "sites"] as const,
-		list: (params: { type: string; page: number; per_page: number; q: string }) =>
-			["404s", "list", params] as const,
+		list: (params: {
+			type: string;
+			page: number;
+			per_page: number;
+			q: string;
+			site_key?: string;
+		}) => ["404s", "list", params] as const,
 	},
 
 	system: {
@@ -244,7 +249,7 @@ export const queryKeys = {
 
 	search: {
 		/** `opts` distinguishes the federated searches that ask for different types/limits. */
-		results: (q: string, opts?: { types?: string[]; limit?: number }) =>
+		results: (q: string, opts?: { types?: string[]; limit?: number; full?: boolean }) =>
 			opts ? (["search", q, opts] as const) : (["search", q] as const),
 	},
 

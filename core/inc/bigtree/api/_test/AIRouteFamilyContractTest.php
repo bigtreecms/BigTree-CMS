@@ -264,6 +264,7 @@
 				// map is one tool per verb; restore_page_revision is covered by the
 				// catalog and asserted by the surface guards.
 				"POST" => "save_page_revision",
+				"PATCH" => "declined: keeping or describing an existing page revision",
 				"DELETE" => "declined: deleting a page revision",
 			],
 			// Its own endpoint, so restoring a revision is recorded on this family.
@@ -331,7 +332,9 @@
 			"404s/clear-dead" => "deleting, importing or exporting 404 log entries",
 			"404s/export" => "importing or exporting 404 log entries",
 			"404s/ignore" => "resolving, ignoring",
+			"404s/unignore" => "resolving, ignoring",
 			"404s/import" => "importing or exporting 404 log entries",
+			"pending-changes/export" => "exporting pending changes",
 			"callouts/reorder" => "reordering templates, callouts or modules",
 			"templates/reorder" => "reordering templates, callouts or modules",
 			"modules/reorder" => "reordering templates, callouts or modules",

@@ -81,7 +81,14 @@ export const fourOhFoursApi = {
 
 	ignore: (id: number) => api.post<void>(`/404s/${id}/ignore`),
 
-	clearDead: () => api.post<ClearDeadResult>("/404s/clear-dead", {}),
+	unignore: (id: number) => api.post<void>(`/404s/${id}/unignore`),
+
+	/** Prune low-traffic active 404s, across every site or just `siteKey`'s. */
+	clearDead: (siteKey?: string) =>
+		api.post<ClearDeadResult>(
+			"/404s/clear-dead",
+			siteKey !== undefined ? { site_key: siteKey } : {}
+		),
 
 	bulkDelete: (ids: number[]) => api.post<void>("/404s/bulk-delete", { ids }),
 

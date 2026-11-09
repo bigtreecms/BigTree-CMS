@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Navigate, useParams } from "react-router-dom";
-import { ChevronLeft, RotateCcw, Save, Trash } from "lucide-react";
+import { Navigate, useNavigate, useParams } from "react-router-dom";
+import { Bookmark, ChevronLeft, Pencil, RotateCcw, Save, Trash } from "lucide-react";
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { pageEditPath, pagePath } from "@/lib/routes";
@@ -16,6 +16,10 @@ import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 
 import { pagesApi, type PageRevision } from "@/api/endpoints/pages";
+import { pendingChangesApi } from "@/api/endpoints/dashboard";
+import { CurrentDraftCard } from "@/components/pages/CurrentDraftCard";
+import { RevisionDescriptionDialog } from "@/components/pages/RevisionDescriptionDialog";
+import { canPublishPage } from "@/lib/permissions";
 
 import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 import { useToastMutation } from "@/hooks/useToastMutation";
@@ -31,21 +35,25 @@ import { Field } from "@/components/ui/Field";
  *
  *   GET    /pages/{id}/revisions                  list
  *   POST   /pages/{id}/revisions                  save a new snapshot
+ *   PATCH  /pages/{id}/revisions/{revision}       keep / describe a revision
  *   DELETE /pages/{id}/revisions/{revision}       delete
- *   POST   /pages/{id}/revisions/{revision}/restore  restore onto the live page
+ *   POST   /pages/{id}/revisions/{revision}/restore  load into the draft
  *
- * Restore overwrites the live page with the revision's content. The server
- * first snapshots the current published state as an auto-revision, so a restore
- * can itself be undone by restoring that snapshot.
+ * Restore loads the revision's content into the page's draft (merged onto any
+ * draft already queued) and opens the editor on it, so it's reviewed and
+ * published like any other change. The live page is untouched until then. A
+ * queued draft shows at the top with edit, preview, publish and discard.
  */
 export const PageRevisions = () => {
 	const { id: idParam } = useParams<{ id: string }>();
 	const id = Number(idParam);
 	const valid = Number.isFinite(id) && id > 0;
+	const navigate = useNavigate();
 
 	const pageQuery = useQuery({
-		queryKey: queryKeys.pages.detail(id, { lineage: true }),
-		queryFn: () => pagesApi.get(id, { lineage: true }),
+		// With the queued draft overlaid, for the Current draft card.
+		queryKey: queryKeys.pages.detail(id, { lineage: true, pending: true }),
+		queryFn: () => pagesApi.get(id, { lineage: true, pending: true }),
 		enabled: valid,
 	});
 
@@ -58,6 +66,9 @@ export const PageRevisions = () => {
 	const [description, setDescription] = useState("");
 	const deleteDialog = useConfirmDialog<PageRevision>();
 	const restoreDialog = useConfirmDialog<PageRevision>();
+	const discardDialog = useConfirmDialog<true>();
+	const [describing, setDescribing] = useState<PageRevision | null>(null);
+	const pageKeys = [queryKeys.pages.detail(id), queryKeys.pages.lists()];
 
 	const saveMutation = useToastMutation({
 		mutationFn: () => pagesApi.revisions.save(id, description.trim()),
@@ -79,24 +90,53 @@ export const PageRevisions = () => {
 		},
 	});
 
+	const describeMutation = useToastMutation({
+		mutationFn: ({ rev, text }: { rev: PageRevision; text: string }) =>
+			pagesApi.revisions.update(id, rev.id, text),
+		invalidate: [queryKeys.pages.revisions(id)],
+		successMessage: "Revision saved",
+		errorMessage: "Could not save revision",
+		onSuccess: () => {
+			setDescribing(null);
+		},
+	});
+
 	const restoreMutation = useToastMutation({
 		mutationFn: (rev: PageRevision) => pagesApi.revisions.restore(id, rev.id),
-		// Restore rewrites the live page and adds an auto-snapshot revision.
-		invalidate: [queryKeys.pages.revisions(id), queryKeys.pages.detail(id)],
-		successMessage: "Revision restored to the live page",
+		// The revision lands in the draft; the editor opens on it for review.
+		invalidate: pageKeys,
+		successMessage: "Revision loaded into the draft",
 		errorMessage: "Could not restore revision",
 		onSuccess: (result) => {
 			restoreDialog.close();
 
-			// What the restore left behind that nobody would think to look for: a
-			// required field the revision never had a value for, files it points at
-			// that have since been deleted, a template that is gone, a draft still
-			// queued on top of it.
+			// What the draft carries that nobody would think to look for: a required
+			// field the revision never had a value for, files it points at that have
+			// since been deleted, a template that is gone.
 			if (result?.warnings?.length) {
-				toast.warning("Restored, but check the page", {
+				toast.warning("Loaded, but check the draft", {
 					description: result.warnings.join(" "),
 				});
 			}
+
+			navigate(pageEditPath(id));
+		},
+	});
+
+	const publishDraftMutation = useToastMutation({
+		mutationFn: (pcid: number) => pendingChangesApi.approve(pcid),
+		invalidate: [...pageKeys, queryKeys.pages.revisions(id)],
+		successMessage: "Draft published",
+		errorMessage: "Could not publish draft",
+	});
+
+	const discardDraftMutation = useToastMutation({
+		mutationFn: (pcid: number) => pendingChangesApi.reject(pcid),
+		invalidate: pageKeys,
+		successMessage: "Draft discarded",
+		errorMessage: "Could not discard draft",
+		onSuccess: () => {
+			discardDialog.close();
 		},
 	});
 
@@ -125,6 +165,8 @@ export const PageRevisions = () => {
 	const revisions = revisionsQuery.data ?? [];
 	const saved = revisions.filter((r) => r.saved);
 	const unsaved = revisions.filter((r) => !r.saved);
+	const canManage = canPublishPage(page.access);
+	const draftId = page.changes_applied ? page.pending_change_id : undefined;
 
 	const breadcrumbs = [
 		{ label: "Pages", to: "/pages" },
@@ -146,6 +188,16 @@ export const PageRevisions = () => {
 				sub={page.path}
 				title={`Revisions for ${page.nav_title || "page"}`}
 			/>
+
+			{draftId !== undefined && (
+				<CurrentDraftCard
+					discarding={discardDraftMutation.isPending}
+					page={page}
+					publishing={publishDraftMutation.isPending}
+					onDiscard={() => discardDialog.open(true)}
+					onPublish={() => publishDraftMutation.mutate(draftId)}
+				/>
+			)}
 
 			<Card className="mb-4 p-4">
 				<SectionLabel as="h2" className="mb-2" size="md">
@@ -181,6 +233,7 @@ export const PageRevisions = () => {
 				revisions={saved}
 				title="Saved revisions"
 				onDelete={deleteDialog.open}
+				onDescribe={canManage ? setDescribing : undefined}
 				onRestore={restoreDialog.open}
 			/>
 
@@ -189,6 +242,7 @@ export const PageRevisions = () => {
 				revisions={unsaved}
 				title="Auto-saved revisions"
 				onDelete={deleteDialog.open}
+				onDescribe={canManage ? setDescribing : undefined}
 				onRestore={restoreDialog.open}
 			/>
 
@@ -206,12 +260,41 @@ export const PageRevisions = () => {
 			{restoreDialog.item && (
 				<ConfirmDialog
 					{...restoreDialog.dialogProps}
-					confirmLabel="Restore revision"
-					description={`The live page will be overwritten with the version from ${restoreDialog.item.updated_at}. The current version is snapshotted first, so you can undo this.`}
+					confirmLabel="Load into draft"
+					description={`The version from ${restoreDialog.item.updated_at} will be loaded into this page's draft${draftId !== undefined ? ", replacing what the current draft has for the same fields" : ""}. The live page doesn't change until the draft is published.`}
 					title="Restore this revision?"
 					onConfirm={() => restoreMutation.mutate(restoreDialog.item!)}
 				/>
 			)}
+
+			{discardDialog.item && draftId !== undefined && (
+				<ConfirmDialog
+					{...discardDialog.dialogProps}
+					confirmLabel="Discard draft"
+					description="The queued changes to this page will be deleted. The live page stays as it is."
+					title="Discard this draft?"
+					variant="danger"
+					onConfirm={() => discardDraftMutation.mutate(draftId)}
+				/>
+			)}
+
+			<RevisionDescriptionDialog
+				initial={describing?.saved_description ?? ""}
+				keeping={describing ? !describing.saved : false}
+				open={describing !== null}
+				saving={describeMutation.isPending}
+				updatedAt={describing?.updated_at ?? ""}
+				onOpenChange={(open) => {
+					if (!open) {
+						setDescribing(null);
+					}
+				}}
+				onSave={(text) => {
+					if (describing) {
+						describeMutation.mutate({ rev: describing, text });
+					}
+				}}
+			/>
 		</PageContainer>
 	);
 };
@@ -219,6 +302,8 @@ export const PageRevisions = () => {
 interface RevisionSectionProps {
 	empty: string;
 	onDelete: (rev: PageRevision) => void;
+	/** Keep (auto-saved) or re-describe (saved) a revision; absent without publisher access. */
+	onDescribe?: (rev: PageRevision) => void;
 	onRestore: (rev: PageRevision) => void;
 	revisions: PageRevision[];
 	showDescription?: boolean;
@@ -231,6 +316,7 @@ const RevisionSection = ({
 	revisions,
 	showDescription,
 	onDelete,
+	onDescribe,
 	onRestore,
 }: RevisionSectionProps) => (
 	<section className="mb-4">
@@ -243,7 +329,7 @@ const RevisionSection = ({
 			<ul className="divide-y divide-border overflow-hidden rounded-md border border-border bg-surface">
 				{revisions.map((rev) => (
 					<li
-						className="grid grid-cols-[minmax(0,1fr)_140px_90px] items-center gap-3 px-3 py-2 text-[12.5px]"
+						className="grid grid-cols-[minmax(0,1fr)_140px_120px] items-center gap-3 px-3 py-2 text-[12.5px]"
 						key={rev.id}
 					>
 						<div className="min-w-0">
@@ -286,6 +372,15 @@ const RevisionSection = ({
 							{rev.updated_at}
 						</div>
 						<div className="flex justify-end gap-1">
+							{onDescribe && (
+								<IconButton
+									label={rev.saved ? "Edit description" : "Keep revision"}
+									title={rev.saved ? "Edit description" : "Keep revision"}
+									onClick={() => onDescribe(rev)}
+								>
+									{rev.saved ? <Pencil size={13} /> : <Bookmark size={13} />}
+								</IconButton>
+							)}
 							<IconButton
 								label="Restore revision"
 								title="Restore revision"

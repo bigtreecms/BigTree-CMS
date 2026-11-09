@@ -133,6 +133,7 @@ import { PageRevisions } from "@/pages/PageRevisions";
 import { Pages } from "@/pages/Pages";
 import { PendingChangeDetail } from "@/pages/PendingChangeDetail";
 import { PendingChanges } from "@/pages/PendingChanges";
+import { SearchResults } from "@/pages/SearchResults";
 import { SettingEdit } from "@/pages/SettingEdit";
 import { Settings } from "@/pages/Settings";
 import { SiteIntegrity } from "@/pages/SiteIntegrity";
@@ -206,6 +207,8 @@ export const router = createBrowserRouter(
 								},
 							],
 						},
+
+						{ path: "search", element: <SearchResults /> },
 
 						{
 							path: "analytics",

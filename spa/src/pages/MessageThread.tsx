@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, Navigate, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ChevronLeft, Reply } from "lucide-react";
+import { ChevronLeft, Reply, ReplyAll } from "lucide-react";
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
@@ -20,8 +20,8 @@ import { queryKeys } from "@/lib/queryKeys";
 
 /**
  * Single-message view. Marks the message read on mount, refreshes the unread
- * count, and exposes a Reply button that opens the Compose slide-over with
- * the thread pre-filled.
+ * count, and exposes Reply / Reply All buttons that open the Compose slide-over
+ * with the thread pre-filled (Reply All addresses every other recipient too).
  *
  * Threading note: the API stores `response_to` per message, but doesn't yet
  * expose a thread roll-up endpoint — we render the single message and rely on
@@ -35,6 +35,7 @@ export const MessageThread = () => {
 	const currentUserId = useAuthStore((s) => s.user?.id ?? 0);
 
 	const [composeOpen, setComposeOpen] = useState(false);
+	const [replyAll, setReplyAll] = useState(false);
 
 	const messageQ = useQuery({
 		queryKey: queryKeys.messages.detail(id),
@@ -91,6 +92,11 @@ export const MessageThread = () => {
 	// <em>, <i>, <a>, <strong>) are safe to render directly. We're not the
 	// boundary for trust here — that's the server's job.
 	const html = message.message;
+	// Reply All only means something when the message went to someone besides
+	// the sender and the current user.
+	const hasOthers = message.recipients.some(
+		(recipient) => recipient !== currentUserId && recipient !== message.sender
+	);
 
 	return (
 		<PageContainer width="narrow">
@@ -107,10 +113,24 @@ export const MessageThread = () => {
 						<Button icon={<ChevronLeft size={13} />} to="/messages">
 							Inbox
 						</Button>
+						{hasOthers && (
+							<Button
+								icon={<ReplyAll size={13} />}
+								onClick={() => {
+									setReplyAll(true);
+									setComposeOpen(true);
+								}}
+							>
+								Reply All
+							</Button>
+						)}
 						<Button
 							icon={<Reply size={13} />}
 							variant="primary"
-							onClick={() => setComposeOpen(true)}
+							onClick={() => {
+								setReplyAll(false);
+								setComposeOpen(true);
+							}}
 						>
 							Reply
 						</Button>
@@ -164,6 +184,7 @@ export const MessageThread = () => {
 			<ComposeMessage
 				currentUserId={currentUserId}
 				open={composeOpen}
+				replyAll={replyAll}
 				replyTo={message}
 				onOpenChange={setComposeOpen}
 			/>

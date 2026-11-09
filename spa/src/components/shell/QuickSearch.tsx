@@ -26,9 +26,18 @@ import { queryKeys } from "@/lib/queryKeys";
 import { useAuthStore } from "@/auth/store";
 import { isAdmin } from "@/lib/permissions";
 import { describeApiError } from "@/lib/errorHandling";
-import { decodeHtmlEntitiesDom } from "@/lib/html";
 import { modulePath } from "@/lib/moduleActions";
-import { moduleEntryEditPath, pageEditPath, settingEditPath } from "@/lib/routes";
+import { pageEditPath, settingEditPath } from "@/lib/routes";
+import {
+	ADMIN_ONLY_GROUPS,
+	asList,
+	displayText,
+	entryItemLabel,
+	flattenEntryRows,
+	GROUP_LABELS,
+	GROUP_ORDER,
+	normalizeGroups,
+} from "@/lib/searchResults";
 
 /* eslint-disable @typescript-eslint/no-explicit-any -- search results are heterogeneous (raw module cache rows, etc.) and intentionally rendered generically */
 
@@ -43,138 +52,12 @@ interface ActionableItem {
 	item: unknown;
 }
 
-const GROUP_ORDER = ["pages", "modules", "entries", "settings", "tags", "users"] as const;
-/** Result groups only Administrators may navigate to (Settings / Tags / Users are level 1). */
-const ADMIN_ONLY_GROUPS = new Set<string>(["settings", "tags", "users"]);
-const GROUP_LABELS: Record<string, string> = {
-	pages: "Pages",
-	modules: "Modules",
-	entries: "Module entries",
-	settings: "Settings",
-	tags: "Tags",
-	users: "Users",
-};
-
 const AI_LOADING_MESSAGES = [
 	"Understanding your question…",
 	"Searching pages and modules…",
 	"Checking content entries…",
 	"Gathering the best matches…",
 ];
-
-/**
- * Coerce the AI/classic payload into a safe { group: array } map.
- * Empty PHP arrays encode as JSON `[]`, which is truthy but not keyed — that used
- * to crash `for…of` / `.map` when the SPA treated it as a result object.
- */
-const normalizeGroups = (raw: unknown): SearchResultGroups | undefined => {
-	if (raw == null) {
-		return undefined;
-	}
-
-	// JSON `[]` from an empty PHP list
-	if (Array.isArray(raw)) {
-		return {};
-	}
-
-	if (typeof raw !== "object") {
-		return {};
-	}
-
-	const src = raw as Record<string, unknown>;
-	const out: SearchResultGroups = {};
-
-	for (const key of GROUP_ORDER) {
-		const val = src[key];
-
-		if (Array.isArray(val)) {
-			out[key] = val as never;
-		}
-	}
-
-	return out;
-};
-
-const asList = (value: unknown): unknown[] => (Array.isArray(value) ? value : []);
-
-/**
- * Titles from the search/view cache often pass through htmlspecialchars (and
- * sometimes twice). Decode so text nodes show "Tom & Jerry", not "Tom &amp; Jerry".
- */
-const displayText = (value: unknown): string => {
-	if (value == null) {
-		return "";
-	}
-
-	const raw = String(value);
-
-	if (raw.trim() === "") {
-		return "";
-	}
-
-	return decodeHtmlEntitiesDom(raw, 5);
-};
-
-/** Best human label from a module-view cache row (column2 is often the title). */
-const entryItemLabel = (item: Record<string, unknown>): string => {
-	for (const key of ["column2", "column1", "title", "name", "id"]) {
-		const v = item[key];
-		const label = displayText(v);
-
-		if (label !== "") {
-			return label;
-		}
-	}
-
-	const first = Object.values(item).find((v) => displayText(v) !== "");
-
-	return first != null ? displayText(first) : "Entry";
-};
-
-/**
- * Flatten entry groups into one row per item so each result can deep-link to
- * `/modules/{route}/edit/{id}` instead of dumping the user on /modules.
- */
-const flattenEntryRows = (
-	groups: SearchResultGroups | undefined
-): Array<{
-	module: SearchModuleEntryGroup["module"];
-	item: Record<string, unknown>;
-	entryId: string | number;
-	path: string;
-}> => {
-	const out: Array<{
-		module: SearchModuleEntryGroup["module"];
-		item: Record<string, unknown>;
-		entryId: string | number;
-		path: string;
-	}> = [];
-
-	for (const group of asList(groups?.entries) as SearchModuleEntryGroup[]) {
-		const route = group?.module?.route;
-
-		if (!route) {
-			continue;
-		}
-
-		for (const item of asList(group.items) as Record<string, unknown>[]) {
-			const entryId = (item.id as string | number | undefined) ?? "";
-
-			if (entryId === "" || entryId == null) {
-				continue;
-			}
-
-			out.push({
-				module: group.module,
-				item,
-				entryId,
-				path: moduleEntryEditPath(route, "edit", entryId),
-			});
-		}
-	}
-
-	return out;
-};
 
 const AiSearchLoading = () => {
 	const [msgIndex, setMsgIndex] = useState(0);
@@ -728,10 +611,25 @@ export const QuickSearch = ({ open, onClose }: QuickSearchProps) => {
 
 					{/* Footer hints */}
 					<div className="flex items-center justify-between border-t border-border px-4 py-2 text-[11px] text-text-3">
-						<span>
-							{aiSearchEnabled
-								? "↵ search · ↑↓ navigate · esc close"
-								: "↑↓ navigate · ↵ open · esc close"}
+						<span className="inline-flex items-center gap-3">
+							<span>
+								{aiSearchEnabled
+									? "↵ search · ↑↓ navigate · esc close"
+									: "↑↓ navigate · ↵ open · esc close"}
+							</span>
+							{rawQuery.trim().length >= 2 && (
+								<button
+									className="font-medium text-accent hover:underline"
+									type="button"
+									onClick={() =>
+										selectAndClose(
+											`/search?q=${encodeURIComponent(rawQuery.trim())}`
+										)
+									}
+								>
+									See all results
+								</button>
+							)}
 						</span>
 						<span className="inline-flex items-center gap-1.5">
 							{aiSearchEnabled && (

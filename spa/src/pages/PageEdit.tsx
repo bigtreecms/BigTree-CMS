@@ -37,6 +37,7 @@ import { TagInput } from "@/components/tags/TagInput";
 import type { Tag } from "@/api/endpoints/tags";
 import {
 	resourceToFormField,
+	REDIRECT_LOWER_TEMPLATE,
 	seedTemplateResources,
 	templatesApi,
 	type TemplateSummary,
@@ -150,7 +151,9 @@ export const PageEdit = () => {
 		queryFn: () => templatesApi.list(),
 	});
 
-	const templateId = pageQuery.data?.template;
+	// A Redirect Lower page ("!") has no template record to load.
+	const storedTemplate = pageQuery.data?.template;
+	const templateId = storedTemplate === REDIRECT_LOWER_TEMPLATE ? undefined : storedTemplate;
 	const templateQuery = useQuery({
 		queryKey: queryKeys.templates.detail(templateId as string),
 		queryFn: () => templatesApi.get(templateId as string),
@@ -683,6 +686,32 @@ export const PropertiesTab = ({
 }: PropertiesTabProps) => {
 	const flexibleTemplates = templates.filter((t) => !t.routed);
 	const specialTemplates = templates.filter((t) => t.routed);
+	const redirectLower = body.template === REDIRECT_LOWER_TEMPLATE;
+	// What Redirect Lower replaced, so turning it back off restores the page
+	// exactly — leaving the form clean when nothing else was touched.
+	const beforeRedirect = useRef<Pick<PageEditBody, "template" | "external" | "new_window">>({
+		template: redirectLower ? undefined : body.template,
+		external: body.external,
+		new_window: body.new_window,
+	});
+
+	const setRedirectLower = (on: boolean) => {
+		if (on) {
+			beforeRedirect.current = {
+				template: body.template,
+				external: body.external,
+				new_window: body.new_window,
+			};
+			onPatch({ template: REDIRECT_LOWER_TEMPLATE, external: "", new_window: false });
+
+			return;
+		}
+
+		onPatch({
+			...beforeRedirect.current,
+			template: beforeRedirect.current.template || flexibleTemplates[0]?.id || "",
+		});
+	};
 
 	return (
 		<>
@@ -779,6 +808,13 @@ export const PropertiesTab = ({
 					pending={pending}
 					onChange={(v) => onPatch({ trunk: v })}
 				/>
+				<Check
+					checked={redirectLower}
+					column="template"
+					disabled={disabled}
+					label="Redirect Lower"
+					onChange={setRedirectLower}
+				/>
 			</div>
 
 			<div className="my-1 h-px bg-border" />
@@ -791,15 +827,17 @@ export const PropertiesTab = ({
 					pending={pending}
 				>
 					<Select
-						disabled={disabled || templateDisabled}
-						value={templateDisabled ? "" : (body.template ?? "")}
+						disabled={disabled || templateDisabled || redirectLower}
+						value={templateDisabled || redirectLower ? "" : (body.template ?? "")}
 						onChange={(e) => onPatch({ template: e.target.value })}
 					>
-						{templateDisabled && (
+						{redirectLower && <option value="">— (Redirect Lower) —</option>}
+
+						{templateDisabled && !redirectLower && (
 							<option value="">— (overridden by External Link) —</option>
 						)}
 
-						{!templateDisabled && (
+						{!templateDisabled && !redirectLower && (
 							<>
 								<optgroup label="Flexible Templates">
 									{flexibleTemplates.map((t) => (
@@ -819,9 +857,14 @@ export const PropertiesTab = ({
 							</>
 						)}
 					</Select>
-					{templateDisabled && (
+					{templateDisabled && !redirectLower && (
 						<span className="mt-1 block text-[11px] text-warn">
 							Disabled while External Link is set.
+						</span>
+					)}
+					{redirectLower && (
+						<span className="mt-1 block text-[11px] text-text-3">
+							Visitors are sent on to this page's first subpage.
 						</span>
 					)}
 				</Field>
@@ -834,7 +877,7 @@ export const PropertiesTab = ({
 					pending={pending}
 				>
 					<TextInput
-						disabled={disabled}
+						disabled={disabled || redirectLower}
 						placeholder="https://"
 						value={body.external ?? ""}
 						onChange={(e) => onPatch({ external: e.target.value })}
@@ -842,7 +885,7 @@ export const PropertiesTab = ({
 					<Checkbox
 						checked={Boolean(body.new_window)}
 						className="mt-2"
-						disabled={disabled || !body.external}
+						disabled={disabled || redirectLower || !body.external}
 						label="Open in New Window"
 						onChange={(checked) => onPatch({ new_window: checked })}
 					/>
@@ -914,6 +957,16 @@ export const ContentTab = ({
 			/>
 		</div>
 	) : null;
+
+	if (body.template === REDIRECT_LOWER_TEMPLATE) {
+		return (
+			<>
+				<TemplateTag label="— Redirect Lower —" />
+				<NoResources reason="redirect" />
+				{tagsSection}
+			</>
+		);
+	}
 
 	if (templateDisabled) {
 		return (
@@ -1259,7 +1312,7 @@ const NoResources = ({ reason }: { reason: "external" | "empty" | "redirect" }) 
 		reason === "external"
 			? "This page redirects to an external URL — its content lives elsewhere."
 			: reason === "redirect"
-				? "Redirect templates pass the URL through to a lower page; there is no content to edit on this page itself."
+				? "Redirect Lower sends visitors on to this page's first subpage; there is no content to edit on this page itself."
 				: "This template has no fields configured.";
 
 	return (

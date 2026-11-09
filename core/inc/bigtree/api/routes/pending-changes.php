@@ -7,6 +7,11 @@
 			"permission" => ["level" => 0],
 			"query" => ["page" => "int|min:1", "per_page" => "int|min:1|max:100", "mine" => "bool"],
 		],
+		"GET /pending-changes/export" => [
+			"service" => [PendingChangeService::class, "export"],
+			"permission" => ["level" => 0],
+			"query" => ["group" => "required|string|max:255"],
+		],
 		"GET /pending-changes/{id:int}" => [
 			"service" => [PendingChangeService::class, "get"],
 			"permission" => ["level" => 0],

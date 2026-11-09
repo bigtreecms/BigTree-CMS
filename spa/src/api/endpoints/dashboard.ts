@@ -81,6 +81,8 @@ export interface IntegrityStats {
 export const dashboardApi = {
 	summary: () => api.get<DashboardSummary>("/dashboard/summary"),
 	analytics: () => api.get<AnalyticsResponse>("/dashboard/analytics"),
+	/** Rebuild the GA4 cache now (slow: several report calls). Admins only. */
+	refreshAnalytics: () => api.post<unknown>("/dashboard/analytics/cache", {}),
 	contentAlerts: () => api.get<ContentAlert[]>("/dashboard/content-alerts"),
 	integrity: () => api.get<IntegrityStats>("/dashboard/integrity"),
 };
@@ -95,6 +97,13 @@ export interface PendingChange {
 	title: string;
 	type: string;
 	user: number;
+}
+
+/** GET /pending-changes/export — a section of the screen, ready to save as CSV. */
+export interface PendingChangesExport {
+	filename: string;
+	headers: string[];
+	rows: string[][];
 }
 
 /**
@@ -116,6 +125,10 @@ export const pendingChangesApi = {
 		api.get<PendingChange[]>("/pending-changes", { query: params }),
 
 	get: (id: number) => api.get<PendingChangeDetail>(`/pending-changes/${id}`),
+
+	/** One section of the screen ("pages" or a module id) as a table for CSV. */
+	export: (group: string) =>
+		api.get<PendingChangesExport>("/pending-changes/export", { query: { group } }),
 
 	approve: (id: number) => api.post<void>(`/pending-changes/${id}/approve`),
 

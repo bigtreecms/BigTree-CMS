@@ -12,6 +12,7 @@ import { TextArea } from "@/components/ui/TextArea";
 import { TextInput } from "@/components/ui/TextInput";
 
 import { messagesApi, type Message } from "@/api/endpoints/dashboard";
+import { replyRecipients } from "@/lib/messages";
 import { usersApi } from "@/api/endpoints/users";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { queryKeys } from "@/lib/queryKeys";
@@ -26,13 +27,16 @@ import { toast } from "@/lib/toast";
  *
  * When `replyTo` is set, the dialog seeds subject (`Re: …`) + threads the
  * post via `in_response_to` and pre-populates recipients with the original
- * sender (minus the current user themselves).
+ * sender — plus, with `replyAll`, everyone else the message went to — never
+ * including the current user themselves.
  */
 
 interface ComposeMessageProps {
 	currentUserId: number;
 	onOpenChange: (open: boolean) => void;
 	open: boolean;
+	/** With `replyTo`: address the reply to every recipient, not just the sender. */
+	replyAll?: boolean;
 	/** Pre-populate from this thread when present. */
 	replyTo?: Message | null;
 }
@@ -47,6 +51,7 @@ export const ComposeMessage = ({
 	open,
 	onOpenChange,
 	currentUserId,
+	replyAll = false,
 	replyTo,
 }: ComposeMessageProps) => {
 	const queryClient = useQueryClient();
@@ -69,12 +74,7 @@ export const ComposeMessage = ({
 				replyTo.subject.startsWith("Re:") ? replyTo.subject : `Re: ${replyTo.subject}`
 			);
 			setBody("");
-			// Reply target = original sender, unless we *are* the sender.
-			if (replyTo.sender !== currentUserId) {
-				setRecipients([{ id: replyTo.sender, name: `User #${replyTo.sender}`, email: "" }]);
-			} else {
-				setRecipients([]);
-			}
+			setRecipients(replyRecipients(replyTo, currentUserId, replyAll));
 		} else {
 			setSubject("");
 			setBody("");
@@ -83,7 +83,7 @@ export const ComposeMessage = ({
 
 		setSearch("");
 		setGeneralError(null);
-	}, [open, replyTo, currentUserId]);
+	}, [open, replyTo, currentUserId, replyAll]);
 
 	const searchEnabled = open && debounced.length >= 2;
 

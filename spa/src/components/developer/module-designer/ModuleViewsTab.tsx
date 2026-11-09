@@ -38,7 +38,7 @@ interface ModuleViewsTabProps {
 	moduleTable: string;
 }
 
-/** One editable column row; carries through `parser`/`numeric` untouched. */
+/** One editable column row; carries through `numeric` untouched. */
 interface ColumnRow {
 	key: string;
 	numeric?: string | boolean;
@@ -369,6 +369,19 @@ export const ModuleViewsTab = ({ moduleId, moduleTable }: ModuleViewsTabProps) =
 												value={col.title}
 												onChange={(e) =>
 													setColumn(index, { title: e.target.value })
+												}
+											/>
+											<BareTextInput
+												compact
+												mono
+												aria-label="Column parser"
+												className="flex-1"
+												maxLength={255}
+												placeholder="Parser (optional PHP)"
+												title="Optional PHP run on each value before it's shown — set $value from $value and $item"
+												value={col.parser ?? ""}
+												onChange={(e) =>
+													setColumn(index, { parser: e.target.value })
 												}
 											/>
 											<BareTextInput

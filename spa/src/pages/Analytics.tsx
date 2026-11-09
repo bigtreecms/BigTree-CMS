@@ -5,6 +5,8 @@ import { Settings as SettingsIcon } from "lucide-react";
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
+import { RefreshAnalyticsButton } from "@/components/dashboard/RefreshAnalyticsButton";
+import { useAuthStore } from "@/auth/store";
 import { PageContainer } from "@/components/shell/PageContainer";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { Button } from "@/components/ui/Button";
@@ -70,6 +72,8 @@ const ConfigLink = () => (
 );
 
 export const Analytics = () => {
+	// Rebuilding the cache is an admin action (level 1), like the legacy Refresh.
+	const isAdmin = useAuthStore((s) => (s.user?.level ?? 0) >= 1);
 	const analyticsQ = useQuery({
 		queryKey: queryKeys.dashboard.analytics(),
 		queryFn: dashboardApi.analytics,
@@ -91,7 +95,12 @@ export const Analytics = () => {
 			/>
 
 			<PageHead
-				actions={<ConfigLink />}
+				actions={
+					<>
+						{data?.configured && isAdmin && <RefreshAnalyticsButton />}
+						<ConfigLink />
+					</>
+				}
 				sub={analyticsQ.isLoading ? "Loading…" : sub}
 				title="Analytics"
 			/>
@@ -113,8 +122,10 @@ export const Analytics = () => {
 				</EmptyState>
 			) : !data.has_cache || !cache ? (
 				<EmptyState dashed>
-					No traffic data has been cached yet — check back after the next analytics
-					refresh.
+					No traffic data has been cached yet —{" "}
+					{isAdmin
+						? "use Refresh to pull it now, or check back after the next scheduled refresh."
+						: "check back after the next analytics refresh."}
 				</EmptyState>
 			) : (
 				<div className="flex flex-col gap-4">

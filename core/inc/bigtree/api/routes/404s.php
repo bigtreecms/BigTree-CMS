@@ -42,9 +42,15 @@
 			"permission" => ["level" => 1],
 			"audit" => ["table" => "bigtree_404s", "type" => "ignored", "entry" => "%id%"],
 		],
+		"POST /404s/{id:int}/unignore" => [
+			"service" => [FourOhFourService::class, "unignore"],
+			"permission" => ["level" => 1],
+			"audit" => ["table" => "bigtree_404s", "type" => "unignored", "entry" => "%id%"],
+		],
 		"POST /404s/clear-dead" => [
 			"service" => [FourOhFourService::class, "clearDead"],
 			"permission" => ["level" => 1],
+			"body" => ["site_key" => "string|max:255"],
 			"audit" => ["table" => "bigtree_404s", "type" => "clear_dead", "entry" => "0"],
 		],
 		"POST /404s/bulk-delete" => [

@@ -7,6 +7,8 @@ export interface SearchPage {
 	id: number;
 	nav_title: string;
 	path: string;
+	/** Plain-text excerpt of the page's content (federated search only). */
+	snippet?: string;
 }
 
 export interface SearchTag {
@@ -64,10 +66,12 @@ export const searchApi = {
 	 * Federated quick search across pages, tags, users (level≥1), modules, and module entries.
 	 * Matches the contract used by the legacy nav quick-search and the new SPA header.
 	 */
-	search: (q: string, opts: { limit?: number; types?: string[] } = {}) => {
+	search: (q: string, opts: { full?: boolean; limit?: number; types?: string[] } = {}) => {
 		const query: Record<string, string | number> = { q: q.trim() };
 		if (opts.limit) query.limit = opts.limit;
 		if (opts.types && opts.types.length) query.types = opts.types.join(",");
+		// The full results page: more entries from each module.
+		if (opts.full) query.full = 1;
 		return api.get<SearchResultGroups>("/search", { query });
 	},
 

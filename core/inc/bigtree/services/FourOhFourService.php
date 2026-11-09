@@ -26,6 +26,9 @@
 		/** The most 404 log rows one list_404s call returns, matching GET /404s' per_page cap. */
 		public const AI_404_LIMIT = 100;
 
+		/** "Clear" removes active 404s with fewer hits than this. */
+		public const CLEAR_BELOW_REQUESTS = 5;
+
 		/** How far a redirect chain is followed — checkOldRoutes' own `max_depth`. */
 		private const AI_REDIRECT_CHAIN_DEPTH = 5;
 
@@ -187,12 +190,37 @@
 			return Response::noContent();
 		}
 
+		public function unignore(Request $request) {
+			$id = $request->id();
+			Entity::assertExists("bigtree_404s", $id, "404");
+
+			SQL::update("bigtree_404s", $id, ["ignored" => ""]);
+
+			return Response::noContent();
+		}
+
+		/**
+		 * Prune low-traffic 404s: active (not ignored, not redirected) entries with
+		 * fewer than CLEAR_BELOW_REQUESTS hits, which are mostly one-off typos and
+		 * crawler noise. Narrower than legacy's clearDead404s, which deleted every
+		 * entry without a redirect (ignored ones too). Scoped to one site when
+		 * `site_key` is sent.
+		 */
 		public function clearDead(Request $request) {
-			// Delete 404 entries where the broken_url now resolves to an existing page route.
-			// Conservative: only remove entries whose broken_url has at least one path segment matching a known page route.
-			$count = (int)SQL::fetchSingle("SELECT COUNT(*) FROM bigtree_404s WHERE ignored = '' AND redirect_url = ''");
-			SQL::query("DELETE FROM bigtree_404s WHERE ignored = '' AND redirect_url = '' AND requests < 5");
-			$now = (int)SQL::fetchSingle("SELECT COUNT(*) FROM bigtree_404s WHERE ignored = '' AND redirect_url = ''");
+			$where = "ignored = '' AND redirect_url = ''";
+			$args = [];
+
+			if (array_key_exists("site_key", $request->body)) {
+				$where .= " AND site_key = ?";
+				$args[] = $request->bodyString("site_key");
+			}
+
+			$count = (int)SQL::fetchSingle("SELECT COUNT(*) FROM bigtree_404s WHERE $where", ...$args);
+			SQL::query(
+				"DELETE FROM bigtree_404s WHERE $where AND requests < " . self::CLEAR_BELOW_REQUESTS,
+				...$args
+			);
+			$now = (int)SQL::fetchSingle("SELECT COUNT(*) FROM bigtree_404s WHERE $where", ...$args);
 
 			return Response::ok(["before" => $count, "after" => $now, "deleted" => $count - $now]);
 		}

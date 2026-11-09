@@ -622,8 +622,6 @@
 		return [
 			"aiRestoreRevision" => "a restore writes a revision's template and resources back as the pair they "
 				. "were saved as; the gaps that pair has against today's template are revisionRestoreNotices' business",
-			"restoreRevision" => "the REST twin of aiRestoreRevision: the revision's template and resources go back "
-				. "as the pair they were saved as, behind the same revisionRestoreNotices refusal",
 		];
 	}
 

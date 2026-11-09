@@ -121,6 +121,12 @@
 			"body" => ["description" => "string|max:1024"],
 			"audit" => ["table" => "bigtree_page_revisions", "type" => "saved", "entry" => "%id%"],
 		],
+		"PATCH /pages/{id:int}/revisions/{rev_id:int}" => [
+			"service" => [PageService::class, "updateRevision"],
+			"permission" => ["level" => 0],
+			"body" => ["description" => "string|max:1024"],
+			"audit" => ["table" => "bigtree_page_revisions", "type" => "updated", "entry" => "%rev_id%"],
+		],
 		"DELETE /pages/{id:int}/revisions/{rev_id:int}" => [
 			"service" => [PageService::class, "deleteRevision"],
 			"permission" => ["level" => 0],

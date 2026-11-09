@@ -58,6 +58,166 @@
 			);
 		}
 
+		/**
+		 * GET /pending-changes/export?group=pages|{module id} — the rows of one
+		 * section of the pending changes screen as a table the SPA saves as CSV,
+		 * limited to changes the caller can publish (legacy export-changes did the
+		 * same from getPublishableChanges).
+		 *
+		 * Pages: Author, Page, Type, Updated. A module: Author plus its view's
+		 * columns, read from the draft (over the live row for an edit), or Author
+		 * and Item ID when the module has no view of that table. View parsers
+		 * aren't run, so a column shows its stored value.
+		 *
+		 * @return Response { filename, headers: string[], rows: string[][] }
+		 */
+		public function export(Request $request) {
+			$group = $request->queryString("group");
+			$user = $request->user;
+
+			if ($group === "pages") {
+				$changes = SQL::fetchAll(
+					"SELECT * FROM bigtree_pending_changes WHERE `table` = 'bigtree_pages' ORDER BY date DESC, id DESC"
+				);
+			} else {
+				$changes = SQL::fetchAll(
+					"SELECT * FROM bigtree_pending_changes WHERE module = ? ORDER BY date DESC, id DESC",
+					$group
+				);
+			}
+
+			$changes = array_values(array_filter($changes, function ($row) use ($user) {
+
+				return $this->isPublisherFor($user, $row);
+			}));
+			$names = $this->authorNames($changes);
+
+			if ($group === "pages") {
+				$rows = [];
+
+				foreach ($changes as $change) {
+					$draft = Json::decode($change["changes"]);
+					$is_new = $change["type"] === "NEW";
+					$title = $draft["nav_title"] ?? null;
+
+					if (!$is_new && $title === null) {
+						$title = SQL::fetchSingle("SELECT nav_title FROM bigtree_pages WHERE id = ?", (int)$change["item_id"]);
+					}
+
+					if (!$is_new && (int)$change["item_id"] === 0 && !$title) {
+						$title = "Home";
+					}
+
+					$rows[] = [
+						$names[(int)$change["user"]] ?? "",
+						self::plainText($title),
+						$is_new ? "New" : "Edit",
+						(string)$change["date"],
+					];
+				}
+
+				return Response::ok([
+					"filename" => "pending-changes-pages.csv",
+					"headers" => ["Author", "Page", "Type", "Updated"],
+					"rows" => $rows,
+				]);
+			}
+
+			$module = $group !== "" ? BigTreeJSONDB::get("modules", $group) : null;
+
+			if (!is_array($module)) {
+				throw new BadRequestException("group must be \"pages\" or a module id", "bad_group");
+			}
+
+			$table = (string)($changes[0]["table"] ?? "");
+			$fields = [];
+
+			foreach ((array)($module["views"] ?? []) as $view) {
+				if (is_array($view) && ($view["table"] ?? "") === $table && is_array($view["fields"] ?? null)) {
+					$fields = $view["fields"];
+
+					break;
+				}
+			}
+
+			$headers = ["Author"];
+
+			foreach ($fields as $column => $field) {
+				$headers[] = (string)($field["title"] ?? $column);
+			}
+
+			if (!$fields) {
+				$headers[] = "Item ID";
+			}
+
+			$rows = [];
+
+			foreach ($changes as $change) {
+				$row = [$names[(int)$change["user"]] ?? ""];
+				$is_new = $change["type"] === "NEW" || empty($change["item_id"]);
+				$item_id = $is_new ? "p" . $change["id"] : (string)$change["item_id"];
+
+				if (!$fields) {
+					$row[] = $item_id;
+					$rows[] = $row;
+
+					continue;
+				}
+
+				$values = Json::decode($change["changes"]);
+
+				if (!$is_new && $table !== "") {
+					$live = SQL::fetch("SELECT * FROM `" . str_replace("`", "", $table) . "` WHERE id = ?", (int)$change["item_id"]);
+					$values = array_merge(is_array($live) ? $live : [], $values);
+				}
+
+				foreach (array_keys($fields) as $column) {
+					$row[] = self::plainText($values[$column] ?? "");
+				}
+
+				$rows[] = $row;
+			}
+
+			$slug = trim(preg_replace("/[^a-z0-9]+/", "-", strtolower((string)($module["name"] ?? "module"))), "-");
+
+			return Response::ok([
+				"filename" => "pending-changes-" . ($slug ?: "module") . ".csv",
+				"headers" => $headers,
+				"rows" => $rows,
+			]);
+		}
+
+		/** Display names for the authors of $changes, keyed by user id. */
+		private function authorNames(array $changes): array {
+			$ids = array_values(array_unique(array_filter(array_map(function ($row) {
+
+				return (int)$row["user"];
+			}, $changes))));
+
+			if (!$ids) {
+
+				return [];
+			}
+
+			$names = [];
+			$placeholders = implode(",", array_fill(0, count($ids), "?"));
+
+			foreach (SQL::fetchAll("SELECT id, name FROM bigtree_users WHERE id IN ($placeholders)", ...$ids) as $user) {
+				$names[(int)$user["id"]] = (string)$user["name"];
+			}
+
+			return $names;
+		}
+
+		/** A cell value as plain text: arrays as JSON, markup stripped, entities decoded. */
+		private static function plainText($value): string {
+			if (is_array($value)) {
+				$value = json_encode($value);
+			}
+
+			return trim(html_entity_decode(strip_tags((string)$value), ENT_QUOTES, "UTF-8"));
+		}
+
 		public function get(Request $request) {
 			$id = $request->id();
 			$row = Entity::findOrFail("bigtree_pending_changes", $id, "Pending change");

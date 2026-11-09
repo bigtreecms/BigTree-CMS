@@ -25,6 +25,18 @@ describe("useDirtyTracker", () => {
 		expect(result.current).toBe(false);
 	});
 
+	it("treats CRLF and LF line endings as the same text", () => {
+		const { result, rerender } = renderHook(
+			(props: Props) => useDirtyTracker(props.value, props.ready, props.resetKey),
+			{ initialProps: { value: { html: "<p>a</p>\r\n<p>b</p>" }, ready: true } as Props }
+		);
+
+		rerender({ value: { html: "<p>a</p>\n<p>b</p>" }, ready: true });
+		expect(result.current).toBe(false);
+		rerender({ value: { html: "<p>a</p>\n<p>c</p>" }, ready: true });
+		expect(result.current).toBe(true);
+	});
+
 	it("re-baselines when the reset key changes", () => {
 		const { result, rerender } = renderHook(
 			(props: Props) => useDirtyTracker(props.value, props.ready, props.resetKey),

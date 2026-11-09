@@ -1344,10 +1344,17 @@
 		 * @param array<string,mixed> $revision A bigtree_page_revisions row.
 		 * @param array<string,mixed> $page The live page row.
 		 * @param string $title The page's display title, for the refusal's wording.
+		 * @param bool $into_draft The revision is being loaded into the page's draft
+		 *   (merged onto it) rather than written live, so a queued draft isn't news.
 		 * @return array{refusal:string|null,warning:string|null,template_missing:string|null,
 		 *   missing_files:string|null,queued_draft:string|null,clauses:list<string>}
 		 */
-		private function revisionRestoreNotices(array $revision, array $page, string $title): array {
+		private function revisionRestoreNotices(
+			array $revision,
+			array $page,
+			string $title,
+			bool $into_draft = false
+		): array {
 			$notices = [
 				"refusal" => null,
 				"warning" => null,
@@ -1403,7 +1410,8 @@
 			// The restore doesn't touch a queued draft — but the draft's `resources` is
 			// a whole blob authored against the pre-restore content, so approving it
 			// afterwards overlays everything this restore puts back (B1).
-			$queued = $this->aiPendingEditChange((int)($page["id"] ?? 0));
+			// Loading into the draft merges onto it instead, so there's nothing to say.
+			$queued = $into_draft ? null : $this->aiPendingEditChange((int)($page["id"] ?? 0));
 
 			if ($queued) {
 				$owner = !empty($queued["user"])
@@ -6882,11 +6890,38 @@
 		}
 
 		/**
-		 * Restore a saved/auto revision back onto the live page. The SPA edits
-		 * pages directly (there is no separate draft layer), so this overwrites
-		 * the page's content columns with the revision's. The current published
-		 * state is first snapshotted as an auto-revision so the restore is
-		 * reversible. Publisher access required.
+		 * Keep a revision (an auto-saved one becomes a saved one) with a description,
+		 * or change a kept revision's description. Publisher access required, as the
+		 * legacy revisions screen required it.
+		 */
+		public function updateRevision(Request $request) {
+			$id = $request->id();
+			$rev_id = $request->routeParam("rev_id", "int");
+			$this->enforce($request->user, $id, "p");
+
+			$revision = Entity::fetchOrFail(
+				"SELECT id, updated_at FROM bigtree_page_revisions WHERE id = ? AND page = ?",
+				[$rev_id, $id],
+				"Revision $rev_id not found for page $id"
+			);
+
+			// updated_at is when the revision was taken; the column's ON UPDATE
+			// would otherwise restamp it to now.
+			SQL::update("bigtree_page_revisions", $rev_id, [
+				"saved" => "on",
+				"saved_description" => $request->bodyString("description", "", true),
+				"updated_at" => $revision["updated_at"],
+			]);
+
+			return Response::noContent();
+		}
+
+		/**
+		 * Load a saved or auto revision into the page's draft, as the legacy
+		 * revisions screen's "Use" did: its content is merged onto any draft already
+		 * queued for the page (or starts one), the live page is left alone, and the
+		 * draft is then reviewed and published like any other. Publisher access
+		 * required.
 		 */
 		public function restoreRevision(Request $request) {
 			$id = $request->id();
@@ -6901,26 +6936,11 @@
 				"Revision $rev_id not found for page $id"
 			);
 
-			// A revision stores its template, so restoring one changes the page's
-			// template — the same rule the write paths carry, including
-			// the explicit-clear leg for a revision of the page's external-link era.
-			$template_denial = self::templateWriteDenial(
-				(string)($revision["template"] ?? ""),
-				(string)$page["template"],
-				$request->user,
-				true
-			);
-
-			if ($template_denial !== null) {
-				throw new AuthorizationException($template_denial);
-			}
-
 			$title = trim((string)$page["nav_title"]) ?: trim((string)$page["title"]) ?: "page #{$id}";
 
-			// The same refusal and the same disclosures the assistant's restore carries
-			// — the rule is the CMS's, not the assistant's. The
+			// The same refusal and disclosures the assistant's restore carries; the
 			// warnings ride back on the response so the SPA's toast can show them.
-			$notices = $this->revisionRestoreNotices($revision, $page, $title);
+			$notices = $this->revisionRestoreNotices($revision, $page, $title, true);
 
 			if ($notices["refusal"] !== null) {
 				// 422 rather than 400: the body is well-formed and the actor is allowed
@@ -6928,26 +6948,32 @@
 				throw new BadRequestException($notices["refusal"], "revision_missing_required_content", 422);
 			}
 
-			// Snapshot the current published state so the restore can be undone.
-			$this->insertRevisionSnapshot($id, $page, (int)$request->user->id);
+			// writePendingPageChange re-asks the template rule (a revision carries its
+			// template, so loading one can change the page's) on the explicit leg.
+			$pending_id = $this->writePendingPageChange($request->user, "EDIT", $id, [
+				"title" => (string)$revision["title"],
+				"meta_description" => (string)$revision["meta_description"],
+				"template" => (string)$revision["template"],
+				"external" => (string)$revision["external"],
+				"new_window" => Flag::isOn($revision["new_window"]),
+				"resources" => Json::decode($revision["resources"]),
+			]);
 
-			$update = [];
+			Hooks::fire("page.pending_updated", [
+				"id" => $id, "pending_change_id" => $pending_id,
+			]);
 
-			foreach (self::REVISION_COLUMNS as $col) {
-				$update[$col] = $revision[$col];
-			}
-
-			$update["last_edited_by"] = $request->user->id;
-			$update["updated_at"] = "NOW()";
-			SQL::update("bigtree_pages", $id, $update);
-
-			$restored = $this->finishPageWrite($id, $update, [], [], $page);
+			$result = [
+				"pending" => true,
+				"pending_change_id" => $pending_id,
+				"preview_url" => self::previewUrl($id),
+			];
 
 			if ($notices["clauses"]) {
-				$restored["warnings"] = $notices["clauses"];
+				$result["warnings"] = $notices["clauses"];
 			}
 
-			return Response::ok($restored);
+			return Response::ok($result);
 		}
 
 		/**
@@ -6957,23 +6983,54 @@
 		 * SearchService pages domain — both must return the same row shape and
 		 * the same overfetch semantics.
 		 *
-		 * @param string $q     Search query.
-		 * @param mixed  $user  Authenticated user (PermissionService).
-		 * @param int    $limit Max rows to return after filtering.
+		 * With $content (the federated search), the meta description and the page's
+		 * content match too, title matches rank first, and each row carries a short
+		 * plain-text `snippet` of its content. A pasted URL of a page or file on this
+		 * site is matched as the internal link it's stored as, so "which pages link
+		 * to X" works the way the legacy search did.
+		 *
+		 * @param string $q       Search query.
+		 * @param mixed  $user    Authenticated user (PermissionService).
+		 * @param int    $limit   Max rows to return after filtering.
+		 * @param bool   $content Also match the meta description and content.
 		 */
-		public function searchRows(string $q, $user, int $limit): array {
+		public function searchRows(string $q, $user, int $limit, bool $content = false): array {
 			$like = Sanitize::likeTerm($q);
 			// LIMIT needs an integer literal; ? substitution would quote it.
 			// Overfetch so permission filtering doesn't starve the result set.
 			$overfetch = max(1, (int)$limit) * 3;
-			$rows = SQL::fetchAll(
-				"SELECT id, nav_title, path, archived
-				 FROM bigtree_pages
-				 WHERE (nav_title LIKE ? OR title LIKE ?)
-				 ORDER BY archived ASC, nav_title ASC
-				 LIMIT $overfetch",
-				$like, $like
-			);
+			$title_match = "(nav_title LIKE ? OR title LIKE ?)";
+
+			if ($content) {
+				$content_conds = [];
+				$content_args = [];
+
+				foreach (self::contentSearchTerms($q) as $term) {
+					$term_like = Sanitize::likeTerm($term);
+					$content_conds[] = "meta_description LIKE ? OR resources LIKE ?";
+					$content_args[] = $term_like;
+					$content_args[] = $term_like;
+				}
+
+				$rows = SQL::fetchAll(
+					"SELECT id, nav_title, path, archived, resources, $title_match AS title_match
+					 FROM bigtree_pages
+					 WHERE $title_match OR " . implode(" OR ", $content_conds) . "
+					 ORDER BY title_match DESC, archived ASC, nav_title ASC
+					 LIMIT $overfetch",
+					...array_merge([$like, $like, $like, $like], $content_args)
+				);
+			} else {
+				$rows = SQL::fetchAll(
+					"SELECT id, nav_title, path, archived
+					 FROM bigtree_pages
+					 WHERE $title_match
+					 ORDER BY archived ASC, nav_title ASC
+					 LIMIT $overfetch",
+					$like, $like
+				);
+			}
+
 			$kept = [];
 
 			foreach ($rows as $r) {
@@ -6981,12 +7038,18 @@
 					continue;
 				}
 
-				$kept[] = [
+				$row = [
 					"id" => (int)$r["id"],
 					"nav_title" => Sanitize::decodeEntities($r["nav_title"]),
 					"path" => $r["path"],
 					"archived" => Flag::isOn($r["archived"]),
 				];
+
+				if ($content) {
+					$row["snippet"] = self::contentSnippet(Json::decode($r["resources"] ?? ""));
+				}
+
+				$kept[] = $row;
 
 				if (count($kept) >= $limit) {
 					break;
@@ -6994,6 +7057,50 @@
 			}
 
 			return $kept;
+		}
+
+		/**
+		 * What to look for in stored content. Usually the query itself; a URL of a
+		 * page or file on this site is stored as an `ipl://` / `irl://` link, in
+		 * both slash-escaped and plain forms, so those are what's matched.
+		 *
+		 * @return list<string>
+		 */
+		private static function contentSearchTerms(string $q): array {
+			if (!preg_match("#^https?://#i", $q)) {
+
+				return [$q];
+			}
+
+			$link = (string)LinkService::makeIPL($q);
+
+			if (!preg_match("#^(ipl|irl)://(\d+)//#", $link, $match)) {
+
+				return [$q];
+			}
+
+			return [
+				$q,
+				"{$match[1]}://{$match[2]}//",
+				"{$match[1]}:\\/\\/{$match[2]}\\/\\/",
+			];
+		}
+
+		/** A short plain-text excerpt of a page's content, for search results. */
+		private static function contentSnippet(array $resources): string {
+			$text = "";
+
+			foreach (array_merge(["page_content" => $resources["page_content"] ?? ""], $resources) as $value) {
+				if (is_string($value) && trim(strip_tags($value)) !== "" && !preg_match("#^(ipl|irl)://#", $value)) {
+					$text = $value;
+
+					break;
+				}
+			}
+
+			$plain = trim(preg_replace("/\s+/", " ", html_entity_decode(strip_tags($text), ENT_QUOTES, "UTF-8")));
+
+			return mb_strlen($plain) > 220 ? rtrim(mb_substr($plain, 0, 220)) . "…" : $plain;
 		}
 
 		public function search(Request $request) {

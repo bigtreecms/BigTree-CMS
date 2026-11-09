@@ -13,7 +13,11 @@ import { PageSummaryPanel } from "@/components/pages/PageSummaryPanel";
 import { PageSectionToolbar } from "@/components/pages/PageSectionToolbar";
 
 import { isPendingResult, pagesApi, type PageEditBody } from "@/api/endpoints/pages";
-import { resourceToFormField, templatesApi } from "@/api/endpoints/templates";
+import {
+	REDIRECT_LOWER_TEMPLATE,
+	resourceToFormField,
+	templatesApi,
+} from "@/api/endpoints/templates";
 import type { Tag } from "@/api/endpoints/tags";
 
 import { validateRequiredFields } from "@/renderer/forms/validation";
@@ -112,7 +116,8 @@ export const PageAdd = () => {
 	const templateQuery = useQuery({
 		queryKey: queryKeys.templates.detail(body.template as string),
 		queryFn: () => templatesApi.get(body.template as string),
-		enabled: Boolean(body.template),
+		// A Redirect Lower page ("!") has no template record to load.
+		enabled: Boolean(body.template) && body.template !== REDIRECT_LOWER_TEMPLATE,
 	});
 
 	const parentQuery = useQuery({

@@ -52,6 +52,12 @@ export const resourceToFormField = (r: TemplateResource): ModuleFormField => ({
  * only writes keys the user touches, so we seed the full set on load/save.
  * Existing values win; missing keys get each field's `default` setting or `""`.
  */
+/**
+ * The template value of a "Redirect Lower" page: it has no template of its own
+ * and sends visitors on to its first subpage.
+ */
+export const REDIRECT_LOWER_TEMPLATE = "!";
+
 export const seedTemplateResources = (
 	resources: TemplateResource[] | undefined,
 	existing?: Record<string, unknown> | null
