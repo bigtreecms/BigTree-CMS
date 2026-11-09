@@ -91,8 +91,12 @@
 			$names[] = $tool->name();
 		}
 
-		// The search registry's tools are registered separately at build time.
-		foreach (["get_page", "get_module_entry", "search_tags", "search_users", "search_modules"] as $name) {
+		// The search tools are registered separately at build time, semantic_search
+		// only when embeddings are enabled — so take every one of them by name.
+		$search = ai_wiring_search_registry();
+
+		foreach (["get_page", "get_module_entry", "search_tags", "search_users", "search_modules", "semantic_search"] as $name) {
+			T::ok($search->has($name), "the search registry registers {$name}");
 			$names[] = $name;
 		}
 

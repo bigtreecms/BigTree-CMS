@@ -11,6 +11,7 @@
 
 	use BigTree\Services\AIChatService;
 	use BigTree\Services\AI\ProposalStore;
+	use BigTree\Services\SearchService;
 
 	/** The real registry AIChatService builds for a chat turn. */
 	function ai_wiring_registry() {
@@ -21,6 +22,22 @@
 			$build = new ReflectionMethod($service, "buildRegistry");
 			$build->setAccessible(true);
 			$registry = $build->invoke($service, new ProposalStore());
+		}
+
+		return $registry;
+	}
+
+	/**
+	 * The search tools with the vector index switched on. The chat registry only
+	 * carries semantic_search when embeddings are enabled on this install, so asking
+	 * whether a tool exists at all has to look here as well as at ai_wiring_registry()
+	 * — otherwise the answer depends on the server the suite happens to run on.
+	 */
+	function ai_wiring_search_registry() {
+		static $registry = null;
+
+		if ($registry === null) {
+			$registry = (new SearchService())->buildAiSearchRegistry(true);
 		}
 
 		return $registry;

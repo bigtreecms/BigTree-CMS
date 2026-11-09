@@ -8,7 +8,8 @@
 /plans
 .DS_Store
 .htaccess
-.claude
+/.claude/*
+!/.claude/skills/
 /cron-run.php
 /spa/*.tsbuildinfo
 

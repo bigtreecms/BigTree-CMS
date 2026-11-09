@@ -52,3 +52,18 @@ InnoDB's 3072-byte key prefix limit. Index a wider column with a `(191)` prefix 
 - There should be a blank line before and after control structures (unless they are the first or last line within a function or file)
 - No single line if statements
 - A blank line should appear before a return statement if a non-control structure line precedes it — if the return statement is the only line in a function (or a case statement), it does not need an empty line before it
+
+## Running the App
+
+`scripts/dev-up.sh` brings up the whole stack (MySQL, the PHP API, the packaged SPA, and
+Vite with `--vite`) from a bare checkout. [docs/cloud-sessions.md](docs/cloud-sessions.md)
+covers the URLs, the dev login, and how to run each test layer the way CI does.
+
+- Run `scripts/dev-up.sh` before testing anything against the running app. It is safe to
+  run again.
+- When you start a server, say which port it's on (`:8080` for the API and packaged SPA,
+  `:5173` for Vite).
+- Never commit `custom/`, `site/`, `templates/`, `extensions/` or `cache/`. They are
+  generated, and gitignored for that reason.
+- After SPA source changes, run `cd spa && npm run build:package` before checking
+  `:8080/admin/`, which serves the committed `core/admin/dist`.

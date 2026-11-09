@@ -543,7 +543,8 @@
 			$settable = [];
 
 			foreach ($contract["tools"] as $name) {
-				$tool = $registry->get($name);
+				// semantic_search is only in the chat registry when embeddings are on.
+				$tool = $registry->get($name) ?? ai_wiring_search_registry()->get($name);
 				T::ok($tool !== null, "{$route}'s contract names the registered tool {$name}");
 
 				if ($tool === null) {
